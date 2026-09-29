@@ -525,6 +525,53 @@ test('cancellation during classification closes status without exposing a route 
   assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'request_cancelled']);
 });
 
+test('disconnect cancels an unlimited Ollama decision through the real router before any upstream call', { timeout: 3000 }, async t => {
+  let evaluating;
+  const started = new Promise(resolve => { evaluating = resolve; });
+  let decisionSignal;
+  let bodyCancelled = false;
+  let upstreamCalls = 0;
+  const paths = [];
+  const config = { ...readConfig({ AUTOROUTER_EVALUATOR: 'ollama' }), ollamaTimeoutMs: 0 };
+  const router = new Router(config, { fetchImpl: async (url, options) => {
+    const path = new URL(url).pathname;
+    paths.push(path);
+    assert.equal(new URL(url).origin, config.ollamaEndpoint);
+    if (path === '/api/show') return Response.json({ details: { parameter_size: '9B' } });
+    assert.equal(path, '/v1/systemone');
+    assert.equal(JSON.parse(options.body).state.current_task, 'Fix a typo');
+    decisionSignal = options.signal;
+    return new Response(new ReadableStream({
+      pull() { evaluating(); },
+      cancel() { bodyCancelled = true; },
+    }));
+  } });
+  const f = await fixture(t, (_req, res) => {
+    upstreamCalls++;
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end('{}');
+  }, { evaluator: 'ollama', ollamaTimeoutMs: 0 }, (...args) => router.route(...args));
+  const controller = new AbortController();
+  t.after(() => controller.abort());
+  const pending = f.call('/v1/messages', { method: 'POST', signal: controller.signal, body: JSON.stringify(body) });
+  const rejected = assert.rejects(pending, error => error.name === 'AbortError');
+  await started;
+  // A zero deadline must leave the decision pending until its caller cancels.
+  await new Promise(resolve => setTimeout(resolve, 30));
+  assert.equal(decisionSignal.aborted, false);
+  assert.equal(bodyCancelled, false);
+  assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start']);
+  controller.abort();
+  await rejected;
+  await waitForStatus(f, 'request_cancelled');
+  assert.equal(decisionSignal.aborted, true);
+  assert.equal(bodyCancelled, true);
+  assert.equal(upstreamCalls, 0);
+  assert.deepEqual(paths, ['/api/show', '/v1/systemone']);
+  assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'request_cancelled']);
+  assert.equal(f.logs.some(entry => entry.event === 'route'), false);
+});
+
 test('completed streamed usage is correlated with its request before completion and never added to debug logs', async t => {
   const usage = { input_tokens: 100, output_tokens: 20, cache_creation_input_tokens: 60, cache_read_input_tokens: 200,
     cache_creation: { ephemeral_5m_input_tokens: 40, ephemeral_1h_input_tokens: 20 }, inference_geo: 'us', speed: 'fast', service_tier: 'standard' };

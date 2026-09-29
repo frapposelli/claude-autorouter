@@ -61,6 +61,20 @@ AUTOROUTER_OLLAMA_TIMEOUT_MS=15000 claude-autorouter claude
 AUTOROUTER_OLLAMA_TIMEOUT_MS=30000 claude-autorouter claude
 ```
 
+The unreleased source also accepts `0` to disable AutoRouter's runtime evaluator deadline. For one launch using your existing configuration:
+
+```sh
+AUTOROUTER_OLLAMA_TIMEOUT_MS=0 node bin/autorouter.mjs claude
+```
+
+To save that setting for an installed Tev1 4B model:
+
+```sh
+node bin/autorouter.mjs setup --evaluator ollama --ollama-model tev1:4b --ollama-timeout-ms 0 --force
+```
+
+The setup flag overrides the timeout environment value and saves it. Cancellation and disconnected clients still stop evaluation, normal errors still use fallback, and startup priming keeps its separate 60-second deadline. These zero-timeout and setup-flag options are not in npm 0.3.1.
+
 Install and start Ollama 0.35 or newer; [version 0.35.0](https://github.com/ollama/ollama/releases/tag/v0.35.0) is a prerelease as of September 29, 2026. Then run:
 
 ```sh

@@ -193,6 +193,48 @@ test('forced model setup persists an explicit deadline and later environment ove
   assert.equal(readConfig(loadUserConfig({ ...paths, AUTOROUTER_OLLAMA_TIMEOUT_MS: '600' }).env).ollamaTimeoutMs, 600);
 });
 
+test('setup can disable the runtime deadline explicitly, overriding the environment and reporting it in doctor', async t => {
+  const paths = fixture(t);
+  const lines = [];
+  const local = localOllama('tev1:4b');
+  await setup(['--evaluator', 'ollama', '--ollama-model', 'tev1:4b', '--ollama-timeout-ms', '0'], {
+    env: { ...paths, AUTOROUTER_OLLAMA_TIMEOUT_MS: '1500' }, write: line => lines.push(line), fetchImpl: local.fetchImpl,
+  });
+  assert.equal(JSON.parse(readFileSync(paths.AUTOROUTER_CONFIG, 'utf8')).AUTOROUTER_OLLAMA_TIMEOUT_MS, '0');
+  assert.equal(readConfig(loadUserConfig(paths).env).ollamaTimeoutMs, 0);
+  assert.match(lines.join('\n'), /tev1:4b; routing deadline disabled\./);
+  assert.ok(!lines.join('\n').includes('deadline 0 ms'));
+  assert.equal(local.calls.filter(call => call.path === '/v1/systemone').length, 1, 'Setup still performs its separately bounded synthetic warmup');
+
+  lines.length = 0;
+  local.calls.length = 0;
+  const healthy = await doctor({ env: paths, write: line => lines.push(line), fetchImpl: local.fetchImpl,
+    run: async (_command, args) => ({ stdout: args[0] === '--version' ? '2.1.284' : '{"loggedIn":true,"authMethod":"claude.ai"}' }),
+  });
+  assert.equal(healthy, true);
+  assert.match(lines.join('\n'), /tev1:4b; routing deadline disabled\./);
+  assert.deepEqual(local.calls.map(call => call.path), ['/api/version', '/api/tags', '/api/show']);
+
+  lines.length = 0;
+  await setup(['--force', '--evaluator', 'ollama', '--ollama-timeout-ms', '2200'], {
+    env: { ...paths, AUTOROUTER_OLLAMA_TIMEOUT_MS: '0' }, write: line => lines.push(line), fetchImpl: localOllama().fetchImpl,
+  });
+  assert.equal(JSON.parse(readFileSync(paths.AUTOROUTER_CONFIG, 'utf8')).AUTOROUTER_OLLAMA_TIMEOUT_MS, '2200');
+  assert.match(lines.join('\n'), /routing deadline 2200 ms per request/);
+});
+
+test('setup rejects missing, blank, invalid and Jev deadline options before prompting or calling a provider', async t => {
+  const env = fixture(t);
+  const unexpected = () => assert.fail('Invalid setup options must not prompt or contact providers');
+  for (const value of [undefined, '', ' ', '--pull', '-1', '30001', '1.5', '1e-999', '-1e-999', 'NaN', 'Infinity']) {
+    const args = ['--evaluator', 'ollama', '--ollama-timeout-ms', ...(value === undefined ? [] : [value])];
+    await assert.rejects(setup(args, { env, write: () => {}, prompt: unexpected, fetchImpl: unexpected }), /--ollama-timeout-ms requires an integer/);
+    assert.equal(existsSync(env.AUTOROUTER_CONFIG), false);
+  }
+  await assert.rejects(setup(['--ollama-timeout-ms', '0'], { env, write: () => {}, prompt: unexpected, fetchImpl: unexpected }), /require --evaluator ollama/);
+  assert.equal(existsSync(env.AUTOROUTER_CONFIG), false);
+});
+
 test('failed Ollama setup leaves the existing configuration intact and never downloads implicitly', async t => {
   const env = { ...fixture(t), TYPESAFE_API_KEY: 'original-key' };
   await setup([], { env, write: () => {} });

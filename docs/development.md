@@ -26,6 +26,14 @@ node --env-file=.env bin/autorouter.mjs claude
 
 The explicit Node flag loads `.env`; the CLI itself does not auto-load project files. Environment values override the user config. Keep keys out of source control and command arguments.
 
+To launch an already configured Ollama evaluator without AutoRouter's runtime deadline, use the unreleased source:
+
+```sh
+AUTOROUTER_OLLAMA_TIMEOUT_MS=0 node bin/autorouter.mjs claude
+```
+
+Persist the setting with `node bin/autorouter.mjs setup --evaluator ollama --ollama-model tev1:4b --ollama-timeout-ms 0 --force` for that installed model. The setup flag overrides the timeout environment value; later launch-time environment values still override saved configuration. Startup priming keeps its separate 60-second limit, cancellation remains active, and normal errors still use fallback. npm 0.3.1 does not accept the `0` value or the setup flag.
+
 ## Local routing regression (unreleased)
 
 The source-only harness below is opt-in and is not included in npm 0.3.1. It sends synthetic Claude-shaped requests through the real router and an installed local evaluator, checking task extraction, classifier choices, selected Claude tiers, and new human turns. It makes no Anthropic or Jev calls, downloads no models, and writes no user configuration.
@@ -36,7 +44,11 @@ node scripts/test-ollama-routing.mjs --model tev1:4b
 node scripts/test-ollama-routing.mjs --model nimble:9b-q4_K_M
 ```
 
-Start Ollama 0.35+ and install the selected model first. The harness refuses to run while another model is resident. It never explicitly unloads the selected model; its keep-alive setting controls residency. It warms once, then uses the production deadline for each uncached case: 1,500 ms for Tev1 0.8B/custom tags, 15,000 ms for official Tev1 4B tags, and 30,000 ms for official Nimble tags. Environment settings or `--timeout-ms N` can override the deadline; this harness does not load saved user configuration. Use `--output artifacts/local-routing.json` to save a metadata report.
+Start Ollama 0.35+ and install the selected model first. The harness refuses to run while another model is resident. It never explicitly unloads the selected model; its keep-alive setting controls residency. It warms once, then uses the production deadline for each uncached case: 1,500 ms for Tev1 0.8B/custom tags, 15,000 ms for official Tev1 4B tags, and 30,000 ms for official Nimble tags. Environment settings or `--timeout-ms N` can override the deadline; `--timeout-ms 0` disables the runtime timer while retaining cancellation and the separate warmup limit. This harness does not load saved user configuration. Use `--output artifacts/local-routing.json` to save a metadata report.
+
+```sh
+node scripts/test-ollama-routing.mjs --model tev1:4b --timeout-ms 0
+```
 
 The command fails on a wrong classification, fallback, unexpected guard override, or missing tier coverage. A Sonnet result with `source: ollama` and `classified_tier: sonnet` is a valid prediction; `source: fallback` and `classifier_error: timeout` means classification did not complete. Passing establishes these synthetic cases only. Warmup and metadata-only `doctor` checks do not establish speed or accuracy on real tasks.
 

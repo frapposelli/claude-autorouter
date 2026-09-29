@@ -7,6 +7,7 @@
 | `claude-autorouter setup` | Save subscription-mode configuration and a Jev key |
 | `claude-autorouter setup --auth-mode api-key` | Configure Jev and Anthropic API-key billing |
 | `claude-autorouter setup --evaluator ollama --pull` | Configure the native local evaluator and download its selected model if missing |
+| `node bin/autorouter.mjs setup --evaluator ollama --ollama-timeout-ms 0 --force` | Save a disabled runtime evaluator deadline; unreleased source option |
 | `claude-autorouter setup --force` | Replace an existing user config |
 | `claude-autorouter doctor` | Check config, Claude executable/login, and the selected local Ollama model without paid calls |
 | `claude-autorouter claude [arguments]` | Start a local router and pass arguments through to Claude Code |
@@ -52,7 +53,7 @@ For an environment-only subscription launch, set `AUTOROUTER_AUTH_MODE=subscript
 | `AUTOROUTER_JEV_TIMEOUT_MS` | `1500` | Classifier deadline in milliseconds |
 | `AUTOROUTER_OLLAMA_URL` | `http://127.0.0.1:11434` | Loopback Ollama base URL |
 | `AUTOROUTER_OLLAMA_MODEL` | `nimble:9b-q4_K_M` | Installed local model tag or alias compatible with `/v1/systemone` |
-| `AUTOROUTER_OLLAMA_TIMEOUT_MS` | model-dependent in unreleased source; `1500` in npm 0.3.1 | Whole local classification deadline in milliseconds; see below |
+| `AUTOROUTER_OLLAMA_TIMEOUT_MS` | model-dependent in unreleased source; `1500` in npm 0.3.1 | Runtime local classification deadline, `1`–`30000` ms; unreleased source also accepts `0` to disable it |
 | `AUTOROUTER_OLLAMA_KEEP_ALIVE` | `5m` | How long Ollama retains the evaluator in memory |
 | `AUTOROUTER_TOKEN_COUNT_TIMEOUT_MS` | `1500` | Context-check deadline; runs alongside classification |
 | `AUTOROUTER_MIN_CONFIDENCE` | `0.75` | Jev confidence threshold; does not apply to Ollama |
@@ -67,7 +68,7 @@ Model access depends on your account. The policy recognizes specific Claude mode
 
 Local classification is experimental and requires AutoRouter 0.3.1 or newer. It uses Ollama's native `/v1/systemone` decision endpoint for every model, replacing the chat backend from 0.2.0. Jev remains the default remote evaluator, using TypeSafe's `/v1/systemone` endpoint and a TypeSafe API key. Selecting Ollama never silently switches back to Jev. Haiku, Sonnet, or Opus still completes the task through Anthropic.
 
-**Unreleased source changes:** local excerpts exclude Claude's executor system instructions, runtime deadlines depend on the selected model, and setup/doctor/startup show the effective model and deadline. These changes are not published in npm 0.3.1. The deadline and excerpt descriptions below distinguish source behavior from that release; Jev is unchanged.
+**Unreleased source changes:** local excerpts exclude Claude's executor system instructions, runtime deadlines depend on the selected model and can be disabled with `0`, and setup/doctor/startup show the effective model and deadline. Setup also accepts `--ollama-timeout-ms`. These changes are not published in npm 0.3.1. The deadline and excerpt descriptions below distinguish source behavior from that release; Jev is unchanged.
 
 All local models require Ollama 0.35 or newer. Version 0.35.0 is a prerelease as of September 29, 2026; it introduces the native decision API. See the [Ollama release notes](https://github.com/ollama/ollama/releases/tag/v0.35.0). Install and start a compatible local service, then run:
 
@@ -109,7 +110,21 @@ The endpoint must be loopback (`127.0.0.1`, `localhost`, or `::1`), without a pa
 
 Local classification caps serialized evaluator state at both 3,000 characters and 3,000 UTF-8 bytes, including for non-ASCII prompts. In the unreleased source, Claude's top-level executor system instructions are excluded before budgeting; the current task, original task, and recent conversation excerpts remain. `/v1/systemone` receives the bounded state and routing criteria and returns a tier directly. The router retains each model's native context setting: 8,194 tokens for the default Nimble tag and 2,050 for the listed Tev1 tags. Tev1's smaller window includes the routing criteria and template as well as the excerpt; the byte limit does not guarantee every possible input fits. Context errors use the normal fallback. Returned confidence scores summarize choice-distribution entropy; they are not calibrated accuracy probabilities. `AUTOROUTER_MIN_CONFIDENCE` applies only to Jev. All capability, tool-continuation, thinking, and context guards still apply.
 
-In the unreleased source, the deadline covering local checks and classification defaults to 1,500 ms for Tev1 0.8B and custom/unrecognized tags, 15,000 ms for official Tev1 4B variants (including bare `tev1` and `latest`), and 30,000 ms for official Nimble variants. Official `library/` and `registry.ollama.ai/` aliases are recognized; a custom namespace such as `team/nimble` keeps the short default. Explicit `AUTOROUTER_OLLAMA_TIMEOUT_MS` values always win, including an old saved `1500`. Environment values override saved values. Defaults are not written into the user config; `setup --force` replaces the config and saves an explicit timeout only when supplied again through the environment.
+In the unreleased source, the deadline covering local checks and classification defaults to 1,500 ms for Tev1 0.8B and custom/unrecognized tags, 15,000 ms for official Tev1 4B variants (including bare `tev1` and `latest`), and 30,000 ms for official Nimble variants. Official `library/` and `registry.ollama.ai/` aliases are recognized; a custom namespace such as `team/nimble` keeps the short default. An explicit timeout overrides the model default, including an old saved `1500`. Environment values override saved values on launch. Defaults are not written into the user config; `setup --force` replaces the config and saves an explicit timeout when supplied through `--ollama-timeout-ms` or the environment. During setup, the command-line flag takes precedence over the timeout environment value.
+
+Set `AUTOROUTER_OLLAMA_TIMEOUT_MS=0` to remove AutoRouter's runtime evaluator timer while keeping the existing configuration:
+
+```sh
+AUTOROUTER_OLLAMA_TIMEOUT_MS=0 node bin/autorouter.mjs claude
+```
+
+To persist it for an already installed Tev1 4B model, run:
+
+```sh
+node bin/autorouter.mjs setup --evaluator ollama --ollama-model tev1:4b --ollama-timeout-ms 0 --force
+```
+
+Only the runtime evaluator deadline is disabled. User cancellation and client disconnection still abort evaluation; ordinary service, HTTP, and response errors still use fallback. Startup priming retains its separate 60-second limit, and lifecycle checks retain their own limits. Positive values from `1` to `30000` keep a finite deadline: for example, `--ollama-timeout-ms 2500` permits 2.5 seconds and can still time out on decisions near that cutoff. The `0` value and setup flag require the unreleased source; npm 0.3.1 does not support them.
 
 npm 0.3.1 defaults to 1,500 ms for every local model. To override it for one launch of an already configured model, use:
 
@@ -120,7 +135,7 @@ AUTOROUTER_OLLAMA_TIMEOUT_MS=15000 claude-autorouter claude
 AUTOROUTER_OLLAMA_TIMEOUT_MS=30000 claude-autorouter claude
 ```
 
-Before opening Claude's UI, the launcher loads an installed model and primes the classifier rubric with a synthetic task, using a separate deadline of up to 60 seconds. Successful priming does not establish that real excerpts finish within the runtime deadline or classify correctly. `doctor` checks version and model availability without inference; it does not certify speed or accuracy either. `AUTOROUTER_OLLAMA_KEEP_ALIVE` defaults to `5m`. After five idle minutes, the next request may need to reload the model, exceed the deadline, and use the fallback. A longer positive keep-alive reduces some reloads while retaining memory longer; `0` unloads immediately and can make every evaluation cold. Supported values are `0` or a positive duration such as `30s`, `5m`, or `1h`.
+Before opening Claude's UI, the launcher loads an installed model and primes the classifier rubric with a synthetic task, using a separate deadline of up to 60 seconds. Successful priming does not establish that real excerpts finish within an enabled runtime deadline or classify correctly. `doctor` checks version and model availability without inference; it does not certify speed or accuracy either. `AUTOROUTER_OLLAMA_KEEP_ALIVE` defaults to `5m`. After five idle minutes, the next request may need to reload the model and, when a runtime deadline is enabled, exceed it and use the fallback. A longer positive keep-alive reduces some reloads while retaining memory longer; keep-alive `0` unloads immediately and can make every evaluation cold. Supported keep-alive values are `0` or a positive duration such as `30s`, `5m`, or `1h`.
 
 If startup priming fails, the launcher warns and continues. An incompatible model or Ollama version, missing model, unavailable service, malformed answer, or evaluation timeout falls back to Sonnet or retains an incoming Opus, subject to the usual compatibility policy. No Jev request is made. `Ollama fallback` with `timeout` means no valid classification completed in time; it is not a Sonnet prediction. In metadata, a valid Sonnet decision has `source: "ollama"` and `classified_tier: "sonnet"`; a timeout has `source: "fallback"` and `classifier_error: "timeout"`. Later policy guards can still change the selected Claude model. Use the source-only [local routing regression](development.md#local-routing-regression-unreleased) to test classification and all three selected tiers without external provider calls.
 

@@ -128,8 +128,15 @@ export async function checkLocalOllamaModel(config, options) {
 }
 
 export async function evaluateOllama(state, config, { fetchImpl = fetch, signal } = {}) {
-  const timeout = AbortSignal.timeout(config.ollamaTimeoutMs);
-  const combined = signal ? AbortSignal.any([signal, timeout]) : timeout;
+  let combined = signal;
+  if (config.ollamaTimeoutMs !== 0) {
+    const timeout = AbortSignal.timeout(config.ollamaTimeoutMs);
+    combined = signal ? AbortSignal.any([signal, timeout]) : timeout;
+  }
+  // A disabled deadline still observes caller cancellation during metadata,
+  // inference, and response reading. Direct callers may omit a signal.
+  combined ??= new AbortController().signal;
+  combined.throwIfAborted();
   const options = { fetchImpl, signal: combined };
   await checkLocalOllamaModel(config, options);
   return decisionAnswer(await request(config, '/v1/systemone', buildOllamaRequest(state, config), options), config.ollamaModel);

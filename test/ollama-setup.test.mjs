@@ -223,6 +223,30 @@ test('warmup timeout and caller cancellation stop stalled classifier bodies with
   }
 });
 
+test('disabling the runtime deadline does not disable the independent warmup deadline', { timeout: 1000 }, async () => {
+  const settings = { ...config(), ollamaTimeoutMs: 0 };
+  const paths = [];
+  let decisionSignal;
+  let bodyCancelled = false;
+  await assert.rejects(setupOllama(settings, {
+    write: () => {}, warmTimeoutMs: 20, fetchImpl: async (url, options) => {
+      const path = new URL(url).pathname;
+      paths.push(path);
+      if (path === '/api/version') return currentVersion();
+      if (path === '/api/tags') return tags(true);
+      if (path === '/api/show') return localDetails();
+      assert.equal(path, '/v1/systemone');
+      assert.equal(JSON.parse(options.body).state.current_task, 'Return the literal word ready.');
+      decisionSignal = options.signal;
+      return new Response(new ReadableStream({ cancel() { bodyCancelled = true; } }));
+    },
+  }), error => error.code === 'OLLAMA_TIMEOUT');
+  assert.equal(settings.ollamaTimeoutMs, 0);
+  assert.equal(decisionSignal.aborted, true);
+  assert.equal(bodyCancelled, true);
+  assert.deepEqual(paths, ['/api/version', '/api/tags', '/api/show', '/api/show', '/v1/systemone']);
+});
+
 test('cloud-backed aliases and ambiguous model details are rejected before warming', async () => {
   for (const details of [{ remote_host: 'PRIVATE_REMOTE_HOST', details: { parameter_size: '1B' } }, { remote_model: 'cloud' }, {}]) {
     const calls = [];

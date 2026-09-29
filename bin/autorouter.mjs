@@ -9,7 +9,7 @@ import { dirname } from 'node:path';
 import { createStatusState } from '../src/status-state.mjs';
 import { addStatusLineSettings } from '../src/status-settings.mjs';
 import { loadUserConfig } from '../src/user-config.mjs';
-import { setup, doctor } from '../src/onboarding.mjs';
+import { setup, doctor, ollamaDeadlineText } from '../src/onboarding.mjs';
 import { setupOllama } from '../src/ollama-setup.mjs';
 
 const [command = 'help', ...args] = process.argv.slice(2);
@@ -22,7 +22,7 @@ if (['--version', '-v', 'version'].includes(command)) {
 Usage:
   claude-autorouter setup [--auth-mode subscription|api-key] [--force]
     [--evaluator jev|ollama]
-    [--ollama-model MODEL] [--pull]
+    [--ollama-model MODEL] [--ollama-timeout-ms N] [--pull]
   claude-autorouter doctor
   claude-autorouter claude [Claude Code arguments]
   claude-autorouter serve
@@ -40,7 +40,8 @@ Use setup --evaluator ollama --pull to detect Ollama and download a missing mode
 The local default is nimble:9b-q4_K_M; --ollama-model selects another compatible model.
 Smaller Tev1 options: --ollama-model tev1:0.8b or --ollama-model tev1:4b-q4_K_M.
 Local routing deadlines: Tev1 0.8B/custom 1500 ms, Tev1 4B 15000 ms, Nimble 30000 ms.
-AUTOROUTER_OLLAMA_TIMEOUT_MS overrides the selected model's deadline.
+Setup --ollama-timeout-ms N saves a routing deadline; use 0 to disable it.
+AUTOROUTER_OLLAMA_TIMEOUT_MS also overrides the deadline; 0 disables it.
 Local routing is experimental; see docs/ollama-evaluation.md for measured limits.
 AUTOROUTER_AUTH_MODE=subscription uses your saved Claude Code login.
 Without setup, AUTOROUTER_AUTH_MODE defaults to api-key and also requires ANTHROPIC_API_KEY.
@@ -86,7 +87,7 @@ Complete inference requests still go to Anthropic. See README.md.`);
       config.localToken = randomBytes(32).toString('hex');
     }
     if (config.evaluator === 'ollama') {
-      console.error(`Preparing local Ollama evaluator (${config.ollamaModel}); routing deadline ${config.ollamaTimeoutMs} ms per request…`);
+      console.error(`Preparing local Ollama evaluator (${config.ollamaModel}); ${ollamaDeadlineText(config.ollamaTimeoutMs)}…`);
       try { await setupOllama(config, { pull: false, warm: true, write: () => {} }); }
       catch {
         console.error('Ollama could not be prepared. Requests will use the conservative fallback while it is unavailable; run claude-autorouter doctor.');

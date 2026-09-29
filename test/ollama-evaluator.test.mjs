@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { setTimeout as delay } from 'node:timers/promises';
 import { readConfig } from '../src/config.mjs';
 import { Router } from '../src/router.mjs';
 import { buildState } from '../src/prompt-state.mjs';
@@ -181,6 +182,71 @@ test('Ollama shares one deadline across metadata and native response, cancels bo
   }
 });
 
+test('a disabled deadline accepts delayed metadata, inference, and body reads with or without a caller signal', { timeout: 2000 }, async () => {
+  for (const signal of [undefined, new AbortController().signal]) {
+    const fetchImpl = async (url, options) => {
+      await delay(15, undefined, { signal: options.signal });
+      if (url.endsWith('/show')) return metadata();
+      let timer;
+      return new Response(new ReadableStream({
+        start(controller) {
+          timer = setTimeout(() => {
+            controller.enqueue(new TextEncoder().encode(JSON.stringify(decisionPayload('opus'))));
+            controller.close();
+          }, 30);
+        },
+        cancel() { clearTimeout(timer); },
+      }));
+    };
+    const result = await evaluateOllama(buildOllamaState(body()), config({ ollamaTimeoutMs: 0 }), { signal, fetchImpl });
+    assert.equal(result.choice, 'opus');
+    // The same response still exceeds an explicitly configured positive budget.
+    await assert.rejects(evaluateOllama(buildOllamaState(body()), config({ ollamaTimeoutMs: 20 }), { signal, fetchImpl }),
+      error => error.name === 'AbortError' || error.name === 'TimeoutError');
+  }
+});
+
+test('caller cancellation with no deadline stops metadata and inference body reads without caching a fallback', { timeout: 2000 }, async () => {
+  for (const phase of ['/api/show', '/v1/systemone']) {
+    const controller = new AbortController();
+    const reason = new Error('Caller cancelled local evaluation');
+    let started;
+    const reading = new Promise(resolve => { started = resolve; });
+    let cancelled = false;
+    let attempt = 1;
+    const paths = [];
+    const router = new Router(config({ ollamaTimeoutMs: 0 }), { fetchImpl: async url => {
+      const path = new URL(url).pathname;
+      paths.push(path);
+      if (attempt === 1 && path === phase) {
+        return new Response(new ReadableStream({ pull() { started(); }, cancel() { cancelled = true; } }));
+      }
+      return path === '/api/show' ? metadata() : response('haiku');
+    } });
+    const pending = router.classify(body(), controller.signal);
+    const rejected = assert.rejects(pending, error => error === reason);
+    await reading;
+    await delay(0);
+    controller.abort(reason);
+    await rejected;
+    assert.equal(cancelled, true);
+    assert.deepEqual(paths, phase === '/api/show' ? ['/api/show'] : ['/api/show', '/v1/systemone']);
+    attempt++;
+    const retried = await router.classify(body());
+    assert.equal(retried.source, 'ollama');
+    assert.equal(retried.tier, 'haiku');
+  }
+});
+
+test('an already cancelled request with no deadline never contacts Ollama', async () => {
+  const controller = new AbortController();
+  const reason = new Error('Already cancelled');
+  controller.abort(reason);
+  await assert.rejects(evaluateOllama(buildOllamaState(body()), config({ ollamaTimeoutMs: 0 }), {
+    signal: controller.signal, fetchImpl: () => assert.fail('Cancelled evaluation must not send metadata or prompt requests'),
+  }), error => error === reason);
+});
+
 test('multibyte local context stays inside the byte budget and excludes private thinking and images', () => {
   const request = body('你好🌍'.repeat(2000));
   request.system = '背景'.repeat(5000);
@@ -224,13 +290,13 @@ test('large local model metadata is accepted within its separate bound while ove
   }
 });
 
-test('Ollama failures never contact Jev, are not cached, and retain an existing Opus request', async () => {
+test('Ollama failures with a disabled deadline never contact Jev, are not cached, and retain an existing Opus request', async () => {
   for (const failure of [() => { throw new Error('private upstream detail'); },
     () => new Response('private provider error', { status: 503 }),
     () => new Response('private invalid JSON'),
     () => Response.json({ error: 'private response detail' })]) {
     let attempts = 0;
-    const router = new Router(config(), { fetchImpl: async url => {
+    const router = new Router(config({ ollamaTimeoutMs: 0 }), { fetchImpl: async url => {
       assert.ok(url.startsWith(config().ollamaEndpoint));
       if (url.endsWith('/show')) return metadata();
       attempts++;

@@ -45,12 +45,12 @@ test('custom namespaces and unknown local model tags keep the short deadline', (
 
 test('an explicit local deadline overrides every model default and retains bounds', () => {
   for (const model of ['tev1:0.8b', 'tev1:4b', DEFAULT_OLLAMA_MODEL, 'team/nimble']) {
-    for (const timeout of [1, 1500, 18000, 30000]) {
+    for (const timeout of [0, 1, 1500, 18000, 30000]) {
       const config = readConfig({ AUTOROUTER_OLLAMA_MODEL: model, AUTOROUTER_OLLAMA_TIMEOUT_MS: String(timeout) });
       assert.equal(config.ollamaTimeoutMs, timeout, `${model}: ${timeout}`);
     }
   }
-  for (const value of ['0', '30001', '1.5', 'Infinity', 'unknown']) {
+  for (const value of ['-1', '30001', '1.5', '1e-999', '-1e-999', 'Infinity', 'unknown', '', ' ', null, false, true, [], {}]) {
     assert.throws(() => readConfig({ AUTOROUTER_OLLAMA_TIMEOUT_MS: value }), /AUTOROUTER_OLLAMA_TIMEOUT_MS/);
   }
 });
@@ -65,7 +65,7 @@ test('local subscription evaluation needs no API key while Jev and API billing r
 test('local decision configuration rejects unsafe endpoints, cloud tags and invalid resource settings', () => {
   for (const env of [{ AUTOROUTER_EVALUATOR: 'auto' }, { AUTOROUTER_OLLAMA_URL: 'https://example.com' },
     { AUTOROUTER_OLLAMA_URL: 'http://127.0.0.1:11434/redirect' }, { AUTOROUTER_OLLAMA_MODEL: 'model:cloud' },
-    { AUTOROUTER_OLLAMA_TIMEOUT_MS: '0' }, { AUTOROUTER_OLLAMA_KEEP_ALIVE: '-1' }]) {
+    { AUTOROUTER_OLLAMA_TIMEOUT_MS: '-1' }, { AUTOROUTER_OLLAMA_KEEP_ALIVE: '-1' }]) {
     assert.throws(() => readConfig(env));
   }
 });

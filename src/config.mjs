@@ -23,6 +23,13 @@ export function readConfig(env = process.env) {
   const evaluator = env.AUTOROUTER_EVALUATOR ?? 'jev';
   if (!['jev', 'ollama'].includes(evaluator)) throw new Error('AUTOROUTER_EVALUATOR must be jev or ollama');
   const ollamaModel = validateOllamaModel(env.AUTOROUTER_OLLAMA_MODEL ?? DEFAULT_OLLAMA_MODEL);
+  const rawOllamaTimeout = env.AUTOROUTER_OLLAMA_TIMEOUT_MS;
+  // Zero is an explicit opt-out. Reject blanks, coercible non-numbers, and
+  // non-integer strings (including exponents that could underflow to zero).
+  if (rawOllamaTimeout !== undefined && (!['string', 'number'].includes(typeof rawOllamaTimeout)
+    || (typeof rawOllamaTimeout === 'string' && !/^[0-9]+$/.test(rawOllamaTimeout.trim())))) {
+    throw new Error('AUTOROUTER_OLLAMA_TIMEOUT_MS must be an integer between 0 and 30000 (0 disables the runtime deadline)');
+  }
   const ollamaKeepAlive = env.AUTOROUTER_OLLAMA_KEEP_ALIVE ?? '5m';
   if (!/^(?:0|[1-9]\d{0,3}(?:s|m|h))$/.test(ollamaKeepAlive)) {
     throw new Error('AUTOROUTER_OLLAMA_KEEP_ALIVE must be 0 or a positive duration such as 5m');
@@ -51,7 +58,7 @@ export function readConfig(env = process.env) {
     jevModel: env.AUTOROUTER_JEV_MODEL ?? 'jev-latest',
     ollamaEndpoint: validateOllamaEndpoint(env.AUTOROUTER_OLLAMA_URL ?? 'http://127.0.0.1:11434'),
     ollamaModel,
-    ollamaTimeoutMs: number(env, 'AUTOROUTER_OLLAMA_TIMEOUT_MS', defaultOllamaTimeoutMs(ollamaModel), 1, 30000),
+    ollamaTimeoutMs: number(env, 'AUTOROUTER_OLLAMA_TIMEOUT_MS', defaultOllamaTimeoutMs(ollamaModel), 0, 30000),
     ollamaStateChars: 3000,
     ollamaKeepAlive,
     models: {
