@@ -96,10 +96,14 @@ test('subscription request recognition requires bearer and OAuth capability, and
 test('subscription launcher starts and stops its proxy with a fake Claude process, without reading a login', async t => {
   const dir = await mkdtemp(join(tmpdir(), 'autorouter-launcher-'));
   t.after(() => rm(dir, { recursive: true, force: true }));
+  // CLI startup must never load the developer's saved evaluator or keys.
+  const configPath = join(dir, 'autorouter-config.json');
+  await writeFile(configPath, JSON.stringify({ AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_JEV_URL: 'http://127.0.0.1:1/v1/systemone' }), { mode: 0o600 });
   await writeFile(join(dir, 'claude'), `#!/usr/bin/env node
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 (async () => {
+  assert.equal(process.env.AUTOROUTER_EVALUATOR, 'jev');
   assert.equal(process.argv[2], '--settings');
   assert.deepEqual(process.argv.slice(4), ['--model', 'sonnet']);
   const settings = JSON.parse(fs.readFileSync(process.argv[3], 'utf8'));
@@ -119,7 +123,8 @@ const fs = require('node:fs');
 })().catch(() => { console.error('Fake Claude validation failed'); process.exitCode = 1; });
 `, { mode: 0o700 });
   const { stdout, stderr } = await promisify(execFile)(process.execPath, [fileURLToPath(new URL('../bin/autorouter.mjs', import.meta.url)), 'claude', '--model', 'sonnet'], {
-    env: { PATH: dir + delimiter + dirname(process.execPath), AUTOROUTER_AUTH_MODE: 'subscription', TYPESAFE_API_KEY: 'fake-jev-key', ANTHROPIC_API_KEY: 'must-be-removed' },
+    env: { PATH: dir + delimiter + dirname(process.execPath), AUTOROUTER_CONFIG: configPath,
+      AUTOROUTER_AUTH_MODE: 'subscription', TYPESAFE_API_KEY: 'fake-jev-key', ANTHROPIC_API_KEY: 'must-be-removed' },
     timeout: 10000,
   });
   assert.equal(stderr, '');
@@ -133,13 +138,17 @@ const fs = require('node:fs');
 test('statusline opt-out or setup failure passes original settings and clears inherited router status', async t => {
   const dir = await mkdtemp(join(tmpdir(), 'autorouter-launcher-'));
   t.after(() => rm(dir, { recursive: true, force: true }));
+  const configPath = join(dir, 'autorouter-config.json');
+  await writeFile(configPath, JSON.stringify({ AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_JEV_URL: 'http://127.0.0.1:1/v1/systemone' }), { mode: 0o600 });
   await writeFile(join(dir, 'claude'), `#!/usr/bin/env node
+require('node:assert/strict').equal(process.env.AUTOROUTER_EVALUATOR, 'jev');
 console.log(JSON.stringify({ args: process.argv.slice(2), statusPath: process.env.AUTOROUTER_STATUS_FILE }));
 `, { mode: 0o700 });
   for (const [enabled, supplied] of [['0', '{"statusLine":{"type":"command","command":"my-status"}}'], ['1', '{invalid-settings']]) {
     const args = ['--settings', supplied];
     const { stdout, stderr } = await promisify(execFile)(process.execPath, [fileURLToPath(new URL('../bin/autorouter.mjs', import.meta.url)), 'claude', ...args], {
-      env: { PATH: dir + delimiter + dirname(process.execPath), AUTOROUTER_AUTH_MODE: 'subscription', TYPESAFE_API_KEY: 'fake', AUTOROUTER_STATUSLINE: enabled, AUTOROUTER_STATUS_FILE: '/stale/other-session.json' },
+      env: { PATH: dir + delimiter + dirname(process.execPath), AUTOROUTER_CONFIG: configPath,
+        AUTOROUTER_AUTH_MODE: 'subscription', TYPESAFE_API_KEY: 'fake', AUTOROUTER_STATUSLINE: enabled, AUTOROUTER_STATUS_FILE: '/stale/other-session.json' },
       timeout: 10000,
     });
     const result = JSON.parse(stdout);

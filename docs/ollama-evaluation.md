@@ -2,7 +2,30 @@
 
 AutoRouter supports `/v1/systemone` classification only: remote Jev with an API key, or local Ollama 0.35+ with a compatible decision model. Jev remains the default evaluator. The local default is `nimble:9b-q4_K_M`; the old Qwen chat adapter and compact/quality/auto presets have been removed. Existing downloaded models are not deleted.
 
-## Method
+## Routing regression investigation (September 30, 2026; unreleased)
+
+The npm `0.3.1` runtime uses a 1,500 ms deadline for every local model, even though startup priming allows 60 seconds. On the user's already-loaded `tev1:4b` (Q8), four synthetic tasks all timed out and selected Sonnet through `source=fallback`, `classifier_error=timeout`. With a separate 30-second diagnostic allowance, the same tasks selected Haiku, Haiku, Sonnet, and Opus. Three of those decisions took 5.6–6.1 seconds. This was a deadline failure, not a parser forcing every answer to Sonnet.
+
+We captured three synthetic request shapes from the installed Claude client using an isolated local response stub, without paid provider calls. The human task survived intact and no compatibility guard forced Sonnet. The local evaluator nevertheless received 627–796 characters of Claude's general executor instructions. Tev1 0.8B classified all three captures as Sonnet. Removing only this system background changed the distributed-fencing case to Opus; the `[].length` example still selected Sonnet. Removing additional state fields did not improve that result, so the routing rubric and remaining state layout were retained.
+
+The source fixes exclude executor system instructions from local classifier input, use 15-second defaults for official Tev1 4B variants and 30 seconds for Nimble, and retain the 1.5-second default for Tev1 0.8B/custom models. Explicit timeout settings still win. Setup, doctor, and startup display the effective deadline. Compact status lines retain the fallback cause. These changes are **not included in npm 0.3.1**. Jev's input extraction and deadline are unchanged.
+
+The new opt-in `npm run test:ollama -- --model TAG` checks actual `Router.route` results against six fixed synthetic Claude-shaped requests: literal output, `[].length`, a bounded feature, distributed fencing, a new mechanical task after a difficult task, and a new difficult task after a simple task. It checks the evaluator choice, selected Claude model, source, and reason, and fails on a mismatch, fallback, override, or missing tier coverage. Live cases use fresh routers to avoid decision-cache passes; persistent turn-cache transitions and compatibility guards are separately covered by offline regression tests. It downloads nothing and does not contact Claude or Jev.
+
+One pass with the fixes on the same M4/16 GiB Mac produced:
+
+| Installed model | Runtime deadline | Matching cases | Fallbacks | Decision latency range |
+| --- | ---: | ---: | ---: | ---: |
+| `tev1:0.8b` | 1,500 ms | 3 / 6 | 0 | 48–479 ms |
+| `tev1:4b-q4_K_M` | 15,000 ms | 6 / 6 | 0 | 2.40–2.75 s |
+| `tev1:4b` (Q8) | 15,000 ms | 6 / 6 | 0 | 2.38–2.70 s |
+| `nimble:9b-q4_K_M` | 30,000 ms | 6 / 6 | 0 | 4.74–7.29 s |
+
+Every model reached all three tiers. The 0.8B failures were genuine classifications: `[].length` → Sonnet, new mechanical task → Opus, new difficult task → Sonnet. Its live suite therefore **fails**, rather than treating valid native responses as proof of accuracy. These six cases are regression checks, not a new held-out quality benchmark; the samples, machine load, residency, and prompt-cache effects do not establish a quantization speed comparison or a worst-case latency bound. The larger-model budgets allow slower decisions; they do not make those models fast or prevent every timeout. No user configuration or model files were changed; the originally resident `tev1:4b` was restored after sequential model testing.
+
+Fixture SHA-256: `88e12f962fb42b36a00edd6b8c2560e54620d90c978b1ff13a1ddf31ee46b585`. The questions remain unchanged at `be151cedb4de4b7ef3f7162d751f70ce7d9dd14efc66fae1835f73ffd04027be`.
+
+## Historical benchmark method (before these fixes)
 
 Measurements were recorded on September 29, 2026, on an Apple M4 Mac with 16 GiB of unified memory alongside other applications. Nimble ran on an isolated Ollama 0.35.0 process; the installed Ollama 0.33.3 daemon was left unchanged during that test. Tev1 was tested later on the user's upgraded Ollama 0.35.0 service after its downloads finished. Version 0.35.0 was a prerelease at the time. These are observations under different application loads, not a controlled hardware comparison. See the [official release](https://github.com/ollama/ollama/releases/tag/v0.35.0), [Nimble catalog](https://ollama.com/library/nimble), and [Tev1 catalog](https://ollama.com/library/tev1).
 

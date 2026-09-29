@@ -290,6 +290,89 @@ test('fallback and error explanations take priority over savings on narrow lines
   assert.ok(!errorLine.includes('saved'));
 });
 
+test('compact fallback lines retain the cause and actual model before routine phase, estimates, and context', () => {
+  for (const evaluator of ['jev', 'ollama']) {
+    const saved = withSavings(savingsFixture(), { phase: 'ready', source: 'fallback', evaluator,
+      classifier_error: 'timeout', latency_ms: 1501, reason: 'tool_turn_pinned',
+      context_usage: { model: 'claude-sonnet-5', input_tokens: 227338 } });
+    const input = { session_id: 'session-a', context_window: { used_percentage: 100, context_window_size: 200000 } };
+    for (const columns of [40, 60, 80]) {
+      const line = renderSavings(saved, { columns }, input);
+      assert.ok([...line].length <= columns, `${columns}: ${line}`);
+      assert.match(line, /last Sonnet 5/);
+      assert.match(line, /fallback.*timeout/);
+      assert.ok(!/saved|ctx/.test(line));
+      assert.ok(!line.includes(evaluator === 'jev' ? 'Ollama' : 'Jev'));
+      if (columns >= 60) assert.ok(line.includes(evaluator === 'jev' ? 'Jev' : 'Ollama'));
+    }
+    assert.match(renderSavings(saved, { columns: 60 }, input), /fallback: timeout/);
+    assert.ok(!renderSavings(saved, { columns: 60 }, input).includes('ready'));
+  }
+});
+
+test('HTTP fallback causes show safe classifier status separately from upstream errors', () => {
+  const state = { phase: 'ready', actual_model: 'claude-sonnet-5', source: 'fallback', evaluator: 'ollama',
+    classifier_error: 'http_error', classifier_status: 503, latency_ms: 211 };
+  for (const columns of [60, 80, 160]) {
+    const line = render(state, { columns });
+    assert.ok([...line].length <= columns, `${columns}: ${line}`);
+    assert.match(line, /last Sonnet 5/);
+    assert.match(line, /fallback.*HTTP 503/);
+    assert.ok(!line.includes('error 503'));
+    const failed = render({ ...state, phase: 'error', status: 429, error_type: 'rate_limit_error' }, { columns });
+    assert.ok([...failed].length <= columns, `${columns}: ${failed}`);
+    assert.match(failed, /last Sonnet 5/);
+    assert.match(failed, /error 429/);
+    assert.match(failed, /fallback.*HTTP 503/);
+  }
+  for (const classifier_status of ['503 PRIVATE', -1, 600, 1.5, Infinity]) {
+    const line = render({ ...state, classifier_status });
+    assert.match(line, /fallback.*HTTP error/);
+    assert.ok(!/PRIVATE|Infinity|HTTP (?:503|600|-1|1\.5)/.test(line));
+  }
+  assert.ok(!render({ ...state, classifier_error: 'timeout' }).includes('503'));
+});
+
+test('fallback causes are allowlisted and cannot masquerade as a successful classification', () => {
+  const state = { phase: 'connecting', selected_model: 'claude-sonnet-5', source: 'fallback', evaluator: 'ollama',
+    classified_tier: 'haiku', classifier_error: 'timeout', latency_ms: 1500 };
+  for (const columns of [60, 80, 160]) {
+    const line = render(state, { columns });
+    assert.match(line, /Sonnet 5 selected/);
+    assert.match(line, /fallback.*timeout/);
+    assert.ok(!/Haiku|→/.test(line));
+  }
+  for (const classifier_error of ['/Users/PRIVATE/config', '\x1b[2JPRIVATE\nerror', '__proto__', 'constructor']) {
+    const line = render({ ...state, classifier_error });
+    assert.match(line, /Ollama fallback/);
+    assert.ok(!/PRIVATE|Users|__proto__|constructor|\x1b|\n|Haiku/.test(line));
+  }
+  assert.match(render({ ...state, classifier_error: 'network_error' }, { columns: 60 }), /fallback: network error/);
+  assert.match(render({ ...state, classifier_error: 'invalid_response' }, { columns: 60 }), /fallback: invalid response/);
+});
+
+test('tiny fallback lines fit without dropping selection qualifiers or reverting to a success phase', () => {
+  const variants = [
+    { phase: 'ready', actual_model: 'claude-sonnet-5' },
+    ...['connecting', 'streaming', 'ready'].map(phase => ({ phase, selected_model: 'claude-sonnet-5' })),
+    { phase: 'error', last_model: 'claude-sonnet-5', status: 429, error_type: 'rate_limit_error' },
+    { phase: 'cancelled', last_model: 'claude-sonnet-5' },
+  ];
+  for (const variant of variants) {
+    for (let columns = 1; columns <= 80; columns++) {
+      for (const color of [false, true]) {
+        const line = render({ ...variant, source: 'fallback', evaluator: 'ollama', classifier_error: 'timeout', latency_ms: 1500 },
+          { columns, color }).replace(/\x1b\[[0-9;]*m/g, '');
+        assert.ok([...line].length <= columns, `${columns}: ${line}`);
+        if (columns >= 60) assert.match(line, /fallback.*timeout/);
+        if (variant.selected_model && /Sonnet|… /.test(line)) assert.match(line, /selected|unconfirmed/);
+        if (!['error', 'cancelled'].includes(variant.phase) && columns >= 8) assert.match(line, /fallback/);
+        if (columns <= 40) assert.ok(!/ready|stream/.test(line));
+      }
+    }
+  }
+});
+
 const cliPath = fileURLToPath(new URL('../bin/statusline.mjs', import.meta.url));
 async function cli(input, env = {}) {
   return await new Promise((resolve, reject) => {

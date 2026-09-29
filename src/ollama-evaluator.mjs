@@ -4,11 +4,17 @@ import { buildState } from './prompt-state.mjs';
 // Bound UTF-8 bytes as well as serialized characters to keep local decision
 // excerpts small, including when the prompt contains non-ASCII text.
 export function buildOllamaState(body, limit = 3000) {
+  // Claude's executor instructions describe the assistant and its tools, not
+  // the current task's difficulty. Small local models can mistake that global
+  // engineering background for a request and select Sonnet for every tier.
+  // Keep task/history extraction shared with Jev, but exclude this background
+  // before budgeting so it cannot displace a useful follow-up or tool result.
+  const taskBody = { ...body, system: undefined };
   let budget = limit;
-  let state = buildState(body, budget);
+  let state = buildState(taskBody, budget);
   while (Buffer.byteLength(JSON.stringify(state)) > limit && budget > 200) {
     budget = Math.max(200, Math.floor(budget * limit / Buffer.byteLength(JSON.stringify(state))) - 1);
-    state = buildState(body, budget);
+    state = buildState(taskBody, budget);
   }
   return state;
 }

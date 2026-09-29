@@ -1,5 +1,20 @@
 export const DEFAULT_OLLAMA_MODEL = 'nimble:9b-q4_K_M';
 
+// Known model families need different runtime budgets. Restrict recognition to
+// the official library and standard quantization tags; custom namespaces and
+// unknown variants retain the short default. Explicit configuration wins.
+const QUANTIZATION = '(?:q[2-8]_(?:0|1|k(?:_[sml])?)|iq[1-4]_(?:xxs|xs|s|m|nl)|f16|bf16|f32)';
+const TEV_4B = new RegExp(`^(?:latest|4b(?:-${QUANTIZATION})?)$`, 'i');
+const NIMBLE_9B = new RegExp(`^(?:latest|9b(?:-${QUANTIZATION})?)$`, 'i');
+
+export function defaultOllamaTimeoutMs(model) {
+  const canonical = model.replace(/^registry\.ollama\.ai\//, '').replace(/^library\//, '');
+  const match = /^(tev1|nimble)(?::([^:]+))?$/.exec(canonical);
+  if (match?.[1] === 'tev1' && TEV_4B.test(match[2] ?? 'latest')) return 15000;
+  if (match?.[1] === 'nimble' && NIMBLE_9B.test(match[2] ?? 'latest')) return 30000;
+  return 1500;
+}
+
 export function validateOllamaEndpoint(value) {
   let endpoint;
   try { endpoint = new URL(value); } catch {}

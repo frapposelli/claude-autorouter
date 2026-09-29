@@ -26,9 +26,25 @@ node --env-file=.env bin/autorouter.mjs claude
 
 The explicit Node flag loads `.env`; the CLI itself does not auto-load project files. Environment values override the user config. Keep keys out of source control and command arguments.
 
+## Local routing regression (unreleased)
+
+The source-only harness below is opt-in and is not included in npm 0.3.1. It sends synthetic Claude-shaped requests through the real router and an installed local evaluator, checking task extraction, classifier choices, selected Claude tiers, and new human turns. It makes no Anthropic or Jev calls, downloads no models, and writes no user configuration.
+
+```sh
+node scripts/test-ollama-routing.mjs --model tev1:0.8b
+node scripts/test-ollama-routing.mjs --model tev1:4b
+node scripts/test-ollama-routing.mjs --model nimble:9b-q4_K_M
+```
+
+Start Ollama 0.35+ and install the selected model first. The harness refuses to run while another model is resident. It never explicitly unloads the selected model; its keep-alive setting controls residency. It warms once, then uses the production deadline for each uncached case: 1,500 ms for Tev1 0.8B/custom tags, 15,000 ms for official Tev1 4B tags, and 30,000 ms for official Nimble tags. Environment settings or `--timeout-ms N` can override the deadline; this harness does not load saved user configuration. Use `--output artifacts/local-routing.json` to save a metadata report.
+
+The command fails on a wrong classification, fallback, unexpected guard override, or missing tier coverage. A Sonnet result with `source: ollama` and `classified_tier: sonnet` is a valid prediction; `source: fallback` and `classifier_error: timeout` means classification did not complete. Passing establishes these synthetic cases only. Warmup and metadata-only `doctor` checks do not establish speed or accuracy on real tasks.
+
+The unreleased local path excludes Claude's executor system instructions before excerpt budgeting and retains task/history excerpts. Jev is unchanged. npm 0.3.1 still includes the executor background locally and defaults every local model to 1,500 ms; see the [published-version timeout workarounds](reference.md#classification-and-fallback). Historical benchmark results must remain labeled with their original excerpt policy and explicit deadlines.
+
 ## Live integration tests
 
-These tests make real Claude calls and invoke the configured evaluator, consuming Claude usage and, with Jev, TypeSafe usage. They use temporary synthetic fixtures and disable unrelated customizations and MCP servers. With Ollama, start the local service and install the chosen model first; the harness does not install or download it.
+The Claude integration tests below make real Claude calls and invoke the configured evaluator, consuming Claude usage and, with Jev, TypeSafe usage. They use temporary synthetic fixtures and disable unrelated customizations and MCP servers. With Ollama, start the local service and install the chosen model first; the harness does not install or download it.
 
 ```sh
 npm run test:live

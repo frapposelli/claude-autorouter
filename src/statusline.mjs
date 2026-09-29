@@ -6,6 +6,9 @@ const REASONS = {
   context_capacity: 'large context',
   internal_request: 'internal request', unknown_model: 'custom model', low_confidence: 'low confidence',
 };
+const CLASSIFIER_ERRORS = {
+  timeout: 'timeout', http_error: 'HTTP error', invalid_response: 'invalid response', network_error: 'network error',
+};
 const clean = (value, limit = 64) => typeof value === 'string' ? value
   .replace(/\x1b\][\s\S]*?(?:\x07|\x1b\\)/g, '')
   .replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, '')
@@ -125,21 +128,28 @@ export function renderStatusLine(input, snapshot, { now = Date.now(), color = tr
 
   const details = [];
   const source = ['jev', 'ollama', 'cache', 'fallback'].includes(state?.source) ? state.source : undefined;
+  const evaluator = ['jev', 'ollama'].includes(state?.evaluator) ? state.evaluator : undefined;
+  const evaluatorLabel = evaluator === 'ollama' ? 'Ollama' : evaluator === 'jev' ? 'Jev' : '';
+  let fallbackCause = '';
+  let fallbackPhase = '';
+  let compactFallback = false;
   if (source) {
-    const evaluator = ['jev', 'ollama'].includes(state.evaluator) ? state.evaluator : undefined;
-    const evaluatorLabel = evaluator === 'ollama' ? 'Ollama' : evaluator === 'jev' ? 'Jev' : '';
     const sourceLabel = source === 'jev' ? 'Jev' : source === 'ollama' ? 'Ollama'
       : evaluatorLabel ? `${evaluatorLabel} ${source}` : source;
     const timing = Number.isFinite(state.latency_ms) && state.latency_ms >= 0 ? ` ${Math.round(Math.min(state.latency_ms, 999999))}ms` : '';
     const classified = ['haiku', 'sonnet', 'opus'].includes(state.classified_tier) ? state.classified_tier : undefined;
     const chosenFamily = /^claude-(haiku|sonnet|opus)-/.exec(state.selected_model ?? '')?.[1];
-    const override = classified && chosenFamily && classified !== chosenFamily
+    const override = source !== 'fallback' && classified && chosenFamily && classified !== chosenFamily
       ? `→${classified[0].toUpperCase()}${classified.slice(1)}` : '';
     details.push(`${sourceLabel}${override}${timing}`);
   }
   if (source === 'fallback') {
-    const classifierError = clean(state.classifier_error, 24);
-    if (classifierError) details.push(classifierError.replaceAll('_', ' '));
+    // Snapshots normally contain allowlisted categories, but the renderer also
+    // rejects raw error messages so paths and provider response text stay out.
+    fallbackCause = Object.hasOwn(CLASSIFIER_ERRORS, state.classifier_error) ? CLASSIFIER_ERRORS[state.classifier_error] : '';
+    if (state.classifier_error === 'http_error' && Number.isInteger(state.classifier_status)
+      && state.classifier_status >= 100 && state.classifier_status <= 599) fallbackCause = `HTTP ${state.classifier_status}`;
+    if (fallbackCause) details.push(fallbackCause);
   }
   if (Object.hasOwn(REASONS, state?.reason)) details.push(state.reason === 'context_capacity' && state.context_check === 'count_unavailable'
     ? 'size unverified' : REASONS[state.reason]);
@@ -157,11 +167,23 @@ export function renderStatusLine(input, snapshot, { now = Date.now(), color = tr
   if (width(plain()) > available && source !== 'fallback' && phase !== 'error') detail = '';
   if (width(plain()) > available && saving) saving = savings.compact;
   if (width(plain()) > available) saving = '';
+  if (width(plain()) > available && source === 'fallback') {
+    // A successful Claude response can still follow evaluator failure. When
+    // space is tight, retain that cause instead of an ordinary "ready" phase,
+    // evaluator timing, or the guard details that followed the fallback.
+    compactFallback = true;
+    fallbackPhase = ['error', 'cancelled'].includes(phase) ? status : '';
+    status = [fallbackPhase, `${evaluatorLabel ? `${evaluatorLabel} ` : ''}fallback${fallbackCause ? `: ${fallbackCause}` : ''}`].filter(Boolean).join(' · ');
+    detail = '';
+  }
   if (width(plain()) > available) detail = '';
   if (width(plain()) > available) brand = '● AR';
   if (width(plain()) > available) brand = '';
+  if (width(plain()) > available && compactFallback) {
+    status = [fallbackPhase, `fallback${fallbackCause ? `: ${fallbackCause}` : ''}`].filter(Boolean).join(' · ');
+  }
   if (width(plain()) > available && model) {
-    if (phase === 'streaming') status = 'stream';
+    if (phase === 'streaming' && !compactFallback) status = 'stream';
     const room = available - width(prefix + suffix + status) - 3;
     if (room >= 1) model = shorten(model, room);
     else {
@@ -172,6 +194,8 @@ export function renderStatusLine(input, snapshot, { now = Date.now(), color = tr
       else if (width('● AR · ' + status) <= available) brand = '● AR';
     }
   }
+  if (width(plain()) > available && compactFallback && !fallbackPhase && available >= width('fallback')
+    && available < width('fallback: ') + 2) status = 'fallback';
   if (width(plain()) > available) status = shorten(status, Math.max(1, available - width(modelLabel()) - (model ? 3 : 0)));
   const attention = phase === 'error' ? '31' : source === 'fallback' ? '33' : phase === 'cancelled' ? '2' : phase === 'streaming' || phase === 'ready' ? '32' : '36';
   const chunks = [];

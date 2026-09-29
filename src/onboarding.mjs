@@ -60,7 +60,6 @@ export async function setup(args, {
     for (const key of ['AUTOROUTER_OLLAMA_URL', 'AUTOROUTER_OLLAMA_TIMEOUT_MS', 'AUTOROUTER_OLLAMA_KEEP_ALIVE']) {
       if (env[key] !== undefined) values[key] = env[key];
     }
-    write(`Local evaluator model: ${values.AUTOROUTER_OLLAMA_MODEL}.`);
   }
   const keys = [...(evaluator === 'jev' ? ['TYPESAFE_API_KEY'] : []), ...(authMode === 'api-key' ? ['ANTHROPIC_API_KEY'] : [])];
   for (const key of keys) {
@@ -71,6 +70,7 @@ export async function setup(args, {
   const config = readConfig(values);
   requireKeys(config);
   if (evaluator === 'ollama') {
+    write(`Local evaluator: ${config.ollamaModel}; routing deadline ${config.ollamaTimeoutMs} ms per request.`);
     const controller = new AbortController();
     const cancel = () => controller.abort();
     if (!signal) for (const name of ['SIGINT', 'SIGTERM']) process.once(name, cancel);
@@ -104,6 +104,8 @@ export async function doctor({ env = process.env, write = console.log, run = exe
     report(false, `Unset ${key}; AutoRouter uses the Anthropic Messages API`);
   }
   if (config?.evaluator === 'ollama') {
+    write(`Local evaluator: ${config.ollamaModel}; routing deadline ${config.ollamaTimeoutMs} ms per request.`);
+    write('Model availability is checked below; classification speed and accuracy are not tested.');
     try {
       const result = await inspectOllama(config, { fetchImpl, signal });
       report(result.installed, result.installed

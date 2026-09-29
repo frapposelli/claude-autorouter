@@ -12,6 +12,9 @@ import { listen } from '../src/server.mjs';
 test('launcher keeps inference logs out of Claude by default while status and explicit debug logs work', async t => {
   const dir = await mkdtemp(join(tmpdir(), 'autorouter-logging-'));
   t.after(() => rm(dir, { recursive: true, force: true }));
+  // Explicit fixture config isolates this subprocess from saved user settings.
+  const configPath = join(dir, 'autorouter-config.json');
+  await writeFile(configPath, JSON.stringify({ AUTOROUTER_EVALUATOR: 'jev' }), { mode: 0o600 });
   let evaluations = 0;
   let generations = 0;
   const jev = http.createServer(async (req, res) => {
@@ -42,6 +45,7 @@ test('launcher keeps inference logs out of Claude by default while status and ex
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 (async () => {
+  assert.equal(process.env.AUTOROUTER_EVALUATOR, 'jev');
   assert.equal(process.env.TYPESAFE_API_KEY, undefined);
   const credential = process.env.ANTHROPIC_API_KEY;
   assert.equal(credential.length, 64);
@@ -80,6 +84,7 @@ const fs = require('node:fs');
       [fileURLToPath(new URL('../bin/autorouter.mjs', import.meta.url)), 'claude'], {
         env: {
           PATH: dir + delimiter + dirname(process.execPath),
+          AUTOROUTER_CONFIG: configPath,
           AUTOROUTER_AUTH_MODE: 'api-key', ANTHROPIC_API_KEY: 'private-upstream-key', TYPESAFE_API_KEY: 'private-classifier-key',
           AUTOROUTER_UPSTREAM_URL: `http://127.0.0.1:${upstreamAddress.port}`,
           AUTOROUTER_JEV_URL: `http://127.0.0.1:${jevAddress.port}/v1/systemone`,

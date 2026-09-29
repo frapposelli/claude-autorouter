@@ -1,0 +1,40 @@
+[
+  {
+    "id": "literal",
+    "expected": "haiku",
+    "prompt": "Print the literal word READY exactly. Do not add any explanation."
+  },
+  {
+    "id": "array-length",
+    "expected": "haiku",
+    "prompt": "What does the JavaScript expression `[].length` evaluate to? Reply with only the integer."
+  },
+  {
+    "id": "bounded-feature",
+    "expected": "sonnet",
+    "prompt": "Add pagination to this REST endpoint using `page` and `pageSize`. Validate the parameters, preserve existing filtering, and add tests for empty results and out-of-range pages."
+  },
+  {
+    "id": "distributed-fencing",
+    "expected": "opus",
+    "prompt": "Review this distributed locking design: worker A's lease expires while paused. Worker B acquires a newer fencing token and writes successfully. A resumes and writes using its old token. The database checks only whether a token was ever issued. Explain the failure sequence and design the minimum atomic database check that prevents stale writes, including duplicate retries."
+  },
+  {
+    "id": "new-mechanical-task",
+    "expected": "haiku",
+    "history": [
+      { "role": "user", "content": "Prove the safety of a distributed ledger during failover and concurrent retries." },
+      { "role": "assistant", "content": "The proof and regression tests are complete." }
+    ],
+    "prompt": "Separate task: replace the exact text 'recieve' with 'receive' in a label. Make no other changes."
+  },
+  {
+    "id": "new-difficult-task",
+    "expected": "opus",
+    "history": [
+      { "role": "user", "content": "What is the value of [].length?" },
+      { "role": "assistant", "content": "0" }
+    ],
+    "prompt": "New task: diagnose nondeterministic deadlocks between several processes after a rolling deployment. Reconcile conflicting traces, identify the broken ordering invariant, and prove that the repair cannot introduce message loss."
+  }
+]

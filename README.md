@@ -52,6 +52,15 @@ Savings are an **API-equivalent estimate for the same token counts**, using Opus
 
 The local setup below requires AutoRouter 0.3.1 or newer. It uses Ollama's native `/v1/systemone` decision API with `nimble:9b-q4_K_M` by default. Jev remains the default evaluator. If upgrading from 0.2.0, replace the old Qwen model configuration using the [migration steps](docs/reference.md#migrating-an-older-ollama-config).
 
+**Unreleased source fixes:** local routing now excludes Claude's executor system instructions from the classifier excerpt and uses model-specific deadlines: 1,500 ms for Tev1 0.8B/custom models, 15,000 ms for official Tev1 4B tags, and 30,000 ms for official Nimble tags. Task and conversation excerpts remain. Explicit timeout settings, including a previously saved `1500`, still override these defaults. Jev is unchanged. These fixes are **not in npm 0.3.1**, which uses 1,500 ms for every local model. For an already configured 4B or Nimble model, the immediate timeout workaround is:
+
+```sh
+# Tev1 4B
+AUTOROUTER_OLLAMA_TIMEOUT_MS=15000 claude-autorouter claude
+# Nimble
+AUTOROUTER_OLLAMA_TIMEOUT_MS=30000 claude-autorouter claude
+```
+
 Install and start Ollama 0.35 or newer; [version 0.35.0](https://github.com/ollama/ollama/releases/tag/v0.35.0) is a prerelease as of September 29, 2026. Then run:
 
 ```sh
@@ -74,16 +83,18 @@ For example, select Tev1 0.8B with:
 claude-autorouter setup --evaluator ollama --ollama-model tev1:0.8b --pull --force
 ```
 
-Use `--ollama-model tev1:4b-q4_K_M` for the listed 4B variant; on the tested Mac it also needed a longer deadline, such as `AUTOROUTER_OLLAMA_TIMEOUT_MS=10000`, at setup. `tev1:latest` and `tev1:4b` select the larger Q8 download. Model terms are linked in the listings above; download size does not measure resident memory or routing quality. Custom native model tags and aliases also work.
+Use `--ollama-model tev1:4b-q4_K_M` for the listed 4B variant; `tev1:latest` and `tev1:4b` select the larger Q8 download. On npm 0.3.1, prefix setup with `AUTOROUTER_OLLAMA_TIMEOUT_MS=15000` to save a longer 4B deadline. Model terms are linked in the listings above; download size does not measure resident memory or routing quality. Custom native model tags and aliases also work.
 
 No Jev key is needed for local classification. The launcher primes the evaluator before opening Claude's UI, and evaluation failures fall back to Sonnet or retain Opus without contacting Jev. Claude still answers through Anthropic, with the same routing guards and subscription limits.
 
-On the tested 16 GiB M4, Tev1 0.8B matched 18/24 held-out labels with 450 ms median latency and no timeouts at the default 1,500 ms deadline, including full-excerpt checks. Tev1 4B matched 22/24 with a 10-second diagnostic deadline and 3.15-second median latency. Nimble matched 23/24 with a 30-second deadline and 11.4-second median latency. Both larger models exceeded the normal deadline in their standard-deadline tests. See the [measurements and limits](docs/ollama-evaluation.md) and [Ollama reference](docs/reference.md#ollama-evaluator), including configuration migration and the latency tradeoff.
+In the unreleased source, setup, doctor, and startup show the effective model and deadline. Warmup and doctor do not certify classification speed or accuracy. `Ollama fallback · timeout` means no valid decision arrived in time; it is different from the evaluator choosing Sonnet. Source users can run the [local routing regression](docs/development.md#local-routing-regression-unreleased) to check all three tiers without Claude or Jev calls.
+
+Historical measurements before these source fixes, on a 16 GiB M4: Tev1 0.8B matched 18/24 held-out labels with 450 ms median latency and no timeouts at 1,500 ms, including full-excerpt checks. Tev1 4B matched 22/24 with a 10-second diagnostic deadline and 3.15-second median latency. Nimble matched 23/24 with a 30-second deadline and 11.4-second median latency. Both larger models exceeded 1,500 ms in their standard-deadline tests. These are not measurements of the unreleased fixes. See the [measurements and limits](docs/ollama-evaluation.md) and [Ollama reference](docs/reference.md#ollama-evaluator).
 
 ## Behavior and data
 
 - The default client profile permits all three routing tiers. Tool continuations, thinking history, model-specific features, and context size can keep or upgrade a model even when the evaluator chooses a cheaper tier. [Routing policy](docs/reference.md#routing-policy).
-- The selected evaluator receives bounded excerpts that can contain source code, system instructions, and tool results: TypeSafe with Jev, or the local service with Ollama. Anthropic receives the complete request. Images, document payloads, and private thinking are omitted from classifier input. [Data flow and authentication](docs/reference.md#data-flow-and-authentication).
+- The selected evaluator receives bounded excerpts that can contain source code and tool results: TypeSafe with Jev, or the local service with Ollama. Jev also receives system-text excerpts; the unreleased local path excludes Claude's executor system instructions. Anthropic receives the complete request. Images, document payloads, and private thinking are omitted from classifier input. [Data flow and authentication](docs/reference.md#data-flow-and-authentication).
 - Subscription access and usage limits still apply. Model switches can reduce cache reuse; cheaper token prices do not guarantee cheaper completed tasks. Run ordinary `claude` to bypass routing.
 - The launcher is quiet by default. Use `AUTOROUTER_DEBUG=1` for metadata diagnostics or `AUTOROUTER_STATUSLINE=0` to retain your existing status line. [Troubleshooting](docs/reference.md#troubleshooting).
 

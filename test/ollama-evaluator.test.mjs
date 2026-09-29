@@ -15,6 +15,35 @@ const decisionPayload = (choice = 'haiku', model = DEFAULT_OLLAMA_MODEL) => ({
   usage: { input_tokens: 1234, output_tokens: 1 },
 });
 
+test('local routing excludes Claude executor instructions without changing Jev task extraction', () => {
+  for (const prompt of ['What does [].length return?', 'Implement paginated results with tests.',
+    'Prove a lease protocol prevents stale writes across a network partition.']) {
+    const request = body(prompt);
+    const withBackground = { ...request, system: [{ type: 'text',
+      text: 'You are a coding assistant. Inspect repositories, implement features, review code and run tests. '.repeat(200) }],
+    };
+    assert.deepEqual(buildOllamaState(withBackground), buildOllamaState(request));
+    assert.equal(buildOllamaState(withBackground).current_task, prompt);
+    assert.ok(buildState(withBackground).system.includes('coding assistant'));
+  }
+});
+
+test('excluding local executor instructions still retains follow-up evidence and bounded Unicode excerpts', () => {
+  const request = body('Worker A pauses with lease 41; B commits under 42. Storage accepts every issued token.');
+  request.system = 'IRRELEVANT_EXECUTOR_BACKGROUND '.repeat(1000);
+  request.messages.push({ role: 'assistant', content: 'The storage acceptance rule is suspect.' },
+    { role: 'user', content: 'Prove whether both can commit; specify the atomic repair.' },
+    { role: 'assistant', content: [{ type: 'tool_use', name: 'Read', id: 'evidence', input: { secret: 'PRIVATE_TOOL_INPUT' } }] },
+    { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'evidence', is_error: true,
+      content: 'EVIDENCE_START ' + '并发🌍'.repeat(2000) + ' STALE_WRITE_ACCEPTED' }] });
+  const state = buildOllamaState(request);
+  assert.match(state.original_task, /lease 41/);
+  assert.equal(state.current_task, 'Prove whether both can commit; specify the atomic repair.');
+  assert.ok(state.recent_messages.some(message => message.content.includes('STALE_WRITE_ACCEPTED')));
+  assert.ok(Buffer.byteLength(JSON.stringify(state)) <= 3000);
+  assert.doesNotMatch(JSON.stringify(state), /IRRELEVANT_EXECUTOR_BACKGROUND|PRIVATE_TOOL_INPUT/);
+});
+
 test('Nimble, Tev1, and compatible custom aliases use the same native protocol without chat requests', async () => {
   for (const model of ['nimble', 'library/nimble:9b-q4_K_M', 'registry.ollama.ai/library/nimble:9b-q4_K_M',
     'tev1:0.8b', 'tev1:0.8b-q8_0', 'tev1:4b-q4_K_M', 'team/local-decider:v1']) {

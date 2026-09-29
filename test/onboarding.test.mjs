@@ -6,6 +6,8 @@ import { join } from 'node:path';
 import { PassThrough } from 'node:stream';
 import { setup, doctor, askSecret } from '../src/onboarding.mjs';
 import { DEFAULT_OLLAMA_MODEL } from '../src/ollama-models.mjs';
+import { readConfig } from '../src/config.mjs';
+import { loadUserConfig } from '../src/user-config.mjs';
 
 function fixture(t) {
   const directory = mkdtempSync(join(tmpdir(), 'autorouter-onboarding-'));
@@ -141,6 +143,7 @@ test('Ollama subscription setup needs no keys, stays local, and preloads before 
   assert.equal(warm.messages, undefined);
   assert.ok(!JSON.stringify(local.calls).includes('unused-'));
   assert.match(lines.join('\n'), /locally with Ollama/);
+  assert.match(lines.join('\n'), /Local evaluator: nimble:9b-q4_K_M; routing deadline 30000 ms per request/);
   assert.ok(!lines.join('\n').includes('unused-'));
 });
 
@@ -167,6 +170,29 @@ test('Ollama setup preserves API-key authentication and selects the default or a
   assert.equal(JSON.parse(readFileSync(env.AUTOROUTER_CONFIG, 'utf8')).AUTOROUTER_OLLAMA_MODEL, 'custom-router:latest');
 });
 
+test('forced model setup persists an explicit deadline and later environment overrides still win', async t => {
+  const paths = fixture(t);
+  const lines = [];
+  await setup(['--evaluator', 'ollama', '--ollama-model', 'tev1:4b'], {
+    env: { ...paths, AUTOROUTER_OLLAMA_TIMEOUT_MS: '2400' }, write: line => lines.push(line),
+    fetchImpl: localOllama('tev1:4b').fetchImpl,
+  });
+  assert.equal(JSON.parse(readFileSync(paths.AUTOROUTER_CONFIG, 'utf8')).AUTOROUTER_OLLAMA_TIMEOUT_MS, '2400');
+  assert.match(lines.join('\n'), /tev1:4b; routing deadline 2400 ms per request/);
+
+  lines.length = 0;
+  await setup(['--force', '--evaluator', 'ollama', '--ollama-model', DEFAULT_OLLAMA_MODEL], {
+    env: { ...paths, AUTOROUTER_OLLAMA_TIMEOUT_MS: '8000' }, write: line => lines.push(line),
+    fetchImpl: localOllama().fetchImpl,
+  });
+  const saved = JSON.parse(readFileSync(paths.AUTOROUTER_CONFIG, 'utf8'));
+  assert.equal(saved.AUTOROUTER_OLLAMA_MODEL, DEFAULT_OLLAMA_MODEL);
+  assert.equal(saved.AUTOROUTER_OLLAMA_TIMEOUT_MS, '8000');
+  assert.match(lines.join('\n'), /nimble:9b-q4_K_M; routing deadline 8000 ms per request/);
+  assert.equal(readConfig(loadUserConfig(paths).env).ollamaTimeoutMs, 8000);
+  assert.equal(readConfig(loadUserConfig({ ...paths, AUTOROUTER_OLLAMA_TIMEOUT_MS: '600' }).env).ollamaTimeoutMs, 600);
+});
+
 test('failed Ollama setup leaves the existing configuration intact and never downloads implicitly', async t => {
   const env = { ...fixture(t), TYPESAFE_API_KEY: 'original-key' };
   await setup([], { env, write: () => {} });
@@ -191,9 +217,29 @@ test('Ollama doctor verifies local model metadata without warming, downloading, 
   assert.equal(healthy, true);
   assert.deepEqual(local.calls.map(call => call.path), ['/api/version', '/api/tags', '/api/show']);
   assert.match(lines.join('\n'), /Local Ollama model available/);
+  assert.match(lines.join('\n'), /nimble:9b-q4_K_M; routing deadline 30000 ms per request/);
+  assert.match(lines.join('\n'), /classification speed and accuracy are not tested/);
   const missing = localOllama(DEFAULT_OLLAMA_MODEL, { installed: false });
   assert.equal(await doctor({ env, write: line => lines.push(line), fetchImpl: missing.fetchImpl,
     run: async (_command, args) => ({ stdout: args[0] === '--version' ? '2.1.284' : '{"loggedIn":true,"authMethod":"claude.ai"}' }) }), false);
   assert.match(lines.join('\n'), /--pull/);
   assert.deepEqual(missing.calls.map(call => call.path), ['/api/version', '/api/tags']);
+});
+
+test('Ollama doctor reports the effective saved model and environment deadline without inference', async t => {
+  const paths = fixture(t);
+  await setup(['--evaluator', 'ollama', '--ollama-model', 'tev1:4b'], {
+    env: { ...paths, AUTOROUTER_OLLAMA_TIMEOUT_MS: '7000' }, write: () => {},
+    fetchImpl: localOllama('tev1:4b').fetchImpl,
+  });
+  const local = localOllama('tev1:4b');
+  const lines = [];
+  const healthy = await doctor({
+    env: { ...paths, AUTOROUTER_OLLAMA_TIMEOUT_MS: '9000' }, write: line => lines.push(line), fetchImpl: local.fetchImpl,
+    run: async (_command, args) => ({ stdout: args[0] === '--version' ? '2.1.284' : '{"loggedIn":true,"authMethod":"claude.ai"}' }),
+  });
+  assert.equal(healthy, true);
+  assert.match(lines.join('\n'), /tev1:4b; routing deadline 9000 ms per request/);
+  assert.deepEqual(local.calls.map(call => call.path), ['/api/version', '/api/tags', '/api/show']);
+  assert.equal(JSON.parse(readFileSync(paths.AUTOROUTER_CONFIG, 'utf8')).AUTOROUTER_OLLAMA_TIMEOUT_MS, '7000');
 });
