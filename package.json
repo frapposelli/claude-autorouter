@@ -1,0 +1,23 @@
+{
+  "name": "claude-autorouter",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "type": "module",
+  "description": "A local Claude Code model router powered by TypeSafe Jev",
+  "bin": { "claude-autorouter": "bin/autorouter.mjs" },
+  "engines": { "node": ">=22" },
+  "os": ["darwin", "linux"],
+  "keywords": ["claude", "claude-code", "model-routing", "jev", "cli"],
+  "files": ["bin/*.mjs", "src/*.mjs", "docs/reference.md", "docs/development.md", "docs/releasing.md", ".env.example", "LICENSE"],
+  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" },
+  "scripts": {
+    "start": "node bin/autorouter.mjs serve",
+    "claude": "node bin/autorouter.mjs claude",
+    "test": "node --test test/*.test.mjs",
+    "test:package": "node scripts/package-smoke.mjs",
+    "release:pack": "node scripts/release-pack.mjs",
+    "eval": "node --env-file=.env scripts/evaluate.mjs",
+    "test:live": "node --env-file=.env scripts/live-validation.mjs",
+    "check": "node scripts/check.mjs"
+  }
+}
