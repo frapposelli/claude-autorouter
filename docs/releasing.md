@@ -1,6 +1,6 @@
 # CI and npm releases
 
-The package is `claude-autorouter`, licensed under [Apache-2.0](../LICENSE). **npm publication is pending.** The first release needs an interactive npm login; subsequent releases use GitHub Actions with npm trusted publishing. Preparing a tarball or merging a pull request does not publish it.
+The package is `claude-autorouter`, licensed under [Apache-2.0](../LICENSE). Version `0.2.0` was published manually to [npm](https://www.npmjs.com/package/claude-autorouter) on September 29, 2026. npm trusted publishing is configured for this repository's `publish.yml`, including direct publication permission. The first automated release has not yet been verified; continue with [a new version tag](#3-release-subsequent-versions-by-tag). Preparing a tarball or merging a pull request does not publish it.
 
 The GitHub repository is private. Publishing to npm makes the tarball's runtime source, README, configuration example, license, and shipped documentation public. Model weights, user configuration, credentials, transcripts, local artifacts, and test fixtures are excluded. Review the archive before the first publication and whenever the package allowlist changes.
 
@@ -19,6 +19,8 @@ The project has no package dependencies or lockfile, so CI runs its scripts dire
 
 ## 1. Publish the first version interactively
 
+This bootstrap was completed for `claude-autorouter@0.2.0`. Do not repeat it for this package; continue with [trusted publishing](#2-authorize-this-workflow-on-npm). The instructions below are retained as the bootstrap procedure for a new package name.
+
 Merge the release workflows and package metadata to `main`, push to GitHub, and ensure GitHub Actions is enabled for the repository. Its Actions policy must permit the pinned official GitHub actions and the reusable CI workflow in this repository. Use a clean checkout of that commit, with Node 24 and npm 11.19.1 to match the publisher. No release tag is needed for this bootstrap. First check the registry and account:
 
 ```sh
@@ -27,7 +29,7 @@ npm view claude-autorouter name version --registry https://registry.npmjs.org/
 npm whoami --registry https://registry.npmjs.org/
 ```
 
-The initial registry lookup returned HTTP 404; recheck immediately before release. If the name now exists, verify that your npm account owns it before continuing. A network or authentication failure is not evidence that a name is available. If another owner has claimed the name, choose an available name and update package metadata, release validation, documentation, and trust settings together.
+For a new package name, verify availability and ownership before continuing. A network or authentication failure is not evidence that a name is available. If another owner has claimed the name, choose an available name and update package metadata, release validation, documentation, and trust settings together.
 
 If `whoami` reports `ENEEDAUTH`, sign in interactively and complete npm's browser/2FA prompts:
 
@@ -65,7 +67,7 @@ claude-autorouter --version
 claude-autorouter --help
 ```
 
-Then run `setup`, `doctor`, and a launch from outside the source checkout as appropriate for that machine. `doctor` is local-only; a live prompt separately verifies provider access. Remove the README's pending-publication notice only after registry publication succeeds.
+Then run `setup`, `doctor`, and a launch from outside the source checkout as appropriate for that machine. `doctor` is local-only; a live prompt separately verifies provider access. Keep the README's installation instructions aligned with the verified registry release.
 
 Do not push `v0.2.0` to test automation after this bootstrap: it would attempt to publish an existing version. npm name/version pairs cannot be reused, including after unpublishing. See the [npm publish reference](https://docs.npmjs.com/cli/v11/commands/npm-publish/).
 

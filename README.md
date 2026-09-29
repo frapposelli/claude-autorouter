@@ -6,13 +6,7 @@ Requires Node.js 22+, macOS or Linux (including WSL), an installed `claude` comm
 
 ## Install and start
 
-**npm publication is pending.** Install the release tarball now:
-
-```sh
-npm install -g ./claude-autorouter-0.2.0.tgz
-```
-
-Once the package is published, install it from the registry with:
+Install from [npm](https://www.npmjs.com/package/claude-autorouter):
 
 ```sh
 npm install -g claude-autorouter
