@@ -84,4 +84,4 @@ Use `--ollama-preset quality` to choose the larger model when memory permits, in
 - Subscription access and usage limits still apply. Model switches can reduce cache reuse; cheaper token prices do not guarantee cheaper completed tasks. Run ordinary `claude` to bypass routing.
 - The launcher is quiet by default. Use `AUTOROUTER_DEBUG=1` for metadata diagnostics or `AUTOROUTER_STATUSLINE=0` to retain your existing status line. [Troubleshooting](docs/reference.md#troubleshooting).
 
-[Reference](docs/reference.md) · [Development and validation](docs/development.md) · [Preparing a release](docs/releasing.md) · [Apache-2.0 license](LICENSE)
+[Reference](docs/reference.md) · [Development and validation](docs/development.md) · [CI and npm release setup](docs/releasing.md) · [Apache-2.0 license](LICENSE)

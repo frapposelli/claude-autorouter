@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import { copyFile, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+import { copyFile, lstat, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { delimiter, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { npmEnvironment, packagePlan, packPackage, run } from './release-pack.mjs';
+import { archiveFiles, npmEnvironment, packagePlan, packPackage, run } from './release-pack.mjs';
 
 const JEV_KEY = 'package-smoke-jev-key';
 const API_KEY = 'package-smoke-api-key';
@@ -57,6 +57,10 @@ if (args.includes('--version')) {
 `;
 
 async function main() {
+  const args = process.argv.slice(2);
+  if (args.length && (args.length !== 2 || args[0] !== '--archive' || !args[1]?.trim())) {
+    throw new Error('Usage: node scripts/package-smoke.mjs [--archive PATH]');
+  }
   const project = resolve(dirname(fileURLToPath(import.meta.url)), '..');
   const temporary = await realpath(await mkdtemp(join(tmpdir(), 'autorouter-package-smoke-')));
   let mock;
@@ -69,21 +73,44 @@ async function main() {
   let localModelInstalled = false;
   try {
     const env = await npmEnvironment(join(temporary, 'npm isolated'));
-    const plan = await packagePlan(project, env);
-    const staging = join(temporary, 'package staging');
-    for (const file of plan.files) {
-      const target = join(staging, file.path);
-      await mkdir(dirname(target), { recursive: true });
-      await copyFile(join(project, file.path), target);
+    let packed;
+    if (args.length) {
+      const path = resolve(args[1]);
+      let info;
+      try { info = await lstat(path); } catch { throw new Error('--archive must name an existing regular .tgz file'); }
+      if (!info.isFile() || !path.endsWith('.tgz') || info.size > 32 * 1024 * 1024) {
+        throw new Error('--archive must name a regular .tgz file no larger than 32 MiB');
+      }
+      const archive = await realpath(path);
+      const files = await archiveFiles(archive);
+      const manifest = JSON.parse(files.get('package.json').toString('utf8'));
+      const expected = JSON.parse(await readFile(join(project, 'package.json'), 'utf8'));
+      if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)
+        || manifest.name !== expected.name || manifest.version !== expected.version) {
+        throw new Error('Archive package name and version must match this checkout');
+      }
+      if (manifest.private) throw new Error('Archive package is marked private');
+      if (Object.keys(manifest.dependencies ?? {}).length || Object.keys(manifest.optionalDependencies ?? {}).length) {
+        throw new Error('Archive package must remain dependency-free');
+      }
+      packed = { archive, files, manifest };
+    } else {
+      const plan = await packagePlan(project, env);
+      const staging = join(temporary, 'package staging');
+      for (const file of plan.files) {
+        const target = join(staging, file.path);
+        await mkdir(dirname(target), { recursive: true });
+        await copyFile(join(project, file.path), target);
+      }
+      // Synthetic secrets verify the actual archive's contents without reading
+      // or copying this checkout's .env, private artifacts, or transcripts.
+      for (const path of ['.env', '.env.local', 'artifacts/private-transcript.json', 'test/private.test.mjs', 'src/private.env']) {
+        const target = join(staging, path);
+        await mkdir(dirname(target), { recursive: true });
+        await writeFile(target, SENTINEL);
+      }
+      packed = await packPackage(staging, join(temporary, 'archives'), env);
     }
-    // Synthetic secrets verify the actual archive's contents without reading
-    // or copying this checkout's .env, private artifacts, or transcripts.
-    for (const path of ['.env', '.env.local', 'artifacts/private-transcript.json', 'test/private.test.mjs', 'src/private.env']) {
-      const target = join(staging, path);
-      await mkdir(dirname(target), { recursive: true });
-      await writeFile(target, SENTINEL);
-    }
-    const packed = await packPackage(staging, join(temporary, 'archives'), env);
     for (const [path, content] of packed.files) assert.ok(!content.includes(SENTINEL), `Private sentinel leaked into ${path}`);
 
     const prefix = join(temporary, 'prefix with spaces');
@@ -206,6 +233,7 @@ async function main() {
       await assert.rejects(readFile(path), error => error.code === 'ENOENT');
     }
     console.log(`Package smoke passed: ${packed.manifest.name}@${packed.manifest.version}, ${packed.files.size} safe archive files.`);
+    if (args.length) console.log('Installed and tested the supplied archive without rebuilding it.');
     console.log('Verified offline installation, Jev and Ollama setup/doctor/routing, opt-in download, bundled status line, and session cleanup.');
     console.log(result.status_line);
     console.log(localResult.status_line);
