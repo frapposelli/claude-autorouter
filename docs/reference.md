@@ -79,21 +79,39 @@ node bin/autorouter.mjs claude
 
 ### Local model selection
 
-The default is `nimble:9b-q4_K_M`, a 9B native decision model using Q4_K_M quantization with an approximately 5.63 GB download. Other tags can be selected with `--ollama-model LOCAL_TAG_OR_ALIAS` or `AUTOROUTER_OLLAMA_MODEL`. Every selected model must support `/v1/systemone`; a model name or alias does not change the endpoint. There are no model presets or automatic choices based on system RAM.
+The default is `nimble:9b-q4_K_M`. Other tags can be selected with `--ollama-model LOCAL_TAG_OR_ALIAS` or `AUTOROUTER_OLLAMA_MODEL`. Every selected model must support `/v1/systemone`; a model name or alias does not change the endpoint. There are no model presets or automatic choices based on system RAM.
 
-For Nimble, the explicit Q4_K_M tag avoids `nimble:latest`, which currently selects an approximately 9.5 GB Q8 model. See [Ollama's Nimble listing](https://ollama.com/library/nimble). Download size is not resident memory: runtime and context allocations add to it, and other applications need memory too. Downloaded models have their own licenses and are not bundled in this package. See the [local measurements](ollama-evaluation.md) before choosing a latency deadline.
+| Explicit tag | Parameters / quantization | Approximate download | Model details and terms |
+| --- | --- | ---: | --- |
+| `nimble:9b-q4_K_M` | 9B / Q4_K_M | 5.63 GB | [Nimble](https://ollama.com/library/nimble); local default |
+| `tev1:0.8b` | 0.8B / Q8 | 812 MB | [Tev1](https://ollama.com/library/tev1) |
+| `tev1:4b-q4_K_M` | 4B / Q4_K_M | 2.7 GB | [Tev1](https://ollama.com/library/tev1) |
+
+To select Tev1, run one of these setup commands from the source checkout, then run `doctor` and `claude` as above:
+
+```sh
+# Tev1 0.8B Q8
+node bin/autorouter.mjs setup --evaluator ollama --ollama-model tev1:0.8b --pull --force
+```
+
+```sh
+# Tev1 4B Q4_K_M, allowing slower local decisions
+AUTOROUTER_OLLAMA_TIMEOUT_MS=10000 node bin/autorouter.mjs setup --evaluator ollama --ollama-model tev1:4b-q4_K_M --pull --force
+```
+
+For Nimble, the explicit Q4_K_M tag avoids `nimble:latest`, which currently selects an approximately 9.5 GB Q8 model. For Tev1, `tev1:latest` and `tev1:4b` select approximately 4.5 GB Q8 weights; the explicit `tev1:4b-q4_K_M` tag selects the smaller 4B download. Download size is not resident memory: runtime and context allocations add to it, and other applications need memory too. Downloaded models have their own licenses and are not bundled in this package. On the tested 16 GiB M4, Tev1 0.8B matched 18/24 held-out labels at 450 ms median latency within the normal deadline; 4B matched 22/24 at 3.15 seconds with a separate 10-second deadline. See the [local measurements](ollama-evaluation.md) before choosing a latency deadline.
 
 The endpoint must be loopback (`127.0.0.1`, `localhost`, or `::1`), without a path, credentials, query, or fragment. Cloud model tags and metadata identifying a remote model are rejected before sending task text. Claude and Jev credentials are never attached to Ollama requests.
 
 ### Classification and fallback
 
-Local classification caps serialized evaluator state at both 3,000 characters and 3,000 UTF-8 bytes, including for non-ASCII prompts. `/v1/systemone` receives the bounded state and routing criteria and returns a tier directly. The router retains each model's native context setting (8,194 tokens for the default Nimble tag). Returned confidence scores summarize choice-distribution entropy; they are not calibrated accuracy probabilities. `AUTOROUTER_MIN_CONFIDENCE` applies only to Jev. All capability, tool-continuation, thinking, and context guards still apply.
+Local classification caps serialized evaluator state at both 3,000 characters and 3,000 UTF-8 bytes, including for non-ASCII prompts. `/v1/systemone` receives the bounded state and routing criteria and returns a tier directly. The router retains each model's native context setting: 8,194 tokens for the default Nimble tag and 2,050 for the listed Tev1 tags. Tev1's smaller window includes the routing criteria and template as well as the excerpt; the byte limit does not guarantee every possible input fits. Context errors use the normal fallback. Returned confidence scores summarize choice-distribution entropy; they are not calibrated accuracy probabilities. `AUTOROUTER_MIN_CONFIDENCE` applies only to Jev. All capability, tool-continuation, thinking, and context guards still apply.
 
 Before opening Claude's UI, the launcher loads an installed model and primes the actual classifier rubric with a synthetic task, using a separate deadline of up to 60 seconds. Each normal evaluation has a 1,500 ms deadline covering local checks and classification. Priming reduces first-request overhead but does not guarantee that longer excerpts finish in time. `AUTOROUTER_OLLAMA_KEEP_ALIVE` defaults to `5m`. After five idle minutes, the next request may need to reload the model, exceed that deadline, and use the fallback. A longer positive keep-alive can reduce reloads while retaining memory longer; `0` unloads immediately and can make every evaluation cold. Supported values are `0` or a positive duration such as `30s`, `5m`, or `1h`.
 
 If startup priming fails, the launcher warns and continues. An incompatible model or Ollama version, missing model, unavailable service, malformed answer, or evaluation timeout falls back to Sonnet or retains an incoming Opus, subject to the usual compatibility policy. No Jev request is made. The status line identifies `Ollama fallback` and its error category. Run `doctor` to inspect the local service and installed model; it does not download or generate. A live classification is needed to verify the selected model's decision-API behavior.
 
-On the tested 16 GiB M4, Nimble timed out on all 12 tuning requests at the default deadline. A separate 30-second diagnostic completed 24 held-out classifications with 23 matching labels, but median routing took 11.4 seconds. The one error followed a misleading tier instruction. See the [measurements and limitations](ollama-evaluation.md). If you accept several seconds of added latency, configure a longer deadline explicitly; this example is a diagnostic allowance, not a speed recommendation:
+Tev1 4B timed out on all eight full-excerpt checks even with the 10-second allowance shown above; its short-task results do not establish a full-excerpt latency bound. Tev1 0.8B completed all eight within the default deadline. On the tested 16 GiB M4, Nimble timed out on all 12 tuning requests at the default deadline. A separate 30-second diagnostic completed 24 held-out classifications with 23 matching labels, but median routing took 11.4 seconds. The one error followed a misleading tier instruction. See the [measurements and limitations](ollama-evaluation.md). If you accept several seconds of added latency, configure a longer deadline explicitly; this example is a diagnostic allowance, not a speed recommendation:
 
 ```sh
 AUTOROUTER_OLLAMA_TIMEOUT_MS=30000 node bin/autorouter.mjs setup --evaluator ollama --pull --force

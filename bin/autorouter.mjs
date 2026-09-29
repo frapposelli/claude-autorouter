@@ -38,6 +38,7 @@ Jev is the default evaluator and requires TYPESAFE_API_KEY.
 Ollama evaluates locally and requires Ollama 0.35+ with /v1/systemone.
 Use setup --evaluator ollama --pull to detect Ollama and download a missing model.
 The local default is nimble:9b-q4_K_M; --ollama-model selects another compatible model.
+Smaller Tev1 options: --ollama-model tev1:0.8b or --ollama-model tev1:4b-q4_K_M.
 Local routing is experimental; see docs/ollama-evaluation.md for measured limits.
 AUTOROUTER_AUTH_MODE=subscription uses your saved Claude Code login.
 Without setup, AUTOROUTER_AUTH_MODE defaults to api-key and also requires ANTHROPIC_API_KEY.

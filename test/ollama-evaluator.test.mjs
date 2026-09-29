@@ -15,8 +15,9 @@ const decisionPayload = (choice = 'haiku', model = DEFAULT_OLLAMA_MODEL) => ({
   usage: { input_tokens: 1234, output_tokens: 1 },
 });
 
-test('compatible custom model aliases use the same native protocol without chat requests', async () => {
-  for (const model of ['nimble', 'library/nimble:9b-q4_K_M', 'registry.ollama.ai/library/nimble:9b-q4_K_M', 'team/local-decider:v1']) {
+test('Nimble, Tev1, and compatible custom aliases use the same native protocol without chat requests', async () => {
+  for (const model of ['nimble', 'library/nimble:9b-q4_K_M', 'registry.ollama.ai/library/nimble:9b-q4_K_M',
+    'tev1:0.8b', 'tev1:0.8b-q8_0', 'tev1:4b-q4_K_M', 'team/local-decider:v1']) {
     const calls = [];
     const result = await evaluateOllama(buildOllamaState(body()), config({ ollamaModel: model }), { fetchImpl: async (url, options) => {
       calls.push(new URL(url).pathname);

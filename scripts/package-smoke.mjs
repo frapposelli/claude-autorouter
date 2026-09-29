@@ -9,6 +9,7 @@ import { archiveFiles, npmEnvironment, packagePlan, packPackage, run } from './r
 
 const JEV_KEY = 'package-smoke-jev-key';
 const API_KEY = 'package-smoke-api-key';
+const TEV1_MODEL = 'tev1:4b-q4_K_M';
 const SENTINEL = 'AUTOROUTER_PRIVATE_PACKAGE_SENTINEL_5e73c512';
 const FAKE_CLAUDE = `#!/usr/bin/env node
 import assert from 'node:assert/strict';
@@ -73,6 +74,7 @@ async function main() {
   let nimbleWarms = 0;
   let pulls = 0;
   let localModelInstalled = false;
+  let expectedLocalModel = TEV1_MODEL;
   try {
     const env = await npmEnvironment(join(temporary, 'npm isolated'));
     let packed;
@@ -140,15 +142,19 @@ async function main() {
           assert.equal(req.headers['x-api-key'], undefined);
           res.writeHead(200, { 'content-type': 'application/json' });
           if (req.url === '/api/version') res.end(JSON.stringify({ version: '0.35.0' }));
-          else if (req.url === '/api/tags') res.end(JSON.stringify({ models: [{ name: 'nimble:9b-q4_K_M' }, ...(localModelInstalled ? [{ name: 'smoke-router:latest' }] : [])] }));
-          else if (req.url === '/api/show') res.end(JSON.stringify({ details: { parameter_size: '1B' } }));
+          else if (req.url === '/api/tags') res.end(JSON.stringify({ models: [{ name: 'nimble:9b-q4_K_M' }, ...(localModelInstalled ? [{ name: TEV1_MODEL }] : [])] }));
+          else if (req.url === '/api/show') {
+            assert.equal(body.model, expectedLocalModel);
+            res.end(JSON.stringify({ details: { parameter_size: body.model === TEV1_MODEL ? '4B' : '9B' } }));
+          }
           else if (req.url === '/api/pull') {
             pulls++;
-            assert.equal(body.model, 'smoke-router:latest');
+            assert.equal(body.model, TEV1_MODEL);
             localModelInstalled = true;
             res.end('{"status":"pulling manifest"}\n{"status":"success"}\n');
           } else assert.fail('Unexpected Ollama lifecycle endpoint');
-        } else if (req.url === '/v1/systemone' && ['nimble:9b-q4_K_M', 'smoke-router:latest'].includes(body.model)) {
+        } else if (req.url === '/v1/systemone' && ['nimble:9b-q4_K_M', TEV1_MODEL].includes(body.model)) {
+          assert.equal(body.model, expectedLocalModel);
           assert.equal(req.headers.authorization, undefined);
           assert.equal(req.headers['x-api-key'], undefined);
           assert.equal(body.questions.tier.type, 'choice');
@@ -215,9 +221,10 @@ async function main() {
 
     const ollamaEnv = { ...cliEnv, AUTOROUTER_CONFIG: join(temporary, 'ollama-config.json'),
       AUTOROUTER_OLLAMA_URL: endpoint, ANTHROPIC_API_KEY: API_KEY };
-    await run(installedCommand, ['setup', '--auth-mode', 'api-key', '--evaluator', 'ollama', '--ollama-model', 'smoke-router:latest', '--pull'], { cwd: unrelated, env: ollamaEnv });
+    await run(installedCommand, ['setup', '--auth-mode', 'api-key', '--evaluator', 'ollama', '--ollama-model', TEV1_MODEL, '--pull'], { cwd: unrelated, env: ollamaEnv });
     const localSaved = JSON.parse(await readFile(ollamaEnv.AUTOROUTER_CONFIG, 'utf8'));
     assert.equal(localSaved.AUTOROUTER_EVALUATOR, 'ollama');
+    assert.equal(localSaved.AUTOROUTER_OLLAMA_MODEL, TEV1_MODEL);
     assert.equal(localSaved.TYPESAFE_API_KEY, undefined);
     delete ollamaEnv.ANTHROPIC_API_KEY;
     await run(installedCommand, ['doctor'], { cwd: unrelated, env: ollamaEnv });
@@ -236,6 +243,7 @@ async function main() {
       await assert.rejects(readFile(path), error => error.code === 'ENOENT');
     }
     const nimbleEnv = { ...ollamaEnv, AUTOROUTER_CONFIG: join(temporary, 'nimble-config.json'), ANTHROPIC_API_KEY: API_KEY };
+    expectedLocalModel = 'nimble:9b-q4_K_M';
     await run(installedCommand, ['setup', '--auth-mode', 'api-key', '--evaluator', 'ollama'], { cwd: unrelated, env: nimbleEnv });
     delete nimbleEnv.ANTHROPIC_API_KEY;
     await run(installedCommand, ['doctor'], { cwd: unrelated, env: nimbleEnv });
@@ -253,7 +261,7 @@ async function main() {
     }
     console.log(`Package smoke passed: ${packed.manifest.name}@${packed.manifest.version}, ${packed.files.size} safe archive files.`);
     if (args.length) console.log('Installed and tested the supplied archive without rebuilding it.');
-    console.log('Verified offline installation, Jev/Nimble/custom-model setup/doctor/routing, opt-in download, bundled status line, and session cleanup.');
+    console.log('Verified offline installation, Jev/Nimble/Tev1 setup/doctor/routing, opt-in download, bundled status line, and session cleanup.');
     console.log(result.status_line);
     console.log(localResult.status_line);
   } finally {

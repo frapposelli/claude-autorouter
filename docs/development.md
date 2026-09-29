@@ -54,6 +54,7 @@ The dedicated Ollama benchmark uses synthetic tuning/held-out fixtures and repor
 
 ```sh
 npm run eval:ollama -- --models nimble:9b-q4_K_M --split heldout --rounds 3 --stress-rounds 8
+npm run eval:ollama -- --models tev1:0.8b,tev1:4b-q4_K_M --split heldout --rounds 1 --stress-rounds 8
 node scripts/evaluate-ollama.mjs --help
 ```
 

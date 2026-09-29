@@ -60,11 +60,25 @@ node bin/autorouter.mjs doctor
 node bin/autorouter.mjs claude
 ```
 
-`--force` replaces existing AutoRouter configuration. `--pull` downloads the selected model only if missing; Nimble's 9B Q4_K_M model is approximately 5.63 GB on disk. Setup does not install or start Ollama, or delete existing models. To select another installed native decision model or alias, add `--ollama-model YOUR_LOCAL_MODEL`.
+`--force` replaces existing AutoRouter configuration. `--pull` downloads the selected model only if missing. Setup does not install or start Ollama, or delete existing models. Select a native decision model explicitly with `--ollama-model`:
+
+| Model | Approximate download | Selection |
+| --- | ---: | --- |
+| [Nimble 9B Q4_K_M](https://ollama.com/library/nimble) | 5.63 GB | Default: `nimble:9b-q4_K_M` |
+| [Tev1 0.8B Q8](https://ollama.com/library/tev1) | 812 MB | `tev1:0.8b` |
+| [Tev1 4B Q4_K_M](https://ollama.com/library/tev1) | 2.7 GB | `tev1:4b-q4_K_M` |
+
+For example, select Tev1 0.8B with:
+
+```sh
+node bin/autorouter.mjs setup --evaluator ollama --ollama-model tev1:0.8b --pull --force
+```
+
+Use `--ollama-model tev1:4b-q4_K_M` for the listed 4B variant; on the tested Mac it also needed a longer deadline, such as `AUTOROUTER_OLLAMA_TIMEOUT_MS=10000`, at setup. `tev1:latest` and `tev1:4b` select the larger Q8 download. Model terms are linked in the listings above; download size does not measure resident memory or routing quality. Custom native model tags and aliases also work.
 
 No Jev key is needed for local classification. The launcher primes the evaluator before opening Claude's UI, and evaluation failures fall back to Sonnet or retain Opus without contacting Jev. Claude still answers through Anthropic, with the same routing guards and subscription limits.
 
-On the tested 16 GiB M4, Nimble exceeded the default 1,500 ms deadline on all 12 tuning requests. With a separate 30-second diagnostic deadline it matched 23/24 held-out labels, but median classification took 11.4 seconds and one misleading instruction caused under-routing. See the [measurements and limits](docs/ollama-evaluation.md) and [Ollama reference](docs/reference.md#ollama-evaluator), including configuration migration and the latency tradeoff.
+On the tested 16 GiB M4, Tev1 0.8B matched 18/24 held-out labels with 450 ms median latency and no timeouts at the default 1,500 ms deadline, including full-excerpt checks. Tev1 4B matched 22/24 with a 10-second diagnostic deadline and 3.15-second median latency. Nimble matched 23/24 with a 30-second deadline and 11.4-second median latency. Both larger models exceeded the normal deadline in their standard-deadline tests. See the [measurements and limits](docs/ollama-evaluation.md) and [Ollama reference](docs/reference.md#ollama-evaluator), including configuration migration and the latency tradeoff.
 
 ## Behavior and data
 
