@@ -26,17 +26,17 @@ node --env-file=.env bin/autorouter.mjs claude
 
 The explicit Node flag loads `.env`; the CLI itself does not auto-load project files. Environment values override the user config. Keep keys out of source control and command arguments.
 
-To launch an already configured Ollama evaluator without AutoRouter's runtime deadline, use the unreleased source:
+With AutoRouter 0.3.2 or newer, launch an already configured Ollama evaluator without its runtime deadline using:
 
 ```sh
-AUTOROUTER_OLLAMA_TIMEOUT_MS=0 node bin/autorouter.mjs claude
+AUTOROUTER_OLLAMA_TIMEOUT_MS=0 claude-autorouter claude
 ```
 
-Persist the setting with `node bin/autorouter.mjs setup --evaluator ollama --ollama-model tev1:4b --ollama-timeout-ms 0 --force` for that installed model. The setup flag overrides the timeout environment value; later launch-time environment values still override saved configuration. Startup priming keeps its separate 60-second limit, cancellation remains active, and normal errors still use fallback. npm 0.3.1 does not accept the `0` value or the setup flag.
+Persist the setting with `claude-autorouter setup --evaluator ollama --ollama-model tev1:4b --ollama-timeout-ms 0 --force` for that installed model. The setup flag overrides the timeout environment value; later launch-time environment values still override saved configuration. Startup priming keeps its separate 60-second limit, cancellation remains active, and normal errors still use fallback.
 
-## Local routing regression (unreleased)
+## Local routing regression
 
-The source-only harness below is opt-in and is not included in npm 0.3.1. It sends synthetic Claude-shaped requests through the real router and an installed local evaluator, checking task extraction, classifier choices, selected Claude tiers, and new human turns. It makes no Anthropic or Jev calls, downloads no models, and writes no user configuration.
+The source-only harness below is opt-in and is not included in the npm package. It sends synthetic Claude-shaped requests through the real router and an installed local evaluator, checking task extraction, classifier choices, selected Claude tiers, and new human turns. It makes no Anthropic or Jev calls, downloads no models, and writes no user configuration.
 
 ```sh
 node scripts/test-ollama-routing.mjs --model tev1:0.8b
@@ -52,7 +52,7 @@ node scripts/test-ollama-routing.mjs --model tev1:4b --timeout-ms 0
 
 The command fails on a wrong classification, fallback, unexpected guard override, or missing tier coverage. A Sonnet result with `source: ollama` and `classified_tier: sonnet` is a valid prediction; `source: fallback` and `classifier_error: timeout` means classification did not complete. Passing establishes these synthetic cases only. Warmup and metadata-only `doctor` checks do not establish speed or accuracy on real tasks.
 
-The unreleased local path excludes Claude's executor system instructions before excerpt budgeting and retains task/history excerpts. Jev is unchanged. npm 0.3.1 still includes the executor background locally and defaults every local model to 1,500 ms; see the [published-version timeout workarounds](reference.md#classification-and-fallback). Historical benchmark results must remain labeled with their original excerpt policy and explicit deadlines.
+Version 0.3.2 excludes Claude's executor system instructions from local classifier input before excerpt budgeting and retains task/history excerpts. Jev is unchanged. Version 0.3.1 included the executor background locally and defaulted every local model to 1,500 ms; see the [upgrade notes](reference.md#migrating-an-older-ollama-config). Historical benchmark results must remain labeled with their original excerpt policy and explicit deadlines.
 
 ## Live integration tests
 

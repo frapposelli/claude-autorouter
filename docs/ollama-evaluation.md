@@ -2,15 +2,15 @@
 
 AutoRouter supports `/v1/systemone` classification only: remote Jev with an API key, or local Ollama 0.35+ with a compatible decision model. Jev remains the default evaluator. The local default is `nimble:9b-q4_K_M`; the old Qwen chat adapter and compact/quality/auto presets have been removed. Existing downloaded models are not deleted.
 
-## Routing regression investigation (September 30, 2026; unreleased)
+## Version 0.3.2 routing regression (September 30, 2026)
 
-The npm `0.3.1` runtime uses a 1,500 ms deadline for every local model, even though startup priming allows 60 seconds. On the user's already-loaded `tev1:4b` (Q8), four synthetic tasks all timed out and selected Sonnet through `source=fallback`, `classifier_error=timeout`. With a separate 30-second diagnostic allowance, the same tasks selected Haiku, Haiku, Sonnet, and Opus. Three of those decisions took 5.6–6.1 seconds. This was a deadline failure, not a parser forcing every answer to Sonnet.
+The npm `0.3.1` runtime used a 1,500 ms deadline for every local model, even though startup priming allows 60 seconds. On the user's already-loaded `tev1:4b` (Q8), four synthetic tasks all timed out and selected Sonnet through `source=fallback`, `classifier_error=timeout`. With a separate 30-second diagnostic allowance, the same tasks selected Haiku, Haiku, Sonnet, and Opus. Three of those decisions took 5.6–6.1 seconds. This was a deadline failure, not a parser forcing every answer to Sonnet.
 
 We captured three synthetic request shapes from the installed Claude client using an isolated local response stub, without paid provider calls. The human task survived intact and no compatibility guard forced Sonnet. The local evaluator nevertheless received 627–796 characters of Claude's general executor instructions. Tev1 0.8B classified all three captures as Sonnet. Removing only this system background changed the distributed-fencing case to Opus; the `[].length` example still selected Sonnet. Removing additional state fields did not improve that result, so the routing rubric and remaining state layout were retained.
 
-The source fixes exclude executor system instructions from local classifier input, use 15-second defaults for official Tev1 4B variants and 30 seconds for Nimble, and retain the 1.5-second default for Tev1 0.8B/custom models. Explicit timeout settings still win. Setup, doctor, and startup display the effective deadline. Compact status lines retain the fallback cause. These changes are **not included in npm 0.3.1**. Jev's input extraction and deadline are unchanged.
+Version 0.3.2 excludes executor system instructions from local classifier input, uses 15-second defaults for official Tev1 4B variants and 30 seconds for Nimble, and retains the 1.5-second default for Tev1 0.8B/custom models. Explicit timeout settings still win; `0` disables only the runtime evaluator timer. Setup accepts `--ollama-timeout-ms`; setup, doctor, and startup display the effective deadline. Compact status lines retain the fallback cause. Jev's input extraction and deadline are unchanged.
 
-The new opt-in `npm run test:ollama -- --model TAG` checks actual `Router.route` results against six fixed synthetic Claude-shaped requests: literal output, `[].length`, a bounded feature, distributed fencing, a new mechanical task after a difficult task, and a new difficult task after a simple task. It checks the evaluator choice, selected Claude model, source, and reason, and fails on a mismatch, fallback, override, or missing tier coverage. Live cases use fresh routers to avoid decision-cache passes; persistent turn-cache transitions and compatibility guards are separately covered by offline regression tests. It downloads nothing and does not contact Claude or Jev.
+The source-only, opt-in `npm run test:ollama -- --model TAG` checks actual `Router.route` results against six fixed synthetic Claude-shaped requests: literal output, `[].length`, a bounded feature, distributed fencing, a new mechanical task after a difficult task, and a new difficult task after a simple task. It checks the evaluator choice, selected Claude model, source, and reason, and fails on a mismatch, fallback, override, or missing tier coverage. Live cases use fresh routers to avoid decision-cache passes; persistent turn-cache transitions and compatibility guards are separately covered by offline regression tests. It is not included in the npm package, downloads nothing, and does not contact Claude or Jev.
 
 One pass with the fixes on the same M4/16 GiB Mac produced:
 
@@ -23,9 +23,11 @@ One pass with the fixes on the same M4/16 GiB Mac produced:
 
 Every model reached all three tiers. The 0.8B failures were genuine classifications: `[].length` → Sonnet, new mechanical task → Opus, new difficult task → Sonnet. Its live suite therefore **fails**, rather than treating valid native responses as proof of accuracy. These six cases are regression checks, not a new held-out quality benchmark; the samples, machine load, residency, and prompt-cache effects do not establish a quantization speed comparison or a worst-case latency bound. The larger-model budgets allow slower decisions; they do not make those models fast or prevent every timeout. No user configuration or model files were changed; the originally resident `tev1:4b` was restored after sequential model testing.
 
+A separate check with `tev1:4b` and the runtime deadline disabled (`timeout_ms: 0`) passed the same six cases without fallback, with decision latencies of 4.37–5.42 seconds after 13.11 seconds of priming. It made no Claude or Jev calls and downloaded nothing. This validates disabled-timer routing on those cases; it adds no new quality cases or latency guarantee.
+
 Fixture SHA-256: `88e12f962fb42b36a00edd6b8c2560e54620d90c978b1ff13a1ddf31ee46b585`. The questions remain unchanged at `be151cedb4de4b7ef3f7162d751f70ce7d9dd14efc66fae1835f73ffd04027be`.
 
-## Historical benchmark method (before these fixes)
+## Historical benchmark method (before 0.3.2)
 
 Measurements were recorded on September 29, 2026, on an Apple M4 Mac with 16 GiB of unified memory alongside other applications. Nimble ran on an isolated Ollama 0.35.0 process; the installed Ollama 0.33.3 daemon was left unchanged during that test. Tev1 was tested later on the user's upgraded Ollama 0.35.0 service after its downloads finished. Version 0.35.0 was a prerelease at the time. These are observations under different application loads, not a controlled hardware comparison. See the [official release](https://github.com/ollama/ollama/releases/tag/v0.35.0), [Nimble catalog](https://ollama.com/library/nimble), and [Tev1 catalog](https://ollama.com/library/tev1).
 
@@ -33,15 +35,15 @@ The selected Nimble tag contains a 9B Q4_K_M model, approximately 5.63 GB to dow
 
 The fixture contains 36 balanced synthetic workloads: 12 tuning cases and 24 held-out cases, with equal numbers of Haiku, Sonnet, and Opus labels. Cases include mechanical edits, ordinary implementation, difficult correctness and security work, topic changes, tool results, short follow-ups, and misleading routing instructions. These labels are judgments under the routing policy, not proof of which Claude model would complete each task successfully. The native questions preserve the existing local routing policy and were frozen before Nimble testing; no changes were made from held-out results.
 
-The harness uses the production state builder and evaluator, including local metadata checks in wall-clock latency. It bypasses AutoRouter's decision cache; Ollama's own caching remains enabled. A cold measurement starts with the model unloaded, but operating-system file caches and kernels may already be warm. Cold calls have a separate 60-second deadline. The normal evaluator deadline is 1,500 ms. Reported model allocation comes from `/api/ps`; it is not a measurement of total process or system memory, and its GPU allocation is not additional independent RAM on this unified-memory Mac. Aggregate runtime RSS includes all Ollama and llama-server processes, including the original idle daemon.
+The historical harness used the then-current production state builder and evaluator, including local metadata checks in wall-clock latency. It bypasses AutoRouter's decision cache; Ollama's own caching remains enabled. A cold measurement starts with the model unloaded, but operating-system file caches and kernels may already be warm. Cold calls have a separate 60-second deadline. The normal evaluator deadline in that benchmark was 1,500 ms for every model. Reported model allocation comes from `/api/ps`; it is not a measurement of total process or system memory, and its GPU allocation is not additional independent RAM on this unified-memory Mac. Aggregate runtime RSS includes all Ollama and llama-server processes, including the original idle daemon.
 
-## Nimble results
+## Historical Nimble results
 
 The first production-deadline run returned Haiku correctly for its cold mechanical task in 17.64 seconds. **All 12 warm tuning requests timed out at 1,500 ms**, with cancellation p50/p95 of 1,503/1,513 ms. No warm classification accuracy can be inferred from that run. The model's reported allocation was 5.48 GB, with an 8,194-token context. This did not meet the desired fast-routing target on the tested Mac.
 
 A separate first-load smoke call correctly classified `[].length` as Haiku in 25.23 seconds. It checks integration, not warm performance or classifier accuracy.
 
-The separate held-out diagnostic used a 30,000 ms deadline and one pass over 24 distinct workloads. It does not change the production default or establish performance at 1,500 ms.
+The separate held-out diagnostic used a 30,000 ms deadline and one pass over 24 distinct workloads. It did not change the then-default 1,500 ms budget or establish performance within it.
 
 | Measurement | Result |
 | --- | ---: |
@@ -59,9 +61,9 @@ All eight full-excerpt diagnostic requests completed at the 30,000 ms deadline a
 
 An isolated live Claude Code test also passed using the saved Enterprise subscription login, a temporary configuration with a 30,000 ms evaluator deadline, and no Jev key. Nimble selected Haiku in 12.69 seconds; Anthropic returned HTTP 200 with the expected literal response and confirmed `claude-haiku-4-5-20251001`. Only a synthetic prompt was used, with no repository files or tools. This verifies the authentication and routing integration, not general classifier accuracy. The installed Ollama service and user configuration were left unchanged.
 
-## Tev1 results
+## Historical Tev1 results
 
-Both [Tev1 variants](https://ollama.com/library/tev1) use the same production adapter and frozen questions, selected through `--ollama-model`. The 0.8B tag uses Q8_0 quantization and downloads approximately 812 MB; `tev1:4b-q4_K_M` downloads approximately 2.71 GB. The unqualified `tev1` tag selects the larger 4B Q8 model, which was not tested. Jev remains the evaluator default and Nimble remains the local-model default.
+Both [Tev1 variants](https://ollama.com/library/tev1) use the same production adapter and frozen questions, selected through `--ollama-model`. The 0.8B tag uses Q8_0 quantization and downloads approximately 812 MB; `tev1:4b-q4_K_M` downloads approximately 2.71 GB. The unqualified `tev1` tag selects the larger 4B Q8 model, which was not tested in this historical benchmark. It was tested separately in the 0.3.2 regression above. Jev remains the evaluator default and Nimble remains the local-model default.
 
 Each measured tag ships `num_ctx:2050`. The window includes the template, routing criteria, and excerpt. The 3,000-byte state cap is not a guarantee that every possible input fits this smaller token window. The reported stress cases used 1,664–1,752 input tokens on 0.8B. Requests exceeding model limits use the usual fallback; AutoRouter does not switch protocols or silently truncate additional content for Tev1.
 
@@ -75,7 +77,7 @@ These measurements use one pass over the same 24 held-out cases and eight separa
 
 The 0.8B model matched four of eight Haiku labels, all eight Sonnet labels, and six of eight Opus labels. It over-routed four mechanical tasks and under-routed two difficult tasks to Sonnet, including a case with a misleading tier instruction. Cold wall time was 2.08 seconds for 0.8B and 6.04 seconds for 4B. Model size and fast responses do not establish sufficient accuracy for an engineering workload.
 
-With a separate 10-second deadline, 4B matched seven of eight Haiku labels, all eight Sonnet labels, and seven of eight Opus labels. It over-routed one mechanical case to Opus and under-routed one difficult case to Sonnet. Its cold diagnostic request took 3.69 seconds. The improved agreement comes with several seconds of classification latency; it is not performance at the default deadline.
+With a separate 10-second deadline, 4B matched seven of eight Haiku labels, all eight Sonnet labels, and seven of eight Opus labels. It over-routed one mechanical case to Opus and under-routed one difficult case to Sonnet. Its cold diagnostic request took 3.69 seconds. The improved agreement comes with several seconds of classification latency; it is not performance at the then-default 1,500 ms deadline.
 
 All eight 0.8B full-excerpt requests completed within 1,500 ms and returned Haiku, with p50/p95 of 1,079/1,150 ms. The 4B model timed out on all eight at 1,500 ms and again on all eight at 10,000 ms. Its 10-second cancellation p50/p95 was 10,006/10,081 ms; completed full-excerpt latency was not measured. The longer deadline therefore allows the reported short held-out decisions but does not guarantee completion for full excerpts.
 
@@ -90,15 +92,15 @@ Model digests:
 
 ## Reproducing the evaluation
 
-Use a source checkout; benchmark scripts and fixtures are not included in the npm package. Install Ollama 0.35+, start it, and explicitly download the model:
+Use a source checkout; benchmark scripts and fixtures are not included in the npm package. The commands below evaluate the checked-out version. To reproduce the historical excerpt policy, use the `v0.3.1` checkout; 0.3.2 changes local input extraction. The explicit deadlines retain the historical budgets. Install Ollama 0.35+, start it, and explicitly download the model:
 
 ```sh
 ollama pull nimble:9b-q4_K_M
-node scripts/evaluate-ollama.mjs --models nimble:9b-q4_K_M --split tuning --rounds 1 --output artifacts/nimble-tuning.json
+node scripts/evaluate-ollama.mjs --models nimble:9b-q4_K_M --split tuning --rounds 1 --timeout-ms 1500 --output artifacts/nimble-tuning.json
 node scripts/evaluate-ollama.mjs --models nimble:9b-q4_K_M --split heldout --rounds 1 --stress-rounds 8 --timeout-ms 30000 --output artifacts/nimble-diagnostic.json
 ollama pull tev1:0.8b
 ollama pull tev1:4b-q4_K_M
-node scripts/evaluate-ollama.mjs --models tev1:0.8b,tev1:4b-q4_K_M --split heldout --rounds 1 --stress-rounds 8 --output artifacts/tev1-default.json
+node scripts/evaluate-ollama.mjs --models tev1:0.8b,tev1:4b-q4_K_M --split heldout --rounds 1 --stress-rounds 8 --timeout-ms 1500 --output artifacts/tev1-default.json
 node scripts/evaluate-ollama.mjs --models tev1:4b-q4_K_M --split heldout --rounds 1 --stress-rounds 8 --timeout-ms 10000 --output artifacts/tev1-diagnostic.json
 ```
 
@@ -114,6 +116,6 @@ Reproducibility identifiers:
 
 This is a small synthetic rubric-agreement benchmark, not a downstream task-quality, savings, Jev-parity, or security evaluation. Classification can miss context outside the excerpt. The cases do not establish robust resistance to prompt injection. Performance depends on hardware, memory pressure, prompt length, and residency; a successful setup or simple request does not guarantee the runtime deadline.
 
-The launcher primes the model before opening Claude, allowing up to 60 seconds for that synthetic classification. Idle unloading can still make later requests cold. Runtime timeouts and invalid responses use the existing conservative fallback, without contacting Jev. A longer `AUTOROUTER_OLLAMA_TIMEOUT_MS` trades added prompt latency for more completed local classifications; it does not make the evaluator faster.
+The launcher primes the model before opening Claude, allowing up to 60 seconds for that synthetic classification. Idle unloading can still make later requests cold. Runtime timeouts and invalid responses use the existing conservative fallback, without contacting Jev. A longer `AUTOROUTER_OLLAMA_TIMEOUT_MS` trades added prompt latency for more completed local classifications; it does not make the evaluator faster. In 0.3.2, `0` disables the runtime timer while preserving user/disconnect cancellation, normal error fallback, and the separate startup limit.
 
 Earlier Qwen results used a different `/api/chat` implementation and are not measurements of this native backend. They remain available in the [historical evaluation document](https://github.com/frapposelli/claude-autorouter/blob/548a175/docs/ollama-evaluation.md). Reproduce those results from that revision, not the current native-only harness.

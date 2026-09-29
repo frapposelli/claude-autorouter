@@ -4,6 +4,8 @@ The package is `claude-autorouter`, licensed under [Apache-2.0](../LICENSE). Ver
 
 Version `0.3.1` replaces the old Ollama chat evaluator and Qwen presets with the native `/v1/systemone` endpoint on Ollama 0.35+. It supports Nimble, Tev1, and other compatible local models through `--ollama-model`; Jev remains the default remote evaluator. Existing local users should rerun setup with a supported model, as described in the [reference](reference.md#ollama-evaluator). The [evaluation report](ollama-evaluation.md) records local model latency, accuracy, and timeout limitations.
 
+Version `0.3.2` fixes local timeout fallbacks with model-specific deadlines, removes Claude executor instructions from local evaluator excerpts, and keeps fallback causes visible in compact status lines. It also adds `AUTOROUTER_OLLAMA_TIMEOUT_MS=0` and `setup --ollama-timeout-ms 0` to disable the runtime evaluation deadline while preserving caller cancellation and the separate startup warmup limit. Existing explicit timeout settings still override the defaults; Jev is unchanged.
+
 The GitHub repository is private. Publishing to npm makes the tarball's runtime source, README, configuration example, license, and shipped documentation public. Model weights, user configuration, credentials, transcripts, local artifacts, and test fixtures are excluded. Review the archive before the first publication and whenever the package allowlist changes.
 
 ## What runs automatically
@@ -95,12 +97,12 @@ After a successful trusted release, npm recommends the optional **Publishing acc
 
 ## 3. Release subsequent versions by tag
 
-For the System One release, prepare `0.3.1` on `main` or through a pull request. For later releases, substitute the next unused version throughout:
+The commands below illustrate the `0.3.2` release. For a new release, substitute the next unused version throughout; never reuse a published version:
 
 ```sh
 git switch main
 git pull --ff-only origin main
-npm version 0.3.1 --no-git-tag-version
+npm version 0.3.2 --no-git-tag-version
 ```
 
 Review the version change and update any version-specific install examples or release notes. Check the candidate using the new filename:
@@ -109,7 +111,7 @@ Review the version change and update any version-specific install examples or re
 npm run check
 npm test
 npm run release:pack
-npm run test:package -- --archive ./dist/claude-autorouter-0.3.1.tgz
+npm run test:package -- --archive ./dist/claude-autorouter-0.3.2.tgz
 git diff --check
 ```
 
@@ -117,7 +119,7 @@ Commit the intended release changes and get that commit onto `main`, either thro
 
 ```sh
 git add package.json
-git commit -m "Release 0.3.1"
+git commit -m "Release 0.3.2"
 git push origin main
 ```
 
@@ -126,24 +128,24 @@ Include any intentional documentation or release-note edits in that commit too. 
 ```sh
 git switch main
 git pull --ff-only origin main
-git tag -a v0.3.1 -m "Release 0.3.1"
-git push origin v0.3.1
+git tag -a v0.3.2 -m "Release 0.3.2"
+git push origin v0.3.2
 ```
 
-Before pushing, confirm `package.json` contains `0.3.1` and the tag points to the intended commit. For a prerelease, use a matching version/tag such as `0.4.0-beta.1` / `v0.4.0-beta.1`; it will publish under `next`, leaving `latest` unchanged.
+Before pushing, confirm `package.json` contains `0.3.2` and the tag points to the intended commit. For a prerelease, use a matching version/tag such as `0.4.0-beta.1` / `v0.4.0-beta.1`; it will publish under `next`, leaving `latest` unchanged.
 
 Release stable versions in increasing version order, one tag at a time, and wait for each run to finish before pushing the next stable tag. The workflow queues releases without canceling an active run, but queue order does not sort semantic versions. Publishing an older stable version afterward could move `latest` backward; there is no registry version-order gate.
 
 Open the tag's run under [GitHub Actions](https://github.com/frapposelli/claude-autorouter/actions). Under **Artifacts**, download `npm-package-<run-id>-<run-attempt>`, which contains the `.tgz` and checksum used for publication. Artifacts expire after 30 days, so retain them with the release record. After the publish job succeeds, verify the registry version and tags:
 
 ```sh
-npm view claude-autorouter@0.3.1 version dist.integrity --registry https://registry.npmjs.org/
+npm view claude-autorouter@0.3.2 version dist.integrity --registry https://registry.npmjs.org/
 npm view claude-autorouter dist-tags --json --registry https://registry.npmjs.org/
 ```
 
 Repeat the independent installation check for the released version. A GitHub Release page is optional; pushing the version tag is the publication trigger.
 
-For local release diagnostics after the tag exists, `node scripts/release-check.mjs source v0.3.1` checks the tag, clean checkout, metadata, and ancestry. `node scripts/release-check.mjs archive v0.3.1` checks the candidate checksum and contents; `dist/` must contain only that version's archive and checksum, so retain older artifacts elsewhere first. These helpers are run automatically in the release workflow; the first untagged bootstrap uses the checks in step 1 instead.
+For local release diagnostics after the tag exists, `node scripts/release-check.mjs source v0.3.2` checks the tag, clean checkout, metadata, and ancestry. `node scripts/release-check.mjs archive v0.3.2` checks the candidate checksum and contents; `dist/` must contain only that version's archive and checksum, so retain older artifacts elsewhere first. These helpers are run automatically in the release workflow; the first untagged bootstrap uses the checks in step 1 instead.
 
 ## Recovering a failed release
 
