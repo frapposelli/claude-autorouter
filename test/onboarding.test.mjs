@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { PassThrough } from 'node:stream';
 import { setup, doctor, askSecret } from '../src/onboarding.mjs';
+import { OLLAMA_PRESETS } from '../src/ollama-models.mjs';
 
 function fixture(t) {
   const directory = mkdtempSync(join(tmpdir(), 'autorouter-onboarding-'));
@@ -36,7 +37,7 @@ test('setup stores only relevant keys, defaults to subscription, and never print
   const lines = [];
   await setup([], { env, write: line => lines.push(line), prompt: () => assert.fail('Unexpected prompt') });
   assert.deepEqual(JSON.parse(readFileSync(env.AUTOROUTER_CONFIG, 'utf8')), {
-    AUTOROUTER_AUTH_MODE: 'subscription', AUTOROUTER_CLIENT_PROFILE: 'compatible', TYPESAFE_API_KEY: 'private-jev-sentinel',
+    AUTOROUTER_AUTH_MODE: 'subscription', AUTOROUTER_CLIENT_PROFILE: 'compatible', AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'private-jev-sentinel',
   });
   for (const secret of ['private-jev-sentinel', 'unused-api-secret', 'other-secret']) assert.ok(!lines.join('\n').includes(secret));
   await assert.rejects(setup([], { env, write: () => {}, prompt: () => assert.fail('Must reject before prompting') }), /already exists/);
@@ -106,4 +107,92 @@ test('doctor accepts environment-only API configuration and skips subscription i
   assert.deepEqual(calls, [['--version']]);
   assert.match(lines.join('\n'), /absent; using environment/);
   assert.match(lines.join('\n'), /key validity.*not tested/);
+});
+
+function localOllama(model = OLLAMA_PRESETS.compact, { installed = true, details = { details: { parameter_size: '1.7B' } } } = {}) {
+  const calls = [];
+  return { calls, fetchImpl: async (url, options) => {
+    const path = new URL(url).pathname;
+    calls.push({ path, method: options.method, ...(options.body ? { body: JSON.parse(options.body) } : {}) });
+    if (path === '/api/tags') return Response.json({ models: installed ? [{ name: model }] : [] });
+    if (path === '/api/show') return Response.json(details);
+    if (path === '/api/chat') return Response.json({ done: true, message: { role: 'assistant', content: '{"tier":"haiku"}' } });
+    assert.fail('Unexpected local Ollama operation');
+  } };
+}
+
+test('Ollama subscription setup needs no keys, stays local, and preloads before saving', async t => {
+  const env = { ...fixture(t), TYPESAFE_API_KEY: 'unused-jev-key', ANTHROPIC_API_KEY: 'unused-anthropic-key' };
+  const local = localOllama();
+  const lines = [];
+  await setup(['--evaluator', 'ollama'], { env, write: line => lines.push(line), fetchImpl: local.fetchImpl,
+    prompt: () => assert.fail('Ollama subscription mode requires no API keys') });
+  const saved = JSON.parse(readFileSync(env.AUTOROUTER_CONFIG, 'utf8'));
+  assert.deepEqual(saved, {
+    AUTOROUTER_AUTH_MODE: 'subscription', AUTOROUTER_CLIENT_PROFILE: 'compatible',
+    AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_OLLAMA_MODEL: OLLAMA_PRESETS.compact,
+  });
+  assert.deepEqual(local.calls.map(call => call.path), ['/api/tags', '/api/show', '/api/show', '/api/chat']);
+  const warm = local.calls.at(-1).body;
+  assert.equal(JSON.parse(warm.messages[1].content).current_task, 'Return the literal word ready.');
+  assert.equal(warm.think, false);
+  assert.equal(warm.options.num_ctx, 4096);
+  assert.equal(warm.options.num_predict, 32);
+  assert.ok(!JSON.stringify(local.calls).includes('unused-'));
+  assert.match(lines.join('\n'), /locally with Ollama/);
+  assert.ok(!lines.join('\n').includes('unused-'));
+});
+
+test('Ollama setup preserves API-key authentication and selects an explicit or memory-based model', async t => {
+  const env = { ...fixture(t), AUTOROUTER_OLLAMA_URL: 'http://localhost:11435', AUTOROUTER_OLLAMA_KEEP_ALIVE: '10m' };
+  const prompts = [];
+  const local = localOllama(OLLAMA_PRESETS.quality);
+  await setup(['--evaluator', 'ollama', '--auth-mode', 'api-key', '--ollama-preset', 'auto'], {
+    env, totalMemory: 32 * 1024 ** 3, write: () => {}, fetchImpl: local.fetchImpl,
+    prompt: async key => { prompts.push(key); return 'anthropic-key'; },
+  });
+  assert.deepEqual(prompts, ['ANTHROPIC_API_KEY']);
+  const saved = JSON.parse(readFileSync(env.AUTOROUTER_CONFIG, 'utf8'));
+  assert.equal(saved.AUTOROUTER_OLLAMA_MODEL, OLLAMA_PRESETS.quality);
+  assert.equal(saved.ANTHROPIC_API_KEY, 'anthropic-key');
+  assert.equal(saved.TYPESAFE_API_KEY, undefined);
+  assert.equal(saved.AUTOROUTER_OLLAMA_URL, env.AUTOROUTER_OLLAMA_URL);
+  assert.equal(local.calls.at(-1).body.keep_alive, '10m');
+
+  const custom = localOllama('custom-router:latest');
+  await setup(['--force', '--evaluator', 'ollama', '--ollama-preset', 'quality', '--ollama-model', 'custom-router:latest'], {
+    env, write: () => {}, fetchImpl: custom.fetchImpl,
+  });
+  assert.equal(JSON.parse(readFileSync(env.AUTOROUTER_CONFIG, 'utf8')).AUTOROUTER_OLLAMA_MODEL, 'custom-router:latest');
+});
+
+test('failed Ollama setup leaves the existing configuration intact and never downloads implicitly', async t => {
+  const env = { ...fixture(t), TYPESAFE_API_KEY: 'original-key' };
+  await setup([], { env, write: () => {} });
+  const original = readFileSync(env.AUTOROUTER_CONFIG, 'utf8');
+  const local = localOllama(OLLAMA_PRESETS.compact, { installed: false });
+  await assert.rejects(setup(['--force', '--evaluator', 'ollama'], { env, write: () => {}, fetchImpl: local.fetchImpl }), /--pull/);
+  assert.deepEqual(local.calls.map(call => call.path), ['/api/tags']);
+  assert.equal(readFileSync(env.AUTOROUTER_CONFIG, 'utf8'), original);
+  for (const args of [['--pull'], ['--evaluator', 'unknown'], ['--evaluator', 'ollama', '--ollama-preset'], ['--evaluator', 'ollama', '--ollama-model']]) {
+    await assert.rejects(setup(args, { env: fixture(t), write: () => {}, fetchImpl: () => assert.fail('Invalid arguments must not make requests') }));
+  }
+});
+
+test('Ollama doctor verifies local model metadata without warming, downloading, or asking for Jev', async t => {
+  const env = { ...fixture(t), AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_AUTH_MODE: 'subscription' };
+  env.XDG_CONFIG_HOME = join(env.AUTOROUTER_CONFIG, '..', 'xdg');
+  delete env.AUTOROUTER_CONFIG;
+  const local = localOllama();
+  const lines = [];
+  const healthy = await doctor({ env, write: line => lines.push(line), fetchImpl: local.fetchImpl,
+    run: async (_command, args) => ({ stdout: args[0] === '--version' ? '2.1.284' : '{"loggedIn":true,"authMethod":"claude.ai"}' }) });
+  assert.equal(healthy, true);
+  assert.deepEqual(local.calls.map(call => call.path), ['/api/tags', '/api/show']);
+  assert.match(lines.join('\n'), /Local Ollama model available/);
+  const missing = localOllama(OLLAMA_PRESETS.compact, { installed: false });
+  assert.equal(await doctor({ env, write: line => lines.push(line), fetchImpl: missing.fetchImpl,
+    run: async (_command, args) => ({ stdout: args[0] === '--version' ? '2.1.284' : '{"loggedIn":true,"authMethod":"claude.ai"}' }) }), false);
+  assert.match(lines.join('\n'), /--pull/);
+  assert.deepEqual(missing.calls.map(call => call.path), ['/api/tags']);
 });

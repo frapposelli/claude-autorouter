@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Capture startup metadata only. By default a local stub answers without tools
-// or inference calls. --classify calls only Jev; --live calls Anthropic/Jev
+// or inference calls. --classify calls the evaluator; --live calls Anthropic too
 // but forbids tool execution. This report never persists request bodies.
 import http from 'node:http';
 import { spawn } from 'node:child_process';
@@ -9,6 +9,7 @@ import { readConfig, requireKeys } from '../src/config.mjs';
 import { buildClaudeEnv, LOCAL_AUTH_HEADER } from '../src/auth.mjs';
 import { createRouterServer, listen } from '../src/server.mjs';
 import { Router, buildState, contextSizeBytes } from '../src/router.mjs';
+import { buildOllamaState } from '../src/ollama-evaluator.mjs';
 import { createStatusState } from '../src/status-state.mjs';
 import { renderStatusLine } from '../src/statusline.mjs';
 import { readFileSync } from 'node:fs';
@@ -46,7 +47,7 @@ function summarize(body, className, length = bytes(body)) {
     if (tool.defer_loading === true) entry.deferred++;
     else entry.active_schema_bytes += bytes(tool);
   }
-  const evaluatorState = buildState(body, config.stateChars);
+  const evaluatorState = config.evaluator === 'ollama' ? buildOllamaState(body, config.ollamaStateChars) : buildState(body, config.stateChars);
   const includesPrompt = value => JSON.stringify(value ?? null).includes(JSON.stringify(prompt).slice(1, -1));
   const textBlocks = message => typeof message?.content === 'string' ? [message.content]
     : Array.isArray(message?.content) ? message.content.filter(block => block?.type === 'text' && typeof block.text === 'string').map(block => block.text) : [];
@@ -201,7 +202,7 @@ try {
     const snapshot = JSON.parse(readFileSync(statusState.path, 'utf8'));
     statusLines = Object.keys(snapshot.sessions).map(session_id => renderStatusLine({ session_id }, snapshot, { color: false, columns: 240 }));
   }
-  console.log(JSON.stringify({ probe: options.live ? 'live_inference_tools_prohibited' : options.classify ? 'local_stub_live_jev' : 'local_stub_no_inference',
+  console.log(JSON.stringify({ probe: options.live ? 'live_inference_tools_prohibited' : options.classify ? 'local_stub_live_evaluator' : 'local_stub_no_inference', evaluator: config.evaluator,
     mode: options.interactive ? 'interactive' : 'print', example: options.example ?? 'ok', tool_search: options.toolSearch,
     ...result, requests, ...(options.live ? { upstream_statuses: upstreamStatuses, provider_usage: usages, status_lines: statusLines } : {}) }));
   if ((result.code !== 0 && !result.controlled_stop) || !requests.length || (options.live && (!usages.length || upstreamStatuses.some(status => status !== 200)))) process.exitCode = 1;

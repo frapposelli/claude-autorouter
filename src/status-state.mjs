@@ -102,7 +102,9 @@ export function createStatusState(options = {}) {
       switch (event.event) {
         case 'route': {
           const fields = { requested_model: modelName(event.requested_model), selected_model: modelName(event.model),
-            source: ['jev', 'cache', 'fallback'].includes(event.source) ? event.source : undefined, reason: code(event.reason), latency_ms: latency(event.latency_ms),
+            source: ['jev', 'ollama', 'cache', 'fallback'].includes(event.source) ? event.source : undefined,
+            evaluator: ['jev', 'ollama'].includes(event.evaluator) ? event.evaluator : undefined,
+            reason: code(event.reason), latency_ms: latency(event.latency_ms),
             classified_tier: ['haiku', 'sonnet', 'opus'].includes(event.classified_tier) ? event.classified_tier : undefined,
             context_check: ['within_budget', 'over_budget', 'count_unavailable'].includes(event.context_check) ? event.context_check : undefined,
             counted_input_tokens: tokenCount(event.counted_input_tokens) ? event.counted_input_tokens : undefined,

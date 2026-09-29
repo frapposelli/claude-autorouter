@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
 
 const ROOT_FILES = new Set(['package.json', 'README.md', 'LICENSE', '.env.example']);
-const DOC_FILES = new Set(['docs/reference.md', 'docs/development.md', 'docs/releasing.md']);
+const DOC_FILES = new Set(['docs/reference.md', 'docs/development.md', 'docs/releasing.md', 'docs/ollama-evaluation.md']);
 const REQUIRED_FILES = ['package.json', 'README.md', 'bin/autorouter.mjs', 'bin/statusline.mjs',
   'src/config.mjs', 'src/router.mjs', 'src/server.mjs', ...DOC_FILES];
 

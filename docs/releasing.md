@@ -17,10 +17,10 @@ npm run release:pack
 
 `release:pack` creates the versioned `.tgz` and checksum in `dist/`. Review the manifest and tarball contents. The runtime package should contain its executable files, source modules, license, and shipped documentation; it must not contain `.env`, user config, credentials, local artifacts, diagnostic reports, transcripts, or test fixtures. The package's file allowlist and package test enforce the intended contents. [npm's packing rules](https://docs.npmjs.com/cli/v11/commands/npm-pack/) describe how the distributable is assembled.
 
-For version 0.1.0, an independent machine can install the reviewed candidate with:
+For version 0.2.0, an independent machine can install the reviewed candidate with:
 
 ```sh
-npm install -g ./claude-autorouter-0.1.0.tgz
+npm install -g ./claude-autorouter-0.2.0.tgz
 claude-autorouter --version
 claude-autorouter --help
 claude-autorouter setup
@@ -34,7 +34,7 @@ Test launch from a directory outside the source checkout. Setup should create on
 Once publication is authorized and npm authentication is configured, publish the exact candidate rather than rebuilding an unreviewed directory:
 
 ```sh
-npm publish ./dist/claude-autorouter-0.1.0.tgz --access public
+npm publish ./dist/claude-autorouter-0.2.0.tgz --access public
 ```
 
 Replace the version with the candidate being released. npm does not allow reusing a published name/version, so corrections require a new version. See the [npm publish reference](https://docs.npmjs.com/cli/v11/commands/npm-publish/).

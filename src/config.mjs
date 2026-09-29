@@ -1,3 +1,5 @@
+import { OLLAMA_PRESETS, validateOllamaEndpoint, validateOllamaModel } from './ollama-models.mjs';
+
 export const TIERS = ['haiku', 'sonnet', 'opus'];
 
 function number(env, key, fallback, min, max, integer = true) {
@@ -18,6 +20,12 @@ function endpoint(value, name) {
 }
 
 export function readConfig(env = process.env) {
+  const evaluator = env.AUTOROUTER_EVALUATOR ?? 'jev';
+  if (!['jev', 'ollama'].includes(evaluator)) throw new Error('AUTOROUTER_EVALUATOR must be jev or ollama');
+  const ollamaKeepAlive = env.AUTOROUTER_OLLAMA_KEEP_ALIVE ?? '5m';
+  if (!/^(?:0|[1-9]\d{0,3}(?:s|m|h))$/.test(ollamaKeepAlive)) {
+    throw new Error('AUTOROUTER_OLLAMA_KEEP_ALIVE must be 0 or a positive duration such as 5m');
+  }
   const authMode = env.AUTOROUTER_AUTH_MODE ?? 'api-key';
   if (!['api-key', 'subscription'].includes(authMode)) {
     throw new Error('AUTOROUTER_AUTH_MODE must be api-key or subscription');
@@ -31,6 +39,7 @@ export function readConfig(env = process.env) {
     throw new Error('Subscription mode requires https://api.anthropic.com as AUTOROUTER_UPSTREAM_URL');
   }
   return {
+    evaluator,
     authMode,
     clientProfile,
     anthropicKey: authMode === 'api-key' ? env.ANTHROPIC_API_KEY : undefined,
@@ -39,6 +48,11 @@ export function readConfig(env = process.env) {
     upstream,
     jevEndpoint: endpoint(env.AUTOROUTER_JEV_URL ?? 'https://api.typesafe.ai/v1/systemone', 'AUTOROUTER_JEV_URL'),
     jevModel: env.AUTOROUTER_JEV_MODEL ?? 'jev-latest',
+    ollamaEndpoint: validateOllamaEndpoint(env.AUTOROUTER_OLLAMA_URL ?? 'http://127.0.0.1:11434'),
+    ollamaModel: validateOllamaModel(env.AUTOROUTER_OLLAMA_MODEL ?? OLLAMA_PRESETS.compact),
+    ollamaTimeoutMs: number(env, 'AUTOROUTER_OLLAMA_TIMEOUT_MS', 1500, 1, 30000),
+    ollamaStateChars: 3000,
+    ollamaKeepAlive,
     models: {
       haiku: env.AUTOROUTER_HAIKU_MODEL ?? 'claude-haiku-4-5-20251001',
       sonnet: env.AUTOROUTER_SONNET_MODEL ?? 'claude-sonnet-5',
@@ -58,7 +72,7 @@ export function readConfig(env = process.env) {
 }
 
 export function requireKeys(config) {
-  const keys = [['TYPESAFE_API_KEY', config.jevKey]];
+  const keys = config.evaluator === 'ollama' ? [] : [['TYPESAFE_API_KEY', config.jevKey]];
   if (config.authMode === 'api-key') keys.push(['ANTHROPIC_API_KEY', config.anthropicKey]);
   for (const [key, value] of keys) {
     if (!value?.trim()) throw new Error(`Set ${key} before starting the router`);

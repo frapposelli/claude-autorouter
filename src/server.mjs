@@ -176,7 +176,7 @@ export function createRouterServer(config, { router = new Router(config), tokenC
           const prepared = prepareRequest(parsed, decision.model);
           body = Buffer.from(JSON.stringify(prepared.request));
           log({ event: 'route', requested_model: parsed.model, ...decision, request_adjustments: prepared.adjustments });
-          const { model, source, reason, latency_ms, classifier_error, classifier_status, classified_tier, context_check, counted_input_tokens } = decision;
+          const { model, source, evaluator, reason, latency_ms, classifier_error, classifier_status, classified_tier, context_check, counted_input_tokens } = decision;
           const pricingValue = (field, allowed, fallback) => prepared.request[field] === undefined ? fallback
             : allowed.includes(prepared.request[field]) ? prepared.request[field] : 'unknown';
           const pricing_context = {
@@ -186,7 +186,7 @@ export function createRouterServer(config, { router = new Router(config), tokenC
           };
           if (prepared.request.fallbacks != null || prepared.request.fallback_credit_token != null
             || (Array.isArray(prepared.request.tools) && prepared.request.tools.some(tool => typeof tool?.type === 'string' && /^advisor(?:_|$)/.test(tool.type)))) pricing_context.pricing_unsupported = true;
-          status('route', { requested_model: parsed.model, model, source, reason, latency_ms, classifier_error, classifier_status,
+          status('route', { requested_model: parsed.model, model, source, evaluator, reason, latency_ms, classifier_error, classifier_status,
             classified_tier, context_check, counted_input_tokens, pricing_context });
         }
       }

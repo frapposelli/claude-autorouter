@@ -40,6 +40,34 @@ test('routing and idle states label confirmed history; capability guards do not 
     reason: 'model_specific_features' }), /Jev→Opus · model features/);
 });
 
+test('Ollama routes, cache hits and fallbacks identify their evaluator while keeping Claude model confirmation separate', () => {
+  const state = { phase: 'connecting', selected_model: 'claude-sonnet-5', source: 'ollama', evaluator: 'ollama', latency_ms: 72.4 };
+  assert.match(render(state), /Sonnet 5 selected · connecting · Ollama 72ms/);
+  assert.ok(!render(state).includes('Jev'));
+  const guarded = render({ ...state, classified_tier: 'haiku', reason: 'context_capacity', context_check: 'over_budget' });
+  assert.match(guarded, /Sonnet 5 selected · connecting · Ollama→Haiku 72ms · large context/);
+  const cached = render({ ...state, source: 'cache', latency_ms: 0.2 });
+  assert.match(cached, /Ollama cache 0ms/);
+  assert.ok(!cached.includes('Jev'));
+  const fallback = render({ ...state, source: 'fallback', latency_ms: 1500, classifier_error: 'timeout' });
+  assert.match(fallback, /Ollama fallback 1500ms · timeout/);
+  assert.ok(!fallback.includes('Jev'));
+  assert.match(render({ ...state, source: 'fallback', classifier_error: 'network_error' }, { color: true }), /\x1b\[33m/);
+  assert.match(render({ ...state, phase: 'ready', actual_model: 'claude-opus-5-5' }), /last Opus 5\.5 · ready · Ollama/);
+  assert.match(render({ ...state, source: 'cache', evaluator: 'jev' }), /Jev cache 72ms/);
+  assert.match(render({ ...state, source: 'fallback', evaluator: 'jev' }), /Jev fallback 72ms/);
+  assert.match(render({ ...state, evaluator: undefined }), /Ollama 72ms/);
+});
+
+test('unknown evaluator metadata cannot leak into the terminal or change Claude model labels', () => {
+  for (const evaluator of ['PRIVATE evaluator', '\x1b[2JPRIVATE', '__proto__']) {
+    const line = render({ phase: 'connecting', selected_model: 'claude-sonnet-5', source: 'cache', evaluator,
+      evaluator_model: 'PRIVATE model', evaluator_url: 'http://PRIVATE' });
+    assert.match(line, /Sonnet 5 selected · connecting · cache/);
+    assert.ok(!/PRIVATE|Jev|Ollama|\x1b/.test(line));
+  }
+});
+
 test('sessions are isolated, including absent session IDs, and malformed stdin awaits status', () => {
   const saved = snapshot({ phase: 'ready', last_model: 'claude-opus-5-5' });
   saved.sessions[''] = { phase: 'ready', last_model: 'claude-haiku-4-5-20251001' };

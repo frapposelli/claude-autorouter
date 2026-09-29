@@ -105,7 +105,7 @@ function parseArgs(args) {
     const arg = args[i];
     if (arg === '--help') { options.help = true; continue; }
     if (arg === '--no-thinking') { options.noThinking = true; continue; }
-    if (arg === '--simulate-jev-outage') { options.simulateJevOutage = true; continue; }
+    if (['--simulate-evaluator-outage', '--simulate-jev-outage'].includes(arg)) { options.simulateJevOutage = true; continue; }
     if (!['--case', '--timeout-ms', '--model', '--client-model'].includes(arg) || !args[i + 1]) throw new Error('Use --help for supported options');
     const value = args[++i];
     if (arg === '--case') options.cases = value.split(',');
@@ -265,7 +265,7 @@ function runCommand(command, args, cwd, timeoutMs = 10000) {
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   if (options.help) {
-    console.log('Usage: node --env-file=.env scripts/live-validation.mjs [--case simple,medium,difficult,coding,continuation,thinking_continuation,large_context,example_haiku,example_sonnet,example_opus] [--client-model MODEL] [--no-thinking] [--simulate-jev-outage] [--timeout-ms 120000]\nUses the existing Claude subscription login. Executes real Claude and Jev requests (except simulated Jev outages). Reports metadata only; fixtures are removed. Model costs in CLI usage are list-price estimates, not subscription charges.\nlarge_context is opt-in and deliberately sends more than 200K input tokens in a synthetic system fixture. example_* cases reproduce reminder-prefixed prompts with synthetic context.');
+    console.log('Usage: node --env-file=.env scripts/live-validation.mjs [--case simple,medium,difficult,coding,continuation,thinking_continuation,large_context,example_haiku,example_sonnet,example_opus] [--client-model MODEL] [--no-thinking] [--simulate-evaluator-outage] [--timeout-ms 120000]\nUses the existing Claude subscription login. Executes real Claude requests and the configured evaluator (except simulated evaluator outages). --simulate-jev-outage remains an alias. Reports metadata only; fixtures are removed. Model costs in CLI usage are list-price estimates, not subscription charges.\nlarge_context is opt-in and deliberately sends more than 200K input tokens in a synthetic system fixture. example_* cases reproduce reminder-prefixed prompts with synthetic context.');
     return;
   }
   const config = readConfig({ ...process.env, AUTOROUTER_AUTH_MODE: 'subscription', AUTOROUTER_TOKEN: randomBytes(32).toString('hex') });
@@ -275,7 +275,7 @@ async function main() {
   const maxTurnsSupported = help.stdout.includes('--max-turns');
   const version = await runCommand('claude', ['--version'], process.cwd());
   const report = { type: 'live_validation', cli_version: version.stdout.trim().slice(0, 100), auth_mode: 'subscription',
-    classifier_timeout_ms: config.jevTimeoutMs, client_profile: config.clientProfile,
+    evaluator: config.evaluator, classifier_timeout_ms: config.evaluator === 'ollama' ? config.ollamaTimeoutMs : config.jevTimeoutMs, client_profile: config.clientProfile,
     client_model: options.model ?? (config.clientProfile === 'compatible' ? config.models.haiku : process.env.ANTHROPIC_MODEL ?? 'default'),
     thinking_disabled: Boolean(options.noThinking || config.clientProfile === 'compatible' || process.env.MAX_THINKING_TOKENS === '0'),
     simulated_classifier_outage: options.simulateJevOutage ?? false,
@@ -388,7 +388,7 @@ async function main() {
       const { results, ...safeRun } = run;
       const item = { case: name, passed: Object.values(checks).every(Boolean), checks, ...safeRun, routes,
         upstream_models: [...upstreamModels], upstream_statuses: upstreamStatuses, proxy_errors: proxyErrors,
-        classifier_succeeded: routes.some(route => route.source === 'jev'),
+        classifier_succeeded: routes.some(route => route.source === config.evaluator),
         model_changed: routes.some(route => route.requested_model !== route.model),
         provider_usage: usageReports,
         api_equivalent_savings: Object.values(statusSnapshot?.savings ?? {}),

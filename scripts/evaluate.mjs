@@ -2,9 +2,9 @@ import { readFile } from 'node:fs/promises';
 import { readConfig } from '../src/config.mjs';
 import { Router } from '../src/router.mjs';
 
-// Explicitly invoked, paid Jev calls only. No Claude generations.
+// Explicitly invoked evaluator calls only. Jev calls are paid; Ollama is local.
 const config = readConfig();
-if (!config.jevKey) throw new Error('Set TYPESAFE_API_KEY to run the routing evaluation');
+if (config.evaluator === 'jev' && !config.jevKey) throw new Error('Set TYPESAFE_API_KEY to run the Jev evaluation');
 const cases = JSON.parse(await readFile(new URL('../test/fixtures/routing.json', import.meta.url), 'utf8'));
 const rows = [];
 for (const item of cases) {
@@ -17,7 +17,8 @@ const times = rows.map(row => row.ms).sort((a, b) => a - b);
 const percentile = p => times[Math.ceil(p * times.length) - 1];
 console.log(JSON.stringify({
   cases: rows.length,
-  rubric_agreement: rows.filter(row => row.actual === row.expected && row.source === 'jev').length / rows.length,
+  evaluator: config.evaluator,
+  rubric_agreement: rows.filter(row => row.actual === row.expected && row.source === config.evaluator).length / rows.length,
   fallback_count: rows.filter(row => row.source === 'fallback').length,
   routing_p50_ms: percentile(0.5),
   routing_p95_ms: percentile(0.95),

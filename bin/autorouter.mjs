@@ -10,16 +10,19 @@ import { createStatusState } from '../src/status-state.mjs';
 import { addStatusLineSettings } from '../src/status-settings.mjs';
 import { loadUserConfig } from '../src/user-config.mjs';
 import { setup, doctor } from '../src/onboarding.mjs';
+import { setupOllama } from '../src/ollama-setup.mjs';
 
 const [command = 'help', ...args] = process.argv.slice(2);
 if (['--version', '-v', 'version'].includes(command)) {
   console.log(JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version);
 } else if (['help', '--help', '-h'].includes(command)
   || (['setup', 'doctor', 'serve'].includes(command) && args.some(arg => ['--help', '-h'].includes(arg)))) {
-  console.log(`Claude AutoRouter — Jev routing for Haiku, Sonnet, and Opus
+  console.log(`Claude AutoRouter — routing for Haiku, Sonnet, and Opus
 
 Usage:
   claude-autorouter setup [--auth-mode subscription|api-key] [--force]
+    [--evaluator jev|ollama] [--ollama-preset compact|quality|auto]
+    [--ollama-model MODEL] [--pull]
   claude-autorouter doctor
   claude-autorouter claude [Claude Code arguments]
   claude-autorouter serve
@@ -31,7 +34,12 @@ User config: ~/.config/claude-autorouter/config.json (or XDG_CONFIG_HOME).
 AUTOROUTER_CONFIG selects a different file; environment variables take precedence.
 Project .env files are never loaded automatically.
 
-Required: TYPESAFE_API_KEY
+Jev is the default evaluator and requires TYPESAFE_API_KEY.
+Ollama evaluates locally and requires a running local Ollama service.
+Use setup --evaluator ollama --pull to detect Ollama and download a missing model.
+Compact uses Qwen3 1.7B; quality offers Qwen3 4B for machines over 24 GB.
+Local routing is experimental; see docs/ollama-evaluation.md for measured limits.
+The auto preset selects using total RAM; compact is the default.
 AUTOROUTER_AUTH_MODE=subscription uses your saved Claude Code login.
 Without setup, AUTOROUTER_AUTH_MODE defaults to api-key and also requires ANTHROPIC_API_KEY.
 AUTOROUTER_CLIENT_PROFILE=compatible (default) enables all three routing tiers.
@@ -40,7 +48,8 @@ Standalone serve also requires AUTOROUTER_TOKEN (at least 16 characters).
 The claude launcher creates a temporary credential and an ephemeral port.
 It enables an AutoRouter status line for this session (AUTOROUTER_STATUSLINE=0 to opt out).
 Launcher logs are quiet by default; AUTOROUTER_DEBUG=1 enables diagnostic logs on stderr.
-Prompt excerpts are sent to TypeSafe for classification. See README.md.`);
+Jev sends prompt excerpts to TypeSafe; Ollama keeps classification on this machine.
+Complete inference requests still go to Anthropic. See README.md.`);
 } else if (command === 'setup' || command === 'doctor') {
   try {
     if (command === 'setup') await setup(args);
@@ -74,6 +83,13 @@ Prompt excerpts are sent to TypeSafe for classification. See README.md.`);
       }
       config.localToken = randomBytes(32).toString('hex');
     }
+    if (config.evaluator === 'ollama') {
+      console.error(`Preparing local Ollama evaluator (${config.ollamaModel})…`);
+      try { await setupOllama(config, { pull: false, warm: true, write: () => {} }); }
+      catch {
+        console.error('Ollama could not be prepared. Requests will use the conservative fallback while it is unavailable; run claude-autorouter doctor.');
+      }
+    }
     const statusEnabled = command === 'claude' && runtimeEnv.AUTOROUTER_STATUSLINE !== '0';
     let claudeArgs = args;
     if (statusEnabled) {
@@ -96,7 +112,7 @@ Prompt excerpts are sent to TypeSafe for classification. See README.md.`);
     const baseUrl = `http://127.0.0.1:${address.port}`;
     if (diagnosticLogs) console.error(`AutoRouter listening on ${baseUrl} (${config.authMode} authentication)`);
     if (diagnosticLogs && command === 'claude' && config.clientProfile === 'compatible') {
-      console.error('AutoRouter uses Haiku-compatible requests with client thinking disabled; Jev selects the upstream model.');
+      console.error(`AutoRouter uses Haiku-compatible requests with client thinking disabled; ${config.evaluator === 'ollama' ? 'Ollama' : 'Jev'} selects the upstream model.`);
     }
     if (command === 'serve') {
       for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => {

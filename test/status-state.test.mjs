@@ -220,6 +220,34 @@ test('classifier fallback diagnostics do not imply an upstream error', t => {
   assert.equal(current.status, 200);
 });
 
+test('evaluator identity survives local, cached and fallback routes without retaining arbitrary metadata', t => {
+  const state = fixture(t);
+  for (const source of ['ollama', 'cache', 'fallback']) {
+    state.update(event('request_start'));
+    state.update(event('route', { model: 'claude-sonnet-5', source, evaluator: 'ollama', classified_tier: 'haiku',
+      classifier_error: source === 'fallback' ? 'timeout' : undefined,
+      evaluator_model: 'PRIVATE model metadata', evaluator_url: 'http://PRIVATE', evaluator_prompt: 'PRIVATE prompt' }));
+    state.flush();
+    const current = read(state).sessions['session-a'];
+    assert.equal(current.source, source);
+    assert.equal(current.evaluator, 'ollama');
+    assert.equal(current.classified_tier, 'haiku');
+    assert.equal(current.phase, 'connecting');
+    assert.ok(!readFileSync(state.path, 'utf8').includes('PRIVATE'));
+  }
+  state.update(event('request_start', { request_id: 'request-2' }));
+  state.update(event('route', { evaluator: 'ollama', source: 'ollama' }));
+  state.update(event('route', { request_id: 'request-2', agent_id: 'agent-1', evaluator: 'ollama', source: 'ollama' }));
+  state.update(event('route', { request_id: 'request-2', evaluator: 'PRIVATE evaluator', source: 'PRIVATE source' }));
+  state.flush();
+  assert.equal(read(state).sessions['session-a'].evaluator, undefined);
+  assert.equal(read(state).sessions['session-a'].source, undefined);
+  assert.ok(!readFileSync(state.path, 'utf8').includes('PRIVATE'));
+  state.update(event('route', { request_id: 'request-2', evaluator: 'jev', source: 'jev' }));
+  state.flush();
+  assert.equal(read(state).sessions['session-a'].evaluator, 'jev');
+});
+
 test('bounds retained sessions and model metadata and discards sensitive extras', t => {
   const state = fixture(t);
   for (let i = 0; i < 102; i++) state.update(event('request_start', { session_id: `session-${i}` }));

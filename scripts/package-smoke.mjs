@@ -63,6 +63,10 @@ async function main() {
   let mockError;
   let classifications = 0;
   let generations = 0;
+  let localClassifications = 0;
+  let localWarms = 0;
+  let pulls = 0;
+  let localModelInstalled = false;
   try {
     const env = await npmEnvironment(join(temporary, 'npm isolated'));
     const plan = await packagePlan(project, env);
@@ -100,9 +104,31 @@ async function main() {
     mock = http.createServer(async (req, res) => {
       try {
         let raw = ''; for await (const chunk of req) raw += chunk;
-        const body = JSON.parse(raw);
+        const body = raw ? JSON.parse(raw) : undefined;
         assert.equal(req.headers['x-autorouter-token'], undefined);
-        if (req.url === '/v1/systemone') {
+        if (req.url.startsWith('/api/')) {
+          assert.equal(req.headers.authorization, undefined);
+          assert.equal(req.headers['x-api-key'], undefined);
+          res.writeHead(200, { 'content-type': 'application/json' });
+          if (req.url === '/api/tags') res.end(JSON.stringify({ models: localModelInstalled ? [{ name: 'smoke-router:latest' }] : [] }));
+          else if (req.url === '/api/show') res.end(JSON.stringify({ details: { parameter_size: '1B' } }));
+          else if (req.url === '/api/pull') {
+            pulls++;
+            assert.equal(body.model, 'smoke-router:latest');
+            localModelInstalled = true;
+            res.end('{"status":"pulling manifest"}\n{"status":"success"}\n');
+          } else {
+            assert.equal(req.url, '/api/chat');
+            assert.equal(body.think, false);
+            const task = JSON.parse(body.messages[1].content).current_task;
+            if (task === 'Return the literal word ready.') localWarms++;
+            else {
+              localClassifications++;
+              assert.equal(task, 'Reply with zero.');
+            }
+            res.end(JSON.stringify({ done: true, message: { role: 'assistant', content: '{"tier":"sonnet"}' } }));
+          }
+        } else if (req.url === '/v1/systemone') {
           classifications++;
           assert.equal(req.headers.authorization, 'Bearer ' + JEV_KEY);
           assert.equal(body.state.current_task, 'Reply with zero.');
@@ -156,9 +182,33 @@ async function main() {
     const doctorEnv = { ...cliEnv, AUTOROUTER_CONFIG: subscriptionConfig };
     delete doctorEnv.AUTOROUTER_UPSTREAM_URL;
     await run(installedCommand, ['doctor'], { cwd: unrelated, env: doctorEnv });
+
+    const ollamaEnv = { ...cliEnv, AUTOROUTER_CONFIG: join(temporary, 'ollama-config.json'),
+      AUTOROUTER_OLLAMA_URL: endpoint, ANTHROPIC_API_KEY: API_KEY };
+    await run(installedCommand, ['setup', '--auth-mode', 'api-key', '--evaluator', 'ollama', '--ollama-model', 'smoke-router:latest', '--pull'], { cwd: unrelated, env: ollamaEnv });
+    const localSaved = JSON.parse(await readFile(ollamaEnv.AUTOROUTER_CONFIG, 'utf8'));
+    assert.equal(localSaved.AUTOROUTER_EVALUATOR, 'ollama');
+    assert.equal(localSaved.TYPESAFE_API_KEY, undefined);
+    delete ollamaEnv.ANTHROPIC_API_KEY;
+    await run(installedCommand, ['doctor'], { cwd: unrelated, env: ollamaEnv });
+    const localLaunch = await run(installedCommand, ['claude'], { cwd: unrelated, env: ollamaEnv });
+    if (mockError) throw mockError;
+    assert.match(localLaunch.stderr, /Preparing local Ollama evaluator/);
+    assert.ok(!localLaunch.stderr.includes('"event"'));
+    const localResult = JSON.parse(localLaunch.stdout.trim());
+    assert.match(localResult.status_line, /Ollama/);
+    assert.equal(classifications, 1, 'Ollama must not contact Jev');
+    assert.equal(localClassifications, 1);
+    assert.equal(localWarms, 2, 'Setup and launch should prime the classifier prompt');
+    assert.equal(pulls, 1);
+    assert.equal(generations, 2);
+    for (const path of [localResult.status_file, localResult.settings_file]) {
+      await assert.rejects(readFile(path), error => error.code === 'ENOENT');
+    }
     console.log(`Package smoke passed: ${packed.manifest.name}@${packed.manifest.version}, ${packed.files.size} safe archive files.`);
-    console.log('Verified offline installation, setup, doctor, mock routing, bundled status line, and session cleanup from an unrelated directory.');
+    console.log('Verified offline installation, Jev and Ollama setup/doctor/routing, opt-in download, bundled status line, and session cleanup.');
     console.log(result.status_line);
+    console.log(localResult.status_line);
   } finally {
     if (mock) { mock.closeAllConnections(); await new Promise(resolveClose => mock.close(resolveClose)); }
     await rm(temporary, { recursive: true, force: true });

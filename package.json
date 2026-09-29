@@ -1,14 +1,14 @@
 {
   "name": "claude-autorouter",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "Apache-2.0",
   "type": "module",
-  "description": "A local Claude Code model router powered by TypeSafe Jev",
+  "description": "A local Claude Code model router with Jev and Ollama evaluators",
   "bin": { "claude-autorouter": "bin/autorouter.mjs" },
   "engines": { "node": ">=22" },
   "os": ["darwin", "linux"],
-  "keywords": ["claude", "claude-code", "model-routing", "jev", "cli"],
-  "files": ["bin/*.mjs", "src/*.mjs", "docs/reference.md", "docs/development.md", "docs/releasing.md", ".env.example", "LICENSE"],
+  "keywords": ["claude", "claude-code", "model-routing", "jev", "ollama", "cli"],
+  "files": ["bin/*.mjs", "src/*.mjs", "docs/reference.md", "docs/development.md", "docs/releasing.md", "docs/ollama-evaluation.md", ".env.example", "LICENSE"],
   "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" },
   "scripts": {
     "start": "node bin/autorouter.mjs serve",
@@ -17,6 +17,7 @@
     "test:package": "node scripts/package-smoke.mjs",
     "release:pack": "node scripts/release-pack.mjs",
     "eval": "node --env-file=.env scripts/evaluate.mjs",
+    "eval:ollama": "node scripts/evaluate-ollama.mjs",
     "test:live": "node --env-file=.env scripts/live-validation.mjs",
     "check": "node scripts/check.mjs"
   }

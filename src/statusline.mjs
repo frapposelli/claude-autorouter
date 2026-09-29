@@ -124,14 +124,18 @@ export function renderStatusLine(input, snapshot, { now = Date.now(), color = tr
     ? `error ${state.status}` : errorType ? `error ${errorType}` : 'error';
 
   const details = [];
-  const source = ['jev', 'cache', 'fallback'].includes(state?.source) ? state.source : undefined;
+  const source = ['jev', 'ollama', 'cache', 'fallback'].includes(state?.source) ? state.source : undefined;
   if (source) {
+    const evaluator = ['jev', 'ollama'].includes(state.evaluator) ? state.evaluator : undefined;
+    const evaluatorLabel = evaluator === 'ollama' ? 'Ollama' : evaluator === 'jev' ? 'Jev' : '';
+    const sourceLabel = source === 'jev' ? 'Jev' : source === 'ollama' ? 'Ollama'
+      : evaluatorLabel ? `${evaluatorLabel} ${source}` : source;
     const timing = Number.isFinite(state.latency_ms) && state.latency_ms >= 0 ? ` ${Math.round(Math.min(state.latency_ms, 999999))}ms` : '';
     const classified = ['haiku', 'sonnet', 'opus'].includes(state.classified_tier) ? state.classified_tier : undefined;
     const chosenFamily = /^claude-(haiku|sonnet|opus)-/.exec(state.selected_model ?? '')?.[1];
     const override = classified && chosenFamily && classified !== chosenFamily
       ? `→${classified[0].toUpperCase()}${classified.slice(1)}` : '';
-    details.push(`${source === 'jev' ? 'Jev' : source}${override}${timing}`);
+    details.push(`${sourceLabel}${override}${timing}`);
   }
   if (source === 'fallback') {
     const classifierError = clean(state.classifier_error, 24);
