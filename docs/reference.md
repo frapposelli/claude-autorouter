@@ -65,7 +65,7 @@ Model access depends on your account. The policy recognizes specific Claude mode
 
 ## Ollama evaluator
 
-Local classification is experimental and requires AutoRouter 0.3.0 or newer. It uses Ollama's native `/v1/systemone` decision endpoint for every model, replacing the chat backend from 0.2.0. Jev remains the default remote evaluator, using TypeSafe's `/v1/systemone` endpoint and a TypeSafe API key. Selecting Ollama never silently switches back to Jev. Haiku, Sonnet, or Opus still completes the task through Anthropic.
+Local classification is experimental and requires AutoRouter 0.3.1 or newer. It uses Ollama's native `/v1/systemone` decision endpoint for every model, replacing the chat backend from 0.2.0. Jev remains the default remote evaluator, using TypeSafe's `/v1/systemone` endpoint and a TypeSafe API key. Selecting Ollama never silently switches back to Jev. Haiku, Sonnet, or Opus still completes the task through Anthropic.
 
 All local models require Ollama 0.35 or newer. Version 0.35.0 is a prerelease as of September 29, 2026; it introduces the native decision API. See the [Ollama release notes](https://github.com/ollama/ollama/releases/tag/v0.35.0). Install and start a compatible local service, then run:
 
@@ -119,7 +119,7 @@ AUTOROUTER_OLLAMA_TIMEOUT_MS=30000 claude-autorouter setup --evaluator ollama --
 
 ### Migrating an older Ollama config
 
-Version 0.3.0 removes the Qwen chat backend and presets from 0.2.0. Existing downloaded models remain on disk, but an old Qwen model selection needs to be replaced with a native decision model. Run the setup command above with `--force`; it selects Nimble unless you pass `--ollama-model` or override the model through the environment. Remove or update any old `AUTOROUTER_OLLAMA_MODEL` environment value too, because environment variables override saved configuration. Update scripts to use `--ollama-model` when selecting a custom model.
+Version 0.3.1 removes the Qwen chat backend and presets from 0.2.0. Existing downloaded models remain on disk, but an old Qwen model selection needs to be replaced with a native decision model. Run the setup command above with `--force`; it selects Nimble unless you pass `--ollama-model` or override the model through the environment. Remove or update any old `AUTOROUTER_OLLAMA_MODEL` environment value too, because environment variables override saved configuration. Update scripts to use `--ollama-model` when selecting a custom model.
 
 ## Data flow and authentication
 

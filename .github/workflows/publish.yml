@@ -43,6 +43,11 @@ jobs:
         run: npm run test:package -- --archive "$ARCHIVE"
       - name: Verify archive contents and checksum after testing
         run: node scripts/release-check.mjs archive "$GITHUB_REF_NAME"
+      - name: Dry-run publication of the verified archive
+        env:
+          ARCHIVE: ${{ steps.release.outputs.archive }}
+          DIST_TAG: ${{ steps.release.outputs.dist_tag }}
+        run: npm publish "./$ARCHIVE" --dry-run --access public --tag "$DIST_TAG" --registry=https://registry.npmjs.org/ --ignore-scripts --provenance=false
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         id: upload
         with:
@@ -90,4 +95,4 @@ jobs:
           DIST_TAG: ${{ steps.release.outputs.dist_tag }}
           # npm provenance is unsupported for this private source repository.
           NPM_CONFIG_PROVENANCE: 'false'
-        run: npm publish "$ARCHIVE" --access public --tag "$DIST_TAG" --registry=https://registry.npmjs.org/ --ignore-scripts --provenance=false
+        run: npm publish "./$ARCHIVE" --access public --tag "$DIST_TAG" --registry=https://registry.npmjs.org/ --ignore-scripts --provenance=false

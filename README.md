@@ -50,7 +50,7 @@ Savings are an **API-equivalent estimate for the same token counts**, using Opus
 
 ## Experimental local evaluator
 
-The local setup below requires AutoRouter 0.3.0 or newer. It uses Ollama's native `/v1/systemone` decision API with `nimble:9b-q4_K_M` by default. Jev remains the default evaluator. If upgrading from 0.2.0, replace the old Qwen model configuration using the [migration steps](docs/reference.md#migrating-an-older-ollama-config).
+The local setup below requires AutoRouter 0.3.1 or newer. It uses Ollama's native `/v1/systemone` decision API with `nimble:9b-q4_K_M` by default. Jev remains the default evaluator. If upgrading from 0.2.0, replace the old Qwen model configuration using the [migration steps](docs/reference.md#migrating-an-older-ollama-config).
 
 Install and start Ollama 0.35 or newer; [version 0.35.0](https://github.com/ollama/ollama/releases/tag/v0.35.0) is a prerelease as of September 29, 2026. Then run:
 
