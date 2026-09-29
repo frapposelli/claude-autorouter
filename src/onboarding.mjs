@@ -6,7 +6,7 @@ import { promisify } from 'node:util';
 import { readConfig, requireKeys } from './config.mjs';
 import { buildClaudeEnv, conflictingProviders, LOCAL_AUTH_HEADER } from './auth.mjs';
 import { getConfigPath, loadUserConfig, saveUserConfig } from './user-config.mjs';
-import { selectOllamaModel } from './ollama-models.mjs';
+import { DEFAULT_OLLAMA_MODEL, validateOllamaModel } from './ollama-models.mjs';
 import { inspectOllama, setupOllama } from './ollama-setup.mjs';
 
 const execute = promisify(execFile);
@@ -31,27 +31,24 @@ export async function askSecret(label, { input = process.stdin, output = process
 }
 
 export async function setup(args, {
-  env = process.env, write = console.log, prompt = askSecret, fetchImpl = fetch, signal, totalMemory,
+  env = process.env, write = console.log, prompt = askSecret, fetchImpl = fetch, signal,
 } = {}) {
   let authMode = env.AUTOROUTER_AUTH_MODE ?? 'subscription';
   let evaluator = env.AUTOROUTER_EVALUATOR ?? 'jev';
-  let preset = 'compact';
-  let explicitPreset = false;
   let model;
   let pull = false;
   let overwrite = false;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--auth-mode') authMode = args[++i];
     else if (args[i] === '--evaluator') evaluator = args[++i];
-    else if (args[i] === '--ollama-preset') { preset = args[++i]; explicitPreset = true; if (preset === undefined) throw new Error('--ollama-preset requires compact, quality, or auto'); }
     else if (args[i] === '--ollama-model') { model = args[++i]; if (model === undefined) throw new Error('--ollama-model requires a model tag'); }
     else if (args[i] === '--pull') pull = true;
     else if (args[i] === '--force') overwrite = true;
-    else throw new Error('Usage: claude-autorouter setup [--auth-mode subscription|api-key] [--evaluator jev|ollama] [--ollama-preset compact|quality|auto] [--ollama-model TAG] [--pull] [--force]');
+    else throw new Error('Usage: claude-autorouter setup [--auth-mode subscription|api-key] [--evaluator jev|ollama] [--ollama-model TAG] [--pull] [--force]');
   }
   if (!['subscription', 'api-key'].includes(authMode)) throw new Error('--auth-mode must be subscription or api-key');
   if (!['jev', 'ollama'].includes(evaluator)) throw new Error('--evaluator must be jev or ollama');
-  if (evaluator !== 'ollama' && (explicitPreset || model !== undefined || pull)) throw new Error('Ollama model and download options require --evaluator ollama');
+  if (evaluator !== 'ollama' && (model !== undefined || pull)) throw new Error('Ollama model and download options require --evaluator ollama');
   const path = getConfigPath(env);
   if (!overwrite && existsSync(path)) throw new Error('AutoRouter configuration already exists. Use setup --force to replace it.');
   write(evaluator === 'ollama'
@@ -59,7 +56,7 @@ export async function setup(args, {
     : 'AutoRouter sends bounded prompt excerpts to TypeSafe Jev and complete requests to Anthropic.');
   const values = { AUTOROUTER_AUTH_MODE: authMode, AUTOROUTER_CLIENT_PROFILE: 'compatible', AUTOROUTER_EVALUATOR: evaluator };
   if (evaluator === 'ollama') {
-    values.AUTOROUTER_OLLAMA_MODEL = selectOllamaModel({ preset, model: model ?? (explicitPreset ? undefined : env.AUTOROUTER_OLLAMA_MODEL), totalMemory });
+    values.AUTOROUTER_OLLAMA_MODEL = validateOllamaModel(model ?? env.AUTOROUTER_OLLAMA_MODEL ?? DEFAULT_OLLAMA_MODEL);
     for (const key of ['AUTOROUTER_OLLAMA_URL', 'AUTOROUTER_OLLAMA_TIMEOUT_MS', 'AUTOROUTER_OLLAMA_KEEP_ALIVE']) {
       if (env[key] !== undefined) values[key] = env[key];
     }

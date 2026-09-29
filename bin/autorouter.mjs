@@ -21,7 +21,7 @@ if (['--version', '-v', 'version'].includes(command)) {
 
 Usage:
   claude-autorouter setup [--auth-mode subscription|api-key] [--force]
-    [--evaluator jev|ollama] [--ollama-preset compact|quality|auto]
+    [--evaluator jev|ollama]
     [--ollama-model MODEL] [--pull]
   claude-autorouter doctor
   claude-autorouter claude [Claude Code arguments]
@@ -35,11 +35,10 @@ AUTOROUTER_CONFIG selects a different file; environment variables take precedenc
 Project .env files are never loaded automatically.
 
 Jev is the default evaluator and requires TYPESAFE_API_KEY.
-Ollama evaluates locally and requires a running local Ollama service.
+Ollama evaluates locally and requires Ollama 0.35+ with /v1/systemone.
 Use setup --evaluator ollama --pull to detect Ollama and download a missing model.
-Compact uses Qwen3 1.7B; quality offers Qwen3 4B for machines over 24 GB.
+The local default is nimble:9b-q4_K_M; --ollama-model selects another compatible model.
 Local routing is experimental; see docs/ollama-evaluation.md for measured limits.
-The auto preset selects using total RAM; compact is the default.
 AUTOROUTER_AUTH_MODE=subscription uses your saved Claude Code login.
 Without setup, AUTOROUTER_AUTH_MODE defaults to api-key and also requires ANTHROPIC_API_KEY.
 AUTOROUTER_CLIENT_PROFILE=compatible (default) enables all three routing tiers.

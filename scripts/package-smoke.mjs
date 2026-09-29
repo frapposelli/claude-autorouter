@@ -69,6 +69,8 @@ async function main() {
   let generations = 0;
   let localClassifications = 0;
   let localWarms = 0;
+  let nimbleClassifications = 0;
+  let nimbleWarms = 0;
   let pulls = 0;
   let localModelInstalled = false;
   try {
@@ -137,24 +139,25 @@ async function main() {
           assert.equal(req.headers.authorization, undefined);
           assert.equal(req.headers['x-api-key'], undefined);
           res.writeHead(200, { 'content-type': 'application/json' });
-          if (req.url === '/api/tags') res.end(JSON.stringify({ models: localModelInstalled ? [{ name: 'smoke-router:latest' }] : [] }));
+          if (req.url === '/api/version') res.end(JSON.stringify({ version: '0.35.0' }));
+          else if (req.url === '/api/tags') res.end(JSON.stringify({ models: [{ name: 'nimble:9b-q4_K_M' }, ...(localModelInstalled ? [{ name: 'smoke-router:latest' }] : [])] }));
           else if (req.url === '/api/show') res.end(JSON.stringify({ details: { parameter_size: '1B' } }));
           else if (req.url === '/api/pull') {
             pulls++;
             assert.equal(body.model, 'smoke-router:latest');
             localModelInstalled = true;
             res.end('{"status":"pulling manifest"}\n{"status":"success"}\n');
-          } else {
-            assert.equal(req.url, '/api/chat');
-            assert.equal(body.think, false);
-            const task = JSON.parse(body.messages[1].content).current_task;
-            if (task === 'Return the literal word ready.') localWarms++;
-            else {
-              localClassifications++;
-              assert.equal(task, 'Reply with zero.');
-            }
-            res.end(JSON.stringify({ done: true, message: { role: 'assistant', content: '{"tier":"sonnet"}' } }));
-          }
+          } else assert.fail('Unexpected Ollama lifecycle endpoint');
+        } else if (req.url === '/v1/systemone' && ['nimble:9b-q4_K_M', 'smoke-router:latest'].includes(body.model)) {
+          assert.equal(req.headers.authorization, undefined);
+          assert.equal(req.headers['x-api-key'], undefined);
+          assert.equal(body.questions.tier.type, 'choice');
+          const nimble = body.model === 'nimble:9b-q4_K_M';
+          if (body.state.current_task === 'Return the literal word ready.') { if (nimble) nimbleWarms++; else localWarms++; }
+          else { if (nimble) nimbleClassifications++; else localClassifications++; assert.equal(body.state.current_task, 'Reply with zero.'); }
+          res.writeHead(200, { 'content-type': 'application/json' });
+          res.end(JSON.stringify({ model: body.model, answers: { tier: { type: 'choice', choice: 'sonnet',
+            probabilities: { haiku: 0, sonnet: 1, opus: 0 }, confidence: 1 } }, usage: { input_tokens: 200, output_tokens: 1 } }));
         } else if (req.url === '/v1/systemone') {
           classifications++;
           assert.equal(req.headers.authorization, 'Bearer ' + JEV_KEY);
@@ -232,9 +235,25 @@ async function main() {
     for (const path of [localResult.status_file, localResult.settings_file]) {
       await assert.rejects(readFile(path), error => error.code === 'ENOENT');
     }
+    const nimbleEnv = { ...ollamaEnv, AUTOROUTER_CONFIG: join(temporary, 'nimble-config.json'), ANTHROPIC_API_KEY: API_KEY };
+    await run(installedCommand, ['setup', '--auth-mode', 'api-key', '--evaluator', 'ollama'], { cwd: unrelated, env: nimbleEnv });
+    delete nimbleEnv.ANTHROPIC_API_KEY;
+    await run(installedCommand, ['doctor'], { cwd: unrelated, env: nimbleEnv });
+    const nimbleLaunch = await run(installedCommand, ['claude'], { cwd: unrelated, env: nimbleEnv });
+    if (mockError) throw mockError;
+    const nimbleResult = JSON.parse(nimbleLaunch.stdout.trim());
+    assert.match(nimbleResult.status_line, /Ollama/);
+    assert.equal(nimbleClassifications, 1);
+    assert.equal(nimbleWarms, 2);
+    assert.equal(classifications, 1, 'Nimble must not contact Jev');
+    assert.equal(pulls, 1, 'Installed Nimble must not be downloaded again');
+    assert.equal(generations, 3);
+    for (const path of [nimbleResult.status_file, nimbleResult.settings_file]) {
+      await assert.rejects(readFile(path), error => error.code === 'ENOENT');
+    }
     console.log(`Package smoke passed: ${packed.manifest.name}@${packed.manifest.version}, ${packed.files.size} safe archive files.`);
     if (args.length) console.log('Installed and tested the supplied archive without rebuilding it.');
-    console.log('Verified offline installation, Jev and Ollama setup/doctor/routing, opt-in download, bundled status line, and session cleanup.');
+    console.log('Verified offline installation, Jev/Nimble/custom-model setup/doctor/routing, opt-in download, bundled status line, and session cleanup.');
     console.log(result.status_line);
     console.log(localResult.status_line);
   } finally {

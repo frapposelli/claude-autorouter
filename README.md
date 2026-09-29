@@ -50,26 +50,21 @@ Savings are an **API-equivalent estimate for the same token counts**, using Opus
 
 ## Experimental local evaluator
 
-[Install and start Ollama](https://docs.ollama.com/quickstart), then select a preset. The default `compact` uses less memory; `quality` showed better agreement with the routing rubric:
+The source checkout uses Ollama's native `/v1/systemone` decision API with `nimble:9b-q4_K_M` by default. **This local integration is unreleased; npm version 0.2.0 still has the older chat-model implementation.** Jev remains the default evaluator.
+
+Install and start Ollama 0.35 or newer; [version 0.35.0](https://github.com/ollama/ollama/releases/tag/v0.35.0) is a prerelease as of September 29, 2026. Then run from this checkout:
 
 ```sh
-claude-autorouter setup --evaluator ollama --ollama-preset compact --pull
-claude-autorouter doctor
-claude-autorouter claude
+node bin/autorouter.mjs setup --evaluator ollama --pull --force
+node bin/autorouter.mjs doctor
+node bin/autorouter.mjs claude
 ```
 
-Add `--force` when replacing an existing config. Setup downloads a missing selected model only with `--pull`; it does not install or start Ollama. No Jev key is needed. Claude still answers through Anthropic, with the same routing guards and subscription limits.
+`--force` replaces existing AutoRouter configuration. `--pull` downloads the selected model only if missing; Nimble's 9B Q4_K_M model is approximately 5.63 GB on disk. Setup does not install or start Ollama, or delete existing models. To select another installed native decision model or alias, add `--ollama-model YOUR_LOCAL_MODEL`.
 
-The launcher primes the local classifier before opening Claude's UI. Failed evaluations fall back to Sonnet or retain Opus without contacting Jev. See the [Ollama reference](docs/reference.md#ollama-evaluator) for setup options.
+No Jev key is needed for local classification. The launcher primes the evaluator before opening Claude's UI, and evaluation failures fall back to Sonnet or retain Opus without contacting Jev. Claude still answers through Anthropic, with the same routing guards and subscription limits.
 
-Both presets were tested on a 16 GiB M4 Mac using 24 distinct held-out synthetic workloads repeated three times:
-
-| Preset | Rubric agreement | Warm p50 / p95 | Model allocation |
-| --- | ---: | ---: | ---: |
-| `compact` (`qwen3:1.7b`) | 58.3% | 602 / 834 ms | 1.70 GB |
-| `quality` (`qwen3:4b`) | 91.7% | 889 / 1,242 ms | 3.18 GB |
-
-Use `--ollama-preset quality` to choose the larger model when memory permits, including on a 16 GiB machine. Each model timed out on all eight full-excerpt stress requests at the 1,500 ms deadline. These results do not establish parity with Jev or completed-task quality. Read the [measurements and limits](docs/ollama-evaluation.md) before choosing local classification.
+On the tested 16 GiB M4, Nimble exceeded the default 1,500 ms deadline on all 12 tuning requests. With a separate 30-second diagnostic deadline it matched 23/24 held-out labels, but median classification took 11.4 seconds and one misleading instruction caused under-routing. See the [measurements and limits](docs/ollama-evaluation.md) and [Ollama reference](docs/reference.md#ollama-evaluator), including configuration migration and the latency tradeoff.
 
 ## Behavior and data
 

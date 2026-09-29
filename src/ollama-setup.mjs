@@ -1,5 +1,5 @@
 import { validateOllamaEndpoint, validateOllamaModel } from './ollama-models.mjs';
-import { buildOllamaState, evaluateOllama } from './ollama-evaluator.mjs';
+import { buildOllamaState, evaluateOllama, OLLAMA_VERSION_MESSAGE } from './ollama-evaluator.mjs';
 
 const MAX_JSON_BYTES = 1024 * 1024;
 const MAX_PULL_BYTES = 16 * 1024 * 1024;
@@ -72,12 +72,25 @@ async function fetchResponse(fetchImpl, url, signal, body) {
   return response;
 }
 
-const modelIdentity = model => model.slice(model.lastIndexOf('/') + 1).includes(':') ? model : `${model}:latest`;
+const modelIdentity = model => {
+  const canonical = model.replace(/^registry\.ollama\.ai\//, '').replace(/^library\//, '');
+  return canonical.slice(canonical.lastIndexOf('/') + 1).includes(':') ? canonical : `${canonical}:latest`;
+};
+
+function supportsDecisions(version) {
+  const match = typeof version === 'string' && /^(\d+)\.(\d+)\.(\d+)(?:-[A-Za-z0-9.-]+)?(?:\+[A-Za-z0-9.-]+)?$/.exec(version);
+  if (!match) return false;
+  const numbers = match.slice(1, 4).map(Number);
+  return numbers.every(Number.isSafeInteger) && (numbers[0] > 0 || numbers[1] >= 35);
+}
 
 export async function inspectOllama(config, { fetchImpl = fetch, signal, timeoutMs = 5000 } = {}) {
   const endpoint = validateOllamaEndpoint(config.ollamaEndpoint);
   const model = validateOllamaModel(config.ollamaModel);
   return operation({ signal, timeoutMs }, async requestSignal => {
+    const versionResponse = await fetchResponse(fetchImpl, `${endpoint}/api/version`, requestSignal);
+    const version = await readJson(versionResponse, requestSignal);
+    if (!supportsDecisions(version?.version)) throw failure('OLLAMA_VERSION', OLLAMA_VERSION_MESSAGE);
     const response = await fetchResponse(fetchImpl, `${endpoint}/api/tags`, requestSignal);
     const body = await readJson(response, requestSignal);
     if (!body || !Array.isArray(body.models) || body.models.some(item => !item || typeof (item.name ?? item.model) !== 'string')) {
@@ -148,15 +161,16 @@ async function pullOllama(config, { fetchImpl, signal, write, timeoutMs }) {
 
 async function warmOllama(config, { fetchImpl, signal, timeoutMs }) {
   return operation({ signal, timeoutMs }, async requestSignal => {
-    // Prime the same rubric and chat template used for real classifications.
+    // Prime the same question policy used for real classifications.
     // Only this fixed synthetic task is sent; startup never reads a user task.
     const state = buildOllamaState({ messages: [{ role: 'user', content: 'Return the literal word ready.' }] });
     try {
       await evaluateOllama(state, {
         ...config, ollamaTimeoutMs: timeoutMs, ollamaKeepAlive: config.ollamaKeepAlive ?? '5m',
       }, { fetchImpl, signal: requestSignal });
-    } catch {
+    } catch (error) {
       requestSignal.throwIfAborted();
+      if (error?.code === 'OLLAMA_VERSION') throw failure('OLLAMA_VERSION', OLLAMA_VERSION_MESSAGE);
       throw failure('OLLAMA_WARMUP', 'Ollama could not prepare the local evaluator. Check the selected model and available memory, then retry.');
     }
   });

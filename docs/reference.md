@@ -6,7 +6,7 @@
 | --- | --- |
 | `claude-autorouter setup` | Save subscription-mode configuration and a Jev key |
 | `claude-autorouter setup --auth-mode api-key` | Configure Jev and Anthropic API-key billing |
-| `claude-autorouter setup --evaluator ollama --ollama-preset compact --pull` | Configure a local evaluator and download its selected model if missing |
+| `node bin/autorouter.mjs setup --evaluator ollama --pull` | Configure the unreleased native local evaluator from a source checkout and download its selected model if missing |
 | `claude-autorouter setup --force` | Replace an existing user config |
 | `claude-autorouter doctor` | Check config, Claude executable/login, and the selected local Ollama model without paid calls |
 | `claude-autorouter claude [arguments]` | Start a local router and pass arguments through to Claude Code |
@@ -51,7 +51,7 @@ For an environment-only subscription launch, set `AUTOROUTER_AUTH_MODE=subscript
 | `AUTOROUTER_JEV_MODEL` | `jev-latest` | Classifier version |
 | `AUTOROUTER_JEV_TIMEOUT_MS` | `1500` | Classifier deadline in milliseconds |
 | `AUTOROUTER_OLLAMA_URL` | `http://127.0.0.1:11434` | Loopback Ollama base URL |
-| `AUTOROUTER_OLLAMA_MODEL` | `qwen3:1.7b` | Installed local model tag; setup can choose a preset |
+| `AUTOROUTER_OLLAMA_MODEL` | `nimble:9b-q4_K_M` | Installed local model tag or alias compatible with `/v1/systemone` |
 | `AUTOROUTER_OLLAMA_TIMEOUT_MS` | `1500` | Whole local classification deadline in milliseconds |
 | `AUTOROUTER_OLLAMA_KEEP_ALIVE` | `5m` | How long Ollama retains the evaluator in memory |
 | `AUTOROUTER_TOKEN_COUNT_TIMEOUT_MS` | `1500` | Context-check deadline; runs alongside classification |
@@ -65,42 +65,43 @@ Model access depends on your account. The policy recognizes specific Claude mode
 
 ## Ollama evaluator
 
-Ollama is an experimental local classifier. It chooses a Claude tier; Haiku, Sonnet, or Opus still completes the task through Anthropic. Jev remains the default, and selecting Ollama never silently switches back to Jev.
+Local classification is experimental and uses Ollama's native `/v1/systemone` decision endpoint for every model. **This implementation is available in the source checkout and is not included in npm version 0.2.0**, which used chat models. Jev remains the default remote evaluator, using TypeSafe's `/v1/systemone` endpoint and a TypeSafe API key. Selecting Ollama never silently switches back to Jev. Haiku, Sonnet, or Opus still completes the task through Anthropic.
 
-[Install Ollama](https://docs.ollama.com/quickstart) and start its local service first. Open the Ollama app on macOS, or use `ollama serve` if a server is not already running. Then:
+All local models require Ollama 0.35 or newer. Version 0.35.0 is a prerelease as of September 29, 2026; it introduces the native decision API. See the [Ollama release notes](https://github.com/ollama/ollama/releases/tag/v0.35.0). Install and start a compatible local service, then run from this checkout:
 
 ```sh
-claude-autorouter setup --evaluator ollama --ollama-preset compact --pull
-claude-autorouter doctor
-claude-autorouter claude
+node bin/autorouter.mjs setup --evaluator ollama --pull --force
+node bin/autorouter.mjs doctor
+node bin/autorouter.mjs claude
 ```
 
-Use `--force` to replace existing configuration. Setup detects the running local API. `--pull` authorizes downloading the chosen model when it is missing; without it, install the model yourself before setup. AutoRouter does not install Ollama, start its daemon, or download models during ordinary launches or `doctor` checks.
+`--force` replaces an existing user config. Setup detects the running local API. `--pull` authorizes downloading the chosen model when it is missing; without it, install the model yourself before setup. AutoRouter does not install Ollama, start its daemon, delete models, or download models during ordinary launches or `doctor` checks.
 
-| Preset | Model | Selection |
-| --- | --- | --- |
-| `compact` | `qwen3:1.7b` | Default prioritizes lower memory use; lower held-out rubric agreement |
-| `quality` | `qwen3:4b` | Better measured rubric agreement, with higher memory use and latency |
-| `auto` | One of the above | `quality` only when reported total system memory exceeds 24 GiB; otherwise `compact` |
+### Local model selection
 
-The memory heuristic estimates headroom using total system RAM, not currently free memory or a CPU/GPU benchmark. Both presets were tested on a 16 GiB Mac; `quality` can be selected explicitly on that capacity when memory permits. The automatic threshold is a conservative headroom choice, not a speed or accuracy guarantee. The `quality` model has an approximately 2.5 GB download; download size differs from resident memory, which includes runtime and context allocations. Concurrent applications also need memory. The classifier uses a 4,096-token context to bound that allocation. See [Ollama's context-memory guidance](https://docs.ollama.com/context-length). Downloaded models have their own licenses and are not included in this package.
+The default is `nimble:9b-q4_K_M`, a 9B native decision model using Q4_K_M quantization with an approximately 5.63 GB download. Other tags can be selected with `--ollama-model LOCAL_TAG_OR_ALIAS` or `AUTOROUTER_OLLAMA_MODEL`. Every selected model must support `/v1/systemone`; a model name or alias does not change the endpoint. There are no model presets or automatic choices based on system RAM.
 
-The 16 GiB M4 comparison used 24 distinct held-out synthetic workloads, eight per tier, repeated three times for each model:
+For Nimble, the explicit Q4_K_M tag avoids `nimble:latest`, which currently selects an approximately 9.5 GB Q8 model. See [Ollama's Nimble listing](https://ollama.com/library/nimble). Download size is not resident memory: runtime and context allocations add to it, and other applications need memory too. Downloaded models have their own licenses and are not bundled in this package. See the [local measurements](ollama-evaluation.md) before choosing a latency deadline.
 
-| Model | Rubric agreement | Warm p50 / p95 | Cold call | Model allocation |
-| --- | ---: | ---: | ---: | ---: |
-| `qwen3:1.7b` | 42 / 72 (58.3%) | 602 / 834 ms | 4.80 s | 1.70 GB |
-| `qwen3:4b` | 66 / 72 (91.7%) | 889 / 1,242 ms | 5.92 s | 3.18 GB |
+The endpoint must be loopback (`127.0.0.1`, `localhost`, or `::1`), without a path, credentials, query, or fragment. Cloud model tags and metadata identifying a remote model are rejected before sending task text. Claude and Jev credentials are never attached to Ollama requests.
 
-Both completed every short held-out request without a timeout. Compact routed six of eight distinct Opus-labeled workloads to Sonnet. Quality had no under-routing in this fixture; its six errors were two distinct Sonnet workloads routed to Opus on each repetition. Each model exceeded the 1,500 ms deadline on all eight requests in a separate full-excerpt stress test. The [local evaluation report](ollama-evaluation.md) records the test conditions and rejected candidates. There was no Jev comparison, so these results do not establish parity with Jev. Rubric agreement on synthetic cases does not establish the quality or cost of completed Claude tasks.
+### Classification and fallback
 
-Use `--ollama-model LOCAL_TAG` to override the preset, for example with an already installed local model. The endpoint must be loopback (`127.0.0.1`, `localhost`, or `::1`), without a path, credentials, query, or fragment. Cloud model tags and metadata identifying a remote model are rejected before sending task text. Claude and Jev credentials are never attached to Ollama requests.
+Local classification caps serialized evaluator state at both 3,000 characters and 3,000 UTF-8 bytes, including for non-ASCII prompts. `/v1/systemone` receives the bounded state and routing criteria and returns a tier directly. The router retains each model's native context setting (8,194 tokens for the default Nimble tag). Returned confidence scores summarize choice-distribution entropy; they are not calibrated accuracy probabilities. `AUTOROUTER_MIN_CONFIDENCE` applies only to Jev. All capability, tool-continuation, thinking, and context guards still apply.
 
-Local classification caps serialized evaluator state at both 3,000 characters and 3,000 UTF-8 bytes, including for non-ASCII prompts. It sends that state to `/api/chat`, requests a strict JSON tier, disables thinking, and caps output at 32 tokens. It does not invent a confidence probability; `AUTOROUTER_MIN_CONFIDENCE` applies only to Jev. All capability, tool-continuation, thinking, and context guards still apply.
+Before opening Claude's UI, the launcher loads an installed model and primes the actual classifier rubric with a synthetic task, using a separate deadline of up to 60 seconds. Each normal evaluation has a 1,500 ms deadline covering local checks and classification. Priming reduces first-request overhead but does not guarantee that longer excerpts finish in time. `AUTOROUTER_OLLAMA_KEEP_ALIVE` defaults to `5m`. After five idle minutes, the next request may need to reload the model, exceed that deadline, and use the fallback. A longer positive keep-alive can reduce reloads while retaining memory longer; `0` unloads immediately and can make every evaluation cold. Supported values are `0` or a positive duration such as `30s`, `5m`, or `1h`.
 
-Before opening Claude's UI, the launcher loads an installed model and primes the actual classifier rubric with a synthetic task, using a separate deadline of up to 60 seconds. Each normal evaluation has a 1,500 ms deadline covering local model metadata checks and classification. Priming reduces first-request overhead but does not guarantee that longer excerpts finish in time. `AUTOROUTER_OLLAMA_KEEP_ALIVE` defaults to `5m`. After five idle minutes, the next request may need to reload the model, exceed that deadline, and use the fallback. A longer positive keep-alive can reduce reloads while retaining memory longer; `0` unloads immediately and can make every evaluation cold. Supported values are `0` or a positive duration such as `30s`, `5m`, or `1h`, following the [Ollama API's keep-alive setting](https://docs.ollama.com/api/chat).
+If startup priming fails, the launcher warns and continues. An incompatible model or Ollama version, missing model, unavailable service, malformed answer, or evaluation timeout falls back to Sonnet or retains an incoming Opus, subject to the usual compatibility policy. No Jev request is made. The status line identifies `Ollama fallback` and its error category. Run `doctor` to inspect the local service and installed model; it does not download or generate. A live classification is needed to verify the selected model's decision-API behavior.
 
-If startup priming fails, the launcher warns and continues. A missing model, unavailable service, malformed answer, or evaluation timeout falls back to Sonnet or retains an incoming Opus, subject to the usual compatibility policy. No Jev request is made. The status line identifies `Ollama fallback` and its error category. Run `doctor` to inspect local API availability and installed model metadata; it does not download or generate.
+On the tested 16 GiB M4, Nimble timed out on all 12 tuning requests at the default deadline. A separate 30-second diagnostic completed 24 held-out classifications with 23 matching labels, but median routing took 11.4 seconds. The one error followed a misleading tier instruction. See the [measurements and limitations](ollama-evaluation.md). If you accept several seconds of added latency, configure a longer deadline explicitly; this example is a diagnostic allowance, not a speed recommendation:
+
+```sh
+AUTOROUTER_OLLAMA_TIMEOUT_MS=30000 node bin/autorouter.mjs setup --evaluator ollama --pull --force
+```
+
+### Migrating an older Ollama config
+
+The former Qwen chat backend and its presets have been removed from the source implementation. Existing downloaded models remain on disk, but an old Qwen model selection needs to be replaced with a native decision model. Run the setup command above with `--force`; it selects Nimble unless you pass `--ollama-model` or override the model through the environment. Remove or update any old `AUTOROUTER_OLLAMA_MODEL` environment value too, because environment variables override saved configuration. Update scripts to use `--ollama-model` when selecting a custom model.
 
 ## Data flow and authentication
 

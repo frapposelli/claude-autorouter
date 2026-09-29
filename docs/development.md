@@ -48,18 +48,18 @@ npm run eval
 
 The bundled evaluation makes 12 classifier calls and no Claude generations. Jev is the default and incurs TypeSafe usage; set `AUTOROUTER_EVALUATOR=ollama` to evaluate an installed local model. It reports agreement with the starting rubric, fallback count, and p50/p95 routing latency. Edit `test/fixtures/routing.json` to represent the tasks you want to measure. Rubric agreement alone does not establish answer quality or net savings; compare completed tasks against fixed-model baselines.
 
-For local evaluator measurements, distinguish cold model loading from warmed classification, and record the model tag, hardware, Ollama version, context size, prompt length, and resident memory. The launcher primes the classifier rubric with a synthetic task before opening the UI, with a separate deadline of up to 60 seconds. Runtime and benchmark share the 3,000-character/3,000-UTF-8-byte state limit, so include non-ASCII cases and excerpts that fill the budget. Also measure the first request after keep-alive expiration: its reload can hit the normal deadline even when warm requests pass. Repeat on realistic prompt distributions instead of selecting a model from a single easy request. Disk download size is not resident RAM, and the larger preset is not a speed guarantee. Keep model downloads opt-in and respect each model's license.
+For local evaluator measurements, use Ollama 0.35+ and a model compatible with `/v1/systemone`. Distinguish cold model loading from warmed classification, and record the model tag, hardware, Ollama version, context size, prompt length, and resident memory. The launcher primes the classifier with a synthetic task before opening the UI, with a separate deadline of up to 60 seconds. Runtime and benchmark share the 3,000-character/3,000-UTF-8-byte state limit, so include non-ASCII cases and excerpts that fill the budget. Also measure the first request after keep-alive expiration: its reload can hit the normal deadline even when warm requests pass. Repeat on realistic prompt distributions instead of selecting a model from a single easy request. Disk download size is not resident RAM. Keep model downloads opt-in and respect each model's license.
 
 The dedicated Ollama benchmark uses synthetic tuning/held-out fixtures and reports cold latency separately from repeated warm requests:
 
 ```sh
-npm run eval:ollama -- --models qwen3:1.7b,qwen3:4b --split heldout --rounds 3 --stress-rounds 8
+npm run eval:ollama -- --models nimble:9b-q4_K_M --split heldout --rounds 3 --stress-rounds 8
 node scripts/evaluate-ollama.mjs --help
 ```
 
 Install each selected model first and use an idle Ollama instance with no resident models. The benchmark loads one candidate at a time and unloads it afterward. It does not download models or contact Claude or Jev. It reports classification errors and under/over-routing as well as latency; fixture labels are subjective rubric judgments, not measurements of completed task quality.
 
-On the 16 GiB M4 test Mac, compact matched 58.3% of held-out labels at warm p50/p95 latency of 602/834 ms and 1.70 GB model allocation. Quality (`qwen3:4b`) matched 91.7% at 889/1,242 ms and 3.18 GB. Each was tested on the same 24 distinct synthetic workloads repeated three times. Quality had no under-routing on this fixture, but routed two distinct Sonnet workloads to Opus on all repetitions. Both models exceeded the 1,500 ms deadline on all eight full-excerpt stress requests. No Jev comparison was run; local classification remains experimental. See the [local evaluator measurements](ollama-evaluation.md) for the hardware, candidate comparisons, and limits. A successful launcher/Enterprise integration request establishes connectivity and model routing, not classifier accuracy or parity with Jev.
+See the [local evaluator measurements](ollama-evaluation.md) for the hardware, results, and limits. The older Qwen chat adapter and its compact/quality/auto presets have been removed. Every local candidate now uses native choice scoring; context allocation comes from the model/server configuration. Native entropy confidence is not calibrated accuracy and is not used as Jev's confidence threshold. A successful launcher/Enterprise integration request establishes connectivity and model routing, not classifier accuracy or parity with Jev.
 
 ## Startup context diagnostics
 

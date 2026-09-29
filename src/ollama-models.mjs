@@ -1,6 +1,4 @@
-import { totalmem } from 'node:os';
-
-export const OLLAMA_PRESETS = Object.freeze({ compact: 'qwen3:1.7b', quality: 'qwen3:4b' });
+export const DEFAULT_OLLAMA_MODEL = 'nimble:9b-q4_K_M';
 
 export function validateOllamaEndpoint(value) {
   let endpoint;
@@ -19,11 +17,4 @@ export function validateOllamaModel(model) {
     throw new Error('Ollama requires a valid local model tag; cloud models are not supported.');
   }
   return model;
-}
-
-export function selectOllamaModel({ preset = 'compact', model, totalMemory = totalmem() } = {}) {
-  if (!['compact', 'quality', 'auto'].includes(preset)) throw new Error('--ollama-preset must be compact, quality, or auto');
-  if (model !== undefined) return validateOllamaModel(model);
-  const selected = preset === 'auto' ? (Number.isFinite(totalMemory) && totalMemory > 24 * 1024 ** 3 ? 'quality' : 'compact') : preset;
-  return OLLAMA_PRESETS[selected];
 }

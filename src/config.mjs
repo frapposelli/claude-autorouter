@@ -1,4 +1,4 @@
-import { OLLAMA_PRESETS, validateOllamaEndpoint, validateOllamaModel } from './ollama-models.mjs';
+import { DEFAULT_OLLAMA_MODEL, validateOllamaEndpoint, validateOllamaModel } from './ollama-models.mjs';
 
 export const TIERS = ['haiku', 'sonnet', 'opus'];
 
@@ -49,7 +49,7 @@ export function readConfig(env = process.env) {
     jevEndpoint: endpoint(env.AUTOROUTER_JEV_URL ?? 'https://api.typesafe.ai/v1/systemone', 'AUTOROUTER_JEV_URL'),
     jevModel: env.AUTOROUTER_JEV_MODEL ?? 'jev-latest',
     ollamaEndpoint: validateOllamaEndpoint(env.AUTOROUTER_OLLAMA_URL ?? 'http://127.0.0.1:11434'),
-    ollamaModel: validateOllamaModel(env.AUTOROUTER_OLLAMA_MODEL ?? OLLAMA_PRESETS.compact),
+    ollamaModel: validateOllamaModel(env.AUTOROUTER_OLLAMA_MODEL ?? DEFAULT_OLLAMA_MODEL),
     ollamaTimeoutMs: number(env, 'AUTOROUTER_OLLAMA_TIMEOUT_MS', 1500, 1, 30000),
     ollamaStateChars: 3000,
     ollamaKeepAlive,

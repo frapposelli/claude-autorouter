@@ -5,8 +5,9 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { arch, cpus, freemem, platform, totalmem } from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { promisify } from 'node:util';
-import { OLLAMA_RUBRIC, buildOllamaState, buildOllamaRequest, evaluateOllama } from '../src/ollama-evaluator.mjs';
-import { validateOllamaEndpoint, validateOllamaModel } from '../src/ollama-models.mjs';
+import { OLLAMA_QUESTIONS, buildOllamaState, evaluateOllama } from '../src/ollama-evaluator.mjs';
+import { DEFAULT_OLLAMA_MODEL, validateOllamaEndpoint, validateOllamaModel } from '../src/ollama-models.mjs';
+import { inspectOllama } from '../src/ollama-setup.mjs';
 
 const execute = promisify(execFile);
 const TIERS = ['haiku', 'sonnet', 'opus'];
@@ -16,7 +17,7 @@ const ms = value => Math.round(value * 100) / 100;
 const percentile = (values, fraction) => values.length ? [...values].sort((a, b) => a - b)[Math.ceil(values.length * fraction) - 1] : null;
 
 function parseArgs(args) {
-  const options = { models: ['qwen3:1.7b'], split: 'heldout', rounds: 3, timeoutMs: 1500, coldTimeoutMs: 60000,
+  const options = { models: [DEFAULT_OLLAMA_MODEL], split: 'heldout', rounds: 3, timeoutMs: 1500, coldTimeoutMs: 60000,
     endpoint: 'http://127.0.0.1:11434', output: undefined, stressRounds: 0 };
   for (let index = 0; index < args.length; index++) {
     const key = args[index];
@@ -81,14 +82,14 @@ async function residentMemory(endpoint, model) {
     const { stdout } = await execute('ps', ['-axo', 'rss=,comm='], { maxBuffer: 1024 * 1024 });
     runnerRssBytes = stdout.split('\n').reduce((sum, line) => {
       const match = /^\s*(\d+)\s+(.+)$/.exec(line);
-      return sum + (match && /(?:^|\/)ollama(?:\s|$)/.test(match[2]) ? Number(match[1]) * 1024 : 0);
+      return sum + (match && /(?:^|\/)(?:ollama|llama-server)(?:\s|$)/.test(match[2]) ? Number(match[1]) * 1024 : 0);
     }, 0);
   } catch {}
   return {
     model_size_bytes: resident?.size, model_vram_bytes: resident?.size_vram,
     context_length: resident?.context_length, parameter_size: resident?.details?.parameter_size,
     quantization: resident?.details?.quantization_level,
-    ollama_process_rss_bytes: runnerRssBytes, system_free_bytes: freemem(),
+    runtime_process_rss_bytes: runnerRssBytes, system_free_bytes: freemem(),
   };
 }
 
@@ -144,7 +145,7 @@ async function measure(item, config) {
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   if (options.help) {
-    console.log('Usage: node scripts/evaluate-ollama.mjs --models qwen3:1.7b,qwen3:4b [--split tuning|heldout|all] [--rounds 3] [--stress-rounds 8] [--timeout-ms 1500] [--cold-timeout-ms 60000] [--output artifacts/ollama-evaluation.json]\nUses only checked-in synthetic cases and an already-running local Ollama. Does not download models or contact Claude/Jev. Requires no models currently loaded; loads one candidate at a time and unloads it afterward. A cold call is reported separately and excluded from warm agreement/latencies. Optional stress cases fill the excerpt budget and vary an early nonce; their results are separate from fixture agreement. Labels are subjective rubric judgments, not downstream task-quality measurements.');
+    console.log('Usage: node scripts/evaluate-ollama.mjs --models nimble:9b-q4_K_M [--split tuning|heldout|all] [--rounds 3] [--stress-rounds 8] [--timeout-ms 1500] [--cold-timeout-ms 60000] [--output artifacts/ollama-evaluation.json]\nUses only checked-in synthetic cases and an already-running local Ollama. Does not download models or contact Claude/Jev. Requires no models currently loaded; loads one candidate at a time and unloads it afterward. A cold call is reported separately and excluded from warm agreement/latencies. Optional stress cases fill the excerpt budget and vary an early nonce; their results are separate from fixture agreement. Labels are subjective rubric judgments, not downstream task-quality measurements.');
     return;
   }
   const fixtureText = await readFile(FIXTURES, 'utf8');
@@ -163,9 +164,9 @@ async function main() {
     type: 'ollama_routing_evaluation', timestamp: new Date().toISOString(),
     hardware: { cpu: cpus()[0]?.model, architecture: arch(), platform: platform(), total_memory_bytes: totalmem() },
     ollama_version: (await api(options.endpoint, '/api/version')).version,
-    fixture_sha256: digest(fixtureText), rubric_sha256: digest(OLLAMA_RUBRIC),
+    fixture_sha256: digest(fixtureText),
     split: options.split, rounds: options.rounds, stress_rounds: options.stressRounds, warm_timeout_ms: options.timeoutMs, cold_timeout_ms: options.coldTimeoutMs,
-    state_character_budget: 3000, model_confidence: 'not requested or fabricated', models: [],
+    state_character_budget: 3000, model_confidence: 'not used for routing; native entropy confidence is not calibrated accuracy', models: [],
   };
   const persist = async () => {
     if (!options.output) return;
@@ -175,8 +176,12 @@ async function main() {
   for (const model of options.models) {
     const config = { ollamaEndpoint: options.endpoint, ollamaModel: model, ollamaKeepAlive: '5m', ollamaTimeoutMs: options.timeoutMs };
     const info = installed.find(item => item.name === model || item.model === model);
+    await inspectOllama(config);
     const entry = { model, digest: info.digest, download_bytes: info.size,
-      request_options: buildOllamaRequest({}, config).options, cold: undefined, resident_memory: undefined, rows: [] };
+      protocol: '/v1/systemone',
+      rubric_sha256: digest(JSON.stringify(OLLAMA_QUESTIONS)),
+      context_configuration: 'model/server defaults; measured below',
+      cold: undefined, resident_memory: undefined, rows: [] };
     report.models.push(entry);
     try {
       console.log(`Measuring ${model}: cold load, then ${selected.length * options.rounds} warm synthetic requests.`);

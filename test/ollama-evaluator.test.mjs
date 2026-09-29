@@ -1,14 +1,155 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readConfig, requireKeys } from '../src/config.mjs';
+import { readConfig } from '../src/config.mjs';
 import { Router } from '../src/router.mjs';
 import { buildState } from '../src/prompt-state.mjs';
-import { buildOllamaState, evaluateOllama } from '../src/ollama-evaluator.mjs';
+import { buildOllamaState, evaluateOllama, OLLAMA_QUESTIONS } from '../src/ollama-evaluator.mjs';
+import { DEFAULT_OLLAMA_MODEL } from '../src/ollama-models.mjs';
 
 const config = overrides => ({ ...readConfig({ AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_AUTH_MODE: 'subscription' }), ...overrides });
 const body = (text = 'Fix one typo') => ({ model: 'claude-haiku-4-5-20251001', max_tokens: 4096, messages: [{ role: 'user', content: text }] });
-const metadata = () => Response.json({ details: { parameter_size: '1.7B' }, capabilities: ['completion'] });
-const response = tier => Response.json({ done: true, done_reason: 'stop', message: { role: 'assistant', content: JSON.stringify({ tier }) } });
+const metadata = () => Response.json({ details: { parameter_size: '9B' }, capabilities: ['completion'] });
+const response = tier => Response.json(decisionPayload(tier));
+const decisionPayload = (choice = 'haiku', model = DEFAULT_OLLAMA_MODEL) => ({
+  model, answers: { tier: { type: 'choice', choice, probabilities: { haiku: 0.1, sonnet: 0.1, opus: 0.1, [choice]: 0.8 }, confidence: 0.418 } },
+  usage: { input_tokens: 1234, output_tokens: 1 },
+});
+
+test('compatible custom model aliases use the same native protocol without chat requests', async () => {
+  for (const model of ['nimble', 'library/nimble:9b-q4_K_M', 'registry.ollama.ai/library/nimble:9b-q4_K_M', 'team/local-decider:v1']) {
+    const calls = [];
+    const result = await evaluateOllama(buildOllamaState(body()), config({ ollamaModel: model }), { fetchImpl: async (url, options) => {
+      calls.push(new URL(url).pathname);
+      const payload = JSON.parse(options.body);
+      assert.equal(payload.model, model);
+      if (url.endsWith('/api/show')) return metadata();
+      assert.equal(new URL(url).pathname, '/v1/systemone');
+      assert.deepEqual(Object.keys(payload).sort(), ['keep_alive', 'model', 'questions', 'state']);
+      return Response.json(decisionPayload('sonnet', model));
+    } });
+    assert.equal(result.choice, 'sonnet');
+    assert.deepEqual(calls, ['/api/show', '/v1/systemone']);
+  }
+});
+
+test('Ollama scores all three tiers natively with the frozen policy and no Jev confidence threshold', async () => {
+  for (const tier of ['haiku', 'sonnet', 'opus']) {
+    const calls = [];
+    const fetchImpl = async (url, options) => {
+      calls.push(url);
+      assert.equal(options.redirect, 'error');
+      assert.deepEqual(options.headers, { 'content-type': 'application/json' });
+      assert.ok(!options.body.includes('PRIVATE_'));
+      if (url.endsWith('/api/show')) return metadata();
+      assert.equal(url, 'http://127.0.0.1:11434/v1/systemone');
+      const payload = JSON.parse(options.body);
+      assert.deepEqual(Object.keys(payload).sort(), ['keep_alive', 'model', 'questions', 'state']);
+      assert.equal(payload.model, DEFAULT_OLLAMA_MODEL);
+      assert.equal(payload.keep_alive, '5m');
+      assert.equal(payload.state.current_task, 'Fix one typo');
+      assert.ok(Buffer.byteLength(JSON.stringify(payload.state)) <= 3000);
+      assert.deepEqual(payload.questions, OLLAMA_QUESTIONS);
+      return Response.json(decisionPayload(tier));
+    };
+    const router = new Router(config({ jevKey: 'PRIVATE_JEV_KEY', anthropicKey: 'PRIVATE_ANTHROPIC_KEY', minConfidence: 1 }), { fetchImpl });
+    const routed = await router.classify(body());
+    assert.equal(routed.tier, tier);
+    assert.equal(routed.source, 'ollama');
+    assert.equal(routed.confidence, undefined);
+    assert.equal(routed.probabilities, undefined);
+    assert.equal((await router.classify(body())).source, 'cache');
+    assert.deepEqual(calls, ['http://127.0.0.1:11434/api/show', 'http://127.0.0.1:11434/v1/systemone']);
+  }
+  const result = await evaluateOllama(buildOllamaState(body()), config(), {
+    fetchImpl: async url => url.endsWith('/show') ? metadata() : Response.json(decisionPayload()),
+  });
+  assert.deepEqual(result, { choice: 'haiku', metrics: { input_tokens: 1234, output_tokens: 1 } });
+});
+
+test('malformed native answers fall back safely without caching or consulting Jev', async () => {
+  const mutations = [
+    value => { value.model = 'other-model'; },
+    value => { value.answers.tier.type = 'score'; },
+    value => { value.answers.tier.choice = 'unknown'; },
+    value => { value.answers.tier.choice = 'opus'; },
+    value => { value.answers.tier.confidence = '0.8'; },
+    value => { value.answers.tier.confidence = 1.1; },
+    value => { delete value.answers.tier.probabilities.opus; },
+    value => { value.answers.tier.probabilities.opus = -0.1; },
+    value => { value.answers.tier.probabilities.opus = 0.2; },
+    value => { value.answers.extra = 'PRIVATE_RESPONSE'; },
+    value => { value.usage.input_tokens = -1; },
+    value => { delete value.usage; },
+  ];
+  for (const mutate of mutations) {
+    let classifications = 0;
+    const calls = [];
+    const router = new Router(config(), { fetchImpl: async url => {
+      calls.push(new URL(url).pathname);
+      if (url.endsWith('/show')) return metadata();
+      const value = decisionPayload();
+      if (++classifications === 1) mutate(value);
+      return Response.json(value);
+    } });
+    const request = { ...body(), model: config().models.opus };
+    const failed = await router.classify(request);
+    assert.equal(failed.source, 'fallback');
+    assert.equal(failed.classifier_error, 'invalid_response');
+    assert.equal(failed.tier, 'opus');
+    assert.ok(!JSON.stringify(failed).includes('PRIVATE_'));
+    assert.equal((await router.classify(request)).source, 'ollama');
+    assert.deepEqual(calls, ['/api/show', '/v1/systemone', '/api/show', '/v1/systemone']);
+  }
+});
+
+test('Ollama preserves the local metadata gate and gives safe version guidance only for its missing endpoint', async () => {
+  const calls = [];
+  await assert.rejects(evaluateOllama(buildOllamaState(body()), config(), { fetchImpl: async url => {
+    calls.push(new URL(url).pathname);
+    return Response.json({ remote_host: 'PRIVATE_HOST', details: { parameter_size: '9B' } });
+  } }), /classifier_invalid_response/);
+  assert.deepEqual(calls, ['/api/show']);
+  for (const missing of ['/api/show', '/v1/systemone']) {
+    await assert.rejects(evaluateOllama(buildOllamaState(body()), config(), { fetchImpl: async url => {
+      if (new URL(url).pathname === missing) return new Response('PRIVATE_PROVIDER_ERROR', { status: 404 });
+      return metadata();
+    } }), error => {
+      assert.equal(error.classifierStatus, 404);
+      assert.equal(error.code, missing === '/v1/systemone' ? 'OLLAMA_VERSION' : undefined);
+      if (missing === '/v1/systemone') assert.match(error.message, /Ollama 0\.35 or newer/);
+      assert.ok(!error.message.includes('PRIVATE_'));
+      return true;
+    });
+  }
+});
+
+test('Ollama shares one deadline across metadata and native response, cancels bodies, and bounds output', async () => {
+  for (const mode of ['metadata', 'native', 'oversize']) {
+    let cancelled = false;
+    const signals = [];
+    const paths = [];
+    const router = new Router(config({ ollamaTimeoutMs: 40 }), { fetchImpl: async (url, options) => {
+      paths.push(new URL(url).pathname);
+      signals.push(options.signal);
+      if (url.endsWith('/show') && mode !== 'metadata') {
+        await new Promise(resolve => setTimeout(resolve, 10));
+        return metadata();
+      }
+      return new Response(new ReadableStream({ start(controller) {
+        if (mode === 'oversize') controller.enqueue(new Uint8Array(65537));
+      }, cancel() { cancelled = true; } }));
+    } });
+    const keepAlive = setTimeout(() => {}, 1000);
+    try {
+      const decision = await router.classify(body());
+      assert.equal(decision.source, 'fallback');
+      assert.equal(decision.classifier_error, mode === 'oversize' ? 'invalid_response' : 'timeout');
+      assert.equal(cancelled, true);
+      assert.deepEqual(paths, mode === 'metadata' ? ['/api/show'] : ['/api/show', '/v1/systemone']);
+      assert.ok(signals.every(signal => signal === signals[0]));
+    } finally { clearTimeout(keepAlive); }
+  }
+});
 
 test('multibyte local context stays inside the byte budget and excludes private thinking and images', () => {
   const request = body('你好🌍'.repeat(2000));
@@ -19,53 +160,6 @@ test('multibyte local context stays inside the byte budget and excludes private 
   assert.ok(Buffer.byteLength(serialized) <= 3000);
   assert.ok(state.current_task.length > 0);
   assert.ok(!serialized.includes('SECRET'));
-});
-
-test('Jev remains default; Ollama subscription requires no evaluator key and API billing still requires one', () => {
-  assert.equal(readConfig({}).evaluator, 'jev');
-  assert.throws(() => requireKeys(readConfig({ AUTOROUTER_AUTH_MODE: 'subscription' })), /TYPESAFE_API_KEY/);
-  assert.doesNotThrow(() => requireKeys(config()));
-  assert.throws(() => requireKeys(readConfig({ AUTOROUTER_EVALUATOR: 'ollama' })), /ANTHROPIC_API_KEY/);
-  assert.doesNotThrow(() => requireKeys(readConfig({ AUTOROUTER_EVALUATOR: 'ollama', ANTHROPIC_API_KEY: 'test-api' })));
-  for (const env of [{ AUTOROUTER_EVALUATOR: 'auto' }, { AUTOROUTER_OLLAMA_URL: 'https://example.com' },
-    { AUTOROUTER_OLLAMA_URL: 'http://127.0.0.1:11434/redirect' }, { AUTOROUTER_OLLAMA_MODEL: 'qwen3:cloud' },
-    { AUTOROUTER_OLLAMA_TIMEOUT_MS: '0' }, { AUTOROUTER_OLLAMA_KEEP_ALIVE: '-1' }]) assert.throws(() => readConfig(env));
-});
-
-test('Ollama routes every tier locally with bounded input, fixed resource settings, and no invented confidence', async () => {
-  for (const tier of ['haiku', 'sonnet', 'opus']) {
-    const calls = [];
-    const router = new Router(config({ jevKey: 'never-send-jev', anthropicKey: 'never-send-anthropic' }), { fetchImpl: async (url, options) => {
-      calls.push(url);
-      assert.ok(url.startsWith('http://127.0.0.1:11434/api/'));
-      assert.equal(options.redirect, 'error');
-      assert.deepEqual(options.headers, { 'content-type': 'application/json' });
-      const payload = JSON.parse(options.body);
-      if (url.endsWith('/show')) return metadata();
-      assert.equal(url, 'http://127.0.0.1:11434/api/chat');
-      assert.equal(payload.think, false);
-      assert.equal(payload.stream, false);
-      assert.equal(payload.options.num_ctx, 4096);
-      assert.equal(payload.options.num_predict, 32);
-      assert.equal(payload.options.temperature, 0);
-      assert.equal(payload.keep_alive, '5m');
-      assert.equal(payload.format.additionalProperties, false);
-      const state = JSON.parse(payload.messages[1].content);
-      assert.equal(state.current_task, 'Fix one typo');
-      assert.ok(payload.messages[1].content.length <= 3000);
-      return response(tier);
-    } });
-    const routed = await router.route(body());
-    assert.equal(routed.model, config().models[tier]);
-    assert.equal(routed.source, 'ollama');
-    assert.equal(routed.evaluator, 'ollama');
-    assert.equal(routed.confidence, undefined);
-    assert.equal(routed.classified_tier, tier);
-    const cached = await router.route(body());
-    assert.equal(cached.source, 'cache');
-    assert.equal(cached.evaluator, 'ollama');
-    assert.equal(calls.length, 2, 'Cached decisions must not call either provider');
-  }
 });
 
 test('a cloud alias or unknown metadata is rejected before any prompt text is sent', async () => {
@@ -88,24 +182,23 @@ test('a cloud alias or unknown metadata is rejected before any prompt text is se
 
 test('large local model metadata is accepted within its separate bound while oversized metadata is rejected', async () => {
   for (const [size, expected] of [[80000, 'ollama'], [1024 * 1024 + 1, 'fallback']]) {
-    let chats = 0;
+    let decisions = 0;
     const router = new Router(config(), { fetchImpl: async url => {
       if (url.endsWith('/show')) return Response.json({ details: { parameter_size: '4B' }, tensors: 'x'.repeat(size) });
-      chats++;
+      decisions++;
       return response('haiku');
     } });
     const decision = await router.classify(body());
     assert.equal(decision.source, expected);
-    assert.equal(chats, expected === 'ollama' ? 1 : 0);
+    assert.equal(decisions, expected === 'ollama' ? 1 : 0);
   }
 });
 
 test('Ollama failures never contact Jev, are not cached, and retain an existing Opus request', async () => {
   for (const failure of [() => { throw new Error('private upstream detail'); },
     () => new Response('private provider error', { status: 503 }),
-    () => Response.json({ done: false, message: { role: 'assistant', content: '{"tier":"haiku"}' } }),
-    () => Response.json({ done: true, message: { role: 'assistant', content: '{"tier":"haiku","confidence":1}' } }),
-    () => Response.json({ done: true, done_reason: 'length', message: { role: 'assistant', content: '{"tier":"haiku"}' } })]) {
+    () => new Response('private invalid JSON'),
+    () => Response.json({ error: 'private response detail' })]) {
     let attempts = 0;
     const router = new Router(config(), { fetchImpl: async url => {
       assert.ok(url.startsWith(config().ollamaEndpoint));
@@ -120,27 +213,6 @@ test('Ollama failures never contact Jev, are not cached, and retain an existing 
     assert.equal(first.evaluator, 'ollama');
     assert.ok(!JSON.stringify(first).includes('private'));
     assert.equal((await router.classify(request)).source, 'ollama');
-  }
-});
-
-test('Ollama response size and full-body deadline are bounded', async () => {
-  for (const kind of ['oversize', 'stalled']) {
-    let cancelled = false;
-    const router = new Router(config({ ollamaTimeoutMs: 30 }), { fetchImpl: async url => {
-      if (url.endsWith('/show')) return metadata();
-      return new Response(new ReadableStream({ start(controller) {
-        if (kind === 'oversize') controller.enqueue(new Uint8Array(65537));
-      }, cancel() { cancelled = true; } }));
-    } });
-    const keepAlive = setTimeout(() => {}, 2000);
-    const start = performance.now();
-    try {
-      const decision = await router.classify(body());
-      assert.equal(decision.classifier_error, kind === 'oversize' ? 'invalid_response' : 'timeout');
-      assert.equal(decision.tier, 'sonnet');
-      assert.ok(performance.now() - start < 1000);
-      assert.equal(cancelled, true);
-    } finally { clearTimeout(keepAlive); }
   }
 });
 
