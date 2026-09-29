@@ -6,7 +6,7 @@
 | --- | --- |
 | `claude-autorouter setup` | Save subscription-mode configuration and a Jev key |
 | `claude-autorouter setup --auth-mode api-key` | Configure Jev and Anthropic API-key billing |
-| `node bin/autorouter.mjs setup --evaluator ollama --pull` | Configure the unreleased native local evaluator from a source checkout and download its selected model if missing |
+| `claude-autorouter setup --evaluator ollama --pull` | Configure the native local evaluator and download its selected model if missing |
 | `claude-autorouter setup --force` | Replace an existing user config |
 | `claude-autorouter doctor` | Check config, Claude executable/login, and the selected local Ollama model without paid calls |
 | `claude-autorouter claude [arguments]` | Start a local router and pass arguments through to Claude Code |
@@ -65,14 +65,14 @@ Model access depends on your account. The policy recognizes specific Claude mode
 
 ## Ollama evaluator
 
-Local classification is experimental and uses Ollama's native `/v1/systemone` decision endpoint for every model. **This implementation is available in the source checkout and is not included in npm version 0.2.0**, which used chat models. Jev remains the default remote evaluator, using TypeSafe's `/v1/systemone` endpoint and a TypeSafe API key. Selecting Ollama never silently switches back to Jev. Haiku, Sonnet, or Opus still completes the task through Anthropic.
+Local classification is experimental and requires AutoRouter 0.3.0 or newer. It uses Ollama's native `/v1/systemone` decision endpoint for every model, replacing the chat backend from 0.2.0. Jev remains the default remote evaluator, using TypeSafe's `/v1/systemone` endpoint and a TypeSafe API key. Selecting Ollama never silently switches back to Jev. Haiku, Sonnet, or Opus still completes the task through Anthropic.
 
-All local models require Ollama 0.35 or newer. Version 0.35.0 is a prerelease as of September 29, 2026; it introduces the native decision API. See the [Ollama release notes](https://github.com/ollama/ollama/releases/tag/v0.35.0). Install and start a compatible local service, then run from this checkout:
+All local models require Ollama 0.35 or newer. Version 0.35.0 is a prerelease as of September 29, 2026; it introduces the native decision API. See the [Ollama release notes](https://github.com/ollama/ollama/releases/tag/v0.35.0). Install and start a compatible local service, then run:
 
 ```sh
-node bin/autorouter.mjs setup --evaluator ollama --pull --force
-node bin/autorouter.mjs doctor
-node bin/autorouter.mjs claude
+claude-autorouter setup --evaluator ollama --pull --force
+claude-autorouter doctor
+claude-autorouter claude
 ```
 
 `--force` replaces an existing user config. Setup detects the running local API. `--pull` authorizes downloading the chosen model when it is missing; without it, install the model yourself before setup. AutoRouter does not install Ollama, start its daemon, delete models, or download models during ordinary launches or `doctor` checks.
@@ -87,16 +87,16 @@ The default is `nimble:9b-q4_K_M`. Other tags can be selected with `--ollama-mod
 | `tev1:0.8b` | 0.8B / Q8 | 812 MB | [Tev1](https://ollama.com/library/tev1) |
 | `tev1:4b-q4_K_M` | 4B / Q4_K_M | 2.7 GB | [Tev1](https://ollama.com/library/tev1) |
 
-To select Tev1, run one of these setup commands from the source checkout, then run `doctor` and `claude` as above:
+To select Tev1, run one of these setup commands, then run `doctor` and `claude` as above:
 
 ```sh
 # Tev1 0.8B Q8
-node bin/autorouter.mjs setup --evaluator ollama --ollama-model tev1:0.8b --pull --force
+claude-autorouter setup --evaluator ollama --ollama-model tev1:0.8b --pull --force
 ```
 
 ```sh
 # Tev1 4B Q4_K_M, allowing slower local decisions
-AUTOROUTER_OLLAMA_TIMEOUT_MS=10000 node bin/autorouter.mjs setup --evaluator ollama --ollama-model tev1:4b-q4_K_M --pull --force
+AUTOROUTER_OLLAMA_TIMEOUT_MS=10000 claude-autorouter setup --evaluator ollama --ollama-model tev1:4b-q4_K_M --pull --force
 ```
 
 For Nimble, the explicit Q4_K_M tag avoids `nimble:latest`, which currently selects an approximately 9.5 GB Q8 model. For Tev1, `tev1:latest` and `tev1:4b` select approximately 4.5 GB Q8 weights; the explicit `tev1:4b-q4_K_M` tag selects the smaller 4B download. Download size is not resident memory: runtime and context allocations add to it, and other applications need memory too. Downloaded models have their own licenses and are not bundled in this package. On the tested 16 GiB M4, Tev1 0.8B matched 18/24 held-out labels at 450 ms median latency within the normal deadline; 4B matched 22/24 at 3.15 seconds with a separate 10-second deadline. See the [local measurements](ollama-evaluation.md) before choosing a latency deadline.
@@ -114,12 +114,12 @@ If startup priming fails, the launcher warns and continues. An incompatible mode
 Tev1 4B timed out on all eight full-excerpt checks even with the 10-second allowance shown above; its short-task results do not establish a full-excerpt latency bound. Tev1 0.8B completed all eight within the default deadline. On the tested 16 GiB M4, Nimble timed out on all 12 tuning requests at the default deadline. A separate 30-second diagnostic completed 24 held-out classifications with 23 matching labels, but median routing took 11.4 seconds. The one error followed a misleading tier instruction. See the [measurements and limitations](ollama-evaluation.md). If you accept several seconds of added latency, configure a longer deadline explicitly; this example is a diagnostic allowance, not a speed recommendation:
 
 ```sh
-AUTOROUTER_OLLAMA_TIMEOUT_MS=30000 node bin/autorouter.mjs setup --evaluator ollama --pull --force
+AUTOROUTER_OLLAMA_TIMEOUT_MS=30000 claude-autorouter setup --evaluator ollama --pull --force
 ```
 
 ### Migrating an older Ollama config
 
-The former Qwen chat backend and its presets have been removed from the source implementation. Existing downloaded models remain on disk, but an old Qwen model selection needs to be replaced with a native decision model. Run the setup command above with `--force`; it selects Nimble unless you pass `--ollama-model` or override the model through the environment. Remove or update any old `AUTOROUTER_OLLAMA_MODEL` environment value too, because environment variables override saved configuration. Update scripts to use `--ollama-model` when selecting a custom model.
+Version 0.3.0 removes the Qwen chat backend and presets from 0.2.0. Existing downloaded models remain on disk, but an old Qwen model selection needs to be replaced with a native decision model. Run the setup command above with `--force`; it selects Nimble unless you pass `--ollama-model` or override the model through the environment. Remove or update any old `AUTOROUTER_OLLAMA_MODEL` environment value too, because environment variables override saved configuration. Update scripts to use `--ollama-model` when selecting a custom model.
 
 ## Data flow and authentication
 

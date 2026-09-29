@@ -50,14 +50,14 @@ Savings are an **API-equivalent estimate for the same token counts**, using Opus
 
 ## Experimental local evaluator
 
-The source checkout uses Ollama's native `/v1/systemone` decision API with `nimble:9b-q4_K_M` by default. **This local integration is unreleased; npm version 0.2.0 still has the older chat-model implementation.** Jev remains the default evaluator.
+The local setup below requires AutoRouter 0.3.0 or newer. It uses Ollama's native `/v1/systemone` decision API with `nimble:9b-q4_K_M` by default. Jev remains the default evaluator. If upgrading from 0.2.0, replace the old Qwen model configuration using the [migration steps](docs/reference.md#migrating-an-older-ollama-config).
 
-Install and start Ollama 0.35 or newer; [version 0.35.0](https://github.com/ollama/ollama/releases/tag/v0.35.0) is a prerelease as of September 29, 2026. Then run from this checkout:
+Install and start Ollama 0.35 or newer; [version 0.35.0](https://github.com/ollama/ollama/releases/tag/v0.35.0) is a prerelease as of September 29, 2026. Then run:
 
 ```sh
-node bin/autorouter.mjs setup --evaluator ollama --pull --force
-node bin/autorouter.mjs doctor
-node bin/autorouter.mjs claude
+claude-autorouter setup --evaluator ollama --pull --force
+claude-autorouter doctor
+claude-autorouter claude
 ```
 
 `--force` replaces existing AutoRouter configuration. `--pull` downloads the selected model only if missing. Setup does not install or start Ollama, or delete existing models. Select a native decision model explicitly with `--ollama-model`:
@@ -71,7 +71,7 @@ node bin/autorouter.mjs claude
 For example, select Tev1 0.8B with:
 
 ```sh
-node bin/autorouter.mjs setup --evaluator ollama --ollama-model tev1:0.8b --pull --force
+claude-autorouter setup --evaluator ollama --ollama-model tev1:0.8b --pull --force
 ```
 
 Use `--ollama-model tev1:4b-q4_K_M` for the listed 4B variant; on the tested Mac it also needed a longer deadline, such as `AUTOROUTER_OLLAMA_TIMEOUT_MS=10000`, at setup. `tev1:latest` and `tev1:4b` select the larger Q8 download. Model terms are linked in the listings above; download size does not measure resident memory or routing quality. Custom native model tags and aliases also work.
