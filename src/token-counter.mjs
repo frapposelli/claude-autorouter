@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { prepareRequest } from './model-request.mjs';
 
 // Count-token API fields, including the beta fields used by Claude Code.
 // Keep unknown extensions out of the count path: dropping new input context
@@ -80,7 +81,10 @@ export function createTokenCounter(config, { fetchImpl = fetch } = {}) {
     let onAbort;
     const controller = new AbortController();
     try {
-      const payload = { ...Object.fromEntries(Object.entries(body).filter(([key]) => COUNT_FIELDS.has(key))), model };
+      // Apply the same target-model compatibility changes as inference before
+      // projecting count fields. Keep the source model available to the adapter.
+      const prepared = prepareRequest(body, model).request;
+      const payload = Object.fromEntries(Object.entries(prepared).filter(([key]) => COUNT_FIELDS.has(key)));
       const serialized = JSON.stringify(payload);
       const requestHeaders = new Headers(headers);
       requestHeaders.delete('content-length');

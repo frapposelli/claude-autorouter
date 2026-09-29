@@ -6,6 +6,8 @@ Version `0.3.1` replaces the old Ollama chat evaluator and Qwen presets with the
 
 Version `0.3.2` fixes local timeout fallbacks with model-specific deadlines, removes Claude executor instructions from local evaluator excerpts, and keeps fallback causes visible in compact status lines. It also adds `AUTOROUTER_OLLAMA_TIMEOUT_MS=0` and `setup --ollama-timeout-ms 0` to disable the runtime evaluation deadline while preserving caller cancellation and the separate startup warmup limit. Existing explicit timeout settings still override the defaults; Jev is unchanged.
 
+Version `0.3.3` fixes HTTP 400 errors when a compatible request with disabled thinking is routed to Sonnet 5.5. Inference and token counting translate that setting to `between_tools`, or adaptive thinking when effort settings require it. Model defaults are unchanged; select Sonnet 5.5 with `AUTOROUTER_SONNET_MODEL=claude-sonnet-5-5`.
+
 The GitHub repository is private. Publishing to npm makes the tarball's runtime source, README, configuration example, license, and shipped documentation public. Model weights, user configuration, credentials, transcripts, local artifacts, and test fixtures are excluded. Review the archive before the first publication and whenever the package allowlist changes.
 
 ## What runs automatically

@@ -226,7 +226,8 @@ export class Router {
     const c = this.config;
     const hasSystemMessage = body.messages.some(m => m.role === 'system');
     const unknownModel = rank(body.model) < 0 && !Object.values(c.models).includes(body.model);
-    const modelSpecificFeatures = body.thinking?.type === 'enabled' || body.context_management || body.speed || body.container || body.mcp_servers || body.tools?.some(t => t.type && t.type !== 'custom');
+    const modelSpecificThinking = body.thinking && !['disabled', 'adaptive'].includes(body.thinking.type);
+    const modelSpecificFeatures = modelSpecificThinking || body.context_management || body.speed || body.container || body.mcp_servers || body.tools?.some(t => t.type && t.type !== 'custom');
     const thinkingHistory = hasContentBlock(body, ['thinking', 'redacted_thinking']);
     const knownSourceModel = LARGE_CONTEXT_MODELS.has(body.model) || CAPACITY_UPGRADE_MODELS.has(body.model);
     const capacityLocked = hasSystemMessage || unknownModel || !knownSourceModel || modelSpecificFeatures || thinkingHistory;
@@ -268,6 +269,10 @@ export class Router {
     // clear_at, tool changes, and output_config) instead of down-routing.
     else if (hasSystemMessage) preserve(body.model, 'mid_conversation_system');
     else if (unknownModel) preserve(body.model, 'unknown_model');
+    // A new native request can explicitly select a model-specific thinking
+    // mode, including between_tools. An earlier turn's model is not evidence
+    // that it accepts that mode. Existing tool turns retain their pin below.
+    else if (modelSpecificThinking && body.thinking.type !== 'enabled' && !turn.continuation) preserve(body.model, 'model_specific_features');
     else if (turn.continuation) keep(previous ? 'tool_turn_pinned' : 'unknown_continuation');
     // Unknown or model-specific features are preserved, never silently removed.
     else if (decision.source === 'fallback' && rank(body.model) >= 1) keep('classifier_unavailable');

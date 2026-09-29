@@ -92,6 +92,28 @@ test('capability guards preserve bodies and avoid unsupported Haiku downgrades',
   assert.equal((await router.route(body)).reason, 'large_or_multimodal_request');
 });
 
+test('native between_tools and unknown thinking modes preserve the requested model on new human turns', async () => {
+  for (const type of ['between_tools', 'future_model_mode']) {
+    for (const outcome of ['haiku', 'opus', 'outage']) {
+      let first = true;
+      const router = new Router(config(), { fetchImpl: async () => {
+        if (first) { first = false; return result('haiku'); }
+        if (outcome === 'outage') throw new Error('Classifier unavailable');
+        return result(outcome);
+      } });
+      const initial = { ...request('First task'), model: config().models.haiku };
+      await router.route(initial, { scope: 'native-thinking-test' });
+      const body = { ...initial, model: 'claude-sonnet-5-5', thinking: { type }, messages: [...initial.messages,
+        { role: 'assistant', content: 'Done' }, { role: 'user', content: 'New task' }] };
+      const before = structuredClone(body);
+      const decision = await router.route(body, { scope: 'native-thinking-test' });
+      assert.equal(decision.model, body.model);
+      assert.equal(decision.reason, 'model_specific_features');
+      assert.deepEqual(body, before);
+    }
+  }
+});
+
 test('Jev receives bounded excerpts without attachments or signed thinking', () => {
   const body = request('task');
   body.messages.push({ role: 'assistant', content: [{ type: 'thinking', thinking: 'PRIVATE_THINKING' }] });
@@ -429,6 +451,8 @@ test('nested tool attachments trigger the capacity floor even with a small reque
 test('capacity upgrades never override thinking or model-specific locks hidden behind a turn pin', async () => {
   for (const extra of [
     { thinking: { type: 'enabled', budget_tokens: 1024 } },
+    { thinking: { type: 'between_tools' } },
+    { thinking: { type: 'future_model_mode' } },
     { context_management: { edits: [] } },
     { speed: 'standard' },
     { container: {} },

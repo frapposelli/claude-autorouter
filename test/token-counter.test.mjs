@@ -34,6 +34,47 @@ test('counts the complete input for the selected model with request-owned authen
   assert.deepEqual(body, before);
 });
 
+test('counting uses target-model thinking requirements without changing other input or explicit native requests', async () => {
+  for (const [source, target, expectedThinking] of [
+    [model, 'claude-sonnet-5-5', 'between_tools'],
+    [model, 'claude-opus-5-5', 'adaptive'],
+    [model, 'claude-sonnet-5', 'disabled'],
+    ['claude-sonnet-5-5', 'claude-sonnet-5-5', 'disabled'],
+  ]) {
+    const body = { ...request(), model: source, output_config: { effort: 'medium' }, tool_choice: { type: 'auto' } };
+    const before = structuredClone(body);
+    const count = createTokenCounter(config, { fetchImpl: async (_url, options) => {
+      const { max_tokens, stream, metadata, ...context } = body;
+      assert.deepEqual(JSON.parse(options.body), { ...context, model: target, thinking: { type: expectedThinking } });
+      return Response.json({ input_tokens: 12000 });
+    } });
+    assert.equal(await count(body, target, { headers }), 12000);
+    assert.deepEqual(body, before);
+  }
+});
+
+test('count cache keys reflect the adapted thinking mode and preserve high-effort settings', async () => {
+  const target = 'claude-sonnet-5-5';
+  const body = { ...request(), model };
+  const payloads = [];
+  const count = createTokenCounter(config, { fetchImpl: async (_url, options) => {
+    payloads.push(JSON.parse(options.body));
+    return Response.json({ input_tokens: payloads.length });
+  } });
+  assert.equal(await count(body, target, { headers }), 1);
+  assert.deepEqual(payloads[0].thinking, { type: 'between_tools' });
+  assert.equal(await count({ ...body, max_tokens: 20 }, target, { headers }), 1);
+  assert.equal(await count({ ...body, model: target, thinking: { type: 'between_tools' } }, target, { headers }), 1);
+
+  const highEffort = { ...body, output_config: { effort: 'xhigh' } };
+  assert.equal(await count(highEffort, target, { headers }), 2);
+  assert.deepEqual(payloads[1].thinking, { type: 'adaptive' });
+  assert.deepEqual(payloads[1].output_config, highEffort.output_config);
+  assert.equal(await count({ ...highEffort, thinking: { type: 'adaptive' } }, target, { headers }), 2);
+  assert.equal(await count(body, target, { headers }), 1);
+  assert.equal(payloads.length, 2);
+});
+
 test('cache separates tokenizer, context modifiers, API features, and request credentials', async () => {
   let calls = 0;
   const count = createTokenCounter(config, { fetchImpl: async () => Response.json({ input_tokens: ++calls }) });
