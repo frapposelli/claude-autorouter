@@ -76,12 +76,60 @@ function humanTask(message) {
   return contentText(message.content, true);
 }
 
+// Claude Code emits /goal Stop-hook feedback as user text. Recognize only its
+// observed wrapper and a condition established by an earlier expanded command;
+// ordinary messages mentioning hooks remain human tasks. This does not alter
+// message content, and the feedback remains available as classifier history.
+export function goalFeedbackIndexes(messages) {
+  const indexes = new Set();
+  if (!Array.isArray(messages)) return indexes;
+  let condition;
+  let shortCondition;
+  let sawFullFeedback = false;
+  for (let index = 0; index < messages.length; index++) {
+    const message = messages[index];
+    if (message?.role !== 'user') continue;
+    const command = /^\s*<command-name>\/goal<\/command-name>\s*<command-message>goal<\/command-message>\s*<command-args>([\s\S]*?)<\/command-args>(?:\s|$)/.exec(humanTask(message));
+    if (command) {
+      const value = command[1].trim();
+      // /goal with no arguments is a status query, not a replacement goal.
+      if (!value) continue;
+      condition = value.length <= 4000 && !/^(?:clear|stop|off|reset|none|cancel)$/i.test(value) ? value : undefined;
+      shortCondition = undefined;
+      sawFullFeedback = false;
+      if (condition?.length > 500) {
+        let prefix = condition.slice(0, 500);
+        const last = prefix.charCodeAt(prefix.length - 1);
+        if (last >= 0xd800 && last <= 0xdbff) prefix = prefix.slice(0, -1);
+        shortCondition = `${prefix}… [+${condition.length - prefix.length} chars]`;
+      }
+      continue;
+    }
+    if (!condition || messages[index - 1]?.role !== 'assistant') continue;
+    const text = typeof message.content === 'string' ? message.content
+      : Array.isArray(message.content) && message.content.length === 1 && message.content[0]?.type === 'text'
+        && typeof message.content[0].text === 'string' ? message.content[0].text : undefined;
+    if (text === undefined) continue;
+    const matches = label => {
+      const prefix = `Stop hook feedback:\n[${label}]: `;
+      return text.startsWith(prefix) && Boolean(text.slice(prefix.length).trim());
+    };
+    if (matches(condition)) {
+      indexes.add(index);
+      sawFullFeedback = true;
+    } else if (sawFullFeedback && shortCondition && matches(shortCondition)) indexes.add(index);
+  }
+  return indexes;
+}
+
 export function buildState(body, limit = 12000) {
   const messages = body.messages ?? [];
+  const feedbackIndexes = goalFeedbackIndexes(messages);
   let firstTask = '';
   let currentTask = '';
   let currentIndex = -1;
   for (let index = 0; index < messages.length; index++) {
+    if (feedbackIndexes.has(index)) continue;
     const task = humanTask(messages[index]);
     if (!task.trim()) continue;
     if (!firstTask) firstTask = task;

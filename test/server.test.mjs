@@ -430,6 +430,118 @@ test('real routing adapts low-confidence Sonnet 5.5 and its signed tool continua
   }
 });
 
+for (const usePromptIds of [true, false]) test(`goal feedback and tool results retain the main model, preserving auxiliary verdicts and new human turns (${usePromptIds ? 'gateway prompt IDs' : 'expanded command without prompt IDs'})`, { timeout: 5000 }, async t => {
+  const config = readConfig({ AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5', TYPESAFE_API_KEY: 'classifier-secret' });
+  const classifierChoices = ['sonnet', 'opus', 'haiku', 'haiku', 'haiku'];
+  let classifications = 0;
+  const router = new Router(config, { fetchImpl: async (url, options) => {
+    assert.equal(url, config.jevEndpoint);
+    assert.equal(options.headers.authorization, 'Bearer classifier-secret');
+    assert.ok(classifications < classifierChoices.length, 'Unexpected classifier request');
+    return Response.json({ answers: { tier: { choice: classifierChoices[classifications++], confidence: 0.99 } } });
+  } });
+  const condition = 'Create the fixture file once the synthetic resource is available.';
+  const answer = 'The synthetic resource is unavailable. Please enable it to continue.';
+  const verdict = '{"ok":false,"reason":"The synthetic resource is not available yet."}';
+  const initial = {
+    ...body, model: config.models.haiku, thinking: { type: 'disabled' },
+    messages: [{ role: 'user', content: [
+      { type: 'text', text: `<command-name>/goal</command-name>\n<command-message>goal</command-message>\n<command-args>${condition}</command-args>` },
+      { type: 'text', text: `A session-scoped Stop hook is now active with condition: "${condition}". Briefly acknowledge the goal, then immediately start working toward it.` },
+    ] }],
+  };
+  const judgedMessages = [...initial.messages, { role: 'assistant', content: [{ type: 'text', text: answer }] }];
+  const judge = {
+    ...initial, system: 'Judge the synthetic goal using transcript evidence only.', tools: [],
+    messages: [...judgedMessages, { role: 'user', content: `Has this stopping condition been satisfied? ${condition}` }],
+    output_config: { format: { type: 'json_schema', schema: {
+      type: 'object', properties: { ok: { type: 'boolean' }, reason: { type: 'string' }, impossible: { type: 'boolean' } },
+      required: ['ok', 'reason'], additionalProperties: false,
+    } } },
+  };
+  // Claude's internal isMeta flag is absent from the Messages API: the same
+  // human-prompt identity must distinguish this feedback from a new task.
+  const continuation = {
+    ...initial, messages: [...judgedMessages, { role: 'user', content: [
+      { type: 'text', text: `Stop hook feedback:\n[${condition}]: ${JSON.parse(verdict).reason}`, cache_control: { type: 'ephemeral' } },
+    ] }],
+  };
+  const toolUse = { type: 'tool_use', id: 'tool_goal_fixture', name: 'Read', input: { path: 'fixture.txt' } };
+  const toolContinuation = { ...initial, messages: [
+    ...continuation.messages,
+    { role: 'assistant', content: [{ type: 'text', text: 'Checking the fixture.' }, toolUse] },
+    { role: 'user', content: [{ type: 'tool_result', tool_use_id: toolUse.id, content: 'The synthetic resource is unavailable.', cache_control: { type: 'ephemeral' } }] },
+  ] };
+  const nextTurn = { ...initial, messages: [
+    ...toolContinuation.messages, { role: 'assistant', content: [{ type: 'text', text: answer }] },
+    { role: 'user', content: 'Instead, what is the length of []? Reply with the number.' },
+  ] };
+  const requests = [initial, judge, continuation, toolContinuation, nextTurn];
+  const originals = structuredClone(requests);
+  const expectedModels = [config.models.sonnet, config.models.haiku, config.models.sonnet, config.models.sonnet, config.models.haiku];
+  const classes = ['main', 'auxiliary', 'main', 'main', 'main'];
+  const promptIds = usePromptIds ? ['goal-prompt', 'goal-prompt', 'goal-prompt', 'goal-prompt', 'new-human-prompt'] : [];
+  const event = payload => `event: ${payload.type}\r\ndata: ${JSON.stringify(payload)}\r\n\r\n`;
+  const replies = [answer, verdict, 'Checking the fixture.', answer, '0'].map((text, index) => Buffer.from([
+    { type: 'message_start', message: { id: `msg_goal_${index}`, model: expectedModels[index], content: [] } },
+    { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
+    { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text } },
+    { type: 'content_block_stop', index: 0 },
+    ...(index === 2 ? [
+      { type: 'content_block_start', index: 1, content_block: { ...toolUse, input: {} } },
+      { type: 'content_block_delta', index: 1, delta: { type: 'input_json_delta', partial_json: JSON.stringify(toolUse.input) } },
+      { type: 'content_block_stop', index: 1 },
+    ] : []),
+    { type: 'message_delta', delta: { stop_reason: index === 2 ? 'tool_use' : 'end_turn' }, usage: { output_tokens: 20 } },
+    { type: 'message_stop' },
+  ].map(event).join('')));
+  const received = [];
+  const f = await fixture(t, async (req, res) => {
+    let text = ''; for await (const chunk of req) text += chunk;
+    const index = received.length;
+    received.push(JSON.parse(text));
+    assert.equal(req.url, '/v1/messages?beta=true');
+    assert.equal(req.headers.authorization, oauthHeaders.authorization);
+    assert.equal(req.headers['anthropic-beta'], oauthHeaders['anthropic-beta']);
+    assert.equal(req.headers['anthropic-version'], oauthHeaders['anthropic-version']);
+    assert.equal(req.headers['x-claude-code-session-id'], 'synthetic-goal-session');
+    assert.equal(req.headers['x-claude-code-agent-id'], 'synthetic-main-agent');
+    assert.equal(req.headers['x-claude-code-prompt-id'], promptIds[index]);
+    assert.equal(req.headers['x-claude-code-request-class'], classes[index]);
+    assert.equal(req.headers['x-autorouter-token'], undefined);
+    res.writeHead(200, { 'content-type': 'text/event-stream', 'request-id': `goal-provider-${index}` });
+    res.write(replies[index].subarray(0, 31));
+    res.end(replies[index].subarray(31));
+  }, { authMode: 'subscription', models: config.models }, (...args) => router.route(...args));
+  for (const [index, request] of requests.entries()) {
+    const response = await f.call('/v1/messages?beta=true', { method: 'POST', headers: {
+      ...oauthHeaders, 'x-claude-code-session-id': 'synthetic-goal-session', 'x-claude-code-agent-id': 'synthetic-main-agent',
+      ...(usePromptIds ? { 'x-claude-code-prompt-id': promptIds[index] } : {}), 'x-claude-code-request-class': classes[index],
+    }, body: JSON.stringify(request) });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('request-id'), `goal-provider-${index}`);
+    assert.deepEqual(Buffer.from(await response.arrayBuffer()), replies[index]);
+    assert.deepEqual(received[index], {
+      ...request, model: expectedModels[index],
+      thinking: { type: expectedModels[index] === config.models.sonnet ? 'between_tools' : 'disabled' },
+    });
+  }
+  assert.equal(classifications, 5);
+  assert.deepEqual(requests, originals);
+  const routes = f.statuses.filter(entry => entry.event === 'route');
+  assert.deepEqual(routes.map(({ model, source, reason, classified_tier }) => ({ model, source, reason, classified_tier })), [
+    { model: config.models.sonnet, source: 'jev', reason: 'classified', classified_tier: 'sonnet' },
+    { model: config.models.haiku, source: 'jev', reason: 'internal_request', classified_tier: 'opus' },
+    { model: config.models.sonnet, source: 'jev', reason: usePromptIds ? 'prompt_turn_pinned' : 'goal_turn_pinned', classified_tier: 'haiku' },
+    { model: config.models.sonnet, source: 'jev', reason: 'tool_turn_pinned', classified_tier: 'haiku' },
+    { model: config.models.haiku, source: 'jev', reason: 'classified', classified_tier: 'haiku' },
+  ]);
+  assert.deepEqual(f.logs.filter(entry => entry.event === 'upstream_model').map(entry => entry.model), expectedModels);
+  for (const privateValue of [condition, answer, verdict, 'classifier-secret', 'fake-subscription-token']) {
+    assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes(privateValue));
+  }
+});
+
 test('compressed upstream responses preserve their exact bytes and skip model observation', async t => {
   const compressed = gzipSync('event: message_start\ndata: {"type":"message_start","message":{"model":"compressed-provider-model"}}\n\n');
   const f = await fixture(t, (req, res) => {

@@ -1,6 +1,7 @@
 const PHASES = new Set(['routing', 'connecting', 'streaming', 'ready', 'error', 'cancelled']);
 const REASONS = {
-  tool_turn_pinned: 'turn pinned', thinking_history: 'thinking pinned', unknown_continuation: 'continuation pinned',
+  tool_turn_pinned: 'turn pinned', prompt_turn_pinned: 'prompt pinned', goal_turn_pinned: 'goal pinned',
+  thinking_history: 'thinking pinned', unknown_continuation: 'continuation pinned',
   mid_conversation_system: 'system features', requires_sonnet_capabilities: 'capability guard',
   model_specific_features: 'model features', large_or_multimodal_request: 'large request',
   context_capacity: 'large context',

@@ -8,6 +8,8 @@ Version `0.3.2` fixes local timeout fallbacks with model-specific deadlines, rem
 
 Version `0.3.3` fixes HTTP 400 errors when a compatible request with disabled thinking is routed to Sonnet 5.5. Inference and token counting translate that setting to `between_tools`, or adaptive thinking when effort settings require it. Model defaults are unchanged; select Sonnet 5.5 with `AUTOROUTER_SONNET_MODEL=claude-sonnet-5-5`.
 
+Version `0.3.4` preserves the selected model across Stop-hook feedback for the same prompt, including `/goal` commands that omit the gateway prompt-ID header. Recognized goal feedback remains conversation context rather than replacing the human task in evaluator excerpts. Goal-checker verdicts remain unchanged; external authorization blockers can still cause Claude's own goal loop to repeat. See [goal troubleshooting](reference.md#troubleshooting).
+
 The GitHub repository is private. Publishing to npm makes the tarball's runtime source, README, configuration example, license, and shipped documentation public. Model weights, user configuration, credentials, transcripts, local artifacts, and test fixtures are excluded. Review the archive before the first publication and whenever the package allowlist changes.
 
 ## What runs automatically

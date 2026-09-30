@@ -250,6 +250,205 @@ test('thinking history recovers the preceding model across different gateway pro
   assert.equal(decision.reason, 'thinking_history');
 });
 
+test('same scoped prompt keeps goal feedback on its originating model without pinning auxiliary evaluation', async () => {
+  let calls = 0;
+  const router = new Router(config(), { fetchImpl: async () => result(++calls === 1 ? 'opus' : 'haiku') });
+  const options = { scope: 'session/agent', promptId: 'goal-prompt', requestClass: 'main' };
+  const initial = { ...request('Implement and verify the requested feature'), model: config().models.haiku };
+  assert.equal((await router.route(initial, options)).model, config().models.opus);
+
+  const evaluation = { ...request('Judge whether the goal is complete'), model: config().models.haiku,
+    system: [{ type: 'text', text: 'Return the completion verdict only.' }],
+    output_config: { format: { type: 'json_schema', schema: { type: 'object', properties: { complete: { type: 'boolean' } } } } } };
+  const evaluationBefore = structuredClone(evaluation);
+  const auxiliary = await router.route(evaluation, { ...options, requestClass: 'auxiliary' });
+  assert.equal(auxiliary.model, evaluation.model);
+  assert.equal(auxiliary.reason, 'internal_request');
+  assert.deepEqual(evaluation, evaluationBefore);
+
+  const feedback = { ...initial, messages: [...initial.messages,
+    { role: 'assistant', content: 'Implementation is partly complete.' },
+    { role: 'user', content: 'Stop hook feedback: Run the remaining verification before stopping.' },
+  ] };
+  const before = structuredClone(feedback);
+  const decision = await router.route(feedback, options);
+  assert.equal(decision.classified_tier, 'haiku');
+  assert.equal(decision.model, config().models.opus);
+  assert.equal(decision.reason, 'prompt_turn_pinned');
+  assert.deepEqual(feedback, before);
+  assert.equal(calls, 3);
+
+  const nextHuman = { ...feedback, messages: [...feedback.messages,
+    { role: 'assistant', content: 'Verification passed.' }, { role: 'user', content: 'Correct this supplied typo.' },
+  ] };
+  const next = await router.route(nextHuman, { ...options, promptId: 'new-human-prompt' });
+  assert.equal(next.model, config().models.haiku);
+  assert.equal(next.reason, 'classified');
+  assert.equal(calls, 4);
+});
+
+test('same scoped prompt pin does not leak between sessions, agents, prompt IDs, or absent IDs', async () => {
+  let calls = 0;
+  const router = new Router(config(), { fetchImpl: async () => result(++calls === 1 ? 'opus' : 'haiku') });
+  const initial = { ...request('Complete a demanding task'), model: config().models.haiku };
+  const scope = JSON.stringify(['session-1', 'agent-1']);
+  await router.route(initial, { scope, promptId: 'prompt-1' });
+  const feedback = { ...initial, messages: [...initial.messages,
+    { role: 'assistant', content: 'Continuing.' }, { role: 'user', content: 'Stop hook feedback: Work remains.' },
+  ] };
+  const pinned = await router.route(feedback, { scope, promptId: 'prompt-1' });
+  assert.equal(pinned.model, config().models.opus);
+  assert.equal(pinned.reason, 'prompt_turn_pinned');
+  for (const options of [
+    { scope: JSON.stringify(['session-2', 'agent-1']), promptId: 'prompt-1' },
+    { scope: JSON.stringify(['session-1', 'agent-2']), promptId: 'prompt-1' },
+    { scope, promptId: 'prompt-2' }, { scope },
+  ]) {
+    const decision = await router.route(feedback, options);
+    assert.equal(decision.model, config().models.haiku);
+    assert.equal(decision.reason, 'classified');
+  }
+});
+
+test('same scoped prompt retains its model when feedback classification fails', async () => {
+  let calls = 0;
+  const router = new Router(config(), { fetchImpl: async () => {
+    if (++calls === 1) return result('opus');
+    throw new Error('Synthetic classifier outage');
+  } });
+  const options = { scope: 'session/agent', promptId: 'goal-prompt' };
+  const initial = { ...request('Implement a demanding task'), model: config().models.haiku };
+  await router.route(initial, options);
+  const feedback = { ...initial, messages: [...initial.messages,
+    { role: 'assistant', content: 'Continuing.' }, { role: 'user', content: 'Stop hook feedback: Verify the result.' },
+  ] };
+  const before = structuredClone(feedback);
+  const decision = await router.route(feedback, options);
+  assert.equal(decision.source, 'fallback');
+  assert.equal(decision.classifier_error, 'network_error');
+  assert.equal(decision.model, config().models.opus);
+  assert.equal(decision.reason, 'prompt_turn_pinned');
+  assert.deepEqual(feedback, before);
+});
+
+test('same scoped prompt cannot override new model-specific modes, unknown models, or system-message requirements', async () => {
+  for (const [fields, reason] of [
+    [{ model: 'claude-sonnet-5-5', thinking: { type: 'between_tools' } }, 'model_specific_features'],
+    [{ model: 'claude-sonnet-5-5', thinking: { type: 'future_model_mode' } }, 'model_specific_features'],
+    [{ model: 'custom-provider-model' }, 'unknown_model'],
+    [{ model: 'claude-sonnet-5-5', systemMessage: true }, 'mid_conversation_system'],
+  ]) {
+    const router = new Router(config(), { fetchImpl: async () => result('haiku') });
+    const options = { scope: 'session/agent', promptId: 'same-prompt' };
+    const initial = { ...request('Initial task'), model: config().models.haiku };
+    await router.route(initial, options);
+    const { systemMessage, ...requestFields } = fields;
+    const next = { ...initial, ...requestFields, messages: [...initial.messages,
+      { role: 'assistant', content: 'Continuing.' }, { role: 'user', content: 'Continue with the required capabilities.' },
+      ...(systemMessage ? [{ role: 'system', content: '' }] : []),
+    ] };
+    const before = structuredClone(next);
+    const decision = await router.route(next, options);
+    assert.equal(decision.model, next.model);
+    assert.equal(decision.reason, reason);
+    assert.deepEqual(next, before);
+  }
+});
+
+test('same scoped prompt cannot keep Haiku when new text requests require Sonnet capabilities', async () => {
+  for (const fields of [{ thinking: { type: 'adaptive' } }, { output_config: { effort: 'high' } }, { max_tokens: 100000 }]) {
+    const router = new Router(config(), { fetchImpl: async () => result('haiku') });
+    const options = { scope: 'session/agent', promptId: 'same-prompt' };
+    const initial = request('Initial task');
+    assert.equal((await router.route(initial, options)).model, config().models.haiku);
+    const next = { ...initial, ...fields, messages: [...initial.messages,
+      { role: 'assistant', content: 'Continuing.' }, { role: 'user', content: 'Continue with these capability settings.' },
+    ] };
+    const before = structuredClone(next);
+    const decision = await router.route(next, options);
+    assert.equal(decision.model, config().models.sonnet);
+    assert.equal(decision.reason, 'requires_sonnet_capabilities');
+    assert.deepEqual(next, before);
+  }
+});
+
+test('same scoped prompt text pin does not undo a client-requested fallback model change', async () => {
+  let calls = 0;
+  const router = new Router(config(), { fetchImpl: async () => result(++calls === 1 ? 'opus' : 'haiku') });
+  const options = { scope: 'session/agent', promptId: 'same-prompt' };
+  const initial = request('A task retried after the first model was unavailable');
+  assert.equal((await router.route(initial, options)).model, config().models.opus);
+  const retry = { ...initial, model: config().models.haiku };
+  const before = structuredClone(retry);
+  const decision = await router.route(retry, options);
+  assert.equal(decision.model, config().models.haiku);
+  assert.notEqual(decision.reason, 'prompt_turn_pinned');
+  assert.deepEqual(retry, before);
+});
+
+test('same scoped prompt uses fresh classification after its continuity entry expires', async () => {
+  let calls = 0;
+  const router = new Router({ ...config(), turnTtlMs: 0 }, { fetchImpl: async () => result(++calls === 1 ? 'opus' : 'haiku') });
+  const options = { scope: 'session/agent', promptId: 'same-prompt' };
+  const initial = { ...request('Initial task'), model: config().models.haiku };
+  assert.equal((await router.route(initial, options)).model, config().models.opus);
+  const next = { ...initial, messages: [...initial.messages,
+    { role: 'assistant', content: 'Continuing.' }, { role: 'user', content: 'Stop hook feedback: Work remains.' },
+  ] };
+  const decision = await router.route(next, options);
+  assert.equal(decision.model, config().models.haiku);
+  assert.equal(decision.reason, 'classified');
+});
+
+test('headerless goal feedback keeps its original task model through subsequent tool calls', async () => {
+  let calls = 0;
+  const router = new Router(config(), { fetchImpl: async () => result(++calls === 1 ? 'opus' : 'haiku') });
+  const condition = 'Implement the task and verify all acceptance tests pass.';
+  const initial = { ...request(`<command-name>/goal</command-name>\n<command-message>goal</command-message>\n<command-args>${condition}</command-args>`),
+    model: config().models.haiku };
+  const options = { scope: 'headerless-session' };
+  assert.equal((await router.route(initial, options)).model, config().models.opus);
+  const feedback = { ...initial, messages: [...initial.messages,
+    { role: 'assistant', content: 'Implementation is partly complete.' },
+    { role: 'user', content: [{ type: 'text', text: `Stop hook feedback:\n[${condition}]: Verification is still missing.`, cache_control: { type: 'ephemeral' } }] },
+  ] };
+  const before = structuredClone(feedback);
+  const decision = await router.route(feedback, options);
+  assert.equal(decision.classified_tier, 'haiku');
+  assert.equal(decision.model, config().models.opus);
+  assert.equal(decision.reason, 'goal_turn_pinned');
+  assert.deepEqual(feedback, before);
+  const toolResult = { ...feedback, messages: [...feedback.messages,
+    { role: 'assistant', content: [{ type: 'tool_use', id: 'verify', name: 'Bash', input: { command: 'npm test' } }] },
+    { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'verify', content: 'One test still fails.' }] },
+  ] };
+  const next = await router.route(toolResult, options);
+  assert.equal(next.model, config().models.opus);
+  assert.equal(next.reason, 'tool_turn_pinned');
+  const newHuman = { ...toolResult, messages: [...toolResult.messages,
+    { role: 'assistant', content: 'Waiting.' }, { role: 'user', content: 'Explain this supplied typo instead.' },
+  ] };
+  assert.equal((await router.route(newHuman, options)).model, config().models.haiku);
+  assert.equal(calls, 4);
+});
+
+test('headerless goal feedback with no matching scoped model never invents a previous choice', async () => {
+  const router = new Router(config(), { fetchImpl: async () => result('opus') });
+  const condition = 'Verify the exact fixture value.';
+  const initial = { ...request(`<command-name>/goal</command-name>\n<command-message>goal</command-message>\n<command-args>${condition}</command-args>`),
+    model: config().models.haiku };
+  await router.route(initial, { scope: 'original-session' });
+  const feedback = { ...initial, messages: [...initial.messages,
+    { role: 'assistant', content: 'Verification is pending.' },
+    { role: 'user', content: `Stop hook feedback:\n[${condition}]: Work remains.` },
+  ] };
+  const before = structuredClone(feedback);
+  const decision = await router.route(feedback, { scope: 'different-session' });
+  assert.equal(decision.model, initial.model);
+  assert.equal(decision.reason, 'unknown_continuation');
+  assert.deepEqual(feedback, before);
+});
+
 test('large internal requests preserve their requested model instead of the human turn model', async () => {
   const router = new Router(config(), { fetchImpl: async () => result('haiku') });
   const initial = { ...request('Task'), model: config().models.opus };

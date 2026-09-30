@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { TIERS } from './config.mjs';
-import { buildState } from './prompt-state.mjs';
+import { buildState, goalFeedbackIndexes } from './prompt-state.mjs';
 import { buildOllamaState, evaluateOllama } from './ollama-evaluator.mjs';
 export { buildState } from './prompt-state.mjs';
 
@@ -134,10 +134,11 @@ function turnContent(content) {
 
 function turnInfo(body, scope, promptId = '') {
   const messages = body.messages ?? [];
+  const feedback = goalFeedbackIndexes(messages);
   let index = -1;
   for (let i = messages.length - 1; i >= 0; i--) {
     const message = messages[i];
-    if (message.role === 'user' && !(Array.isArray(message.content) && message.content.some(b => b.type === 'tool_result'))) {
+    if (message.role === 'user' && !feedback.has(i) && !(Array.isArray(message.content) && message.content.some(b => b.type === 'tool_result'))) {
       index = i; break;
     }
   }
@@ -147,6 +148,7 @@ function turnInfo(body, scope, promptId = '') {
     index,
     key: promptId ? hash(['prompt', scope, promptId]) : contentKey,
     contentKey,
+    goalFeedback: feedback.has(messages.length - 1),
     // Claude Code can append turn-scoped system instructions after the human
     // prompt. These do not start an assistant/tool continuation.
     continuation: index < 0 || messages.slice(index + 1).some(m => m.role !== 'system'),
@@ -248,11 +250,15 @@ export class Router {
     let model = c.models[decision.tier];
     let reason = decision.reason;
     const turn = turnInfo(body, scope, promptId);
-    let previous = this.turns.get(turn.key) ?? this.turns.get(turn.contentKey);
+    const promptPin = promptId ? this.turns.get(turn.key) : undefined;
+    const turnPin = promptPin ?? this.turns.get(turn.contentKey);
+    let previous = turnPin?.model;
+    const textTurn = !turn.continuation || turn.goalFeedback;
+    const textPin = promptPin ?? (!promptId && turn.goalFeedback ? turnPin : undefined);
     // A new human prompt can still carry signed thinking from the preceding
     // turn. Recover that turn's actual routed model when it is known.
     if (!turn.continuation && body.messages.length > 1 && !previous) {
-      previous = this.turns.get(turnInfo({ ...body, messages: body.messages.slice(0, turn.index) }, scope).key);
+      previous = this.turns.get(turnInfo({ ...body, messages: body.messages.slice(0, turn.index) }, scope).key)?.model;
     }
     let preserved = false;
     const preserve = (chosen, why) => { model = chosen; reason = why; preserved = true; };
@@ -272,8 +278,21 @@ export class Router {
     // A new native request can explicitly select a model-specific thinking
     // mode, including between_tools. An earlier turn's model is not evidence
     // that it accepts that mode. Existing tool turns retain their pin below.
-    else if (modelSpecificThinking && body.thinking.type !== 'enabled' && !turn.continuation) preserve(body.model, 'model_specific_features');
-    else if (turn.continuation) keep(previous ? 'tool_turn_pinned' : 'unknown_continuation');
+    else if (modelSpecificThinking && body.thinking.type !== 'enabled' && textTurn) preserve(body.model, 'model_specific_features');
+    // Stop hooks (including /goal) return feedback as user-role text, even
+    // though it still serves the same human prompt. Trust the scoped gateway
+    // identity instead of treating that text as a new task. A client model
+    // change can be an explicit fallback after a failure; do not undo it.
+    // Local /goal commands can omit the gateway prompt ID. Exact feedback for
+    // a known goal then uses the original conversation anchor as a fallback.
+    else if (textTurn && textPin?.requestedModel === body.model && !modelSpecificFeatures) {
+      const needsSonnet = body.thinking?.type === 'adaptive' || body.output_config?.effort || body.max_tokens > 64000;
+      if (needsSonnet && (textPin.model === c.models.haiku || rank(textPin.model) === 0)) {
+        preserve(c.models.sonnet, 'requires_sonnet_capabilities');
+      } else preserve(textPin.model, promptPin ? 'prompt_turn_pinned' : 'goal_turn_pinned');
+    }
+    else if (turn.goalFeedback && !turnPin) preserve(body.model, 'unknown_continuation');
+    else if (turn.continuation && !turn.goalFeedback) keep(previous ? 'tool_turn_pinned' : 'unknown_continuation');
     // Unknown or model-specific features are preserved, never silently removed.
     else if (decision.source === 'fallback' && rank(body.model) >= 1) keep('classifier_unavailable');
     else if (modelSpecificFeatures) keep('model_specific_features');
@@ -318,12 +337,13 @@ export class Router {
     }
     const identifiableUpgrade = capacityUpgraded && (turn.index >= 0 || promptId);
     if ((!turn.continuation || previous || identifiableUpgrade || reason === 'mid_conversation_system') && !['compaction', 'auxiliary'].includes(requestClass)) {
-      this.turns.set(turn.key, model);
+      const pin = { model, requestedModel: body.model };
+      this.turns.set(turn.key, pin);
       // Keep the content key too: later human turns carry signed thinking but
       // have a new prompt ID, so they must recover the preceding routed model.
       // Refresh this alias during known continuations too, since tool discovery
       // can change the content key without changing the gateway prompt ID.
-      if (turn.contentKey !== turn.key) this.turns.set(turn.contentKey, model);
+      if (turn.contentKey !== turn.key) this.turns.set(turn.contentKey, pin);
     }
     return { ...decision, ...contextCheck, model, reason, latency_ms: Math.round((performance.now() - start) * 100) / 100 };
   }

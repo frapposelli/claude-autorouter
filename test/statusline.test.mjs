@@ -40,6 +40,19 @@ test('routing and idle states label confirmed history; capability guards do not 
     reason: 'model_specific_features' }), /Jev→Opus · model features/);
 });
 
+test('prompt continuity displays its pinned model separately from the latest classifier choice', () => {
+  const line = render({ phase: 'connecting', selected_model: 'claude-opus-5-5', source: 'jev',
+    classified_tier: 'haiku', reason: 'prompt_turn_pinned', latency_ms: 120 });
+  assert.match(line, /Opus 5\.5 selected · connecting · Jev→Haiku 120ms · prompt pinned/);
+  const fallback = render({ phase: 'connecting', selected_model: 'claude-opus-5-5', source: 'fallback', evaluator: 'jev',
+    reason: 'prompt_turn_pinned', classifier_error: 'timeout' });
+  assert.match(fallback, /Opus 5\.5 selected · connecting · Jev fallback/);
+  assert.match(fallback, /prompt pinned/);
+  assert.match(fallback, /timeout/);
+  assert.match(render({ phase: 'connecting', selected_model: 'claude-opus-5-5', source: 'jev',
+    classified_tier: 'haiku', reason: 'goal_turn_pinned' }), /Opus 5\.5 selected · connecting · Jev→Haiku · goal pinned/);
+});
+
 test('Ollama routes, cache hits and fallbacks identify their evaluator while keeping Claude model confirmation separate', () => {
   const state = { phase: 'connecting', selected_model: 'claude-sonnet-5', source: 'ollama', evaluator: 'ollama', latency_ms: 72.4 };
   assert.match(render(state), /Sonnet 5 selected · connecting · Ollama 72ms/);
