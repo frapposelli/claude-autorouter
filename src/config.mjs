@@ -2,6 +2,15 @@ import { DEFAULT_OLLAMA_MODEL, defaultOllamaTimeoutMs, validateOllamaEndpoint, v
 
 export const TIERS = ['haiku', 'sonnet', 'opus'];
 
+export function parseStopHookBlockCap(value, name = 'CLAUDE_CODE_STOP_HOOK_BLOCK_CAP') {
+  if (!['string', 'number'].includes(typeof value)
+    || (typeof value === 'string' && !/^[0-9]+$/.test(value.trim()))
+    || !Number.isSafeInteger(Number(value)) || Number(value) < 0) {
+    throw new Error(`${name} requires a nonnegative safe integer (0 disables the Stop-hook continuation cap)`);
+  }
+  return Number(value);
+}
+
 function number(env, key, fallback, min, max, integer = true) {
   const value = Number(env[key] ?? fallback);
   if (!Number.isFinite(value) || value < min || value > max || (integer && !Number.isInteger(value))) {
@@ -50,6 +59,8 @@ export function readConfig(env = process.env) {
     evaluator,
     authMode,
     clientProfile,
+    stopHookBlockCap: env.CLAUDE_CODE_STOP_HOOK_BLOCK_CAP === undefined
+      ? undefined : parseStopHookBlockCap(env.CLAUDE_CODE_STOP_HOOK_BLOCK_CAP),
     anthropicKey: authMode === 'api-key' ? env.ANTHROPIC_API_KEY : undefined,
     jevKey: env.TYPESAFE_API_KEY,
     localToken: env.AUTOROUTER_TOKEN,

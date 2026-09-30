@@ -16,6 +16,11 @@ export function isSubscriptionRequest(headers) {
 
 export function buildClaudeEnv(config, baseUrl, parent = process.env) {
   const env = { ...parent, ANTHROPIC_BASE_URL: baseUrl, CLAUDE_CODE_GATEWAY_HINT_HEADERS: '1' };
+  // Opt into Claude's own loop guard without installing hooks or altering
+  // their verdicts. An unset cap leaves Claude's default in control.
+  if (env.CLAUDE_CODE_STOP_HOOK_BLOCK_CAP === undefined && config.stopHookBlockCap !== undefined) {
+    env.CLAUDE_CODE_STOP_HOOK_BLOCK_CAP = String(config.stopHookBlockCap);
+  }
   // Claude Code otherwise disables MCP tool search for a non-first-party
   // base URL and loads every schema into context. This proxy preserves both
   // tool_reference blocks and their beta headers. Respect explicit choices.

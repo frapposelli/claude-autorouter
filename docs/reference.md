@@ -6,6 +6,7 @@
 | --- | --- |
 | `claude-autorouter setup` | Save subscription-mode configuration and a Jev key |
 | `claude-autorouter setup --auth-mode api-key` | Configure Jev and Anthropic API-key billing |
+| `claude-autorouter setup --stop-hook-block-cap 2` | Opt into a shorter native Stop-hook continuation cap during setup |
 | `claude-autorouter setup --evaluator ollama --pull` | Configure the native local evaluator and download its selected model if missing |
 | `claude-autorouter setup --evaluator ollama --ollama-timeout-ms 0 --force` | Save a disabled runtime evaluator deadline |
 | `claude-autorouter setup --force` | Replace an existing user config |
@@ -45,6 +46,7 @@ For an environment-only subscription launch, set `AUTOROUTER_AUTH_MODE=subscript
 | `AUTOROUTER_CLIENT_PROFILE` | `compatible` | `native` retains Claude's own model and thinking settings |
 | `AUTOROUTER_STATUSLINE` | enabled | `0` retains your existing status line |
 | `AUTOROUTER_DEBUG` | off | `1` enables launcher metadata logs on stderr |
+| `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP` | unset; Claude currently uses `8` | Optional cap on consecutive Stop/SubagentStop continuations without tool use; `0` disables the cap |
 | `ENABLE_TOOL_SEARCH` | `true` in launcher when unset | Load MCP tool definitions on demand; explicit values are preserved |
 | `AUTOROUTER_HAIKU_MODEL` | `claude-haiku-4-5-20251001` | Routine tier |
 | `AUTOROUTER_SONNET_MODEL` | `claude-sonnet-5` | Standard tier |
@@ -237,6 +239,26 @@ The launcher is quiet by default. Standalone `serve` logs to stderr by default. 
 **`/goal` repeats a question or says it is blocked:** Claude Code runs its own completion checker after each turn, separately from AutoRouter's Jev/Ollama classifier. AutoRouter preserves the requested model for that auxiliary check and forwards its verdict unchanged. The check cannot authorize GitHub SAML, approve a tool, or resolve an external dependency. A tool's authentication error is also different from a Claude API authentication failure.
 
 If the worker reports a blocker but the checker keeps returning “not yet met,” Claude can repeat its answer until its no-progress guard pauses the goal. Repeated tool calls can keep the loop running longer. Use `/goal clear` to end the loop, resolve the external blocker, and set the goal again. For tasks that may require human action, explicitly allow reporting a blocker as an alternative end condition, for example: `/goal Verify the discrepancy against upstream main and run the relevant tests, or report an external authorization blocker and stop.` This changes what counts as completion; AutoRouter does not declare blocked work successful or rewrite goal instructions. See [Claude Code goal evaluation](https://code.claude.com/docs/en/goal#how-evaluation-works).
+
+### Shorter Stop-hook loops (opt-in)
+
+To return control sooner when a goal keeps reporting the same unmet condition, set Claude's native continuation cap for one launch:
+
+```sh
+env CLAUDE_CODE_STOP_HOOK_BLOCK_CAP=2 claude-autorouter claude
+```
+
+This permits two consecutive continuations without tool use; the third blocking verdict ends the turn. The goal remains set and unmet, and a new message can resume it. Tool activity resets the counter, so this is not a total turn or request limit and cannot bound repeated failed tool calls. It applies to **all Stop and SubagentStop hooks**, including `/goal`. A smaller cap can pause useful work sooner. Unset preserves Claude's default (currently `8`); **`0` disables the guard**. AutoRouter does not install a Stop hook or change completion verdicts. See [Claude's environment-variable reference](https://code.claude.com/docs/en/env-vars) and [Stop-hook loop behavior](https://code.claude.com/docs/en/hooks#stop).
+
+The environment-only command also works on AutoRouter 0.3.4. Saved configuration and the setup flag require AutoRouter 0.3.5 or newer. To save the preference, add the following property to your existing AutoRouter config JSON, preserving its other values:
+
+```json
+"CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": "2"
+```
+
+For a new configuration, use `claude-autorouter setup --stop-hook-block-cap 2`; the flag works with either evaluator and overrides the environment during setup. Runtime environment values override saved configuration. `setup --force` replaces the entire config, so keep your existing evaluator/authentication options if using it. `doctor` reports the cap when configured. AutoRouter accepts nonnegative safe integers and leaves the setting absent unless you opt in.
+
+### Other session issues
 
 **After restarting mid-conversation:** turn state is in memory and expires after 30 minutes. Unknown continuations preserve the incoming model. Start a fresh conversation when restarting around signed thinking; AutoRouter cannot reconstruct the prior actual model from lost turn state.
 

@@ -85,6 +85,33 @@ test('both client profiles enable deferred MCP tools through the proxy while pre
   }
 });
 
+test('native Stop-hook block cap is injected only when configured and preserves explicit child settings', () => {
+  const key = 'CLAUDE_CODE_STOP_HOOK_BLOCK_CAP';
+  for (const authMode of ['subscription', 'api-key']) {
+    for (const clientProfile of ['compatible', 'native']) {
+      const config = { ...readConfig({ AUTOROUTER_AUTH_MODE: authMode, AUTOROUTER_CLIENT_PROFILE: clientProfile }), localToken };
+      const parent = { CLAUDE_CODE_GOAL_CHECKIN_MINUTES: '0', CLAUDE_CONFIG_DIR: '/test/claude',
+        UNRELATED_SETTING: 'keep', ANTHROPIC_CUSTOM_HEADERS: 'X-Team: coding' };
+      const before = structuredClone(parent);
+      assert.equal(Object.hasOwn(buildClaudeEnv(config, 'http://127.0.0.1:1234', parent), key), false);
+      for (const cap of [0, 2]) {
+        const child = buildClaudeEnv({ ...config, stopHookBlockCap: cap }, 'http://127.0.0.1:1234', parent);
+        assert.equal(child[key], String(cap));
+        for (const setting of ['CLAUDE_CODE_GOAL_CHECKIN_MINUTES', 'CLAUDE_CONFIG_DIR', 'UNRELATED_SETTING']) {
+          assert.equal(child[setting], parent[setting]);
+        }
+        assert.match(child.ANTHROPIC_CUSTOM_HEADERS, /X-Team: coding/);
+        for (const explicit of ['0', '7']) {
+          const explicitParent = { ...parent, [key]: explicit };
+          assert.equal(buildClaudeEnv({ ...config, stopHookBlockCap: cap }, 'http://127.0.0.1:1234', explicitParent)[key], explicit);
+          assert.equal(explicitParent[key], explicit);
+        }
+      }
+      assert.deepEqual(parent, before);
+    }
+  }
+});
+
 test('subscription request recognition requires bearer and OAuth capability, and excludes API keys', () => {
   const valid = { authorization: 'Bearer fake-login-token', 'anthropic-beta': 'some-beta, oauth-2025-04-20, future-beta' };
   assert.ok(isSubscriptionRequest(valid));

@@ -124,6 +124,94 @@ function localOllama(model = DEFAULT_OLLAMA_MODEL, { installed = true, details =
   } };
 }
 
+test('native Stop-hook block cap setup works with either evaluator and CLI values override the environment', async t => {
+  for (const evaluator of ['jev', 'ollama']) {
+    const paths = fixture(t);
+    const env = { ...paths, TYPESAFE_API_KEY: 'synthetic-jev-key', CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: '9' };
+    const before = structuredClone(env);
+    const local = localOllama();
+    const lines = [];
+    const options = { env, write: line => lines.push(line), prompt: () => assert.fail('Keys are supplied'),
+      fetchImpl: evaluator === 'ollama' ? local.fetchImpl : () => assert.fail('Jev setup must not make provider calls') };
+    await setup(['--evaluator', evaluator, '--stop-hook-block-cap', '0002'], options);
+    const saved = JSON.parse(readFileSync(paths.AUTOROUTER_CONFIG, 'utf8'));
+    assert.equal(saved.CLAUDE_CODE_STOP_HOOK_BLOCK_CAP, '2');
+    assert.equal(saved.AUTOROUTER_EVALUATOR, evaluator);
+    assert.equal(readConfig(loadUserConfig(paths).env).stopHookBlockCap, 2);
+    assert.equal(readConfig(loadUserConfig({ ...paths, CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: '0' }).env).stopHookBlockCap, 0);
+    assert.match(lines.join('\n'), /Claude Stop\/SubagentStop cap: 2 continuations without tool use/);
+
+    lines.length = 0;
+    await setup(['--force', '--evaluator', evaluator, '--stop-hook-block-cap', '0'], options);
+    assert.equal(JSON.parse(readFileSync(paths.AUTOROUTER_CONFIG, 'utf8')).CLAUDE_CODE_STOP_HOOK_BLOCK_CAP, '0');
+    assert.match(lines.join('\n'), /Claude Stop\/SubagentStop continuation cap disabled \(0\)/);
+    assert.deepEqual(env, before);
+    if (evaluator === 'ollama') assert.equal(local.calls.filter(call => call.path === '/v1/systemone').length, 2, 'The option does not add extra evaluator calls');
+  }
+});
+
+test('native Stop-hook block cap setup saves a normalized environment opt-in without changing its parent', async t => {
+  for (const [raw, expected] of [['0002', '2'], ['0000', '0']]) {
+    const env = { ...fixture(t), TYPESAFE_API_KEY: 'synthetic-jev-key', CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: raw };
+    const before = structuredClone(env);
+    await setup([], { env, write: () => {}, prompt: () => assert.fail('Key is supplied'),
+      fetchImpl: () => assert.fail('Jev setup must not make provider calls') });
+    assert.equal(JSON.parse(readFileSync(env.AUTOROUTER_CONFIG, 'utf8')).CLAUDE_CODE_STOP_HOOK_BLOCK_CAP, expected);
+    assert.deepEqual(env, before);
+  }
+});
+
+test('native Stop-hook block cap setup rejects invalid CLI and environment values before prompts, persistence or providers', async t => {
+  const unexpected = () => assert.fail('Invalid caps must not prompt or contact a provider');
+  for (const evaluator of ['jev', 'ollama']) {
+    const paths = fixture(t);
+    for (const value of [undefined, '', ' ', '--pull', '-1', '1.5', '2.0', '1e2', '1e-999', 'Infinity', '9007199254740992']) {
+      await assert.rejects(setup(['--evaluator', evaluator, '--stop-hook-block-cap', ...(value === undefined ? [] : [value])], {
+        env: paths, write: () => {}, prompt: unexpected, fetchImpl: unexpected,
+      }), /stop-hook-block-cap/);
+      assert.equal(existsSync(paths.AUTOROUTER_CONFIG), false);
+    }
+    for (const value of ['', ' ', '-1', '1.5', '1e2', '9007199254740992', null, false]) {
+      await assert.rejects(setup(['--evaluator', evaluator], {
+        env: { ...paths, CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }, write: () => {}, prompt: unexpected, fetchImpl: unexpected,
+      }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/);
+      assert.equal(existsSync(paths.AUTOROUTER_CONFIG), false);
+    }
+  }
+  const env = { ...fixture(t), TYPESAFE_API_KEY: 'saved-key' };
+  await setup([], { env, write: () => {} });
+  const original = readFileSync(env.AUTOROUTER_CONFIG, 'utf8');
+  await assert.rejects(setup(['--force', '--evaluator', 'ollama'], {
+    env: { ...env, CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: '' }, write: () => {}, prompt: unexpected, fetchImpl: unexpected,
+  }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/);
+  assert.equal(readFileSync(env.AUTOROUTER_CONFIG, 'utf8'), original);
+});
+
+test('native Stop-hook block cap doctor reports only a configured value and respects runtime overrides without inference', async t => {
+  const paths = fixture(t);
+  const setupEnv = { ...paths, TYPESAFE_API_KEY: 'synthetic-jev-key' };
+  await setup([], { env: setupEnv, write: () => {} });
+  const lines = [];
+  const calls = [];
+  const options = { env: paths, write: line => lines.push(line), fetchImpl: () => assert.fail('Doctor must not perform inference'),
+    run: async (_command, args) => {
+      calls.push(args);
+      return { stdout: args[0] === '--version' ? '2.1.285' : '{"loggedIn":true,"authMethod":"claude.ai"}' };
+    } };
+  assert.equal(await doctor(options), true);
+  assert.ok(!lines.join('\n').includes('Stop/SubagentStop'));
+  await setup(['--force', '--stop-hook-block-cap', '2'], { env: setupEnv, write: () => {} });
+  const saved = readFileSync(paths.AUTOROUTER_CONFIG, 'utf8');
+  lines.length = 0;
+  assert.equal(await doctor(options), true);
+  assert.match(lines.join('\n'), /Claude Stop\/SubagentStop cap: 2 continuations without tool use/);
+  lines.length = 0;
+  assert.equal(await doctor({ ...options, env: { ...paths, CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: '0' } }), true);
+  assert.match(lines.join('\n'), /Claude Stop\/SubagentStop continuation cap disabled \(0\)/);
+  assert.equal(readFileSync(paths.AUTOROUTER_CONFIG, 'utf8'), saved);
+  assert.deepEqual(calls, Array.from({ length: 3 }, () => [['--version'], ['auth', 'status', '--json']]).flat());
+});
+
 test('Ollama subscription setup needs no keys, stays local, and preloads before saving', async t => {
   const env = { ...fixture(t), TYPESAFE_API_KEY: 'unused-jev-key', ANTHROPIC_API_KEY: 'unused-anthropic-key' };
   const local = localOllama();

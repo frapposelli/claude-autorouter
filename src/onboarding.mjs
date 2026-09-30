@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { createInterface } from 'node:readline';
 import { Writable } from 'node:stream';
 import { promisify } from 'node:util';
-import { readConfig, requireKeys } from './config.mjs';
+import { readConfig, requireKeys, parseStopHookBlockCap } from './config.mjs';
 import { buildClaudeEnv, conflictingProviders, LOCAL_AUTH_HEADER } from './auth.mjs';
 import { getConfigPath, loadUserConfig, saveUserConfig } from './user-config.mjs';
 import { DEFAULT_OLLAMA_MODEL, validateOllamaModel } from './ollama-models.mjs';
@@ -13,6 +13,10 @@ const execute = promisify(execFile);
 
 export const ollamaDeadlineText = timeoutMs => timeoutMs === 0
   ? 'routing deadline disabled' : `routing deadline ${timeoutMs} ms per request`;
+
+const stopHookCapText = cap => cap === 0
+  ? 'Claude Stop/SubagentStop continuation cap disabled (0).'
+  : `Claude Stop/SubagentStop cap: ${cap} continuations without tool use.`;
 
 // Readline manages editing and restores terminal state; its output is discarded
 // so neither typing nor pasted credentials are echoed to the terminal.
@@ -40,6 +44,7 @@ export async function setup(args, {
   let evaluator = env.AUTOROUTER_EVALUATOR ?? 'jev';
   let model;
   let ollamaTimeoutMs;
+  let stopHookBlockCap = env.CLAUDE_CODE_STOP_HOOK_BLOCK_CAP;
   let pull = false;
   let overwrite = false;
   for (let i = 0; i < args.length; i++) {
@@ -53,19 +58,24 @@ export async function setup(args, {
       }
       ollamaTimeoutMs = String(Number(value));
     }
+    else if (args[i] === '--stop-hook-block-cap') {
+      stopHookBlockCap = parseStopHookBlockCap(args[++i], '--stop-hook-block-cap');
+    }
     else if (args[i] === '--pull') pull = true;
     else if (args[i] === '--force') overwrite = true;
-    else throw new Error('Usage: claude-autorouter setup [--auth-mode subscription|api-key] [--evaluator jev|ollama] [--ollama-model TAG] [--ollama-timeout-ms N] [--pull] [--force]');
+    else throw new Error('Usage: claude-autorouter setup [--auth-mode subscription|api-key] [--evaluator jev|ollama] [--ollama-model TAG] [--ollama-timeout-ms N] [--stop-hook-block-cap N] [--pull] [--force]');
   }
   if (!['subscription', 'api-key'].includes(authMode)) throw new Error('--auth-mode must be subscription or api-key');
   if (!['jev', 'ollama'].includes(evaluator)) throw new Error('--evaluator must be jev or ollama');
   if (evaluator !== 'ollama' && (model !== undefined || ollamaTimeoutMs !== undefined || pull)) throw new Error('Ollama model, deadline and download options require --evaluator ollama');
+  if (stopHookBlockCap !== undefined) stopHookBlockCap = parseStopHookBlockCap(stopHookBlockCap);
   const path = getConfigPath(env);
   if (!overwrite && existsSync(path)) throw new Error('AutoRouter configuration already exists. Use setup --force to replace it.');
   write(evaluator === 'ollama'
     ? 'AutoRouter evaluates bounded prompt excerpts locally with Ollama. Complete requests still go to Anthropic.'
     : 'AutoRouter sends bounded prompt excerpts to TypeSafe Jev and complete requests to Anthropic.');
   const values = { AUTOROUTER_AUTH_MODE: authMode, AUTOROUTER_CLIENT_PROFILE: 'compatible', AUTOROUTER_EVALUATOR: evaluator };
+  if (stopHookBlockCap !== undefined) values.CLAUDE_CODE_STOP_HOOK_BLOCK_CAP = String(stopHookBlockCap);
   if (evaluator === 'ollama') {
     values.AUTOROUTER_OLLAMA_MODEL = validateOllamaModel(model ?? env.AUTOROUTER_OLLAMA_MODEL ?? DEFAULT_OLLAMA_MODEL);
     for (const key of ['AUTOROUTER_OLLAMA_URL', 'AUTOROUTER_OLLAMA_TIMEOUT_MS', 'AUTOROUTER_OLLAMA_KEEP_ALIVE']) {
@@ -81,6 +91,7 @@ export async function setup(args, {
   }
   const config = readConfig(values);
   requireKeys(config);
+  if (config.stopHookBlockCap !== undefined) write(stopHookCapText(config.stopHookBlockCap));
   if (evaluator === 'ollama') {
     write(`Local evaluator: ${config.ollamaModel}; ${ollamaDeadlineText(config.ollamaTimeoutMs)}.`);
     const controller = new AbortController();
@@ -115,6 +126,7 @@ export async function doctor({ env = process.env, write = console.log, run = exe
   for (const key of conflictingProviders(effectiveEnv)) {
     report(false, `Unset ${key}; AutoRouter uses the Anthropic Messages API`);
   }
+  if (config?.stopHookBlockCap !== undefined) write(stopHookCapText(config.stopHookBlockCap));
   if (config?.evaluator === 'ollama') {
     write(`Local evaluator: ${config.ollamaModel}; ${ollamaDeadlineText(config.ollamaTimeoutMs)}.`);
     write('Model availability is checked below; classification speed and accuracy are not tested.');

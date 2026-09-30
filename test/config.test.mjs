@@ -3,6 +3,26 @@ import assert from 'node:assert/strict';
 import { readConfig, requireKeys } from '../src/config.mjs';
 import { DEFAULT_OLLAMA_MODEL } from '../src/ollama-models.mjs';
 
+test('native Stop-hook block cap is opt-in and accepts explicit zero or safe decimal counts', () => {
+  assert.equal(readConfig({}).stopHookBlockCap, undefined);
+  for (const [value, expected] of [[0, 0], ['0', 0], [2, 2], ['2', 2], ['002', 2],
+    [Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER], [String(Number.MAX_SAFE_INTEGER), Number.MAX_SAFE_INTEGER]]) {
+    for (const evaluator of ['jev', 'ollama']) {
+      const config = readConfig({ AUTOROUTER_EVALUATOR: evaluator, CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value });
+      assert.equal(config.stopHookBlockCap, expected);
+      assert.equal(config.jevTimeoutMs, 1500);
+      assert.equal(config.ollamaTimeoutMs, 30000);
+    }
+  }
+});
+
+test('native Stop-hook block cap rejects coercion, nondecimal notation, fractions and unsafe integers', () => {
+  for (const value of [-1, '-1', 1.5, '1.5', '2.0', '1e2', '1e-999', '-1e-999', '0x2', '+2', '', ' ',
+    '2\n3', null, false, true, [], {}, NaN, Infinity, 'Infinity', 'invalid', Number.MAX_SAFE_INTEGER + 1, '9007199254740992']) {
+    assert.throws(() => readConfig({ CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/);
+  }
+});
+
 test('Jev remains the default and local decisions default to the explicit Nimble quantization', () => {
   const defaults = readConfig({});
   assert.equal(defaults.evaluator, 'jev');

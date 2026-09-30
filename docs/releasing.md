@@ -10,6 +10,8 @@ Version `0.3.3` fixes HTTP 400 errors when a compatible request with disabled th
 
 Version `0.3.4` preserves the selected model across Stop-hook feedback for the same prompt, including `/goal` commands that omit the gateway prompt-ID header. Recognized goal feedback remains conversation context rather than replacing the human task in evaluator excerpts. Goal-checker verdicts remain unchanged; external authorization blockers can still cause Claude's own goal loop to repeat. See [goal troubleshooting](reference.md#troubleshooting).
 
+Version `0.3.5` adds opt-in saved configuration for Claude's native `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP`, with `setup --stop-hook-block-cap N`, validation, and `doctor` reporting. A value of `2` permits two consecutive Stop-hook continuations without tool use and ends the turn on the third blocking verdict, leaving an unmet goal set. This affects all Stop/SubagentStop hooks, and tool activity resets the counter. Defaults and completion verdicts are unchanged; `0` disables the guard. See [shorter Stop-hook loops](reference.md#shorter-stop-hook-loops-opt-in).
+
 The GitHub repository is private. Publishing to npm makes the tarball's runtime source, README, configuration example, license, and shipped documentation public. Model weights, user configuration, credentials, transcripts, local artifacts, and test fixtures are excluded. Review the archive before the first publication and whenever the package allowlist changes.
 
 ## What runs automatically

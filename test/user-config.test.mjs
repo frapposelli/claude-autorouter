@@ -8,6 +8,7 @@ import {
 import { homedir, tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { getConfigPath, loadUserConfig, saveUserConfig } from '../src/user-config.mjs';
+import { readConfig } from '../src/config.mjs';
 
 function directory(t) {
   const path = mkdtempSync(join(tmpdir(), 'autorouter-user-config-'));
@@ -47,6 +48,22 @@ test('environment settings take precedence without mutating the saved file or ca
   assert.equal(loaded.path, path);
   assert.deepEqual(loaded.env, { ...saved, ...env });
   assert.deepEqual(env, before);
+  assert.deepEqual(JSON.parse(readFileSync(path, 'utf8')), saved);
+});
+
+test('native Stop-hook block cap persists as a string and runtime environment overrides the saved opt-in', t => {
+  const env = { XDG_CONFIG_HOME: directory(t) };
+  const key = 'CLAUDE_CODE_STOP_HOOK_BLOCK_CAP';
+  const saved = { AUTOROUTER_AUTH_MODE: 'subscription', [key]: '2' };
+  const path = saveUserConfig(saved, { env });
+  assert.equal(loadUserConfig(env).env[key], '2');
+  assert.equal(readConfig(loadUserConfig(env).env).stopHookBlockCap, 2);
+  const overridden = { ...env, [key]: '0' };
+  const before = structuredClone(overridden);
+  assert.equal(readConfig(loadUserConfig(overridden).env).stopHookBlockCap, 0);
+  assert.deepEqual(overridden, before);
+  assert.deepEqual(JSON.parse(readFileSync(path, 'utf8')), saved);
+  assert.throws(() => saveUserConfig({ [key]: 2 }, { env, overwrite: true }), /values must be strings/);
   assert.deepEqual(JSON.parse(readFileSync(path, 'utf8')), saved);
 });
 

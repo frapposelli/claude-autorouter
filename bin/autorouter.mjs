@@ -23,6 +23,7 @@ Usage:
   claude-autorouter setup [--auth-mode subscription|api-key] [--force]
     [--evaluator jev|ollama]
     [--ollama-model MODEL] [--ollama-timeout-ms N] [--pull]
+    [--stop-hook-block-cap N]
   claude-autorouter doctor
   claude-autorouter claude [Claude Code arguments]
   claude-autorouter serve
@@ -47,6 +48,9 @@ AUTOROUTER_AUTH_MODE=subscription uses your saved Claude Code login.
 Without setup, AUTOROUTER_AUTH_MODE defaults to api-key and also requires ANTHROPIC_API_KEY.
 AUTOROUTER_CLIENT_PROFILE=compatible (default) enables all three routing tiers.
 Use AUTOROUTER_CLIENT_PROFILE=native to retain Claude Code's own model/thinking settings.
+Optional CLAUDE_CODE_STOP_HOOK_BLOCK_CAP=N limits consecutive tool-free Stop-hook continuations.
+Use 2 to stop on the third block; applies to /goal and all Stop/SubagentStop hooks.
+Unset preserves Claude's default; 0 disables the cap. Setup --stop-hook-block-cap N saves it.
 Standalone serve also requires AUTOROUTER_TOKEN (at least 16 characters).
 The claude launcher creates a temporary credential and an ephemeral port.
 It enables an AutoRouter status line for this session (AUTOROUTER_STATUSLINE=0 to opt out).
