@@ -47,13 +47,13 @@ test('auto profile floors ordinary Haiku decisions while retaining evaluator res
   }
 });
 
-test('auto profile floor does not override unknown models, native feature contracts, or signed history', async () => {
+test('auto profile still preserves unknown models, unsupported native features, and older thinking histories', async () => {
   const c = { ...config(), clientProfile: 'auto' };
   const cases = [
     [{ ...request('Task'), model: 'custom-approved-model' }, 'unknown_model'],
     [{ ...request('Task'), model: 'claude-sonnet-5-5', thinking: { type: 'between_tools' } }, 'model_specific_features'],
-    [{ ...request('Task'), model: c.models.opus, context_management: { edits: [] } }, 'model_specific_features'],
-    [{ ...request('Task'), model: c.models.opus, messages: [
+    [{ ...request('Task'), model: c.models.opus, context_management: { edits: [{ type: 'future_edit' }] } }, 'model_specific_features'],
+    [{ ...request('Task'), model: 'claude-opus-4-7', messages: [
       { role: 'user', content: 'Initial task' },
       { role: 'assistant', content: [{ type: 'thinking', thinking: 'Synthetic reasoning', signature: 'synthetic-signature' }] },
       { role: 'user', content: 'Next task' },
@@ -99,9 +99,10 @@ test('auxiliary classifiers bypass evaluation, counting, and turn pins in every 
   }
 });
 
-test('server safeguards preserve any supplied contract and update the actual main model without evaluation or counting', async () => {
+test('unknown server safeguard contracts pass through and replace stale main-model pins without evaluation', async () => {
   for (const clientProfile of ['compatible', 'native', 'auto']) {
-    for (const safeguards of [[{ type: 'dangerous_tool_use', classifier_context: { v: 1 } }], {}, null, false]) {
+    for (const safeguards of [[{ type: 'dangerous_tool_use', classifier_context: { v: 2 } }],
+      [{ type: 'future_safeguard', classifier_context: { v: 1 } }], [], {}, null, false]) {
       const c = { ...config(), clientProfile };
       let evaluations = 0, counts = 0;
       const router = new Router(c, { fetchImpl: async () => { evaluations++; return result('opus'); } });
@@ -137,6 +138,69 @@ test('server safeguards preserve any supplied contract and update the actual mai
       assert.equal(headerless.reason, 'tool_turn_pinned');
     }
   }
+});
+
+test('recognized server review routes execution across Sonnet and Opus in every profile without exposing its context to the evaluator', async () => {
+  for (const profile of ['compatible', 'native', 'auto']) for (const tier of ['haiku', 'sonnet', 'opus']) {
+    const c = readConfig({ TYPESAFE_API_KEY: 'test-jev', AUTOROUTER_CLIENT_PROFILE: profile,
+      AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5' });
+    let evaluations = 0, counts = 0;
+    const router = new Router(c, { fetchImpl: async (_url, options) => {
+      evaluations++;
+      assert.ok(!options.body.includes('PRIVATE_REVIEW_CONTEXT'));
+      assert.ok(!options.body.includes('PRIVATE_SIGNED_REASONING'));
+      return result(tier);
+    } });
+    const body = { ...request('Classify the current task'), model: c.models.sonnet,
+      safeguards: [{ type: 'dangerous_tool_use', classifier_context: { v: 1, permission_mode: 'auto', opaque: 'PRIVATE_REVIEW_CONTEXT' } }],
+      thinking: { type: 'adaptive' }, context_management: { edits: [{ type: 'clear_thinking_20251015', keep: 'all' }] },
+      messages: [{ role: 'user', content: 'Previous task' },
+        { role: 'assistant', content: [{ type: 'thinking', thinking: '', signature: 'PRIVATE_SIGNED_REASONING' }, { type: 'text', text: 'Done' }] },
+        { role: 'user', content: 'New independent task' },
+        { role: 'system', clear_at: 'next_user_message', content: 'Current turn instructions' }],
+    };
+    const before = structuredClone(body);
+    const decision = await router.route(body, { scope: profile, promptId: tier, requestClass: 'main',
+      countTokens: async () => { counts++; return 1000; } });
+    assert.equal(decision.model, c.models[tier === 'haiku' ? 'sonnet' : tier]);
+    assert.equal(decision.classified_tier, tier);
+    assert.equal(decision.reason, tier === 'haiku' ? 'auto_mode_floor' : 'classified');
+    assert.equal(decision.source, 'jev');
+    assert.equal(evaluations, 1);
+    assert.equal(counts, 0);
+    assert.deepEqual(body, before);
+  }
+});
+
+test('Auto classifier failure retains the prior execution model across new human turns', async () => {
+  const c = readConfig({ TYPESAFE_API_KEY: 'test-jev', AUTOROUTER_CLIENT_PROFILE: 'auto' });
+  let evaluations = 0;
+  const router = new Router(c, { fetchImpl: async () => {
+    if (++evaluations > 1) throw new Error('Synthetic outage');
+    return result('opus');
+  } });
+  const body = { ...request('Demanding task'), model: c.models.sonnet, thinking: { type: 'adaptive' },
+    safeguards: [{ type: 'dangerous_tool_use', classifier_context: { v: 1 } }] };
+  const first = await router.route(body, { scope: 'fallback-auto', promptId: 'first' });
+  assert.equal(first.model, c.models.opus);
+  const next = { ...body, messages: [...body.messages, { role: 'assistant', content: 'Done' }, { role: 'user', content: 'New task' }] };
+  const failed = await router.route(next, { scope: 'fallback-auto', promptId: 'second' });
+  assert.equal(failed.model, c.models.opus);
+  assert.equal(failed.source, 'fallback');
+  assert.equal(failed.reason, 'classifier_unavailable');
+});
+
+test('a configured target without the shared Auto capabilities cannot receive safeguarded requests', async () => {
+  const c = readConfig({ TYPESAFE_API_KEY: 'test-jev', AUTOROUTER_CLIENT_PROFILE: 'auto', AUTOROUTER_OPUS_MODEL: 'claude-opus-4-6' });
+  const router = new Router(c, { fetchImpl: async () => result('opus') });
+  const body = { ...request('Demanding task'), model: c.models.sonnet,
+    safeguards: [{ type: 'dangerous_tool_use', classifier_context: { v: 1 } }] };
+  const before = structuredClone(body);
+  const decision = await router.route(body);
+  assert.equal(decision.model, body.model);
+  assert.equal(decision.reason, 'auto_mode_incompatible');
+  assert.equal(decision.classified_tier, 'opus');
+  assert.deepEqual(body, before);
 });
 
 test('safeguarded compaction never replaces a foreground model pin', async () => {

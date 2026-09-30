@@ -256,9 +256,10 @@ const fs = require('node:fs');
 })().catch(error => { console.error(error.message); process.exitCode = 1; });
 `, { mode: 0o700 });
   const defaults = readConfig({});
+  const autoDefaults = readConfig({ AUTOROUTER_CLIENT_PROFILE: 'auto' });
   const cases = [
-    { profile: 'compatible', flags: ['--permission-mode', 'auto'], model: defaults.models.sonnet },
-    { profile: 'native', flags: ['--permission-mode=auto'], model: defaults.models.sonnet },
+    { profile: 'compatible', flags: ['--permission-mode', 'auto'], model: autoDefaults.models.sonnet },
+    { profile: 'native', flags: ['--permission-mode=auto'], model: autoDefaults.models.sonnet },
     { profile: 'compatible', flags: ['--permission-mode', 'auto', '--permission-mode=manual'], model: defaults.models.haiku, thinking: '0' },
     { profile: 'compatible', flags: ['--', '--permission-mode=auto'], model: defaults.models.haiku, thinking: '0' },
   ];

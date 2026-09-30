@@ -14,6 +14,11 @@ function sonnetNeedsAdaptive(body) {
 export function prepareRequest(body, model) {
   const request = { ...body, model };
   const adjustments = [];
+  if (model !== body.model && body.model === 'claude-sonnet-5-5' && body.thinking?.type === 'between_tools'
+    && Object.keys(body.thinking).length === 1 && ADAPTIVE_TARGETS.has(model)) {
+    request.thinking = { type: 'adaptive' };
+    adjustments.push('adaptive_thinking_required');
+  }
   if (model !== body.model && body.thinking?.type === 'disabled') {
     if (model === 'claude-sonnet-5-5') {
       const type = sonnetNeedsAdaptive(body) ? 'adaptive' : 'between_tools';

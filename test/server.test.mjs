@@ -554,26 +554,35 @@ test('real routing adapts low-confidence Sonnet 5.5 and its signed tool continua
   }
 });
 
-test('auto permission classifier and server safeguard verdicts pass through without evaluator or token-count calls', async t => {
-  const config = { ...readConfig({ TYPESAFE_API_KEY: 'classifier-secret' }), clientProfile: 'auto' };
+test('auto execution routes independently while auxiliary permission checks and denied safeguard verdicts remain unchanged', async t => {
+  const config = readConfig({ TYPESAFE_API_KEY: 'classifier-secret', AUTOROUTER_CLIENT_PROFILE: 'auto', AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5' });
   let classifications = 0;
-  const router = new Router(config, { fetchImpl: async () => { classifications++; throw new Error('Safety requests must bypass classification'); } });
+  const router = new Router(config, { fetchImpl: async (url, options) => {
+    assert.equal(url, config.jevEndpoint);
+    assert.equal(JSON.parse(options.body).state.current_task, 'Design a secure cross-process transaction protocol.');
+    classifications++;
+    return Response.json({ answers: { tier: { choice: 'opus', confidence: 0.99 } } });
+  } });
   const explanation = 'Synthetic denied action';
   const auxiliary = { ...body, model: config.models.haiku,
     system: [{ type: 'text', text: 'Synthetic classifier attribution. ' + 'review context '.repeat(11000) }],
     messages: [{ role: 'user', content: 'Evaluate the synthetic tool permission request.' }],
     tools: [], stop_sequences: ['</block>'], thinking: { type: 'disabled' },
   };
-  const safeguarded = { ...body, model: config.models.sonnet,
+  const signedHistory = { type: 'thinking', thinking: 'Synthetic prior reasoning → retained.', signature: 'synthetic-safety-signature+/==' };
+  const safeguarded = { ...body, model: config.models.sonnet, thinking: { type: 'adaptive' },
+    messages: [...body.messages, { role: 'assistant', content: [signedHistory, { type: 'text', text: 'The typo is fixed.' }] },
+      { role: 'user', content: 'Design a secure cross-process transaction protocol.' }],
     safeguards: [{ type: 'dangerous_tool_use', classifier_context: { v: 1, synthetic_context: 'Preserve this review context.' } }],
   };
   const requests = [auxiliary, safeguarded];
+  const expectedModels = [auxiliary.model, config.models.opus];
   const originals = structuredClone(requests);
   const classes = ['auxiliary', 'main'];
   const beta = oauthHeaders['anthropic-beta'] + ',dangerous-tool-use-2026-09-03';
   const event = payload => `event: ${payload.type}\r\ndata: ${JSON.stringify(payload)}\r\n\r\n`;
-  const replies = requests.map((request, index) => Buffer.from([
-    { type: 'message_start', message: { id: `msg_safety_${index}`, model: request.model, content: [] } },
+  const replies = requests.map((_request, index) => Buffer.from([
+    { type: 'message_start', message: { id: `msg_safety_${index}`, model: expectedModels[index], content: [] } },
     { type: 'content_block_start', index: 0, content_block: index === 0 ? { type: 'text', text: '' }
       : { type: 'tool_use', id: 'tool_test', name: 'Bash', input: {} } },
     { type: 'content_block_delta', index: 0, delta: index === 0
@@ -596,7 +605,7 @@ test('auto permission classifier and server safeguard verdicts pass through with
     assert.equal(req.headers['x-claude-code-request-class'], classes[index]);
     assert.equal(req.headers['x-claude-code-session-id'], 'safety-session');
     assert.equal(req.headers['x-autorouter-token'], undefined);
-    assert.equal(text, JSON.stringify(requests[index]));
+    assert.equal(text, JSON.stringify({ ...requests[index], model: expectedModels[index] }));
     res.writeHead(200, { 'content-type': 'text/event-stream', 'request-id': `safety-provider-${index}`, 'x-safety-fixture': 'retained' });
     res.write(replies[index].subarray(0, 37));
     res.end(replies[index].subarray(37));
@@ -610,15 +619,109 @@ test('auto permission classifier and server safeguard verdicts pass through with
     assert.equal(response.headers.get('x-safety-fixture'), 'retained');
     assert.deepEqual(Buffer.from(await response.arrayBuffer()), replies[index]);
   }
-  assert.equal(classifications, 0);
+  assert.equal(classifications, 1);
   assert.equal(upstreamCalls, 2);
   assert.deepEqual(requests, originals);
   assert.deepEqual(f.statuses.filter(entry => entry.event === 'route').map(({ model, source, reason, classified_tier }) =>
     ({ model, source, reason, classified_tier })), [
     { model: auxiliary.model, source: 'passthrough', reason: 'internal_request', classified_tier: undefined },
-    { model: safeguarded.model, source: 'passthrough', reason: 'auto_mode_safeguards', classified_tier: undefined },
+    { model: config.models.opus, source: 'jev', reason: 'classified', classified_tier: 'opus' },
   ]);
-  for (const value of [explanation, safeguarded.safeguards[0].classifier_context.synthetic_context, 'classifier-secret', 'fake-subscription-token']) {
+  for (const value of [explanation, signedHistory.thinking, signedHistory.signature, safeguarded.safeguards[0].classifier_context.synthetic_context, 'classifier-secret', 'fake-subscription-token']) {
+    assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes(value));
+  }
+});
+
+for (const usePromptIds of [true, false]) test(`auto execution switches Sonnet to Opus to Sonnet across human turns, preserving native context and tool ownership (${usePromptIds ? 'gateway prompt IDs' : 'without prompt IDs'})`, { timeout: 5000 }, async t => {
+  const config = readConfig({ TYPESAFE_API_KEY: 'classifier-secret', AUTOROUTER_CLIENT_PROFILE: 'auto', AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5' });
+  const choices = ['haiku', 'opus', 'haiku', 'haiku'];
+  let classifications = 0;
+  const router = new Router(config, { fetchImpl: async (url, options) => {
+    assert.equal(url, config.jevEndpoint);
+    assert.equal(options.headers.authorization, 'Bearer classifier-secret');
+    assert.ok(classifications < choices.length, 'Unexpected classifier request');
+    return Response.json({ answers: { tier: { choice: choices[classifications++], confidence: 0.99 } } });
+  } });
+  const instructions = { role: 'system', clear_at: 'next_user_message', content: [{ type: 'text', text: 'Synthetic turn-specific instructions.' }] };
+  const initial = { ...body, model: config.models.sonnet, thinking: { type: 'adaptive' },
+    // Both selected models have the same native 1M window. The byte trigger
+    // must not independently pin Opus after a demanding task is complete.
+    system: [{ type: 'text', text: 'Synthetic shared context. '.repeat(7000), cache_control: { type: 'ephemeral' } }],
+    messages: [...body.messages, instructions],
+    context_management: { edits: [
+      { type: 'clear_thinking_20251015', keep: { type: 'thinking_turns', value: 1 } },
+      { type: 'clear_tool_uses_20250919', trigger: { type: 'input_tokens', value: 100000 }, keep: { type: 'tool_uses', value: 3 } },
+    ] },
+    safeguards: [{ type: 'dangerous_tool_use', classifier_context: { v: 1, synthetic_context: 'Keep the native tool review context.' } }],
+  };
+  const sonnetThinking = { type: 'thinking', thinking: 'Synthetic Sonnet reasoning.', signature: 'signed-sonnet-history+/==' };
+  const opusThinking = { type: 'thinking', thinking: 'Synthetic Opus reasoning.', signature: 'signed-opus-history+/==' };
+  const toolUse = { type: 'tool_use', id: 'tool_auto_fixture', name: 'Read', input: { path: 'fixture.txt' } };
+  const demanding = { ...initial, messages: [...initial.messages,
+    { role: 'assistant', content: [sonnetThinking, { type: 'text', text: 'The typo is fixed.' }] },
+    { role: 'user', content: 'Investigate an intermittent cross-process race with no known cause.' }, instructions,
+  ] };
+  const toolContinuation = { ...demanding, messages: [...demanding.messages,
+    { role: 'assistant', content: [opusThinking, toolUse] },
+    { role: 'user', content: [{ type: 'tool_result', tool_use_id: toolUse.id, content: 'Synthetic fixture result.' }] },
+  ] };
+  const nextHuman = { ...toolContinuation, messages: [...toolContinuation.messages,
+    { role: 'assistant', content: [{ type: 'text', text: 'The concurrency issue is resolved.' }] },
+    { role: 'user', content: 'Now change the exact typo teh to the in fixture.txt.' }, instructions,
+  ] };
+  const requests = [initial, demanding, toolContinuation, nextHuman];
+  const originals = structuredClone(requests);
+  const expectedModels = [config.models.sonnet, config.models.opus, config.models.opus, config.models.sonnet];
+  const promptIds = ['auto-first', 'auto-demanding', 'auto-demanding', 'auto-next'];
+  const beta = `${oauthHeaders['anthropic-beta']},dangerous-tool-use-2026-09-03,context-management-2025-06-27,mid-conversation-system-clear-at-2026-08-21`;
+  const event = payload => `event: ${payload.type}\r\ndata: ${JSON.stringify(payload)}\r\n\r\n`;
+  const replies = requests.map((_request, index) => Buffer.from([
+    { type: 'message_start', message: { id: `msg_auto_${index}`, model: expectedModels[index], content: [],
+      ...(index > 0 ? { input_transformations: [{ type: 'thinking_dropped', reason: 'model_binding_mismatch' }] } : {}) } },
+    { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },
+    { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Synthetic reply → unchanged.' } },
+    { type: 'content_block_stop', index: 0 },
+    { type: 'message_delta', delta: { stop_reason: 'end_turn', safeguard_results: [{ type: 'dangerous_tool_use', status: { type: 'available', tool_uses: {} } }] }, usage: { output_tokens: 10 } },
+    { type: 'message_stop' },
+  ].map(event).join('')));
+  const received = [];
+  const f = await fixture(t, async (req, res) => {
+    let text = ''; for await (const chunk of req) text += chunk;
+    const index = received.length;
+    received.push(JSON.parse(text));
+    // A count endpoint would consume an extra call and violate this assertion.
+    assert.equal(req.url, '/v1/messages?beta=true');
+    assert.equal(req.headers.authorization, oauthHeaders.authorization);
+    assert.equal(req.headers['anthropic-beta'], beta);
+    assert.equal(req.headers['x-claude-code-session-id'], 'auto-switch-session');
+    assert.equal(req.headers['x-claude-code-prompt-id'], usePromptIds ? promptIds[index] : undefined);
+    assert.equal(req.headers['x-autorouter-token'], undefined);
+    res.writeHead(200, { 'content-type': 'text/event-stream' });
+    const split = replies[index].indexOf(Buffer.from('→')) + 1;
+    res.write(replies[index].subarray(0, split));
+    res.end(replies[index].subarray(split));
+  }, { authMode: 'subscription', models: config.models, clientProfile: 'auto' }, (...args) => router.route(...args));
+  for (const [index, request] of requests.entries()) {
+    const response = await f.call('/v1/messages?beta=true', { method: 'POST', headers: {
+      ...oauthHeaders, 'anthropic-beta': beta, 'x-claude-code-session-id': 'auto-switch-session', 'x-claude-code-agent-id': 'auto-main-agent',
+      'x-claude-code-request-class': 'main', ...(usePromptIds ? { 'x-claude-code-prompt-id': promptIds[index] } : {}),
+    }, body: JSON.stringify(request) });
+    assert.equal(response.status, 200);
+    assert.deepEqual(Buffer.from(await response.arrayBuffer()), replies[index]);
+    assert.deepEqual(received[index], { ...request, model: expectedModels[index] });
+  }
+  assert.equal(classifications, 4);
+  assert.equal(received.length, 4);
+  assert.deepEqual(requests, originals);
+  assert.deepEqual(f.statuses.filter(entry => entry.event === 'route').map(({ model, source, reason, classified_tier }) =>
+    ({ model, source, reason, classified_tier })), [
+    { model: config.models.sonnet, source: 'jev', reason: 'auto_mode_floor', classified_tier: 'haiku' },
+    { model: config.models.opus, source: 'jev', reason: 'classified', classified_tier: 'opus' },
+    { model: config.models.opus, source: 'jev', reason: 'tool_turn_pinned', classified_tier: 'haiku' },
+    { model: config.models.sonnet, source: 'jev', reason: 'auto_mode_floor', classified_tier: 'haiku' },
+  ]);
+  for (const value of [sonnetThinking.thinking, sonnetThinking.signature, opusThinking.thinking, opusThinking.signature,
+    initial.safeguards[0].classifier_context.synthetic_context, 'classifier-secret', 'fake-subscription-token']) {
     assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes(value));
   }
 });

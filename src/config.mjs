@@ -69,7 +69,7 @@ export function readConfig(env = process.env) {
   }
   const models = {
     haiku: env.AUTOROUTER_HAIKU_MODEL ?? 'claude-haiku-4-5-20251001',
-    sonnet: env.AUTOROUTER_SONNET_MODEL ?? 'claude-sonnet-5',
+    sonnet: env.AUTOROUTER_SONNET_MODEL ?? (clientProfile === 'auto' ? 'claude-sonnet-5-5' : 'claude-sonnet-5'),
     opus: env.AUTOROUTER_OPUS_MODEL ?? 'claude-opus-5-5',
   };
   if (clientProfile === 'auto') {

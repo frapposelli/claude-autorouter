@@ -52,6 +52,7 @@ Without setup, AUTOROUTER_AUTH_MODE defaults to api-key and also requires ANTHRO
 AUTOROUTER_CLIENT_PROFILE=compatible (default) enables all three routing tiers.
 Use AUTOROUTER_CLIENT_PROFILE=native to retain Claude Code's own model/thinking settings.
 Use AUTOROUTER_CLIENT_PROFILE=auto for Auto permission mode: Sonnet/Opus routing, native thinking.
+Auto defaults to Sonnet 5.5 and Opus 5.5, switching on new human tasks and retaining tool turns.
 An explicit claude --permission-mode auto selects the auto profile for that launch.
 Claude's permission checks and organization policies still apply; Haiku does not support Auto mode.
 Optional CLAUDE_CODE_STOP_HOOK_BLOCK_CAP=N limits consecutive tool-free Stop-hook continuations.

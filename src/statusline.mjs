@@ -6,7 +6,7 @@ const REASONS = {
   model_specific_features: 'model features', large_or_multimodal_request: 'large request',
   context_capacity: 'large context',
   internal_request: 'internal request', unknown_model: 'custom model', low_confidence: 'low confidence',
-  auto_mode_floor: 'Auto mode floor', auto_mode_safeguards: 'Auto safety',
+  auto_mode_floor: 'Auto mode floor', auto_mode_safeguards: 'Auto safety', auto_mode_incompatible: 'Auto model guard',
 };
 const CLASSIFIER_ERRORS = {
   timeout: 'timeout', http_error: 'HTTP error', invalid_response: 'invalid response', network_error: 'network error',

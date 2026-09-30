@@ -20,6 +20,9 @@ test('session decision logging is opt-in and directory settings are validated wi
 test('Auto is an explicit client profile and accepts only documented supported routing targets', () => {
   assert.equal(readConfig({}).clientProfile, 'compatible');
   assert.deepEqual(CLIENT_PROFILES, ['compatible', 'native', 'auto']);
+  assert.equal(readConfig({ AUTOROUTER_CLIENT_PROFILE: 'auto' }).models.sonnet, 'claude-sonnet-5-5');
+  assert.equal(readConfig({ AUTOROUTER_CLIENT_PROFILE: 'auto' }).models.opus, 'claude-opus-5-5');
+  assert.equal(readConfig({}).models.sonnet, 'claude-sonnet-5');
   for (const clientProfile of CLIENT_PROFILES) {
     assert.equal(readConfig({ AUTOROUTER_CLIENT_PROFILE: clientProfile }).clientProfile, clientProfile);
   }

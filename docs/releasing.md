@@ -14,6 +14,8 @@ Version `0.3.5` adds opt-in saved configuration for Claude's native `CLAUDE_CODE
 
 Version `0.3.6` fixes Auto permission-mode launches with an Auto-compatible Sonnet/Opus profile while preserving Claude's permission classifiers and server safety-review requests. It also adds optional per-session JSONL decision logs containing a bounded human prompt excerpt, selected model, and routing latency. Logging is disabled by default; set `AUTOROUTER_SESSION_LOG_DIR` or use `setup --session-log-dir DIR` to enable it. See [Auto permission mode](reference.md#auto-permission-mode) and [session decision logs](reference.md#session-decision-logs).
 
+Version `0.3.7` enables automatic Sonnet/Opus switching for compatible Auto-mode execution requests, including requests carrying the known server safety-review contract. The Auto profile defaults to Sonnet 5.5 and Opus 5.5, floors Haiku decisions to Sonnet, and retains the selected model through tool and goal continuations. Shared native context edits, mid-conversation system messages, and signed thinking history no longer pin new human tasks. Permission-classifier requests and safety verdicts remain unchanged; unknown contracts and incompatible model features still preserve a compatible model. Explicit model overrides remain in effect. See [Auto permission mode](reference.md#auto-permission-mode).
+
 The GitHub repository is private. Publishing to npm makes the tarball's runtime source, README, configuration example, license, and shipped documentation public. Model weights, user configuration, credentials, transcripts, session logs, local artifacts, and test fixtures are excluded. Review the archive before the first publication and whenever the package allowlist changes.
 
 ## What runs automatically

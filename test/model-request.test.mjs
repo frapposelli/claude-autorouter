@@ -65,3 +65,62 @@ test('other models, existing adaptive settings and explicitly requested models p
     assert.deepEqual(result.adjustments, []);
   }
 });
+
+test('a Sonnet 5.5 between_tools request upgrades to adaptive Opus without altering signed history or safeguards', () => {
+  const body = {
+    model: 'claude-sonnet-5-5', thinking: { type: 'between_tools' },
+    system: [{ type: 'text', text: 'Synthetic system instructions.' }],
+    tools: [{ name: 'Read', input_schema: { type: 'object', properties: {} } }],
+    safeguards: [{ type: 'dangerous_tool_use', classifier_context: { v: 1, permission_mode: 'auto' } }],
+    context_management: { edits: [{ type: 'clear_thinking_20251015', keep: 'all' }] },
+    output_config: { effort: 'high' },
+    messages: [
+      { role: 'user', content: 'Inspect the synthetic lock.' },
+      { role: 'assistant', content: [
+        { type: 'thinking', thinking: '', signature: 'opaque-synthetic-signature' },
+        { type: 'redacted_thinking', data: 'opaque-synthetic-data' },
+        { type: 'text', text: 'The fence must be monotonic.' },
+      ] },
+      { role: 'user', content: 'Now review duplicate retries.' },
+      { role: 'system', content: 'The task now requires deeper review.', output_config: { effort: 'high' } },
+    ],
+  };
+  const before = structuredClone(body);
+  for (const model of ['claude-opus-5', 'claude-opus-5-5']) {
+    const { request, adjustments } = prepareRequest(body, model);
+    assert.deepEqual(request, { ...before, model, thinking: { type: 'adaptive' } });
+    assert.deepEqual(adjustments, ['adaptive_thinking_required']);
+    for (const key of ['system', 'tools', 'safeguards', 'context_management', 'output_config', 'messages']) {
+      assert.equal(request[key], body[key], `${key} must stay unchanged`);
+    }
+  }
+  assert.deepEqual(body, before);
+});
+
+test('between_tools adaptation does not guess aliases, source models or extended thinking contracts', () => {
+  for (const [source, target, thinking] of [
+    ['claude-sonnet-5', 'claude-opus-5-5', { type: 'between_tools' }],
+    ['claude-opus-5', 'claude-opus-5-5', { type: 'between_tools' }],
+    ['sonnet', 'claude-opus-5-5', { type: 'between_tools' }],
+    ['team/claude-sonnet-5-5', 'claude-opus-5-5', { type: 'between_tools' }],
+    ['claude-sonnet-5-5-future', 'claude-opus-5-5', { type: 'between_tools' }],
+    ['claude-sonnet-5-5', 'opus', { type: 'between_tools' }],
+    ['claude-sonnet-5-5', 'claude-opus-4-8', { type: 'between_tools' }],
+    ['claude-sonnet-5-5', 'claude-sonnet-5', { type: 'between_tools' }],
+    ['claude-sonnet-5-5', 'team/claude-opus-5-5', { type: 'between_tools' }],
+    ['claude-sonnet-5-5', 'claude-opus-5-5-future', { type: 'between_tools' }],
+    ...[
+      { type: 'between_tools', display: 'summarized' },
+      { type: 'between_tools', budget_tokens: 1000 },
+      { type: 'between_tools', block_binding: { prefix_mismatch_behavior: 'drop_block' } },
+      { type: 'between_tools', future_setting: true },
+    ].map(thinking => ['claude-sonnet-5-5', 'claude-opus-5-5', thinking]),
+  ]) {
+    const body = { model: source, thinking, messages: [{ role: 'user', content: 'Task' }] };
+    const before = structuredClone(body);
+    const result = prepareRequest(body, target);
+    assert.deepEqual(result.request, { ...before, model: target }, `${source} -> ${target}`);
+    assert.deepEqual(result.adjustments, []);
+    assert.deepEqual(body, before);
+  }
+});

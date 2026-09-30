@@ -1,6 +1,6 @@
 # Claude AutoRouter
 
-Use Haiku, Sonnet, and Opus in one Claude Code session. A local gateway classifies coding requests with the selected evaluator, applies compatibility and context checks, and streams the selected model's response back to Claude Code. Claude's internal classifiers and server safety-review requests pass through unchanged. [TypeSafe Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) is the default; an experimental Ollama backend evaluates requests locally.
+Use Haiku, Sonnet, and Opus in one Claude Code session. A local gateway classifies coding requests with the selected evaluator, applies compatibility and context checks, and streams the selected model's response back to Claude Code. Claude's internal permission classifiers retain their selected model; execution requests keep their server safety-review settings and verdicts when routed. [TypeSafe Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) is the default; an experimental Ollama backend evaluates requests locally.
 
 Requires Node.js 22+, macOS or Linux (including WSL), an installed `claude` command, and a Claude subscription login or Anthropic API key. The default evaluator also requires a [TypeSafe API key](https://console.typesafe.ai). There are no runtime package dependencies. Native Windows is not supported in this release.
 
@@ -35,13 +35,13 @@ claude-autorouter --version
 
 For API billing, use `claude-autorouter setup --auth-mode api-key`. Use `--force` to replace an existing config. Automation can supply `TYPESAFE_API_KEY` and, in API-key mode, `ANTHROPIC_API_KEY` through the environment; keys are never command-line arguments. `doctor` checks local configuration and Claude installation/login state without paid requests. See the [configuration reference](docs/reference.md#configuration).
 
-To use Claude's Auto permission mode (AutoRouter 0.3.6+):
+To use automatic Sonnet/Opus routing with Claude's Auto permission mode (AutoRouter 0.3.7+):
 
 ```sh
 claude-autorouter claude --permission-mode auto
 ```
 
-This selects the Auto-compatible profile: a Sonnet starting model, native thinking, and Sonnet/Opus task routing. Haiku does not support Auto mode. Claude's own permission classifiers and requests carrying server safety-review settings pass through with their selected model unchanged. Organization policies still apply. Use `AUTOROUTER_CLIENT_PROFILE=auto` for sessions where you select Auto in Claude's UI or saved settings. [Auto-mode support and limitations](docs/reference.md#auto-permission-mode).
+This selects the Auto profile, defaulting to Sonnet 5.5 and Opus 5.5. The evaluator can choose again for each new human task, while a task's tool calls and goal continuations retain its selected model. A Haiku verdict uses Sonnet. Native safety review stays enabled; organization policies still apply. Use `AUTOROUTER_CLIENT_PROFILE=auto` for sessions where you select Auto in Claude's UI or saved settings. Version 0.3.6 enabled Auto permissions but passed server-reviewed execution through without routing; version 0.3.7 removes that restriction for compatible requests. [Auto-mode support and limitations](docs/reference.md#auto-permission-mode).
 
 ## What you see
 

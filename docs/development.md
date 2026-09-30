@@ -12,6 +12,8 @@ npm run test:package
 
 The test suite uses local mocks and fake credentials. It covers Jev and Ollama routing, bounded prompt extraction, confidence and timeout fallback, token checks, model continuity, authentication forwarding, streaming, cancellation, status state, savings, and launcher behavior. Tests that start HTTP services require loopback binding. Local tests make no paid provider calls or model downloads.
 
+Auto-mode regressions exercise Sonnet → Opus → Opus tool continuation → Sonnet in one conversation, with and without gateway prompt IDs. They retain signed thinking, native context edits, mid-conversation system messages, safety-review settings, and streamed verdicts, including denied actions. Separate capability tests keep unknown review contracts and incompatible model features from being routed.
+
 Package validation checks the distributable and installed command rather than relying on the source checkout's paths. Review the [release procedure](releasing.md) before distributing a tarball.
 
 ## Run from source

@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { TIERS } from './config.mjs';
 import { buildState, goalFeedbackIndexes } from './prompt-state.mjs';
 import { buildOllamaState, evaluateOllama } from './ollama-evaluator.mjs';
+import { canRouteAutoRequest, hasRoutableSafeguards } from './auto-routing.mjs';
 export { buildState } from './prompt-state.mjs';
 
 const hash = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -226,10 +227,13 @@ export class Router {
   async route(body, { scope = '', signal, requestClass = '', promptId = '', countTokens } = {}) {
     const start = performance.now();
     const c = this.config;
-    // Claude owns auxiliary permission checks and the server-side safeguards
-    // contract. Never evaluate, adapt, or count these requests: changing
-    // their model can change the safety decision or invalidate its context.
-    if (requestClass === 'auxiliary' || body.safeguards !== undefined) {
+    const autoMode = c.clientProfile === 'auto' || hasRoutableSafeguards(body);
+    // Auxiliary permission classifiers keep their model and verdicts. Main
+    // execution requests can switch between compatible Sonnet/Opus models
+    // while retaining the server review contract verbatim. Unknown contracts
+    // still pass through, including any future safeguards version.
+    if (requestClass === 'auxiliary' || (body.safeguards !== undefined
+      && (!hasRoutableSafeguards(body) || requestClass === 'compaction'))) {
       // A safeguarded main request still produces the next tool turn. Replace
       // any older routing pin with the actual preserved model so a later
       // request that omits safeguards cannot restore that stale model. Side
@@ -263,7 +267,7 @@ export class Router {
     // Check suspicious input in parallel with Jev. Byte size only triggers a
     // check: common tool catalogs can be 200KB yet occupy far less than 200K
     // tokens. Tiny requests keep the one-call fast path.
-    const earlyCount = c.clientProfile !== 'auto' && !capacityLocked && countTokens && CAPACITY_UPGRADE_MODELS.has(c.models.haiku)
+    const earlyCount = !autoMode && !capacityLocked && countTokens && CAPACITY_UPGRADE_MODELS.has(c.models.haiku)
       && (contextSizeBytes(body, c.models.haiku) > 150000 || hasAttachments)
       ? safelyCount(c.models.haiku) : undefined;
     const decision = await this.classify(body, signal);
@@ -272,7 +276,7 @@ export class Router {
     // Auto permission mode requires a supported execution model. Retain the
     // evaluator's verdict for observability; stronger compatibility and turn
     // constraints below still decide whether this ordinary choice can apply.
-    if (c.clientProfile === 'auto' && decision.tier === 'haiku') {
+    if (autoMode && decision.tier === 'haiku') {
       model = c.models.sonnet;
       reason = 'auto_mode_floor';
     }
@@ -282,6 +286,9 @@ export class Router {
     let previous = turnPin?.model;
     const textTurn = !turn.continuation || turn.goalFeedback;
     const textPin = promptPin ?? (!promptId && turn.goalFeedback ? turnPin : undefined);
+    const pinnedTarget = (turn.continuation || (textTurn && textPin?.requestedModel === body.model))
+      ? previous : undefined;
+    const sharedAutoRequest = autoMode && canRouteAutoRequest(body, pinnedTarget ?? model);
     // A new human prompt can still carry signed thinking from the preceding
     // turn. Recover that turn's actual routed model when it is known.
     if (!turn.continuation && body.messages.length > 1 && !previous) {
@@ -300,19 +307,20 @@ export class Router {
     // Mid-conversation system messages are only supported by certain models.
     // Keep the client's capable model and all message fields (including
     // clear_at, tool changes, and output_config) instead of down-routing.
-    else if (hasSystemMessage) preserve(body.model, 'mid_conversation_system');
+    else if (hasSystemMessage && !sharedAutoRequest) preserve(body.model, 'mid_conversation_system');
     else if (unknownModel) preserve(body.model, 'unknown_model');
     // A new native request can explicitly select a model-specific thinking
     // mode, including between_tools. An earlier turn's model is not evidence
     // that it accepts that mode. Existing tool turns retain their pin below.
-    else if (modelSpecificThinking && body.thinking.type !== 'enabled' && textTurn) preserve(body.model, 'model_specific_features');
+    else if (modelSpecificThinking && body.thinking.type !== 'enabled' && textTurn && !sharedAutoRequest) preserve(body.model, 'model_specific_features');
     // Stop hooks (including /goal) return feedback as user-role text, even
     // though it still serves the same human prompt. Trust the scoped gateway
     // identity instead of treating that text as a new task. A client model
     // change can be an explicit fallback after a failure; do not undo it.
     // Local /goal commands can omit the gateway prompt ID. Exact feedback for
     // a known goal then uses the original conversation anchor as a fallback.
-    else if (textTurn && textPin?.requestedModel === body.model && !modelSpecificFeatures) {
+    else if (textTurn && textPin?.requestedModel === body.model && (!modelSpecificFeatures
+      || (autoMode && canRouteAutoRequest(body, textPin.model)))) {
       const needsSonnet = body.thinking?.type === 'adaptive' || body.output_config?.effort || body.max_tokens > 64000;
       if (needsSonnet && (textPin.model === c.models.haiku || rank(textPin.model) === 0)) {
         preserve(c.models.sonnet, 'requires_sonnet_capabilities');
@@ -322,10 +330,10 @@ export class Router {
     else if (turn.continuation && !turn.goalFeedback) keep(previous ? 'tool_turn_pinned' : 'unknown_continuation');
     // Unknown or model-specific features are preserved, never silently removed.
     else if (decision.source === 'fallback' && rank(body.model) >= 1) keep('classifier_unavailable');
-    else if (modelSpecificFeatures) keep('model_specific_features');
-    else if (thinkingHistory) keep('thinking_history');
+    else if (modelSpecificFeatures && !sharedAutoRequest) keep('model_specific_features');
+    else if (thinkingHistory && !sharedAutoRequest) keep('thinking_history');
     else if (body.thinking?.type === 'adaptive' || body.output_config?.effort || body.max_tokens > 64000) {
-      if (decision.tier === 'haiku') { model = c.models.sonnet; reason = 'requires_sonnet_capabilities'; }
+      if (decision.tier === 'haiku') { model = c.models.sonnet; if (!autoMode) reason = 'requires_sonnet_capabilities'; }
     }
     // Account for all context, including system instructions and loaded tool
     // schemas that are intentionally omitted from Jev's bounded excerpt.
@@ -344,7 +352,10 @@ export class Router {
       const configured = TIERS.findIndex(tier => c.models[tier] === value);
       return configured >= 0 ? configured : rank(value);
     };
-    if (!preserved && largeContext) {
+    // The verified modern Auto pair shares a native 1M input window. A large
+    // prompt is not a reason to pin Opus forever after the task becomes easy.
+    // This does not assert that the prompt fits the upstream context limit.
+    if (!preserved && largeContext && !sharedAutoRequest) {
       const baseline = previous ?? body.model;
       // Prevent a downgrade; a compatible Haiku client must still be able to
       // upgrade a demanding request to a larger-context, stronger model.
@@ -361,6 +372,9 @@ export class Router {
         preserve(capable, 'context_capacity');
         capacityUpgraded = true;
       }
+    }
+    if (autoMode && model !== body.model && !canRouteAutoRequest(body, model)) {
+      preserve(body.model, 'auto_mode_incompatible');
     }
     const identifiableUpgrade = capacityUpgraded && (turn.index >= 0 || promptId);
     if ((!turn.continuation || previous || identifiableUpgrade || reason === 'mid_conversation_system') && requestClass !== 'compaction') {
