@@ -8,7 +8,7 @@ import { Router } from '../src/router.mjs';
 
 const token = 'local-test-token-123456789';
 const body = { model: 'claude-sonnet-5', stream: true, max_tokens: 1024, system: [{ type: 'text', text: 'system', cache_control: { type: 'ephemeral' } }], messages: [{ role: 'user', content: 'Fix a typo' }], tools: [{ name: 'Read', input_schema: { type: 'object' } }] };
-async function fixture(t, handler, overrides = {}, routeImpl, onStatus) {
+async function fixture(t, handler, overrides = {}, routeImpl, onStatus, onDecision) {
   const upstream = http.createServer(handler);
   const address = await listen(upstream, 0);
   let evaluations = 0;
@@ -18,6 +18,7 @@ async function fixture(t, handler, overrides = {}, routeImpl, onStatus) {
   const server = createRouterServer(config, {
     router: { route: async (...args) => { evaluations++; return routeImpl ? routeImpl(...args) : { model: config.models.haiku, source: 'test' }; } },
     log: entry => logs.push(entry), onStatus: entry => { statuses.push(entry); return onStatus?.(entry); },
+    onDecision,
   });
   const local = await listen(server, 0);
   t.after(() => { server.closeAllConnections(); server.close(); upstream.closeAllConnections(); upstream.close(); });
@@ -65,22 +66,25 @@ test('streams before completion, preserves SSE, payloads, headers and query; iso
 });
 
 test('token counting bypasses Jev and upstream errors pass through unchanged', async t => {
+  const decisions = [];
   const error = JSON.stringify({ type: 'error', error: { type: 'rate_limit_error', message: 'Wait' } });
   const f = await fixture(t, async (req, res) => {
     let text = ''; for await (const chunk of req) text += chunk;
     assert.deepEqual(JSON.parse(text), body);
     res.writeHead(429, { 'retry-after': '7', 'content-type': 'application/json' }); res.end(error);
-  });
+  }, {}, undefined, undefined, entry => decisions.push(entry));
   const response = await f.call('/v1/messages/count_tokens', { method: 'POST', body: JSON.stringify(body) });
   assert.equal(response.status, 429);
   assert.equal(response.headers.get('retry-after'), '7');
   assert.equal(await response.text(), error);
   assert.equal(f.evaluations(), 0);
   assert.deepEqual(f.statuses, []);
+  assert.deepEqual(decisions, []);
 });
 
 test('rejects missing auth, browser origins, malformed JSON, unsupported paths and oversized input locally', async t => {
-  const f = await fixture(t, () => assert.fail('Must not reach upstream'), { maxBodyBytes: 1000 });
+  const decisions = [];
+  const f = await fixture(t, () => assert.fail('Must not reach upstream'), { maxBodyBytes: 1000 }, undefined, undefined, entry => decisions.push(entry));
   assert.equal((await f.call('/v1/messages', { method: 'POST', headers: { 'x-api-key': 'wrong' } })).status, 401);
   assert.equal((await f.call('/health', { headers: { origin: 'https://example.com' } })).status, 403);
   assert.equal((await f.call('/v1/messages', { method: 'POST', body: '{bad' })).status, 400);
@@ -89,6 +93,126 @@ test('rejects missing auth, browser origins, malformed JSON, unsupported paths a
   assert.equal((await f.call('/v1/messages', { method: 'POST', body: 'x'.repeat(1001) })).status, 413);
   assert.equal((await f.call('/health')).status, 200);
   assert.equal(f.evaluations(), 0);
+  assert.deepEqual(decisions, []);
+});
+
+test('opt-in decision callbacks receive bounded current task text without leaking it into status or ordinary diagnostics', async t => {
+  const decisions = [];
+  const prompt = 'DECISION_ONLY_TASK: inspect this fixture.\nKeep the supplied emoji 😀.';
+  const privateValues = ['PRIVATE_SYSTEM', 'PRIVATE_SCHEMA', 'PRIVATE_THINKING', 'PRIVATE_IMAGE', 'PRIVATE_TOOL_RESULT', 'PRIVATE_REMINDER'];
+  const payload = { ...body, system: privateValues[0], tools: [{ name: 'Read', description: privateValues[1], input_schema: { type: 'object' } }], messages: [
+    { role: 'user', content: 'Earlier task' },
+    { role: 'assistant', content: 'Earlier answer' },
+    { role: 'user', content: [
+      { type: 'text', text: '<system-reminder>PRIVATE_REMINDER</system-reminder>' },
+      { type: 'text', text: prompt },
+      { type: 'thinking', thinking: privateValues[2], signature: 'PRIVATE_SIGNATURE' },
+      { type: 'image', source: { type: 'base64', media_type: 'image/png', data: privateValues[3] } },
+    ] },
+    { role: 'assistant', content: [{ type: 'tool_use', id: 'read-fixture', name: 'Read', input: { path: 'PRIVATE_PATH' } }] },
+    { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'read-fixture', content: privateValues[4] }] },
+  ] };
+  const original = structuredClone(payload);
+  let route = { model: 'claude-haiku-4-5-20251001', latency_ms: 12.25, source: 'jev', evaluator: 'jev', reason: 'classified', classified_tier: 'haiku' };
+  const reply = 'event: message_start\ndata: {"type":"message_start","message":{"model":"provider-confirmed-model"}}\n\n'
+    + 'event: message_stop\ndata: {"type":"message_stop"}\n\n';
+  const f = await fixture(t, (_req, res) => {
+    res.writeHead(200, { 'content-type': 'text/event-stream' }); res.end(reply);
+  }, {}, () => route, undefined, entry => decisions.push(entry));
+  const send = async (value, requestClass) => {
+    const response = await f.call('/v1/messages', { method: 'POST', headers: {
+      'x-claude-code-session-id': 'decision-session', 'x-claude-code-agent-id': 'decision-agent', 'x-claude-code-prompt-id': 'decision-prompt',
+      ...(requestClass === undefined ? {} : { 'x-claude-code-request-class': requestClass }),
+    }, body: JSON.stringify(value) });
+    assert.equal(response.status, 200);
+    assert.equal(await response.text(), reply);
+    return decisions.at(-1);
+  };
+  const first = await send(payload, 'main');
+  assert.equal(first.schema_version, 1);
+  assert.equal(first.event, 'decision');
+  assert.ok(Number.isFinite(Date.parse(first.timestamp)));
+  assert.match(first.request_id, /^[a-f0-9-]{36}$/);
+  assert.equal(first.session_id, 'decision-session');
+  assert.equal(first.agent_id, 'decision-agent');
+  assert.equal(first.prompt_id, 'decision-prompt');
+  assert.equal(first.request_class, 'main');
+  assert.equal(first.prompt_excerpt, prompt);
+  assert.equal(first.prompt_truncated, false);
+  assert.equal(first.requested_model, payload.model);
+  assert.equal(first.selected_model, route.model);
+  assert.equal(first.decision_latency_ms, 12.25);
+  assert.equal(first.source, 'jev');
+  assert.equal(first.evaluator, 'jev');
+  assert.equal(first.classified_tier, 'haiku');
+  assert.equal(first.reason, 'classified');
+  for (const value of [...privateValues, 'PRIVATE_SIGNATURE', 'PRIVATE_PATH']) assert.ok(!JSON.stringify(first).includes(value));
+  assert.deepEqual(payload, original);
+
+  const multibyte = { ...body, messages: [{ role: 'user', content: '😀'.repeat(501) + 'OMITTED_TAIL' }] };
+  route = { ...route, source: 'cache' };
+  const bounded = await send(multibyte);
+  assert.equal(bounded.prompt_excerpt, '😀'.repeat(500));
+  assert.equal([...bounded.prompt_excerpt].length, 500);
+  assert.equal(bounded.prompt_truncated, true);
+  assert.equal(bounded.source, 'cache');
+  const exact = await send({ ...body, messages: [{ role: 'user', content: '😀'.repeat(500) }] }, 'main');
+  assert.equal(exact.prompt_truncated, false);
+
+  route = { model: payload.model, source: 'passthrough', reason: 'internal_request', latency_ms: 0.5 };
+  for (const requestClass of ['auxiliary', 'compaction', 'subagent', 'workflow']) {
+    const internal = await send(payload, requestClass);
+    assert.equal(internal.prompt_excerpt, '');
+    assert.equal(internal.prompt_truncated, false);
+    assert.equal(internal.source, 'passthrough');
+    assert.equal(internal.request_class, requestClass);
+  }
+  assert.equal(decisions.length, 7);
+  assert.equal(new Set(decisions.map(entry => entry.request_id)).size, 7);
+  for (const channel of [f.logs, f.statuses]) {
+    const serialized = JSON.stringify(channel);
+    for (const value of [prompt, ...privateValues, '😀', 'OMITTED_TAIL']) assert.ok(!serialized.includes(value));
+    assert.ok(!serialized.includes('prompt_excerpt'));
+  }
+});
+
+test('decision sink failures and pending writes never delay or change the upstream stream', { timeout: 5000 }, async t => {
+  let calls = 0;
+  const reply = 'event: message_delta\ndata: {"delta":{"stop_reason":"end_turn"}}\n\n';
+  const f = await fixture(t, (_req, res) => {
+    res.writeHead(200, { 'content-type': 'text/event-stream', 'request-id': 'decision-sink-fixture' }); res.end(reply);
+  }, {}, () => ({ model: body.model, latency_ms: 1, source: 'jev', reason: 'classified' }), undefined, () => {
+    calls++;
+    if (calls === 1) throw new Error('PRIVATE_SYNC_LOG_FAILURE');
+    if (calls === 2) return Promise.reject(new Error('PRIVATE_ASYNC_LOG_FAILURE'));
+    return new Promise(() => {});
+  });
+  for (let index = 0; index < 3; index++) {
+    const response = await f.call('/v1/messages', { method: 'POST', body: JSON.stringify(body), signal: AbortSignal.timeout(1000) });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('request-id'), 'decision-sink-fixture');
+    assert.equal(await response.text(), reply);
+  }
+  assert.equal(calls, 3);
+  assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes('PRIVATE_'));
+});
+
+test('a fallback decision is logged even when its upstream request fails', async t => {
+  const decisions = [];
+  const errorBody = JSON.stringify({ type: 'error', error: { type: 'rate_limit_error', message: 'Synthetic rate limit' } });
+  const f = await fixture(t, (_req, res) => {
+    res.writeHead(429, { 'content-type': 'application/json' }); res.end(errorBody);
+  }, {}, () => ({ model: body.model, latency_ms: 1501, source: 'fallback', evaluator: 'jev', reason: 'classifier_unavailable', classifier_error: 'timeout' }),
+  undefined, entry => decisions.push(entry));
+  const response = await f.call('/v1/messages', { method: 'POST', body: JSON.stringify(body) });
+  assert.equal(response.status, 429);
+  assert.equal(await response.text(), errorBody);
+  assert.equal(decisions.length, 1);
+  assert.equal(decisions[0].source, 'fallback');
+  assert.equal(decisions[0].classifier_error, 'timeout');
+  assert.equal(decisions[0].selected_model, body.model);
+  assert.equal(decisions[0].decision_latency_ms, 1501);
+  assert.equal(decisions[0].prompt_excerpt, 'Fix a typo');
 });
 
 test('client cancellation closes the upstream stream', async t => {
@@ -430,9 +554,78 @@ test('real routing adapts low-confidence Sonnet 5.5 and its signed tool continua
   }
 });
 
+test('auto permission classifier and server safeguard verdicts pass through without evaluator or token-count calls', async t => {
+  const config = { ...readConfig({ TYPESAFE_API_KEY: 'classifier-secret' }), clientProfile: 'auto' };
+  let classifications = 0;
+  const router = new Router(config, { fetchImpl: async () => { classifications++; throw new Error('Safety requests must bypass classification'); } });
+  const explanation = 'Synthetic denied action';
+  const auxiliary = { ...body, model: config.models.haiku,
+    system: [{ type: 'text', text: 'Synthetic classifier attribution. ' + 'review context '.repeat(11000) }],
+    messages: [{ role: 'user', content: 'Evaluate the synthetic tool permission request.' }],
+    tools: [], stop_sequences: ['</block>'], thinking: { type: 'disabled' },
+  };
+  const safeguarded = { ...body, model: config.models.sonnet,
+    safeguards: [{ type: 'dangerous_tool_use', classifier_context: { v: 1, synthetic_context: 'Preserve this review context.' } }],
+  };
+  const requests = [auxiliary, safeguarded];
+  const originals = structuredClone(requests);
+  const classes = ['auxiliary', 'main'];
+  const beta = oauthHeaders['anthropic-beta'] + ',dangerous-tool-use-2026-09-03';
+  const event = payload => `event: ${payload.type}\r\ndata: ${JSON.stringify(payload)}\r\n\r\n`;
+  const replies = requests.map((request, index) => Buffer.from([
+    { type: 'message_start', message: { id: `msg_safety_${index}`, model: request.model, content: [] } },
+    { type: 'content_block_start', index: 0, content_block: index === 0 ? { type: 'text', text: '' }
+      : { type: 'tool_use', id: 'tool_test', name: 'Bash', input: {} } },
+    { type: 'content_block_delta', index: 0, delta: index === 0
+      ? { type: 'text_delta', text: `<block>${explanation}</block>` }
+      : { type: 'input_json_delta', partial_json: JSON.stringify({ command: 'printf synthetic' }) } },
+    { type: 'content_block_stop', index: 0 },
+    { type: 'message_delta', delta: index === 0 ? { stop_reason: 'stop_sequence', stop_sequence: '</block>' }
+      : { stop_reason: 'tool_use', safeguard_results: [{ type: 'dangerous_tool_use', status: { type: 'available',
+        tool_uses: { tool_test: { type: 'evaluated', outcome: 'flagged', explanation } } } }] }, usage: { output_tokens: 20 } },
+    { type: 'message_stop' },
+  ].map(event).join('')));
+  let upstreamCalls = 0;
+  const f = await fixture(t, async (req, res) => {
+    let text = ''; for await (const chunk of req) text += chunk;
+    const index = upstreamCalls++;
+    assert.equal(req.url, '/v1/messages?beta=true');
+    assert.equal(req.headers.authorization, oauthHeaders.authorization);
+    assert.equal(req.headers['anthropic-beta'], beta);
+    assert.equal(req.headers['anthropic-version'], oauthHeaders['anthropic-version']);
+    assert.equal(req.headers['x-claude-code-request-class'], classes[index]);
+    assert.equal(req.headers['x-claude-code-session-id'], 'safety-session');
+    assert.equal(req.headers['x-autorouter-token'], undefined);
+    assert.equal(text, JSON.stringify(requests[index]));
+    res.writeHead(200, { 'content-type': 'text/event-stream', 'request-id': `safety-provider-${index}`, 'x-safety-fixture': 'retained' });
+    res.write(replies[index].subarray(0, 37));
+    res.end(replies[index].subarray(37));
+  }, { authMode: 'subscription', models: config.models, clientProfile: 'auto' }, (...args) => router.route(...args));
+  for (const [index, request] of requests.entries()) {
+    const response = await f.call('/v1/messages?beta=true', { method: 'POST', headers: {
+      ...oauthHeaders, 'anthropic-beta': beta, 'x-claude-code-request-class': classes[index], 'x-claude-code-session-id': 'safety-session',
+    }, body: JSON.stringify(request) });
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('request-id'), `safety-provider-${index}`);
+    assert.equal(response.headers.get('x-safety-fixture'), 'retained');
+    assert.deepEqual(Buffer.from(await response.arrayBuffer()), replies[index]);
+  }
+  assert.equal(classifications, 0);
+  assert.equal(upstreamCalls, 2);
+  assert.deepEqual(requests, originals);
+  assert.deepEqual(f.statuses.filter(entry => entry.event === 'route').map(({ model, source, reason, classified_tier }) =>
+    ({ model, source, reason, classified_tier })), [
+    { model: auxiliary.model, source: 'passthrough', reason: 'internal_request', classified_tier: undefined },
+    { model: safeguarded.model, source: 'passthrough', reason: 'auto_mode_safeguards', classified_tier: undefined },
+  ]);
+  for (const value of [explanation, safeguarded.safeguards[0].classifier_context.synthetic_context, 'classifier-secret', 'fake-subscription-token']) {
+    assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes(value));
+  }
+});
+
 for (const usePromptIds of [true, false]) test(`goal feedback and tool results retain the main model, preserving auxiliary verdicts and new human turns (${usePromptIds ? 'gateway prompt IDs' : 'expanded command without prompt IDs'})`, { timeout: 5000 }, async t => {
   const config = readConfig({ AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5', TYPESAFE_API_KEY: 'classifier-secret' });
-  const classifierChoices = ['sonnet', 'opus', 'haiku', 'haiku', 'haiku'];
+  const classifierChoices = ['sonnet', 'haiku', 'haiku', 'haiku'];
   let classifications = 0;
   const router = new Router(config, { fetchImpl: async (url, options) => {
     assert.equal(url, config.jevEndpoint);
@@ -526,12 +719,12 @@ for (const usePromptIds of [true, false]) test(`goal feedback and tool results r
       thinking: { type: expectedModels[index] === config.models.sonnet ? 'between_tools' : 'disabled' },
     });
   }
-  assert.equal(classifications, 5);
+  assert.equal(classifications, 4);
   assert.deepEqual(requests, originals);
   const routes = f.statuses.filter(entry => entry.event === 'route');
   assert.deepEqual(routes.map(({ model, source, reason, classified_tier }) => ({ model, source, reason, classified_tier })), [
     { model: config.models.sonnet, source: 'jev', reason: 'classified', classified_tier: 'sonnet' },
-    { model: config.models.haiku, source: 'jev', reason: 'internal_request', classified_tier: 'opus' },
+    { model: config.models.haiku, source: 'passthrough', reason: 'internal_request', classified_tier: undefined },
     { model: config.models.sonnet, source: 'jev', reason: usePromptIds ? 'prompt_turn_pinned' : 'goal_turn_pinned', classified_tier: 'haiku' },
     { model: config.models.sonnet, source: 'jev', reason: 'tool_turn_pinned', classified_tier: 'haiku' },
     { model: config.models.haiku, source: 'jev', reason: 'classified', classified_tier: 'haiku' },
@@ -710,12 +903,13 @@ test('an upstream timeout after streaming begins reports an error rather than ca
 });
 
 test('cancellation during classification closes status without exposing a route or forwarding upstream', async t => {
+  const decisions = [];
   let evaluating;
   const started = new Promise(resolve => { evaluating = resolve; });
   const f = await fixture(t, () => assert.fail('Cancelled classification must not reach upstream'), {}, (request, { signal }) => {
     evaluating();
     return new Promise((resolve, reject) => signal.addEventListener('abort', () => reject(signal.reason), { once: true }));
-  });
+  }, undefined, entry => decisions.push(entry));
   const controller = new AbortController();
   const pending = f.call('/v1/messages', { method: 'POST', signal: controller.signal, body: JSON.stringify(body) });
   const rejected = assert.rejects(pending);
@@ -724,6 +918,7 @@ test('cancellation during classification closes status without exposing a route 
   await rejected;
   await waitForStatus(f, 'request_cancelled');
   assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'request_cancelled']);
+  assert.deepEqual(decisions, []);
 });
 
 test('disconnect cancels an unlimited Ollama decision through the real router before any upstream call', { timeout: 3000 }, async t => {

@@ -6,7 +6,9 @@
 | --- | --- |
 | `claude-autorouter setup` | Save subscription-mode configuration and a Jev key |
 | `claude-autorouter setup --auth-mode api-key` | Configure Jev and Anthropic API-key billing |
+| `claude-autorouter setup --client-profile auto` | Save a Sonnet/Opus profile compatible with Claude's Auto permission mode |
 | `claude-autorouter setup --stop-hook-block-cap 2` | Opt into a shorter native Stop-hook continuation cap during setup |
+| `claude-autorouter setup --session-log-dir DIR` | Save an opt-in directory for per-session JSONL decision logs |
 | `claude-autorouter setup --evaluator ollama --pull` | Configure the native local evaluator and download its selected model if missing |
 | `claude-autorouter setup --evaluator ollama --ollama-timeout-ms 0 --force` | Save a disabled runtime evaluator deadline |
 | `claude-autorouter setup --force` | Replace an existing user config |
@@ -43,9 +45,10 @@ For an environment-only subscription launch, set `AUTOROUTER_AUTH_MODE=subscript
 | `AUTOROUTER_CONFIG` | see path order above | Explicit user config path |
 | `AUTOROUTER_AUTH_MODE` | `api-key` without saved config; setup selects `subscription` | Authentication mode |
 | `AUTOROUTER_EVALUATOR` | `jev` | `jev` or local `ollama` classification |
-| `AUTOROUTER_CLIENT_PROFILE` | `compatible` | `native` retains Claude's own model and thinking settings |
+| `AUTOROUTER_CLIENT_PROFILE` | `compatible` | `native` retains client model/thinking settings; `auto` starts with Sonnet when no explicit model is set and excludes Haiku from task routing |
 | `AUTOROUTER_STATUSLINE` | enabled | `0` retains your existing status line |
 | `AUTOROUTER_DEBUG` | off | `1` enables launcher metadata logs on stderr |
+| `AUTOROUTER_SESSION_LOG_DIR` | off | Write per-session JSONL decision logs with prompt excerpts into this directory; unset or empty disables it |
 | `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP` | unset; Claude currently uses `8` | Optional cap on consecutive Stop/SubagentStop continuations without tool use; `0` disables the cap |
 | `ENABLE_TOOL_SEARCH` | `true` in launcher when unset | Load MCP tool definitions on demand; explicit values are preserved |
 | `AUTOROUTER_HAIKU_MODEL` | `claude-haiku-4-5-20251001` | Routine tier |
@@ -172,13 +175,35 @@ The following policy applies after classification:
 - Claude's local `/goal` command can omit the prompt-ID header. For that path, an exact feedback label matching a preceding expanded `/goal` command keeps the original task and conversation anchor. This narrow text fallback also recognizes Claude's repeated-goal truncation format; arbitrary hook text is not treated as a goal. Feedback remains in the evaluator's recent conversation and the full API request. A new human message becomes the current task normally. The status line shows `prompt pinned` or `goal pinned` when either text-continuation rule applies.
 - Thinking history, fixed-budget thinking, server tools, context management, and other recognized model-specific features preserve the current model. Adaptive thinking, effort, and output above 64K prevent a Haiku choice. Fields are never stripped to force a downgrade.
 - Mid-conversation `system` messages preserve the requested model and pass through unchanged. They do not count as a tool continuation by themselves.
-- Recognized compaction and auxiliary requests otherwise preserve their requested model. Token counting and model discovery pass through without classification.
+- Auxiliary requests, including Claude's Auto permission classifier, pass through on their requested model without Jev/Ollama evaluation, token checks, or turn-state changes. Compaction retains its existing model and context-capacity policy. Requests containing `safeguards` also pass through unchanged so the server's safety-review contract is preserved. Token counting and model discovery pass through without classification.
 
 The default `compatible` profile starts Claude with Haiku-compatible requests and client-requested thinking disabled. AutoRouter uses adaptive thinking when upgrading these requests to Opus 5/5.5. Starting with 0.3.3, routing to exact `claude-sonnet-5-5` translates disabled thinking to `between_tools`, which skips up-front thinking but permits progress updates between tool calls. At `xhigh`/`max` effort, or when per-message effort differs from the top-level setting (default `high`), it uses adaptive thinking while preserving the effort settings. Token counting uses the same adaptation. Sonnet 5 still accepts disabled thinking and is unchanged. See [Sonnet 5.5 thinking requirements](https://platform.claude.com/docs/en/models/sonnet-5-5/migration-guide).
 
 Explicit native `between_tools` and unknown thinking modes retain the incoming model on new human turns. Signed thinking blocks pass through unchanged and existing tool turns retain their model pin. `AUTOROUTER_CLIENT_PROFILE=native` preserves normal client settings, which can constrain routing. An explicit Claude `--model` argument overrides the starting model, but `/model` and `--model` are requested models, not locks on the routed result. Native same-model requests and unknown model aliases are not rewritten; clients must use settings supported by that model.
 
 The launcher enables `ENABLE_TOOL_SEARCH=true` when unset. Claude can otherwise disable on-demand MCP discovery when using a custom API address, loading connected-tool schemas into even a fresh conversation. Explicit values, including `false` or `auto:5`, are preserved. Managed settings and always-loaded tools can still affect deferral. See [Claude Code tool search](https://code.claude.com/docs/en/mcp#configure-tool-search).
+
+### Auto permission mode
+
+The default `compatible` profile starts Claude as Haiku to permit three-tier routing. Claude's Auto permission mode does not support Haiku, even if AutoRouter routes an API request to Sonnet. Eligibility is based on Claude's selected client model. Gateways themselves are supported. See [Claude's Auto-mode requirements](https://code.claude.com/docs/en/permission-modes#eliminate-permission-prompts-with-auto-mode).
+
+AutoRouter 0.3.6 adds an `auto` client profile. Launch with:
+
+```sh
+claude-autorouter claude --permission-mode auto
+```
+
+An explicit `--permission-mode auto` (or `--permission-mode=auto`) selects the profile for that launch, including when your saved profile is `native`. All arguments still go to Claude unchanged. For Auto chosen from Claude's UI or existing settings instead, use:
+
+```sh
+env AUTOROUTER_CLIENT_PROFILE=auto claude-autorouter claude
+```
+
+The profile defaults the client to the configured Sonnet model and preserves native thinking and explicit model choices. It promotes a routine Haiku routing decision to Sonnet, while other model-feature and conversation-continuity guards still apply. Configured Sonnet/Opus targets must be known Auto-capable models. An explicit client `--model` or `ANTHROPIC_MODEL` can still make Auto unavailable if it selects Haiku or another unsupported model; choose a supported Sonnet or Opus instead.
+
+Claude remains responsible for enabling the permission mode and enforcing organization settings, account availability, and tool rules. The profile does not enable Auto by itself or override `disableAutoMode`. AutoRouter does not reproduce Claude's settings precedence to infer a mode from settings files. For new saved configurations, `setup --client-profile auto` persists the profile; for an existing config, change only `AUTOROUTER_CLIENT_PROFILE` to `"auto"` to retain your other settings. `setup --force` replaces the config.
+
+**Routing limits:** Claude's permission-classifier requests retain their exact requested model and skip AutoRouter's evaluator. Requests with server-side `safeguards` also retain their model and full body, and safety verdicts stream back unchanged. The status line shows `pass-through · Auto safety` for these requests. Recent Claude versions normally request server-side review through gateways, so Auto-mode sessions can stay on their client-selected model rather than switching between Sonnet and Opus. Ordinary routable requests use the Sonnet/Opus floor, shown as `Auto mode floor` when it changes a Haiku choice. AutoRouter does not disable server review to enable routing. See [server-side classifier review](https://code.claude.com/docs/en/permission-modes#server-side-classifier-review).
 
 ### Context capacity
 
@@ -217,6 +242,40 @@ Totals include completed main, agent, and auxiliary calls for the current sessio
 This estimate does not measure subscription bill savings or quota credits. It excludes Jev charges, local compute costs, tool fees, negotiated discounts, and unpriced requests. A real Opus run can produce different tokens and cache hits. Incomplete streams, unknown cache-write TTLs, unsupported pricing modifiers, and unrecognized model versions are excluded rather than guessed. The rate table requires updates when prices change.
 
 Set `AUTOROUTER_STATUSLINE=0` to retain an existing status line. Other `--settings` values are retained in the temporary overlay; source-relative Read/Edit rules keep their anchors. Ambiguous relative sandbox paths cause the launcher to skip the overlay and pass original settings through with a notice. Safe mode disables custom status lines; print mode has no status-line UI. Standalone `serve` does not install one.
+
+## Session decision logs
+
+AutoRouter 0.3.6 adds optional persistent logs, separate from stderr and the temporary status-line snapshot. Logging is disabled by default. Enable it for one launch:
+
+```sh
+env AUTOROUTER_SESSION_LOG_DIR="$HOME/.local/state/claude-autorouter/sessions" \
+  claude-autorouter claude
+```
+
+The setting also works with `serve` and the Auto-compatible profile. For a new saved configuration, add `--session-log-dir DIR` to `setup`. For an existing config, add `AUTOROUTER_SESSION_LOG_DIR` with an absolute directory path to preserve your other settings. Setup resolves relative paths at setup time; an environment-only relative path resolves from the launch directory. Environment values override saved values; `AUTOROUTER_SESSION_LOG_DIR=''` disables a saved preference for one launch. `doctor` reports the setting without creating log files.
+
+Files are named `autorouter-session-*.jsonl`: one file per observed Claude session within a router launch, with a timestamp, random launch identifier, and hashed session identifier in the name. A resumed session in a new launch creates a new file. Requests without a session header share an anonymous file for that launch. Subagents with the same session ID share its file and retain their agent ID. Files are created only when a decision is recorded, and remain after the session ends.
+
+Every line is a standalone JSON object. The key fields look like this (additional IDs and routing metadata are included):
+
+```json
+{"schema_version":1,"event":"decision","timestamp":"2026-09-30T12:00:00.000Z","session_id":"example-session","prompt_excerpt":"Fix the typo in README.md","prompt_truncated":false,"requested_model":"claude-haiku-4-5-20251001","selected_model":"claude-sonnet-5","decision_latency_ms":214.37,"source":"jev","reason":"classified"}
+```
+
+- `prompt_excerpt`: up to 500 Unicode characters of the current human task for main requests or requests without a class header. Tool continuations and recognized `/goal` feedback keep the originating human task. System instructions, standalone reminder blocks, tool results, images, documents, and thinking are omitted. Auxiliary classifiers, compaction, subagents, and workflows have empty excerpts; a new attachment-only task also has an empty excerpt. `prompt_truncated` indicates that text exceeded the limit.
+- `selected_model`: AutoRouter's final selected model after compatibility checks, before the upstream response. It does not confirm which model successfully answered.
+- `decision_latency_ms`: time spent making the routing decision, including evaluator waiting, cache lookup, and any context checks. It excludes Claude generation time and log writing. A `passthrough` entry can be near zero because no evaluator was called.
+- `source` and `reason`: distinguish evaluator choices, cache hits, fallbacks, turn/model constraints, and native safety pass-through. `classified_tier` is included when an evaluator returned a tier, which may differ from the final selected model.
+
+Inspect a file with:
+
+```sh
+jq -c '{prompt_excerpt, selected_model, decision_latency_ms, source, reason}' /path/to/autorouter-session-EXAMPLE.jsonl
+```
+
+There is one record per completed routing decision, including requests whose upstream call later fails. Requests rejected before routing or cancelled before a decision are not recorded. Logs contain user text and are local plaintext: the feature is disabled by default, new directories use `0700`, and files use `0600`. Existing directory permissions are left unchanged. Authentication headers, provider replies, full transcripts, and tool payloads are not logged; text you put directly in a prompt can appear in its excerpt.
+
+Writes run asynchronously through a bounded 1 MiB queue and support up to 128 session files per router process. Normal shutdown drains accepted records. Filesystem failure or a queue/session limit disables further logging with one generic warning while routing continues. An abrupt process kill or storage failure can lose unwritten records. Logs are retained without automatic rotation or deletion; manage them in your chosen directory. Log filenames are ignored by this repository and excluded from the npm package.
 
 ## Troubleshooting
 

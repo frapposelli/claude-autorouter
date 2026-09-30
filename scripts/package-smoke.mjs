@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import { copyFile, lstat, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+import { copyFile, lstat, mkdir, mkdtemp, readFile, readdir, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { delimiter, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -108,7 +108,8 @@ async function main() {
       }
       // Synthetic secrets verify the actual archive's contents without reading
       // or copying this checkout's .env, private artifacts, or transcripts.
-      for (const path of ['.env', '.env.local', 'artifacts/private-transcript.json', 'test/private.test.mjs', 'src/private.env']) {
+      for (const path of ['.env', '.env.local', 'artifacts/private-transcript.json', 'test/private.test.mjs', 'src/private.env',
+        'autorouter-session-private.jsonl', 'src/autorouter-session-private.jsonl']) {
         const target = join(staging, path);
         await mkdir(dirname(target), { recursive: true });
         await writeFile(target, SENTINEL);
@@ -194,11 +195,13 @@ async function main() {
     const cliEnv = { ...env, PATH: [fakeBin, dirname(process.execPath), env.PATH].filter(Boolean).join(delimiter),
       AUTOROUTER_CONFIG: configPath, TYPESAFE_API_KEY: JEV_KEY, ANTHROPIC_API_KEY: API_KEY,
       AUTOROUTER_JEV_URL: `${endpoint}/v1/systemone`, AUTOROUTER_UPSTREAM_URL: endpoint };
-    await run(installedCommand, ['setup', '--auth-mode', 'api-key'], { cwd: unrelated, env: cliEnv });
+    const sessionLogDir = join(temporary, 'session decision logs');
+    await run(installedCommand, ['setup', '--auth-mode', 'api-key', '--session-log-dir', sessionLogDir], { cwd: unrelated, env: cliEnv });
     const saved = JSON.parse(await readFile(configPath, 'utf8'));
     assert.equal(saved.AUTOROUTER_AUTH_MODE, 'api-key');
     assert.equal(saved.TYPESAFE_API_KEY, JEV_KEY);
     assert.equal(saved.ANTHROPIC_API_KEY, API_KEY);
+    assert.equal(saved.AUTOROUTER_SESSION_LOG_DIR, sessionLogDir);
     delete cliEnv.TYPESAFE_API_KEY;
     delete cliEnv.ANTHROPIC_API_KEY;
     await run(installedCommand, ['doctor'], { cwd: unrelated, env: cliEnv });
@@ -209,6 +212,17 @@ async function main() {
     assert.ok(result);
     assert.equal(classifications, 1);
     assert.equal(generations, 1);
+    const sessionFiles = await readdir(sessionLogDir);
+    assert.equal(sessionFiles.length, 1);
+    const decisionLog = await readFile(join(sessionLogDir, sessionFiles[0]), 'utf8');
+    const decisions = decisionLog.trimEnd().split('\n').map(line => JSON.parse(line));
+    assert.equal(decisions.length, 1);
+    assert.equal(decisions[0].session_id, 'package-smoke-session');
+    assert.equal(decisions[0].prompt_excerpt, 'Reply with zero.');
+    assert.equal(decisions[0].selected_model, 'claude-sonnet-5');
+    assert.equal(decisions[0].source, 'jev');
+    assert.ok(Number.isFinite(decisions[0].decision_latency_ms) && decisions[0].decision_latency_ms >= 0);
+    for (const key of [JEV_KEY, API_KEY]) assert.ok(!decisionLog.includes(key));
     for (const path of [result.status_file, result.settings_file]) {
       await assert.rejects(readFile(path), error => error.code === 'ENOENT');
     }
@@ -261,7 +275,7 @@ async function main() {
     }
     console.log(`Package smoke passed: ${packed.manifest.name}@${packed.manifest.version}, ${packed.files.size} safe archive files.`);
     if (args.length) console.log('Installed and tested the supplied archive without rebuilding it.');
-    console.log('Verified offline installation, Jev/Nimble/Tev1 setup/doctor/routing, opt-in download, bundled status line, and session cleanup.');
+    console.log('Verified offline installation, Jev/Nimble/Tev1 setup/doctor/routing, opt-in download, bundled status line, private decision logs, and session cleanup.');
     console.log(result.status_line);
     console.log(localResult.status_line);
   } finally {

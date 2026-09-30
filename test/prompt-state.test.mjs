@@ -1,12 +1,106 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildState, goalFeedbackIndexes } from '../src/prompt-state.mjs';
+import { buildState, goalFeedbackIndexes, promptExcerpt } from '../src/prompt-state.mjs';
 
 const text = value => ({ type: 'text', text: value });
 const request = messages => ({ model: 'claude-haiku-4-5-20251001', messages });
 const goalCommand = condition => ({ role: 'user', content: [text(`<command-name>/goal</command-name>\n<command-message>goal</command-message>\n<command-args>${condition}</command-args>`)] });
 const goalFeedback = (condition, reason = 'Verification is still missing.') => ({ role: 'user', content: [text(`Stop hook feedback:\n[${condition}]: ${reason}`)] });
 const assistant = { role: 'assistant', content: 'Work is partly complete.' };
+
+test('prompt excerpts contain only the latest direct human text, never tool or multimodal payloads', () => {
+  const unreadable = (type, properties) => Object.defineProperties({ type }, Object.fromEntries(
+    properties.map(key => [key, { get() { assert.fail(`Excerpt read ${type}.${key}`); } }])));
+  const body = request([
+    { role: 'user', content: 'Original task that should not be logged again.' },
+    { role: 'assistant', get content() { assert.fail('Excerpt read assistant output'); } },
+    { role: 'user', content: [
+      text(`<system-reminder>${'Synthetic setup instructions '.repeat(1500)}</system-reminder>`),
+      text('<available-deferred-tools>mcp__synthetic__lookup</available-deferred-tools>'),
+      text('Describe the attached diagram.'),
+      unreadable('image', ['source']), unreadable('document', ['source', 'title', 'context']),
+      unreadable('thinking', ['thinking', 'signature']), unreadable('redacted_thinking', ['data']),
+      unreadable('tool_use', ['name', 'input']), unreadable('future_block', ['text', 'content']),
+      text('Keep the answer brief.'),
+    ] },
+    { role: 'assistant', get content() { assert.fail('Excerpt read assistant tool calls'); } },
+    { role: 'user', content: [text('Tool-result metadata is not a human task.'), unreadable('tool_result', ['content'])] },
+    { role: 'user', content: '<system-reminder>Background work finished.</system-reminder>' },
+  ]);
+  Object.defineProperties(body, {
+    system: { get() { assert.fail('Excerpt read system instructions'); } },
+    tools: { get() { assert.fail('Excerpt read tool definitions'); } },
+  });
+  assert.equal(promptExcerpt(body), 'Describe the attached diagram.\nKeep the answer brief.');
+});
+
+test('prompt excerpts follow the established goal and human steering instead of Stop feedback', () => {
+  const condition = 'Implement a fixture and verify its acceptance test passes.';
+  const messages = [goalCommand(condition), assistant, goalFeedback(condition), assistant,
+    { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'test', content: 'Synthetic test output.' }] },
+    assistant, goalFeedback(condition, 'A final verification is missing.')];
+  const body = request(messages);
+  const before = structuredClone(body);
+  assert.equal(promptExcerpt(body), buildState(body).current_task);
+  assert.ok(promptExcerpt(body).includes(condition));
+  assert.ok(!promptExcerpt(body).includes('Stop hook feedback:'));
+  assert.deepEqual(body, before);
+  messages.push({ role: 'user', content: 'Use the alternate fixture directory.' }, assistant, goalFeedback(condition));
+  assert.equal(promptExcerpt(body), 'Use the alternate fixture directory.');
+  messages.push(assistant, goalFeedback('An unmatched condition'));
+  assert.equal(promptExcerpt(body), messages.at(-1).content[0].text, 'Unrecognized feedback may be an actual human message');
+});
+
+test('new non-text human tasks have empty excerpts rather than stale earlier task text', () => {
+  for (const block of [
+    { type: 'image', source: { data: 'synthetic-image' } },
+    { type: 'document', source: { data: 'synthetic-document' } },
+    { type: 'thinking', thinking: 'synthetic-reasoning' },
+    { type: 'tool_use', name: 'Synthetic', input: { text: 'synthetic-input' } },
+    { type: 'future_block', text: 'Unknown blocks are not direct human text.' },
+    { type: 'text', text: { nested: 'Malformed text must not be coerced.' } },
+  ]) {
+    assert.equal(promptExcerpt(request([
+      { role: 'user', content: 'An earlier unrelated task.' }, assistant,
+      { role: 'user', content: [text('<system-reminder>New context</system-reminder>'), block] },
+    ])), '');
+  }
+  for (const body of [{}, { messages: null }, request([]), request([assistant]),
+    request([{ role: 'user', content: '   ' }]),
+    request([{ role: 'user', content: [text('<available-deferred-tools>Names only</available-deferred-tools>')] }]),
+  ]) assert.equal(promptExcerpt(body), '');
+});
+
+test('prompt excerpt limits count Unicode code points and never leave invalid surrogate pairs', () => {
+  const body = request([{ role: 'user', content: '😀'.repeat(600) }]);
+  assert.equal(promptExcerpt(body), '😀'.repeat(500));
+  for (const maxChars of [0, 1, 2, 3, 500, 501]) {
+    const result = promptExcerpt(body, maxChars);
+    assert.equal(Array.from(result).length, maxChars);
+    assert.ok(result.isWellFormed());
+  }
+  const mixed = request([{ role: 'user', content: [text('A😀'), text('𐐷B')] }]);
+  assert.equal(promptExcerpt(mixed, 4), 'A😀\n𐐷');
+  assert.equal(promptExcerpt(request([{ role: 'user', content: '\ud800A\udc00' }])), '\ufffdA\ufffd');
+  for (const invalid of [-1, 1.5, Infinity, NaN, '500', Number.MAX_SAFE_INTEGER + 1]) {
+    assert.throws(() => promptExcerpt(body, invalid), /maxChars/);
+  }
+});
+
+test('bounded excerpts avoid building evaluator history or reading text after the limit', () => {
+  const body = request([
+    { role: 'user', get content() { assert.fail('An ordinary excerpt does not need earlier task text'); } },
+    { role: 'user', content: [text('Current task '.repeat(10000)),
+      { type: 'text', get text() { assert.fail('Text after the excerpt limit must not be collected'); } }] },
+  ]);
+  assert.equal(promptExcerpt(body, 12), 'Current task');
+  assert.equal(promptExcerpt(body, 0), '');
+  for (const task of ['Explain <system-reminder> in this syntax.',
+    '<system-reminder>Context</system-reminder> Implement the parser.',
+    '<available-deferred-tools>Explain the missing closing tag.']) {
+    assert.equal(promptExcerpt(request([{ role: 'user', content: [text(task)] }])), task);
+  }
+});
 
 test('exact goal feedback retains the human task and remains visible as history without changing messages', () => {
   const condition = 'Implement the feature and verify all acceptance tests pass.';

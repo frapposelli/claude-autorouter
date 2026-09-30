@@ -12,7 +12,9 @@ Version `0.3.4` preserves the selected model across Stop-hook feedback for the s
 
 Version `0.3.5` adds opt-in saved configuration for Claude's native `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP`, with `setup --stop-hook-block-cap N`, validation, and `doctor` reporting. A value of `2` permits two consecutive Stop-hook continuations without tool use and ends the turn on the third blocking verdict, leaving an unmet goal set. This affects all Stop/SubagentStop hooks, and tool activity resets the counter. Defaults and completion verdicts are unchanged; `0` disables the guard. See [shorter Stop-hook loops](reference.md#shorter-stop-hook-loops-opt-in).
 
-The GitHub repository is private. Publishing to npm makes the tarball's runtime source, README, configuration example, license, and shipped documentation public. Model weights, user configuration, credentials, transcripts, local artifacts, and test fixtures are excluded. Review the archive before the first publication and whenever the package allowlist changes.
+Version `0.3.6` fixes Auto permission-mode launches with an Auto-compatible Sonnet/Opus profile while preserving Claude's permission classifiers and server safety-review requests. It also adds optional per-session JSONL decision logs containing a bounded human prompt excerpt, selected model, and routing latency. Logging is disabled by default; set `AUTOROUTER_SESSION_LOG_DIR` or use `setup --session-log-dir DIR` to enable it. See [Auto permission mode](reference.md#auto-permission-mode) and [session decision logs](reference.md#session-decision-logs).
+
+The GitHub repository is private. Publishing to npm makes the tarball's runtime source, README, configuration example, license, and shipped documentation public. Model weights, user configuration, credentials, transcripts, session logs, local artifacts, and test fixtures are excluded. Review the archive before the first publication and whenever the package allowlist changes.
 
 ## What runs automatically
 

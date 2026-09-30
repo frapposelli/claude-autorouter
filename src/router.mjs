@@ -226,6 +226,26 @@ export class Router {
   async route(body, { scope = '', signal, requestClass = '', promptId = '', countTokens } = {}) {
     const start = performance.now();
     const c = this.config;
+    // Claude owns auxiliary permission checks and the server-side safeguards
+    // contract. Never evaluate, adapt, or count these requests: changing
+    // their model can change the safety decision or invalidate its context.
+    if (requestClass === 'auxiliary' || body.safeguards !== undefined) {
+      // A safeguarded main request still produces the next tool turn. Replace
+      // any older routing pin with the actual preserved model so a later
+      // request that omits safeguards cannot restore that stale model. Side
+      // classifiers and compaction never take ownership of the main turn.
+      if (!['auxiliary', 'compaction'].includes(requestClass)) {
+        const turn = turnInfo(body, scope, promptId);
+        if (turn.index >= 0 || promptId) {
+          const pin = { model: body.model, requestedModel: body.model };
+          this.turns.set(turn.key, pin);
+          if (turn.contentKey !== turn.key) this.turns.set(turn.contentKey, pin);
+        }
+      }
+      return { model: body.model, source: 'passthrough',
+        reason: requestClass === 'auxiliary' ? 'internal_request' : 'auto_mode_safeguards',
+        latency_ms: Math.round((performance.now() - start) * 100) / 100 };
+    }
     const hasSystemMessage = body.messages.some(m => m.role === 'system');
     const unknownModel = rank(body.model) < 0 && !Object.values(c.models).includes(body.model);
     const modelSpecificThinking = body.thinking && !['disabled', 'adaptive'].includes(body.thinking.type);
@@ -243,12 +263,19 @@ export class Router {
     // Check suspicious input in parallel with Jev. Byte size only triggers a
     // check: common tool catalogs can be 200KB yet occupy far less than 200K
     // tokens. Tiny requests keep the one-call fast path.
-    const earlyCount = !capacityLocked && countTokens && CAPACITY_UPGRADE_MODELS.has(c.models.haiku)
+    const earlyCount = c.clientProfile !== 'auto' && !capacityLocked && countTokens && CAPACITY_UPGRADE_MODELS.has(c.models.haiku)
       && (contextSizeBytes(body, c.models.haiku) > 150000 || hasAttachments)
       ? safelyCount(c.models.haiku) : undefined;
     const decision = await this.classify(body, signal);
     let model = c.models[decision.tier];
     let reason = decision.reason;
+    // Auto permission mode requires a supported execution model. Retain the
+    // evaluator's verdict for observability; stronger compatibility and turn
+    // constraints below still decide whether this ordinary choice can apply.
+    if (c.clientProfile === 'auto' && decision.tier === 'haiku') {
+      model = c.models.sonnet;
+      reason = 'auto_mode_floor';
+    }
     const turn = turnInfo(body, scope, promptId);
     const promptPin = promptId ? this.turns.get(turn.key) : undefined;
     const turnPin = promptPin ?? this.turns.get(turn.contentKey);
@@ -269,7 +296,7 @@ export class Router {
 
     // A tool result belongs to the model that requested it. Do not bounce the
     // agent between models partway through one human turn.
-    if (requestClass === 'compaction' || requestClass === 'auxiliary') preserve(body.model, 'internal_request');
+    if (requestClass === 'compaction') preserve(body.model, 'internal_request');
     // Mid-conversation system messages are only supported by certain models.
     // Keep the client's capable model and all message fields (including
     // clear_at, tool changes, and output_config) instead of down-routing.
@@ -336,7 +363,7 @@ export class Router {
       }
     }
     const identifiableUpgrade = capacityUpgraded && (turn.index >= 0 || promptId);
-    if ((!turn.continuation || previous || identifiableUpgrade || reason === 'mid_conversation_system') && !['compaction', 'auxiliary'].includes(requestClass)) {
+    if ((!turn.continuation || previous || identifiableUpgrade || reason === 'mid_conversation_system') && requestClass !== 'compaction') {
       const pin = { model, requestedModel: body.model };
       this.turns.set(turn.key, pin);
       // Keep the content key too: later human turns carry signed thinking but

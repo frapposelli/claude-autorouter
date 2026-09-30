@@ -4,10 +4,11 @@ import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { readConfig, requireKeys } from '../src/config.mjs';
 import { createRouterServer, listen } from '../src/server.mjs';
-import { buildClaudeEnv, conflictingProviders } from '../src/auth.mjs';
+import { buildClaudeEnv, clientProfileForLaunch, conflictingProviders } from '../src/auth.mjs';
 import { dirname } from 'node:path';
 import { createStatusState } from '../src/status-state.mjs';
 import { addStatusLineSettings } from '../src/status-settings.mjs';
+import { createSessionLog } from '../src/session-log.mjs';
 import { loadUserConfig } from '../src/user-config.mjs';
 import { setup, doctor, ollamaDeadlineText } from '../src/onboarding.mjs';
 import { setupOllama } from '../src/ollama-setup.mjs';
@@ -21,9 +22,11 @@ if (['--version', '-v', 'version'].includes(command)) {
 
 Usage:
   claude-autorouter setup [--auth-mode subscription|api-key] [--force]
+    [--client-profile compatible|native|auto]
     [--evaluator jev|ollama]
     [--ollama-model MODEL] [--ollama-timeout-ms N] [--pull]
     [--stop-hook-block-cap N]
+    [--session-log-dir DIR]
   claude-autorouter doctor
   claude-autorouter claude [Claude Code arguments]
   claude-autorouter serve
@@ -48,6 +51,9 @@ AUTOROUTER_AUTH_MODE=subscription uses your saved Claude Code login.
 Without setup, AUTOROUTER_AUTH_MODE defaults to api-key and also requires ANTHROPIC_API_KEY.
 AUTOROUTER_CLIENT_PROFILE=compatible (default) enables all three routing tiers.
 Use AUTOROUTER_CLIENT_PROFILE=native to retain Claude Code's own model/thinking settings.
+Use AUTOROUTER_CLIENT_PROFILE=auto for Auto permission mode: Sonnet/Opus routing, native thinking.
+An explicit claude --permission-mode auto selects the auto profile for that launch.
+Claude's permission checks and organization policies still apply; Haiku does not support Auto mode.
 Optional CLAUDE_CODE_STOP_HOOK_BLOCK_CAP=N limits consecutive tool-free Stop-hook continuations.
 Use 2 to stop on the third block; applies to /goal and all Stop/SubagentStop hooks.
 Unset preserves Claude's default; 0 disables the cap. Setup --stop-hook-block-cap N saves it.
@@ -55,6 +61,8 @@ Standalone serve also requires AUTOROUTER_TOKEN (at least 16 characters).
 The claude launcher creates a temporary credential and an ephemeral port.
 It enables an AutoRouter status line for this session (AUTOROUTER_STATUSLINE=0 to opt out).
 Launcher logs are quiet by default; AUTOROUTER_DEBUG=1 enables diagnostic logs on stderr.
+AUTOROUTER_SESSION_LOG_DIR writes private per-session JSONL decision logs with prompt excerpts.
+Unset or empty disables session logs. Setup --session-log-dir DIR saves the directory.
 Jev sends prompt excerpts to TypeSafe; Ollama keeps classification on this machine.
 Complete inference requests still go to Anthropic. See README.md.`);
 } else if (command === 'setup' || command === 'doctor') {
@@ -71,14 +79,24 @@ Complete inference requests still go to Anthropic. See README.md.`);
 } else {
   let server;
   let status;
+  let sessionLog;
+  let stopping;
   const stop = () => {
+    if (stopping) return stopping;
     if (server) { server.close(); server.closeAllConnections(); }
     status?.close();
+    // Drain accepted decision records before normal process exit. Pending
+    // filesystem writes keep Node alive; no timer or fire-and-forget buffer.
+    stopping = Promise.resolve().then(() => sessionLog?.close()).catch(() => {});
+    return stopping;
   };
   try {
     if (command === 'serve' && args.length) throw new Error('Usage: claude-autorouter serve');
     const runtimeEnv = loadUserConfig().env;
-    const config = readConfig(runtimeEnv);
+    const config = readConfig(command === 'claude' ? {
+      ...runtimeEnv,
+      AUTOROUTER_CLIENT_PROFILE: clientProfileForLaunch(runtimeEnv.AUTOROUTER_CLIENT_PROFILE ?? 'compatible', args),
+    } : runtimeEnv);
     requireKeys(config);
     const diagnosticLogs = command === 'serve' || runtimeEnv.AUTOROUTER_DEBUG === '1';
     if (command === 'claude') {
@@ -109,11 +127,15 @@ Complete inference requests still go to Anthropic. See README.md.`);
         }
       } else console.error('AutoRouter status line unavailable: could not create local status storage.');
     }
+    if (config.sessionLogDir) sessionLog = await createSessionLog(config.sessionLogDir, {
+      warn: message => console.error(message),
+    });
     // Claude owns the terminal while its UI is running. Status updates use the
     // local snapshot independently; proxy JSON must not write over the UI.
     server = createRouterServer(config, {
       log: diagnosticLogs ? undefined : () => {},
       onStatus: event => status?.update(event),
+      onDecision: sessionLog ? entry => sessionLog.record(entry) : undefined,
     });
     const address = await listen(server, command === 'claude' ? 0 : config.port);
     const baseUrl = `http://127.0.0.1:${address.port}`;

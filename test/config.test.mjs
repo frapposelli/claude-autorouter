@@ -1,7 +1,54 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readConfig, requireKeys } from '../src/config.mjs';
+import { CLIENT_PROFILES, readConfig, requireKeys } from '../src/config.mjs';
 import { DEFAULT_OLLAMA_MODEL } from '../src/ollama-models.mjs';
+import { resolve } from 'node:path';
+
+test('session decision logging is opt-in and directory settings are validated without exposing their value', () => {
+  assert.equal(readConfig({}).sessionLogDir, undefined);
+  assert.equal(readConfig({ AUTOROUTER_SESSION_LOG_DIR: '' }).sessionLogDir, undefined);
+  assert.equal(readConfig({ AUTOROUTER_SESSION_LOG_DIR: './local session logs' }).sessionLogDir, resolve('local session logs'));
+  for (const value of [' ', 'private\npath', 'private\0path', false, null, 0, {}]) {
+    assert.throws(() => readConfig({ AUTOROUTER_SESSION_LOG_DIR: value }), error => {
+      assert.match(error.message, /AUTOROUTER_SESSION_LOG_DIR/);
+      assert.ok(!error.message.includes('private'));
+      return true;
+    });
+  }
+});
+
+test('Auto is an explicit client profile and accepts only documented supported routing targets', () => {
+  assert.equal(readConfig({}).clientProfile, 'compatible');
+  assert.deepEqual(CLIENT_PROFILES, ['compatible', 'native', 'auto']);
+  for (const clientProfile of CLIENT_PROFILES) {
+    assert.equal(readConfig({ AUTOROUTER_CLIENT_PROFILE: clientProfile }).clientProfile, clientProfile);
+  }
+  for (const [sonnet, opus] of [
+    ['claude-sonnet-4-6', 'claude-opus-4-6'],
+    ['claude-sonnet-5', 'claude-opus-4-7'],
+    ['claude-sonnet-5-5', 'claude-opus-5-5'],
+  ]) {
+    const config = readConfig({ AUTOROUTER_CLIENT_PROFILE: 'auto', AUTOROUTER_SONNET_MODEL: sonnet, AUTOROUTER_OPUS_MODEL: opus });
+    assert.equal(config.models.sonnet, sonnet);
+    assert.equal(config.models.opus, opus);
+  }
+  for (const invalid of ['', 'Auto', 'automatic', 'unknown']) {
+    assert.throws(() => readConfig({ AUTOROUTER_CLIENT_PROFILE: invalid }), /AUTOROUTER_CLIENT_PROFILE/);
+  }
+});
+
+test('Auto rejects unsupported versions and unverified custom aliases without restricting other profiles', () => {
+  for (const key of ['AUTOROUTER_SONNET_MODEL', 'AUTOROUTER_OPUS_MODEL']) {
+    for (const model of ['claude-haiku-4-5-20251001', 'claude-sonnet-4-5', 'claude-opus-4-5',
+      'sonnet', 'opus', 'custom/claude-sonnet-5', 'claude-opus-5-5-custom', 'claude-sonnet-99']) {
+      assert.throws(() => readConfig({ AUTOROUTER_CLIENT_PROFILE: 'auto', [key]: model }),
+        error => error.message.includes(key) && error.message.includes('Auto-mode-capable'));
+      for (const profile of ['compatible', 'native']) {
+        assert.doesNotThrow(() => readConfig({ AUTOROUTER_CLIENT_PROFILE: profile, [key]: model }));
+      }
+    }
+  }
+});
 
 test('native Stop-hook block cap is opt-in and accepts explicit zero or safe decimal counts', () => {
   assert.equal(readConfig({}).stopHookBlockCap, undefined);

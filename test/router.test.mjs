@@ -25,6 +25,132 @@ test('routes all three tiers using the documented Jev request and caches identic
   }
 });
 
+test('auto profile floors ordinary Haiku decisions while retaining evaluator results and turn continuity', async () => {
+  const c = { ...config(), clientProfile: 'auto' };
+  for (const tier of ['haiku', 'sonnet', 'opus']) {
+    const router = new Router(c, { fetchImpl: async () => result(tier) });
+    const body = { ...request('A fully specified task'), thinking: { type: 'disabled' } };
+    const before = structuredClone(body);
+    const options = { scope: 'auto-session', promptId: 'auto-prompt', requestClass: 'main' };
+    const decision = await router.route(body, options);
+    assert.equal(decision.model, c.models[tier === 'haiku' ? 'sonnet' : tier]);
+    assert.equal(decision.classified_tier, tier);
+    assert.equal(decision.reason, tier === 'haiku' ? 'auto_mode_floor' : 'classified');
+    assert.deepEqual(body, before);
+    const continuation = { ...body, messages: [...body.messages,
+      { role: 'assistant', content: [{ type: 'tool_use', id: 'auto-tool', name: 'Read', input: {} }] },
+      { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'auto-tool', content: 'Synthetic result' }] },
+    ] };
+    const next = await router.route(continuation, options);
+    assert.equal(next.model, decision.model);
+    assert.equal(next.reason, 'tool_turn_pinned');
+  }
+});
+
+test('auto profile floor does not override unknown models, native feature contracts, or signed history', async () => {
+  const c = { ...config(), clientProfile: 'auto' };
+  const cases = [
+    [{ ...request('Task'), model: 'custom-approved-model' }, 'unknown_model'],
+    [{ ...request('Task'), model: 'claude-sonnet-5-5', thinking: { type: 'between_tools' } }, 'model_specific_features'],
+    [{ ...request('Task'), model: c.models.opus, context_management: { edits: [] } }, 'model_specific_features'],
+    [{ ...request('Task'), model: c.models.opus, messages: [
+      { role: 'user', content: 'Initial task' },
+      { role: 'assistant', content: [{ type: 'thinking', thinking: 'Synthetic reasoning', signature: 'synthetic-signature' }] },
+      { role: 'user', content: 'Next task' },
+    ] }, 'thinking_history'],
+  ];
+  for (const [body, reason] of cases) {
+    const router = new Router(c, { fetchImpl: async () => result('haiku') });
+    const before = structuredClone(body);
+    const decision = await router.route(body);
+    assert.equal(decision.model, body.model);
+    assert.equal(decision.reason, reason);
+    assert.deepEqual(body, before);
+  }
+});
+
+test('auxiliary classifiers bypass evaluation, counting, and turn pins in every profile', async () => {
+  for (const clientProfile of ['compatible', 'native', 'auto']) {
+    let evaluations = 0, counts = 0;
+    const c = { ...config(), clientProfile };
+    const router = new Router(c, { fetchImpl: async () => { evaluations++; return result(evaluations === 1 ? 'opus' : 'haiku'); } });
+    const options = { scope: 'safety-session', promptId: 'safety-prompt', requestClass: 'main',
+      countTokens: async () => { counts++; return 250000; } };
+    const initial = request('Inspect the synthetic fixture');
+    assert.equal((await router.route(initial, options)).model, c.models.opus);
+    for (const extra of [{}, { safeguards: [{ type: 'dangerous_tool_use' }] }]) {
+      const body = { ...request('Synthetic permission review'), model: c.models.haiku, system: 'safety context '.repeat(13000),
+        thinking: { type: 'disabled' }, ...extra };
+      const before = structuredClone(body);
+      const decision = await router.route(body, { ...options, requestClass: 'auxiliary' });
+      assert.equal(decision.model, body.model);
+      assert.equal(decision.reason, 'internal_request');
+      assert.equal(decision.source, 'passthrough');
+      assert.equal(decision.classified_tier, undefined);
+      assert.equal(evaluations, 1);
+      assert.equal(counts, 0);
+      assert.deepEqual(body, before);
+    }
+    const continuation = { ...initial, messages: [...initial.messages, { role: 'assistant', content: 'Continuing the original task.' }] };
+    const decision = await router.route(continuation, options);
+    assert.equal(decision.model, c.models.opus);
+    assert.equal(decision.reason, 'tool_turn_pinned');
+    assert.equal(evaluations, 2);
+  }
+});
+
+test('server safeguards preserve any supplied contract and update the actual main model without evaluation or counting', async () => {
+  for (const clientProfile of ['compatible', 'native', 'auto']) {
+    for (const safeguards of [[{ type: 'dangerous_tool_use', classifier_context: { v: 1 } }], {}, null, false]) {
+      const c = { ...config(), clientProfile };
+      let evaluations = 0, counts = 0;
+      const router = new Router(c, { fetchImpl: async () => { evaluations++; return result('opus'); } });
+      const options = { scope: 'safeguards-session', promptId: 'safeguards-prompt', requestClass: 'main',
+        countTokens: async () => { counts++; return 250000; } };
+      const initial = request('Inspect a synthetic task');
+      assert.equal((await router.route(initial, options)).model, c.models.opus);
+      const protectedBody = { ...initial, safeguards, system: 'server safety context '.repeat(8000), messages: [...initial.messages,
+        { role: 'assistant', content: 'Inspecting.' },
+        { role: 'user', content: 'Continue under the supplied safety contract.' },
+      ] };
+      const before = structuredClone(protectedBody);
+      const decision = await router.route(protectedBody, options);
+      assert.equal(decision.model, initial.model);
+      assert.equal(decision.reason, 'auto_mode_safeguards');
+      assert.equal(decision.source, 'passthrough');
+      assert.equal(decision.classified_tier, undefined);
+      assert.equal(evaluations, 1);
+      assert.equal(counts, 0);
+      assert.deepEqual(protectedBody, before);
+      const continuation = { ...protectedBody, messages: [...protectedBody.messages,
+        { role: 'assistant', content: [{ type: 'tool_use', id: 'safe-tool', name: 'Read', input: {} }] },
+        { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'safe-tool', content: 'Synthetic result' }] },
+      ] };
+      delete continuation.safeguards;
+      const next = await router.route(continuation, options);
+      assert.equal(next.model, protectedBody.model);
+      assert.equal(next.reason, 'tool_turn_pinned');
+      // The content-key alias also follows the actual model if a subsequent
+      // request omits gateway prompt hints.
+      const headerless = await router.route(continuation, { scope: options.scope });
+      assert.equal(headerless.model, protectedBody.model);
+      assert.equal(headerless.reason, 'tool_turn_pinned');
+    }
+  }
+});
+
+test('safeguarded compaction never replaces a foreground model pin', async () => {
+  const c = { ...config(), clientProfile: 'auto' };
+  const router = new Router(c, { fetchImpl: async () => result('opus') });
+  const options = { scope: 'compaction-session', promptId: 'compaction-prompt' };
+  const initial = request('Complete the task');
+  await router.route(initial, options);
+  const compaction = { ...initial, safeguards: [{ type: 'dangerous_tool_use' }] };
+  assert.equal((await router.route(compaction, { ...options, requestClass: 'compaction' })).model, initial.model);
+  const continuation = { ...initial, messages: [...initial.messages, { role: 'assistant', content: 'Continuing.' }] };
+  assert.equal((await router.route(continuation, options)).model, c.models.opus);
+});
+
 test('uncertainty and invalid classifier responses cannot downgrade Opus', async () => {
   for (const response of [() => result('haiku', 0.1), () => result('invalid'), () => result('haiku', '0.9'), () => Response.json({})]) {
     const router = new Router(config(), { fetchImpl: async () => response() });
@@ -276,7 +402,7 @@ test('same scoped prompt keeps goal feedback on its originating model without pi
   assert.equal(decision.model, config().models.opus);
   assert.equal(decision.reason, 'prompt_turn_pinned');
   assert.deepEqual(feedback, before);
-  assert.equal(calls, 3);
+  assert.equal(calls, 2);
 
   const nextHuman = { ...feedback, messages: [...feedback.messages,
     { role: 'assistant', content: 'Verification passed.' }, { role: 'user', content: 'Correct this supplied typo.' },
@@ -284,7 +410,7 @@ test('same scoped prompt keeps goal feedback on its originating model without pi
   const next = await router.route(nextHuman, { ...options, promptId: 'new-human-prompt' });
   assert.equal(next.model, config().models.haiku);
   assert.equal(next.reason, 'classified');
-  assert.equal(calls, 4);
+  assert.equal(calls, 3);
 });
 
 test('same scoped prompt pin does not leak between sessions, agents, prompt IDs, or absent IDs', async () => {
@@ -677,19 +803,17 @@ test('capacity upgrades never override thinking or model-specific locks hidden b
   }
 });
 
-test('large internal Haiku requests can upgrade without changing the foreground turn pin', async () => {
-  for (const requestClass of ['compaction', 'auxiliary']) {
-    const router = new Router(config(), { fetchImpl: async () => result('haiku') });
-    const initial = { ...request('Task'), model: config().models.haiku };
-    const options = { scope: 'session/agent', promptId: 'prompt' };
-    await router.route(initial, options);
-    const continuation = { ...initial, messages: [...initial.messages, { role: 'assistant', content: 'Working' }] };
-    const internal = { ...continuation, system: 'large system '.repeat(13000) };
-    const decision = await router.route(internal, { ...options, requestClass });
-    assert.equal(decision.model, config().models.sonnet);
-    assert.equal(decision.reason, 'context_capacity');
-    assert.equal((await router.route(continuation, options)).model, config().models.haiku);
-  }
+test('large compaction Haiku requests can upgrade without changing the foreground turn pin', async () => {
+  const router = new Router(config(), { fetchImpl: async () => result('haiku') });
+  const initial = { ...request('Task'), model: config().models.haiku };
+  const options = { scope: 'session/agent', promptId: 'prompt' };
+  await router.route(initial, options);
+  const continuation = { ...initial, messages: [...initial.messages, { role: 'assistant', content: 'Working' }] };
+  const internal = { ...continuation, system: 'large system '.repeat(13000) };
+  const decision = await router.route(internal, { ...options, requestClass: 'compaction' });
+  assert.equal(decision.model, config().models.sonnet);
+  assert.equal(decision.reason, 'context_capacity');
+  assert.equal((await router.route(continuation, options)).model, config().models.haiku);
 });
 
 test('capacity upgrades use a known large-window Opus when configured Sonnet only has 200K', async () => {

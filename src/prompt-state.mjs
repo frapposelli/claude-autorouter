@@ -122,6 +122,54 @@ export function goalFeedbackIndexes(messages) {
   return indexes;
 }
 
+// Optional diagnostic logs need only the current human text, not evaluator
+// history or non-text placeholders. Bound collection before joining strings,
+// and never visit tool input/output, attachments, or reasoning payloads.
+export function promptExcerpt(body, maxChars = 500) {
+  if (!Number.isSafeInteger(maxChars) || maxChars < 0) throw new TypeError('maxChars must be a nonnegative safe integer');
+  const messages = body?.messages;
+  if (!maxChars || !Array.isArray(messages)) return '';
+  let feedbackIndexes;
+  for (let index = messages.length - 1; index >= 0; index--) {
+    const message = messages[index];
+    if (message?.role !== 'user') continue;
+    const content = message.content;
+    if (Array.isArray(content) && content.some(block => block?.type === 'tool_result')) continue;
+    const standalone = typeof content === 'string' ? content
+      : Array.isArray(content) && content.length === 1 && content[0]?.type === 'text'
+        && typeof content[0].text === 'string' ? content[0].text : undefined;
+    if (standalone?.startsWith('Stop hook feedback:\n[')) {
+      feedbackIndexes ??= goalFeedbackIndexes(messages);
+      if (feedbackIndexes.has(index)) continue;
+    }
+    const blocks = typeof content === 'string' ? [{ type: 'text', text: content }]
+      : Array.isArray(content) ? content : [];
+    const characters = [];
+    let nonText = false;
+    for (const block of blocks) {
+      if (block?.type !== 'text' || typeof block.text !== 'string') {
+        nonText = true;
+        continue;
+      }
+      const value = block.text;
+      // Also omit complete wrappers in string messages. Unlike classifier
+      // input, a diagnostic excerpt should never log a reminder-only turn.
+      if (!/\S/.test(value) || isReminderBlock(value)) continue;
+      if (characters.length) characters.push('\n');
+      for (const character of value) {
+        if (characters.length >= maxChars) break;
+        characters.push(character);
+      }
+      if (characters.length >= maxChars) break;
+    }
+    if (characters.length) return characters.join('').toWellFormed();
+    // An image/document-only human turn is a new task with no safe excerpt;
+    // do not incorrectly label it with the preceding human task's text.
+    if (nonText) return '';
+  }
+  return '';
+}
+
 export function buildState(body, limit = 12000) {
   const messages = body.messages ?? [];
   const feedbackIndexes = goalFeedbackIndexes(messages);

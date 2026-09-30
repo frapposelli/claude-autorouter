@@ -1,6 +1,6 @@
 # Claude AutoRouter
 
-Use Haiku, Sonnet, and Opus in one Claude Code session. A local gateway classifies each inference request with the selected evaluator, applies compatibility and context checks, and streams the selected model's response back to Claude Code. [TypeSafe Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) is the default; an experimental Ollama backend evaluates requests locally.
+Use Haiku, Sonnet, and Opus in one Claude Code session. A local gateway classifies coding requests with the selected evaluator, applies compatibility and context checks, and streams the selected model's response back to Claude Code. Claude's internal classifiers and server safety-review requests pass through unchanged. [TypeSafe Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) is the default; an experimental Ollama backend evaluates requests locally.
 
 Requires Node.js 22+, macOS or Linux (including WSL), an installed `claude` command, and a Claude subscription login or Anthropic API key. The default evaluator also requires a [TypeSafe API key](https://console.typesafe.ai). There are no runtime package dependencies. Native Windows is not supported in this release.
 
@@ -35,6 +35,14 @@ claude-autorouter --version
 
 For API billing, use `claude-autorouter setup --auth-mode api-key`. Use `--force` to replace an existing config. Automation can supply `TYPESAFE_API_KEY` and, in API-key mode, `ANTHROPIC_API_KEY` through the environment; keys are never command-line arguments. `doctor` checks local configuration and Claude installation/login state without paid requests. See the [configuration reference](docs/reference.md#configuration).
 
+To use Claude's Auto permission mode (AutoRouter 0.3.6+):
+
+```sh
+claude-autorouter claude --permission-mode auto
+```
+
+This selects the Auto-compatible profile: a Sonnet starting model, native thinking, and Sonnet/Opus task routing. Haiku does not support Auto mode. Claude's own permission classifiers and requests carrying server safety-review settings pass through with their selected model unchanged. Organization policies still apply. Use `AUTOROUTER_CLIENT_PROFILE=auto` for sessions where you select Auto in Claude's UI or saved settings. [Auto-mode support and limitations](docs/reference.md#auto-permission-mode).
+
 ## What you see
 
 The launcher adds a temporary status line and leaves saved Claude Code settings unchanged:
@@ -45,6 +53,15 @@ The launcher adds a temporary status line and leaves saved Claude Code settings 
 ```
 
 The confirmed model comes from Anthropic's response. Claude's own model label can still show its Haiku starting model. `API ctx` measures input against the actual model's known window; a different client limit remains visible as `CLI ctx`.
+
+For a separate decision log per session (optional, disabled by default; AutoRouter 0.3.6+):
+
+```sh
+env AUTOROUTER_SESSION_LOG_DIR="$HOME/.local/state/claude-autorouter/sessions" \
+  claude-autorouter claude
+```
+
+Each JSONL record includes a bounded prompt excerpt, selected model, decision latency, and routing reason. Files persist after Claude exits; terminal output stays quiet. [Session logs](docs/reference.md#session-decision-logs).
 
 Savings are an **API-equivalent estimate for the same token counts**, using Opus as the baseline. They do not measure subscription bill reductions or quota credits and exclude Jev and local compute costs. [Status line and savings details](docs/reference.md#status-line-and-savings).
 

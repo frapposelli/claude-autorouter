@@ -6,6 +6,7 @@ const REASONS = {
   model_specific_features: 'model features', large_or_multimodal_request: 'large request',
   context_capacity: 'large context',
   internal_request: 'internal request', unknown_model: 'custom model', low_confidence: 'low confidence',
+  auto_mode_floor: 'Auto mode floor', auto_mode_safeguards: 'Auto safety',
 };
 const CLASSIFIER_ERRORS = {
   timeout: 'timeout', http_error: 'HTTP error', invalid_response: 'invalid response', network_error: 'network error',
@@ -128,14 +129,14 @@ export function renderStatusLine(input, snapshot, { now = Date.now(), color = tr
     ? `error ${state.status}` : errorType ? `error ${errorType}` : 'error';
 
   const details = [];
-  const source = ['jev', 'ollama', 'cache', 'fallback'].includes(state?.source) ? state.source : undefined;
+  const source = ['jev', 'ollama', 'cache', 'fallback', 'passthrough'].includes(state?.source) ? state.source : undefined;
   const evaluator = ['jev', 'ollama'].includes(state?.evaluator) ? state.evaluator : undefined;
   const evaluatorLabel = evaluator === 'ollama' ? 'Ollama' : evaluator === 'jev' ? 'Jev' : '';
   let fallbackCause = '';
   let fallbackPhase = '';
   let compactFallback = false;
   if (source) {
-    const sourceLabel = source === 'jev' ? 'Jev' : source === 'ollama' ? 'Ollama'
+    const sourceLabel = source === 'passthrough' ? 'pass-through' : source === 'jev' ? 'Jev' : source === 'ollama' ? 'Ollama'
       : evaluatorLabel ? `${evaluatorLabel} ${source}` : source;
     const timing = Number.isFinite(state.latency_ms) && state.latency_ms >= 0 ? ` ${Math.round(Math.min(state.latency_ms, 999999))}ms` : '';
     const classified = ['haiku', 'sonnet', 'opus'].includes(state.classified_tier) ? state.classified_tier : undefined;

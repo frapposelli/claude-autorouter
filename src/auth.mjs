@@ -1,5 +1,17 @@
 export const LOCAL_AUTH_HEADER = 'x-autorouter-token';
 
+// Leave Claude's permission selection and policy enforcement to Claude. This
+// only chooses a compatible routing profile for an explicit Auto-mode launch.
+export function clientProfileForLaunch(profile, args) {
+  let permissionMode;
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--') break;
+    if (args[i] === '--permission-mode') permissionMode = args[++i];
+    else if (args[i].startsWith('--permission-mode=')) permissionMode = args[i].slice('--permission-mode='.length);
+  }
+  return permissionMode === 'auto' ? 'auto' : profile;
+}
+
 export function conflictingProviders(env = process.env) {
   return ['CLAUDE_CODE_USE_BEDROCK', 'CLAUDE_CODE_USE_VERTEX', 'CLAUDE_CODE_USE_FOUNDRY',
     'CLAUDE_CODE_USE_MANTLE', 'CLAUDE_CODE_USE_ANTHROPIC_AWS']
@@ -30,6 +42,10 @@ export function buildClaudeEnv(config, baseUrl, parent = process.env) {
   if (config.clientProfile === 'compatible') {
     env.ANTHROPIC_MODEL = config.models.haiku;
     env.MAX_THINKING_TOKENS = '0';
+  } else if (config.clientProfile === 'auto') {
+    // Haiku cannot run Auto permission mode. Leave explicit client choices
+    // and thinking settings to Claude; it still enforces account/admin gates.
+    env.ANTHROPIC_MODEL ??= config.models.sonnet;
   }
   const subscription = config.authMode === 'subscription';
   // Keep unrelated custom headers. Remove stale router credentials and, in

@@ -1,6 +1,14 @@
 import { DEFAULT_OLLAMA_MODEL, defaultOllamaTimeoutMs, validateOllamaEndpoint, validateOllamaModel } from './ollama-models.mjs';
+import { resolve } from 'node:path';
 
 export const TIERS = ['haiku', 'sonnet', 'opus'];
+export const CLIENT_PROFILES = ['compatible', 'native', 'auto'];
+// Exact Anthropic models whose Auto permission-mode support is documented.
+// Custom aliases are not proof of the capabilities of their upstream model.
+const AUTO_MODE_MODELS = new Set([
+  'claude-sonnet-4-6', 'claude-sonnet-5', 'claude-sonnet-5-5',
+  'claude-opus-4-6', 'claude-opus-4-7', 'claude-opus-4-8', 'claude-opus-5', 'claude-opus-5-5',
+]);
 
 export function parseStopHookBlockCap(value, name = 'CLAUDE_CODE_STOP_HOOK_BLOCK_CAP') {
   if (!['string', 'number'].includes(typeof value)
@@ -9,6 +17,14 @@ export function parseStopHookBlockCap(value, name = 'CLAUDE_CODE_STOP_HOOK_BLOCK
     throw new Error(`${name} requires a nonnegative safe integer (0 disables the Stop-hook continuation cap)`);
   }
   return Number(value);
+}
+
+export function parseSessionLogDir(value, name = 'AUTOROUTER_SESSION_LOG_DIR') {
+  if (value === undefined || value === '') return undefined;
+  if (typeof value !== 'string' || !value.trim() || /[\u0000-\u001f\u007f]/.test(value)) {
+    throw new Error(`${name} must be a directory path, or an empty string to disable session logging`);
+  }
+  return resolve(value);
 }
 
 function number(env, key, fallback, min, max, integer = true) {
@@ -48,8 +64,20 @@ export function readConfig(env = process.env) {
     throw new Error('AUTOROUTER_AUTH_MODE must be api-key or subscription');
   }
   const clientProfile = env.AUTOROUTER_CLIENT_PROFILE ?? 'compatible';
-  if (!['compatible', 'native'].includes(clientProfile)) {
-    throw new Error('AUTOROUTER_CLIENT_PROFILE must be compatible or native');
+  if (!CLIENT_PROFILES.includes(clientProfile)) {
+    throw new Error('AUTOROUTER_CLIENT_PROFILE must be compatible, native or auto');
+  }
+  const models = {
+    haiku: env.AUTOROUTER_HAIKU_MODEL ?? 'claude-haiku-4-5-20251001',
+    sonnet: env.AUTOROUTER_SONNET_MODEL ?? 'claude-sonnet-5',
+    opus: env.AUTOROUTER_OPUS_MODEL ?? 'claude-opus-5-5',
+  };
+  if (clientProfile === 'auto') {
+    for (const tier of ['sonnet', 'opus']) {
+      if (!AUTO_MODE_MODELS.has(models[tier])) {
+        throw new Error(`AUTOROUTER_${tier.toUpperCase()}_MODEL must be a known Auto-mode-capable Sonnet or Opus model for the auto profile`);
+      }
+    }
   }
   const upstream = endpoint(env.AUTOROUTER_UPSTREAM_URL ?? 'https://api.anthropic.com', 'AUTOROUTER_UPSTREAM_URL');
   if (authMode === 'subscription' && upstream !== 'https://api.anthropic.com') {
@@ -59,6 +87,7 @@ export function readConfig(env = process.env) {
     evaluator,
     authMode,
     clientProfile,
+    sessionLogDir: parseSessionLogDir(env.AUTOROUTER_SESSION_LOG_DIR),
     stopHookBlockCap: env.CLAUDE_CODE_STOP_HOOK_BLOCK_CAP === undefined
       ? undefined : parseStopHookBlockCap(env.CLAUDE_CODE_STOP_HOOK_BLOCK_CAP),
     anthropicKey: authMode === 'api-key' ? env.ANTHROPIC_API_KEY : undefined,
@@ -72,11 +101,7 @@ export function readConfig(env = process.env) {
     ollamaTimeoutMs: number(env, 'AUTOROUTER_OLLAMA_TIMEOUT_MS', defaultOllamaTimeoutMs(ollamaModel), 0, 30000),
     ollamaStateChars: 3000,
     ollamaKeepAlive,
-    models: {
-      haiku: env.AUTOROUTER_HAIKU_MODEL ?? 'claude-haiku-4-5-20251001',
-      sonnet: env.AUTOROUTER_SONNET_MODEL ?? 'claude-sonnet-5',
-      opus: env.AUTOROUTER_OPUS_MODEL ?? 'claude-opus-5-5',
-    },
+    models,
     port: number(env, 'AUTOROUTER_PORT', 8787, 0, 65535),
     jevTimeoutMs: number(env, 'AUTOROUTER_JEV_TIMEOUT_MS', 1500, 1, 10000),
     tokenCountTimeoutMs: number(env, 'AUTOROUTER_TOKEN_COUNT_TIMEOUT_MS', 1500, 1, 10000),

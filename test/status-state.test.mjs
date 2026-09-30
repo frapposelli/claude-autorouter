@@ -4,6 +4,7 @@ import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync, w
 import { dirname, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createStatusState } from '../src/status-state.mjs';
+import { renderStatusLine } from '../src/statusline.mjs';
 
 const event = (name, extra = {}) => ({ event: name, request_id: 'request-1', session_id: 'session-a', ...extra });
 const read = state => JSON.parse(readFileSync(state.path, 'utf8'));
@@ -72,6 +73,22 @@ test('tracks requested, selected and confirmed models distinctly and retains las
   assert.equal(current.requested_model, undefined);
   assert.equal(current.prompt_id, undefined);
   assert.equal(current.last_model, 'claude-sonnet-5');
+});
+
+test('Auto safety pass-through is visible without stale evaluator decisions from the previous request', t => {
+  const state = fixture(t);
+  state.update(event('request_start'));
+  state.update(event('route', { model: 'claude-sonnet-5', source: 'jev', evaluator: 'jev', classified_tier: 'haiku', reason: 'auto_mode_floor' }));
+  state.flush();
+  const render = () => renderStatusLine({ session_id: 'session-a' }, read(state), { color: false, columns: 240 });
+  assert.match(render(), /Jev→Haiku · Auto mode floor/);
+  state.update(event('request_complete'));
+  state.update(event('request_start', { request_id: 'request-2' }));
+  state.update(event('route', { request_id: 'request-2', model: 'claude-sonnet-5', source: 'passthrough', reason: 'auto_mode_safeguards' }));
+  state.flush();
+  assert.match(render(), /Sonnet 5 selected · connecting · pass-through · Auto safety/);
+  assert.ok(!/Jev|Ollama|Haiku/.test(render()));
+  assert.equal(read(state).sessions['session-a'].classified_tier, undefined);
 });
 
 test('context uses the latest foreground response input including cache without summing the session', t => {

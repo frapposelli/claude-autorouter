@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { PassThrough } from 'node:stream';
 import { setup, doctor, askSecret } from '../src/onboarding.mjs';
 import { DEFAULT_OLLAMA_MODEL } from '../src/ollama-models.mjs';
@@ -47,6 +47,106 @@ test('setup stores only relevant keys, defaults to subscription, and never print
   const saved = JSON.parse(readFileSync(env.AUTOROUTER_CONFIG, 'utf8'));
   assert.equal(saved.AUTOROUTER_AUTH_MODE, 'api-key');
   assert.equal(saved.ANTHROPIC_API_KEY, env.ANTHROPIC_API_KEY);
+});
+
+test('setup persists the chosen client profile with CLI precedence and leaves permission controls to Claude', async t => {
+  for (const [inherited, args, expected] of [
+    ['native', ['--client-profile', 'auto'], 'auto'],
+    ['auto', [], 'auto'],
+    ['auto', ['--client-profile', 'native'], 'native'],
+    ['auto', ['--client-profile', 'compatible'], 'compatible'],
+  ]) {
+    const paths = fixture(t);
+    const env = { ...paths, AUTOROUTER_CLIENT_PROFILE: inherited, TYPESAFE_API_KEY: 'synthetic-jev-key',
+      ANTHROPIC_MODEL: 'claude-opus-5-5', MAX_THINKING_TOKENS: '10000', CLAUDE_CODE_AUTO_MODE_SERVER: '0' };
+    const before = structuredClone(env);
+    const lines = [];
+    await setup(args, { env, write: line => lines.push(line),
+      prompt: () => assert.fail('Key is supplied'), fetchImpl: () => assert.fail('Jev setup must not make provider calls') });
+    assert.deepEqual(JSON.parse(readFileSync(paths.AUTOROUTER_CONFIG, 'utf8')), {
+      AUTOROUTER_AUTH_MODE: 'subscription', AUTOROUTER_CLIENT_PROFILE: expected,
+      AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'synthetic-jev-key',
+    });
+    assert.equal(readConfig(loadUserConfig(paths).env).clientProfile, expected);
+    assert.deepEqual(env, before);
+    if (expected === 'auto') {
+      assert.match(lines.join('\n'), /Sonnet\/Opus task routing/);
+      assert.match(lines.join('\n'), /Claude controls permission-mode availability and safety checks/);
+    }
+  }
+});
+
+test('setup rejects missing or invalid client profiles before keys, provider calls, and persistence', async t => {
+  const paths = fixture(t);
+  const unexpected = () => assert.fail('Invalid profiles must not prompt or contact providers');
+  for (const value of [undefined, '', ' ', 'automatic', 'Auto', '--force']) {
+    await assert.rejects(setup(['--client-profile', ...(value === undefined ? [] : [value])], {
+      env: paths, write: () => {}, prompt: unexpected, fetchImpl: unexpected,
+    }), /--client-profile must be compatible, native or auto/);
+    assert.equal(existsSync(paths.AUTOROUTER_CONFIG), false);
+  }
+  await assert.rejects(setup([], {
+    env: { ...paths, AUTOROUTER_CLIENT_PROFILE: 'unknown' }, write: () => {}, prompt: unexpected, fetchImpl: unexpected,
+  }), /client-profile/);
+  assert.equal(existsSync(paths.AUTOROUTER_CONFIG), false);
+});
+
+test('doctor reports the saved Auto profile without checking or claiming permission-mode eligibility', async t => {
+  const paths = fixture(t);
+  await setup(['--client-profile', 'auto'], { env: { ...paths, TYPESAFE_API_KEY: 'synthetic-jev-key' }, write: () => {} });
+  const saved = readFileSync(paths.AUTOROUTER_CONFIG, 'utf8');
+  const lines = [];
+  const calls = [];
+  assert.equal(await doctor({ env: paths, write: line => lines.push(line),
+    fetchImpl: () => assert.fail('Doctor must not make provider calls'),
+    run: async (command, args) => {
+      calls.push([command, args]);
+      return { stdout: args[0] === '--version' ? '2.1.285' : '{"loggedIn":true,"authMethod":"claude.ai"}' };
+    },
+  }), true);
+  assert.match(lines.join('\n'), /Auto-compatible profile: Sonnet\/Opus task routing/);
+  assert.match(lines.join('\n'), /Claude controls permission-mode availability and safety checks/);
+  assert.doesNotMatch(lines.join('\n'), /Auto (?:permission )?mode (?:is )?(?:available|enabled)/i);
+  assert.deepEqual(calls, [['claude', ['--version']], ['claude', ['auth', 'status', '--json']]]);
+  assert.equal(readFileSync(paths.AUTOROUTER_CONFIG, 'utf8'), saved);
+});
+
+test('session logging setup saves an absolute directory with CLI precedence and supports disabling at runtime', async t => {
+  const paths = fixture(t);
+  const logDirectory = join(paths.AUTOROUTER_CONFIG, '..', 'decision logs');
+  const env = { ...paths, TYPESAFE_API_KEY: 'synthetic-jev-key', AUTOROUTER_SESSION_LOG_DIR: '/unused-log-directory' };
+  const before = structuredClone(env);
+  const lines = [];
+  await setup(['--session-log-dir', logDirectory], { env, write: line => lines.push(line), prompt: () => assert.fail('Key supplied') });
+  const saved = readFileSync(paths.AUTOROUTER_CONFIG, 'utf8');
+  assert.equal(JSON.parse(saved).AUTOROUTER_SESSION_LOG_DIR, resolve(logDirectory));
+  assert.equal(readConfig(loadUserConfig(paths).env).sessionLogDir, resolve(logDirectory));
+  assert.equal(readConfig(loadUserConfig({ ...paths, AUTOROUTER_SESSION_LOG_DIR: '' }).env).sessionLogDir, undefined);
+  assert.equal(existsSync(logDirectory), false, 'Setup does not start logging or create log files');
+  assert.deepEqual(env, before);
+  assert.match(lines.join('\n'), /Session decision logs enabled/);
+  lines.length = 0;
+  assert.equal(await doctor({ env: paths, write: line => lines.push(line),
+    run: async (_command, args) => ({ stdout: args[0] === '--version' ? '2.1.285' : '{"loggedIn":true,"authMethod":"claude.ai"}' }),
+    fetchImpl: () => assert.fail('Doctor must not perform inference'),
+  }), true);
+  assert.match(lines.join('\n'), /Session decision logs enabled/);
+  assert.equal(existsSync(logDirectory), false);
+  assert.equal(readFileSync(paths.AUTOROUTER_CONFIG, 'utf8'), saved);
+  await setup(['--force', '--session-log-dir', ''], { env, write: () => {} });
+  assert.equal(JSON.parse(readFileSync(paths.AUTOROUTER_CONFIG, 'utf8')).AUTOROUTER_SESSION_LOG_DIR, '');
+});
+
+test('session logging setup rejects invalid directory flags before prompting or saving', async t => {
+  const env = fixture(t);
+  const unexpected = () => assert.fail('Invalid paths cannot prompt or contact providers');
+  for (const args of [['--session-log-dir'], ['--session-log-dir', '--force'], ['--session-log-dir', 'private\npath']]) {
+    await assert.rejects(setup(args, { env, write: () => {}, prompt: unexpected, fetchImpl: unexpected }), /session-log-dir/);
+    assert.equal(existsSync(env.AUTOROUTER_CONFIG), false);
+  }
+  await assert.rejects(setup([], { env: { ...env, AUTOROUTER_SESSION_LOG_DIR: 'private\0path' },
+    write: () => {}, prompt: unexpected, fetchImpl: unexpected }), /AUTOROUTER_SESSION_LOG_DIR/);
+  assert.equal(existsSync(env.AUTOROUTER_CONFIG), false);
 });
 
 test('setup prompts only for missing keys and leaves no file on invalid or cancelled input', async t => {

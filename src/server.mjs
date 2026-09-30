@@ -7,6 +7,7 @@ import { LOCAL_AUTH_HEADER, isSubscriptionRequest } from './auth.mjs';
 import { prepareRequest } from './model-request.mjs';
 import { createResponseObserver } from './response-observer.mjs';
 import { createTokenCounter } from './token-counter.mjs';
+import { promptExcerpt } from './prompt-state.mjs';
 
 function cleanHeaders(headers) {
   const blocked = new Set(['host', 'connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'content-length']);
@@ -101,7 +102,7 @@ async function forward(url, req, res, body, config, signal, log, status) {
   }
 }
 
-export function createRouterServer(config, { router = new Router(config), tokenCounter = createTokenCounter(config), log = entry => process.stderr.write(`${JSON.stringify(entry)}\n`), onStatus = () => {} } = {}) {
+export function createRouterServer(config, { router = new Router(config), tokenCounter = createTokenCounter(config), log = entry => process.stderr.write(`${JSON.stringify(entry)}\n`), onStatus = () => {}, onDecision } = {}) {
   if (!config.localToken || config.localToken.length < 16) throw new Error('AUTOROUTER_TOKEN must contain at least 16 characters');
   const server = http.createServer(async (req, res) => {
     const controller = new AbortController();
@@ -175,6 +176,21 @@ export function createRouterServer(config, { router = new Router(config), tokenC
           if (controller.signal.aborted) { status('request_cancelled'); return; }
           const prepared = prepareRequest(parsed, decision.model);
           body = Buffer.from(JSON.stringify(prepared.request));
+          // Prompt excerpts go only to this explicit opt-in sink, never to
+          // ordinary diagnostics or the status snapshot. Optional logging
+          // cannot delay or fail forwarding, including an async sink failure.
+          if (onDecision) {
+            try {
+              const chars = [...(!context.request_class || context.request_class === 'main' ? promptExcerpt(parsed, 501) : '')];
+              Promise.resolve(onDecision({
+                schema_version: 1, event: 'decision', timestamp: new Date().toISOString(), ...context,
+                prompt_excerpt: chars.slice(0, 500).join(''), prompt_truncated: chars.length > 500,
+                requested_model: parsed.model, selected_model: decision.model, decision_latency_ms: decision.latency_ms,
+                source: decision.source, reason: decision.reason, evaluator: decision.evaluator,
+                classified_tier: decision.classified_tier, classifier_error: decision.classifier_error,
+              })).catch(() => {});
+            } catch {}
+          }
           log({ event: 'route', requested_model: parsed.model, ...decision, request_adjustments: prepared.adjustments });
           const { model, source, evaluator, reason, latency_ms, classifier_error, classifier_status, classified_tier, context_check, counted_input_tokens } = decision;
           const pricingValue = (field, allowed, fallback) => prepared.request[field] === undefined ? fallback

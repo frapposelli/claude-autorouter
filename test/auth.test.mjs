@@ -1,13 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, writeFile, rm, access } from 'node:fs/promises';
+import http from 'node:http';
+import { mkdtemp, readFile, writeFile, rm, access } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, delimiter, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { readConfig, requireKeys } from '../src/config.mjs';
-import { buildClaudeEnv, conflictingProviders, isSubscriptionRequest } from '../src/auth.mjs';
+import { CLIENT_PROFILES, readConfig, requireKeys } from '../src/config.mjs';
+import { buildClaudeEnv, clientProfileForLaunch, conflictingProviders, isSubscriptionRequest } from '../src/auth.mjs';
+import { listen } from '../src/server.mjs';
 
 const localToken = 'test-local-token-123456789';
 
@@ -73,8 +75,49 @@ test('compatible profile selects shared client capabilities; native preserves us
   assert.throws(() => readConfig({ AUTOROUTER_CLIENT_PROFILE: 'unknown' }), /AUTOROUTER_CLIENT_PROFILE/);
 });
 
-test('both client profiles enable deferred MCP tools through the proxy while preserving explicit choices', () => {
-  for (const clientProfile of ['compatible', 'native']) {
+test('explicit Auto permission arguments select the routing profile without changing Claude arguments', () => {
+  const cases = [
+    [[], false],
+    [['--permission-mode', 'auto'], true],
+    [['--permission-mode=auto'], true],
+    [['--permission-mode', 'auto', '--permission-mode=plan'], false],
+    [['--permission-mode=manual', '--permission-mode', 'auto'], true],
+    [['--', '--permission-mode', 'auto'], false],
+    [['--permission-mode', 'auto', '--', '--permission-mode=manual'], true],
+    [['--settings', '{"permissions":{"defaultMode":"auto"}}'], false],
+    [['--permission-mode', 'Auto'], false],
+  ];
+  for (const profile of CLIENT_PROFILES) {
+    for (const [args, explicitAuto] of cases) {
+      const before = [...args];
+      assert.equal(clientProfileForLaunch(profile, Object.freeze(args)), explicitAuto ? 'auto' : profile);
+      assert.deepEqual(args, before);
+    }
+  }
+});
+
+test('Auto profile defaults to Sonnet without changing explicit model, thinking, or permission controls', () => {
+  for (const authMode of ['subscription', 'api-key']) {
+    const config = { ...readConfig({ AUTOROUTER_AUTH_MODE: authMode, AUTOROUTER_CLIENT_PROFILE: 'auto' }), localToken };
+    const defaults = buildClaudeEnv(config, 'http://127.0.0.1:1234', {});
+    assert.equal(defaults.ANTHROPIC_MODEL, config.models.sonnet);
+    assert.equal(defaults.MAX_THINKING_TOKENS, undefined);
+    for (const key of ['CLAUDE_CODE_ENABLE_AUTO_MODE', 'CLAUDE_CODE_AUTO_MODE_SERVER', 'CLAUDE_CODE_AUTO_MODE_MODEL']) {
+      assert.equal(Object.hasOwn(defaults, key), false, `${key} must remain Claude's decision`);
+    }
+    const parent = {
+      ANTHROPIC_MODEL: config.models.opus, MAX_THINKING_TOKENS: '10000',
+      CLAUDE_CODE_AUTO_MODE_SERVER: '0', CLAUDE_CONFIG_DIR: '/synthetic/managed-claude',
+    };
+    const before = structuredClone(parent);
+    const child = buildClaudeEnv(config, 'http://127.0.0.1:1234', parent);
+    for (const [key, value] of Object.entries(parent)) assert.equal(child[key], value);
+    assert.deepEqual(parent, before);
+  }
+});
+
+test('all client profiles enable deferred MCP tools through the proxy while preserving explicit choices', () => {
+  for (const clientProfile of CLIENT_PROFILES) {
     const config = { ...readConfig({}), localToken, clientProfile };
     const parent = {};
     assert.equal(buildClaudeEnv(config, 'http://127.0.0.1:1234', parent).ENABLE_TOOL_SEARCH, 'true');
@@ -88,7 +131,7 @@ test('both client profiles enable deferred MCP tools through the proxy while pre
 test('native Stop-hook block cap is injected only when configured and preserves explicit child settings', () => {
   const key = 'CLAUDE_CODE_STOP_HOOK_BLOCK_CAP';
   for (const authMode of ['subscription', 'api-key']) {
-    for (const clientProfile of ['compatible', 'native']) {
+    for (const clientProfile of CLIENT_PROFILES) {
       const config = { ...readConfig({ AUTOROUTER_AUTH_MODE: authMode, AUTOROUTER_CLIENT_PROFILE: clientProfile }), localToken };
       const parent = { CLAUDE_CODE_GOAL_CHECKIN_MINUTES: '0', CLAUDE_CONFIG_DIR: '/test/claude',
         UNRELATED_SETTING: 'keep', ANTHROPIC_CUSTOM_HEADERS: 'X-Team: coding' };
@@ -160,6 +203,91 @@ const fs = require('node:fs');
   await assert.rejects(access(statusPath));
   await assert.rejects(access(settingsPath));
   await assert.rejects(fetch(baseUrl + '/health', { signal: AbortSignal.timeout(500) }));
+});
+
+test('explicit Auto launch configures real routing and preserves permission arguments and settings', async t => {
+  const dir = await mkdtemp(join(tmpdir(), 'autorouter-auto-launch-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const configPath = join(dir, 'autorouter-config.json');
+  await writeFile(configPath, JSON.stringify({ AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_CLIENT_PROFILE: 'compatible' }), { mode: 0o600 });
+  const suppliedSettings = JSON.stringify({ permissions: { disableAutoMode: 'disable', deny: ['Bash(rm *)'] } });
+  const settingsPath = join(dir, 'settings.json');
+  await writeFile(settingsPath, suppliedSettings, { mode: 0o600 });
+  const classifications = [];
+  const generations = [];
+  const jev = http.createServer(async (req, res) => {
+    let body = ''; for await (const chunk of req) body += chunk;
+    classifications.push(JSON.parse(body));
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ answers: { tier: { choice: 'haiku', confidence: 0.99 } } }));
+  });
+  const upstream = http.createServer(async (req, res) => {
+    let body = ''; for await (const chunk of req) body += chunk;
+    generations.push(JSON.parse(body));
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ model: generations.at(-1).model, content: [{ type: 'text', text: 'Synthetic reply' }], stop_reason: 'end_turn' }));
+  });
+  t.after(() => {
+    for (const service of [jev, upstream]) { service.closeAllConnections(); service.close(); }
+  });
+  const jevAddress = await listen(jev, 0);
+  const upstreamAddress = await listen(upstream, 0);
+  await writeFile(join(dir, 'claude'), `#!/usr/bin/env node
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+(async () => {
+  assert.deepEqual(process.argv.slice(2), JSON.parse(process.env.EXPECTED_ARGS));
+  assert.equal(process.env.ANTHROPIC_MODEL, process.env.EXPECTED_CLIENT_MODEL);
+  assert.equal(process.env.MAX_THINKING_TOKENS, process.env.EXPECTED_THINKING);
+  assert.equal(process.env.CLAUDE_CODE_GATEWAY_HINT_HEADERS, '1');
+  for (const key of ['CLAUDE_CODE_ENABLE_AUTO_MODE', 'CLAUDE_CODE_AUTO_MODE_SERVER', 'CLAUDE_CODE_AUTO_MODE_MODEL']) {
+    assert.equal(process.env[key], undefined);
+  }
+  assert.equal(fs.readFileSync(process.env.CLAUDE_CONFIG_DIR + '/settings.json', 'utf8'), process.env.EXPECTED_SETTINGS);
+  const response = await fetch(process.env.ANTHROPIC_BASE_URL + '/v1/messages', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-api-key': process.env.ANTHROPIC_API_KEY,
+      'x-claude-code-session-id': 'synthetic-auto-launch', 'x-claude-code-request-class': 'main' },
+    body: JSON.stringify({ model: process.env.ANTHROPIC_MODEL, max_tokens: 64,
+      messages: [{ role: 'user', content: 'Return the length of an empty array.' }] }),
+  });
+  assert.equal(response.status, 200);
+  console.log(JSON.stringify(await response.json()));
+})().catch(error => { console.error(error.message); process.exitCode = 1; });
+`, { mode: 0o700 });
+  const defaults = readConfig({});
+  const cases = [
+    { profile: 'compatible', flags: ['--permission-mode', 'auto'], model: defaults.models.sonnet },
+    { profile: 'native', flags: ['--permission-mode=auto'], model: defaults.models.sonnet },
+    { profile: 'compatible', flags: ['--permission-mode', 'auto', '--permission-mode=manual'], model: defaults.models.haiku, thinking: '0' },
+    { profile: 'compatible', flags: ['--', '--permission-mode=auto'], model: defaults.models.haiku, thinking: '0' },
+  ];
+  for (const { profile, flags, model, thinking } of cases) {
+    const args = ['--settings', suppliedSettings, ...flags];
+    const { stdout, stderr } = await promisify(execFile)(process.execPath,
+      [fileURLToPath(new URL('../bin/autorouter.mjs', import.meta.url)), 'claude', ...args], {
+        env: {
+          PATH: dir + delimiter + dirname(process.execPath), AUTOROUTER_CONFIG: configPath,
+          AUTOROUTER_AUTH_MODE: 'api-key', AUTOROUTER_CLIENT_PROFILE: profile, AUTOROUTER_STATUSLINE: '0',
+          ANTHROPIC_API_KEY: 'synthetic-upstream-key', TYPESAFE_API_KEY: 'synthetic-jev-key',
+          AUTOROUTER_UPSTREAM_URL: `http://127.0.0.1:${upstreamAddress.port}`,
+          AUTOROUTER_JEV_URL: `http://127.0.0.1:${jevAddress.port}/v1/systemone`,
+          CLAUDE_CONFIG_DIR: dir, EXPECTED_SETTINGS: suppliedSettings,
+          EXPECTED_ARGS: JSON.stringify(args), EXPECTED_CLIENT_MODEL: model,
+          ...(thinking === undefined ? {} : { EXPECTED_THINKING: thinking }),
+        },
+        timeout: 10000,
+      });
+    assert.equal(stderr, '');
+    assert.equal(JSON.parse(stdout).model, model);
+    // A plain request has no native feature guard to accidentally mask a
+    // missing Auto router profile. Jev actually chose Haiku in every launch.
+    assert.deepEqual(generations.at(-1), { model, max_tokens: 64,
+      messages: [{ role: 'user', content: 'Return the length of an empty array.' }] });
+    assert.equal(await readFile(settingsPath, 'utf8'), suppliedSettings);
+  }
+  assert.equal(classifications.length, cases.length);
+  assert.equal(generations.length, cases.length);
 });
 
 test('statusline opt-out or setup failure passes original settings and clears inherited router status', async t => {
