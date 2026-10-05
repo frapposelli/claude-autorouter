@@ -7,10 +7,14 @@ import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
 
-const ROOT_FILES = new Set(['package.json', 'README.md', 'LICENSE', '.env.example']);
-const DOC_FILES = new Set(['docs/reference.md', 'docs/development.md', 'docs/releasing.md', 'docs/ollama-evaluation.md']);
+const ROOT_FILES = new Set(['package.json', 'README.md', 'CONTRIBUTING.md', 'LICENSE', '.env.example']);
+const CORE_DOC_FILES = ['docs/reference.md', 'docs/development.md', 'docs/releasing.md', 'docs/ollama-evaluation.md'];
+const DOC_FILES = new Set([...CORE_DOC_FILES, 'docs/router-performance.md', 'docs/router-performance.json',
+  'docs/status-performance.md', 'docs/status-performance.json', 'docs/hardware-benchmark.md',
+  'docs/hardware-results-16gb.md', 'docs/hardware-results-16gb.json',
+  'docs/hardware-comparison.md', 'docs/hardware-results-64gb.json']);
 const REQUIRED_FILES = ['package.json', 'README.md', 'bin/autorouter.mjs', 'bin/statusline.mjs',
-  'src/config.mjs', 'src/router.mjs', 'src/server.mjs', ...DOC_FILES];
+  'src/config.mjs', 'src/router.mjs', 'src/server.mjs', ...CORE_DOC_FILES];
 
 export function assertPackageFiles(files) {
   const paths = files.map(file => typeof file === 'string' ? file : file.path);

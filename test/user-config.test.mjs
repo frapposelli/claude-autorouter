@@ -173,3 +173,21 @@ test('filesystem errors do not echo sensitive paths', t => {
     });
   }
 });
+
+test('configuration snapshots expose saved values and detect intervening changes before replacement', t => {
+  const env = { AUTOROUTER_CONFIG: join(directory(t), 'config.json'), AUTOROUTER_PORT: '9000' };
+  const missing = loadUserConfig(env, { allowMissing: true });
+  assert.equal(missing.revision, null);
+  assert.deepEqual(missing.values, {});
+  saveUserConfig({ AUTOROUTER_PORT: '8000' }, { env, expectedRevision: missing.revision });
+  const snapshot = loadUserConfig(env);
+  assert.deepEqual(snapshot.values, { AUTOROUTER_PORT: '8000' });
+  assert.equal(snapshot.env.AUTOROUTER_PORT, '9000');
+  assert.match(snapshot.revision, /^[a-f0-9]{64}$/);
+  saveUserConfig({ AUTOROUTER_PORT: '7000' }, { env, overwrite: true });
+  assert.throws(() => saveUserConfig({ AUTOROUTER_PORT: '6000' }, {
+    env, overwrite: true, expectedRevision: snapshot.revision,
+  }), /changed while this operation was running/);
+  assert.equal(loadUserConfig(env).values.AUTOROUTER_PORT, '7000');
+  assert.deepEqual(readdirSync(dirname(env.AUTOROUTER_CONFIG)), ['config.json']);
+});

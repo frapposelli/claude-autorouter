@@ -40,6 +40,30 @@ test('routing and idle states label confirmed history; capability guards do not 
     reason: 'model_specific_features' }), /Jev→Opus · model features/);
 });
 
+test('an observed model with unknown completion never becomes a green ready response', () => {
+  for (const extra of [{}, { source: 'fallback', evaluator: 'jev', classifier_error: 'timeout' },
+    { source: 'jev', reason: 'auto_mode_floor', classified_tier: 'haiku' }]) {
+    const state = { phase: 'ready', selected_model: 'claude-sonnet-5', actual_model: 'claude-sonnet-5',
+      completion_confirmed: false, ...extra };
+    for (const columns of [40, 80, 100, 120]) {
+      const line = render(state, { columns, color: true });
+      const plain = line.replace(/\x1b\[[0-9;]*m/g, '');
+      assert.ok([...plain].length <= columns, `${columns}: ${plain}`);
+      assert.match(plain, /Sonnet 5/);
+      assert.match(plain, /completion unknown/);
+      assert.doesNotMatch(plain, /ready/);
+      assert.ok(!line.includes('\x1b[32m'));
+    }
+    for (let columns = 1; columns < 40; columns++) {
+      const line = render(state, { columns });
+      assert.ok([...line].length <= columns, `${columns}: ${line}`);
+      assert.doesNotMatch(line, /ready/);
+    }
+  }
+  assert.match(render({ phase: 'ready', completion_confirmed: false }), /completion unknown/);
+  assert.match(render({ phase: 'ready', completion_confirmed: true, actual_model: 'claude-sonnet-5' }), /last Sonnet 5 · ready/);
+});
+
 test('prompt continuity displays its pinned model separately from the latest classifier choice', () => {
   const line = render({ phase: 'connecting', selected_model: 'claude-opus-5-5', source: 'jev',
     classified_tier: 'haiku', reason: 'prompt_turn_pinned', latency_ms: 120 });
@@ -97,8 +121,8 @@ test('sessions are isolated, including absent session IDs, and malformed stdin a
 test('fallbacks, HTTP and SSE errors, cancellation, and dead or stale routers remain visible', () => {
   assert.match(render({ phase: 'streaming', selected_model: 'claude-sonnet-5', source: 'fallback', classifier_error: 'timeout', latency_ms: 1501 }), /fallback 1501ms · timeout/);
   const failed = render({ phase: 'error', last_model: 'claude-sonnet-5', selected_model: 'claude-opus-5-5', status: 429, error_type: 'rate_limit_error' });
-  assert.match(failed, /last Sonnet 5 · error 429 · rate_limit_error/);
-  assert.ok(!failed.includes('Opus'));
+  assert.match(failed, /Opus 5\.5 selected · error 429 · rate_limit_error/);
+  assert.ok(!failed.includes('Sonnet'), 'A previous response must not conceal the selection that failed');
   assert.match(render({ phase: 'error', status: 200, error_type: 'overloaded_error' }), /error overloaded_error/);
   assert.match(render({ phase: 'cancelled', last_model: 'claude-haiku-4-5-20251001' }), /last Haiku 4\.5 · cancelled/);
   const current = snapshot({ phase: 'ready', last_model: 'claude-sonnet-5' });
@@ -111,15 +135,15 @@ test('fallbacks, HTTP and SSE errors, cancellation, and dead or stale routers re
   assert.match(render({ phase: 'error' }, { color: true }), /\x1b\[31m/);
 });
 
-test('narrow lines drop context then details while retaining model and state', () => {
+test('narrow lines drop context and routine phase before the model guard', () => {
   const saved = snapshot({ phase: 'streaming', actual_model: 'claude-sonnet-5', source: 'jev', latency_ms: 243, reason: 'tool_turn_pinned' });
   const input = { session_id: 'session-a', context_window: { used_percentage: 24.4 } };
   assert.match(renderStatusLine(input, saved, { now, color: false, columns: 160 }), /ctx 24%/);
   const narrow = renderStatusLine(input, saved, { now, color: false, columns: 48 });
   assert.ok(narrow.length <= 48);
-  assert.match(narrow, /Sonnet 5 · streaming/);
+  assert.match(narrow, /Sonnet 5 · turn pinned/);
   assert.ok(!narrow.includes('ctx'));
-  assert.ok(!narrow.includes('turn pinned'));
+  assert.ok(!narrow.includes('streaming'));
   const selected = render({ phase: 'streaming', selected_model: 'claude-sonnet-5' }, { columns: 32 });
   assert.ok(selected.length <= 32);
   assert.match(selected, /unconfirmed/);
@@ -224,6 +248,21 @@ test('savings show partial coverage and unavailable usage without manufacturing 
   assert.ok(!renderSavings(snapshot({ phase: 'ready' })).includes('saving'));
 });
 
+test('unpriced request counts are optional and never displace the selected model or guard', () => {
+  const saved = withSavings(savingsFixture({ unpriced_requests: 2 }), { phase: 'connecting', selected_model: 'claude-sonnet-5-5',
+    actual_model: undefined, reason: 'auto_mode_floor', classified_tier: 'haiku', source: 'jev' });
+  assert.match(renderSavings(saved), /est saved .* partial · unpriced 2/);
+  assert.match(renderSavings(withSavings(savingsFixture({ requests: 0, unpriced_requests: 3 }))), /savings unavailable · unpriced 3/);
+  assert.ok(!renderSavings(withSavings()).includes('unpriced'));
+  for (const columns of [40, 80, 100, 120]) {
+    const line = renderSavings(saved, { columns });
+    assert.ok([...line].length <= columns, `${columns}: ${line}`);
+    assert.match(line, /Sonnet 5\.5 selected/);
+    assert.match(line, /Auto floor/);
+    if (line.includes('saved')) assert.match(line, /partial/);
+  }
+});
+
 test('savings support extra cost, tiny amounts, and a zero baseline without infinity', () => {
   const extra = savingsFixture({ actual_usd: 1.1, baseline_usd: 0.68, saved_usd: -0.42, percent: -100 * 0.42 / 0.68 });
   assert.match(renderSavings(withSavings(extra)), /est extra \$0\.42 \(62%\) vs Opus/);
@@ -264,7 +303,7 @@ test('malformed savings cannot inject controls, dollar claims, NaN, or infinity'
   assert.ok(!/PRIVATE|[\x00-\x1f\x7f]/.test(labels));
 });
 
-test('narrow status lines prioritize estimates over routine details and retain every estimate qualifier', () => {
+test('narrow status lines retain guards before optional estimates and preserve every estimate qualifier', () => {
   const saved = withSavings(savingsFixture(), { phase: 'streaming', source: 'jev', latency_ms: 321, reason: 'tool_turn_pinned' });
   const input = { session_id: 'session-a', context_window: { used_percentage: 24 } };
   const full = renderSavings(saved, {}, input);
@@ -273,11 +312,11 @@ test('narrow status lines prioritize estimates over routine details and retain e
   assert.ok(!noContext.includes('ctx'));
   assert.match(noContext, /Jev 321ms.*est saved/);
   const noRoutine = renderSavings(saved, { columns: 80 }, input);
-  assert.match(noRoutine, /est saved \$0\.42 \(62%\) vs Opus/);
+  assert.match(noRoutine, /turn pinned · est saved 62% vs Opus/);
   assert.ok(!noRoutine.includes('Jev'));
   const compact = renderSavings(saved, { columns: 65 }, input);
-  assert.match(compact, /Sonnet 5 · streaming.*est saved 62% vs Opus/);
-  assert.ok(!compact.includes('$'));
+  assert.match(compact, /Sonnet 5 · streaming · turn pinned/);
+  assert.ok(!compact.includes('saved'));
   for (const partial of [false, true]) {
     const current = withSavings(savingsFixture({ partial }), { phase: 'streaming' });
     for (let columns = 1; columns <= 180; columns++) {
@@ -364,6 +403,17 @@ test('fallback causes are allowlisted and cannot masquerade as a successful clas
   assert.match(render({ ...state, classifier_error: 'invalid_response' }, { columns: 60 }), /fallback: invalid response/);
 });
 
+test('evaluator saturation remains an explained fallback rather than a classifier decision', () => {
+  for (const columns of [40, 80, 100, 120]) {
+    const line = render({ phase: 'ready', actual_model: 'claude-sonnet-5-5', source: 'fallback', evaluator: 'ollama',
+      classifier_error: 'capacity_exhausted', classified_tier: 'haiku' }, { columns });
+    assert.ok([...line].length <= columns);
+    assert.match(line, /fallback.*evaluator busy/);
+    assert.ok(!/Haiku|→/.test(line));
+    if (columns >= 80) assert.match(line, /last Sonnet 5\.5/);
+  }
+});
+
 test('tiny fallback lines fit without dropping selection qualifiers or reverting to a success phase', () => {
   const variants = [
     { phase: 'ready', actual_model: 'claude-sonnet-5' },
@@ -382,6 +432,70 @@ test('tiny fallback lines fit without dropping selection qualifiers or reverting
         if (!['error', 'cancelled'].includes(variant.phase) && columns >= 8) assert.match(line, /fallback/);
         if (columns <= 40) assert.ok(!/ready|stream/.test(line));
       }
+    }
+  }
+});
+
+test('Auto floors retain selected model and explanation before savings, context and timing at common widths', () => {
+  const state = { phase: 'connecting', actual_model: undefined, selected_model: 'claude-sonnet-5-5', source: 'jev',
+    classified_tier: 'haiku', reason: 'auto_mode_floor', evaluation_latency_ms: 220, routing_latency_ms: 240, latency_ms: 9999 };
+  const saved = withSavings(savingsFixture(), state);
+  const input = { session_id: 'session-a', context_window: { used_percentage: 99 } };
+  for (const columns of [40, 80, 100, 120]) {
+    for (const color of [false, true]) {
+      const line = renderSavings(saved, { columns, color }, input).replace(/\x1b\[[0-9;]*m/g, '');
+      assert.ok([...line].length <= columns, `${columns}: ${line}`);
+      assert.match(line, /Sonnet 5\.5 selected/);
+      assert.match(line, /Auto floor/);
+      if (columns >= 80) assert.match(line, /Auto floor from Haiku/);
+      assert.ok(!/9999|ctx/.test(line));
+    }
+  }
+  const full = render(state, { columns: 180 });
+  assert.match(full, /Jev→Haiku 220ms · route 240ms/);
+  assert.ok(!full.includes('9999'));
+});
+
+test('unknown continuity cannot present an inherited reason as a known pin', () => {
+  for (const reason of ['unknown_continuation', 'tool_turn_pinned', 'prompt_turn_pinned', 'goal_turn_pinned']) {
+    const state = { phase: 'connecting', selected_model: 'claude-opus-5-5', source: 'jev',
+      classified_tier: 'haiku', reason, continuity_state: 'unknown' };
+    for (const columns of [40, 80, 100, 120]) {
+      const line = render(state, { columns });
+      assert.ok([...line].length <= columns);
+      assert.match(line, /Opus 5\.5 selected/);
+      assert.match(line, /continuity unknown/);
+      assert.ok(!line.includes('pinned'));
+    }
+  }
+  assert.match(render({ phase: 'connecting', selected_model: 'claude-sonnet-5', continuity_state: 'capacity_exhausted' }), /continuity capacity full/);
+});
+
+test('compatibility reasons explain a guard without exposing raw metadata', () => {
+  const state = { phase: 'streaming', selected_model: 'claude-sonnet-5-5', source: 'jev',
+    reason: 'model_incompatible', compatibility_reason: 'forced_tool_choice' };
+  for (const columns of [80, 100, 120]) {
+    assert.match(render(state, { columns }), /Sonnet 5\.5 unconfirmed.*model guard: tool choice/);
+  }
+  const narrow = render(state, { columns: 40 });
+  assert.match(narrow, /Sonnet 5\.5 unconfirmed · model guard/);
+  assert.ok([...narrow].length <= 40);
+  for (const compatibility_reason of ['PRIVATE_PATH/config', '__proto__', '\x1b[31mPRIVATE']) {
+    const line = render({ ...state, compatibility_reason });
+    assert.match(line, /model guard/);
+    assert.ok(!/PRIVATE|__proto__|\x1b/.test(line));
+  }
+});
+
+test('Unicode model names fit terminal cell budgets while retaining complete selection qualifiers', () => {
+  const terminalWidth = text => [...text].reduce((sum, char) => sum + (/[^\u0000-\u10ff\u2000-\u2e7f]/u.test(char) ? 2 : 1), 0);
+  for (const columns of [1, 8, 20, 40, 80, 100, 120]) {
+    for (const color of [false, true]) {
+      const line = render({ phase: 'connecting', selected_model: '本地模型🚀'.repeat(12), reason: 'auto_mode_floor' }, { columns, color })
+        .replace(/\x1b\[[0-9;]*m/g, '');
+      assert.ok(terminalWidth(line) <= columns, `${columns}: ${line}`);
+      if (line.includes('本')) assert.match(line, /selected/);
+      if (columns >= 40) assert.match(line, /Auto floor/);
     }
   }
 });

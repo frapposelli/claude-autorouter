@@ -1,0 +1,1994 @@
+{
+  "fixture_version": 1,
+  "synthetic": true,
+  "reviewed_at": "2026-10-05",
+  "description": "Newly authored provider-free contract examples, not captured traffic. Historical evidence below does not establish that these synthetic bytes came from those clients or that current clients are supported.",
+  "limits": [
+    "No signed thinking blocks or authentication data are represented.",
+    "Mock evaluator choices test deterministic routing policy, not evaluator quality or downstream task success.",
+    "No live provider compatibility claim; historical observations are limited to the named reports."
+  ],
+  "official_contracts": [
+    {
+      "area": "messages",
+      "url": "https://platform.claude.com/docs/en/api/beta/messages/create"
+    },
+    {
+      "area": "streaming",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/streaming"
+    },
+    {
+      "area": "fallback",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/refusals-and-fallback"
+    },
+    {
+      "area": "tool_search",
+      "url": "https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool"
+    }
+  ],
+  "historical_evidence": [
+    {
+      "artifact": "artifacts/validation-summary-2026-09-29.json",
+      "sha256": "dd03edcf8dfad96ea72363b411c26aa94ea7c394d55b0ff1bff817df0b72838e",
+      "claude_version": "2.1.284",
+      "observed_at": "2026-09-29",
+      "kind": "historical_validation_summary"
+    },
+    {
+      "artifact": "artifacts/auto-mode-write-fixed.json",
+      "sha256": "32173f4f1bf50c72f7f0440f7c12d2aa3511b2d8e50318b5a56130c44e3ca74a",
+      "claude_version": "2.1.285",
+      "observed_at": null,
+      "kind": "historical_synthetic_auto_permission_probe",
+      "simulated_classifier": true
+    },
+    {
+      "artifact": "artifacts/goal-probe-fixed.json",
+      "sha256": "e18b42b75dd2e392a0ea8dd10ef62fec589702f5b75c2d34737e26e03ad1041e",
+      "claude_version": "2.1.285",
+      "observed_at": "2026-09-30T08:13:48.173Z",
+      "kind": "historical_synthetic_goal_probe",
+      "simulated_classifier": true
+    }
+  ],
+  "models": {
+    "haiku": "claude-haiku-4-5-20251001",
+    "sonnet": "claude-sonnet-5",
+    "opus": "claude-opus-5-5"
+  },
+  "cases": [
+    {
+      "id": "auto-haiku-floor",
+      "profile": "auto",
+      "covers": [
+        "auto",
+        "haiku_floor",
+        "safeguards",
+        "usage"
+      ],
+      "steps": [
+        {
+          "id": "auto-floor",
+          "identity": {
+            "session_id": "synthetic-session",
+            "agent_id": "main-agent",
+            "prompt_id": "auto-floor",
+            "request_class": "main"
+          },
+          "request": {
+            "model": "claude-sonnet-5",
+            "max_tokens": 4096,
+            "stream": true,
+            "thinking": {
+              "type": "adaptive"
+            },
+            "system": [
+              {
+                "type": "text",
+                "text": "Synthetic protocol test. Preserve tools and permission decisions.",
+                "cache_control": {
+                  "type": "ephemeral"
+                }
+              }
+            ],
+            "messages": [
+              {
+                "role": "user",
+                "content": "Correct the spelling of teh."
+              }
+            ],
+            "tools": [
+              {
+                "name": "Read",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ]
+                }
+              }
+            ],
+            "safeguards": [
+              {
+                "type": "dangerous_tool_use",
+                "classifier_context": {
+                  "v": 1,
+                  "synthetic": true,
+                  "policy": "retain permission review"
+                }
+              }
+            ]
+          },
+          "evaluator_tier": "haiku",
+          "expected_request_overrides": {
+            "model": "claude-sonnet-5"
+          },
+          "response": {
+            "content_type": "text/event-stream",
+            "line_ending": "\r\n",
+            "prelude": ": synthetic fixture heartbeat\r\n\r\n",
+            "events": [
+              {
+                "type": "message_start",
+                "message": {
+                  "id": "msg_synthetic",
+                  "type": "message",
+                  "role": "assistant",
+                  "model": "claude-sonnet-5",
+                  "content": [],
+                  "usage": {
+                    "input_tokens": 100,
+                    "output_tokens": 0,
+                    "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 20
+                  }
+                }
+              },
+              {
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": {
+                  "type": "text",
+                  "text": ""
+                }
+              },
+              {
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": {
+                  "type": "text_delta",
+                  "text": "Synthetic answer café 😀."
+                }
+              },
+              {
+                "type": "content_block_stop",
+                "index": 0
+              },
+              {
+                "type": "message_delta",
+                "delta": {
+                  "stop_reason": "end_turn"
+                },
+                "usage": {
+                  "output_tokens": 12
+                }
+              },
+              {
+                "type": "message_stop"
+              }
+            ]
+          },
+          "expected": {
+            "selected_model": "claude-sonnet-5",
+            "source": "jev",
+            "reason": "auto_mode_floor",
+            "confirmed_model": "claude-sonnet-5",
+            "completion_confirmed": true,
+            "usage_complete": true,
+            "pricing_eligible": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "auto-opus-thinking-adaptation",
+      "profile": "auto",
+      "covers": [
+        "auto",
+        "opus",
+        "thinking_adaptation"
+      ],
+      "steps": [
+        {
+          "id": "auto-opus",
+          "identity": {
+            "session_id": "synthetic-session",
+            "agent_id": "main-agent",
+            "prompt_id": "auto-opus",
+            "request_class": "main"
+          },
+          "request": {
+            "model": "claude-sonnet-5-5",
+            "max_tokens": 4096,
+            "stream": true,
+            "thinking": {
+              "type": "between_tools"
+            },
+            "system": [
+              {
+                "type": "text",
+                "text": "Synthetic protocol test. Preserve tools and permission decisions.",
+                "cache_control": {
+                  "type": "ephemeral"
+                }
+              }
+            ],
+            "messages": [
+              {
+                "role": "user",
+                "content": "Resolve a race between cancellation and tool completion."
+              }
+            ],
+            "tools": [
+              {
+                "name": "Read",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ]
+                }
+              }
+            ],
+            "safeguards": [
+              {
+                "type": "dangerous_tool_use",
+                "classifier_context": {
+                  "v": 1,
+                  "synthetic": true,
+                  "policy": "retain permission review"
+                }
+              }
+            ]
+          },
+          "evaluator_tier": "opus",
+          "expected_request_overrides": {
+            "model": "claude-opus-5-5",
+            "thinking": {
+              "type": "adaptive"
+            }
+          },
+          "response": {
+            "content_type": "text/event-stream",
+            "line_ending": "\r\n",
+            "prelude": ": synthetic fixture heartbeat\r\n\r\n",
+            "events": [
+              {
+                "type": "message_start",
+                "message": {
+                  "id": "msg_synthetic",
+                  "type": "message",
+                  "role": "assistant",
+                  "model": "claude-opus-5-5",
+                  "content": [],
+                  "usage": {
+                    "input_tokens": 100,
+                    "output_tokens": 0,
+                    "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 20
+                  }
+                }
+              },
+              {
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": {
+                  "type": "text",
+                  "text": ""
+                }
+              },
+              {
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": {
+                  "type": "text_delta",
+                  "text": "Synthetic answer café 😀."
+                }
+              },
+              {
+                "type": "content_block_stop",
+                "index": 0
+              },
+              {
+                "type": "message_delta",
+                "delta": {
+                  "stop_reason": "end_turn"
+                },
+                "usage": {
+                  "output_tokens": 12
+                }
+              },
+              {
+                "type": "message_stop"
+              }
+            ]
+          },
+          "expected": {
+            "selected_model": "claude-opus-5-5",
+            "source": "jev",
+            "reason": "classified",
+            "confirmed_model": "claude-opus-5-5",
+            "completion_confirmed": true,
+            "usage_complete": true,
+            "pricing_eligible": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "native-thinking-preservation",
+      "profile": "native",
+      "covers": [
+        "thinking",
+        "native_preservation"
+      ],
+      "steps": [
+        {
+          "id": "native-thinking",
+          "identity": {
+            "session_id": "synthetic-session",
+            "agent_id": "main-agent",
+            "prompt_id": "native-thinking",
+            "request_class": "main"
+          },
+          "request": {
+            "model": "claude-sonnet-5-5",
+            "max_tokens": 4096,
+            "stream": true,
+            "thinking": {
+              "type": "between_tools"
+            },
+            "system": [
+              {
+                "type": "text",
+                "text": "Synthetic protocol test. Preserve tools and permission decisions.",
+                "cache_control": {
+                  "type": "ephemeral"
+                }
+              }
+            ],
+            "messages": [
+              {
+                "role": "user",
+                "content": "Inspect the synthetic tool workflow."
+              }
+            ],
+            "tools": [
+              {
+                "name": "Read",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ]
+                }
+              }
+            ]
+          },
+          "evaluator_tier": "opus",
+          "expected_request_overrides": {
+            "model": "claude-sonnet-5-5"
+          },
+          "response": {
+            "content_type": "text/event-stream",
+            "line_ending": "\r\n",
+            "prelude": ": synthetic fixture heartbeat\r\n\r\n",
+            "events": [
+              {
+                "type": "message_start",
+                "message": {
+                  "id": "msg_synthetic",
+                  "type": "message",
+                  "role": "assistant",
+                  "model": "claude-sonnet-5-5",
+                  "content": [],
+                  "usage": {
+                    "input_tokens": 100,
+                    "output_tokens": 0,
+                    "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 20
+                  }
+                }
+              },
+              {
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": {
+                  "type": "text",
+                  "text": ""
+                }
+              },
+              {
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": {
+                  "type": "text_delta",
+                  "text": "Synthetic answer café 😀."
+                }
+              },
+              {
+                "type": "content_block_stop",
+                "index": 0
+              },
+              {
+                "type": "message_delta",
+                "delta": {
+                  "stop_reason": "end_turn"
+                },
+                "usage": {
+                  "output_tokens": 12
+                }
+              },
+              {
+                "type": "message_stop"
+              }
+            ]
+          },
+          "expected": {
+            "selected_model": "claude-sonnet-5-5",
+            "source": "jev",
+            "reason": "model_specific_features",
+            "confirmed_model": "claude-sonnet-5-5",
+            "completion_confirmed": true,
+            "usage_complete": true,
+            "pricing_eligible": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "deferred-tool-reference",
+      "profile": "auto",
+      "covers": [
+        "deferred_tools",
+        "nested_tool_reference",
+        "safeguards",
+        "builtin_search_preservation"
+      ],
+      "steps": [
+        {
+          "id": "deferred-review",
+          "identity": {
+            "session_id": "synthetic-session",
+            "agent_id": "main-agent",
+            "prompt_id": "deferred-review",
+            "request_class": "main"
+          },
+          "request": {
+            "model": "claude-sonnet-5",
+            "max_tokens": 4096,
+            "stream": true,
+            "thinking": {
+              "type": "adaptive"
+            },
+            "system": [
+              {
+                "type": "text",
+                "text": "Synthetic protocol test. Preserve tools and permission decisions.",
+                "cache_control": {
+                  "type": "ephemeral"
+                }
+              }
+            ],
+            "messages": [
+              {
+                "role": "user",
+                "content": "Discover a lookup tool."
+              },
+              {
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "search_synthetic",
+                    "name": "FindTools",
+                    "input": {
+                      "pattern": "Lookup"
+                    }
+                  }
+                ]
+              },
+              {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "tool_use_id": "search_synthetic",
+                    "content": [
+                      {
+                        "type": "tool_reference",
+                        "tool_name": "Lookup"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "role": "assistant",
+                "content": "Lookup is available."
+              },
+              {
+                "role": "user",
+                "content": "Review the synthetic lock design across modules."
+              }
+            ],
+            "tools": [
+              {
+                "name": "FindTools",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "pattern": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              {
+                "name": "Lookup",
+                "description": "Look up a synthetic module.",
+                "defer_loading": true,
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            ],
+            "safeguards": [
+              {
+                "type": "dangerous_tool_use",
+                "classifier_context": {
+                  "v": 1,
+                  "synthetic": true,
+                  "policy": "retain permission review"
+                }
+              }
+            ]
+          },
+          "evaluator_tier": "opus",
+          "expected_request_overrides": {
+            "model": "claude-opus-5-5"
+          },
+          "response": {
+            "content_type": "text/event-stream",
+            "line_ending": "\r\n",
+            "prelude": ": synthetic fixture heartbeat\r\n\r\n",
+            "events": [
+              {
+                "type": "message_start",
+                "message": {
+                  "id": "msg_synthetic",
+                  "type": "message",
+                  "role": "assistant",
+                  "model": "claude-opus-5-5",
+                  "content": [],
+                  "usage": {
+                    "input_tokens": 100,
+                    "output_tokens": 0,
+                    "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 20
+                  }
+                }
+              },
+              {
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": {
+                  "type": "text",
+                  "text": ""
+                }
+              },
+              {
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": {
+                  "type": "text_delta",
+                  "text": "Synthetic answer café 😀."
+                }
+              },
+              {
+                "type": "content_block_stop",
+                "index": 0
+              },
+              {
+                "type": "message_delta",
+                "delta": {
+                  "stop_reason": "end_turn"
+                },
+                "usage": {
+                  "output_tokens": 12
+                }
+              },
+              {
+                "type": "message_stop"
+              }
+            ]
+          },
+          "expected": {
+            "selected_model": "claude-opus-5-5",
+            "source": "jev",
+            "reason": "classified",
+            "confirmed_model": "claude-opus-5-5",
+            "completion_confirmed": true,
+            "usage_complete": true,
+            "pricing_eligible": true
+          }
+        },
+        {
+          "id": "builtin-deferred-history",
+          "identity": {
+            "session_id": "synthetic-session",
+            "agent_id": "main-agent",
+            "prompt_id": "builtin-deferred-history",
+            "request_class": "main"
+          },
+          "request": {
+            "model": "claude-sonnet-5",
+            "max_tokens": 4096,
+            "stream": true,
+            "thinking": {
+              "type": "adaptive"
+            },
+            "system": [
+              {
+                "type": "text",
+                "text": "Synthetic protocol test. Preserve tools and permission decisions.",
+                "cache_control": {
+                  "type": "ephemeral"
+                }
+              }
+            ],
+            "messages": [
+              {
+                "role": "user",
+                "content": "Find a tool and inspect the synthetic module."
+              },
+              {
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "server_tool_use",
+                    "id": "srvtoolu_synthetic",
+                    "name": "tool_search_tool_regex",
+                    "input": {
+                      "pattern": "Lookup"
+                    }
+                  },
+                  {
+                    "type": "tool_search_tool_result",
+                    "tool_use_id": "srvtoolu_synthetic",
+                    "content": {
+                      "type": "tool_search_tool_search_result",
+                      "tool_references": [
+                        {
+                          "type": "tool_reference",
+                          "tool_name": "Lookup"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "tool_use",
+                    "id": "toolu_synthetic_lookup",
+                    "name": "Lookup",
+                    "input": {
+                      "query": "synthetic-module"
+                    }
+                  }
+                ]
+              },
+              {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "tool_use_id": "toolu_synthetic_lookup",
+                    "content": "Synthetic lookup result."
+                  }
+                ]
+              },
+              {
+                "role": "assistant",
+                "content": "The synthetic module is available."
+              },
+              {
+                "role": "user",
+                "content": "Analyze its cancellation protocol."
+              }
+            ],
+            "tools": [
+              {
+                "type": "tool_search_tool_regex_20251119",
+                "name": "tool_search_tool_regex"
+              },
+              {
+                "name": "Lookup",
+                "description": "Look up a synthetic module.",
+                "defer_loading": true,
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            ],
+            "safeguards": [
+              {
+                "type": "dangerous_tool_use",
+                "classifier_context": {
+                  "v": 1,
+                  "synthetic": true,
+                  "policy": "retain permission review"
+                }
+              }
+            ]
+          },
+          "evaluator_tier": "opus",
+          "expected_request_overrides": {
+            "model": "claude-sonnet-5"
+          },
+          "response": {
+            "content_type": "text/event-stream",
+            "line_ending": "\r\n",
+            "prelude": ": synthetic fixture heartbeat\r\n\r\n",
+            "events": [
+              {
+                "type": "message_start",
+                "message": {
+                  "id": "msg_synthetic",
+                  "type": "message",
+                  "role": "assistant",
+                  "model": "claude-sonnet-5",
+                  "content": [],
+                  "usage": {
+                    "input_tokens": 100,
+                    "output_tokens": 0,
+                    "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 20
+                  }
+                }
+              },
+              {
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": {
+                  "type": "text",
+                  "text": ""
+                }
+              },
+              {
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": {
+                  "type": "text_delta",
+                  "text": "Synthetic answer café 😀."
+                }
+              },
+              {
+                "type": "content_block_stop",
+                "index": 0
+              },
+              {
+                "type": "message_delta",
+                "delta": {
+                  "stop_reason": "end_turn"
+                },
+                "usage": {
+                  "output_tokens": 12
+                }
+              },
+              {
+                "type": "message_stop"
+              }
+            ]
+          },
+          "expected": {
+            "selected_model": "claude-sonnet-5",
+            "source": "jev",
+            "reason": "model_specific_features",
+            "confirmed_model": "claude-sonnet-5",
+            "completion_confirmed": true,
+            "usage_complete": true,
+            "pricing_eligible": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "scoped-goal-side-requests",
+      "profile": "compatible",
+      "covers": [
+        "goal_feedback",
+        "agent_scope",
+        "auxiliary_verdict",
+        "compaction",
+        "new_human_task"
+      ],
+      "steps": [
+        {
+          "id": "goal-start",
+          "identity": {
+            "session_id": "synthetic-session",
+            "agent_id": "main-agent",
+            "prompt_id": "goal-task",
+            "request_class": "main"
+          },
+          "request": {
+            "model": "claude-haiku-4-5-20251001",
+            "max_tokens": 4096,
+            "stream": true,
+            "thinking": {
+              "type": "disabled"
+            },
+            "system": [
+              {
+                "type": "text",
+                "text": "Synthetic protocol test. Preserve tools and permission decisions.",
+                "cache_control": {
+                  "type": "ephemeral"
+                }
+              }
+            ],
+            "messages": [
+              {
+                "role": "user",
+                "content": "<command-name>/goal</command-name>\n<command-message>goal</command-message>\n<command-args>Finish only when the synthetic resource is available.</command-args>"
+              }
+            ],
+            "tools": [
+              {
+                "name": "Read",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ]
+                }
+              }
+            ]
+          },
+          "evaluator_tier": "sonnet",
+          "expected_request_overrides": {
+            "model": "claude-sonnet-5"
+          },
+          "response": {
+            "content_type": "text/event-stream",
+            "line_ending": "\r\n",
+            "prelude": ": synthetic fixture heartbeat\r\n\r\n",
+            "events": [
+              {
+                "type": "message_start",
+                "message": {
+                  "id": "msg_synthetic",
+                  "type": "message",
+                  "role": "assistant",
+                  "model": "claude-sonnet-5",
+                  "content": [],
+                  "usage": {
+                    "input_tokens": 100,
+                    "output_tokens": 0,
+                    "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 20
+                  }
+                }
+              },
+              {
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": {
+                  "type": "text",
+                  "text": ""
+                }
+              },
+              {
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": {
+                  "type": "text_delta",
+                  "text": "Synthetic answer café 😀."
+                }
+              },
+              {
+                "type": "content_block_stop",
+                "index": 0
+              },
+              {
+                "type": "message_delta",
+                "delta": {
+                  "stop_reason": "end_turn"
+                },
+                "usage": {
+                  "output_tokens": 12
+                }
+              },
+              {
+                "type": "message_stop"
+              }
+            ]
+          },
+          "expected": {
+            "selected_model": "claude-sonnet-5",
+            "source": "jev",
+            "reason": "classified",
+            "confirmed_model": "claude-sonnet-5",
+            "completion_confirmed": true,
+            "usage_complete": true,
+            "pricing_eligible": true
+          }
+        },
+        {
+          "id": "goal-verdict",
+          "identity": {
+            "session_id": "synthetic-session",
+            "agent_id": "main-agent",
+            "prompt_id": "goal-task",
+            "request_class": "auxiliary"
+          },
+          "request": {
+            "model": "claude-haiku-4-5-20251001",
+            "max_tokens": 4096,
+            "stream": true,
+            "thinking": {
+              "type": "disabled"
+            },
+            "system": [
+              {
+                "type": "text",
+                "text": "Synthetic protocol test. Preserve tools and permission decisions.",
+                "cache_control": {
+                  "type": "ephemeral"
+                }
+              }
+            ],
+            "messages": [
+              {
+                "role": "user",
+                "content": "Judge whether the synthetic stopping condition is met."
+              }
+            ],
+            "tools": [],
+            "output_config": {
+              "format": {
+                "type": "json_schema",
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "reason": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ok",
+                    "reason"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "evaluator_tier": null,
+          "expected_request_overrides": {
+            "model": "claude-haiku-4-5-20251001"
+          },
+          "response": {
+            "content_type": "text/event-stream",
+            "line_ending": "\r\n",
+            "prelude": ": synthetic fixture heartbeat\r\n\r\n",
+            "events": [
+              {
+                "type": "message_start",
+                "message": {
+                  "id": "msg_synthetic",
+                  "type": "message",
+                  "role": "assistant",
+                  "model": "claude-haiku-4-5-20251001",
+                  "content": [],
+                  "usage": {
+                    "input_tokens": 100,
+                    "output_tokens": 0,
+                    "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 20
+                  }
+                }
+              },
+              {
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": {
+                  "type": "text",
+                  "text": ""
+                }
+              },
+              {
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": {
+                  "type": "text_delta",
+                  "text": "{\"ok\":false,\"reason\":\"The synthetic resource is not available yet.\"}"
+                }
+              },
+              {
+                "type": "content_block_stop",
+                "index": 0
+              },
+              {
+                "type": "message_delta",
+                "delta": {
+                  "stop_reason": "end_turn"
+                },
+                "usage": {
+                  "output_tokens": 12
+                }
+              },
+              {
+                "type": "message_stop"
+              }
+            ]
+          },
+          "expected": {
+            "selected_model": "claude-haiku-4-5-20251001",
+            "source": "passthrough",
+            "reason": "internal_request",
+            "confirmed_model": "claude-haiku-4-5-20251001",
+            "completion_confirmed": true,
+            "usage_complete": true,
+            "pricing_eligible": true
+          }
+        },
+        {
+          "id": "goal-compaction",
+          "identity": {
+            "session_id": "synthetic-session",
+            "agent_id": "main-agent",
+            "prompt_id": "goal-task",
+            "request_class": "compaction"
+          },
+          "request": {
+            "model": "claude-haiku-4-5-20251001",
+            "max_tokens": 4096,
+            "stream": true,
+            "thinking": {
+              "type": "disabled"
+            },
+            "system": [
+              {
+                "type": "text",
+                "text": "Synthetic protocol test. Preserve tools and permission decisions.",
+                "cache_control": {
+                  "type": "ephemeral"
+                }
+              }
+            ],
+            "messages": [
+              {
+                "role": "user",
+                "content": "Summarize the synthetic transcript for compaction."
+              }
+            ],
+            "tools": [
+              {
+                "name": "Read",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ]
+                }
+              }
+            ]
+          },
+          "evaluator_tier": "opus",
+          "expected_request_overrides": {
+            "model": "claude-haiku-4-5-20251001"
+          },
+          "response": {
+            "content_type": "text/event-stream",
+            "line_ending": "\r\n",
+            "prelude": ": synthetic fixture heartbeat\r\n\r\n",
+            "events": [
+              {
+                "type": "message_start",
+                "message": {
+                  "id": "msg_synthetic",
+                  "type": "message",
+                  "role": "assistant",
+                  "model": "claude-haiku-4-5-20251001",
+                  "content": [],
+                  "usage": {
+                    "input_tokens": 100,
+                    "output_tokens": 0,
+                    "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 20
+                  }
+                }
+              },
+              {
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": {
+                  "type": "text",
+                  "text": ""
+                }
+              },
+              {
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": {
+                  "type": "text_delta",
+                  "text": "Synthetic answer café 😀."
+                }
+              },
+              {
+                "type": "content_block_stop",
+                "index": 0
+              },
+              {
+                "type": "message_delta",
+                "delta": {
+                  "stop_reason": "end_turn"
+                },
+                "usage": {
+                  "output_tokens": 12
+                }
+              },
+              {
+                "type": "message_stop"
+              }
+            ]
+          },
+          "expected": {
+            "selected_model": "claude-haiku-4-5-20251001",
+            "source": "jev",
+            "reason": "internal_request",
+            "confirmed_model": "claude-haiku-4-5-20251001",
+            "completion_confirmed": true,
+            "usage_complete": true,
+            "pricing_eligible": true,
+            "continuity_state": "confirmed"
+          }
+        },
+        {
+          "id": "other-agent-goal",
+          "identity": {
+            "session_id": "synthetic-session",
+            "agent_id": "other-agent",
+            "prompt_id": "goal-task",
+            "request_class": "main"
+          },
+          "request": {
+            "model": "claude-haiku-4-5-20251001",
+            "max_tokens": 4096,
+            "stream": true,
+            "thinking": {
+              "type": "disabled"
+            },
+            "system": [
+              {
+                "type": "text",
+                "text": "Synthetic protocol test. Preserve tools and permission decisions.",
+                "cache_control": {
+                  "type": "ephemeral"
+                }
+              }
+            ],
+            "messages": [
+              {
+                "role": "user",
+                "content": "Analyze a difficult deadlock in another synthetic worker."
+              }
+            ],
+            "tools": [
+              {
+                "name": "Read",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ]
+                }
+              }
+            ]
+          },
+          "evaluator_tier": "opus",
+          "expected_request_overrides": {
+            "model": "claude-opus-5-5",
+            "thinking": {
+              "type": "adaptive"
+            }
+          },
+          "response": {
+            "content_type": "text/event-stream",
+            "line_ending": "\r\n",
+            "prelude": ": synthetic fixture heartbeat\r\n\r\n",
+            "events": [
+              {
+                "type": "message_start",
+                "message": {
+                  "id": "msg_synthetic",
+                  "type": "message",
+                  "role": "assistant",
+                  "model": "claude-opus-5-5",
+                  "content": [],
+                  "usage": {
+                    "input_tokens": 100,
+                    "output_tokens": 0,
+                    "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 20
+                  }
+                }
+              },
+              {
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": {
+                  "type": "text",
+                  "text": ""
+                }
+              },
+              {
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": {
+                  "type": "text_delta",
+                  "text": "Synthetic answer café 😀."
+                }
+              },
+              {
+                "type": "content_block_stop",
+                "index": 0
+              },
+              {
+                "type": "message_delta",
+                "delta": {
+                  "stop_reason": "end_turn"
+                },
+                "usage": {
+                  "output_tokens": 12
+                }
+              },
+              {
+                "type": "message_stop"
+              }
+            ]
+          },
+          "expected": {
+            "selected_model": "claude-opus-5-5",
+            "source": "jev",
+            "reason": "classified",
+            "confirmed_model": "claude-opus-5-5",
+            "completion_confirmed": true,
+            "usage_complete": true,
+            "pricing_eligible": true
+          }
+        },
+        {
+          "id": "goal-feedback",
+          "identity": {
+            "session_id": "synthetic-session",
+            "agent_id": "main-agent",
+            "prompt_id": "goal-task",
+            "request_class": "main"
+          },
+          "request": {
+            "model": "claude-haiku-4-5-20251001",
+            "max_tokens": 4096,
+            "stream": true,
+            "thinking": {
+              "type": "disabled"
+            },
+            "system": [
+              {
+                "type": "text",
+                "text": "Synthetic protocol test. Preserve tools and permission decisions.",
+                "cache_control": {
+                  "type": "ephemeral"
+                }
+              }
+            ],
+            "messages": [
+              {
+                "role": "user",
+                "content": "<command-name>/goal</command-name>\n<command-message>goal</command-message>\n<command-args>Finish only when the synthetic resource is available.</command-args>"
+              },
+              {
+                "role": "assistant",
+                "content": "The synthetic resource is unavailable."
+              },
+              {
+                "role": "user",
+                "content": "Stop hook feedback:\n[Finish only when the synthetic resource is available.]: The synthetic resource is not available yet."
+              }
+            ],
+            "tools": [
+              {
+                "name": "Read",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ]
+                }
+              }
+            ]
+          },
+          "evaluator_tier": "haiku",
+          "expected_request_overrides": {
+            "model": "claude-sonnet-5"
+          },
+          "response": {
+            "content_type": "text/event-stream",
+            "line_ending": "\r\n",
+            "prelude": ": synthetic fixture heartbeat\r\n\r\n",
+            "events": [
+              {
+                "type": "message_start",
+                "message": {
+                  "id": "msg_synthetic",
+                  "type": "message",
+                  "role": "assistant",
+                  "model": "claude-sonnet-5",
+                  "content": [],
+                  "usage": {
+                    "input_tokens": 100,
+                    "output_tokens": 0,
+                    "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 20
+                  }
+                }
+              },
+              {
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": {
+                  "type": "text",
+                  "text": ""
+                }
+              },
+              {
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": {
+                  "type": "text_delta",
+                  "text": "Synthetic answer café 😀."
+                }
+              },
+              {
+                "type": "content_block_stop",
+                "index": 0
+              },
+              {
+                "type": "message_delta",
+                "delta": {
+                  "stop_reason": "end_turn"
+                },
+                "usage": {
+                  "output_tokens": 12
+                }
+              },
+              {
+                "type": "message_stop"
+              }
+            ]
+          },
+          "expected": {
+            "selected_model": "claude-sonnet-5",
+            "source": "jev",
+            "reason": "prompt_turn_pinned",
+            "confirmed_model": "claude-sonnet-5",
+            "completion_confirmed": true,
+            "usage_complete": true,
+            "pricing_eligible": true,
+            "continuity_state": "confirmed"
+          }
+        },
+        {
+          "id": "new-human-task",
+          "identity": {
+            "session_id": "synthetic-session",
+            "agent_id": "main-agent",
+            "prompt_id": "new-task",
+            "request_class": "main"
+          },
+          "request": {
+            "model": "claude-haiku-4-5-20251001",
+            "max_tokens": 4096,
+            "stream": true,
+            "thinking": {
+              "type": "disabled"
+            },
+            "system": [
+              {
+                "type": "text",
+                "text": "Synthetic protocol test. Preserve tools and permission decisions.",
+                "cache_control": {
+                  "type": "ephemeral"
+                }
+              }
+            ],
+            "messages": [
+              {
+                "role": "user",
+                "content": "<command-name>/goal</command-name>\n<command-message>goal</command-message>\n<command-args>Finish only when the synthetic resource is available.</command-args>"
+              },
+              {
+                "role": "assistant",
+                "content": "The synthetic resource is unavailable."
+              },
+              {
+                "role": "user",
+                "content": "Stop hook feedback:\n[Finish only when the synthetic resource is available.]: The synthetic resource is not available yet."
+              },
+              {
+                "role": "assistant",
+                "content": "Still waiting."
+              },
+              {
+                "role": "user",
+                "content": "Instead, return the length of []."
+              }
+            ],
+            "tools": [
+              {
+                "name": "Read",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ]
+                }
+              }
+            ]
+          },
+          "evaluator_tier": "haiku",
+          "expected_request_overrides": {
+            "model": "claude-haiku-4-5-20251001"
+          },
+          "response": {
+            "content_type": "text/event-stream",
+            "line_ending": "\r\n",
+            "prelude": ": synthetic fixture heartbeat\r\n\r\n",
+            "events": [
+              {
+                "type": "message_start",
+                "message": {
+                  "id": "msg_synthetic",
+                  "type": "message",
+                  "role": "assistant",
+                  "model": "claude-haiku-4-5-20251001",
+                  "content": [],
+                  "usage": {
+                    "input_tokens": 100,
+                    "output_tokens": 0,
+                    "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 20
+                  }
+                }
+              },
+              {
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": {
+                  "type": "text",
+                  "text": ""
+                }
+              },
+              {
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": {
+                  "type": "text_delta",
+                  "text": "Synthetic answer café 😀."
+                }
+              },
+              {
+                "type": "content_block_stop",
+                "index": 0
+              },
+              {
+                "type": "message_delta",
+                "delta": {
+                  "stop_reason": "end_turn"
+                },
+                "usage": {
+                  "output_tokens": 12
+                }
+              },
+              {
+                "type": "message_stop"
+              }
+            ]
+          },
+          "expected": {
+            "selected_model": "claude-haiku-4-5-20251001",
+            "source": "jev",
+            "reason": "classified",
+            "confirmed_model": "claude-haiku-4-5-20251001",
+            "completion_confirmed": true,
+            "usage_complete": true,
+            "pricing_eligible": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "fallback-tool-ownership",
+      "profile": "compatible",
+      "covers": [
+        "provider_fallback",
+        "model_transitions",
+        "tool_continuity",
+        "mixed_usage"
+      ],
+      "steps": [
+        {
+          "id": "fallback-start",
+          "identity": {
+            "session_id": "synthetic-session",
+            "agent_id": "main-agent",
+            "prompt_id": "fallback-task",
+            "request_class": "main"
+          },
+          "request": {
+            "model": "claude-haiku-4-5-20251001",
+            "max_tokens": 4096,
+            "stream": true,
+            "thinking": {
+              "type": "disabled"
+            },
+            "system": [
+              {
+                "type": "text",
+                "text": "Synthetic protocol test. Preserve tools and permission decisions.",
+                "cache_control": {
+                  "type": "ephemeral"
+                }
+              }
+            ],
+            "messages": [
+              {
+                "role": "user",
+                "content": "Read the synthetic fixture."
+              }
+            ],
+            "tools": [
+              {
+                "name": "Read",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ]
+                }
+              }
+            ]
+          },
+          "evaluator_tier": "haiku",
+          "expected_request_overrides": {
+            "model": "claude-haiku-4-5-20251001"
+          },
+          "response": {
+            "content_type": "text/event-stream",
+            "line_ending": "\r\n",
+            "prelude": ": synthetic fixture heartbeat\r\n\r\n",
+            "events": [
+              {
+                "type": "message_start",
+                "message": {
+                  "id": "msg_synthetic",
+                  "type": "message",
+                  "role": "assistant",
+                  "model": "claude-haiku-4-5-20251001",
+                  "content": [],
+                  "usage": {
+                    "input_tokens": 100,
+                    "output_tokens": 0,
+                    "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 20
+                  }
+                }
+              },
+              {
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": {
+                  "type": "fallback",
+                  "from": {
+                    "model": "claude-haiku-4-5-20251001"
+                  },
+                  "to": {
+                    "model": "claude-opus-5-5"
+                  }
+                }
+              },
+              {
+                "type": "content_block_stop",
+                "index": 0
+              },
+              {
+                "type": "content_block_start",
+                "index": 1,
+                "content_block": {
+                  "type": "tool_use",
+                  "id": "tool_synthetic_fallback",
+                  "name": "Read",
+                  "input": {}
+                }
+              },
+              {
+                "type": "content_block_delta",
+                "index": 1,
+                "delta": {
+                  "type": "input_json_delta",
+                  "partial_json": "{\"path\":\"synthetic.txt\"}"
+                }
+              },
+              {
+                "type": "content_block_stop",
+                "index": 1
+              },
+              {
+                "type": "message_delta",
+                "delta": {
+                  "stop_reason": "tool_use"
+                },
+                "usage": {
+                  "output_tokens": 12,
+                  "iterations": [
+                    {
+                      "type": "message",
+                      "model": "claude-haiku-4-5-20251001"
+                    },
+                    {
+                      "type": "fallback_message",
+                      "model": "claude-opus-5-5"
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "message_stop"
+              }
+            ]
+          },
+          "expected": {
+            "selected_model": "claude-haiku-4-5-20251001",
+            "source": "jev",
+            "reason": "classified",
+            "confirmed_model": "claude-opus-5-5",
+            "completion_confirmed": true,
+            "usage_complete": true,
+            "pricing_eligible": false,
+            "model_transitions": [
+              "claude-haiku-4-5-20251001",
+              "claude-opus-5-5"
+            ],
+            "unpriced_reason": "mixed_models"
+          }
+        },
+        {
+          "id": "fallback-tool-result",
+          "identity": {
+            "session_id": "synthetic-session",
+            "agent_id": "main-agent",
+            "prompt_id": "fallback-task",
+            "request_class": "main"
+          },
+          "request": {
+            "model": "claude-haiku-4-5-20251001",
+            "max_tokens": 4096,
+            "stream": true,
+            "thinking": {
+              "type": "disabled"
+            },
+            "system": [
+              {
+                "type": "text",
+                "text": "Synthetic protocol test. Preserve tools and permission decisions.",
+                "cache_control": {
+                  "type": "ephemeral"
+                }
+              }
+            ],
+            "messages": [
+              {
+                "role": "user",
+                "content": "Read the synthetic fixture."
+              },
+              {
+                "role": "assistant",
+                "content": [
+                  {
+                    "type": "tool_use",
+                    "id": "tool_synthetic_fallback",
+                    "name": "Read",
+                    "input": {
+                      "path": "synthetic.txt"
+                    }
+                  }
+                ]
+              },
+              {
+                "role": "user",
+                "content": [
+                  {
+                    "type": "tool_result",
+                    "tool_use_id": "tool_synthetic_fallback",
+                    "content": "Synthetic file contents."
+                  }
+                ]
+              }
+            ],
+            "tools": [
+              {
+                "name": "Read",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ]
+                }
+              }
+            ]
+          },
+          "evaluator_tier": "haiku",
+          "expected_request_overrides": {
+            "model": "claude-opus-5-5",
+            "thinking": {
+              "type": "adaptive"
+            }
+          },
+          "response": {
+            "content_type": "text/event-stream",
+            "line_ending": "\r\n",
+            "prelude": ": synthetic fixture heartbeat\r\n\r\n",
+            "events": [
+              {
+                "type": "message_start",
+                "message": {
+                  "id": "msg_synthetic",
+                  "type": "message",
+                  "role": "assistant",
+                  "model": "claude-opus-5-5",
+                  "content": [],
+                  "usage": {
+                    "input_tokens": 100,
+                    "output_tokens": 0,
+                    "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 20
+                  }
+                }
+              },
+              {
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": {
+                  "type": "text",
+                  "text": ""
+                }
+              },
+              {
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": {
+                  "type": "text_delta",
+                  "text": "Synthetic answer café 😀."
+                }
+              },
+              {
+                "type": "content_block_stop",
+                "index": 0
+              },
+              {
+                "type": "message_delta",
+                "delta": {
+                  "stop_reason": "end_turn"
+                },
+                "usage": {
+                  "output_tokens": 12
+                }
+              },
+              {
+                "type": "message_stop"
+              }
+            ]
+          },
+          "expected": {
+            "selected_model": "claude-opus-5-5",
+            "source": "jev",
+            "reason": "tool_turn_pinned",
+            "confirmed_model": "claude-opus-5-5",
+            "completion_confirmed": true,
+            "usage_complete": true,
+            "pricing_eligible": true,
+            "continuity_state": "confirmed"
+          }
+        }
+      ]
+    },
+    {
+      "id": "truncated-response",
+      "profile": "compatible",
+      "covers": [
+        "incomplete_response",
+        "observed_not_completed"
+      ],
+      "steps": [
+        {
+          "id": "truncated",
+          "identity": {
+            "session_id": "synthetic-session",
+            "agent_id": "main-agent",
+            "prompt_id": "truncated",
+            "request_class": "main"
+          },
+          "request": {
+            "model": "claude-haiku-4-5-20251001",
+            "max_tokens": 4096,
+            "stream": true,
+            "thinking": {
+              "type": "disabled"
+            },
+            "system": [
+              {
+                "type": "text",
+                "text": "Synthetic protocol test. Preserve tools and permission decisions.",
+                "cache_control": {
+                  "type": "ephemeral"
+                }
+              }
+            ],
+            "messages": [
+              {
+                "role": "user",
+                "content": "Return a short synthetic answer."
+              }
+            ],
+            "tools": [
+              {
+                "name": "Read",
+                "input_schema": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ]
+                }
+              }
+            ]
+          },
+          "evaluator_tier": "haiku",
+          "expected_request_overrides": {
+            "model": "claude-haiku-4-5-20251001"
+          },
+          "response": {
+            "content_type": "text/event-stream",
+            "line_ending": "\r\n",
+            "prelude": ": synthetic fixture heartbeat\r\n\r\n",
+            "events": [
+              {
+                "type": "message_start",
+                "message": {
+                  "id": "msg_synthetic",
+                  "type": "message",
+                  "role": "assistant",
+                  "model": "claude-haiku-4-5-20251001",
+                  "content": [],
+                  "usage": {
+                    "input_tokens": 100,
+                    "output_tokens": 0,
+                    "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 20
+                  }
+                }
+              },
+              {
+                "type": "content_block_start",
+                "index": 0,
+                "content_block": {
+                  "type": "text",
+                  "text": ""
+                }
+              },
+              {
+                "type": "content_block_delta",
+                "index": 0,
+                "delta": {
+                  "type": "text_delta",
+                  "text": "Synthetic answer café 😀."
+                }
+              },
+              {
+                "type": "content_block_stop",
+                "index": 0
+              }
+            ]
+          },
+          "expected": {
+            "selected_model": "claude-haiku-4-5-20251001",
+            "source": "jev",
+            "reason": "classified",
+            "confirmed_model": "claude-haiku-4-5-20251001",
+            "completion_confirmed": false,
+            "usage_complete": false,
+            "pricing_eligible": false,
+            "unpriced_reason": "unconfirmed_completion"
+          }
+        }
+      ]
+    }
+  ]
+}

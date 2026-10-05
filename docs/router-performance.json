@@ -1,0 +1,1697 @@
+{
+  "baseline": {
+    "schema_version": 1,
+    "type": "synthetic_router_benchmark",
+    "timestamp": "2026-10-05T08:14:55.682Z",
+    "inputs": {
+      "iterations": 60,
+      "rounds": 3,
+      "concurrency": 8,
+      "evaluator_delay_ms": 1,
+      "large_request_bytes": 286807,
+      "real_provider_calls": 0,
+      "gc_exposed": true
+    },
+    "environment": {
+      "node": "v26.10.0",
+      "platform": "darwin",
+      "os_release": "25.6.0",
+      "arch": "arm64",
+      "cpu": "Apple M4",
+      "logical_cpus": 10,
+      "total_memory_bytes": 17179869184,
+      "free_memory_bytes": 172720128,
+      "load_average": [
+        2.318359375,
+        2.76708984375,
+        2.97265625
+      ],
+      "background_processes": "Uncontrolled developer workstation; no user process names or arguments collected."
+    },
+    "results": [
+      {
+        "scenario": "small",
+        "round": 1,
+        "requests": 60,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 1.2013340000000312,
+          "p95": 1.3706669999999974,
+          "max": 43.80841699999999
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0.010000000000000009,
+          "p95": 0.030000000000000027,
+          "max": 0.3999999999999986
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 2952656,
+          "retained_rss_delta": 7193464,
+          "sampled_peak_heap_delta": 4280064,
+          "sampled_peak_rss_delta": 6980424
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.133503,
+          "p95": 45.383679,
+          "max": 45.383679
+        }
+      },
+      {
+        "scenario": "large_tools",
+        "round": 1,
+        "requests": 60,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 2.29362500000002,
+          "p95": 2.9194590000000176,
+          "max": 4.994334000000038
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0.71,
+          "p95": 0.9299999999999999,
+          "max": 3.5200000000000005
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 247424,
+          "retained_rss_delta": 6406792,
+          "sampled_peak_heap_delta": 4686184,
+          "sampled_peak_rss_delta": 6390408
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.371071,
+          "p95": 10.862591,
+          "max": 11.288575
+        }
+      },
+      {
+        "scenario": "cache",
+        "round": 1,
+        "requests": 60,
+        "setup_evaluator_calls": 1,
+        "evaluator_calls": 0,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 0.005375000000015007,
+          "p95": 0.011459000000002106,
+          "max": 0.04337500000002592
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0,
+          "p95": 0.01,
+          "max": 0.02
+        },
+        "memory_bytes": {
+          "retained_heap_delta": -32880,
+          "retained_rss_delta": 16384,
+          "sampled_peak_heap_delta": 460616,
+          "sampled_peak_rss_delta": 16384
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.739711,
+          "p95": 10.739711,
+          "max": 10.739711
+        }
+      },
+      {
+        "scenario": "pinned",
+        "round": 1,
+        "requests": 60,
+        "setup_evaluator_calls": 1,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 1.2022080000000415,
+          "p95": 1.7778749999999945,
+          "max": 2.263667000000055
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0.010000000000000009,
+          "p95": 0.09000000000000008,
+          "max": 0.41999999999999993
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 69424,
+          "retained_rss_delta": 245760,
+          "sampled_peak_heap_delta": 1873648,
+          "sampled_peak_rss_delta": 212992
+        },
+        "event_loop_delay_ms": {
+          "p50": 9.961471,
+          "p95": 10.674175,
+          "max": 10.674175
+        }
+      },
+      {
+        "scenario": "concurrent_identical",
+        "round": 1,
+        "requests": 480,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 480,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 480,
+          "p50": 1.8419999999999845,
+          "p95": 2.4129999999998972,
+          "max": 3.305082999999968
+        },
+        "policy_overhead_ms": {
+          "samples": 480,
+          "p50": 0.09000000000000008,
+          "p95": 0.13000000000000034,
+          "max": 0.1900000000000004
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 734344,
+          "retained_rss_delta": 7685152,
+          "sampled_peak_heap_delta": 5254592,
+          "sampled_peak_rss_delta": 7603160
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.387455,
+          "p95": 10.887167,
+          "max": 11.100159
+        }
+      },
+      {
+        "scenario": "concurrent_identical_agents",
+        "round": 1,
+        "requests": 480,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 480,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 480,
+          "p50": 1.714749999999981,
+          "p95": 2.219333000000006,
+          "max": 2.6454579999999623
+        },
+        "policy_overhead_ms": {
+          "samples": 480,
+          "p50": 0.050000000000000044,
+          "p95": 0.1100000000000001,
+          "max": 0.17000000000000015
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 73024,
+          "retained_rss_delta": 671744,
+          "sampled_peak_heap_delta": 4173792,
+          "sampled_peak_rss_delta": 671744
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.174463,
+          "p95": 10.551295,
+          "max": 10.936319
+        }
+      },
+      {
+        "scenario": "concurrent_distinct_agents",
+        "round": 1,
+        "requests": 480,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 480,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 480,
+          "p50": 1.4834169999999176,
+          "p95": 2.056874999999991,
+          "max": 2.7068340000000717
+        },
+        "policy_overhead_ms": {
+          "samples": 480,
+          "p50": 0.030000000000000027,
+          "p95": 0.06000000000000005,
+          "max": 0.16999999999999993
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 102008,
+          "retained_rss_delta": 360448,
+          "sampled_peak_heap_delta": 4235680,
+          "sampled_peak_rss_delta": 360448
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.346495,
+          "p95": 10.641407,
+          "max": 10.690559
+        }
+      },
+      {
+        "scenario": "cancellation",
+        "round": 1,
+        "requests": 60,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 60,
+        "route_ms": {
+          "samples": 60,
+          "p50": 0.0441249999998945,
+          "p95": 0.12341700000001765,
+          "max": 0.5816250000000309
+        },
+        "policy_overhead_ms": {
+          "samples": 0,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "memory_bytes": {
+          "retained_heap_delta": -472320,
+          "retained_rss_delta": 49152,
+          "sampled_peak_heap_delta": 1005152,
+          "sampled_peak_rss_delta": 49152
+        },
+        "event_loop_delay_ms": {
+          "p50": 9.543679,
+          "p95": 9.543679,
+          "max": 9.543679
+        }
+      },
+      {
+        "scenario": "small",
+        "round": 2,
+        "requests": 60,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 1.331083000000035,
+          "p95": 1.6460839999999735,
+          "max": 4.464750000000095
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0.050000000000000044,
+          "p95": 0.1100000000000001,
+          "max": 0.13999999999999968
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 51024,
+          "retained_rss_delta": 0,
+          "sampled_peak_heap_delta": 1714184,
+          "sampled_peak_rss_delta": 0
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.207231,
+          "p95": 10.862591,
+          "max": 10.862591
+        }
+      },
+      {
+        "scenario": "large_tools",
+        "round": 2,
+        "requests": 60,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 3.4210830000001806,
+          "p95": 4.365916999999854,
+          "max": 4.819874999999911
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 1.3400000000000003,
+          "p95": 1.7999999999999998,
+          "max": 2.1499999999999995
+        },
+        "memory_bytes": {
+          "retained_heap_delta": -96800,
+          "retained_rss_delta": 5587640,
+          "sampled_peak_heap_delta": 8902728,
+          "sampled_peak_rss_delta": 5587640
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.641407,
+          "p95": 11.993087,
+          "max": 12.075007
+        }
+      },
+      {
+        "scenario": "cache",
+        "round": 2,
+        "requests": 60,
+        "setup_evaluator_calls": 1,
+        "evaluator_calls": 0,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 0.025208000000020547,
+          "p95": 0.03533300000003692,
+          "max": 0.18183300000009694
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0.01,
+          "p95": 0.019999999999999997,
+          "max": 0.08000000000000002
+        },
+        "memory_bytes": {
+          "retained_heap_delta": -2336,
+          "retained_rss_delta": 0,
+          "sampled_peak_heap_delta": 456432,
+          "sampled_peak_rss_delta": 0
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.027007,
+          "p95": 10.027007,
+          "max": 10.027007
+        }
+      },
+      {
+        "scenario": "pinned",
+        "round": 2,
+        "requests": 60,
+        "setup_evaluator_calls": 1,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 1.34699999999998,
+          "p95": 1.5060839999998734,
+          "max": 2.033583000000135
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0.050000000000000044,
+          "p95": 0.09000000000000008,
+          "max": 0.1100000000000001
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 46928,
+          "retained_rss_delta": 16384,
+          "sampled_peak_heap_delta": 1783344,
+          "sampled_peak_rss_delta": 16384
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.043391,
+          "p95": 10.641407,
+          "max": 10.641407
+        }
+      },
+      {
+        "scenario": "concurrent_identical",
+        "round": 2,
+        "requests": 480,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 480,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 480,
+          "p50": 1.8821669999999813,
+          "p95": 2.8152919999999995,
+          "max": 10.332791999999927
+        },
+        "policy_overhead_ms": {
+          "samples": 480,
+          "p50": 0.08999999999999986,
+          "p95": 0.16999999999999993,
+          "max": 5.59
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 447184,
+          "retained_rss_delta": 6243144,
+          "sampled_peak_heap_delta": 7489936,
+          "sampled_peak_rss_delta": 6243144
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.321919,
+          "p95": 10.928127,
+          "max": 15.958015
+        }
+      },
+      {
+        "scenario": "concurrent_identical_agents",
+        "round": 2,
+        "requests": 480,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 480,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 480,
+          "p50": 1.5882910000000265,
+          "p95": 1.9520420000001195,
+          "max": 2.251166999999896
+        },
+        "policy_overhead_ms": {
+          "samples": 480,
+          "p50": 0.040000000000000036,
+          "p95": 0.07000000000000006,
+          "max": 0.2100000000000002
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 73456,
+          "retained_rss_delta": 294960,
+          "sampled_peak_heap_delta": 7093736,
+          "sampled_peak_rss_delta": 245808
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.174463,
+          "p95": 10.862591,
+          "max": 11.001855
+        }
+      },
+      {
+        "scenario": "concurrent_distinct_agents",
+        "round": 2,
+        "requests": 480,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 480,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 480,
+          "p50": 1.5821670000000267,
+          "p95": 1.950749999999971,
+          "max": 2.6000830000000406
+        },
+        "policy_overhead_ms": {
+          "samples": 480,
+          "p50": 0.040000000000000036,
+          "p95": 0.07000000000000006,
+          "max": 0.19999999999999996
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 84632,
+          "retained_rss_delta": 409648,
+          "sampled_peak_heap_delta": 7152560,
+          "sampled_peak_rss_delta": 294960
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.076159,
+          "p95": 10.559487,
+          "max": 10.674175
+        }
+      },
+      {
+        "scenario": "cancellation",
+        "round": 2,
+        "requests": 60,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 60,
+        "route_ms": {
+          "samples": 60,
+          "p50": 0.03304100000013932,
+          "p95": 0.07345800000030067,
+          "max": 0.3361670000003869
+        },
+        "policy_overhead_ms": {
+          "samples": 0,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "memory_bytes": {
+          "retained_heap_delta": -416368,
+          "retained_rss_delta": 0,
+          "sampled_peak_heap_delta": 912392,
+          "sampled_peak_rss_delta": 0
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.960895,
+          "p95": 10.960895,
+          "max": 10.960895
+        }
+      },
+      {
+        "scenario": "small",
+        "round": 3,
+        "requests": 60,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 1.3212499999999636,
+          "p95": 1.4821249999999964,
+          "max": 1.570416000000023
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0.050000000000000044,
+          "p95": 0.08999999999999986,
+          "max": 0.1100000000000001
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 48496,
+          "retained_rss_delta": 0,
+          "sampled_peak_heap_delta": 1595328,
+          "sampled_peak_rss_delta": 0
+        },
+        "event_loop_delay_ms": {
+          "p50": 9.797631,
+          "p95": 10.846207,
+          "max": 10.846207
+        }
+      },
+      {
+        "scenario": "large_tools",
+        "round": 3,
+        "requests": 60,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 3.0105419999999867,
+          "p95": 4.4152500000000146,
+          "max": 4.534333000000061
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 1.0999999999999999,
+          "p95": 1.83,
+          "max": 2.06
+        },
+        "memory_bytes": {
+          "retained_heap_delta": -76264,
+          "retained_rss_delta": 933888,
+          "sampled_peak_heap_delta": 8876456,
+          "sampled_peak_rss_delta": 933888
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.264575,
+          "p95": 12.009471,
+          "max": 12.353535
+        }
+      },
+      {
+        "scenario": "cache",
+        "round": 3,
+        "requests": 60,
+        "setup_evaluator_calls": 1,
+        "evaluator_calls": 0,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 0.017832999999882304,
+          "p95": 0.030040999999982887,
+          "max": 0.1517079999998714
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0.01,
+          "p95": 0.02,
+          "max": 0.07999999999999999
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 848,
+          "retained_rss_delta": 0,
+          "sampled_peak_heap_delta": 439432,
+          "sampled_peak_rss_delta": 0
+        },
+        "event_loop_delay_ms": {
+          "p50": 9.789439,
+          "p95": 9.789439,
+          "max": 9.789439
+        }
+      },
+      {
+        "scenario": "pinned",
+        "round": 3,
+        "requests": 60,
+        "setup_evaluator_calls": 1,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 1.3730000000000473,
+          "p95": 1.6894589999997152,
+          "max": 1.8885000000000218
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0.050000000000000044,
+          "p95": 0.14000000000000012,
+          "max": 0.2200000000000002
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 12992,
+          "retained_rss_delta": 0,
+          "sampled_peak_heap_delta": 1828792,
+          "sampled_peak_rss_delta": 0
+        },
+        "event_loop_delay_ms": {
+          "p50": 9.814015,
+          "p95": 10.895359,
+          "max": 10.895359
+        }
+      },
+      {
+        "scenario": "concurrent_identical",
+        "round": 3,
+        "requests": 480,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 480,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 480,
+          "p50": 1.9362920000003214,
+          "p95": 2.5029999999997017,
+          "max": 3.0052920000002814
+        },
+        "policy_overhead_ms": {
+          "samples": 480,
+          "p50": 0.09999999999999987,
+          "p95": 0.15000000000000013,
+          "max": 0.74
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 443400,
+          "retained_rss_delta": 360448,
+          "sampled_peak_heap_delta": 7816744,
+          "sampled_peak_rss_delta": 344064
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.108927,
+          "p95": 10.854399,
+          "max": 11.026431
+        }
+      },
+      {
+        "scenario": "concurrent_identical_agents",
+        "round": 3,
+        "requests": 480,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 480,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 480,
+          "p50": 1.600666999999703,
+          "p95": 1.9589579999997113,
+          "max": 2.2774999999996908
+        },
+        "policy_overhead_ms": {
+          "samples": 480,
+          "p50": 0.040000000000000036,
+          "p95": 0.08000000000000007,
+          "max": 0.20999999999999996
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 77912,
+          "retained_rss_delta": 278624,
+          "sampled_peak_heap_delta": 6929344,
+          "sampled_peak_rss_delta": 196656
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.215423,
+          "p95": 10.354687,
+          "max": 10.412031
+        }
+      },
+      {
+        "scenario": "concurrent_distinct_agents",
+        "round": 3,
+        "requests": 480,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 480,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 480,
+          "p50": 1.6864169999998921,
+          "p95": 2.2006250000004,
+          "max": 2.577708000000257
+        },
+        "policy_overhead_ms": {
+          "samples": 480,
+          "p50": 0.05999999999999983,
+          "p95": 0.10999999999999988,
+          "max": 0.30000000000000004
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 73616,
+          "retained_rss_delta": 229376,
+          "sampled_peak_heap_delta": 7035312,
+          "sampled_peak_rss_delta": 196608
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.371071,
+          "p95": 10.788863,
+          "max": 10.829823
+        }
+      },
+      {
+        "scenario": "cancellation",
+        "round": 3,
+        "requests": 60,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 60,
+        "route_ms": {
+          "samples": 60,
+          "p50": 0.09712500000023283,
+          "p95": 0.12445900000011534,
+          "max": 0.5854159999998956
+        },
+        "policy_overhead_ms": {
+          "samples": 0,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "memory_bytes": {
+          "retained_heap_delta": -409000,
+          "retained_rss_delta": 0,
+          "sampled_peak_heap_delta": 889544,
+          "sampled_peak_rss_delta": 0
+        },
+        "event_loop_delay_ms": {
+          "p50": 9.461759,
+          "p95": 10.018815,
+          "max": 10.018815
+        }
+      }
+    ]
+  },
+  "candidate": {
+    "schema_version": 1,
+    "type": "synthetic_router_benchmark",
+    "timestamp": "2026-10-05T10:25:48.205Z",
+    "inputs": {
+      "iterations": 60,
+      "rounds": 3,
+      "concurrency": 8,
+      "evaluator_delay_ms": 1,
+      "large_request_bytes": 286807,
+      "real_provider_calls": 0,
+      "gc_exposed": true
+    },
+    "environment": {
+      "node": "v26.10.0",
+      "platform": "darwin",
+      "os_release": "25.6.0",
+      "arch": "arm64",
+      "cpu": "Apple M4",
+      "logical_cpus": 10,
+      "total_memory_bytes": 17179869184,
+      "free_memory_bytes": 115310592,
+      "load_average": [
+        2.2236328125,
+        3.240234375,
+        3.08642578125
+      ],
+      "background_processes": "Uncontrolled developer workstation; no user process names or arguments collected."
+    },
+    "results": [
+      {
+        "scenario": "small",
+        "round": 1,
+        "requests": 60,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 1.2611249999999927,
+          "p95": 1.3964169999999854,
+          "max": 39.64937500000002
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0.020000000000000018,
+          "p95": 0.040000000000000036,
+          "max": 0.44999999999999574
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 3274296,
+          "retained_rss_delta": 7406528,
+          "sampled_peak_heap_delta": 5038504,
+          "sampled_peak_rss_delta": 7226256
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.125311,
+          "p95": 42.598399,
+          "max": 42.598399
+        }
+      },
+      {
+        "scenario": "large_tools",
+        "round": 1,
+        "requests": 60,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 2.302166999999997,
+          "p95": 2.4647079999999733,
+          "max": 4.373499999999979
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0.69,
+          "p95": 0.81,
+          "max": 2.63
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 290632,
+          "retained_rss_delta": 6095520,
+          "sampled_peak_heap_delta": 5063944,
+          "sampled_peak_rss_delta": 6062752
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.199039,
+          "p95": 10.592255,
+          "max": 10.764287
+        }
+      },
+      {
+        "scenario": "cache",
+        "round": 1,
+        "requests": 60,
+        "setup_evaluator_calls": 1,
+        "evaluator_calls": 0,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 0.007624999999961801,
+          "p95": 0.014207999999996446,
+          "max": 0.09195800000003373
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0.01,
+          "p95": 0.01,
+          "max": 0.039999999999999994
+        },
+        "memory_bytes": {
+          "retained_heap_delta": -34240,
+          "retained_rss_delta": 16384,
+          "sampled_peak_heap_delta": 498888,
+          "sampled_peak_rss_delta": 0
+        },
+        "event_loop_delay_ms": {
+          "p50": 9.986047,
+          "p95": 9.986047,
+          "max": 9.986047
+        }
+      },
+      {
+        "scenario": "pinned",
+        "round": 1,
+        "requests": 60,
+        "setup_evaluator_calls": 1,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 1.2605419999999867,
+          "p95": 1.317083000000025,
+          "max": 1.5854590000000144
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0.020000000000000018,
+          "p95": 0.030000000000000027,
+          "max": 0.14000000000000012
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 144480,
+          "retained_rss_delta": 753712,
+          "sampled_peak_heap_delta": 2411504,
+          "sampled_peak_rss_delta": 753712
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.100735,
+          "p95": 10.231807,
+          "max": 10.231807
+        }
+      },
+      {
+        "scenario": "concurrent_identical",
+        "round": 1,
+        "requests": 480,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 480,
+          "p50": 1.9149169999999458,
+          "p95": 2.2353749999999764,
+          "max": 2.3296249999999645
+        },
+        "policy_overhead_ms": {
+          "samples": 480,
+          "p50": 0.08000000000000007,
+          "p95": 0.10000000000000009,
+          "max": 0.1599999999999997
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 441288,
+          "retained_rss_delta": 5292680,
+          "sampled_peak_heap_delta": 4129120,
+          "sampled_peak_rss_delta": 5259912
+        },
+        "event_loop_delay_ms": {
+          "p50": 9.854975,
+          "p95": 10.436607,
+          "max": 10.625023
+        }
+      },
+      {
+        "scenario": "concurrent_identical_agents",
+        "round": 1,
+        "requests": 480,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 480,
+          "p50": 1.5662080000000742,
+          "p95": 1.703375000000051,
+          "max": 1.9496669999999767
+        },
+        "policy_overhead_ms": {
+          "samples": 480,
+          "p50": 0.040000000000000036,
+          "p95": 0.050000000000000044,
+          "max": 0.07999999999999996
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 147784,
+          "retained_rss_delta": 475232,
+          "sampled_peak_heap_delta": 4121112,
+          "sampled_peak_rss_delta": 475232
+        },
+        "event_loop_delay_ms": {
+          "p50": 9.846783,
+          "p95": 10.903551,
+          "max": 10.903551
+        }
+      },
+      {
+        "scenario": "concurrent_distinct_agents",
+        "round": 1,
+        "requests": 480,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 480,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 480,
+          "p50": 1.5232919999999694,
+          "p95": 1.9074590000000171,
+          "max": 2.1829999999999927
+        },
+        "policy_overhead_ms": {
+          "samples": 480,
+          "p50": 0.030000000000000027,
+          "p95": 0.04999999999999982,
+          "max": 0.08000000000000007
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 705400,
+          "retained_rss_delta": 1704032,
+          "sampled_peak_heap_delta": 4745576,
+          "sampled_peak_rss_delta": 1589344
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.190847,
+          "p95": 10.534911,
+          "max": 10.780671
+        }
+      },
+      {
+        "scenario": "cancellation",
+        "round": 1,
+        "requests": 60,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 0,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 0.02779200000009041,
+          "p95": 0.05587499999978718,
+          "max": 0.4133750000000873
+        },
+        "policy_overhead_ms": {
+          "samples": 0,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "memory_bytes": {
+          "retained_heap_delta": -488952,
+          "retained_rss_delta": 49152,
+          "sampled_peak_heap_delta": 750816,
+          "sampled_peak_rss_delta": 49152
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.502143,
+          "p95": 10.502143,
+          "max": 10.502143
+        }
+      },
+      {
+        "scenario": "small",
+        "round": 2,
+        "requests": 60,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 1.2395420000000286,
+          "p95": 1.2839579999999842,
+          "max": 1.52537499999994
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0.020000000000000018,
+          "p95": 0.030000000000000027,
+          "max": 0.030000000000000027
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 136336,
+          "retained_rss_delta": 0,
+          "sampled_peak_heap_delta": 2168568,
+          "sampled_peak_rss_delta": 0
+        },
+        "event_loop_delay_ms": {
+          "p50": 9.936895,
+          "p95": 10.952703,
+          "max": 10.952703
+        }
+      },
+      {
+        "scenario": "large_tools",
+        "round": 2,
+        "requests": 60,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 2.769042000000127,
+          "p95": 3.023249999999962,
+          "max": 3.326082999999926
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0.9899999999999998,
+          "p95": 1.15,
+          "max": 1.1900000000000002
+        },
+        "memory_bytes": {
+          "retained_heap_delta": -68032,
+          "retained_rss_delta": 5259960,
+          "sampled_peak_heap_delta": 9242064,
+          "sampled_peak_rss_delta": 5259960
+        },
+        "event_loop_delay_ms": {
+          "p50": 9.986047,
+          "p95": 10.969087,
+          "max": 11.124735
+        }
+      },
+      {
+        "scenario": "cache",
+        "round": 2,
+        "requests": 60,
+        "setup_evaluator_calls": 1,
+        "evaluator_calls": 0,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 0.009708000000046013,
+          "p95": 0.013500000000021828,
+          "max": 0.09229200000004312
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0.01,
+          "p95": 0.01,
+          "max": 0.039999999999999994
+        },
+        "memory_bytes": {
+          "retained_heap_delta": -3736,
+          "retained_rss_delta": 0,
+          "sampled_peak_heap_delta": 493400,
+          "sampled_peak_rss_delta": 0
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.133503,
+          "p95": 10.133503,
+          "max": 10.133503
+        }
+      },
+      {
+        "scenario": "pinned",
+        "round": 2,
+        "requests": 60,
+        "setup_evaluator_calls": 1,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 1.2509589999999662,
+          "p95": 1.30074999999988,
+          "max": 1.484124999999949
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0.020000000000000018,
+          "p95": 0.030000000000000027,
+          "max": 0.040000000000000036
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 108544,
+          "retained_rss_delta": 0,
+          "sampled_peak_heap_delta": 2306736,
+          "sampled_peak_rss_delta": 0
+        },
+        "event_loop_delay_ms": {
+          "p50": 9.986047,
+          "p95": 10.919935,
+          "max": 10.919935
+        }
+      },
+      {
+        "scenario": "concurrent_identical",
+        "round": 2,
+        "requests": 480,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 480,
+          "p50": 1.708667000000105,
+          "p95": 2.39654100000007,
+          "max": 2.734083000000055
+        },
+        "policy_overhead_ms": {
+          "samples": 480,
+          "p50": 0.050000000000000044,
+          "p95": 0.10999999999999988,
+          "max": 0.2799999999999998
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 400712,
+          "retained_rss_delta": 6816728,
+          "sampled_peak_heap_delta": 7236016,
+          "sampled_peak_rss_delta": 6816728
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.010623,
+          "p95": 10.805247,
+          "max": 11.493375
+        }
+      },
+      {
+        "scenario": "concurrent_identical_agents",
+        "round": 2,
+        "requests": 480,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 480,
+          "p50": 1.3475419999999758,
+          "p95": 1.4352499999999964,
+          "max": 1.5907079999999496
+        },
+        "policy_overhead_ms": {
+          "samples": 480,
+          "p50": 0.010000000000000009,
+          "p95": 0.030000000000000027,
+          "max": 0.050000000000000044
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 137848,
+          "retained_rss_delta": 573536,
+          "sampled_peak_heap_delta": 7134464,
+          "sampled_peak_rss_delta": 426080
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.092543,
+          "p95": 10.764287,
+          "max": 10.764287
+        }
+      },
+      {
+        "scenario": "concurrent_distinct_agents",
+        "round": 2,
+        "requests": 480,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 480,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 480,
+          "p50": 1.4201249999998709,
+          "p95": 1.6052500000000691,
+          "max": 2.001708000000008
+        },
+        "policy_overhead_ms": {
+          "samples": 480,
+          "p50": 0.020000000000000018,
+          "p95": 0.039999999999999813,
+          "max": 0.08999999999999986
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 429856,
+          "retained_rss_delta": 1229064,
+          "sampled_peak_heap_delta": 7657848,
+          "sampled_peak_rss_delta": 1065224
+        },
+        "event_loop_delay_ms": {
+          "p50": 9.969663,
+          "p95": 10.862591,
+          "max": 10.862591
+        }
+      },
+      {
+        "scenario": "cancellation",
+        "round": 2,
+        "requests": 60,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 0,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 0.015124999999898137,
+          "p95": 0.022125000000187356,
+          "max": 0.1478749999998854
+        },
+        "policy_overhead_ms": {
+          "samples": 0,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "memory_bytes": {
+          "retained_heap_delta": -448672,
+          "retained_rss_delta": 0,
+          "sampled_peak_heap_delta": 691880,
+          "sampled_peak_rss_delta": 0
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.526719,
+          "p95": 10.526719,
+          "max": 10.526719
+        }
+      },
+      {
+        "scenario": "small",
+        "round": 3,
+        "requests": 60,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 1.2419580000000678,
+          "p95": 1.2870840000000499,
+          "max": 1.5305409999998574
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0.020000000000000018,
+          "p95": 0.030000000000000027,
+          "max": 0.040000000000000036
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 107008,
+          "retained_rss_delta": 32768,
+          "sampled_peak_heap_delta": 2128576,
+          "sampled_peak_rss_delta": 0
+        },
+        "event_loop_delay_ms": {
+          "p50": 9.895935,
+          "p95": 10.100735,
+          "max": 10.100735
+        }
+      },
+      {
+        "scenario": "large_tools",
+        "round": 3,
+        "requests": 60,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 2.80987499999992,
+          "p95": 3.0369579999999132,
+          "max": 3.5410420000000613
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 1,
+          "p95": 1.1600000000000001,
+          "max": 1.35
+        },
+        "memory_bytes": {
+          "retained_heap_delta": -107648,
+          "retained_rss_delta": 32768,
+          "sampled_peak_heap_delta": 9258240,
+          "sampled_peak_rss_delta": 32768
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.567679,
+          "p95": 11.403263,
+          "max": 11.558911
+        }
+      },
+      {
+        "scenario": "cache",
+        "round": 3,
+        "requests": 60,
+        "setup_evaluator_calls": 1,
+        "evaluator_calls": 0,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 0.00787499999978536,
+          "p95": 0.014375000000200089,
+          "max": 0.08358300000008967
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0.01,
+          "p95": 0.01,
+          "max": 0.04
+        },
+        "memory_bytes": {
+          "retained_heap_delta": -23160,
+          "retained_rss_delta": 0,
+          "sampled_peak_heap_delta": 494360,
+          "sampled_peak_rss_delta": 0
+        },
+        "event_loop_delay_ms": {
+          "p50": 9.895935,
+          "p95": 9.895935,
+          "max": 9.895935
+        }
+      },
+      {
+        "scenario": "pinned",
+        "round": 3,
+        "requests": 60,
+        "setup_evaluator_calls": 1,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 1.177042000000256,
+          "p95": 1.3462500000000546,
+          "max": 1.4081670000000486
+        },
+        "policy_overhead_ms": {
+          "samples": 60,
+          "p50": 0.010000000000000009,
+          "p95": 0.030000000000000027,
+          "max": 0.05999999999999983
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 76816,
+          "retained_rss_delta": 49152,
+          "sampled_peak_heap_delta": 2316072,
+          "sampled_peak_rss_delta": 16384
+        },
+        "event_loop_delay_ms": {
+          "p50": 9.961471,
+          "p95": 10.846207,
+          "max": 10.846207
+        }
+      },
+      {
+        "scenario": "concurrent_identical",
+        "round": 3,
+        "requests": 480,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 480,
+          "p50": 1.7448749999998654,
+          "p95": 2.1965409999997974,
+          "max": 3.3958330000000387
+        },
+        "policy_overhead_ms": {
+          "samples": 480,
+          "p50": 0.06000000000000005,
+          "p95": 0.08000000000000007,
+          "max": 0.24
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 275000,
+          "retained_rss_delta": 131072,
+          "sampled_peak_heap_delta": 7608200,
+          "sampled_peak_rss_delta": 65536
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.018815,
+          "p95": 10.641407,
+          "max": 10.928127
+        }
+      },
+      {
+        "scenario": "concurrent_identical_agents",
+        "round": 3,
+        "requests": 480,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 60,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 480,
+          "p50": 1.4071250000001783,
+          "p95": 1.814665999999761,
+          "max": 1.9708749999999782
+        },
+        "policy_overhead_ms": {
+          "samples": 480,
+          "p50": 0.020000000000000018,
+          "p95": 0.050000000000000044,
+          "max": 0.13000000000000012
+        },
+        "memory_bytes": {
+          "retained_heap_delta": -93056,
+          "retained_rss_delta": 49152,
+          "sampled_peak_heap_delta": 7095968,
+          "sampled_peak_rss_delta": 49152
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.289151,
+          "p95": 10.797055,
+          "max": 10.797055
+        }
+      },
+      {
+        "scenario": "concurrent_distinct_agents",
+        "round": 3,
+        "requests": 480,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 480,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 480,
+          "p50": 1.5049579999999878,
+          "p95": 1.727624999999989,
+          "max": 2.165917000000263
+        },
+        "policy_overhead_ms": {
+          "samples": 480,
+          "p50": 0.030000000000000027,
+          "p95": 0.040000000000000036,
+          "max": 0.06999999999999984
+        },
+        "memory_bytes": {
+          "retained_heap_delta": 393104,
+          "retained_rss_delta": 425984,
+          "sampled_peak_heap_delta": 7599696,
+          "sampled_peak_rss_delta": 278528
+        },
+        "event_loop_delay_ms": {
+          "p50": 10.264575,
+          "p95": 10.608639,
+          "max": 10.649599
+        }
+      },
+      {
+        "scenario": "cancellation",
+        "round": 3,
+        "requests": 60,
+        "setup_evaluator_calls": 0,
+        "evaluator_calls": 0,
+        "aborted_evaluations": 0,
+        "route_ms": {
+          "samples": 60,
+          "p50": 0.017875000000003638,
+          "p95": 0.02070800000001327,
+          "max": 0.10670899999968242
+        },
+        "policy_overhead_ms": {
+          "samples": 0,
+          "p50": 0,
+          "p95": 0,
+          "max": 0
+        },
+        "memory_bytes": {
+          "retained_heap_delta": -453616,
+          "retained_rss_delta": 0,
+          "sampled_peak_heap_delta": 667120,
+          "sampled_peak_rss_delta": 0
+        },
+        "event_loop_delay_ms": {
+          "p50": 9.256959,
+          "p95": 9.256959,
+          "max": 9.256959
+        }
+      }
+    ]
+  },
+  "comparison": {
+    "passed": true,
+    "comparable": {
+      "passed": true,
+      "expected": "Same workload parameters, Node version and hardware; background load remains reported separately."
+    },
+    "evaluator_calls": {
+      "passed": true,
+      "expected": "One evaluation per group of eight identical concurrent requests, including different agents."
+    },
+    "latency": [
+      {
+        "scenario": "small",
+        "baseline_max_p95_ms": 1.646,
+        "candidate_max_p95_ms": 1.396,
+        "limit_ms": 3.292,
+        "passed": true,
+        "rationale": "Local regression guard: twice the largest p95 across three pre-change rounds; not a universal latency target."
+      },
+      {
+        "scenario": "large_tools",
+        "baseline_max_p95_ms": 4.415,
+        "candidate_max_p95_ms": 3.037,
+        "limit_ms": 8.831,
+        "passed": true,
+        "rationale": "Local regression guard: twice the largest p95 across three pre-change rounds; not a universal latency target."
+      },
+      {
+        "scenario": "cache",
+        "baseline_max_p95_ms": 0.035,
+        "candidate_max_p95_ms": 0.014,
+        "limit_ms": 0.071,
+        "passed": true,
+        "rationale": "Local regression guard: twice the largest p95 across three pre-change rounds; not a universal latency target."
+      },
+      {
+        "scenario": "pinned",
+        "baseline_max_p95_ms": 1.778,
+        "candidate_max_p95_ms": 1.346,
+        "limit_ms": 3.556,
+        "passed": true,
+        "rationale": "Local regression guard: twice the largest p95 across three pre-change rounds; not a universal latency target."
+      },
+      {
+        "scenario": "concurrent_identical",
+        "baseline_max_p95_ms": 2.815,
+        "candidate_max_p95_ms": 2.397,
+        "limit_ms": 5.631,
+        "passed": true,
+        "rationale": "Local regression guard: twice the largest p95 across three pre-change rounds; not a universal latency target."
+      },
+      {
+        "scenario": "concurrent_identical_agents",
+        "baseline_max_p95_ms": 2.219,
+        "candidate_max_p95_ms": 1.815,
+        "limit_ms": 4.439,
+        "passed": true,
+        "rationale": "Local regression guard: twice the largest p95 across three pre-change rounds; not a universal latency target."
+      },
+      {
+        "scenario": "concurrent_distinct_agents",
+        "baseline_max_p95_ms": 2.201,
+        "candidate_max_p95_ms": 1.907,
+        "limit_ms": 4.401,
+        "passed": true,
+        "rationale": "Local regression guard: twice the largest p95 across three pre-change rounds; not a universal latency target."
+      },
+      {
+        "scenario": "cancellation",
+        "baseline_max_p95_ms": 0.124,
+        "candidate_max_p95_ms": 0.056,
+        "limit_ms": 0.249,
+        "passed": true,
+        "rationale": "Local regression guard: twice the largest p95 across three pre-change rounds; not a universal latency target."
+      }
+    ],
+    "resources": [
+      {
+        "scenario": "small",
+        "sampled_peak_heap_limit_bytes": 8560128,
+        "candidate_sampled_peak_heap_bytes": 5038504,
+        "event_loop_p95_limit_ms": 90.767,
+        "candidate_event_loop_p95_ms": 42.598,
+        "passed": true
+      },
+      {
+        "scenario": "large_tools",
+        "sampled_peak_heap_limit_bytes": 17805456,
+        "candidate_sampled_peak_heap_bytes": 9258240,
+        "event_loop_p95_limit_ms": 24.019,
+        "candidate_event_loop_p95_ms": 11.403,
+        "passed": true
+      },
+      {
+        "scenario": "cache",
+        "sampled_peak_heap_limit_bytes": 921232,
+        "candidate_sampled_peak_heap_bytes": 498888,
+        "event_loop_p95_limit_ms": 21.479,
+        "candidate_event_loop_p95_ms": 10.134,
+        "passed": true
+      },
+      {
+        "scenario": "pinned",
+        "sampled_peak_heap_limit_bytes": 3747296,
+        "candidate_sampled_peak_heap_bytes": 2411504,
+        "event_loop_p95_limit_ms": 21.791,
+        "candidate_event_loop_p95_ms": 10.92,
+        "passed": true
+      },
+      {
+        "scenario": "concurrent_identical",
+        "sampled_peak_heap_limit_bytes": 15633488,
+        "candidate_sampled_peak_heap_bytes": 7608200,
+        "event_loop_p95_limit_ms": 21.856,
+        "candidate_event_loop_p95_ms": 10.805,
+        "passed": true
+      },
+      {
+        "scenario": "concurrent_identical_agents",
+        "sampled_peak_heap_limit_bytes": 14187472,
+        "candidate_sampled_peak_heap_bytes": 7134464,
+        "event_loop_p95_limit_ms": 21.725,
+        "candidate_event_loop_p95_ms": 10.904,
+        "passed": true
+      },
+      {
+        "scenario": "concurrent_distinct_agents",
+        "sampled_peak_heap_limit_bytes": 14305120,
+        "candidate_sampled_peak_heap_bytes": 7657848,
+        "event_loop_p95_limit_ms": 21.578,
+        "candidate_event_loop_p95_ms": 10.863,
+        "passed": true
+      },
+      {
+        "scenario": "cancellation",
+        "sampled_peak_heap_limit_bytes": 2010304,
+        "candidate_sampled_peak_heap_bytes": 750816,
+        "event_loop_p95_limit_ms": 21.922,
+        "candidate_event_loop_p95_ms": 10.527,
+        "passed": true
+      }
+    ]
+  }
+}

@@ -1,16 +1,24 @@
+import { normalizeSessionRecord, UNPRICED_REASONS } from './telemetry-event.mjs';
+
 // Published standard, global API prices in cents per million tokens. These are
 // API-equivalent estimates, not subscription charges. Exact IDs only: an
 // unfamiliar model must not inherit another model's price from its name.
-// https://platform.claude.com/docs/en/about-claude/pricing (2026-09-29)
-const HAIKU_45 = { input: 100, output: 500, write5m: 125, write1h: 200, read: 10 };
-const SONNET_5 = { input: 200, output: 1000, write5m: 250, write1h: 400, read: 20 };
-const OPUS_5 = { input: 500, output: 2500, write5m: 625, write1h: 1000, read: 50 };
-const OPUS_55 = { input: 400, output: 2000, write5m: 500, write1h: 800, read: 20 };
+// These facts retain the existing reviewed rates; a table change must publish
+// a new version so historical usage never silently receives today's prices.
+export const PRICING_VERSION = '2026-09-29.1';
+export const PRICING_DATE = '2026-09-29';
+export const PRICING_SOURCE = 'https://platform.claude.com/docs/en/about-claude/pricing';
+const HAIKU_45 = Object.freeze({ input: 100, output: 500, write5m: 125, write1h: 200, read: 10 });
+const SONNET_5 = Object.freeze({ input: 200, output: 1000, write5m: 250, write1h: 400, read: 20 });
+const OPUS_5 = Object.freeze({ input: 500, output: 2500, write5m: 625, write1h: 1000, read: 50 });
+const OPUS_55 = Object.freeze({ input: 400, output: 2000, write5m: 500, write1h: 800, read: 20 });
 const PRICES = new Map([
   ['claude-haiku-4-5', HAIKU_45], ['claude-haiku-4-5-20251001', HAIKU_45],
   ['claude-sonnet-5', SONNET_5], ['claude-sonnet-5-5', SONNET_5],
   ['claude-opus-5', OPUS_5], ['claude-opus-5-5', OPUS_55],
 ]);
+export const PRICING_FACTS = Object.freeze({ version: PRICING_VERSION, date: PRICING_DATE, source: PRICING_SOURCE,
+  currency: 'USD', unit: 'cents_per_million_tokens', models: Object.freeze(Object.fromEntries(PRICES)) });
 const OPUS_MODELS = new Set(['claude-opus-5', 'claude-opus-5-5']);
 const EVENTS = new Set(['request_start', 'route', 'upstream_response', 'upstream_model', 'upstream_usage',
   'upstream_error', 'request_complete', 'request_error', 'request_cancelled']);
@@ -83,7 +91,7 @@ export function createSavingsTracker({ baselineModel = 'claude-opus-5-5' } = {})
     }
   }
 
-  function finish(key, failed = false, partial = false) {
+  function finish(key, failed = false, partial = false, failureReason = 'request_failed') {
     const request = inflight.get(key);
     if (!request) return;
     inflight.delete(key);
@@ -93,6 +101,9 @@ export function createSavingsTracker({ baselineModel = 'claude-opus-5-5' } = {})
     if (partial) session.partial = true;
     if (failed || request.failed || request.invalid || !request.prices || !request.usage || !baseline) {
       session.unpriced_requests++;
+      const reason = failed ? failureReason : request.failed ? 'request_failed' : request.unpricedReason
+        ?? (!baseline ? 'unknown_baseline' : !request.prices ? 'missing_model' : 'missing_usage');
+      session.unpriced_reasons[reason] = Math.min(Number.MAX_SAFE_INTEGER, (session.unpriced_reasons[reason] ?? 0) + 1);
       return;
     }
     session.actual += cost(request.usage, request.prices);
@@ -107,7 +118,7 @@ export function createSavingsTracker({ baselineModel = 'claude-opus-5-5' } = {})
       sessions.set(sessionId, session);
       return session;
     }
-    session = { actual: 0n, baseline: 0n, requests: 0, unpriced_requests: 0,
+    session = { actual: 0n, baseline: 0n, requests: 0, unpriced_requests: 0, unpriced_reasons: {},
       partial: historyPartial || evictedSessions.has(sessionId) };
     sessions.set(sessionId, session);
     while (sessions.size > MAX_SESSIONS) {
@@ -135,29 +146,42 @@ export function createSavingsTracker({ baselineModel = 'claude-opus-5-5' } = {})
       if (event.event === 'request_start') {
         if (inflight.has(key) || settled.has(key)) return;
         sessionFor(sessionId);
-        while (inflight.size >= MAX_INFLIGHT) finish(inflight.keys().next().value, true, true);
-        inflight.set(key, { sessionId, invalid: !standardPricing(event.pricing_context) });
+        while (inflight.size >= MAX_INFLIGHT) finish(inflight.keys().next().value, true, true, 'request_evicted');
+        const invalid = !standardPricing(event.pricing_context);
+        inflight.set(key, { sessionId, invalid, ...(invalid ? { unpricedReason: 'unsupported_pricing' } : {}) });
         return;
       }
       const request = inflight.get(key);
       if (!request) return;
       switch (event.event) {
         case 'route':
-          if (!standardPricing(event.pricing_context)) request.invalid = true;
+          if (!standardPricing(event.pricing_context)) { request.invalid = true; request.unpricedReason ??= 'unsupported_pricing'; }
           break;
         case 'upstream_response':
           if (!Number.isInteger(event.status) || event.status < 200 || event.status >= 300) request.failed = true;
           break;
         case 'upstream_model': {
           const prices = PRICES.get(event.model);
-          if (!prices || (request.prices && request.prices !== prices)) request.invalid = true;
+          if (!prices) { request.invalid = true; request.unpricedReason ??= 'unknown_model'; }
+          // A fallback can mix usage even between models with identical rates.
+          // No aggregate can prove the attribution of all billed tokens.
+          if (request.model !== undefined && request.model !== event.model) {
+            request.invalid = true; request.unpricedReason = 'mixed_models';
+          }
+          request.model = event.model;
           request.prices = prices;
           break;
         }
         case 'upstream_usage': {
           const usage = normalizeUsage(event.usage, request.prices);
-          if (!usage || !standardPricing(event.pricing_context)) request.invalid = true;
-          else if (request.usage && Object.keys(usage).some(key => usage[key] !== request.usage[key])) request.invalid = true;
+          if (!usage || !standardPricing(event.pricing_context)) {
+            request.invalid = true;
+            request.unpricedReason ??= !standardPricing(event.pricing_context) || !standardPricing(event.usage, request.prices === HAIKU_45)
+              ? 'unsupported_pricing' : 'invalid_usage';
+          }
+          else if (request.usage && Object.keys(usage).some(key => usage[key] !== request.usage[key])) {
+            request.invalid = true; request.unpricedReason ??= 'conflicting_usage';
+          }
           else request.usage = usage;
           break;
         }
@@ -165,11 +189,13 @@ export function createSavingsTracker({ baselineModel = 'claude-opus-5-5' } = {})
           request.failed = true;
           break;
         case 'request_complete':
-          finish(key);
+          finish(key, event.completion_confirmed === false, false, 'unconfirmed_completion');
           break;
         case 'request_error':
-        case 'request_cancelled':
           finish(key, true);
+          break;
+        case 'request_cancelled':
+          finish(key, true, false, 'request_cancelled');
           break;
       }
     } catch {
@@ -179,7 +205,7 @@ export function createSavingsTracker({ baselineModel = 'claude-opus-5-5' } = {})
         const sessionId = event?.session_id == null ? '' : identifier(event.session_id);
         const requestId = identifier(event?.request_id);
         const request = inflight.get(`${sessionId}\0${requestId}`);
-        if (request) request.invalid = true;
+        if (request) { request.invalid = true; request.unpricedReason ??= 'invalid_telemetry'; }
       } catch {}
     }
   }
@@ -189,12 +215,17 @@ export function createSavingsTracker({ baselineModel = 'claude-opus-5-5' } = {})
       const saved = session.baseline - session.actual;
       return [sessionId, {
         baseline_model: baselineName,
+        pricing_version: PRICING_VERSION,
+        pricing_date: PRICING_DATE,
+        pricing_source: PRICING_SOURCE,
         actual_usd: Number(session.actual) / 100000000,
         baseline_usd: Number(session.baseline) / 100000000,
         saved_usd: Number(saved) / 100000000,
         percent: session.baseline === 0n ? 0 : Number(saved) / Number(session.baseline) * 100,
         requests: session.requests,
         unpriced_requests: session.unpriced_requests,
+        unpriced_reasons: Object.fromEntries(UNPRICED_REASONS.filter(reason => session.unpriced_reasons[reason])
+          .map(reason => [reason, session.unpriced_reasons[reason]])),
         ...(session.partial || historyPartial ? { partial: true } : {}),
       }];
     }));
@@ -205,4 +236,31 @@ export function createSavingsTracker({ baselineModel = 'claude-opus-5-5' } = {})
   }
 
   return { update, snapshot, clear };
+}
+
+// Saved history must use the recorded baseline and reviewed table version,
+// never retroactively assume the current baseline or a successful response.
+export function estimateOutcomeSavings(value) {
+  const outcome = normalizeSessionRecord(value, { includePrompts: false });
+  const unpriced = unpriced_reason => ({ priced: false, unpriced_reason });
+  if (!outcome || outcome.event !== 'outcome') return unpriced('invalid_telemetry');
+  if (outcome.status === 'cancelled') return unpriced('request_cancelled');
+  if (outcome.status === 'error') return unpriced('request_failed');
+  if (outcome.completion_confirmed !== true) return unpriced('unconfirmed_completion');
+  if (outcome.pricing_version !== PRICING_VERSION) return unpriced('unknown_pricing_version');
+  if (!OPUS_MODELS.has(outcome.baseline_model)) return unpriced('unknown_baseline');
+  if (outcome.usage_complete === false) return unpriced('incomplete_usage');
+  if (outcome.model_transitions_truncated || new Set([outcome.confirmed_model, ...(outcome.model_transitions ?? [])].filter(Boolean)).size > 1) return unpriced('mixed_models');
+  if (outcome.pricing_eligible === false) return unpriced(outcome.unpriced_reason ?? 'unsupported_pricing');
+  const tracker = createSavingsTracker({ baselineModel: outcome.baseline_model });
+  const identity = { request_id: 'outcome', session_id: 'outcome' };
+  tracker.update({ ...identity, event: 'request_start', pricing_context: outcome.pricing_context });
+  if (outcome.http_status !== undefined) tracker.update({ ...identity, event: 'upstream_response', status: outcome.http_status });
+  if (outcome.confirmed_model) tracker.update({ ...identity, event: 'upstream_model', model: outcome.confirmed_model });
+  if (outcome.usage !== undefined) tracker.update({ ...identity, event: 'upstream_usage', usage: outcome.usage });
+  tracker.update({ ...identity, event: 'request_complete' });
+  const result = tracker.snapshot().outcome;
+  if (result.unpriced_requests) return unpriced(Object.keys(result.unpriced_reasons)[0]);
+  return { priced: true, actual_usd: result.actual_usd, baseline_usd: result.baseline_usd,
+    saved_usd: result.saved_usd, percent: result.percent, baseline_model: result.baseline_model, pricing_version: result.pricing_version };
 }

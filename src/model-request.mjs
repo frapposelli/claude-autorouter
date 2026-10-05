@@ -1,6 +1,4 @@
-// Keep adaptations explicit: models in the same family can have different
-// thinking contracts. Preserve the existing adaptive Opus upgrade behavior.
-const ADAPTIVE_TARGETS = new Set(['claude-opus-5', 'claude-opus-5-5']);
+import { modelCapabilities } from './model-catalog.mjs';
 
 function sonnetNeedsAdaptive(body) {
   const effort = body.output_config?.effort ?? 'high';
@@ -14,17 +12,18 @@ function sonnetNeedsAdaptive(body) {
 export function prepareRequest(body, model) {
   const request = { ...body, model };
   const adjustments = [];
+  const adaptation = modelCapabilities(model)?.disabledThinkingAdaptation;
   if (model !== body.model && body.model === 'claude-sonnet-5-5' && body.thinking?.type === 'between_tools'
-    && Object.keys(body.thinking).length === 1 && ADAPTIVE_TARGETS.has(model)) {
+    && Object.keys(body.thinking).length === 1 && adaptation === 'adaptive') {
     request.thinking = { type: 'adaptive' };
     adjustments.push('adaptive_thinking_required');
   }
-  if (model !== body.model && body.thinking?.type === 'disabled') {
-    if (model === 'claude-sonnet-5-5') {
+  if (model !== body.model && body.thinking?.type === 'disabled' && Object.keys(body.thinking).length === 1) {
+    if (adaptation === 'between_tools') {
       const type = sonnetNeedsAdaptive(body) ? 'adaptive' : 'between_tools';
       request.thinking = { type };
       adjustments.push(type === 'adaptive' ? 'adaptive_thinking_required' : 'between_tools_thinking_required');
-    } else if (ADAPTIVE_TARGETS.has(model)) {
+    } else if (adaptation === 'adaptive') {
       request.thinking = { type: 'adaptive' };
       adjustments.push('adaptive_thinking_required');
     }

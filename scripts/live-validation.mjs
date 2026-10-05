@@ -4,13 +4,15 @@ import { spawn } from 'node:child_process';
 import { randomBytes, createHash } from 'node:crypto';
 import { mkdtemp, writeFile, readFile, realpath, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { readConfig, requireKeys } from '../src/config.mjs';
 import { buildClaudeEnv } from '../src/auth.mjs';
 import { Router, buildState, contextSizeBytes } from '../src/router.mjs';
 import { createRouterServer, listen } from '../src/server.mjs';
 import { createStatusState } from '../src/status-state.mjs';
 import { renderStatusLine } from '../src/statusline.mjs';
+import { createEvaluationPolicy, evaluateLiveCase, evaluateLiveReport, modelTier, profileTier } from '../src/evaluation-report.mjs';
 
 const TEST_SOURCE = `import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -46,23 +48,28 @@ const SYNTHETIC_REMINDER = '<system-reminder>\nSynthetic tool catalog metadata, 
   + 'Synthetic catalog entry for a tool that is not enabled. '.repeat(4000) + '\n</system-reminder>';
 const CASES = {
   simple: {
+    expectedClassifiedTier: 'haiku',
     prompts: ['What does the JavaScript expression [].length evaluate to? Reply with only the integer.'],
     check: results => results.length === 1 && results[0].trim() === '0',
   },
   medium: {
+    expectedClassifiedTier: 'sonnet',
     prompts: ['Review this JavaScript event-loop sequence and determine the output order: console.log("A"); Promise.resolve().then(() => { console.log("B"); queueMicrotask(() => console.log("C")); }); console.log("D"); Explain the ordering briefly, then finish with ORDER=A,D,B,C if that is correct, or ORDER= followed by the actual comma-separated order.'],
     check: results => results.length === 1 && /ORDER=A,D,B,C/.test(results[0]),
   },
   difficult: {
+    expectedClassifiedTier: 'opus',
     prompts: ['Analyze a distributed locking design rigorously. A and B use a lease service with monotonically increasing fencing tokens. A obtains token 10 and starts a write, then pauses longer than its lease. B obtains token 11, writes the resource, and returns success. A resumes with token 10. The database validates only that the token was once issued by the lease service; it does not remember the largest token observed. Can the design guarantee that A cannot overwrite B? Give a concrete legal schedule, distinguish fencing from mere lease validity, and explain the minimum atomic resource-side check and state needed to repair it, including duplicate retries. Finish with exactly one verdict line: VERDICT=SAFE or VERDICT=UNSAFE.'],
     check: results => results.length === 1 && /VERDICT=UNSAFE/.test(results[0]) && /atomic/i.test(results[0]) && /10/.test(results[0]) && /11/.test(results[0]),
   },
   coding: {
+    expectedClassifiedTier: 'sonnet',
     tools: true,
     prompts: ['In this synthetic fixture, repair mergeIntervals in merge-intervals.mjs so that it sorts and merges overlapping or touching numeric intervals, handles nested intervals, and never changes the input. Use Read to inspect the source and its test, Edit to fix only merge-intervals.mjs, and Bash to execute exactly: node --test merge-intervals.test.mjs. Do not change tests or any other files. After tests pass, summarize the fix briefly.'],
     check: results => results.length === 1 && results[0].length > 0,
   },
   continuation: {
+    expectedClassifiedTier: 'haiku',
     prompts: [
       'Remember this synthetic test marker for our next message: ROUTER_CONTINUATION_47. Reply exactly ACK.',
       'What was the synthetic test marker I asked you to remember? Reply with only that marker.',
@@ -70,6 +77,7 @@ const CASES = {
     check: results => results.length === 2 && results[0].trim() === 'ACK' && results[1].trim() === 'ROUTER_CONTINUATION_47',
   },
   large_context: {
+    expectedClassifiedTier: 'haiku',
     optIn: true,
     appendSystemPrompt: LARGE_CONTEXT_SYSTEM,
     prompts: ['What does the JavaScript expression [].length evaluate to? Reply with only the integer.'],
@@ -92,12 +100,21 @@ const CASES = {
   },
 };
 CASES.thinking_continuation = {
+  expectedClassifiedTiers: ['opus', 'haiku'],
   prompts: [
     `${CASES.difficult.prompts[0]} Also remember the synthetic marker ROUTER_THINKING_83 for my next message. Keep your analysis concise.`,
     'What was the synthetic marker in my previous message? Reply with only that marker.',
   ],
   check: results => results.length === 2 && /VERDICT=UNSAFE/.test(results[0]) && results[1].trim() === 'ROUTER_THINKING_83',
 };
+
+export const LIVE_CASES = Object.freeze(CASES);
+export function liveExpectedTier(scenario, body) {
+  if (!scenario.expectedClassifiedTiers) return scenario.expectedClassifiedTier ?? scenario.expectedTier;
+  const current = buildState(body).current_task;
+  const index = scenario.prompts.findIndex(prompt => current === prompt);
+  return scenario.expectedClassifiedTiers[index];
+}
 
 function parseArgs(args) {
   const options = { cases: Object.keys(CASES).filter(name => !CASES[name].optIn), timeoutMs: 120000, model: undefined };
@@ -108,7 +125,7 @@ function parseArgs(args) {
     if (['--simulate-evaluator-outage', '--simulate-jev-outage'].includes(arg)) { options.simulateJevOutage = true; continue; }
     if (!['--case', '--timeout-ms', '--model', '--client-model'].includes(arg) || !args[i + 1]) throw new Error('Use --help for supported options');
     const value = args[++i];
-    if (arg === '--case') options.cases = value.split(',');
+    if (arg === '--case') { options.cases = value.split(','); options.selectedCases = true; }
     if (arg === '--model' || arg === '--client-model') options.model = value;
     if (arg === '--timeout-ms') options.timeoutMs = Number(value);
   }
@@ -265,20 +282,26 @@ function runCommand(command, args, cwd, timeoutMs = 10000) {
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   if (options.help) {
-    console.log('Usage: node --env-file=.env scripts/live-validation.mjs [--case simple,medium,difficult,coding,continuation,thinking_continuation,large_context,example_haiku,example_sonnet,example_opus] [--client-model MODEL] [--no-thinking] [--simulate-evaluator-outage] [--timeout-ms 120000]\nUses the existing Claude subscription login. Executes real Claude requests and the configured evaluator (except simulated evaluator outages). --simulate-jev-outage remains an alias. Reports metadata only; fixtures are removed. Model costs in CLI usage are list-price estimates, not subscription charges.\nlarge_context is opt-in and deliberately sends more than 200K input tokens in a synthetic system fixture. example_* cases reproduce reminder-prefixed prompts with synthetic context.');
+    console.log('Usage: node --env-file=.env scripts/live-validation.mjs [--case simple,medium,difficult,coding,continuation,thinking_continuation,large_context,example_haiku,example_sonnet,example_opus] [--client-model MODEL] [--no-thinking] [--simulate-evaluator-outage] [--timeout-ms 120000]\nUses the existing Claude subscription login. Executes real Claude requests and the configured evaluator (except simulated evaluator outages). --simulate-jev-outage remains an alias. Normal runs require successful evaluation without fallback; outage runs require fallback. Full compatible runs require Haiku/Sonnet/Opus coverage, Auto runs require Sonnet/Opus; explicit case subsets require only their declared tiers. Reports separate transport, evaluator, rubric, policy and task gates. Reports metadata only; fixtures are removed. Model costs in CLI usage are list-price estimates, not subscription charges.\nlarge_context is opt-in and deliberately sends more than 200K input tokens in a synthetic system fixture. example_* cases reproduce reminder-prefixed prompts with synthetic context.');
     return;
   }
   const config = readConfig({ ...process.env, AUTOROUTER_AUTH_MODE: 'subscription', AUTOROUTER_TOKEN: randomBytes(32).toString('hex') });
+  const requiredTiers = options.selectedCases ? [...new Set(options.cases.map(name =>
+    profileTier(CASES[name].expectedTier ?? (name === 'large_context' ? 'sonnet' : undefined), config.clientProfile)).filter(Boolean))] : undefined;
+  const qualityPolicy = createEvaluationPolicy({ profile: config.clientProfile, requiredTiers });
   requireKeys(config);
   const help = await runCommand('claude', ['--help'], process.cwd());
   if (help.code !== 0 || !help.stdout.includes('--safe-mode') || !help.stdout.includes('--restricted')) throw new Error('A Claude CLI with --safe-mode and --restricted support is required');
   const maxTurnsSupported = help.stdout.includes('--max-turns');
   const version = await runCommand('claude', ['--version'], process.cwd());
   const report = { type: 'live_validation', cli_version: version.stdout.trim().slice(0, 100), auth_mode: 'subscription',
+    fixture_version: 1, fixture_sha256: digest(JSON.stringify(Object.entries(CASES).map(([name, item]) => ({ name,
+      prompts: item.prompts, expected: item.expectedClassifiedTiers ?? item.expectedClassifiedTier ?? item.expectedTier })))),
     evaluator: config.evaluator, classifier_timeout_ms: config.evaluator === 'ollama' ? config.ollamaTimeoutMs : config.jevTimeoutMs, client_profile: config.clientProfile,
     client_model: options.model ?? (config.clientProfile === 'compatible' ? config.models.haiku : process.env.ANTHROPIC_MODEL ?? 'default'),
     thinking_disabled: Boolean(options.noThinking || config.clientProfile === 'compatible' || process.env.MAX_THINKING_TOKENS === '0'),
     simulated_classifier_outage: options.simulateJevOutage ?? false,
+    quality_policy: qualityPolicy, coverage_scope: options.selectedCases ? 'selected_cases' : 'full_profile',
     cost_basis: 'CLI list-price estimate, not subscription charges', max_turns_supported: maxTurnsSupported, cases: [] };
   const root = await mkdtemp(join(tmpdir(), 'autorouter-live-'));
   try {
@@ -295,15 +318,18 @@ async function main() {
         await writeFile(join(dir, 'merge-intervals.test.mjs'), TEST_SOURCE);
       }
       const routes = [], proxyErrors = [], upstreamModels = new Set(), upstreamStatuses = [], usageReports = [];
+      const observations = new Map();
       const statusState = createStatusState({ baselineModel: config.models.opus, directory: root });
+      await statusState.ready;
       const actualRouter = new Router(config, options.simulateJevOutage ? { fetchImpl: async () => { throw new TypeError('simulated_classifier_outage'); } } : {});
-      const router = { async route(body, context) {
+      const router = { complete: (requestId, evidence) => actualRouter.complete(requestId, evidence), async route(body, context) {
         if (scenario.syntheticReminder && !['compaction', 'auxiliary'].includes(context.requestClass)) {
           const first = body.messages.find(message => message.role === 'user');
           const content = typeof first.content === 'string' ? [{ type: 'text', text: first.content }] : first.content;
           first.content = [{ type: 'text', text: SYNTHETIC_REMINDER }, ...content];
         }
         const evidence = metadata(body, context);
+        evidence.expected_classified_tier = liveExpectedTier(scenario, body);
         if (scenario.syntheticReminder) {
           evidence.context_guard_bytes = contextSizeBytes(body);
           evidence.classifier_contains_example = JSON.stringify(buildState(body)).includes(JSON.stringify(scenario.prompts[0]).slice(1, -1));
@@ -315,6 +341,15 @@ async function main() {
       const server = createRouterServer(config, { router, onStatus: entry => {
         statusState.update(entry);
         if (entry.event === 'upstream_usage') usageReports.push(entry.usage);
+        if (entry.request_id) {
+          const observed = observations.get(entry.request_id) ?? { request_id: entry.request_id };
+          if (entry.event === 'route') Object.assign(observed, { requested_model: entry.requested_model,
+            classified_tier: entry.classified_tier ?? null, selected_model: entry.model, confirmed_model: null, source: entry.source });
+          if (entry.event === 'upstream_model') observed.confirmed_model = entry.model;
+          if (entry.event === 'upstream_response') observed.http_status = entry.status;
+          if (['request_complete', 'request_error', 'request_cancelled'].includes(entry.event)) observed.outcome = entry.event;
+          observations.set(entry.request_id, observed);
+        }
       }, log: entry => {
         if (entry.event === 'upstream_model' && typeof entry.model === 'string') upstreamModels.add(entry.model);
         if (entry.event === 'upstream_response') upstreamStatuses.push(entry.status);
@@ -331,9 +366,9 @@ async function main() {
         server.closeAllConnections();
         await new Promise(resolve => server.close(resolve));
         try {
-          statusState.flush();
+          await statusState.flush();
           if (statusState.path) statusSnapshot = JSON.parse(await readFile(statusState.path, 'utf8'));
-        } finally { statusState.close(); }
+        } finally { await statusState.close(); }
       }
       const checks = {
         claude_success: run.exit_code === 0 && !run.timed_out && !run.output_limit_exceeded && run.failures.length === 0,
@@ -341,7 +376,8 @@ async function main() {
         requests_reached_router: routes.length > 0,
         // Claude's assistant and modelUsage fields can retain its requested
         // model. The server observes the actual upstream response model.
-        upstream_model_evidence: upstreamModels.size > 0 && [...upstreamModels].every(model => routes.some(route => family(route.model) === family(model))),
+        upstream_model_evidence: observations.size > 0 && [...observations.values()].every(row =>
+          modelTier(row.confirmed_model) && modelTier(row.confirmed_model) === modelTier(row.selected_model)),
         no_upstream_api_errors: upstreamStatuses.length > 0 && upstreamStatuses.every(status => status >= 200 && status < 300),
         no_proxy_errors: proxyErrors.length === 0,
         no_permission_denials: run.permission_denials === 0,
@@ -356,37 +392,47 @@ async function main() {
         checks.read_edit_bash_exercised = ['Read', 'Edit', 'Bash'].every(tool => run.successful_tools.includes(tool));
         checks.tool_continuation_reached_router = routes.some(route => route.tool_result_count > 0);
       }
-      if (name === 'thinking_continuation') {
+      if (name === 'thinking_continuation' && !options.simulateJevOutage) {
         checks.first_request_routed_to_opus = family(routes[0]?.model ?? '') === 'opus';
         checks.thinking_history_present = routes.slice(1).some(route => route.thinking_history_count > 0);
-        checks.thinking_continuation_pinned = routes.slice(1).some(route => route.reason === 'thinking_history' && family(route.model) === 'opus');
-        checks.actual_upstream_stayed_opus = upstreamModels.size > 0 && [...upstreamModels].every(model => family(model) === 'opus');
+        if (config.clientProfile === 'auto') {
+          // A new human task may switch between the compatible Auto models
+          // while preserving signed thinking; it is not a tool-turn pin.
+          checks.auto_thinking_uses_supported_models = routes.every(route => ['sonnet', 'opus'].includes(family(route.model)));
+        } else {
+          checks.thinking_continuation_pinned = routes.slice(1).some(route => route.reason === 'thinking_history' && family(route.model) === 'opus');
+          checks.actual_upstream_stayed_opus = upstreamModels.size > 0 && [...upstreamModels].every(model => family(model) === 'opus');
+        }
       }
       if (name === 'large_context') {
         const mainRoutes = routes.filter(route => ['main', 'unspecified'].includes(route.request_class));
-        checks.compatible_client_requested_haiku = mainRoutes.length > 0 && mainRoutes.every(route => family(route.requested_model) === 'haiku');
+        if (config.clientProfile === 'compatible') checks.compatible_client_requested_haiku = mainRoutes.length > 0 && mainRoutes.every(route => family(route.requested_model) === 'haiku');
         checks.large_system_context_reached_router = mainRoutes.some(route => route.system_bytes >= Buffer.byteLength(LARGE_CONTEXT_SYSTEM)
           && route.system_bytes > route.request_bytes * 0.9 && route.messages_bytes < 10000);
         checks.capacity_guard_selected_sonnet = mainRoutes.length > 0 && mainRoutes.every(route => family(route.model) === 'sonnet'
-          && route.reason === 'context_capacity');
+          && (config.clientProfile !== 'compatible' || options.simulateJevOutage || route.reason === 'context_capacity'));
         checks.actual_upstream_used_sonnet = upstreamModels.size > 0 && [...upstreamModels].every(model => family(model) === 'sonnet');
         checks.provider_input_exceeds_haiku_window = usageReports.some(usage => ['input_tokens', 'cache_creation_input_tokens', 'cache_read_input_tokens']
           .reduce((sum, key) => sum + (Number.isSafeInteger(usage[key]) ? usage[key] : 0), 0) > 200000);
       }
-      if (scenario.expectedTier) {
+      if (scenario.expectedTier && !options.simulateJevOutage) {
         const mainRoutes = routes.filter(route => ['main', 'unspecified'].includes(route.request_class));
-        checks.expected_tier = mainRoutes.length > 0 && mainRoutes.every(route => family(route.model) === scenario.expectedTier);
-        checks.actual_expected_model = upstreamModels.size > 0 && [...upstreamModels].every(model => family(model) === scenario.expectedTier);
+        const expectedTier = profileTier(scenario.expectedTier, config.clientProfile);
+        checks.expected_tier = mainRoutes.length > 0 && mainRoutes.every(route => family(route.model) === expectedTier);
+        checks.actual_expected_model = upstreamModels.size > 0 && [...upstreamModels].every(model => family(model) === expectedTier);
         checks.actual_prompt_reached_classifier = mainRoutes.every(route => route.classifier_contains_example);
         checks.large_reminder_fixture = mainRoutes.every(route => route.context_guard_bytes > 150000);
-        if (scenario.expectedTier === 'haiku') checks.counted_context_fits_haiku = mainRoutes.every(route => route.context_check === 'within_budget' && route.counted_input_tokens <= 190000);
+        if (expectedTier === 'haiku') checks.counted_context_fits_haiku = mainRoutes.every(route => route.context_check === 'within_budget' && route.counted_input_tokens <= 190000);
       }
       if (options.simulateJevOutage) {
-        checks.classifier_outage_fell_back = routes.length > 0 && routes.every(route => route.source === 'fallback');
-        checks.fallback_retained_capability_floor = routes.every(route => family(route.model) === (family(route.requested_model) === 'opus' ? 'opus' : 'sonnet'));
+        const evaluatedRoutes = routes.filter(route => route.source !== 'passthrough');
+        checks.classifier_outage_fell_back = evaluatedRoutes.length > 0 && evaluatedRoutes.every(route => route.source === 'fallback');
+        checks.fallback_retained_capability_floor = evaluatedRoutes.every(route => family(route.model) === (family(route.requested_model) === 'opus' ? 'opus' : 'sonnet'));
       }
       const { results, ...safeRun } = run;
-      const item = { case: name, passed: Object.values(checks).every(Boolean), checks, ...safeRun, routes,
+      const acceptance = evaluateLiveCase({ checks, routes, evaluator: config.evaluator, expectOutage: options.simulateJevOutage,
+        expectedClassifiedTier: scenario.expectedClassifiedTier ?? scenario.expectedTier });
+      const item = { case: name, ...acceptance, checks, ...safeRun, routes, request_observations: [...observations.values()],
         upstream_models: [...upstreamModels], upstream_statuses: upstreamStatuses, proxy_errors: proxyErrors,
         classifier_succeeded: routes.some(route => route.source === config.evaluator),
         model_changed: routes.some(route => route.requested_model !== route.model),
@@ -398,14 +444,16 @@ async function main() {
       process.stdout.write(`${JSON.stringify({ type: 'case_result', ...item })}\n`);
     }
   } finally { await rm(root, { recursive: true, force: true }); }
-  report.passed = report.cases.every(item => item.passed);
+  const acceptance = evaluateLiveReport(report.cases, { policy: qualityPolicy, expectOutage: options.simulateJevOutage });
+  report.passed = acceptance.passed;
+  report.gates = acceptance.gates;
   report.classifier_succeeded = report.cases.every(item => item.classifier_succeeded);
   report.model_changed = report.cases.some(item => item.model_changed);
   process.stdout.write(`${JSON.stringify(report)}\n`);
   if (!report.passed) process.exitCode = 1;
 }
 
-main().catch(() => {
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main().catch(() => {
   // Avoid accidentally emitting credentials or provider response bodies.
   process.stderr.write('Live validation could not complete. Check CLI availability, configuration, and --help. No request content or credentials were logged.\n');
   process.exitCode = 1;

@@ -124,3 +124,15 @@ test('between_tools adaptation does not guess aliases, source models or extended
     assert.deepEqual(body, before);
   }
 });
+
+test('disabled-thinking extensions are never discarded during adaptation', () => {
+  for (const thinking of [{ type: 'disabled', future_setting: true },
+    { type: 'disabled', display: 'summarized' }, { type: 'disabled', block_binding: { prefix_mismatch_behavior: 'error' } }]) {
+    const body = { model: 'claude-haiku-4-5', thinking, messages: [{ role: 'user', content: 'Task' }] };
+    for (const model of ['claude-sonnet-5-5', 'claude-opus-5-5']) {
+      const result = prepareRequest(body, model);
+      assert.deepEqual(result, { request: { ...body, model }, adjustments: [] });
+      assert.equal(result.request.thinking, thinking);
+    }
+  }
+});

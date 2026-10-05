@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { prepareRequest } from './model-request.mjs';
+import { targetCompatibility } from './auto-routing.mjs';
 
 // Count-token API fields, including the beta fields used by Claude Code.
 // Keep unknown extensions out of the count path: dropping new input context
@@ -76,7 +77,8 @@ export function createTokenCounter(config, { fetchImpl = fetch } = {}) {
   const cacheTtlMs = config.tokenCountCacheTtlMs ?? 5 * 60 * 1000;
   const cache = new Map();
   return async function countTokens(body, model, { headers = {}, signal, search = '' } = {}) {
-    if (signal?.aborted || !canCount(body) || typeof model !== 'string' || !model) return undefined;
+    if (signal?.aborted || !canCount(body) || typeof model !== 'string' || !model
+      || !targetCompatibility(body, model, { autoMode: config.clientProfile === 'auto' }).compatible) return undefined;
     let timer;
     let onAbort;
     const controller = new AbortController();

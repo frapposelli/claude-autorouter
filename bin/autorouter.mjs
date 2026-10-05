@@ -12,66 +12,48 @@ import { createSessionLog } from '../src/session-log.mjs';
 import { loadUserConfig } from '../src/user-config.mjs';
 import { setup, doctor, ollamaDeadlineText } from '../src/onboarding.mjs';
 import { setupOllama } from '../src/ollama-setup.mjs';
+import { helpText } from '../src/cli-help.mjs';
+import { configCommand } from '../src/config-command.mjs';
+import { sessionsCommand } from '../src/session-history.mjs';
 
 const [command = 'help', ...args] = process.argv.slice(2);
 if (['--version', '-v', 'version'].includes(command)) {
   console.log(JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')).version);
 } else if (['help', '--help', '-h'].includes(command)
-  || (['setup', 'doctor', 'serve'].includes(command) && args.some(arg => ['--help', '-h'].includes(arg)))) {
-  console.log(`Claude AutoRouter — routing for Haiku, Sonnet, and Opus
-
-Usage:
-  claude-autorouter setup [--auth-mode subscription|api-key] [--force]
-    [--client-profile compatible|native|auto]
-    [--evaluator jev|ollama]
-    [--ollama-model MODEL] [--ollama-timeout-ms N] [--pull]
-    [--stop-hook-block-cap N]
-    [--session-log-dir DIR]
-  claude-autorouter doctor
-  claude-autorouter claude [Claude Code arguments]
-  claude-autorouter serve
-  claude-autorouter --version
-
-Setup defaults to subscription authentication and prompts for keys without echoing.
-For noninteractive setup, supply keys through environment variables.
-User config: ~/.config/claude-autorouter/config.json (or XDG_CONFIG_HOME).
-AUTOROUTER_CONFIG selects a different file; environment variables take precedence.
-Project .env files are never loaded automatically.
-
-Jev is the default evaluator and requires TYPESAFE_API_KEY.
-Ollama evaluates locally and requires Ollama 0.35+ with /v1/systemone.
-Use setup --evaluator ollama --pull to detect Ollama and download a missing model.
-The local default is nimble:9b-q4_K_M; --ollama-model selects another compatible model.
-Smaller Tev1 options: --ollama-model tev1:0.8b or --ollama-model tev1:4b-q4_K_M.
-Local routing deadlines: Tev1 0.8B/custom 1500 ms, Tev1 4B 15000 ms, Nimble 30000 ms.
-Setup --ollama-timeout-ms N saves a routing deadline; use 0 to disable it.
-AUTOROUTER_OLLAMA_TIMEOUT_MS also overrides the deadline; 0 disables it.
-Local routing is experimental; see docs/ollama-evaluation.md for measured limits.
-AUTOROUTER_AUTH_MODE=subscription uses your saved Claude Code login.
-Without setup, AUTOROUTER_AUTH_MODE defaults to api-key and also requires ANTHROPIC_API_KEY.
-AUTOROUTER_CLIENT_PROFILE=compatible (default) enables all three routing tiers.
-Use AUTOROUTER_CLIENT_PROFILE=native to retain Claude Code's own model/thinking settings.
-Use AUTOROUTER_CLIENT_PROFILE=auto for Auto permission mode: Sonnet/Opus routing, native thinking.
-Auto defaults to Sonnet 5.5 and Opus 5.5, switching on new human tasks and retaining tool turns.
-An explicit claude --permission-mode auto selects the auto profile for that launch.
-Claude's permission checks and organization policies still apply; Haiku does not support Auto mode.
-Optional CLAUDE_CODE_STOP_HOOK_BLOCK_CAP=N limits consecutive tool-free Stop-hook continuations.
-Use 2 to stop on the third block; applies to /goal and all Stop/SubagentStop hooks.
-Unset preserves Claude's default; 0 disables the cap. Setup --stop-hook-block-cap N saves it.
-Standalone serve also requires AUTOROUTER_TOKEN (at least 16 characters).
-The claude launcher creates a temporary credential and an ephemeral port.
-It enables an AutoRouter status line for this session (AUTOROUTER_STATUSLINE=0 to opt out).
-Launcher logs are quiet by default; AUTOROUTER_DEBUG=1 enables diagnostic logs on stderr.
-AUTOROUTER_SESSION_LOG_DIR writes private per-session JSONL decision logs with prompt excerpts.
-Unset or empty disables session logs. Setup --session-log-dir DIR saves the directory.
-Jev sends prompt excerpts to TypeSafe; Ollama keeps classification on this machine.
-Complete inference requests still go to Anthropic. See README.md.`);
-} else if (command === 'setup' || command === 'doctor') {
+  || (['setup', 'doctor', 'serve', 'config', 'sessions'].includes(command) && args.some(arg => ['--help', '-h'].includes(arg)))) {
+  console.log(helpText(command === 'help' ? args[0] : command));
+} else if (command === 'claude' && args.length === 1 && ['--help', '-h', '--version', '-v'].includes(args[0])) {
+  // Help/version are Claude-owned commands. No config file, evaluator keys,
+  // gateway, Ollama warmup or temporary status files are needed.
+  const env = { ...process.env };
+  delete env.TYPESAFE_API_KEY;
+  delete env.AUTOROUTER_TOKEN;
+  const child = spawn('claude', args, { stdio: 'inherit', env });
+  child.once('error', () => { console.error('Could not launch Claude Code. Ensure `claude` is installed and on PATH.'); process.exitCode = 1; });
+  child.once('exit', (code, signal) => { process.exitCode = code ?? (signal === 'SIGINT' ? 130 : signal === 'SIGTERM' ? 143 : 1); });
+  for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => child.kill(signal));
+} else if (['setup', 'doctor', 'config', 'sessions'].includes(command)) {
   try {
     if (command === 'setup') await setup(args);
+    else if (command === 'config') {
+      if (await configCommand(args) === false) process.exitCode = 1;
+    }
+    else if (command === 'sessions') {
+      if (await sessionsCommand(args) === false) process.exitCode = 1;
+    }
     else {
-      if (args.length) throw new Error('Usage: claude-autorouter doctor');
-      if (!await doctor()) process.exitCode = 1;
+      const evaluateLocal = args.includes('--evaluate-local');
+      const json = args.includes('--json');
+      if (args.some(arg => !['--evaluate-local', '--json'].includes(arg)) || new Set(args).size !== args.length
+        || (json && !evaluateLocal)) throw new Error('Usage: claude-autorouter doctor [--evaluate-local [--json]]');
+      const controller = new AbortController();
+      const cancel = () => controller.abort();
+      for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, cancel);
+      try {
+        if (!await doctor({ evaluateLocal, json, signal: controller.signal })) process.exitCode = 1;
+      } finally {
+        for (const signal of ['SIGINT', 'SIGTERM']) process.removeListener(signal, cancel);
+      }
     }
   } catch (error) { console.error(error.message); process.exitCode = 1; }
 } else if (!['claude', 'serve'].includes(command)) {
@@ -85,10 +67,9 @@ Complete inference requests still go to Anthropic. See README.md.`);
   const stop = () => {
     if (stopping) return stopping;
     if (server) { server.close(); server.closeAllConnections(); }
-    status?.close();
     // Drain accepted decision records before normal process exit. Pending
     // filesystem writes keep Node alive; no timer or fire-and-forget buffer.
-    stopping = Promise.resolve().then(() => sessionLog?.close()).catch(() => {});
+    stopping = Promise.allSettled([status?.close(), sessionLog?.close()]);
     return stopping;
   };
   try {
@@ -120,15 +101,17 @@ Complete inference requests still go to Anthropic. See README.md.`);
     let claudeArgs = args;
     if (statusEnabled) {
       status = createStatusState({ baselineModel: config.models.opus });
+      await status.ready;
       if (status.path) {
         try { claudeArgs = addStatusLineSettings(args, dirname(status.path)); }
         catch {
-          status.close(); status = undefined;
+          await status.close(); status = undefined;
           console.error('AutoRouter status line unavailable: could not safely prepare session settings. Passing your original settings to Claude.');
         }
       } else console.error('AutoRouter status line unavailable: could not create local status storage.');
     }
     if (config.sessionLogDir) sessionLog = await createSessionLog(config.sessionLogDir, {
+      includePrompts: config.sessionLogMode === 'prompts',
       warn: message => console.error(message),
     });
     // Claude owns the terminal while its UI is running. Status updates use the
@@ -136,7 +119,7 @@ Complete inference requests still go to Anthropic. See README.md.`);
     server = createRouterServer(config, {
       log: diagnosticLogs ? undefined : () => {},
       onStatus: event => status?.update(event),
-      onDecision: sessionLog ? entry => sessionLog.record(entry) : undefined,
+      onRecord: sessionLog ? entry => sessionLog.record(entry) : undefined,
     });
     const address = await listen(server, command === 'claude' ? 0 : config.port);
     const baseUrl = `http://127.0.0.1:${address.port}`;
@@ -155,7 +138,7 @@ Complete inference requests still go to Anthropic. See README.md.`);
       if (status?.path) env.AUTOROUTER_STATUS_FILE = status.path;
       const child = spawn('claude', claudeArgs, { stdio: 'inherit', env });
       child.once('error', () => { console.error('Could not launch Claude Code. Ensure `claude` is installed and on PATH.'); process.exitCode = 1; stop(); });
-      child.once('exit', (code, signal) => { process.exitCode = code ?? (signal === 'SIGINT' ? 130 : 1); stop(); });
+      child.once('exit', (code, signal) => { process.exitCode = code ?? (signal === 'SIGINT' ? 130 : signal === 'SIGTERM' ? 143 : 1); stop(); });
       for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => child.kill(signal));
     }
   } catch (error) {

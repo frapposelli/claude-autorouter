@@ -8,7 +8,7 @@ import { Router } from '../src/router.mjs';
 
 const token = 'local-test-token-123456789';
 const body = { model: 'claude-sonnet-5', stream: true, max_tokens: 1024, system: [{ type: 'text', text: 'system', cache_control: { type: 'ephemeral' } }], messages: [{ role: 'user', content: 'Fix a typo' }], tools: [{ name: 'Read', input_schema: { type: 'object' } }] };
-async function fixture(t, handler, overrides = {}, routeImpl, onStatus, onDecision) {
+async function fixture(t, handler, overrides = {}, routeImpl, onStatus, onDecision, onRecord) {
   const upstream = http.createServer(handler);
   const address = await listen(upstream, 0);
   let evaluations = 0;
@@ -16,9 +16,13 @@ async function fixture(t, handler, overrides = {}, routeImpl, onStatus, onDecisi
   const statuses = [];
   const config = { ...readConfig({ ANTHROPIC_API_KEY: 'upstream-secret', TYPESAFE_API_KEY: 'classifier-secret' }), localToken: token, upstream: `http://127.0.0.1:${address.port}`, ...overrides };
   const server = createRouterServer(config, {
-    router: { route: async (...args) => { evaluations++; return routeImpl ? routeImpl(...args) : { model: config.models.haiku, source: 'test' }; } },
+    router: {
+      route: async (...args) => { evaluations++; return routeImpl?.route ? routeImpl.route(...args)
+        : routeImpl ? routeImpl(...args) : { model: config.models.haiku, source: 'test' }; },
+      complete: (...args) => routeImpl?.complete?.(...args),
+    },
     log: entry => logs.push(entry), onStatus: entry => { statuses.push(entry); return onStatus?.(entry); },
-    onDecision,
+    onDecision, onRecord,
   });
   const local = await listen(server, 0);
   t.after(() => { server.closeAllConnections(); server.close(); upstream.closeAllConnections(); upstream.close(); });
@@ -129,7 +133,7 @@ test('opt-in decision callbacks receive bounded current task text without leakin
     return decisions.at(-1);
   };
   const first = await send(payload, 'main');
-  assert.equal(first.schema_version, 1);
+  assert.equal(first.schema_version, 2);
   assert.equal(first.event, 'decision');
   assert.ok(Number.isFinite(Date.parse(first.timestamp)));
   assert.match(first.request_id, /^[a-f0-9-]{36}$/);
@@ -313,7 +317,7 @@ test('large subscription requests count with the current OAuth headers and keep 
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end(JSON.stringify(req.url.includes('count_tokens') ? { input_tokens: 54000 }
       : { id: 'msg_counted', model: payload.model, content: [{ type: 'text', text: 'Done' }] }));
-  }, { authMode: 'subscription' }, (...args) => router.route(...args));
+  }, { authMode: 'subscription' }, router);
   const response = await f.call('/v1/messages?beta=true', { method: 'POST', headers: { ...oauthHeaders, cookie: 'PRIVATE_COOKIE' }, body: JSON.stringify(requested) });
   assert.equal(response.status, 200);
   assert.equal((await response.json()).model, requested.model);
@@ -529,7 +533,7 @@ test('real routing adapts low-confidence Sonnet 5.5 and its signed tool continua
     const split = index === 0 ? reply.indexOf(Buffer.from('→')) + 1 : 31;
     res.write(reply.subarray(0, split));
     res.end(reply.subarray(split));
-  }, { authMode: 'subscription', models: config.models }, (...args) => router.route(...args));
+  }, { authMode: 'subscription', models: config.models }, router);
   for (const [index, request] of requests.entries()) {
     const response = await f.call('/v1/messages', { method: 'POST', headers: {
       ...oauthHeaders, 'x-claude-code-session-id': 'sonnet-55-session',
@@ -609,7 +613,7 @@ test('auto execution routes independently while auxiliary permission checks and 
     res.writeHead(200, { 'content-type': 'text/event-stream', 'request-id': `safety-provider-${index}`, 'x-safety-fixture': 'retained' });
     res.write(replies[index].subarray(0, 37));
     res.end(replies[index].subarray(37));
-  }, { authMode: 'subscription', models: config.models, clientProfile: 'auto' }, (...args) => router.route(...args));
+  }, { authMode: 'subscription', models: config.models, clientProfile: 'auto' }, router);
   for (const [index, request] of requests.entries()) {
     const response = await f.call('/v1/messages?beta=true', { method: 'POST', headers: {
       ...oauthHeaders, 'anthropic-beta': beta, 'x-claude-code-request-class': classes[index], 'x-claude-code-session-id': 'safety-session',
@@ -700,7 +704,7 @@ for (const usePromptIds of [true, false]) test(`auto execution switches Sonnet t
     const split = replies[index].indexOf(Buffer.from('→')) + 1;
     res.write(replies[index].subarray(0, split));
     res.end(replies[index].subarray(split));
-  }, { authMode: 'subscription', models: config.models, clientProfile: 'auto' }, (...args) => router.route(...args));
+  }, { authMode: 'subscription', models: config.models, clientProfile: 'auto' }, router);
   for (const [index, request] of requests.entries()) {
     const response = await f.call('/v1/messages?beta=true', { method: 'POST', headers: {
       ...oauthHeaders, 'anthropic-beta': beta, 'x-claude-code-session-id': 'auto-switch-session', 'x-claude-code-agent-id': 'auto-main-agent',
@@ -808,7 +812,7 @@ for (const usePromptIds of [true, false]) test(`goal feedback and tool results r
     res.writeHead(200, { 'content-type': 'text/event-stream', 'request-id': `goal-provider-${index}` });
     res.write(replies[index].subarray(0, 31));
     res.end(replies[index].subarray(31));
-  }, { authMode: 'subscription', models: config.models }, (...args) => router.route(...args));
+  }, { authMode: 'subscription', models: config.models }, router);
   for (const [index, request] of requests.entries()) {
     const response = await f.call('/v1/messages?beta=true', { method: 'POST', headers: {
       ...oauthHeaders, 'x-claude-code-session-id': 'synthetic-goal-session', 'x-claude-code-agent-id': 'synthetic-main-agent',
@@ -1049,7 +1053,7 @@ test('disconnect cancels an unlimited Ollama decision through the real router be
     upstreamCalls++;
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end('{}');
-  }, { evaluator: 'ollama', ollamaTimeoutMs: 0 }, (...args) => router.route(...args));
+  }, { evaluator: 'ollama', ollamaTimeoutMs: 0 }, router);
   const controller = new AbortController();
   t.after(() => controller.abort());
   const pending = f.call('/v1/messages', { method: 'POST', signal: controller.signal, body: JSON.stringify(body) });
@@ -1119,5 +1123,130 @@ test('JSON usage is observed with default request pricing and unsupported adviso
     assert.deepEqual(f.statuses.find(entry => entry.event === 'route').pricing_context, expected);
     assert.deepEqual(f.statuses.find(entry => entry.event === 'upstream_usage').usage, { input_tokens: 10, output_tokens: 20 });
     assert.ok(!JSON.stringify(f.statuses).includes('PRIVATE_TOKEN'));
+  }
+});
+
+test('provider fallback commits tool ownership only after successful forwarding, and failed attempts retain the prior execution', async t => {
+  const config = readConfig({ TYPESAFE_API_KEY: 'test-only' });
+  const router = new Router(config, { fetchImpl: async () => Response.json({ answers: { tier: { choice: 'haiku', confidence: 0.99 } } }) });
+  const event = payload => `event: ${payload.type}\ndata: ${JSON.stringify(payload)}\n\n`;
+  const fallback = [
+    { type: 'message_start', message: { model: config.models.haiku } },
+    { type: 'content_block_start', index: 0, content_block: { type: 'fallback', from: { model: config.models.haiku }, to: { model: config.models.opus } } },
+    { type: 'content_block_stop', index: 0 },
+    { type: 'content_block_start', index: 1, content_block: { type: 'tool_use', id: 'file', name: 'Read', input: {} } },
+    { type: 'content_block_stop', index: 1 },
+    { type: 'message_delta', delta: { stop_reason: 'tool_use' }, usage: { output_tokens: 5 } },
+    { type: 'message_stop' },
+  ].map(event).join('');
+  const failure = [
+    { type: 'message_start', message: { model: config.models.sonnet } },
+    { type: 'error', error: { type: 'overloaded_error', message: 'Synthetic failure' } },
+  ].map(event).join('');
+  let calls = 0;
+  const received = [];
+  const f = await fixture(t, async (req, res) => {
+    let raw = ''; for await (const chunk of req) raw += chunk;
+    received.push(JSON.parse(raw));
+    res.writeHead(200, { 'content-type': 'text/event-stream' });
+    res.end(++calls === 1 ? fallback : failure);
+  }, {}, router);
+  const initial = { ...body, model: config.models.haiku };
+  const continuation = { ...initial, messages: [...initial.messages,
+    { role: 'assistant', content: [{ type: 'tool_use', id: 'file', name: 'Read', input: {} }] },
+    { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'file', content: 'Fixture' }] },
+  ] };
+  for (const [index, payload] of [initial, continuation, continuation].entries()) {
+    const response = await f.call('/v1/messages', { method: 'POST', headers: {
+      'x-claude-code-session-id': 'fallback-session', 'x-claude-code-prompt-id': 'fallback-task',
+    }, body: JSON.stringify(payload) });
+    assert.equal(await response.text(), index === 0 ? fallback : failure);
+  }
+  assert.deepEqual(received.map(value => value.model), [config.models.haiku, config.models.opus, config.models.opus]);
+  assert.deepEqual(f.statuses.filter(value => value.event === 'upstream_model').map(value => value.model),
+    [config.models.haiku, config.models.opus, config.models.sonnet, config.models.sonnet]);
+  assert.equal(router.turns.attempts.size, 0);
+});
+
+test('optional outcome history correlates decisions with confirmed responses and pricing provenance', async t => {
+  const records = [];
+  const f = await fixture(t, (_req, res) => {
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ type: 'message', model: 'claude-sonnet-5', stop_reason: 'end_turn',
+      content: [{ type: 'text', text: 'PRIVATE_RESPONSE_TEXT' }], usage: { input_tokens: 10, output_tokens: 4 } }));
+  }, {}, () => ({ model: 'claude-sonnet-5', source: 'jev', evaluator: 'jev', reason: 'classified',
+    latency_ms: 7, evaluation_latency_ms: 5, classified_tier: 'sonnet' }), undefined, undefined, entry => records.push(entry));
+  const response = await f.call('/v1/messages', { method: 'POST', headers: { 'x-claude-code-session-id': 'history-session' }, body: JSON.stringify(body) });
+  await response.text();
+  await waitForStatus(f, 'request_complete');
+  assert.deepEqual(records.map(row => row.event), ['decision', 'outcome']);
+  const [decision, outcome] = records;
+  assert.equal(decision.schema_version, 2);
+  assert.equal(outcome.request_id, decision.request_id);
+  assert.equal(outcome.status, 'completed');
+  assert.equal(outcome.completion_confirmed, true);
+  assert.equal(outcome.usage_complete, true);
+  assert.equal(outcome.pricing_eligible, true);
+  assert.equal(outcome.selected_model, 'claude-sonnet-5');
+  assert.equal(outcome.confirmed_model, 'claude-sonnet-5');
+  assert.equal(outcome.baseline_model, 'claude-opus-5-5');
+  assert.equal(typeof outcome.pricing_version, 'string');
+  assert.equal(outcome.evaluation_latency_ms, 5);
+  assert.equal(outcome.routing_latency_ms, 7);
+  assert.ok(outcome.first_response_ms >= 0);
+  assert.ok(outcome.total_latency_ms >= outcome.first_response_ms);
+  assert.deepEqual(outcome.usage, { input_tokens: 10, output_tokens: 4 });
+  assert.ok(!JSON.stringify(records).includes('PRIVATE_RESPONSE_TEXT'));
+});
+
+test('metadata-only history never extracts or emits prompt excerpts, including decision callbacks', async t => {
+  const records = [], decisions = [];
+  const f = await fixture(t, (_req, res) => { res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ type: 'message', model: 'claude-haiku-4-5-20251001', content: [], stop_reason: 'end_turn' }));
+  }, { sessionLogMode: 'metadata' }, undefined, undefined, entry => decisions.push(entry), entry => records.push(entry));
+  const response = await f.call('/v1/messages', { method: 'POST', body: JSON.stringify({ ...body,
+    messages: [{ role: 'user', content: 'PRIVATE_PROMPT_METADATA_MODE' }] }) });
+  await response.text();
+  await waitForStatus(f, 'request_complete');
+  assert.equal(records.length, 2);
+  for (const row of [...records, ...decisions]) {
+    assert.equal(row.prompt_excerpt, undefined);
+    assert.equal(row.prompt_truncated, undefined);
+  }
+  assert.ok(!JSON.stringify({ records, decisions, logs: f.logs, statuses: f.statuses }).includes('PRIVATE_PROMPT_METADATA_MODE'));
+});
+
+test('history never turns HTTP/model observation into proof of completed inference', async t => {
+  for (const scenario of ['incomplete', 'stream_error', 'http_error']) {
+    const records = [];
+    const f = await fixture(t, (_req, res) => {
+      if (scenario === 'http_error') {
+        res.writeHead(429, { 'content-type': 'application/json' });
+        res.end('{"type":"error","error":{"type":"rate_limit_error","message":"PRIVATE_ERROR"}}');
+      } else {
+        res.writeHead(200, { 'content-type': 'text/event-stream' });
+        res.end('event: message_start\ndata: {"type":"message_start","message":{"model":"claude-opus-5-5"}}\n\n'
+          + (scenario === 'stream_error' ? 'event: error\ndata: {"type":"error","error":{"type":"overloaded_error","message":"PRIVATE_ERROR"}}\n\n' : ''));
+      }
+    }, {}, undefined, undefined, undefined, entry => records.push(entry));
+    await (await f.call('/v1/messages', { method: 'POST', body: JSON.stringify(body) })).text();
+    await waitForStatus(f, 'request_complete');
+    const outcome = records.find(row => row.event === 'outcome');
+    assert.equal(outcome.completion_confirmed, false);
+    assert.equal(outcome.usage_complete, false);
+    assert.equal(outcome.pricing_eligible, false);
+    assert.equal(outcome.unpriced_reason, scenario === 'incomplete' ? 'unconfirmed_completion' : 'request_failed');
+    assert.equal(outcome.status, scenario === 'incomplete' ? 'completed' : 'error');
+    assert.ok(!JSON.stringify(records).includes('PRIVATE_ERROR'));
+  }
+});
+
+test('optional outcome sink failures cannot delay or fail inference', async t => {
+  for (const onRecord of [() => { throw new Error('private sink failure'); }, () => Promise.reject(new Error('private failure')), () => new Promise(() => {})]) {
+    const f = await fixture(t, (_req, res) => { res.writeHead(200, { 'content-type': 'application/json' }); res.end('{"model":"claude-sonnet-5","content":[],"stop_reason":"end_turn"}'); },
+      {}, undefined, undefined, undefined, onRecord);
+    const response = await f.call('/v1/messages', { method: 'POST', body: JSON.stringify(body), signal: AbortSignal.timeout(1000) });
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).model, 'claude-sonnet-5');
   }
 });

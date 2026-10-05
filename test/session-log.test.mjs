@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createSessionLog } from '../src/session-log.mjs';
 
-const decision = (extra = {}) => ({ schema_version: 99, event: 'decision', timestamp: '2026-10-01T12:00:00.000Z',
+const decision = (extra = {}) => ({ schema_version: 2, event: 'decision', timestamp: '2026-10-01T12:00:00.000Z',
   request_id: 'request-1', session_id: 'session-a', request_class: 'main', prompt_excerpt: 'Fix a typo', prompt_truncated: false,
   requested_model: 'claude-haiku-4-5-20251001', selected_model: 'claude-sonnet-5-5', decision_latency_ms: 12.5,
   source: 'jev', reason: 'low_confidence', evaluator: 'jev', classified_tier: 'haiku', ...extra });
@@ -52,7 +52,7 @@ test('concurrent decisions stay ordered in one private file per session, includi
     assert.equal(file.rows.length, 40);
     const indexes = file.rows.map(row => Number(row.request_id.slice('request-'.length)));
     assert.deepEqual(indexes, [...indexes].sort((a, b) => a - b));
-    assert.ok(file.rows.every(row => row.schema_version === 1));
+    assert.ok(file.rows.every(row => row.schema_version === 2));
   }
   assert.deepEqual(warnings, []);
 });
@@ -87,7 +87,7 @@ test('rows copy only bounded metadata, retain Auto safety reasons, and never ser
   await writer.close();
   const [file] = await files(f.directory), [row] = file.rows;
   assert.equal(file.text.includes(secret), false);
-  assert.deepEqual(row, { schema_version: 1, event: 'decision', timestamp: '2026-10-01T12:00:00.000Z', request_id: 'request-1',
+  assert.deepEqual(row, { schema_version: 2, event: 'decision', timestamp: '2026-10-01T12:00:00.000Z', request_id: 'request-1',
     session_id: 'session-a', prompt_excerpt: 'Fix a typo', prompt_truncated: false,
     requested_model: 'claude-haiku-4-5-20251001', selected_model: 'claude-sonnet-5-5', request_class: 'main',
     decision_latency_ms: 12.5, source: 'passthrough', reason: 'auto_mode_safeguards', evaluator: 'jev', classified_tier: 'haiku', classifier_error: 'timeout' });
@@ -126,13 +126,13 @@ test('invalid IDs cannot traverse paths or merge into anonymous logs; malformed 
   for (const session_id of ['../../outside', 'bad\nsession', 'x'.repeat(201), {}, ['session']]) {
     assert.equal(writer.record(decision({ session_id })), false);
   }
-  for (const entry of [null, [], { event: 'error' }, decision({ request_id: '../request' }), decision({ selected_model: 'bad\nmodel' })]) {
+  for (const entry of [null, [], { event: 'error' }, decision({ request_id: '../request' }), decision({ selected_model: 'bad\nmodel' }), decision({ agent_id: '../agent' }), decision({ prompt_id: 'p'.repeat(201) })]) {
     assert.equal(writer.record(entry), false);
   }
   const getter = decision();
   Object.defineProperty(getter, 'selected_model', { get() { throw new Error('PRIVATE_GETTER'); } });
   assert.doesNotThrow(() => assert.equal(writer.record(getter), false));
-  assert.equal(writer.record(decision({ session_id: null, agent_id: '../agent', prompt_id: 'p'.repeat(201), decision_latency_ms: Infinity,
+  assert.equal(writer.record(decision({ session_id: null, decision_latency_ms: Infinity,
     timestamp: 'PRIVATE_TIMESTAMP', source: 'PRIVATE SOURCE', reason: 'PRIVATE ERROR', classifier_error: 'PRIVATE ERROR', evaluator: 'other', classified_tier: 'other' })), true);
   await writer.close();
   const [file] = await files(f.directory);
@@ -316,4 +316,38 @@ test('continuous arrivals during writes drain in order without dropping accepted
   const [file] = await files(f.directory);
   assert.deepEqual(file.rows.map(row => row.request_id), Array.from({ length: 800 }, (_, index) => `request-${index}`));
   assert.deepEqual(warnings, []);
+});
+
+test('metadata mode omits prompt fields and retains correlated safe outcomes', async t => {
+  const f = await fixture(t), writer = await f.create({ includePrompts: false });
+  assert.equal(writer.record(decision({ prompt_excerpt: 'PRIVATE_PROMPT' })), true);
+  assert.equal(writer.record({ schema_version: 2, event: 'outcome', timestamp: '2026-10-01T12:00:01.000Z',
+    request_id: 'request-1', session_id: 'session-a', status: 'completed', http_status: 200,
+    requested_model: 'claude-haiku-4-5-20251001', selected_model: 'claude-sonnet-5-5', confirmed_model: 'claude-sonnet-5-5',
+    completion_confirmed: true, usage_complete: true, usage: { input_tokens: 100, output_tokens: 20, private: 'PRIVATE_USAGE' },
+    baseline_model: 'claude-opus-5-5', pricing_version: '2026-09-29.1', total_latency_ms: 650,
+    body: { text: 'PRIVATE_BODY' }, prompt_excerpt: 'PRIVATE_PROMPT', headers: { authorization: 'PRIVATE_AUTH' },
+  }), true);
+  await writer.close();
+  const [file] = await files(f.directory);
+  assert.equal(file.rows.length, 2);
+  assert.ok(file.rows.every(row => row.schema_version === 2 && !Object.hasOwn(row, 'prompt_excerpt') && !Object.hasOwn(row, 'prompt_truncated')));
+  assert.equal(file.rows[0].request_id, file.rows[1].request_id);
+  assert.equal(file.rows[1].confirmed_model, 'claude-sonnet-5-5');
+  assert.equal(file.rows[1].completion_confirmed, true);
+  assert.deepEqual(file.rows[1].usage, { input_tokens: 100, output_tokens: 20 });
+  assert.ok(!file.text.includes('PRIVATE_'));
+});
+
+test('pre-routing failures can be recorded without selected models and auxiliary records never retain excerpts', async t => {
+  const f = await fixture(t), writer = await f.create();
+  assert.equal(writer.record({ schema_version: 2, event: 'outcome', request_id: 'bad-request', status: 'error', http_status: 400,
+    session_id: 'session-a', error_type: 'invalid_request_error', error: 'PRIVATE_RAW_ERROR' }), true);
+  assert.equal(writer.record(decision({ agent_id: 'agent-a', request_class: 'subagent', prompt_excerpt: 'PRIVATE_AGENT_TEXT' })), true);
+  await writer.close();
+  const [file] = await files(f.directory);
+  assert.equal(file.rows[0].selected_model, undefined);
+  assert.equal(file.rows[0].status, 'error');
+  assert.equal(file.rows[1].prompt_excerpt, '');
+  assert.ok(!file.text.includes('PRIVATE_'));
 });

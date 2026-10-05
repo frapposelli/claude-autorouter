@@ -8,10 +8,17 @@
 | `claude-autorouter setup --auth-mode api-key` | Configure Jev and Anthropic API-key billing |
 | `claude-autorouter setup --client-profile auto` | Save a Sonnet/Opus profile compatible with Claude's Auto permission mode |
 | `claude-autorouter setup --stop-hook-block-cap 2` | Opt into a shorter native Stop-hook continuation cap during setup |
-| `claude-autorouter setup --session-log-dir DIR` | Save an opt-in directory for per-session JSONL decision logs |
+| `claude-autorouter setup --session-log-dir DIR` | Save an opt-in directory for per-session JSONL decisions and outcomes |
 | `claude-autorouter setup --evaluator ollama --pull` | Configure the native local evaluator and download its selected model if missing |
 | `claude-autorouter setup --evaluator ollama --ollama-timeout-ms 0 --force` | Save a disabled runtime evaluator deadline |
-| `claude-autorouter setup --force` | Replace an existing user config |
+| `claude-autorouter setup --force` | Update an existing config while preserving unrelated saved settings |
+| `claude-autorouter setup --replace` | Explicitly replace the saved configuration |
+| `claude-autorouter config show --json` | Inspect effective settings and default/file/environment provenance; secrets are hidden |
+| `claude-autorouter config set KEY VALUE` | Change one nonsecret saved setting |
+| `claude-autorouter config unset KEY` | Remove one saved override |
+| `claude-autorouter sessions list [--json]` | Inspect optional saved local history |
+| `claude-autorouter sessions show ID [--json]` | Show correlated decisions, outcomes and pricing coverage |
+| `claude-autorouter doctor --evaluate-local` | Run synthetic classifier checks on the installed local Ollama model |
 | `claude-autorouter doctor` | Check config, Claude executable/login, and the selected local Ollama model without paid calls |
 | `claude-autorouter claude [arguments]` | Start a local router and pass arguments through to Claude Code |
 | `claude-autorouter serve` | Run the router for separately configured clients |
@@ -22,7 +29,7 @@ The launcher binds an ephemeral port on `127.0.0.1`, creates a temporary local c
 
 ## Configuration
 
-Setup defaults to subscription mode unless `--auth-mode` or `AUTOROUTER_AUTH_MODE` selects another mode. Jev remains the default evaluator; `--evaluator ollama` selects local classification. Setup prompts for required secrets without echoing them and writes a private JSON file. Stored keys are plaintext; keep the file private and out of source control. Supply keys through the environment when interactive input is unavailable. Subscription mode with Ollama requires no API keys. API-key authentication always requires `ANTHROPIC_API_KEY`, regardless of evaluator.
+First setup defaults to subscription mode unless `--auth-mode` or `AUTOROUTER_AUTH_MODE` selects another mode. Jev remains the default evaluator; `--evaluator ollama` selects local classification. An existing configuration updated with `--force` keeps its saved choices unless a command-line flag changes them; unrelated environment overrides remain temporary. Setup prompts for required secrets without echoing them and writes a private JSON file. Stored keys are plaintext; keep the file private and out of source control. Supply keys through the environment when interactive input is unavailable. Subscription mode with Ollama requires no API keys. API-key authentication always requires `ANTHROPIC_API_KEY`, regardless of evaluator.
 
 The config path is selected in this order:
 
@@ -30,7 +37,7 @@ The config path is selected in this order:
 2. `$XDG_CONFIG_HOME/claude-autorouter/config.json`, when `XDG_CONFIG_HOME` is a nonempty absolute path.
 3. `~/.config/claude-autorouter/config.json`.
 
-The JSON file uses flat environment-style string keys, such as `AUTOROUTER_AUTH_MODE` and `TYPESAFE_API_KEY`. Environment values take precedence over the saved config. Use `setup --force` to replace existing configuration. The launcher does not discover or load a project's `.env` file. From a source checkout, explicitly loading one still works:
+The JSON file uses flat environment-style string keys, such as `AUTOROUTER_AUTH_MODE` and `TYPESAFE_API_KEY`. Environment values take precedence over the saved config. Use `config set` or `config unset` to edit a single saved setting, or `setup --force` to update an existing configuration while retaining unrelated settings. `setup --replace` explicitly rebuilds a readable supported saved configuration; malformed or unsupported files are left intact for manual repair. The launcher does not discover or load a project's `.env` file. From a source checkout, explicitly loading one still works:
 
 ```sh
 node --env-file=.env bin/autorouter.mjs claude
@@ -48,7 +55,8 @@ For an environment-only subscription launch, set `AUTOROUTER_AUTH_MODE=subscript
 | `AUTOROUTER_CLIENT_PROFILE` | `compatible` | `native` retains client model/thinking settings; `auto` starts with Sonnet when no explicit model is set and excludes Haiku from task routing |
 | `AUTOROUTER_STATUSLINE` | enabled | `0` retains your existing status line |
 | `AUTOROUTER_DEBUG` | off | `1` enables launcher metadata logs on stderr |
-| `AUTOROUTER_SESSION_LOG_DIR` | off | Write per-session JSONL decision logs with prompt excerpts into this directory; unset or empty disables it |
+| `AUTOROUTER_SESSION_LOG_DIR` | off | Write per-session JSONL decisions and outcomes into this directory; unset or empty disables it |
+| `AUTOROUTER_SESSION_LOG_MODE` | `prompts` | `metadata` omits prompt excerpts; setting a mode alone does not enable logging |
 | `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP` | unset; Claude currently uses `8` | Optional cap on consecutive Stop/SubagentStop continuations without tool use; `0` disables the cap |
 | `ENABLE_TOOL_SEARCH` | `true` in launcher when unset | Load MCP tool definitions on demand; explicit values are preserved |
 | `AUTOROUTER_HAIKU_MODEL` | `claude-haiku-4-5-20251001` | Routine tier |
@@ -69,6 +77,20 @@ For an environment-only subscription launch, set `AUTOROUTER_AUTH_MODE=subscript
 
 Model access depends on your account. The policy recognizes specific Claude model versions; arbitrary gateway aliases do not automatically inherit their capabilities or context windows. Compare overrides with the [Anthropic model catalog](https://platform.claude.com/docs/en/models/overview).
 
+### Inspect and change settings
+
+```sh
+claude-autorouter config show
+claude-autorouter config show --json --check-all
+claude-autorouter config set AUTOROUTER_OLLAMA_TIMEOUT_MS 0
+claude-autorouter config unset AUTOROUTER_OLLAMA_TIMEOUT_MS
+claude-autorouter config set TYPESAFE_API_KEY
+```
+
+`show` reports whether each setting comes from a default, the saved file, or an environment override. Secret values are never displayed. The last command uses a hidden prompt; scripts can pipe a secret to `config set TYPESAFE_API_KEY --stdin`. Secret values are not accepted as command arguments. Edits validate and atomically update only the named saved setting. Environment overrides still apply after a saved change. An unset saved deadline returns to the model default unless an environment value overrides it.
+
+Normal startup validates the selected evaluator; stale settings for the inactive evaluator do not prevent it from starting. `show --check-all` explicitly checks both. Blank numeric settings fail with their setting name; zero retains its documented meaning. `claude-autorouter help COMMAND` gives focused command help. `claude-autorouter claude --help` and `--version` call Claude directly without router setup or credentials.
+
 ## Ollama evaluator
 
 The local configuration documented here requires AutoRouter 0.3.2 or newer and remains experimental. It uses Ollama's native `/v1/systemone` decision endpoint for every model, replacing the chat backend from 0.2.0. Jev remains the default remote evaluator, using TypeSafe's `/v1/systemone` endpoint and a TypeSafe API key. Selecting Ollama never silently switches back to Jev. Haiku, Sonnet, or Opus still completes the task through Anthropic.
@@ -83,7 +105,7 @@ claude-autorouter doctor
 claude-autorouter claude
 ```
 
-`--force` replaces an existing user config. Setup detects the running local API. `--pull` authorizes downloading the chosen model when it is missing; without it, install the model yourself before setup. AutoRouter does not install Ollama, start its daemon, delete models, or download models during ordinary launches or `doctor` checks.
+`--force` updates an existing user config and preserves its other settings and selected model unless explicitly changed. Setup detects the running local API. `--pull` authorizes downloading the chosen model when it is missing; without it, install the model yourself before setup. AutoRouter does not install Ollama, start its daemon, delete models, or download models during ordinary launches or `doctor` checks.
 
 ### Local model selection
 
@@ -115,7 +137,7 @@ The endpoint must be loopback (`127.0.0.1`, `localhost`, or `::1`), without a pa
 
 Local classification caps serialized evaluator state at both 3,000 characters and 3,000 UTF-8 bytes, including for non-ASCII prompts. Claude's top-level executor system instructions are excluded before budgeting; the current task, original task, and recent conversation excerpts remain. `/v1/systemone` receives the bounded state and routing criteria and returns a tier directly. The router retains each model's native context setting: 8,194 tokens for the default Nimble tag and 2,050 for the listed Tev1 tags. Tev1's smaller window includes the routing criteria and template as well as the excerpt; the byte limit does not guarantee every possible input fits. Context errors use the normal fallback. Returned confidence scores summarize choice-distribution entropy; they are not calibrated accuracy probabilities. `AUTOROUTER_MIN_CONFIDENCE` applies only to Jev. All capability, tool-continuation, thinking, and context guards still apply.
 
-The deadline covering local checks and classification defaults to 1,500 ms for Tev1 0.8B and custom/unrecognized tags, 15,000 ms for official Tev1 4B variants (including bare `tev1` and `latest`), and 30,000 ms for official Nimble variants. Official `library/` and `registry.ollama.ai/` aliases are recognized; a custom namespace such as `team/nimble` keeps the short default. An explicit timeout overrides the model default, including an old saved `1500`. Environment values override saved values on launch. Defaults are not written into the user config; `setup --force` replaces the config and saves an explicit timeout when supplied through `--ollama-timeout-ms` or the environment. During setup, the command-line flag takes precedence over the timeout environment value.
+The deadline covering local checks and classification defaults to 1,500 ms for Tev1 0.8B and custom/unrecognized tags, 15,000 ms for official Tev1 4B variants (including bare `tev1` and `latest`), and 30,000 ms for official Nimble variants. Official `library/` and `registry.ollama.ai/` aliases are recognized; a custom namespace such as `team/nimble` keeps the short default. An explicit timeout overrides the model default, including an old saved `1500`. Environment values override saved values on launch. Defaults are not written into the user config. To update a saved deadline, use `config set AUTOROUTER_OLLAMA_TIMEOUT_MS N` or `setup --ollama-timeout-ms N --force`; unrelated environment overrides remain temporary. Environment-provided Ollama settings are saved during first setup, replacement, or explicit `--evaluator ollama` selection. The command-line timeout flag takes precedence over the environment.
 
 Set `AUTOROUTER_OLLAMA_TIMEOUT_MS=0` to remove AutoRouter's runtime evaluator timer while keeping the existing configuration:
 
@@ -137,11 +159,24 @@ If startup priming fails, the launcher warns and continues. An incompatible mode
 
 Historical measurements before 0.3.2: Tev1 4B timed out on all eight full-excerpt checks even with a 10-second diagnostic allowance; its short-task results did not establish a full-excerpt latency bound. Tev1 0.8B completed all eight within 1,500 ms. On the tested 16 GiB M4, Nimble timed out on all 12 tuning requests at 1,500 ms. A separate 30-second diagnostic completed 24 held-out classifications with 23 matching labels, but median routing took 11.4 seconds. The one error followed a misleading tier instruction. These historical results precede the 0.3.2 excerpt changes and do not establish guarantees for the longer defaults. See the [measurements and limitations](ollama-evaluation.md).
 
+### Test the installed local evaluator
+
+```sh
+claude-autorouter doctor --evaluate-local
+claude-autorouter doctor --evaluate-local --json
+```
+
+This explicit diagnostic requires an installed local evaluator selected with `AUTOROUTER_EVALUATOR=ollama`. It uses synthetic tasks only, needs no Jev or Anthropic key, and makes no Claude inference calls. It checks local availability, measures a separate initial preparation call, then runs six uncached cases through the production classifier using the configured runtime deadline. A disabled runtime deadline remains disabled; Ctrl-C cancels the diagnostic.
+
+The report separates availability, expected-label agreement, all-three-tier coverage, and latency. Residency is observed before calls, so it does not claim a controlled cold/warm benchmark. A pass establishes these six examples only. Incorrect predictions, fallback, or missing Haiku/Opus coverage fail even if Ollama answered successfully. Auto mode still checks all three raw evaluator labels; actual Auto routing applies its Sonnet floor separately.
+
+The diagnostic does not download, unload, restart, or edit configuration. It refuses to run while unrelated models are resident and requires a positive keep-alive; normal routing still supports keep-alive `0`. Ordinary `doctor` remains a metadata check. A missing-model repair command uses the exact configured tag and preserves other settings.
+
 ### Migrating an older Ollama config
 
 Version 0.3.1 used a 1,500 ms deadline for every local model. After upgrading to 0.3.2, an explicitly saved or exported `AUTOROUTER_OLLAMA_TIMEOUT_MS=1500` still wins over the new model-specific defaults. Remove that override to use the defaults, or rerun setup with the desired model and `--ollama-timeout-ms N --force`. The `0` value and setup timeout flag require 0.3.2 or newer.
 
-Version 0.3.1 removed the Qwen chat backend and presets from 0.2.0. Existing downloaded models remain on disk, but an old Qwen model selection needs to be replaced with a native decision model. Run the setup command above with `--force`; it selects Nimble unless you pass `--ollama-model` or override the model through the environment. Remove or update any old `AUTOROUTER_OLLAMA_MODEL` environment value too, because environment variables override saved configuration. Update scripts to use `--ollama-model` when selecting a custom model.
+Version 0.3.1 removed the Qwen chat backend and presets from 0.2.0. Existing downloaded models remain on disk, but an old Qwen model selection needs to be replaced with a native decision model. Run `claude-autorouter setup --evaluator ollama --ollama-model nimble:9b-q4_K_M --force`, or explicitly choose a Tev1 tag; merging with `--force` alone preserves the saved model. Remove or update any old `AUTOROUTER_OLLAMA_MODEL` environment value too, because environment variables override saved configuration. Update scripts to use `--ollama-model` when selecting a custom model.
 
 ## Data flow and authentication
 
@@ -163,7 +198,7 @@ Routine logs contain route, model, timing, usage, and error-category metadata, n
 
 ## Routing policy
 
-Each `/v1/messages` request is evaluated. Exact repeated bodies reuse a classification for five minutes. Both evaluators use a starting rubric choosing Haiku for routine work, Sonnet for ordinary engineering, and Opus for demanding reasoning. These choices require evaluation on your tasks; they are not quality guarantees.
+Each eligible `/v1/messages` request is evaluated. Exact repeated bodies reuse a classification for five minutes; concurrent identical evaluations share one request. Cache identity includes evaluator configuration, rubric and requested model floor. Internal permission classifiers and other documented pass-through paths skip evaluation. Both evaluators use a starting rubric choosing Haiku for routine work, Sonnet for ordinary engineering, and Opus for demanding reasoning. These choices require evaluation on your tasks; they are not quality guarantees.
 
 The evaluator prioritizes the actual human request before startup metadata. Complete Claude reminder and tool-list blocks are excluded from that task excerpt, and long text retains its beginning and end. The outbound Anthropic request remains complete. Complexity outside the bounded excerpt can still be missed.
 
@@ -171,7 +206,7 @@ The following policy applies after classification:
 
 - Jev's 1,500 ms deadline covers the response body and has no retry. Successful calls return immediately. Timeouts, HTTP errors, and invalid responses fall back to Sonnet or retain an existing stronger model.
 - Jev confidence below 0.75 prevents a downgrade below Sonnet or the requested tier. Ollama returns a tier without calibrated confidence; its failure handling and compatibility guards still apply.
-- Tool continuations retain the model chosen at the start of the human turn. Session, agent, and prompt headers identify turns; normalized conversation content provides a fallback. Text feedback from a Stop hook also retains the model when it serves the same gateway prompt ID and the client has not changed its requested model, subject to capability and context checks. Moving prompt-cache markers does not create a new turn.
+- Tool continuations retain the execution model confirmed by a successfully forwarded response. Active tasks and pending tools survive classification-cache expiry; retired task records expire separately. After restart, missing continuity is explicitly unknown. A selected model alone remains unconfirmed. Session, agent, and prompt headers identify turns; normalized conversation content provides a fallback. Text feedback from a Stop hook also retains the model when it serves the same gateway prompt ID and the client has not changed its requested model, subject to capability and context checks. Moving prompt-cache markers does not create a new turn.
 - Claude's local `/goal` command can omit the prompt-ID header. For that path, an exact feedback label matching a preceding expanded `/goal` command keeps the original task and conversation anchor. This narrow text fallback also recognizes Claude's repeated-goal truncation format; arbitrary hook text is not treated as a goal. Feedback remains in the evaluator's recent conversation and the full API request. A new human message becomes the current task normally. The status line shows `prompt pinned` or `goal pinned` when either text-continuation rule applies.
 - Thinking history, fixed-budget thinking, server tools, context management, and other recognized model-specific features preserve the current model except for the verified shared capabilities of the modern Auto-mode Sonnet/Opus pair described below. Adaptive thinking, effort, and output above 64K prevent a Haiku choice. Fields are never stripped to force a downgrade.
 - Mid-conversation `system` messages preserve the requested model unless both Auto-mode models support them; they always pass through unchanged. They do not count as a tool continuation by themselves.
@@ -201,7 +236,7 @@ env AUTOROUTER_CLIENT_PROFILE=auto claude-autorouter claude
 
 The profile defaults to Sonnet 5.5 and Opus 5.5, preserving explicit configured model IDs. The evaluator chooses Sonnet or Opus for each new human task; a routine Haiku verdict uses Sonnet and shows `Auto mode floor`. Tool and `/goal` continuations stay on the selected execution model. Claude's initial client model remains separate from the routed model. An explicit client `--model` or `ANTHROPIC_MODEL` can still make Auto unavailable if it selects Haiku or another unsupported model; choose a supported Sonnet or Opus instead.
 
-Claude remains responsible for enabling the permission mode and enforcing organization settings, account availability, and tool rules. The profile does not enable Auto by itself or override `disableAutoMode`. AutoRouter does not reproduce Claude's settings precedence to infer a mode from settings files. For new saved configurations, `setup --client-profile auto` persists the profile; for an existing config, change only `AUTOROUTER_CLIENT_PROFILE` to `"auto"` to retain your other settings. `setup --force` replaces the config.
+Claude remains responsible for enabling the permission mode and enforcing organization settings, account availability, and tool rules. The profile does not enable Auto by itself or override `disableAutoMode`. AutoRouter does not reproduce Claude's settings precedence to infer a mode from settings files. `setup --client-profile auto --force` updates an existing configuration while retaining its other settings. `config set AUTOROUTER_CLIENT_PROFILE auto` changes just that setting.
 
 **Safety review:** Claude's permission-classifier requests retain their exact requested model and skip AutoRouter's evaluator. Ordinary execution requests with the known `dangerous_tool_use` version-1 review contract are evaluated and routed, retaining the complete `safeguards` object, beta headers, and streamed safety verdicts. This also detects server review when Auto was selected in Claude's UI rather than through the launch flag. Unknown or malformed review contracts and safeguarded compaction pass through with `Auto safety`; a target that cannot accept the request shows `Auto model guard`. AutoRouter never turns off server review or converts denied actions to approvals. See [server-side classifier review](https://code.claude.com/docs/en/permission-modes#server-side-classifier-review).
 
@@ -227,7 +262,7 @@ The `claude` launcher automatically adds a temporary [status-line command](https
 | --- | --- |
 | `Sonnet 5 selected` | Routing chose this model; Anthropic has not confirmed it yet |
 | `Opus 5.5` / `last Opus 5.5` | Provider-confirmed streaming or most recent model |
-| `Jev` / `Ollama`, with `cache` or `fallback` when applicable | Classification source; timing includes concurrent context checks |
+| `Jev` / `Ollama`, with `cache` or `fallback` when applicable | Classification source; displayed routing time includes evaluator waiting and context checks |
 | `Jev→Haiku` or `Ollama→Haiku` beside Sonnet | A policy guard overrode the evaluator's Haiku choice |
 | `large context` | Token count exceeded the small-model input budget |
 | `size unverified` | Token checking failed or was unavailable; conservative guard applied |
@@ -235,51 +270,55 @@ The `claude` launcher automatically adds a temporary [status-line command](https
 | `CLI ctx` | Claude's client accounting, shown when its window differs or API capacity is unknown |
 | `est saved … vs Opus` | Cumulative API-equivalent token-cost estimate |
 
-Background agents and auxiliary requests cannot replace the foreground model. Errors, fallback, cancellation, and stale/offline state remain visible. The command reads a local snapshot and makes no network requests. It respects terminal width and `NO_COLOR`; lower-priority fields disappear on narrow terminals.
+Background agents and auxiliary requests cannot replace the foreground model. Errors, fallback, cancellation, incomplete-response evidence and stale/offline state remain visible. The command reads a local snapshot and makes no network requests. It respects terminal width and `NO_COLOR`; lower-priority fields disappear on narrow terminals.
 
 Context includes uncached input, cache reads, and cache writes, excluding output to match [Claude's percentage formula](https://code.claude.com/docs/en/statusline#context-window-fields). It is current context rather than cumulative usage. Historical usage is marked `last`; compaction resets stale readings. The compatible client's 200K window can reach 100% while a routed Sonnet request uses only part of its 1M window. Displaying both does not change Claude's compaction threshold.
 
 Savings compare the actual models' API token prices with the configured Opus model's prices for the **same reported counts and cache profile**. The percentage is `(Opus cost − routed cost) / Opus cost`. Input, output, cache reads, and 5-minute/1-hour cache writes are priced separately using the bundled table based on [Anthropic's published USD pricing](https://platform.claude.com/docs/en/about-claude/pricing).
 
-Totals include completed main, agent, and auxiliary calls for the current session observed by this router process. Streaming usage is counted once, and totals reset when the router or session restarts. Unrecognized prices or unsupported usage produce `partial` or `savings unavailable`. Higher routed costs show `est extra`. The arithmetic runs locally.
+Totals include completed main, agent, and auxiliary calls for the current session observed by this router process. Streaming usage is counted once, and totals reset when the router or session restarts. Unrecognized prices or unsupported usage produce `partial`, `unpriced N` or `savings unavailable`. Saved history identifies pricing table `2026-09-29.1` (reviewed September 29, 2026) and unpriced reason counts; unknown historical table versions are not repriced. Higher routed costs show `est extra`. The arithmetic runs locally.
 
 This estimate does not measure subscription bill savings or quota credits. It excludes Jev charges, local compute costs, tool fees, negotiated discounts, and unpriced requests. A real Opus run can produce different tokens and cache hits. Incomplete streams, unknown cache-write TTLs, unsupported pricing modifiers, and unrecognized model versions are excluded rather than guessed. The rate table requires updates when prices change.
+
+Historical integration observations cover Claude Code 2.1.284 and 2.1.285. The source-only versioned corpus in `test/fixtures/claude-protocol-v1.json` separates newly authored synthetic contracts from those dated observations and their artifact hashes. Gateway tests exercise Auto safeguards, thinking, deferred tools, compaction, goal scoping, fallback ownership and usage while preserving response bytes. They do not establish current-source live compatibility, evaluator accuracy or downstream task quality. Doctor reports the installed executable version separately; discovering a binary is not evidence that its protocol or Auto eligibility has been tested. Opt-in live validation supplements the synthetic fixtures.
 
 Set `AUTOROUTER_STATUSLINE=0` to retain an existing status line. Other `--settings` values are retained in the temporary overlay; source-relative Read/Edit rules keep their anchors. Ambiguous relative sandbox paths cause the launcher to skip the overlay and pass original settings through with a notice. Safe mode disables custom status lines; print mode has no status-line UI. Standalone `serve` does not install one.
 
 ## Session decision logs
 
-AutoRouter 0.3.6 adds optional persistent logs, separate from stderr and the temporary status-line snapshot. Logging is disabled by default. Enable it for one launch:
+Logging is optional and disabled by default. Enable it for one launch:
 
 ```sh
 env AUTOROUTER_SESSION_LOG_DIR="$HOME/.local/state/claude-autorouter/sessions" \
   claude-autorouter claude
 ```
 
-The setting also works with `serve` and the Auto-compatible profile. For a new saved configuration, add `--session-log-dir DIR` to `setup`. For an existing config, add `AUTOROUTER_SESSION_LOG_DIR` with an absolute directory path to preserve your other settings. Setup resolves relative paths at setup time; an environment-only relative path resolves from the launch directory. Environment values override saved values; `AUTOROUTER_SESSION_LOG_DIR=''` disables a saved preference for one launch. `doctor` reports the setting without creating log files.
-
-Files are named `autorouter-session-*.jsonl`: one file per observed Claude session within a router launch, with a timestamp, random launch identifier, and hashed session identifier in the name. A resumed session in a new launch creates a new file. Requests without a session header share an anonymous file for that launch. Subagents with the same session ID share its file and retain their agent ID. Files are created only when a decision is recorded, and remain after the session ends.
-
-Every line is a standalone JSON object. The key fields look like this (additional IDs and routing metadata are included):
-
-```json
-{"schema_version":1,"event":"decision","timestamp":"2026-09-30T12:00:00.000Z","session_id":"example-session","prompt_excerpt":"Fix the typo in README.md","prompt_truncated":false,"requested_model":"claude-haiku-4-5-20251001","selected_model":"claude-sonnet-5","decision_latency_ms":214.37,"source":"jev","reason":"classified"}
-```
-
-- `prompt_excerpt`: up to 500 Unicode characters of the current human task for main requests or requests without a class header. Tool continuations and recognized `/goal` feedback keep the originating human task. System instructions, standalone reminder blocks, tool results, images, documents, and thinking are omitted. Auxiliary classifiers, compaction, subagents, and workflows have empty excerpts; a new attachment-only task also has an empty excerpt. `prompt_truncated` indicates that text exceeded the limit.
-- `selected_model`: AutoRouter's final selected model after compatibility checks, before the upstream response. It does not confirm which model successfully answered.
-- `decision_latency_ms`: time spent making the routing decision, including evaluator waiting, cache lookup, and any context checks. It excludes Claude generation time and log writing. A `passthrough` entry can be near zero because no evaluator was called.
-- `source` and `reason`: distinguish evaluator choices, cache hits, fallbacks, turn/model constraints, and native safety pass-through. `classified_tier` is included when an evaluator returned a tier, which may differ from the final selected model.
-
-Inspect a file with:
+Or save metadata-only history, without prompt excerpts:
 
 ```sh
-jq -c '{prompt_excerpt, selected_model, decision_latency_ms, source, reason}' /path/to/autorouter-session-EXAMPLE.jsonl
+claude-autorouter config set AUTOROUTER_SESSION_LOG_MODE metadata
+claude-autorouter config set AUTOROUTER_SESSION_LOG_DIR "$HOME/.local/state/claude-autorouter/sessions"
+claude-autorouter sessions list
+claude-autorouter sessions show autorouter-session-EXAMPLE
+claude-autorouter sessions show autorouter-session-EXAMPLE --json
 ```
 
-There is one record per completed routing decision, including requests whose upstream call later fails. Requests rejected before routing or cancelled before a decision are not recorded. Logs contain user text and are local plaintext: the feature is disabled by default, new directories use `0700`, and files use `0600`. Existing directory permissions are left unchanged. Authentication headers, provider replies, full transcripts, and tool payloads are not logged; text you put directly in a prompt can appear in its excerpt.
+Use the exact `id` printed by `sessions list`. Commands need no evaluator credentials and do not contact providers. Human summaries distinguish selected models, observed serving models, confirmed completions, failures, cancellations, and pending/unconfirmed requests. They report routing latency, fallback and override counts, and API-equivalent savings coverage. A selected model or an HTTP 200 alone does not prove successful inference. Old schema-1 decision logs remain readable and explicitly lack outcome evidence.
 
-Writes run asynchronously through a bounded 1 MiB queue and support up to 128 session files per router process. Normal shutdown drains accepted records. Filesystem failure or a queue/session limit disables further logging with one generic warning while routing continues. An abrupt process kill or storage failure can lose unwritten records. Logs are retained without automatic rotation or deletion; manage them in your chosen directory. Log filenames are ignored by this repository and excluded from the npm package.
+`prompts` mode preserves the existing excerpt behavior when a log directory is enabled. Main requests retain at most 500 Unicode characters of the human task; recognized tool and goal continuations retain the originating task. Auxiliary, subagent, compaction, workflow, and attachment-only requests have empty excerpts. Metadata mode omits the excerpt fields entirely. Neither mode logs authentication headers, provider replies, full transcripts, or tool payloads. Text entered directly in a prompt can appear in an enabled prompt excerpt.
+
+The settings also work with `serve` and every client profile. `setup --session-log-dir DIR --session-log-mode metadata --force` updates an existing configuration. Setup resolves relative directories at setup time; environment-only paths resolve from the launch directory. `AUTOROUTER_SESSION_LOG_DIR=''` disables a saved directory for one launch. Setting only the mode never enables logging. `doctor` reports preferences without creating files.
+
+Files are named `autorouter-session-*.jsonl`, one per observed Claude session in each router launch. Resuming a session in a new launch creates a new file. Requests without a session header share an anonymous file; subagents retain their agent IDs. Every line is a bounded schema-2 JSON record:
+
+- `decision`: requested and selected models, evaluator verdict/source, policy reason, compatibility and continuity detail. `evaluation_latency_ms` measures evaluation/cache waiting; `routing_latency_ms` (also `decision_latency_ms`) includes compatibility and context checks.
+- `outcome`: the same `request_id`, observed `confirmed_model` and bounded model transitions, safe error category, `completed`, `error` or `cancelled` status, and separate `completion_confirmed` evidence. It includes usage when available, `first_response_ms` from upstream forwarding to response headers, and total request latency. Early errors can have an outcome without a decision.
+
+Outcomes record the configured Opus baseline and pricing-table version. History prices only successfully completed, supported usage with a recognized recorded table version and baseline. Unknown prices, missing or partial streams, ambiguous/mixed-model usage, and legacy records remain unpriced with a reason. Estimates never represent subscription charges. Status savings identify partial coverage; history exposes the version and counts.
+
+New directories use `0700`, files use `0600`; existing directory permissions are unchanged. Asynchronous writes use a bounded 1 MiB queue and at most 128 session files per process. Normal shutdown drains accepted records. Storage failure or queue limits disable further logging with one generic warning while routing continues. Abrupt termination can lose unwritten records.
+
+History reads at most 100 files, 4 MiB per file, 16 MiB total and 5,000 records per file. Limits, malformed records and partial tails are reported as partial coverage. Files are never automatically rotated or deleted; manage retention in your chosen directory. Log filenames are ignored by this repository and excluded from the npm package.
 
 ## Troubleshooting
 
@@ -319,7 +358,7 @@ The environment-only command also works on AutoRouter 0.3.4. Saved configuration
 "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP": "2"
 ```
 
-For a new configuration, use `claude-autorouter setup --stop-hook-block-cap 2`; the flag works with either evaluator and overrides the environment during setup. Runtime environment values override saved configuration. `setup --force` replaces the entire config, so keep your existing evaluator/authentication options if using it. `doctor` reports the cap when configured. AutoRouter accepts nonnegative safe integers and leaves the setting absent unless you opt in.
+For a new configuration, use `claude-autorouter setup --stop-hook-block-cap 2`; the flag works with either evaluator and overrides the environment during setup. Runtime environment values override saved configuration. To change only a saved cap, use `config set CLAUDE_CODE_STOP_HOOK_BLOCK_CAP 2` or `setup --stop-hook-block-cap 2 --force`; both preserve unrelated saved settings. `doctor` reports the cap when configured. AutoRouter accepts nonnegative safe integers and leaves the setting absent unless you opt in.
 
 ### Other session issues
 

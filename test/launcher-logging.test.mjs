@@ -69,7 +69,7 @@ const fs = require('node:fs');
   process.exit(0);
 })().catch(() => { console.error('Synthetic launcher check failed'); process.exitCode = 1; });
 `, { mode: 0o700 });
-  const run = async logDirectory => execute(process.execPath, [cli, 'claude'], {
+  const run = async (logDirectory, mode) => execute(process.execPath, [cli, 'claude'], {
     cwd: directory,
     env: {
       PATH: directory + delimiter + dirname(process.execPath), AUTOROUTER_CONFIG: configPath,
@@ -79,6 +79,7 @@ const fs = require('node:fs');
       AUTOROUTER_JEV_URL: `http://127.0.0.1:${jevAddress.port}/v1/systemone`,
       SYNTHETIC_REQUESTS: JSON.stringify(requests),
       ...(logDirectory === undefined ? {} : { AUTOROUTER_SESSION_LOG_DIR: logDirectory }),
+      ...(mode === undefined ? {} : { AUTOROUTER_SESSION_LOG_MODE: mode }),
     }, timeout: 10000,
   });
   return { directory, configPath, run, generations: () => generations };
@@ -102,12 +103,25 @@ test('opt-in launcher logs each observed session privately and drains the final 
     const text = await readFile(path, 'utf8');
     originalFiles.set(name, text);
     assert.ok(text.endsWith('\n'));
-    const rows = text.trimEnd().split('\n').map(line => JSON.parse(line));
+    const records = text.trimEnd().split('\n').map(line => JSON.parse(line));
+    const rows = records.filter(row => row.event === 'decision');
+    const outcomes = records.filter(row => row.event === 'outcome');
+    assert.equal(outcomes.length, rows.length);
+    assert.equal(records.length, rows.length * 2);
+    for (const decision of rows) {
+      const outcome = outcomes.find(row => row.request_id === decision.request_id);
+      assert.ok(outcome);
+      assert.equal(outcome.status, 'completed');
+      assert.equal(outcome.confirmed_model, decision.selected_model);
+      assert.equal(outcome.session_id, decision.session_id);
+      assert.equal(outcome.prompt_excerpt, undefined);
+      assert.equal(outcome.schema_version, 2);
+    }
     const session = rows[0].session_id;
     assert.ok(['session-alpha', 'session-beta'].includes(session));
     assert.ok(rows.every(row => row.session_id === session));
     for (const row of rows) {
-      assert.equal(row.schema_version, 1);
+      assert.equal(row.schema_version, 2);
       assert.equal(row.event, 'decision');
       assert.ok(Number.isFinite(Date.parse(row.timestamp)));
       assert.match(row.request_id, /^[a-f0-9-]{36}$/);
@@ -139,6 +153,19 @@ test('opt-in launcher logs each observed session privately and drains the final 
   assert.equal((await readdir(logDirectory)).length, 4);
   for (const [name, text] of originalFiles) assert.equal(await readFile(join(logDirectory, name), 'utf8'), text);
   assert.equal(f.generations(), requests.length * 2);
+});
+
+test('metadata-only launcher history contains correlated decisions and outcomes without excerpts', { timeout: 15000 }, async t => {
+  const f = await launcherFixture(t);
+  const directory = join(f.directory, 'metadata logs');
+  await f.run(directory, 'metadata');
+  for (const name of await readdir(directory)) {
+    const text = await readFile(join(directory, name), 'utf8');
+    const records = text.trim().split('\n').map(line => JSON.parse(line));
+    assert.ok(records.some(row => row.event === 'decision'));
+    assert.ok(records.some(row => row.event === 'outcome'));
+    for (const value of ['prompt_excerpt', 'prompt_truncated', 'LOG_ONLY_', 'PRIVATE_', '😀']) assert.ok(!text.includes(value));
+  }
 });
 
 test('unset logging creates no files and an empty environment override disables a saved directory', { timeout: 15000 }, async t => {

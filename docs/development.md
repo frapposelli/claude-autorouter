@@ -1,6 +1,6 @@
 # Development and validation
 
-Use Node.js 22+ from a source checkout on macOS or Linux (including WSL). The project has no runtime package dependencies. Development scripts and tests are separate from the installed CLI; user setup is covered in the [README](../README.md).
+Use Node.js 22+ from a source checkout on macOS or Linux (including WSL). The installed CLI has no runtime package dependencies. Source checks use pinned TypeScript and Node type definitions; install these contributor tools with `npm ci --ignore-scripts --no-audit --no-fund`. Development scripts and tests are separate from the installed CLI; user setup is covered in the [README](../README.md).
 
 ## Local checks
 
@@ -15,6 +15,24 @@ The test suite uses local mocks and fake credentials. It covers Jev and Ollama r
 Auto-mode regressions exercise Sonnet → Opus → Opus tool continuation → Sonnet in one conversation, with and without gateway prompt IDs. They retain signed thinking, native context edits, mid-conversation system messages, safety-review settings, and streamed verdicts, including denied actions. Separate capability tests keep unknown review contracts and incompatible model features from being routed.
 
 Package validation checks the distributable and installed command rather than relying on the source checkout's paths. Review the [release procedure](releasing.md) before distributing a tarball.
+
+## Request lifecycle and model continuity
+
+The gateway validates the request containers it consumes, evaluates the current task, applies continuity and capacity rules, then checks the proposed target against the shared model catalog. Unknown provider extensions remain intact; when their compatibility with another model is unknown, the source model is retained with a routing reason. Token-count requests apply the same compatibility rules before sending a request.
+
+`src/model-catalog.mjs` contains exact model IDs, capability facts, source links, and a review date. A family name inside a custom alias does not establish capabilities. `src/model-request.mjs` contains explicit thinking adaptations; neither layer strips signed history or permission-review settings. Model updates should change the catalog, include a dated authoritative source, and add a request fixture demonstrating the restriction or new supported switch.
+
+The evaluation cache and active execution state have separate lifetimes. `src/turn-state.mjs` keeps active human tasks and pending tools beyond the evaluator cache TTL. Retired tasks expire, aliases and records are bounded, and exhausting active-state capacity is reported rather than silently evicting another active task. State is process-local; after a gateway restart, missing continuity is reported as unknown until a successful response establishes it again.
+
+The gateway stages a selected model under its request ID. `src/response-observer.mjs` observes serving models, provider fallback boundaries, closed tool calls, usage, and terminal response metadata without altering bytes. A serving-model observation alone is not a successful execution. Only clean completion evidence followed by successful HTTP forwarding commits the continuation model. Cancelled, failed, ambiguous, and superseded attempts cannot overwrite known state. New human tasks remain eligible for upward or downward switching, including Sonnet/Opus in Auto mode.
+
+Direct `Router.route()` embedders that omit `requestId` retain selected, unconfirmed continuity for compatibility. Embedders that execute inference should supply a unique request ID and call `router.complete(id, evidence)` after successful delivery, or `router.complete(id)` on failure. The HTTP gateway owns that lifecycle automatically.
+
+## Evaluation acceptance
+
+Evaluation reports distinguish evaluator availability, rubric agreement, routing policy, tier coverage, transport, and independently checked task completion. An unmeasured gate is explicitly marked unmeasured. Normal runs cannot pass solely on classifier fallback or cached predictions; simulated-outage runs explicitly require fallback. Compatible routing requires all three selected tiers, while Auto requires Sonnet and Opus. Constrained fixtures declare expected guard overrides.
+
+The general and Ollama evaluation scripts accept `--min-agreement` and `--max-under-route-rate`. Their defaults require complete expected-label agreement and no under-routing. Set any alternative thresholds **before** evaluating a candidate, retain the fixture checksum with the report, and keep tuning cases separate from held-out cases. Rubric labels are judgments about synthetic tasks; these reports do not prove end-user task quality or subscription savings. The expanded corpus includes multilingual tasks, short difficult follow-ups, ordinary work in long background context, and task text containing tier-selection instructions. No prompt-policy adjustment should be justified by rerunning and relabeling the held-out set.
 
 ## Run from source
 
@@ -76,7 +94,7 @@ For a classifier-only rubric evaluation:
 npm run eval
 ```
 
-The bundled evaluation makes 12 classifier calls and no Claude generations. Jev is the default and incurs TypeSafe usage; set `AUTOROUTER_EVALUATOR=ollama` to evaluate an installed local model. It reports agreement with the starting rubric, fallback count, and p50/p95 routing latency. Edit `test/fixtures/routing.json` to represent the tasks you want to measure. Rubric agreement alone does not establish answer quality or net savings; compare completed tasks against fixed-model baselines.
+The bundled evaluation makes 19 classifier calls and no Claude generations. Jev is the default and incurs TypeSafe usage; set `AUTOROUTER_EVALUATOR=ollama` to evaluate an installed local model. It reports agreement with the starting rubric, fallback count, and p50/p95 routing latency. Edit `test/fixtures/routing.json` to represent the tasks you want to measure. Rubric agreement alone does not establish answer quality or net savings; compare completed tasks against fixed-model baselines.
 
 For local evaluator measurements, use Ollama 0.35+ and a model compatible with `/v1/systemone`. Distinguish cold model loading from warmed classification, and record the model tag, hardware, Ollama version, context size, prompt length, and resident memory. The launcher primes the classifier with a synthetic task before opening the UI, with a separate deadline of up to 60 seconds. Runtime and benchmark share the 3,000-character/3,000-UTF-8-byte state limit, so include non-ASCII cases and excerpts that fill the budget. Also measure the first request after keep-alive expiration: its reload can hit the normal deadline even when warm requests pass. Repeat on realistic prompt distributions instead of selecting a model from a single easy request. Disk download size is not resident RAM. Keep model downloads opt-in and respect each model's license.
 
@@ -113,3 +131,31 @@ node --env-file=.env scripts/context-probe.mjs --cwd /path/to/synthetic-fixture 
 ```
 
 Private repository or connected-tool context may be present even when the typed prompt is harmless. Keep private-payload investigations local unless external processing is authorized. For shareable live regressions, prefer the isolated synthetic fixtures above. The probe report itself persists only metadata.
+
+## Static contracts and style
+
+`npm run check` checks JavaScript syntax, TypeScript/JSDoc contracts for configuration, classifier results, final routing decisions and normalized telemetry, and literal event producers in transport code. `src/contracts.mjs` is the shared development-time type contract; normalizers remain the runtime privacy boundary. Negative fixtures in `test/static-contracts.mts` and `test/static-checks.test.mjs` prove misspelled fields, invalid enums, payload fields and timing strings are rejected before execution. Provider request extensions remain opaque and are validated only where the router consumes them.
+
+Use two-space indentation, LF endings, one final newline, semicolons and single quotes for ordinary strings. Compact pure helpers are allowed when readable; do not reformat unrelated code. The style check rejects trailing whitespace, tab indentation, `var`, and coercing comparisons except deliberate null/undefined checks. TypeScript is a contributor dependency only; public packages keep zero runtime dependencies. CI installs the pinned lockfile before checks and never runs provider inference automatically.
+
+## Versioned protocol evidence
+
+`test/fixtures/claude-protocol-v1.json` is a versioned, newly authored synthetic corpus reviewed against the Messages API, streaming, deferred-tool and fallback contracts. `test/protocol-fixtures.test.mjs` sends it through the real gateway, router and response observer with fake evaluator/upstream services. It covers Auto floors and switches, thinking adaptation and preservation, custom deferred tool references, conservative built-in server-tool history, compaction, scoped goal feedback, parallel agents, model fallback/tool ownership, usage and truncated responses.
+
+Historical Claude Code 2.1.284/2.1.285 report versions, dates and hashes are separate metadata. The corpus does not copy captured prompts, invent provider signatures or certify a live client. Current-source real-provider canaries remain opt-in and unmeasured unless a separate report records them.
+
+## Performance regression measurements
+
+[Router measurements](router-performance.md) and [status-storage measurements](status-performance.md) record the pre-change baseline, repeated candidate runs, hardware/background load and baseline-derived gates. Source-only harnesses use synthetic inputs and providers; no credentials, prompts from user sessions or downloads are involved.
+
+```sh
+node --expose-gc scripts/benchmark-router.mjs baseline /tmp/router-comparison.json
+node --expose-gc scripts/benchmark-router.mjs candidate /tmp/router-comparison.json --check
+node scripts/benchmark-status.mjs --label local-check --check
+```
+
+Identical concurrent classifier inputs share one bounded evaluation. Each request applies its own continuity, capacity and compatibility checks. Cancelling one waiter preserves other waiters; cancelling all releases the shared evaluation. Cache identity retains the complete request, requested model floor, evaluator configuration and rubric hash. New tasks and sequential pinned continuations still evaluate; prior-pin classification reuse was deliberately not enabled. A 64 KiB response limit applies to both evaluators, and local model metadata is limited to 1 MiB. Disabling the Ollama timer does not disable cancellation or these byte limits.
+
+Status writes use one asynchronous writer and a coalesced latest snapshot. Embedders await `state.ready` before using its path, `flush()` when they need persisted evidence, and `close()` before cleanup. Initial storage failures or a one-second readiness timeout disable the optional display. Accepted in-flight writes finish before directory removal, so shutdown cannot recreate files.
+
+The router/storage measurements cover one 16 GiB M4 with synthetic providers. Actual Tev1 4B and Nimble 9B measurements on that Mac and a 64 GiB M2 Ultra are recorded separately in [the hardware comparison](hardware-comparison.md). Both candidates missed the unchanged strict quality gate on both hosts. Model digests and runtime conditions differ, so the cross-host results do not isolate RAM's effect. Use the [transfer bundle instructions](hardware-benchmark.md) to reproduce the workload, recording background load and observed residency. Do not infer model performance from router timings.

@@ -1,5 +1,6 @@
 import { validateOllamaEndpoint, validateOllamaModel } from './ollama-models.mjs';
 import { buildState } from './prompt-state.mjs';
+import { cancelResponseBody, readBoundedJson, MODEL_METADATA_LIMIT } from './bounded-json.mjs';
 
 // Bound UTF-8 bytes as well as serialized characters to keep local decision
 // excerpts small, including when the prompt contains non-ASCII text.
@@ -51,44 +52,20 @@ export function buildOllamaRequest(state, config) {
   return { model: config.ollamaModel, state, questions: OLLAMA_QUESTIONS, keep_alive: config.ollamaKeepAlive };
 }
 
-async function readJson(response, signal, limit = 64 * 1024) {
-  const reader = response.body?.getReader();
-  if (!reader) throw new Error('classifier_invalid_response');
-  let total = 0;
-  const chunks = [];
-  const abort = () => { void reader.cancel(signal.reason).catch(() => {}); };
-  signal.addEventListener('abort', abort, { once: true });
-  try {
-    while (true) {
-      signal.throwIfAborted();
-      const { value, done } = await reader.read();
-      if (done) break;
-      total += value.byteLength;
-      if (total > limit) throw new Error('classifier_invalid_response');
-      chunks.push(Buffer.from(value));
-    }
-    signal.throwIfAborted();
-    return JSON.parse(Buffer.concat(chunks).toString('utf8'));
-  } finally {
-    signal.removeEventListener('abort', abort);
-    await reader.cancel().catch(() => {}); reader.releaseLock();
-  }
-}
-
 async function request(config, path, body, { fetchImpl, signal, responseLimit }) {
   const response = await fetchImpl(`${config.ollamaEndpoint}${path}`, {
     method: 'POST', redirect: 'error', signal,
     headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
   });
   if (!response.ok) {
-    await response.body?.cancel();
+    cancelResponseBody(response);
     const needsVersion = path === '/v1/systemone' && response.status === 404;
     const error = new Error(needsVersion ? OLLAMA_VERSION_MESSAGE : 'classifier_http_error');
     if (needsVersion) error.code = 'OLLAMA_VERSION';
     error.classifierStatus = response.status;
     throw error;
   }
-  return readJson(response, signal, responseLimit);
+  return readBoundedJson(response, { signal, limit: responseLimit });
 }
 
 const record = value => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -120,13 +97,18 @@ export async function checkLocalOllamaModel(config, options) {
   validateOllamaModel(config.ollamaModel);
   // /show includes tensor metadata and licenses that can exceed 64 KiB. Keep
   // its separate limit bounded while decision responses stay at 64 KiB.
-  const model = await request(config, '/api/show', { model: config.ollamaModel }, { ...options, responseLimit: 1024 * 1024 });
+  const model = await request(config, '/api/show', { model: config.ollamaModel }, { ...options, responseLimit: MODEL_METADATA_LIMIT });
   if (!model || typeof model !== 'object' || model.remote_host || model.remote_model
     || typeof model.details?.parameter_size !== 'string' || !model.details.parameter_size) {
     throw new Error('classifier_invalid_response');
   }
 }
 
+/**
+ * @param {any} state
+ * @param {any} config
+ * @param {{fetchImpl?:typeof fetch,signal?:AbortSignal}} [options]
+ */
 export async function evaluateOllama(state, config, { fetchImpl = fetch, signal } = {}) {
   let combined = signal;
   if (config.ollamaTimeoutMs !== 0) {

@@ -81,7 +81,10 @@ let statusState;
 const usages = [], upstreamStatuses = [];
 const actualRouter = options.live || options.classify ? new Router(config) : undefined;
 if (actualRouter) requireKeys(config);
-if (options.live) statusState = createStatusState({ baselineModel: config.models.opus });
+if (options.live) {
+  statusState = createStatusState({ baselineModel: config.models.opus });
+  await statusState.ready;
+}
 const decisionMetadata = decision => ({ selected_model: decision.model, tier: decision.tier,
   classified_tier: decision.classified_tier, confidence: decision.confidence, reason: decision.reason, source: decision.source,
   latency_ms: decision.latency_ms });
@@ -198,7 +201,7 @@ try {
   });
   let statusLines;
   if (statusState?.path) {
-    statusState.flush();
+    await statusState.flush();
     const snapshot = JSON.parse(readFileSync(statusState.path, 'utf8'));
     statusLines = Object.keys(snapshot.sessions).map(session_id => renderStatusLine({ session_id }, snapshot, { color: false, columns: 240 }));
   }
@@ -209,5 +212,5 @@ try {
 } finally {
   if (child?.pid) { try { process.kill(-child.pid, 'SIGTERM'); } catch {} }
   server.closeAllConnections(); await new Promise(resolve => server.close(resolve));
-  statusState?.close();
+  await statusState?.close();
 }

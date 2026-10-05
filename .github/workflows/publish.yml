@@ -3,11 +3,25 @@ name: Publish to npm
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing release tag to verify; this action never publishes'
+        required: true
+        type: string
+      run_id:
+        description: 'Original tag-triggered publish workflow run ID'
+        required: true
+        type: string
+      artifact_id:
+        description: 'Canonical npm-package artifact ID from that run'
+        required: true
+        type: string
 
 permissions:
   contents: read
 
-# Serialize releases so two versions cannot race to update the npm dist-tag.
+# Serialize workflow publishers; external/manual publishers must coordinate too.
 concurrency:
   group: npm-publish
   queue: max
@@ -15,15 +29,18 @@ concurrency:
 
 jobs:
   checks:
+    if: github.event_name == 'push'
     uses: ./.github/workflows/ci.yml
 
   package:
     name: Prepare and test the release archive
+    if: github.event_name == 'push'
     needs: checks
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
       artifact_id: ${{ steps.upload.outputs.artifact-id }}
+      notes_artifact_name: release-notes-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -48,6 +65,10 @@ jobs:
           ARCHIVE: ${{ steps.release.outputs.archive }}
           DIST_TAG: ${{ steps.release.outputs.dist_tag }}
         run: npm publish "./$ARCHIVE" --dry-run --access public --tag "$DIST_TAG" --registry=https://registry.npmjs.org/ --ignore-scripts --provenance=false
+      - name: Retain release notes and exact archive identity
+        env:
+          ARCHIVE: ${{ steps.release.outputs.archive }}
+        run: node scripts/release-verify.mjs notes "$GITHUB_REF_NAME" --archive "$ARCHIVE" --report release-evidence/release-notes.md
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         id: upload
         with:
@@ -56,14 +77,22 @@ jobs:
             dist/*.tgz
             dist/*.tgz.sha256
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 90
           compression-level: 0
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-notes-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-evidence/release-notes.md
+          if-no-files-found: error
+          retention-days: 90
 
   publish:
-    name: Publish the verified archive with npm OIDC
+    name: Submit the verified archive with npm OIDC
     needs: package
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      can_verify: ${{ steps.preflight.outputs.can_verify }}
     permissions:
       contents: read
       id-token: write
@@ -89,10 +118,91 @@ jobs:
         run: |
           node scripts/release-check.mjs source "$GITHUB_REF_NAME"
           node scripts/release-check.mjs archive "$GITHUB_REF_NAME"
+      - name: Check immutable version identity and stable version order
+        id: preflight
+        env:
+          ARCHIVE: ${{ steps.release.outputs.archive }}
+        run: node scripts/release-verify.mjs preflight "$GITHUB_REF_NAME" --archive "$ARCHIVE" --report release-evidence/preflight.json
       - name: Publish to the public npm registry
+        if: steps.preflight.outputs.publish == 'true'
         env:
           ARCHIVE: ${{ steps.release.outputs.archive }}
           DIST_TAG: ${{ steps.release.outputs.dist_tag }}
           # npm provenance is unsupported for this private source repository.
           NPM_CONFIG_PROVENANCE: 'false'
-        run: npm publish "./$ARCHIVE" --access public --tag "$DIST_TAG" --registry=https://registry.npmjs.org/ --ignore-scripts --provenance=false
+        run: |
+          npm publish "./$ARCHIVE" --access public --tag "$DIST_TAG" --registry=https://registry.npmjs.org/ --ignore-scripts --provenance=false
+          node scripts/release-verify.mjs submitted "$GITHUB_REF_NAME" --archive "$ARCHIVE" --report release-evidence/submitted.json
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: release-submission-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-evidence/*.json
+          if-no-files-found: warn
+          retention-days: 90
+
+  verify:
+    name: Verify public availability and installation
+    # Also inspect an interrupted/failed submission; acceptance can precede a lost response.
+    if: always() && (github.event_name == 'workflow_dispatch' || needs.publish.outputs.can_verify == 'true')
+    needs: [package, publish]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      actions: read
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The current verifier can inspect historical canonical archives.
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'main' || github.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Validate the original immutable artifact for manual verification
+        if: github.event_name == 'workflow_dispatch'
+        id: original
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ORIGINAL_RUN_ID: ${{ inputs.run_id }}
+          ORIGINAL_ARTIFACT_ID: ${{ inputs.artifact_id }}
+        run: node scripts/release-verify.mjs artifact-source "$RELEASE_TAG" --run-id "$ORIGINAL_RUN_ID" --artifact-id "$ORIGINAL_ARTIFACT_ID"
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ steps.original.outputs.artifact_id || needs.package.outputs.artifact_id }}
+          run-id: ${{ steps.original.outputs.run_id || github.run_id }}
+          github-token: ${{ github.token }}
+          path: dist
+          merge-multiple: true
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        # Old release runs may predate retained notes; their archive is still verifiable.
+        continue-on-error: true
+        with:
+          name: ${{ steps.original.outputs.notes_artifact_name || needs.package.outputs.notes_artifact_name }}
+          run-id: ${{ steps.original.outputs.run_id || github.run_id }}
+          github-token: ${{ github.token }}
+          path: release-evidence
+      - name: Poll uncached metadata and tarball, then install from npm in isolation
+        run: node scripts/release-verify.mjs verify "$RELEASE_TAG" --archive "dist/claude-autorouter-${RELEASE_TAG#v}.tgz" --report release-evidence/verification.json --timeout-ms 900000
+      - name: Report the verification state without confusing pending with failure
+        if: always()
+        run: |
+          if test -f release-evidence/verification.json; then
+            node --input-type=module -e 'import {readFileSync,appendFileSync} from "node:fs"; const r=JSON.parse(readFileSync("release-evidence/verification.json","utf8")); appendFileSync(process.env.GITHUB_STEP_SUMMARY, `Release ${r.version}: **${r.state}**\n\n${r.message ?? r.reason ?? ""}\n\nCanonical SHA256: ${r.sha256 ?? "unavailable"}\n`);'
+          fi
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: release-verification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            dist/*.tgz
+            dist/*.tgz.sha256
+            release-evidence/*
+          if-no-files-found: warn
+          retention-days: 90
+          compression-level: 0

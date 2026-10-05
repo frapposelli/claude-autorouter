@@ -14,6 +14,7 @@ const headers = { authorization: 'Bearer request-owned-test-credential', 'anthro
 test('counts the complete input for the selected model with request-owned authentication', async () => {
   const body = { ...request(), output_config: { format: { type: 'json_schema', schema: { type: 'object' } } },
     tool_choice: { type: 'auto' }, context_management: { edits: [] }, cache_control: { type: 'ephemeral', ttl: '1h' } };
+  const target = 'claude-opus-5';
   const before = structuredClone(body);
   let calls = 0;
   const count = createTokenCounter(config, { fetchImpl: async (url, options) => {
@@ -26,10 +27,10 @@ test('counts the complete input for the selected model with request-owned authen
     assert.equal(options.headers.get('content-type'), 'application/json');
     assert.equal(options.headers.get('content-length'), null);
     const { max_tokens, stream, metadata, ...expected } = body;
-    assert.deepEqual(JSON.parse(options.body), { ...expected, model });
+    assert.deepEqual(JSON.parse(options.body), { ...expected, model: target, thinking: { type: 'adaptive' } });
     return Response.json({ input_tokens: 87654 });
   } });
-  assert.equal(await count(body, model, { headers: { ...headers, 'content-length': '99999' }, search: '?beta=true' }), 87654);
+  assert.equal(await count(body, target, { headers: { ...headers, 'content-length': '99999' }, search: '?beta=true' }), 87654);
   assert.equal(calls, 1);
   assert.deepEqual(body, before);
 });
@@ -82,8 +83,8 @@ test('cache separates tokenizer, context modifiers, API features, and request cr
   assert.equal(await count(body, model, { headers }), 1);
   assert.equal(await count({ ...body, max_tokens: 128, stream: false }, model, { headers }), 1);
   assert.equal(await count(body, 'claude-sonnet-5', { headers }), 2);
-  assert.equal(await count({ ...body, thinking: { type: 'adaptive' } }, model, { headers }), 3);
-  assert.equal(await count({ ...body, output_config: { effort: 'low' } }, model, { headers }), 4);
+  assert.equal(await count({ ...body, thinking: { type: 'adaptive' } }, body.model, { headers }), 3);
+  assert.equal(await count({ ...body, output_config: { effort: 'low' } }, body.model, { headers }), 4);
   assert.equal(await count(body, model, { headers: { ...headers, authorization: 'Bearer refreshed-test-credential' } }), 5);
   assert.equal(await count(body, model, { headers: { ...headers, 'anthropic-beta': 'different-feature' } }), 6);
   assert.equal(await count(body, model, { headers: { ...headers, 'anthropic-workspace-id': 'workspace-2' } }), 7);
@@ -96,13 +97,13 @@ test('cache is bounded and expires successful counts', async () => {
     fetchImpl: async () => Response.json({ input_tokens: ++calls }),
   });
   const body = request();
-  assert.equal(await count(body, 'a'), 1);
-  assert.equal(await count(body, 'b'), 2);
-  assert.equal(await count(body, 'a'), 1); // Refresh LRU position.
-  assert.equal(await count(body, 'c'), 3);
-  assert.equal(await count(body, 'b'), 4); // b was evicted.
+  assert.equal(await count(body, 'claude-haiku-4-5-20251001'), 1);
+  assert.equal(await count(body, 'claude-sonnet-5'), 2);
+  assert.equal(await count(body, 'claude-haiku-4-5-20251001'), 1); // Refresh LRU position.
+  assert.equal(await count(body, 'claude-opus-5'), 3);
+  assert.equal(await count(body, 'claude-sonnet-5'), 4); // b was evicted.
   await new Promise(resolve => setTimeout(resolve, 20));
-  assert.equal(await count(body, 'b'), 5);
+  assert.equal(await count(body, 'claude-sonnet-5'), 5);
 });
 
 test('unsupported server tools, MCP, remote attachments, and unknown input fields skip the API', async () => {
@@ -120,7 +121,7 @@ test('unsupported server tools, MCP, remote attachments, and unknown input field
 });
 
 test('base64 attachments, client tools, advisor tools and beta count modifiers are preserved', async () => {
-  const body = { ...request(), compaction: { type: 'summarize' }, speed: 'standard',
+  const body = { ...request(), model, compaction: { type: 'summarize' }, speed: 'standard',
     output_format: { type: 'json_schema', schema: { type: 'object' } },
     tools: [{ name: 'bash', type: 'bash_20250124' }, { name: 'advisor', type: 'advisor_20260301', model: 'claude-opus-5-5' }],
     messages: [{ role: 'user', content: [{ type: 'image', source: { type: 'base64', media_type: 'image/png', data: 'test-image' } }] }] };

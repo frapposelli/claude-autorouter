@@ -1,0 +1,363 @@
+{
+  "schema_version": 1,
+  "runs": [
+    {
+      "schema_version": 1,
+      "label": "synchronous-baseline",
+      "recorded_at": "2026-10-05T08:22:55.868Z",
+      "environment": {
+        "node": "v26.10.0",
+        "platform": "darwin",
+        "release": "25.6.0",
+        "arch": "arm64",
+        "cpu": "Apple M4",
+        "logical_cpus": 10,
+        "memory_bytes": 17179869184,
+        "load_average": [
+          3.75537109375,
+          3.2236328125,
+          3.1318359375
+        ],
+        "background_load": "Other workspace activity was not suspended; no process identities or personal data captured."
+      },
+      "method": {
+        "rounds_per_run": 60,
+        "repetitions": 3,
+        "events_per_round": 6,
+        "concurrent_sessions": 20,
+        "producer_interval_ms": 5,
+        "mock_stream_interval_ms": 5,
+        "injection": "One 20ms delay per snapshot write: blocking wait for synchronous writer, timer wait for asynchronous writer. Metadata operations are not delayed.",
+        "note": "Stream timer lateness measures event-loop interference, not a network benchmark. Flush completion may include coalesced subsequent snapshots."
+      },
+      "scenarios": [
+        {
+          "storage": "normal_temporary_directory",
+          "injected_write_delay_ms": 0,
+          "timings": {
+            "update_ms": {
+              "samples": 180,
+              "p50": 0.09,
+              "p95": 0.189,
+              "max": 1.263
+            },
+            "flush_call_ms": {
+              "samples": 180,
+              "p50": 1.07,
+              "p95": 1.955,
+              "max": 2.467
+            },
+            "flush_completion_ms": {
+              "samples": 180,
+              "p50": 1.082,
+              "p95": 2.007,
+              "max": 2.542
+            },
+            "stream_timer_lateness_ms": {
+              "samples": 186,
+              "p50": 0.996,
+              "p95": 2.36,
+              "max": 3.6
+            },
+            "startup_ms": {
+              "samples": 3,
+              "p50": 1.069,
+              "p95": 1.069,
+              "max": 1.25
+            },
+            "close_ms": {
+              "samples": 3,
+              "p50": 0.958,
+              "p95": 0.958,
+              "max": 1.062
+            }
+          },
+          "event_loop_delay_ms_by_run": [
+            {
+              "p50": 1.151,
+              "p95": 2.357,
+              "max": 4.073
+            },
+            {
+              "p50": 1.153,
+              "p95": 2.591,
+              "max": 3.912
+            },
+            {
+              "p50": 1.154,
+              "p95": 2.726,
+              "max": 3.903
+            }
+          ],
+          "snapshot_writes_by_run": [
+            61,
+            61,
+            61
+          ],
+          "rss_peak_bytes": 22137664
+        },
+        {
+          "storage": "injected_slow",
+          "injected_write_delay_ms": 20,
+          "timings": {
+            "update_ms": {
+              "samples": 180,
+              "p50": 0.219,
+              "p95": 0.304,
+              "max": 0.442
+            },
+            "flush_call_ms": {
+              "samples": 180,
+              "p50": 26.068,
+              "p95": 27.621,
+              "max": 28.401
+            },
+            "flush_completion_ms": {
+              "samples": 180,
+              "p50": 26.108,
+              "p95": 27.719,
+              "max": 28.528
+            },
+            "stream_timer_lateness_ms": {
+              "samples": 186,
+              "p50": 26.445,
+              "p95": 28.508,
+              "max": 29.835
+            },
+            "startup_ms": {
+              "samples": 3,
+              "p50": 25.292,
+              "p95": 25.292,
+              "max": 27.452
+            },
+            "close_ms": {
+              "samples": 3,
+              "p50": 1.203,
+              "p95": 1.203,
+              "max": 1.303
+            }
+          },
+          "event_loop_delay_ms_by_run": [
+            {
+              "p50": 1.151,
+              "p95": 27.853,
+              "max": 29.508
+            },
+            {
+              "p50": 1.156,
+              "p95": 28.639,
+              "max": 30.015
+            },
+            {
+              "p50": 1.158,
+              "p95": 28.836,
+              "max": 30.31
+            }
+          ],
+          "snapshot_writes_by_run": [
+            61,
+            61,
+            61
+          ],
+          "rss_peak_bytes": 22678336
+        }
+      ]
+    },
+    {
+      "schema_version": 1,
+      "label": "asynchronous-single-flight",
+      "recorded_at": "2026-10-05T08:28:48.754Z",
+      "environment": {
+        "node": "v26.10.0",
+        "platform": "darwin",
+        "release": "25.6.0",
+        "arch": "arm64",
+        "cpu": "Apple M4",
+        "logical_cpus": 10,
+        "memory_bytes": 17179869184,
+        "load_average": [
+          4.52685546875,
+          3.9130859375,
+          3.46826171875
+        ],
+        "background_load": "Other workspace activity was not suspended; no process identities or personal data captured."
+      },
+      "method": {
+        "rounds_per_run": 60,
+        "repetitions": 3,
+        "events_per_round": 6,
+        "concurrent_sessions": 20,
+        "producer_interval_ms": 5,
+        "mock_stream_interval_ms": 5,
+        "injection": "One 20ms delay per snapshot write: blocking wait for synchronous writer, timer wait for asynchronous writer. Metadata operations are not delayed.",
+        "note": "Stream timer lateness measures event-loop interference, not a network benchmark. Flush completion may include coalesced subsequent snapshots."
+      },
+      "scenarios": [
+        {
+          "storage": "normal_temporary_directory",
+          "injected_write_delay_ms": 0,
+          "timings": {
+            "update_ms": {
+              "samples": 180,
+              "p50": 0.121,
+              "p95": 0.185,
+              "max": 5.922
+            },
+            "flush_call_ms": {
+              "samples": 180,
+              "p50": 0.004,
+              "p95": 0.006,
+              "max": 0.016
+            },
+            "flush_completion_ms": {
+              "samples": 180,
+              "p50": 1.387,
+              "p95": 2.341,
+              "max": 4.168
+            },
+            "stream_timer_lateness_ms": {
+              "samples": 189,
+              "p50": 0.215,
+              "p95": 0.955,
+              "max": 1.381
+            },
+            "startup_ms": {
+              "samples": 3,
+              "p50": 2.103,
+              "p95": 2.103,
+              "max": 3.156
+            },
+            "close_ms": {
+              "samples": 3,
+              "p50": 2.203,
+              "p95": 2.203,
+              "max": 2.358
+            }
+          },
+          "event_loop_delay_ms_by_run": [
+            {
+              "p50": 1.143,
+              "p95": 1.747,
+              "max": 7.68
+            },
+            {
+              "p50": 1.151,
+              "p95": 1.838,
+              "max": 4.184
+            },
+            {
+              "p50": 1.152,
+              "p95": 1.766,
+              "max": 2.052
+            }
+          ],
+          "snapshot_writes_by_run": [
+            61,
+            61,
+            61
+          ],
+          "rss_peak_bytes": 23284496
+        },
+        {
+          "storage": "injected_slow",
+          "injected_write_delay_ms": 20,
+          "timings": {
+            "update_ms": {
+              "samples": 180,
+              "p50": 0.125,
+              "p95": 0.193,
+              "max": 0.28
+            },
+            "flush_call_ms": {
+              "samples": 180,
+              "p50": 0.004,
+              "p95": 0.006,
+              "max": 0.025
+            },
+            "flush_completion_ms": {
+              "samples": 180,
+              "p50": 199.18,
+              "p95": 342.723,
+              "max": 361.781
+            },
+            "stream_timer_lateness_ms": {
+              "samples": 212,
+              "p50": 0.065,
+              "p95": 1.042,
+              "max": 1.299
+            },
+            "startup_ms": {
+              "samples": 3,
+              "p50": 22.754,
+              "p95": 22.754,
+              "max": 23.073
+            },
+            "close_ms": {
+              "samples": 3,
+              "p50": 1.595,
+              "p95": 1.595,
+              "max": 2.428
+            }
+          },
+          "event_loop_delay_ms_by_run": [
+            {
+              "p50": 1.158,
+              "p95": 1.509,
+              "max": 2.224
+            },
+            {
+              "p50": 1.154,
+              "p95": 1.451,
+              "max": 2.001
+            },
+            {
+              "p50": 1.154,
+              "p95": 1.501,
+              "max": 2.061
+            }
+          ],
+          "snapshot_writes_by_run": [
+            17,
+            17,
+            17
+          ],
+          "rss_peak_bytes": 23874368
+        }
+      ],
+      "baseline_comparison": {
+        "baseline_label": "synchronous-baseline",
+        "scope": "Local synthetic regression thresholds derived from this recorded baseline; not portable latency promises or ordinary CI gates.",
+        "gates": [
+          {
+            "name": "slow_storage_stream_p95_ms",
+            "actual": 1.042,
+            "maximum": 7.127,
+            "passed": true,
+            "rationale": "Require at least 75% less interference than the measured blocking-storage baseline."
+          },
+          {
+            "name": "slow_storage_flush_call_p95_ms",
+            "actual": 0.006,
+            "maximum": 2.762,
+            "passed": true,
+            "rationale": "Require at least 90% less synchronous caller time when storage is slow."
+          },
+          {
+            "name": "normal_storage_stream_p95_ms",
+            "actual": 0.955,
+            "maximum": 2.95,
+            "passed": true,
+            "rationale": "Allow 25% baseline headroom for scheduler noise while checking normal-storage regression."
+          },
+          {
+            "name": "normal_storage_update_p95_ms",
+            "actual": 0.185,
+            "maximum": 0.378,
+            "passed": true,
+            "rationale": "Allow twice the small pre-existing normalization/update cost; this is not a disk-latency bound."
+          }
+        ]
+      }
+    }
+  ]
+}

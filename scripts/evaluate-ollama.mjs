@@ -2,12 +2,14 @@
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { arch, cpus, freemem, platform, totalmem } from 'node:os';
+import { arch, cpus, freemem, loadavg, platform, release, totalmem } from 'node:os';
 import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { OLLAMA_QUESTIONS, buildOllamaState, evaluateOllama } from '../src/ollama-evaluator.mjs';
 import { DEFAULT_OLLAMA_MODEL, validateOllamaEndpoint, validateOllamaModel } from '../src/ollama-models.mjs';
 import { inspectOllama } from '../src/ollama-setup.mjs';
+import { createEvaluationPolicy, evaluateRoutingReport, parseQualityThreshold } from '../src/evaluation-report.mjs';
 
 const execute = promisify(execFile);
 const TIERS = ['haiku', 'sonnet', 'opus'];
@@ -16,16 +18,19 @@ const digest = value => createHash('sha256').update(value).digest('hex');
 const ms = value => Math.round(value * 100) / 100;
 const percentile = (values, fraction) => values.length ? [...values].sort((a, b) => a - b)[Math.ceil(values.length * fraction) - 1] : null;
 
-function parseArgs(args) {
+export function parseOllamaEvaluationArgs(args) {
   const options = { models: [DEFAULT_OLLAMA_MODEL], split: 'heldout', rounds: 3, timeoutMs: 1500, coldTimeoutMs: 60000,
     endpoint: 'http://127.0.0.1:11434', output: undefined, stressRounds: 0 };
   for (let index = 0; index < args.length; index++) {
     const key = args[index];
     if (key === '--help') { options.help = true; continue; }
-    if (!['--models', '--split', '--rounds', '--stress-rounds', '--timeout-ms', '--cold-timeout-ms', '--endpoint', '--output'].includes(key) || !args[index + 1]) {
+    if (!['--models', '--split', '--rounds', '--stress-rounds', '--timeout-ms', '--cold-timeout-ms', '--endpoint', '--output', '--min-agreement', '--max-under-route-rate'].includes(key) || !args[index + 1]) {
       throw new Error('Unknown or incomplete option; use --help');
     }
     const value = args[++index];
+    if (['--rounds', '--stress-rounds', '--timeout-ms', '--cold-timeout-ms'].includes(key) && !/^\d+$/.test(value)) {
+      throw new Error(`Invalid ${key}`);
+    }
     if (key === '--models') options.models = value.split(',').map(validateOllamaModel);
     if (key === '--split') options.split = value;
     if (key === '--rounds') options.rounds = Number(value);
@@ -34,14 +39,17 @@ function parseArgs(args) {
     if (key === '--cold-timeout-ms') options.coldTimeoutMs = Number(value);
     if (key === '--endpoint') options.endpoint = validateOllamaEndpoint(value);
     if (key === '--output') options.output = resolve(value);
+    if (key === '--min-agreement') options.minAgreement = parseQualityThreshold(value);
+    if (key === '--max-under-route-rate') options.maxUnderRouteRate = parseQualityThreshold(value);
   }
   if (!['tuning', 'heldout', 'all'].includes(options.split)) throw new Error('--split must be tuning, heldout, or all');
   for (const [name, value, limit] of [['rounds', options.rounds, 20], ['timeout-ms', options.timeoutMs, 30000], ['cold-timeout-ms', options.coldTimeoutMs, 120000]]) {
-    if (!Number.isInteger(value) || value < 1 || value > limit) throw new Error(`Invalid --${name}`);
+    if (!Number.isInteger(value) || value < (name === 'timeout-ms' ? 0 : 1) || value > limit) throw new Error(`Invalid --${name}`);
   }
   if (!Number.isInteger(options.stressRounds) || options.stressRounds < 0 || options.stressRounds > 20) throw new Error('Invalid --stress-rounds');
   if (!options.models.length || new Set(options.models).size !== options.models.length) throw new Error('Model tags must be distinct');
   options.endpoint = validateOllamaEndpoint(options.endpoint);
+  options.policy = createEvaluationPolicy({ minAgreement: options.minAgreement, maxUnderRouteRate: options.maxUnderRouteRate });
   return options;
 }
 
@@ -130,22 +138,24 @@ async function measure(item, config) {
   const started = performance.now();
   try {
     const result = await evaluateOllama(state, config);
-    return { case: item.id, split: item.split, expected: item.expected, actual: result.choice,
+    return { case: item.id, split: item.split, expected: item.expected, actual: result.choice, classified_tier: result.choice,
+      source: 'ollama', evaluator: 'ollama', selected_model: null, confirmed_model: null,
       wall_ms: ms(performance.now() - started), state_bytes: Buffer.byteLength(JSON.stringify(state)), metrics: result.metrics };
   } catch (error) {
     const category = error.name === 'TimeoutError' ? 'timeout'
       : error.classifierStatus ? 'http_error'
       : error.message === 'classifier_invalid_response' || error instanceof SyntaxError ? 'invalid_response' : 'local_error';
-    return { case: item.id, split: item.split, expected: item.expected, actual: null,
+    return { case: item.id, split: item.split, expected: item.expected, actual: null, classified_tier: null,
+      source: 'error', evaluator: 'ollama', selected_model: null, confirmed_model: null,
       wall_ms: ms(performance.now() - started), state_bytes: Buffer.byteLength(JSON.stringify(state)), error: category,
       ...(error.classifierStatus ? { http_status: error.classifierStatus } : {}) };
   }
 }
 
 async function main() {
-  const options = parseArgs(process.argv.slice(2));
+  const options = parseOllamaEvaluationArgs(process.argv.slice(2));
   if (options.help) {
-    console.log('Usage: node scripts/evaluate-ollama.mjs --models nimble:9b-q4_K_M [--split tuning|heldout|all] [--rounds 3] [--stress-rounds 8] [--timeout-ms 1500] [--cold-timeout-ms 60000] [--output artifacts/ollama-evaluation.json]\nUses only checked-in synthetic cases and an already-running local Ollama. Does not download models or contact Claude/Jev. Requires no models currently loaded; loads one candidate at a time and unloads it afterward. A cold call is reported separately and excluded from warm agreement/latencies. Optional stress cases fill the excerpt budget and vary an early nonce; their results are separate from fixture agreement. Labels are subjective rubric judgments, not downstream task-quality measurements.');
+    console.log('Usage: node scripts/evaluate-ollama.mjs --models nimble:9b-q4_K_M [--split tuning|heldout|all] [--rounds 3] [--stress-rounds 8] [--timeout-ms 1500] [--cold-timeout-ms 60000] [--min-agreement 1] [--max-under-route-rate 0] [--output artifacts/ollama-evaluation.json]\nUses only checked-in synthetic cases and an already-running local Ollama. Does not download models or contact Claude/Jev. Requires no models currently loaded; loads one candidate at a time and unloads it afterward. A cold call is reported separately and excluded from warm agreement/latencies. --timeout-ms 0 disables the warm timer; cancellation and response limits remain active. Initial loading keeps its separate positive cold deadline. Optional stress cases fill the excerpt budget and vary an early nonce; their results are separate from fixture agreement. Quality gates require all three classified tiers, exact agreement and no under-routing by default; set thresholds before running. Labels are subjective rubric judgments, not downstream task-quality measurements.');
     return;
   }
   const fixtureText = await readFile(FIXTURES, 'utf8');
@@ -162,7 +172,9 @@ async function main() {
   }
   const report = {
     type: 'ollama_routing_evaluation', timestamp: new Date().toISOString(),
-    hardware: { cpu: cpus()[0]?.model, architecture: arch(), platform: platform(), total_memory_bytes: totalmem() },
+    quality_policy: options.policy,
+    hardware: { cpu: cpus()[0]?.model, logical_cpus: cpus().length, architecture: arch(), platform: platform(),
+      os_release: release(), node: process.version, total_memory_bytes: totalmem(), initial_free_memory_bytes: freemem(), initial_load_average: loadavg() },
     ollama_version: (await api(options.endpoint, '/api/version')).version,
     fixture_sha256: digest(fixtureText),
     split: options.split, rounds: options.rounds, stress_rounds: options.stressRounds, warm_timeout_ms: options.timeoutMs, cold_timeout_ms: options.coldTimeoutMs,
@@ -198,6 +210,7 @@ async function main() {
         console.log(`${model}: completed round ${round + 1}/${options.rounds}.`);
       }
       entry.summary = summarize(entry.rows);
+      entry.acceptance = evaluateRoutingReport(entry.rows, { evaluator: 'ollama', policy: options.policy, classifierOnly: true });
       entry.final_resident_memory = await residentMemory(options.endpoint, model);
       console.log(JSON.stringify({ model, cold_wall_ms: entry.cold.wall_ms, resident_memory: entry.resident_memory, ...entry.summary }));
       if (options.stressRounds) {
@@ -206,6 +219,9 @@ async function main() {
           entry.max_budget_stress.rows.push(await measure(stressCase(index), config));
         }
         entry.max_budget_stress.summary = summarize(entry.max_budget_stress.rows);
+        entry.max_budget_stress.acceptance = evaluateRoutingReport(entry.max_budget_stress.rows, {
+          evaluator: 'ollama', classifierOnly: true, policy: createEvaluationPolicy({ ...options.policy, requiredTiers: ['haiku'] }),
+        });
         console.log(JSON.stringify({ model, max_budget_stress: entry.max_budget_stress.summary }));
       }
     } finally {
@@ -216,9 +232,18 @@ async function main() {
     }
   }
   report.complete = true;
+  report.hardware.final_free_memory_bytes = freemem();
+  report.hardware.final_load_average = loadavg();
+  report.passed = report.models.length > 0 && report.models.every(entry => !entry.skipped && entry.acceptance?.passed === true
+    && (!entry.max_budget_stress || entry.max_budget_stress.acceptance?.passed === true));
   await persist();
   if (options.output) console.log(`Saved ${options.output}`);
-  if (report.models.some(entry => entry.skipped || entry.summary?.errors || entry.max_budget_stress?.summary.errors)) process.exitCode = 1;
+  console.log(JSON.stringify({ type: 'evaluation_acceptance', quality_policy: options.policy, passed: report.passed,
+    models: report.models.map(entry => ({ model: entry.model, skipped: entry.skipped, acceptance: entry.acceptance,
+      stress_acceptance: entry.max_budget_stress?.acceptance })) }));
+  if (!report.passed) process.exitCode = 1;
 }
 
-main().catch(error => { console.error(`Ollama evaluation failed: ${error.message}`); process.exitCode = 1; });
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch(error => { console.error(`Ollama evaluation failed: ${error.message}`); process.exitCode = 1; });
+}

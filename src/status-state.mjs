@@ -1,18 +1,12 @@
-import { closeSync, chmodSync, fchmodSync, mkdtempSync, openSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import * as fileSystem from 'node:fs/promises';
 import { randomBytes } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createSavingsTracker } from './savings.mjs';
+import { normalizeTelemetryEvent } from './telemetry-event.mjs';
 
-const EVENTS = new Set(['request_start', 'route', 'upstream_response', 'upstream_model', 'upstream_usage', 'upstream_error', 'request_complete', 'request_error', 'request_cancelled']);
-const CLASSIFIER_ERRORS = new Set(['timeout', 'http_error', 'invalid_response', 'network_error']);
-const UPSTREAM_ERRORS = new Set(['invalid_request_error', 'authentication_error', 'billing_error', 'permission_error', 'not_found_error', 'request_too_large', 'rate_limit_error', 'api_error', 'overloaded_error', 'timeout_error', 'unknown_error', 'http_error', 'request_error']);
-const identifier = value => typeof value === 'string' && /^[\w.:-]{1,200}$/.test(value) ? value : undefined;
-const modelName = value => typeof value === 'string' && /^[\w.:/-]{1,120}$/.test(value) ? value : undefined;
-const code = value => typeof value === 'string' && /^[a-z][a-z0-9_]{0,63}$/.test(value) ? value : undefined;
-const httpStatus = value => Number.isInteger(value) && value >= 100 && value <= 599 ? value : undefined;
-const latency = value => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 3600000 ? value : undefined;
 const tokenCount = value => Number.isSafeInteger(value) && value >= 0;
+const TIMING_FIELDS = ['evaluation_latency_ms', 'routing_latency_ms', 'decision_latency_ms', 'latency_ms', 'first_response_ms', 'total_latency_ms'];
 
 function contextUsage(usage, model) {
   if (!model || !usage || typeof usage !== 'object' || Array.isArray(usage) || usage.pricing_unsupported === true) return;
@@ -32,48 +26,82 @@ function contextUsage(usage, model) {
 // All telemetry is best-effort. Never let filesystem or malformed-event
 // failures interrupt routing, and never persist request bodies or raw errors.
 export function createStatusState(options = {}) {
-  let privateDirectory, path = null, pending, heartbeat, closed = false;
+  let privateDirectory, snapshotPath, path = null, pending, heartbeat, closing = false, disabled = false;
+  let initialized = false, dirty = false, writing, closingPromise;
   const sessions = new Map();
   const savings = createSavingsTracker({ baselineModel: options?.baselineModel });
+  let io = fileSystem;
 
-  function flush() {
-    if (closed) return;
-    if (pending) { clearImmediate(pending); pending = undefined; }
-    if (!path) return;
-    let temporary, fd;
+  async function writeSnapshot() {
+    let temporary, handle;
     try {
       const snapshot = { version: 1, pid: process.pid, heartbeat_at: Date.now(), sessions: Object.fromEntries(sessions), savings: savings.snapshot() };
+      // Capture only one bounded snapshot. Events arriving during I/O merely
+      // mark the latest in-memory state dirty; they never queue more copies.
+      const serialized = JSON.stringify(snapshot);
       temporary = join(privateDirectory, `.state-${randomBytes(8).toString('hex')}.tmp`);
-      fd = openSync(temporary, 'wx', 0o600);
-      fchmodSync(fd, 0o600);
-      writeFileSync(fd, JSON.stringify(snapshot));
-      closeSync(fd); fd = undefined;
-      renameSync(temporary, path);
+      handle = await io.open(temporary, 'wx', 0o600);
+      await handle.chmod(0o600);
+      await handle.writeFile(serialized);
+      await handle.close(); handle = undefined;
+      if (disabled) return false;
+      await io.rename(temporary, snapshotPath);
+      temporary = undefined;
+      return true;
     } catch {
-      if (fd !== undefined) { try { closeSync(fd); } catch {} }
-      if (temporary) { try { rmSync(temporary, { force: true }); } catch {} }
+      return false;
+    } finally {
+      if (handle) { try { await handle.close(); } catch {} }
+      if (temporary) { try { await io.rm(temporary, { force: true }); } catch {} }
     }
   }
 
+  function drain() {
+    if (writing) return writing;
+    if (!initialized || disabled || !dirty) return Promise.resolve();
+    writing = (async () => {
+      while (dirty && !disabled) {
+        dirty = false;
+        await writeSnapshot();
+      }
+    })().finally(() => { writing = undefined; });
+    return writing;
+  }
+
+  function flush() {
+    if (closing) return closingPromise ?? Promise.resolve();
+    if (disabled) return Promise.resolve();
+    dirty = true;
+    if (pending) { clearImmediate(pending); pending = undefined; }
+    // A caller may await durability, but update() never waits for this work.
+    return initialization.then(drain).catch(() => {});
+  }
+
   function schedule() {
-    if (closed || pending || !path) return;
-    try { pending = setImmediate(flush); pending.unref?.(); } catch {}
+    if (closing || disabled) return;
+    dirty = true;
+    if (pending || !initialized) return;
+    try {
+      pending = setImmediate(() => { pending = undefined; void drain(); });
+      pending.unref?.();
+    } catch {}
   }
 
   function update(event) {
-    if (closed) return;
+    if (closing || disabled) return;
     try {
-      if (!event || !EVENTS.has(event.event)) return;
+      event = normalizeTelemetryEvent(event);
+      if (!event) return;
       // Account for all session calls, including parallel agents and auxiliary
       // requests, independently of which foreground request owns the model UI.
       savings.update(event);
       schedule();
       if ((event.agent_id != null && event.agent_id !== '')
         || (event.request_class != null && event.request_class !== '' && event.request_class !== 'main')) return;
-      const sessionId = event.session_id == null || event.session_id === '' ? '' : identifier(event.session_id);
-      const requestId = identifier(event.request_id);
-      // Invalid IDs must never collapse into an unrelated/anonymous session.
-      if (sessionId === undefined || !requestId) return;
+      // The normalizer rejects invalid explicit identities; absent IDs remain
+      // the anonymous session, and future non-main classes stay isolated.
+      const sessionId = event.session_id ?? '';
+      const requestId = event.request_id;
       const previous = sessions.get(sessionId);
       if (event.event === 'request_start') {
         const state = {
@@ -84,8 +112,8 @@ export function createStatusState(options = {}) {
           ...((previous?.context_usage ?? previous?.last_context_usage)
             ? { last_context_usage: previous.context_usage ?? previous.last_context_usage } : {}),
         };
-        const requested = modelName(event.requested_model);
-        const promptId = identifier(event.prompt_id);
+        const requested = event.requested_model;
+        const promptId = event.prompt_id;
         if (requested) state.requested_model = requested;
         if (promptId) state.prompt_id = promptId;
         sessions.delete(sessionId);
@@ -97,29 +125,26 @@ export function createStatusState(options = {}) {
       if (!previous || previous.request_id !== requestId) return;
       const state = previous;
       state.updated_at = Date.now();
-      const status = httpStatus(event.status);
+      const status = event.status;
       const terminal = ['error', 'cancelled', 'ready'].includes(state.phase);
+      for (const key of TIMING_FIELDS) if (event[key] !== undefined) state[key] = event[key];
+      if (event.completion_confirmed !== undefined) state.completion_confirmed = event.completion_confirmed;
       switch (event.event) {
         case 'route': {
-          const fields = { requested_model: modelName(event.requested_model), selected_model: modelName(event.model),
-            source: ['jev', 'ollama', 'cache', 'fallback', 'passthrough'].includes(event.source) ? event.source : undefined,
-            evaluator: ['jev', 'ollama'].includes(event.evaluator) ? event.evaluator : undefined,
-            reason: code(event.reason), latency_ms: latency(event.latency_ms),
-            classified_tier: ['haiku', 'sonnet', 'opus'].includes(event.classified_tier) ? event.classified_tier : undefined,
-            context_check: ['within_budget', 'over_budget', 'count_unavailable'].includes(event.context_check) ? event.context_check : undefined,
-            counted_input_tokens: tokenCount(event.counted_input_tokens) ? event.counted_input_tokens : undefined,
-            classifier_error: CLASSIFIER_ERRORS.has(event.classifier_error) ? event.classifier_error : undefined, classifier_status: httpStatus(event.classifier_status) };
+          const fields = { requested_model: event.requested_model, selected_model: event.selected_model ?? event.model };
+          for (const key of ['source', 'evaluator', 'reason', 'compatibility_reason', 'continuity_state',
+            'classified_tier', 'context_check', 'counted_input_tokens', 'classifier_error', 'classifier_status']) fields[key] = event[key];
           for (const [key, value] of Object.entries(fields)) if (value !== undefined) state[key] = value;
           if (!terminal) state.phase = 'connecting';
           break;
         }
         case 'upstream_response':
           if (status !== undefined) state.status = status;
-          if (status >= 400) { delete state.context_usage; state.phase = 'error'; state.error_type = UPSTREAM_ERRORS.has(event.error_type) ? event.error_type : 'http_error'; }
+          if (status >= 400) { delete state.context_usage; state.phase = 'error'; state.error_type = event.error_type ?? 'http_error'; }
           else if (!terminal) state.phase = 'streaming';
           break;
         case 'upstream_model': {
-          const model = modelName(event.model);
+          const model = event.confirmed_model ?? event.model;
           if (model) { state.actual_model = model; state.last_model = model; }
           if (!terminal) state.phase = 'streaming';
           break;
@@ -134,7 +159,7 @@ export function createStatusState(options = {}) {
         case 'request_error':
           delete state.context_usage;
           state.phase = 'error';
-          state.error_type = UPSTREAM_ERRORS.has(event.error_type) ? event.error_type : (event.event === 'upstream_error' ? 'unknown_error' : 'request_error');
+          state.error_type = event.error_type ?? (event.event === 'upstream_error' ? 'unknown_error' : 'request_error');
           if (status !== undefined) state.status = status;
           break;
         case 'request_complete':
@@ -150,25 +175,48 @@ export function createStatusState(options = {}) {
   }
 
   function close() {
-    if (closed) return;
-    closed = true;
+    if (closingPromise) return closingPromise;
+    closing = true;
     try { clearImmediate(pending); clearInterval(heartbeat); } catch {}
-    sessions.clear();
-    savings.clear();
-    if (privateDirectory) { try { rmSync(privateDirectory, { recursive: true, force: true }); } catch {} }
+    closingPromise = (async () => {
+      // An accepted write must finish before removing its directory. No
+      // detached filesystem promise may recreate a file after shutdown.
+      await initialization;
+      await drain();
+      if (privateDirectory) { try { await io.rm(privateDirectory, { recursive: true, force: true }); } catch {} }
+      sessions.clear();
+      savings.clear();
+    })().catch(() => {});
+    return closingPromise;
   }
 
-  try {
-    const directory = options?.directory ?? tmpdir();
-    privateDirectory = mkdtempSync(join(directory, 'autorouter-status-'));
-    chmodSync(privateDirectory, 0o700);
-    path = join(privateDirectory, 'state.json');
-    flush();
-    heartbeat = setInterval(schedule, 5000);
-    heartbeat.unref();
-  } catch {
-    if (privateDirectory) { try { rmSync(privateDirectory, { recursive: true, force: true }); } catch {} }
-    path = null;
-  }
-  return { path, update, flush, close };
+  const initialization = (async () => {
+    try {
+      io = options?.fileSystem ?? fileSystem;
+      const directory = options?.directory ?? tmpdir();
+      privateDirectory = await io.mkdtemp(join(directory, 'autorouter-status-'));
+      await io.chmod(privateDirectory, 0o700);
+      if (disabled) return;
+      snapshotPath = join(privateDirectory, 'state.json');
+      dirty = false;
+      if (!await writeSnapshot() || disabled) { disabled = true; return; }
+      initialized = true;
+      path = snapshotPath;
+      if (!closing) {
+        heartbeat = setInterval(schedule, 5000);
+        heartbeat.unref();
+        if (dirty) schedule();
+      }
+    } catch { disabled = true; }
+    finally {
+      if (disabled && privateDirectory) { try { await io.rm(privateDirectory, { recursive: true, force: true }); } catch {} }
+    }
+  })();
+  // Optional UI storage must not hold up Claude startup indefinitely. The
+  // underlying operation still belongs to close(), even after this deadline.
+  let readinessTimer;
+  const ready = Promise.race([initialization, new Promise(resolve => {
+    readinessTimer = setTimeout(() => { disabled = true; path = null; resolve(); }, 1000);
+  })]).finally(() => clearTimeout(readinessTimer));
+  return { get path() { return path; }, ready, update, flush, close };
 }

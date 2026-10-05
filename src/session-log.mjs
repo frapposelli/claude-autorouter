@@ -2,64 +2,14 @@ import { constants } from 'node:fs';
 import fs from 'node:fs/promises';
 import { createHash, randomBytes } from 'node:crypto';
 import { join, resolve } from 'node:path';
+import { normalizeSessionRecord } from './telemetry-event.mjs';
 
 const MAX_PENDING_BYTES = 1024 * 1024;
 const MAX_SESSIONS = 128;
 const WARNING = 'AutoRouter session logging disabled.';
-const SOURCES = new Set(['jev', 'ollama', 'cache', 'fallback', 'passthrough']);
-const ERRORS = new Set(['timeout', 'http_error', 'invalid_response', 'network_error']);
-const identifier = value => typeof value === 'string' && /^[A-Za-z0-9_.:-]{1,200}$/.test(value) ? value : undefined;
-const model = value => typeof value === 'string' && /^[A-Za-z0-9_.:/-]{1,120}$/.test(value) ? value : undefined;
-const code = value => typeof value === 'string' && /^[a-z][a-z0-9_]{0,79}$/.test(value) ? value : undefined;
-
-function excerpt(value) {
-  if (typeof value !== 'string') return { text: '', truncated: false };
-  let text = '', count = 0;
-  for (const character of value) {
-    if (count++ === 500) return { text: text.toWellFormed(), truncated: true };
-    text += character;
-  }
-  return { text: text.toWellFormed(), truncated: false };
-}
-
-function normalize(entry) {
-  if (!entry || typeof entry !== 'object' || Array.isArray(entry) || entry.event !== 'decision') return;
-  const requestId = identifier(entry.request_id);
-  const selectedModel = model(entry.selected_model);
-  const requestedModel = model(entry.requested_model);
-  if (!requestId || !selectedModel || !requestedModel) return;
-  const anonymous = entry.session_id === undefined || entry.session_id === null || entry.session_id === '';
-  const sessionId = anonymous ? undefined : identifier(entry.session_id);
-  // An invalid explicit identity must not mix records into an anonymous file.
-  if (!anonymous && !sessionId) return;
-  const requestClass = code(entry.request_class);
-  const foreground = entry.request_class === undefined || entry.request_class === null || entry.request_class === '' || entry.request_class === 'main';
-  const prompt = foreground ? excerpt(entry.prompt_excerpt) : { text: '', truncated: false };
-  const timestamp = typeof entry.timestamp === 'string' && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(entry.timestamp)
-    && Number.isFinite(Date.parse(entry.timestamp)) ? entry.timestamp : new Date().toISOString();
-  const row = { schema_version: 1, event: 'decision', timestamp, request_id: requestId,
-    ...(sessionId ? { session_id: sessionId } : {}),
-    prompt_excerpt: prompt.text, prompt_truncated: prompt.truncated || (foreground && entry.prompt_truncated === true),
-    requested_model: requestedModel, selected_model: selectedModel };
-  for (const field of ['agent_id', 'prompt_id']) {
-    const value = identifier(entry[field]);
-    if (value) row[field] = value;
-  }
-  if (requestClass) row.request_class = requestClass;
-  if (typeof entry.decision_latency_ms === 'number' && Number.isFinite(entry.decision_latency_ms)
-    && entry.decision_latency_ms >= 0) row.decision_latency_ms = entry.decision_latency_ms;
-  if (SOURCES.has(entry.source)) row.source = entry.source;
-  const reason = code(entry.reason);
-  if (reason) row.reason = reason;
-  if (['jev', 'ollama'].includes(entry.evaluator)) row.evaluator = entry.evaluator;
-  if (['haiku', 'sonnet', 'opus'].includes(entry.classified_tier)) row.classified_tier = entry.classified_tier;
-  if (ERRORS.has(entry.classifier_error)) row.classifier_error = entry.classifier_error;
-  return { sessionKey: sessionId ? `session:${sessionId}` : 'anonymous', row };
-}
-
 // Inference never waits on this writer. Each launch creates new files; only
 // accepted, bounded JSON lines are retained until the serialized writer drains.
-export async function createSessionLog(directory, { warn = () => {} } = {}) {
+export async function createSessionLog(directory, { includePrompts = true, warn = () => {} } = {}) {
   let accepting = true, failed = false, warned = false, pendingBytes = 0;
   let root, directoryIdentity, pump, closePromise;
   const sessions = new Map(), queue = [];
@@ -133,19 +83,20 @@ export async function createSessionLog(directory, { warn = () => {} } = {}) {
   function record(entry) {
     if (!accepting) return false;
     try {
-      const normalized = normalize(entry);
-      if (!normalized) return false;
-      const line = `${JSON.stringify(normalized.row)}\n`;
+      const row = normalizeSessionRecord(entry, { includePrompts });
+      if (!row) return false;
+      const sessionKey = row.session_id ? `session:${row.session_id}` : 'anonymous';
+      const line = `${JSON.stringify(row)}\n`;
       const bytes = Buffer.byteLength(line);
-      let session = sessions.get(normalized.sessionKey);
+      let session = sessions.get(sessionKey);
       if (pendingBytes + bytes > MAX_PENDING_BYTES || (!session && sessions.size >= MAX_SESSIONS)) {
         disable();
         return false;
       }
       if (!session) {
-        const sessionHash = createHash('sha256').update(normalized.sessionKey).digest('hex');
+        const sessionHash = createHash('sha256').update(sessionKey).digest('hex');
         session = { path: join(root, `autorouter-session-${launch}-${sessionHash}.jsonl`) };
-        sessions.set(normalized.sessionKey, session);
+        sessions.set(sessionKey, session);
       }
       queue.push({ session, line, bytes });
       pendingBytes += bytes;

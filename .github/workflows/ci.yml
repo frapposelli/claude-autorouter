@@ -28,7 +28,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           package-manager-cache: false
-      # This project has no dependencies or lockfile: no npm install/ci needed.
+      # Install only pinned contributor tooling; the published CLI has no runtime dependencies.
+      - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run check
       - run: npm test
       - run: npm run test:package

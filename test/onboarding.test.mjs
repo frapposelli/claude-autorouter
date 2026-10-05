@@ -7,7 +7,7 @@ import { PassThrough } from 'node:stream';
 import { setup, doctor, askSecret } from '../src/onboarding.mjs';
 import { DEFAULT_OLLAMA_MODEL } from '../src/ollama-models.mjs';
 import { readConfig } from '../src/config.mjs';
-import { loadUserConfig } from '../src/user-config.mjs';
+import { loadUserConfig, saveUserConfig } from '../src/user-config.mjs';
 
 function fixture(t) {
   const directory = mkdtempSync(join(tmpdir(), 'autorouter-onboarding-'));
@@ -149,6 +149,20 @@ test('session logging setup rejects invalid directory flags before prompting or 
   assert.equal(existsSync(env.AUTOROUTER_CONFIG), false);
 });
 
+test('metadata history setup preserves unrelated settings and does not enable logging by itself', async t => {
+  const env = { ...fixture(t), TYPESAFE_API_KEY: 'synthetic-jev-key' };
+  await setup(['--client-profile', 'auto'], { env, write: () => {} });
+  const before = JSON.parse(readFileSync(env.AUTOROUTER_CONFIG, 'utf8'));
+  await setup(['--force', '--session-log-mode', 'metadata'], { env, write: () => {} });
+  const after = JSON.parse(readFileSync(env.AUTOROUTER_CONFIG, 'utf8'));
+  assert.deepEqual(after, { ...before, AUTOROUTER_SESSION_LOG_MODE: 'metadata' });
+  assert.equal(readConfig(loadUserConfig(env).env).sessionLogDir, undefined);
+  for (const args of [['--force', '--session-log-mode'], ['--force', '--session-log-mode', 'invalid']]) {
+    await assert.rejects(setup(args, { env, write: () => {} }), /session-log-mode/);
+    assert.deepEqual(JSON.parse(readFileSync(env.AUTOROUTER_CONFIG, 'utf8')), after);
+  }
+});
+
 test('setup prompts only for missing keys and leaves no file on invalid or cancelled input', async t => {
   const env = fixture(t);
   const prompts = [];
@@ -281,9 +295,9 @@ test('native Stop-hook block cap setup rejects invalid CLI and environment value
   const env = { ...fixture(t), TYPESAFE_API_KEY: 'saved-key' };
   await setup([], { env, write: () => {} });
   const original = readFileSync(env.AUTOROUTER_CONFIG, 'utf8');
-  await assert.rejects(setup(['--force', '--evaluator', 'ollama'], {
+  await assert.rejects(setup(['--force', '--evaluator', 'ollama', '--stop-hook-block-cap', ''], {
     env: { ...env, CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: '' }, write: () => {}, prompt: unexpected, fetchImpl: unexpected,
-  }), /CLAUDE_CODE_STOP_HOOK_BLOCK_CAP/);
+  }), /stop-hook-block-cap/);
   assert.equal(readFileSync(env.AUTOROUTER_CONFIG, 'utf8'), original);
 });
 
@@ -405,7 +419,7 @@ test('setup can disable the runtime deadline explicitly, overriding the environm
 
   lines.length = 0;
   await setup(['--force', '--evaluator', 'ollama', '--ollama-timeout-ms', '2200'], {
-    env: { ...paths, AUTOROUTER_OLLAMA_TIMEOUT_MS: '0' }, write: line => lines.push(line), fetchImpl: localOllama().fetchImpl,
+    env: { ...paths, AUTOROUTER_OLLAMA_TIMEOUT_MS: '0' }, write: line => lines.push(line), fetchImpl: localOllama('tev1:4b').fetchImpl,
   });
   assert.equal(JSON.parse(readFileSync(paths.AUTOROUTER_CONFIG, 'utf8')).AUTOROUTER_OLLAMA_TIMEOUT_MS, '2200');
   assert.match(lines.join('\n'), /routing deadline 2200 ms per request/);
@@ -472,4 +486,143 @@ test('Ollama doctor reports the effective saved model and environment deadline w
   assert.match(lines.join('\n'), /tev1:4b; routing deadline 9000 ms per request/);
   assert.deepEqual(local.calls.map(call => call.path), ['/api/version', '/api/tags', '/api/show']);
   assert.equal(JSON.parse(readFileSync(paths.AUTOROUTER_CONFIG, 'utf8')).AUTOROUTER_OLLAMA_TIMEOUT_MS, '7000');
+});
+
+test('forced setup preserves unrelated saved preferences and the exact configured local model', async t => {
+  const env = fixture(t);
+  const saved = { AUTOROUTER_AUTH_MODE: 'api-key', AUTOROUTER_CLIENT_PROFILE: 'native', AUTOROUTER_EVALUATOR: 'ollama',
+    ANTHROPIC_API_KEY: 'saved-api-secret', TYPESAFE_API_KEY: 'retained-jev-secret', AUTOROUTER_TOKEN: 'retained-local-secret',
+    AUTOROUTER_OLLAMA_MODEL: 'tev1:4b-q4_K_M', AUTOROUTER_OLLAMA_TIMEOUT_MS: '0', AUTOROUTER_PORT: '8123',
+    AUTOROUTER_MIN_CONFIDENCE: '0.9', AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5', ENABLE_TOOL_SEARCH: 'auto:5',
+    AUTOROUTER_STATUSLINE: '0', AUTOROUTER_DEBUG: '1', CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: '2',
+    AUTOROUTER_SESSION_LOG_DIR: join(resolve(env.AUTOROUTER_CONFIG, '..'), 'logs') };
+  saveUserConfig(saved, { env });
+  const local = localOllama(saved.AUTOROUTER_OLLAMA_MODEL);
+  await setup(['--force', '--ollama-timeout-ms', '8000'], { env, write: () => {},
+    prompt: () => assert.fail('Saved API credentials should be reused'), fetchImpl: local.fetchImpl });
+  assert.deepEqual(loadUserConfig(env).values, { ...saved, AUTOROUTER_OLLAMA_TIMEOUT_MS: '8000' });
+  assert.ok(local.calls.some(call => call.path === '/api/show'));
+});
+
+test('a one-setting setup update keeps conflicting runtime overrides and credentials ephemeral', async t => {
+  const env = fixture(t);
+  const saved = { AUTOROUTER_AUTH_MODE: 'api-key', AUTOROUTER_CLIENT_PROFILE: 'native', AUTOROUTER_EVALUATOR: 'ollama',
+    ANTHROPIC_API_KEY: 'saved-anthropic', TYPESAFE_API_KEY: 'saved-jev', AUTOROUTER_TOKEN: 'saved-private-token',
+    AUTOROUTER_OLLAMA_MODEL: 'tev1:4b-q4_K_M', AUTOROUTER_OLLAMA_TIMEOUT_MS: '0', AUTOROUTER_PORT: '8123',
+    AUTOROUTER_DEBUG: '0', AUTOROUTER_STATUSLINE: '1', AUTOROUTER_SESSION_LOG_MODE: 'metadata' };
+  saveUserConfig(saved, { env });
+  const overrides = { ...env, AUTOROUTER_AUTH_MODE: 'subscription', AUTOROUTER_CLIENT_PROFILE: 'auto', AUTOROUTER_EVALUATOR: 'jev',
+    ANTHROPIC_API_KEY: 'temporary-anthropic', TYPESAFE_API_KEY: 'temporary-jev', AUTOROUTER_TOKEN: 'temporary-private-token',
+    AUTOROUTER_PORT: '9123', AUTOROUTER_DEBUG: '1', AUTOROUTER_STATUSLINE: '0', AUTOROUTER_SESSION_LOG_MODE: 'prompts',
+    AUTOROUTER_OLLAMA_MODEL: 'nimble:9b-q4_K_M', AUTOROUTER_OLLAMA_TIMEOUT_MS: '200' };
+  const local = localOllama(saved.AUTOROUTER_OLLAMA_MODEL);
+  const lines = [];
+  await setup(['--force', '--ollama-timeout-ms', '8000'], { env: overrides, write: line => lines.push(line),
+    prompt: () => assert.fail('Saved credentials remain usable'), fetchImpl: local.fetchImpl });
+  assert.deepEqual(loadUserConfig(env).values, { ...saved, AUTOROUTER_OLLAMA_TIMEOUT_MS: '8000' });
+  assert.ok(!lines.join('\n').includes('temporary-'));
+  assert.ok(local.calls.filter(call => call.path === '/api/show').every(call => call.body.model === saved.AUTOROUTER_OLLAMA_MODEL));
+});
+
+test('explicit backend or authentication selection still accepts its environment model and credential', async t => {
+  const env = fixture(t);
+  const saved = { AUTOROUTER_AUTH_MODE: 'subscription', AUTOROUTER_CLIENT_PROFILE: 'native', AUTOROUTER_EVALUATOR: 'jev',
+    TYPESAFE_API_KEY: 'saved-jev', ANTHROPIC_API_KEY: 'saved-anthropic', AUTOROUTER_PORT: '8123' };
+  saveUserConfig(saved, { env });
+  const overrides = { ...env, AUTOROUTER_OLLAMA_MODEL: 'tev1:0.8b', TYPESAFE_API_KEY: 'new-selected-jev',
+    ANTHROPIC_API_KEY: 'new-selected-anthropic', AUTOROUTER_PORT: '9123', AUTOROUTER_CLIENT_PROFILE: 'auto',
+    AUTOROUTER_JEV_MODEL: 'jev-explicit-model', AUTOROUTER_MIN_CONFIDENCE: '0.85' };
+  await setup(['--force', '--evaluator', 'ollama', '--auth-mode', 'api-key'], { env: overrides, write: () => {},
+    prompt: () => assert.fail('Explicitly selected credential is supplied'), fetchImpl: localOllama('tev1:0.8b').fetchImpl });
+  assert.deepEqual(loadUserConfig(env).values, { ...saved, AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_AUTH_MODE: 'api-key',
+    AUTOROUTER_OLLAMA_MODEL: 'tev1:0.8b', ANTHROPIC_API_KEY: 'new-selected-anthropic' });
+  await setup(['--force', '--evaluator', 'jev'], { env: overrides, write: () => {}, prompt: () => assert.fail('Key is supplied'),
+    fetchImpl: () => assert.fail('Jev setup does not call providers') });
+  assert.equal(loadUserConfig(env).values.TYPESAFE_API_KEY, 'new-selected-jev');
+  assert.equal(loadUserConfig(env).values.AUTOROUTER_JEV_MODEL, 'jev-explicit-model');
+  assert.equal(loadUserConfig(env).values.AUTOROUTER_MIN_CONFIDENCE, '0.85');
+  assert.equal(loadUserConfig(env).values.AUTOROUTER_PORT, '8123');
+  assert.equal(loadUserConfig(env).values.AUTOROUTER_CLIENT_PROFILE, 'native');
+});
+
+test('explicit replacement starts with defaults and supplied values instead of retaining old settings', async t => {
+  const env = fixture(t);
+  saveUserConfig({ AUTOROUTER_AUTH_MODE: 'api-key', AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_CLIENT_PROFILE: 'native',
+    ANTHROPIC_API_KEY: 'discarded-secret', TYPESAFE_API_KEY: 'old-secret', AUTOROUTER_PORT: '8123',
+    AUTOROUTER_OLLAMA_MODEL: 'tev1:4b', CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: '2' }, { env });
+  const prompted = [];
+  await setup(['--replace'], { env, write: () => {}, prompt: async key => { prompted.push(key); return 'replacement-secret'; },
+    fetchImpl: () => assert.fail('Default Jev setup must not make requests') });
+  assert.deepEqual(prompted, ['TYPESAFE_API_KEY']);
+  assert.deepEqual(loadUserConfig(env).values, { AUTOROUTER_AUTH_MODE: 'subscription', AUTOROUTER_CLIENT_PROFILE: 'compatible',
+    AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'replacement-secret' });
+});
+
+test('setup rejects invalid saved or explicit settings before secret input and cancellation preserves the old file', async t => {
+  const env = fixture(t);
+  const unexpected = () => assert.fail('Invalid configuration must fail before prompts or provider calls');
+  for (const settings of [{ AUTOROUTER_PORT: '' }, { AUTOROUTER_JEV_URL: 'private-invalid-url' }, { AUTOROUTER_DEBUG: 'false' }]) {
+    await assert.rejects(setup([], { env: { ...env, ...settings }, write: () => {}, prompt: unexpected, fetchImpl: unexpected }));
+    assert.equal(existsSync(env.AUTOROUTER_CONFIG), false);
+  }
+  saveUserConfig({ AUTOROUTER_AUTH_MODE: 'subscription', TYPESAFE_API_KEY: 'preserved-secret', AUTOROUTER_PORT: '8123' }, { env });
+  const before = readFileSync(env.AUTOROUTER_CONFIG, 'utf8');
+  await assert.rejects(setup(['--replace'], { env, write: () => {}, prompt: async () => { throw new Error('Setup cancelled'); } }), /cancelled/);
+  assert.equal(readFileSync(env.AUTOROUTER_CONFIG, 'utf8'), before);
+});
+
+test('doctor missing-model repair retains the exact custom model and distinguishes fixture versions', async t => {
+  const env = fixture(t), lines = [];
+  saveUserConfig({ AUTOROUTER_AUTH_MODE: 'subscription', AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_OLLAMA_MODEL: 'team/router:v2' }, { env });
+  assert.equal(await doctor({ env, write: line => lines.push(line), fetchImpl: localOllama('team/router:v2', { installed: false }).fetchImpl,
+    run: async (_command, args) => ({ stdout: args[0] === '--version' ? '2.1.999 (Claude Code)' : '{"loggedIn":true,"authMethod":"claude.ai"}' }),
+  }), false);
+  assert.match(lines.join('\n'), /setup --evaluator ollama --ollama-model team\/router:v2 --pull --force/);
+  assert.match(lines.join('\n'), /2\.1\.284.*2\.1\.285/);
+  assert.match(lines.join('\n'), /does not certify its full compatibility/);
+});
+
+test('explicit local diagnosis bypasses cloud credentials and Claude authentication and keeps JSON output singular', async t => {
+  const env = fixture(t), lines = [];
+  saveUserConfig({ AUTOROUTER_AUTH_MODE: 'api-key', AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_OLLAMA_MODEL: 'tev1:0.8b' }, { env });
+  const expected = { schema_version: 1, type: 'local_evaluator_diagnostic', passed: false, gates: { accuracy: false } };
+  assert.equal(await doctor({ env, evaluateLocal: true, json: true, write: line => lines.push(line),
+    run: () => assert.fail('Local diagnostics must not inspect Claude login'),
+    diagnosticRunner: async (config, { onProgress }) => {
+      assert.equal(config.anthropicKey, undefined);
+      assert.equal(config.jevKey, undefined);
+      assert.equal(config.ollamaModel, 'tev1:0.8b');
+      onProgress({ event: 'startup' });
+      onProgress({ event: 'case_complete' });
+      return expected;
+    },
+  }), false);
+  assert.equal(lines.length, 1);
+  assert.deepEqual(JSON.parse(lines[0]), expected);
+});
+
+test('local diagnosis rejects the cloud backend without requests and caller cancellation propagates', async t => {
+  const env = fixture(t), lines = [];
+  saveUserConfig({ AUTOROUTER_EVALUATOR: 'jev' }, { env });
+  assert.equal(await doctor({ env, evaluateLocal: true, json: true, write: line => lines.push(line),
+    run: () => assert.fail('No Claude subprocess'), diagnosticRunner: () => assert.fail('No inference') }), false);
+  assert.equal(JSON.parse(lines[0]).error.code, 'configuration_error');
+  const controller = new AbortController();
+  const reason = new Error('Diagnostic cancelled');
+  saveUserConfig({ AUTOROUTER_EVALUATOR: 'ollama' }, { env, overwrite: true });
+  await assert.rejects(doctor({ env, evaluateLocal: true, write: () => {}, signal: controller.signal,
+    diagnosticRunner: async () => { controller.abort(reason); throw reason; } }), error => error === reason);
+});
+
+test('setup cancellation stops before prompts, local requests, and saving', async t => {
+  const env = fixture(t), controller = new AbortController();
+  controller.abort();
+  const unexpected = () => assert.fail('A cancelled operation must do no work');
+  await assert.rejects(setup([], { env, signal: controller.signal, write: unexpected, prompt: unexpected, fetchImpl: unexpected }), /Setup cancelled/);
+  assert.equal(existsSync(env.AUTOROUTER_CONFIG), false);
+  const later = new AbortController();
+  await assert.rejects(setup(['--auth-mode', 'api-key', '--evaluator', 'ollama'], {
+    env, signal: later.signal, write: () => {}, prompt: async () => { later.abort(); return 'synthetic-key'; }, fetchImpl: unexpected,
+  }), /Setup cancelled/);
+  assert.equal(existsSync(env.AUTOROUTER_CONFIG), false);
 });

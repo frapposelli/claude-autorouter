@@ -1,16 +1,58 @@
 {
   "name": "claude-autorouter",
-  "version": "0.3.7",
+  "version": "0.4.0",
   "license": "Apache-2.0",
   "type": "module",
   "description": "A Claude Code model router with Jev and local Ollama System One evaluators",
-  "repository": { "type": "git", "url": "git+https://github.com/frapposelli/claude-autorouter.git" },
-  "bin": { "claude-autorouter": "bin/autorouter.mjs" },
-  "engines": { "node": ">=22" },
-  "os": ["darwin", "linux"],
-  "keywords": ["claude", "claude-code", "model-routing", "jev", "ollama", "nimble", "tev1", "systemone", "cli"],
-  "files": ["bin/*.mjs", "src/*.mjs", "docs/reference.md", "docs/development.md", "docs/releasing.md", "docs/ollama-evaluation.md", ".env.example", "LICENSE"],
-  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/frapposelli/claude-autorouter.git"
+  },
+  "bin": {
+    "claude-autorouter": "bin/autorouter.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "os": [
+    "darwin",
+    "linux"
+  ],
+  "keywords": [
+    "claude",
+    "claude-code",
+    "model-routing",
+    "jev",
+    "ollama",
+    "nimble",
+    "tev1",
+    "systemone",
+    "cli"
+  ],
+  "files": [
+    "bin/*.mjs",
+    "src/*.mjs",
+    "docs/reference.md",
+    "docs/development.md",
+    "docs/releasing.md",
+    "docs/ollama-evaluation.md",
+    ".env.example",
+    "LICENSE",
+    "CONTRIBUTING.md",
+    "docs/router-performance.md",
+    "docs/router-performance.json",
+    "docs/status-performance.md",
+    "docs/status-performance.json",
+    "docs/hardware-benchmark.md",
+    "docs/hardware-results-16gb.md",
+    "docs/hardware-results-16gb.json",
+    "docs/hardware-comparison.md",
+    "docs/hardware-results-64gb.json"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
     "start": "node bin/autorouter.mjs serve",
     "claude": "node bin/autorouter.mjs claude",
@@ -21,6 +63,12 @@
     "eval": "node --env-file=.env scripts/evaluate.mjs",
     "eval:ollama": "node scripts/evaluate-ollama.mjs",
     "test:live": "node --env-file=.env scripts/live-validation.mjs",
-    "check": "node scripts/check.mjs"
+    "check": "node scripts/check.mjs",
+    "benchmark:router": "node --expose-gc scripts/benchmark-router.mjs",
+    "benchmark:status": "node scripts/benchmark-status.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "typescript": "6.0.3"
   }
 }

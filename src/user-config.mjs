@@ -2,22 +2,25 @@ import {
   closeSync, constants, fchmodSync, fsyncSync, linkSync, lstatSync,
   mkdirSync, openSync, readFileSync, renameSync, unlinkSync, writeFileSync,
 } from 'node:fs';
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { homedir } from 'node:os';
 import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
 
-const CONFIG_KEYS = new Set([
+export const CONFIG_KEYS = Object.freeze([
   'AUTOROUTER_AUTH_MODE', 'AUTOROUTER_CLIENT_PROFILE',
   'ANTHROPIC_API_KEY', 'TYPESAFE_API_KEY', 'AUTOROUTER_TOKEN',
   'AUTOROUTER_UPSTREAM_URL', 'AUTOROUTER_JEV_URL', 'AUTOROUTER_JEV_MODEL',
   'AUTOROUTER_HAIKU_MODEL', 'AUTOROUTER_SONNET_MODEL', 'AUTOROUTER_OPUS_MODEL',
   'AUTOROUTER_PORT', 'AUTOROUTER_JEV_TIMEOUT_MS', 'AUTOROUTER_TOKEN_COUNT_TIMEOUT_MS',
   'AUTOROUTER_MIN_CONFIDENCE', 'AUTOROUTER_STATUSLINE', 'AUTOROUTER_DEBUG',
-  'AUTOROUTER_SESSION_LOG_DIR',
+  'AUTOROUTER_SESSION_LOG_DIR', 'AUTOROUTER_SESSION_LOG_MODE',
   'ENABLE_TOOL_SEARCH', 'CLAUDE_CODE_STOP_HOOK_BLOCK_CAP',
   'AUTOROUTER_EVALUATOR', 'AUTOROUTER_OLLAMA_URL', 'AUTOROUTER_OLLAMA_MODEL',
   'AUTOROUTER_OLLAMA_TIMEOUT_MS', 'AUTOROUTER_OLLAMA_KEEP_ALIVE',
 ]);
+export const SECRET_CONFIG_KEYS = Object.freeze(['ANTHROPIC_API_KEY', 'TYPESAFE_API_KEY', 'AUTOROUTER_TOKEN']);
+const allowedKeys = new Set(CONFIG_KEYS);
+const revision = content => createHash('sha256').update(content).digest('hex');
 const SAFE_FS_CODES = new Set([
   'EACCES', 'EPERM', 'ENOENT', 'ENOTDIR', 'EISDIR', 'ENOSPC', 'EROFS',
   'EMFILE', 'ENFILE', 'ELOOP', 'EIO', 'EEXIST',
@@ -44,7 +47,7 @@ function validate(values) {
   }
   const validated = {};
   for (const key of Reflect.ownKeys(values)) {
-    if (!CONFIG_KEYS.has(key)) {
+    if (!allowedKeys.has(key)) {
       // An unknown key can itself contain a pasted credential.
       throw configError('AutoRouter configuration contains an unsupported key.');
     }
@@ -71,14 +74,14 @@ export function getConfigPath(env = process.env) {
   return join(xdg || join(homedir(), '.config'), 'claude-autorouter', 'config.json');
 }
 
-export function loadUserConfig(env = process.env) {
+export function loadUserConfig(env = process.env, { allowMissing = false } = {}) {
   const path = getConfigPath(env);
   let content;
   try {
     content = readFileSync(path, 'utf8');
   } catch (error) {
     if (error.code === 'ENOENT') {
-      if (env.AUTOROUTER_CONFIG === undefined) return { env: { ...env }, path, exists: false };
+      if (env.AUTOROUTER_CONFIG === undefined || allowMissing) return { env: { ...env }, values: {}, path, exists: false, revision: null };
       throw configError('AUTOROUTER_CONFIG points to a missing configuration file.');
     }
     throw filesystemError(error, 'read');
@@ -87,7 +90,7 @@ export function loadUserConfig(env = process.env) {
   try { parsed = JSON.parse(content); }
   catch { throw configError('AutoRouter configuration must contain valid JSON.'); }
   const values = validate(parsed);
-  return { env: { ...values, ...env }, path, exists: true };
+  return { env: { ...values, ...env }, values, path, exists: true, revision: revision(content) };
 }
 
 function existingFile(path) {
@@ -99,16 +102,22 @@ function existingFile(path) {
   return stat;
 }
 
-export function saveUserConfig(values, { env = process.env, overwrite = false } = {}) {
+export function saveUserConfig(values, { env = process.env, overwrite = false, expectedRevision } = {}) {
   const validated = validate(values);
   const path = getConfigPath(env);
   const parent = dirname(path);
   let temporary;
   let descriptor;
+  const checkRevision = () => {
+    if (expectedRevision === undefined) return;
+    const current = existingFile(path) ? revision(readFileSync(path, 'utf8')) : null;
+    if (current !== expectedRevision) throw configError('AutoRouter configuration changed while this operation was running. Retry with the current settings.');
+  };
   try {
     if (existingFile(path) && !overwrite) {
       throw configError('AutoRouter configuration already exists; use overwrite to replace it.');
     }
+    checkRevision();
     // mkdir leaves existing directory permissions unchanged. Only directories
     // created for this configuration receive the private creation mode.
     mkdirSync(parent, { recursive: true, mode: 0o700 });
@@ -125,6 +134,7 @@ export function saveUserConfig(values, { env = process.env, overwrite = false } 
     if (existingFile(path) && !overwrite) {
       throw configError('AutoRouter configuration already exists; use overwrite to replace it.');
     }
+    checkRevision();
     if (overwrite) {
       renameSync(temporary, path);
       temporary = undefined;

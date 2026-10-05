@@ -1,15 +1,26 @@
+import { modelContextWindow } from './model-catalog.mjs';
 const PHASES = new Set(['routing', 'connecting', 'streaming', 'ready', 'error', 'cancelled']);
 const REASONS = {
   tool_turn_pinned: 'turn pinned', prompt_turn_pinned: 'prompt pinned', goal_turn_pinned: 'goal pinned',
-  thinking_history: 'thinking pinned', unknown_continuation: 'continuation pinned',
+  thinking_history: 'thinking pinned', unknown_continuation: 'continuity unknown',
   mid_conversation_system: 'system features', requires_sonnet_capabilities: 'capability guard',
-  model_specific_features: 'model features', large_or_multimodal_request: 'large request',
+  model_specific_features: 'model features', model_incompatible: 'model guard', large_or_multimodal_request: 'large request',
   context_capacity: 'large context',
   internal_request: 'internal request', unknown_model: 'custom model', low_confidence: 'low confidence',
-  auto_mode_floor: 'Auto mode floor', auto_mode_safeguards: 'Auto safety', auto_mode_incompatible: 'Auto model guard',
+  auto_mode_floor: 'Auto floor from Haiku', auto_mode_safeguards: 'Auto safety', auto_mode_incompatible: 'Auto model guard',
+};
+const COMPATIBILITY_REASONS = {
+  unknown_model: 'unknown model', invalid_request_shape: 'request shape', auto_model: 'Auto support',
+  request_extension: 'request extension', safeguards: 'safety review', output_limit: 'output limit', speed: 'speed',
+  execution_facility: 'execution features', tool_type: 'tool type', system_message: 'system messages',
+  message_effort: 'message effort', inline_tool: 'inline tools', content_extension: 'content extension',
+  assistant_prefill: 'prefill', tool_choice: 'tool choice', forced_tool_choice: 'tool choice',
+  context_management: 'context edits', thinking_mode: 'thinking mode', thinking_extension: 'thinking fields',
+  thinking_effort: 'thinking effort', output_extension: 'output fields', effort: 'effort', task_budget: 'task budget', sampling: 'sampling',
 };
 const CLASSIFIER_ERRORS = {
   timeout: 'timeout', http_error: 'HTTP error', invalid_response: 'invalid response', network_error: 'network error',
+  capacity_exhausted: 'evaluator busy',
 };
 const clean = (value, limit = 64) => typeof value === 'string' ? value
   .replace(/\x1b\][\s\S]*?(?:\x07|\x1b\\)/g, '')
@@ -30,14 +41,6 @@ function modelName(value) {
   return match ? `${match[1][0].toUpperCase()}${match[1].slice(1).toLowerCase()} ${match[2]}${match[3] ? '.' + match[3] : ''}` : name;
 }
 
-// Only unambiguous native windows are listed. Custom IDs and models whose
-// subscription window depends on an opt-in cannot safely imply a capacity.
-const CONTEXT_WINDOWS = new Map([
-  ...['claude-haiku-4-5', 'claude-haiku-4-5-20251001', 'claude-sonnet-4-5', 'claude-sonnet-4-5-20250929',
-    'claude-opus-4-5', 'claude-opus-4-5-20251101'].map(model => [model, 200000]),
-  ...['claude-sonnet-5', 'claude-sonnet-5-5', 'claude-opus-4-7', 'claude-opus-4-8',
-    'claude-opus-5', 'claude-opus-5-5'].map(model => [model, 1000000]),
-]);
 const capacityLabel = value => value % 1000000 === 0 ? `${value / 1000000}M` : value % 1000 === 0 ? `${value / 1000}K` : String(value);
 
 function contextLabel(input, state) {
@@ -55,7 +58,7 @@ function contextLabel(input, state) {
   const historical = !current && ['routing', 'connecting', 'streaming', 'error', 'cancelled'].includes(state?.phase)
     && object(state.last_context_usage) ? state.last_context_usage : undefined;
   const usage = current ?? historical;
-  const capacity = CONTEXT_WINDOWS.get(usage?.model);
+  const capacity = modelContextWindow(usage?.model);
   if (!capacity || !Number.isSafeInteger(usage.input_tokens) || usage.input_tokens < 0) return cli;
   const api = `${historical ? 'last ' : ''}API ctx ${Math.round(usage.input_tokens * 100 / capacity)}%/${capacityLabel(capacity)}`;
   // Keep the client limit visible when it differs: the API window does not
@@ -67,7 +70,8 @@ function savingsLabels(entry) {
   if (!object(entry)) return;
   const count = value => Number.isSafeInteger(value) && value >= 0;
   const dollars = value => typeof value === 'number' && Number.isFinite(value) && value >= 0;
-  const unavailable = { full: 'savings unavailable', compact: 'savings unavailable', color: '33' };
+  const unpriced = count(entry.unpriced_requests) && entry.unpriced_requests > 0 ? ` · unpriced ${entry.unpriced_requests}` : '';
+  const unavailable = { full: `savings unavailable${unpriced}`, compact: 'savings unavailable', color: '33' };
   if (!count(entry.requests) || !count(entry.unpriced_requests)) return unavailable;
   if (entry.requests === 0) return entry.unpriced_requests > 0 ? unavailable : undefined;
   if (!dollars(entry.actual_usd) || !dollars(entry.baseline_usd)
@@ -81,7 +85,7 @@ function savingsLabels(entry) {
   const label = `est ${extra ? 'extra' : 'saved'}`;
   const ending = ` vs Opus${partial ? ' partial' : ''}`;
   return {
-    full: `${label} ${money}${percent ? ` (${percent})` : ''}${ending}`,
+    full: `${label} ${money}${percent ? ` (${percent})` : ''}${ending}${unpriced}`,
     compact: percent ? `${label} ${percent}${ending}` : `${label} ${money}${ending}`,
     color: extra || partial ? '33' : '32',
   };
@@ -108,7 +112,10 @@ export function renderStatusLine(input, snapshot, { now = Date.now(), color = tr
   const savings = savingsLabels(savingsEntry);
   const state = object(candidate) && PHASES.has(candidate.phase) ? candidate : undefined;
   const phase = state?.phase;
-  let status = phase ?? 'awaiting request';
+  // Receiving a model identifier proves who served some output, not that the
+  // protocol completed. Observation limits can also leave completion unknown.
+  const completionUnknown = phase === 'ready' && state?.completion_confirmed === false;
+  let status = completionUnknown ? 'completion unknown' : phase ?? 'awaiting request';
   let model = '';
   let prefix = '';
   let suffix = '';
@@ -121,9 +128,11 @@ export function renderStatusLine(input, snapshot, { now = Date.now(), color = tr
   else if (phase === 'streaming' && selected) { model = selected; suffix = ' unconfirmed'; }
   else if (phase === 'ready' && actual) { model = actual; prefix = 'last '; confirmed = true; }
   else if (phase === 'ready' && selected) { model = selected; suffix = ' unconfirmed'; }
-  else if (['ready', 'error', 'cancelled'].includes(phase) && (last || actual)) { model = last || actual; prefix = 'last '; confirmed = true; }
+  else if (['error', 'cancelled'].includes(phase) && actual) { model = actual; prefix = 'last '; confirmed = true; }
+  else if (['error', 'cancelled'].includes(phase) && selected) { model = selected; suffix = ' selected'; }
+  else if (['ready', 'error', 'cancelled'].includes(phase) && last) { model = last; prefix = 'last '; confirmed = true; }
   else if (last) { model = last; prefix = 'last '; confirmed = true; }
-  if (phase === 'ready' && !model) status = 'awaiting request';
+  if (phase === 'ready' && !model && !completionUnknown) status = 'awaiting request';
   const errorType = clean(state?.error_type, 32);
   if (phase === 'error') status = Number.isInteger(state.status) && state.status >= 400 && state.status <= 599
     ? `error ${state.status}` : errorType ? `error ${errorType}` : 'error';
@@ -135,15 +144,19 @@ export function renderStatusLine(input, snapshot, { now = Date.now(), color = tr
   let fallbackCause = '';
   let fallbackPhase = '';
   let compactFallback = false;
+  let compactGuard = false;
   if (source) {
     const sourceLabel = source === 'passthrough' ? 'pass-through' : source === 'jev' ? 'Jev' : source === 'ollama' ? 'Ollama'
       : evaluatorLabel ? `${evaluatorLabel} ${source}` : source;
-    const timing = Number.isFinite(state.latency_ms) && state.latency_ms >= 0 ? ` ${Math.round(Math.min(state.latency_ms, 999999))}ms` : '';
+    const evaluationLatency = state.evaluation_latency_ms ?? state.latency_ms;
+    const timing = Number.isFinite(evaluationLatency) && evaluationLatency >= 0 ? ` ${Math.round(Math.min(evaluationLatency, 999999))}ms` : '';
     const classified = ['haiku', 'sonnet', 'opus'].includes(state.classified_tier) ? state.classified_tier : undefined;
     const chosenFamily = /^claude-(haiku|sonnet|opus)-/.exec(state.selected_model ?? '')?.[1];
     const override = source !== 'fallback' && classified && chosenFamily && classified !== chosenFamily
       ? `→${classified[0].toUpperCase()}${classified.slice(1)}` : '';
     details.push(`${sourceLabel}${override}${timing}`);
+    if (Number.isFinite(state.routing_latency_ms) && state.routing_latency_ms >= 0
+      && state.evaluation_latency_ms !== undefined) details.push(`route ${Math.round(Math.min(state.routing_latency_ms, 999999))}ms`);
   }
   if (source === 'fallback') {
     // Snapshots normally contain allowlisted categories, but the renderer also
@@ -153,8 +166,16 @@ export function renderStatusLine(input, snapshot, { now = Date.now(), color = tr
       && state.classifier_status >= 100 && state.classifier_status <= 599) fallbackCause = `HTTP ${state.classifier_status}`;
     if (fallbackCause) details.push(fallbackCause);
   }
-  if (Object.hasOwn(REASONS, state?.reason)) details.push(state.reason === 'context_capacity' && state.context_check === 'count_unavailable'
-    ? 'size unverified' : REASONS[state.reason]);
+  let guard = Object.hasOwn(REASONS, state?.reason) ? state.reason === 'context_capacity' && state.context_check === 'count_unavailable'
+    ? 'size unverified' : REASONS[state.reason] : '';
+  if (state?.continuity_state === 'unknown') guard = 'continuity unknown';
+  else if (state?.continuity_state === 'capacity_exhausted') guard = 'continuity capacity full';
+  else if (['model_incompatible', 'auto_mode_incompatible'].includes(state?.reason)
+    && Object.hasOwn(COMPATIBILITY_REASONS, state.compatibility_reason)) guard = `${guard}: ${COMPATIBILITY_REASONS[state.compatibility_reason]}`;
+  const shortGuard = state?.continuity_state === 'capacity_exhausted' ? 'state full'
+    : guard === 'Auto floor from Haiku' ? 'Auto floor'
+      : guard.includes(': ') ? REASONS[state.reason] : guard;
+  if (guard) details.push(guard);
   if (phase === 'error' && errorType && !status.includes(errorType)) details.push(errorType);
   let context = contextLabel(input, state);
   let detail = details.join(' · ');
@@ -163,10 +184,9 @@ export function renderStatusLine(input, snapshot, { now = Date.now(), color = tr
   const modelLabel = () => model ? prefix + model + suffix : '';
   const plain = () => [brand, modelLabel(), status, detail, saving, context].filter(Boolean).join(' · ');
   if (width(plain()) > available) context = '';
-  // Routine routing details can yield to the estimate, while errors and
-  // fallback explanations have priority over savings. Never shorten away
-  // "est" or "partial": hide the whole metric when its qualifiers cannot fit.
-  if (width(plain()) > available && source !== 'fallback' && phase !== 'error') detail = '';
+  // Preserve why this model was chosen before estimates, timing, or context.
+  // Never shorten away "est" or "partial": hide an estimate as one unit.
+  if (width(plain()) > available && source !== 'fallback' && phase !== 'error') detail = guard;
   if (width(plain()) > available && saving) saving = savings.compact;
   if (width(plain()) > available) saving = '';
   if (width(plain()) > available && source === 'fallback') {
@@ -174,18 +194,28 @@ export function renderStatusLine(input, snapshot, { now = Date.now(), color = tr
     // space is tight, retain that cause instead of an ordinary "ready" phase,
     // evaluator timing, or the guard details that followed the fallback.
     compactFallback = true;
-    fallbackPhase = ['error', 'cancelled'].includes(phase) ? status : '';
+    fallbackPhase = completionUnknown || ['error', 'cancelled'].includes(phase) ? status : '';
     status = [fallbackPhase, `${evaluatorLabel ? `${evaluatorLabel} ` : ''}fallback${fallbackCause ? `: ${fallbackCause}` : ''}`].filter(Boolean).join(' · ');
+    detail = '';
+  }
+  if (width(plain()) > available && source !== 'fallback' && guard) {
+    compactGuard = true;
+    status = [completionUnknown || ['error', 'cancelled'].includes(phase) ? status : '', shortGuard].filter(Boolean).join(' · ');
     detail = '';
   }
   if (width(plain()) > available) detail = '';
   if (width(plain()) > available) brand = '● AR';
   if (width(plain()) > available) brand = '';
+  if (width(plain()) > available && completionUnknown) {
+    // The response qualifier takes priority over an earlier routing decision.
+    // Keep the observed/selected model when both it and the qualifier can fit.
+    status = 'completion unknown'; detail = ''; compactFallback = false;
+  }
   if (width(plain()) > available && compactFallback) {
     status = [fallbackPhase, `fallback${fallbackCause ? `: ${fallbackCause}` : ''}`].filter(Boolean).join(' · ');
   }
   if (width(plain()) > available && model) {
-    if (phase === 'streaming' && !compactFallback) status = 'stream';
+    if (phase === 'streaming' && !compactFallback && !compactGuard) status = 'stream';
     const room = available - width(prefix + suffix + status) - 3;
     if (room >= 1) model = shorten(model, room);
     else {
@@ -199,7 +229,7 @@ export function renderStatusLine(input, snapshot, { now = Date.now(), color = tr
   if (width(plain()) > available && compactFallback && !fallbackPhase && available >= width('fallback')
     && available < width('fallback: ') + 2) status = 'fallback';
   if (width(plain()) > available) status = shorten(status, Math.max(1, available - width(modelLabel()) - (model ? 3 : 0)));
-  const attention = phase === 'error' ? '31' : source === 'fallback' ? '33' : phase === 'cancelled' ? '2' : phase === 'streaming' || phase === 'ready' ? '32' : '36';
+  const attention = phase === 'error' ? '31' : completionUnknown || source === 'fallback' ? '33' : phase === 'cancelled' ? '2' : phase === 'streaming' || phase === 'ready' ? '32' : '36';
   const chunks = [];
   if (brand) chunks.push(`${paint('●', attention)} ${paint(brand.slice(2), '1')}`);
   if (model) chunks.push(paint(modelLabel(), confirmed ? '37' : '33'));

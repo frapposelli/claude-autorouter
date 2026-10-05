@@ -91,7 +91,7 @@ test('auxiliary classifiers bypass evaluation, counting, and turn pins in every 
       assert.equal(counts, 0);
       assert.deepEqual(body, before);
     }
-    const continuation = { ...initial, messages: [...initial.messages, { role: 'assistant', content: 'Continuing the original task.' }] };
+    const continuation = { ...initial, messages: [...initial.messages, { role: 'assistant', content: [{ type: 'tool_use', id: 'original', name: 'Read', input: {} }] }, { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'original', content: 'Result' }] }] };
     const decision = await router.route(continuation, options);
     assert.equal(decision.model, c.models.opus);
     assert.equal(decision.reason, 'tool_turn_pinned');
@@ -211,7 +211,7 @@ test('safeguarded compaction never replaces a foreground model pin', async () =>
   await router.route(initial, options);
   const compaction = { ...initial, safeguards: [{ type: 'dangerous_tool_use' }] };
   assert.equal((await router.route(compaction, { ...options, requestClass: 'compaction' })).model, initial.model);
-  const continuation = { ...initial, messages: [...initial.messages, { role: 'assistant', content: 'Continuing.' }] };
+  const continuation = { ...initial, messages: [...initial.messages, { role: 'assistant', content: [{ type: 'tool_use', id: 'continuing', name: 'Read', input: {} }] }, { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'continuing', content: 'Result' }] }] };
   assert.equal((await router.route(continuation, options)).model, c.models.opus);
 });
 
@@ -576,7 +576,7 @@ test('same scoped prompt text pin does not undo a client-requested fallback mode
   assert.deepEqual(retry, before);
 });
 
-test('same scoped prompt uses fresh classification after its continuity entry expires', async () => {
+test('active scoped prompts retain continuity beyond the idle-cache deadline', async () => {
   let calls = 0;
   const router = new Router({ ...config(), turnTtlMs: 0 }, { fetchImpl: async () => result(++calls === 1 ? 'opus' : 'haiku') });
   const options = { scope: 'session/agent', promptId: 'same-prompt' };
@@ -586,8 +586,8 @@ test('same scoped prompt uses fresh classification after its continuity entry ex
     { role: 'assistant', content: 'Continuing.' }, { role: 'user', content: 'Stop hook feedback: Work remains.' },
   ] };
   const decision = await router.route(next, options);
-  assert.equal(decision.model, config().models.haiku);
-  assert.equal(decision.reason, 'classified');
+  assert.equal(decision.model, config().models.opus);
+  assert.equal(decision.reason, 'prompt_turn_pinned');
 });
 
 test('headerless goal feedback keeps its original task model through subsequent tool calls', async () => {
@@ -730,12 +730,13 @@ test('deferred schemas count when discovered through direct or nested references
   ]) {
     const router = new Router(config(), { fetchImpl: async () => result('haiku') });
     const body = deferredRequest();
-    body.messages.push({ role: 'assistant', content });
+    body.messages.push({ role: 'assistant', content }, { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'lookup', content: 'Result' }] });
     const before = structuredClone(body);
     assert.ok(contextSizeBytes(body) > 150000);
     const decision = await router.route(body);
-    assert.equal(decision.model, config().models.sonnet);
-    assert.equal(decision.reason, 'context_capacity');
+    const unfamiliar = content.some(block => block.type === 'future_wrapper');
+    assert.equal(decision.model, unfamiliar ? body.model : config().models.sonnet);
+    assert.equal(decision.reason, unfamiliar ? 'model_incompatible' : 'context_capacity');
     assert.deepEqual(body, before);
   }
 });
@@ -872,7 +873,7 @@ test('large compaction Haiku requests can upgrade without changing the foregroun
   const initial = { ...request('Task'), model: config().models.haiku };
   const options = { scope: 'session/agent', promptId: 'prompt' };
   await router.route(initial, options);
-  const continuation = { ...initial, messages: [...initial.messages, { role: 'assistant', content: 'Working' }] };
+  const continuation = { ...initial, messages: [...initial.messages, { role: 'assistant', content: [{ type: 'tool_use', id: 'working', name: 'Read', input: {} }] }, { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'working', content: 'Result' }] }] };
   const internal = { ...continuation, system: 'large system '.repeat(13000) };
   const decision = await router.route(internal, { ...options, requestClass: 'compaction' });
   assert.equal(decision.model, config().models.sonnet);

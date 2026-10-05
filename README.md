@@ -1,126 +1,99 @@
 # Claude AutoRouter
 
-Use Haiku, Sonnet, and Opus in one Claude Code session. A local gateway classifies coding requests with the selected evaluator, applies compatibility and context checks, and streams the selected model's response back to Claude Code. Claude's internal permission classifiers retain their selected model; execution requests keep their server safety-review settings and verdicts when routed. [TypeSafe Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) is the default; an experimental Ollama backend evaluates requests locally.
+Use Haiku, Sonnet and Opus in one Claude Code session. AutoRouter evaluates each coding request, checks model compatibility and context capacity, and forwards it through a local gateway. [TypeSafe Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) is the default evaluator; native Ollama `/v1/systemone` models provide an experimental local option. Claude owns authentication, tool permissions and safety review.
 
-Requires Node.js 22+, macOS or Linux (including WSL), an installed `claude` command, and a Claude subscription login or Anthropic API key. The default evaluator also requires a [TypeSafe API key](https://console.typesafe.ai). There are no runtime package dependencies. Native Windows is not supported in this release.
+Requires Node.js 22+, macOS or Linux (including WSL), an installed `claude` command, and a Claude subscription login or Anthropic API key. The default evaluator also needs a [TypeSafe API key](https://console.typesafe.ai). The installed CLI has no runtime dependencies.
+
+Version 0.4.0 adds `config`, `sessions` and `doctor --evaluate-local`, durable task continuity, and clearer model outcomes. Upgrade from 0.3.x to use these commands. The [contributor guide](CONTRIBUTING.md) explains local verification, and the [release guide](docs/releasing.md) covers the changes and verified publication.
 
 ## Install and start
 
-Install from [npm](https://www.npmjs.com/package/claude-autorouter):
-
 ```sh
 npm install -g claude-autorouter
-```
-
-Set up once, then launch from any project directory:
-
-```sh
 claude-autorouter setup
 claude-autorouter doctor
 cd /path/to/project
 claude-autorouter claude
 ```
 
-Setup defaults to your Claude subscription and prompts for your Jev key without echoing it. If Claude is not already signed in, run `claude auth login`. No Anthropic API key or exported subscription token is needed for subscription mode. Jev has separate credentials and billing.
+Setup defaults to your Claude subscription and prompts privately for the Jev key. Run `claude auth login` if needed. Jev has separate credentials and billing; subscription mode needs no Anthropic API key. For API billing, use `setup --auth-mode api-key`.
 
-Setup saves a private JSON config at `~/.config/claude-autorouter/config.json`; `XDG_CONFIG_HOME` and `AUTOROUTER_CONFIG` can change its location. Environment variables override saved configuration. Project `.env` files are not loaded automatically.
-
-Claude Code arguments pass through:
+Configuration is saved privately at `~/.config/claude-autorouter/config.json`. Environment variables override it; project `.env` files are not loaded automatically. `setup --force` updates an existing configuration while preserving other settings. Use focused commands for later edits:
 
 ```sh
-claude-autorouter claude -p "Fix the typo in README.md"
-claude-autorouter --help
-claude-autorouter --version
+claude-autorouter config show
+claude-autorouter config set AUTOROUTER_JEV_TIMEOUT_MS 2000
+claude-autorouter config unset AUTOROUTER_JEV_TIMEOUT_MS
+claude-autorouter help config
 ```
 
-For API billing, use `claude-autorouter setup --auth-mode api-key`. Use `--force` to replace an existing config. Automation can supply `TYPESAFE_API_KEY` and, in API-key mode, `ANTHROPIC_API_KEY` through the environment; keys are never command-line arguments. `doctor` checks local configuration and Claude installation/login state without paid requests. See the [configuration reference](docs/reference.md#configuration).
+Secret updates use a hidden prompt or `--stdin`, never a command-line value. Claude arguments pass through, including `claude-autorouter claude --help`. [Configuration reference](docs/reference.md#configuration).
 
-To use automatic Sonnet/Opus routing with Claude's Auto permission mode (AutoRouter 0.3.7+):
+## Auto permission mode
 
 ```sh
 claude-autorouter claude --permission-mode auto
 ```
 
-This selects the Auto profile, defaulting to Sonnet 5.5 and Opus 5.5. The evaluator can choose again for each new human task, while a task's tool calls and goal continuations retain its selected model. A Haiku verdict uses Sonnet. Native safety review stays enabled; organization policies still apply. Use `AUTOROUTER_CLIENT_PROFILE=auto` for sessions where you select Auto in Claude's UI or saved settings. Version 0.3.6 enabled Auto permissions but passed server-reviewed execution through without routing; version 0.3.7 removes that restriction for compatible requests. [Auto-mode support and limitations](docs/reference.md#auto-permission-mode).
+This profile automatically switches between Sonnet 5.5 and Opus 5.5 for new human tasks. A Haiku verdict uses Sonnet. Tool and `/goal` continuations retain the task's execution model; a new task can switch up or down. Claude's native safety review and organization policies still apply. For Auto selected through Claude's UI, save `AUTOROUTER_CLIENT_PROFILE=auto` with `config set`. [Auto support and limitations](docs/reference.md#auto-permission-mode).
 
-## What you see
+## Inspect decisions
 
-The launcher adds a temporary status line and leaves saved Claude Code settings unchanged:
+The launcher adds a temporary status line, preserving saved Claude settings:
 
 ```text
-● AutoRouter · last Haiku 4.5 · ready · Jev 210ms · est saved $0.04 (75%) vs Opus
-● AutoRouter · Sonnet 5 selected · connecting · Jev→Haiku 290ms · large context
+● AutoRouter · Opus 5.5 · ready · Jev 210ms
+● AutoRouter · Sonnet 5.5 selected · Auto floor from Haiku · Jev 220ms
 ```
 
-The confirmed model comes from Anthropic's response. Claude's own model label can still show its Haiku starting model. `API ctx` measures input against the actual model's known window; a different client limit remains visible as `CLI ctx`.
+`selected` means Anthropic has not reported the serving model yet. Guard reasons and errors stay visible before optional savings. Claude's own model label may show its starting model. [Status details](docs/reference.md#status-line-and-savings).
 
-For a separate decision log per session (optional, disabled by default; AutoRouter 0.3.6+):
+Persistent history is optional and disabled by default. Enable metadata-only records without prompt excerpts:
 
 ```sh
-env AUTOROUTER_SESSION_LOG_DIR="$HOME/.local/state/claude-autorouter/sessions" \
-  claude-autorouter claude
+claude-autorouter config set AUTOROUTER_SESSION_LOG_MODE metadata
+claude-autorouter config set AUTOROUTER_SESSION_LOG_DIR "$HOME/.local/state/claude-autorouter/sessions"
+claude-autorouter claude
+claude-autorouter sessions list
+claude-autorouter sessions show ID --json
 ```
 
-Each JSONL record includes a bounded prompt excerpt, selected model, decision latency, and routing reason. Files persist after Claude exits; terminal output stays quiet. [Session logs](docs/reference.md#session-decision-logs).
+Copy an `id` from `list`. History separates model decisions from outcomes and reports latency, fallbacks, failures and savings coverage. Choose `prompts` mode for bounded human-task excerpts. Files persist locally; no automatic deletion occurs. [History and privacy](docs/reference.md#session-decision-logs).
 
-Savings are an **API-equivalent estimate for the same token counts**, using Opus as the baseline. They do not measure subscription bill reductions or quota credits and exclude Jev and local compute costs. [Status line and savings details](docs/reference.md#status-line-and-savings).
+Savings are **API-equivalent estimates using the recorded Opus baseline and token counts**. They do not measure subscription bill reductions or quota credits, and exclude evaluator and local compute costs. Missing or unsupported usage stays unpriced.
 
-## Experimental local evaluator
+## Local Ollama evaluator
 
-The local setup below requires AutoRouter 0.3.2 or newer. It uses Ollama's native `/v1/systemone` decision API with `nimble:9b-q4_K_M` by default. Jev remains the default evaluator. If upgrading from 0.2.0, replace the old Qwen model configuration using the [migration steps](docs/reference.md#migrating-an-older-ollama-config).
-
-Version 0.3.2 excludes Claude's executor system instructions from the local classifier excerpt, retaining task and conversation excerpts. Runtime deadlines default to 1,500 ms for Tev1 0.8B/custom models, 15,000 ms for official Tev1 4B tags, and 30,000 ms for official Nimble tags. Explicit timeout settings, including a `1500` saved with 0.3.1, still override these defaults. Jev is unchanged.
-
-Set `0` to disable AutoRouter's runtime evaluator deadline for one launch using your existing configuration:
+Start Ollama 0.35+ with a model supporting its native decision endpoint, then configure it explicitly:
 
 ```sh
-AUTOROUTER_OLLAMA_TIMEOUT_MS=0 claude-autorouter claude
-```
-
-To save that setting for an installed Tev1 4B model:
-
-```sh
-claude-autorouter setup --evaluator ollama --ollama-model tev1:4b --ollama-timeout-ms 0 --force
-```
-
-The setup flag overrides the timeout environment value and saves it. Cancellation and disconnected clients still stop evaluation, normal errors still use fallback, and startup priming keeps its separate 60-second deadline.
-
-Install and start Ollama 0.35 or newer; [version 0.35.0](https://github.com/ollama/ollama/releases/tag/v0.35.0) is a prerelease as of September 29, 2026. Then run:
-
-```sh
-claude-autorouter setup --evaluator ollama --pull --force
-claude-autorouter doctor
+claude-autorouter setup --evaluator ollama --ollama-model tev1:4b-q4_K_M --pull --force
+claude-autorouter doctor --evaluate-local
 claude-autorouter claude
 ```
 
-`--force` replaces existing AutoRouter configuration. `--pull` downloads the selected model only if missing. Setup does not install or start Ollama, or delete existing models. Select a native decision model explicitly with `--ollama-model`:
+`--pull` authorizes downloading the chosen model if missing. Setup keeps existing models and settings; ordinary launches download nothing. The default local model is `nimble:9b-q4_K_M`; `tev1:0.8b` is smaller and requires checking its accuracy on your tasks. Local classification needs no Jev key. Claude still answers through Anthropic. [Model choices, deadlines and historical measurements](docs/reference.md#ollama-evaluator).
 
-| Model | Approximate download | Selection |
-| --- | ---: | --- |
-| [Nimble 9B Q4_K_M](https://ollama.com/library/nimble) | 5.63 GB | Default: `nimble:9b-q4_K_M` |
-| [Tev1 0.8B Q8](https://ollama.com/library/tev1) | 812 MB | `tev1:0.8b` |
-| [Tev1 4B Q4_K_M](https://ollama.com/library/tev1) | 2.7 GB | `tev1:4b-q4_K_M` |
-
-For example, select Tev1 0.8B with:
+To allow a slower local model to finish without AutoRouter's runtime deadline:
 
 ```sh
-claude-autorouter setup --evaluator ollama --ollama-model tev1:0.8b --pull --force
+claude-autorouter config set AUTOROUTER_OLLAMA_TIMEOUT_MS 0
 ```
 
-Use `--ollama-model tev1:4b-q4_K_M` for the listed 4B variant; `tev1:latest` and `tev1:4b` select the larger Q8 download. Model terms are linked in the listings above; download size does not measure resident memory or routing quality. Custom native model tags and aliases also work.
+Cancellation and response-size limits still apply. The local diagnostic uses synthetic prompts and reports observed latency, classification and fallback reasons; it makes no Anthropic/Jev calls or downloads and preserves unrelated resident models.
 
-No Jev key is needed for local classification. The launcher primes the evaluator before opening Claude's UI, and evaluation failures fall back to Sonnet or retain Opus without contacting Jev. Claude still answers through Anthropic, with the same routing guards and subscription limits.
+## Troubleshoot and upgrade
 
-Setup, doctor, and startup show the effective model and deadline. Warmup and doctor do not certify classification speed or accuracy. `Ollama fallback: timeout` means no valid decision arrived in time; it is different from the evaluator choosing Sonnet. Source users can run the [local routing regression](docs/development.md#local-routing-regression) to check all three tiers without Claude or Jev calls.
+Inspect `config show` for environment overrides, and `doctor` for setup health. A valid evaluator verdict can be overridden by continuity, context or model compatibility. `Ollama fallback: timeout` means evaluation failed to finish, rather than predicting Sonnet. Status errors and saved history explain these paths.
 
-Historical measurements before 0.3.2, on a 16 GiB M4: Tev1 0.8B matched 18/24 held-out labels with 450 ms median latency and no timeouts at 1,500 ms, including full-excerpt checks. Tev1 4B matched 22/24 with a 10-second diagnostic deadline and 3.15-second median latency. Nimble matched 23/24 with a 30-second deadline and 11.4-second median latency. Both larger models exceeded the then-default 1,500 ms. A separate six-case regression with the 0.3.2 fixes passed for both tested Tev1 4B variants and Nimble; Tev1 0.8B matched only three cases. These small tests do not establish general accuracy or Jev parity. See the [measurements and limits](docs/ollama-evaluation.md) and [Ollama reference](docs/reference.md#ollama-evaluator).
+```sh
+npm install -g claude-autorouter@latest
+claude-autorouter --version
+claude-autorouter doctor
+```
 
-## Behavior and data
+Historical integration observations cover Claude Code 2.1.284–2.1.285. The versioned synthetic protocol fixtures test reviewed request/response contracts; they do not certify the current checkout against a live Claude version. Real-provider checks remain explicitly invoked. [Troubleshooting](docs/reference.md#troubleshooting) covers context use, blocked goals and logging. Run ordinary `claude` to bypass routing.
 
-- The default client profile permits all three routing tiers. Tool continuations, thinking history, model-specific features, and context size can keep or upgrade a model even when the evaluator chooses a cheaper tier. [Routing policy](docs/reference.md#routing-policy).
-- The selected evaluator receives bounded excerpts that can contain source code and tool results: TypeSafe with Jev, or the local service with Ollama. Jev also receives system-text excerpts; the local path excludes Claude's executor system instructions. Anthropic receives the complete request. Images, document payloads, and private thinking are omitted from classifier input. [Data flow and authentication](docs/reference.md#data-flow-and-authentication).
-- Subscription access and usage limits still apply. Model switches can reduce cache reuse; cheaper token prices do not guarantee cheaper completed tasks. Run ordinary `claude` to bypass routing.
-- The launcher is quiet by default. Use `AUTOROUTER_DEBUG=1` for metadata diagnostics or `AUTOROUTER_STATUSLINE=0` to retain your existing status line. [Troubleshooting](docs/reference.md#troubleshooting).
-- For blocked `/goal` loops, optionally launch with `env CLAUDE_CODE_STOP_HOOK_BLOCK_CAP=2 claude-autorouter claude`. Claude then ends the turn on the third consecutive blocking verdict without tool use, leaving the goal unmet. This also affects other Stop/SubagentStop hooks; defaults are unchanged. [Scope and saved configuration](docs/reference.md#shorter-stop-hook-loops-opt-in).
+The evaluator receives bounded task/history excerpts that may contain code and tool results: TypeSafe for Jev, or your loopback Ollama service. Anthropic receives the complete request. Model switching can reduce cache reuse. [Data flow and authentication](docs/reference.md#data-flow-and-authentication).
 
-[Reference](docs/reference.md) · [Development and validation](docs/development.md) · [CI and npm release setup](docs/releasing.md) · [Apache-2.0 license](LICENSE)
+[Reference](docs/reference.md) · [Contributing](CONTRIBUTING.md) · [Development](docs/development.md) · [Releases](docs/releasing.md) · [Apache-2.0](LICENSE)

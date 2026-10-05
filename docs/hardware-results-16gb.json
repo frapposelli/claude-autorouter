@@ -1,0 +1,4002 @@
+{
+  "type": "ollama_routing_evaluation",
+  "timestamp": "2026-10-05T09:08:09.288Z",
+  "quality_policy": {
+    "profile": "compatible",
+    "minAgreement": 1,
+    "maxUnderRouteRate": 0,
+    "requiredTiers": [
+      "haiku",
+      "sonnet",
+      "opus"
+    ]
+  },
+  "hardware": {
+    "cpu": "Apple M4",
+    "logical_cpus": 10,
+    "architecture": "arm64",
+    "platform": "darwin",
+    "os_release": "25.6.0",
+    "node": "v26.10.0",
+    "total_memory_bytes": 17179869184,
+    "initial_free_memory_bytes": 882540544,
+    "initial_load_average": [
+      3.55126953125,
+      3.3505859375,
+      3.47998046875
+    ],
+    "final_free_memory_bytes": 127926272,
+    "final_load_average": [
+      2.2275390625,
+      3.59716796875,
+      3.66943359375
+    ]
+  },
+  "ollama_version": "0.35.0",
+  "fixture_sha256": "1ee6ab593e47d87a67e922c0afb0c9db5787d8a27d1a0ff3e24baa0543291fc5",
+  "split": "heldout",
+  "rounds": 3,
+  "stress_rounds": 8,
+  "warm_timeout_ms": 30000,
+  "cold_timeout_ms": 60000,
+  "state_character_budget": 3000,
+  "model_confidence": "not used for routing; native entropy confidence is not calibrated accuracy",
+  "models": [
+    {
+      "model": "tev1:4b-q4_K_M",
+      "digest": "3509ac7180e86e5fa8efc7b5745e32d55dd9d4e0a86bc9a88aba5323a5d29bc6",
+      "download_bytes": 2708817101,
+      "protocol": "/v1/systemone",
+      "rubric_sha256": "be151cedb4de4b7ef3f7162d751f70ce7d9dd14efc66fae1835f73ffd04027be",
+      "context_configuration": "model/server defaults; measured below",
+      "cold": {
+        "case": "held-h-arithmetic",
+        "split": "heldout",
+        "expected": "haiku",
+        "actual": "haiku",
+        "classified_tier": "haiku",
+        "source": "ollama",
+        "evaluator": "ollama",
+        "selected_model": null,
+        "confirmed_model": null,
+        "wall_ms": 7128.3,
+        "state_bytes": 298,
+        "metrics": {
+          "input_tokens": 667,
+          "output_tokens": 1
+        }
+      },
+      "resident_memory": {
+        "model_size_bytes": 2912388382,
+        "model_vram_bytes": 2912388382,
+        "context_length": 2050,
+        "parameter_size": "4.2B",
+        "quantization": "Q4_K_M",
+        "runtime_process_rss_bytes": 3089285120,
+        "system_free_bytes": 356401152
+      },
+      "rows": [
+        {
+          "round": 1,
+          "case": "held-h-link",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2585.01,
+          "state_bytes": 386,
+          "metrics": {
+            "input_tokens": 673,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-o-injection",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2734.33,
+          "state_bytes": 694,
+          "metrics": {
+            "input_tokens": 723,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-h-marker",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2458.88,
+          "state_bytes": 323,
+          "metrics": {
+            "input_tokens": 669,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-tier-influence-mechanical",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2597.47,
+          "state_bytes": 432,
+          "metrics": {
+            "input_tokens": 695,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-s-tool-followup",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2717.86,
+          "state_bytes": 508,
+          "metrics": {
+            "input_tokens": 715,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-h-reminder",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2496.95,
+          "state_bytes": 294,
+          "metrics": {
+            "input_tokens": 671,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-h-injection",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2601.73,
+          "state_bytes": 512,
+          "metrics": {
+            "input_tokens": 697,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-o-exactly-once",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2711.22,
+          "state_bytes": 676,
+          "metrics": {
+            "input_tokens": 715,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-s-refactor",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2591.52,
+          "state_bytes": 464,
+          "metrics": {
+            "input_tokens": 673,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-o-tenant-cache",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2700.02,
+          "state_bytes": 658,
+          "metrics": {
+            "input_tokens": 707,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-s-unclear-polish",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2608.66,
+          "state_bytes": 478,
+          "metrics": {
+            "input_tokens": 679,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-s-cli",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2624.05,
+          "state_bytes": 480,
+          "metrics": {
+            "input_tokens": 687,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-s-validation",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2610.95,
+          "state_bytes": 484,
+          "metrics": {
+            "input_tokens": 677,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-s-query",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2671.49,
+          "state_bytes": 522,
+          "metrics": {
+            "input_tokens": 687,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-o-crypto",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2710.45,
+          "state_bytes": 654,
+          "metrics": {
+            "input_tokens": 703,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-french-race",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2744.97,
+          "state_bytes": 510,
+          "metrics": {
+            "input_tokens": 701,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-spanish-feature",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2771.66,
+          "state_bytes": 380,
+          "metrics": {
+            "input_tokens": 673,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-h-translation",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2673.68,
+          "state_bytes": 290,
+          "metrics": {
+            "input_tokens": 649,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-h-summary",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2788.07,
+          "state_bytes": 406,
+          "metrics": {
+            "input_tokens": 677,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-o-compiler",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2828.86,
+          "state_bytes": 654,
+          "metrics": {
+            "input_tokens": 699,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-tier-influence-difficult",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2953.57,
+          "state_bytes": 640,
+          "metrics": {
+            "input_tokens": 715,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-o-rolling-format",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2845.86,
+          "state_bytes": 562,
+          "metrics": {
+            "input_tokens": 697,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-h-arithmetic",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 216.34,
+          "state_bytes": 298,
+          "metrics": {
+            "input_tokens": 667,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-h-literal-opus",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2675.2,
+          "state_bytes": 312,
+          "metrics": {
+            "input_tokens": 655,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-o-snapshot",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2929.63,
+          "state_bytes": 764,
+          "metrics": {
+            "input_tokens": 725,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-italian-literal",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2731.49,
+          "state_bytes": 252,
+          "metrics": {
+            "input_tokens": 645,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-short-difficult-followup",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2878.73,
+          "state_bytes": 483,
+          "metrics": {
+            "input_tokens": 689,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-o-fencing-followup",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 3185.31,
+          "state_bytes": 780,
+          "metrics": {
+            "input_tokens": 753,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-s-null-bug",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2986.15,
+          "state_bytes": 546,
+          "metrics": {
+            "input_tokens": 691,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-s-pagination",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 3112.41,
+          "state_bytes": 482,
+          "metrics": {
+            "input_tokens": 679,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-s-null-bug",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 185.96,
+          "state_bytes": 546,
+          "metrics": {
+            "input_tokens": 691,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-o-injection",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 951.65,
+          "state_bytes": 694,
+          "metrics": {
+            "input_tokens": 723,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-o-compiler",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 424.95,
+          "state_bytes": 654,
+          "metrics": {
+            "input_tokens": 699,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-h-injection",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 391.31,
+          "state_bytes": 512,
+          "metrics": {
+            "input_tokens": 697,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-o-rolling-format",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 399.91,
+          "state_bytes": 562,
+          "metrics": {
+            "input_tokens": 697,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-s-pagination",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 166.2,
+          "state_bytes": 482,
+          "metrics": {
+            "input_tokens": 679,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-s-refactor",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 213.08,
+          "state_bytes": 464,
+          "metrics": {
+            "input_tokens": 673,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-o-fencing-followup",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 427.62,
+          "state_bytes": 780,
+          "metrics": {
+            "input_tokens": 753,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-s-tool-followup",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 383.81,
+          "state_bytes": 508,
+          "metrics": {
+            "input_tokens": 715,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-spanish-feature",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 350.64,
+          "state_bytes": 380,
+          "metrics": {
+            "input_tokens": 673,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-h-arithmetic",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 165.83,
+          "state_bytes": 298,
+          "metrics": {
+            "input_tokens": 667,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-o-tenant-cache",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 167.37,
+          "state_bytes": 658,
+          "metrics": {
+            "input_tokens": 707,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-h-literal-opus",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 170.02,
+          "state_bytes": 312,
+          "metrics": {
+            "input_tokens": 655,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-h-marker",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 793.59,
+          "state_bytes": 323,
+          "metrics": {
+            "input_tokens": 669,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-tier-influence-mechanical",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 641.22,
+          "state_bytes": 432,
+          "metrics": {
+            "input_tokens": 695,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-s-unclear-polish",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 384.48,
+          "state_bytes": 478,
+          "metrics": {
+            "input_tokens": 679,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-o-snapshot",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 192.15,
+          "state_bytes": 764,
+          "metrics": {
+            "input_tokens": 725,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-s-cli",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 189.09,
+          "state_bytes": 480,
+          "metrics": {
+            "input_tokens": 687,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-h-summary",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 221.78,
+          "state_bytes": 406,
+          "metrics": {
+            "input_tokens": 677,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-short-difficult-followup",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 173.28,
+          "state_bytes": 483,
+          "metrics": {
+            "input_tokens": 689,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-italian-literal",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 183.03,
+          "state_bytes": 252,
+          "metrics": {
+            "input_tokens": 645,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-s-validation",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 166.28,
+          "state_bytes": 484,
+          "metrics": {
+            "input_tokens": 677,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-o-crypto",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 191.28,
+          "state_bytes": 654,
+          "metrics": {
+            "input_tokens": 703,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-h-reminder",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 411.76,
+          "state_bytes": 294,
+          "metrics": {
+            "input_tokens": 671,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-french-race",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 414.19,
+          "state_bytes": 510,
+          "metrics": {
+            "input_tokens": 701,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-h-link",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 940.01,
+          "state_bytes": 386,
+          "metrics": {
+            "input_tokens": 673,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-h-translation",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 965.96,
+          "state_bytes": 290,
+          "metrics": {
+            "input_tokens": 649,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-o-exactly-once",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 1101.71,
+          "state_bytes": 676,
+          "metrics": {
+            "input_tokens": 715,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-s-query",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 594.82,
+          "state_bytes": 522,
+          "metrics": {
+            "input_tokens": 687,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-tier-influence-difficult",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 171.59,
+          "state_bytes": 640,
+          "metrics": {
+            "input_tokens": 715,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-h-link",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 147.62,
+          "state_bytes": 386,
+          "metrics": {
+            "input_tokens": 673,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-s-tool-followup",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 156.03,
+          "state_bytes": 508,
+          "metrics": {
+            "input_tokens": 715,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-s-null-bug",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 168.44,
+          "state_bytes": 546,
+          "metrics": {
+            "input_tokens": 691,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-h-injection",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 166.51,
+          "state_bytes": 512,
+          "metrics": {
+            "input_tokens": 697,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-o-compiler",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 167.25,
+          "state_bytes": 654,
+          "metrics": {
+            "input_tokens": 699,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-italian-literal",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 163.69,
+          "state_bytes": 252,
+          "metrics": {
+            "input_tokens": 645,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-h-reminder",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 162.97,
+          "state_bytes": 294,
+          "metrics": {
+            "input_tokens": 671,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-s-pagination",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 185.91,
+          "state_bytes": 482,
+          "metrics": {
+            "input_tokens": 679,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-s-validation",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 172.31,
+          "state_bytes": 484,
+          "metrics": {
+            "input_tokens": 677,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-o-tenant-cache",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 182.33,
+          "state_bytes": 658,
+          "metrics": {
+            "input_tokens": 707,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-spanish-feature",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 175.6,
+          "state_bytes": 380,
+          "metrics": {
+            "input_tokens": 673,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-s-unclear-polish",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 174.71,
+          "state_bytes": 478,
+          "metrics": {
+            "input_tokens": 679,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-h-marker",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 200.69,
+          "state_bytes": 323,
+          "metrics": {
+            "input_tokens": 669,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-tier-influence-difficult",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 157.28,
+          "state_bytes": 640,
+          "metrics": {
+            "input_tokens": 715,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-s-cli",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 164.11,
+          "state_bytes": 480,
+          "metrics": {
+            "input_tokens": 687,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-tier-influence-mechanical",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 167.5,
+          "state_bytes": 432,
+          "metrics": {
+            "input_tokens": 695,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-o-exactly-once",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 159.71,
+          "state_bytes": 676,
+          "metrics": {
+            "input_tokens": 715,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-french-race",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 161.08,
+          "state_bytes": 510,
+          "metrics": {
+            "input_tokens": 701,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-h-summary",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 222.8,
+          "state_bytes": 406,
+          "metrics": {
+            "input_tokens": 677,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-s-refactor",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 178.21,
+          "state_bytes": 464,
+          "metrics": {
+            "input_tokens": 673,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-short-difficult-followup",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 244.09,
+          "state_bytes": 483,
+          "metrics": {
+            "input_tokens": 689,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-h-literal-opus",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 232.54,
+          "state_bytes": 312,
+          "metrics": {
+            "input_tokens": 655,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-o-injection",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 165.29,
+          "state_bytes": 694,
+          "metrics": {
+            "input_tokens": 723,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-o-rolling-format",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 165.63,
+          "state_bytes": 562,
+          "metrics": {
+            "input_tokens": 697,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-s-query",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 192.55,
+          "state_bytes": 522,
+          "metrics": {
+            "input_tokens": 687,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-h-arithmetic",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 166.79,
+          "state_bytes": 298,
+          "metrics": {
+            "input_tokens": 667,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-o-snapshot",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 171.44,
+          "state_bytes": 764,
+          "metrics": {
+            "input_tokens": 725,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-o-crypto",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 179.27,
+          "state_bytes": 654,
+          "metrics": {
+            "input_tokens": 703,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-o-fencing-followup",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 191.34,
+          "state_bytes": 780,
+          "metrics": {
+            "input_tokens": 753,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-h-translation",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 187.48,
+          "state_bytes": 290,
+          "metrics": {
+            "input_tokens": 649,
+            "output_tokens": 1
+          }
+        }
+      ],
+      "summary": {
+        "requests": 90,
+        "valid": 90,
+        "errors": 0,
+        "exact_rubric_agreement": 0.9333333333333333,
+        "under_routes": 3,
+        "over_routes": 3,
+        "opus_under_routes": 3,
+        "wall_p50_ms": 244.09,
+        "wall_p95_ms": 2929.63,
+        "successful_wall_p50_ms": 244.09,
+        "successful_wall_p95_ms": 2929.63,
+        "confusion": {
+          "haiku": {
+            "haiku": 27,
+            "sonnet": 0,
+            "opus": 3,
+            "error": 0
+          },
+          "sonnet": {
+            "haiku": 0,
+            "sonnet": 27,
+            "opus": 0,
+            "error": 0
+          },
+          "opus": {
+            "haiku": 0,
+            "sonnet": 3,
+            "opus": 30,
+            "error": 0
+          }
+        }
+      },
+      "acceptance": {
+        "schema_version": 1,
+        "policy": {
+          "profile": "compatible",
+          "minAgreement": 1,
+          "maxUnderRouteRate": 0,
+          "requiredTiers": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ]
+        },
+        "gates": {
+          "transport": {
+            "passed": null,
+            "reason": "Claude transport not exercised"
+          },
+          "evaluator": {
+            "passed": true,
+            "expected": "ollama",
+            "evaluated_requests": 90,
+            "successful_evaluations": 90,
+            "fallbacks": 0
+          },
+          "rubric": {
+            "passed": false,
+            "agreement": 0.9333333333333333,
+            "under_routes": 3,
+            "under_route_rate": 0.03333333333333333,
+            "min_agreement": 1,
+            "max_under_route_rate": 0
+          },
+          "policy": {
+            "passed": null,
+            "reason": "Classifier-only benchmark; routing policy not exercised"
+          },
+          "coverage": {
+            "passed": true,
+            "required": [
+              "haiku",
+              "sonnet",
+              "opus"
+            ],
+            "observed": [
+              "haiku",
+              "opus",
+              "sonnet"
+            ],
+            "missing": []
+          },
+          "task": {
+            "passed": null,
+            "reason": "No Claude task completion measured"
+          }
+        },
+        "passed": false,
+        "requests": 90
+      },
+      "final_resident_memory": {
+        "model_size_bytes": 2912388382,
+        "model_vram_bytes": 2912388382,
+        "context_length": 2050,
+        "parameter_size": "4.2B",
+        "quantization": "Q4_K_M",
+        "runtime_process_rss_bytes": 4774903808,
+        "system_free_bytes": 185729024
+      },
+      "max_budget_stress": {
+        "rows": [
+          {
+            "case": "full-budget-0",
+            "split": "performance_stress",
+            "expected": "haiku",
+            "actual": "haiku",
+            "classified_tier": "haiku",
+            "source": "ollama",
+            "evaluator": "ollama",
+            "selected_model": null,
+            "confirmed_model": null,
+            "wall_ms": 6694.33,
+            "state_bytes": 3000,
+            "metrics": {
+              "input_tokens": 1737,
+              "output_tokens": 1
+            }
+          },
+          {
+            "case": "full-budget-1",
+            "split": "performance_stress",
+            "expected": "haiku",
+            "actual": "haiku",
+            "classified_tier": "haiku",
+            "source": "ollama",
+            "evaluator": "ollama",
+            "selected_model": null,
+            "confirmed_model": null,
+            "wall_ms": 6724.69,
+            "state_bytes": 3000,
+            "metrics": {
+              "input_tokens": 1671,
+              "output_tokens": 1
+            }
+          },
+          {
+            "case": "full-budget-2",
+            "split": "performance_stress",
+            "expected": "haiku",
+            "actual": "haiku",
+            "classified_tier": "haiku",
+            "source": "ollama",
+            "evaluator": "ollama",
+            "selected_model": null,
+            "confirmed_model": null,
+            "wall_ms": 6766.26,
+            "state_bytes": 3000,
+            "metrics": {
+              "input_tokens": 1693,
+              "output_tokens": 1
+            }
+          },
+          {
+            "case": "full-budget-3",
+            "split": "performance_stress",
+            "expected": "haiku",
+            "actual": "haiku",
+            "classified_tier": "haiku",
+            "source": "ollama",
+            "evaluator": "ollama",
+            "selected_model": null,
+            "confirmed_model": null,
+            "wall_ms": 7002.82,
+            "state_bytes": 3000,
+            "metrics": {
+              "input_tokens": 1671,
+              "output_tokens": 1
+            }
+          },
+          {
+            "case": "full-budget-4",
+            "split": "performance_stress",
+            "expected": "haiku",
+            "actual": "haiku",
+            "classified_tier": "haiku",
+            "source": "ollama",
+            "evaluator": "ollama",
+            "selected_model": null,
+            "confirmed_model": null,
+            "wall_ms": 7045.82,
+            "state_bytes": 3000,
+            "metrics": {
+              "input_tokens": 1693,
+              "output_tokens": 1
+            }
+          },
+          {
+            "case": "full-budget-5",
+            "split": "performance_stress",
+            "expected": "haiku",
+            "actual": "haiku",
+            "classified_tier": "haiku",
+            "source": "ollama",
+            "evaluator": "ollama",
+            "selected_model": null,
+            "confirmed_model": null,
+            "wall_ms": 7534.74,
+            "state_bytes": 3000,
+            "metrics": {
+              "input_tokens": 1737,
+              "output_tokens": 1
+            }
+          },
+          {
+            "case": "full-budget-6",
+            "split": "performance_stress",
+            "expected": "haiku",
+            "actual": "haiku",
+            "classified_tier": "haiku",
+            "source": "ollama",
+            "evaluator": "ollama",
+            "selected_model": null,
+            "confirmed_model": null,
+            "wall_ms": 7854.15,
+            "state_bytes": 3000,
+            "metrics": {
+              "input_tokens": 1759,
+              "output_tokens": 1
+            }
+          },
+          {
+            "case": "full-budget-7",
+            "split": "performance_stress",
+            "expected": "haiku",
+            "actual": "haiku",
+            "classified_tier": "haiku",
+            "source": "ollama",
+            "evaluator": "ollama",
+            "selected_model": null,
+            "confirmed_model": null,
+            "wall_ms": 7589.76,
+            "state_bytes": 3000,
+            "metrics": {
+              "input_tokens": 1737,
+              "output_tokens": 1
+            }
+          }
+        ],
+        "summary": {
+          "requests": 8,
+          "valid": 8,
+          "errors": 0,
+          "exact_rubric_agreement": 1,
+          "under_routes": 0,
+          "over_routes": 0,
+          "opus_under_routes": 0,
+          "wall_p50_ms": 7002.82,
+          "wall_p95_ms": 7854.15,
+          "successful_wall_p50_ms": 7002.82,
+          "successful_wall_p95_ms": 7854.15,
+          "confusion": {
+            "haiku": {
+              "haiku": 8,
+              "sonnet": 0,
+              "opus": 0,
+              "error": 0
+            },
+            "sonnet": {
+              "haiku": 0,
+              "sonnet": 0,
+              "opus": 0,
+              "error": 0
+            },
+            "opus": {
+              "haiku": 0,
+              "sonnet": 0,
+              "opus": 0,
+              "error": 0
+            }
+          }
+        },
+        "acceptance": {
+          "schema_version": 1,
+          "policy": {
+            "profile": "compatible",
+            "minAgreement": 1,
+            "maxUnderRouteRate": 0,
+            "requiredTiers": [
+              "haiku"
+            ]
+          },
+          "gates": {
+            "transport": {
+              "passed": null,
+              "reason": "Claude transport not exercised"
+            },
+            "evaluator": {
+              "passed": true,
+              "expected": "ollama",
+              "evaluated_requests": 8,
+              "successful_evaluations": 8,
+              "fallbacks": 0
+            },
+            "rubric": {
+              "passed": true,
+              "agreement": 1,
+              "under_routes": 0,
+              "under_route_rate": 0,
+              "min_agreement": 1,
+              "max_under_route_rate": 0
+            },
+            "policy": {
+              "passed": null,
+              "reason": "Classifier-only benchmark; routing policy not exercised"
+            },
+            "coverage": {
+              "passed": true,
+              "required": [
+                "haiku"
+              ],
+              "observed": [
+                "haiku"
+              ],
+              "missing": []
+            },
+            "task": {
+              "passed": null,
+              "reason": "No Claude task completion measured"
+            }
+          },
+          "passed": true,
+          "requests": 8
+        }
+      }
+    },
+    {
+      "model": "nimble:9b-q4_K_M",
+      "digest": "3776806da5587387a996e28e75d5d07fbebe7410d47879e1f71782f36c896ce3",
+      "download_bytes": 5629109675,
+      "protocol": "/v1/systemone",
+      "rubric_sha256": "be151cedb4de4b7ef3f7162d751f70ce7d9dd14efc66fae1835f73ffd04027be",
+      "context_configuration": "model/server defaults; measured below",
+      "cold": {
+        "case": "held-h-arithmetic",
+        "split": "heldout",
+        "expected": "haiku",
+        "actual": "haiku",
+        "classified_tier": "haiku",
+        "source": "ollama",
+        "evaluator": "ollama",
+        "selected_model": null,
+        "confirmed_model": null,
+        "wall_ms": 15926.94,
+        "state_bytes": 298,
+        "metrics": {
+          "input_tokens": 705,
+          "output_tokens": 1
+        }
+      },
+      "resident_memory": {
+        "model_size_bytes": 6166423796,
+        "model_vram_bytes": 6166423796,
+        "context_length": 8194,
+        "parameter_size": "9.0B",
+        "quantization": "Q4_K_M",
+        "runtime_process_rss_bytes": 6072107008,
+        "system_free_bytes": 165101568
+      },
+      "rows": [
+        {
+          "round": 1,
+          "case": "held-h-link",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 7191.98,
+          "state_bytes": 386,
+          "metrics": {
+            "input_tokens": 711,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-o-injection",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 5664,
+          "state_bytes": 694,
+          "metrics": {
+            "input_tokens": 761,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-h-marker",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 5518.35,
+          "state_bytes": 323,
+          "metrics": {
+            "input_tokens": 707,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-tier-influence-mechanical",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 5754.87,
+          "state_bytes": 432,
+          "metrics": {
+            "input_tokens": 733,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-s-tool-followup",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 6105.83,
+          "state_bytes": 508,
+          "metrics": {
+            "input_tokens": 753,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-h-reminder",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 6299.93,
+          "state_bytes": 294,
+          "metrics": {
+            "input_tokens": 709,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-h-injection",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 6575.67,
+          "state_bytes": 512,
+          "metrics": {
+            "input_tokens": 735,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-o-exactly-once",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": null,
+          "classified_tier": null,
+          "source": "error",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 56589.66,
+          "state_bytes": 676,
+          "error": "timeout"
+        },
+        {
+          "round": 1,
+          "case": "held-s-refactor",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": null,
+          "classified_tier": null,
+          "source": "error",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 969208.59,
+          "state_bytes": 464,
+          "error": "timeout"
+        },
+        {
+          "round": 1,
+          "case": "held-o-tenant-cache",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 13644.66,
+          "state_bytes": 658,
+          "metrics": {
+            "input_tokens": 745,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-s-unclear-polish",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 13881.57,
+          "state_bytes": 478,
+          "metrics": {
+            "input_tokens": 717,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-s-cli",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 12440.65,
+          "state_bytes": 480,
+          "metrics": {
+            "input_tokens": 725,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-s-validation",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 11249.27,
+          "state_bytes": 484,
+          "metrics": {
+            "input_tokens": 715,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-s-query",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 10910.16,
+          "state_bytes": 522,
+          "metrics": {
+            "input_tokens": 725,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-o-crypto",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 11604.32,
+          "state_bytes": 654,
+          "metrics": {
+            "input_tokens": 741,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-french-race",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 10658.91,
+          "state_bytes": 510,
+          "metrics": {
+            "input_tokens": 739,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-spanish-feature",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 10153.48,
+          "state_bytes": 380,
+          "metrics": {
+            "input_tokens": 711,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-h-translation",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 10721.07,
+          "state_bytes": 290,
+          "metrics": {
+            "input_tokens": 687,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-h-summary",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 10636.97,
+          "state_bytes": 406,
+          "metrics": {
+            "input_tokens": 715,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-o-compiler",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": null,
+          "classified_tier": null,
+          "source": "error",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 173623.07,
+          "state_bytes": 654,
+          "error": "timeout"
+        },
+        {
+          "round": 1,
+          "case": "held-tier-influence-difficult",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 7404.93,
+          "state_bytes": 640,
+          "metrics": {
+            "input_tokens": 753,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-o-rolling-format",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 4998.11,
+          "state_bytes": 562,
+          "metrics": {
+            "input_tokens": 735,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-h-arithmetic",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 1257.05,
+          "state_bytes": 298,
+          "metrics": {
+            "input_tokens": 705,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-h-literal-opus",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 4707.2,
+          "state_bytes": 312,
+          "metrics": {
+            "input_tokens": 693,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-o-snapshot",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 5212.16,
+          "state_bytes": 764,
+          "metrics": {
+            "input_tokens": 763,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-italian-literal",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 4690.57,
+          "state_bytes": 252,
+          "metrics": {
+            "input_tokens": 683,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-short-difficult-followup",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 4942,
+          "state_bytes": 483,
+          "metrics": {
+            "input_tokens": 727,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-o-fencing-followup",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 5351.05,
+          "state_bytes": 780,
+          "metrics": {
+            "input_tokens": 791,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-s-null-bug",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 4944.76,
+          "state_bytes": 546,
+          "metrics": {
+            "input_tokens": 729,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 1,
+          "case": "held-s-pagination",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 5004.53,
+          "state_bytes": 482,
+          "metrics": {
+            "input_tokens": 717,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-s-null-bug",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 283.58,
+          "state_bytes": 546,
+          "metrics": {
+            "input_tokens": 729,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-o-injection",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 1350.31,
+          "state_bytes": 694,
+          "metrics": {
+            "input_tokens": 761,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-o-compiler",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 416.71,
+          "state_bytes": 654,
+          "metrics": {
+            "input_tokens": 737,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-h-injection",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 1072.63,
+          "state_bytes": 512,
+          "metrics": {
+            "input_tokens": 735,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-o-rolling-format",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 278.46,
+          "state_bytes": 562,
+          "metrics": {
+            "input_tokens": 735,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-s-pagination",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 246.01,
+          "state_bytes": 482,
+          "metrics": {
+            "input_tokens": 717,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-s-refactor",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 931.79,
+          "state_bytes": 464,
+          "metrics": {
+            "input_tokens": 711,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-o-fencing-followup",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 271.43,
+          "state_bytes": 780,
+          "metrics": {
+            "input_tokens": 791,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-s-tool-followup",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 1060.89,
+          "state_bytes": 508,
+          "metrics": {
+            "input_tokens": 753,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-spanish-feature",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 381.21,
+          "state_bytes": 380,
+          "metrics": {
+            "input_tokens": 711,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-h-arithmetic",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 276.52,
+          "state_bytes": 298,
+          "metrics": {
+            "input_tokens": 705,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-o-tenant-cache",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2209.12,
+          "state_bytes": 658,
+          "metrics": {
+            "input_tokens": 745,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-h-literal-opus",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 343.71,
+          "state_bytes": 312,
+          "metrics": {
+            "input_tokens": 693,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-h-marker",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2038.34,
+          "state_bytes": 323,
+          "metrics": {
+            "input_tokens": 707,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-tier-influence-mechanical",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2522.32,
+          "state_bytes": 432,
+          "metrics": {
+            "input_tokens": 733,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-s-unclear-polish",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 4392.7,
+          "state_bytes": 478,
+          "metrics": {
+            "input_tokens": 717,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-o-snapshot",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 263.43,
+          "state_bytes": 764,
+          "metrics": {
+            "input_tokens": 763,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-s-cli",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 1721.85,
+          "state_bytes": 480,
+          "metrics": {
+            "input_tokens": 725,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-h-summary",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 1362.47,
+          "state_bytes": 406,
+          "metrics": {
+            "input_tokens": 715,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-short-difficult-followup",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 250.6,
+          "state_bytes": 483,
+          "metrics": {
+            "input_tokens": 727,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-italian-literal",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 254.08,
+          "state_bytes": 252,
+          "metrics": {
+            "input_tokens": 683,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-s-validation",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 1381.37,
+          "state_bytes": 484,
+          "metrics": {
+            "input_tokens": 715,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-o-crypto",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 3289.41,
+          "state_bytes": 654,
+          "metrics": {
+            "input_tokens": 741,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-h-reminder",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 1788.8,
+          "state_bytes": 294,
+          "metrics": {
+            "input_tokens": 709,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-french-race",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 1055.79,
+          "state_bytes": 510,
+          "metrics": {
+            "input_tokens": 739,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-h-link",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 1249.52,
+          "state_bytes": 386,
+          "metrics": {
+            "input_tokens": 711,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-h-translation",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 1253.44,
+          "state_bytes": 290,
+          "metrics": {
+            "input_tokens": 687,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-o-exactly-once",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 1144.69,
+          "state_bytes": 676,
+          "metrics": {
+            "input_tokens": 753,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-s-query",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 995.03,
+          "state_bytes": 522,
+          "metrics": {
+            "input_tokens": 725,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 2,
+          "case": "held-tier-influence-difficult",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 1253.79,
+          "state_bytes": 640,
+          "metrics": {
+            "input_tokens": 753,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-h-link",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 244.7,
+          "state_bytes": 386,
+          "metrics": {
+            "input_tokens": 711,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-s-tool-followup",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 414.84,
+          "state_bytes": 508,
+          "metrics": {
+            "input_tokens": 753,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-s-null-bug",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 991.56,
+          "state_bytes": 546,
+          "metrics": {
+            "input_tokens": 729,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-h-injection",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 285.68,
+          "state_bytes": 512,
+          "metrics": {
+            "input_tokens": 735,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-o-compiler",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 440.5,
+          "state_bytes": 654,
+          "metrics": {
+            "input_tokens": 737,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-italian-literal",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 245.05,
+          "state_bytes": 252,
+          "metrics": {
+            "input_tokens": 683,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-h-reminder",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 260.19,
+          "state_bytes": 294,
+          "metrics": {
+            "input_tokens": 709,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-s-pagination",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 249.07,
+          "state_bytes": 482,
+          "metrics": {
+            "input_tokens": 717,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-s-validation",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 264.6,
+          "state_bytes": 484,
+          "metrics": {
+            "input_tokens": 715,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-o-tenant-cache",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 247.38,
+          "state_bytes": 658,
+          "metrics": {
+            "input_tokens": 745,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-spanish-feature",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 266.72,
+          "state_bytes": 380,
+          "metrics": {
+            "input_tokens": 711,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-s-unclear-polish",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 265.34,
+          "state_bytes": 478,
+          "metrics": {
+            "input_tokens": 717,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-h-marker",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 274.65,
+          "state_bytes": 323,
+          "metrics": {
+            "input_tokens": 707,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-tier-influence-difficult",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 244.84,
+          "state_bytes": 640,
+          "metrics": {
+            "input_tokens": 753,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-s-cli",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 245.98,
+          "state_bytes": 480,
+          "metrics": {
+            "input_tokens": 725,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-tier-influence-mechanical",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 249.53,
+          "state_bytes": 432,
+          "metrics": {
+            "input_tokens": 733,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-o-exactly-once",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 255.21,
+          "state_bytes": 676,
+          "metrics": {
+            "input_tokens": 753,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-french-race",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 245.88,
+          "state_bytes": 510,
+          "metrics": {
+            "input_tokens": 739,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-h-summary",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 247.64,
+          "state_bytes": 406,
+          "metrics": {
+            "input_tokens": 715,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-s-refactor",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 244.6,
+          "state_bytes": 464,
+          "metrics": {
+            "input_tokens": 711,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-short-difficult-followup",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 322.91,
+          "state_bytes": 483,
+          "metrics": {
+            "input_tokens": 727,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-h-literal-opus",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 303.6,
+          "state_bytes": 312,
+          "metrics": {
+            "input_tokens": 693,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-o-injection",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 971.02,
+          "state_bytes": 694,
+          "metrics": {
+            "input_tokens": 761,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-o-rolling-format",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 1985.69,
+          "state_bytes": 562,
+          "metrics": {
+            "input_tokens": 735,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-s-query",
+          "split": "heldout",
+          "expected": "sonnet",
+          "actual": "sonnet",
+          "classified_tier": "sonnet",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 254.54,
+          "state_bytes": 522,
+          "metrics": {
+            "input_tokens": 725,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-h-arithmetic",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 1430.07,
+          "state_bytes": 298,
+          "metrics": {
+            "input_tokens": 705,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-o-snapshot",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 1148.13,
+          "state_bytes": 764,
+          "metrics": {
+            "input_tokens": 763,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-o-crypto",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 968.42,
+          "state_bytes": 654,
+          "metrics": {
+            "input_tokens": 741,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-o-fencing-followup",
+          "split": "heldout",
+          "expected": "opus",
+          "actual": "opus",
+          "classified_tier": "opus",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 2166,
+          "state_bytes": 780,
+          "metrics": {
+            "input_tokens": 791,
+            "output_tokens": 1
+          }
+        },
+        {
+          "round": 3,
+          "case": "held-h-translation",
+          "split": "heldout",
+          "expected": "haiku",
+          "actual": "haiku",
+          "classified_tier": "haiku",
+          "source": "ollama",
+          "evaluator": "ollama",
+          "selected_model": null,
+          "confirmed_model": null,
+          "wall_ms": 508.66,
+          "state_bytes": 290,
+          "metrics": {
+            "input_tokens": 687,
+            "output_tokens": 1
+          }
+        }
+      ],
+      "summary": {
+        "requests": 90,
+        "valid": 87,
+        "errors": 3,
+        "exact_rubric_agreement": 0.9333333333333333,
+        "under_routes": 3,
+        "over_routes": 0,
+        "opus_under_routes": 3,
+        "wall_p50_ms": 1249.52,
+        "wall_p95_ms": 13644.66,
+        "successful_wall_p50_ms": 1148.13,
+        "successful_wall_p95_ms": 11249.27,
+        "confusion": {
+          "haiku": {
+            "haiku": 30,
+            "sonnet": 0,
+            "opus": 0,
+            "error": 0
+          },
+          "sonnet": {
+            "haiku": 0,
+            "sonnet": 26,
+            "opus": 0,
+            "error": 1
+          },
+          "opus": {
+            "haiku": 3,
+            "sonnet": 0,
+            "opus": 28,
+            "error": 2
+          }
+        }
+      },
+      "acceptance": {
+        "schema_version": 1,
+        "policy": {
+          "profile": "compatible",
+          "minAgreement": 1,
+          "maxUnderRouteRate": 0,
+          "requiredTiers": [
+            "haiku",
+            "sonnet",
+            "opus"
+          ]
+        },
+        "gates": {
+          "transport": {
+            "passed": null,
+            "reason": "Claude transport not exercised"
+          },
+          "evaluator": {
+            "passed": false,
+            "expected": "ollama",
+            "evaluated_requests": 90,
+            "successful_evaluations": 87,
+            "fallbacks": 0
+          },
+          "rubric": {
+            "passed": false,
+            "agreement": 0.9333333333333333,
+            "under_routes": 3,
+            "under_route_rate": 0.03333333333333333,
+            "min_agreement": 1,
+            "max_under_route_rate": 0
+          },
+          "policy": {
+            "passed": null,
+            "reason": "Classifier-only benchmark; routing policy not exercised"
+          },
+          "coverage": {
+            "passed": true,
+            "required": [
+              "haiku",
+              "sonnet",
+              "opus"
+            ],
+            "observed": [
+              "haiku",
+              "opus",
+              "sonnet"
+            ],
+            "missing": []
+          },
+          "task": {
+            "passed": null,
+            "reason": "No Claude task completion measured"
+          }
+        },
+        "passed": false,
+        "requests": 90
+      },
+      "final_resident_memory": {
+        "model_size_bytes": 6166423796,
+        "model_vram_bytes": 6166423796,
+        "context_length": 8194,
+        "parameter_size": "9.0B",
+        "quantization": "Q4_K_M",
+        "runtime_process_rss_bytes": 6397952000,
+        "system_free_bytes": 136183808
+      },
+      "max_budget_stress": {
+        "rows": [
+          {
+            "case": "full-budget-0",
+            "split": "performance_stress",
+            "expected": "haiku",
+            "actual": "haiku",
+            "classified_tier": "haiku",
+            "source": "ollama",
+            "evaluator": "ollama",
+            "selected_model": null,
+            "confirmed_model": null,
+            "wall_ms": 11740.65,
+            "state_bytes": 3000,
+            "metrics": {
+              "input_tokens": 1775,
+              "output_tokens": 1
+            }
+          },
+          {
+            "case": "full-budget-1",
+            "split": "performance_stress",
+            "expected": "haiku",
+            "actual": "haiku",
+            "classified_tier": "haiku",
+            "source": "ollama",
+            "evaluator": "ollama",
+            "selected_model": null,
+            "confirmed_model": null,
+            "wall_ms": 11585.43,
+            "state_bytes": 3000,
+            "metrics": {
+              "input_tokens": 1709,
+              "output_tokens": 1
+            }
+          },
+          {
+            "case": "full-budget-2",
+            "split": "performance_stress",
+            "expected": "haiku",
+            "actual": "haiku",
+            "classified_tier": "haiku",
+            "source": "ollama",
+            "evaluator": "ollama",
+            "selected_model": null,
+            "confirmed_model": null,
+            "wall_ms": 12362.81,
+            "state_bytes": 3000,
+            "metrics": {
+              "input_tokens": 1731,
+              "output_tokens": 1
+            }
+          },
+          {
+            "case": "full-budget-3",
+            "split": "performance_stress",
+            "expected": "haiku",
+            "actual": "haiku",
+            "classified_tier": "haiku",
+            "source": "ollama",
+            "evaluator": "ollama",
+            "selected_model": null,
+            "confirmed_model": null,
+            "wall_ms": 12368.57,
+            "state_bytes": 3000,
+            "metrics": {
+              "input_tokens": 1709,
+              "output_tokens": 1
+            }
+          },
+          {
+            "case": "full-budget-4",
+            "split": "performance_stress",
+            "expected": "haiku",
+            "actual": "haiku",
+            "classified_tier": "haiku",
+            "source": "ollama",
+            "evaluator": "ollama",
+            "selected_model": null,
+            "confirmed_model": null,
+            "wall_ms": 12803.94,
+            "state_bytes": 3000,
+            "metrics": {
+              "input_tokens": 1731,
+              "output_tokens": 1
+            }
+          },
+          {
+            "case": "full-budget-5",
+            "split": "performance_stress",
+            "expected": "haiku",
+            "actual": "haiku",
+            "classified_tier": "haiku",
+            "source": "ollama",
+            "evaluator": "ollama",
+            "selected_model": null,
+            "confirmed_model": null,
+            "wall_ms": 13062.09,
+            "state_bytes": 3000,
+            "metrics": {
+              "input_tokens": 1775,
+              "output_tokens": 1
+            }
+          },
+          {
+            "case": "full-budget-6",
+            "split": "performance_stress",
+            "expected": "haiku",
+            "actual": "haiku",
+            "classified_tier": "haiku",
+            "source": "ollama",
+            "evaluator": "ollama",
+            "selected_model": null,
+            "confirmed_model": null,
+            "wall_ms": 13925.43,
+            "state_bytes": 3000,
+            "metrics": {
+              "input_tokens": 1797,
+              "output_tokens": 1
+            }
+          },
+          {
+            "case": "full-budget-7",
+            "split": "performance_stress",
+            "expected": "haiku",
+            "actual": "haiku",
+            "classified_tier": "haiku",
+            "source": "ollama",
+            "evaluator": "ollama",
+            "selected_model": null,
+            "confirmed_model": null,
+            "wall_ms": 13944.87,
+            "state_bytes": 3000,
+            "metrics": {
+              "input_tokens": 1775,
+              "output_tokens": 1
+            }
+          }
+        ],
+        "summary": {
+          "requests": 8,
+          "valid": 8,
+          "errors": 0,
+          "exact_rubric_agreement": 1,
+          "under_routes": 0,
+          "over_routes": 0,
+          "opus_under_routes": 0,
+          "wall_p50_ms": 12368.57,
+          "wall_p95_ms": 13944.87,
+          "successful_wall_p50_ms": 12368.57,
+          "successful_wall_p95_ms": 13944.87,
+          "confusion": {
+            "haiku": {
+              "haiku": 8,
+              "sonnet": 0,
+              "opus": 0,
+              "error": 0
+            },
+            "sonnet": {
+              "haiku": 0,
+              "sonnet": 0,
+              "opus": 0,
+              "error": 0
+            },
+            "opus": {
+              "haiku": 0,
+              "sonnet": 0,
+              "opus": 0,
+              "error": 0
+            }
+          }
+        },
+        "acceptance": {
+          "schema_version": 1,
+          "policy": {
+            "profile": "compatible",
+            "minAgreement": 1,
+            "maxUnderRouteRate": 0,
+            "requiredTiers": [
+              "haiku"
+            ]
+          },
+          "gates": {
+            "transport": {
+              "passed": null,
+              "reason": "Claude transport not exercised"
+            },
+            "evaluator": {
+              "passed": true,
+              "expected": "ollama",
+              "evaluated_requests": 8,
+              "successful_evaluations": 8,
+              "fallbacks": 0
+            },
+            "rubric": {
+              "passed": true,
+              "agreement": 1,
+              "under_routes": 0,
+              "under_route_rate": 0,
+              "min_agreement": 1,
+              "max_under_route_rate": 0
+            },
+            "policy": {
+              "passed": null,
+              "reason": "Classifier-only benchmark; routing policy not exercised"
+            },
+            "coverage": {
+              "passed": true,
+              "required": [
+                "haiku"
+              ],
+              "observed": [
+                "haiku"
+              ],
+              "missing": []
+            },
+            "task": {
+              "passed": null,
+              "reason": "No Claude task completion measured"
+            }
+          },
+          "passed": true,
+          "requests": 8
+        }
+      }
+    }
+  ],
+  "complete": true,
+  "passed": false,
+  "raw_report_sha256": "f640f828520269c2b6bd90bf8c1676ffa962f2851c82a02ba25816cf776a783b"
+}

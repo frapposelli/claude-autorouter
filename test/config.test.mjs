@@ -17,6 +17,19 @@ test('session decision logging is opt-in and directory settings are validated wi
   }
 });
 
+test('session log mode controls excerpts without enabling logging', () => {
+  assert.equal(readConfig({}).sessionLogMode, 'prompts');
+  for (const mode of ['prompts', 'metadata']) {
+    const config = readConfig({ AUTOROUTER_SESSION_LOG_MODE: mode });
+    assert.equal(config.sessionLogDir, undefined);
+    assert.equal(config.sessionLogMode, mode);
+  }
+  for (const value of ['', ' ', 'private-value', false, null]) {
+    assert.throws(() => readConfig({ AUTOROUTER_SESSION_LOG_MODE: value }), error =>
+      error.message.includes('AUTOROUTER_SESSION_LOG_MODE') && !error.message.includes('private-value'));
+  }
+});
+
 test('Auto is an explicit client profile and accepts only documented supported routing targets', () => {
   assert.equal(readConfig({}).clientProfile, 'compatible');
   assert.deepEqual(CLIENT_PROFILES, ['compatible', 'native', 'auto']);
@@ -109,19 +122,19 @@ test('custom namespaces and unknown local model tags keep the short deadline', (
   for (const model of ['team/nimble', 'team/tev1:4b', 'registry.ollama.ai/team/nimble:9b-q4_K_M',
     'registry.example/library/nimble:9b', 'library/team/tev1:4b', 'tev1:40b', 'tev1:4b-experimental',
     'nimble:small', 'nimble:9b-custom', 'nimble:9b-q4_K_M-extra', 'nimble-other:9b', 'custom:v1']) {
-    assert.equal(readConfig({ AUTOROUTER_OLLAMA_MODEL: model }).ollamaTimeoutMs, 1500, model);
+    assert.equal(readConfig({ AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_OLLAMA_MODEL: model }).ollamaTimeoutMs, 1500, model);
   }
 });
 
 test('an explicit local deadline overrides every model default and retains bounds', () => {
   for (const model of ['tev1:0.8b', 'tev1:4b', DEFAULT_OLLAMA_MODEL, 'team/nimble']) {
     for (const timeout of [0, 1, 1500, 18000, 30000]) {
-      const config = readConfig({ AUTOROUTER_OLLAMA_MODEL: model, AUTOROUTER_OLLAMA_TIMEOUT_MS: String(timeout) });
+      const config = readConfig({ AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_OLLAMA_MODEL: model, AUTOROUTER_OLLAMA_TIMEOUT_MS: String(timeout) });
       assert.equal(config.ollamaTimeoutMs, timeout, `${model}: ${timeout}`);
     }
   }
   for (const value of ['-1', '30001', '1.5', '1e-999', '-1e-999', 'Infinity', 'unknown', '', ' ', null, false, true, [], {}]) {
-    assert.throws(() => readConfig({ AUTOROUTER_OLLAMA_TIMEOUT_MS: value }), /AUTOROUTER_OLLAMA_TIMEOUT_MS/);
+    assert.throws(() => readConfig({ AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_OLLAMA_TIMEOUT_MS: value }), /AUTOROUTER_OLLAMA_TIMEOUT_MS/);
   }
 });
 
@@ -136,6 +149,44 @@ test('local decision configuration rejects unsafe endpoints, cloud tags and inva
   for (const env of [{ AUTOROUTER_EVALUATOR: 'auto' }, { AUTOROUTER_OLLAMA_URL: 'https://example.com' },
     { AUTOROUTER_OLLAMA_URL: 'http://127.0.0.1:11434/redirect' }, { AUTOROUTER_OLLAMA_MODEL: 'model:cloud' },
     { AUTOROUTER_OLLAMA_TIMEOUT_MS: '-1' }, { AUTOROUTER_OLLAMA_KEEP_ALIVE: '-1' }]) {
-    assert.throws(() => readConfig(env));
+    assert.throws(() => readConfig({ AUTOROUTER_EVALUATOR: 'ollama', ...env }));
   }
+});
+
+test('runtime validates the selected evaluator and explicit full checks include inactive settings', () => {
+  const jev = { AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_OLLAMA_URL: 'https://private-sentinel:secret@example.test', AUTOROUTER_OLLAMA_TIMEOUT_MS: '' };
+  assert.equal(readConfig(jev).evaluator, 'jev');
+  assert.throws(() => readConfig(jev, { validateAll: true }), /AUTOROUTER_OLLAMA_TIMEOUT_MS/);
+  const local = { AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_JEV_URL: 'private-invalid-url', AUTOROUTER_MIN_CONFIDENCE: '' };
+  assert.equal(readConfig(local).evaluator, 'ollama');
+  assert.throws(() => readConfig(local, { validateAll: true }), error => {
+    assert.match(error.message, /AUTOROUTER_JEV_URL/);
+    assert.ok(!error.message.includes('private-invalid-url'));
+    return true;
+  });
+});
+
+test('numeric settings reject blank and coercible values while meaningful zero remains valid', () => {
+  for (const key of ['AUTOROUTER_PORT', 'AUTOROUTER_JEV_TIMEOUT_MS', 'AUTOROUTER_TOKEN_COUNT_TIMEOUT_MS', 'AUTOROUTER_MIN_CONFIDENCE']) {
+    for (const value of ['', ' ', null, false, '0x10', '1e2']) assert.throws(() => readConfig({ [key]: value }), new RegExp(key));
+  }
+  assert.equal(readConfig({ AUTOROUTER_PORT: '0' }).port, 0);
+  assert.equal(readConfig({ AUTOROUTER_MIN_CONFIDENCE: '0' }).minConfidence, 0);
+  assert.equal(readConfig({ AUTOROUTER_MIN_CONFIDENCE: '.5' }).minConfidence, .5);
+});
+
+test('owned boolean flags and model names reject invalid values without exposing them', () => {
+  for (const key of ['AUTOROUTER_STATUSLINE', 'AUTOROUTER_DEBUG']) {
+    for (const value of ['', 'false', 'true', '2', false]) assert.throws(() => readConfig({ [key]: value }), new RegExp(key));
+    for (const value of ['0', '1']) assert.doesNotThrow(() => readConfig({ [key]: value }));
+  }
+  for (const key of ['AUTOROUTER_HAIKU_MODEL', 'AUTOROUTER_SONNET_MODEL', 'AUTOROUTER_OPUS_MODEL', 'AUTOROUTER_JEV_MODEL']) {
+    for (const value of ['', ' ', 'private\nsentinel', null]) assert.throws(() => readConfig({ [key]: value }), error => {
+      assert.match(error.message, new RegExp(key));
+      assert.ok(!error.message.includes('private'));
+      return true;
+    });
+    assert.doesNotThrow(() => readConfig({ [key]: 'custom/team-model:v1' }));
+  }
+  assert.doesNotThrow(() => readConfig({ ENABLE_TOOL_SEARCH: 'auto:5' }));
 });

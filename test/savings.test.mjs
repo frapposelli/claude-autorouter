@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createSavingsTracker } from '../src/savings.mjs';
+import { createSavingsTracker, estimateOutcomeSavings, PRICING_VERSION, PRICING_DATE, PRICING_SOURCE, PRICING_FACTS } from '../src/savings.mjs';
 
 const HAIKU = 'claude-haiku-4-5-20251001';
 const SONNET = 'claude-sonnet-5';
@@ -28,7 +28,8 @@ test('compares provider-confirmed token usage with Opus and exposes only aggrega
   assert.equal(current(tracker).requests, 0);
   tracker.update(event('request_complete'));
   assert.deepEqual(current(tracker), { baseline_model: OPUS, actual_usd: 6, baseline_usd: 24,
-    saved_usd: 18, percent: 75, requests: 1, unpriced_requests: 0 });
+    saved_usd: 18, percent: 75, requests: 1, unpriced_requests: 0, unpriced_reasons: {},
+    pricing_version: PRICING_VERSION, pricing_date: PRICING_DATE, pricing_source: PRICING_SOURCE });
   assert.equal(JSON.stringify(tracker.snapshot()).includes('SECRET'), false);
   assert.equal(JSON.stringify(tracker.snapshot()).includes('input_tokens'), false);
 });
@@ -281,4 +282,82 @@ test('malformed telemetry never throws, and clearing removes totals and request 
   assert.deepEqual(tracker.snapshot(), {});
   complete(tracker);
   assert.equal(current(tracker).requests, 1);
+});
+
+test('pricing facts are immutable, dated and attached to each estimate', () => {
+  assert.equal(PRICING_FACTS.version, PRICING_VERSION);
+  assert.equal(PRICING_FACTS.date, PRICING_DATE);
+  assert.equal(PRICING_FACTS.source, PRICING_SOURCE);
+  assert.equal(PRICING_FACTS.unit, 'cents_per_million_tokens');
+  assert.throws(() => { PRICING_FACTS.models[HAIKU].input = 0; }, TypeError);
+  assert.throws(() => { PRICING_FACTS.models.private = {}; }, TypeError);
+});
+
+test('unpriced reasons are bounded aggregate counts, detached from tracker state', () => {
+  const tracker = createSavingsTracker();
+  complete(tracker, { model: 'custom-model' });
+  complete(tracker, { extra: { request_id: 'invalid' }, tokens: {} });
+  complete(tracker, { extra: { request_id: 'missing' }, tokens: undefined });
+  complete(tracker, { extra: { request_id: 'modifier' }, context: { speed: 'private secret' } });
+  complete(tracker, { extra: { request_id: 'failed' }, status: 429 });
+  assert.deepEqual(current(tracker).unpriced_reasons, { request_failed: 1, unknown_model: 1, invalid_usage: 2, unsupported_pricing: 1 });
+  const result = current(tracker);
+  result.unpriced_reasons.invalid_usage = 123;
+  assert.equal(current(tracker).unpriced_reasons.invalid_usage, 2);
+  assert.equal(JSON.stringify(result).includes('private secret'), false);
+});
+
+test('mixed serving models remain unpriced even when their rate tables are identical', () => {
+  const tracker = createSavingsTracker();
+  tracker.update(event('request_start'));
+  tracker.update(event('upstream_model', { model: SONNET }));
+  tracker.update(event('upstream_model', { model: 'claude-sonnet-5-5' }));
+  tracker.update(event('upstream_usage', { usage }));
+  tracker.update(event('request_complete'));
+  assert.deepEqual(current(tracker).unpriced_reasons, { mixed_models: 1 });
+  assert.equal(current(tracker).requests, 0);
+  assert.equal(current(tracker).saved_usd, 0);
+});
+
+test('explicitly unconfirmed successful transport never contributes savings', () => {
+  const tracker = createSavingsTracker();
+  tracker.update(event('request_start'));
+  tracker.update(event('upstream_model', { model: HAIKU }));
+  tracker.update(event('upstream_usage', { usage }));
+  tracker.update(event('request_complete', { completion_confirmed: false }));
+  assert.deepEqual(current(tracker).unpriced_reasons, { unconfirmed_completion: 1 });
+  assert.equal(current(tracker).saved_usd, 0);
+});
+
+const outcome = (extra = {}) => ({ event: 'outcome', request_id: 'saved-request', status: 'completed',
+  confirmed_model: HAIKU, completion_confirmed: true, baseline_model: OPUS, pricing_version: PRICING_VERSION,
+  usage, ...extra });
+
+test('saved outcomes require their recorded pricing version, Opus baseline and confirmed completion', () => {
+  assert.deepEqual(estimateOutcomeSavings(outcome()), { priced: true, actual_usd: 6, baseline_usd: 24,
+    saved_usd: 18, percent: 75, baseline_model: OPUS, pricing_version: PRICING_VERSION });
+  assert.equal(estimateOutcomeSavings(outcome({ baseline_model: 'claude-opus-5' })).saved_usd, 24);
+  const cases = [
+    [{ completion_confirmed: false }, 'unconfirmed_completion'],
+    [{ completion_confirmed: undefined }, 'unconfirmed_completion'],
+    [{ pricing_version: 'future' }, 'unknown_pricing_version'],
+    [{ pricing_version: undefined }, 'unknown_pricing_version'],
+    [{ baseline_model: undefined }, 'unknown_baseline'],
+    [{ baseline_model: SONNET }, 'unknown_baseline'],
+    [{ status: 'cancelled' }, 'request_cancelled'],
+    [{ status: 'error' }, 'request_failed'],
+    [{ http_status: 500 }, 'request_failed'],
+    [{ usage_complete: false }, 'incomplete_usage'],
+    [{ usage: undefined }, 'missing_usage'],
+    [{ usage: { ...usage, input_tokens: null } }, 'unsupported_pricing'],
+    [{ confirmed_model: undefined }, 'missing_model'],
+    [{ pricing_eligible: false }, 'unsupported_pricing'],
+    [{ model_transitions: [SONNET, 'claude-sonnet-5-5'], confirmed_model: 'claude-sonnet-5-5' }, 'mixed_models'],
+    [{ model_transitions: [HAIKU, 'private model'] }, 'mixed_models'],
+    [{ model_transitions: Array(17).fill(HAIKU) }, 'mixed_models'],
+    [{ usage: { ...usage, pricing_unsupported: true } }, 'unsupported_pricing'],
+  ];
+  for (const [extra, reason] of cases) assert.deepEqual(estimateOutcomeSavings(outcome(extra)), { priced: false, unpriced_reason: reason });
+  assert.equal(estimateOutcomeSavings({ event: 'decision', request_id: 'legacy', requested_model: HAIKU,
+    selected_model: SONNET, schema_version: 1 }).unpriced_reason, 'invalid_telemetry');
 });

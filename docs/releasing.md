@@ -16,6 +16,8 @@ Version `0.3.6` fixes Auto permission-mode launches with an Auto-compatible Sonn
 
 Version `0.3.7` enables automatic Sonnet/Opus switching for compatible Auto-mode execution requests, including requests carrying the known server safety-review contract. The Auto profile defaults to Sonnet 5.5 and Opus 5.5, floors Haiku decisions to Sonnet, and retains the selected model through tool and goal continuations. Shared native context edits, mid-conversation system messages, and signed thinking history no longer pin new human tasks. Permission-classifier requests and safety verdicts remain unchanged; unknown contracts and incompatible model features still preserve a compatible model. Explicit model overrides remain in effect. See [Auto permission mode](reference.md#auto-permission-mode).
 
+Version `0.4.0` completes the routing, configuration, history and performance improvement plan. Shared compatibility checks and durable task state preserve valid request features and confirmed tool/goal continuity across evaluator cache expiry, provider fallback and concurrent requests. New `config show/set/unset`, `sessions list/show` and `doctor --evaluate-local` commands support focused configuration edits, private metadata-only history and explicit local diagnostics. `setup --force` now merges saved settings; use `--replace` for deliberate replacement. Optional logging remains disabled by default; new schema-2 decision/outcome records separate selected and observed models, while the reader still accepts schema-1 files. Consumers parsing JSONL directly should account for both event kinds and the new schema. Identical concurrent evaluations are coalesced with independent cancellation, responses are bounded, and status persistence is asynchronous. Releases retain the tested archive and verify public npm availability and installation after submission. Actual 16 GiB/64 GiB Ollama results retain failed quality gates and comparison limits; Jev remains the default. See the [configuration/history reference](reference.md) and [hardware comparison](hardware-comparison.md).
+
 The GitHub repository is private. Publishing to npm makes the tarball's runtime source, README, configuration example, license, and shipped documentation public. Model weights, user configuration, credentials, transcripts, session logs, local artifacts, and test fixtures are excluded. Review the archive before the first publication and whenever the package allowlist changes.
 
 ## What runs automatically
@@ -23,11 +25,15 @@ The GitHub repository is private. Publishing to npm makes the tarball's runtime 
 | Workflow | Trigger | Behavior |
 | --- | --- | --- |
 | [ci.yml](https://github.com/frapposelli/claude-autorouter/blob/main/.github/workflows/ci.yml) | Pull requests, pushes to `main`, manual runs, and calls from the release workflow | Syntax checks, tests, and package smoke tests on Ubuntu/macOS with Node 22/24 |
-| [publish.yml](https://github.com/frapposelli/claude-autorouter/blob/main/.github/workflows/publish.yml) | Push of a tag matching `v*` | Validate release, run CI, pack and test the candidate, then publish the verified archive |
+| [publish.yml](https://github.com/frapposelli/claude-autorouter/blob/main/.github/workflows/publish.yml) | Tag push; manual verification-only dispatch | Test and submit one canonical archive; independently verify registry availability and installation. Manual dispatch never publishes. |
 
 A release tag must exactly equal `v` plus the version in `package.json`, and its commit must be reachable from `origin/main`. Package name and repository metadata must match `claude-autorouter` and `frapposelli/claude-autorouter`. Stable versions use npm's `latest` tag; prereleases such as `0.3.1-beta.1` use `next`.
 
-The release workflow packs its candidate once and smoke-tests that exact `.tgz`. It uploads the archive and SHA-256 checksum as an Actions artifact. A separate publishing job downloads that artifact by its immutable ID, checks the checksum and every packaged file against the release checkout, then runs `npm publish` with scripts disabled. The publish job uses a GitHub-hosted Ubuntu runner, Node 24, and npm 11.19.1. Only that job has `id-token: write`; there is no `NPM_TOKEN` secret or required GitHub environment. Failed checks prevent publication.
+The release workflow packs its candidate once and smoke-tests that exact `.tgz`. It retains the archive, SHA-256 checksum, and commit-based release notes as Actions artifacts. The publishing job downloads the canonical artifact by immutable ID, checks every packaged file against the release checkout, and checks fresh npm metadata before submission. A new stable version must be greater than the current stable `latest`. An already-visible identical version skips publication; a different archive under that version is an error. Registry/network errors never count as proof that a version is unused.
+
+Only the publishing job has `id-token: write`; there is no `NPM_TOKEN` or required GitHub environment. It runs on GitHub-hosted Ubuntu with Node 24 and npm 11.19.1. The separate verifier has read-only permissions and never changes npm distribution tags. The workflow serializes its publishers, but independent/manual publishers must coordinate: npm does not provide an atomic compare-and-swap for the `latest` tag. A newer `latest` observed during verification is reported as superseding this release and is never moved backward.
+
+Verification polls uncached version metadata and the package document, checks the downloaded tarball against the tested archive, and installs the exact version from the public registry into a temporary prefix with an empty npm cache/config. It compares the installed file set and bytes with the canonical archive before invoking that executable’s `--version` and `--help` from an unrelated directory, with lifecycle scripts disabled and no evaluator credentials. Only a successful public install and matching artifact produce `verified`.
 
 The project has no package dependencies or lockfile, so CI runs its scripts directly without `npm ci`. Live Claude/Jev calls, Ollama downloads, and private repository probes are not CI checks.
 
@@ -83,7 +89,7 @@ claude-autorouter --help
 
 Then run `setup`, `doctor`, and a launch from outside the source checkout as appropriate for that machine. `doctor` is local-only; a live prompt separately verifies provider access. Keep the README's installation instructions aligned with the verified registry release.
 
-Do not push `v0.2.0` to test automation after this bootstrap: it would attempt to publish an existing version. npm name/version pairs cannot be reused, including after unpublishing. See the [npm publish reference](https://docs.npmjs.com/cli/v11/commands/npm-publish/).
+Do not push `v0.2.0` to test automation after this bootstrap. Keep the original bootstrap archive; a current verifier only accepts releases matching its archive and repository validation rules. npm name/version pairs cannot be reused, including after unpublishing. See the [npm publish reference](https://docs.npmjs.com/cli/v11/commands/npm-publish/).
 
 ## 2. Authorize this workflow on npm
 
@@ -107,62 +113,96 @@ After a successful trusted release, npm recommends the optional **Publishing acc
 
 ## 3. Release subsequent versions by tag
 
-The commands below illustrate the `0.3.2` release. For a new release, substitute the next unused version throughout; never reuse a published version:
+Use the next unused version. The following commands use `0.4.0` as an example, not as a claim that it is currently available:
 
 ```sh
 git switch main
 git pull --ff-only origin main
-npm version 0.3.2 --no-git-tag-version
-```
-
-Review the version change and update any version-specific install examples or release notes. Check the candidate using the new filename:
-
-```sh
+npm version 0.4.0 --no-git-tag-version
 npm run check
 npm test
 npm run release:pack
-npm run test:package -- --archive ./dist/claude-autorouter-0.3.2.tgz
+npm run test:package -- --archive ./dist/claude-autorouter-0.4.0.tgz
 git diff --check
 ```
 
-Commit the intended release changes and get that commit onto `main`, either through a pull request or a direct push allowed by the repository's branch rules. For a direct push with only the version changed:
-
-```sh
-git add package.json
-git commit -m "Release 0.3.2"
-git push origin main
-```
-
-Include any intentional documentation or release-note edits in that commit too. There is no publication from a branch push or PR merge. Wait for CI to pass, then tag that exact release commit:
+Review the archive, version-specific documentation, and release notes. Commit all intended changes and get that commit onto `main` through the repository’s normal review process. Wait for CI to pass, then tag the exact release commit:
 
 ```sh
 git switch main
 git pull --ff-only origin main
-git tag -a v0.3.2 -m "Release 0.3.2"
-git push origin v0.3.2
+git tag -a v0.4.0 -m "Release 0.4.0"
+git push origin v0.4.0
 ```
 
-Before pushing, confirm `package.json` contains `0.3.2` and the tag points to the intended commit. For a prerelease, use a matching version/tag such as `0.4.0-beta.1` / `v0.4.0-beta.1`; it will publish under `next`, leaving `latest` unchanged.
+The tag must match `package.json`. For a prerelease, use matching values such as `0.4.0-beta.1` / `v0.4.0-beta.1`; publication uses `next`, leaving `latest` unchanged. Release stable versions in increasing order, and wait for verification or investigate a pending submission before starting another stable release. The preflight blocks a new stable candidate that is not newer than the registry’s `latest`; queue order alone does not establish version order.
 
-Release stable versions in increasing version order, one tag at a time, and wait for each run to finish before pushing the next stable tag. The workflow queues releases without canceling an active run, but queue order does not sort semantic versions. Publishing an older stable version afterward could move `latest` backward; there is no registry version-order gate.
+For local checks after a tag exists, `node scripts/release-check.mjs source v0.4.0` validates the clean checkout, tag, metadata, and main ancestry. `node scripts/release-check.mjs archive v0.4.0` validates the candidate checksum and contents. `dist/` must contain only that candidate’s `.tgz` and `.sha256`, so retain older artifacts elsewhere.
 
-Open the tag's run under [GitHub Actions](https://github.com/frapposelli/claude-autorouter/actions). Under **Artifacts**, download `npm-package-<run-id>-<run-attempt>`, which contains the `.tgz` and checksum used for publication. Artifacts expire after 30 days, so retain them with the release record. After the publish job succeeds, verify the registry version and tags:
+## 4. Inspect the release state and retain evidence
+
+Open the tag’s run under [GitHub Actions](https://github.com/frapposelli/claude-autorouter/actions). Submission success is not proof that users can install the package. The verification job’s summary and retained JSON report distinguish:
+
+| State | Meaning | Next step |
+| --- | --- | --- |
+| `preflight_ready` | The new candidate passed metadata and version-order checks; submission has not occurred | The initial workflow attempt may submit it |
+| `submitted` | npm accepted the command, or an identical immutable version was already visible | Wait for independent verification |
+| `validating_unavailable` | Metadata, tarball, distribution tag, or installation is still unavailable, or the registry is failing | Keep the original archive and rerun verification |
+| `verified` | Exact archive integrity, distribution-tag state, and isolated public installation passed | Use the recorded upgrade command |
+| `failed` | An input, provenance, integrity, version-order, or executable check failed | Investigate the report before changing anything |
+
+The verifier polls for up to 15 minutes with backoff, then reports pending verification with a successful command exit. **A green workflow can therefore mean pending, not verified; read the recorded state.** An npm processing delay does not establish publication failure or justify a duplicate release. HTTP/network failures are reported separately from a missing version or tarball.
+
+The workflow retains these artifacts for 90 days, subject to repository retention policy:
+
+- `npm-package-<run-id>-<attempt>`: the canonical tested archive and SHA-256 file.
+- `release-notes-<run-id>-<attempt>`: notes derived from the tagged source’s commits and archive identity.
+- `release-submission-<run-id>-<attempt>`: preflight and, when accepted, submission reports.
+- `release-verification-<run-id>-<attempt>`: the canonical archive, checksum, available notes, and verification report.
+
+Download and retain the archive/checksum, notes, and report before Actions artifacts expire; attaching them to a GitHub Release is suitable for long-term retention. Artifact expiration is not a reason to repack a supposedly identical candidate for verification.
+
+After the report says `verified`, use its exact version:
 
 ```sh
-npm view claude-autorouter@0.3.2 version dist.integrity --registry https://registry.npmjs.org/
-npm view claude-autorouter dist-tags --json --registry https://registry.npmjs.org/
+npm install -g claude-autorouter@0.4.0
+claude-autorouter --version
+claude-autorouter --help
 ```
 
-Repeat the independent installation check for the released version. A GitHub Release page is optional; pushing the version tag is the publication trigger.
+The verifier runs the equivalent exact-version registry install in isolation. If `latest` has since advanced, the report explicitly marks this release as superseded; it does not restore an older tag. An unqualified `npm install -g claude-autorouter` follows the registry’s current `latest` instead.
 
-For local release diagnostics after the tag exists, `node scripts/release-check.mjs source v0.3.2` checks the tag, clean checkout, metadata, and ancestry. `node scripts/release-check.mjs archive v0.3.2` checks the candidate checksum and contents; `dist/` must contain only that version's archive and checksum, so retain older artifacts elsewhere first. These helpers are run automatically in the release workflow; the first untagged bootstrap uses the checks in step 1 instead.
+## 5. Rerun verification without publishing
 
-## Recovering a failed release
+Use the Actions **Run workflow** control for `publish.yml`, or the command below. Provide the release tag and the numeric run/artifact IDs from the original tag-triggered run:
 
-- **Checks or archive validation failed:** nothing is published. Fix the cause and repeat validation before making a new release tag. Do not move a tag that already identifies a published version.
-- **npm rejected OIDC authentication:** verify the npm trust fields, direct-publish permission, GitHub-hosted runner, and the publish job's OIDC permission. After correcting npm configuration, rerun the failed job if that version is still unpublished.
-- **A publish timed out or the run was interrupted:** check `npm view` for the exact version before retrying. The registry may have accepted it before the connection failed.
-- **The version already exists:** inspect the registry release; do not overwrite or unpublish to reuse it. Code or documentation corrections need a new version.
-- **Local bootstrap authentication failed:** complete `npm login` and the account's 2FA flow in your terminal. CI trust cannot create the first package or substitute for that account step.
+```sh
+gh workflow run publish.yml --ref main \
+  -f tag=v0.4.0 \
+  -f run_id=ORIGINAL_RUN_ID \
+  -f artifact_id=CANONICAL_NPM_PACKAGE_ARTIFACT_ID
+```
 
-If release code or workflow changes are needed, commit the fix to `main` and prepare a new version/tag. Authentication-only corrections on npm can be retried against the unchanged, unpublished candidate.
+This path validates that the artifact belongs to this repository’s original tag-triggered publishing workflow and matches the tag commit on `main`. It downloads those immutable bytes, checks their checksum and package metadata, and verifies npm availability. It cannot publish or alter npm tags and does not need npm OIDC permissions. Old runs may lack retained release notes; that does not prevent archive verification.
+
+You can also download the original archive and its checksum and run the verifier independently from a current source checkout:
+
+```sh
+node scripts/release-verify.mjs verify v0.4.0 \
+  --archive /path/to/claude-autorouter-0.4.0.tgz \
+  --report artifacts/release-verification-0.4.0.json \
+  --timeout-ms 900000
+```
+
+Both files must retain their original names, and the archive must satisfy the public-package validation rules. This command performs only registry reads and a temporary isolated install; it neither publishes nor changes your installed CLI, npm login, or AutoRouter configuration. Exit `0` includes pending verification, so automation must inspect the report’s `state`; exit `1` means verification failed. A mismatch is never accepted as an already-published identical release.
+
+## Recovering a release
+
+- **Checks/archive validation failed:** nothing was submitted by that failed path. Fix the cause, repeat validation, and follow the normal release process. Never move a published tag.
+- **Registry preflight failed:** an HTTP/authentication/network failure is not evidence that the version is unused. Restore visibility before submitting.
+- **npm rejected OIDC:** check the trusted-publisher fields, direct-publish permission, hosted runner, and OIDC permission. A job rerun deliberately does not resubmit a still-invisible version because an interrupted command may already have been accepted. Establish what happened before planning a new submission.
+- **Submission timed out, the run was interrupted, or npm is processing it:** retain the original archive and use verification-only dispatch. A retry with a matching visible version skips `npm publish`; a retry with an invisible version only verifies it.
+- **Existing version has different bytes:** stop. Never overwrite, unpublish, or replace the canonical artifact to reuse that version. Corrections require a new version.
+- **Verification remains pending:** do not call it a failed publication. Rerun the verifier later with the original artifact, inspect npm’s public status if the registry is failing, and retain the evidence for support if validation remains stuck.
+
+The workflow never repairs distribution tags automatically. npm’s [publish semantics](https://docs.npmjs.com/cli/commands/npm-publish/) make published name/version pairs immutable; [distribution tags](https://docs.npmjs.com/adding-dist-tags-to-packages/) are mutable references, so verification observes them without overwriting a newer release.
