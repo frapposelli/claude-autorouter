@@ -125,7 +125,7 @@ test('session logging setup saves an absolute directory with CLI precedence and 
   const env = { ...paths, TYPESAFE_API_KEY: 'synthetic-jev-key', AUTOROUTER_SESSION_LOG_DIR: '/unused-log-directory' };
   const before = structuredClone(env);
   const lines = [];
-  await setup(['--session-log-dir', logDirectory], { env, write: line => lines.push(line), prompt: () => assert.fail('Key supplied') });
+  await setup(['--session-log-dir', logDirectory, '--session-log-mode', 'prompts'], { env, write: line => lines.push(line), prompt: () => assert.fail('Key supplied') });
   const saved = readFileSync(paths.AUTOROUTER_CONFIG, 'utf8');
   assert.equal(JSON.parse(saved).AUTOROUTER_SESSION_LOG_DIR, resolve(logDirectory));
   assert.equal(readConfig(loadUserConfig(paths).env).sessionLogDir, resolve(logDirectory));

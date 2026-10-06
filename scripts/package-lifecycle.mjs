@@ -234,7 +234,8 @@ export async function verifyPackagedLifecycle({ installedCommand, installedRoot,
   const baseEnv = { ...env, PATH: [fakeBin, dirname(process.execPath)].join(delimiter), TMPDIR: runtimeTmp,
     AUTOROUTER_CONFIG: configFile, AUTOROUTER_AUTH_MODE: 'api-key',
     AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: JEV_KEY, ANTHROPIC_API_KEY: API_KEY,
-    AUTOROUTER_JEV_URL: `${endpoint}/v1/systemone`, AUTOROUTER_UPSTREAM_URL: endpoint, AUTOROUTER_SESSION_LOG_DIR: logDir };
+    AUTOROUTER_JEV_URL: `${endpoint}/v1/systemone`, AUTOROUTER_UPSTREAM_URL: endpoint, AUTOROUTER_SESSION_LOG_DIR: logDir,
+    AUTOROUTER_SESSION_LOG_MODE: 'prompts' };
   const completed = [];
   try {
     const launchCases = [

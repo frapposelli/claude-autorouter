@@ -94,7 +94,9 @@ test('rejects missing auth, browser origins, malformed JSON, unsupported paths a
   assert.equal((await f.call('/v1/messages', { method: 'POST', body: '{bad' })).status, 400);
   assert.equal((await f.call('/v1/messages', { method: 'POST', body: JSON.stringify({ ...body, messages: [null] }) })).status, 400);
   assert.equal((await f.call('/unexpected')).status, 404);
-  assert.equal((await f.call('/v1/messages', { method: 'POST', body: 'x'.repeat(1001) })).status, 413);
+  const oversized = await f.call('/v1/messages', { method: 'POST', body: 'x'.repeat(1001) });
+  assert.equal(oversized.status, 413);
+  assert.equal(oversized.headers.get('connection'), 'close', 'An oversized body is not drained on a kept-alive socket');
   assert.equal((await f.call('/health')).status, 200);
   assert.equal(f.evaluations(), 0);
   assert.deepEqual(decisions, []);
@@ -122,7 +124,7 @@ test('opt-in decision callbacks receive bounded current task text without leakin
     + 'event: message_stop\ndata: {"type":"message_stop"}\n\n';
   const f = await fixture(t, (_req, res) => {
     res.writeHead(200, { 'content-type': 'text/event-stream' }); res.end(reply);
-  }, {}, () => route, undefined, entry => decisions.push(entry));
+  }, { sessionLogMode: 'prompts' }, () => route, undefined, entry => decisions.push(entry));
   const send = async (value, requestClass) => {
     const response = await f.call('/v1/messages', { method: 'POST', headers: {
       'x-claude-code-session-id': 'decision-session', 'x-claude-code-agent-id': 'decision-agent', 'x-claude-code-prompt-id': 'decision-prompt',
@@ -206,7 +208,7 @@ test('a fallback decision is logged even when its upstream request fails', async
   const errorBody = JSON.stringify({ type: 'error', error: { type: 'rate_limit_error', message: 'Synthetic rate limit' } });
   const f = await fixture(t, (_req, res) => {
     res.writeHead(429, { 'content-type': 'application/json' }); res.end(errorBody);
-  }, {}, () => ({ model: body.model, latency_ms: 1501, source: 'fallback', evaluator: 'jev', reason: 'classifier_unavailable', classifier_error: 'timeout' }),
+  }, { sessionLogMode: 'prompts' }, () => ({ model: body.model, latency_ms: 1501, source: 'fallback', evaluator: 'jev', reason: 'classifier_unavailable', classifier_error: 'timeout' }),
   undefined, entry => decisions.push(entry));
   const response = await f.call('/v1/messages', { method: 'POST', body: JSON.stringify(body) });
   assert.equal(response.status, 429);

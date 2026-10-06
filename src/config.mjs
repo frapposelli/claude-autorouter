@@ -58,7 +58,7 @@ function modelName(value, name) {
  * @returns {import('./contracts.mjs').RouterConfig}
  */
 export function readConfig(env = process.env, { validateAll = false } = {}) {
-  const sessionLogMode = env.AUTOROUTER_SESSION_LOG_MODE === undefined ? 'prompts' : env.AUTOROUTER_SESSION_LOG_MODE;
+  const sessionLogMode = env.AUTOROUTER_SESSION_LOG_MODE === undefined ? 'metadata' : env.AUTOROUTER_SESSION_LOG_MODE;
   if (sessionLogMode !== 'metadata' && sessionLogMode !== 'prompts') throw new Error('AUTOROUTER_SESSION_LOG_MODE must be metadata or prompts');
   for (const key of ['AUTOROUTER_STATUSLINE', 'AUTOROUTER_DEBUG']) {
     if (env[key] !== undefined && !['0', '1'].includes(env[key])) throw new Error(`${key} must be 0 or 1`);

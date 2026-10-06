@@ -70,7 +70,7 @@ For an environment-only subscription launch, set `AUTOROUTER_AUTH_MODE=subscript
 | `AUTOROUTER_STATUSLINE` | enabled | `0` retains your existing status line |
 | `AUTOROUTER_DEBUG` | off | `1` enables launcher metadata logs on stderr |
 | `AUTOROUTER_SESSION_LOG_DIR` | off | Write per-session JSONL decisions and outcomes into this directory; unset or empty disables it |
-| `AUTOROUTER_SESSION_LOG_MODE` | `prompts` | `metadata` omits prompt excerpts; setting a mode alone does not enable logging |
+| `AUTOROUTER_SESSION_LOG_MODE` | `metadata` | `metadata` omits prompt excerpts; `prompts` includes bounded human-task excerpts; setting a mode alone does not enable logging |
 | `CLAUDE_CODE_STOP_HOOK_BLOCK_CAP` | unset; Claude currently uses `8` | Optional cap on consecutive Stop/SubagentStop continuations without tool use; `0` disables the cap |
 | `ENABLE_TOOL_SEARCH` | `true` in launcher when unset | Load MCP tool definitions on demand; explicit values are preserved |
 | `AUTOROUTER_HAIKU_MODEL` | `claude-haiku-4-5-20251001` | Routine tier |
@@ -210,7 +210,7 @@ In API-key mode, the upstream key stays in the proxy and Claude receives a tempo
 
 The proxy processes authenticated requests in memory, including their authorization headers. Preserving Claude's login flow does not by itself establish that every deployment is permitted. The [provider-policy note](subscription-integration.md#provider-guidance-and-unresolved-scope) records the current documentation and the unresolved scope of model-rewriting subscription forwarding. Jev requires its own TypeSafe credentials and billing, separate from Anthropic authentication.
 
-Routine diagnostic logs contain route, model, timing, usage, and error-category metadata, not prompts, raw responses, or credentials. Opt-in session history is separate and includes task excerpts in its default `prompts` mode. Status snapshots contain routing metadata and token counts in a private temporary directory and are deleted on normal launcher exit. Classification, turn, and token-count caches are held in memory. Claude Code and the external providers have their own storage and logging behavior.
+Routine diagnostic logs contain route, model, timing, usage, and error-category metadata, not prompts, raw responses, or credentials. Opt-in session history is separate and includes task excerpts only in `prompts` mode; the default is `metadata` (changed from `prompts` after 0.5.0; set `AUTOROUTER_SESSION_LOG_MODE=prompts` to keep excerpts). Status snapshots contain routing metadata and token counts in a private temporary directory and are deleted on normal launcher exit. Classification, turn, and token-count caches are held in memory. Claude Code and the external providers have their own storage and logging behavior.
 
 ## Routing policy
 
@@ -321,7 +321,7 @@ claude-autorouter sessions show autorouter-session-EXAMPLE --json
 
 Use the exact `id` printed by `sessions list`. Commands need no evaluator credentials and do not contact providers. Human summaries distinguish selected models, observed serving models, confirmed completions, failures, cancellations, and pending/unconfirmed requests. They report routing latency, fallback and override counts, and API-equivalent savings coverage. A selected model or an HTTP 200 alone does not prove successful inference. Old schema-1 decision logs remain readable and explicitly lack outcome evidence.
 
-`prompts` mode preserves the existing excerpt behavior when a log directory is enabled. Main requests retain at most 500 Unicode characters of the human task; recognized tool and goal continuations retain the originating task. Auxiliary, subagent, compaction, workflow, and attachment-only requests have empty excerpts. Metadata mode omits the excerpt fields entirely. Neither mode logs authentication headers, provider replies, full transcripts, or tool payloads. Text entered directly in a prompt can appear in an enabled prompt excerpt.
+`prompts` mode (opt-in) records excerpts when a log directory is enabled. Main requests retain at most 500 Unicode characters of the human task; recognized tool and goal continuations retain the originating task. Auxiliary, subagent, compaction, workflow, and attachment-only requests have empty excerpts. Metadata mode omits the excerpt fields entirely. Neither mode logs authentication headers, provider replies, full transcripts, or tool payloads. Text entered directly in a prompt can appear in an enabled prompt excerpt.
 
 The settings also work with `serve` and every client profile. `setup --session-log-dir DIR --session-log-mode metadata --force` updates an existing configuration. Setup resolves relative directories at setup time; environment-only paths resolve from the launch directory. `AUTOROUTER_SESSION_LOG_DIR=''` disables a saved directory for one launch. Setting only the mode never enables logging. `doctor` reports preferences without creating files.
 

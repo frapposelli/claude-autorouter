@@ -4,7 +4,7 @@ An independent local model-routing gateway for Claude Code. AutoRouter is not af
 
 Use Haiku, Sonnet and Opus in one Claude Code session. AutoRouter evaluates each coding request, checks model compatibility and context capacity, and forwards it through a local gateway. Native Ollama `/v1/systemone` models are the default, experimental local evaluator, so task excerpts stay on your machine; [TypeSafe Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) is an optional hosted evaluator (`setup --evaluator jev`). Claude owns authentication, tool permissions and safety review.
 
-Requires Node.js 22+, macOS or Linux (including WSL), an installed `claude` command, and a Claude subscription login or Anthropic API key. The default evaluator also needs a [TypeSafe API key](https://console.typesafe.ai). The installed CLI has no runtime dependencies.
+Requires Node.js 22+, macOS or Linux (including WSL), an installed `claude` command, and a Claude subscription login or Anthropic API key. The optional Jev evaluator needs a [TypeSafe API key](https://console.typesafe.ai). The installed CLI has no runtime dependencies.
 
 Version 0.4.0 adds `config`, `sessions` and `doctor --evaluate-local`, durable task continuity, and clearer model outcomes. Upgrade from 0.3.x to use these commands. The [contributor guide](CONTRIBUTING.md) explains local verification, and the [release guide](docs/releasing.md) covers the changes and verified publication.
 
