@@ -7,9 +7,10 @@ import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gunzipSync } from 'node:zlib';
 
-const ROOT_FILES = new Set(['package.json', 'README.md', 'CONTRIBUTING.md', 'LICENSE', '.env.example']);
+const ROOT_FILES = new Set(['package.json', 'README.md', 'CONTRIBUTING.md', 'LICENSE', '.env.example',
+  'SECURITY.md', 'SUPPORT.md', 'CODE_OF_CONDUCT.md']);
 const CORE_DOC_FILES = ['docs/reference.md', 'docs/development.md', 'docs/releasing.md', 'docs/ollama-evaluation.md'];
-const DOC_FILES = new Set([...CORE_DOC_FILES, 'docs/router-performance.md', 'docs/router-performance.json',
+const DOC_FILES = new Set([...CORE_DOC_FILES, 'docs/subscription-integration.md', 'docs/router-performance.md', 'docs/router-performance.json',
   'docs/status-performance.md', 'docs/status-performance.json', 'docs/hardware-benchmark.md',
   'docs/hardware-results-16gb.md', 'docs/hardware-results-16gb.json',
   'docs/hardware-comparison.md', 'docs/hardware-results-64gb.json']);

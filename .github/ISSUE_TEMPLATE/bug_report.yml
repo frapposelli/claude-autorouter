@@ -1,0 +1,43 @@
+name: Bug report
+description: Report a reproducible AutoRouter problem using sanitized details.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For vulnerabilities, use the [private reporting process](https://github.com/frapposelli/claude-autorouter/blob/main/SECURITY.md).
+        Do not include credentials, private prompts, source code or transcripts. Review any logs and screenshots before sharing.
+  - type: textarea
+    id: versions
+    attributes:
+      label: Versions and environment
+      description: AutoRouter, Claude Code, Node.js and OS versions; Ollama version and model tag if applicable. Include authentication mode, evaluator and client profile, without credentials or full configuration dumps.
+      placeholder: "AutoRouter: ... / Claude Code: ... / Node.js: ... / OS: ... / evaluator: ... / profile: ... / auth mode: ..."
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Provide minimal commands and a synthetic prompt or fixture where possible. Explain if the problem cannot be reproduced without private context.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+      description: Include the error or unexpected result. For routing issues, distinguish the selected model from the provider-confirmed model.
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Sanitized diagnostics
+      description: Optional relevant excerpts only. Session logs default to prompt excerpts when enabled; choose metadata mode for a reproduction and inspect its output too. Debug stderr may include Claude diagnostics. Remove identifiers and personal paths.
+      render: text
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Before submitting
+      options:
+        - label: I reviewed this report and attachments for credentials, private content and identifying information.
+          required: true

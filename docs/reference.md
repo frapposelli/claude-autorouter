@@ -1,5 +1,7 @@
 # Reference
 
+AutoRouter is an independent gateway for Claude Code. Its existing `claude-autorouter` package, command, configuration paths, and repository identity remain unchanged. See [integration boundaries and provider policy](subscription-integration.md) for authentication ownership and the distinction between technical operation and provider authorization.
+
 ## Commands
 
 | Command | Purpose |
@@ -186,7 +188,7 @@ Claude Code → authenticated local gateway → Jev or local Ollama classificati
                                         → selected Claude model → streamed response
 ```
 
-AutoRouter uses Claude Code's [gateway integration](https://code.claude.com/docs/en/llm-gateway-protocol), so it sees inference requests and tool continuations. It does not rely on a user-prompt hook.
+AutoRouter launches the user's installed official Claude Code binary without patching it and uses Claude Code's [gateway integration](https://code.claude.com/docs/en/llm-gateway-protocol), so it sees inference requests and tool continuations. It does not rely on a user-prompt hook. Each user uses their own provider credentials; AutoRouter does not provide a Claude sign-in service or a shared provider account.
 
 The selected evaluator receives a bounded state containing the latest human request and excerpts of the original task and recent messages: up to 12,000 serialized characters sent to TypeSafe for Jev, or 3,000 UTF-8 bytes sent to the local Ollama service. Jev also receives system-text excerpts. The local path excludes Claude's top-level executor system instructions. These excerpts can include private source code and tool results. Images, document payloads, and signed thinking are omitted. Full tool schemas and full conversation history are not sent to either classifier. Anthropic receives the complete request, including its tools and attachments. Large or multimodal requests may also go to Anthropic's token-count endpoint before inference, including when classification is local.
 
@@ -194,7 +196,9 @@ In subscription mode, Claude Code owns login and OAuth refresh. AutoRouter forwa
 
 In API-key mode, the upstream key stays in the proxy and Claude receives a temporary local credential. Requests are billed to the supplied API key. Subscription requests remain subject to the subscription's model access and usage limits. AutoRouter never falls back from subscription authentication to API billing.
 
-Routine logs contain route, model, timing, usage, and error-category metadata, not prompts, raw responses, or credentials. Status snapshots contain routing metadata and token counts in a private temporary directory and are deleted on normal launcher exit. Classification, turn, and token-count caches are held in memory. Claude Code and the external providers have their own storage and logging behavior.
+The proxy processes authenticated requests in memory, including their authorization headers. Preserving Claude's login flow does not by itself establish that every deployment is permitted. The [provider-policy note](subscription-integration.md#provider-guidance-and-unresolved-scope) records the current documentation and the unresolved scope of model-rewriting subscription forwarding. Jev requires its own TypeSafe credentials and billing, separate from Anthropic authentication.
+
+Routine diagnostic logs contain route, model, timing, usage, and error-category metadata, not prompts, raw responses, or credentials. Opt-in session history is separate and includes task excerpts in its default `prompts` mode. Status snapshots contain routing metadata and token counts in a private temporary directory and are deleted on normal launcher exit. Classification, turn, and token-count caches are held in memory. Claude Code and the external providers have their own storage and logging behavior.
 
 ## Routing policy
 

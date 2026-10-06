@@ -1,6 +1,20 @@
 # Contributing to AutoRouter
 
-Use Node.js 22+ and macOS or Linux. Install pinned development tools, then run the local checks:
+Bug reports, documentation improvements, reproducible routing cases and focused fixes are welcome. Read the [support guide](SUPPORT.md) before opening an issue, and use the [private security reporting process](SECURITY.md) for vulnerabilities. Participation follows the [code of conduct](CODE_OF_CONDUCT.md).
+
+For a substantial behavior change, open an issue describing the problem and proposed scope before implementing it. Fabio Rapposelli ([@frapposelli](https://github.com/frapposelli)) maintains the project and reviews design and release decisions. Review is best effort; there is no guaranteed response time.
+
+## Submit a change
+
+Fork the repository, clone your fork and create a branch. While the repository is private, this requires access and permission to fork; existing collaborators can use a branch in their authorized checkout.
+
+```sh
+git clone https://github.com/YOUR-USERNAME/claude-autorouter.git
+cd claude-autorouter
+git switch -c describe-your-change
+```
+
+Use Node.js 22+ and macOS or Linux (including WSL). Install pinned development tools, then run the local checks:
 
 ```sh
 npm ci --ignore-scripts --no-audit --no-fund
@@ -10,6 +24,10 @@ npm run test:package
 ```
 
 Tests use synthetic local services and credentials. They require loopback binding, but make no paid provider calls, downloads or user-config changes. The package check installs and exercises the exact distributable archive. Opt-in provider/model canaries are described in [development and validation](docs/development.md).
+
+Open a pull request against `main`. Describe the problem, resulting behavior and relevant validation, linking an issue when one exists. Keep the change focused, include meaningful regressions for behavior changes, and update affected help or documentation. Report any checks you could not run. Real provider calls and model downloads are not required for ordinary contributions; label their results separately if deliberately run.
+
+Use synthetic fixtures. Do not commit credentials, personal configuration, private prompts, transcripts or session logs. Metadata-only logs can still contain identifying information; inspect any material before sharing it. Contributions are accepted under the project's [Apache-2.0 license](LICENSE); submit only work you have the right to contribute. No CLA or sign-off workflow is required.
 
 ## Changing behavior
 

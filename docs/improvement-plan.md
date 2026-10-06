@@ -1,8 +1,10 @@
 # AutoRouter improvement plan
 
+**Historical plan for the 0.3.7 → 0.4.0 work.** This October 5, 2026 assessment is retained as design and audit history. Its proposed work and defect descriptions are superseded by the [implementation record](implementation-progress.md) and current [reference](reference.md); they are not a list of outstanding defects in the current release. Test counts, repository state, npm tags, estimates, and source line links below describe that review point.
+
 Make routing dependable across long sessions, make every model decision understandable, and make setup and releases easier for software engineers to operate. Start with correctness and diagnostics, then optimize measured overhead and finish the CLI presentation.
 
-This is a proposed implementation plan, reviewed on October 5, 2026 against version 0.3.7, commit `b377a8a`. It does not implement or release the changes below. The current checkout passes all 343 tests and the syntax check. GitHub CI and the publication workflow for this commit passed, npm identifies 0.3.7 as `latest`, and the repository has no open issues at review time. The audit used synthetic local reproductions and source inspection; it made no live evaluator or Claude inference calls.
+This plan was reviewed on October 5, 2026 against version 0.3.7, commit `b377a8a`. Writing the plan did not implement or release the changes below. The reviewed checkout passed all 343 tests and the syntax check. GitHub CI and the publication workflow for that commit passed, npm identified 0.3.7 as `latest`, and the repository had no open issues at review time. The audit used synthetic local reproductions and source inspection; it made no live evaluator or Claude inference calls.
 
 Keep the existing Node.js CLI and gateway design, zero runtime dependencies, Jev default, and native `/v1/systemone` support for Ollama. Preserve Claude authentication and permission reviews, verbatim response forwarding, optional session logging disabled by default, and the distinction between API-equivalent savings and actual subscription savings. New human tasks must remain eligible for automatic model switching, including Sonnet/Opus switching in Auto mode.
 

@@ -1,4 +1,6 @@
-# Claude AutoRouter
+# AutoRouter
+
+An independent local model-routing gateway for Claude Code. AutoRouter is not affiliated with, endorsed by, or sponsored by Anthropic. The existing npm package and command remain `claude-autorouter`.
 
 Use Haiku, Sonnet and Opus in one Claude Code session. AutoRouter evaluates each coding request, checks model compatibility and context capacity, and forwards it through a local gateway. [TypeSafe Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) is the default evaluator; native Ollama `/v1/systemone` models provide an experimental local option. Claude owns authentication, tool permissions and safety review.
 
@@ -17,6 +19,8 @@ claude-autorouter claude
 ```
 
 Setup defaults to your Claude subscription and prompts privately for the Jev key. Run `claude auth login` if needed. Jev has separate credentials and billing; subscription mode needs no Anthropic API key. For API billing, use `setup --auth-mode api-key`.
+
+AutoRouter launches your installed, unmodified official Claude Code executable. Each user supplies their own login or API credentials. Subscription forwarding is a technical integration, not a claim of provider approval; review the [integration boundaries and current provider-policy notes](docs/subscription-integration.md) for your deployment.
 
 Configuration is saved privately at `~/.config/claude-autorouter/config.json`. Environment variables override it; project `.env` files are not loaded automatically. `setup --force` updates an existing configuration while preserving other settings. Use focused commands for later edits:
 
@@ -96,4 +100,4 @@ Historical integration observations cover Claude Code 2.1.284–2.1.285. The ver
 
 The evaluator receives bounded task/history excerpts that may contain code and tool results: TypeSafe for Jev, or your loopback Ollama service. Anthropic receives the complete request. Model switching can reduce cache reuse. [Data flow and authentication](docs/reference.md#data-flow-and-authentication).
 
-[Reference](docs/reference.md) · [Contributing](CONTRIBUTING.md) · [Development](docs/development.md) · [Releases](docs/releasing.md) · [Apache-2.0](LICENSE)
+[Reference](docs/reference.md) · [Integration and provider policy](docs/subscription-integration.md) · [Contributing](CONTRIBUTING.md) · [Development](docs/development.md) · [Releases](docs/releasing.md) · [Apache-2.0](LICENSE)
