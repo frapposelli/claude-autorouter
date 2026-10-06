@@ -4,6 +4,8 @@ Bug reports, documentation improvements, reproducible routing cases and focused 
 
 For a substantial behavior change, open an issue describing the problem and proposed scope before implementing it. Fabio Rapposelli ([@frapposelli](https://github.com/frapposelli)) maintains the project and reviews design and release decisions. Review is best effort; there is no guaranteed response time.
 
+Coding agents working in a source checkout should follow [AGENTS.md](https://github.com/frapposelli/claude-autorouter/blob/main/AGENTS.md). [CLAUDE.md](https://github.com/frapposelli/claude-autorouter/blob/main/CLAUDE.md) imports the same guidance for Claude Code.
+
 ## Submit a change
 
 Fork the repository, clone your fork and create a branch. While the repository is private, this requires access and permission to fork; existing collaborators can use a branch in their authorized checkout.
