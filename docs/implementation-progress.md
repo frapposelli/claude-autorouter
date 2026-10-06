@@ -1,6 +1,6 @@
-# Four-point implementation progress
+# Historical implementation record: 0.4.0
 
-This tracks the implementation of the [improvement plan](improvement-plan.md), in the four stages agreed with the user. Implementation is complete and prepared for version 0.4.0; publication is verified separately by the release workflow.
+This records the implementation of the [improvement plan](improvement-plan.md) in four stages, completed during the October 5–6, 2026 preparation of version 0.4.0. It is a historical acceptance record, not a current test report or proof of publication. Test counts, development archive identities, and source-match statements apply to the recorded checkpoints. Current behavior is documented in the [reference](reference.md); publication is verified separately through the [release workflow](releasing.md).
 
 | Stage | Scope | State |
 | --- | --- | --- |
@@ -41,4 +41,4 @@ Actual local measurements are in [the 16 GiB/64 GiB comparison](hardware-compari
 
 All four implementation stages are complete and included in the 0.4.0 release preparation. The archive hashes above identify the earlier development validation; the release workflow retains and verifies the separately built 0.4.0 canonical archive. Historical canaries and mock timings are clearly distinguished from the actual local-model measurements; current-source paid canaries and downstream Claude task quality remain unmeasured and are not claimed by this acceptance review.
 
-The original transfer bundle remains unchanged as benchmark provenance. Subsequent changes update documentation and the package documentation allowlist only; classifier, router, benchmark and fixture sources still match the returned manifest. The final exact-archive smoke check installed and tested all 50 public files without rebuilding them.
+At this record's final checkpoint, the original transfer bundle remained unchanged as benchmark provenance. Changes after that measurement had updated documentation and the package documentation allowlist only; classifier, router, benchmark and fixture sources still matched the returned manifest. That checkpoint's exact-archive smoke check installed and tested all 50 public files without rebuilding them. Later repository changes require their own validation.

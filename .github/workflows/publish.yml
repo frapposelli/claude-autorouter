@@ -128,10 +128,10 @@ jobs:
         env:
           ARCHIVE: ${{ steps.release.outputs.archive }}
           DIST_TAG: ${{ steps.release.outputs.dist_tag }}
-          # npm provenance is unsupported for this private source repository.
-          NPM_CONFIG_PROVENANCE: 'false'
+          # Provenance requires public source; use it automatically after the repository is public.
+          NPM_CONFIG_PROVENANCE: ${{ !github.event.repository.private }}
         run: |
-          npm publish "./$ARCHIVE" --access public --tag "$DIST_TAG" --registry=https://registry.npmjs.org/ --ignore-scripts --provenance=false
+          npm publish "./$ARCHIVE" --access public --tag "$DIST_TAG" --registry=https://registry.npmjs.org/ --ignore-scripts --provenance="$NPM_CONFIG_PROVENANCE"
           node scripts/release-verify.mjs submitted "$GITHUB_REF_NAME" --archive "$ARCHIVE" --report release-evidence/submitted.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()

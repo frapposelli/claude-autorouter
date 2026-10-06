@@ -61,7 +61,7 @@ Claude owns permission checks and subscription authentication.
 };
 
 export function helpText(command = 'help') {
-  return commands[command] ?? `Claude AutoRouter — automatic Claude model routing
+  return commands[command] ?? `AutoRouter — automatic model routing for Claude Code
 
 Usage: claude-autorouter <command> [options]
 
