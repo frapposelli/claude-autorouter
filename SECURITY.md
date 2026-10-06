@@ -2,7 +2,7 @@
 
 ## Report privately
 
-Once this repository is public and private vulnerability reporting is enabled, use GitHub's [Report a vulnerability](https://github.com/frapposelli/claude-autorouter/security/advisories/new) form. While the repository is private, or if that form is unavailable, email maintainer Fabio Rapposelli at [fabio@rapposelli.org](mailto:fabio@rapposelli.org) with the subject `AutoRouter security report`.
+Use GitHub's private [Report a vulnerability](https://github.com/frapposelli/claude-autorouter/security/advisories/new) form. Private vulnerability reporting is enabled for this repository. If the form is unavailable, email maintainer Fabio Rapposelli at [fabio@rapposelli.org](mailto:fabio@rapposelli.org) with the subject `AutoRouter security report`.
 
 Do not open a public issue or pull request with exploit details, credentials or sensitive request data. Include the affected AutoRouter and Claude Code versions, operating system, evaluator/client profile, expected security boundary, observed impact and a minimal synthetic reproduction where possible. Do not include real API keys, OAuth tokens, private source code, prompts or transcripts. The maintainer can coordinate any additional evidence privately.
 
