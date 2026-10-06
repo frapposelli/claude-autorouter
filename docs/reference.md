@@ -163,7 +163,7 @@ claude-autorouter setup --evaluator ollama --ollama-model tev1:4b-q4_K_M --pull 
 
 For Nimble, the explicit Q4_K_M tag avoids `nimble:latest`, which currently selects an approximately 9.5 GB Q8 model. For Tev1, `tev1:latest` and `tev1:4b` select approximately 4.5 GB Q8 weights; the explicit `tev1:4b-q4_K_M` tag selects the smaller 4B download. Download size is not resident memory: runtime and context allocations add to it, and other applications need memory too. Downloaded models have their own licenses and are not bundled in this package. In historical tests before 0.3.2 on a 16 GiB M4, Tev1 0.8B matched 18/24 held-out labels at 450 ms median latency within 1,500 ms; 4B matched 22/24 at 3.15 seconds with a separate 10-second deadline. See the [local measurements](ollama-evaluation.md) before choosing a latency deadline.
 
-The endpoint must be loopback (`127.0.0.1`, `localhost`, or `::1`), without a path, credentials, query, or fragment. Cloud model tags and metadata identifying a remote model are rejected before sending task text. Claude and Jev credentials are never attached to Ollama requests.
+The endpoint must be loopback (`127.0.0.1`, `localhost`, or `::1`); `localhost` is converted to `127.0.0.1` so the connection does not depend on name resolution, without a path, credentials, query, or fragment. Cloud model tags and metadata identifying a remote model are rejected before sending task text. Claude and Jev credentials are never attached to Ollama requests.
 
 ### Classification and fallback
 
@@ -228,7 +228,7 @@ In API-key mode, the upstream key stays in the proxy and Claude receives a tempo
 
 The proxy processes authenticated requests in memory, including their authorization headers. Preserving Claude's login flow does not by itself establish that every deployment is permitted. The [provider-policy note](subscription-integration.md#provider-guidance-and-unresolved-scope) records the current documentation and the unresolved scope of model-rewriting subscription forwarding. Jev requires its own TypeSafe credentials and billing, separate from Anthropic authentication.
 
-Routine diagnostic logs contain route, model, timing, usage, and error-category metadata, not prompts, raw responses, or credentials. Opt-in session history is separate and includes task excerpts only in `prompts` mode; the default is `metadata` (changed from `prompts` after 0.5.0; set `AUTOROUTER_SESSION_LOG_MODE=prompts` to keep excerpts). Status snapshots contain routing metadata and token counts in a private temporary directory and are deleted on normal launcher exit. Classification, turn, and token-count caches are held in memory. Claude Code and the external providers have their own storage and logging behavior.
+Routine diagnostic logs contain route, model, timing, usage, and error-category metadata, not prompts, raw responses, or credentials. Opt-in session history is separate and includes task excerpts only in `prompts` mode; the default is `metadata` (changed from `prompts` after 0.5.0; set `AUTOROUTER_SESSION_LOG_MODE=prompts` to keep excerpts). Status snapshots contain routing metadata and token counts in a private temporary directory and are deleted on normal launcher exit. After a hard kill, the next launch removes directories whose process is gone (only your own, owner-only `autorouter-status-*` directories in the temporary directory). Classification, turn, and token-count caches are held in memory. Claude Code and the external providers have their own storage and logging behavior.
 
 ## Routing policy
 

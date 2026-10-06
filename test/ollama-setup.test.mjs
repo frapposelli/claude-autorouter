@@ -92,7 +92,8 @@ test('official library prefixes and custom aliases match canonical installed mod
 });
 
 test('only local endpoints and safe local model tags are accepted before any request', async () => {
-  assert.equal(validateOllamaEndpoint('http://localhost:11434/'), 'http://localhost:11434');
+  assert.equal(validateOllamaEndpoint('http://localhost:11434/'), 'http://127.0.0.1:11434', 'localhost connects to the loopback address, not a resolved name');
+  assert.equal(validateOllamaEndpoint('https://LOCALHOST:8443'), 'https://127.0.0.1:8443');
   assert.equal(validateOllamaEndpoint('http://[::1]:11434'), 'http://[::1]:11434');
   for (const value of ['https://ollama.com', 'http://127.0.0.1:11434/api', 'http://secret@localhost:11434', 'http://localhost:11434/?secret=1', 'invalid-secret-url']) {
     assert.throws(() => validateOllamaEndpoint(value), error => !error.message.includes('secret'));

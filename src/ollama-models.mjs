@@ -23,6 +23,9 @@ export function validateOllamaEndpoint(value) {
     || endpoint.username || endpoint.password || endpoint.search || endpoint.hash || endpoint.pathname !== '/') {
     throw new Error('Ollama must use a loopback base URL without a path, credentials, a query, or a fragment.');
   }
+  // Connect to the loopback address itself. Where `localhost` resolves comes
+  // from /etc/hosts and the resolver, which are not part of this check.
+  if (endpoint.hostname === 'localhost') endpoint.hostname = '127.0.0.1';
   return endpoint.origin;
 }
 
