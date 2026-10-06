@@ -4,7 +4,7 @@ import { Writable } from 'node:stream';
 import { promisify } from 'node:util';
 import { CLIENT_PROFILES, readConfig, requireKeys, parseStopHookBlockCap, parseSessionLogDir } from './config.mjs';
 import { buildClaudeEnv, conflictingProviders, LOCAL_AUTH_HEADER } from './auth.mjs';
-import { CONFIG_KEYS, SECRET_CONFIG_KEYS, loadUserConfig, saveUserConfig } from './user-config.mjs';
+import { CONFIG_KEYS, SECRET_CONFIG_KEYS, SECRET_STORES, keychainRemovals, loadUserConfig, saveUserConfig } from './user-config.mjs';
 import { DEFAULT_OLLAMA_MODEL, validateOllamaModel } from './ollama-models.mjs';
 import { inspectOllama, setupOllama } from './ollama-setup.mjs';
 
@@ -37,10 +37,12 @@ export async function askSecret(label, { input = process.stdin, output = process
 }
 
 export async function setup(args, {
-  env = process.env, write = console.log, prompt = askSecret, fetchImpl = fetch, signal,
+  env = process.env, write = console.log, prompt = askSecret, fetchImpl = fetch, signal, keychain,
+  platform = process.platform,
 } = {}) {
   if (signal?.aborted) throw new Error('Setup cancelled');
-  const loaded = loadUserConfig(env, { allowMissing: true });
+  const store = keychain ? { keychain } : {};
+  const loaded = loadUserConfig(env, { allowMissing: true, ...store });
   const replace = args.includes('--replace');
   const mergeExisting = loaded.exists && !replace;
   // Updating one preference must not turn unrelated runtime overrides into
@@ -56,6 +58,7 @@ export async function setup(args, {
   let stopHookBlockCap = effectiveEnv.CLAUDE_CODE_STOP_HOOK_BLOCK_CAP;
   let sessionLogDir = effectiveEnv.AUTOROUTER_SESSION_LOG_DIR;
   let sessionLogMode = effectiveEnv.AUTOROUTER_SESSION_LOG_MODE;
+  let secretStore;
   let pull = false;
   let overwrite = replace;
   for (let i = 0; i < args.length; i++) {
@@ -82,10 +85,14 @@ export async function setup(args, {
       sessionLogMode = args[++i];
       if (!['metadata', 'prompts'].includes(sessionLogMode)) throw new Error('--session-log-mode must be metadata or prompts');
     }
+    else if (args[i] === '--secret-store') {
+      secretStore = args[++i];
+      if (!SECRET_STORES.includes(secretStore)) throw new Error('--secret-store must be file or keychain');
+    }
     else if (args[i] === '--pull') pull = true;
     else if (args[i] === '--force') overwrite = true;
     else if (args[i] === '--replace') continue;
-    else throw new Error('Usage: claude-autorouter setup [--auth-mode subscription|api-key] [--client-profile compatible|native|auto] [--evaluator jev|ollama] [--ollama-model TAG] [--ollama-timeout-ms N] [--stop-hook-block-cap N] [--session-log-dir DIR] [--session-log-mode metadata|prompts] [--pull] [--force|--replace]');
+    else throw new Error('Usage: claude-autorouter setup [--auth-mode subscription|api-key] [--client-profile compatible|native|auto] [--evaluator jev|ollama] [--ollama-model TAG] [--ollama-timeout-ms N] [--stop-hook-block-cap N] [--session-log-dir DIR] [--session-log-mode metadata|prompts] [--secret-store file|keychain] [--pull] [--force|--replace]');
   }
   if (!['subscription', 'api-key'].includes(authMode)) throw new Error('--auth-mode must be subscription or api-key');
   if (!CLIENT_PROFILES.includes(clientProfile)) throw new Error('--client-profile must be compatible, native or auto');
@@ -108,6 +115,11 @@ export async function setup(args, {
   if (stopHookBlockCap !== undefined) values.CLAUDE_CODE_STOP_HOOK_BLOCK_CAP = String(stopHookBlockCap);
   if (sessionLogDir !== undefined) values.AUTOROUTER_SESSION_LOG_DIR = sessionLogDir;
   if (sessionLogMode !== undefined) values.AUTOROUTER_SESSION_LOG_MODE = sessionLogMode;
+  if (secretStore !== undefined) values.AUTOROUTER_SECRET_STORE = secretStore;
+  // New and rebuilt configurations keep keys in the macOS Keychain. An existing
+  // configuration keeps its store until the user moves it deliberately.
+  const defaultedStore = values.AUTOROUTER_SECRET_STORE === undefined && platform === 'darwin' && (!loaded.exists || replace);
+  if (defaultedStore) values.AUTOROUTER_SECRET_STORE = 'keychain';
   if (evaluator === 'ollama') {
     values.AUTOROUTER_OLLAMA_MODEL = validateOllamaModel(model
       ?? (explicitEvaluator ? env.AUTOROUTER_OLLAMA_MODEL : undefined) ?? effectiveEnv.AUTOROUTER_OLLAMA_MODEL ?? DEFAULT_OLLAMA_MODEL);
@@ -119,6 +131,9 @@ export async function setup(args, {
   const keys = [...(evaluator === 'jev' ? ['TYPESAFE_API_KEY'] : []), ...(authMode === 'api-key' ? ['ANTHROPIC_API_KEY'] : [])];
   // Reject invalid settings before inviting secret input or making local calls.
   readConfig(values);
+  if (values.AUTOROUTER_SECRET_STORE === 'keychain' && platform !== 'darwin') {
+    throw new Error('--secret-store keychain is available only on macOS');
+  }
   for (const key of keys) {
     if (signal?.aborted) throw new Error('Setup cancelled');
     const explicitlySelected = !mergeExisting || (key === 'TYPESAFE_API_KEY' ? explicitEvaluator : explicitAuthMode);
@@ -143,14 +158,32 @@ export async function setup(args, {
     finally { if (!signal) for (const name of ['SIGINT', 'SIGTERM']) process.removeListener(name, cancel); }
   }
   if (signal?.aborted) throw new Error('Setup cancelled');
-  saveUserConfig(values, { env, overwrite, expectedRevision: loaded.revision });
+  let savedStore = values.AUTOROUTER_SECRET_STORE ?? 'file';
+  try {
+    saveUserConfig(values, { env, overwrite, expectedRevision: loaded.revision,
+      removeSecrets: keychainRemovals(loaded, savedStore, { replace, values }), ...store });
+  } catch (error) {
+    // The default must not make setup impossible where the Keychain cannot be
+    // used (locked, headless). An explicit request still fails.
+    if (!defaultedStore || !keys.length || error?.code !== 'AUTOROUTER_CONFIG_ERROR' || !/Keychain/.test(error.message)) throw error;
+    write('The macOS Keychain is unavailable; saving keys in the private configuration file instead. Move them later with: claude-autorouter config set AUTOROUTER_SECRET_STORE keychain');
+    delete values.AUTOROUTER_SECRET_STORE;
+    savedStore = 'file';
+    saveUserConfig(values, { env, overwrite, expectedRevision: loaded.revision,
+      removeSecrets: keychainRemovals(loaded, savedStore, { replace, values }), ...store });
+  }
   write(`Saved ${authMode} configuration to ${path}`);
-  write(`${keys.length ? 'Keys and settings are' : 'Settings are'} stored locally in this file with owner-only permissions. Environment variables take precedence.`);
+  if (keys.length && savedStore === 'keychain') {
+    write('Keys are stored in the macOS Keychain; settings are stored in this file with owner-only permissions. Environment variables take precedence.');
+  } else {
+    write(`${keys.length ? 'Keys and settings are' : 'Settings are'} stored locally in this file with owner-only permissions. Environment variables take precedence.`);
+    if (keys.length && platform === 'darwin' && savedStore === 'file' && !defaultedStore) write('Keys are plaintext in this file. Move them into the macOS Keychain: claude-autorouter config set AUTOROUTER_SECRET_STORE keychain');
+  }
   write('Next: claude-autorouter doctor, then claude-autorouter claude from your project.');
 }
 
 export async function doctor({ env = process.env, write = console.log, run = execute, fetchImpl = fetch, signal,
-  evaluateLocal = false, json = false, diagnosticRunner } = {}) {
+  evaluateLocal = false, json = false, diagnosticRunner, keychain, platform = process.platform } = {}) {
   if (evaluateLocal) {
     try {
       const config = readConfig(loadUserConfig(env).env);
@@ -180,9 +213,13 @@ export async function doctor({ env = process.env, write = console.log, run = exe
   let config;
   let effectiveEnv = env;
   try {
-    const loaded = loadUserConfig(env);
+    const loaded = loadUserConfig(env, keychain ? { keychain } : {});
     effectiveEnv = loaded.env;
     write(`Config: ${loaded.path}${loaded.exists ? '' : ' (absent; using environment)'}`);
+    if (loaded.secretStore === 'keychain') write(`Saved secrets: macOS Keychain (${loaded.keychainSecrets.length} found).`);
+    else if (platform === 'darwin' && SECRET_CONFIG_KEYS.some(key => Object.hasOwn(loaded.values, key))) {
+      write('WARN  Saved keys are plaintext in the configuration file. Move them into the macOS Keychain: claude-autorouter config set AUTOROUTER_SECRET_STORE keychain');
+    }
     config = readConfig(effectiveEnv);
     requireKeys(config);
     report(true, `Configuration and required keys present (${config.authMode})`);

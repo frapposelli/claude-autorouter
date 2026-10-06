@@ -1,4 +1,5 @@
 // @ts-check
+import { redactSensitive } from './redaction.mjs';
 // Shared, bounded telemetry contract. Never copy request bodies, headers, raw
 // errors or arbitrary provider fields into status snapshots or saved history.
 export const TELEMETRY_SCHEMA_VERSION = 2;
@@ -161,6 +162,9 @@ export function normalizeTelemetryEvent(entry) {
 function excerpt(value) {
   let text = '', length = 0;
   if (typeof value !== 'string') return { text, truncated: false };
+  // Defense in depth, and it also covers records written before redaction
+  // existed when they are read back. Already-redacted text is unchanged.
+  value = redactSensitive(value);
   for (const character of value) {
     if (length++ === 500) return { text: text.toWellFormed(), truncated: true };
     text += character;

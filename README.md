@@ -22,7 +22,7 @@ Setup defaults to your Claude subscription and prompts privately for the Jev key
 
 AutoRouter launches your installed, unmodified official Claude Code executable. Each user supplies their own login or API credentials. Subscription forwarding is a technical integration, not a claim of provider approval; review the [integration boundaries and current provider-policy notes](docs/subscription-integration.md) for your deployment.
 
-Configuration is saved privately at `~/.config/claude-autorouter/config.json`. Environment variables override it; project `.env` files are not loaded automatically. `setup --force` updates an existing configuration while preserving other settings. Use focused commands for later edits:
+Configuration is saved privately at `~/.config/claude-autorouter/config.json`. On macOS, new setups keep keys in the login Keychain; for an existing plaintext configuration, run `claude-autorouter config set AUTOROUTER_SECRET_STORE keychain` to move them. Environment variables override it; project `.env` files are not loaded automatically. `setup --force` updates an existing configuration while preserving other settings. Use focused commands for later edits:
 
 ```sh
 claude-autorouter config show
@@ -98,6 +98,6 @@ claude-autorouter doctor
 
 Historical integration observations cover Claude Code 2.1.284–2.1.285. The versioned synthetic protocol fixtures test reviewed request/response contracts; they do not certify the current checkout against a live Claude version. Real-provider checks remain explicitly invoked. [Troubleshooting](docs/reference.md#troubleshooting) covers context use, blocked goals and logging. Run ordinary `claude` to bypass routing.
 
-The evaluator receives bounded task/history excerpts that may contain code and tool results: TypeSafe for Jev, or your loopback Ollama service. Anthropic receives the complete request. Model switching can reduce cache reuse. [Data flow and authentication](docs/reference.md#data-flow-and-authentication).
+The evaluator receives bounded task/history excerpts that may contain code and tool results: TypeSafe for Jev, or your loopback Ollama service. Recognizable credentials and personal identifiers are redacted from those excerpts first. Anthropic receives the complete request. Model switching can reduce cache reuse. [Data flow and authentication](docs/reference.md#data-flow-and-authentication).
 
 [Reference](docs/reference.md) · [Integration and provider policy](docs/subscription-integration.md) · [Contributing](CONTRIBUTING.md) · [Development](docs/development.md) · [Releases](docs/releasing.md) · [Apache-2.0](LICENSE)

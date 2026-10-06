@@ -1,3 +1,5 @@
+import { redactSensitive } from './redaction.mjs';
+
 // Claude Code prepends these as separate text blocks. Ignore only complete
 // wrapper blocks; a user's text that mentions a tag or mixes it with a task
 // must remain part of the classifier's input.
@@ -50,6 +52,16 @@ function excerpt(text, length) {
 }
 
 const textCost = text => JSON.stringify(text).length - 2;
+
+// Redact before excerpting so a value cannot be split into an unrecognizable
+// fragment. Very long text keeps only end windows wider than any retained
+// excerpt; the margin also keeps a value cut at a window edge out of the result.
+const REDACTION_MARGIN = 4096;
+function classifierText(text, limit) {
+  const span = limit + REDACTION_MARGIN;
+  if (text.length > 2 * span) text = `${text.slice(0, span)}\n[... omitted ...]\n${text.slice(-span)}`;
+  return redactSensitive(text);
+}
 
 // Budget serialized characters, including JSON escaping, rather than just
 // raw text length. The two ends keep both an initial instruction and a final
@@ -145,6 +157,9 @@ export function promptExcerpt(body, maxChars = 500) {
     const blocks = typeof content === 'string' ? [{ type: 'text', text: content }]
       : Array.isArray(content) ? content : [];
     const characters = [];
+    // Collect past the retained length: redaction must see a value that
+    // straddles the final boundary, and may shorten the text before the cut.
+    const window = maxChars + REDACTION_MARGIN;
     let nonText = false;
     for (const block of blocks) {
       if (block?.type !== 'text' || typeof block.text !== 'string') {
@@ -157,12 +172,12 @@ export function promptExcerpt(body, maxChars = 500) {
       if (!/\S/.test(value) || isReminderBlock(value)) continue;
       if (characters.length) characters.push('\n');
       for (const character of value) {
-        if (characters.length >= maxChars) break;
+        if (characters.length >= window) break;
         characters.push(character);
       }
-      if (characters.length >= maxChars) break;
+      if (characters.length >= window) break;
     }
-    if (characters.length) return characters.join('').toWellFormed();
+    if (characters.length) return [...redactSensitive(characters.join('').toWellFormed())].slice(0, maxChars).join('').toWellFormed();
     // An image/document-only human turn is a new task with no safe excerpt;
     // do not incorrectly label it with the preceding human task's text.
     if (nonText) return '';
@@ -196,9 +211,9 @@ export function buildState(body, limit = 12000) {
   const remaining = () => Math.max(0, limit - JSON.stringify(state).length);
   // Reserve more than half of the budget for the actual latest human task
   // before considering reminders, original instructions, or tool results.
-  state.current_task = fitText(currentTask, Math.min(remaining(), Math.floor(limit * 0.55)));
-  state.original_task = fitText(firstTask, Math.min(2000, Math.floor(remaining() * 0.3)));
-  state.system = fitText(contentText(body.system, true), Math.min(1000, Math.floor(remaining() * 0.3)));
+  state.current_task = fitText(classifierText(currentTask, limit), Math.min(remaining(), Math.floor(limit * 0.55)));
+  state.original_task = fitText(classifierText(firstTask, limit), Math.min(2000, Math.floor(remaining() * 0.3)));
+  state.system = fitText(classifierText(contentText(body.system, true), limit), Math.min(1000, Math.floor(remaining() * 0.3)));
 
   for (let index = messages.length - 1; index >= 0 && state.recent_messages.length < 8; index--) {
     // current_task already contains this message; leave room for actual
@@ -210,7 +225,7 @@ export function buildState(body, limit = 12000) {
     const overhead = JSON.stringify(entry).length + (state.recent_messages.length ? 1 : 0);
     const budget = Math.min(3000, remaining() - overhead);
     if (budget < 1) break;
-    entry.content = fitText(text, budget);
+    entry.content = fitText(classifierText(text, limit), budget);
     state.recent_messages.unshift(entry);
   }
   return state;

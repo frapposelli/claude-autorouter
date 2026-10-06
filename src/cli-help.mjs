@@ -11,7 +11,8 @@ Configure Jev (default) or an installed local Ollama evaluator.
   --stop-hook-block-cap N            Optional Claude Stop-hook retry limit
   --session-log-dir DIR              Opt in to private logs with prompt excerpts
   --session-log-mode metadata|prompts Choose whether excerpts are included
-  --force                           Update an existing configuration
+  --secret-store file|keychain       default on macOS for new setups; file is plaintext
+  --force                          Update an existing configuration
   --replace                         Explicitly rebuild the saved configuration
 
 First setup reads environment settings and keys, or prompts for missing keys.
@@ -35,6 +36,7 @@ Show effective settings and their source; secrets are always redacted.
 --check-all also validates settings for the inactive evaluator.
 Set/unset changes only the named saved setting. Environment values still win.
 Secret keys require --stdin or a hidden prompt, never a command-line value.
+Setting AUTOROUTER_SECRET_STORE to keychain or file moves saved keys (macOS).
 
 Example: claude-autorouter config set AUTOROUTER_OLLAMA_TIMEOUT_MS 0`,
   serve: `Usage: claude-autorouter serve

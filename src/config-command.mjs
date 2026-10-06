@@ -1,5 +1,5 @@
 import { readConfig, parseSessionLogDir, parseStopHookBlockCap } from './config.mjs';
-import { CONFIG_KEYS, SECRET_CONFIG_KEYS, loadUserConfig, saveUserConfig } from './user-config.mjs';
+import { CONFIG_KEYS, SECRET_CONFIG_KEYS, SECRET_STORES, keychainRemovals, loadUserConfig, saveUserConfig } from './user-config.mjs';
 import { modelCapabilities } from './model-catalog.mjs';
 import { askSecret } from './onboarding.mjs';
 
@@ -30,16 +30,20 @@ function effectiveValues(config, env) {
 /** Redacted effective configuration, independent of Claude launch arguments. */
 export function configReport(loaded, env, { checkAll = false } = {}) {
   const config = readConfig(loaded.env);
-  const values = effectiveValues(config, loaded.env);
+  const values = { ...effectiveValues(config, loaded.env), AUTOROUTER_SECRET_STORE: loaded.secretStore ?? 'file' };
   const settings = {};
   for (const key of CONFIG_KEYS) {
-    const source = env[key] !== undefined ? 'environment' : Object.hasOwn(loaded.values, key) ? 'file' : 'default';
+    const saved = loaded.keychainSecrets?.includes(key) ? 'keychain' : 'file';
+    // The saved store setting governs saved secrets; the environment cannot redirect it.
+    const source = env[key] !== undefined && key !== 'AUTOROUTER_SECRET_STORE' ? 'environment'
+      : Object.hasOwn(loaded.values, key) ? saved : 'default';
     const provider = providerFor(key);
     const active = (!provider || provider === config.evaluator)
       && (key !== 'ANTHROPIC_API_KEY' || config.authMode === 'api-key');
     const secret = secretKey(key);
     settings[key] = { source, active,
       ...(source === 'environment' && Object.hasOwn(loaded.values, key) ? { overrides_file: true } : {}),
+      ...(source === 'environment' && loaded.unavailableSecrets?.includes(key) ? { keychain_unavailable: true } : {}),
       ...(secret ? { secret: true, present: typeof loaded.env[key] === 'string' && Boolean(loaded.env[key].trim()) }
         : { value: active ? values[key] ?? null : null }),
     };
@@ -84,19 +88,21 @@ function normalizedValue(key, value) {
   }
   if (key === 'AUTOROUTER_SESSION_LOG_DIR') return parseSessionLogDir(value) ?? '';
   if (key === 'CLAUDE_CODE_STOP_HOOK_BLOCK_CAP') return String(parseStopHookBlockCap(value));
+  if (key === 'AUTOROUTER_SECRET_STORE' && !SECRET_STORES.includes(value)) throw new Error('AUTOROUTER_SECRET_STORE must be file or keychain.');
   if (/[\r\n\0\u001b]/.test(value)) throw new Error(`${key} must be a single-line setting.`);
   return value;
 }
 
 export async function configCommand(args, {
-  env = process.env, write = console.log, input = process.stdin, promptSecret = askSecret,
+  env = process.env, write = console.log, input = process.stdin, promptSecret = askSecret, keychain,
 } = {}) {
+  const store = keychain ? { keychain } : {};
   const [operation, ...rest] = args;
   if (operation === 'show') {
     if (rest.some(arg => !['--json', '--check-all'].includes(arg))) throw new Error('Usage: claude-autorouter config show [--json] [--check-all]');
     let loaded, report;
     try {
-      loaded = loadUserConfig(env, { allowMissing: true });
+      loaded = loadUserConfig(env, { allowMissing: true, ...store });
       report = configReport(loaded, env, { checkAll: rest.includes('--check-all') });
     }
     catch (error) {
@@ -124,7 +130,7 @@ export async function configCommand(args, {
     throw new Error('Secret values are not accepted as command arguments. Use --stdin or the hidden prompt.');
   }
   if (operation === 'set' && !secretKey(key) && (value === undefined || value === '--stdin')) throw new Error('Nonsecret settings require a value argument.');
-  const loaded = loadUserConfig(env, { allowMissing: true });
+  const loaded = loadUserConfig(env, { allowMissing: true, ...store });
   const next = { ...loaded.values };
   if (operation === 'unset') delete next[key];
   else next[key] = normalizedValue(key, secretKey(key)
@@ -134,8 +140,19 @@ export async function configCommand(args, {
   // mask it. An explicitly edited inactive provider is checked too.
   const provider = operation === 'set' ? providerFor(key) : undefined;
   readConfig({ ...next, ...(provider ? { AUTOROUTER_EVALUATOR: provider } : {}) });
-  saveUserConfig(next, { env, overwrite: loaded.exists, expectedRevision: loaded.revision });
-  write(`${operation === 'unset' ? 'Removed saved' : 'Saved'} ${key}. Other saved settings are unchanged.`);
+  const nextStore = next.AUTOROUTER_SECRET_STORE ?? 'file';
+  // Changing the store moves saved secrets; unsetting a secret deletes its item.
+  const removeSecrets = key === 'AUTOROUTER_SECRET_STORE' ? keychainRemovals(loaded, nextStore)
+    : operation === 'unset' && secretKey(key) && loaded.secretStore === 'keychain' ? [key] : [];
+  saveUserConfig(next, { env, overwrite: loaded.exists, expectedRevision: loaded.revision, removeSecrets, ...store });
+  if (key === 'AUTOROUTER_SECRET_STORE') {
+    const moved = SECRET_CONFIG_KEYS.filter(name => Object.hasOwn(next, name)).length;
+    const where = nextStore === 'keychain' ? 'macOS Keychain' : 'configuration file';
+    write(nextStore === loaded.secretStore || !moved ? `Saved ${key}. Saved secrets are stored in the ${where}.`
+      : `Saved ${key}. Moved ${moved} saved secret${moved === 1 ? '' : 's'} to the ${where}.`);
+    return true;
+  }
+  write(`${operation === 'unset' ? 'Removed saved' : 'Saved'} ${key}${secretKey(key) && nextStore === 'keychain' ? ' in the macOS Keychain' : ''}. Other saved settings are unchanged.`);
   if (env[key] !== undefined) write(`The current environment still overrides ${key}; unset that environment variable to use the saved/default value.`);
   return true;
 }

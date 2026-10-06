@@ -31,7 +31,7 @@ The launcher binds an ephemeral port on `127.0.0.1`, creates a temporary local c
 
 ## Configuration
 
-First setup defaults to subscription mode unless `--auth-mode` or `AUTOROUTER_AUTH_MODE` selects another mode. Jev remains the default evaluator; `--evaluator ollama` selects local classification. An existing configuration updated with `--force` keeps its saved choices unless a command-line flag changes them; unrelated environment overrides remain temporary. Setup prompts for required secrets without echoing them and writes a private JSON file. Stored keys are plaintext; keep the file private and out of source control. Supply keys through the environment when interactive input is unavailable. Subscription mode with Ollama requires no API keys. API-key authentication always requires `ANTHROPIC_API_KEY`, regardless of evaluator.
+First setup defaults to subscription mode unless `--auth-mode` or `AUTOROUTER_AUTH_MODE` selects another mode. Jev remains the default evaluator; `--evaluator ollama` selects local classification. An existing configuration updated with `--force` keeps its saved choices unless a command-line flag changes them; unrelated environment overrides remain temporary. Setup prompts for required secrets without echoing them and writes a private JSON file. On macOS, new and `--replace` setups keep keys in the login Keychain by default (see [credential storage](#credential-storage)); elsewhere, and in existing configurations, stored keys are plaintext in that file, so keep it private and out of source control. Supply keys through the environment when interactive input is unavailable. Subscription mode with Ollama requires no API keys. API-key authentication always requires `ANTHROPIC_API_KEY`, regardless of evaluator.
 
 The config path is selected in this order:
 
@@ -45,6 +45,17 @@ The JSON file uses flat environment-style string keys, such as `AUTOROUTER_AUTH_
 node --env-file=.env bin/autorouter.mjs claude
 ```
 
+### Credential storage
+
+`AUTOROUTER_SECRET_STORE` selects where saved `ANTHROPIC_API_KEY`, `TYPESAFE_API_KEY` and `AUTOROUTER_TOKEN` values live. `file` stores them in the private JSON file; it is used on Linux and by configurations created before this option existed. `keychain`, available on macOS and chosen by default there for new setups, stores each one as a generic password in the login Keychain (service `claude-autorouter`, scoped to the configuration file path); the JSON file then contains only settings. Changing the setting moves saved keys:
+
+```sh
+claude-autorouter config set AUTOROUTER_SECRET_STORE keychain   # file → Keychain
+claude-autorouter config set AUTOROUTER_SECRET_STORE file       # Keychain → file
+```
+
+If the Keychain cannot be used during a default setup (locked or headless), setup says so and saves keys to the file instead; an explicit `--secret-store keychain` fails rather than falling back. An existing plaintext configuration is never moved implicitly: `setup --force` and `doctor` flag plaintext keys on macOS and print the command above. Keys are written to the Keychain before the file is rewritten, so an interrupted move leaves a copy in both places rather than neither. Items are removed only after the file is saved. Values pass to the system `security` tool on standard input, never as process arguments, and each write is read back to confirm it. Keychain values must be printable single-line ASCII. Environment variables still take precedence: when the Keychain is locked (for example over SSH), a key supplied in the environment is used instead, but moving keys between stores waits until every saved key can be read. `sessions` never reads the Keychain.
+
 For an environment-only subscription launch, set `AUTOROUTER_AUTH_MODE=subscription` and either supply `TYPESAFE_API_KEY` or select `AUTOROUTER_EVALUATOR=ollama` with a running local model. For API-key mode, also supply `ANTHROPIC_API_KEY`. The shell variables are read by the router; Jev's key is removed from the Claude child environment.
 
 | Variable | Default | Purpose |
@@ -54,6 +65,7 @@ For an environment-only subscription launch, set `AUTOROUTER_AUTH_MODE=subscript
 | `AUTOROUTER_CONFIG` | see path order above | Explicit user config path |
 | `AUTOROUTER_AUTH_MODE` | `api-key` without saved config; setup selects `subscription` | Authentication mode |
 | `AUTOROUTER_EVALUATOR` | `jev` | `jev` or local `ollama` classification |
+| `AUTOROUTER_SECRET_STORE` | `keychain` for new macOS setups; otherwise `file` | Saved-config setting: `keychain` keeps saved keys in the macOS login Keychain; the environment cannot redirect it |
 | `AUTOROUTER_CLIENT_PROFILE` | `compatible` | `native` retains client model/thinking settings; `auto` starts with Sonnet when no explicit model is set and excludes Haiku from task routing |
 | `AUTOROUTER_STATUSLINE` | enabled | `0` retains your existing status line |
 | `AUTOROUTER_DEBUG` | off | `1` enables launcher metadata logs on stderr |
@@ -190,7 +202,7 @@ Claude Code → authenticated local gateway → Jev or local Ollama classificati
 
 AutoRouter launches the user's installed official Claude Code binary without patching it and uses Claude Code's [gateway integration](https://code.claude.com/docs/en/llm-gateway-protocol), so it sees inference requests and tool continuations. It does not rely on a user-prompt hook. Each user uses their own provider credentials; AutoRouter does not provide a Claude sign-in service or a shared provider account.
 
-The selected evaluator receives a bounded state containing the latest human request and excerpts of the original task and recent messages: up to 12,000 serialized characters sent to TypeSafe for Jev, or 3,000 UTF-8 bytes sent to the local Ollama service. Jev also receives system-text excerpts. The local path excludes Claude's top-level executor system instructions. These excerpts can include private source code and tool results. Images, document payloads, and signed thinking are omitted. Full tool schemas and full conversation history are not sent to either classifier. Anthropic receives the complete request, including its tools and attachments. Large or multimodal requests may also go to Anthropic's token-count endpoint before inference, including when classification is local.
+The selected evaluator receives a bounded state containing the latest human request and excerpts of the original task and recent messages: up to 12,000 serialized characters sent to TypeSafe for Jev, or 3,000 UTF-8 bytes sent to the local Ollama service. Jev also receives system-text excerpts. The local path excludes Claude's top-level executor system instructions. These excerpts can include private source code and tool results. Before excerpting, recognizable sensitive values are replaced (the same filter applies to opt-in session-log prompt excerpts, including when old logs are read back) with markers such as `[REDACTED:secret]`: private keys, common provider token formats (Anthropic, OpenAI-style `sk-`, AWS, GitHub, GitLab, Slack, Google, Stripe, npm), JWTs, authorization headers, URL credentials, values assigned to password/secret/token/key-like names, email addresses, and checksum-valid IBANs and payment card numbers. Setting names stay visible. Redaction is pattern-based: unrecognized formats can remain, code resembling an assignment can be over-redacted, and it does not make arbitrary private source code safe to share. Images, document payloads, and signed thinking are omitted. Full tool schemas and full conversation history are not sent to either classifier. Anthropic receives the complete request, including its tools and attachments. Large or multimodal requests may also go to Anthropic's token-count endpoint before inference, including when classification is local.
 
 In subscription mode, Claude Code owns login and OAuth refresh. AutoRouter forwards the current request's authorization and beta headers to Anthropic. It does not read keychain or saved login files, persist subscription tokens, or send them to Jev. A separate temporary `X-Autorouter-Token` authenticates the local connection and is stripped upstream. Subscription forwarding is restricted to `https://api.anthropic.com`. See [subscriptions and gateways](https://code.claude.com/docs/en/llm-gateway#subscriptions-and-gateways).
 

@@ -4,10 +4,14 @@ import { mkdtempSync, readFileSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { PassThrough } from 'node:stream';
-import { setup, doctor, askSecret } from '../src/onboarding.mjs';
+import { setup as runSetup, doctor as runDoctor, askSecret } from '../src/onboarding.mjs';
 import { DEFAULT_OLLAMA_MODEL } from '../src/ollama-models.mjs';
 import { readConfig } from '../src/config.mjs';
 import { loadUserConfig, saveUserConfig } from '../src/user-config.mjs';
+
+// These tests cover file-based storage; never let them reach the real Keychain.
+const setup = (args, options = {}) => runSetup(args, { platform: 'linux', ...options });
+const doctor = (options = {}) => runDoctor({ platform: 'linux', ...options });
 
 function fixture(t) {
   const directory = mkdtempSync(join(tmpdir(), 'autorouter-onboarding-'));
@@ -173,7 +177,7 @@ test('setup prompts only for missing keys and leaves no file on invalid or cance
   assert.equal(existsSync(env.AUTOROUTER_CONFIG), false);
   await assert.rejects(setup([], { env, write: () => {}, prompt: async () => { throw new Error('Setup cancelled'); } }), /cancelled/);
   assert.equal(existsSync(env.AUTOROUTER_CONFIG), false);
-  await assert.rejects(setup(['--key', 'secret'], { env, write: () => {} }), error => !error.message.includes('secret'));
+  await assert.rejects(setup(['--key', 'private-secret-sentinel'], { env, write: () => {} }), error => !error.message.includes('private-secret-sentinel'));
   await assert.rejects(askSecret('TYPESAFE_API_KEY', { input: { isTTY: false }, output: {} }), /environment/);
 });
 
