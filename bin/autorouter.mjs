@@ -7,6 +7,7 @@ import { createRouterServer, listen } from '../src/server.mjs';
 import { buildClaudeEnv, clientProfileForLaunch, conflictingProviders } from '../src/auth.mjs';
 import { dirname } from 'node:path';
 import { createStatusState } from '../src/status-state.mjs';
+import { removeStaleStatusDirectories } from '../src/status-cleanup.mjs';
 import { addStatusLineSettings } from '../src/status-settings.mjs';
 import { createSessionLog } from '../src/session-log.mjs';
 import { loadUserConfig } from '../src/user-config.mjs';
@@ -100,6 +101,7 @@ if (['--version', '-v', 'version'].includes(command)) {
     const statusEnabled = command === 'claude' && runtimeEnv.AUTOROUTER_STATUSLINE !== '0';
     let claudeArgs = args;
     if (statusEnabled) {
+      await removeStaleStatusDirectories();
       status = createStatusState({ baselineModel: config.models.opus });
       await status.ready;
       if (status.path) {
