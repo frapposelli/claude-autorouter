@@ -142,3 +142,139 @@ test('session-log prompt excerpts are redacted, including a secret at the retent
     selected_model: 'claude-sonnet-5', prompt_excerpt: `use ${fake.aws} now` });
   assert.equal(row.prompt_excerpt, 'use [REDACTED:secret] now');
 });
+
+// Synthetic values for the formats added after the AR-02 review. They are
+// assembled at runtime so no literal token shape is committed.
+const more = {
+  googleOauth: ['ya', '29.', 'a'.repeat(30)].join(''),
+  sendgrid: ['SG', 'b'.repeat(22), 'c'.repeat(22)].join('.'),
+  shopify: ['shp', 'at_', 'd'.repeat(32)].join(''),
+  huggingFace: ['hf', '_', 'e'.repeat(34)].join(''),
+  digitalOcean: ['dop', '_v1_', 'f'.repeat(64)].join(''),
+  pypi: ['pypi', '-', 'g'.repeat(60)].join(''),
+  linear: ['lin', '_api_', 'h'.repeat(34)].join(''),
+  notion: ['ntn', '_', 'i'.repeat(34)].join(''),
+  databricks: ['dapi', 'a1'.repeat(16)].join(''),
+  atlassian: ['ATATT', '3', 'j'.repeat(30)].join(''),
+  mailgun: ['key', '-', '0a'.repeat(16)].join(''),
+  twilio: ['SK', '1b'.repeat(16)].join(''),
+  telegram: ['123456789', ':', 'k'.repeat(35)].join(''),
+  stripeWebhook: ['whsec', '_', 'l'.repeat(24)].join(''),
+};
+
+test('redacts additional provider token formats', () => {
+  for (const [name, value] of Object.entries(more)) {
+    const output = redactSensitive(`token for the job: ${value} (rotate)`);
+    assert.ok(!output.includes(value), `${name} must be redacted`);
+    assert.match(output, /\[REDACTED:secret\]/, name);
+  }
+});
+
+test('redacts URL credentials with an empty user or a password containing @', () => {
+  const cases = [
+    ['REDIS_URL=redis://:Sup3rS3cretPw@cache:6379', 'REDIS_URL=redis://[REDACTED:credentials]@cache:6379'],
+    ['postgres://app:p@ssw0rdXYZ@db', 'postgres://[REDACTED:credentials]@db'],
+    ['amqps://user:pass@word@mq.internal/vhost', 'amqps://[REDACTED:credentials]@mq.internal/vhost'],
+  ];
+  for (const [input, expected] of cases) assert.equal(redactSensitive(input), expected);
+  for (const text of ['https://example.com:8080/path', 'http://localhost:3000', 'http://[::1]:8080/x', 'ssh://github.com/org/repo']) {
+    assert.equal(redactSensitive(text), text);
+  }
+});
+
+test('redacts the common setting-name forms the first filter missed, without leaking any part of the value', () => {
+  const cases = [
+    ['DB_PASS=Xk29fjqLm3', 'Xk29fjqLm3'],
+    ['STRIPE_KEY=abcdef123456', 'abcdef123456'],
+    ['SIGNING_KEY="abcdef123456"', 'abcdef123456'],
+    ['DB_AUTH=abcd1234', 'abcd1234'],
+    ['DB_PASS=Xk29fjqLm3', 'Xk29fjqLm3'],
+    ['AUTH=abcd1234', 'abcd1234'],
+    ['config.pass=hunter22x', 'hunter22x'],
+    ['{"pass": "hunter22x"}', 'hunter22x'],
+    ['password=a;bcdefghijklmnop', 'bcdefghijklmnop'],
+    ["DB_PASSWORD='hunter2 is my long pass'", 'long pass'],
+    ['{"password": "two words here"}', 'two words'],
+    ['Server=db;User Id=app;Password=pw1234xx;Database=app', 'pw1234xx'],
+    ['AccountKey=abcdefghijkl1234==', 'abcdefghijkl'],
+    ['Cookie: sid=abcdef123456789; theme=dark', 'abcdef123456789'],
+  ];
+  for (const [input, leaked] of cases) {
+    const output = redactSensitive(input);
+    assert.ok(!output.includes(leaked), `${input} leaked ${leaked}: ${output}`);
+    assert.match(output, /\[REDACTED:/, input);
+  }
+  assert.match(redactSensitive('DB_PASS=Xk29fjqLm3'), /^DB_PASS=/, 'The setting name stays visible');
+});
+
+test('redacts credentials passed on command lines', () => {
+  const cases = [
+    ['mysql -u root -pS3cretValue1 appdb', 'S3cretValue1'],
+    ['curl -u admin:S3cretValue1 https://example.test', 'S3cretValue1'],
+    ['curl --user admin:S3cretValue1 https://example.test', 'S3cretValue1'],
+    ['tool --api-key abcdef123456 run', 'abcdef123456'],
+    ['tool --db-password=hunter22x run', 'hunter22x'],
+    ["tool --token 'abcdef123456'", 'abcdef123456'],
+    ['sshpass -p hunter22x ssh host', 'hunter22x'],
+  ];
+  for (const [input, leaked] of cases) {
+    const output = redactSensitive(input);
+    assert.ok(!output.includes(leaked), `${input} leaked: ${output}`);
+  }
+  for (const text of ['mysql -u root -p', 'find . -print0 -prune', 'tool --password-stdin file', 'tool --max-tokens 4096', 'ssh -p 2222 host']) {
+    assert.equal(redactSensitive(text), text, text);
+  }
+});
+
+test('redacts international phone numbers, Italian tax codes and US social security numbers', () => {
+  assert.equal(redactSensitive('call +39 333 1234567 today'), 'call [REDACTED:phone] today');
+  assert.equal(redactSensitive('call +1 (415) 555-0132.'), 'call [REDACTED:phone].');
+  assert.equal(redactSensitive('CF RSSMRA85T10A562S ok'), 'CF [REDACTED:national_id] ok');
+  assert.equal(redactSensitive('SSN 123-45-6789'), 'SSN [REDACTED:national_id]');
+  for (const text of ['RSSMRA85T10A562X', 'version +1.2.3.4', 'at +123 ms', 'ratio 3-2-1', 'ssn 000-12-3456', 'ssn 666-12-3456', 'build 1.2.3+456789']) {
+    assert.equal(redactSensitive(text), text, text);
+  }
+});
+
+test('ordinary words that contain a secret keyword are left alone', () => {
+  for (const text of ['The author: field is missing', 'passenger: 4242 seats', 'bypass_cache=true', 'pass: ok',
+    'compass=north-east', 'oauth_state=abcdef', 'primary_key=1', 'monkey=banana', 'keyboard=qwerty',
+    'AUTOROUTER_AUTH_MODE=subscription', "export const LOCAL_AUTH_HEADER = 'x-autorouter-token';", "env.MAX_THINKING_TOKENS = '0'",
+    'checks.tests_pass = results.failed === 0', 'auth: true', 'pass: ok']) {
+    assert.equal(redactSensitive(text), text, text);
+  }
+});
+
+test('the widened rules are idempotent and stay linear on adversarial input', () => {
+  const sample = ['REDIS_URL=redis://:pw1234@h', 'DB_PASS=abcd1234', "PW_SECRET='a b c d'", 'mysql -pabcd1234', 'curl -u a:bcd',
+    'tool --api-key abcd1234', 'Cookie: sid=abcdef123456', '+39 333 1234567', 'SSN 123-45-6789'].join('\n');
+  const once = redactSensitive(sample);
+  assert.equal(redactSensitive(once), once);
+  const adversarial = ['mysql '.repeat(60000), 'mysql -x '.repeat(40000), 'password="'.repeat(40000), "secret='".repeat(40000),
+    '://:'.repeat(100000), 'a://:'.repeat(60000), 'http://' + ':'.repeat(300000), 'http://' + 'a:'.repeat(150000),
+    '+1 '.repeat(100000), '+'.repeat(300000), '1-'.repeat(200000), ' -'.repeat(150000) + 'token', '--a'.repeat(100000),
+    'DB_KEY'.repeat(60000), 'A_KEY='.repeat(60000), 'Cookie:'.repeat(60000), 'sshpass -p '.repeat(30000), `pass${'a'.repeat(300000)}`,
+    `password=${'a;'.repeat(150000)}`, `password=${'a,'.repeat(150000)}`];
+  for (const input of adversarial) {
+    const started = performance.now();
+    redactSensitive(input);
+    assert.ok(performance.now() - started < 2000, `redaction took ${Math.round(performance.now() - started)} ms for ${JSON.stringify(input.slice(0, 16))}`);
+  }
+});
+
+test('a .env file read as a tool result reaches the evaluator redacted', () => {
+  const env = ['REDIS_URL=redis://:Sup3rS3cretPw@cache:6379', 'DB_PASS=Xk29fjqLm3', 'STRIPE_KEY=abcdef123456',
+    'SESSION_SECRET=zz-synthetic-9876', 'ADMIN_EMAIL=ops@example.com', 'APP_NAME=autorouter'].join('\n');
+  const body = { model: 'claude-sonnet-5', messages: [
+    { role: 'user', content: 'Why does the cache connection fail?' },
+    { role: 'assistant', content: [{ type: 'tool_use', id: 't1', name: 'Read', input: { file_path: '.env' } }] },
+    { role: 'user', content: [{ type: 'tool_result', tool_use_id: 't1', content: env }] },
+  ] };
+  for (const state of [buildState(body, 12000), buildOllamaState(body, 3000)]) {
+    const serialized = JSON.stringify(state);
+    for (const value of ['Sup3rS3cretPw', 'Xk29fjqLm3', 'abcdef123456', 'zz-synthetic-9876', 'ops@example.com']) {
+      assert.ok(!serialized.includes(value), `evaluator state leaked ${value}`);
+    }
+    assert.match(serialized, /APP_NAME=autorouter/, 'ordinary settings stay readable');
+  }
+});
