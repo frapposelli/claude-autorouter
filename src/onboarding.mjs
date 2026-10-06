@@ -52,7 +52,7 @@ export async function setup(args, {
   let explicitEvaluator = false, explicitAuthMode = false;
   let authMode = effectiveEnv.AUTOROUTER_AUTH_MODE ?? 'subscription';
   let clientProfile = effectiveEnv.AUTOROUTER_CLIENT_PROFILE ?? 'compatible';
-  let evaluator = effectiveEnv.AUTOROUTER_EVALUATOR ?? 'jev';
+  let evaluator = effectiveEnv.AUTOROUTER_EVALUATOR ?? 'ollama';
   let model;
   let ollamaTimeoutMs;
   let stopHookBlockCap = effectiveEnv.CLAUDE_CODE_STOP_HOOK_BLOCK_CAP;
@@ -155,6 +155,14 @@ export async function setup(args, {
     const cancel = () => controller.abort();
     if (!signal) for (const name of ['SIGINT', 'SIGTERM']) process.once(name, cancel);
     try { await setupOllama(config, { pull, warm: true, write, fetchImpl, signal: signal ?? controller.signal }); }
+    catch (error) {
+      // Local evaluation is the default, not a choice the user made, so a
+      // missing or stopped Ollama should say how to pick another evaluator.
+      if (!explicitEvaluator && !mergeExisting && !signal?.aborted) {
+        error.message = `${error.message} Local Ollama is the default evaluator; add --pull to download its model, or use TypeSafe Jev instead: claude-autorouter setup --evaluator jev`;
+      }
+      throw error;
+    }
     finally { if (!signal) for (const name of ['SIGINT', 'SIGTERM']) process.removeListener(name, cancel); }
   }
   if (signal?.aborted) throw new Error('Setup cancelled');

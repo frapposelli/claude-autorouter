@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readConfig } from '../src/config.mjs';
 import { Router, buildState, contextSizeBytes } from '../src/router.mjs';
 
-const config = () => readConfig({ TYPESAFE_API_KEY: 'test-jev', ANTHROPIC_API_KEY: 'test-anthropic' });
+const config = () => readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'test-jev', ANTHROPIC_API_KEY: 'test-anthropic' });
 const request = text => ({ model: 'claude-sonnet-5', max_tokens: 4096, messages: [{ role: 'user', content: text }] });
 const result = (choice, confidence = 0.98) => Response.json({ answers: { tier: { choice, confidence } } });
 
@@ -142,7 +142,7 @@ test('unknown server safeguard contracts pass through and replace stale main-mod
 
 test('recognized server review routes execution across Sonnet and Opus in every profile without exposing its context to the evaluator', async () => {
   for (const profile of ['compatible', 'native', 'auto']) for (const tier of ['haiku', 'sonnet', 'opus']) {
-    const c = readConfig({ TYPESAFE_API_KEY: 'test-jev', AUTOROUTER_CLIENT_PROFILE: profile,
+    const c = readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'test-jev', AUTOROUTER_CLIENT_PROFILE: profile,
       AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5' });
     let evaluations = 0, counts = 0;
     const router = new Router(c, { fetchImpl: async (_url, options) => {
@@ -173,7 +173,7 @@ test('recognized server review routes execution across Sonnet and Opus in every 
 });
 
 test('Auto classifier failure retains the prior execution model across new human turns', async () => {
-  const c = readConfig({ TYPESAFE_API_KEY: 'test-jev', AUTOROUTER_CLIENT_PROFILE: 'auto' });
+  const c = readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'test-jev', AUTOROUTER_CLIENT_PROFILE: 'auto' });
   let evaluations = 0;
   const router = new Router(c, { fetchImpl: async () => {
     if (++evaluations > 1) throw new Error('Synthetic outage');
@@ -191,7 +191,7 @@ test('Auto classifier failure retains the prior execution model across new human
 });
 
 test('a configured target without the shared Auto capabilities cannot receive safeguarded requests', async () => {
-  const c = readConfig({ TYPESAFE_API_KEY: 'test-jev', AUTOROUTER_CLIENT_PROFILE: 'auto', AUTOROUTER_OPUS_MODEL: 'claude-opus-4-6' });
+  const c = readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'test-jev', AUTOROUTER_CLIENT_PROFILE: 'auto', AUTOROUTER_OPUS_MODEL: 'claude-opus-4-6' });
   const router = new Router(c, { fetchImpl: async () => result('opus') });
   const body = { ...request('Demanding task'), model: c.models.sonnet,
     safeguards: [{ type: 'dangerous_tool_use', classifier_context: { v: 1 } }] };
@@ -326,7 +326,7 @@ test('the excerpt budget includes escaping in initial system and task text', () 
 
 test('configuration rejects invalid budgets and insecure remote endpoints', () => {
   for (const env of [{ AUTOROUTER_JEV_TIMEOUT_MS: 'NaN' }, { AUTOROUTER_MIN_CONFIDENCE: '2' }, { AUTOROUTER_PORT: '3.5' }, { AUTOROUTER_JEV_URL: 'http://example.com' }]) {
-    assert.throws(() => readConfig(env));
+    assert.throws(() => readConfig({ AUTOROUTER_EVALUATOR: 'jev', ...env }));
   }
 });
 

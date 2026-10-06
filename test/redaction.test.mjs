@@ -112,7 +112,7 @@ test('a private key cut by excerpt windows is redacted at either edge', () => {
 
 test('the Jev request body carries only redacted excerpts; Anthropic receives the request unchanged', async () => {
   let payload;
-  const router = new Router(readConfig({ TYPESAFE_API_KEY: 'test-jev', ANTHROPIC_API_KEY: 'test-anthropic' }), {
+  const router = new Router(readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'test-jev', ANTHROPIC_API_KEY: 'test-anthropic' }), {
     fetchImpl: async (_url, options) => {
       payload = options.body;
       return Response.json({ answers: { tier: { choice: 'sonnet', confidence: 0.9 } } });

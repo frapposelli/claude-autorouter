@@ -14,7 +14,7 @@ async function fixture(t, handler, overrides = {}, routeImpl, onStatus, onDecisi
   let evaluations = 0;
   const logs = [];
   const statuses = [];
-  const config = { ...readConfig({ ANTHROPIC_API_KEY: 'upstream-secret', TYPESAFE_API_KEY: 'classifier-secret' }), localToken: token, upstream: `http://127.0.0.1:${address.port}`, ...overrides };
+  const config = { ...readConfig({ AUTOROUTER_EVALUATOR: 'jev', ANTHROPIC_API_KEY: 'upstream-secret', TYPESAFE_API_KEY: 'classifier-secret' }), localToken: token, upstream: `http://127.0.0.1:${address.port}`, ...overrides };
   const server = createRouterServer(config, {
     router: {
       route: async (...args) => { evaluations++; return routeImpl?.route ? routeImpl.route(...args)
@@ -278,7 +278,7 @@ test('complete proxy flow calls the real classifier client against a local Jev A
     res.end(JSON.stringify({ id: 'msg_mock', model, content: [{ type: 'text', text: 'Done' }] }));
   });
   const upstreamAddress = await listen(upstream, 0);
-  const server = createRouterServer({ ...readConfig({ ANTHROPIC_API_KEY: 'upstream-secret', TYPESAFE_API_KEY: 'classifier-secret' }), localToken: token, upstream: `http://127.0.0.1:${upstreamAddress.port}`, jevEndpoint: `http://127.0.0.1:${jevAddress.port}/v1/systemone` }, { log: entry => logs.push(entry), onStatus: entry => statuses.push(entry) });
+  const server = createRouterServer({ ...readConfig({ AUTOROUTER_EVALUATOR: 'jev', ANTHROPIC_API_KEY: 'upstream-secret', TYPESAFE_API_KEY: 'classifier-secret' }), localToken: token, upstream: `http://127.0.0.1:${upstreamAddress.port}`, jevEndpoint: `http://127.0.0.1:${jevAddress.port}/v1/systemone` }, { log: entry => logs.push(entry), onStatus: entry => statuses.push(entry) });
   const address = await listen(server, 0);
   t.after(() => { for (const service of [server, upstream, jev]) { service.closeAllConnections(); service.close(); } });
   for (const [request, expectedModel] of [[smallRequest, 'claude-haiku-4-5-20251001'], [fitsHaikuRequest, 'claude-haiku-4-5-20251001'], [largeRequest, 'claude-sonnet-5']]) {
@@ -471,7 +471,7 @@ test('subscription forwards gateway identity and adapted Opus thinking, and obse
 
 test('real routing adapts low-confidence Sonnet 5.5 and its signed tool continuation without altering SSE', { timeout: 5000 }, async t => {
   const selected = 'claude-sonnet-5-5';
-  const config = readConfig({ AUTOROUTER_SONNET_MODEL: selected, TYPESAFE_API_KEY: 'classifier-secret' });
+  const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_SONNET_MODEL: selected, TYPESAFE_API_KEY: 'classifier-secret' });
   let classifications = 0;
   const router = new Router(config, { fetchImpl: async (url, options) => {
     assert.equal(url, config.jevEndpoint);
@@ -559,7 +559,7 @@ test('real routing adapts low-confidence Sonnet 5.5 and its signed tool continua
 });
 
 test('auto execution routes independently while auxiliary permission checks and denied safeguard verdicts remain unchanged', async t => {
-  const config = readConfig({ TYPESAFE_API_KEY: 'classifier-secret', AUTOROUTER_CLIENT_PROFILE: 'auto', AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5' });
+  const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'classifier-secret', AUTOROUTER_CLIENT_PROFILE: 'auto', AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5' });
   let classifications = 0;
   const router = new Router(config, { fetchImpl: async (url, options) => {
     assert.equal(url, config.jevEndpoint);
@@ -637,7 +637,7 @@ test('auto execution routes independently while auxiliary permission checks and 
 });
 
 for (const usePromptIds of [true, false]) test(`auto execution switches Sonnet to Opus to Sonnet across human turns, preserving native context and tool ownership (${usePromptIds ? 'gateway prompt IDs' : 'without prompt IDs'})`, { timeout: 5000 }, async t => {
-  const config = readConfig({ TYPESAFE_API_KEY: 'classifier-secret', AUTOROUTER_CLIENT_PROFILE: 'auto', AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5' });
+  const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'classifier-secret', AUTOROUTER_CLIENT_PROFILE: 'auto', AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5' });
   const choices = ['haiku', 'opus', 'haiku', 'haiku'];
   let classifications = 0;
   const router = new Router(config, { fetchImpl: async (url, options) => {
@@ -731,7 +731,7 @@ for (const usePromptIds of [true, false]) test(`auto execution switches Sonnet t
 });
 
 for (const usePromptIds of [true, false]) test(`goal feedback and tool results retain the main model, preserving auxiliary verdicts and new human turns (${usePromptIds ? 'gateway prompt IDs' : 'expanded command without prompt IDs'})`, { timeout: 5000 }, async t => {
-  const config = readConfig({ AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5', TYPESAFE_API_KEY: 'classifier-secret' });
+  const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5', TYPESAFE_API_KEY: 'classifier-secret' });
   const classifierChoices = ['sonnet', 'haiku', 'haiku', 'haiku'];
   let classifications = 0;
   const router = new Router(config, { fetchImpl: async (url, options) => {
@@ -1127,7 +1127,7 @@ test('JSON usage is observed with default request pricing and unsupported adviso
 });
 
 test('provider fallback commits tool ownership only after successful forwarding, and failed attempts retain the prior execution', async t => {
-  const config = readConfig({ TYPESAFE_API_KEY: 'test-only' });
+  const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'test-only' });
   const router = new Router(config, { fetchImpl: async () => Response.json({ answers: { tier: { choice: 'haiku', confidence: 0.99 } } }) });
   const event = payload => `event: ${payload.type}\ndata: ${JSON.stringify(payload)}\n\n`;
   const fallback = [

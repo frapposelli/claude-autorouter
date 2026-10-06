@@ -68,7 +68,7 @@ async function fixtureGateway(t, scenario) {
   });
   t.after(() => { upstream.closeAllConnections(); upstream.close(); });
   const upstreamAddress = await listen(upstream, 0);
-  const config = { ...readConfig({
+  const config = { ...readConfig({ AUTOROUTER_EVALUATOR: 'jev',
     ANTHROPIC_API_KEY: 'synthetic-upstream-key', TYPESAFE_API_KEY: 'synthetic-evaluator-key',
     AUTOROUTER_CLIENT_PROFILE: scenario.profile,
     AUTOROUTER_HAIKU_MODEL: corpus.models.haiku, AUTOROUTER_SONNET_MODEL: corpus.models.sonnet,

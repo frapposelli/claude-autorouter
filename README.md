@@ -2,7 +2,7 @@
 
 An independent local model-routing gateway for Claude Code. AutoRouter is not affiliated with, endorsed by, or sponsored by Anthropic. The existing npm package and command remain `claude-autorouter`.
 
-Use Haiku, Sonnet and Opus in one Claude Code session. AutoRouter evaluates each coding request, checks model compatibility and context capacity, and forwards it through a local gateway. [TypeSafe Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) is the default evaluator; native Ollama `/v1/systemone` models provide an experimental local option. Claude owns authentication, tool permissions and safety review.
+Use Haiku, Sonnet and Opus in one Claude Code session. AutoRouter evaluates each coding request, checks model compatibility and context capacity, and forwards it through a local gateway. Native Ollama `/v1/systemone` models are the default, experimental local evaluator, so task excerpts stay on your machine; [TypeSafe Jev](https://typesafe.ai/blog/introducing-system-one-models-and-jev) is an optional hosted evaluator (`setup --evaluator jev`). Claude owns authentication, tool permissions and safety review.
 
 Requires Node.js 22+, macOS or Linux (including WSL), an installed `claude` command, and a Claude subscription login or Anthropic API key. The default evaluator also needs a [TypeSafe API key](https://console.typesafe.ai). The installed CLI has no runtime dependencies.
 
@@ -18,7 +18,7 @@ cd /path/to/project
 claude-autorouter claude
 ```
 
-Setup defaults to your Claude subscription and prompts privately for the Jev key. Run `claude auth login` if needed. Jev has separate credentials and billing; subscription mode needs no Anthropic API key. For API billing, use `setup --auth-mode api-key`.
+Setup defaults to your Claude subscription and the local Ollama evaluator (Ollama 0.35+ with the default model; add `--pull` to download it), so it asks for no evaluator key. To use hosted Jev instead, run `claude-autorouter setup --evaluator jev`, which prompts privately for its key. Run `claude auth login` if needed. Jev has separate credentials and billing; subscription mode needs no Anthropic API key. For API billing, use `setup --auth-mode api-key`.
 
 AutoRouter launches your installed, unmodified official Claude Code executable. Each user supplies their own login or API credentials. Subscription forwarding is a technical integration, not a claim of provider approval; review the [integration boundaries and current provider-policy notes](docs/subscription-integration.md) for your deployment.
 
@@ -68,7 +68,7 @@ Savings are **API-equivalent estimates using the recorded Opus baseline and toke
 
 ## Local Ollama evaluator
 
-Start Ollama 0.35+ with a model supporting its native decision endpoint, then configure it explicitly:
+Ollama is the default evaluator. Start Ollama 0.35+ with a model supporting its native decision endpoint, then choose a model:
 
 ```sh
 claude-autorouter setup --evaluator ollama --ollama-model tev1:4b-q4_K_M --pull --force
@@ -76,7 +76,7 @@ claude-autorouter doctor --evaluate-local
 claude-autorouter claude
 ```
 
-`--pull` authorizes downloading the chosen model if missing. Setup keeps existing models and settings; ordinary launches download nothing. The default local model is `nimble:9b-q4_K_M`; `tev1:0.8b` is smaller and requires checking its accuracy on your tasks. Local classification needs no Jev key. Claude still answers through Anthropic. [Model choices, deadlines and historical measurements](docs/reference.md#ollama-evaluator).
+`--pull` authorizes downloading the chosen model if missing. Setup keeps existing models and settings; ordinary launches download nothing. The default local model is `nimble:9b-q4_K_M`; `tev1:0.8b` is smaller and requires checking its accuracy on your tasks. Local classification needs no Jev key; Jev remains available with `setup --evaluator jev`. Claude still answers through Anthropic. [Model choices, deadlines and historical measurements](docs/reference.md#ollama-evaluator).
 
 To allow a slower local model to finish without AutoRouter's runtime deadline:
 

@@ -285,7 +285,7 @@ async function main() {
       AUTOROUTER_CONFIG: configPath, TYPESAFE_API_KEY: JEV_KEY, ANTHROPIC_API_KEY: API_KEY,
       AUTOROUTER_JEV_URL: `${endpoint}/v1/systemone`, AUTOROUTER_UPSTREAM_URL: endpoint };
     const sessionLogDir = join(temporary, 'session decision logs');
-    await run(installedCommand, ['setup', '--auth-mode', 'api-key', '--secret-store', 'file', '--session-log-dir', sessionLogDir], { cwd: unrelated, env: cliEnv });
+    await run(installedCommand, ['setup', '--auth-mode', 'api-key', '--evaluator', 'jev', '--secret-store', 'file', '--session-log-dir', sessionLogDir], { cwd: unrelated, env: cliEnv });
     const saved = JSON.parse(await readFile(configPath, 'utf8'));
     assert.equal(saved.AUTOROUTER_AUTH_MODE, 'api-key');
     assert.equal(saved.TYPESAFE_API_KEY, JEV_KEY);
@@ -333,7 +333,7 @@ async function main() {
     }
 
     const subscriptionConfig = join(temporary, 'subscription-config.json');
-    await writeFile(subscriptionConfig, JSON.stringify({ TYPESAFE_API_KEY: JEV_KEY, AUTOROUTER_AUTH_MODE: 'subscription' }), { mode: 0o600 });
+    await writeFile(subscriptionConfig, JSON.stringify({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: JEV_KEY, AUTOROUTER_AUTH_MODE: 'subscription' }), { mode: 0o600 });
     const doctorEnv = { ...cliEnv, AUTOROUTER_CONFIG: subscriptionConfig };
     delete doctorEnv.AUTOROUTER_UPSTREAM_URL;
     await run(installedCommand, ['doctor'], { cwd: unrelated, env: doctorEnv });

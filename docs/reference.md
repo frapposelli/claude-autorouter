@@ -31,7 +31,7 @@ The launcher binds an ephemeral port on `127.0.0.1`, creates a temporary local c
 
 ## Configuration
 
-First setup defaults to subscription mode unless `--auth-mode` or `AUTOROUTER_AUTH_MODE` selects another mode. Jev remains the default evaluator; `--evaluator ollama` selects local classification. An existing configuration updated with `--force` keeps its saved choices unless a command-line flag changes them; unrelated environment overrides remain temporary. Setup prompts for required secrets without echoing them and writes a private JSON file. On macOS, new and `--replace` setups keep keys in the login Keychain by default (see [credential storage](#credential-storage)); elsewhere, and in existing configurations, stored keys are plaintext in that file, so keep it private and out of source control. Supply keys through the environment when interactive input is unavailable. Subscription mode with Ollama requires no API keys. API-key authentication always requires `ANTHROPIC_API_KEY`, regardless of evaluator.
+First setup defaults to subscription mode unless `--auth-mode` or `AUTOROUTER_AUTH_MODE` selects another mode. Local Ollama is the default evaluator (changed from Jev in the next release after 0.4.0; configurations created by `setup` always record their evaluator, so existing ones are unchanged, but an environment-only launch with no `AUTOROUTER_EVALUATOR` now selects Ollama); `--evaluator jev` selects TypeSafe's hosted evaluator. An existing configuration updated with `--force` keeps its saved choices unless a command-line flag changes them; unrelated environment overrides remain temporary. Setup prompts for required secrets without echoing them and writes a private JSON file. On macOS, new and `--replace` setups keep keys in the login Keychain by default (see [credential storage](#credential-storage)); elsewhere, and in existing configurations, stored keys are plaintext in that file, so keep it private and out of source control. Supply keys through the environment when interactive input is unavailable. Subscription mode with Ollama requires no API keys. API-key authentication always requires `ANTHROPIC_API_KEY`, regardless of evaluator.
 
 The config path is selected in this order:
 
@@ -64,7 +64,7 @@ For an environment-only subscription launch, set `AUTOROUTER_AUTH_MODE=subscript
 | `ANTHROPIC_API_KEY` | required in API-key mode | Upstream Anthropic credential |
 | `AUTOROUTER_CONFIG` | see path order above | Explicit user config path |
 | `AUTOROUTER_AUTH_MODE` | `api-key` without saved config; setup selects `subscription` | Authentication mode |
-| `AUTOROUTER_EVALUATOR` | `jev` | `jev` or local `ollama` classification |
+| `AUTOROUTER_EVALUATOR` | `ollama` | local `ollama` (default) or hosted `jev` classification |
 | `AUTOROUTER_SECRET_STORE` | `keychain` for new macOS setups; otherwise `file` | Saved-config setting: `keychain` keeps saved keys in the macOS login Keychain; the environment cannot redirect it |
 | `AUTOROUTER_CLIENT_PROFILE` | `compatible` | `native` retains client model/thinking settings; `auto` starts with Sonnet when no explicit model is set and excludes Haiku from task routing |
 | `AUTOROUTER_STATUSLINE` | enabled | `0` retains your existing status line |
@@ -107,7 +107,7 @@ Normal startup validates the selected evaluator; stale settings for the inactive
 
 ## Ollama evaluator
 
-The local configuration documented here requires AutoRouter 0.3.2 or newer and remains experimental. It uses Ollama's native `/v1/systemone` decision endpoint for every model, replacing the chat backend from 0.2.0. Jev remains the default remote evaluator, using TypeSafe's `/v1/systemone` endpoint and a TypeSafe API key. Selecting Ollama never silently switches back to Jev. Haiku, Sonnet, or Opus still completes the task through Anthropic.
+The local configuration documented here requires AutoRouter 0.3.2 or newer and remains experimental. It uses Ollama's native `/v1/systemone` decision endpoint for every model, replacing the chat backend from 0.2.0. Jev is the optional hosted evaluator, using TypeSafe's `/v1/systemone` endpoint and a TypeSafe API key. Selecting Ollama never silently switches back to Jev. Haiku, Sonnet, or Opus still completes the task through Anthropic.
 
 Version 0.3.2 excludes Claude's executor system instructions from local excerpts, uses model-specific runtime deadlines, and accepts `0` to disable that deadline. Setup, doctor, and startup show the effective model and deadline; setup accepts `--ollama-timeout-ms`. Jev is unchanged.
 

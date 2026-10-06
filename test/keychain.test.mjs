@@ -13,7 +13,7 @@ import { sessionsCommand } from '../src/session-history.mjs';
 function fixture(t) {
   const dir = mkdtempSync(join(tmpdir(), 'autorouter-keychain-'));
   t.after(() => rmSync(dir, { recursive: true, force: true }));
-  return { AUTOROUTER_CONFIG: join(dir, 'config.json') };
+  return { AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_CONFIG: join(dir, 'config.json') };
 }
 const saved = env => JSON.parse(readFileSync(env.AUTOROUTER_CONFIG, 'utf8'));
 
@@ -202,7 +202,7 @@ test('new macOS setups default to the keychain; existing plaintext configuration
   assert.deepEqual(valuesIn(keychain), ['private-jev']);
 
   const legacy = { ...fixture(t), TYPESAFE_API_KEY: 'private-legacy' };
-  saveUserConfig({ TYPESAFE_API_KEY: 'private-legacy' }, { env: legacy });
+  saveUserConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'private-legacy' }, { env: legacy });
   const legacyLines = [];
   await setup(['--force', '--auth-mode', 'subscription'], { ...options, env: legacy, write: line => legacyLines.push(line) });
   assert.equal(saved(legacy).TYPESAFE_API_KEY, 'private-legacy', 'an update must not move keys implicitly');

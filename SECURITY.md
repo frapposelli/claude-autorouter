@@ -16,7 +16,7 @@ Relevant reports include credential exposure, unauthorized access to the local g
 
 ## Handling diagnostic data
 
-AutoRouter's default Jev evaluator receives bounded task/history excerpts, which may contain private code or tool results. Recognizable credentials and personal identifiers are redacted from those excerpts first; this pattern-based filter reduces, but does not eliminate, disclosure. The local Ollama option keeps classification on loopback; Anthropic still receives the full inference request. See [data flow and authentication](docs/reference.md#data-flow-and-authentication).
+AutoRouter's default evaluator is local Ollama, which keeps classification on loopback. The optional hosted Jev evaluator (`--evaluator jev`) receives bounded task/history excerpts, which may contain private code or tool results. Recognizable credentials and personal identifiers are redacted from those excerpts first; this pattern-based filter reduces, but does not eliminate, disclosure. Anthropic still receives the full inference request. See [data flow and authentication](docs/reference.md#data-flow-and-authentication).
 
 New macOS setups keep saved keys in the login Keychain. Existing and non-macOS configurations keep plaintext keys in the private configuration file until you run `claude-autorouter config set AUTOROUTER_SECRET_STORE keychain` (macOS only). See [credential storage](docs/reference.md#credential-storage).
 

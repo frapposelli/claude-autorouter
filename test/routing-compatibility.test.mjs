@@ -7,7 +7,7 @@ import { createRouterServer, listen } from '../src/server.mjs';
 import { createTokenCounter } from '../src/token-counter.mjs';
 
 const token = 'compatibility-test-local-token';
-const config = profile => readConfig({ AUTOROUTER_CLIENT_PROFILE: profile,
+const config = profile => readConfig({ AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_CLIENT_PROFILE: profile,
   AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5', AUTOROUTER_OPUS_MODEL: 'claude-opus-5-5',
   ANTHROPIC_API_KEY: 'synthetic-upstream-key', TYPESAFE_API_KEY: 'synthetic-classifier-key' });
 const answer = choice => Response.json({ answers: { tier: { choice, confidence: 0.99 } } });

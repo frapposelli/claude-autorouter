@@ -386,7 +386,7 @@ export async function verifyPackagedLifecycle({ installedCommand, installedRoot,
     const { createRouterServer, listen } = await import(pathToFileURL(join(installedRoot, 'src/server.mjs')));
     for (const profile of ['compatible', 'native', 'auto']) {
       active = { profile, oauth: true, selectedModel: profile === 'auto' ? SONNET_55 : SONNET };
-      const config = readConfig({ AUTOROUTER_AUTH_MODE: 'subscription', AUTOROUTER_CLIENT_PROFILE: profile,
+      const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_AUTH_MODE: 'subscription', AUTOROUTER_CLIENT_PROFILE: profile,
         AUTOROUTER_TOKEN: 'synthetic-loopback-local-token-123', TYPESAFE_API_KEY: JEV_KEY, AUTOROUTER_JEV_URL: `${endpoint}/v1/systemone` });
       config.upstream = endpoint;
       const gateway = createRouterServer(config, { log: () => {} });

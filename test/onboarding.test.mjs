@@ -10,7 +10,11 @@ import { readConfig } from '../src/config.mjs';
 import { loadUserConfig, saveUserConfig } from '../src/user-config.mjs';
 
 // These tests cover file-based storage; never let them reach the real Keychain.
-const setup = (args, options = {}) => runSetup(args, { platform: 'linux', ...options });
+// Ollama is the default evaluator; tests of the Jev path choose it explicitly,
+// as a user would, unless a test selects its own evaluator.
+const setup = (args, options = {}) => runSetup(args, { platform: 'linux', ...options,
+  env: args.includes('--evaluator') || options.env?.AUTOROUTER_EVALUATOR !== undefined ? options.env
+    : { ...options.env, AUTOROUTER_EVALUATOR: 'jev' } });
 const doctor = (options = {}) => runDoctor({ platform: 'linux', ...options });
 
 function fixture(t) {
@@ -217,7 +221,7 @@ test('doctor reports missing login, conflicting provider, and subprocess failure
 });
 
 test('doctor accepts environment-only API configuration and skips subscription inspection', async t => {
-  const env = { ...fixture(t), TYPESAFE_API_KEY: 'jev-secret', ANTHROPIC_API_KEY: 'api-secret' };
+  const env = { ...fixture(t), AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'jev-secret', ANTHROPIC_API_KEY: 'api-secret' };
   // Explicit config paths are required to exist; use an empty XDG tree instead.
   env.XDG_CONFIG_HOME = join(env.AUTOROUTER_CONFIG, '..', 'xdg');
   delete env.AUTOROUTER_CONFIG;
@@ -629,4 +633,16 @@ test('setup cancellation stops before prompts, local requests, and saving', asyn
     env, signal: later.signal, write: () => {}, prompt: async () => { later.abort(); return 'synthetic-key'; }, fetchImpl: unexpected,
   }), /Setup cancelled/);
   assert.equal(existsSync(env.AUTOROUTER_CONFIG), false);
+});
+
+test('setup defaults to local Ollama, needs no evaluator key, and points to Jev when Ollama is unavailable', async t => {
+  const env = fixture(t);
+  const unreachable = async () => { throw new TypeError('connection refused'); };
+  await assert.rejects(runSetup([], { env, platform: 'linux', write: () => {}, fetchImpl: unreachable,
+    prompt: () => assert.fail('The default local evaluator must not ask for a key') }),
+  error => /Ollama/.test(error.message) && /setup --evaluator jev/.test(error.message));
+  assert.equal(existsSync(env.AUTOROUTER_CONFIG), false, 'a failed default setup saves nothing');
+  // An explicit choice already knows its backend, so it gets no redirect.
+  await assert.rejects(runSetup(['--evaluator', 'ollama'], { env, platform: 'linux', write: () => {}, fetchImpl: unreachable }),
+    error => !/--evaluator jev/.test(error.message));
 });

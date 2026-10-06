@@ -16,7 +16,7 @@ const quiet = () => {};
 
 test('show reports default, saved and environment provenance and hides every secret', async t => {
   const env = fixture(t), lines = [];
-  saveUserConfig({ AUTOROUTER_AUTH_MODE: 'subscription', AUTOROUTER_PORT: '8123',
+  saveUserConfig({ AUTOROUTER_AUTH_MODE: 'subscription', AUTOROUTER_PORT: '8123', AUTOROUTER_EVALUATOR: 'jev',
     TYPESAFE_API_KEY: 'private-saved-key', AUTOROUTER_TOKEN: 'private-token-value', ANTHROPIC_API_KEY: 'private-unused-key' }, { env });
   const before = readFileSync(env.AUTOROUTER_CONFIG, 'utf8');
   const options = { env: { ...env, AUTOROUTER_PORT: '9123', TYPESAFE_API_KEY: 'private-environment-key' }, write: line => lines.push(line) };

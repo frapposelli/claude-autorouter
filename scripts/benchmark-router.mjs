@@ -19,7 +19,7 @@ export async function runRouterBenchmark({ iterations = 60, rounds = 3, evaluato
   const names = ['small', 'large_tools', 'cache', 'pinned', 'concurrent_identical', 'concurrent_identical_agents', 'concurrent_distinct_agents', 'cancellation'];
   for (let round = 0; round < rounds; round++) for (const name of names) {
     let calls = 0, aborted = 0;
-    const config = readConfig({ TYPESAFE_API_KEY: 'synthetic-benchmark-key', AUTOROUTER_AUTH_MODE: 'subscription' });
+    const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'synthetic-benchmark-key', AUTOROUTER_AUTH_MODE: 'subscription' });
     const router = new Router(config, { fetchImpl: async (_url, { signal }) => {
       calls++;
       await new Promise((resolve, reject) => {
