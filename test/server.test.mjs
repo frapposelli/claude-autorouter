@@ -301,7 +301,7 @@ const oauthHeaders = { authorization: 'Bearer fake-subscription-token', 'anthrop
 
 test('large subscription requests count with the current OAuth headers and keep Haiku when they fit', async t => {
   const paths = [];
-  const router = new Router(readConfig(), { fetchImpl: async () => Response.json({ answers: { tier: { choice: 'haiku', confidence: 1 } } }) });
+  const router = new Router(readConfig({ AUTOROUTER_EVALUATOR: 'jev' }), { fetchImpl: async () => Response.json({ answers: { tier: { choice: 'haiku', confidence: 1 } } }) });
   const requested = { ...body, model: 'claude-haiku-4-5-20251001', stream: false, system: 'Synthetic context. '.repeat(10000) };
   const f = await fixture(t, async (req, res) => {
     paths.push(req.url);
