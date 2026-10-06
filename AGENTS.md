@@ -1,6 +1,6 @@
 # Agent contribution guide
 
-AutoRouter is an independent local gateway for Claude Code. It evaluates tasks and routes eligible requests to compatible Haiku, Sonnet or Opus models. Jev is the default evaluator; local Ollama evaluators are experimental. Both evaluator integrations use `/v1/systemone`.
+AutoRouter is an independent local gateway for Claude Code. It evaluates tasks and routes eligible requests to compatible Haiku, Sonnet or Opus models. Local Ollama is the default evaluator and is experimental; TypeSafe Jev is an optional hosted evaluator (`setup --evaluator jev`) that receives redacted task excerpts. Both evaluator integrations use `/v1/systemone`.
 
 These instructions apply throughout this repository. Start with [CONTRIBUTING.md](CONTRIBUTING.md), then read the relevant code and tests. Use [README.md](README.md) for user-facing behavior and [docs/reference.md](docs/reference.md) for configuration and routing policy. Read detailed guides as needed rather than loading every document into context.
 
@@ -42,7 +42,7 @@ npm run test:package
 
 `check` verifies syntax, TypeScript/JSDoc contracts, event producers and style. Tests use synthetic credentials and local mocks; HTTP tests need loopback binding. `test:package` verifies the actual archive and installed CLI, including launcher lifecycle and cleanup. There is no separate build or lint command. For documentation-only changes, validate links and whitespace; do not add tests that merely mirror prose. All four Node/OS CI jobs remain required for merging.
 
-Live tests, evaluator calls, hardware benchmarks and model downloads are opt-in. Do not run them as ordinary contribution checks: `npm run test:live` consumes Claude/evaluator usage, and `npm run eval` uses paid Jev calls by default. `scripts/context-probe.mjs` can execute configured MCP servers and startup customizations even when inference is stubbed. Follow [development and validation](docs/development.md) for task-requested live work, record its conditions, and label mock and real-provider evidence separately.
+Live tests, evaluator calls, hardware benchmarks and model downloads are opt-in. Do not run them as ordinary contribution checks: `npm run test:live` consumes Claude/evaluator usage, and `npm run eval` calls the configured evaluator, with paid Jev calls when `AUTOROUTER_EVALUATOR=jev`. `scripts/context-probe.mjs` can execute configured MCP servers and startup customizations even when inference is stubbed. Follow [development and validation](docs/development.md) for task-requested live work, record its conditions, and label mock and real-provider evidence separately.
 
 ## Preserve routing and protocol invariants
 
