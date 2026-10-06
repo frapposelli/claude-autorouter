@@ -2,6 +2,7 @@ import { readConfig, parseSessionLogDir, parseStopHookBlockCap } from './config.
 import { CONFIG_KEYS, SECRET_CONFIG_KEYS, SECRET_STORES, keychainRemovals, loadUserConfig, saveUserConfig } from './user-config.mjs';
 import { modelCapabilities } from './model-catalog.mjs';
 import { askSecret } from './onboarding.mjs';
+import { applyPolicy } from './policy.mjs';
 
 const secretKey = key => SECRET_CONFIG_KEYS.includes(key);
 const providerFor = key => key.startsWith('AUTOROUTER_OLLAMA_') ? 'ollama'
@@ -35,7 +36,8 @@ export function configReport(loaded, env, { checkAll = false } = {}) {
   for (const key of CONFIG_KEYS) {
     const saved = loaded.keychainSecrets?.includes(key) ? 'keychain' : 'file';
     // The saved store setting governs saved secrets; the environment cannot redirect it.
-    const source = env[key] !== undefined && key !== 'AUTOROUTER_SECRET_STORE' ? 'environment'
+    const source = loaded.policyLocked?.includes(key) ? 'policy'
+      : env[key] !== undefined && key !== 'AUTOROUTER_SECRET_STORE' ? 'environment'
       : Object.hasOwn(loaded.values, key) ? saved : 'default';
     const provider = providerFor(key);
     const active = (!provider || provider === config.evaluator)
@@ -57,7 +59,8 @@ export function configReport(loaded, env, { checkAll = false } = {}) {
     try { readConfig(loaded.env, { validateAll: true }); }
     catch (failure) { valid = false; error = failure.message; }
   }
-  return { schema_version: 1, config_path: loaded.path, config_exists: loaded.exists, valid,
+  return { schema_version: 1, config_path: loaded.path, config_exists: loaded.exists,
+    ...(loaded.policyPath ? { policy_path: loaded.policyPath } : {}), valid,
     checked: checkAll ? 'all_evaluators' : 'active_evaluator', settings, warnings,
     ...(error ? { error } : {}),
   };
@@ -94,9 +97,9 @@ function normalizedValue(key, value) {
 }
 
 export async function configCommand(args, {
-  env = process.env, write = console.log, input = process.stdin, promptSecret = askSecret, keychain,
+  env = process.env, write = console.log, input = process.stdin, promptSecret = askSecret, keychain, policy,
 } = {}) {
-  const store = keychain ? { keychain } : {};
+  const store = { ...(keychain ? { keychain } : {}), ...(policy ? { policy } : {}) };
   const [operation, ...rest] = args;
   if (operation === 'show') {
     if (rest.some(arg => !['--json', '--check-all'].includes(arg))) throw new Error('Usage: claude-autorouter config show [--json] [--check-all]');
@@ -130,7 +133,7 @@ export async function configCommand(args, {
     throw new Error('Secret values are not accepted as command arguments. Use --stdin or the hidden prompt.');
   }
   if (operation === 'set' && !secretKey(key) && (value === undefined || value === '--stdin')) throw new Error('Nonsecret settings require a value argument.');
-  const loaded = loadUserConfig(env, { allowMissing: true, ...store });
+  const loaded = loadUserConfig(env, { allowMissing: true, enforcePolicy: false, ...store });
   const next = { ...loaded.values };
   if (operation === 'unset') delete next[key];
   else next[key] = normalizedValue(key, secretKey(key)
@@ -140,6 +143,7 @@ export async function configCommand(args, {
   // mask it. An explicitly edited inactive provider is checked too.
   const provider = operation === 'set' ? providerFor(key) : undefined;
   readConfig({ ...next, ...(provider ? { AUTOROUTER_EVALUATOR: provider } : {}) });
+  if (loaded.policy) applyPolicy(next, loaded.policy);
   const nextStore = next.AUTOROUTER_SECRET_STORE ?? 'file';
   // Changing the store moves saved secrets; unsetting a secret deletes its item.
   const removeSecrets = key === 'AUTOROUTER_SECRET_STORE' ? keychainRemovals(loaded, nextStore)

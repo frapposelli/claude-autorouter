@@ -105,6 +105,24 @@ claude-autorouter config set TYPESAFE_API_KEY
 
 Normal startup validates the selected evaluator; stale settings for the inactive evaluator do not prevent it from starting. `show --check-all` explicitly checks both. Blank numeric settings fail with their setting name; zero retains its documented meaning. `claude-autorouter help COMMAND` gives focused command help. `claude-autorouter claude --help` and `--version` call Claude directly without router setup or credentials.
 
+### Organization policy
+
+An administrator can restrict what users may configure with a policy file at a fixed system path: `/Library/Application Support/claude-autorouter/policy.json` on macOS and `/etc/claude-autorouter/policy.json` on Linux. No environment variable changes this path. The file and its directory must be regular, owned by root, and not writable by group or others; otherwise AutoRouter refuses to start. An invalid or unreadable file also stops it, so a broken policy never silently turns off.
+
+```json
+{
+  "allowed_evaluators": ["ollama"],
+  "allowed_auth_modes": ["subscription"],
+  "session_log_mode": "metadata",
+  "upstream_url": "https://api.anthropic.com",
+  "jev_url": "https://api.typesafe.ai/v1/systemone"
+}
+```
+
+All keys are optional. `allowed_evaluators` and `allowed_auth_modes` reject any other choice, including an unset default, with an error that names the setting. `session_log_mode`, `upstream_url` and `jev_url` replace whatever the saved file or environment supplies; `config show` reports them with source `policy`. `doctor` prints the policy path and the locked settings. `setup` and `config set` refuse to save a disallowed value, but still let a user correct a setting that the policy now forbids.
+
+The policy guards against configuration drift and environment-driven changes such as direnv, devcontainer or CI variables. It does not stop someone who can run modified code, or run Claude Code without AutoRouter. Deploy it with device management, and use it with an allowlist of approved package versions.
+
 ## Ollama evaluator
 
 The local configuration documented here requires AutoRouter 0.3.2 or newer and remains experimental. It uses Ollama's native `/v1/systemone` decision endpoint for every model, replacing the chat backend from 0.2.0. Jev is the optional hosted evaluator, using TypeSafe's `/v1/systemone` endpoint and a TypeSafe API key. Selecting Ollama never silently switches back to Jev. Haiku, Sonnet, or Opus still completes the task through Anthropic.

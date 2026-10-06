@@ -3,6 +3,7 @@ import { createInterface } from 'node:readline';
 import { Writable } from 'node:stream';
 import { promisify } from 'node:util';
 import { CLIENT_PROFILES, readConfig, requireKeys, parseStopHookBlockCap, parseSessionLogDir } from './config.mjs';
+import { applyPolicy } from './policy.mjs';
 import { buildClaudeEnv, conflictingProviders, LOCAL_AUTH_HEADER } from './auth.mjs';
 import { CONFIG_KEYS, SECRET_CONFIG_KEYS, SECRET_STORES, keychainRemovals, loadUserConfig, saveUserConfig } from './user-config.mjs';
 import { DEFAULT_OLLAMA_MODEL, validateOllamaModel } from './ollama-models.mjs';
@@ -38,11 +39,11 @@ export async function askSecret(label, { input = process.stdin, output = process
 
 export async function setup(args, {
   env = process.env, write = console.log, prompt = askSecret, fetchImpl = fetch, signal, keychain,
-  platform = process.platform,
+  platform = process.platform, policy,
 } = {}) {
   if (signal?.aborted) throw new Error('Setup cancelled');
-  const store = keychain ? { keychain } : {};
-  const loaded = loadUserConfig(env, { allowMissing: true, ...store });
+  const store = { ...(keychain ? { keychain } : {}), ...(policy ? { policy } : {}) };
+  const loaded = loadUserConfig(env, { allowMissing: true, enforcePolicy: false, ...store });
   const replace = args.includes('--replace');
   const mergeExisting = loaded.exists && !replace;
   // Updating one preference must not turn unrelated runtime overrides into
@@ -131,6 +132,7 @@ export async function setup(args, {
   const keys = [...(evaluator === 'jev' ? ['TYPESAFE_API_KEY'] : []), ...(authMode === 'api-key' ? ['ANTHROPIC_API_KEY'] : [])];
   // Reject invalid settings before inviting secret input or making local calls.
   readConfig(values);
+  if (loaded.policy) applyPolicy(values, loaded.policy);
   if (values.AUTOROUTER_SECRET_STORE === 'keychain' && platform !== 'darwin') {
     throw new Error('--secret-store keychain is available only on macOS');
   }
@@ -224,6 +226,7 @@ export async function doctor({ env = process.env, write = console.log, run = exe
     const loaded = loadUserConfig(env, keychain ? { keychain } : {});
     effectiveEnv = loaded.env;
     write(`Config: ${loaded.path}${loaded.exists ? '' : ' (absent; using environment)'}`);
+    if (loaded.policyPath) write(`Organization policy: ${loaded.policyPath} (locks: ${loaded.policyLocked.map(key => key.replace('AUTOROUTER_', '')).join(', ') || 'none'}).`);
     if (loaded.secretStore === 'keychain') write(`Saved secrets: macOS Keychain (${loaded.keychainSecrets.length} found).`);
     else if (platform === 'darwin' && SECRET_CONFIG_KEYS.some(key => Object.hasOwn(loaded.values, key))) {
       write('WARN  Saved keys are plaintext in the configuration file. Move them into the macOS Keychain: claude-autorouter config set AUTOROUTER_SECRET_STORE keychain');

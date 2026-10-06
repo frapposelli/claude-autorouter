@@ -232,7 +232,7 @@ export async function sessionsCommand(args, { env = process.env, write = console
     throw new Error('Usage: claude-autorouter sessions list [--json] | sessions show ID [--json]');
   }
   // History needs only the log directory; never prompt for keychain access.
-  const loaded = loadUserConfig(env, { allowMissing: true, readSecrets: false });
+  const loaded = loadUserConfig(env, { allowMissing: true, readSecrets: false, enforcePolicy: false });
   const directory = parseSessionLogDir(loaded.env.AUTOROUTER_SESSION_LOG_DIR);
   if (!directory) {
     const report = { schema_version: 1, type: 'session_history', logging_enabled: false, sessions: [],

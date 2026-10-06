@@ -6,6 +6,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { homedir } from 'node:os';
 import { basename, dirname, isAbsolute, join, resolve } from 'node:path';
 import { createKeychain } from './keychain.mjs';
+import { applyPolicy, loadPolicy } from './policy.mjs';
 
 export const CONFIG_KEYS = Object.freeze([
   'AUTOROUTER_AUTH_MODE', 'AUTOROUTER_CLIENT_PROFILE', 'AUTOROUTER_SECRET_STORE',
@@ -87,7 +88,7 @@ export function getConfigPath(env = process.env) {
 // The saved store setting decides where saved secrets live; the environment
 // only overrides values. With the keychain store, `values` includes secrets
 // read from the keychain so callers can update settings without losing them.
-export function loadUserConfig(env = process.env, { allowMissing = false, readSecrets = true, keychain = defaultKeychain } = {}) {
+function readUserConfig(env, { allowMissing = false, readSecrets = true, keychain = defaultKeychain } = {}) {
   const path = getConfigPath(env);
   let content;
   try {
@@ -124,6 +125,18 @@ export function loadUserConfig(env = process.env, { allowMissing = false, readSe
   }
   return { env: { ...values, ...env }, values, path, exists: true, revision: revision(content),
     secretStore, keychainSecrets, unavailableSecrets };
+}
+
+// An organization policy, when present, is applied last. Its allowlists reject
+// a disallowed choice and its locks replace file and environment values, so
+// every consumer of the effective environment sees the enforced settings.
+// `policy` options exist for tests; production always uses the system path.
+export function loadUserConfig(env = process.env, { policy: policyOptions, enforcePolicy = true, ...options } = {}) {
+  const policy = loadPolicy(policyOptions);
+  const loaded = readUserConfig(env, options);
+  if (!policy) return loaded;
+  const applied = applyPolicy(loaded.env, policy.values, { allowlists: enforcePolicy });
+  return { ...loaded, env: applied.env, policy: policy.values, policyPath: policy.path, policyLocked: applied.locked };
 }
 
 // Keychain items to delete when saving `nextStore`, given what was loaded.
