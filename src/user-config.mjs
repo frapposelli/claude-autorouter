@@ -71,18 +71,28 @@ function validate(values) {
   return validated;
 }
 
+// The path is printed, stored in Keychain item labels and sent to the macOS
+// `security -i` command parser, which reads one command per line. Control
+// characters (including line and paragraph separators) can therefore split a
+// command or inject terminal escapes, and no real configuration path needs them.
+const UNSAFE_PATH = /[\u0000-\u001f\u007f-\u009f\u2028\u2029\u202a-\u202e\u2066-\u2069]/;
+
 export function getConfigPath(env = process.env) {
+  let path;
   if (env.AUTOROUTER_CONFIG !== undefined) {
     if (typeof env.AUTOROUTER_CONFIG !== 'string' || !env.AUTOROUTER_CONFIG.trim()) {
       throw configError('AUTOROUTER_CONFIG must be a non-empty path.');
     }
-    return resolve(env.AUTOROUTER_CONFIG);
+    path = resolve(env.AUTOROUTER_CONFIG);
+  } else {
+    const xdg = env.XDG_CONFIG_HOME;
+    if (xdg !== undefined && (typeof xdg !== 'string' || (xdg && !isAbsolute(xdg)))) {
+      throw configError('XDG_CONFIG_HOME must be an absolute path when set.');
+    }
+    path = join(xdg || join(homedir(), '.config'), 'claude-autorouter', 'config.json');
   }
-  const xdg = env.XDG_CONFIG_HOME;
-  if (xdg !== undefined && (typeof xdg !== 'string' || (xdg && !isAbsolute(xdg)))) {
-    throw configError('XDG_CONFIG_HOME must be an absolute path when set.');
-  }
-  return join(xdg || join(homedir(), '.config'), 'claude-autorouter', 'config.json');
+  if (UNSAFE_PATH.test(path)) throw configError('The AutoRouter configuration path must not contain control characters.');
+  return path;
 }
 
 // The saved store setting decides where saved secrets live; the environment

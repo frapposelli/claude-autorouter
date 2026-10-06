@@ -230,3 +230,36 @@ test('an unavailable keychain falls back to the file only when it was the implic
   await assert.rejects(setup(['--secret-store', 'keychain'], { env: { ...explicit, TYPESAFE_API_KEY: 'private-jev' }, keychain: broken,
     platform: 'darwin', write: () => {}, prompt: () => assert.fail('Unexpected prompt') }), /macOS Keychain|locked/);
 });
+
+test('a newline in a Keychain item name cannot start another security command', t => {
+  const calls = [];
+  const run = (_command, args, options) => { calls.push({ args, input: options.input }); return { status: 0, stdout: '' }; };
+  const keychain = createKeychain({ run, platform: 'darwin' });
+  const hostile = ['label\ndelete-keychain /tmp/synthetic.keychain', 'label\r-w', 'label x', 'label\u0000x', 'label\u001bx'];
+  for (const value of hostile) {
+    assert.throws(() => keychain.write('ACCOUNT:0123456789abcdef', 'synthetic-secret', value), /control characters/);
+    assert.throws(() => keychain.write(value, 'synthetic-secret', 'AutoRouter label'), /control characters/);
+  }
+  assert.equal(calls.length, 0, 'The security tool is never invoked with a hostile name');
+
+  // A legitimate label, even with quotes, backslashes and non-ASCII text, is exactly one command.
+  const stored = new Map();
+  const single = createKeychain({ platform: 'darwin', run: (_command, args, options) => {
+    if (args[0] === '-i') {
+      assert.equal(options.input.split('\n').filter(Boolean).length, 1);
+      stored.set('value', 'synthetic-secret');
+      return { status: 0, stdout: '' };
+    }
+    return { status: 0, stdout: `${stored.get('value')}\n` };
+  } });
+  single.write('ACCOUNT:0123456789abcdef', 'synthetic-secret', 'AutoRouter KEY (/Users/Müller "a" \\ b/config.json)');
+});
+
+test('saving with the keychain store and a hostile config path fails before any Keychain call', t => {
+  const base = mkdtempSync(join(tmpdir(), 'autorouter-keychain-path-'));
+  t.after(() => rmSync(base, { recursive: true, force: true }));
+  const keychain = memoryKeychain();
+  const env = { AUTOROUTER_CONFIG: join(base, 'x\ndelete-keychain /tmp/synthetic.keychain\nconfig.json') };
+  assert.throws(() => saveUserConfig({ AUTOROUTER_SECRET_STORE: 'keychain', TYPESAFE_API_KEY: 'synthetic-secret' }, { env, keychain }), /control characters/);
+  assert.equal(keychain.items.size, 0);
+});

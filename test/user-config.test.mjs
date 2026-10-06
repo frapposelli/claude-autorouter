@@ -191,3 +191,21 @@ test('configuration snapshots expose saved values and detect intervening changes
   assert.equal(loadUserConfig(env).values.AUTOROUTER_PORT, '7000');
   assert.deepEqual(readdirSync(dirname(env.AUTOROUTER_CONFIG)), ['config.json']);
 });
+
+test('a configuration path containing control or line-separator characters is rejected without echoing it', t => {
+  const base = directory(t);
+  const hostile = [
+    'config\ndelete-keychain /tmp/synthetic.keychain\n.json', 'config\r.json', 'config\u001b[2J.json', 'config\u0000.json',
+    'config\u0085.json', 'config .json', 'config .json', 'config‮.json',
+  ];
+  for (const name of hostile) {
+    for (const env of [{ AUTOROUTER_CONFIG: join(base, name) }, { XDG_CONFIG_HOME: join(base, name) }]) {
+      assert.throws(() => getConfigPath(env), error => error.code === 'AUTOROUTER_CONFIG_ERROR'
+        && /control characters/.test(error.message) && !error.message.includes('synthetic') && !error.message.includes(base));
+      assert.throws(() => loadUserConfig(env, { allowMissing: true }), /control characters/);
+      assert.throws(() => saveUserConfig({ AUTOROUTER_PORT: '1' }, { env }), /control characters/);
+    }
+  }
+  // Ordinary non-ASCII and space characters remain valid.
+  assert.equal(getConfigPath({ AUTOROUTER_CONFIG: join(base, 'Müller 設定', 'config.json') }), join(base, 'Müller 設定', 'config.json'));
+});

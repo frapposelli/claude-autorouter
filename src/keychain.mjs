@@ -16,8 +16,15 @@ function keychainError(message) {
 }
 
 // Quote for the `security -i` command parser, which accepts backslash escapes
-// inside double quotes. Values are validated as printable single-line ASCII.
-const quote = value => `"${value.replace(/[\\"]/g, '\\$&')}"`;
+// inside double quotes and reads one command per line. The secret is validated
+// as printable single-line ASCII; the account and label (which can carry a
+// user-chosen path) must contain no control or line-separator characters, since
+// a newline would start another command.
+const UNSAFE = /[\u0000-\u001f\u007f-\u009f\u2028\u2029]/;
+const quote = value => {
+  if (typeof value !== 'string' || UNSAFE.test(value)) throw keychainError('Keychain item names must not contain control characters.');
+  return `"${value.replace(/[\\"]/g, '\\$&')}"`;
+};
 
 export function createKeychain({ run = spawnSync, platform = process.platform } = {}) {
   const available = platform === 'darwin';
