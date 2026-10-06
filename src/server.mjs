@@ -47,8 +47,10 @@ function readBody(req, limit) {
 
 function jsonError(res, status, message) {
   if (res.headersSent || res.destroyed) { res.destroy(); return; }
-  res.writeHead(status, { 'content-type': 'application/json' });
+  // An oversized body is no longer read; close rather than keep the socket.
+  res.writeHead(status, { 'content-type': 'application/json', ...(status === 413 ? { connection: 'close' } : {}) });
   res.end(JSON.stringify({ type: 'error', error: { type: 'api_error', message } }));
+  if (status === 413) res.once('finish', () => res.socket?.destroy());
 }
 
 function upstreamHeaders(incoming, config) {

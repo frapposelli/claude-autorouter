@@ -88,7 +88,7 @@ const fs = require('node:fs');
 test('opt-in launcher logs each observed session privately and drains the final row before exit', { timeout: 15000 }, async t => {
   const f = await launcherFixture(t);
   const logDirectory = join(f.directory, 'private logs');
-  const first = await f.run(logDirectory);
+  const first = await f.run(logDirectory, 'prompts');
   assert.equal(first.stdout, 'FAKE_CLAUDE_DONE\n');
   assert.equal(first.stderr, '');
   const names = await readdir(logDirectory);
@@ -147,7 +147,7 @@ test('opt-in launcher logs each observed session privately and drains the final 
   }
   // Resuming the same Claude session in a later router launch must create new
   // files, not append or truncate the earlier launch's private log.
-  const second = await f.run(logDirectory);
+  const second = await f.run(logDirectory, 'prompts');
   assert.equal(second.stdout, 'FAKE_CLAUDE_DONE\n');
   assert.equal(second.stderr, '');
   assert.equal((await readdir(logDirectory)).length, 4);

@@ -18,7 +18,7 @@ test('session decision logging is opt-in and directory settings are validated wi
 });
 
 test('session log mode controls excerpts without enabling logging', () => {
-  assert.equal(readConfig({}).sessionLogMode, 'prompts');
+  assert.equal(readConfig({}).sessionLogMode, 'metadata');
   for (const mode of ['prompts', 'metadata']) {
     const config = readConfig({ AUTOROUTER_SESSION_LOG_MODE: mode });
     assert.equal(config.sessionLogDir, undefined);

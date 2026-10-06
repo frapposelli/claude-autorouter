@@ -297,7 +297,7 @@ async function main() {
     assert.equal(classifications + generations + localClassifications + localWarms + nimbleClassifications + nimbleWarms + pulls, 0,
       'Configuration and help commands must not contact providers');
     await run(installedCommand, ['doctor'], { cwd: unrelated, env: cliEnv });
-    const launched = await run(installedCommand, ['claude'], { cwd: unrelated, env: cliEnv });
+    const launched = await run(installedCommand, ['claude'], { cwd: unrelated, env: { ...cliEnv, AUTOROUTER_SESSION_LOG_MODE: 'prompts' } });
     if (mockError) throw mockError;
     assert.equal(launched.stderr, '', 'Default launcher should remain quiet');
     const result = launched.stdout.split('\n').filter(Boolean).map(line => JSON.parse(line)).find(value => value.smoke === 'ok');
