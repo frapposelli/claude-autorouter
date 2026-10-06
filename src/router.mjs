@@ -191,7 +191,7 @@ export class Router {
     // Include live configuration/rubric facts so configuration changes cannot
     // reuse cached decisions from another evaluator, account or confidence rule.
     const c = this.config;
-    const evaluator = c.evaluator ?? 'jev';
+    const evaluator = c.evaluator ?? 'ollama';
     const settings = evaluator === 'ollama'
       ? { evaluator, ollamaEndpoint: c.ollamaEndpoint, ollamaModel: c.ollamaModel, ollamaTimeoutMs: c.ollamaTimeoutMs,
         ollamaStateChars: c.ollamaStateChars, ollamaKeepAlive: c.ollamaKeepAlive }

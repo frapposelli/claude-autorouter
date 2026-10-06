@@ -86,9 +86,10 @@ test('native Stop-hook block cap rejects coercion, nondecimal notation, fraction
   }
 });
 
-test('Jev remains the default and local decisions default to the explicit Nimble quantization', () => {
+test('local Ollama is the default evaluator, Jev is selectable, and local decisions default to the explicit Nimble quantization', () => {
   const defaults = readConfig({});
-  assert.equal(defaults.evaluator, 'jev');
+  assert.equal(defaults.evaluator, 'ollama');
+  assert.equal(readConfig({ AUTOROUTER_EVALUATOR: 'jev' }).evaluator, 'jev');
   assert.equal(defaults.jevEndpoint, 'https://api.typesafe.ai/v1/systemone');
   assert.equal(defaults.jevTimeoutMs, 1500);
   assert.equal(DEFAULT_OLLAMA_MODEL, 'nimble:9b-q4_K_M');
@@ -139,7 +140,8 @@ test('an explicit local deadline overrides every model default and retains bound
 });
 
 test('local subscription evaluation needs no API key while Jev and API billing retain their keys', () => {
-  assert.throws(() => requireKeys(readConfig({ AUTOROUTER_AUTH_MODE: 'subscription' })), /TYPESAFE_API_KEY/);
+  assert.throws(() => requireKeys(readConfig({ AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_AUTH_MODE: 'subscription' })), /TYPESAFE_API_KEY/);
+  assert.doesNotThrow(() => requireKeys(readConfig({ AUTOROUTER_AUTH_MODE: 'subscription' })), 'Ollama needs no Jev key by default');
   assert.doesNotThrow(() => requireKeys(readConfig({ AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_AUTH_MODE: 'subscription' })));
   assert.throws(() => requireKeys(readConfig({ AUTOROUTER_EVALUATOR: 'ollama' })), /ANTHROPIC_API_KEY/);
   assert.doesNotThrow(() => requireKeys(readConfig({ AUTOROUTER_EVALUATOR: 'ollama', ANTHROPIC_API_KEY: 'test-api' })));
@@ -168,11 +170,11 @@ test('runtime validates the selected evaluator and explicit full checks include 
 
 test('numeric settings reject blank and coercible values while meaningful zero remains valid', () => {
   for (const key of ['AUTOROUTER_PORT', 'AUTOROUTER_JEV_TIMEOUT_MS', 'AUTOROUTER_TOKEN_COUNT_TIMEOUT_MS', 'AUTOROUTER_MIN_CONFIDENCE']) {
-    for (const value of ['', ' ', null, false, '0x10', '1e2']) assert.throws(() => readConfig({ [key]: value }), new RegExp(key));
+    for (const value of ['', ' ', null, false, '0x10', '1e2']) assert.throws(() => readConfig({ AUTOROUTER_EVALUATOR: 'jev', [key]: value }), new RegExp(key));
   }
   assert.equal(readConfig({ AUTOROUTER_PORT: '0' }).port, 0);
-  assert.equal(readConfig({ AUTOROUTER_MIN_CONFIDENCE: '0' }).minConfidence, 0);
-  assert.equal(readConfig({ AUTOROUTER_MIN_CONFIDENCE: '.5' }).minConfidence, .5);
+  assert.equal(readConfig({ AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_MIN_CONFIDENCE: '0' }).minConfidence, 0);
+  assert.equal(readConfig({ AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_MIN_CONFIDENCE: '.5' }).minConfidence, .5);
 });
 
 test('owned boolean flags and model names reject invalid values without exposing them', () => {
@@ -181,12 +183,12 @@ test('owned boolean flags and model names reject invalid values without exposing
     for (const value of ['0', '1']) assert.doesNotThrow(() => readConfig({ [key]: value }));
   }
   for (const key of ['AUTOROUTER_HAIKU_MODEL', 'AUTOROUTER_SONNET_MODEL', 'AUTOROUTER_OPUS_MODEL', 'AUTOROUTER_JEV_MODEL']) {
-    for (const value of ['', ' ', 'private\nsentinel', null]) assert.throws(() => readConfig({ [key]: value }), error => {
+    for (const value of ['', ' ', 'private\nsentinel', null]) assert.throws(() => readConfig({ AUTOROUTER_EVALUATOR: 'jev', [key]: value }), error => {
       assert.match(error.message, new RegExp(key));
       assert.ok(!error.message.includes('private'));
       return true;
     });
-    assert.doesNotThrow(() => readConfig({ [key]: 'custom/team-model:v1' }));
+    assert.doesNotThrow(() => readConfig({ AUTOROUTER_EVALUATOR: 'jev', [key]: 'custom/team-model:v1' }));
   }
   assert.doesNotThrow(() => readConfig({ ENABLE_TOOL_SEARCH: 'auto:5' }));
 });

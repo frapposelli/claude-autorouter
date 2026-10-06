@@ -63,7 +63,7 @@ export function readConfig(env = process.env, { validateAll = false } = {}) {
   for (const key of ['AUTOROUTER_STATUSLINE', 'AUTOROUTER_DEBUG']) {
     if (env[key] !== undefined && !['0', '1'].includes(env[key])) throw new Error(`${key} must be 0 or 1`);
   }
-  const evaluator = env.AUTOROUTER_EVALUATOR ?? 'jev';
+  const evaluator = env.AUTOROUTER_EVALUATOR ?? 'ollama';
   if (evaluator !== 'jev' && evaluator !== 'ollama') throw new Error('AUTOROUTER_EVALUATOR must be jev or ollama');
   // A stale inactive backend must not stop the selected evaluator. Config
   // inspection can request validation of both providers explicitly.

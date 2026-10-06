@@ -1,23 +1,25 @@
 const commands = {
   setup: `Usage: claude-autorouter setup [options]
 
-Configure Jev (default) or an installed local Ollama evaluator.
+Configure the local Ollama evaluator (default) or TypeSafe Jev.
   --auth-mode subscription|api-key   Default: subscription
   --client-profile compatible|native|auto
-  --evaluator jev|ollama
+  --evaluator ollama|jev             Default: ollama (local); jev sends excerpts to TypeSafe
   --ollama-model TAG                 Select a /v1/systemone model
   --ollama-timeout-ms N              0 disables the routing deadline
   --pull                            Download the selected missing Ollama model
   --stop-hook-block-cap N            Optional Claude Stop-hook retry limit
   --session-log-dir DIR              Opt in to private logs with prompt excerpts
   --session-log-mode metadata|prompts Choose whether excerpts are included
-  --force                           Update an existing configuration
+  --secret-store file|keychain       default on macOS for new setups; file is plaintext
+  --force                          Update an existing configuration
   --replace                         Explicitly rebuild the saved configuration
 
 First setup reads environment settings and keys, or prompts for missing keys.
 --force retains saved defaults and applies explicit options; unrelated runtime
 overrides stay temporary. Explicit evaluator/auth selection accepts its supplied key.
-Example: claude-autorouter setup --evaluator ollama --ollama-model tev1:0.8b --pull`,
+Examples: claude-autorouter setup --pull
+          claude-autorouter setup --evaluator jev`,
   doctor: `Usage: claude-autorouter doctor [--evaluate-local] [--json]
 
 Check configuration, installed Claude, and local model availability.
@@ -35,6 +37,7 @@ Show effective settings and their source; secrets are always redacted.
 --check-all also validates settings for the inactive evaluator.
 Set/unset changes only the named saved setting. Environment values still win.
 Secret keys require --stdin or a hidden prompt, never a command-line value.
+Setting AUTOROUTER_SECRET_STORE to keychain or file moves saved keys (macOS).
 
 Example: claude-autorouter config set AUTOROUTER_OLLAMA_TIMEOUT_MS 0`,
   serve: `Usage: claude-autorouter serve
@@ -78,8 +81,8 @@ Start: claude-autorouter setup
        claude-autorouter claude --permission-mode auto
 
 Run claude-autorouter help <command> for options and examples.
-Jev is the default; it receives bounded prompt excerpts. Ollama uses only the
-local /v1/systemone evaluator. Complete requests go to Anthropic.
+Local Ollama is the default evaluator and uses only the local /v1/systemone
+endpoint. Jev is optional; it receives bounded, redacted prompt excerpts. Complete requests go to Anthropic.
 Session logging is off unless AUTOROUTER_SESSION_LOG_DIR is configured.
 Environment variables override ~/.config/claude-autorouter/config.json.
 AUTOROUTER_CONFIG selects another file. Project .env files are not auto-loaded.

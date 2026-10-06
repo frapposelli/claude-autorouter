@@ -145,7 +145,7 @@ test('invalid gate options are rejected before any evaluations and policy object
   assert.throws(() => policy.requiredTiers.push('other'));
   assert.throws(() => { policy.minAgreement = 0; });
   let calls = 0;
-  const config = readConfig({ TYPESAFE_API_KEY: 'synthetic-only' });
+  const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'synthetic-only' });
   await assert.rejects(runEvaluation({ config, cases: [], policy: { minAgreement: 2 }, routerFactory: () => { calls++; } }));
   assert.equal(calls, 0);
 });
@@ -163,7 +163,7 @@ test('hardware benchmark accepts a disabled warm deadline with a bounded cold lo
 test('the existing synthetic corpus characterizes actual compatible and Auto policy with mocked evaluator answers', async () => {
   const cases = JSON.parse(await readFile(new URL('./fixtures/routing.json', import.meta.url), 'utf8'));
   for (const profile of ['compatible', 'auto']) {
-    const config = readConfig({ TYPESAFE_API_KEY: 'synthetic-only', AUTOROUTER_CLIENT_PROFILE: profile });
+    const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'synthetic-only', AUTOROUTER_CLIENT_PROFILE: profile });
     let calls = 0;
     const routerFactory = () => new Router(config, { fetchImpl: async () => {
       return Response.json({ answers: { tier: { choice: cases[calls++].expected, confidence: 0.99 } } });
@@ -177,7 +177,7 @@ test('the existing synthetic corpus characterizes actual compatible and Auto pol
 });
 
 test('actual router characterization verifies declared thinking override without changing its request', async () => {
-  const config = readConfig({ TYPESAFE_API_KEY: 'synthetic-only' });
+  const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'synthetic-only' });
   const request = { model: config.models.sonnet, max_tokens: 4096, thinking: { type: 'adaptive' }, messages: [{ role: 'user', content: 'Fix a typo.' }] };
   const before = structuredClone(request);
   const report = await runEvaluation({ config, cases: [{ name: 'thinking-capability', expected: 'haiku',
@@ -190,7 +190,7 @@ test('actual router characterization verifies declared thinking override without
 });
 
 test('the executable evaluator harness rejects broken real-router runs instead of returning a green connectivity report', async () => {
-  const config = readConfig({ TYPESAFE_API_KEY: 'synthetic-only' });
+  const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'synthetic-only' });
   const cases = TIERS.map(expected => ({ name: expected, expected, prompt: `Synthetic ${expected} fixture` }));
   for (const mode of ['outage', 'collapsed']) {
     const report = await runEvaluation({ config, cases, routerFactory: () => new Router(config, { fetchImpl: async () => {

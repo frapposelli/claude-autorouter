@@ -61,7 +61,7 @@ test('unconfirmed cancelled work and ambiguous tool ownership are discarded', ()
 });
 
 test('gateway routing commits actual provider fallback, retains it after expiry, then permits a new task to downgrade', async () => {
-  const config = { ...readConfig({}), cacheEntries: 1, turnTtlMs: 1 };
+  const config = { ...readConfig({ AUTOROUTER_EVALUATOR: 'jev' }), cacheEntries: 1, turnTtlMs: 1 };
   let now = 0;
   const router = new Router(config, { now: () => now,
     fetchImpl: async () => Response.json({ answers: { tier: { choice: 'haiku', confidence: 0.99 } } }) });
@@ -86,7 +86,7 @@ test('gateway routing commits actual provider fallback, retains it after expiry,
 });
 
 test('unknown safeguards report rejected turn admission without replacing active continuity', async () => {
-  const config = { ...readConfig({}), turnEntries: 1 };
+  const config = { ...readConfig({ AUTOROUTER_EVALUATOR: 'jev' }), turnEntries: 1 };
   let evaluatorCalls = 0;
   const router = new Router(config, { fetchImpl: async () => {
     evaluatorCalls++;
@@ -206,7 +206,7 @@ test('failed same-content tasks do not destroy an earlier confirmed content alia
 });
 
 test('headerless continuations recover exact scoped tool ownership despite same-content tasks', async () => {
-  const config = readConfig({});
+  const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev' });
   const router = new Router(config, { fetchImpl: async () => Response.json({ answers: { tier: { choice: 'haiku', confidence: 0.99 } } }) });
   const initial = { model: config.models.haiku, max_tokens: 1024, messages: [{ role: 'user', content: 'Read the file' }] };
   for (const [promptId, model] of [['a', config.models.opus], ['b', config.models.haiku]]) {
@@ -225,7 +225,7 @@ test('headerless continuations recover exact scoped tool ownership despite same-
 });
 
 test('ambiguous headerless continuity never stages an overwrite of either confirmed task', async () => {
-  const config = readConfig({});
+  const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev' });
   const router = new Router(config, { fetchImpl: async () => Response.json({ answers: { tier: { choice: 'haiku', confidence: 0.99 } } }) });
   const initial = { model: config.models.haiku, messages: [{ role: 'user', content: 'Same task' }] };
   for (const [promptId, model] of [['a', config.models.opus], ['b', config.models.haiku]]) {

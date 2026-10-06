@@ -4,7 +4,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { Router, CLASSIFICATION_LIMITS } from '../src/router.mjs';
 import { readConfig } from '../src/config.mjs';
 
-const config = () => readConfig({ TYPESAFE_API_KEY: 'synthetic-key', AUTOROUTER_AUTH_MODE: 'subscription' });
+const config = () => readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'synthetic-key', AUTOROUTER_AUTH_MODE: 'subscription' });
 const body = (text = 'Synthetic task') => ({ model: 'claude-haiku-4-5-20251001', max_tokens: 16, messages: [{ role: 'user', content: text }] });
 const answer = (tier = 'sonnet', confidence = 1) => Response.json({ answers: { tier: { choice: tier, confidence } } });
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };

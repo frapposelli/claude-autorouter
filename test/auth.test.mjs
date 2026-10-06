@@ -21,15 +21,15 @@ test('alternate Claude backends cannot silently bypass the local router', () => 
 });
 
 test('subscription needs only Jev; API-key mode remains the backward-compatible default', () => {
-  const subscription = readConfig({ AUTOROUTER_AUTH_MODE: 'subscription', TYPESAFE_API_KEY: 'test-jev', ANTHROPIC_API_KEY: 'ignored' });
+  const subscription = readConfig({ AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_AUTH_MODE: 'subscription', TYPESAFE_API_KEY: 'test-jev', ANTHROPIC_API_KEY: 'ignored' });
   assert.equal(subscription.anthropicKey, undefined);
   assert.doesNotThrow(() => requireKeys(subscription));
-  assert.throws(() => requireKeys(readConfig({ AUTOROUTER_AUTH_MODE: 'subscription' })), /TYPESAFE_API_KEY/);
-  const api = readConfig({ TYPESAFE_API_KEY: 'test-jev' });
+  assert.throws(() => requireKeys(readConfig({ AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_AUTH_MODE: 'subscription' })), /TYPESAFE_API_KEY/);
+  const api = readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'test-jev' });
   assert.equal(api.authMode, 'api-key');
   assert.throws(() => requireKeys(api), /ANTHROPIC_API_KEY/);
-  assert.doesNotThrow(() => requireKeys(readConfig({ TYPESAFE_API_KEY: 'test-jev', ANTHROPIC_API_KEY: 'test-api' })));
-  assert.throws(() => readConfig({ AUTOROUTER_AUTH_MODE: 'automatic' }), /AUTOROUTER_AUTH_MODE/);
+  assert.doesNotThrow(() => requireKeys(readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'test-jev', ANTHROPIC_API_KEY: 'test-api' })));
+  assert.throws(() => readConfig({ AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_AUTH_MODE: 'automatic' }), /AUTOROUTER_AUTH_MODE/);
 });
 
 test('subscription configuration will not forward login credentials to a custom upstream', () => {
