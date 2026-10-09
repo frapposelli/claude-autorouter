@@ -6567,28 +6567,161 @@
       "file": "test/local-diagnostic.test.mjs",
       "name": "production timeout zero is preserved while initial preparation keeps its separate bound",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/local_diagnostic_timeout_contracts.rs#original_zero_deadline_completes_all_delayed_cases_with_real_elapsed_predicate",
+        "rust/crates/autorouter-runtime/tests/local_diagnostic_timeout_contracts.rs#zero_runtime_keeps_independent_exact_startup_deadline_and_releases_owned_request"
+      ],
+      "shared_cases": [
+        "baseline-local-diagnostic-7-1"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/local-diagnostic-timeout-contracts.json",
+        "assertion_mapping_sha256": "4f5a60771e7cbb70977421a93b7243c2e9b3db5f29413d26b4466ef3aac94dfb",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/4ceac1f9e82758ccf5e9d837a93926532d471105f11b8b2aad5d442022ff47ad.json",
+          "sha256": "4ceac1f9e82758ccf5e9d837a93926532d471105f11b8b2aad5d442022ff47ad",
+          "bytes": 1623812,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d4f45b553e898fb6c7d31e7890bb0b93bb7976f5168adafbc2a8d4e88d4f209f.json",
+          "sha256": "d4f45b553e898fb6c7d31e7890bb0b93bb7976f5168adafbc2a8d4e88d4f209f",
+          "bytes": 8942,
+          "original_path": "/private/tmp/autorouter-local-diagnostic-timeout-independent-review.json"
+        },
+        "execution": {
+          "local-diagnostic-timeout-native-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/52942d24670887cb9cf181edb057fa318bee0dc15e817f9195f5cb3e98f80472.log",
+            "bytes": 1412,
+            "sha256": "52942d24670887cb9cf181edb057fa318bee0dc15e817f9195f5cb3e98f80472",
+            "original_path": "artifacts/rust-rewrite/local-diagnostic-timeout-native-2.log"
+          },
+          "local-diagnostic-timeout-clippy-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/f16a958b5cb905a96715dbf8875a707256a2f3e86435b73a680abc49f88ce660.log",
+            "bytes": 678,
+            "sha256": "f16a958b5cb905a96715dbf8875a707256a2f3e86435b73a680abc49f88ce660",
+            "original_path": "artifacts/rust-rewrite/local-diagnostic-timeout-clippy-2.log"
+          },
+          "local-diagnostic-timeout-frozen-controls.log": {
+            "path": "artifacts/rust-rewrite/evidence/72f878330e926b8cbe7c3cee111bc6b3b1da057d42e25ea959710d70ff7fe159.log",
+            "bytes": 568,
+            "sha256": "72f878330e926b8cbe7c3cee111bc6b3b1da057d42e25ea959710d70ff7fe159",
+            "original_path": "artifacts/rust-rewrite/local-diagnostic-timeout-frozen-controls.log"
+          },
+          "capture-1-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/e2bb7874fef4ab2282bb0cd093a198ed9e50c4d1b6bdb89bedf1d97a7d250798.jsonl",
+            "bytes": 122512,
+            "sha256": "e2bb7874fef4ab2282bb0cd093a198ed9e50c4d1b6bdb89bedf1d97a7d250798",
+            "original_path": "artifacts/rust-rewrite/local-diagnostic-timeout-capture-1/cases.jsonl"
+          },
+          "capture-1-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/6d45a0504d3071e4edf1242f191a54ee6639f140fe4816c06bf419dbad2d94e5.json",
+            "bytes": 53780,
+            "sha256": "6d45a0504d3071e4edf1242f191a54ee6639f140fe4816c06bf419dbad2d94e5",
+            "original_path": "artifacts/rust-rewrite/local-diagnostic-timeout-capture-1/capture.json"
+          },
+          "capture-2-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/2b4ada79c784f8b24fa8a67502a1ac3399c315aaf20cb09db00f243dc6d61a0a.jsonl",
+            "bytes": 122518,
+            "sha256": "2b4ada79c784f8b24fa8a67502a1ac3399c315aaf20cb09db00f243dc6d61a0a",
+            "original_path": "artifacts/rust-rewrite/local-diagnostic-timeout-capture-2/cases.jsonl"
+          },
+          "capture-2-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/688a8dc1fe2c0e1222fa3771c4a6871af4ee73825f087ba5c72ff60269d3b435.json",
+            "bytes": 53784,
+            "sha256": "688a8dc1fe2c0e1222fa3771c4a6871af4ee73825f087ba5c72ff60269d3b435",
+            "original_path": "artifacts/rust-rewrite/local-diagnostic-timeout-capture-2/capture.json"
+          }
+        },
+        "scope": "Two original timed synthetic diagnostic callbacks:48complete requests,30events,11direct+11helper static sites/261executed assertions. Real elapsed>=4ms required for disabled runtime; actual2ms evaluator timeout drops six delayed valid responses. Separate60000ms preparation and disabled-runtime cancellation tests support explicit CancellationToken library API adaptation; no ESM identity, arbitrary reason or performance equivalence."
+      },
       "related_components": [
         "evaluators",
         "native_cli_package"
-      ]
+      ],
+      "remaining_assertions": [],
+      "assertion_mapping": "rust/parity/assertion-mappings/local-diagnostic-timeout-contracts.json"
     },
     {
       "id": "test/local-diagnostic.test.mjs#8",
       "file": "test/local-diagnostic.test.mjs",
       "name": "runtime timeout fallback fails the gate and cannot pass as a Sonnet classification",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/local_diagnostic_timeout_contracts.rs#original_finite_deadline_reports_six_actual_timeouts_without_false_classification"
+      ],
+      "shared_cases": [
+        "baseline-local-diagnostic-8-1"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/local-diagnostic-timeout-contracts.json",
+        "assertion_mapping_sha256": "4f5a60771e7cbb70977421a93b7243c2e9b3db5f29413d26b4466ef3aac94dfb",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/4ceac1f9e82758ccf5e9d837a93926532d471105f11b8b2aad5d442022ff47ad.json",
+          "sha256": "4ceac1f9e82758ccf5e9d837a93926532d471105f11b8b2aad5d442022ff47ad",
+          "bytes": 1623812,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d4f45b553e898fb6c7d31e7890bb0b93bb7976f5168adafbc2a8d4e88d4f209f.json",
+          "sha256": "d4f45b553e898fb6c7d31e7890bb0b93bb7976f5168adafbc2a8d4e88d4f209f",
+          "bytes": 8942,
+          "original_path": "/private/tmp/autorouter-local-diagnostic-timeout-independent-review.json"
+        },
+        "execution": {
+          "local-diagnostic-timeout-native-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/52942d24670887cb9cf181edb057fa318bee0dc15e817f9195f5cb3e98f80472.log",
+            "bytes": 1412,
+            "sha256": "52942d24670887cb9cf181edb057fa318bee0dc15e817f9195f5cb3e98f80472",
+            "original_path": "artifacts/rust-rewrite/local-diagnostic-timeout-native-2.log"
+          },
+          "local-diagnostic-timeout-clippy-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/f16a958b5cb905a96715dbf8875a707256a2f3e86435b73a680abc49f88ce660.log",
+            "bytes": 678,
+            "sha256": "f16a958b5cb905a96715dbf8875a707256a2f3e86435b73a680abc49f88ce660",
+            "original_path": "artifacts/rust-rewrite/local-diagnostic-timeout-clippy-2.log"
+          },
+          "local-diagnostic-timeout-frozen-controls.log": {
+            "path": "artifacts/rust-rewrite/evidence/72f878330e926b8cbe7c3cee111bc6b3b1da057d42e25ea959710d70ff7fe159.log",
+            "bytes": 568,
+            "sha256": "72f878330e926b8cbe7c3cee111bc6b3b1da057d42e25ea959710d70ff7fe159",
+            "original_path": "artifacts/rust-rewrite/local-diagnostic-timeout-frozen-controls.log"
+          },
+          "capture-1-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/e2bb7874fef4ab2282bb0cd093a198ed9e50c4d1b6bdb89bedf1d97a7d250798.jsonl",
+            "bytes": 122512,
+            "sha256": "e2bb7874fef4ab2282bb0cd093a198ed9e50c4d1b6bdb89bedf1d97a7d250798",
+            "original_path": "artifacts/rust-rewrite/local-diagnostic-timeout-capture-1/cases.jsonl"
+          },
+          "capture-1-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/6d45a0504d3071e4edf1242f191a54ee6639f140fe4816c06bf419dbad2d94e5.json",
+            "bytes": 53780,
+            "sha256": "6d45a0504d3071e4edf1242f191a54ee6639f140fe4816c06bf419dbad2d94e5",
+            "original_path": "artifacts/rust-rewrite/local-diagnostic-timeout-capture-1/capture.json"
+          },
+          "capture-2-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/2b4ada79c784f8b24fa8a67502a1ac3399c315aaf20cb09db00f243dc6d61a0a.jsonl",
+            "bytes": 122518,
+            "sha256": "2b4ada79c784f8b24fa8a67502a1ac3399c315aaf20cb09db00f243dc6d61a0a",
+            "original_path": "artifacts/rust-rewrite/local-diagnostic-timeout-capture-2/cases.jsonl"
+          },
+          "capture-2-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/688a8dc1fe2c0e1222fa3771c4a6871af4ee73825f087ba5c72ff60269d3b435.json",
+            "bytes": 53784,
+            "sha256": "688a8dc1fe2c0e1222fa3771c4a6871af4ee73825f087ba5c72ff60269d3b435",
+            "original_path": "artifacts/rust-rewrite/local-diagnostic-timeout-capture-2/capture.json"
+          }
+        },
+        "scope": "Two original timed synthetic diagnostic callbacks:48complete requests,30events,11direct+11helper static sites/261executed assertions. Real elapsed>=4ms required for disabled runtime; actual2ms evaluator timeout drops six delayed valid responses. Separate60000ms preparation and disabled-runtime cancellation tests support explicit CancellationToken library API adaptation; no ESM identity, arbitrary reason or performance equivalence."
+      },
       "related_components": [
         "evaluators",
         "native_cli_package"
-      ]
+      ],
+      "remaining_assertions": [],
+      "assertion_mapping": "rust/parity/assertion-mappings/local-diagnostic-timeout-contracts.json"
     },
     {
       "id": "test/local-diagnostic.test.mjs#9",
@@ -8498,13 +8631,139 @@
       "file": "test/ollama-routing.test.mjs",
       "name": "legitimate Sonnet, timeout fallback, recovery and a compatibility override remain distinguishable",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+      ],
+      "shared_cases": [
+        "baseline-ollama-routing-timeout-3-1"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/ollama-routing-timeout-contracts.json",
+        "assertion_mapping_sha256": "458a8579193aff899d1c863f02ded6b904e520ecba14c95bf7be772d7e77b5a6",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816.json",
+          "sha256": "973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816",
+          "bytes": 1565701,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239.json",
+          "sha256": "f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239",
+          "bytes": 6643,
+          "original_path": "/private/tmp/autorouter-twelfth-contracts-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/3741a535ab8d5f0441755a3bd0499d5a39e3e997fbdbcebf873fdcf54e63d7ec.json",
+          "sha256": "3741a535ab8d5f0441755a3bd0499d5a39e3e997fbdbcebf873fdcf54e63d7ec",
+          "bytes": 10252,
+          "original_path": "/private/tmp/autorouter-ollama-routing-timeout-independent-review.json"
+        },
+        "execution": {
+          "0-twelfth-ollama-routing-timeout-capture-a.log": {
+            "path": "artifacts/rust-rewrite/evidence/6d691278c4f0edd636c36dcbe4321675455e840e0d09d59f216d700487769051.log",
+            "bytes": 142,
+            "sha256": "6d691278c4f0edd636c36dcbe4321675455e840e0d09d59f216d700487769051",
+            "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-capture-a.log"
+          },
+          "1-twelfth-ollama-routing-timeout-capture-b.log": {
+            "path": "artifacts/rust-rewrite/evidence/6d691278c4f0edd636c36dcbe4321675455e840e0d09d59f216d700487769051.log",
+            "bytes": 142,
+            "sha256": "6d691278c4f0edd636c36dcbe4321675455e840e0d09d59f216d700487769051",
+            "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-capture-b.log"
+          },
+          "2-twelfth-ollama-routing-timeout-capture-invocations.json": {
+            "path": "artifacts/rust-rewrite/evidence/929779f4af82918ffada9285f79f72ca898ea9f028d4215a5627c87ae570803a.json",
+            "bytes": 1466,
+            "sha256": "929779f4af82918ffada9285f79f72ca898ea9f028d4215a5627c87ae570803a",
+            "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-capture-invocations.json"
+          },
+          "3-twelfth-ollama-routing-timeout-checks-1.json": {
+            "path": "artifacts/rust-rewrite/evidence/6d45d026e0088245be1c40286e99334f85976e3070b6e10386fefa03758cb505.json",
+            "bytes": 793,
+            "sha256": "6d45d026e0088245be1c40286e99334f85976e3070b6e10386fefa03758cb505",
+            "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-checks-1.json"
+          },
+          "4-twelfth-ollama-routing-timeout-clippy-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/f323abda31c93fa806275d33b2d75d30b15af87cc513a131844418726de55856.log",
+            "bytes": 678,
+            "sha256": "f323abda31c93fa806275d33b2d75d30b15af87cc513a131844418726de55856",
+            "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-clippy-1.log"
+          },
+          "5-twelfth-ollama-routing-timeout-fmt-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-fmt-1.log"
+          },
+          "6-twelfth-ollama-routing-timeout-frozen.log": {
+            "path": "artifacts/rust-rewrite/evidence/7f651eeac2cbaf9b917f3f2447c4c56bc999fddc244ea13d17e1b99d4355fa73.log",
+            "bytes": 366,
+            "sha256": "7f651eeac2cbaf9b917f3f2447c4c56bc999fddc244ea13d17e1b99d4355fa73",
+            "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-frozen.log"
+          },
+          "7-twelfth-ollama-routing-timeout-native-1.json": {
+            "path": "artifacts/rust-rewrite/evidence/395491c88c9c3624ec0e860bbd60f83694a6955e6d1c072e05b188cf6190b6cf.json",
+            "bytes": 377,
+            "sha256": "395491c88c9c3624ec0e860bbd60f83694a6955e6d1c072e05b188cf6190b6cf",
+            "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-native-1.json"
+          },
+          "8-twelfth-ollama-routing-timeout-native-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/141bf0d3c21fae312f54142b775319ff20976bdbf395836f87bf8263afabcdb7.log",
+            "bytes": 1191,
+            "sha256": "141bf0d3c21fae312f54142b775319ff20976bdbf395836f87bf8263afabcdb7",
+            "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-native-1.log"
+          },
+          "9-twelfth-ollama-routing-timeout-syntax.log": {
+            "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-syntax.log"
+          },
+          "10-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/fd5cdab37c2d559a1a3fe9242ddf161bc2c58cc4c4de7860c0cde056c26743c3.jsonl",
+            "bytes": 84068,
+            "sha256": "fd5cdab37c2d559a1a3fe9242ddf161bc2c58cc4c4de7860c0cde056c26743c3",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-timeout-capture-a/cases.jsonl"
+          },
+          "11-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/c4f77038fddbfd45a32b2367c928c9d2e8faa6e2e25d903f1ac9412c767446fa.json",
+            "bytes": 12288,
+            "sha256": "c4f77038fddbfd45a32b2367c928c9d2e8faa6e2e25d903f1ac9412c767446fa",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-timeout-capture-a/capture.json"
+          },
+          "12-observations.json": {
+            "path": "artifacts/rust-rewrite/evidence/4f94619a01c0d831a315d553394e82afe22ca903af975e117412a7772c0d0334.json",
+            "bytes": 1509,
+            "sha256": "4f94619a01c0d831a315d553394e82afe22ca903af975e117412a7772c0d0334",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-timeout-capture-a/observations.json"
+          },
+          "13-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/fd5cdab37c2d559a1a3fe9242ddf161bc2c58cc4c4de7860c0cde056c26743c3.jsonl",
+            "bytes": 84068,
+            "sha256": "fd5cdab37c2d559a1a3fe9242ddf161bc2c58cc4c4de7860c0cde056c26743c3",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-timeout-capture-b/cases.jsonl"
+          },
+          "14-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/c4f77038fddbfd45a32b2367c928c9d2e8faa6e2e25d903f1ac9412c767446fa.json",
+            "bytes": 12288,
+            "sha256": "c4f77038fddbfd45a32b2367c928c9d2e8faa6e2e25d903f1ac9412c767446fa",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-timeout-capture-b/capture.json"
+          },
+          "15-observations.json": {
+            "path": "artifacts/rust-rewrite/evidence/6cca457a5301e2a7d8fa75dd1460575600fd9dcb30fbc55e2cbfa1a72262511d.json",
+            "bytes": 1507,
+            "sha256": "6cca457a5301e2a7d8fa75dd1460575600fd9dcb30fbc55e2cbfa1a72262511d",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-timeout-capture-b/observations.json"
+          }
+        },
+        "scope": "One complete original four-route callback, one Router and eight requests;12direct plus9helper sites/65executed assertions. Actual paused5ms production deadline drops owned pending IO before uncached recovery and adaptive guard; no equal wall-clock/source20ms observation claim."
+      },
       "related_components": [
         "evaluators"
-      ]
+      ],
+      "remaining_assertions": [],
+      "assertion_mapping": "rust/parity/assertion-mappings/ollama-routing-timeout-contracts.json"
     },
     {
       "id": "test/ollama-routing.test.mjs#4",
@@ -20579,58 +20838,182 @@
       "file": "test/savings.test.mjs",
       "name": "bounds in-flight work and marks evicted requests as unpriced and partial",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/savings.rs#savings::tests::bounded_inflight_and_duplicate_history_report_partial_coverage"
+        "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs#original_inflight_capacity_preserves_eviction_and_late_request_identity"
       ],
       "shared_cases": [
-        "accounting-7721",
-        "accounting-7722"
+        "savings-capacity-14-1"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/savings-capacity-contracts.json",
+        "assertion_mapping_sha256": "46277fcc865afb044c71d391dc7f3ba95f5621eea7f3df33ab3da62cb47a6299",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816.json",
+          "sha256": "973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816",
+          "bytes": 1565701,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239.json",
+          "sha256": "f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239",
+          "bytes": 6643,
+          "original_path": "/private/tmp/autorouter-twelfth-contracts-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/6b20e4747dac867f01277040b2f1af5a8257eee8a11f5f4266e84165f228cd6d.json",
+          "sha256": "6b20e4747dac867f01277040b2f1af5a8257eee8a11f5f4266e84165f228cd6d",
+          "bytes": 8796,
+          "original_path": "/private/tmp/autorouter-savings-capacity-independent-review.json"
+        },
+        "execution": {
+          "validation": {
+            "path": "artifacts/rust-rewrite/evidence/0546ded902c1c2e462ba09479b8cdccfd3463033e1c4d147031f369febb689ac.json",
+            "sha256": "0546ded902c1c2e462ba09479b8cdccfd3463033e1c4d147031f369febb689ac",
+            "bytes": 3462,
+            "original_path": "/private/tmp/autorouter-savings-capacity-validation.json"
+          },
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/2b3b7c61a80d46c2d687a8fb483f51be1f369b0e6056189fdf458d8b88f6e63c.log",
+            "sha256": "2b3b7c61a80d46c2d687a8fb483f51be1f369b0e6056189fdf458d8b88f6e63c",
+            "bytes": 866,
+            "original_path": "artifacts/rust-rewrite/savings-capacity-1/native.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/f1d99e2ff9f71bf58c65f1cc24e721f8afa68805ac5e434b79171c8ec44322b3.log",
+            "sha256": "f1d99e2ff9f71bf58c65f1cc24e721f8afa68805ac5e434b79171c8ec44322b3",
+            "bytes": 532,
+            "original_path": "artifacts/rust-rewrite/savings-capacity-1/frozen-controls.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/df0acbbd87a507eac301677ac14e28c36caf801f57cc79bc6a2ec1625fc1ac22.log",
+            "sha256": "df0acbbd87a507eac301677ac14e28c36caf801f57cc79bc6a2ec1625fc1ac22",
+            "bytes": 172,
+            "original_path": "artifacts/rust-rewrite/savings-capacity-1/clippy.log"
+          },
+          "static_checks": {
+            "path": "artifacts/rust-rewrite/evidence/32acc975ebf47552ec2159feeb78dfa38030e6ad85f8c50a243fc08bfd7112e5.json",
+            "sha256": "32acc975ebf47552ec2159feeb78dfa38030e6ad85f8c50a243fc08bfd7112e5",
+            "bytes": 856,
+            "original_path": "artifacts/rust-rewrite/savings-capacity-1/static-checks.json"
+          },
+          "capture_repeat": {
+            "path": "artifacts/rust-rewrite/evidence/f5a46a53e24aa90ac349e16de7ba5f8906b5ccaa1f1b53888436e23aebd9cbbb.json",
+            "sha256": "f5a46a53e24aa90ac349e16de7ba5f8906b5ccaa1f1b53888436e23aebd9cbbb",
+            "bytes": 963,
+            "original_path": "artifacts/rust-rewrite/savings-capacity-1/capture-checks.json"
+          },
+          "native_invocation": {
+            "path": "artifacts/rust-rewrite/evidence/1f12e9e9639523bcdccaec99022a2b62c93dd517a4de25c5a43d462dd40632df.json",
+            "sha256": "1f12e9e9639523bcdccaec99022a2b62c93dd517a4de25c5a43d462dd40632df",
+            "bytes": 379,
+            "original_path": "artifacts/rust-rewrite/savings-capacity-1/native-run.json"
+          },
+          "clippy_invocation": {
+            "path": "artifacts/rust-rewrite/evidence/a656d87dcdc26e8d20abdc35487de6e027921c660e844ba46f3079eb6e2dd2ee.json",
+            "sha256": "a656d87dcdc26e8d20abdc35487de6e027921c660e844ba46f3079eb6e2dd2ee",
+            "bytes": 362,
+            "original_path": "artifacts/rust-rewrite/savings-capacity-1/clippy-check.json"
+          }
+        },
+        "scope": "Two complete original capacity callbacks, two trackers,1127updates, nine original full snapshots and nine assertions. Exact1000request/100session boundaries and late-work identity; no RSS/timing or general lifecycle qualification."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Native test exercises 1001 in-flight starts and replays evicted/newest requests; full post-replay unpriced count and exact completion duplication assertions are not all asserted."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/savings-capacity-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/savings.test.mjs#15",
       "file": "test/savings.test.mjs",
       "name": "bounds sessions, ignores late evicted work and marks returning sessions partial",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/savings.rs#savings::tests::evicted_sessions_ignore_old_requests_and_mark_returning_sessions_partial"
+        "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs#original_session_capacity_ignores_old_work_and_marks_returning_session_partial"
       ],
       "shared_cases": [
-        "accounting-7719",
-        "accounting-7720"
+        "savings-capacity-15-1"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/savings-capacity-contracts.json",
+        "assertion_mapping_sha256": "46277fcc865afb044c71d391dc7f3ba95f5621eea7f3df33ab3da62cb47a6299",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816.json",
+          "sha256": "973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816",
+          "bytes": 1565701,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239.json",
+          "sha256": "f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239",
+          "bytes": 6643,
+          "original_path": "/private/tmp/autorouter-twelfth-contracts-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/6b20e4747dac867f01277040b2f1af5a8257eee8a11f5f4266e84165f228cd6d.json",
+          "sha256": "6b20e4747dac867f01277040b2f1af5a8257eee8a11f5f4266e84165f228cd6d",
+          "bytes": 8796,
+          "original_path": "/private/tmp/autorouter-savings-capacity-independent-review.json"
+        },
+        "execution": {
+          "validation": {
+            "path": "artifacts/rust-rewrite/evidence/0546ded902c1c2e462ba09479b8cdccfd3463033e1c4d147031f369febb689ac.json",
+            "sha256": "0546ded902c1c2e462ba09479b8cdccfd3463033e1c4d147031f369febb689ac",
+            "bytes": 3462,
+            "original_path": "/private/tmp/autorouter-savings-capacity-validation.json"
+          },
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/2b3b7c61a80d46c2d687a8fb483f51be1f369b0e6056189fdf458d8b88f6e63c.log",
+            "sha256": "2b3b7c61a80d46c2d687a8fb483f51be1f369b0e6056189fdf458d8b88f6e63c",
+            "bytes": 866,
+            "original_path": "artifacts/rust-rewrite/savings-capacity-1/native.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/f1d99e2ff9f71bf58c65f1cc24e721f8afa68805ac5e434b79171c8ec44322b3.log",
+            "sha256": "f1d99e2ff9f71bf58c65f1cc24e721f8afa68805ac5e434b79171c8ec44322b3",
+            "bytes": 532,
+            "original_path": "artifacts/rust-rewrite/savings-capacity-1/frozen-controls.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/df0acbbd87a507eac301677ac14e28c36caf801f57cc79bc6a2ec1625fc1ac22.log",
+            "sha256": "df0acbbd87a507eac301677ac14e28c36caf801f57cc79bc6a2ec1625fc1ac22",
+            "bytes": 172,
+            "original_path": "artifacts/rust-rewrite/savings-capacity-1/clippy.log"
+          },
+          "static_checks": {
+            "path": "artifacts/rust-rewrite/evidence/32acc975ebf47552ec2159feeb78dfa38030e6ad85f8c50a243fc08bfd7112e5.json",
+            "sha256": "32acc975ebf47552ec2159feeb78dfa38030e6ad85f8c50a243fc08bfd7112e5",
+            "bytes": 856,
+            "original_path": "artifacts/rust-rewrite/savings-capacity-1/static-checks.json"
+          },
+          "capture_repeat": {
+            "path": "artifacts/rust-rewrite/evidence/f5a46a53e24aa90ac349e16de7ba5f8906b5ccaa1f1b53888436e23aebd9cbbb.json",
+            "sha256": "f5a46a53e24aa90ac349e16de7ba5f8906b5ccaa1f1b53888436e23aebd9cbbb",
+            "bytes": 963,
+            "original_path": "artifacts/rust-rewrite/savings-capacity-1/capture-checks.json"
+          },
+          "native_invocation": {
+            "path": "artifacts/rust-rewrite/evidence/1f12e9e9639523bcdccaec99022a2b62c93dd517a4de25c5a43d462dd40632df.json",
+            "sha256": "1f12e9e9639523bcdccaec99022a2b62c93dd517a4de25c5a43d462dd40632df",
+            "bytes": 379,
+            "original_path": "artifacts/rust-rewrite/savings-capacity-1/native-run.json"
+          },
+          "clippy_invocation": {
+            "path": "artifacts/rust-rewrite/evidence/a656d87dcdc26e8d20abdc35487de6e027921c660e844ba46f3079eb6e2dd2ee.json",
+            "sha256": "a656d87dcdc26e8d20abdc35487de6e027921c660e844ba46f3079eb6e2dd2ee",
+            "bytes": 362,
+            "original_path": "artifacts/rust-rewrite/savings-capacity-1/clippy-check.json"
+          }
+        },
+        "scope": "Two complete original capacity callbacks, two trackers,1127updates, nine original full snapshots and nine assertions. Exact1000request/100session boundaries and late-work identity; no RSS/timing or general lifecycle qualification."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Native test covers 102 sessions, ignored old start and returning new request marked partial. Missing old completion sequence and explicit final capacity assertion after recreation."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/savings-capacity-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/savings.test.mjs#16",
@@ -24194,35 +24577,100 @@
       "file": "test/statusline.test.mjs",
       "name": "Ollama routes, cache hits and fallbacks identify their evaluator while keeping Claude model confirmation separate",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/statusline.rs#frozen_statusline_calls_preserve_every_captured_width_qualifier_and_escape_sequence"
+        "rust/crates/autorouter-core/tests/statusline_boundary_contracts.rs#evaluator_labels_keep_confirmation_separate"
       ],
       "shared_cases": [
-        "baseline-render_statusline-5-1",
-        "baseline-render_statusline-5-2",
-        "baseline-render_statusline-5-3",
-        "baseline-render_statusline-5-4",
-        "baseline-render_statusline-5-5",
-        "baseline-render_statusline-5-6",
-        "baseline-render_statusline-5-7",
-        "baseline-render_statusline-5-8",
-        "baseline-render_statusline-5-9"
+        "statusline-boundary-5-1",
+        "statusline-boundary-5-2",
+        "statusline-boundary-5-3",
+        "statusline-boundary-5-4",
+        "statusline-boundary-5-5",
+        "statusline-boundary-5-6",
+        "statusline-boundary-5-7",
+        "statusline-boundary-5-8",
+        "statusline-boundary-5-9",
+        "statusline-boundary-5-10"
       ],
       "evidence": {
-        "capture": "rust/parity/cases/telemetry-statusline-contracts.capture.json",
-        "capture_sha256": "ae5d69971b50ac6a97d51f9321a794ce854d02f8a2e63ac00f99715e82ab6930",
-        "cases_sha256": "5dc77be68c7b2db1516fc372573b40f5a2f813aa343fc9a6274be0e93dff1746",
-        "native_log": "artifacts/rust-rewrite/statusline-contracts-2.log",
-        "native_log_sha256": "745bd9448fd69daf4406211c4855145da4a24d0bb28e6c405c99afe1ba8f0dd2"
+        "assertion_mapping": "rust/parity/assertion-mappings/statusline-boundary-contracts.json",
+        "assertion_mapping_sha256": "0529e42093000c06d4ad1692368f2d73445f7c0eee320558734b41d230d63071",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816.json",
+          "sha256": "973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816",
+          "bytes": 1565701,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239.json",
+          "sha256": "f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239",
+          "bytes": 6643,
+          "original_path": "/private/tmp/autorouter-twelfth-contracts-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d4021d3964758dd66811ca909898dbe39f5f53654eab21a35cd6b89f3a287645.json",
+          "sha256": "d4021d3964758dd66811ca909898dbe39f5f53654eab21a35cd6b89f3a287645",
+          "bytes": 5970,
+          "original_path": "/private/tmp/autorouter-statusline-boundary-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a.log",
+            "bytes": 1246,
+            "sha256": "95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a",
+            "original_path": "artifacts/rust-rewrite/evidence/95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7.log",
+            "bytes": 172,
+            "sha256": "3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7",
+            "original_path": "artifacts/rust-rewrite/evidence/3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7.log",
+            "bytes": 2368,
+            "sha256": "af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7",
+            "original_path": "artifacts/rust-rewrite/evidence/af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7.log"
+          },
+          "initial_capture_failure": {
+            "path": "artifacts/rust-rewrite/evidence/f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d.json",
+            "bytes": 698,
+            "sha256": "f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d",
+            "original_path": "artifacts/rust-rewrite/evidence/f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d.json"
+          },
+          "capture4": {
+            "path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json",
+            "bytes": 33989,
+            "sha256": "276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d",
+            "original_path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json"
+          },
+          "capture5": {
+            "path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json",
+            "bytes": 33989,
+            "sha256": "276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d",
+            "original_path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json"
+          },
+          "raw4": {
+            "path": "artifacts/rust-rewrite/evidence/d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac.json",
+            "bytes": 17995,
+            "sha256": "d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac",
+            "original_path": "artifacts/rust-rewrite/evidence/d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac.json"
+          },
+          "raw5": {
+            "path": "artifacts/rust-rewrite/evidence/954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856.json",
+            "bytes": 17995,
+            "sha256": "954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856",
+            "original_path": "artifacts/rust-rewrite/evidence/954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856.json"
+          }
+        },
+        "scope": "Ten complete pure renderer callbacks,124full outputs,145explicit API/value projections independently replayed in frozen source.77static sites include one untaken conditional,216executed assertions; native verifies its exact21false predicates without branch-execution claim. Exact ANSI/width/guard/privacy outputs; no arbitrary JS/ESM, CLI, OS-liveness or timing equivalence."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/telemetry-statusline-contracts.json",
-      "remaining_assertions": [
-        "Original call10 remains outside the captured native value interface: $[1].sessions.session-a.evaluator: undefined."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/statusline-boundary-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/statusline.test.mjs#6",
@@ -24256,135 +24704,330 @@
       "file": "test/statusline.test.mjs",
       "name": "sessions are isolated, including absent session IDs, and malformed stdin awaits status",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/statusline.rs#frozen_statusline_calls_preserve_every_captured_width_qualifier_and_escape_sequence"
+        "rust/crates/autorouter-core/tests/statusline_boundary_contracts.rs#absent_malformed_and_prototype_session_inputs_are_isolated"
       ],
       "shared_cases": [
-        "baseline-render_statusline-7-1",
-        "baseline-render_statusline-7-2",
-        "baseline-render_statusline-7-3",
-        "baseline-render_statusline-7-5",
-        "baseline-render_statusline-7-6",
-        "baseline-render_statusline-7-7",
-        "baseline-render_statusline-7-8",
-        "baseline-render_statusline-7-9"
+        "statusline-boundary-7-1",
+        "statusline-boundary-7-2",
+        "statusline-boundary-7-3",
+        "statusline-boundary-7-4",
+        "statusline-boundary-7-5",
+        "statusline-boundary-7-6",
+        "statusline-boundary-7-7",
+        "statusline-boundary-7-8",
+        "statusline-boundary-7-9"
       ],
       "evidence": {
-        "capture": "rust/parity/cases/telemetry-statusline-contracts.capture.json",
-        "capture_sha256": "ae5d69971b50ac6a97d51f9321a794ce854d02f8a2e63ac00f99715e82ab6930",
-        "cases_sha256": "5dc77be68c7b2db1516fc372573b40f5a2f813aa343fc9a6274be0e93dff1746",
-        "native_log": "artifacts/rust-rewrite/statusline-contracts-2.log",
-        "native_log_sha256": "745bd9448fd69daf4406211c4855145da4a24d0bb28e6c405c99afe1ba8f0dd2"
+        "assertion_mapping": "rust/parity/assertion-mappings/statusline-boundary-contracts.json",
+        "assertion_mapping_sha256": "0529e42093000c06d4ad1692368f2d73445f7c0eee320558734b41d230d63071",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816.json",
+          "sha256": "973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816",
+          "bytes": 1565701,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239.json",
+          "sha256": "f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239",
+          "bytes": 6643,
+          "original_path": "/private/tmp/autorouter-twelfth-contracts-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d4021d3964758dd66811ca909898dbe39f5f53654eab21a35cd6b89f3a287645.json",
+          "sha256": "d4021d3964758dd66811ca909898dbe39f5f53654eab21a35cd6b89f3a287645",
+          "bytes": 5970,
+          "original_path": "/private/tmp/autorouter-statusline-boundary-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a.log",
+            "bytes": 1246,
+            "sha256": "95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a",
+            "original_path": "artifacts/rust-rewrite/evidence/95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7.log",
+            "bytes": 172,
+            "sha256": "3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7",
+            "original_path": "artifacts/rust-rewrite/evidence/3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7.log",
+            "bytes": 2368,
+            "sha256": "af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7",
+            "original_path": "artifacts/rust-rewrite/evidence/af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7.log"
+          },
+          "initial_capture_failure": {
+            "path": "artifacts/rust-rewrite/evidence/f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d.json",
+            "bytes": 698,
+            "sha256": "f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d",
+            "original_path": "artifacts/rust-rewrite/evidence/f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d.json"
+          },
+          "capture4": {
+            "path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json",
+            "bytes": 33989,
+            "sha256": "276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d",
+            "original_path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json"
+          },
+          "capture5": {
+            "path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json",
+            "bytes": 33989,
+            "sha256": "276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d",
+            "original_path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json"
+          },
+          "raw4": {
+            "path": "artifacts/rust-rewrite/evidence/d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac.json",
+            "bytes": 17995,
+            "sha256": "d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac",
+            "original_path": "artifacts/rust-rewrite/evidence/d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac.json"
+          },
+          "raw5": {
+            "path": "artifacts/rust-rewrite/evidence/954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856.json",
+            "bytes": 17995,
+            "sha256": "954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856",
+            "original_path": "artifacts/rust-rewrite/evidence/954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856.json"
+          }
+        },
+        "scope": "Ten complete pure renderer callbacks,124full outputs,145explicit API/value projections independently replayed in frozen source.77static sites include one untaken conditional,216executed assertions; native verifies its exact21false predicates without branch-execution claim. Exact ANSI/width/guard/privacy outputs; no arbitrary JS/ESM, CLI, OS-liveness or timing equivalence."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/telemetry-statusline-contracts.json",
-      "remaining_assertions": [
-        "Original call4 remains outside the captured native value interface: $[0]: undefined."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/statusline-boundary-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/statusline.test.mjs#8",
       "file": "test/statusline.test.mjs",
       "name": "fallbacks, HTTP and SSE errors, cancellation, and dead or stale routers remain visible",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/statusline.rs#frozen_statusline_calls_preserve_every_captured_width_qualifier_and_escape_sequence"
+        "rust/crates/autorouter-core/tests/statusline_boundary_contracts.rs#fallback_errors_dead_liveness_and_stale_snapshots_stay_visible"
       ],
       "shared_cases": [
-        "baseline-render_statusline-8-1",
-        "baseline-render_statusline-8-2",
-        "baseline-render_statusline-8-3",
-        "baseline-render_statusline-8-4",
-        "baseline-render_statusline-8-6",
-        "baseline-render_statusline-8-7",
-        "baseline-render_statusline-8-8",
-        "baseline-render_statusline-8-9",
-        "baseline-render_statusline-8-12",
-        "baseline-render_statusline-8-13"
+        "statusline-boundary-8-1",
+        "statusline-boundary-8-2",
+        "statusline-boundary-8-3",
+        "statusline-boundary-8-4",
+        "statusline-boundary-8-5",
+        "statusline-boundary-8-6",
+        "statusline-boundary-8-7",
+        "statusline-boundary-8-8",
+        "statusline-boundary-8-9",
+        "statusline-boundary-8-10",
+        "statusline-boundary-8-11",
+        "statusline-boundary-8-12",
+        "statusline-boundary-8-13"
       ],
       "evidence": {
-        "capture": "rust/parity/cases/telemetry-statusline-contracts.capture.json",
-        "capture_sha256": "ae5d69971b50ac6a97d51f9321a794ce854d02f8a2e63ac00f99715e82ab6930",
-        "cases_sha256": "5dc77be68c7b2db1516fc372573b40f5a2f813aa343fc9a6274be0e93dff1746",
-        "native_log": "artifacts/rust-rewrite/statusline-contracts-2.log",
-        "native_log_sha256": "745bd9448fd69daf4406211c4855145da4a24d0bb28e6c405c99afe1ba8f0dd2"
+        "assertion_mapping": "rust/parity/assertion-mappings/statusline-boundary-contracts.json",
+        "assertion_mapping_sha256": "0529e42093000c06d4ad1692368f2d73445f7c0eee320558734b41d230d63071",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816.json",
+          "sha256": "973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816",
+          "bytes": 1565701,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239.json",
+          "sha256": "f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239",
+          "bytes": 6643,
+          "original_path": "/private/tmp/autorouter-twelfth-contracts-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d4021d3964758dd66811ca909898dbe39f5f53654eab21a35cd6b89f3a287645.json",
+          "sha256": "d4021d3964758dd66811ca909898dbe39f5f53654eab21a35cd6b89f3a287645",
+          "bytes": 5970,
+          "original_path": "/private/tmp/autorouter-statusline-boundary-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a.log",
+            "bytes": 1246,
+            "sha256": "95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a",
+            "original_path": "artifacts/rust-rewrite/evidence/95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7.log",
+            "bytes": 172,
+            "sha256": "3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7",
+            "original_path": "artifacts/rust-rewrite/evidence/3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7.log",
+            "bytes": 2368,
+            "sha256": "af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7",
+            "original_path": "artifacts/rust-rewrite/evidence/af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7.log"
+          },
+          "initial_capture_failure": {
+            "path": "artifacts/rust-rewrite/evidence/f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d.json",
+            "bytes": 698,
+            "sha256": "f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d",
+            "original_path": "artifacts/rust-rewrite/evidence/f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d.json"
+          },
+          "capture4": {
+            "path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json",
+            "bytes": 33989,
+            "sha256": "276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d",
+            "original_path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json"
+          },
+          "capture5": {
+            "path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json",
+            "bytes": 33989,
+            "sha256": "276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d",
+            "original_path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json"
+          },
+          "raw4": {
+            "path": "artifacts/rust-rewrite/evidence/d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac.json",
+            "bytes": 17995,
+            "sha256": "d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac",
+            "original_path": "artifacts/rust-rewrite/evidence/d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac.json"
+          },
+          "raw5": {
+            "path": "artifacts/rust-rewrite/evidence/954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856.json",
+            "bytes": 17995,
+            "sha256": "954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856",
+            "original_path": "artifacts/rust-rewrite/evidence/954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856.json"
+          }
+        },
+        "scope": "Ten complete pure renderer callbacks,124full outputs,145explicit API/value projections independently replayed in frozen source.77static sites include one untaken conditional,216executed assertions; native verifies its exact21false predicates without branch-execution claim. Exact ANSI/width/guard/privacy outputs; no arbitrary JS/ESM, CLI, OS-liveness or timing equivalence."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/telemetry-statusline-contracts.json",
-      "remaining_assertions": [
-        "Original call5 remains outside the captured native value interface: $[1]: undefined.",
-        "Original call10 remains outside the captured native value interface: $[2].alive: function.",
-        "Original call11 remains outside the captured native value interface: $[2].alive: function."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/statusline-boundary-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/statusline.test.mjs#9",
       "file": "test/statusline.test.mjs",
       "name": "narrow lines drop context and routine phase before the model guard",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/statusline.rs#frozen_statusline_calls_preserve_every_captured_width_qualifier_and_escape_sequence"
+        "rust/crates/autorouter-core/tests/statusline_boundary_contracts.rs#every_original_narrow_width_preserves_qualifiers_and_guards"
       ],
       "shared_cases": [
-        "baseline-render_statusline-9-1",
-        "baseline-render_statusline-9-2",
-        "baseline-render_statusline-9-3",
-        "baseline-render_statusline-9-4",
-        "baseline-render_statusline-9-5",
-        "baseline-render_statusline-9-6",
-        "baseline-render_statusline-9-8",
-        "baseline-render_statusline-9-9",
-        "baseline-render_statusline-9-10",
-        "baseline-render_statusline-9-11",
-        "baseline-render_statusline-9-13",
-        "baseline-render_statusline-9-14",
-        "baseline-render_statusline-9-15",
-        "baseline-render_statusline-9-16",
-        "baseline-render_statusline-9-18",
-        "baseline-render_statusline-9-19",
-        "baseline-render_statusline-9-20",
-        "baseline-render_statusline-9-21",
-        "baseline-render_statusline-9-23",
-        "baseline-render_statusline-9-24",
-        "baseline-render_statusline-9-25",
-        "baseline-render_statusline-9-26",
-        "baseline-render_statusline-9-28",
-        "baseline-render_statusline-9-29",
-        "baseline-render_statusline-9-30",
-        "baseline-render_statusline-9-31",
-        "baseline-render_statusline-9-33",
-        "baseline-render_statusline-9-34",
-        "baseline-render_statusline-9-35",
-        "baseline-render_statusline-9-36",
-        "baseline-render_statusline-9-38"
+        "statusline-boundary-9-1",
+        "statusline-boundary-9-2",
+        "statusline-boundary-9-3",
+        "statusline-boundary-9-4",
+        "statusline-boundary-9-5",
+        "statusline-boundary-9-6",
+        "statusline-boundary-9-7",
+        "statusline-boundary-9-8",
+        "statusline-boundary-9-9",
+        "statusline-boundary-9-10",
+        "statusline-boundary-9-11",
+        "statusline-boundary-9-12",
+        "statusline-boundary-9-13",
+        "statusline-boundary-9-14",
+        "statusline-boundary-9-15",
+        "statusline-boundary-9-16",
+        "statusline-boundary-9-17",
+        "statusline-boundary-9-18",
+        "statusline-boundary-9-19",
+        "statusline-boundary-9-20",
+        "statusline-boundary-9-21",
+        "statusline-boundary-9-22",
+        "statusline-boundary-9-23",
+        "statusline-boundary-9-24",
+        "statusline-boundary-9-25",
+        "statusline-boundary-9-26",
+        "statusline-boundary-9-27",
+        "statusline-boundary-9-28",
+        "statusline-boundary-9-29",
+        "statusline-boundary-9-30",
+        "statusline-boundary-9-31",
+        "statusline-boundary-9-32",
+        "statusline-boundary-9-33",
+        "statusline-boundary-9-34",
+        "statusline-boundary-9-35",
+        "statusline-boundary-9-36",
+        "statusline-boundary-9-37",
+        "statusline-boundary-9-38"
       ],
       "evidence": {
-        "capture": "rust/parity/cases/telemetry-statusline-contracts.capture.json",
-        "capture_sha256": "ae5d69971b50ac6a97d51f9321a794ce854d02f8a2e63ac00f99715e82ab6930",
-        "cases_sha256": "5dc77be68c7b2db1516fc372573b40f5a2f813aa343fc9a6274be0e93dff1746",
-        "native_log": "artifacts/rust-rewrite/statusline-contracts-2.log",
-        "native_log_sha256": "745bd9448fd69daf4406211c4855145da4a24d0bb28e6c405c99afe1ba8f0dd2"
+        "assertion_mapping": "rust/parity/assertion-mappings/statusline-boundary-contracts.json",
+        "assertion_mapping_sha256": "0529e42093000c06d4ad1692368f2d73445f7c0eee320558734b41d230d63071",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816.json",
+          "sha256": "973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816",
+          "bytes": 1565701,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239.json",
+          "sha256": "f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239",
+          "bytes": 6643,
+          "original_path": "/private/tmp/autorouter-twelfth-contracts-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d4021d3964758dd66811ca909898dbe39f5f53654eab21a35cd6b89f3a287645.json",
+          "sha256": "d4021d3964758dd66811ca909898dbe39f5f53654eab21a35cd6b89f3a287645",
+          "bytes": 5970,
+          "original_path": "/private/tmp/autorouter-statusline-boundary-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a.log",
+            "bytes": 1246,
+            "sha256": "95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a",
+            "original_path": "artifacts/rust-rewrite/evidence/95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7.log",
+            "bytes": 172,
+            "sha256": "3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7",
+            "original_path": "artifacts/rust-rewrite/evidence/3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7.log",
+            "bytes": 2368,
+            "sha256": "af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7",
+            "original_path": "artifacts/rust-rewrite/evidence/af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7.log"
+          },
+          "initial_capture_failure": {
+            "path": "artifacts/rust-rewrite/evidence/f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d.json",
+            "bytes": 698,
+            "sha256": "f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d",
+            "original_path": "artifacts/rust-rewrite/evidence/f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d.json"
+          },
+          "capture4": {
+            "path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json",
+            "bytes": 33989,
+            "sha256": "276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d",
+            "original_path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json"
+          },
+          "capture5": {
+            "path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json",
+            "bytes": 33989,
+            "sha256": "276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d",
+            "original_path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json"
+          },
+          "raw4": {
+            "path": "artifacts/rust-rewrite/evidence/d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac.json",
+            "bytes": 17995,
+            "sha256": "d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac",
+            "original_path": "artifacts/rust-rewrite/evidence/d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac.json"
+          },
+          "raw5": {
+            "path": "artifacts/rust-rewrite/evidence/954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856.json",
+            "bytes": 17995,
+            "sha256": "954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856",
+            "original_path": "artifacts/rust-rewrite/evidence/954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856.json"
+          }
+        },
+        "scope": "Ten complete pure renderer callbacks,124full outputs,145explicit API/value projections independently replayed in frozen source.77static sites include one untaken conditional,216executed assertions; native verifies its exact21false predicates without branch-execution claim. Exact ANSI/width/guard/privacy outputs; no arbitrary JS/ESM, CLI, OS-liveness or timing equivalence."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/telemetry-statusline-contracts.json",
-      "remaining_assertions": [
-        "Original call7 remains outside the captured native value interface: $[1]: undefined.",
-        "Original call12 remains outside the captured native value interface: $[1]: undefined.",
-        "Original call17 remains outside the captured native value interface: $[1]: undefined.",
-        "Original call22 remains outside the captured native value interface: $[1]: undefined.",
-        "Original call27 remains outside the captured native value interface: $[1]: undefined.",
-        "Original call32 remains outside the captured native value interface: $[1]: undefined.",
-        "Original call37 remains outside the captured native value interface: $[1]: undefined."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/statusline-boundary-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/statusline.test.mjs#10",
@@ -24447,34 +25090,99 @@
       "file": "test/statusline.test.mjs",
       "name": "unknown capacities and malformed or mismatched usage never imply API headroom",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/statusline.rs#frozen_statusline_calls_preserve_every_captured_width_qualifier_and_escape_sequence"
+        "rust/crates/autorouter-core/tests/statusline_boundary_contracts.rs#unknown_models_and_invalid_usage_never_imply_headroom"
       ],
       "shared_cases": [
-        "baseline-render_statusline-12-1",
-        "baseline-render_statusline-12-2",
-        "baseline-render_statusline-12-3",
-        "baseline-render_statusline-12-4",
-        "baseline-render_statusline-12-5",
-        "baseline-render_statusline-12-6",
-        "baseline-render_statusline-12-8",
-        "baseline-render_statusline-12-9"
+        "statusline-boundary-12-1",
+        "statusline-boundary-12-2",
+        "statusline-boundary-12-3",
+        "statusline-boundary-12-4",
+        "statusline-boundary-12-5",
+        "statusline-boundary-12-6",
+        "statusline-boundary-12-7",
+        "statusline-boundary-12-8",
+        "statusline-boundary-12-9"
       ],
       "evidence": {
-        "capture": "rust/parity/cases/telemetry-statusline-contracts.capture.json",
-        "capture_sha256": "ae5d69971b50ac6a97d51f9321a794ce854d02f8a2e63ac00f99715e82ab6930",
-        "cases_sha256": "5dc77be68c7b2db1516fc372573b40f5a2f813aa343fc9a6274be0e93dff1746",
-        "native_log": "artifacts/rust-rewrite/statusline-contracts-2.log",
-        "native_log_sha256": "745bd9448fd69daf4406211c4855145da4a24d0bb28e6c405c99afe1ba8f0dd2"
+        "assertion_mapping": "rust/parity/assertion-mappings/statusline-boundary-contracts.json",
+        "assertion_mapping_sha256": "0529e42093000c06d4ad1692368f2d73445f7c0eee320558734b41d230d63071",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816.json",
+          "sha256": "973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816",
+          "bytes": 1565701,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239.json",
+          "sha256": "f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239",
+          "bytes": 6643,
+          "original_path": "/private/tmp/autorouter-twelfth-contracts-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d4021d3964758dd66811ca909898dbe39f5f53654eab21a35cd6b89f3a287645.json",
+          "sha256": "d4021d3964758dd66811ca909898dbe39f5f53654eab21a35cd6b89f3a287645",
+          "bytes": 5970,
+          "original_path": "/private/tmp/autorouter-statusline-boundary-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a.log",
+            "bytes": 1246,
+            "sha256": "95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a",
+            "original_path": "artifacts/rust-rewrite/evidence/95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7.log",
+            "bytes": 172,
+            "sha256": "3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7",
+            "original_path": "artifacts/rust-rewrite/evidence/3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7.log",
+            "bytes": 2368,
+            "sha256": "af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7",
+            "original_path": "artifacts/rust-rewrite/evidence/af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7.log"
+          },
+          "initial_capture_failure": {
+            "path": "artifacts/rust-rewrite/evidence/f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d.json",
+            "bytes": 698,
+            "sha256": "f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d",
+            "original_path": "artifacts/rust-rewrite/evidence/f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d.json"
+          },
+          "capture4": {
+            "path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json",
+            "bytes": 33989,
+            "sha256": "276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d",
+            "original_path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json"
+          },
+          "capture5": {
+            "path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json",
+            "bytes": 33989,
+            "sha256": "276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d",
+            "original_path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json"
+          },
+          "raw4": {
+            "path": "artifacts/rust-rewrite/evidence/d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac.json",
+            "bytes": 17995,
+            "sha256": "d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac",
+            "original_path": "artifacts/rust-rewrite/evidence/d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac.json"
+          },
+          "raw5": {
+            "path": "artifacts/rust-rewrite/evidence/954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856.json",
+            "bytes": 17995,
+            "sha256": "954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856",
+            "original_path": "artifacts/rust-rewrite/evidence/954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856.json"
+          }
+        },
+        "scope": "Ten complete pure renderer callbacks,124full outputs,145explicit API/value projections independently replayed in frozen source.77static sites include one untaken conditional,216executed assertions; native verifies its exact21false predicates without branch-execution claim. Exact ANSI/width/guard/privacy outputs; no arbitrary JS/ESM, CLI, OS-liveness or timing equivalence."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/telemetry-statusline-contracts.json",
-      "remaining_assertions": [
-        "Original call7 remains outside the captured native value interface: $[1].sessions.session-a.context_usage.input_tokens: non-finite number."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/statusline-boundary-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/statusline.test.mjs#13",
@@ -24565,32 +25273,97 @@
       "file": "test/statusline.test.mjs",
       "name": "unpriced request counts are optional and never displace the selected model or guard",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/statusline.rs#frozen_statusline_calls_preserve_every_captured_width_qualifier_and_escape_sequence"
+        "rust/crates/autorouter-core/tests/statusline_boundary_contracts.rs#unpriced_counts_never_displace_selected_model_or_guard"
       ],
       "shared_cases": [
-        "baseline-render_statusline-16-2",
-        "baseline-render_statusline-16-3"
+        "statusline-boundary-16-1",
+        "statusline-boundary-16-2",
+        "statusline-boundary-16-3",
+        "statusline-boundary-16-4",
+        "statusline-boundary-16-5",
+        "statusline-boundary-16-6",
+        "statusline-boundary-16-7"
       ],
       "evidence": {
-        "capture": "rust/parity/cases/telemetry-statusline-contracts.capture.json",
-        "capture_sha256": "ae5d69971b50ac6a97d51f9321a794ce854d02f8a2e63ac00f99715e82ab6930",
-        "cases_sha256": "5dc77be68c7b2db1516fc372573b40f5a2f813aa343fc9a6274be0e93dff1746",
-        "native_log": "artifacts/rust-rewrite/statusline-contracts-2.log",
-        "native_log_sha256": "745bd9448fd69daf4406211c4855145da4a24d0bb28e6c405c99afe1ba8f0dd2"
+        "assertion_mapping": "rust/parity/assertion-mappings/statusline-boundary-contracts.json",
+        "assertion_mapping_sha256": "0529e42093000c06d4ad1692368f2d73445f7c0eee320558734b41d230d63071",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816.json",
+          "sha256": "973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816",
+          "bytes": 1565701,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239.json",
+          "sha256": "f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239",
+          "bytes": 6643,
+          "original_path": "/private/tmp/autorouter-twelfth-contracts-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d4021d3964758dd66811ca909898dbe39f5f53654eab21a35cd6b89f3a287645.json",
+          "sha256": "d4021d3964758dd66811ca909898dbe39f5f53654eab21a35cd6b89f3a287645",
+          "bytes": 5970,
+          "original_path": "/private/tmp/autorouter-statusline-boundary-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a.log",
+            "bytes": 1246,
+            "sha256": "95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a",
+            "original_path": "artifacts/rust-rewrite/evidence/95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7.log",
+            "bytes": 172,
+            "sha256": "3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7",
+            "original_path": "artifacts/rust-rewrite/evidence/3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7.log",
+            "bytes": 2368,
+            "sha256": "af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7",
+            "original_path": "artifacts/rust-rewrite/evidence/af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7.log"
+          },
+          "initial_capture_failure": {
+            "path": "artifacts/rust-rewrite/evidence/f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d.json",
+            "bytes": 698,
+            "sha256": "f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d",
+            "original_path": "artifacts/rust-rewrite/evidence/f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d.json"
+          },
+          "capture4": {
+            "path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json",
+            "bytes": 33989,
+            "sha256": "276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d",
+            "original_path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json"
+          },
+          "capture5": {
+            "path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json",
+            "bytes": 33989,
+            "sha256": "276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d",
+            "original_path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json"
+          },
+          "raw4": {
+            "path": "artifacts/rust-rewrite/evidence/d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac.json",
+            "bytes": 17995,
+            "sha256": "d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac",
+            "original_path": "artifacts/rust-rewrite/evidence/d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac.json"
+          },
+          "raw5": {
+            "path": "artifacts/rust-rewrite/evidence/954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856.json",
+            "bytes": 17995,
+            "sha256": "954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856",
+            "original_path": "artifacts/rust-rewrite/evidence/954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856.json"
+          }
+        },
+        "scope": "Ten complete pure renderer callbacks,124full outputs,145explicit API/value projections independently replayed in frozen source.77static sites include one untaken conditional,216executed assertions; native verifies its exact21false predicates without branch-execution claim. Exact ANSI/width/guard/privacy outputs; no arbitrary JS/ESM, CLI, OS-liveness or timing equivalence."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/telemetry-statusline-contracts.json",
-      "remaining_assertions": [
-        "Original call1 remains outside the captured native value interface: $[1].sessions.session-a.actual_model: undefined.",
-        "Original call4 remains outside the captured native value interface: $[1].sessions.session-a.actual_model: undefined.",
-        "Original call5 remains outside the captured native value interface: $[1].sessions.session-a.actual_model: undefined.",
-        "Original call6 remains outside the captured native value interface: $[1].sessions.session-a.actual_model: undefined.",
-        "Original call7 remains outside the captured native value interface: $[1].sessions.session-a.actual_model: undefined."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/statusline-boundary-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/statusline.test.mjs#17",
@@ -24626,67 +25399,197 @@
       "file": "test/statusline.test.mjs",
       "name": "savings are isolated by exact session, including anonymous and prototype names",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/statusline.rs#frozen_statusline_calls_preserve_every_captured_width_qualifier_and_escape_sequence"
+        "rust/crates/autorouter-core/tests/statusline_boundary_contracts.rs#savings_never_cross_exact_session_or_invalid_input_boundary"
       ],
       "shared_cases": [
-        "baseline-render_statusline-18-1",
-        "baseline-render_statusline-18-2",
-        "baseline-render_statusline-18-3",
-        "baseline-render_statusline-18-4",
-        "baseline-render_statusline-18-5",
-        "baseline-render_statusline-18-6",
-        "baseline-render_statusline-18-8",
-        "baseline-render_statusline-18-9",
-        "baseline-render_statusline-18-10"
+        "statusline-boundary-18-1",
+        "statusline-boundary-18-2",
+        "statusline-boundary-18-3",
+        "statusline-boundary-18-4",
+        "statusline-boundary-18-5",
+        "statusline-boundary-18-6",
+        "statusline-boundary-18-7",
+        "statusline-boundary-18-8",
+        "statusline-boundary-18-9",
+        "statusline-boundary-18-10"
       ],
       "evidence": {
-        "capture": "rust/parity/cases/telemetry-statusline-contracts.capture.json",
-        "capture_sha256": "ae5d69971b50ac6a97d51f9321a794ce854d02f8a2e63ac00f99715e82ab6930",
-        "cases_sha256": "5dc77be68c7b2db1516fc372573b40f5a2f813aa343fc9a6274be0e93dff1746",
-        "native_log": "artifacts/rust-rewrite/statusline-contracts-2.log",
-        "native_log_sha256": "745bd9448fd69daf4406211c4855145da4a24d0bb28e6c405c99afe1ba8f0dd2"
+        "assertion_mapping": "rust/parity/assertion-mappings/statusline-boundary-contracts.json",
+        "assertion_mapping_sha256": "0529e42093000c06d4ad1692368f2d73445f7c0eee320558734b41d230d63071",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816.json",
+          "sha256": "973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816",
+          "bytes": 1565701,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239.json",
+          "sha256": "f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239",
+          "bytes": 6643,
+          "original_path": "/private/tmp/autorouter-twelfth-contracts-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d4021d3964758dd66811ca909898dbe39f5f53654eab21a35cd6b89f3a287645.json",
+          "sha256": "d4021d3964758dd66811ca909898dbe39f5f53654eab21a35cd6b89f3a287645",
+          "bytes": 5970,
+          "original_path": "/private/tmp/autorouter-statusline-boundary-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a.log",
+            "bytes": 1246,
+            "sha256": "95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a",
+            "original_path": "artifacts/rust-rewrite/evidence/95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7.log",
+            "bytes": 172,
+            "sha256": "3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7",
+            "original_path": "artifacts/rust-rewrite/evidence/3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7.log",
+            "bytes": 2368,
+            "sha256": "af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7",
+            "original_path": "artifacts/rust-rewrite/evidence/af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7.log"
+          },
+          "initial_capture_failure": {
+            "path": "artifacts/rust-rewrite/evidence/f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d.json",
+            "bytes": 698,
+            "sha256": "f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d",
+            "original_path": "artifacts/rust-rewrite/evidence/f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d.json"
+          },
+          "capture4": {
+            "path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json",
+            "bytes": 33989,
+            "sha256": "276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d",
+            "original_path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json"
+          },
+          "capture5": {
+            "path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json",
+            "bytes": 33989,
+            "sha256": "276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d",
+            "original_path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json"
+          },
+          "raw4": {
+            "path": "artifacts/rust-rewrite/evidence/d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac.json",
+            "bytes": 17995,
+            "sha256": "d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac",
+            "original_path": "artifacts/rust-rewrite/evidence/d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac.json"
+          },
+          "raw5": {
+            "path": "artifacts/rust-rewrite/evidence/954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856.json",
+            "bytes": 17995,
+            "sha256": "954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856",
+            "original_path": "artifacts/rust-rewrite/evidence/954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856.json"
+          }
+        },
+        "scope": "Ten complete pure renderer callbacks,124full outputs,145explicit API/value projections independently replayed in frozen source.77static sites include one untaken conditional,216executed assertions; native verifies its exact21false predicates without branch-execution claim. Exact ANSI/width/guard/privacy outputs; no arbitrary JS/ESM, CLI, OS-liveness or timing equivalence."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/telemetry-statusline-contracts.json",
-      "remaining_assertions": [
-        "Original call7 remains outside the captured native value interface: $[0]: undefined."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/statusline-boundary-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/statusline.test.mjs#19",
       "file": "test/statusline.test.mjs",
       "name": "malformed savings cannot inject controls, dollar claims, NaN, or infinity",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/statusline.rs#frozen_statusline_calls_preserve_every_captured_width_qualifier_and_escape_sequence"
+        "rust/crates/autorouter-core/tests/statusline_boundary_contracts.rs#invalid_savings_never_inject_claims_or_terminal_controls"
       ],
       "shared_cases": [
-        "baseline-render_statusline-19-1",
-        "baseline-render_statusline-19-4",
-        "baseline-render_statusline-19-5",
-        "baseline-render_statusline-19-6",
-        "baseline-render_statusline-19-7"
+        "statusline-boundary-19-1",
+        "statusline-boundary-19-2",
+        "statusline-boundary-19-3",
+        "statusline-boundary-19-4",
+        "statusline-boundary-19-5",
+        "statusline-boundary-19-6",
+        "statusline-boundary-19-7"
       ],
       "evidence": {
-        "capture": "rust/parity/cases/telemetry-statusline-contracts.capture.json",
-        "capture_sha256": "ae5d69971b50ac6a97d51f9321a794ce854d02f8a2e63ac00f99715e82ab6930",
-        "cases_sha256": "5dc77be68c7b2db1516fc372573b40f5a2f813aa343fc9a6274be0e93dff1746",
-        "native_log": "artifacts/rust-rewrite/statusline-contracts-2.log",
-        "native_log_sha256": "745bd9448fd69daf4406211c4855145da4a24d0bb28e6c405c99afe1ba8f0dd2"
+        "assertion_mapping": "rust/parity/assertion-mappings/statusline-boundary-contracts.json",
+        "assertion_mapping_sha256": "0529e42093000c06d4ad1692368f2d73445f7c0eee320558734b41d230d63071",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816.json",
+          "sha256": "973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816",
+          "bytes": 1565701,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239.json",
+          "sha256": "f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239",
+          "bytes": 6643,
+          "original_path": "/private/tmp/autorouter-twelfth-contracts-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d4021d3964758dd66811ca909898dbe39f5f53654eab21a35cd6b89f3a287645.json",
+          "sha256": "d4021d3964758dd66811ca909898dbe39f5f53654eab21a35cd6b89f3a287645",
+          "bytes": 5970,
+          "original_path": "/private/tmp/autorouter-statusline-boundary-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a.log",
+            "bytes": 1246,
+            "sha256": "95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a",
+            "original_path": "artifacts/rust-rewrite/evidence/95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7.log",
+            "bytes": 172,
+            "sha256": "3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7",
+            "original_path": "artifacts/rust-rewrite/evidence/3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7.log",
+            "bytes": 2368,
+            "sha256": "af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7",
+            "original_path": "artifacts/rust-rewrite/evidence/af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7.log"
+          },
+          "initial_capture_failure": {
+            "path": "artifacts/rust-rewrite/evidence/f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d.json",
+            "bytes": 698,
+            "sha256": "f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d",
+            "original_path": "artifacts/rust-rewrite/evidence/f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d.json"
+          },
+          "capture4": {
+            "path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json",
+            "bytes": 33989,
+            "sha256": "276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d",
+            "original_path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json"
+          },
+          "capture5": {
+            "path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json",
+            "bytes": 33989,
+            "sha256": "276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d",
+            "original_path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json"
+          },
+          "raw4": {
+            "path": "artifacts/rust-rewrite/evidence/d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac.json",
+            "bytes": 17995,
+            "sha256": "d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac",
+            "original_path": "artifacts/rust-rewrite/evidence/d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac.json"
+          },
+          "raw5": {
+            "path": "artifacts/rust-rewrite/evidence/954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856.json",
+            "bytes": 17995,
+            "sha256": "954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856",
+            "original_path": "artifacts/rust-rewrite/evidence/954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856.json"
+          }
+        },
+        "scope": "Ten complete pure renderer callbacks,124full outputs,145explicit API/value projections independently replayed in frozen source.77static sites include one untaken conditional,216executed assertions; native verifies its exact21false predicates without branch-execution claim. Exact ANSI/width/guard/privacy outputs; no arbitrary JS/ESM, CLI, OS-liveness or timing equivalence."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/telemetry-statusline-contracts.json",
-      "remaining_assertions": [
-        "Original call2 remains outside the captured native value interface: $[1].savings.session-a.baseline_usd: non-finite number.",
-        "Original call3 remains outside the captured native value interface: $[1].savings.session-a.saved_usd: non-finite number."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/statusline-boundary-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/statusline.test.mjs#20",
@@ -25141,37 +26044,102 @@
       "file": "test/statusline.test.mjs",
       "name": "HTTP fallback causes show safe classifier status separately from upstream errors",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/statusline.rs#frozen_statusline_calls_preserve_every_captured_width_qualifier_and_escape_sequence"
+        "rust/crates/autorouter-core/tests/statusline_boundary_contracts.rs#classifier_status_does_not_replace_provider_errors"
       ],
       "shared_cases": [
-        "baseline-render_statusline-23-1",
-        "baseline-render_statusline-23-2",
-        "baseline-render_statusline-23-3",
-        "baseline-render_statusline-23-4",
-        "baseline-render_statusline-23-5",
-        "baseline-render_statusline-23-6",
-        "baseline-render_statusline-23-7",
-        "baseline-render_statusline-23-8",
-        "baseline-render_statusline-23-9",
-        "baseline-render_statusline-23-10",
-        "baseline-render_statusline-23-12"
+        "statusline-boundary-23-1",
+        "statusline-boundary-23-2",
+        "statusline-boundary-23-3",
+        "statusline-boundary-23-4",
+        "statusline-boundary-23-5",
+        "statusline-boundary-23-6",
+        "statusline-boundary-23-7",
+        "statusline-boundary-23-8",
+        "statusline-boundary-23-9",
+        "statusline-boundary-23-10",
+        "statusline-boundary-23-11",
+        "statusline-boundary-23-12"
       ],
       "evidence": {
-        "capture": "rust/parity/cases/telemetry-statusline-contracts.capture.json",
-        "capture_sha256": "ae5d69971b50ac6a97d51f9321a794ce854d02f8a2e63ac00f99715e82ab6930",
-        "cases_sha256": "5dc77be68c7b2db1516fc372573b40f5a2f813aa343fc9a6274be0e93dff1746",
-        "native_log": "artifacts/rust-rewrite/statusline-contracts-2.log",
-        "native_log_sha256": "745bd9448fd69daf4406211c4855145da4a24d0bb28e6c405c99afe1ba8f0dd2"
+        "assertion_mapping": "rust/parity/assertion-mappings/statusline-boundary-contracts.json",
+        "assertion_mapping_sha256": "0529e42093000c06d4ad1692368f2d73445f7c0eee320558734b41d230d63071",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816.json",
+          "sha256": "973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816",
+          "bytes": 1565701,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239.json",
+          "sha256": "f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239",
+          "bytes": 6643,
+          "original_path": "/private/tmp/autorouter-twelfth-contracts-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d4021d3964758dd66811ca909898dbe39f5f53654eab21a35cd6b89f3a287645.json",
+          "sha256": "d4021d3964758dd66811ca909898dbe39f5f53654eab21a35cd6b89f3a287645",
+          "bytes": 5970,
+          "original_path": "/private/tmp/autorouter-statusline-boundary-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a.log",
+            "bytes": 1246,
+            "sha256": "95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a",
+            "original_path": "artifacts/rust-rewrite/evidence/95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7.log",
+            "bytes": 172,
+            "sha256": "3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7",
+            "original_path": "artifacts/rust-rewrite/evidence/3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7.log",
+            "bytes": 2368,
+            "sha256": "af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7",
+            "original_path": "artifacts/rust-rewrite/evidence/af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7.log"
+          },
+          "initial_capture_failure": {
+            "path": "artifacts/rust-rewrite/evidence/f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d.json",
+            "bytes": 698,
+            "sha256": "f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d",
+            "original_path": "artifacts/rust-rewrite/evidence/f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d.json"
+          },
+          "capture4": {
+            "path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json",
+            "bytes": 33989,
+            "sha256": "276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d",
+            "original_path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json"
+          },
+          "capture5": {
+            "path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json",
+            "bytes": 33989,
+            "sha256": "276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d",
+            "original_path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json"
+          },
+          "raw4": {
+            "path": "artifacts/rust-rewrite/evidence/d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac.json",
+            "bytes": 17995,
+            "sha256": "d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac",
+            "original_path": "artifacts/rust-rewrite/evidence/d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac.json"
+          },
+          "raw5": {
+            "path": "artifacts/rust-rewrite/evidence/954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856.json",
+            "bytes": 17995,
+            "sha256": "954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856",
+            "original_path": "artifacts/rust-rewrite/evidence/954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856.json"
+          }
+        },
+        "scope": "Ten complete pure renderer callbacks,124full outputs,145explicit API/value projections independently replayed in frozen source.77static sites include one untaken conditional,216executed assertions; native verifies its exact21false predicates without branch-execution claim. Exact ANSI/width/guard/privacy outputs; no arbitrary JS/ESM, CLI, OS-liveness or timing equivalence."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/telemetry-statusline-contracts.json",
-      "remaining_assertions": [
-        "Original call11 remains outside the captured native value interface: $[1].sessions.session-a.classifier_status: non-finite number."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/statusline-boundary-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/statusline.test.mjs#24",
@@ -26223,31 +27191,99 @@
       "file": "test/statusline.test.mjs",
       "name": "Auto floors retain selected model and explanation before savings, context and timing at common widths",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/statusline_boundary_contracts.rs#auto_floor_width_and_color_matrix_preserves_timing_precedence"
+      ],
+      "shared_cases": [
+        "statusline-boundary-27-1",
+        "statusline-boundary-27-2",
+        "statusline-boundary-27-3",
+        "statusline-boundary-27-4",
+        "statusline-boundary-27-5",
+        "statusline-boundary-27-6",
+        "statusline-boundary-27-7",
+        "statusline-boundary-27-8",
+        "statusline-boundary-27-9"
+      ],
       "evidence": {
-        "capture": "rust/parity/cases/telemetry-statusline-contracts.capture.json",
-        "capture_sha256": "ae5d69971b50ac6a97d51f9321a794ce854d02f8a2e63ac00f99715e82ab6930",
-        "cases_sha256": "5dc77be68c7b2db1516fc372573b40f5a2f813aa343fc9a6274be0e93dff1746",
-        "native_log": "artifacts/rust-rewrite/statusline-contracts-2.log",
-        "native_log_sha256": "745bd9448fd69daf4406211c4855145da4a24d0bb28e6c405c99afe1ba8f0dd2"
+        "assertion_mapping": "rust/parity/assertion-mappings/statusline-boundary-contracts.json",
+        "assertion_mapping_sha256": "0529e42093000c06d4ad1692368f2d73445f7c0eee320558734b41d230d63071",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816.json",
+          "sha256": "973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816",
+          "bytes": 1565701,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239.json",
+          "sha256": "f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239",
+          "bytes": 6643,
+          "original_path": "/private/tmp/autorouter-twelfth-contracts-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d4021d3964758dd66811ca909898dbe39f5f53654eab21a35cd6b89f3a287645.json",
+          "sha256": "d4021d3964758dd66811ca909898dbe39f5f53654eab21a35cd6b89f3a287645",
+          "bytes": 5970,
+          "original_path": "/private/tmp/autorouter-statusline-boundary-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a.log",
+            "bytes": 1246,
+            "sha256": "95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a",
+            "original_path": "artifacts/rust-rewrite/evidence/95923f8f77000345553ecb51b84e932260c33316ad696dd6e6061573c887259a.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7.log",
+            "bytes": 172,
+            "sha256": "3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7",
+            "original_path": "artifacts/rust-rewrite/evidence/3e0b810ed444f515767d5f2e0835b2a9e397ad640093d3a1bf9ec610e40b60e7.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7.log",
+            "bytes": 2368,
+            "sha256": "af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7",
+            "original_path": "artifacts/rust-rewrite/evidence/af50f914210cc81cb9c7d2b90b77d375957fbef762ada88c8616d55fb232fba7.log"
+          },
+          "initial_capture_failure": {
+            "path": "artifacts/rust-rewrite/evidence/f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d.json",
+            "bytes": 698,
+            "sha256": "f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d",
+            "original_path": "artifacts/rust-rewrite/evidence/f4852fbac363b714626286a90ba659e717fb67cc681f778558d05bfe8af7650d.json"
+          },
+          "capture4": {
+            "path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json",
+            "bytes": 33989,
+            "sha256": "276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d",
+            "original_path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json"
+          },
+          "capture5": {
+            "path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json",
+            "bytes": 33989,
+            "sha256": "276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d",
+            "original_path": "artifacts/rust-rewrite/evidence/276b998b7094d766e55450c385ee9dc1b8217a71e0c2adbe7ade9066cf54978d.json"
+          },
+          "raw4": {
+            "path": "artifacts/rust-rewrite/evidence/d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac.json",
+            "bytes": 17995,
+            "sha256": "d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac",
+            "original_path": "artifacts/rust-rewrite/evidence/d452730a1a9e0c8712baf82c4b0a4fd40728882fc2db4c33d52ce71ccabe08ac.json"
+          },
+          "raw5": {
+            "path": "artifacts/rust-rewrite/evidence/954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856.json",
+            "bytes": 17995,
+            "sha256": "954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856",
+            "original_path": "artifacts/rust-rewrite/evidence/954995f102af988b3f5c79e6994a234edb102885ea7df91a49285a713050b856.json"
+          }
+        },
+        "scope": "Ten complete pure renderer callbacks,124full outputs,145explicit API/value projections independently replayed in frozen source.77static sites include one untaken conditional,216executed assertions; native verifies its exact21false predicates without branch-execution claim. Exact ANSI/width/guard/privacy outputs; no arbitrary JS/ESM, CLI, OS-liveness or timing equivalence."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/telemetry-statusline-contracts.json",
-      "remaining_assertions": [
-        "Original call1 remains outside the captured native value interface: $[1].sessions.session-a.actual_model: undefined.",
-        "Original call2 remains outside the captured native value interface: $[1].sessions.session-a.actual_model: undefined.",
-        "Original call3 remains outside the captured native value interface: $[1].sessions.session-a.actual_model: undefined.",
-        "Original call4 remains outside the captured native value interface: $[1].sessions.session-a.actual_model: undefined.",
-        "Original call5 remains outside the captured native value interface: $[1].sessions.session-a.actual_model: undefined.",
-        "Original call6 remains outside the captured native value interface: $[1].sessions.session-a.actual_model: undefined.",
-        "Original call7 remains outside the captured native value interface: $[1].sessions.session-a.actual_model: undefined.",
-        "Original call8 remains outside the captured native value interface: $[1].sessions.session-a.actual_model: undefined.",
-        "Original call9 remains outside the captured native value interface: $[1].sessions.session-a.actual_model: undefined."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/statusline-boundary-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/statusline.test.mjs#28",

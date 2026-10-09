@@ -65,6 +65,18 @@ configuration/authentication, status, history, and evaluation report logic.
 This command does not run HTTP executable comparisons, installed-archive
 lifecycle tests, timing measurements, or live evaluators.
 
+The [raw HTTP/1 pool experiment](measurements/openssl-raw-pool-summary.json)
+uses a test-only OpenSSL client and a default-off vendor reservation feature.
+Its independent driver compares 63 synthetic schedules over HTTP, TLS 1.2 and
+TLS 1.3 against Node 22.14.0. It checks actual peer socket ownership alongside
+pool probes, LIFO reuse, the 256-idle limit, timeout hints, busy/idle timers,
+session resumption and cleanup. A reference-only or native-only run is
+characterization, not a differential result. The summary retains failed
+drafts and mutation controls, as well as the separate broader transport
+comparisons that still differ. Clean response consumption and pool retirement
+do not establish successful downstream forwarding. The ordinary native
+release remains Rustls, with both experimental vendor features absent.
+
 The auto-routing baseline also has a dynamic contract capture. It verifies the
 frozen source hashes, runs all 23 original test callbacks and assertions, and
 records every JSON-safe guard call with its result and before/after request
@@ -183,6 +195,53 @@ node parity/capture-savings-finite-contracts.mjs ../artifacts/rust-rewrite/refer
 cargo test --locked --package autorouter-runtime --test ollama_routing_contracts
 cargo test --locked --package xtask ollama_routing::contracts
 cargo test --locked --package autorouter-core --test savings_finite_contracts
+```
+
+The separate `ollama-routing-timeout-contracts.jsonl` retains the original
+four-route sequence on one Router: legitimate Sonnet, timeout fallback, fresh
+Haiku recovery and an adaptive-thinking compatibility guard. Native replay uses
+the actual evaluator deadline with a controlled clock, verifies the pending
+request is dropped and compares all eight requests and complete results. The
+source mock observes its expired 5 ms signal after a 20 ms delay; this establishes
+the original output contract, not equal elapsed time or scheduler behavior.
+
+`savings-capacity-contracts.jsonl` preserves 1,127 original updates and nine
+original snapshots across the two in-flight and session-eviction callbacks.
+Complete snapshots check partial/unpriced accounting, late evicted work and new
+requests in returning sessions. Additional native checks exercise the exact
+1,000-request and 100-session boundaries. These are state-capacity checks, with
+no process-memory or timing claim.
+
+`statusline-boundary-contracts.jsonl` compares 124 complete renderer outputs
+from ten original callbacks. Each explicitly recorded native value conversion
+also produces the same complete output in the frozen renderer: omitted own
+undefined properties, invalid top-level values, four nonfinite numeric examples,
+observed liveness and the capture process ID. This is limited to the captured
+values and the native pure-renderer API. Full ANSI output, model qualifiers,
+session isolation, guards and width priorities remain exact. The 216 executed
+original assertions include 76 of 77 static sites; the remaining conditional
+site has a false predicate for all 21 original tiny-width inputs, which native
+replay checks explicitly. No execution of that untaken branch is claimed.
+
+```sh
+cargo test --locked --package autorouter-runtime --test ollama_routing_timeout_contracts
+cargo test --locked --package autorouter-core --test savings_capacity_contracts
+cargo test --locked --package autorouter-core --test statusline_boundary_contracts
+```
+
+`local-diagnostic-timeout-contracts.jsonl` retains the two original disabled and
+finite runtime-deadline callbacks, including 48 requests and 30 progress events.
+The disabled case checks the original `latency_ms >= 4` predicate against real
+elapsed time before comparing reports. The finite case lets the production
+2 ms deadline cancel six delayed valid responses and checks that fallback cannot
+count as a Sonnet classification. Additional controlled-clock tests retain the
+separate 60-second preparation bound and caller cancellation with no runtime
+deadline. Exact raw formatter output is preserved; elapsed values are not a
+hardware performance result. Rust's cancellation-token API is an explicit
+library adaptation of JavaScript signal identity.
+
+```sh
+cargo test --locked --package autorouter-runtime --test local_diagnostic_timeout_contracts
 ```
 
 The [redaction mapping](assertion-mappings/redaction-contracts.json) compares

@@ -90,6 +90,8 @@ pub use capture::{CaptureConnection, capture_connection};
 pub(super) mod request_lease;
 #[cfg(feature = "node-http1-request-lease")]
 pub use request_lease::{AbortClaim, Assignment, CaptureAssignment, capture_http1_assignment};
+#[cfg(feature = "node-http1-raw-pool")]
+pub use request_lease::{Http1Reservation, bind_http1_reservation};
 
 pub use self::sealed::Connect;
 

@@ -11,6 +11,7 @@ mod lifecycle;
 mod lifecycle_tests;
 mod options;
 mod policy;
+mod raw_pool;
 mod request_lease_tests;
 mod session;
 

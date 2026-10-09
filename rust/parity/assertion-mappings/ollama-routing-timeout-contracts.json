@@ -1,0 +1,1451 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_ollama_routing_timeout_contracts_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_head": "01bdbeac22e363ad38ed9bdeadb758bfd3526631",
+  "production_changes": false,
+  "source_behavior_bug_found": false,
+  "registration": "One new standalone integration target and private timed support; existing finite support and all production code unchanged. Root owns exact source-bundle registration.",
+  "counts": {
+    "definitions": 1,
+    "source_callbacks": 1,
+    "source_router_instances": 1,
+    "route_calls": 4,
+    "requests": 8,
+    "metadata_requests": 4,
+    "inference_requests": 4,
+    "finite_response_outcomes": 7,
+    "timeout_outcomes": 1,
+    "direct_static_assertions": 12,
+    "shared_helper_static_assertions": 9,
+    "direct_executed_original_assertions": 12,
+    "helper_executed_original_assertions": 53,
+    "total_executed_original_assertions": 65,
+    "native_tests": 4,
+    "unchanged_frozen_controls": 1,
+    "covered": 1,
+    "partial": 0
+  },
+  "current_sources": [
+    {
+      "path": "rust/parity/capture-ollama-routing-timeout-contracts.mjs",
+      "bytes": 14521,
+      "sha256": "53f29ad0f99b48d5675e00a404c6231b37dd87f1c9ae3647e80d12a4eaaafc46"
+    },
+    {
+      "path": "rust/parity/cases/ollama-routing-timeout-contracts.jsonl",
+      "bytes": 84068,
+      "sha256": "fd5cdab37c2d559a1a3fe9242ddf161bc2c58cc4c4de7860c0cde056c26743c3"
+    },
+    {
+      "path": "rust/parity/cases/ollama-routing-timeout-contracts.capture.json",
+      "bytes": 12288,
+      "sha256": "c4f77038fddbfd45a32b2367c928c9d2e8faa6e2e25d903f1ac9412c767446fa"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+      "bytes": 8610,
+      "sha256": "6e88e283ad3d283ef53980fe093909b858e82caed920a3b2151b2c4375839a18"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+      "bytes": 10598,
+      "sha256": "310f50c93105f0d38c90b98791d8b17d365fa68835bae4d4aff879514a1f3242"
+    }
+  ],
+  "retained_sources": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/53f29ad0f99b48d5675e00a404c6231b37dd87f1c9ae3647e80d12a4eaaafc46.mjs",
+      "sha256": "53f29ad0f99b48d5675e00a404c6231b37dd87f1c9ae3647e80d12a4eaaafc46",
+      "bytes": 14521,
+      "original_path": "rust/parity/capture-ollama-routing-timeout-contracts.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/fd5cdab37c2d559a1a3fe9242ddf161bc2c58cc4c4de7860c0cde056c26743c3.jsonl",
+      "sha256": "fd5cdab37c2d559a1a3fe9242ddf161bc2c58cc4c4de7860c0cde056c26743c3",
+      "bytes": 84068,
+      "original_path": "rust/parity/cases/ollama-routing-timeout-contracts.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/c4f77038fddbfd45a32b2367c928c9d2e8faa6e2e25d903f1ac9412c767446fa.json",
+      "sha256": "c4f77038fddbfd45a32b2367c928c9d2e8faa6e2e25d903f1ac9412c767446fa",
+      "bytes": 12288,
+      "original_path": "rust/parity/cases/ollama-routing-timeout-contracts.capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/6e88e283ad3d283ef53980fe093909b858e82caed920a3b2151b2c4375839a18.rs",
+      "sha256": "6e88e283ad3d283ef53980fe093909b858e82caed920a3b2151b2c4375839a18",
+      "bytes": 8610,
+      "original_path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/310f50c93105f0d38c90b98791d8b17d365fa68835bae4d4aff879514a1f3242.rs",
+      "sha256": "310f50c93105f0d38c90b98791d8b17d365fa68835bae4d4aff879514a1f3242",
+      "bytes": 10598,
+      "original_path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs"
+    }
+  ],
+  "baseline_source": {
+    "path": "artifacts/rust-rewrite/reference/test/ollama-routing.test.mjs",
+    "bytes": 10544,
+    "sha256": "a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b"
+  },
+  "source_inputs": [
+    {
+      "path": "artifacts/rust-rewrite/reference/test/ollama-routing.test.mjs",
+      "bytes": 10544,
+      "sha256": "a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/scripts/test-ollama-routing.mjs",
+      "bytes": 10666,
+      "sha256": "5fa48431fcc953f2d84455e44f44a54fbde3fc3194a9e591267860b260e75507"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/test/fixtures/ollama-integration.json",
+      "bytes": 1884,
+      "sha256": "88e12f962fb42b36a00edd6b8c2560e54620d90c978b1ff13a1ddf31ee46b585"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/src/router.mjs",
+      "bytes": 27898,
+      "sha256": "aebf10268348f00b6c8cdc82ef9ced2d60c8e1cc0ddeee7c3498bcaf100b9d56"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/src/ollama-evaluator.mjs",
+      "bytes": 8406,
+      "sha256": "6c983ddab7e9d01a667d9f890deb7b40e85c1d7dee5373cf34642eb588cb7652"
+    }
+  ],
+  "retained_source_inputs": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b.mjs",
+      "bytes": 10544,
+      "sha256": "a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b",
+      "original_path": "artifacts/rust-rewrite/reference/test/ollama-routing.test.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/5fa48431fcc953f2d84455e44f44a54fbde3fc3194a9e591267860b260e75507.mjs",
+      "bytes": 10666,
+      "sha256": "5fa48431fcc953f2d84455e44f44a54fbde3fc3194a9e591267860b260e75507",
+      "original_path": "artifacts/rust-rewrite/reference/scripts/test-ollama-routing.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/88e12f962fb42b36a00edd6b8c2560e54620d90c978b1ff13a1ddf31ee46b585.json",
+      "bytes": 1884,
+      "sha256": "88e12f962fb42b36a00edd6b8c2560e54620d90c978b1ff13a1ddf31ee46b585",
+      "original_path": "artifacts/rust-rewrite/reference/test/fixtures/ollama-integration.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/aebf10268348f00b6c8cdc82ef9ced2d60c8e1cc0ddeee7c3498bcaf100b9d56.mjs",
+      "bytes": 27898,
+      "sha256": "aebf10268348f00b6c8cdc82ef9ced2d60c8e1cc0ddeee7c3498bcaf100b9d56",
+      "original_path": "artifacts/rust-rewrite/reference/src/router.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/6c983ddab7e9d01a667d9f890deb7b40e85c1d7dee5373cf34642eb588cb7652.mjs",
+      "bytes": 8406,
+      "sha256": "6c983ddab7e9d01a667d9f890deb7b40e85c1d7dee5373cf34642eb588cb7652",
+      "original_path": "artifacts/rust-rewrite/reference/src/ollama-evaluator.mjs"
+    }
+  ],
+  "unchanged_native_sources": [
+    {
+      "path": "rust/crates/autorouter-runtime/src/router.rs",
+      "bytes": 18645,
+      "sha256": "7c28f5ee23e54e982d4a6bd2b65cba0c2c5e2e3ccc57d522b715c5fccb0d0e6b"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+      "bytes": 32670,
+      "sha256": "f5e9bf5f36969ec89ddf1a9b91b7e83d4b4a74b460f60f8ddddd576dbfaad899"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/evaluator.rs",
+      "bytes": 44305,
+      "sha256": "a44198f1c62c7b4d45d1427bf67b673f8b0b252f97244354a0cfc66eb9933527"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/router.rs",
+      "bytes": 46171,
+      "sha256": "d7e2983c393c54e162c5e0ec3cfd1b8d43f12da43e1bc011550590166f55f88c"
+    }
+  ],
+  "retained_native_sources": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/7c28f5ee23e54e982d4a6bd2b65cba0c2c5e2e3ccc57d522b715c5fccb0d0e6b.rs",
+      "bytes": 18645,
+      "sha256": "7c28f5ee23e54e982d4a6bd2b65cba0c2c5e2e3ccc57d522b715c5fccb0d0e6b",
+      "original_path": "rust/crates/autorouter-runtime/src/router.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/f5e9bf5f36969ec89ddf1a9b91b7e83d4b4a74b460f60f8ddddd576dbfaad899.rs",
+      "bytes": 32670,
+      "sha256": "f5e9bf5f36969ec89ddf1a9b91b7e83d4b4a74b460f60f8ddddd576dbfaad899",
+      "original_path": "rust/crates/autorouter-runtime/src/classifier.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/a44198f1c62c7b4d45d1427bf67b673f8b0b252f97244354a0cfc66eb9933527.rs",
+      "bytes": 44305,
+      "sha256": "a44198f1c62c7b4d45d1427bf67b673f8b0b252f97244354a0cfc66eb9933527",
+      "original_path": "rust/crates/autorouter-runtime/src/evaluator.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/d7e2983c393c54e162c5e0ec3cfd1b8d43f12da43e1bc011550590166f55f88c.rs",
+      "bytes": 46171,
+      "sha256": "d7e2983c393c54e162c5e0ec3cfd1b8d43f12da43e1bc011550590166f55f88c",
+      "original_path": "rust/crates/autorouter-core/src/router.rs"
+    }
+  ],
+  "prior_implementation_plan": {
+    "path": "artifacts/rust-rewrite/evidence/bb35bab1c0a5f7504f5266cd412f1b2a517129a3d6680eac4c307591b0809cfb.json",
+    "bytes": 22644,
+    "sha256": "bb35bab1c0a5f7504f5266cd412f1b2a517129a3d6680eac4c307591b0809cfb",
+    "original_path": "/private/tmp/autorouter-ollama-routing-timeout-implementation-proposal.json"
+  },
+  "capture_method": [
+    "Verify all111 frozen files and the complete source test hash before imports. TypeScript AST identifies exact definition3 and nine helper assertions. Only static imports and successful-original-assertion counting wrappers are substituted; all original callback/helper decisions, model defaults, arguments and delay execute.",
+    "Real node:timers/promises delay(20), real original AbortSignal.timeout(5) and actual frozen Router produce the timeout. The rejected fetch rethrows the exact original object; recorded error===signal.reason and signal reason name=TimeoutError are true. No simulated timeout verdict is supplied.",
+    "Record constructor config after the original5ms override, one original Router and four sequential one-argument route calls; options remain absent. Complete original body bytes, method/URL/headers/raw and parsed request data and original finite responses are retained.",
+    "Response.json observer returns the same original response without clone/read/tee. Sticky observer errors cannot be hidden by source fallback catches. Exactly one second-step inference rejects; seven original finite responses remain.",
+    "Capture retains raw unprojected route outputs separately. Only two finite/nonnegative unasserted elapsed fields are removed from expected decisions; all other fields and tags remain.",
+    "Two complete captures are byte-identical for canonical corpus and metadata, with65 completed source assertions; separate unchanged Node test invocation passes the single original callback."
+  ],
+  "native_method": [
+    "Actual Router/Classifier/evaluator/policy execute one four-step schedule with the entire model-derived config plus the original5ms override. Explicit absent-argument metadata maps to default RouteOptions; no scope/prompt ID or completion evidence is introduced.",
+    "Metadata and ordinary inference return captured original responses. Timeout inference validates exact request then stays pending; actual production evaluator owns and fires its5ms timer. No mock EvaluationError::Timeout or fallback decision is returned.",
+    "Paused Tokio barrier requires first metadata and stalled inference at the same logical instant and no clock auto-advance. Request is still owned/route unfinished at4ms; after one additional millisecond full timeout result arrives at5ms and pending-request Drop is observed. Caller cancellation token remains uncancelled.",
+    "Same native Router retries the byte-identical failed body and independently consumes another metadata/inference pair; full result requires fresh Ollama Haiku. Adaptive-thinking request changes only that field and preserves fresh Haiku classification while selecting compatible Sonnet with exact guard reason.",
+    "Independent sticky request mismatch, exact per-step/cumulative counts, queue exhaustion and zero active/body owners apply even when scripted response or actual timeout still produces matching output. Router shutdown and scoped JoinSet/drop guards own cleanup.",
+    "Complete route result comparison includes continuity_state=selected on recovery and guarded calls. Only validated elapsed fields are projected; original request bytes remain unchanged."
+  ],
+  "timing_boundary": {
+    "source_timeout_ms": 5,
+    "source_mock_delay_ms": 20,
+    "native_virtual_deadline_ms": 5,
+    "scope": "Exact deadline semantics and output categories only. Original mock observes timeout after its delayed signal check; native owned pending IO drops at the deadline. No equal wall-clock time, event-loop scheduling or JS signal identity claim."
+  },
+  "corpus": {
+    "bytes": 84068,
+    "sha256": "fd5cdab37c2d559a1a3fe9242ddf161bc2c58cc4c4de7860c0cde056c26743c3",
+    "case_cap_bytes": 524288,
+    "corpus_cap_bytes": 1048576,
+    "within_existing_bundle_default": true
+  },
+  "limits": {
+    "routers": 1,
+    "routes": 4,
+    "requests_per_route": 2,
+    "requests": 8,
+    "field_bytes": 65536,
+    "response_bytes": 65536,
+    "snapshot_nodes": 4096,
+    "snapshot_depth": 32,
+    "case_bytes": 524288,
+    "corpus_bytes": 1048576,
+    "aggregate_bytes": 4194304,
+    "external_capture_seconds": 30,
+    "native_request_bytes": 65536,
+    "native_response_bytes": 65536,
+    "native_step_outer_bound_ms": 2000,
+    "external_native_seconds": 60,
+    "external_native_log_bytes": 4194304,
+    "owned_pending_after_timeout": 0,
+    "owned_bodies_between_steps": 0
+  },
+  "negative_controls": [
+    "Wrong timeout inference body/state or URL still reaches the actual5ms deadline and produces matching complete results, but independent I/O verification fails.",
+    "Complete result matcher rejects wrong timeout/network_error identity, unexpected classified tier, cached recovery source, lost adaptive-thinking selected model/reason and unexpected classifier_error.",
+    "Changing configured deadline, absent option metadata, missing route or timeout error name rejects canonical input even if the reported hash is recomputed.",
+    "Changed metadata assertion inventory, changed corpus byte and1MiB+1 all reject immutable pin/inventory/bounds."
+  ],
+  "retained_failed_checks": [],
+  "validation": {
+    "native": {
+      "path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-native-1.log",
+      "bytes": 1191,
+      "sha256": "141bf0d3c21fae312f54142b775319ff20976bdbf395836f87bf8263afabcdb7"
+    },
+    "native_record": {
+      "path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-native-1.json",
+      "bytes": 377,
+      "sha256": "395491c88c9c3624ec0e860bbd60f83694a6955e6d1c072e05b188cf6190b6cf"
+    },
+    "native_passed": 4,
+    "checks": {
+      "path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-checks-1.json",
+      "bytes": 793,
+      "sha256": "6d45d026e0088245be1c40286e99334f85976e3070b6e10386fefa03758cb505"
+    },
+    "clippy": {
+      "path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-clippy-1.log",
+      "bytes": 678,
+      "sha256": "f323abda31c93fa806275d33b2d75d30b15af87cc513a131844418726de55856"
+    },
+    "clippy_exit_code": 0,
+    "fmt": {
+      "path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-fmt-1.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "frozen_control": {
+      "path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-frozen.log",
+      "bytes": 366,
+      "sha256": "7f651eeac2cbaf9b917f3f2447c4c56bc999fddc244ea13d17e1b99d4355fa73"
+    },
+    "frozen_passed": 1,
+    "capture_invocations": {
+      "path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-capture-invocations.json",
+      "bytes": 1466,
+      "sha256": "929779f4af82918ffada9285f79f72ca898ea9f028d4215a5627c87ae570803a"
+    },
+    "captures_byte_identical": true,
+    "dependency_warning": "Existing narrow-feature-graph hyper-util unused timer warning retained; no new test or production warning/error."
+  },
+  "existing_actual_redirect_evidence": {
+    "rust_test": "rust/crates/autorouter-runtime/src/http_client.rs#http_client::tests::local_http_reuses_connections_preserves_credentials_and_never_decodes_or_redirects",
+    "source": {
+      "path": "rust/crates/autorouter-runtime/src/http_client.rs",
+      "bytes": 16711,
+      "sha256": "c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1"
+    },
+    "retained_source": {
+      "path": "artifacts/rust-rewrite/evidence/c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1.rs",
+      "bytes": 16711,
+      "sha256": "c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1",
+      "original_path": "rust/crates/autorouter-runtime/src/http_client.rs"
+    },
+    "passed_log": {
+      "path": "artifacts/rust-rewrite/tenth-final-2-workspace.log",
+      "bytes": 74503,
+      "sha256": "71ce460b33d6670beabf87a6fa5055d150c23e8a77a71b608e33f74ba2bcd33e"
+    },
+    "retained_log": {
+      "path": "artifacts/rust-rewrite/evidence/71ce460b33d6670beabf87a6fa5055d150c23e8a77a71b608e33f74ba2bcd33e.log",
+      "bytes": 74503,
+      "sha256": "71ce460b33d6670beabf87a6fa5055d150c23e8a77a71b608e33f74ba2bcd33e",
+      "original_path": "artifacts/rust-rewrite/tenth-final-2-workspace.log"
+    },
+    "log_line": 286,
+    "scope": "Actual mock HTTP307 response remains unchanged; exactly one request establishes no redirect follow. Literal source redirect:error is a native transport-policy adaptation, not JS option identity."
+  },
+  "evidence": {
+    "0-twelfth-ollama-routing-timeout-capture-a.log": {
+      "path": "artifacts/rust-rewrite/evidence/6d691278c4f0edd636c36dcbe4321675455e840e0d09d59f216d700487769051.log",
+      "bytes": 142,
+      "sha256": "6d691278c4f0edd636c36dcbe4321675455e840e0d09d59f216d700487769051",
+      "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-capture-a.log"
+    },
+    "1-twelfth-ollama-routing-timeout-capture-b.log": {
+      "path": "artifacts/rust-rewrite/evidence/6d691278c4f0edd636c36dcbe4321675455e840e0d09d59f216d700487769051.log",
+      "bytes": 142,
+      "sha256": "6d691278c4f0edd636c36dcbe4321675455e840e0d09d59f216d700487769051",
+      "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-capture-b.log"
+    },
+    "2-twelfth-ollama-routing-timeout-capture-invocations.json": {
+      "path": "artifacts/rust-rewrite/evidence/929779f4af82918ffada9285f79f72ca898ea9f028d4215a5627c87ae570803a.json",
+      "bytes": 1466,
+      "sha256": "929779f4af82918ffada9285f79f72ca898ea9f028d4215a5627c87ae570803a",
+      "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-capture-invocations.json"
+    },
+    "3-twelfth-ollama-routing-timeout-checks-1.json": {
+      "path": "artifacts/rust-rewrite/evidence/6d45d026e0088245be1c40286e99334f85976e3070b6e10386fefa03758cb505.json",
+      "bytes": 793,
+      "sha256": "6d45d026e0088245be1c40286e99334f85976e3070b6e10386fefa03758cb505",
+      "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-checks-1.json"
+    },
+    "4-twelfth-ollama-routing-timeout-clippy-1.log": {
+      "path": "artifacts/rust-rewrite/evidence/f323abda31c93fa806275d33b2d75d30b15af87cc513a131844418726de55856.log",
+      "bytes": 678,
+      "sha256": "f323abda31c93fa806275d33b2d75d30b15af87cc513a131844418726de55856",
+      "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-clippy-1.log"
+    },
+    "5-twelfth-ollama-routing-timeout-fmt-1.log": {
+      "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-fmt-1.log"
+    },
+    "6-twelfth-ollama-routing-timeout-frozen.log": {
+      "path": "artifacts/rust-rewrite/evidence/7f651eeac2cbaf9b917f3f2447c4c56bc999fddc244ea13d17e1b99d4355fa73.log",
+      "bytes": 366,
+      "sha256": "7f651eeac2cbaf9b917f3f2447c4c56bc999fddc244ea13d17e1b99d4355fa73",
+      "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-frozen.log"
+    },
+    "7-twelfth-ollama-routing-timeout-native-1.json": {
+      "path": "artifacts/rust-rewrite/evidence/395491c88c9c3624ec0e860bbd60f83694a6955e6d1c072e05b188cf6190b6cf.json",
+      "bytes": 377,
+      "sha256": "395491c88c9c3624ec0e860bbd60f83694a6955e6d1c072e05b188cf6190b6cf",
+      "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-native-1.json"
+    },
+    "8-twelfth-ollama-routing-timeout-native-1.log": {
+      "path": "artifacts/rust-rewrite/evidence/141bf0d3c21fae312f54142b775319ff20976bdbf395836f87bf8263afabcdb7.log",
+      "bytes": 1191,
+      "sha256": "141bf0d3c21fae312f54142b775319ff20976bdbf395836f87bf8263afabcdb7",
+      "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-native-1.log"
+    },
+    "9-twelfth-ollama-routing-timeout-syntax.log": {
+      "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-syntax.log"
+    },
+    "10-cases.jsonl": {
+      "path": "artifacts/rust-rewrite/evidence/fd5cdab37c2d559a1a3fe9242ddf161bc2c58cc4c4de7860c0cde056c26743c3.jsonl",
+      "bytes": 84068,
+      "sha256": "fd5cdab37c2d559a1a3fe9242ddf161bc2c58cc4c4de7860c0cde056c26743c3",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-timeout-capture-a/cases.jsonl"
+    },
+    "11-capture.json": {
+      "path": "artifacts/rust-rewrite/evidence/c4f77038fddbfd45a32b2367c928c9d2e8faa6e2e25d903f1ac9412c767446fa.json",
+      "bytes": 12288,
+      "sha256": "c4f77038fddbfd45a32b2367c928c9d2e8faa6e2e25d903f1ac9412c767446fa",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-timeout-capture-a/capture.json"
+    },
+    "12-observations.json": {
+      "path": "artifacts/rust-rewrite/evidence/4f94619a01c0d831a315d553394e82afe22ca903af975e117412a7772c0d0334.json",
+      "bytes": 1509,
+      "sha256": "4f94619a01c0d831a315d553394e82afe22ca903af975e117412a7772c0d0334",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-timeout-capture-a/observations.json"
+    },
+    "13-cases.jsonl": {
+      "path": "artifacts/rust-rewrite/evidence/fd5cdab37c2d559a1a3fe9242ddf161bc2c58cc4c4de7860c0cde056c26743c3.jsonl",
+      "bytes": 84068,
+      "sha256": "fd5cdab37c2d559a1a3fe9242ddf161bc2c58cc4c4de7860c0cde056c26743c3",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-timeout-capture-b/cases.jsonl"
+    },
+    "14-capture.json": {
+      "path": "artifacts/rust-rewrite/evidence/c4f77038fddbfd45a32b2367c928c9d2e8faa6e2e25d903f1ac9412c767446fa.json",
+      "bytes": 12288,
+      "sha256": "c4f77038fddbfd45a32b2367c928c9d2e8faa6e2e25d903f1ac9412c767446fa",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-timeout-capture-b/capture.json"
+    },
+    "15-observations.json": {
+      "path": "artifacts/rust-rewrite/evidence/6cca457a5301e2a7d8fa75dd1460575600fd9dcb30fbc55e2cbfa1a72262511d.json",
+      "bytes": 1507,
+      "sha256": "6cca457a5301e2a7d8fa75dd1460575600fd9dcb30fbc55e2cbfa1a72262511d",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-timeout-capture-b/observations.json"
+    }
+  },
+  "retained_evidence": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/6d691278c4f0edd636c36dcbe4321675455e840e0d09d59f216d700487769051.log",
+      "bytes": 142,
+      "sha256": "6d691278c4f0edd636c36dcbe4321675455e840e0d09d59f216d700487769051",
+      "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-capture-a.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/6d691278c4f0edd636c36dcbe4321675455e840e0d09d59f216d700487769051.log",
+      "bytes": 142,
+      "sha256": "6d691278c4f0edd636c36dcbe4321675455e840e0d09d59f216d700487769051",
+      "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-capture-b.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/929779f4af82918ffada9285f79f72ca898ea9f028d4215a5627c87ae570803a.json",
+      "bytes": 1466,
+      "sha256": "929779f4af82918ffada9285f79f72ca898ea9f028d4215a5627c87ae570803a",
+      "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-capture-invocations.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/6d45d026e0088245be1c40286e99334f85976e3070b6e10386fefa03758cb505.json",
+      "bytes": 793,
+      "sha256": "6d45d026e0088245be1c40286e99334f85976e3070b6e10386fefa03758cb505",
+      "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-checks-1.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/f323abda31c93fa806275d33b2d75d30b15af87cc513a131844418726de55856.log",
+      "bytes": 678,
+      "sha256": "f323abda31c93fa806275d33b2d75d30b15af87cc513a131844418726de55856",
+      "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-clippy-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-fmt-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/7f651eeac2cbaf9b917f3f2447c4c56bc999fddc244ea13d17e1b99d4355fa73.log",
+      "bytes": 366,
+      "sha256": "7f651eeac2cbaf9b917f3f2447c4c56bc999fddc244ea13d17e1b99d4355fa73",
+      "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-frozen.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/395491c88c9c3624ec0e860bbd60f83694a6955e6d1c072e05b188cf6190b6cf.json",
+      "bytes": 377,
+      "sha256": "395491c88c9c3624ec0e860bbd60f83694a6955e6d1c072e05b188cf6190b6cf",
+      "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-native-1.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/141bf0d3c21fae312f54142b775319ff20976bdbf395836f87bf8263afabcdb7.log",
+      "bytes": 1191,
+      "sha256": "141bf0d3c21fae312f54142b775319ff20976bdbf395836f87bf8263afabcdb7",
+      "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-native-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_path": "artifacts/rust-rewrite/twelfth-ollama-routing-timeout-syntax.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/fd5cdab37c2d559a1a3fe9242ddf161bc2c58cc4c4de7860c0cde056c26743c3.jsonl",
+      "bytes": 84068,
+      "sha256": "fd5cdab37c2d559a1a3fe9242ddf161bc2c58cc4c4de7860c0cde056c26743c3",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-timeout-capture-a/cases.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/c4f77038fddbfd45a32b2367c928c9d2e8faa6e2e25d903f1ac9412c767446fa.json",
+      "bytes": 12288,
+      "sha256": "c4f77038fddbfd45a32b2367c928c9d2e8faa6e2e25d903f1ac9412c767446fa",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-timeout-capture-a/capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/4f94619a01c0d831a315d553394e82afe22ca903af975e117412a7772c0d0334.json",
+      "bytes": 1509,
+      "sha256": "4f94619a01c0d831a315d553394e82afe22ca903af975e117412a7772c0d0334",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-timeout-capture-a/observations.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/fd5cdab37c2d559a1a3fe9242ddf161bc2c58cc4c4de7860c0cde056c26743c3.jsonl",
+      "bytes": 84068,
+      "sha256": "fd5cdab37c2d559a1a3fe9242ddf161bc2c58cc4c4de7860c0cde056c26743c3",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-timeout-capture-b/cases.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/c4f77038fddbfd45a32b2367c928c9d2e8faa6e2e25d903f1ac9412c767446fa.json",
+      "bytes": 12288,
+      "sha256": "c4f77038fddbfd45a32b2367c928c9d2e8faa6e2e25d903f1ac9412c767446fa",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-timeout-capture-b/capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/6cca457a5301e2a7d8fa75dd1460575600fd9dcb30fbc55e2cbfa1a72262511d.json",
+      "bytes": 1507,
+      "sha256": "6cca457a5301e2a7d8fa75dd1460575600fd9dcb30fbc55e2cbfa1a72262511d",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-timeout-capture-b/observations.json"
+    }
+  ],
+  "boundaries": [
+    "One original definition is qualified; native sensitivity controls are separate test extensions, not additional unchanged source callbacks.",
+    "No inference/provider/model download/user configuration write, real service, hardware timing, OS, production release or complete transport qualification.",
+    "Shared classifier/evaluator/Router and previously covered finite contracts remain byte-identical to checkpoint01bdbea.",
+    "The native counter proves owned synthetic requests/bodies released; it does not claim a process-wide FD or resource baseline."
+  ],
+  "helper_assertions": {
+    "name": "localFixture",
+    "sha256": "7ad1ef0f734c8644fc8858816c4996f4bad165e4bc95a1d8d72a100d4125b21b",
+    "assertions": [
+      {
+        "id": "localFixture:assert-1",
+        "line": 16,
+        "expression": "assert.equal(new URL(url).origin, config.ollamaEndpoint)",
+        "sha256": "932b3aec52d59f8ec98cae431c87f27b6df60d003a2ef59ba4cdadc7ee40a7ab",
+        "status": "covered_in_selected_callback_only",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+        ],
+        "shared_cases": [
+          "baseline-ollama-routing-timeout-3-1"
+        ],
+        "native_check": "Exact raw native URL equality preserves origin and path for all eight actual calls.",
+        "native_anchors": [
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+            "function": "request",
+            "line": 231
+          },
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+            "function": "verified",
+            "line": 189
+          }
+        ]
+      },
+      {
+        "id": "localFixture:assert-2",
+        "line": 17,
+        "expression": "assert.equal(options.redirect, 'error')",
+        "sha256": "8867547a8dffc17a3aa008e64a715fe5a4f24738ba0b79b5257a046a95a1b00a",
+        "status": "covered_in_selected_callback_only",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+        ],
+        "shared_cases": [
+          "baseline-ollama-routing-timeout-3-1"
+        ],
+        "native_check": "Original helper executes redirect:error; native HttpTransport policy separately established by retained actual HTTP307 no-follow regression, while private transcript rejects extra/missing request order.",
+        "native_anchors": [
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+            "function": "request",
+            "line": 231
+          },
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+            "function": "verified",
+            "line": 189
+          }
+        ]
+      },
+      {
+        "id": "localFixture:assert-3",
+        "line": 18,
+        "expression": "assert.equal(options.headers?.authorization, undefined)",
+        "sha256": "335ef9966f146e39b68c63e5041e39e49bc3b45d105df36dfa34818524eb5253",
+        "status": "covered_in_selected_callback_only",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+        ],
+        "shared_cases": [
+          "baseline-ollama-routing-timeout-3-1"
+        ],
+        "native_check": "Full HeaderMap equality plus explicit absence check reject authorization.",
+        "native_anchors": [
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+            "function": "request",
+            "line": 231
+          },
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+            "function": "verified",
+            "line": 189
+          }
+        ]
+      },
+      {
+        "id": "localFixture:assert-4",
+        "line": 19,
+        "expression": "assert.equal(options.headers?.['x-api-key'], undefined)",
+        "sha256": "50c1f55f687f7ab26a64692f6bd9f3c3108797a8a63a43d5b8bd6a809cade439",
+        "status": "covered_in_selected_callback_only",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+        ],
+        "shared_cases": [
+          "baseline-ollama-routing-timeout-3-1"
+        ],
+        "native_check": "Full HeaderMap equality plus explicit absence check reject x-api-key.",
+        "native_anchors": [
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+            "function": "request",
+            "line": 231
+          },
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+            "function": "verified",
+            "line": 189
+          }
+        ]
+      },
+      {
+        "id": "localFixture:assert-5",
+        "line": 26,
+        "expression": "assert.equal(payload.model, config.ollamaModel)",
+        "sha256": "d0e971608d0223d1a26e5bb400050bcef1590314ee7784054ca11884bbc49747",
+        "status": "covered_in_selected_callback_only",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+        ],
+        "shared_cases": [
+          "baseline-ollama-routing-timeout-3-1"
+        ],
+        "native_check": "Raw and parsed request bodies compare exact configured model in all four metadata and four inference calls.",
+        "native_anchors": [
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+            "function": "request",
+            "line": 231
+          },
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+            "function": "verified",
+            "line": 189
+          }
+        ]
+      },
+      {
+        "id": "localFixture:assert-6",
+        "line": 28,
+        "expression": "assert.equal(path, '/v1/systemone', 'No downloads, unloads, Jev, chat or Anthropic calls are allowed')",
+        "sha256": "68e72967d2bae1d37d4a98a9e82b69afe249f9b7111e27cf287ac9e9ed2c6365",
+        "status": "covered_in_selected_callback_only",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+        ],
+        "shared_cases": [
+          "baseline-ollama-routing-timeout-3-1"
+        ],
+        "native_check": "Full request sequence permits only /api/show and /v1/systemone and rejects unexpected requests; timeout slot remains an actual pending inference.",
+        "native_anchors": [
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+            "function": "request",
+            "line": 231
+          },
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+            "function": "verified",
+            "line": 189
+          }
+        ]
+      },
+      {
+        "id": "localFixture:assert-7",
+        "line": 33,
+        "expression": "assert.ok(choice, 'The actual human task must survive Claude-shaped background')",
+        "sha256": "1657552a2b1f17268ed40cac801cbbb0efa73b9bcb3b50b97b0bfea58fc0c5ac",
+        "status": "covered_in_selected_callback_only",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+        ],
+        "shared_cases": [
+          "baseline-ollama-routing-timeout-3-1"
+        ],
+        "native_check": "Native state current task exactly matches captured original helper input for each successful source tier choice. Timeout source callback throws before executing this assertion, preserving original branch count.",
+        "native_anchors": [
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+            "function": "request",
+            "line": 231
+          },
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+            "function": "verified",
+            "line": 189
+          }
+        ]
+      },
+      {
+        "id": "localFixture:assert-8",
+        "line": 34,
+        "expression": "assert.ok(!JSON.stringify(payload.state).includes('SYNTHETIC_REMINDER_ONLY'))",
+        "sha256": "33d53058dc7f74d17b6c2b1fde857a32aaeb16cfb9a8d583e4ebc7444df39e27",
+        "status": "covered_in_selected_callback_only",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+        ],
+        "shared_cases": [
+          "baseline-ollama-routing-timeout-3-1"
+        ],
+        "native_check": "Native raw state equals helper-approved original state without SYNTHETIC_REMINDER_ONLY on the three successful inference paths; timeout path still has exact retained state.",
+        "native_anchors": [
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+            "function": "request",
+            "line": 231
+          },
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+            "function": "verified",
+            "line": 189
+          }
+        ]
+      },
+      {
+        "id": "localFixture:assert-9",
+        "line": 35,
+        "expression": "assert.ok(!JSON.stringify(payload.state).includes('PRIVATE_THINKING'))",
+        "sha256": "44178e2de10d1dded802ab8e354825219addbec6eb4bbfbbd6a8c0c7def02466",
+        "status": "covered_in_selected_callback_only",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+        ],
+        "shared_cases": [
+          "baseline-ollama-routing-timeout-3-1"
+        ],
+        "native_check": "Native raw state equals helper-approved state without PRIVATE_THINKING on the three successful inference paths; no signed-history/model completion is invented.",
+        "native_anchors": [
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+            "function": "request",
+            "line": 231
+          },
+          {
+            "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+            "function": "verified",
+            "line": 189
+          }
+        ]
+      }
+    ]
+  },
+  "native_anchors": {
+    "options": {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+      "function": "options",
+      "line": 23
+    },
+    "projected": {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+      "function": "projected",
+      "line": 27
+    },
+    "matches": {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+      "function": "matches",
+      "line": 40
+    },
+    "execute": {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+      "function": "execute",
+      "line": 43
+    },
+    "same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard": {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+      "function": "same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard",
+      "line": 133
+    },
+    "matching_timeout_cannot_hide_wrong_inference_request": {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+      "function": "matching_timeout_cannot_hide_wrong_inference_request",
+      "line": 153
+    },
+    "complete_results_reject_wrong_timeout_cache_and_guard_categories": {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+      "function": "complete_results_reject_wrong_timeout_cache_and_guard_categories",
+      "line": 171
+    },
+    "immutable_schedule_rejects_config_option_and_corpus_mutation": {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+      "function": "immutable_schedule_rejects_config_option_and_corpus_mutation",
+      "line": 189
+    },
+    "validate": {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+      "function": "validate",
+      "line": 27
+    },
+    "captured": {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+      "function": "captured",
+      "line": 61
+    },
+    "settings": {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+      "function": "settings",
+      "line": 70
+    },
+    "set": {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+      "function": "set",
+      "line": 155
+    },
+    "count": {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+      "function": "count",
+      "line": 186
+    },
+    "verified": {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+      "function": "verified",
+      "line": 189
+    },
+    "idle": {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+      "function": "idle",
+      "line": 196
+    },
+    "pending_counts": {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+      "function": "pending_counts",
+      "line": 199
+    },
+    "wait_pending": {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+      "function": "wait_pending",
+      "line": 206
+    },
+    "clock_barrier": {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+      "function": "clock_barrier",
+      "line": 217
+    },
+    "request": {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+      "function": "request",
+      "line": 231
+    }
+  },
+  "rows": [
+    {
+      "id": "test/ollama-routing.test.mjs#3",
+      "file": "test/ollama-routing.test.mjs",
+      "name": "legitimate Sonnet, timeout fallback, recovery and a compatibility override remain distinguishable",
+      "line": 78,
+      "baseline_file_sha256": "a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b",
+      "definition_statement": "test('legitimate Sonnet, timeout fallback, recovery and a compatibility override remain distinguishable', async () => {\n  const config = configFor(MODELS[2]);\n  const fixture = localFixture(config);\n  const router = new Router({ ...config, ollamaTimeoutMs: 5 }, { fetchImpl: fixture.fetchImpl });\n  const sonnet = await router.route(buildRoutingRequest(byId('bounded-feature'), config));\n  assert.deepEqual([sonnet.source, sonnet.classified_tier, sonnet.model, sonnet.reason], ['ollama', 'sonnet', config.models.sonnet, 'classified']);\n\n  fixture.mode = 'timeout';\n  const body = buildRoutingRequest(byId('array-length'), config);\n  const fallback = await router.route(body);\n  assert.equal(fallback.model, config.models.sonnet);\n  assert.equal(fallback.source, 'fallback');\n  assert.equal(fallback.classified_tier, undefined);\n  assert.equal(fallback.classifier_error, 'timeout');\n  fixture.mode = 'normal';\n  const recovered = await router.route(body);\n  assert.equal(recovered.model, config.models.haiku);\n  assert.equal(recovered.source, 'ollama', 'Timeout fallbacks must not be cached');\n\n  const guarded = await router.route({ ...body, thinking: { type: 'adaptive' } });\n  assert.equal(guarded.source, 'ollama');\n  assert.equal(guarded.classified_tier, 'haiku');\n  assert.equal(guarded.model, config.models.sonnet);\n  assert.equal(guarded.reason, 'requires_sonnet_capabilities');\n  assert.equal(guarded.classifier_error, undefined);\n});",
+      "definition_sha256": "e7238bc662b5520c21a93925b1224a57fee69117d847ae997a59ca86d67bc9de",
+      "definition_call_sha256": "d06d7bbef67cfc57c797c43ab52a34bb79f6d45c8e9a29863dd9e5fec126b1bc",
+      "hash_boundary": "Canonical AST statement includes trailing semicolon; call excludes it.",
+      "previous_status": "pending_assertion_mapping",
+      "previous_row": {
+        "id": "test/ollama-routing.test.mjs#3",
+        "file": "test/ollama-routing.test.mjs",
+        "name": "legitimate Sonnet, timeout fallback, recovery and a compatibility override remain distinguishable",
+        "parameterized": false,
+        "status": "pending_assertion_mapping",
+        "rust_tests": [],
+        "shared_cases": [],
+        "evidence": null,
+        "related_components": [
+          "evaluators"
+        ]
+      },
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+      ],
+      "shared_cases": [
+        "baseline-ollama-routing-timeout-3-1"
+      ],
+      "scenarios": 1,
+      "router_instances": 1,
+      "route_calls": 4,
+      "requests": 8,
+      "static_assertions": 12,
+      "direct_executed_original_assertions": 12,
+      "helper_executed_original_assertions": 53,
+      "assertions": [
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-1",
+          "line": 83,
+          "expression": "assert.deepEqual([sonnet.source, sonnet.classified_tier, sonnet.model, sonnet.reason], ['ollama', 'sonnet', config.models.sonnet, 'classified'])",
+          "sha256": "80dcb9a3d9933f1755be64998b2338de5c3dc69d6ffc460fa84eb52fcbf9b8ff",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-timeout-3-1"
+          ],
+          "native_check": "First complete route result must expose source=ollama, classified_tier=sonnet, configured Sonnet model, reason=classified.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard",
+              "line": 133
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "execute",
+              "line": 43
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "matches",
+              "line": 40
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "verified",
+              "line": 189
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "request",
+              "line": 231
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-2",
+          "line": 88,
+          "expression": "assert.equal(fallback.model, config.models.sonnet)",
+          "sha256": "3bac01a6fc1ffb1f0d71c48f3c0de73cf3d5b58cd500adb9d66f357bb53bb36e",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-timeout-3-1"
+          ],
+          "native_check": "After the actual production deadline drops pending inference, complete fallback result selects configured Sonnet.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard",
+              "line": 133
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "execute",
+              "line": 43
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "matches",
+              "line": 40
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "verified",
+              "line": 189
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "request",
+              "line": 231
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-3",
+          "line": 89,
+          "expression": "assert.equal(fallback.source, 'fallback')",
+          "sha256": "a5a0e8c3feff575f6bdba4c08692998b5144c798b79dcb2eeab57dd532f1339f",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-timeout-3-1"
+          ],
+          "native_check": "Timed step source must be fallback.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard",
+              "line": 133
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "execute",
+              "line": 43
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "matches",
+              "line": 40
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "verified",
+              "line": 189
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "request",
+              "line": 231
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-4",
+          "line": 90,
+          "expression": "assert.equal(fallback.classified_tier, undefined)",
+          "sha256": "8c0f53efdae82b5611750352b4712b89b500860a5d7f7735dc673c9e41674555",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-timeout-3-1"
+          ],
+          "native_check": "Timed result classified_tier must be absent under captured undefined representation.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard",
+              "line": 133
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "execute",
+              "line": 43
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "matches",
+              "line": 40
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "verified",
+              "line": 189
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "request",
+              "line": 231
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-5",
+          "line": 91,
+          "expression": "assert.equal(fallback.classifier_error, 'timeout')",
+          "sha256": "28d39f68826ca4f7e2af1e5415129473549fac2c93c3839cea87d7b3724d42d0",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-timeout-3-1"
+          ],
+          "native_check": "Timed result classifier_error must equal timeout, never network_error or externally injected synthetic result.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard",
+              "line": 133
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "execute",
+              "line": 43
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "matches",
+              "line": 40
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "verified",
+              "line": 189
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "request",
+              "line": 231
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-6",
+          "line": 94,
+          "expression": "assert.equal(recovered.model, config.models.haiku)",
+          "sha256": "63cc62884d118dc48f45d46f474521291426b62c7288fa8a60a1939003f600c5",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-timeout-3-1"
+          ],
+          "native_check": "Third step repeats byte-identical second-step request body on the same Router and selects configured Haiku.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard",
+              "line": 133
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "execute",
+              "line": 43
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "matches",
+              "line": 40
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "verified",
+              "line": 189
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "request",
+              "line": 231
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-7",
+          "line": 95,
+          "expression": "assert.equal(recovered.source, 'ollama', 'Timeout fallbacks must not be cached')",
+          "sha256": "7644d7e1997aeb61795e70e7a502fcc4b8cd29601128f62c3025c295bead656f",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-timeout-3-1"
+          ],
+          "native_check": "Recovery source must be fresh ollama; independent two-request queue exhaustion proves new metadata/inference rather than a cached fallback.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard",
+              "line": 133
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "execute",
+              "line": 43
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "matches",
+              "line": 40
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "verified",
+              "line": 189
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "request",
+              "line": 231
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-8",
+          "line": 98,
+          "expression": "assert.equal(guarded.source, 'ollama')",
+          "sha256": "2fdb3b23c8566dbd3c82e5a6c4a9d47121214778c5ef9990ff8b50c0215a7768",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-timeout-3-1"
+          ],
+          "native_check": "Fourth step adds only thinking.type=adaptive to the same body and must classify afresh with source=ollama.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard",
+              "line": 133
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "execute",
+              "line": 43
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "matches",
+              "line": 40
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "verified",
+              "line": 189
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "request",
+              "line": 231
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-9",
+          "line": 99,
+          "expression": "assert.equal(guarded.classified_tier, 'haiku')",
+          "sha256": "94bdb1c3fdffcb858c41fe19a6cf1a6a41e2f0124bb77103a78ca71fca80c215",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-timeout-3-1"
+          ],
+          "native_check": "Guarded classification remains Haiku.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard",
+              "line": 133
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "execute",
+              "line": 43
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "matches",
+              "line": 40
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "verified",
+              "line": 189
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "request",
+              "line": 231
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-10",
+          "line": 100,
+          "expression": "assert.equal(guarded.model, config.models.sonnet)",
+          "sha256": "b6589200f4016976e223b66a73c04e2d0cacc4cc14a0dbae472f96eba2ab7501",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-timeout-3-1"
+          ],
+          "native_check": "Selected compatible execution model is configured Sonnet.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard",
+              "line": 133
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "execute",
+              "line": 43
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "matches",
+              "line": 40
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "verified",
+              "line": 189
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "request",
+              "line": 231
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-11",
+          "line": 101,
+          "expression": "assert.equal(guarded.reason, 'requires_sonnet_capabilities')",
+          "sha256": "57e199fcb6e7650ce920295f419fd93ac305dc75feec01649d6bd701e5ca73bd",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-timeout-3-1"
+          ],
+          "native_check": "The stronger guard reason is requires_sonnet_capabilities.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard",
+              "line": 133
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "execute",
+              "line": 43
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "matches",
+              "line": 40
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "verified",
+              "line": 189
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "request",
+              "line": 231
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-12",
+          "line": 102,
+          "expression": "assert.equal(guarded.classifier_error, undefined)",
+          "sha256": "4635191cabd7deace1bfebbaa429d364436e93d941f6d0f1e01558f6b4e135dd",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs#same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard"
+          ],
+          "shared_cases": [
+            "baseline-ollama-routing-timeout-3-1"
+          ],
+          "native_check": "Guarded classification has no classifier_error field.",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "same_router_real_five_ms_timeout_recovers_and_preserves_adaptive_guard",
+              "line": 133
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "execute",
+              "line": 43
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_routing_timeout_contracts.rs",
+              "function": "matches",
+              "line": 40
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "verified",
+              "line": 189
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/tests/support/ollama_routing_timeout.rs",
+              "function": "request",
+              "line": 231
+            }
+          ]
+        }
+      ],
+      "unmapped_assertions": [],
+      "scope": "Original four-step synthetic callback categories plus actual native5ms deadline/recovery and compatibility. Original20ms mock signal observation is retained; no equal wall-clock/scheduling claim."
+    }
+  ],
+  "input_coverage": {
+    "path": "artifacts/rust-rewrite/evidence/973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816.json",
+    "sha256": "973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816",
+    "bytes": 1565701,
+    "original_path": "rust/parity/coverage.json"
+  },
+  "scope": "One complete original four-route callback, one Router and eight requests;12direct plus9helper sites/65executed assertions. Actual paused5ms production deadline drops owned pending IO before uncached recovery and adaptive guard; no equal wall-clock/source20ms observation claim.",
+  "status": "Reviewed finite assertion mapping; complete rewrite qualification remains open.",
+  "review": {
+    "proposal": {
+      "path": "artifacts/rust-rewrite/evidence/eb40dc1cfcecd8dcc8d69b456fdfa8bab635f63f719f17cb1a6f2fd0f4f3fd4f.json",
+      "sha256": "eb40dc1cfcecd8dcc8d69b456fdfa8bab635f63f719f17cb1a6f2fd0f4f3fd4f",
+      "bytes": 65176,
+      "original_path": "/private/tmp/autorouter-ollama-routing-timeout-mapping-proposal.json"
+    },
+    "review": {
+      "path": "artifacts/rust-rewrite/evidence/f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239.json",
+      "sha256": "f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239",
+      "bytes": 6643,
+      "original_path": "/private/tmp/autorouter-twelfth-contracts-root-review.json"
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/evidence/3741a535ab8d5f0441755a3bd0499d5a39e3e997fbdbcebf873fdcf54e63d7ec.json",
+      "sha256": "3741a535ab8d5f0441755a3bd0499d5a39e3e997fbdbcebf873fdcf54e63d7ec",
+      "bytes": 10252,
+      "original_path": "/private/tmp/autorouter-ollama-routing-timeout-independent-review.json"
+    }
+  },
+  "previous_coverage_rows": [
+    {
+      "id": "test/ollama-routing.test.mjs#3",
+      "file": "test/ollama-routing.test.mjs",
+      "name": "legitimate Sonnet, timeout fallback, recovery and a compatibility override remain distinguishable",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    }
+  ]
+}

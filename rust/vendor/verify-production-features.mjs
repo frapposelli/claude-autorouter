@@ -38,6 +38,7 @@ export function inspectBuildReport(bytes) {
       if (row.manifest_path !== manifest || ![`${packagePrefix}0.1.21`, `${packagePrefix}hyper-util@0.1.21`].includes(row.package_id)) fail('Hyper-util is not the exact vendored package');
       if (!Array.isArray(row.features) || row.features.some(feature => typeof feature !== 'string')) fail('Invalid Hyper-util feature list');
       if (row.features.includes('node-http1-request-lease')) fail('Shipping build enables experimental request leases');
+      if (row.features.includes('node-http1-raw-pool')) fail('Shipping build enables the experimental raw HTTP/1 pool');
       if (row.profile?.test !== false || row.profile?.opt_level !== '3' || row.profile?.debug_assertions !== false) fail('Hyper-util artifact is not an ordinary release build');
       libraries.push(row);
     }
@@ -58,10 +59,16 @@ function selfTest() {
   const done = { reason: 'build-finished', success: true };
   const encode = rows => Buffer.from(rows.map(row => JSON.stringify(row)).join('\n'));
   assert.equal(inspectBuildReport(encode([library, binary, done])).binary.executable, executable);
+  // Check either feature independently: raw-pool's dependency must not be the
+  // only reason a forged or future altered graph is rejected.
+  for (const feature of ['node-http1-request-lease', 'node-http1-raw-pool']) {
+    const report = [{ ...library, features: [...library.features, feature] }, binary, done];
+    assert.throws(() => inspectBuildReport(encode(report)), /Shipping build enables/);
+  }
   const invalid = [[], [binary, done], [library, done], [library, binary], [library, binary, { ...done, success: false }], [library, library, binary, done], [library, binary, done, done], [{ ...library, features: [...library.features, 'node-http1-request-lease'] }, binary, done], [{ ...library, manifest_path: '/different/Cargo.toml' }, binary, done], [{ ...library, package_id: library.package_id.replace('0.1.21', '0.1.20') }, binary, done], [{ ...library, features: null }, binary, done], [library, { ...binary, profile: { ...binary.profile, test: true } }, done], [library, { ...binary, profile: { ...binary.profile, opt_level: '0' } }, done], [library, { ...binary, executable: '/tmp/debug/claude-autorouter' }, done], [library, binary, { reason: 'compiler-message', message: { level: 'error' } }, done]];
   for (const rows of invalid) assert.throws(() => inspectBuildReport(encode(rows)));
   for (const bytes of [Buffer.from('{bad'), Buffer.from('null'), Buffer.from([255]), Buffer.alloc(limit + 1), Buffer.from(' '.repeat(2 * 1024 * 1024) + '{}'), Buffer.from('\n'.repeat(100001))]) assert.throws(() => inspectBuildReport(bytes));
-  console.log(`Production feature auditor self-test: 1 accepted and ${invalid.length + 6} rejected controls.`);
+  console.log(`Production feature auditor self-test: 1 accepted and ${invalid.length + 8} rejected controls (including each experimental feature independently).`);
 }
 
 async function boundedFile(path, bound) {
@@ -80,6 +87,6 @@ if (process.argv[1] && resolve(process.argv[1]) === import.meta.filename) {
     const executable = inspected.binary.executable;
     if (await realpath(executable) !== resolve(executable)) fail('Release executable must not be a symlink');
     const binary = await boundedFile(executable, 256 * 1024 * 1024);
-    console.log(JSON.stringify({ passed: true, report_sha256: hash(bytes), binary: executable, binary_sha256: hash(binary), package_id: inspected.library.package_id, manifest_path: manifest, features: inspected.library.features, lease_feature: false }, null, 2));
+    console.log(JSON.stringify({ passed: true, report_sha256: hash(bytes), binary: executable, binary_sha256: hash(binary), package_id: inspected.library.package_id, manifest_path: manifest, features: inspected.library.features, lease_feature: false, raw_pool_feature: false }, null, 2));
   } else fail('Usage: node rust/vendor/verify-production-features.mjs --self-test | --build-report PATH');
 }

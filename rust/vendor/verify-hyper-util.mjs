@@ -31,6 +31,19 @@ const changed = Object.keys(manifest.patched_files).filter(path => manifest.patc
 if (JSON.stringify(changed) !== JSON.stringify([...manifest.changed_files].sort())) throw Error('Changed-path allowlist mismatch');
 if (JSON.stringify(changed) !== JSON.stringify(['Cargo.toml', 'Cargo.toml.orig', 'src/client/legacy/client.rs', 'src/client/legacy/connect/mod.rs', 'src/client/legacy/connect/request_lease.rs'])) throw Error('Hyper-util patch exceeds its reviewed scope');
 verify(await inventory(join(directory, 'hyper-util')), manifest.patched_files, 'Patched Hyper-util');
+for (const name of ['Cargo.toml', 'Cargo.toml.orig']) {
+  const source = await readFile(join(directory, 'hyper-util', name), 'utf8');
+  const features = source.split('[features]\n')[1]?.split(/^\[/m)[0];
+  if (!features) throw Error(`Missing feature section in ${name}`);
+  const array = key => {
+    const value = features.match(new RegExp(`^${key}\\s*=\\s*\\[([\\s\\S]*?)\\]`, 'm'))?.[1];
+    if (value === undefined || value.replace(/"[^"]*"/g, '').replace(/[\s,]/g, '') !== '') throw Error(`Invalid ${key} feature array in ${name}`);
+    return [...value.matchAll(/"([^"]*)"/g)].map(match => match[1]);
+  };
+  if (JSON.stringify(array('node-http1-raw-pool')) !== '["node-http1-request-lease"]') throw Error(`Raw-pool feature must depend only on request-lease in ${name}`);
+  if (JSON.stringify(array('node-http1-request-lease')) !== '["client-legacy","http1"]') throw Error(`Request-lease feature dependencies changed in ${name}`);
+  if (array('default').length !== 0 || array('full').some(feature => ['node-http1-request-lease', 'node-http1-raw-pool'].includes(feature))) throw Error(`Experimental feature enabled by default/full in ${name}`);
+}
 const patch = resolve(directory, 'hyper-util-request-lease.patch');
 if (hash(await readFile(patch)) !== manifest.patch_sha256) throw Error('Hyper-util patch hash mismatch');
 const scratch = await mkdtemp(join(tmpdir(), 'autorouter-hyper-util-provenance-'));
@@ -45,4 +58,4 @@ try {
   apply(false);
   verify(await inventory(scratch), manifest.patched_files, 'Reapplied Hyper-util patch');
 } finally { await rm(scratch, { recursive: true, force: true }); }
-console.log(`Verified Hyper-util ${manifest.version}: 62 exact upstream members, one added lease module, five reviewed patch paths; forward/reverse patch verified.`);
+console.log(`Verified Hyper-util ${manifest.version}: 62 exact upstream members, one added lease module, five reviewed patch paths; forward/reverse patch and default-off lease/raw-pool features verified.`);

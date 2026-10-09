@@ -1,11 +1,13 @@
 --- a/Cargo.toml
 +++ b/Cargo.toml
-@@ -48,0 +49 @@
+@@ -48,0 +49,2 @@
 +node-http1-request-lease = ["client-legacy", "http1"]
++node-http1-raw-pool = ["node-http1-request-lease"]
 --- a/Cargo.toml.orig
 +++ b/Cargo.toml.orig
-@@ -60,0 +61 @@
+@@ -60,0 +61,2 @@
 +node-http1-request-lease = ["client-legacy", "http1"]
++node-http1-raw-pool = ["node-http1-request-lease"]
 --- a/src/client/legacy/client.rs
 +++ b/src/client/legacy/client.rs
 @@ -71,0 +72,2 @@
@@ -75,16 +77,18 @@
 +        }
 --- a/src/client/legacy/connect/mod.rs
 +++ b/src/client/legacy/connect/mod.rs
-@@ -87,0 +88,6 @@
+@@ -87,0 +88,8 @@
 +// Local experimental opt-in, absent from default/full and ordinary builds.
 +#[cfg(feature = "node-http1-request-lease")]
 +pub(super) mod request_lease;
 +#[cfg(feature = "node-http1-request-lease")]
 +pub use request_lease::{AbortClaim, Assignment, CaptureAssignment, capture_http1_assignment};
++#[cfg(feature = "node-http1-raw-pool")]
++pub use request_lease::{Http1Reservation, bind_http1_reservation};
 +
 --- /dev/null
 +++ b/src/client/legacy/connect/request_lease.rs
-@@ -0,0 +1,645 @@
+@@ -0,0 +1,981 @@
 +//! Experimental single-use ownership of a pooled HTTP/1 reservation.
 +//!
 +//! Local patch, not an upstream API. Retirement is not response-body completion
@@ -253,6 +257,93 @@
 +        .unwrap_or_else(|e| e.into_inner())
 +        .take();
 +    guard.map(Some).ok_or(())
++}
++
++/// Exclusive lease owner for the private opt-in raw HTTP/1 adapter.
++///
++/// The caller must retain the uniquely selected HTTP/1 sender alongside this
++/// non-Clone reservation until retirement, and retire before returning that
++/// sender to any pool. Connected metadata alone is not proof of IO ownership.
++/// Drop retires the lease without claiming clean body completion or IO closure.
++#[cfg(feature = "node-http1-raw-pool")]
++pub struct Http1Reservation {
++    guard: PendingGuard,
++}
++
++#[cfg(feature = "node-http1-raw-pool")]
++opaque_debug!(Http1Reservation);
++
++/// Consume the existing single-use attachment after selecting unique HTTP/1 IO.
++///
++/// The caller must own the exact selected sender and must not retry this request.
++/// No attachment returns `Ok(None)`; a consumed attachment or an attached
++/// non-HTTP/1, CONNECT, Upgrade or negotiated-H2 request returns `Err(())` before
++/// assignment. The ordinary legacy client path does not use this bridge.
++#[cfg(feature = "node-http1-raw-pool")]
++#[allow(
++    clippy::result_unit_err,
++    reason = "Private opt-in bridge preserves take()'s opaque single-use rejection contract"
++)]
++pub fn bind_http1_reservation<B>(
++    request: &mut Request<B>,
++    connected: &Connected,
++) -> Result<Option<Http1Reservation>, ()> {
++    let Some(guard) = take(request)? else {
++        return Ok(None);
++    };
++    if !matches!(
++        request.version(),
++        http::Version::HTTP_10 | http::Version::HTTP_11
++    ) || request.method() == http::Method::CONNECT
++        || request.headers().contains_key(http::header::UPGRADE)
++        || request
++            .headers()
++            .get_all(http::header::CONNECTION)
++            .iter()
++            .any(|value| {
++                value
++                    .as_bytes()
++                    .split(|byte| *byte == b',')
++                    .any(|token| token.trim_ascii().eq_ignore_ascii_case(b"upgrade"))
++            })
++        || connected.is_negotiated_h2()
++    {
++        return Err(());
++    }
++    // Arm ownership before metadata Clone or publication can reenter or panic.
++    let mut reservation = Http1Reservation { guard };
++    reservation.guard.assign(connected);
++    Ok(Some(reservation))
++}
++
++#[cfg(feature = "node-http1-raw-pool")]
++impl Http1Reservation {
++    /// Retire before pool return and report absence of this lease's reuse veto.
++    ///
++    /// Only an Active lease with present, unpoisoned metadata returns true. This
++    /// is not a transport-health or successful-forwarding verdict. The caller
++    /// separately verifies clean consumer EOF and sender/driver readiness.
++    pub fn retire(self) -> bool {
++        let reusable = {
++            let mut phase = self
++                .guard
++                .record
++                .phase
++                .lock()
++                .unwrap_or_else(|e| e.into_inner());
++            let reusable = *phase == Phase::Active
++                && self
++                    .guard
++                    .record
++                    .metadata
++                    .get()
++                    .is_some_and(|metadata| !metadata.poisoned.poisoned());
++            *phase = Phase::Retired;
++            reusable
++        };
++        // PendingGuard and arbitrary metadata Drop run after the lock is gone.
++        reusable
++    }
 +}
 +
 +impl PendingGuard {
@@ -620,6 +711,255 @@
 +        );
 +        assert!(assignment.claim_abort().is_none());
 +    }
++
++    #[cfg(feature = "node-http1-raw-pool")]
++    mod raw_pool {
++        use super::*;
++
++        fn attached() -> (Request<()>, CaptureAssignment, Arc<Record>) {
++            let mut request = Request::new(());
++            let capture = capture_http1_assignment(&mut request);
++            let record = request
++                .extensions()
++                .get::<Attachment>()
++                .unwrap()
++                .0
++                .lock()
++                .unwrap()
++                .as_ref()
++                .unwrap()
++                .record
++                .clone();
++            (request, capture, record)
++        }
++
++        #[test]
++        fn binding_is_single_use_and_preserves_exact_selected_metadata() {
++            let (mut request, capture, _) = attached();
++            assert!(capture.assignment().is_none());
++            let mut duplicate = request.clone();
++            let connected = Connected::new().extra(73_u64);
++            let owner = bind_http1_reservation(&mut request, &connected)
++                .unwrap()
++                .unwrap();
++            assert!(bind_http1_reservation(&mut duplicate, &Connected::new()).is_err());
++            let assignment = capture.assignment().unwrap();
++            let mut extras = Extensions::new();
++            assignment.get_extras(&mut extras);
++            assert_eq!(extras.get::<u64>(), Some(&73));
++            assert!(owner.retire());
++            assert!(assignment.claim_abort().is_none());
++            assert!(!connected.poisoned.poisoned());
++        }
++
++        #[test]
++        fn unattached_request_does_not_create_a_reservation_or_change_legacy_behavior() {
++            let mut request = Request::new(());
++            *request.version_mut() = http::Version::HTTP_2;
++            assert!(
++                bind_http1_reservation(&mut request, &Connected::new().negotiated_h2())
++                    .unwrap()
++                    .is_none()
++            );
++        }
++
++        #[test]
++        fn abort_claim_before_retirement_vetoes_reuse_exactly_once() {
++            let (mut request, capture, _) = attached();
++            let connected = Connected::new();
++            let owner = bind_http1_reservation(&mut request, &connected)
++                .unwrap()
++                .unwrap();
++            let assignment = capture.assignment().unwrap();
++            let claim = assignment.claim_abort().unwrap();
++            assert!(connected.poisoned.poisoned());
++            assert!(!owner.retire());
++            assert!(assignment.claim_abort().is_none());
++            drop(claim);
++        }
++
++        #[test]
++        fn dropped_reservation_revokes_late_authority_without_poisoning() {
++            let (mut request, capture, record) = attached();
++            let connected = Connected::new();
++            let owner = bind_http1_reservation(&mut request, &connected)
++                .unwrap()
++                .unwrap();
++            let assignment = capture.assignment().unwrap();
++            drop(owner);
++            assert!(*record.phase.try_lock().unwrap() == Phase::Retired);
++            assert!(assignment.claim_abort().is_none());
++            assert!(!connected.poisoned.poisoned());
++        }
++
++        #[test]
++        fn retirement_requires_active_present_unpoisoned_metadata() {
++            for phase in [Phase::Pending, Phase::Active, Phase::Retired] {
++                let (guard, _) = pending();
++                let record = guard.record.clone();
++                *record.phase.lock().unwrap() = phase;
++                assert!(!Http1Reservation { guard }.retire());
++                assert!(*record.phase.try_lock().unwrap() == Phase::Retired);
++            }
++            let (mut request, capture, _) = attached();
++            let connected = Connected::new();
++            connected.poison();
++            let owner = bind_http1_reservation(&mut request, &connected)
++                .unwrap()
++                .unwrap();
++            assert!(!owner.retire());
++            assert!(capture.assignment().unwrap().claim_abort().is_none());
++        }
++
++        #[test]
++        fn retirement_precedes_caller_pool_return_and_releases_lock() {
++            let (mut request, capture, record) = attached();
++            let owner = bind_http1_reservation(&mut request, &Connected::new())
++                .unwrap()
++                .unwrap();
++            let returned = Arc::new(AtomicBool::new(false));
++            let pool = PoolReturn(record, returned.clone());
++            assert!(owner.retire());
++            drop(pool);
++            assert!(returned.load(Ordering::SeqCst));
++            assert!(capture.assignment().unwrap().claim_abort().is_none());
++        }
++
++        #[test]
++        fn unsupported_protocols_consume_attachment_before_any_assignment_clone() {
++            for variant in 0..7 {
++                let (mut request, mut capture, record) = attached();
++                let mut connected = Connected::new().extra(LockAwareExtra {
++                    record: Arc::downgrade(&record),
++                    panic_on_clone: true,
++                });
++                match variant {
++                    0 => *request.version_mut() = http::Version::HTTP_2,
++                    1 => *request.version_mut() = http::Version::HTTP_3,
++                    2 => *request.method_mut() = http::Method::CONNECT,
++                    3 => {
++                        request
++                            .headers_mut()
++                            .insert(http::header::UPGRADE, "websocket".parse().unwrap());
++                    }
++                    4 => connected = connected.negotiated_h2(),
++                    5 => {
++                        request.headers_mut().insert(
++                            http::header::CONNECTION,
++                            "keep-alive, UpGrAdE".parse().unwrap(),
++                        );
++                    }
++                    6 => {
++                        request
++                            .headers_mut()
++                            .append(http::header::CONNECTION, "keep-alive".parse().unwrap());
++                        request
++                            .headers_mut()
++                            .append(http::header::CONNECTION, " Upgrade ".parse().unwrap());
++                    }
++                    _ => unreachable!(),
++                }
++                let mut duplicate = request.clone();
++                assert!(bind_http1_reservation(&mut request, &connected).is_err());
++                assert!(bind_http1_reservation(&mut duplicate, &Connected::new()).is_err());
++                assert!(*record.phase.try_lock().unwrap() == Phase::Retired);
++                assert!(capture.assignment().is_none());
++                let mut wait = Box::pin(capture.wait_for_assignment());
++                assert!(matches!(
++                    wait.as_mut().poll(&mut Context::from_waker(Waker::noop())),
++                    Poll::Ready(None)
++                ));
++            }
++        }
++
++        #[test]
++        fn metadata_clone_panic_unwinds_through_armed_reservation() {
++            let (mut request, capture, record) = attached();
++            let connected = Connected::new().extra(LockAwareExtra {
++                record: Arc::downgrade(&record),
++                panic_on_clone: true,
++            });
++            let panic = catch_unwind(AssertUnwindSafe(|| {
++                bind_http1_reservation(&mut request, &connected)
++            }));
++            assert!(panic.is_err());
++            assert!(*record.phase.try_lock().unwrap() == Phase::Retired);
++            assert!(capture.assignment().is_none());
++        }
++
++        #[test]
++        fn metadata_clone_drop_and_publication_wake_stay_outside_lock() {
++            let (mut request, mut capture, record) = attached();
++            let connected = Connected::new().extra(LockAwareExtra {
++                record: Arc::downgrade(&record),
++                panic_on_clone: false,
++            });
++            let waker = Waker::from(Arc::new(LockAwareWake(Arc::downgrade(&record), false)));
++            let mut wait = Box::pin(capture.wait_for_assignment());
++            assert!(
++                wait.as_mut()
++                    .poll(&mut Context::from_waker(&waker))
++                    .is_pending()
++            );
++            let owner = bind_http1_reservation(&mut request, &connected)
++                .unwrap()
++                .unwrap();
++            drop(wait);
++            let assignment = capture.assignment().unwrap();
++            assignment.get_extras(&mut Extensions::new());
++            assert!(owner.retire());
++            drop(assignment);
++            drop(capture);
++            drop(connected);
++        }
++
++        #[test]
++        fn publication_panic_retires_reservation_and_revokes_authority() {
++            let (mut request, mut capture, record) = attached();
++            let waker = Waker::from(Arc::new(LockAwareWake(Arc::downgrade(&record), true)));
++            let mut wait = Box::pin(capture.wait_for_assignment());
++            assert!(
++                wait.as_mut()
++                    .poll(&mut Context::from_waker(&waker))
++                    .is_pending()
++            );
++            let panic = catch_unwind(AssertUnwindSafe(|| {
++                bind_http1_reservation(&mut request, &Connected::new())
++            }));
++            drop(wait);
++            assert!(panic.is_err());
++            assert!(*record.phase.try_lock().unwrap() == Phase::Retired);
++            assert!(capture.assignment().unwrap().claim_abort().is_none());
++        }
++
++        #[test]
++        fn concurrent_claim_and_retire_return_complementary_reuse_outcomes() {
++            for _ in 0..64 {
++                let (mut request, capture, record) = attached();
++                let connected = Connected::new();
++                let owner = bind_http1_reservation(&mut request, &connected)
++                    .unwrap()
++                    .unwrap();
++                let assignment = capture.assignment().unwrap();
++                let barrier = Arc::new(std::sync::Barrier::new(2));
++                std::thread::scope(|scope| {
++                    let peer_barrier = barrier.clone();
++                    let retire = scope.spawn(move || {
++                        peer_barrier.wait();
++                        owner.retire()
++                    });
++                    barrier.wait();
++                    let claimed = assignment.claim_abort().is_some();
++                    let reusable = retire.join().unwrap();
++                    assert_eq!(reusable, !claimed);
++                    assert_eq!(connected.poisoned.poisoned(), claimed);
++                    assert!(*record.phase.try_lock().unwrap() == Phase::Retired);
++                    assert!(assignment.claim_abort().is_none());
++                });
++            }
++        }
++    }
++
 +    #[cfg(feature = "http2")]
 +    #[tokio::test]
 +    async fn negotiated_http2_is_rejected_without_assignment_or_authority() {

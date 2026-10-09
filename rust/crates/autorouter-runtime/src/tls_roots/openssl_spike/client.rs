@@ -255,7 +255,7 @@ impl AsyncWrite for TransportIo {
 }
 
 #[derive(Clone)]
-struct Connector {
+pub(super) struct Connector {
     tcp: HttpConnector,
     tls: TlsContext,
     profile: Profile,
@@ -264,6 +264,28 @@ struct Connector {
     aborts: bool,
     dial_gate: Option<Arc<DialGate>>,
     idle: Option<super::idle_close::Probe>,
+}
+
+// The separate raw-agent experiment reuses this connector and TLS/session
+// machinery; it does not change any existing legacy-client constructor.
+pub(super) fn raw_pool_connector(
+    snapshot: &TrustSnapshot,
+    counts: Arc<Counts>,
+    sessions: RawCache,
+    dial_gate: Option<Arc<DialGate>>,
+) -> Result<Connector, HttpError> {
+    let mut tcp = HttpConnector::new();
+    tcp.enforce_http(false);
+    Ok(Connector {
+        tcp,
+        tls: context(snapshot, Profile::Raw, true)?,
+        profile: Profile::Raw,
+        counts,
+        sessions: Some(sessions),
+        aborts: true,
+        dial_gate,
+        idle: None,
+    })
 }
 impl Service<Uri> for Connector {
     type Response = TokioIo<TransportIo>;
