@@ -130,9 +130,14 @@ cancellation schedules. Two definitions are covered and four remain partial
 for JavaScript signal/reason observations. The separate
 [finite setup mapping](assertion-mappings/local-finite-setup-contracts.json)
 covers six more definitions with 24 original operations and 63 requests,
-including minimum versions, model aliases and warmup progress. Sixteen other
-setup/diagnostic definitions remain pending. These synthetic tests make no
-local-model timing or quality claim.
+including minimum versions, model aliases and warmup progress. The
+[finite diagnostic mapping](assertion-mappings/local-diagnostic-contracts.json)
+covers seven more definitions across ten scenarios, comparing all 102 requests,
+58 progress events and complete reports. It excludes only 48 specifically
+unasserted elapsed-time observations; presence, type and nonnegative values
+remain required. Formatter tests compare the raw captured timing values without
+exclusions. Nine other setup/diagnostic definitions remain pending. These
+synthetic tests make no local-model timing or quality claim.
 
 The [bounded JSON mapping](assertion-mappings/bounded-json-contracts.json)
 checks exact UTF-8 byte limits, malformed input, stalled cancellation and
@@ -142,15 +147,29 @@ The [configuration/Keychain mapping](assertion-mappings/config-keychain-contract
 covers four command definitions using private temporary files and an injected
 memory Keychain, including migrations, locked storage, failed writes and
 redacted provenance. It requires the system policy path to be absent and does
-not modify it.
+not modify it. The [additional Keychain mapping](assertion-mappings/keychain-extra-contracts.json)
+covers secret edits through real isolated stdin and verifies that session
+history never reads the Keychain. Its adapter remains an in-memory fixture.
+
+The [server response mapping](assertion-mappings/server-response-contracts.json)
+covers three definitions and 22 static assertions through actual synthetic
+downstream and upstream HTTP. It checks token-count errors, local rejections,
+and exact compressed bytes with response observation bypassed. The input
+extractor evaluates frozen synthetic initializers and gzip construction;
+separate unchanged Node tests provide the original callback controls.
 
 The [release-tool mapping](assertion-mappings/release-contracts.json) covers
 15 definitions and leaves four partial. Five original pure callbacks produce
 61 captured calls; native tests also replay synthetic registry and installer
 schedules. JavaScript private-error injection, independent clock injection
-and native publication eligibility remain explicit boundaries. Fourteen other
-release-tool definitions, including archive subtests, remain pending. These
-tests do not publish a package or qualify an actual release.
+and native publication eligibility remain explicit boundaries. The
+[remaining release mapping](assertion-mappings/release-remaining-contracts.json)
+covers two source/tag definitions and records twelve partial archive/entrypoint
+definitions. Native archive admission, historical package format, diagnostics
+and installed source-root selection remain explicit differences. A corrupt
+checksum now retains the original public report reason, `invalid_archive`,
+while the reader keeps its specific checksum detail. These tests do not publish
+a package or qualify an actual release.
 
 ```sh
 node parity/capture-router-concurrency-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/concurrency-NEW
@@ -166,4 +185,9 @@ cargo test --locked --package autorouter-runtime --test local_finite_contracts
 cargo test --locked --package autorouter-runtime --test bounded_json_contracts
 cargo test --locked --package claude-autorouter configuration_keychain_contracts
 cargo test --locked --package xtask release_contracts
+node parity/capture-local-diagnostic-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/diagnostic-NEW
+node parity/capture-server-response-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/server-response-NEW
+cargo test --locked --package autorouter-runtime --test local_diagnostic_contracts
+cargo test --locked --package autorouter-runtime --test server_response_contracts
+cargo test --locked --package xtask release_pack::tests::archive_contracts
 ```

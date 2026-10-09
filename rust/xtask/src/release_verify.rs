@@ -552,9 +552,15 @@ println!("{}: {} (attempt {})",state["state"].as_str().unwrap(),state["reason"].
                     .unwrap_or(json!({"schema_version":1})),
                 json!({"state":"failed","phase":mode,"reason":err.code,"error_code":err.code}),
             );
-            row.as_object_mut()
-                .unwrap()
-                .extend(err.detail.as_object().unwrap().clone());
+            let mut detail = err.detail.as_object().unwrap().clone();
+            // Preserve the historical corrupt-sidecar report while retaining the
+            // reader's typed checksum detail and all other admission reasons.
+            if err.code == "invalid_archive"
+                && detail.get("reason") == Some(&json!("checksum_mismatch"))
+            {
+                detail.remove("reason");
+            }
+            row.as_object_mut().unwrap().extend(detail);
             row
         }
     };

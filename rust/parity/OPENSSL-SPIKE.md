@@ -314,3 +314,51 @@ The [foundation summary](measurements/hyper-util-lease-foundation-summary.json)
 binds the final private-test executable, exact isolated graph, source/patch
 hashes, positive and mutation results, and every retained failure. The shipping
 feature-off release proof remains separate, parent-owned final validation.
+
+### Direct socket-abort experiment (ninth increment, test builds only)
+
+The private opt-in fixture constructor can now attach a weak `AbortControl`
+handle to the actual selected connection. Consuming a valid `AbortClaim` is the
+only exposed destructive operation. The control owns a safe `TcpStream` clone
+of that exact socket; it never looks up a descriptor number, origin or model.
+The extra descriptor is counted and released with IO ownership. Existing spike
+constructors and the gateway fixture do not enable this capability.
+
+A claimed cancellation records its explicit fixture cause, closes the raw TLS
+session state once, and calls `shutdown(Both)` outside every lifecycle/cache
+lock. This reaches the physical socket even while Hyper stops reading because
+`Incoming` is backpressured. Ordinary body/metadata Drop does not create an abort
+cause. An explicit abort arriving after ordinary closure is refused, while an
+independently observed later physical IO error still retains the existing
+`close(hadError)` session semantics. First-cause retention and once-only error
+closure are separate decisions. The `session_error_closes` counter measures
+invocations, not how many cached entries existed.
+
+The spike's IO now uses the safe Tokio `AsyncRead`/`AsyncWrite` adapter, allowing
+clean EOF and TLS/IO errors to be recorded before returning to Hyper without
+unsafe cursor access or a copying read shim. This adapter also serves the default
+spike, so its existing lease/lifecycle and fresh-handshake differential suites
+remain required regressions. The shipping Rustls transport is unchanged.
+
+Eighteen HTTP/TLS1.2/TLS1.3 schedules cover unpolled backpressured bodies, old A's
+buffered body after B reuses its connection, same-origin siblings, a held losing
+dial while the pool winner is aborted, ordinary Drop preserving resumption, and
+a delayed valid claim that retains no IO or session-eviction authority after IO
+has gone. Three additional ordered controls prove first-cause/once-only invocation
+rules; those controls use an empty session cache and do not independently prove
+populated-cache late-error eviction. The existing populated generic session test
+and actual TLS abort/full-next-handshake tests remain distinct evidence.
+
+An isolated source-copy mutation removes only the physical shutdown call. All
+three HTTP/TLS backpressure cases must fail at the specific peer-EOF assertion
+before any body repoll/Drop, then complete bounded cleanup. A compile failure,
+generic outer timeout, or unrelated assertion is not an accepted negative.
+The [direct-abort summary](measurements/openssl-direct-abort-summary.json) binds
+that mutation, source/executable snapshots, positive tests and retained failures.
+
+This is explicit direct-client fixture intent, not gateway cancellation wiring.
+There is no `server.rs` seam, production transport change, new dependency or
+vendor patch. The original failed B2 **13/18** report and all five differences
+remain qualification gates. In particular, GET `/v1/models` downstream intent,
+IO-before-body-Drop timing, idle-pool scheduling, TLS1.3 rejection flight ordering,
+and B3 initialization remain separate work.

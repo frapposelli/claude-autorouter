@@ -20,6 +20,9 @@ const LOCKED: &str = "The macOS Keychain is locked.";
 const WRITE_FAILED: &str = "Could not save an AutoRouter secret to the macOS Keychain.";
 const UNREADABLE: &str = "Could not read every saved secret from the macOS Keychain. Unlock the login keychain and retry.";
 
+#[path = "configuration_keychain_extra_contracts.rs"]
+mod extra_contracts;
+
 #[derive(Default)]
 struct MemoryKeychain {
     items: BTreeMap<String, String>,

@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "kind": "test_only_direct_socket_abort_qualification",
+  "production_eligible": false,
+  "report": {
+    "path": "artifacts/rust-rewrite/evidence/openssl-direct-abort-b38fe243025288fba0d179de3f1b48d56284cb058d2465e0a3feb522b9808ae1.json",
+    "bytes": 51075,
+    "sha256": "b38fe243025288fba0d179de3f1b48d56284cb058d2465e0a3feb522b9808ae1"
+  },
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/openssl-abort-final-snapshot/snapshot.json",
+    "bytes": 2176,
+    "sha256": "4ee46de7c5a9b670335a49e1b86f8722baf5f3e049b5ebfedb2a17b240b9ac40"
+  },
+  "binary": {
+    "path": "artifacts/rust-rewrite/openssl-abort-final-snapshot/runtime-tests",
+    "bytes": 70789648,
+    "sha256": "507fa04087c73271bcbc8c2b278623413006170dc60c8f33151837d95c2d0805"
+  },
+  "positive": {
+    "new_tests": 21,
+    "actual_loopback_schedules": 18,
+    "ordered_state_controls": 3,
+    "total_spike_tests": 57,
+    "foundation_tests_included": 14,
+    "lifecycle_tests_included": 9,
+    "session_tests_included": 4,
+    "scoped_clippy": "passed; existing unused hyper-util timer warning retained",
+    "isolated_source_copy_tests": 21
+  },
+  "mutation_controls": {
+    "count": 3,
+    "all_detected": true,
+    "result": {
+      "path": "artifacts/rust-rewrite/openssl-abort-final-snapshot/mutation-result.json",
+      "bytes": 613,
+      "sha256": "e99629d38e3b1dc0a73064235d8d618a4ff221b2ee46b042b6ef1a4f2cbdce09"
+    }
+  },
+  "fresh_handshake_regression": {
+    "passed": true,
+    "matched": 223,
+    "count": 223,
+    "report": {
+      "path": "artifacts/rust-rewrite/evidence/openssl-spike-4ec2695ba4e5f83834baf15631724e5b46dc5fb82dec366e88696c2af9bf182d.json",
+      "bytes": 105682,
+      "sha256": "4ec2695ba4e5f83834baf15631724e5b46dc5fb82dec366e88696c2af9bf182d"
+    }
+  },
+  "original_b2_regression": {
+    "passed": false,
+    "matched": 13,
+    "count": 18,
+    "same_five_mismatches": [
+      "TLSv1.2-abrupt-after-complete",
+      "TLSv1.2-cancel-body",
+      "TLSv1.3-rejected-host-then-valid",
+      "TLSv1.3-abrupt-after-complete",
+      "TLSv1.3-cancel-body"
+    ],
+    "all_cleanup_passed": true,
+    "report": {
+      "path": "artifacts/rust-rewrite/evidence/openssl-b2-sessions-684ea0c77ef90843aa1cc8937c3c13068b01ba8a8e33c1248d7c2a01d5e9705e.json",
+      "bytes": 66840,
+      "sha256": "684ea0c77ef90843aa1cc8937c3c13068b01ba8a8e33c1248d7c2a01d5e9705e"
+    },
+    "original_report": {
+      "path": "artifacts/rust-rewrite/evidence/openssl-b2-sessions-75bf037a3335c4da57d8a9b8f02ede587754f23f87809356649bcc6c5f4c15f4.json",
+      "bytes": 66837,
+      "sha256": "75bf037a3335c4da57d8a9b8f02ede587754f23f87809356649bcc6c5f4c15f4"
+    }
+  },
+  "retained_failures": [
+    {
+      "log": "openssl-abort-direct-1.log",
+      "cause": "Initial safe IO adapter used TokioIo<&TcpStream> where Connection required TcpStream; corrected to io.connected()."
+    },
+    {
+      "log": "openssl-abort-direct-2.log",
+      "cause": "Sandbox denied loopback bind (PermissionDenied), all12 aborted before peer setup; permitted loopback rerun passed."
+    },
+    {
+      "log": "openssl-abort-direct-4.log",
+      "cause": "Held losing-dial fixture waited for peer EOF while withholding its reply command;12pass3boundedtimeouts. Explicit ObserveClose command fixes the fixture barrier."
+    },
+    {
+      "log": "openssl-abort-no-shutdown-mutation-1.log",
+      "cause": "Expected negative: removed only physical shutdown; all3 protocol cases fail at exact peer-EOF-before-body-repoll stage, with cleanup."
+    }
+  ],
+  "limits": [
+    "Ordered3 controls use an empty TicketState cache and prove first-cause/once-only invocation, not independent populated-cache late-error eviction. Existing session::pending_latest_ticket_acceptance_rejection_and_late_error_are_distinct proves newer-entry/by-key policy; actual TLS backpressure schedules prove cached session removal and next full handshake.",
+    "Tests count one extra owned descriptor per opt-in connection, pending/active tasks and weak ownership release. They do not measure performance or claim production resource overhead.",
+    "No shutdown-syscall-failure injection, separate two-origin abort schedule, new preassignment-cancel/socket-duplicate schedule, post-abort full-then-resumed three-handshake chain or actual multi-threaded OS close race is qualified by the21newtests.",
+    "Gateway intent including GET /v1/models, IO-before-body-Drop ordering, idle-pool scheduling, TLS1.3 rejection-flight ordering and B3 initialization remain unimplemented. Original five gateway mismatches remain unchanged.",
+    "Existing18 originalB2 and candidate223 use frozen Node22.14.0/OpenSSL3.0.15 versus native vendoredOpenSSL3.6.3. No broad backend/platform equivalence or production promotion.",
+    "Shipping115/startup104 pass separately against the immutable parent-produced host12 CLI, whose SHA matches the actual feature-off audit. Final workspace/release/package/source-bundle outcomes remain parent-owned.",
+    "Retained source inventory, adjusted manifest/lock and positive compile/test log. Only main positive57-test executable and mutated executable are separately retained; no immutable isolated-positive executable identity is claimed."
+  ],
+  "shipping_regression": {
+    "cli": {
+      "path": "artifacts/rust-rewrite/native-host-12-build/claude-autorouter",
+      "bytes": 12824624,
+      "sha256": "d3ad503990b999a727cd04da1a3decdca8fe8eb4d52e846cc3929c1810c579bf"
+    },
+    "feature_audit": {
+      "path": "artifacts/rust-rewrite/ninth-final-1-production-features.log",
+      "bytes": 589,
+      "sha256": "22266f0ff1448568374044ab850e88574d131f68edd6db65b19a63444f3a1964"
+    },
+    "tls": {
+      "passed": true,
+      "matched": 115,
+      "count": 115,
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/tls-options-86971b753ded8de183d72ea18bbaf5c8f6feb1e233e6f15245329aba522bc639.json",
+        "bytes": 44527,
+        "sha256": "86971b753ded8de183d72ea18bbaf5c8f6feb1e233e6f15245329aba522bc639"
+      }
+    },
+    "startup": {
+      "passed": 104,
+      "count": 104,
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/aa469ac67d514aa2490b952301102e98338b925cccc11ae653ef382b58c8e090.json",
+        "bytes": 60553,
+        "sha256": "aa469ac67d514aa2490b952301102e98338b925cccc11ae653ef382b58c8e090"
+      }
+    }
+  }
+}

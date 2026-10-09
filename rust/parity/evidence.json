@@ -7325,12 +7325,274 @@
       "platform_limits": "Current host archive and prior-commit CI outcomes are separate. No complete platform, oldest-OS, actual Keychain, live evaluator, task-quality, reproducibility or release qualification.",
       "no_live_calls_or_default_cutover": true,
       "release_approved": false
+    },
+    {
+      "id": "ninth_increment_finite_contracts_and_test_only_direct_socket_abort",
+      "scope": "Frozen diagnostic, server response, release and Keychain assertions; private opt-in direct socket abort with exact connection reservations and first-cause tracking. Shipping JavaScript remains default; production transport remains Rustls.",
+      "rust_tests": {
+        "passed": 646,
+        "failed": 0,
+        "ignored": 2,
+        "suites": 27
+      },
+      "node_tests": 596,
+      "installed_cli_tests": 74,
+      "baseline_mapping_counts": {
+        "covered": 358,
+        "partial": 142,
+        "pending": 88,
+        "total": 588
+      },
+      "baseline_coverage_merge": {
+        "path": "artifacts/rust-rewrite/evidence/a6131597a382508da52cfb5c2cbe35bb51f45680af318b7d79854645383124aa.json",
+        "sha256": "a6131597a382508da52cfb5c2cbe35bb51f45680af318b7d79854645383124aa",
+        "original_path": "artifacts/rust-rewrite/ninth-coverage-merge.json"
+      },
+      "checks": [
+        {
+          "name": "hyper-vendor",
+          "exit_code": 0,
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/5e10b572ac528eddaa3d19d4b1a17c944eb129d4156697b65d359d14c0985cb0.log",
+            "sha256": "5e10b572ac528eddaa3d19d4b1a17c944eb129d4156697b65d359d14c0985cb0",
+            "original_path": "artifacts/rust-rewrite/ninth-final-1-hyper-vendor.log"
+          }
+        },
+        {
+          "name": "hyper-util-vendor",
+          "exit_code": 0,
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/3ffb328ca81274668b3e8f968392c8a3d9d48de8324b4d14a187d19e5e10b482.log",
+            "sha256": "3ffb328ca81274668b3e8f968392c8a3d9d48de8324b4d14a187d19e5e10b482",
+            "original_path": "artifacts/rust-rewrite/ninth-final-1-hyper-util-vendor.log"
+          }
+        },
+        {
+          "name": "openssl-vendor",
+          "exit_code": 0,
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/48b1eac4538fecd1908df10b85bfedc79be07c4006e4124ebf3550cabc7a08c3.log",
+            "sha256": "48b1eac4538fecd1908df10b85bfedc79be07c4006e4124ebf3550cabc7a08c3",
+            "original_path": "artifacts/rust-rewrite/ninth-final-1-openssl-vendor.log"
+          }
+        },
+        {
+          "name": "node-ca-vendor",
+          "exit_code": 0,
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/dc2e78eb62c01d3185dc60633881d39ff9e6c08ace0b8e148de12241f10de1ff.log",
+            "sha256": "dc2e78eb62c01d3185dc60633881d39ff9e6c08ace0b8e148de12241f10de1ff",
+            "original_path": "artifacts/rust-rewrite/ninth-final-1-node-ca-vendor.log"
+          }
+        },
+        {
+          "name": "feature-auditor-controls",
+          "exit_code": 0,
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/5cdddf90595c5d7b1593e1aabc68103f7e9e049fd2fad7fced1d5667225e718d.log",
+            "sha256": "5cdddf90595c5d7b1593e1aabc68103f7e9e049fd2fad7fced1d5667225e718d",
+            "original_path": "artifacts/rust-rewrite/ninth-final-1-feature-auditor-controls.log"
+          }
+        },
+        {
+          "name": "fmt",
+          "exit_code": 0,
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "original_path": "artifacts/rust-rewrite/ninth-final-1-fmt.log"
+          }
+        },
+        {
+          "name": "clippy",
+          "exit_code": 0,
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/6467e12315e8f6cf61906ec11c8dfdec03429b1b980a4d1019f6947740649c79.log",
+            "sha256": "6467e12315e8f6cf61906ec11c8dfdec03429b1b980a4d1019f6947740649c79",
+            "original_path": "artifacts/rust-rewrite/ninth-final-1-clippy.log"
+          }
+        },
+        {
+          "name": "workspace",
+          "exit_code": 0,
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/52e66d05f59164659185f09accf80fc6dc9684bac2dd5e03cdf43603d5adba69.log",
+            "sha256": "52e66d05f59164659185f09accf80fc6dc9684bac2dd5e03cdf43603d5adba69",
+            "original_path": "artifacts/rust-rewrite/ninth-final-1-workspace.log"
+          }
+        },
+        {
+          "name": "release",
+          "exit_code": 0,
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/1ff8bbcb4151dc887e69b78a29bc241d5062cba4757aa5f4639926ae712a8181.log",
+            "sha256": "1ff8bbcb4151dc887e69b78a29bc241d5062cba4757aa5f4639926ae712a8181",
+            "original_path": "artifacts/rust-rewrite/ninth-final-1-release.log"
+          }
+        },
+        {
+          "name": "production-features",
+          "exit_code": 0,
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/22266f0ff1448568374044ab850e88574d131f68edd6db65b19a63444f3a1964.log",
+            "sha256": "22266f0ff1448568374044ab850e88574d131f68edd6db65b19a63444f3a1964",
+            "original_path": "artifacts/rust-rewrite/ninth-final-1-production-features.log"
+          }
+        },
+        {
+          "name": "xtask-release",
+          "exit_code": 0,
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/30d527c55d706d90f7d14cb7559f76a4a40af2d54403ba4bc0bf7d1394e54ba7.log",
+            "sha256": "30d527c55d706d90f7d14cb7559f76a4a40af2d54403ba4bc0bf7d1394e54ba7",
+            "original_path": "artifacts/rust-rewrite/ninth-final-1-xtask-release.log"
+          }
+        },
+        {
+          "name": "node-check",
+          "exit_code": 0,
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/4882654ddbf9853bf4f185dc398c36b83eaa63b59fbb76d525b746ce417b768f.log",
+            "sha256": "4882654ddbf9853bf4f185dc398c36b83eaa63b59fbb76d525b746ce417b768f",
+            "original_path": "artifacts/rust-rewrite/ninth-node-check.log"
+          }
+        },
+        {
+          "name": "node-test",
+          "exit_code": 0,
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/1ce43609762d89e0d15e9f3e38cb7cffa3a9175f6b65d583ece75f3f2e332829.log",
+            "sha256": "1ce43609762d89e0d15e9f3e38cb7cffa3a9175f6b65d583ece75f3f2e332829",
+            "original_path": "artifacts/rust-rewrite/ninth-node-test.log"
+          }
+        },
+        {
+          "name": "node-package",
+          "exit_code": 0,
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/946877a7a3c1705027091b67ebcc5bd3cb3b5989458f68580e1df7d488764bde.log",
+            "sha256": "946877a7a3c1705027091b67ebcc5bd3cb3b5989458f68580e1df7d488764bde",
+            "original_path": "artifacts/rust-rewrite/ninth-node-package.log"
+          }
+        }
+      ],
+      "check_report": {
+        "path": "artifacts/rust-rewrite/evidence/9190a1ff42b260985602f37bc27847ea85aa3a3cb46a3a9d57dea5ee4caee464.json",
+        "sha256": "9190a1ff42b260985602f37bc27847ea85aa3a3cb46a3a9d57dea5ee4caee464",
+        "original_path": "artifacts/rust-rewrite/ninth-final-1-checks.json"
+      },
+      "node_check_report": {
+        "path": "artifacts/rust-rewrite/evidence/4b571042c77a603dd882271eda19d0ead0e806d1129e4962c7526061ac981a64.json",
+        "sha256": "4b571042c77a603dd882271eda19d0ead0e806d1129e4962c7526061ac981a64",
+        "original_path": "artifacts/rust-rewrite/ninth-node-checks.json"
+      },
+      "source_inputs": {
+        "path": "artifacts/rust-rewrite/evidence/2a61f059a6b464124fa95f9d71ca3d1d90a92876fadf9a6037ba0078c94c3bf2.json",
+        "sha256": "2a61f059a6b464124fa95f9d71ca3d1d90a92876fadf9a6037ba0078c94c3bf2",
+        "original_path": "artifacts/rust-rewrite/ninth-final-1-source-inputs.json"
+      },
+      "production_build_messages": {
+        "path": "artifacts/rust-rewrite/evidence/828396cfe80e4af60416c986090e4262f2e8ece3dd3f742f06408b4d13bc6baf.jsonl",
+        "sha256": "828396cfe80e4af60416c986090e4262f2e8ece3dd3f742f06408b4d13bc6baf",
+        "original_path": "artifacts/rust-rewrite/ninth-final-1-production-build.jsonl"
+      },
+      "production_feature_audit": {
+        "path": "artifacts/rust-rewrite/evidence/22266f0ff1448568374044ab850e88574d131f68edd6db65b19a63444f3a1964.log",
+        "sha256": "22266f0ff1448568374044ab850e88574d131f68edd6db65b19a63444f3a1964",
+        "original_path": "artifacts/rust-rewrite/ninth-final-1-production-features.log"
+      },
+      "local_diagnostic": {
+        "path": "artifacts/rust-rewrite/evidence/966eef98dca0544ef2d40a6dc9039d001f30991dd116df2f4cdb4b970c91e3ca.json",
+        "sha256": "966eef98dca0544ef2d40a6dc9039d001f30991dd116df2f4cdb4b970c91e3ca",
+        "original_path": "rust/parity/assertion-mappings/local-diagnostic-contracts.json"
+      },
+      "server_response": {
+        "path": "artifacts/rust-rewrite/evidence/cec6f6f441e8e20698704bee5ade3e3a51cc3c12c3477a6c5a225cf0bde4f31b.json",
+        "sha256": "cec6f6f441e8e20698704bee5ade3e3a51cc3c12c3477a6c5a225cf0bde4f31b",
+        "original_path": "rust/parity/assertion-mappings/server-response-contracts.json"
+      },
+      "release_remaining": {
+        "path": "artifacts/rust-rewrite/evidence/4c6c3efa7ca4c3b8357f80e4f04d0579d9191187556989ea037d04e28f2120e5.json",
+        "sha256": "4c6c3efa7ca4c3b8357f80e4f04d0579d9191187556989ea037d04e28f2120e5",
+        "original_path": "rust/parity/assertion-mappings/release-remaining-contracts.json"
+      },
+      "keychain_extra": {
+        "path": "artifacts/rust-rewrite/evidence/6c1ed703be5467d0eebe0577f61413746259ec3944ada72c86059b1ae663844c.json",
+        "sha256": "6c1ed703be5467d0eebe0577f61413746259ec3944ada72c86059b1ae663844c",
+        "original_path": "rust/parity/assertion-mappings/keychain-extra-contracts.json"
+      },
+      "test_only_direct_socket_abort": {
+        "path": "artifacts/rust-rewrite/evidence/615748ae93b4ed439cf176ff714b873296aebe9cd31a5bc6ea729f17f411e3e2.json",
+        "sha256": "615748ae93b4ed439cf176ff714b873296aebe9cd31a5bc6ea729f17f411e3e2",
+        "original_path": "rust/parity/measurements/openssl-direct-abort-summary.json"
+      },
+      "native_host": {
+        "path": "artifacts/rust-rewrite/evidence/00e0fe89b81ddd07402011d193de1c23b8516dac920228dbeec0aa63a0fd2f4c.json",
+        "sha256": "00e0fe89b81ddd07402011d193de1c23b8516dac920228dbeec0aa63a0fd2f4c",
+        "original_path": "rust/parity/measurements/native-host-12-summary.json"
+      },
+      "source_bundle": {
+        "path": "artifacts/rust-rewrite/evidence/3e3c908202e35b18ab4b5e5a8ce6b0dfbce66b049611413c7b0cb85fbe6266c6.json",
+        "sha256": "3e3c908202e35b18ab4b5e5a8ce6b0dfbce66b049611413c7b0cb85fbe6266c6",
+        "original_path": "rust/parity/measurements/native-source-bundle-4-summary.json"
+      },
+      "prior_ci_checkpoint": {
+        "path": "artifacts/rust-rewrite/evidence/32627609ee69715f5b15b9e8fb8118e5f24576f79e710693f19e5b87d563f030.json",
+        "sha256": "32627609ee69715f5b15b9e8fb8118e5f24576f79e710693f19e5b87d563f030",
+        "original_path": "rust/parity/measurements/ci-ab068-checkpoint-summary.json"
+      },
+      "direct_abort_independent_review": {
+        "path": "artifacts/rust-rewrite/evidence/aae543681403da76650f94180251b9d5f8e834987126b663d35b6a4385bb3a22.json",
+        "sha256": "aae543681403da76650f94180251b9d5f8e834987126b663d35b6a4385bb3a22",
+        "original_path": "/private/tmp/autorouter-openssl-direct-abort-independent-review.json"
+      },
+      "host_source_independent_audit": {
+        "path": "artifacts/rust-rewrite/evidence/306c1f3913d47201cb2db2ed6dfb19f90e4e36a536e54d22c90eb5c386ebd5df.json",
+        "sha256": "306c1f3913d47201cb2db2ed6dfb19f90e4e36a536e54d22c90eb5c386ebd5df",
+        "original_path": "/private/tmp/autorouter-ninth-host-source-independent-audit.json"
+      },
+      "runtime_binary_sha256": "d3ad503990b999a727cd04da1a3decdca8fe8eb4d52e846cc3929c1810c579bf",
+      "final_release_runtime_identical_to_installed_archive": true,
+      "lease_feature_absent_from_archived_binary_build": true,
+      "assertion_scope": {
+        "local_diagnostic": "Seven covered definitions / 55 direct plus 11 helper static assertions / 564 executed assertions. Ten scenarios retain 102 complete requests and 58 progress events. Forty-eight unasserted clock observations are excluded only from stable comparison; exact formatting replays captured raw values.",
+        "server_response": "Three covered definitions / 22 static assertions. Actual loopback requests cover token-count 429, authentication/validation failures and opaque gzip forwarding. Capture evaluates exact initializers but zero original callbacks; three unchanged frozen controls pass separately.",
+        "release_remaining": "Fourteen definitions / 43 row-level static entries (34 unique): two covered and twelve partial. Actual Git histories, archive mutation schedules, source comparisons and historical npm extraction retain native admission differences. Public checksum-failure report preserves invalid_archive while internal typed detail remains unchanged.",
+        "keychain_extra": "Two covered definitions / ten static assertions through production command paths, real bounded child stdin and MemoryKeychain. Parent-owned temporary directories bound cleanup. Invalid secret-store checks make zero adapter calls; actual system Keychain remains unqualified."
+      },
+      "tls_limits": "Twenty-one new tests comprise 18 actual HTTP/TLS1.2/TLS1.3 schedules and three ordered empty-cache controls. Three shutdown-only mutations fail at peer-EOF-before-body-repoll, then clean up. The main 57-test and mutant executables are retained; the isolated positive executable was overwritten. Gateway intent and transport promotion remain unimplemented. Original B2 stays 13/18 with the same five differences; fresh handshake 223/223, shipping 115/115 and startup 104/104 pass within their recorded scope.",
+      "validation_conditions": {
+        "CARGO_INCREMENTAL": "0",
+        "reason": "Bound disposable cache growth after retained ENOSPC failure; no numerical performance claim."
+      },
+      "retained_validation_failures": {
+        "mapping_failure": {
+          "path": "artifacts/rust-rewrite/evidence/79c19628550b9c05011b521fb2a897ce9209f9c80931d707c540796a806014d3.json",
+          "sha256": "79c19628550b9c05011b521fb2a897ce9209f9c80931d707c540796a806014d3",
+          "original_path": "artifacts/rust-rewrite/ninth-mapping-merge-initial-failure.json"
+        },
+        "scope": "Per-batch evidence retains the server extractor numbering failure and sandbox bind denial, initial release compilation and checksum regression, initial Keychain cleanup ownership gap, direct-abort adapter compilation/bind/barrier failures and expected shutdown-removal controls. Final checks pass against unchanged inputs; historical failures are not removed."
+      },
+      "benchmark_limits": "No new numerical or functional benchmark run in this increment. Earlier measurements and validation remain bound to their original binaries and snapshots.",
+      "platform_limits": "Current macOS ARM64 archive and all ten prior ab068 CI outcomes are separate. Source bundle compiles 25 test executables offline with cached dependencies and executes native help only. No complete platform, oldest-OS, real Keychain, live evaluator, task-quality, reproducibility or release qualification.",
+      "no_live_calls_or_default_cutover": true,
+      "release_approved": false,
+      "postvalidation_whitespace_correction": {
+        "path": "artifacts/rust-rewrite/evidence/d3c41b9c5897968273aa110e6697d39ed4b63b5b52423e4881e944af9d8949fb.json",
+        "sha256": "d3c41b9c5897968273aa110e6697d39ed4b63b5b52423e4881e944af9d8949fb",
+        "original_path": "/private/tmp/autorouter-ninth-whitespace-correction.json"
+      },
+      "final_mapping_independent_audit": {
+        "path": "artifacts/rust-rewrite/evidence/ddab3a47ab20587cca1622029dbdeec052f5ddec5b951bad73ec175c904b974b.json",
+        "sha256": "ddab3a47ab20587cca1622029dbdeec052f5ddec5b951bad73ec175c904b974b",
+        "original_path": "/private/tmp/autorouter-ninth-mappings-independent-audit-3.json"
+      }
     }
   ],
   "native_package_host_summary": {
-    "path": "artifacts/rust-rewrite/evidence/22d0817bc9067f831fa7148b8e8149cc752cf13c9c24cbfb46d3189218d43e82.json",
-    "sha256": "22d0817bc9067f831fa7148b8e8149cc752cf13c9c24cbfb46d3189218d43e82",
-    "original_path": "rust/parity/measurements/native-host-11-summary.json"
+    "path": "artifacts/rust-rewrite/evidence/00e0fe89b81ddd07402011d193de1c23b8516dac920228dbeec0aa63a0fd2f4c.json",
+    "sha256": "00e0fe89b81ddd07402011d193de1c23b8516dac920228dbeec0aa63a0fd2f4c",
+    "original_path": "rust/parity/measurements/native-host-12-summary.json"
   },
   "native_package_host_summary_history": [
     {
@@ -7452,6 +7714,11 @@
       "path": "artifacts/rust-rewrite/evidence/a6694cbbafa944fe592f9ab9fa54759b7c027140ef46bf0a7a91ecdb45b924e9.json",
       "sha256": "a6694cbbafa944fe592f9ab9fa54759b7c027140ef46bf0a7a91ecdb45b924e9",
       "original_path": "rust/parity/measurements/native-host-10-summary.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/22d0817bc9067f831fa7148b8e8149cc752cf13c9c24cbfb46d3189218d43e82.json",
+      "sha256": "22d0817bc9067f831fa7148b8e8149cc752cf13c9c24cbfb46d3189218d43e82",
+      "original_path": "rust/parity/measurements/native-host-11-summary.json"
     }
   ],
   "native_ci_checkpoint_summary": {
@@ -7470,9 +7737,9 @@
     "original_path": "rust/parity/measurements/expanded-cap-8e94-summary.json"
   },
   "native_ci_workflow_outcomes": {
-    "path": "artifacts/rust-rewrite/evidence/8c43dce2d244d0d8218315203b57068469192b0e7e1c84ecd30155d52cfdd55b.json",
-    "sha256": "8c43dce2d244d0d8218315203b57068469192b0e7e1c84ecd30155d52cfdd55b",
-    "original_path": "rust/parity/measurements/ci-bf50-checkpoint-summary.json"
+    "path": "artifacts/rust-rewrite/evidence/32627609ee69715f5b15b9e8fb8118e5f24576f79e710693f19e5b87d563f030.json",
+    "sha256": "32627609ee69715f5b15b9e8fb8118e5f24576f79e710693f19e5b87d563f030",
+    "original_path": "rust/parity/measurements/ci-ab068-checkpoint-summary.json"
   },
   "expanded_archive_cap_implementation": {
     "path": "artifacts/rust-rewrite/evidence/977026fb34ebdfbe9c1210bebc5b57018da3175e32dc266c25b36a78b2ab55af.json",
@@ -7500,9 +7767,9 @@
     "original_path": "rust/parity/measurements/local-v3-validation-summary.json"
   },
   "native_source_bundle_summary": {
-    "path": "artifacts/rust-rewrite/evidence/e6c2967d59b21512e0540683baf94d0ef54c6861cc3b40c1a5d88033e36ff131.json",
-    "sha256": "e6c2967d59b21512e0540683baf94d0ef54c6861cc3b40c1a5d88033e36ff131",
-    "original_path": "rust/parity/measurements/native-source-bundle-3-summary.json"
+    "path": "artifacts/rust-rewrite/evidence/3e3c908202e35b18ab4b5e5a8ce6b0dfbce66b049611413c7b0cb85fbe6266c6.json",
+    "sha256": "3e3c908202e35b18ab4b5e5a8ce6b0dfbce66b049611413c7b0cb85fbe6266c6",
+    "original_path": "rust/parity/measurements/native-source-bundle-4-summary.json"
   },
   "pty_job_control_summary": {
     "path": "artifacts/rust-rewrite/evidence/53a269a55a92ffb2856a01d2dede9410a2e39902e4d248f7aa5cf7d88a27f9af.json",
@@ -7519,6 +7786,11 @@
       "path": "artifacts/rust-rewrite/evidence/5e626699c1b59e46523647dc026bd7b40d428732acacca127dbff3ef19ab9f4f.json",
       "sha256": "5e626699c1b59e46523647dc026bd7b40d428732acacca127dbff3ef19ab9f4f",
       "original_path": "rust/parity/measurements/native-source-bundle-2-summary.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/e6c2967d59b21512e0540683baf94d0ef54c6861cc3b40c1a5d88033e36ff131.json",
+      "sha256": "e6c2967d59b21512e0540683baf94d0ef54c6861cc3b40c1a5d88033e36ff131",
+      "original_path": "rust/parity/measurements/native-source-bundle-3-summary.json"
     }
   ],
   "test_only_connection_lifecycle_summary": {
@@ -7530,5 +7802,10 @@
     "path": "artifacts/rust-rewrite/evidence/8ea17a4b448d6c7038ee46a8bb6fe05664c001724b792ffa09de4d0193424439.json",
     "sha256": "8ea17a4b448d6c7038ee46a8bb6fe05664c001724b792ffa09de4d0193424439",
     "original_path": "rust/parity/measurements/hyper-util-lease-foundation-summary.json"
+  },
+  "test_only_direct_socket_abort_summary": {
+    "path": "artifacts/rust-rewrite/evidence/615748ae93b4ed439cf176ff714b873296aebe9cd31a5bc6ea729f17f411e3e2.json",
+    "sha256": "615748ae93b4ed439cf176ff714b873296aebe9cd31a5bc6ea729f17f411e3e2",
+    "original_path": "rust/parity/measurements/openssl-direct-abort-summary.json"
   }
 }

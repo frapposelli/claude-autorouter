@@ -62,7 +62,7 @@ pub(super) struct Fixture {
     pub(super) accepted: Arc<AtomicUsize>,
 }
 
-fn isolated_tls(version: Option<SslVersion>) -> (TrustSnapshot, Option<SslContext>) {
+pub(super) fn isolated_tls(version: Option<SslVersion>) -> (TrustSnapshot, Option<SslContext>) {
     openssl::init_without_config().unwrap();
     let mut store = X509StoreBuilder::new().unwrap();
     let Some(version) = version else {

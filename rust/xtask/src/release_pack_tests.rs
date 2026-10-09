@@ -18,8 +18,11 @@ struct Fixture {
 }
 impl Fixture {
     fn new() -> Self {
-        let dir = Scratch::new("release-pack-synthetic").unwrap();
         let source = json!({"commit":"a".repeat(40),"dirty":false,"cargo_lock_sha256":"b".repeat(64),"provenance":"ci-source-build"});
+        Self::with_source(source)
+    }
+    fn with_source(source: Value) -> Self {
+        let dir = Scratch::new("release-pack-synthetic").unwrap();
         let target = "aarch64-apple-darwin";
         let baseline = json!({"baseline":{"package":"claude-autorouter@0.5.2","node":">=22","cpu_restriction":null},"targets":[{"target":target}],"unresolved_baseline_architectures":["synthetic unresolved platform"],"artifact_caps":{"compressed_bytes":archive::MAX_COMPRESSED,"expanded_tar_bytes":archive::MAX_NATIVE_EXPANDED,"file_bytes":archive::MAX_FILE,"entries":archive::NATIVE.entries}});
         let evidence = material(
@@ -118,6 +121,9 @@ impl Fixture {
         *at = document(&self.dir, "mutated.json", &value);
     }
 }
+
+#[path = "release_archive_contracts.rs"]
+mod archive_contracts;
 #[test]
 fn production_assembly_is_deterministic_bounded_and_has_no_node_runtime() {
     let fixture = Fixture::new();

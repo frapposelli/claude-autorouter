@@ -1,5 +1,7 @@
 //! Isolated OpenSSL stream experiment (stage A plus test-only B1 options). Compiled only into the runtime
 //! library test executable; there is no shipping CLI switch or transport hook.
+mod abort;
+mod abort_tests;
 mod client;
 mod lifecycle;
 mod lifecycle_tests;

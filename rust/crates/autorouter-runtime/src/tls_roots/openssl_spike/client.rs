@@ -14,7 +14,6 @@ use std::time::Duration;
 use bytes::Bytes;
 use http_body_util::Full;
 use hyper::body::Incoming;
-use hyper::rt::{Read, ReadBufCursor, Write};
 use hyper::{Request, Response, Uri};
 use hyper_openssl::SslStream;
 use hyper_util::client::legacy::{
@@ -26,9 +25,11 @@ use openssl::pkey::Id;
 use openssl::ssl::Ssl;
 use openssl::x509::X509VerifyResult;
 use rustls::pki_types::ServerName;
+use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 use tokio::net::TcpStream;
 use tower_service::Service;
 
+use super::abort::{AbortControl, DialGate};
 use super::lifecycle::{ConnectionIdentity, ConnectionLifetime};
 use super::policy::{Context as TlsContext, Profile, TrustSnapshot, context, trust_snapshot};
 use super::session::{Cache, Key, RawCache, TicketState, Verification};
@@ -40,6 +41,11 @@ pub(super) struct Counts {
     pub active: AtomicUsize,
     pub completed: AtomicUsize,
     pub tasks: AtomicUsize,
+    pub shutdown_handles: AtomicUsize,
+    pub shutdown_calls: AtomicUsize,
+    pub session_error_closes: AtomicUsize,
+    pub read_bytes: AtomicUsize,
+    pub published: AtomicUsize,
 }
 
 // Track every Hyper-owned task independently from sockets. This does not alter
@@ -83,8 +89,8 @@ impl Drop for Lease {
 
 type Tcp = TokioIo<TcpStream>;
 enum Stream {
-    Plain(Tcp),
-    Tls(SslStream<Tcp>),
+    Plain(TcpStream),
+    Tls(TokioIo<SslStream<Tcp>>),
 }
 
 pub(super) struct TransportIo {
@@ -92,35 +98,67 @@ pub(super) struct TransportIo {
     _lease: Lease,
     session: Option<Arc<TicketState>>,
     lifetime: Arc<ConnectionLifetime>,
+    abort: Option<Arc<AbortControl>>,
 }
 impl Connection for TransportIo {
     fn connected(&self) -> Connected {
         let connected = match &self.stream {
             Stream::Plain(io) => io.connected(),
-            Stream::Tls(io) => io.get_ref().connected(),
-        };
-        connected.extra(ConnectionIdentity::new(&self.lifetime))
+            Stream::Tls(io) => io.inner().get_ref().connected(),
+        }
+        .extra(ConnectionIdentity::new(&self.lifetime));
+        match &self.abort {
+            Some(control) => connected.extra(control.handle()),
+            None => connected,
+        }
     }
 }
-impl Read for TransportIo {
+impl TransportIo {
+    fn io_error(&self) {
+        if let Some(control) = &self.abort {
+            control.io_error();
+        } else if let Some(state) = &self.session {
+            state.close_error();
+        }
+    }
+    fn ordinary_close(&self) {
+        if let Some(control) = &self.abort {
+            control.ordinary_close();
+        }
+    }
+}
+impl Drop for TransportIo {
+    fn drop(&mut self) {
+        self.ordinary_close();
+    }
+}
+impl AsyncRead for TransportIo {
     fn poll_read(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
-        buffer: ReadBufCursor<'_>,
+        buffer: &mut ReadBuf<'_>,
     ) -> Poll<io::Result<()>> {
+        let before = buffer.filled().len();
+        let capacity = buffer.remaining();
         let result = match &mut self.stream {
             Stream::Plain(io) => Pin::new(io).poll_read(cx, buffer),
             Stream::Tls(io) => Pin::new(io).poll_read(cx, buffer),
         };
-        if matches!(result, Poll::Ready(Err(_)))
-            && let Some(state) = &self.session
-        {
-            state.close_error();
+        self._lease
+            .0
+            .read_bytes
+            .fetch_add(buffer.filled().len() - before, Ordering::SeqCst);
+        match &result {
+            Poll::Ready(Err(_)) => self.io_error(),
+            Poll::Ready(Ok(())) if capacity != 0 && buffer.filled().len() == before => {
+                self.ordinary_close()
+            }
+            _ => {}
         }
         result
     }
 }
-impl Write for TransportIo {
+impl AsyncWrite for TransportIo {
     fn poll_write(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
@@ -130,10 +168,8 @@ impl Write for TransportIo {
             Stream::Plain(io) => Pin::new(io).poll_write(cx, bytes),
             Stream::Tls(io) => Pin::new(io).poll_write(cx, bytes),
         };
-        if matches!(result, Poll::Ready(Err(_)))
-            && let Some(state) = &self.session
-        {
-            state.close_error();
+        if matches!(result, Poll::Ready(Err(_))) {
+            self.io_error();
         }
         result
     }
@@ -142,10 +178,8 @@ impl Write for TransportIo {
             Stream::Plain(io) => Pin::new(io).poll_flush(cx),
             Stream::Tls(io) => Pin::new(io).poll_flush(cx),
         };
-        if matches!(result, Poll::Ready(Err(_)))
-            && let Some(state) = &self.session
-        {
-            state.close_error();
+        if matches!(result, Poll::Ready(Err(_))) {
+            self.io_error();
         }
         result
     }
@@ -154,10 +188,10 @@ impl Write for TransportIo {
             Stream::Plain(io) => Pin::new(io).poll_shutdown(cx),
             Stream::Tls(io) => Pin::new(io).poll_shutdown(cx),
         };
-        if matches!(result, Poll::Ready(Err(_)))
-            && let Some(state) = &self.session
-        {
-            state.close_error();
+        match &result {
+            Poll::Ready(Err(_)) => self.io_error(),
+            Poll::Ready(Ok(())) => self.ordinary_close(),
+            Poll::Pending => {}
         }
         result
     }
@@ -176,10 +210,8 @@ impl Write for TransportIo {
             Stream::Plain(io) => Pin::new(io).poll_write_vectored(cx, buffers),
             Stream::Tls(io) => Pin::new(io).poll_write_vectored(cx, buffers),
         };
-        if matches!(result, Poll::Ready(Err(_)))
-            && let Some(state) = &self.session
-        {
-            state.close_error();
+        if matches!(result, Poll::Ready(Err(_))) {
+            self.io_error();
         }
         result
     }
@@ -192,11 +224,13 @@ struct Connector {
     profile: Profile,
     counts: Arc<Counts>,
     sessions: Option<RawCache>,
+    aborts: bool,
+    dial_gate: Option<Arc<DialGate>>,
 }
 impl Service<Uri> for Connector {
-    type Response = TransportIo;
+    type Response = TokioIo<TransportIo>;
     type Error = io::Error;
-    type Future = Pin<Box<dyn Future<Output = Result<TransportIo, io::Error>> + Send>>;
+    type Future = Pin<Box<dyn Future<Output = Result<TokioIo<TransportIo>, io::Error>> + Send>>;
 
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         self.tcp
@@ -258,6 +292,8 @@ impl Service<Uri> for Connector {
         let lease = Lease::new(self.counts.clone());
         let tls = self.tls.clone();
         let profile = self.profile;
+        let aborts = self.aborts;
+        let dial_gate = self.dial_gate.clone();
         // Capture the attempt now; a cancelled future owns and releases its IO.
         let tcp = self.tcp.call(uri.clone());
         Box::pin(async move {
@@ -271,13 +307,28 @@ impl Service<Uri> for Connector {
                         "Synthetic transport permits loopback peers only",
                     ));
                 }
+                let io = io.into_inner();
+                let (io, abort) = if aborts {
+                    let original = io.into_std()?;
+                    let duplicate = original.try_clone()?;
+                    let io = TcpStream::from_std(original)?;
+                    let control = AbortControl::new(duplicate, session.clone(), lease.0.clone());
+                    (io, Some(control))
+                } else {
+                    (io, None)
+                };
+                if let Some(gate) = &dial_gate {
+                    gate.pause().await;
+                }
                 if uri.scheme_str() == Some("http") {
-                    return Ok(TransportIo {
+                    lease.0.published.fetch_add(1, Ordering::SeqCst);
+                    return Ok(TokioIo::new(TransportIo {
                         stream: Stream::Plain(io),
                         _lease: lease,
                         session: None,
                         lifetime: Arc::new(ConnectionLifetime),
-                    });
+                        abort,
+                    }));
                 }
                 if uri.scheme_str() != Some("https") {
                     return Err(io::Error::other("Synthetic unsupported scheme"));
@@ -308,7 +359,7 @@ impl Service<Uri> for Connector {
                     ssl.set_hostname(host)
                         .map_err(|_| io::Error::other("Synthetic SNI failed"))?;
                 }
-                let mut stream = SslStream::new(ssl, io)
+                let mut stream = SslStream::new(ssl, TokioIo::new(io))
                     .map_err(|_| io::Error::other("Synthetic TLS stream failed"))?;
                 Pin::new(&mut stream)
                     .connect()
@@ -343,12 +394,14 @@ impl Service<Uri> for Connector {
                 let mut attempt = attempt;
                 attempt.0 = None;
                 lease.0.completed.fetch_add(1, Ordering::SeqCst);
-                Ok(TransportIo {
-                    stream: Stream::Tls(stream),
+                lease.0.published.fetch_add(1, Ordering::SeqCst);
+                Ok(TokioIo::new(TransportIo {
+                    stream: Stream::Tls(TokioIo::new(stream)),
                     _lease: lease,
                     session,
                     lifetime: Arc::new(ConnectionLifetime),
-                })
+                    abort,
+                }))
             };
             let result = if profile == Profile::Fetch {
                 tokio::time::timeout(Duration::from_secs(10), connect)
@@ -373,6 +426,7 @@ pub(super) struct SpikeHttpClient {
     pub raw_counts: Arc<Counts>,
     pub fetch_counts: Arc<Counts>,
     pub raw_sessions: Option<RawCache>,
+    pub raw_dial_gate: Option<Arc<DialGate>>,
 }
 impl SpikeHttpClient {
     pub fn new() -> Result<Self, HttpError> {
@@ -385,11 +439,20 @@ impl SpikeHttpClient {
         sessions: bool,
         snapshot: &TrustSnapshot,
     ) -> Result<Self, HttpError> {
+        Self::with_snapshot_aborts(sessions, snapshot, false)
+    }
+    pub(super) fn with_snapshot_aborts(
+        sessions: bool,
+        snapshot: &TrustSnapshot,
+        aborts: bool,
+    ) -> Result<Self, HttpError> {
         fn client(
             profile: Profile,
             counts: Arc<Counts>,
             snapshot: &TrustSnapshot,
             sessions: Option<RawCache>,
+            aborts: bool,
+            dial_gate: Option<Arc<DialGate>>,
         ) -> Result<Client<Connector, Full<Bytes>>, HttpError> {
             let mut tcp = HttpConnector::new();
             tcp.enforce_http(false);
@@ -399,6 +462,8 @@ impl SpikeHttpClient {
                 profile,
                 counts: counts.clone(),
                 sessions,
+                aborts,
+                dial_gate,
             };
             let mut builder = Client::builder(Executor(counts));
             builder.retry_canceled_requests(false);
@@ -408,6 +473,7 @@ impl SpikeHttpClient {
         }
         let raw_counts = Arc::new(Counts::default());
         let fetch_counts = Arc::new(Counts::default());
+        let raw_dial_gate = aborts.then(|| Arc::new(DialGate::default()));
         let raw_sessions = sessions.then(|| Arc::new(std::sync::Mutex::new(Cache::new(100))));
         Ok(Self {
             raw: client(
@@ -415,9 +481,19 @@ impl SpikeHttpClient {
                 raw_counts.clone(),
                 snapshot,
                 raw_sessions.clone(),
+                aborts,
+                raw_dial_gate.clone(),
             )?,
-            fetch: client(Profile::Fetch, fetch_counts.clone(), snapshot, None)?,
+            fetch: client(
+                Profile::Fetch,
+                fetch_counts.clone(),
+                snapshot,
+                None,
+                false,
+                None,
+            )?,
             raw_sessions,
+            raw_dial_gate,
             raw_counts,
             fetch_counts,
         })
