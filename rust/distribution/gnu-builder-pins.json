@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "workflow_implemented_not_executed",
+  "status": "qualification_started_build_failures_retained",
   "reviewed": "2026-10-09",
   "images": [
     {
@@ -38,6 +38,33 @@
       "sha256": "5a30ce742be0835d9b23fc862db5cbbbc71464e1c9b1fca22917e10e4ba32a92",
       "checksum_source": "https://static.rust-lang.org/dist/rust-1.99.0-aarch64-unknown-linux-gnu.tar.xz.sha256",
       "archive_downloaded_or_executed_locally": false
+    }
+  ],
+  "build_only_perl": {
+    "version": "5.42.3",
+    "archive": "https://www.cpan.org/src/5.0/perl-5.42.3.tar.xz",
+    "sha256": "c9387e1473a1866935cb047ece7c2e0a80767a3acdecb79d4a375f8a95970ddc",
+    "checksum_source": "https://www.cpan.org/src/5.0/perl-5.42.3.tar.xz.sha256.txt",
+    "upstream_build_requirements": "https://raw.githubusercontent.com/openssl/openssl/openssl-3.6.3/NOTES-PERL.md",
+    "install_prefix": "/opt/autorouter-perl",
+    "archive_verified_locally": true,
+    "executed_locally": false,
+    "runtime_or_archive_dependency": false
+  },
+  "qualification_attempts": [
+    {
+      "commit": "c58df75e3753f0df5d957243e0f98eb792c6bc16",
+      "workflow_run": 37936646625,
+      "status": "git_checkout_ownership_blocked_provenance",
+      "failure_log": "artifacts/rust-rewrite/gnu-portability-c58df75-failure.log",
+      "failure_log_sha256": "934eb0d3ae42bd5c463c49acb4a3ce638c7d2bf4ba1ae33eeedd1dfa2a3d21c2"
+    },
+    {
+      "commit": "280a7985766173c096e52220271c4427deeffb49",
+      "workflow_run": 37938580811,
+      "status": "arm64_assembly_flags_and_missing_perl_core_module_blocked_build",
+      "failure_log": "artifacts/rust-rewrite/gnu-portability-280a798-failure.log",
+      "failure_log_sha256": "c8e23903b3abfd4e5dbb45f0dc2a00ecdb58231a29c8ceb21a00e820f0f89c53"
     }
   ]
 }
