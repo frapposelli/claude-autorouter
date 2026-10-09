@@ -209,6 +209,12 @@ fn settings_key(document: &JsDocument, config: &RouterConfig) -> Key {
 }
 
 impl<T: HttpTransport + 'static> Classifier<T> {
+    #[cfg(test)]
+    pub(crate) fn pending_counts(&self) -> (usize, usize) {
+        let state = self.shared.state.lock().unwrap();
+        (state.pending.len(), state.subscribers)
+    }
+
     pub fn new(transport: Arc<T>, config: &RouterConfig) -> Self {
         Self::with_limits(transport, config, Limits::default())
     }

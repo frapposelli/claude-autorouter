@@ -108,3 +108,35 @@ node parity/capture-router-contracts.mjs ../artifacts/rust-rewrite/reference ../
 cargo test --locked --package autorouter-core --test router_contracts
 cargo test --locked --package autorouter-runtime router::contracts
 ```
+
+The [concurrency mapping](assertion-mappings/router-concurrency-contracts.json)
+replays all 10 frozen schedules and 55 assertion sites (93 observations), with
+independent deadlines around complete native schedules. It includes the full
+256-work and 1,024-subscriber limits. Four definitions are covered; six retain
+explicit JavaScript cancellation, eager-promise, mutable-configuration and
+stream/timer boundaries. Captured call-expression hashes exclude the trailing
+semicolon; canonical definition hashes include it.
+
+The [evaluation-report mapping](assertion-mappings/evaluation-report-contracts.json)
+covers 15 of 16 definitions. Native tests compare complete reports and actual
+evaluator requests across both profiles, outages and collapsed tier coverage.
+Only the three unasserted timing fields are excluded. The remaining definition
+records nonfinite inputs, frozen-object mutation and factory identity as API
+boundaries; unmeasured quality gates remain unmeasured.
+
+The [setup and diagnostic mapping](assertion-mappings/local-setup-diagnostic-contracts.json)
+adds nine finite error transcripts and bounded warmup, pull and residency
+cancellation schedules. Two definitions are covered and four remain partial
+for JavaScript signal/reason observations. Twenty-two other setup/diagnostic
+definitions remain pending. These synthetic tests make no local-model timing
+or quality claim.
+
+```sh
+node parity/capture-router-concurrency-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/concurrency-NEW
+node parity/capture-evaluation-report-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/evaluation-report-NEW
+node parity/capture-local-setup-diagnostic.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/local-contracts-NEW
+cargo test --locked --package autorouter-runtime router::concurrency_contracts
+cargo test --locked --package autorouter-core --test evaluation_report_contracts
+cargo test --locked --package xtask evaluation_contracts
+cargo test --locked --package autorouter-runtime --test local_setup_diagnostic_contracts
+```

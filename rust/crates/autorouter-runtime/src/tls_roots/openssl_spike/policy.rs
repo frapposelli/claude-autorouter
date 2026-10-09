@@ -56,6 +56,26 @@ pub(super) struct TrustSnapshot {
     generation: PolicyId,
 }
 
+impl TrustSnapshot {
+    // Explicit in-memory roots only: lifecycle tests never consult user trust
+    // files or mutate process-wide trust/configuration environment variables.
+    pub(super) fn isolated(store: X509Store) -> Self {
+        Self {
+            store,
+            policy: Options::parse("").unwrap(),
+            generation: next_generation().unwrap(),
+        }
+    }
+}
+
+fn next_generation() -> Result<PolicyId, HttpError> {
+    static GENERATION: AtomicU64 = AtomicU64::new(1);
+    GENERATION
+        .try_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_add(1))
+        .map(PolicyId)
+        .map_err(|_| HttpError::CertificateRoots)
+}
+
 pub(super) fn trust_snapshot() -> Result<TrustSnapshot, HttpError> {
     let policy = Options::process()?;
     let extra = std::env::var_os("NODE_EXTRA_CA_CERTS").filter(|value| !value.is_empty());
@@ -85,14 +105,10 @@ pub(super) fn trust_snapshot() -> Result<TrustSnapshot, HttpError> {
         ),
         None => {}
     }
-    static GENERATION: AtomicU64 = AtomicU64::new(1);
-    let generation = GENERATION
-        .try_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_add(1))
-        .map_err(|_| HttpError::CertificateRoots)?;
     Ok(TrustSnapshot {
         store,
         policy,
-        generation: PolicyId(generation),
+        generation: next_generation()?,
     })
 }
 

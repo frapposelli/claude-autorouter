@@ -21,7 +21,7 @@ use hyper_util::client::legacy::{
     Client,
     connect::{Connected, Connection, HttpConnector},
 };
-use hyper_util::rt::{TokioExecutor, TokioIo};
+use hyper_util::rt::TokioIo;
 use openssl::pkey::Id;
 use openssl::ssl::Ssl;
 use openssl::x509::X509VerifyResult;
@@ -29,6 +29,7 @@ use rustls::pki_types::ServerName;
 use tokio::net::TcpStream;
 use tower_service::Service;
 
+use super::lifecycle::{ConnectionIdentity, ConnectionLifetime};
 use super::policy::{Context as TlsContext, Profile, TrustSnapshot, context, trust_snapshot};
 use super::session::{Cache, Key, RawCache, TicketState, Verification};
 use crate::http_client::{HttpError, HttpTransport};
@@ -38,6 +39,32 @@ pub(super) struct Counts {
     pub attempts: AtomicUsize,
     pub active: AtomicUsize,
     pub completed: AtomicUsize,
+    pub tasks: AtomicUsize,
+}
+
+// Track every Hyper-owned task independently from sockets. This does not alter
+// task scheduling; it lets fixtures distinguish IO release from task completion.
+#[derive(Clone)]
+struct Executor(Arc<Counts>);
+struct TaskLease(Arc<Counts>);
+impl Drop for TaskLease {
+    fn drop(&mut self) {
+        self.0.tasks.fetch_sub(1, Ordering::SeqCst);
+    }
+}
+impl<F> hyper::rt::Executor<F> for Executor
+where
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
+{
+    fn execute(&self, future: F) {
+        self.0.tasks.fetch_add(1, Ordering::SeqCst);
+        let lease = TaskLease(self.0.clone());
+        tokio::spawn(async move {
+            let _lease = lease;
+            future.await;
+        });
+    }
 }
 
 struct Lease(Arc<Counts>);
@@ -64,13 +91,15 @@ pub(super) struct TransportIo {
     stream: Stream,
     _lease: Lease,
     session: Option<Arc<TicketState>>,
+    lifetime: Arc<ConnectionLifetime>,
 }
 impl Connection for TransportIo {
     fn connected(&self) -> Connected {
-        match &self.stream {
+        let connected = match &self.stream {
             Stream::Plain(io) => io.connected(),
             Stream::Tls(io) => io.get_ref().connected(),
-        }
+        };
+        connected.extra(ConnectionIdentity::new(&self.lifetime))
     }
 }
 impl Read for TransportIo {
@@ -247,6 +276,7 @@ impl Service<Uri> for Connector {
                         stream: Stream::Plain(io),
                         _lease: lease,
                         session: None,
+                        lifetime: Arc::new(ConnectionLifetime),
                     });
                 }
                 if uri.scheme_str() != Some("https") {
@@ -317,6 +347,7 @@ impl Service<Uri> for Connector {
                     stream: Stream::Tls(stream),
                     _lease: lease,
                     session,
+                    lifetime: Arc::new(ConnectionLifetime),
                 })
             };
             let result = if profile == Profile::Fetch {
@@ -348,6 +379,12 @@ impl SpikeHttpClient {
         Self::with_sessions(false)
     }
     pub fn with_sessions(sessions: bool) -> Result<Self, HttpError> {
+        Self::with_snapshot(sessions, &trust_snapshot()?)
+    }
+    pub(super) fn with_snapshot(
+        sessions: bool,
+        snapshot: &TrustSnapshot,
+    ) -> Result<Self, HttpError> {
         fn client(
             profile: Profile,
             counts: Arc<Counts>,
@@ -360,10 +397,10 @@ impl SpikeHttpClient {
                 tcp,
                 tls: context(snapshot, profile, sessions.is_some())?,
                 profile,
-                counts,
+                counts: counts.clone(),
                 sessions,
             };
-            let mut builder = Client::builder(TokioExecutor::new());
+            let mut builder = Client::builder(Executor(counts));
             builder.retry_canceled_requests(false);
             // Pooling is retained to exercise HTTP ownership, but its expiry and
             // session policies are explicitly not qualified by stage A.
@@ -371,16 +408,15 @@ impl SpikeHttpClient {
         }
         let raw_counts = Arc::new(Counts::default());
         let fetch_counts = Arc::new(Counts::default());
-        let snapshot = trust_snapshot()?;
         let raw_sessions = sessions.then(|| Arc::new(std::sync::Mutex::new(Cache::new(100))));
         Ok(Self {
             raw: client(
                 Profile::Raw,
                 raw_counts.clone(),
-                &snapshot,
+                snapshot,
                 raw_sessions.clone(),
             )?,
-            fetch: client(Profile::Fetch, fetch_counts.clone(), &snapshot, None)?,
+            fetch: client(Profile::Fetch, fetch_counts.clone(), snapshot, None)?,
             raw_sessions,
             raw_counts,
             fetch_counts,

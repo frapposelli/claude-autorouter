@@ -3,6 +3,8 @@ mod bundle;
 mod context_probe;
 mod env_file;
 mod evaluation;
+#[cfg(test)]
+mod evaluation_contracts;
 mod live;
 mod live_claude;
 mod observer_fixture;

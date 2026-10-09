@@ -178,6 +178,65 @@ in-process changes to the rejection environment also remain unqualified; the
 candidate isolates strict and explicitly disabled verification contexts.
 The existing `NO_LOAD_CONFIG` initializer is unchanged.
 
+### Selected-connection observation experiment (seventh increment)
+
+Before adding any abort authority, this increment declares these tests:
+
+1. A captured connection carries a private weak identity. Copying metadata does
+   not keep the transport alive, and distinct transports have distinct identities.
+2. An unsent request and a held TLS handshake have no selected-connection
+   metadata. Dropping the waiter must close its owned socket without creating a
+   permanent capture watcher.
+3. For HTTP, TLS1.2 and TLS1.3 loopback peers, request B reuses A's connection
+   while A still owns an unpolled, nonempty `Incoming`. Both captures and response
+   extensions must identify that exact connection. Holding or later reading A's
+   capture is not evidence that A still owns the connection.
+4. Delaying an observer until after B is sent must expose the assignment-versus-
+   observation ordering explicitly. No generation recorded by that observer is
+   allowed to authorize an old-request abort. Plain capture/body Drop must not
+   acquire socket-close or session-eviction authority.
+5. Simultaneous same-origin requests with one response held open must identify
+   separate selected connections. All fixture tasks, sockets and weak identities
+   must be released under bounded cleanup, including a failed fixture assertion.
+
+These are native ownership probes, not a replacement for the original failed
+18-row Node differential. `capture_connection` in hyper-util0.1.21 publishes
+metadata after pool checkout and before request dispatch, but the watcher runs
+later. Its `Connected::extra` value is also copied for response and error
+metadata; copying it is not a uniquely identified checkout callback. If these
+public hooks cannot prove request retirement, this increment must report that
+gap and propose a narrow synchronous hook before connecting user cancellation.
+No gateway seam, production transport, session eviction rule, or B3 initializer
+is changed by these observation tests.
+
+The declared experiment passes **22 focused tests**, including the prior ten
+spike tests and twelve new observation/cleanup tests. The held-handshake test
+also checks that capture metadata never appears and that its waiter terminates
+after request cancellation. The test executor counts every Hyper task separately
+from IO leases; the new fixtures require both counts to reach zero before peer
+shutdown, then join every fixture task and check weak cache/connection release.
+An injected assertion failure exercises that cleanup path independently.
+
+HTTP, TLS1.2 and TLS1.3 all demonstrate the same counterexample: A retains its
+entire unpolled four-byte `Incoming`, but the peer has already received B on the
+same connection. A's capture remains unchanged and live. B's capture and
+response extensions identify that same connection. Additional cases safely drop
+A's old buffered body while B is active, and concurrent held responses prove
+same-origin connections remain distinct. These are bounded native ownership
+observations, not timing benchmarks or Node cancellation parity.
+
+**Request retirement and explicit abort authority remain unqualified.** A
+capture watcher cannot revoke A synchronously before B is dispatched. The
+observation type deliberately exposes no abort, poison or eviction method.
+Using metadata `Clone` as checkout would conflate other metadata copies;
+`Connected::poison` would not protect an already selected B. A separately
+reviewed synchronous assignment/retirement guard in the pool is required before
+wiring cancellation. The original B2 report stays failed at **13/18**, with all
+five differences intact. [The lifecycle summary](measurements/openssl-b2-lifecycle-summary.json)
+binds the immutable test executable/source snapshot, passing checks and retained
+registration-race and sandbox-binding failures. No production transport switch
+or coverage promotion is implied.
+
 B2 lifecycle sources: [raw HTTPS session eviction](https://github.com/nodejs/node/blob/v22.14.0/lib/https.js#L130-L173),
 [HTTP parser and socket-end destruction](https://github.com/nodejs/node/blob/v22.14.0/lib/_http_client.js#L435-L533),
 and [TLS acceptance before session publication](https://github.com/nodejs/node/blob/v22.14.0/lib/_tls_wrap.js#L1562-L1615).

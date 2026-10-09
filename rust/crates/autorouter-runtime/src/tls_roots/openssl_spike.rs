@@ -1,6 +1,8 @@
 //! Isolated OpenSSL stream experiment (stage A plus test-only B1 options). Compiled only into the runtime
 //! library test executable; there is no shipping CLI switch or transport hook.
 mod client;
+mod lifecycle;
+mod lifecycle_tests;
 mod options;
 mod policy;
 mod session;
@@ -132,19 +134,17 @@ async fn stalled_handshake_cancellation_releases_owned_socket_and_preserves_sibl
     });
     let client = Arc::new(SpikeHttpClient::new().unwrap());
     let waiter_client = client.clone();
-    let waiter = tokio::spawn(async move {
-        waiter_client
-            .request_raw(
-                Request::get(format!("https://{stalled_address}/synthetic"))
-                    .body(Full::new(Bytes::new()))
-                    .unwrap(),
-            )
-            .await
-    });
+    let mut request = Request::get(format!("https://{stalled_address}/synthetic"))
+        .body(Full::new(Bytes::new()))
+        .unwrap();
+    let mut capture = hyper_util::client::legacy::connect::capture_connection(&mut request);
+    assert!(lifecycle::ConnectionIdentity::captured(&capture).is_none());
+    let waiter = tokio::spawn(async move { waiter_client.request_raw(request).await });
     tokio::time::timeout(Duration::from_secs(3), hello_rx)
         .await
         .unwrap()
         .unwrap();
+    assert!(lifecycle::ConnectionIdentity::captured(&capture).is_none());
     let response = tokio::time::timeout(
         Duration::from_secs(3),
         client.request_raw(
@@ -162,6 +162,15 @@ async fn stalled_handshake_cancellation_releases_owned_socket_and_preserves_sibl
     );
     waiter.abort();
     assert!(matches!(waiter.await, Err(error) if error.is_cancelled()));
+    assert!(
+        tokio::time::timeout(
+            Duration::from_secs(3),
+            capture.wait_for_connection_metadata()
+        )
+        .await
+        .unwrap()
+        .is_none()
+    );
     tokio::time::timeout(Duration::from_secs(3), stalled_peer)
         .await
         .unwrap()
@@ -171,7 +180,9 @@ async fn stalled_handshake_cancellation_releases_owned_socket_and_preserves_sibl
         .unwrap()
         .unwrap();
     tokio::time::timeout(Duration::from_secs(3), async {
-        while client.raw_counts.active.load(Ordering::SeqCst) != 0 {
+        while client.raw_counts.active.load(Ordering::SeqCst) != 0
+            || client.raw_counts.tasks.load(Ordering::SeqCst) != 0
+        {
             tokio::task::yield_now().await;
         }
     })
