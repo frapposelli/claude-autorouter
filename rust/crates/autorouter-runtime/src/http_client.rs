@@ -18,15 +18,19 @@ pub enum HttpError {
     InvalidRequest,
     CertificateRoots,
     UnsupportedTrustOptions,
+    ConflictingTrustOptions,
+    UnsupportedSystemTrustOption,
 }
 
 impl fmt::Display for HttpError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str(match self {
+            Self::ConflictingTrustOptions => "either --use-openssl-ca or --use-bundled-ca can be used, not both",
+            Self::UnsupportedSystemTrustOption => "--use-system-ca is not allowed in NODE_OPTIONS",
             Self::Network => "HTTP transport failed",
             Self::InvalidRequest => "Invalid HTTP request",
             Self::CertificateRoots => "Could not load bundled certificate roots",
-            Self::UnsupportedTrustOptions => "Unsupported Node TLS trust options; this native build supports bundled roots and NODE_EXTRA_CA_CERTS",
+            Self::UnsupportedTrustOptions => "Unsupported Node TLS trust options; this native build supports bundled roots, NODE_EXTRA_CA_CERTS, and --use-openssl-ca",
         })
     }
 }
@@ -78,12 +82,19 @@ pub struct NativeHttpClient {
 
 impl NativeHttpClient {
     pub fn new() -> Result<Self, HttpError> {
-        let roots = crate::tls_roots::process_roots().map_err(|error| match error {
+        let verifier = crate::tls_roots::process_verifier().map_err(|error| match error {
             crate::tls_roots::TrustError::InvalidBundle => HttpError::CertificateRoots,
             crate::tls_roots::TrustError::UnsupportedOptions => HttpError::UnsupportedTrustOptions,
+            crate::tls_roots::TrustError::ConflictingSelectors => {
+                HttpError::ConflictingTrustOptions
+            }
+            crate::tls_roots::TrustError::UnsupportedSystemSelector => {
+                HttpError::UnsupportedSystemTrustOption
+            }
         })?;
         let tls = rustls::ClientConfig::builder()
-            .with_root_certificates(roots)
+            .dangerous()
+            .with_custom_certificate_verifier(verifier)
             .with_no_client_auth();
         let connector = HttpsConnectorBuilder::new()
             .with_tls_config(tls)

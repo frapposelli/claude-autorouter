@@ -22,6 +22,18 @@ fn help(command: &str) -> &'static str {
 }
 
 fn main() -> ExitCode {
+    // Frozen Node rejects these selector combinations before loading the app,
+    // including help/status commands. This check parses options without loading
+    // certificates or touching configuration, the Keychain, or the network.
+    if let Some(message) = autorouter_runtime::tls_roots::startup_diagnostic(
+        &std::env::var("NODE_OPTIONS").unwrap_or_default(),
+    ) {
+        let executable = std::env::args_os()
+            .next()
+            .unwrap_or_else(|| "claude-autorouter".into());
+        eprintln!("{}: {message}", executable.to_string_lossy());
+        return ExitCode::from(9);
+    }
     // Panics from optional sinks may be caught by runtime adapters; the default
     // hook runs before catch_unwind and can otherwise print private payloads.
     std::panic::set_hook(Box::new(|_| {

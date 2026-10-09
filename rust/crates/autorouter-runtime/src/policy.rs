@@ -97,13 +97,36 @@ mod tests {
         fs::set_permissions(&root, fs::Permissions::from_mode(0o700)).unwrap();
         let path = root.join("policy.json");
         let uid = fs::metadata(&root).unwrap().uid();
+        assert_eq!(
+            default_policy_path(),
+            Path::new(if cfg!(target_os = "macos") {
+                "/Library/Application Support/claude-autorouter/policy.json"
+            } else {
+                "/etc/claude-autorouter/policy.json"
+            })
+        );
         assert!(load_policy_at(&path, uid).unwrap().is_none());
-        fs::write(&path, b"{\"allowed_evaluators\":[\"ollama\"]}").unwrap();
+        fs::write(&path, br#"{"allowed_evaluators":["ollama","ollama"],"session_log_mode":"metadata","upstream_url":"https://api.anthropic.com"}"#).unwrap();
         fs::set_permissions(&path, fs::Permissions::from_mode(0o600)).unwrap();
         assert_eq!(
-            load_policy_at(&path, uid).unwrap().unwrap().values["allowed_evaluators"],
-            serde_json::json!(["ollama"])
+            load_policy_at(&path, uid).unwrap().unwrap().values,
+            serde_json::json!({"allowed_evaluators":["ollama"],"session_log_mode":"metadata","upstream_url":"https://api.anthropic.com"})
         );
+        for body in [
+            "PRIVATE_POLICY_TEXT",
+            "[]",
+            r#"{"PRIVATE_KEY_NAME":1}"#,
+            r#"{"allowed_evaluators":[]}"#,
+            r#"{"allowed_evaluators":["PRIVATE_VALUE"]}"#,
+            r#"{"session_log_mode":"PRIVATE_VALUE"}"#,
+            r#"{"upstream_url":"PRIVATE_VALUE"}"#,
+        ] {
+            fs::write(&path, body).unwrap();
+            let error = load_policy_at(&path, uid)
+                .err()
+                .expect("invalid policy rejected");
+            assert!(!error.contains("PRIVATE_"));
+        }
         // JSON.parse accepts lone surrogates and nonfinite numeric overflow.
         // These inputs reach the policy schema check instead of being reported
         // as malformed JSON; error text must not expose their values.
@@ -121,16 +144,80 @@ mod tests {
             assert_eq!(error, "Policy session_log_mode has an invalid value.");
         }
         fs::write(&path, b"{\"allowed_evaluators\":[\"ollama\"]}").unwrap();
-        assert!(load_policy_at(&path, uid + 1).is_err());
+        assert!(
+            load_policy_at(&path, uid + 1)
+                .err()
+                .unwrap()
+                .contains("owned by root")
+        );
         fs::set_permissions(&path, fs::Permissions::from_mode(0o664)).unwrap();
-        assert!(load_policy_at(&path, uid).is_err());
+        assert!(
+            !load_policy_at(&path, uid)
+                .err()
+                .unwrap()
+                .contains("PRIVATE_")
+        );
         fs::set_permissions(&path, fs::Permissions::from_mode(0o600)).unwrap();
         fs::set_permissions(&root, fs::Permissions::from_mode(0o777)).unwrap();
-        assert!(load_policy_at(&path, uid).is_err());
+        assert!(
+            !load_policy_at(&path, uid)
+                .err()
+                .unwrap()
+                .contains("PRIVATE_")
+        );
         fs::set_permissions(&root, fs::Permissions::from_mode(0o700)).unwrap();
         fs::remove_file(&path).unwrap();
         symlink(root.join("missing"), &path).unwrap();
         assert!(load_policy_at(&path, uid).is_err());
+        fs::remove_file(&path).unwrap();
+        let target = root.join("target.json");
+        fs::write(&target, "{}").unwrap();
+        symlink(&target, &path).unwrap();
+        assert!(
+            load_policy_at(&path, uid)
+                .err()
+                .unwrap()
+                .contains("regular file")
+        );
+        assert_eq!(fs::read(&target).unwrap(), b"{}");
         fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn allowlists_cover_both_defaults_and_explicit_choices_while_locks_preserve_the_caller() {
+        use autorouter_core::policy::apply_policy;
+        use serde_json::json;
+        let policy = json!({"allowed_evaluators":["ollama"],"allowed_auth_modes":["subscription"],"session_log_mode":"metadata","upstream_url":"https://api.anthropic.com"});
+        assert!(
+            apply_policy(
+                &json!({"AUTOROUTER_EVALUATOR":"jev","AUTOROUTER_AUTH_MODE":"subscription"}),
+                &policy,
+                true
+            )
+            .unwrap_err()
+            .contains("AUTOROUTER_EVALUATOR is not permitted")
+        );
+        assert!(
+            apply_policy(&json!({}), &policy, true)
+                .unwrap_err()
+                .contains("AUTOROUTER_AUTH_MODE is not permitted")
+        );
+        assert!(
+            apply_policy(
+                &json!({"AUTOROUTER_AUTH_MODE":"subscription"}),
+                &json!({"allowed_evaluators":["jev"]}),
+                true
+            )
+            .unwrap_err()
+            .contains("AUTOROUTER_EVALUATOR")
+        );
+        let env = json!({"AUTOROUTER_AUTH_MODE":"subscription","AUTOROUTER_SESSION_LOG_MODE":"prompts","AUTOROUTER_UPSTREAM_URL":"https://evil.example","KEEP":"1"});
+        let before = env.clone();
+        assert_eq!(
+            apply_policy(&env, &policy, true).unwrap(),
+            json!({"env":{"AUTOROUTER_AUTH_MODE":"subscription","AUTOROUTER_SESSION_LOG_MODE":"metadata","AUTOROUTER_UPSTREAM_URL":"https://api.anthropic.com","KEEP":"1"},"locked":["AUTOROUTER_SESSION_LOG_MODE","AUTOROUTER_UPSTREAM_URL"]})
+        );
+        assert_eq!(env, before);
+        assert!(apply_policy(&json!({"AUTOROUTER_EVALUATOR":"jev"}), &policy, false).is_ok());
     }
 }

@@ -216,6 +216,9 @@ mod tests {
 
     #[test]
     fn catalog_uses_exact_reviewed_ids_and_shared_alias_facts() {
+        let haiku = model_capabilities("claude-haiku-4-5").unwrap();
+        assert_eq!(haiku.family, "haiku");
+        assert_eq!(haiku.max_output_tokens, 64_000);
         assert!(std::ptr::eq(
             model_capabilities("claude-haiku-4-5").unwrap(),
             model_capabilities("claude-haiku-4-5-20251001").unwrap()
@@ -247,6 +250,7 @@ mod tests {
     #[test]
     fn subscription_sensitive_context_is_not_an_unconditional_million() {
         assert_eq!(model_context_window("claude-haiku-4-5"), Some(200_000));
+        assert!(can_upgrade_context("claude-haiku-4-5"));
         for model in ["claude-sonnet-4-6", "claude-opus-4-6"] {
             assert_eq!(model_context_window(model), None);
             assert!(!has_native_million_context(model));
@@ -265,6 +269,28 @@ mod tests {
             assert!(has_native_million_context(model));
             assert!(!can_upgrade_context(model));
             assert!(supports_tool_references(model));
+        }
+    }
+
+    #[test]
+    fn nonstring_fixture_models_have_no_catalog_capabilities() {
+        for model in [
+            Value::Null,
+            serde_json::json!(false),
+            serde_json::json!(true),
+            serde_json::json!(0),
+            serde_json::json!([]),
+            serde_json::json!(["claude-opus-5-5"]),
+            serde_json::json!({}),
+        ] {
+            assert_eq!(
+                crate::fixture::execute(
+                    &serde_json::json!({"op":"model_catalog","input":{"model":model}}),
+                    std::path::Path::new("/tmp"),
+                )
+                .unwrap(),
+                Value::Null
+            );
         }
     }
 }

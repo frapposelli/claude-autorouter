@@ -41,11 +41,131 @@ const FIXED: &[&str] = &[
     "rust/vendor/hyper-provenance.json",
     "rust/vendor/hyper-node-http1-compat.patch",
     "rust/vendor/verify-hyper.mjs",
+    "rust/vendor/openssl-provenance.json",
+    "rust/vendor/openssl-node-trust.patch",
+    "rust/vendor/verify-openssl.mjs",
+    "rust/vendor/TLS-TRUST.md",
     "rust/vendor/node-ca/node-v22.14.0.pem",
     "rust/vendor/node-ca/provenance.json",
     "rust/vendor/node-ca/LICENSE",
     "rust/distribution/licenses/alloc-stdlib-0.3.0-LICENSE",
     "rust/distribution/licenses/provenance.json",
+];
+// Exact public upstream archive inventory, including its synthetic certificate
+// fixtures. Adjacent files are never admitted by a directory-wide wildcard.
+const OPENSSL_FILES: &[&str] = &[
+    ".cargo_vcs_info.json",
+    "CHANGELOG.md",
+    "Cargo.lock",
+    "Cargo.toml",
+    "Cargo.toml.orig",
+    "LICENSE",
+    "LICENSE-APACHE",
+    "README.md",
+    "build.rs",
+    "examples/mk_certs.rs",
+    "src/aes.rs",
+    "src/asn1.rs",
+    "src/base64.rs",
+    "src/bio.rs",
+    "src/bn.rs",
+    "src/cipher.rs",
+    "src/cipher_ctx.rs",
+    "src/cms.rs",
+    "src/conf.rs",
+    "src/derive.rs",
+    "src/dh.rs",
+    "src/dsa.rs",
+    "src/ec.rs",
+    "src/ecdsa.rs",
+    "src/encrypt.rs",
+    "src/envelope.rs",
+    "src/error.rs",
+    "src/ex_data.rs",
+    "src/fips.rs",
+    "src/hash.rs",
+    "src/kdf.rs",
+    "src/lib.rs",
+    "src/lib_ctx.rs",
+    "src/macros.rs",
+    "src/md.rs",
+    "src/md_ctx.rs",
+    "src/memcmp.rs",
+    "src/nid.rs",
+    "src/ocsp.rs",
+    "src/ossl_param.rs",
+    "src/pkcs12.rs",
+    "src/pkcs5.rs",
+    "src/pkcs7.rs",
+    "src/pkey.rs",
+    "src/pkey_ctx.rs",
+    "src/provider.rs",
+    "src/rand.rs",
+    "src/rsa.rs",
+    "src/sha.rs",
+    "src/sign.rs",
+    "src/srtp.rs",
+    "src/ssl/bio.rs",
+    "src/ssl/callbacks.rs",
+    "src/ssl/connector.rs",
+    "src/ssl/error.rs",
+    "src/ssl/mod.rs",
+    "src/ssl/test/mod.rs",
+    "src/ssl/test/server.rs",
+    "src/stack.rs",
+    "src/string.rs",
+    "src/symm.rs",
+    "src/util.rs",
+    "src/version.rs",
+    "src/x509/extension.rs",
+    "src/x509/mod.rs",
+    "src/x509/store.rs",
+    "src/x509/tests.rs",
+    "src/x509/verify.rs",
+    "test/aia_bad_utf8_cert.pem",
+    "test/aia_test_cert.pem",
+    "test/alt_name_cert.pem",
+    "test/authority_key_identifier.pem",
+    "test/ca.crt",
+    "test/cert.pem",
+    "test/certs.pem",
+    "test/certv3.pem",
+    "test/certv3_extfile",
+    "test/cms.p12",
+    "test/cms_pubkey.der",
+    "test/corrupted-rsa.pem",
+    "test/crl-ca.crt",
+    "test/csr.pem",
+    "test/dhparams.pem",
+    "test/dsa.pem",
+    "test/dsa.pem.pub",
+    "test/dsaparam.pem",
+    "test/entry_extensions.crl",
+    "test/identity.p12",
+    "test/intermediate-ca.key",
+    "test/intermediate-ca.pem",
+    "test/key.der",
+    "test/key.der.pub",
+    "test/key.pem",
+    "test/key.pem.pub",
+    "test/keystore-empty-chain.p12",
+    "test/leaf.pem",
+    "test/nid_test_cert.pem",
+    "test/nid_uid_test_cert.pem",
+    "test/ocsp_ca_cert.der",
+    "test/ocsp_resp_no_nextupdate.der",
+    "test/ocsp_resp_revoked.der",
+    "test/ocsp_subject_cert.der",
+    "test/pkcs1.pem.pub",
+    "test/pkcs8-nocrypt.der",
+    "test/pkcs8.der",
+    "test/root-ca.key",
+    "test/root-ca.pem",
+    "test/rsa-encrypted.pem",
+    "test/rsa.pem",
+    "test/rsa.pem.pub",
+    "test/subca.crt",
+    "test/test.crl",
 ];
 fn sha(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
@@ -60,6 +180,12 @@ fn safe(path: &str) -> bool {
 fn allowed(path: &str) -> bool {
     if !safe(path) {
         return false;
+    }
+    if path
+        .strip_prefix("rust/vendor/openssl/")
+        .is_some_and(|relative| OPENSSL_FILES.contains(&relative))
+    {
+        return true;
     }
     if FIXED.contains(&path) {
         return true;
@@ -147,6 +273,11 @@ fn regular(root: &Path, relative: &str) -> Result<Vec<u8>, String> {
 }
 fn collect(root: &Path) -> Result<BTreeMap<String, Entry>, String> {
     let mut paths = FIXED.iter().map(|s| (*s).to_owned()).collect::<Vec<_>>();
+    paths.extend(
+        OPENSSL_FILES
+            .iter()
+            .map(|relative| format!("rust/vendor/openssl/{relative}")),
+    );
     for directory in ["rust/crates", "rust/xtask/src", "rust/vendor/hyper/src"] {
         walk(&root.join(directory), root, &mut paths)?;
     }
@@ -162,7 +293,7 @@ fn collect(root: &Path) -> Result<BTreeMap<String, Entry>, String> {
         manifest.insert(path.clone(), sha(&bytes));
         files.insert(path, Entry { bytes, mode: 0o644 });
     }
-    let readme=b"# AutoRouter native benchmark source bundle\n\nPublic source and synthetic fixtures only. Install the pinned Rust toolchain and fetch the Cargo.lock dependencies (or provide an existing Cargo cache), then run from rust/:\n\n    cargo build --locked --release --package xtask\n    cargo xtask evaluate-ollama --help\n\nReading help makes no evaluator calls. Hardware evaluator runs are explicitly opt-in, do not download models, and must retain fixture hashes, model digest, residency, cold/warm conditions and the unchanged acceptance rubric. Existing experimental quality failures remain visible. The historical docs describe the original Node commands; use native xtask help for the replacement interface.\n\nThe runtime-neutral Node/Rust HTTP benchmark requires its separately verified frozen Node reference; no Node source/runtime, private reports, credentials, user configuration, Cargo cache or binaries are included here. This source bundle itself does not establish build provenance, platform qualification, task quality or performance acceptance.\n".to_vec();
+    let readme=b"# AutoRouter native benchmark source bundle\n\nPublic source and synthetic fixtures only. Install the pinned Rust toolchain, a C compiler, Make and Perl for the bundled OpenSSL build, and fetch the Cargo.lock dependencies (or provide an existing Cargo cache), then run from rust/:\n\n    cargo build --locked --release --package xtask\n    cargo xtask evaluate-ollama --help\n\nReading help makes no evaluator calls. Hardware evaluator runs are explicitly opt-in, do not download models, and must retain fixture hashes, model digest, residency, cold/warm conditions and the unchanged acceptance rubric. Existing experimental quality failures remain visible. The historical docs describe the original Node commands; use native xtask help for the replacement interface.\n\nThe runtime-neutral Node/Rust HTTP benchmark requires its separately verified frozen Node reference; no Node source/runtime, private reports, credentials, user configuration, Cargo cache or binaries are included here. This source bundle itself does not establish build provenance, platform qualification, task quality or performance acceptance.\n".to_vec();
     manifest.insert("README.native.md".into(), sha(&readme));
     files.insert(
         "README.native.md".into(),
@@ -266,6 +397,8 @@ mod tests {
             "rust/crates/autorouter-core/target/main.rs",
             "artifacts/result.json",
             ".git/config",
+            "rust/vendor/openssl/test/private-session.pem",
+            "rust/vendor/openssl/.env",
             "rust/xtask/src/../secret.rs",
             "rust/crates/autorouter-core/src/nested/.env",
         ] {
@@ -273,6 +406,8 @@ mod tests {
         }
         assert!(allowed("rust/xtask/src/bundle.rs"));
         assert!(allowed("rust/vendor/hyper/src/lib.rs"));
+        assert!(allowed("rust/vendor/openssl/build.rs"));
+        assert!(allowed("rust/vendor/openssl/test/root-ca.key"));
     }
     #[test]
     fn actual_bundle_checks_every_hash_excludes_canary_and_refuses_overwrite() {
@@ -294,6 +429,17 @@ mod tests {
             files.keys().all(|p| allowed(p)
                 || ["source-manifest.json", "README.native.md"].contains(&p.as_str()))
         );
+        let provenance: Value =
+            serde_json::from_slice(&files["rust/vendor/openssl-provenance.json"].bytes).unwrap();
+        let declared = provenance["patched_files"].as_object().unwrap();
+        assert_eq!(declared.len(), OPENSSL_FILES.len());
+        for (relative, expected) in declared {
+            assert!(OPENSSL_FILES.contains(&relative.as_str()));
+            assert_eq!(
+                *expected,
+                json!(sha(&files[&format!("rust/vendor/openssl/{relative}")].bytes))
+            );
+        }
         assert!(create(&root, &destination).is_err());
         assert_eq!(fs::read(&destination).unwrap(), bytes);
     }

@@ -443,6 +443,42 @@ mod tests {
         panic!("worker did not enter write");
     }
     #[tokio::test(start_paused = true)]
+    async fn coalesced_updates_and_idle_heartbeat_use_the_injected_clock() {
+        let io = Arc::new(ControlledIo::new());
+        let now = Arc::new(AtomicU64::new(1_000_000));
+        let clock = now.clone();
+        let store = StatusStore::create(StatusOptions {
+            io: io.clone(),
+            now: Arc::new(move || clock.load(Ordering::SeqCst)),
+            ..StatusOptions::default()
+        });
+        assert!(store.ready().await.is_some());
+        store.update(&json!({"event":"request_start","request_id":"r","session_id":"s"}));
+        store.update(
+            &json!({"event":"route","request_id":"r","session_id":"s","model":"claude-sonnet-5"}),
+        );
+        assert_eq!(
+            io.writes.lock().unwrap().last().unwrap()["sessions"],
+            json!({})
+        );
+        store.flush().await;
+        assert_eq!(io.writes.lock().unwrap().len(), 2);
+        assert_eq!(
+            io.writes.lock().unwrap().last().unwrap()["sessions"]["s"]["phase"],
+            "connecting"
+        );
+        now.store(1_005_000, Ordering::SeqCst);
+        tokio::time::advance(Duration::from_secs(5)).await;
+        entered(&io, 3).await;
+        assert_eq!(
+            io.writes.lock().unwrap().last().unwrap()["heartbeat_at"],
+            1_005_000
+        );
+        store.close().await;
+        assert!(io.removed.load(Ordering::SeqCst));
+    }
+
+    #[tokio::test(start_paused = true)]
     async fn stalled_writer_coalesces_bursts_and_close_owns_accepted_work() {
         let io = Arc::new(ControlledIo::new());
         let store = Arc::new(StatusStore::create(StatusOptions {
@@ -454,9 +490,23 @@ mod tests {
         io.stall.store(true, Ordering::SeqCst);
         store.update(&json!({"event":"request_start","request_id":"r","session_id":"s"}));
         entered(&io, 2).await;
+        assert_eq!(io.writes.lock().unwrap().len(), 1);
+        assert_eq!(io.writes.lock().unwrap()[0]["sessions"], json!({}));
         for index in 0..2000 {
             store.update(&json!({"event":"route","request_id":"r","session_id":"s","model":"claude-sonnet-4-6","routing_latency_ms":index}));
         }
+        assert_eq!(io.entered.load(Ordering::SeqCst), 2);
+        let delivered = tokio::spawn(async {
+            let mut chunks = Vec::new();
+            for index in 0..10 {
+                tokio::task::yield_now().await;
+                chunks.push(format!("synthetic-chunk-{index}"));
+            }
+            chunks
+        })
+        .await
+        .unwrap();
+        assert_eq!(delivered.len(), 10);
         assert_eq!(io.entered.load(Ordering::SeqCst), 2);
         let closing = {
             let store = store.clone();
@@ -465,6 +515,7 @@ mod tests {
         tokio::task::yield_now().await;
         assert!(!closing.is_finished());
         assert!(!io.removed.load(Ordering::SeqCst));
+        store.update(&json!({"event":"request_start","request_id":"too-late","session_id":"s"}));
         io.stall.store(false, Ordering::SeqCst);
         io.gate.add_permits(1);
         closing.await.unwrap();
@@ -476,8 +527,11 @@ mod tests {
                 writes.last().unwrap()["sessions"]["s"]["routing_latency_ms"],
                 1999
             );
+            assert_eq!(writes.last().unwrap()["sessions"]["s"]["request_id"], "r");
         }
-        store.close().await;
+        let count = io.entered.load(Ordering::SeqCst);
+        tokio::join!(store.close(), store.flush());
+        assert_eq!(io.entered.load(Ordering::SeqCst), count);
     }
     #[tokio::test(start_paused = true)]
     async fn readiness_deadline_disables_ui_but_waits_for_writer_before_cleanup() {
@@ -528,10 +582,51 @@ mod tests {
         let value = read_snapshot(&path).await.unwrap();
         assert_eq!(value["sessions"]["s"]["phase"], "routing");
         assert!(!value.to_string().contains("canary"));
+        assert_eq!(
+            std::fs::read_dir(path.parent().unwrap()).unwrap().count(),
+            1
+        );
         assert!(process_alive(std::process::id()));
         assert!(!process_alive(0));
         store.close().await;
         assert!(!path.exists());
+        store.update(&json!({"event":"request_start","request_id":"after-close"}));
+        tokio::join!(store.close(), store.flush());
+        assert_eq!(std::fs::read_dir(&parent).unwrap().count(), 0);
+        std::fs::remove_dir(parent).unwrap();
+    }
+
+    #[tokio::test]
+    async fn separate_instances_stay_isolated_under_the_requested_parent() {
+        let parent = std::env::temp_dir().join(format!(
+            "autorouter-status-isolation-{}",
+            random_name().unwrap()
+        ));
+        std::fs::create_dir(&parent).unwrap();
+        let first = StatusStore::create(StatusOptions {
+            directory: parent.clone(),
+            ..StatusOptions::default()
+        });
+        let second = StatusStore::create(StatusOptions {
+            directory: parent.clone(),
+            ..StatusOptions::default()
+        });
+        let (first_path, second_path) = tokio::join!(first.ready(), second.ready());
+        let first_path = first_path.unwrap();
+        let second_path = second_path.unwrap();
+        assert_ne!(first_path, second_path);
+        assert_eq!(first_path.parent().unwrap().parent().unwrap(), parent);
+        assert_eq!(second_path.parent().unwrap().parent().unwrap(), parent);
+        first.update(&json!({"event":"request_start","request_id":"r","session_id":"s"}));
+        first.flush().await;
+        assert_eq!(
+            read_snapshot(&second_path).await.unwrap()["sessions"],
+            json!({})
+        );
+        first.close().await;
+        assert!(!first_path.exists());
+        assert!(second_path.exists());
+        second.close().await;
         assert_eq!(std::fs::read_dir(&parent).unwrap().count(), 0);
         std::fs::remove_dir(parent).unwrap();
     }

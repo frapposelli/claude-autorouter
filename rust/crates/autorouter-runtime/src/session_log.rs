@@ -331,6 +331,24 @@ mod tests {
     use serde_json::json;
     use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
     use tokio::sync::Semaphore;
+    struct TestDirectory(PathBuf);
+    impl TestDirectory {
+        fn new() -> Self {
+            let mut nonce = [0u8; 8];
+            getrandom::fill(&mut nonce).unwrap();
+            let path = std::env::temp_dir().join(format!(
+                "autorouter-log-regression-{:x}",
+                u64::from_le_bytes(nonce)
+            ));
+            std::fs::create_dir(&path).unwrap();
+            Self(path)
+        }
+    }
+    impl Drop for TestDirectory {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
     fn decision(index: usize, session: &str) -> Value {
         json!({"event":"decision","request_id":format!("request-{index}"),"session_id":session,"requested_model":"claude-opus-5-5","selected_model":"claude-sonnet-4-6","prompt_excerpt":"synthetic task","body":"private-canary"})
     }
@@ -378,6 +396,126 @@ mod tests {
             failure: AtomicBool::new(false),
         })
     }
+
+    #[tokio::test]
+    async fn existing_and_dangling_directory_links_fail_open_without_touching_targets() {
+        use std::os::unix::fs::symlink;
+        let root = TestDirectory::new();
+        let target = root.0.join("target");
+        std::fs::create_dir(&target).unwrap();
+        std::fs::write(target.join("unchanged"), "synthetic-untouched").unwrap();
+        let missing = root.0.join("missing");
+        for (name, destination) in [("existing", &target), ("dangling", &missing)] {
+            let path = root.0.join(name);
+            symlink(destination, &path).unwrap();
+            let warnings = Arc::new(Mutex::new(Vec::new()));
+            let observed = warnings.clone();
+            let log = SessionLog::create(
+                path.clone(),
+                SessionLogOptions {
+                    warn: Arc::new(move |message| {
+                        observed.lock().unwrap().push(message.to_owned());
+                    }),
+                    ..SessionLogOptions::default()
+                },
+            )
+            .await;
+            assert!(!log.record(&decision(0, "s")));
+            log.close().await;
+            assert_eq!(*warnings.lock().unwrap(), vec![WARNING]);
+            assert!(
+                std::fs::symlink_metadata(path)
+                    .unwrap()
+                    .file_type()
+                    .is_symlink()
+            );
+        }
+        assert_eq!(std::fs::read_dir(&target).unwrap().count(), 1);
+        assert_eq!(
+            std::fs::read_to_string(target.join("unchanged")).unwrap(),
+            "synthetic-untouched"
+        );
+        assert!(!missing.exists());
+    }
+
+    #[tokio::test]
+    async fn inserted_file_symlink_never_changes_target_contents_or_permissions() {
+        use std::os::unix::fs::symlink;
+        let root = TestDirectory::new();
+        let target = root.0.join("synthetic-PRIVATE-target");
+        std::fs::write(&target, "synthetic-untouched").unwrap();
+        std::fs::set_permissions(&target, std::fs::Permissions::from_mode(0o644)).unwrap();
+        let warnings = Arc::new(Mutex::new(Vec::new()));
+        let observed = warnings.clone();
+        let directory = root.0.join("logs");
+        let log = SessionLog::create(
+            directory.clone(),
+            SessionLogOptions {
+                warn: Arc::new(move |message| {
+                    observed.lock().unwrap().push(message.to_owned());
+                }),
+                ..SessionLogOptions::default()
+            },
+        )
+        .await;
+        let inserted = directory.join(format!(
+            "autorouter-session-{}-{:x}.jsonl",
+            log.inner.launch,
+            Sha256::digest(b"session:s")
+        ));
+        symlink(&target, &inserted).unwrap();
+        assert!(log.record(&decision(0, "s")));
+        log.close().await;
+        assert_eq!(
+            std::fs::read_to_string(&target).unwrap(),
+            "synthetic-untouched"
+        );
+        assert_eq!(
+            std::fs::metadata(&target).unwrap().permissions().mode() & 0o777,
+            0o644
+        );
+        assert_eq!(*warnings.lock().unwrap(), vec![WARNING]);
+        assert!(
+            std::fs::symlink_metadata(inserted)
+                .unwrap()
+                .file_type()
+                .is_symlink()
+        );
+        assert_eq!(std::fs::read_dir(directory).unwrap().count(), 1);
+    }
+
+    #[tokio::test]
+    async fn separate_launches_never_append_to_each_other_or_change_existing_directory_mode() {
+        let root = TestDirectory::new();
+        let directory = root.0.join("logs");
+        std::fs::create_dir(&directory).unwrap();
+        std::fs::set_permissions(&directory, std::fs::Permissions::from_mode(0o755)).unwrap();
+        let (first, second) = tokio::join!(
+            SessionLog::create(directory.clone(), SessionLogOptions::default()),
+            SessionLog::create(directory.clone(), SessionLogOptions::default())
+        );
+        let mut entry = decision(0, "s");
+        entry["prompt_excerpt"] = json!("First launch");
+        assert!(first.record(&entry));
+        entry["prompt_excerpt"] = json!("Second launch");
+        assert!(second.record(&entry));
+        tokio::join!(first.close(), first.close(), second.close());
+        assert!(!first.record(&entry));
+        assert_eq!(
+            std::fs::metadata(&directory).unwrap().permissions().mode() & 0o777,
+            0o755
+        );
+        let mut prompts = Vec::new();
+        for file in std::fs::read_dir(&directory).unwrap() {
+            let text = std::fs::read_to_string(file.unwrap().path()).unwrap();
+            assert_eq!(text.lines().count(), 1);
+            let row: Value = serde_json::from_str(text.trim()).unwrap();
+            prompts.push(row["prompt_excerpt"].as_str().unwrap().to_owned());
+        }
+        prompts.sort();
+        assert_eq!(prompts, vec!["First launch", "Second launch"]);
+    }
+
     #[tokio::test]
     async fn close_owns_stalled_writes_and_later_records_are_rejected() {
         let state = state();

@@ -30,6 +30,8 @@ The [library integration guide](docs/embedding.md) documents the Rust API, the s
 ## Validation
 
 ```sh
+cargo fetch --locked
+cargo metadata --format-version 1 --locked --offline > /dev/null
 cargo fmt --check
 node vendor/verify-hyper.mjs
 cargo clippy --workspace --all-targets --locked -- -D warnings
@@ -40,6 +42,10 @@ node parity/check-config-commands.mjs
 node parity/check-gateway.mjs
 node parity/check-http-parser.mjs
 ```
+
+Run the fetch step without `--target`: the offline license inventory reads dependencies for every target in the lockfile, including crates a host-only build does not download. Repeat it when the lockfile changes. Packaging keeps metadata collection offline and rejects missing license material; it does not fetch dependencies itself. [Cargo documents this all-target fetch behavior](https://doc.rust-lang.org/cargo/commands/cargo-fetch.html).
+
+Source builds also need a C compiler, Make and Perl for vendored OpenSSL. The pinned crate builds and links its bundled native library; packaged executables do not need those build tools. Keep `OPENSSL_NO_VENDOR` unset when producing a candidate, and retain the artifact's linkage checks as part of platform qualification. Native OpenSSL and its bundled build-tool license texts are included separately from the Rust wrapper licenses.
 
 The tests bind loopback sockets. They use fake credentials and local mocks, without a provider call or model download. The last three commands are temporary reference-test drivers; neither the native application nor its distribution invokes them. Reference files are verified against commit `ea930c247626ce2af5ccdad721b5121417bf4ad8` before comparison. See the [parity inventory](parity/coverage.json) and [reference protocol](parity/README.md).
 
@@ -68,7 +74,7 @@ cargo xtask benchmark --output artifacts/rust-rewrite/validation-run --validate
 
 Omitting `--validate` runs the declared measurement protocol. Choose a fresh output directory for each run. The [local protocol](parity/local-benchmark-v1.json) freezes sample counts, ordering, uncertainty, and noise floors before measurement. Its initial workload coverage is incomplete; exploratory workstation results cannot approve the full [performance gates](parity/performance-gates.json). True peak RSS, allocations, the remaining workloads, and representative hardware require separate evidence.
 
-The [first measured comparison and profiling notes](docs/performance.md) retain the observed startup/memory gains and the large-catalog/cache-hit regressions. The performance gate remains incomplete while those regressions are corrected and remeasured.
+The [measured comparisons and profiling notes](docs/performance.md) retain both runs, including the initial regressions and the second run's improvements. Large-catalog CPU and throughput still fail their targets, so the performance gate remains incomplete.
 
 ## Distribution and remaining gates
 

@@ -197,6 +197,167 @@ pub fn add_status_line_settings(
 mod tests {
     use super::*;
     use serde_json::json;
+    struct TestDirectory(std::path::PathBuf);
+    impl TestDirectory {
+        fn new() -> Self {
+            let mut nonce = [0u8; 8];
+            getrandom::fill(&mut nonce).unwrap();
+            let path = std::env::temp_dir().join(format!(
+                "autorouter-settings-test-{:x}",
+                u64::from_le_bytes(nonce)
+            ));
+            fs::create_dir(&path).unwrap();
+            Self(path)
+        }
+    }
+    impl Drop for TestDirectory {
+        fn drop(&mut self) {
+            let _ = fs::remove_dir_all(&self.0);
+        }
+    }
+
+    #[test]
+    fn repeated_inline_settings_use_the_last_value_and_invalid_inputs_stay_private() {
+        let directory = TestDirectory::new();
+        let executable = Path::new("/synthetic/autorouter");
+        let args = [
+            "--settings",
+            r#"{"model":"old"}"#,
+            r#"--settings={"model":"new"}"#,
+            "-p",
+            "hi",
+        ]
+        .map(str::to_owned);
+        let forwarded =
+            add_status_line_settings(&args, &directory.0, &directory.0, executable).unwrap();
+        assert_eq!(&forwarded[2..], &["-p", "hi"]);
+        let saved: serde_json::Value =
+            serde_json::from_slice(&fs::read(&forwarded[1]).unwrap()).unwrap();
+        assert_eq!(saved["model"], "new");
+        for args in [
+            vec!["--settings"],
+            vec!["--settings", r#"{"secret":"synthetic-PRIVATE""#],
+            vec!["--settings", "missing.json"],
+        ] {
+            let args: Vec<_> = args.into_iter().map(str::to_owned).collect();
+            let error = add_status_line_settings(&args, &directory.0, &directory.0, executable)
+                .unwrap_err();
+            assert!(error.contains("--settings"));
+            assert!(!error.contains("PRIVATE"));
+            let unchanged: serde_json::Value =
+                serde_json::from_slice(&fs::read(&forwarded[1]).unwrap()).unwrap();
+            assert_eq!(unchanged, saved);
+        }
+    }
+
+    #[test]
+    fn inline_permissions_keep_cwd_anchors_and_all_other_pattern_forms() {
+        let directory = TestDirectory::new();
+        let cwd = Path::new("/synthetic/project");
+        let unchanged = [
+            "Read(//private/secrets/**)",
+            "Edit(~/Documents/**)",
+            "Read(./.env)",
+            "Edit(src/**)",
+            "Read(!.env)",
+            "Write(/legacy/**)",
+            "Bash(cat /tmp/file)",
+        ];
+        let mut permissions = serde_json::Map::new();
+        for (kind, anchored) in [
+            ("allow", "Read(/public/**)"),
+            ("ask", "Edit(/review/**)"),
+            ("deny", "Read(/secrets/**)"),
+        ] {
+            permissions.insert(
+                kind.into(),
+                json!(
+                    std::iter::once(anchored)
+                        .chain(unchanged)
+                        .collect::<Vec<_>>()
+                ),
+            );
+        }
+        let supplied = format!("--settings={}", json!({"permissions":permissions}));
+        let forwarded = add_status_line_settings(
+            &[supplied],
+            &directory.0,
+            cwd,
+            Path::new("/synthetic/autorouter"),
+        )
+        .unwrap();
+        let saved: serde_json::Value =
+            serde_json::from_slice(&fs::read(&forwarded[1]).unwrap()).unwrap();
+        for (kind, anchored) in [
+            ("allow", "Read(//synthetic/project/public/**)"),
+            ("ask", "Edit(//synthetic/project/review/**)"),
+            ("deny", "Read(//synthetic/project/secrets/**)"),
+        ] {
+            assert_eq!(
+                saved["permissions"][kind],
+                json!(
+                    std::iter::once(anchored)
+                        .chain(unchanged)
+                        .collect::<Vec<_>>()
+                )
+            );
+        }
+    }
+
+    #[test]
+    fn absolute_and_home_sandbox_paths_are_preserved_verbatim() {
+        let directory = TestDirectory::new();
+        let sandbox = json!({
+            "enabled":true,
+            "filesystem":{
+                "allowRead":["/public"],"allowWrite":["~/build"],
+                "denyRead":["/private/secrets"],"denyWrite":["~/.ssh"]
+            },
+            "credentials":{"files":[
+                {"path":"~/.aws/credentials","mode":"deny"},
+                {"path":"/private/credential","mode":"mask"}
+            ]}
+        });
+        let forwarded = add_status_line_settings(
+            &["--settings".into(), json!({"sandbox":sandbox}).to_string()],
+            &directory.0,
+            &directory.0,
+            Path::new("/synthetic/autorouter"),
+        )
+        .unwrap();
+        let saved: serde_json::Value =
+            serde_json::from_slice(&fs::read(&forwarded[1]).unwrap()).unwrap();
+        assert_eq!(saved["sandbox"], sandbox);
+    }
+
+    #[test]
+    fn relative_sandbox_rejection_preserves_inline_and_file_security_settings() {
+        let directory = TestDirectory::new();
+        let mut variants = Vec::new();
+        for kind in ["allowRead", "allowWrite", "denyRead", "denyWrite"] {
+            variants.push(json!({"sandbox":{"filesystem":{kind:["./synthetic-PRIVATE"]}}}));
+        }
+        variants.push(json!({"sandbox":{"credentials":{"files":[{"path":"../synthetic-PRIVATE","mode":"deny"}]}}}));
+        let source = directory.0.join("original.json");
+        for settings in variants {
+            let original = settings.to_string();
+            fs::write(&source, &original).unwrap();
+            for supplied in [original.clone(), source.to_string_lossy().into_owned()] {
+                let error = add_status_line_settings(
+                    &["--settings".into(), supplied],
+                    &directory.0,
+                    &directory.0,
+                    Path::new("/synthetic/autorouter"),
+                )
+                .unwrap_err();
+                assert_eq!(error, SANDBOX_ERROR);
+                assert!(!error.contains("PRIVATE"));
+                assert_eq!(fs::read_to_string(&source).unwrap(), original);
+                assert!(!directory.0.join("claude-settings.json").exists());
+            }
+        }
+    }
+
     #[test]
     fn permission_anchors_and_unknown_utf16_are_preserved() {
         let source = Path::new("/private/synthetic[literal]*?/");
@@ -260,8 +421,7 @@ mod tests {
         let _ = fs::remove_dir_all(&directory);
         fs::create_dir(&directory).unwrap();
         let source = directory.join("original.json");
-        let original =
-            r#"{"env":{"SECRET":"synthetic-value"},"permissions":{"deny":["Read(/secret/**)"]}}"#;
+        let original = r#"{"env":{"SECRET":"synthetic-value"},"permissions":{"allow":["Read"]},"statusLine":{"type":"command","command":"old-command"}}"#;
         fs::write(&source, original).unwrap();
         let args = vec![
             "--settings".into(),
@@ -281,6 +441,13 @@ mod tests {
         assert_eq!(&result[2..], &args[2..]);
         assert!(!result.join(" ").contains("synthetic-value"));
         assert_eq!(fs::read_to_string(source).unwrap(), original);
+        let saved: serde_json::Value =
+            serde_json::from_slice(&fs::read(&result[1]).unwrap()).unwrap();
+        let original_value: serde_json::Value = serde_json::from_str(original).unwrap();
+        assert_eq!(saved["env"], original_value["env"]);
+        assert_eq!(saved["permissions"], original_value["permissions"]);
+        assert_eq!(saved["statusLine"]["refreshInterval"], 1);
+        assert_ne!(saved["statusLine"]["command"], "old-command");
         assert_eq!(
             fs::metadata(&result[1]).unwrap().permissions().mode() & 0o777,
             0o600

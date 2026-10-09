@@ -145,6 +145,40 @@ mod tests {
         }
     }
     #[tokio::test]
+    async fn malformed_oversized_and_missing_pid_snapshots_observe_the_same_grace_period() {
+        let root = root();
+        let now = 1_800_000_000_000u64;
+        let starting = directory(&root, "autorouter-status-starting", None, 0o700);
+        fs::File::open(&starting)
+            .unwrap()
+            .set_modified(UNIX_EPOCH + std::time::Duration::from_millis(now - 30_000))
+            .unwrap();
+        let mut abandoned = Vec::new();
+        for (name, content) in [
+            ("bad-json", "not json".to_owned()),
+            ("oversized", " ".repeat(1024 * 1024 + 1)),
+            ("no-pid", r#"{"pid":"abc"}"#.to_owned()),
+        ] {
+            let path = directory(&root, &format!("autorouter-status-{name}"), None, 0o700);
+            fs::write(path.join("state.json"), content).unwrap();
+            fs::File::open(&path)
+                .unwrap()
+                .set_modified(UNIX_EPOCH + std::time::Duration::from_millis(now - 660_000))
+                .unwrap();
+            abandoned.push(path);
+        }
+        assert_eq!(
+            remove_stale_status_directories(options(&root, now as f64)).await,
+            3
+        );
+        assert!(starting.exists());
+        for path in abandoned {
+            assert!(!path.exists());
+        }
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[tokio::test]
     async fn removes_dead_and_reused_pids_but_keeps_live_and_untrusted_paths() {
         let root = root();
         let now = 1_800_000_000_000.0;
@@ -174,6 +208,8 @@ mod tests {
         );
         let target = directory(&root, "unrelated", Some(json!({"pid":111111})), 0o700);
         symlink(&target, root.join("autorouter-status-link")).unwrap();
+        let regular = root.join("autorouter-status-file");
+        fs::write(&regular, "synthetic-keep").unwrap();
         assert_eq!(
             remove_stale_status_directories(options(&root, now)).await,
             2
@@ -183,6 +219,8 @@ mod tests {
         for kept in [&live, &loose, &target] {
             assert!(kept.exists());
         }
+        assert!(target.join("claude-settings.json").exists());
+        assert_eq!(fs::read_to_string(regular).unwrap(), "synthetic-keep");
         assert!(
             root.join("autorouter-status-link")
                 .symlink_metadata()

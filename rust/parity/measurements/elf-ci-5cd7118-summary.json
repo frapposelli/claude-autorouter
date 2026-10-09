@@ -1,0 +1,365 @@
+{
+  "schema_version": 1,
+  "kind": "historical_elf_dependency_inspection",
+  "ci_head_label": "5cd7118",
+  "scope": "Exact downloaded pre-OpenSSL CI binaries; no target executable was run during this inspection.",
+  "tool": {
+    "native_source": "rust/xtask/src/package_binary.rs",
+    "native_source_sha256": "17aa9d7f9ac6cf1b619b90a1aba4560ee5316b26d6ac40ce8b381e6d5dba02f4",
+    "reference": "Homebrew LLVM version 22.1.8\n  Optimized build.",
+    "native_tests": "artifacts/rust-rewrite/package-elf-inspection-tests.log",
+    "native_tests_sha256": "4e7cdafe3013b1a36cba9021e0111076139213d660820e9782be3cb08b9a6f8c",
+    "native_source_identity_scope": "Hash identifies the reviewed inspector source immediately after an equivalent lint-only prefix correction. The exact executable hash was not captured for the historical invocation, so this is not reproducible tool-build provenance. Actual inspected binary hashes and full independent LLVM table comparison are retained."
+  },
+  "artifacts": [
+    {
+      "artifact_sha256": "d02c3f0033a4bea4d7d45569760a871c39f3785771362ef639ce566a811a6530",
+      "bytes": 10077608,
+      "native_report": "artifacts/rust-rewrite/ci-5cd7118/linux-x64/elf-inspection-v2.json",
+      "native_report_sha256": "481ceac89e0e72f95028776d6e9e890360e46b14fd36c7b3338159de6b573f1e",
+      "llvm_report": "artifacts/rust-rewrite/ci-5cd7118/linux-x64/llvm-readelf-dynamic-versions.txt",
+      "llvm_report_sha256": "52cad795b9767462c68f43f4ab9ec040bbe88ec2ff9f25f137fd4e607e7c3566",
+      "independent_comparison": "Exact ordered DT_NEEDED names and complete per-library version names/flags/weakness match LLVM readelf.",
+      "inspection": {
+        "format": "ELF",
+        "inspection_schema_version": 2,
+        "target": "x86_64-unknown-linux-gnu",
+        "interpreter": "/lib64/ld-linux-x86-64.so.2",
+        "dynamic_needed_count": 4,
+        "dynamic_libraries": [
+          "libgcc_s.so.1",
+          "libm.so.6",
+          "libc.so.6",
+          "ld-linux-x86-64.so.2"
+        ],
+        "rpath": null,
+        "runpath": null,
+        "version_requirements": [
+          {
+            "library": "libgcc_s.so.1",
+            "versions": [
+              {
+                "name": "GCC_3.0",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GCC_3.3",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GCC_4.2.0",
+                "flags": 0,
+                "weak": false
+              }
+            ]
+          },
+          {
+            "library": "libm.so.6",
+            "versions": [
+              {
+                "name": "GLIBC_2.29",
+                "flags": 0,
+                "weak": false
+              }
+            ]
+          },
+          {
+            "library": "libc.so.6",
+            "versions": [
+              {
+                "name": "GLIBC_2.2.5",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.3",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.3.2",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.3.4",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.4",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.7",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.9",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.10",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.14",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.15",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.16",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.17",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.18",
+                "flags": 2,
+                "weak": true
+              },
+              {
+                "name": "GLIBC_2.25",
+                "flags": 2,
+                "weak": true
+              },
+              {
+                "name": "GLIBC_2.28",
+                "flags": 2,
+                "weak": true
+              },
+              {
+                "name": "GLIBC_2.29",
+                "flags": 2,
+                "weak": true
+              },
+              {
+                "name": "GLIBC_2.30",
+                "flags": 2,
+                "weak": true
+              },
+              {
+                "name": "GLIBC_2.32",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.33",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.34",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.39",
+                "flags": 2,
+                "weak": true
+              }
+            ]
+          },
+          {
+            "library": "ld-linux-x86-64.so.2",
+            "versions": [
+              {
+                "name": "GLIBC_2.3",
+                "flags": 0,
+                "weak": false
+              }
+            ]
+          }
+        ],
+        "glibc_version_requirements": [
+          "GLIBC_2.10",
+          "GLIBC_2.14",
+          "GLIBC_2.15",
+          "GLIBC_2.16",
+          "GLIBC_2.17",
+          "GLIBC_2.18",
+          "GLIBC_2.2.5",
+          "GLIBC_2.25",
+          "GLIBC_2.28",
+          "GLIBC_2.29",
+          "GLIBC_2.3",
+          "GLIBC_2.3.2",
+          "GLIBC_2.3.4",
+          "GLIBC_2.30",
+          "GLIBC_2.32",
+          "GLIBC_2.33",
+          "GLIBC_2.34",
+          "GLIBC_2.39",
+          "GLIBC_2.4",
+          "GLIBC_2.7",
+          "GLIBC_2.9"
+        ],
+        "minimum_glibc": "2.34",
+        "minimum_glibc_scope": "Highest numeric non-weak GLIBC version need in this executable only; additional ABI markers and transitive dependencies may impose stricter requirements. No oldest-runtime execution is implied.",
+        "execution_qualification": "pending"
+      }
+    },
+    {
+      "artifact_sha256": "fb8147f4fed081189e44e0f5421443e5a1ad8932e8da920c4cecebe6a5a24136",
+      "bytes": 9646120,
+      "native_report": "artifacts/rust-rewrite/ci-5cd7118/linux-arm64/elf-inspection-v2.json",
+      "native_report_sha256": "bb09ea9061f914c6f6b8624584b7f100ad88c94d046dfed2dfb4d81bc099ab8b",
+      "llvm_report": "artifacts/rust-rewrite/ci-5cd7118/linux-arm64/llvm-readelf-dynamic-versions.txt",
+      "llvm_report_sha256": "3d11b1daab26df8262bc48855a6f4fbc08b38ccb72e95b514044cd0880b807b0",
+      "independent_comparison": "Exact ordered DT_NEEDED names and complete per-library version names/flags/weakness match LLVM readelf.",
+      "inspection": {
+        "format": "ELF",
+        "inspection_schema_version": 2,
+        "target": "aarch64-unknown-linux-gnu",
+        "interpreter": "/lib/ld-linux-aarch64.so.1",
+        "dynamic_needed_count": 4,
+        "dynamic_libraries": [
+          "libgcc_s.so.1",
+          "libm.so.6",
+          "libc.so.6",
+          "ld-linux-aarch64.so.1"
+        ],
+        "rpath": null,
+        "runpath": null,
+        "version_requirements": [
+          {
+            "library": "libm.so.6",
+            "versions": [
+              {
+                "name": "GLIBC_2.29",
+                "flags": 0,
+                "weak": false
+              }
+            ]
+          },
+          {
+            "library": "ld-linux-aarch64.so.1",
+            "versions": [
+              {
+                "name": "GLIBC_2.17",
+                "flags": 0,
+                "weak": false
+              }
+            ]
+          },
+          {
+            "library": "libgcc_s.so.1",
+            "versions": [
+              {
+                "name": "GCC_4.2.0",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GCC_3.3",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GCC_3.0",
+                "flags": 0,
+                "weak": false
+              }
+            ]
+          },
+          {
+            "library": "libc.so.6",
+            "versions": [
+              {
+                "name": "GLIBC_2.29",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.28",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.39",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.30",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.25",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.18",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.33",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.32",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.34",
+                "flags": 0,
+                "weak": false
+              },
+              {
+                "name": "GLIBC_2.17",
+                "flags": 0,
+                "weak": false
+              }
+            ]
+          }
+        ],
+        "glibc_version_requirements": [
+          "GLIBC_2.17",
+          "GLIBC_2.18",
+          "GLIBC_2.25",
+          "GLIBC_2.28",
+          "GLIBC_2.29",
+          "GLIBC_2.30",
+          "GLIBC_2.32",
+          "GLIBC_2.33",
+          "GLIBC_2.34",
+          "GLIBC_2.39"
+        ],
+        "minimum_glibc": "2.39",
+        "minimum_glibc_scope": "Highest numeric non-weak GLIBC version need in this executable only; additional ABI markers and transitive dependencies may impose stricter requirements. No oldest-runtime execution is implied.",
+        "execution_qualification": "pending"
+      }
+    }
+  ],
+  "findings": [
+    "x86_64 has non-weak GLIBC requirements through2.34 and weak requirements through2.39.",
+    "aarch64 has non-weak GLIBC requirements through2.39.",
+    "These are necessary numeric symbol-version lower bounds, not complete minimum runtime qualification. Transitive library/loader dependencies and ABI marker requirements can impose stricter constraints.",
+    "Both exceed the recorded Node22 glibc2.28 baseline; the default Ubuntu24 CI build does not qualify an older GNU/Linux release artifact.",
+    "Post-OpenSSL binaries, oldest-runtime execution, alternative build sysroots and supported-platform approval remain pending."
+  ],
+  "format_sources": [
+    "https://refspecs.linuxbase.org/elf/gabi4+/ch5.dynamic.html",
+    "https://refspecs.linuxfoundation.org/LSB_5.0.0/LSB-Core-generic/LSB-Core-generic/symversion.html"
+  ]
+}

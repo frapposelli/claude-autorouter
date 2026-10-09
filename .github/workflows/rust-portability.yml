@@ -1,0 +1,183 @@
+name: Rust GNU portability
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  glibc228:
+    name: GNU glibc 2.28 / ${{ matrix.target }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            machine: x86_64
+            image: quay.io/pypa/manylinux_2_28_x86_64@sha256:39df0042d5cc900b085aa25a0659368b42a0006c54c474299b785b44c1b4ff82
+            rust_sha256: 891c6366d7100feda0bca4c03ce63f3c9ac827cbebbc283e7433061d42c6a376
+            rustflags: -C target-cpu=x86-64 -C linker=gcc
+            cflags: -O2 -march=x86-64 -mtune=generic
+          - runner: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            machine: aarch64
+            image: quay.io/pypa/manylinux_2_28_aarch64@sha256:f5f03dedf61b47d69d0742d36047db78adeee3bdb7a9910ff52304750ecf2514
+            rust_sha256: 5a30ce742be0835d9b23fc862db5cbbbc71464e1c9b1fca22917e10e4ba32a92
+            rustflags: -C target-cpu=generic -C linker=gcc
+            cflags: -O2 -march=armv8-a
+    container:
+      image: ${{ matrix.image }}
+      options: --init
+    defaults:
+      run:
+        shell: bash
+        working-directory: rust
+    env:
+      AUTOROUTER_BUILD_IMAGE: ${{ matrix.image }}
+      AUTOROUTER_BUILD_TARGET: ${{ matrix.target }}
+      AUTOROUTER_BUILD_MACHINE: ${{ matrix.machine }}
+      AUTOROUTER_RUST_ARCHIVE_SHA256: ${{ matrix.rust_sha256 }}
+      CARGO_HOME: /opt/autorouter-cargo
+      CARGO_INCREMENTAL: '0'
+      CARGO_NET_RETRY: '3'
+      CC: gcc
+      CXX: g++
+      CFLAGS: ${{ matrix.cflags }}
+      CXXFLAGS: ${{ matrix.cflags }}
+      RUSTFLAGS: ${{ matrix.rustflags }}
+      # Ignore the builder's unrelated OpenSSL development libraries.
+      OPENSSL_NO_VENDOR: '0'
+      OPENSSL_STATIC: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22.14.0'
+          package-manager-cache: false
+      - name: Install checksum-pinned standalone Rust toolchain
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = "$AUTOROUTER_BUILD_MACHINE"
+          test "$(getconf GNU_LIBC_VERSION)" = 'glibc 2.28'
+          autorouter_bootstrap=$(mktemp -d)
+          trap 'rm -rf "$autorouter_bootstrap"' EXIT
+          autorouter_archive="rust-1.99.0-$AUTOROUTER_BUILD_TARGET.tar.xz"
+          curl --proto '=https' --tlsv1.2 --fail --show-error --location \
+            "https://static.rust-lang.org/dist/$autorouter_archive" \
+            --output "$autorouter_bootstrap/$autorouter_archive"
+          printf '%s  %s\n' "$AUTOROUTER_RUST_ARCHIVE_SHA256" "$autorouter_bootstrap/$autorouter_archive" | sha256sum --check --status
+          tar -xJf "$autorouter_bootstrap/$autorouter_archive" -C "$autorouter_bootstrap"
+          bash "$autorouter_bootstrap/rust-1.99.0-$AUTOROUTER_BUILD_TARGET/install.sh" \
+            --prefix=/opt/autorouter-rust --disable-ldconfig --without=rust-docs
+          printf '%s\n' /opt/autorouter-rust/bin >> "$GITHUB_PATH"
+          printf 'SOURCE_DATE_EPOCH=%s\n' "$(git show -s --format=%ct HEAD)" >> "$GITHUB_ENV"
+          /opt/autorouter-rust/bin/rustc --version | awk '$2 != "1.99.0" { exit 1 }'
+      - name: Record builder provenance without private environment values
+        run: |
+          set -euo pipefail
+          mkdir -p ../artifacts/rust-rewrite/gnu-portability
+          node --input-type=module <<'NODE'
+          import { execFileSync } from 'node:child_process';
+          import { createHash } from 'node:crypto';
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const run = (file, args) => execFileSync(file, args, { encoding: 'utf8' }).trim();
+          const hash = path => createHash('sha256').update(readFileSync(path)).digest('hex');
+          const record = {
+            schema_version: 1,
+            kind: 'gnu_glibc228_builder_provenance',
+            source_commit: run('git', ['rev-parse', 'HEAD']),
+            source_dirty: run('git', ['status', '--porcelain']) !== '',
+            cargo_lock_sha256: hash('Cargo.lock'),
+            workflow_sha256: hash('../.github/workflows/rust-portability.yml'),
+            image: process.env.AUTOROUTER_BUILD_IMAGE,
+            target: process.env.AUTOROUTER_BUILD_TARGET,
+            rust_archive_sha256: process.env.AUTOROUTER_RUST_ARCHIVE_SHA256,
+            rustc: run('rustc', ['-vV']),
+            cargo: run('cargo', ['--version']),
+            gcc: run('gcc', ['--version']),
+            linker: run('ld', ['--version']),
+            libc: run('getconf', ['GNU_LIBC_VERSION']),
+            kernel: run('uname', ['-srmo']),
+            rpm_packages: run('rpm', ['-qa', '--qf', '%{NAME}-%{VERSION}-%{RELEASE}.%{ARCH}\n']).split('\n').sort(),
+            rustflags: process.env.RUSTFLAGS,
+            cflags: process.env.CFLAGS,
+            openssl_no_vendor: process.env.OPENSSL_NO_VENDOR,
+            openssl_static: process.env.OPENSSL_STATIC,
+            source_date_epoch: process.env.SOURCE_DATE_EPOCH,
+            qualification: 'glibc symbol and container userland checks only; oldest kernel, all distributions, DNS/TLS deployment environments, WSL and full platform approval remain pending'
+          };
+          if (record.source_dirty) throw new Error('Portability build requires unchanged source');
+          writeFileSync('../artifacts/rust-rewrite/gnu-portability/builder.json', JSON.stringify(record, null, 2) + '\n');
+          NODE
+      # Fetch all targets: dependency notices inspect the complete lockfile.
+      - run: cargo fetch --locked
+      - run: cargo metadata --format-version 1 --locked --offline > /dev/null
+      - run: node vendor/verify-hyper.mjs
+      - run: node vendor/verify-node-ca.mjs
+      - run: node vendor/verify-openssl.mjs
+      - run: cargo fmt --check
+      - run: cargo clippy --workspace --all-targets --offline --locked -- -D warnings
+      - name: Native tests in the pinned glibc 2.28 userland
+        run: |
+          set -euo pipefail
+          cargo test --workspace --offline --locked --no-run
+          env -u LD_LIBRARY_PATH -u LD_PRELOAD cargo test --workspace --offline --locked
+      - run: cargo xtask parity --all --output artifacts/rust-rewrite/parity-gnu-portability
+      - run: cargo build --release --offline --locked --package claude-autorouter
+      - name: Inspect actual ELF and enforce required GLIBC symbol versions
+        run: |
+          set -euo pipefail
+          cargo xtask package-inspect "$AUTOROUTER_BUILD_TARGET" rust/target/release/claude-autorouter \
+            > ../artifacts/rust-rewrite/gnu-portability/elf-inspection.json
+          readelf --dynamic --version-info target/release/claude-autorouter \
+            > ../artifacts/rust-rewrite/gnu-portability/readelf.txt
+          cargo xtask package-inspect "$AUTOROUTER_BUILD_TARGET" rust/target/release/claude-autorouter --max-glibc 2.28 \
+            > ../artifacts/rust-rewrite/gnu-portability/glibc-symbol-gate.json
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const { inspection } = JSON.parse(readFileSync('../artifacts/rust-rewrite/gnu-portability/elf-inspection.json'));
+          if (inspection.dynamic_libraries.some(name => /(?:^|\/)lib(?:ssl|crypto)(?:[.-]|$)/.test(name))) {
+            throw new Error('Artifact links host OpenSSL despite vendored build requirement');
+          }
+          if (inspection.rpath !== null || inspection.runpath !== null) {
+            throw new Error('GNU artifact must not depend on builder library search paths');
+          }
+          NODE
+          env -u LD_LIBRARY_PATH -u LD_PRELOAD ./target/release/claude-autorouter --version
+      - run: node parity/check-config-commands.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+      - run: node parity/check-node-options-startup.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+      - run: node parity/check-gateway.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+      - run: node parity/check-gateway.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter --unicode
+      - run: node parity/check-http-parser.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+      - run: node parity/check-upstream-transport.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+      - run: node parity/check-upstream-security.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+      - run: node parity/check-tls-options.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+      - name: Install exact private archive offline and run the native lifecycle suites
+        run: |
+          set -euo pipefail
+          env -u LD_LIBRARY_PATH -u LD_PRELOAD cargo xtask package \
+            --binary "$AUTOROUTER_BUILD_TARGET=rust/target/release/claude-autorouter" \
+            --output artifacts/rust-rewrite/native-package-glibc228 --smoke
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: rust-glibc228-${{ matrix.target }}
+          path: |
+            artifacts/rust-rewrite/gnu-portability/*
+            artifacts/rust-rewrite/parity*.json
+            artifacts/rust-rewrite/tls-*.json
+            artifacts/rust-rewrite/evidence/*.json
+            artifacts/rust-rewrite/parity-gnu-portability/*.json
+            artifacts/rust-rewrite/native-package-glibc228/*
+          if-no-files-found: warn

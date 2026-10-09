@@ -1,0 +1,141 @@
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -133,6 +133,32 @@
+ 
+ #[doc(inline)]
+ pub use ffi::init;
++
++/// Initializes OpenSSL without implicitly loading a configuration file.
++///
++/// AutoRouter's local compatibility extension. Call this before any independent
++/// OpenSSL use: configuration already loaded by another user cannot be undone.
++/// This does not mutate environment variables or change verification callbacks.
++#[cfg(ossl300)]
++pub fn init_without_config() -> Result<(), error::ErrorStack> {
++    static INITIALIZED: std::sync::OnceLock<Result<(), error::ErrorStack>> =
++        std::sync::OnceLock::new();
++    INITIALIZED
++        .get_or_init(|| {
++            // OPENSSL_INIT_NO_LOAD_CONFIG from the public OpenSSL crypto.h.
++            const NO_LOAD_CONFIG: u64 = 0x0000_0080;
++            unsafe {
++                cvt(ffi::OPENSSL_init_ssl(
++                    NO_LOAD_CONFIG
++                        | ffi::OPENSSL_INIT_LOAD_SSL_STRINGS
++                        | ffi::OPENSSL_INIT_NO_ATEXIT,
++                    std::ptr::null(),
++                ))
++                .map(|_| ())
++            }
++        })
++        .clone()
++}
+ 
+ use libc::c_int;
+ #[cfg(ossl300)]
+--- a/src/x509/mod.rs
++++ b/src/x509/mod.rs
+@@ -804,6 +804,34 @@
+             }
+ 
+             Ok(certs)
++        }
++    }
++
++    /// Reads ordinary PEM certificates, retaining records before a parse error.
++    ///
++    /// AutoRouter's local compatibility extension. This has the same parser and
++    /// EOF rules as `stack_from_pem`, but exposes partial success as required by
++    /// Node's NODE_EXTRA_CA_CERTS loader. It does not load X509_AUX trust records.
++    pub fn stack_from_pem_partial(
++        pem: &[u8],
++    ) -> Result<(Vec<X509>, Option<ErrorStack>), ErrorStack> {
++        unsafe {
++            ffi::init();
++            let bio = MemBioSlice::new(pem)?;
++            let mut certs = vec![];
++            loop {
++                let r =
++                    ffi::PEM_read_bio_X509(bio.as_ptr(), ptr::null_mut(), None, ptr::null_mut());
++                if r.is_null() {
++                    let error = ErrorStack::get();
++                    let eof = error.errors().last().is_some_and(|error| {
++                        error.library_code() == ffi::ERR_LIB_PEM as libc::c_int
++                            && error.reason_code() == ffi::PEM_R_NO_START_LINE as libc::c_int
++                    });
++                    return Ok((certs, if eof { None } else { Some(error) }));
++                }
++                certs.push(X509(r));
++            }
+         }
+     }
+ }
+@@ -2377,6 +2405,25 @@
+         self.ia5_string(ffi::GEN_DNS)
+     }
+ 
++    /// Returns the raw IA5 bytes of a dNSName, including malformed UTF-8.
++    ///
++    /// AutoRouter's local compatibility extension. Presence must not be lost
++    /// when deciding whether the certificate's common name may be considered.
++    pub fn dnsname_bytes(&self) -> Option<&[u8]> {
++        unsafe {
++            if (*self.as_ptr()).type_ != ffi::GEN_DNS {
++                return None;
++            }
++            #[cfg(any(boringssl, awslc))]
++            let data = (*self.as_ptr()).d.ptr;
++            #[cfg(not(any(boringssl, awslc)))]
++            let data = (*self.as_ptr()).d;
++            let pointer = ASN1_STRING_get0_data(data as *mut _);
++            let length = ffi::ASN1_STRING_length(data as *mut _);
++            Some(util::from_raw_parts(pointer as *const u8, length as usize))
++        }
++    }
++
+     /// Returns the contents of this `GeneralName` if it is an `uniformResourceIdentifier`.
+     pub fn uri(&self) -> Option<&str> {
+         self.ia5_string(ffi::GEN_URI)
+--- a/src/x509/store.rs
++++ b/src/x509/store.rs
+@@ -155,6 +155,40 @@
+ /// [`X509_LOOKUP_hash_dir`]: https://docs.openssl.org/master/man3/X509_LOOKUP_hash_dir/
+ // FIXME should be an enum
+ pub struct HashDir;
++
++/// AutoRouter compatibility extension for OpenSSL 3's URI store lookup.
++#[cfg(ossl300)]
++pub struct Store;
++
++#[cfg(ossl300)]
++impl X509Lookup<Store> {
++    /// The third lookup used by OpenSSL's X509_STORE_set_default_paths.
++    pub fn store() -> &'static X509LookupMethodRef<Store> {
++        extern "C" {
++            fn X509_LOOKUP_store() -> *mut ffi::X509_LOOKUP_METHOD;
++        }
++        unsafe { X509LookupMethodRef::from_const_ptr(X509_LOOKUP_store()) }
++    }
++}
++
++#[cfg(ossl300)]
++impl X509LookupRef<Store> {
++    /// Registers a URI for lazy lookup, preserving OpenSSL's directory policy.
++    pub fn add_store(&mut self, uri: &std::ffi::CStr) -> Result<(), ErrorStack> {
++        // X509_LOOKUP_add_store is this macro in OpenSSL's public x509_vfy.h.
++        const X509_L_ADD_STORE: libc::c_int = 3;
++        unsafe {
++            cvt(ffi::X509_LOOKUP_ctrl(
++                self.as_ptr(),
++                X509_L_ADD_STORE,
++                uri.as_ptr(),
++                0,
++                std::ptr::null_mut(),
++            ))
++            .map(|_| ())
++        }
++    }
++}
+ 
+ impl X509Lookup<HashDir> {
+     /// Lookup method that loads certificates and CRLs on demand and caches

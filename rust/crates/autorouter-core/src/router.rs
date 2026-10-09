@@ -294,6 +294,10 @@ pub fn context_size_bytes(doc: &JsDocument, model: &str) -> usize {
     {
         return full;
     }
+    #[allow(
+        clippy::mutable_key_type,
+        reason = "JsString only caches immutable code units"
+    )]
     let mut references: HashMap<JsString, usize> = HashMap::new();
     let mut pending = array(doc, property(doc, doc.root(), "messages"))
         .unwrap_or_default()

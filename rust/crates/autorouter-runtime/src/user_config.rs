@@ -658,14 +658,22 @@ mod tests {
     #[tokio::test]
     async fn paths_missing_files_and_environment_precedence_match_existing_behavior() {
         let directory = Directory::new();
-        let mut env = Environment::new();
+        let mut env = Environment::from([
+            ("TYPESAFE_API_KEY".into(), "environment-key".into()),
+            ("PATH".into(), "/synthetic-test-path".into()),
+        ]);
         let mut keychain = MemoryKeychain::default();
         let context = directory.context(&env);
         assert_eq!(
             get_config_path(&context).unwrap(),
             directory.0.join(".config/claude-autorouter/config.json")
         );
-        assert!(!load(&context, &mut keychain).await.unwrap().exists);
+        let mut missing = load(&context, &mut keychain).await.unwrap();
+        assert!(!missing.exists);
+        assert_eq!(missing.path, get_config_path(&context).unwrap());
+        assert_eq!(missing.env, env);
+        missing.env.insert("COPY_ONLY".into(), "1".into());
+        assert!(!env.contains_key(OsStr::new("COPY_ONLY")));
         fs::write(directory.0.join(".env"), "TYPESAFE_API_KEY=project-key").unwrap();
         save_user_config(
             &json!({"TYPESAFE_API_KEY":"synthetic-saved","AUTOROUTER_PORT":"8123"}),
@@ -723,6 +731,22 @@ mod tests {
             get_config_path(&directory.context(&env))
                 .unwrap_err()
                 .contains("absolute path")
+        );
+        env.insert(
+            "XDG_CONFIG_HOME".into(),
+            directory.0.join("xdg").into_os_string(),
+        );
+        assert_eq!(
+            get_config_path(&directory.context(&env)).unwrap(),
+            directory.0.join("xdg/claude-autorouter/config.json")
+        );
+        env.insert(
+            "AUTOROUTER_CONFIG".into(),
+            directory.0.join("custom.json").into_os_string(),
+        );
+        assert_eq!(
+            get_config_path(&directory.context(&env)).unwrap(),
+            directory.0.join("custom.json")
         );
     }
     #[tokio::test]
@@ -822,6 +846,13 @@ mod tests {
         );
         assert_eq!(fs::metadata(&directory.0).unwrap().mode() & 0o777, 0o755);
         let snapshot = load(&context, &mut keychain).await.unwrap();
+        let revision = snapshot.revision.as_ref().unwrap();
+        assert_eq!(revision.len(), 64);
+        assert!(
+            revision
+                .bytes()
+                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+        );
         let inode = fs::metadata(&path).unwrap().ino();
         assert_eq!(
             save_user_config(&json!({}), &context, &SaveOptions::default(), &mut keychain)
@@ -829,6 +860,11 @@ mod tests {
                 .unwrap_err(),
             EXISTS
         );
+        assert_eq!(
+            load(&context, &mut keychain).await.unwrap().values,
+            snapshot.values
+        );
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o644)).unwrap();
         save_user_config(
             &json!({"AUTOROUTER_PORT":"7000"}),
             &context,
@@ -841,6 +877,7 @@ mod tests {
         .await
         .unwrap();
         assert_ne!(fs::metadata(&path).unwrap().ino(), inode);
+        assert_eq!(fs::metadata(&path).unwrap().mode() & 0o777, 0o600);
         assert_eq!(
             save_user_config(
                 &json!({"AUTOROUTER_PORT":"6000"}),
@@ -861,9 +898,11 @@ mod tests {
             "7000"
         );
         assert_eq!(fs::read_dir(path.parent().unwrap()).unwrap().count(), 1);
-        for target in [directory.0.join("victim"), directory.0.join("dangling")] {
+        let victim = directory.0.join("victim");
+        fs::write(&victim, "original contents").unwrap();
+        for target in [&victim, &directory.0.join("dangling")] {
             fs::remove_file(&path).unwrap();
-            symlink(&target, &path).unwrap();
+            symlink(target, &path).unwrap();
             for overwrite in [false, true] {
                 assert!(
                     save_user_config(
@@ -886,7 +925,8 @@ mod tests {
                     .file_type()
                     .is_symlink()
             );
-            assert!(!target.exists());
+            assert_eq!(fs::read(&victim).unwrap(), b"original contents");
+            assert!(!directory.0.join("dangling").exists());
         }
     }
 
@@ -1019,6 +1059,8 @@ mod tests {
             "{\"TYPESAFE_API_KEY\":\"PRIVATE_VALUE\",}",
             "[]",
             "null",
+            "\"a string\"",
+            "{\"__proto__\":{\"polluted\":\"value\"}}",
         ] {
             fs::write(directory.0.join("config.json"), content).unwrap();
             let error = load(&directory.context(&env), &mut keychain)
@@ -1033,25 +1075,74 @@ mod tests {
             "x\u{1b}",
             "x\u{85}",
             "x\u{2028}",
+            "x\u{2029}",
             "x\u{202e}",
         ] {
-            env.insert(
-                "AUTOROUTER_CONFIG".into(),
-                directory.0.join(name).into_os_string(),
-            );
-            assert!(
-                save_user_config(
+            for key in ["AUTOROUTER_CONFIG", "XDG_CONFIG_HOME"] {
+                let hostile =
+                    Environment::from([(key.into(), directory.0.join(name).into_os_string())]);
+                let context = directory.context(&hostile);
+                let error = get_config_path(&context).unwrap_err();
+                assert!(error.contains("control characters"));
+                assert!(!error.contains(&directory.0.to_string_lossy().to_string()));
+                assert!(!error.contains("synthetic"));
+                assert!(
+                    load_with_policy(
+                        &context,
+                        &LoadOptions {
+                            allow_missing: true,
+                            ..Default::default()
+                        },
+                        &mut keychain,
+                        None
+                    )
+                    .await
+                    .unwrap_err_message()
+                    .contains("control characters")
+                );
+                assert!(save_user_config(
                     &json!({"AUTOROUTER_SECRET_STORE":"keychain", "TYPESAFE_API_KEY":"synthetic"}),
-                    &directory.context(&env),
+                    &context,
                     &SaveOptions::default(),
                     &mut keychain
                 )
                 .await
                 .unwrap_err()
                 .contains("control characters")
-            );
+                );
+            }
         }
         assert_eq!(keychain.calls, 0);
+        let valid = directory.0.join("Müller 設定/config.json");
+        let unicode =
+            Environment::from([("AUTOROUTER_CONFIG".into(), valid.clone().into_os_string())]);
+        assert_eq!(
+            get_config_path(&directory.context(&unicode)).unwrap(),
+            valid
+        );
+        let invalid = Environment::from([(
+            "AUTOROUTER_CONFIG".into(),
+            directory.0.join("new/config.json").into_os_string(),
+        )]);
+        for values in [
+            json!({"PRIVATE_KEY":"value"}),
+            json!({"TYPESAFE_API_KEY":{"private":"PRIVATE_VALUE"}}),
+            json!([]),
+            Value::Null,
+        ] {
+            assert!(
+                !save_user_config(
+                    &values,
+                    &directory.context(&invalid),
+                    &SaveOptions::default(),
+                    &mut keychain
+                )
+                .await
+                .unwrap_err()
+                .contains("PRIVATE")
+            );
+        }
+        assert!(!directory.0.join("new").exists());
         let private_path = directory.0.join("PRIVATE_PATH");
         fs::write(&private_path, "file").unwrap();
         env.insert(
@@ -1074,6 +1165,353 @@ mod tests {
             .await
             .unwrap_err()
             .contains("PRIVATE")
+        );
+    }
+
+    #[tokio::test]
+    async fn saved_settings_and_stop_cap_keep_environment_precedence_without_mutation() {
+        let directory = Directory::new();
+        let mut env = Environment::from([
+            (
+                "XDG_CONFIG_HOME".into(),
+                directory.0.clone().into_os_string(),
+            ),
+            ("TYPESAFE_API_KEY".into(), "environment-key".into()),
+            ("AUTOROUTER_PORT".into(), "9000".into()),
+            ("PATH".into(), "/synthetic-test-path".into()),
+        ]);
+        let before = env.clone();
+        let mut keychain = MemoryKeychain::default();
+        let saved = json!({"TYPESAFE_API_KEY":"saved-key","AUTOROUTER_AUTH_MODE":"subscription","AUTOROUTER_PORT":"8787","ENABLE_TOOL_SEARCH":"auto:5","CLAUDE_CODE_STOP_HOOK_BLOCK_CAP":"2"});
+        let path = save_user_config(
+            &saved,
+            &directory.context(&env),
+            &SaveOptions::default(),
+            &mut keychain,
+        )
+        .await
+        .unwrap();
+        let original = fs::read(&path).unwrap();
+        let loaded = load(&directory.context(&env), &mut keychain).await.unwrap();
+        let mut expected: Environment = saved
+            .as_object()
+            .unwrap()
+            .iter()
+            .map(|(k, v)| (k.into(), v.as_str().unwrap().into()))
+            .collect();
+        expected.extend(env.clone());
+        assert!(loaded.exists);
+        assert_eq!(loaded.path, path);
+        assert_eq!(loaded.env, expected);
+        assert_eq!(env, before);
+        assert_eq!(serde_json::from_slice::<Value>(&original).unwrap(), saved);
+        let config = autorouter_core::config::read_config_document(
+            &loaded.env_document,
+            false,
+            &directory.0,
+        )
+        .unwrap();
+        assert_eq!(
+            loaded.env[OsStr::new("CLAUDE_CODE_STOP_HOOK_BLOCK_CAP")],
+            "2"
+        );
+        assert_eq!(config.stop_hook_block_cap, Some(2));
+        env.insert("CLAUDE_CODE_STOP_HOOK_BLOCK_CAP".into(), "0".into());
+        let before = env.clone();
+        let overridden = load(&directory.context(&env), &mut keychain).await.unwrap();
+        assert_eq!(
+            autorouter_core::config::read_config_document(
+                &overridden.env_document,
+                false,
+                &directory.0
+            )
+            .unwrap()
+            .stop_hook_block_cap,
+            Some(0)
+        );
+        assert_eq!(env, before);
+        assert_eq!(fs::read(&path).unwrap(), original);
+        assert!(
+            save_user_config(
+                &json!({"CLAUDE_CODE_STOP_HOOK_BLOCK_CAP":2}),
+                &directory.context(&env),
+                &SaveOptions {
+                    overwrite: true,
+                    ..Default::default()
+                },
+                &mut keychain
+            )
+            .await
+            .unwrap_err()
+            .contains("values must be strings")
+        );
+        assert_eq!(fs::read(&path).unwrap(), original);
+    }
+
+    #[tokio::test]
+    async fn global_settings_ignore_both_repository_files_and_create_private_xdg_ancestors() {
+        let directory = Directory::new();
+        fs::set_permissions(&directory.0, fs::Permissions::from_mode(0o755)).unwrap();
+        let xdg = directory.0.join("new-parent");
+        let env = Environment::from([("XDG_CONFIG_HOME".into(), xdg.clone().into_os_string())]);
+        let mut keychain = MemoryKeychain::default();
+        let path = save_user_config(
+            &json!({"TYPESAFE_API_KEY":"user-key"}),
+            &directory.context(&env),
+            &SaveOptions::default(),
+            &mut keychain,
+        )
+        .await
+        .unwrap();
+        assert_eq!(fs::metadata(&directory.0).unwrap().mode() & 0o777, 0o755);
+        for parent in [&xdg, path.parent().unwrap()] {
+            assert_eq!(fs::metadata(parent).unwrap().mode() & 0o777, 0o700);
+        }
+        assert_eq!(fs::metadata(&path).unwrap().mode() & 0o777, 0o600);
+        assert_eq!(
+            fs::read_dir(path.parent().unwrap())
+                .unwrap()
+                .map(|entry| entry.unwrap().file_name())
+                .collect::<Vec<_>>(),
+            ["config.json"]
+        );
+        for name in ["first-repository", "second-repository"] {
+            let cwd = directory.0.join(name);
+            fs::create_dir(&cwd).unwrap();
+            fs::write(
+                cwd.join(".env"),
+                "TYPESAFE_API_KEY=repository-key\nAUTOROUTER_AUTH_MODE=subscription\n",
+            )
+            .unwrap();
+            fs::write(
+                cwd.join("config.json"),
+                r#"{"TYPESAFE_API_KEY":"repository-key"}"#,
+            )
+            .unwrap();
+            let loaded = load(
+                &ConfigContext {
+                    env: &env,
+                    cwd: &cwd,
+                    home: &directory.0,
+                },
+                &mut keychain,
+            )
+            .await
+            .unwrap();
+            assert_eq!(loaded.env[OsStr::new("TYPESAFE_API_KEY")], "user-key");
+            assert!(!loaded.env.contains_key(OsStr::new("AUTOROUTER_AUTH_MODE")));
+            assert_eq!(loaded.path, path);
+        }
+    }
+
+    #[tokio::test]
+    async fn snapshots_distinguish_saved_values_from_overrides_and_reject_stale_replacements() {
+        let directory = Directory::new();
+        let path = directory.0.join("config.json");
+        let env = Environment::from([
+            ("AUTOROUTER_CONFIG".into(), path.clone().into_os_string()),
+            ("AUTOROUTER_PORT".into(), "9000".into()),
+        ]);
+        let context = directory.context(&env);
+        let mut keychain = MemoryKeychain::default();
+        let missing = load_with_policy(
+            &context,
+            &LoadOptions {
+                allow_missing: true,
+                ..Default::default()
+            },
+            &mut keychain,
+            None,
+        )
+        .await
+        .unwrap();
+        assert_eq!(missing.revision, None);
+        assert!(missing.values.is_empty());
+        save_user_config(
+            &json!({"AUTOROUTER_PORT":"8000"}),
+            &context,
+            &SaveOptions {
+                expected_revision: Some(missing.revision),
+                ..Default::default()
+            },
+            &mut keychain,
+        )
+        .await
+        .unwrap();
+        let snapshot = load(&context, &mut keychain).await.unwrap();
+        assert_eq!(
+            Value::Object(snapshot.values),
+            json!({"AUTOROUTER_PORT":"8000"})
+        );
+        assert_eq!(snapshot.env[OsStr::new("AUTOROUTER_PORT")], "9000");
+        let revision = snapshot.revision.as_ref().unwrap();
+        assert_eq!(revision.len(), 64);
+        assert!(
+            revision
+                .bytes()
+                .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+        );
+        save_user_config(
+            &json!({"AUTOROUTER_PORT":"7000"}),
+            &context,
+            &SaveOptions {
+                overwrite: true,
+                ..Default::default()
+            },
+            &mut keychain,
+        )
+        .await
+        .unwrap();
+        assert_eq!(
+            save_user_config(
+                &json!({"AUTOROUTER_PORT":"6000"}),
+                &context,
+                &SaveOptions {
+                    overwrite: true,
+                    expected_revision: Some(snapshot.revision),
+                    ..Default::default()
+                },
+                &mut keychain
+            )
+            .await
+            .unwrap_err(),
+            CHANGED
+        );
+        assert_eq!(
+            load(&context, &mut keychain).await.unwrap().values["AUTOROUTER_PORT"],
+            "7000"
+        );
+        assert_eq!(
+            fs::read_dir(&directory.0)
+                .unwrap()
+                .map(|entry| entry.unwrap().file_name())
+                .collect::<Vec<_>>(),
+            ["config.json"]
+        );
+    }
+
+    #[tokio::test]
+    async fn keychain_secrets_are_absent_from_disk_scoped_to_the_path_and_overridden_by_environment()
+     {
+        let directory = Directory::new();
+        let mut env = Environment::from([(
+            "AUTOROUTER_CONFIG".into(),
+            directory.0.join("config.json").into_os_string(),
+        )]);
+        let mut keychain = MemoryKeychain::default();
+        let path = save_user_config(&json!({"AUTOROUTER_SECRET_STORE":"keychain","AUTOROUTER_AUTH_MODE":"api-key","ANTHROPIC_API_KEY":"private-provider","TYPESAFE_API_KEY":"private-jev"}), &directory.context(&env), &SaveOptions::default(), &mut keychain).await.unwrap();
+        let contents = fs::read(&path).unwrap();
+        assert_eq!(
+            serde_json::from_slice::<Value>(&contents).unwrap(),
+            json!({"AUTOROUTER_SECRET_STORE":"keychain","AUTOROUTER_AUTH_MODE":"api-key"})
+        );
+        assert!(!String::from_utf8(contents).unwrap().contains("private-"));
+        assert_eq!(fs::metadata(&path).unwrap().mode() & 0o777, 0o600);
+        assert_eq!(keychain.items.len(), 2);
+        let loaded = load(&directory.context(&env), &mut keychain).await.unwrap();
+        assert_eq!(
+            loaded.env[OsStr::new("ANTHROPIC_API_KEY")],
+            "private-provider"
+        );
+        assert_eq!(loaded.values["TYPESAFE_API_KEY"], "private-jev");
+        assert_eq!(
+            loaded.keychain_secrets,
+            ["ANTHROPIC_API_KEY", "TYPESAFE_API_KEY"]
+        );
+        assert!(!loaded.env.contains_key(OsStr::new("AUTOROUTER_TOKEN")));
+        let other_env = Environment::from([(
+            "AUTOROUTER_CONFIG".into(),
+            directory.0.join("other.json").into_os_string(),
+        )]);
+        save_user_config(
+            &json!({"AUTOROUTER_SECRET_STORE":"keychain"}),
+            &directory.context(&other_env),
+            &SaveOptions::default(),
+            &mut keychain,
+        )
+        .await
+        .unwrap();
+        let other = load(&directory.context(&other_env), &mut keychain)
+            .await
+            .unwrap();
+        assert!(other.keychain_secrets.is_empty());
+        assert!(!other.env.contains_key(OsStr::new("ANTHROPIC_API_KEY")));
+        env.insert("ANTHROPIC_API_KEY".into(), "environment-provider".into());
+        assert_eq!(
+            load(&directory.context(&env), &mut keychain)
+                .await
+                .unwrap()
+                .env[OsStr::new("ANTHROPIC_API_KEY")],
+            "environment-provider"
+        );
+        assert_eq!(keychain.items.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn saved_and_environment_policy_locks_survive_allowlist_repair_mode() {
+        let directory = Directory::new();
+        let mut env = Environment::new();
+        let mut keychain = MemoryKeychain::default();
+        save_user_config(&json!({"AUTOROUTER_SESSION_LOG_MODE":"prompts","AUTOROUTER_SESSION_LOG_DIR":directory.0.join("logs")}), &directory.context(&env), &SaveOptions::default(), &mut keychain).await.unwrap();
+        env.insert("AUTOROUTER_SESSION_LOG_MODE".into(), "prompts".into());
+        env.insert(
+            "AUTOROUTER_UPSTREAM_URL".into(),
+            "https://proxy.example".into(),
+        );
+        let before = env.clone();
+        let policy = LoadedPolicy {
+            path: directory.0.join("synthetic-policy.json"),
+            values: json!({"allowed_evaluators":["ollama"],"session_log_mode":"metadata","upstream_url":"https://api.anthropic.com"}),
+        };
+        let loaded = load_with_policy(
+            &directory.context(&env),
+            &LoadOptions::default(),
+            &mut keychain,
+            Some(&policy),
+        )
+        .await
+        .unwrap();
+        let config = autorouter_core::config::read_config_document(
+            &loaded.env_document,
+            false,
+            &directory.0,
+        )
+        .unwrap();
+        assert!(config.session_log_mode == autorouter_core::config::SessionLogMode::Metadata);
+        assert_eq!(config.upstream, "https://api.anthropic.com");
+        assert_eq!(
+            loaded.policy_locked,
+            ["AUTOROUTER_SESSION_LOG_MODE", "AUTOROUTER_UPSTREAM_URL"]
+        );
+        assert_eq!(loaded.policy_path.as_ref(), Some(&policy.path));
+        assert_eq!(env, before);
+        env.insert("AUTOROUTER_EVALUATOR".into(), "jev".into());
+        assert!(
+            load_with_policy(
+                &directory.context(&env),
+                &LoadOptions::default(),
+                &mut keychain,
+                Some(&policy)
+            )
+            .await
+            .unwrap_err_message()
+            .contains("AUTOROUTER_EVALUATOR is not permitted")
+        );
+        let repaired = load_with_policy(
+            &directory.context(&env),
+            &LoadOptions {
+                enforce_policy: false,
+                ..Default::default()
+            },
+            &mut keychain,
+            Some(&policy),
+        )
+        .await
+        .unwrap();
+        assert_eq!(repaired.env[OsStr::new("AUTOROUTER_EVALUATOR")], "jev");
+        assert_eq!(
+            repaired.policy_locked,
+            ["AUTOROUTER_SESSION_LOG_MODE", "AUTOROUTER_UPSTREAM_URL"]
         );
     }
 

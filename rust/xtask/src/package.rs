@@ -4,13 +4,13 @@
 pub(crate) mod archive;
 #[path = "package_binary.rs"]
 pub(crate) mod binary;
-use crate::process::{capture, read_bounded};
+use crate::process::{capture, capture_result, read_bounded};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256, Sha512};
 use std::collections::{BTreeMap, HashSet};
 use std::fs::{self, OpenOptions};
 use std::io::Write;
-use std::os::unix::fs::{PermissionsExt, symlink};
+use std::os::unix::fs::{OpenOptionsExt, PermissionsExt, symlink};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -27,6 +27,7 @@ fn put(path: &Path, bytes: &[u8], mode: u32) -> Result<(), String> {
     let mut file = OpenOptions::new()
         .create_new(true)
         .write(true)
+        .mode(mode)
         .open(path)
         .map_err(|_| "Refusing to overwrite an existing package file")?;
     file.set_permissions(fs::Permissions::from_mode(mode))
@@ -113,7 +114,11 @@ fn licenses(root: &Path) -> Result<LicenseMaterial, String> {
             .current_dir(root.join("rust")),
         b"",
         Duration::from_secs(60),
-    )?;
+    )
+    .map_err(|_| {
+        "Cannot read locked offline Cargo dependency metadata for license inventory; run `cargo fetch --locked` from the rust directory to cache dependencies for all targets, then retry"
+            .to_owned()
+    })?;
     let metadata: Value = serde_json::from_slice(&bytes).map_err(|_| "Invalid Cargo metadata")?;
     let mut output = Vec::new();
     let mut components = Vec::new();
@@ -161,6 +166,44 @@ fn licenses(root: &Path) -> Result<LicenseMaterial, String> {
                 paths.push(entry.path());
             }
         }
+        if name == "openssl-src" {
+            if version != "300.6.1+3.6.3" {
+                return Err(
+                    "Review bundled OpenSSL license paths and hashes for the new source version"
+                        .into(),
+                );
+            }
+            for (relative, expected, component, component_version, license, kind) in [
+                (
+                    "openssl/LICENSE.txt",
+                    "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a",
+                    "openssl-native",
+                    "3.6.3",
+                    "Apache-2.0",
+                    "bundled native source",
+                ),
+                (
+                    "openssl/external/perl/Text-Template-1.56/LICENSE",
+                    "9837f05336ef3cbacb6a96e1672a0426d81ad01191f214b8d48e22ca62338181",
+                    "openssl-text-template",
+                    "1.56",
+                    "Perl 5 terms: Artistic License or GPL version 1 or later; see bundled text",
+                    "bundled build tool; not an application runtime dependency",
+                ),
+            ] {
+                let path = directory.join(relative);
+                let content = read_bounded(&path, 1024 * 1024)?;
+                if sha(&content) != expected {
+                    return Err("Bundled OpenSSL license checksum mismatch".into());
+                }
+                paths.push(path);
+                components.push(json!({
+                    "name":component,"version":component_version,"license":license,
+                    "source":package["source"],"bundled_by":format!("{name}@{version}"),
+                    "kind":kind,"license_path":relative,"license_sha256":expected
+                }));
+            }
+        }
         paths.sort();
         paths.dedup();
         if paths.is_empty() && name == "alloc-stdlib" && version == "0.3.0" {
@@ -179,7 +222,9 @@ fn licenses(root: &Path) -> Result<LicenseMaterial, String> {
             output.extend(
                 format!(
                     "\n===== {name}@{version}: {} =====\n",
-                    path.file_name().unwrap().to_string_lossy()
+                    path.strip_prefix(directory)
+                        .unwrap_or_else(|_| Path::new(path.file_name().unwrap()))
+                        .to_string_lossy()
                 )
                 .as_bytes(),
             );
@@ -543,7 +588,7 @@ fn utility_path(directory: &Path) -> Result<(), String> {
     Ok(())
 }
 fn smoke(archive: &Path, root: &Path) -> Result<Value, String> {
-    verify(archive, None)?;
+    let verified = verify(archive, None)?;
     let archive = archive
         .canonicalize()
         .map_err(|_| "Cannot resolve archive")?;
@@ -566,6 +611,45 @@ fn smoke(archive: &Path, root: &Path) -> Result<Value, String> {
         .current_dir(&temporary.0);
     capture(&mut install, b"", Duration::from_secs(120))?;
     let launcher = prefix.join("bin/claude-autorouter");
+    let package_root = prefix.join("lib/node_modules/claude-autorouter");
+    let host_arch = std::env::consts::ARCH;
+    let host_os = std::env::consts::OS;
+    let base_target = match (host_os, host_arch) {
+        ("macos", "aarch64") => "aarch64-apple-darwin",
+        ("macos", "x86_64") => "x86_64-apple-darwin",
+        ("linux", "aarch64") => "aarch64-unknown-linux-gnu",
+        ("linux", "x86_64") => "x86_64-unknown-linux-gnu",
+        ("linux", "arm") => "armv7-unknown-linux-gnueabihf",
+        ("linux", "powerpc64") if cfg!(target_endian = "little") => "powerpc64le-unknown-linux-gnu",
+        ("linux", "s390x") => "s390x-unknown-linux-gnu",
+        ("linux", "loongarch64") => "loongarch64-unknown-linux-gnu",
+        ("linux", "riscv64") => "riscv64gc-unknown-linux-gnu",
+        _ => return Err("Installed smoke has no qualified host architecture mapping".into()),
+    };
+    let artifacts = verified["artifacts"]
+        .as_array()
+        .ok_or("Missing verified artifact list")?;
+    // The dispatcher prefers an included static musl executable on these hosts.
+    let musl_target = format!("{host_arch}-unknown-linux-musl");
+    let target = if host_os == "linux"
+        && matches!(host_arch, "aarch64" | "x86_64")
+        && artifacts
+            .iter()
+            .any(|artifact| artifact["target"] == musl_target)
+    {
+        musl_target.as_str()
+    } else {
+        base_target
+    };
+    let native_relative = artifacts
+        .iter()
+        .find(|artifact| artifact["target"] == target)
+        .and_then(|artifact| artifact["path"].as_str())
+        .ok_or("Verified archive lacks the expected host executable")?;
+    let native_executable = package_root
+        .join(native_relative)
+        .canonicalize()
+        .map_err(|_| "Cannot resolve verified installed native executable")?;
     if !fs::symlink_metadata(&launcher)
         .map_err(|_| "npm did not install the command")?
         .file_type()
@@ -608,17 +692,58 @@ fn smoke(archive: &Path, root: &Path) -> Result<Value, String> {
             "commands",
             "--test",
             "edge_cases",
+            "--test",
+            "launcher_logging",
+            "--test",
+            "onboarding_local",
+            "--test",
+            "launcher_contracts",
+            "--test",
+            "startup_options",
+            "--test",
+            "config_contracts",
         ])
         .current_dir(root.join("rust"))
-        .env("AUTOROUTER_TEST_EXECUTABLE", &launcher);
-    let output = capture(&mut lifecycle, b"", Duration::from_secs(180))
+        .env("AUTOROUTER_TEST_EXECUTABLE", &launcher)
+        .env("AUTOROUTER_TEST_NATIVE_EXECUTABLE", &native_executable);
+    let result = capture_result(&mut lifecycle, b"", Duration::from_secs(180))
         .map_err(|error| format!("Installed archive CLI lifecycle check failed: {error}"))?;
-    let output = String::from_utf8(output).map_err(|_| "Invalid lifecycle test output")?;
+    if !result.status.success() {
+        // Only completed, bounded captures are retained. Timeout/overflow
+        // failures above keep their sanitized error and discard partial output.
+        let persist = || -> Result<PathBuf, String> {
+            let nonce = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .map_err(|_| "Invalid fixture report clock")?
+                .as_nanos();
+            let path = archive
+                .parent()
+                .ok_or("Missing archive parent")?
+                .join(format!("installed-lifecycle-failure-{nonce}.json"));
+            let report = json!({"kind":"synthetic_installed_lifecycle_failure","archive_sha256":verified["sha256"],"exit":result.status.to_string(),"stdout":String::from_utf8_lossy(&result.stdout),"stderr":String::from_utf8_lossy(&result.stderr)});
+            put(
+                &path,
+                &serde_json::to_vec_pretty(&report)
+                    .map_err(|_| "Cannot serialize synthetic lifecycle diagnostics")?,
+                0o600,
+            )?;
+            Ok(path)
+        };
+        let diagnostic = match persist() {
+            Ok(path) => format!("synthetic diagnostics retained at {}", path.display()),
+            Err(error) => format!("cannot retain synthetic diagnostics: {error}"),
+        };
+        return Err(format!(
+            "Installed archive CLI lifecycle failed ({}); {diagnostic}",
+            result.status
+        ));
+    }
+    let output = String::from_utf8(result.stdout).map_err(|_| "Invalid lifecycle test output")?;
     let summaries = output
         .lines()
         .filter(|line| line.starts_with("test result: ok."))
         .collect::<Vec<_>>();
-    if summaries.len() != 2
+    if summaries.len() != 7
         || summaries.iter().any(|line| {
             line.strip_prefix("test result: ok. ")
                 .and_then(|value| value.split_whitespace().next())
@@ -626,15 +751,30 @@ fn smoke(archive: &Path, root: &Path) -> Result<Value, String> {
                 .is_none_or(|count| count == 0)
         })
     {
-        return Err("Installed archive lifecycle did not run both nonempty test suites".into());
+        return Err(
+            "Installed archive lifecycle did not run all seven nonempty test suites".into(),
+        );
     }
     Ok(
-        json!({"passed":true,"offline_install":true,"ignore_scripts":true,"npm_symlink":true,"paths_with_spaces_quotes_and_dollar":true,"unrelated_cwd":true,"node_absent_from_execution_path":true,"help_version":true,"complete_launcher_lifecycle":{"passed":true,"test_suites":["crates/claude-autorouter/tests/commands.rs","crates/claude-autorouter/tests/edge_cases.rs"],"summaries":summaries}}),
+        json!({"passed":true,"offline_install":true,"ignore_scripts":true,"npm_symlink":true,"paths_with_spaces_quotes_and_dollar":true,"unrelated_cwd":true,"node_absent_from_execution_path":true,"help_version":true,"complete_launcher_lifecycle":{"passed":true,"test_suites":["crates/claude-autorouter/tests/commands.rs","crates/claude-autorouter/tests/edge_cases.rs","crates/claude-autorouter/tests/launcher_logging.rs","crates/claude-autorouter/tests/onboarding_local.rs","crates/claude-autorouter/tests/launcher_contracts.rs","crates/claude-autorouter/tests/startup_options.rs","crates/claude-autorouter/tests/config_contracts.rs"],"summaries":summaries}}),
     )
 }
 pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
     let command = args.first().map(String::as_str).unwrap_or("");
     let report = match command {
+        "package-inspect" => {
+            if args.len() != 3 && !(args.len() == 5 && args[3] == "--max-glibc") {
+                return Err(
+                    "Usage: cargo xtask package-inspect TARGET BINARY [--max-glibc VERSION]".into(),
+                );
+            }
+            let bytes = read_bounded(&root.join(&args[2]), archive::MAX_ARCHIVE as u64)?;
+            let inspection = binary::inspect(&args[1], &bytes)?;
+            if let Some(baseline) = args.get(4) {
+                binary::enforce_glibc_baseline(&inspection, baseline)?;
+            }
+            json!({"sha256":sha(&bytes),"bytes":bytes.len(),"inspection":inspection,"glibc_symbol_baseline":args.get(4).map(|maximum|json!({"maximum":maximum,"passed":true,"runtime_qualification":"pending"}))})
+        }
         "package" => {
             let mut destination = None;
             let mut artifacts = Vec::new();
@@ -692,6 +832,10 @@ mod tests {
             "hyper@1.12.0: LICENSE",
             "Bundled Node.js root certificates",
             "Certificate extraction provenance",
+            "openssl@0.10.81: LICENSE",
+            "openssl@0.10.81: LICENSE-APACHE",
+            "openssl-src@300.6.1+3.6.3: openssl/LICENSE.txt",
+            "openssl-src@300.6.1+3.6.3: openssl/external/perl/Text-Template-1.56/LICENSE",
         ] {
             assert!(text.contains(marker), "missing {marker}");
         }
@@ -701,12 +845,21 @@ mod tests {
                 .iter()
                 .any(|value| value["name"] == "hyper" && value["vendored"] == true)
         );
+        assert!(material.components.iter().any(|value| {
+            value["name"] == "openssl" && value["version"] == "0.10.81" && value["vendored"] == true
+        }));
         assert!(
             material
                 .components
                 .iter()
                 .any(|value| value["name"] == "node-root-certificates")
         );
+        assert!(material.components.iter().any(|value| {
+            value["name"] == "openssl-native"
+                && value["version"] == "3.6.3"
+                && value["license_sha256"]
+                    == "7d5450cb2d142651b8afa315b5f238efc805dad827d91ba367d8516bc9d49e7a"
+        }));
     }
 
     #[test]

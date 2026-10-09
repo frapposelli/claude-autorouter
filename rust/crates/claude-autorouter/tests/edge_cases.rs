@@ -303,7 +303,10 @@ fn stale_hidden_edit_cannot_replace_a_concurrent_configuration_change() {
     assert!(!child.wait().success());
     terminal.restored();
     assert_eq!(fs::read(home.config()).unwrap(), concurrent);
-    assert!(String::from_utf8_lossy(&terminal.visible).contains("changed"));
+    assert!(
+        String::from_utf8_lossy(&terminal.visible)
+            .contains("changed while this operation was running")
+    );
 }
 
 #[test]

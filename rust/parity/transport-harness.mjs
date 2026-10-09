@@ -37,7 +37,7 @@ export async function transportHarness(prefix) {
     server.on('connection', socket => { sockets.add(socket); socket.on('close', () => sockets.delete(socket)); socket.on('error', () => {}); });
     return server;
   }
-  async function gateway(name, upstream, extra = {}) {
+  async function gateway(name, upstream, extra = {}, { allowStartupFailure = false } = {}) {
     const directory = join(scratch, `${name}-${Math.random().toString(16).slice(2)}`);
     await mkdir(directory, { mode: 0o700 });
     const child = spawn(name === 'node' ? process.execPath : candidate, name === 'node' ? [join(reference, 'bin/autorouter.mjs'), 'serve'] : ['serve'], { cwd: directory, env: { HOME: directory, XDG_CONFIG_HOME: directory, TMPDIR: directory, PATH: directory, AUTOROUTER_PORT: '0', AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'synthetic-evaluator', ANTHROPIC_API_KEY: 'synthetic-provider', AUTOROUTER_TOKEN: token, AUTOROUTER_UPSTREAM_URL: upstream, ...extra }, stdio: ['ignore', 'ignore', 'pipe'] });
@@ -58,6 +58,11 @@ export async function transportHarness(prefix) {
         port = Number(stderr.match(/AutoRouter listening on http:\/\/127\.0\.0\.1:(\d+)/)?.[1]);
         if (port || spawnError || child.exitCode !== null) break;
         await delay(5);
+      }
+      if (!port && allowStartupFailure) {
+        const startup_failure = { exit_code: child.exitCode, signal: child.signalCode, timed_out: !spawnError && child.exitCode === null && child.signalCode === null, stderr: stderr.replaceAll(process.execPath, 'runtime').replaceAll(candidate, 'runtime').replaceAll(scratch, '<fixture>').trim() };
+        await stop();
+        return { startup_failure };
       }
       assert.ok(port, 'Synthetic gateway failed startup');
       return { port, stop };

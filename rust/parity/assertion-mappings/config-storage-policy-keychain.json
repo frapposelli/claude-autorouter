@@ -1,0 +1,728 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "scope": "33 frozen definitions: saved configuration12, policy7, Keychain14; isolated paths and fake security adapters only. No actual system policy or Keychain access.",
+  "semantics": "A whole definition is covered only when all assertions and local variants have executed native counterparts. Native String errors, unexecuted platform branches and untested CLI injection paths remain explicit gaps.",
+  "native_evidence": {
+    "path": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+    "sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+    "passed": 16
+  },
+  "counts": {
+    "partial": 11,
+    "covered": 17,
+    "pending": 5
+  },
+  "rust_test_catalog": {
+    "rust/crates/autorouter-runtime/src/keychain.rs#keychain::tests::secrets_use_stdin_and_readback_checks_interactive_failures": {
+      "source_sha256": "dc39739da83339122ca678d7311cf25ba08b087851ea125336a41a50ba32c1f5",
+      "source_line": 230,
+      "execution_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+      "execution_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d"
+    },
+    "rust/crates/autorouter-runtime/src/keychain.rs#keychain::tests::invalid_names_and_secrets_never_invoke_the_tool_and_errors_are_private": {
+      "source_sha256": "dc39739da83339122ca678d7311cf25ba08b087851ea125336a41a50ba32c1f5",
+      "source_line": 291,
+      "execution_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+      "execution_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d"
+    },
+    "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::keychain_secrets_are_absent_from_disk_scoped_to_the_path_and_overridden_by_environment": {
+      "source_sha256": "33e3c12730d6075a9d8262d23d6bb332fd06cfba72c13370b5c791b678fa220f",
+      "source_line": 1394,
+      "execution_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+      "execution_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d"
+    },
+    "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::both_store_migrations_preserve_secrets_and_failed_writes_leave_original_intact": {
+      "source_sha256": "33e3c12730d6075a9d8262d23d6bb332fd06cfba72c13370b5c791b678fa220f",
+      "source_line": 934,
+      "execution_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+      "execution_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d"
+    },
+    "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::unavailable_keychain_can_be_overridden_but_not_destructively_migrated": {
+      "source_sha256": "33e3c12730d6075a9d8262d23d6bb332fd06cfba72c13370b5c791b678fa220f",
+      "source_line": 999,
+      "execution_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+      "execution_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d"
+    },
+    "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::invalid_content_and_hostile_paths_fail_without_secret_disclosure_or_side_effects": {
+      "source_sha256": "33e3c12730d6075a9d8262d23d6bb332fd06cfba72c13370b5c791b678fa220f",
+      "source_line": 1049,
+      "execution_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+      "execution_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d"
+    },
+    "rust/crates/autorouter-runtime/src/policy.rs#policy::tests::only_trusted_regular_files_and_directories_are_loaded": {
+      "source_sha256": "4cb1405055faa941752aa5234a462e7b8d37db4912cb184dcf76cf490c36aa3e",
+      "source_line": 87,
+      "execution_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+      "execution_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d"
+    },
+    "rust/crates/autorouter-runtime/src/policy.rs#policy::tests::allowlists_cover_both_defaults_and_explicit_choices_while_locks_preserve_the_caller": {
+      "source_sha256": "4cb1405055faa941752aa5234a462e7b8d37db4912cb184dcf76cf490c36aa3e",
+      "source_line": 187,
+      "execution_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+      "execution_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d"
+    },
+    "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::saved_and_environment_policy_locks_survive_allowlist_repair_mode": {
+      "source_sha256": "33e3c12730d6075a9d8262d23d6bb332fd06cfba72c13370b5c791b678fa220f",
+      "source_line": 1451,
+      "execution_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+      "execution_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d"
+    },
+    "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::organization_locks_override_values_and_environment_including_repair_mode": {
+      "source_sha256": "33e3c12730d6075a9d8262d23d6bb332fd06cfba72c13370b5c791b678fa220f",
+      "source_line": 1519,
+      "execution_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+      "execution_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d"
+    },
+    "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::paths_missing_files_and_environment_precedence_match_existing_behavior": {
+      "source_sha256": "33e3c12730d6075a9d8262d23d6bb332fd06cfba72c13370b5c791b678fa220f",
+      "source_line": 659,
+      "execution_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+      "execution_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d"
+    },
+    "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::saved_settings_and_stop_cap_keep_environment_precedence_without_mutation": {
+      "source_sha256": "33e3c12730d6075a9d8262d23d6bb332fd06cfba72c13370b5c791b678fa220f",
+      "source_line": 1172,
+      "execution_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+      "execution_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d"
+    },
+    "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::global_settings_ignore_both_repository_files_and_create_private_xdg_ancestors": {
+      "source_sha256": "33e3c12730d6075a9d8262d23d6bb332fd06cfba72c13370b5c791b678fa220f",
+      "source_line": 1252,
+      "execution_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+      "execution_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d"
+    },
+    "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::private_atomic_files_reject_stale_revisions_and_all_symlinks": {
+      "source_sha256": "33e3c12730d6075a9d8262d23d6bb332fd06cfba72c13370b5c791b678fa220f",
+      "source_line": 822,
+      "execution_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+      "execution_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d"
+    },
+    "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::snapshots_distinguish_saved_values_from_overrides_and_reject_stale_replacements": {
+      "source_sha256": "33e3c12730d6075a9d8262d23d6bb332fd06cfba72c13370b5c791b678fa220f",
+      "source_line": 1308,
+      "execution_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+      "execution_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d"
+    }
+  },
+  "mappings": [
+    {
+      "baseline_test": "test/keychain.test.mjs#1",
+      "name": "the security tool receives secrets on stdin only and reads them back to confirm the save",
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "baseline_definition_sha256": "fc00e99bb2d65dceefce21217b8ede805e3be5aeaf791c8758fa41d886bb5c72",
+      "baseline_line": 32,
+      "reviewed_assertion_calls": 5,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/keychain.rs#keychain::tests::secrets_use_stdin_and_readback_checks_interactive_failures"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Escaped secret goes only through stdin; exact read/delete argument arrays, confirmed write/readback, missing item and both successful/missing removal paths pass."
+      ],
+      "remaining": [
+        "The baseline observes executable /usr/bin/security through its subprocess mock. NativeSecurityRunner hardcodes that path, but the fake SecurityRunner boundary records arguments/input only; no retained executable-selection observation closes that assertion."
+      ]
+    },
+    {
+      "baseline_test": "test/keychain.test.mjs#2",
+      "name": "keychain failures are generic, and invalid or unsupported use is rejected",
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "baseline_definition_sha256": "8b65255732618ea4eb5b170d4f969b42d7d8093fe10895e37ec189557f980e13",
+      "baseline_line": 61,
+      "reviewed_assertion_calls": 5,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/keychain.rs#keychain::tests::secrets_use_stdin_and_readback_checks_interactive_failures",
+        "rust/crates/autorouter-runtime/src/keychain.rs#keychain::tests::invalid_names_and_secrets_never_invoke_the_tool_and_errors_are_private"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Read/remove/write51 errors are generic, interactive success plus missing readback fails, all three invalid secrets reject with the expected ASCII error, unavailable adapter rejects and advertises false."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/keychain.test.mjs#3",
+      "name": "the keychain store keeps secrets out of the file and loads them back",
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "baseline_definition_sha256": "2cabeadf46e47490372aa051b41284bec42682f687e8b9618ff9234e744b6ecd",
+      "baseline_line": 77,
+      "reviewed_assertion_calls": 10,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::keychain_secrets_are_absent_from_disk_scoped_to_the_path_and_overridden_by_environment"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Exact secret-free file,0600 mode, two recovered secrets, keychain provenance, absent router token, disjoint second config path and environment override are all tested."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/keychain.test.mjs#4",
+      "name": "changing the store moves saved secrets in both directions without loss",
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "baseline_definition_sha256": "8eba15a007f978f148f79e486acd5243d4c179917305dd70347d700c895a5553",
+      "baseline_line": 97,
+      "reviewed_assertion_calls": 11,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::both_store_migrations_preserve_secrets_and_failed_writes_leave_original_intact"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Runtime file-to-Keychain and back preserve values, remove items and leave no plaintext in Keychain mode."
+      ],
+      "remaining": [
+        "Native CLI set/unset store transitions and both migration messages/privacy checks are not exercised with a fake Keychain. Runtime operations alone do not cover the command routing and output assertions."
+      ]
+    },
+    {
+      "baseline_test": "test/keychain.test.mjs#5",
+      "name": "secret edits under the keychain store update and delete only keychain items",
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "baseline_definition_sha256": "ff68ee4d503b3cc83d20d087c1be58a065e4593410717b7410ceab323b8cc3dc",
+      "baseline_line": 117,
+      "reviewed_assertion_calls": 6,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "pending",
+      "rust_tests": [],
+      "shared_cases": [],
+      "review_notes": [
+        "No direct native Keychain command edit sequence is retained."
+      ],
+      "remaining": [
+        "Secret --stdin edit, exact saved message, unrelated port preservation and explicit unset deletion need an internal fake-Keychain CLI test."
+      ]
+    },
+    {
+      "baseline_test": "test/keychain.test.mjs#6",
+      "name": "a locked keychain blocks only operations that need the unreadable secret",
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "baseline_definition_sha256": "5629453d0a4737951672c4722041ecf0f43f51ee0538a445b7f70b4008e34354",
+      "baseline_line": 131,
+      "reviewed_assertion_calls": 7,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::unavailable_keychain_can_be_overridden_but_not_destructively_migrated"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Locked reads fail unless all three secrets are overridden; unavailable keys and refusal of destructive migration are asserted."
+      ],
+      "remaining": [
+        "The exact config set store=file rejection through the command layer, followed by unlocked item values and unchanged store file, is not retained."
+      ]
+    },
+    {
+      "baseline_test": "test/keychain.test.mjs#7",
+      "name": "a failed keychain write leaves the existing plaintext configuration untouched",
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "baseline_definition_sha256": "ca9f9aabf8443d78c1a54f7bf38639074b65b30d9ee11dafac5a3ff19f531c5d",
+      "baseline_line": 147,
+      "reviewed_assertion_calls": 2,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::both_store_migrations_preserve_secrets_and_failed_writes_leave_original_intact"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Failed runtime Keychain write preserves plaintext file bytes exactly."
+      ],
+      "remaining": [
+        "The baseline initiates this failure through config set AUTOROUTER_SECRET_STORE keychain; no retained fake-Keychain command test covers that dispatch/error boundary."
+      ]
+    },
+    {
+      "baseline_test": "test/keychain.test.mjs#8",
+      "name": "setup can store keys in the keychain and refuses that store off macOS before prompting",
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "baseline_definition_sha256": "8694dfa452bd446c0bccc6f8d96faa46587dc3b461d287d97f260f680cd7e39e",
+      "baseline_line": 156,
+      "reviewed_assertion_calls": 11,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "pending",
+      "rust_tests": [],
+      "shared_cases": [],
+      "review_notes": [
+        "No native setup test uses an injected Keychain with explicit platform selection."
+      ],
+      "remaining": [
+        "Explicit macOS Keychain setup, off-macOS rejection before prompting, invalid store rejection, forced return to file, key cleanup and exact message need a controlled internal setup test seam."
+      ]
+    },
+    {
+      "baseline_test": "test/keychain.test.mjs#9",
+      "name": "invalid store values are rejected and history never reads the keychain",
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "baseline_definition_sha256": "8bf30a56ff8e9bc868019a70962432c16a6fc825227589ff66aad2386788b414",
+      "baseline_line": 175,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::unavailable_keychain_can_be_overridden_but_not_destructively_migrated"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "read_secrets:false does not invoke the fake adapter."
+      ],
+      "remaining": [
+        "Invalid store rejection at save and config set, and sessions list with a Keychain-configured file proving no adapter call, are not jointly represented in the retained native evidence."
+      ]
+    },
+    {
+      "baseline_test": "test/keychain.test.mjs#10",
+      "name": "config show reports keychain provenance without values",
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "baseline_definition_sha256": "e3fd6ec09b5725cd3a57545ec9cac2868c16dc767b103872008ed8724e481106",
+      "baseline_line": 186,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "pending",
+      "rust_tests": [],
+      "shared_cases": [],
+      "review_notes": [
+        "No retained config show test loads fake Keychain values."
+      ],
+      "remaining": [
+        "The complete secret-presence-only Keychain setting and file-store provenance JSON plus output privacy need an internal fake-Keychain config-show test."
+      ]
+    },
+    {
+      "baseline_test": "test/keychain.test.mjs#11",
+      "name": "new macOS setups default to the keychain; existing plaintext configurations are left alone and flagged",
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "baseline_definition_sha256": "c1605ce3c2079301e736354836ebc9ef69b168535e15c54c503cebdf4c2f1663",
+      "baseline_line": 196,
+      "reviewed_assertion_calls": 9,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "pending",
+      "rust_tests": [],
+      "shared_cases": [],
+      "review_notes": [
+        "Native executable setup tests deliberately select file storage; no default-Keychain test is retained."
+      ],
+      "remaining": [
+        "New macOS implicit Keychain selection, existing plaintext update/warning, doctor plaintext warning/privacy and Linux implicit file behavior remain untested as this definition."
+      ]
+    },
+    {
+      "baseline_test": "test/keychain.test.mjs#12",
+      "name": "an unavailable keychain falls back to the file only when it was the implicit default",
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "baseline_definition_sha256": "7ba16fc451ecf8f92f1ab8be8f7055ed9138e11fa111a0290948e643fbec7926",
+      "baseline_line": 222,
+      "reviewed_assertion_calls": 6,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "pending",
+      "rust_tests": [],
+      "shared_cases": [],
+      "review_notes": [
+        "No retained native setup test models unavailable implicit versus explicit Keychain stores."
+      ],
+      "remaining": [
+        "Implicit default fallback must save plaintext and warn, while explicit Keychain must fail without fallback or prompting; this needs an injected adapter/platform seam."
+      ]
+    },
+    {
+      "baseline_test": "test/keychain.test.mjs#13",
+      "name": "a newline in a Keychain item name cannot start another security command",
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "baseline_definition_sha256": "1ada4b0b5c7d2630805f1c83d422abb2397541c17ab6da965136910651bdb858",
+      "baseline_line": 234,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/keychain.rs#keychain::tests::invalid_names_and_secrets_never_invoke_the_tool_and_errors_are_private"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Five hostile label/account inputs each fail before calls; legitimate quotes/backslashes/non-ASCII label yields exactly one stdin command and successful readback."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/keychain.test.mjs#14",
+      "name": "saving with the keychain store and a hostile config path fails before any Keychain call",
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "baseline_definition_sha256": "ba9fe070122adf24f6a8b0d6a4c5d95bfa2d9bd89d4666b6b1999b0c5b922262",
+      "baseline_line": 258,
+      "reviewed_assertion_calls": 2,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::invalid_content_and_hostile_paths_fail_without_secret_disclosure_or_side_effects"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Hostile config paths fail before any Keychain operation; calls remain zero and no secret item is created."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/policy.test.mjs#1",
+      "name": "the policy path is fixed per platform and a missing file means no policy",
+      "baseline_file_sha256": "4a2367d03efa940b1da878bffb0ebfac49d48106e7766d9457231dfc32e555af",
+      "baseline_definition_sha256": "b6a78eee0d55f07832f23743c640c1293b556e9e86bd19927df62d64a412d42e",
+      "baseline_line": 30,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/policy.rs#policy::tests::only_trusted_regular_files_and_directories_are_loaded"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Missing isolated policy is optional; this executed host asserts the fixed macOS path."
+      ],
+      "remaining": [
+        "The fixed Linux path is present behind native platform selection but has not yet been executed in the retained evidence for this definition; both platform branches are required."
+      ]
+    },
+    {
+      "baseline_test": "test/policy.test.mjs#2",
+      "name": "a trusted, valid policy is loaded",
+      "baseline_file_sha256": "4a2367d03efa940b1da878bffb0ebfac49d48106e7766d9457231dfc32e555af",
+      "baseline_definition_sha256": "c4d309e43e5824a307920e50e23142ff4d2aedfb07057b043d0c662a76e522b7",
+      "baseline_line": 36,
+      "reviewed_assertion_calls": 1,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/policy.rs#policy::tests::only_trusted_regular_files_and_directories_are_loaded"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Complete trusted policy object matches expected deduplicated evaluator list, metadata lock and exact upstream URL."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/policy.test.mjs#3",
+      "name": "policy fails closed on untrusted, malformed or unknown content without echoing it",
+      "baseline_file_sha256": "4a2367d03efa940b1da878bffb0ebfac49d48106e7766d9457231dfc32e555af",
+      "baseline_definition_sha256": "61a503e8f7ada9a403d190b31de3309afc274023e57a0b891da8657d03e47540",
+      "baseline_line": 41,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/policy.rs#policy::tests::only_trusted_regular_files_and_directories_are_loaded"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "All nine bad trust/schema inputs, wrong uid, existing and dangling symlinks fail closed without private payload. Targets are untouched."
+      ],
+      "remaining": [
+        "The baseline also requires AUTOROUTER_CONFIG_ERROR on each JavaScript error; native load_policy_at returns String. Structured error-envelope migration remains unrepresented."
+      ]
+    },
+    {
+      "baseline_test": "test/policy.test.mjs#4",
+      "name": "allowlists reject unlisted choices, including defaults, and locks replace supplied values",
+      "baseline_file_sha256": "4a2367d03efa940b1da878bffb0ebfac49d48106e7766d9457231dfc32e555af",
+      "baseline_definition_sha256": "c4bc7680a828ed6a042d5c2ea087850779819b39c2dbe6899436e6cbf990aa41",
+      "baseline_line": 64,
+      "reviewed_assertion_calls": 9,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/policy.rs#policy::tests::allowlists_cover_both_defaults_and_explicit_choices_while_locks_preserve_the_caller"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Explicit Jev rejection, api-key/ollama defaults rejected when unlisted, full two-lock result/order, KEEP, caller immutability and allowlists:false are asserted."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/policy.test.mjs#5",
+      "name": "neither the saved file nor the environment can override a policy lock",
+      "baseline_file_sha256": "4a2367d03efa940b1da878bffb0ebfac49d48106e7766d9457231dfc32e555af",
+      "baseline_definition_sha256": "0b63ac5c17738011cce0ee78c45b21680481bdcbde636500585e076cd88c48f3",
+      "baseline_line": 79,
+      "reviewed_assertion_calls": 5,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::saved_and_environment_policy_locks_survive_allowlist_repair_mode"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Saved prompts and conflicting environment cannot override metadata/upstream locks; core config, lock order, explicit evaluator rejection and repair-mode allowance are asserted."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/policy.test.mjs#6",
+      "name": "config show reports policy-locked settings and set refuses disallowed values",
+      "baseline_file_sha256": "4a2367d03efa940b1da878bffb0ebfac49d48106e7766d9457231dfc32e555af",
+      "baseline_definition_sha256": "a9cde07d39fe3e0f27f1c29cf1ca04af39fa8643458ab30beeecbc5c8b391b54",
+      "baseline_line": 92,
+      "reviewed_assertion_calls": 7,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::saved_and_environment_policy_locks_survive_allowlist_repair_mode"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Runtime policy locks/provenance are exercised through injected LoadedPolicy."
+      ],
+      "remaining": [
+        "No retained native CLI command test supplies a trusted policy to config show/set. The complete JSON source/value/policy_path output, refusal with unchanged file and unrelated allowed port edit are still untested as one CLI definition. Product policy paths must not be overridden by environment/test hooks."
+      ]
+    },
+    {
+      "baseline_test": "test/policy.test.mjs#7",
+      "name": "a disallowed saved evaluator can still be repaired, and setup refuses to save one",
+      "baseline_file_sha256": "4a2367d03efa940b1da878bffb0ebfac49d48106e7766d9457231dfc32e555af",
+      "baseline_definition_sha256": "3466339e4bdb29919357dd40d84198f47b06ccda3eae1764748e530e473616d1",
+      "baseline_line": 108,
+      "reviewed_assertion_calls": 5,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::saved_and_environment_policy_locks_survive_allowlist_repair_mode",
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::organization_locks_override_values_and_environment_including_repair_mode"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Runtime allowlist repair mode keeps locks while permitting inspection of disallowed settings."
+      ],
+      "remaining": [
+        "Native config set repair from saved Jev to Ollama and setup rejection before any prompt under an injected policy remain untested. CLI commands currently use the fixed production policy loader; tests must not modify system policy."
+      ]
+    },
+    {
+      "baseline_test": "test/user-config.test.mjs#1",
+      "name": "configuration paths use the user directory and support explicit path overrides",
+      "baseline_file_sha256": "692f1b0551a3928109cc9c299c0840e184de2a57e4d0683a8aac9f9f53eac565",
+      "baseline_definition_sha256": "be349a0c12d5807055aee1ac8bf47bbd59259593a8f68c8ed9d8a80d77372591",
+      "baseline_line": 19,
+      "reviewed_assertion_calls": 6,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::paths_missing_files_and_environment_precedence_match_existing_behavior"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Default injected home, absolute XDG, relative and absolute explicit overrides, explicit-over-XDG priority, empty explicit and relative XDG rejection."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/user-config.test.mjs#2",
+      "name": "a missing default file is optional but an explicitly selected file must exist",
+      "baseline_file_sha256": "692f1b0551a3928109cc9c299c0840e184de2a57e4d0683a8aac9f9f53eac565",
+      "baseline_definition_sha256": "519b405e3c22d5ea7aa193acf813d25a97d152fb4c9b3209b75257dc5bc355c2",
+      "baseline_line": 29,
+      "reviewed_assertion_calls": 5,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::paths_missing_files_and_environment_precedence_match_existing_behavior"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Missing optional settings preserve the complete nonempty caller environment and chosen path; mutating the returned environment proves independent ownership. Explicit missing settings fail."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/user-config.test.mjs#3",
+      "name": "environment settings take precedence without mutating the saved file or caller environment",
+      "baseline_file_sha256": "692f1b0551a3928109cc9c299c0840e184de2a57e4d0683a8aac9f9f53eac565",
+      "baseline_definition_sha256": "8872c9b264c54e6cbd92a4c9f43db8c861390e3aba6509e76064e1d78f19841a",
+      "baseline_line": 40,
+      "reviewed_assertion_calls": 5,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::saved_settings_and_stop_cap_keep_environment_precedence_without_mutation"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Complete saved/environment union, port and key precedence, existence/path, unchanged caller and exact saved JSON are asserted."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/user-config.test.mjs#4",
+      "name": "native Stop-hook block cap persists as a string and runtime environment overrides the saved opt-in",
+      "baseline_file_sha256": "692f1b0551a3928109cc9c299c0840e184de2a57e4d0683a8aac9f9f53eac565",
+      "baseline_definition_sha256": "1da0f691a5350f3d4cda8284ada7e92c231df46831e38bb31e2074e2ab0eb875",
+      "baseline_line": 54,
+      "reviewed_assertion_calls": 7,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::saved_settings_and_stop_cap_keep_environment_precedence_without_mutation"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "String cap2 persists and feeds runtime config; environment0 wins without mutation; numeric save fails and original bytes remain unchanged."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/user-config.test.mjs#5",
+      "name": "loading is independent of the current repository and never reads its .env file",
+      "baseline_file_sha256": "692f1b0551a3928109cc9c299c0840e184de2a57e4d0683a8aac9f9f53eac565",
+      "baseline_definition_sha256": "c5e6bc7212b69988a2c91112ebd60cc2d04b597404669e5e8a703a6015ddb3c0",
+      "baseline_line": 70,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::global_settings_ignore_both_repository_files_and_create_private_xdg_ancestors"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Both distinct repository directories contain conflicting .env and config.json; injected cwd reads only the global XDG file and never imports repository auth mode."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/user-config.test.mjs#6",
+      "name": "unknown keys, non-string values, and malformed JSON fail without exposing their contents",
+      "baseline_file_sha256": "692f1b0551a3928109cc9c299c0840e184de2a57e4d0683a8aac9f9f53eac565",
+      "baseline_definition_sha256": "bbe4031d1f8e4965386f7009efdb59da51fb5f4f69478ed8175a732464276174",
+      "baseline_line": 88,
+      "reviewed_assertion_calls": 6,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::invalid_content_and_hostile_paths_fail_without_secret_disclosure_or_side_effects"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "All seven malformed read inputs and four invalid writes are rejected without secret disclosure or directory creation. Rust errors are content-free strings without nested causes."
+      ],
+      "remaining": [
+        "The baseline additionally requires error.code = AUTOROUTER_CONFIG_ERROR. The native runtime API currently returns String, so this JavaScript library error-envelope migration has no exact structured counterpart."
+      ]
+    },
+    {
+      "baseline_test": "test/user-config.test.mjs#7",
+      "name": "new files and directories are private while existing parent permissions remain unchanged",
+      "baseline_file_sha256": "692f1b0551a3928109cc9c299c0840e184de2a57e4d0683a8aac9f9f53eac565",
+      "baseline_definition_sha256": "62e3b61dd7b92a9d1619e4fd83c0b770610c9b4e9cc2715bd7897b5e7a3cbf9c",
+      "baseline_line": 114,
+      "reviewed_assertion_calls": 5,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::global_settings_ignore_both_repository_files_and_create_private_xdg_ancestors"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Existing0755 parent unchanged, both new XDG/application ancestors0700, file0600 and exact single filename."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/user-config.test.mjs#8",
+      "name": "saving is exclusive by default and an explicit overwrite atomically replaces the old configuration",
+      "baseline_file_sha256": "692f1b0551a3928109cc9c299c0840e184de2a57e4d0683a8aac9f9f53eac565",
+      "baseline_definition_sha256": "77e971b89bc5edd3b8b871c617bdd5314d1c37854df0117be8f185f2aff26b25",
+      "baseline_line": 128,
+      "reviewed_assertion_calls": 7,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::private_atomic_files_reject_stale_revisions_and_all_symlinks"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Exclusive save preserves original values; overwrite changes inode and repairs0644 to0600; the directory contains only config.json."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/user-config.test.mjs#9",
+      "name": "writes reject existing and dangling symlinks without altering their targets",
+      "baseline_file_sha256": "692f1b0551a3928109cc9c299c0840e184de2a57e4d0683a8aac9f9f53eac565",
+      "baseline_definition_sha256": "ae766da8b593bf303ef42910d2c2a4af8b9f40d7ca75814d1a1caac85922cb8c",
+      "baseline_line": 146,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::private_atomic_files_reject_stale_revisions_and_all_symlinks"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Existing and dangling symlinks are each rejected with overwrite false/true; links survive, victim bytes remain and missing target is never created."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/user-config.test.mjs#10",
+      "name": "filesystem errors do not echo sensitive paths",
+      "baseline_file_sha256": "692f1b0551a3928109cc9c299c0840e184de2a57e4d0683a8aac9f9f53eac565",
+      "baseline_definition_sha256": "eb1d612c6873bcfff3ffc721c985e8fd8a4f2e527400b40705eaf98ddac9e326",
+      "baseline_line": 162,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::invalid_content_and_hostile_paths_fail_without_secret_disclosure_or_side_effects"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Read and save through a sensitive regular-file parent return generic errors without sensitive path text. The Rust String error type cannot retain an underlying cause or stack payload."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/user-config.test.mjs#11",
+      "name": "configuration snapshots expose saved values and detect intervening changes before replacement",
+      "baseline_file_sha256": "692f1b0551a3928109cc9c299c0840e184de2a57e4d0683a8aac9f9f53eac565",
+      "baseline_definition_sha256": "31eed950ad8d9472d2e90df1b3b86795791f58b5db09dbfcbb6f06b0b1e9bdd1",
+      "baseline_line": 177,
+      "reviewed_assertion_calls": 8,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::snapshots_distinguish_saved_values_from_overrides_and_reject_stale_replacements"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Missing revision/empty saved values, expected-missing save, saved8000 versus env9000, lowercase64hex revision, concurrent7000 then refused stale6000 and no temporary residue."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/user-config.test.mjs#12",
+      "name": "a configuration path containing control or line-separator characters is rejected without echoing it",
+      "baseline_file_sha256": "692f1b0551a3928109cc9c299c0840e184de2a57e4d0683a8aac9f9f53eac565",
+      "baseline_definition_sha256": "99b7d33ad4137cf74ff05e453cf565c5832c60215660ceee659eb91781179d48",
+      "baseline_line": 195,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::invalid_content_and_hostile_paths_fail_without_secret_disclosure_or_side_effects"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Eight control/line-separator variants through both path variables and get/load/save operations are rejected privately; ordinary Unicode/spaces accepted."
+      ],
+      "remaining": [
+        "The baseline getConfigPath predicate additionally checks AUTOROUTER_CONFIG_ERROR on the JavaScript Error object; native errors are String. Exact error-envelope migration remains to be reviewed."
+      ]
+    }
+  ]
+}

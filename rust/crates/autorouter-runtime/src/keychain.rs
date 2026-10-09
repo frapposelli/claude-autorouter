@@ -229,13 +229,41 @@ mod tests {
     #[tokio::test]
     async fn secrets_use_stdin_and_readback_checks_interactive_failures() {
         let secret = "synthetic\" back\\slash $HOME 'single'";
-        let mut keychain = fixture(&[(0, ""), (0, secret), (44, ""), (44, "")]);
+        let line = format!("{secret}\n");
+        let mut keychain = fixture(&[(0, ""), (0, &line), (0, &line), (44, ""), (0, ""), (44, "")]);
         keychain
             .write("KEY:abc", secret, "AutoRouter Müller \"label\"")
             .await
             .unwrap();
+        assert_eq!(
+            keychain.read("KEY:abc").await.unwrap().as_deref(),
+            Some(secret)
+        );
         assert_eq!(keychain.read("missing").await.unwrap(), None);
+        keychain.remove("KEY:abc").await.unwrap();
         keychain.remove("missing").await.unwrap();
+        assert_eq!(keychain.runner.calls[0].0, ["-i"]);
+        assert_eq!(
+            keychain.runner.calls[1].0,
+            [
+                "find-generic-password",
+                "-s",
+                "claude-autorouter",
+                "-a",
+                "KEY:abc",
+                "-w"
+            ]
+        );
+        assert_eq!(
+            keychain.runner.calls[4].0,
+            [
+                "delete-generic-password",
+                "-s",
+                "claude-autorouter",
+                "-a",
+                "KEY:abc"
+            ]
+        );
         assert!(
             keychain
                 .runner
@@ -263,22 +291,56 @@ mod tests {
     async fn invalid_names_and_secrets_never_invoke_the_tool_and_errors_are_private() {
         let mut keychain = fixture(&[]);
         for value in ["", "two\nlines", "non-ascii-é"] {
-            assert!(keychain.write("KEY", value, "label").await.is_err());
+            assert!(
+                keychain
+                    .write("KEY", value, "label")
+                    .await
+                    .unwrap_err()
+                    .contains("printable single-line ASCII")
+            );
         }
         for name in ["x\ndelete-keychain", "x\r", "x\u{2028}", "x\0", "x\u{1b}"] {
-            assert!(keychain.write(name, "synthetic", "label").await.is_err());
-            assert!(keychain.write("KEY", "synthetic", name).await.is_err());
+            assert!(
+                keychain
+                    .write(name, "synthetic", "label")
+                    .await
+                    .unwrap_err()
+                    .contains("control characters")
+            );
+            assert!(
+                keychain
+                    .write("KEY", "synthetic", name)
+                    .await
+                    .unwrap_err()
+                    .contains("control characters")
+            );
         }
         assert!(keychain.runner.calls.is_empty());
-        assert!(!keychain.read("KEY").await.unwrap_err().contains("PRIVATE"));
-        assert!(
-            !keychain
-                .remove("KEY")
+        for error in [
+            keychain.read("KEY").await.unwrap_err(),
+            keychain.remove("KEY").await.unwrap_err(),
+            keychain
+                .write("KEY", "synthetic", "label")
                 .await
-                .unwrap_err()
-                .contains("PRIVATE")
-        );
+                .unwrap_err(),
+        ] {
+            assert!(error.contains("macOS Keychain"));
+            assert!(!error.contains("PRIVATE"));
+        }
         keychain.available = false;
+        assert!(!keychain.available());
         assert_eq!(keychain.read("KEY").await.unwrap_err(), UNAVAILABLE);
+        let mut single = fixture(&[(0, ""), (0, "synthetic-secret\n")]);
+        single
+            .write(
+                "ACCOUNT:0123456789abcdef",
+                "synthetic-secret",
+                "AutoRouter KEY (/Users/Müller \"a\" \\ b/config.json)",
+            )
+            .await
+            .unwrap();
+        let input = single.runner.calls[0].1.as_ref().unwrap();
+        assert_eq!(input.lines().filter(|line| !line.is_empty()).count(), 1);
+        assert!(input.contains("Müller \\\"a\\\" \\\\ b/config.json"));
     }
 }

@@ -7,29 +7,63 @@
 //!
 //! This document is the authoritative wire representation. The explicitly
 //! lossy observation projection is never suitable for forwarding requests.
+use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::fmt;
+use std::hash::{Hash, Hasher};
+use std::sync::{Arc, OnceLock};
 
 pub type NodeId = usize;
 
-#[derive(Clone, PartialEq, Eq, Hash)]
-pub struct JsString(Vec<u16>);
+#[derive(Clone)]
+pub struct JsString(Arc<StringData>);
+
+// Both representations describe immutable code units. Populating the lazy
+// UTF-16 cache never changes equality or hashing, including for map keys.
+struct StringData {
+    scalar: Option<String>,
+    units: OnceLock<Vec<u16>>,
+    needs_escape: bool,
+}
 
 impl JsString {
     pub fn from_utf16(units: Vec<u16>) -> Self {
-        Self(units)
+        let scalar = String::from_utf16(&units).ok();
+        let needs_escape = scalar.as_deref().is_some_and(needs_json_escape);
+        Self(Arc::new(StringData {
+            scalar,
+            units: OnceLock::from(units),
+            needs_escape,
+        }))
     }
     pub fn from_scalar(value: &str) -> Self {
-        Self(value.encode_utf16().collect())
+        Self::from(value.to_owned())
+    }
+    fn from_unescaped_scalar(value: &str) -> Self {
+        Self(Arc::new(StringData {
+            scalar: Some(value.to_owned()),
+            units: OnceLock::new(),
+            needs_escape: false,
+        }))
     }
     pub fn units(&self) -> &[u16] {
-        &self.0
+        self.0.units.get_or_init(|| {
+            self.0
+                .scalar
+                .as_deref()
+                .expect("scalar or UTF-16 representation")
+                .encode_utf16()
+                .collect()
+        })
     }
     pub fn to_scalar(&self) -> Option<String> {
-        String::from_utf16(&self.0).ok()
+        self.0.scalar.clone()
     }
     pub fn to_well_formed(&self) -> String {
-        String::from_utf16_lossy(&self.0)
+        self.0
+            .scalar
+            .clone()
+            .unwrap_or_else(|| String::from_utf16_lossy(self.units()))
     }
     pub fn stringify(&self) -> String {
         let mut output = String::new();
@@ -38,26 +72,63 @@ impl JsString {
     }
 
     fn array_index(&self) -> Option<u32> {
-        if self.0.is_empty() || self.0.len() > 10 || (self.0.len() > 1 && self.0[0] == b'0' as u16)
-        {
+        // Every array-index key is ASCII, so scalar storage needs no UTF-16
+        // allocation merely to establish property enumeration order.
+        let bytes = self.0.scalar.as_deref()?.as_bytes();
+        if bytes.is_empty() || bytes.len() > 10 || (bytes.len() > 1 && bytes[0] == b'0') {
             return None;
         }
         let mut number = 0_u32;
-        for &unit in &self.0 {
-            if !(b'0' as u16..=b'9' as u16).contains(&unit) {
+        for &byte in bytes {
+            if !byte.is_ascii_digit() {
                 return None;
             }
             number = number
                 .checked_mul(10)?
-                .checked_add(u32::from(unit - b'0' as u16))?;
+                .checked_add(u32::from(byte - b'0'))?;
         }
         (number != u32::MAX).then_some(number)
     }
 }
 
+impl PartialEq for JsString {
+    fn eq(&self, other: &Self) -> bool {
+        if Arc::ptr_eq(&self.0, &other.0) {
+            return true;
+        }
+        match (&self.0.scalar, &other.0.scalar) {
+            (Some(left), Some(right)) => left == right,
+            (None, None) => self.units() == other.units(),
+            _ => false,
+        }
+    }
+}
+impl Eq for JsString {}
+impl Hash for JsString {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.units().hash(state);
+    }
+}
+impl Borrow<[u16]> for JsString {
+    fn borrow(&self) -> &[u16] {
+        self.units()
+    }
+}
+
 impl fmt::Debug for JsString {
     fn fmt(&self, output: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(output, "JsString(<{} UTF-16 units>)", self.0.len())
+        let length = self.0.units.get().map_or_else(
+            || {
+                self.0
+                    .scalar
+                    .as_deref()
+                    .expect("scalar string")
+                    .encode_utf16()
+                    .count()
+            },
+            Vec::len,
+        );
+        write!(output, "JsString(<{length} UTF-16 units>)")
     }
 }
 
@@ -68,7 +139,12 @@ impl From<&str> for JsString {
 }
 impl From<String> for JsString {
     fn from(value: String) -> Self {
-        Self::from_scalar(&value)
+        let needs_escape = needs_json_escape(&value);
+        Self(Arc::new(StringData {
+            scalar: Some(value),
+            units: OnceLock::new(),
+            needs_escape,
+        }))
     }
 }
 // serde's string model cannot represent unpaired UTF16. Refuse that boundary
@@ -91,8 +167,9 @@ pub struct JsObject {
 
 impl JsObject {
     pub fn get(&self, key: &str) -> Option<NodeId> {
+        let units: Vec<u16> = key.encode_utf16().collect();
         self.positions
-            .get(&JsString::from_scalar(key))
+            .get(units.as_slice())
             .map(|&index| self.entries[index].1)
     }
     pub fn entries(&self) -> &[(JsString, NodeId)] {
@@ -203,12 +280,23 @@ impl<'a> Parser<'a> {
     }
     fn string(&mut self) -> Result<JsString, JsonError> {
         self.take(b'"')?;
-        let mut units = Vec::new();
+        let start = self.offset;
+        let special = self.text.as_bytes()[start..]
+            .iter()
+            .position(|byte| matches!(byte, b'"' | b'\\' | 0..=31))
+            .ok_or(JsonError)?;
+        self.offset += special;
+        if self.byte() == Some(b'"') {
+            let value = JsString::from_unescaped_scalar(&self.text[start..self.offset]);
+            self.offset += 1;
+            return Ok(value);
+        }
+        let mut units: Vec<u16> = self.text[start..self.offset].encode_utf16().collect();
         loop {
             match self.byte().ok_or(JsonError)? {
                 b'"' => {
                     self.offset += 1;
-                    return Ok(JsString(units));
+                    return Ok(JsString::from_utf16(units));
                 }
                 b'\\' => {
                     self.offset += 1;
@@ -391,11 +479,23 @@ impl<'a> Parser<'a> {
 }
 
 fn quote(value: &JsString, output: &mut String) {
-    output.reserve(value.0.len().saturating_add(2));
+    if let Some(scalar) = value.0.scalar.as_deref() {
+        if value.0.needs_escape {
+            quote_scalar(scalar, output);
+        } else {
+            output.reserve(scalar.len().saturating_add(2));
+            output.push('"');
+            output.push_str(scalar);
+            output.push('"');
+        }
+        return;
+    }
+    let units = value.units();
+    output.reserve(units.len().saturating_add(2));
     output.push('"');
     let mut index = 0;
-    while index < value.0.len() {
-        let unit = value.0[index];
+    while index < units.len() {
+        let unit = units[index];
         index += 1;
         match unit {
             8 => output.push_str("\\b"),
@@ -411,12 +511,11 @@ fn quote(value: &JsString, output: &mut String) {
                 write!(output, "\\u{unit:04x}").expect("string writing");
             }
             0xd800..=0xdbff
-                if value
-                    .0
+                if units
                     .get(index)
                     .is_some_and(|next| (0xdc00..=0xdfff).contains(next)) =>
             {
-                let low = value.0[index];
+                let low = units[index];
                 index += 1;
                 let scalar = 0x10000 + ((u32::from(unit) - 0xd800) << 10) + u32::from(low) - 0xdc00;
                 output.push(char::from_u32(scalar).expect("surrogate pair"));
@@ -428,6 +527,44 @@ fn quote(value: &JsString, output: &mut String) {
             _ => output.push(char::from_u32(u32::from(unit)).expect("non-surrogate unit")),
         }
     }
+    output.push('"');
+}
+
+fn needs_json_escape(value: &str) -> bool {
+    value
+        .bytes()
+        .any(|byte| matches!(byte, b'"' | b'\\' | 0..=31))
+}
+
+fn quote_scalar(value: &str, output: &mut String) {
+    output.reserve(value.len().saturating_add(2));
+    output.push('"');
+    let mut start = 0;
+    for (index, byte) in value.bytes().enumerate() {
+        let escape = match byte {
+            8 => "\\b",
+            9 => "\\t",
+            10 => "\\n",
+            12 => "\\f",
+            13 => "\\r",
+            34 => "\\\"",
+            92 => "\\\\",
+            0..=31 => {
+                use std::fmt::Write;
+                output.push_str(&value[start..index]);
+                write!(output, "\\u{byte:04x}").expect("string writing");
+                start = index + 1;
+                continue;
+            }
+            _ => continue,
+        };
+        // ASCII escapes always lie on UTF-8 boundaries. Copy entire ordinary
+        // spans, including multi-byte scalars, without decoding each byte.
+        output.push_str(&value[start..index]);
+        output.push_str(escape);
+        start = index + 1;
+    }
+    output.push_str(&value[start..]);
     output.push('"');
 }
 
@@ -717,6 +854,31 @@ mod tests {
         assert_eq!(
             JsDocument::parse(&[b'"', 255, b'"']).unwrap().stringify(),
             "\"�\""
+        );
+    }
+
+    #[test]
+    fn string_identity_and_quoting_agree_across_scalar_and_utf16_inputs() {
+        for text in ["", "ordinary text", "é水🦀", "\0\u{1f}\n\t\r\"\\🦀\u{2028}"] {
+            let scalar = JsString::from_scalar(text);
+            let utf16 = JsString::from_utf16(text.encode_utf16().collect());
+            assert_eq!(scalar, utf16);
+            #[allow(
+                clippy::mutable_key_type,
+                reason = "JsString only caches immutable code units"
+            )]
+            let mut identities = std::collections::HashSet::new();
+            identities.insert(scalar.clone());
+            assert!(identities.contains(&utf16));
+            assert_eq!(scalar.stringify(), utf16.stringify());
+            let parsed = JsDocument::parse(scalar.stringify().as_bytes()).unwrap();
+            assert_eq!(parsed.string(parsed.root()).unwrap(), &utf16);
+            assert_eq!(scalar.units(), utf16.units());
+        }
+        assert_ne!(JsString::from_utf16(vec![0xd800]), JsString::from("�"));
+        assert_eq!(
+            normalized(r#"{"é🦀":1,"\u00e9\ud83e\udd80":2,"\ud800":3,"�":4}"#),
+            r#"{"é🦀":2,"\ud800":3,"�":4}"#
         );
     }
 

@@ -277,9 +277,11 @@ pub fn execute(fixture: &Value, cwd: &Path) -> Result<Value, String> {
         "redact" => Ok(json!(crate::redaction::redact_sensitive(
             input.as_str().ok_or("Invalid fixture input")?
         ))),
-        "model_catalog" => {
-            Ok(crate::model_catalog::catalog(text(input, "model")?).unwrap_or(Value::Null))
-        }
+        "model_catalog" => Ok(input
+            .get("model")
+            .and_then(Value::as_str)
+            .and_then(crate::model_catalog::catalog)
+            .unwrap_or(Value::Null)),
         "prepare_request" => Ok(crate::model_request::prepare_request(
             field(input, "body")?,
             text(input, "target")?,

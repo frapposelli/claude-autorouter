@@ -1,0 +1,1656 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "reviewed_source_commit": "05a5f70",
+  "scope": "CLI, onboarding, launcher and lifecycle assertion audit. Whole definitions are covered only where every baseline assertion and parameter scenario has direct native evidence; related component coverage does not imply wrapper or integration coverage.",
+  "summary": {
+    "definitions": 54,
+    "covered": 41,
+    "partial_assertion_mapping": 13
+  },
+  "mappings": [
+    {
+      "baseline_test": "test/cli-help.test.mjs#1",
+      "baseline_file_sha256": "8025bbe32b7f9ecf15133faa50605957928ef562c439650fc2e3f0ac04cc2435",
+      "name": "command help works with no credentials and an invalid config path",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/launcher_contracts.rs#command_help_matrix_needs_no_credentials_or_readable_configuration"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "All four setup/doctor/config/serve --help commands succeed without any supplied credentials, despite an invalid configuration path. Each output contains its exact Usage prefix, is below2000bytes and has no stderr. The isolated home remains empty."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-contracts-tests.log",
+        "log_sha256": "05c1d030e169859a01d7c268917a5eb5c11d001f5b8d93cba3d4e10b54a58600",
+        "scope": "Native macOS arm64 executable integration, isolated homes and synthetic local services; no Node in fake Claude PATH. Installed artifacts and other platforms are separate qualification."
+      },
+      "review_notes": []
+    },
+    {
+      "baseline_test": "test/cli-help.test.mjs#2",
+      "baseline_file_sha256": "8025bbe32b7f9ecf15133faa50605957928ef562c439650fc2e3f0ac04cc2435",
+      "name": "Claude help and version bypass configuration, gateway, Ollama and temporary files",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/launcher_contracts.rs#direct_help_matrix_bypasses_invalid_local_endpoint_and_all_temporary_resources"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "All --help/-h/--version/-v direct-Claude cases preserve exactly one literal argument and return exact child stdout with no stderr despite missing config and an invalid Ollama endpoint.",
+        "Fake Claude asserts ANTHROPIC_BASE_URL, AUTOROUTER_STATUS_FILE, TYPESAFE_API_KEY and AUTOROUTER_TOKEN are absent; isolated TMPDIR remains empty after the complete matrix."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-contracts-tests.log",
+        "log_sha256": "05c1d030e169859a01d7c268917a5eb5c11d001f5b8d93cba3d4e10b54a58600",
+        "scope": "Native macOS arm64 executable integration, isolated homes and synthetic local services; no Node in fake Claude PATH. Installed artifacts and other platforms are separate qualification."
+      },
+      "review_notes": []
+    },
+    {
+      "baseline_test": "test/config-command.test.mjs#1",
+      "baseline_file_sha256": "f9f23d340a71f3fa3d1c2720d21a838d230475cc2130877a3db7944ea46fbd26",
+      "name": "show reports default, saved and environment provenance and hides every secret",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/config_contracts.rs#show_preserves_saved_bytes_and_reports_complete_redacted_provenance"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "The full saved secret fixture includes subscription, Jev, saved port, Jev key, local token and inactive Anthropic key. Environment port9123 and Jev key override it with exact provenance objects, while auth source=file and evaluator-model source=default.",
+        "JSON and text show both succeed without stderr, hide every private sentinel and retain byte-identical saved configuration; text reports TYPESAFE_API_KEY=[set; hidden]."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-config-contracts-tests.log",
+        "log_sha256": "5826f5fe0f7baf23538202e60b1ef8ff7af1618106baf6d77c48f4bc79e11c6c",
+        "scope": "Native macOS arm64 executable assertions with isolated private files, closed/noninteractive stdin and a real hidden-input PTY. No Keychain or provider calls; installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [],
+      "supporting_differential": {
+        "generator": "rust/parity/check-config-commands.mjs",
+        "generator_sha256": "af7dae183ff5d30f34ccedfac98458cd21c11574d08059d7c2fb9748f8ebad7d",
+        "case_indices_zero_based": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          88,
+          89,
+          90,
+          91,
+          92,
+          93,
+          94,
+          95
+        ],
+        "report": "artifacts/rust-rewrite/evidence/2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948.json",
+        "report_sha256": "2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948",
+        "scope": "Complete stdout/stderr/status and parsed saved-config comparison for these related cases. This does not cover missing baseline assertions or filesystem bytes/modes by itself."
+      }
+    },
+    {
+      "baseline_test": "test/config-command.test.mjs#2",
+      "baseline_file_sha256": "f9f23d340a71f3fa3d1c2720d21a838d230475cc2130877a3db7944ea46fbd26",
+      "name": "show is read-only without a saved file and full checks report inactive errors safely",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/config_contracts.rs#show_without_saved_settings_and_inactive_full_checks_are_read_only"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "JSON show without a saved file reports config_exists=false and creates nothing.",
+        "With Ollama and a saved inactive Jev URL containing credentials, normal show reports exactly source=file/active=false/value=null. --check-all fails with machine-readable JSON naming only AUTOROUTER_JEV_URL, no credential sentinel, no stderr and unchanged saved bytes."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-config-contracts-tests.log",
+        "log_sha256": "5826f5fe0f7baf23538202e60b1ef8ff7af1618106baf6d77c48f4bc79e11c6c",
+        "scope": "Native macOS arm64 executable assertions with isolated private files, closed/noninteractive stdin and a real hidden-input PTY. No Keychain or provider calls; installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [],
+      "supporting_differential": {
+        "generator": "rust/parity/check-config-commands.mjs",
+        "generator_sha256": "af7dae183ff5d30f34ccedfac98458cd21c11574d08059d7c2fb9748f8ebad7d",
+        "case_indices_zero_based": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38,
+          39,
+          40,
+          41,
+          42,
+          43,
+          44,
+          45,
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55,
+          56,
+          57,
+          58,
+          59,
+          60,
+          61,
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83,
+          84,
+          85,
+          86,
+          87,
+          88,
+          89,
+          90,
+          91,
+          92,
+          93,
+          94,
+          95
+        ],
+        "report": "artifacts/rust-rewrite/evidence/2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948.json",
+        "report_sha256": "2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948",
+        "scope": "Complete stdout/stderr/status and parsed saved-config comparison for these related cases. This does not cover missing baseline assertions or filesystem bytes/modes by itself."
+      }
+    },
+    {
+      "baseline_test": "test/config-command.test.mjs#3",
+      "baseline_file_sha256": "f9f23d340a71f3fa3d1c2720d21a838d230475cc2130877a3db7944ea46fbd26",
+      "name": "set and unset merge only the named setting and environment overrides stay ephemeral",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/config_contracts.rs#set_and_unset_change_only_the_named_saved_value_despite_runtime_overrides"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Setting saved port0 while runtime port9123/debug1 are present changes only the requested saved key in full-map equality, warns that environment still overrides the port and retains file0600.",
+        "Unsetting the port removes only that key; saved subscription, Jev secret and tool-search preference are unchanged."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-config-contracts-tests.log",
+        "log_sha256": "5826f5fe0f7baf23538202e60b1ef8ff7af1618106baf6d77c48f4bc79e11c6c",
+        "scope": "Native macOS arm64 executable assertions with isolated private files, closed/noninteractive stdin and a real hidden-input PTY. No Keychain or provider calls; installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [],
+      "supporting_differential": {
+        "generator": "rust/parity/check-config-commands.mjs",
+        "generator_sha256": "af7dae183ff5d30f34ccedfac98458cd21c11574d08059d7c2fb9748f8ebad7d",
+        "case_indices_zero_based": [
+          96,
+          97,
+          100,
+          101
+        ],
+        "report": "artifacts/rust-rewrite/evidence/2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948.json",
+        "report_sha256": "2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948",
+        "scope": "Complete stdout/stderr/status and parsed saved-config comparison for these related cases. This does not cover missing baseline assertions or filesystem bytes/modes by itself."
+      }
+    },
+    {
+      "baseline_test": "test/config-command.test.mjs#4",
+      "baseline_file_sha256": "f9f23d340a71f3fa3d1c2720d21a838d230475cc2130877a3db7944ea46fbd26",
+      "name": "secret arguments are rejected before persistence and stdin or hidden entry never echoes them",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/config_contracts.rs#secret_argument_stdin_and_hidden_edits_preserve_files_and_never_echo_values"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "A secret argv value is rejected with a not-accepted diagnostic before any persistence or prompt, and its value is absent from stdout/stderr.",
+        "Stdin saves the exact Jev key; a real hidden terminal saves the Anthropic key without echoing either key. Full saved-map equality contains exactly those two entries.",
+        "All three baseline invalid stdin values (embedded newline, empty input and16385bytes) fail without changing any saved-file byte; diagnostics remain private."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-config-contracts-tests.log",
+        "log_sha256": "5826f5fe0f7baf23538202e60b1ef8ff7af1618106baf6d77c48f4bc79e11c6c",
+        "scope": "Native macOS arm64 executable assertions with isolated private files, closed/noninteractive stdin and a real hidden-input PTY. No Keychain or provider calls; installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "Baseline injected stream/prompt functions are represented by actual stdin files and a real PTY; native process failure status represents the rejected command result."
+      ]
+    },
+    {
+      "baseline_test": "test/config-command.test.mjs#5",
+      "baseline_file_sha256": "f9f23d340a71f3fa3d1c2720d21a838d230475cc2130877a3db7944ea46fbd26",
+      "name": "invalid edits fail without clobbering saved settings or leaking URL credentials",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/config_contracts.rs#every_invalid_edit_preserves_saved_bytes_and_hides_url_or_unknown_key_values"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "All seven baseline invalid edits (empty port, whitespace confidence, debug=true, credential-bearing Jev URL, malformed upstream URL, empty Sonnet model and empty local deadline) fail, keep the complete saved file byte-identical and emit no private value.",
+        "An unknown private key is rejected without echoing the key name; stdout is empty and saved settings remain unchanged."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-config-contracts-tests.log",
+        "log_sha256": "5826f5fe0f7baf23538202e60b1ef8ff7af1618106baf6d77c48f4bc79e11c6c",
+        "scope": "Native macOS arm64 executable assertions with isolated private files, closed/noninteractive stdin and a real hidden-input PTY. No Keychain or provider calls; installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [],
+      "supporting_differential": {
+        "generator": "rust/parity/check-config-commands.mjs",
+        "generator_sha256": "af7dae183ff5d30f34ccedfac98458cd21c11574d08059d7c2fb9748f8ebad7d",
+        "case_indices_zero_based": [
+          98,
+          99,
+          102,
+          103,
+          118,
+          119
+        ],
+        "report": "artifacts/rust-rewrite/evidence/2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948.json",
+        "report_sha256": "2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948",
+        "scope": "Complete stdout/stderr/status and parsed saved-config comparison for these related cases. This does not cover missing baseline assertions or filesystem bytes/modes by itself."
+      }
+    },
+    {
+      "baseline_test": "test/config-command.test.mjs#6",
+      "baseline_file_sha256": "f9f23d340a71f3fa3d1c2720d21a838d230475cc2130877a3db7944ea46fbd26",
+      "name": "cancelled or stale interactive secret edits preserve the current file",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/edge_cases.rs#hidden_secret_cancellation_restores_echo_and_preserves_saved_configuration",
+        "rust/crates/claude-autorouter/tests/edge_cases.rs#stale_hidden_edit_cannot_replace_a_concurrent_configuration_change"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Real interactive cancellation rejects, reports cancellation, restores terminal and preserves exact existing bytes.",
+        "Concurrent config write during prompt rejects with changed diagnostic and preserves exact concurrent bytes instead of overwriting."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+      },
+      "review_notes": [
+        "Native tests exercise the same secret-command boundary through a real PTY rather than JS-injected prompt callbacks. All baseline cancellation/stale-edit outcomes are asserted; additional SIGINT/SIGTERM and terminal restoration checks strengthen the coverage."
+      ]
+    },
+    {
+      "baseline_test": "test/config-command.test.mjs#7",
+      "baseline_file_sha256": "f9f23d340a71f3fa3d1c2720d21a838d230475cc2130877a3db7944ea46fbd26",
+      "name": "JSON inspection of a malformed file remains machine readable and never includes parser input",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/commands.rs#invalid_config_show_uses_json_stdout_and_never_echoes_corrupt_secrets"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Corrupt saved JSON causes unsuccessful status, empty stderr, one parsable JSON document exactly {schema_version:1,valid:false,error:\"AutoRouter configuration must contain valid JSON.\"}, without input sentinel."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+      },
+      "review_notes": [
+        "Whole JSON document equality is stronger than baseline individual validity/error checks; parsing the complete stdout rejects a second JSON record."
+      ]
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#1",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "hidden key prompt disables terminal echo before inviting input and restores it afterward",
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/edge_cases.rs#hidden_secret_uses_raw_editing_and_restores_terminal_before_exit"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "PTY checks ECHO/ECHONL/ICANON off after receiving hidden prompt; exact saved secret, noecho and restored terminal modes are asserted."
+      ],
+      "remaining": [
+        "Baseline asserts raw mode inside the prompt writer, before any prompt can be displayed. Native PTY test observes modes after receiving prompt; a prompt-then-disable ordering mutation could pass. Current implementation ordering is correct by inspection, but this exact assertion is not locked by a test."
+      ],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+      },
+      "review_notes": []
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#2",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "setup stores only relevant keys, defaults to subscription, and never prints credentials",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#relevant_keys_only_default_subscription_and_forced_api_mode_match_saved_maps"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Default subscription setup saves the exact relevant-key map despite simultaneous unused Anthropic and unrelated credentials, and none of the three secret sentinels appears in output.",
+        "Repeated unforced setup rejects the existing file before prompting. Forced explicit API mode persists that mode and the supplied Anthropic key."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-onboarding-admission-tests.log",
+        "log_sha256": "2917fd26ec9744d3d98446de0df4eccfe14fb86dade823c334d64cfe42c51413",
+        "scope": "Private native onboarding API contracts on macOS arm64 using synthetic configuration, a fake Keychain that rejects every operation and a loopback spy that rejects every connection; no public interfaces changed."
+      },
+      "review_notes": [
+        "Synthetic fixture endpoints and explicit file secret store are included in full-map equality, isolating provider and Keychain access on every host. Existing setup API injection is used; NUL strings need not cross an OS process environment boundary."
+      ],
+      "supporting_differential": {
+        "generator": "rust/parity/check-config-commands.mjs",
+        "generator_sha256": "af7dae183ff5d30f34ccedfac98458cd21c11574d08059d7c2fb9748f8ebad7d",
+        "case_indices_zero_based": [
+          124,
+          125,
+          136,
+          137
+        ],
+        "report": "artifacts/rust-rewrite/evidence/2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948.json",
+        "report_sha256": "2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948",
+        "scope": "Complete stdout/stderr/status and parsed saved-config comparison for these related cases. This does not cover missing baseline assertions or filesystem bytes/modes by itself."
+      }
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#3",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "setup persists the chosen client profile with CLI precedence and leaves permission controls to Claude",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#all_profile_cli_precedence_cases_preserve_parent_permission_environment"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "All four inherited/CLI profile cases (native->auto, inherited auto, auto->native and auto->compatible) save the exact expected map and produce the matching core ClientProfile.",
+        "The original environment map, including explicit Opus model, thinking budget and Auto permission control, remains identical. Auto cases report Sonnet/Opus routing and leave permission-mode availability/safety decisions to Claude; no HTTP or Keychain operation occurs."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-onboarding-admission-tests.log",
+        "log_sha256": "2917fd26ec9744d3d98446de0df4eccfe14fb86dade823c334d64cfe42c51413",
+        "scope": "Private native onboarding API contracts on macOS arm64 using synthetic configuration, a fake Keychain that rejects every operation and a loopback spy that rejects every connection; no public interfaces changed."
+      },
+      "review_notes": [
+        "Synthetic fixture endpoints and explicit file secret store are included in full-map equality, isolating provider and Keychain access on every host. Existing setup API injection is used; NUL strings need not cross an OS process environment boundary."
+      ],
+      "supporting_differential": {
+        "generator": "rust/parity/check-config-commands.mjs",
+        "generator_sha256": "af7dae183ff5d30f34ccedfac98458cd21c11574d08059d7c2fb9748f8ebad7d",
+        "case_indices_zero_based": [
+          127,
+          139
+        ],
+        "report": "artifacts/rust-rewrite/evidence/2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948.json",
+        "report_sha256": "2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948",
+        "scope": "Complete stdout/stderr/status and parsed saved-config comparison for these related cases. This does not cover missing baseline assertions or filesystem bytes/modes by itself."
+      }
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#4",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "setup rejects missing or invalid client profiles before keys, provider calls, and persistence",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#every_invalid_profile_is_rejected_before_secret_input_or_persistence"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "All six CLI values (missing, empty, space, automatic, Auto and --force) and the unknown inherited profile fail with the expected profile validation diagnostic, before output or persistence. The local no-call spy and fake Keychain reject any provider/storage-secret access."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-onboarding-admission-tests.log",
+        "log_sha256": "2917fd26ec9744d3d98446de0df4eccfe14fb86dade823c334d64cfe42c51413",
+        "scope": "Private native onboarding API contracts on macOS arm64 using synthetic configuration, a fake Keychain that rejects every operation and a loopback spy that rejects every connection; no public interfaces changed."
+      },
+      "review_notes": [
+        "Synthetic fixture endpoints and explicit file secret store are included in full-map equality, isolating provider and Keychain access on every host. Existing setup API injection is used; NUL strings need not cross an OS process environment boundary."
+      ]
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#5",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "doctor reports the saved Auto profile without checking or claiming permission-mode eligibility",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#jev_auto_doctor_reports_routing_profile_without_permission_eligibility_claims"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Doctor on saved Auto setup reports Sonnet/Opus routing and Claude-owned permission safety, without any available/enabled Auto-mode claim.",
+        "Exactly --version then auth status --json is invoked, no provider request is made, and the saved configuration remains byte-identical."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-onboarding-expanded-tests.log",
+        "log_sha256": "8ea88d43e7982d2cd383070e6c81936f359db9987469ba6d9432b3dde8a62d62",
+        "scope": "Native executable onboarding/doctor integration on macOS arm64, isolated homes, exact fake-Claude command recording and local mock services. Installed package and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The baseline injected environment is represented by immutable child-process environment snapshots; a child cannot mutate its parent environment. Synthetic account and credential sentinels preserve the baseline privacy assertions."
+      ],
+      "supporting_differential": {
+        "generator": "rust/parity/check-config-commands.mjs",
+        "generator_sha256": "af7dae183ff5d30f34ccedfac98458cd21c11574d08059d7c2fb9748f8ebad7d",
+        "case_indices_zero_based": [
+          151
+        ],
+        "report": "artifacts/rust-rewrite/evidence/2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948.json",
+        "report_sha256": "2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948",
+        "scope": "Complete stdout/stderr/status and parsed saved-config comparison for these related cases. This does not cover missing baseline assertions or filesystem bytes/modes by itself."
+      }
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#6",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "session logging setup saves an absolute directory with CLI precedence and supports disabling at runtime",
+      "status": "partial_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Related setup/doctor cases cover absolute directory output/persistence, including paths with UTF16 fixtures."
+      ],
+      "remaining": [
+        "Baseline CLI directory overriding a conflicting inherited directory, prompts mode, empty runtime disable, empty forced disable, no directory creation and byte-preservation across doctor are not reproduced as the full lifecycle."
+      ],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+      },
+      "review_notes": [],
+      "supporting_differential": {
+        "generator": "rust/parity/check-config-commands.mjs",
+        "generator_sha256": "af7dae183ff5d30f34ccedfac98458cd21c11574d08059d7c2fb9748f8ebad7d",
+        "case_indices_zero_based": [
+          134,
+          146,
+          151
+        ],
+        "report": "artifacts/rust-rewrite/evidence/2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948.json",
+        "report_sha256": "2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948",
+        "scope": "Complete stdout/stderr/status and parsed saved-config comparison for these related cases. This does not cover missing baseline assertions or filesystem bytes/modes by itself."
+      }
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#7",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "session logging setup rejects invalid directory flags before prompting or saving",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#invalid_log_directory_arguments_and_nul_environment_fail_before_secret_input"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Missing directory, --force-as-value, newline path and a typed NUL-containing inherited path all fail with the expected directory-option/key diagnostic before output, provider/Keychain operations or file creation."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-onboarding-admission-tests.log",
+        "log_sha256": "2917fd26ec9744d3d98446de0df4eccfe14fb86dade823c334d64cfe42c51413",
+        "scope": "Private native onboarding API contracts on macOS arm64 using synthetic configuration, a fake Keychain that rejects every operation and a loopback spy that rejects every connection; no public interfaces changed."
+      },
+      "review_notes": [
+        "Synthetic fixture endpoints and explicit file secret store are included in full-map equality, isolating provider and Keychain access on every host. Existing setup API injection is used; NUL strings need not cross an OS process environment boundary."
+      ]
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#8",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "metadata history setup preserves unrelated settings and does not enable logging by itself",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#metadata_mode_updates_only_that_setting_without_enabling_a_log_directory"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Starting from a saved Auto profile, forced metadata mode changes only AUTOROUTER_SESSION_LOG_MODE in complete saved-map equality and leaves sessionLogDir absent.",
+        "Both missing and invalid forced mode values fail with a mode diagnostic and leave the full saved map unchanged; no provider or Keychain call occurs."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-onboarding-admission-tests.log",
+        "log_sha256": "2917fd26ec9744d3d98446de0df4eccfe14fb86dade823c334d64cfe42c51413",
+        "scope": "Private native onboarding API contracts on macOS arm64 using synthetic configuration, a fake Keychain that rejects every operation and a loopback spy that rejects every connection; no public interfaces changed."
+      },
+      "review_notes": [
+        "Synthetic fixture endpoints and explicit file secret store are included in full-map equality, isolating provider and Keychain access on every host. Existing setup API injection is used; NUL strings need not cross an OS process environment boundary."
+      ],
+      "supporting_differential": {
+        "generator": "rust/parity/check-config-commands.mjs",
+        "generator_sha256": "af7dae183ff5d30f34ccedfac98458cd21c11574d08059d7c2fb9748f8ebad7d",
+        "case_indices_zero_based": [
+          135,
+          147
+        ],
+        "report": "artifacts/rust-rewrite/evidence/2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948.json",
+        "report_sha256": "2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948",
+        "scope": "Complete stdout/stderr/status and parsed saved-config comparison for these related cases. This does not cover missing baseline assertions or filesystem bytes/modes by itself."
+      }
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#9",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "setup prompts only for missing keys and leaves no file on invalid or cancelled input",
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/edge_cases.rs#hidden_secret_cancellation_restores_echo_and_preserves_saved_configuration"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Shared secret input cancellation is covered via config command."
+      ],
+      "remaining": [
+        "Setup API-key prompt order TYPESAFE then ANTHROPIC, second blank key/no file, cancelled initial setup/no file, forbidden --key argument redaction and askSecret non-TTY refusal are not tested at onboarding boundary."
+      ],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+      },
+      "review_notes": []
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#10",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "doctor uses saved subscription login with sanitized environment and does not print account data",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#saved_subscription_doctor_scrubs_all_credentials_and_uses_the_exact_auth_sequence"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "After saving Jev credentials and removing them from the runtime environment, subscription doctor succeeds with stale API/auth/OAuth credentials supplied; the fake child rejects any credential/config/base URL exposure and records exactly --version then auth status --json.",
+        "Known Claude2.1.284 is used, all account/token/evaluator/stale-credential sentinels are absent from output, no provider request occurs and saved bytes remain identical."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-onboarding-expanded-tests.log",
+        "log_sha256": "8ea88d43e7982d2cd383070e6c81936f359db9987469ba6d9432b3dde8a62d62",
+        "scope": "Native executable onboarding/doctor integration on macOS arm64, isolated homes, exact fake-Claude command recording and local mock services. Installed package and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The baseline injected environment is represented by immutable child-process environment snapshots; a child cannot mutate its parent environment. Synthetic account and credential sentinels preserve the baseline privacy assertions."
+      ]
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#11",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "doctor reports missing login, conflicting provider, and subprocess failures without dumping errors",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#doctor_missing_login_provider_conflicts_and_child_errors_fail_without_private_diagnostics"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Both loggedIn=false and loggedIn=true/authMethod=api_key report unhealthy; a fake Claude process failing with a private stderr diagnostic also reports unhealthy without echoing the error.",
+        "A healthy synthetic claude.ai login combined with Vertex enabled still reports unhealthy. All paths keep stderr empty and make no provider request."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-onboarding-expanded-tests.log",
+        "log_sha256": "8ea88d43e7982d2cd383070e6c81936f359db9987469ba6d9432b3dde8a62d62",
+        "scope": "Native executable onboarding/doctor integration on macOS arm64, isolated homes, exact fake-Claude command recording and local mock services. Installed package and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The baseline injected environment is represented by immutable child-process environment snapshots; a child cannot mutate its parent environment. Synthetic account and credential sentinels preserve the baseline privacy assertions."
+      ]
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#12",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "doctor accepts environment-only API configuration and skips subscription inspection",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#environment_only_api_doctor_checks_only_claude_version_and_never_creates_config"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "With no explicit config path and an empty isolated XDG tree, environment-only Jev/API credentials succeed with exactly one Claude --version call and no subscription auth inspection.",
+        "Output explains absent/environment configuration and that key validity is not tested; no saved config or provider request is created."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-onboarding-expanded-tests.log",
+        "log_sha256": "8ea88d43e7982d2cd383070e6c81936f359db9987469ba6d9432b3dde8a62d62",
+        "scope": "Native executable onboarding/doctor integration on macOS arm64, isolated homes, exact fake-Claude command recording and local mock services. Installed package and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The baseline injected environment is represented by immutable child-process environment snapshots; a child cannot mutate its parent environment. Synthetic account and credential sentinels preserve the baseline privacy assertions."
+      ],
+      "supporting_differential": {
+        "generator": "rust/parity/check-config-commands.mjs",
+        "generator_sha256": "af7dae183ff5d30f34ccedfac98458cd21c11574d08059d7c2fb9748f8ebad7d",
+        "case_indices_zero_based": [
+          150
+        ],
+        "report": "artifacts/rust-rewrite/evidence/2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948.json",
+        "report_sha256": "2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948",
+        "scope": "Complete stdout/stderr/status and parsed saved-config comparison for these related cases. This does not cover missing baseline assertions or filesystem bytes/modes by itself."
+      }
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#13",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "native Stop-hook block cap setup works with either evaluator and CLI values override the environment",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#stop_cap_cli_precedence_normalization_and_doctor_overrides_work_for_both_evaluators"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Both Jev and Ollama branches: CLI 0002 overrides environment 9, saved cap is canonical string 2, chosen evaluator is saved, core config reads cap2 and runtime override0, and setup reports the enabled wording.",
+        "Forced CLI0 saves canonical string0 and emits disabled wording; exactly two /v1/systemone calls occur for Ollama across the two setups, and Jev makes no local HTTP call."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-onboarding-tests.log",
+        "log_sha256": "1dedb9f9af20dbef8a51621345a88a9494f3f4dcc59328394300611a0c0b8baf",
+        "scope": "Native executable integration tests on macOS arm64, isolated synthetic homes/local HTTP mocks/PTYs and Node-free child PATH. Installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "Baseline injected JavaScript environment objects become child-process environment snapshots. The child cannot mutate the test parent environment; runtime/saved precedence and normalization are asserted through actual process invocations.",
+        "The native fixture uses an explicit loopback URL and file secret store on every host; those two isolation settings are included in full saved-map equality. No real Keychain, Ollama process, download or provider is used."
+      ],
+      "supporting_differential": {
+        "generator": "rust/parity/check-config-commands.mjs",
+        "generator_sha256": "af7dae183ff5d30f34ccedfac98458cd21c11574d08059d7c2fb9748f8ebad7d",
+        "case_indices_zero_based": [
+          133,
+          145
+        ],
+        "report": "artifacts/rust-rewrite/evidence/2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948.json",
+        "report_sha256": "2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948",
+        "scope": "Complete stdout/stderr/status and parsed saved-config comparison for these related cases. This does not cover missing baseline assertions or filesystem bytes/modes by itself."
+      }
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#14",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "native Stop-hook block cap setup saves a normalized environment opt-in without changing its parent",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#stop_cap_cli_precedence_normalization_and_doctor_overrides_work_for_both_evaluators"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Both environment-only parameter rows 0002->2 and 0000->0 persist their canonical values through Jev setup without HTTP calls."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-onboarding-tests.log",
+        "log_sha256": "1dedb9f9af20dbef8a51621345a88a9494f3f4dcc59328394300611a0c0b8baf",
+        "scope": "Native executable integration tests on macOS arm64, isolated synthetic homes/local HTTP mocks/PTYs and Node-free child PATH. Installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "Baseline injected JavaScript environment objects become child-process environment snapshots. The child cannot mutate the test parent environment; runtime/saved precedence and normalization are asserted through actual process invocations.",
+        "The native fixture uses an explicit loopback URL and file secret store on every host; those two isolation settings are included in full saved-map equality. No real Keychain, Ollama process, download or provider is used."
+      ]
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#15",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "native Stop-hook block cap setup rejects invalid CLI and environment values before prompts, persistence or providers",
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/commands.rs#invalid_setup_arguments_fail_before_prompting_network_or_writes"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Single CLI cap-1 rejects/no file."
+      ],
+      "remaining": [
+        "Full two-evaluator matrix: 11 CLI values and8 inherited values, plus invalid forced update preserving old file, not exercised through setup. Core scalar rejection is not proof of setup admission/persistence order."
+      ],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+      },
+      "review_notes": []
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#16",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "native Stop-hook block cap doctor reports only a configured value and respects runtime overrides without inference",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#stop_cap_doctor_reports_absent_saved_and_runtime_values_without_inference"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "The initial doctor omits Stop/SubagentStop when no cap is saved; forced setup saves2, subsequent doctor reports2, and runtime override0 reports disabled.",
+        "Saved configuration bytes remain identical after doctor; all three rounds invoke exactly --version then auth status --json, and the local service sees no request."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-onboarding-tests.log",
+        "log_sha256": "1dedb9f9af20dbef8a51621345a88a9494f3f4dcc59328394300611a0c0b8baf",
+        "scope": "Native executable integration tests on macOS arm64, isolated synthetic homes/local HTTP mocks/PTYs and Node-free child PATH. Installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The native fixture uses an explicit loopback URL and file secret store on every host; those two isolation settings are included in full saved-map equality. No real Keychain, Ollama process, download or provider is used."
+      ],
+      "supporting_differential": {
+        "generator": "rust/parity/check-config-commands.mjs",
+        "generator_sha256": "af7dae183ff5d30f34ccedfac98458cd21c11574d08059d7c2fb9748f8ebad7d",
+        "case_indices_zero_based": [
+          149,
+          151
+        ],
+        "report": "artifacts/rust-rewrite/evidence/2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948.json",
+        "report_sha256": "2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948",
+        "scope": "Complete stdout/stderr/status and parsed saved-config comparison for these related cases. This does not cover missing baseline assertions or filesystem bytes/modes by itself."
+      }
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#17",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "Ollama subscription setup needs no keys, stays local, and preloads before saving",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#ollama_subscription_setup_preloads_before_saving_and_doctor_is_read_only"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Ollama subscription setup succeeds with closed stdin and both unused API credentials supplied; exact saved map contains subscription, compatible profile, Ollama and the default model, with no unused credentials.",
+        "Local request sequence is exactly version/tags/show/show/systemone; the warmup sees no config file yet. Its current_task is the literal readiness task, tier question is choice, and options/messages fields are absent.",
+        "Local output and the exact nimble/default30000ms deadline are asserted, and unused credentials occur in neither output nor any captured request body. The mock rejects Authorization headers."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-onboarding-tests.log",
+        "log_sha256": "1dedb9f9af20dbef8a51621345a88a9494f3f4dcc59328394300611a0c0b8baf",
+        "scope": "Native executable integration tests on macOS arm64, isolated synthetic homes/local HTTP mocks/PTYs and Node-free child PATH. Installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The native fixture uses an explicit loopback URL and file secret store on every host; those two isolation settings are included in full saved-map equality. No real Keychain, Ollama process, download or provider is used."
+      ]
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#18",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "Ollama setup preserves API-key authentication and selects the default or an explicit compatible model",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#ollama_api_setup_prompts_only_anthropic_preserves_keepalive_and_accepts_custom_model"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Real hidden terminal input prompts once for ANTHROPIC_API_KEY and never TYPESAFE_API_KEY; secret echo/output is absent. Saved default model, Anthropic key, no Jev key and explicit URL match expectations.",
+        "Warmup carries keep_alive10m; a forced custom-router:latest selection persists that exact model and reuses the saved Anthropic credential without another prompt."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-onboarding-tests.log",
+        "log_sha256": "1dedb9f9af20dbef8a51621345a88a9494f3f4dcc59328394300611a0c0b8baf",
+        "scope": "Native executable integration tests on macOS arm64, isolated synthetic homes/local HTTP mocks/PTYs and Node-free child PATH. Installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The native fixture uses an explicit loopback URL and file secret store on every host; those two isolation settings are included in full saved-map equality. No real Keychain, Ollama process, download or provider is used."
+      ]
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#19",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "forced model setup persists an explicit deadline and later environment overrides still win",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#forced_model_deadlines_and_doctor_runtime_overrides_preserve_saved_values"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Initial tev1:4b setup uses environment2400 and persists/reports2400. Forced default-nimble setup uses environment8000, persists exact model/timeout and reports8000.",
+        "Core config reads saved8000 and a later environment600 override as600."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-onboarding-tests.log",
+        "log_sha256": "1dedb9f9af20dbef8a51621345a88a9494f3f4dcc59328394300611a0c0b8baf",
+        "scope": "Native executable integration tests on macOS arm64, isolated synthetic homes/local HTTP mocks/PTYs and Node-free child PATH. Installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The native fixture uses an explicit loopback URL and file secret store on every host; those two isolation settings are included in full saved-map equality. No real Keychain, Ollama process, download or provider is used."
+      ]
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#20",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "setup can disable the runtime deadline explicitly, overriding the environment and reporting it in doctor",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#explicit_zero_deadline_overrides_environment_and_doctor_never_warms"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "CLI timeout0 overrides environment1500, persists0, core reads0, output says deadline disabled and never deadline0ms, and exactly one synthetic warmup occurs.",
+        "Doctor with fixture Claude2.1.284 succeeds, reports disabled and issues only version/tags/show. Forced CLI2200 overrides environment0, persists2200 and reports2200ms."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-onboarding-tests.log",
+        "log_sha256": "1dedb9f9af20dbef8a51621345a88a9494f3f4dcc59328394300611a0c0b8baf",
+        "scope": "Native executable integration tests on macOS arm64, isolated synthetic homes/local HTTP mocks/PTYs and Node-free child PATH. Installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The native fixture uses an explicit loopback URL and file secret store on every host; those two isolation settings are included in full saved-map equality. No real Keychain, Ollama process, download or provider is used."
+      ]
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#21",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "setup rejects missing, blank, invalid and Jev deadline options before prompting or calling a provider",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#all_invalid_local_deadline_values_and_jev_option_fail_before_input"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "All eleven local deadline values (missing, empty, space, --pull, negative,30001,fraction,both signed underflow forms,NaN,Infinity) reject with the integer diagnostic.",
+        "Jev timeout0 rejects with the required-Ollama diagnostic. Every scenario produces no output, saved file, Keychain operation or provider request."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-onboarding-admission-tests.log",
+        "log_sha256": "2917fd26ec9744d3d98446de0df4eccfe14fb86dade823c334d64cfe42c51413",
+        "scope": "Private native onboarding API contracts on macOS arm64 using synthetic configuration, a fake Keychain that rejects every operation and a loopback spy that rejects every connection; no public interfaces changed."
+      },
+      "review_notes": [
+        "Synthetic fixture endpoints and explicit file secret store are included in full-map equality, isolating provider and Keychain access on every host. Existing setup API injection is used; NUL strings need not cross an OS process environment boundary."
+      ],
+      "supporting_differential": {
+        "generator": "rust/parity/check-config-commands.mjs",
+        "generator_sha256": "af7dae183ff5d30f34ccedfac98458cd21c11574d08059d7c2fb9748f8ebad7d",
+        "case_indices_zero_based": [
+          131,
+          143
+        ],
+        "report": "artifacts/rust-rewrite/evidence/2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948.json",
+        "report_sha256": "2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948",
+        "scope": "Complete stdout/stderr/status and parsed saved-config comparison for these related cases. This does not cover missing baseline assertions or filesystem bytes/modes by itself."
+      }
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#22",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "failed Ollama setup leaves the existing configuration intact and never downloads implicitly",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#failed_ollama_setup_and_custom_model_repair_leave_existing_configuration_intact"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "A saved Jev config is byte-identical after forced Ollama setup fails with a missing-model --pull diagnostic; local operations stop after version/tags.",
+        "Each invalid option case runs with its own fresh config: inherited Jev --pull, unknown evaluator, missing Ollama preset and missing Ollama model. Each fails with no HTTP request and no configuration file."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-onboarding-tests.log",
+        "log_sha256": "1dedb9f9af20dbef8a51621345a88a9494f3f4dcc59328394300611a0c0b8baf",
+        "scope": "Native executable integration tests on macOS arm64, isolated synthetic homes/local HTTP mocks/PTYs and Node-free child PATH. Installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The native fixture uses an explicit loopback URL and file secret store on every host; those two isolation settings are included in full saved-map equality. No real Keychain, Ollama process, download or provider is used.",
+        "The baseline setup wrapper explicitly selects Jev when no backend argument is present; the native fresh --pull fixture supplies the same Jev environment selection."
+      ]
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#23",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "Ollama doctor verifies local model metadata without warming, downloading, or asking for Jev",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#environment_only_ollama_doctor_checks_availability_without_warming_or_creating_config"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "With no explicit config and an empty isolated XDG directory, environment-only subscription/Ollama doctor with Claude2.1.284 succeeds and issues exactly version/tags/show.",
+        "Output includes local-model availability, exact default model/default deadline and the statement that classification speed/accuracy are not tested. No setup prompt or new configuration is created.",
+        "Missing-model doctor fails with --pull repair text and only version/tags requests; no warmup/download happens in either scenario."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-onboarding-tests.log",
+        "log_sha256": "1dedb9f9af20dbef8a51621345a88a9494f3f4dcc59328394300611a0c0b8baf",
+        "scope": "Native executable integration tests on macOS arm64, isolated synthetic homes/local HTTP mocks/PTYs and Node-free child PATH. Installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The native fixture uses an explicit loopback URL and file secret store on every host; those two isolation settings are included in full saved-map equality. No real Keychain, Ollama process, download or provider is used."
+      ]
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#24",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "Ollama doctor reports the effective saved model and environment deadline without inference",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#forced_model_deadlines_and_doctor_runtime_overrides_preserve_saved_values"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Saved tev1:4b timeout7000 plus runtime9000 produces successful doctor output with9000 using Claude2.1.284; operations are only version/tags/show.",
+        "Saved timeout remains7000 and the complete saved file bytes are unchanged; exact auth subprocess sequence is asserted."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-onboarding-tests.log",
+        "log_sha256": "1dedb9f9af20dbef8a51621345a88a9494f3f4dcc59328394300611a0c0b8baf",
+        "scope": "Native executable integration tests on macOS arm64, isolated synthetic homes/local HTTP mocks/PTYs and Node-free child PATH. Installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The native fixture uses an explicit loopback URL and file secret store on every host; those two isolation settings are included in full saved-map equality. No real Keychain, Ollama process, download or provider is used."
+      ]
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#25",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "forced setup preserves unrelated saved preferences and the exact configured local model",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#forced_ollama_updates_keep_all_unrelated_saved_settings_and_runtime_overrides_ephemeral"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "The full baseline saved preference set includes API mode, native profile, exact tev1:4b-q4_K_M, inactive credentials/token, port/confidence/Sonnet model/tool search/status/debug/Stop cap/log directory.",
+        "Forced timeout8000 reuses credentials without terminal input and changes only that setting in whole-map equality; local show is observed."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-onboarding-tests.log",
+        "log_sha256": "1dedb9f9af20dbef8a51621345a88a9494f3f4dcc59328394300611a0c0b8baf",
+        "scope": "Native executable integration tests on macOS arm64, isolated synthetic homes/local HTTP mocks/PTYs and Node-free child PATH. Installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The native fixture uses an explicit loopback URL and file secret store on every host; those two isolation settings are included in full saved-map equality. No real Keychain, Ollama process, download or provider is used."
+      ]
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#26",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "a one-setting setup update keeps conflicting runtime overrides and credentials ephemeral",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#forced_ollama_updates_keep_all_unrelated_saved_settings_and_runtime_overrides_ephemeral"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "The exact baseline saved debug0/status1/metadata values face conflicting runtime debug1/status0/prompts plus backend/auth/profile/credentials/token/port/model/timeout overrides.",
+        "Forced timeout8000 changes only that setting in complete saved-map equality, emits no temporary secret, and every show uses the saved tev1:4b-q4_K_M model. The previous saved bytes are still present at warmup."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-onboarding-tests.log",
+        "log_sha256": "1dedb9f9af20dbef8a51621345a88a9494f3f4dcc59328394300611a0c0b8baf",
+        "scope": "Native executable integration tests on macOS arm64, isolated synthetic homes/local HTTP mocks/PTYs and Node-free child PATH. Installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The native fixture uses an explicit loopback URL and file secret store on every host; those two isolation settings are included in full saved-map equality. No real Keychain, Ollama process, download or provider is used."
+      ]
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#27",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "explicit backend or authentication selection still accepts its environment model and credential",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#explicitly_selected_backend_and_auth_use_environment_values_without_overwriting_unrelated_preferences"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Saved Jev/subscription/native transitions explicitly to Ollama/API using environment tev1:0.8b and new Anthropic key while preserving the entire unrelated saved map, including port/native profile.",
+        "A following explicit Jev selection accepts environment Jev key/model/confidence, retains saved port/native profile, and performs no HTTP request."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-onboarding-tests.log",
+        "log_sha256": "1dedb9f9af20dbef8a51621345a88a9494f3f4dcc59328394300611a0c0b8baf",
+        "scope": "Native executable integration tests on macOS arm64, isolated synthetic homes/local HTTP mocks/PTYs and Node-free child PATH. Installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The native fixture uses an explicit loopback URL and file secret store on every host; those two isolation settings are included in full saved-map equality. No real Keychain, Ollama process, download or provider is used."
+      ],
+      "supporting_differential": {
+        "generator": "rust/parity/check-config-commands.mjs",
+        "generator_sha256": "af7dae183ff5d30f34ccedfac98458cd21c11574d08059d7c2fb9748f8ebad7d",
+        "case_indices_zero_based": [
+          128,
+          140
+        ],
+        "report": "artifacts/rust-rewrite/evidence/2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948.json",
+        "report_sha256": "2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948",
+        "scope": "Complete stdout/stderr/status and parsed saved-config comparison for these related cases. This does not cover missing baseline assertions or filesystem bytes/modes by itself."
+      }
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#28",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "explicit replacement starts with defaults and supplied values instead of retaining old settings",
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/commands.rs#native_setup_jev_preserves_unrelated_saved_preferences_and_requires_explicit_replace"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "--replace drops old port and uses supplied environment credential; related parsed-map comparison covers reset defaults."
+      ],
+      "remaining": [
+        "Baseline replacement from Ollama/API/native with discarded secrets/model/cap and exactly one TYPESAFE prompt is absent; current replacement supplies credentials noninteractively."
+      ],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+      },
+      "review_notes": [],
+      "supporting_differential": {
+        "generator": "rust/parity/check-config-commands.mjs",
+        "generator_sha256": "af7dae183ff5d30f34ccedfac98458cd21c11574d08059d7c2fb9748f8ebad7d",
+        "case_indices_zero_based": [
+          126,
+          138
+        ],
+        "report": "artifacts/rust-rewrite/evidence/2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948.json",
+        "report_sha256": "2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948",
+        "scope": "Complete stdout/stderr/status and parsed saved-config comparison for these related cases. This does not cover missing baseline assertions or filesystem bytes/modes by itself."
+      }
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#29",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "setup rejects invalid saved or explicit settings before secret input and cancellation preserves the old file",
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/edge_cases.rs#hidden_secret_cancellation_restores_echo_and_preserves_saved_configuration"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Config-command cancellation preserves bytes."
+      ],
+      "remaining": [
+        "Onboarding rejection of blank port/private invalid URL/DEBUG=false before any prompt/provider work, then cancelled --replace preserving old config, is not covered at setup boundary."
+      ],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+      },
+      "review_notes": []
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#30",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "doctor missing-model repair retains the exact custom model and distinguishes fixture versions",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#failed_ollama_setup_and_custom_model_repair_leave_existing_configuration_intact"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Missing exact custom team/router:v2 under Claude2.1.999 fails and prints the exact setup --evaluator ollama --ollama-model team/router:v2 --pull --force repair.",
+        "Output mentions both known fixture versions2.1.284/2.1.285 and explicitly does not certify full compatibility; only metadata inspection is attempted and saved settings remain unchanged."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-onboarding-tests.log",
+        "log_sha256": "1dedb9f9af20dbef8a51621345a88a9494f3f4dcc59328394300611a0c0b8baf",
+        "scope": "Native executable integration tests on macOS arm64, isolated synthetic homes/local HTTP mocks/PTYs and Node-free child PATH. Installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The native fixture uses an explicit loopback URL and file secret store on every host; those two isolation settings are included in full saved-map equality. No real Keychain, Ollama process, download or provider is used."
+      ]
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#31",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "explicit local diagnosis bypasses cloud credentials and Claude authentication and keeps JSON output singular",
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/local_diagnostic.rs#synthetic_diagnostic_separates_labels_from_transport_and_task_claims"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Diagnostic component report format, label gates and controlled transport exist."
+      ],
+      "remaining": [
+        "doctor --evaluate-local --json dispatch with saved API mode but absent credentials, zero Claude subprocesses, custom model and exactly one JSON record despite progress is not tested at CLI boundary."
+      ],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+      },
+      "review_notes": []
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#32",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "local diagnosis rejects the cloud backend without requests and caller cancellation propagates",
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/local_diagnostic.rs#invalid_settings_and_early_cancellation_do_not_perform_io"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Diagnostic component tests invalid settings and cancellation before I/O."
+      ],
+      "remaining": [
+        "Doctor wrapper cloud-backend JSON configuration_error/no subprocess/inference and later cancellation propagation are not mapped; component tests do not prove dispatcher behavior."
+      ],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+      },
+      "review_notes": []
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#33",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "setup cancellation stops before prompts, local requests, and saving",
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#pre_cancelled_setup_performs_no_keychain_input_output_or_file_access"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Pre-cancelled setup returns exactly Setup cancelled before output, input, HTTP, Keychain or persistence. A malformed existing file is not parsed or modified; absent configuration remains absent."
+      ],
+      "remaining": [
+        "Cancellation triggered immediately after the API-key prompt but before local setup/save remains untested at the onboarding boundary."
+      ],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-onboarding-admission-tests.log",
+        "log_sha256": "2917fd26ec9744d3d98446de0df4eccfe14fb86dade823c334d64cfe42c51413",
+        "scope": "Private native onboarding API contracts on macOS arm64 using synthetic configuration, a fake Keychain that rejects every operation and a loopback spy that rejects every connection; no public interfaces changed."
+      },
+      "review_notes": []
+    },
+    {
+      "baseline_test": "test/onboarding.test.mjs#34",
+      "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+      "name": "setup defaults to local Ollama, needs no evaluator key, and points to Jev when Ollama is unavailable",
+      "status": "partial_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "assertions_with_evidence": [],
+      "remaining": [
+        "No command test proves default Ollama unreachable failure saves nothing, prompts no key, includes setup --evaluator jev hint only for implicit default, and excludes it for explicit Ollama."
+      ],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+      },
+      "review_notes": []
+    },
+    {
+      "baseline_test": "test/launcher-logging.test.mjs#1",
+      "baseline_file_sha256": "281203be3d251fcaadd13144ffa7c18ffb6d09b52be900a46e15d915abdab55d",
+      "name": "opt-in launcher logs each observed session privately and drains the final row before exit",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/launcher_logging.rs#opt_in_launcher_logs_private_sessions_and_drains_final_outcomes_before_child_exit"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Two interleaved Claude sessions/five inference requests retain main/subagent/auxiliary identities and routing. Each request succeeds and the copied status snapshot excludes prompts, private metadata and Unicode task excerpts.",
+        "Exactly two private randomly named JSONL files have directory0700/file0600 permissions, newline endings and one correlated completed schema2 outcome for each schema2 decision. Session/request IDs, timestamp validity, finite nonnegative latency, selected/requested model and confirmed model match.",
+        "Alpha has four decisions with final-prompt last, expected task excerpts, auxiliary passthrough and both agent IDs; beta has one500-code-point emoji excerpt with truncation true. Non-main excerpts are empty; outcome excerpts and all private request/credential sentinels are absent.",
+        "A second launch creates four total files, leaves every old byte unchanged, drains the final outcome before returning, emits only exact child stdout and no stderr, and produces ten upstream requests."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-onboarding-tests.log",
+        "log_sha256": "1dedb9f9af20dbef8a51621345a88a9494f3f4dcc59328394300611a0c0b8baf",
+        "scope": "Native executable integration tests on macOS arm64, isolated synthetic homes/local HTTP mocks/PTYs and Node-free child PATH. Installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The fake child uses POSIX shell and system curl so its PATH contains no Node. Explicit request/response/status observation files are created by the fixture; the no-logging test excludes only those named fixture observations when comparing its first before/after directory listing."
+      ]
+    },
+    {
+      "baseline_test": "test/launcher-logging.test.mjs#2",
+      "baseline_file_sha256": "281203be3d251fcaadd13144ffa7c18ffb6d09b52be900a46e15d915abdab55d",
+      "name": "metadata-only launcher history contains correlated decisions and outcomes without excerpts",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/launcher_logging.rs#metadata_launcher_history_keeps_correlated_events_without_any_excerpt_fields"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Actual launcher metadata mode emits both decisions and outcomes in each resulting file and contains neither excerpt/truncation fields nor any prompt/private/emoji sentinels; requests succeed and stdout/stderr remain expected."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-onboarding-tests.log",
+        "log_sha256": "1dedb9f9af20dbef8a51621345a88a9494f3f4dcc59328394300611a0c0b8baf",
+        "scope": "Native executable integration tests on macOS arm64, isolated synthetic homes/local HTTP mocks/PTYs and Node-free child PATH. Installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The fake child uses POSIX shell and system curl so its PATH contains no Node. Explicit request/response/status observation files are created by the fixture; the no-logging test excludes only those named fixture observations when comparing its first before/after directory listing."
+      ]
+    },
+    {
+      "baseline_test": "test/launcher-logging.test.mjs#3",
+      "baseline_file_sha256": "281203be3d251fcaadd13144ffa7c18ffb6d09b52be900a46e15d915abdab55d",
+      "name": "unset logging creates no files and an empty environment override disables a saved directory",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/launcher_logging.rs#unset_logging_and_empty_override_create_no_history_files"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "An actual five-request launcher with logging unset creates no history or surviving private status directory and produces exact child stdout with empty stderr.",
+        "An empty runtime override of a saved log directory prevents that directory from appearing and leaves the exact directory listing unchanged after the second launch."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-onboarding-tests.log",
+        "log_sha256": "1dedb9f9af20dbef8a51621345a88a9494f3f4dcc59328394300611a0c0b8baf",
+        "scope": "Native executable integration tests on macOS arm64, isolated synthetic homes/local HTTP mocks/PTYs and Node-free child PATH. Installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The fake child uses POSIX shell and system curl so its PATH contains no Node. Explicit request/response/status observation files are created by the fixture; the no-logging test excludes only those named fixture observations when comparing its first before/after directory listing."
+      ]
+    },
+    {
+      "baseline_test": "test/launcher-logging.test.mjs#4",
+      "baseline_file_sha256": "281203be3d251fcaadd13144ffa7c18ffb6d09b52be900a46e15d915abdab55d",
+      "name": "unavailable log storage warns once without exposing prompts or preventing requests",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/launcher_logging.rs#unavailable_logging_warns_once_preserves_existing_file_and_keeps_forwarding"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "An unrelated existing file at the configured log directory remains byte-identical; all five inference requests succeed and launcher stdout is exact.",
+        "stderr is exactly one logging-disabled warning and contains no private path, prompt sentinel or Unicode excerpt."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-onboarding-tests.log",
+        "log_sha256": "1dedb9f9af20dbef8a51621345a88a9494f3f4dcc59328394300611a0c0b8baf",
+        "scope": "Native executable integration tests on macOS arm64, isolated synthetic homes/local HTTP mocks/PTYs and Node-free child PATH. Installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The fake child uses POSIX shell and system curl so its PATH contains no Node. Explicit request/response/status observation files are created by the fixture; the no-logging test excludes only those named fixture observations when comparing its first before/after directory listing."
+      ]
+    },
+    {
+      "baseline_test": "test/launcher-logging.test.mjs#5",
+      "baseline_file_sha256": "281203be3d251fcaadd13144ffa7c18ffb6d09b52be900a46e15d915abdab55d",
+      "name": "launcher keeps inference logs out of Claude by default while status and explicit debug logs work",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/launcher_logging.rs#launcher_keeps_default_stderr_empty_and_debug_events_private_while_status_savings_work"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Both default and explicit debug launches use a fake Claude child that checks evaluator exposure, scrubbed Jev key, random64-character gateway credential and exact default Anthropic model, then performs inference and waits for completed status/accounting.",
+        "The mock evaluator verifies auth and original task; mock upstream verifies provider credential/selected Sonnet. Child stdout and provider reply text are exact. Status is ready with actual Sonnet and Jev source.",
+        "Savings are requests1/unpriced0/actual.003/baseline.006/saved.003/percent50. Default stderr is empty; debug contains listening plus route/upstream_response/upstream_model events and Sonnet while never exposing either credential, prompt or response.",
+        "Exactly two evaluator and upstream calls cover the debug false/true parameter rows."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-onboarding-tests.log",
+        "log_sha256": "1dedb9f9af20dbef8a51621345a88a9494f3f4dcc59328394300611a0c0b8baf",
+        "scope": "Native executable integration tests on macOS arm64, isolated synthetic homes/local HTTP mocks/PTYs and Node-free child PATH. Installed archive and other platforms remain separate qualification."
+      },
+      "review_notes": [
+        "The fake child uses POSIX shell and system curl so its PATH contains no Node. Explicit request/response/status observation files are created by the fixture; the no-logging test excludes only those named fixture observations when comparing its first before/after directory listing."
+      ]
+    },
+    {
+      "baseline_test": "test/package-lifecycle.test.mjs#1",
+      "baseline_file_sha256": "b97bad7a875b88151f2583395d13dcee65cee339304f6bbd575c9b65c92587ad",
+      "name": "package lifecycle runner observes readiness and forwards requested signals once",
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/commands.rs#direct_help_forwards_termination_and_reaps_the_child",
+        "rust/crates/claude-autorouter/tests/commands.rs#full_launcher_forwards_signal_waits_for_child_and_removes_overlay",
+        "rust/crates/claude-autorouter/tests/launcher_contracts.rs#both_launcher_modes_forward_each_requested_signal_once_and_reap_the_child"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "SIGTERM readiness/forwarding and child exit143 cleanup are asserted in native CLI tests.",
+        "Native direct and full launchers now both forward SIGINT/SIGTERM exactly once, preserve exit23 and empty stderr, observe parsed gateway readiness, reap child PID and remove gateway/status resources."
+      ],
+      "remaining": [
+        "The baseline definition directly tests the package lifecycle helper API. Native launcher coverage now proves all signal/process semantics, but does not establish an equivalent tooling runner return contract; this helper definition stays partial."
+      ],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-contracts-tests.log",
+        "log_sha256": "05c1d030e169859a01d7c268917a5eb5c11d001f5b8d93cba3d4e10b54a58600",
+        "scope": "Native macOS arm64 executable integration, isolated homes and synthetic local services; no Node in fake Claude PATH. Installed artifacts and other platforms are separate qualification."
+      },
+      "review_notes": []
+    },
+    {
+      "baseline_test": "test/package-lifecycle.test.mjs#2",
+      "baseline_file_sha256": "b97bad7a875b88151f2583395d13dcee65cee339304f6bbd575c9b65c92587ad",
+      "name": "package lifecycle runner retains nonzero exits without concealing test diagnostics",
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/xtask/src/tool_process.rs#failed_launch_and_exit_are_not_success"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Native process helper preserves exit17 as failure metadata."
+      ],
+      "remaining": [
+        "Baseline helper retains synthetic nonzero stderr diagnostics and ready absence; Rust helper intentionally returns safe metadata and discards raw diagnostics. Needs explicit reviewed tooling-boundary adaptation or equivalent safe diagnostic-retention coverage, not silent whole-test coverage."
+      ],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+      },
+      "review_notes": []
+    },
+    {
+      "baseline_test": "test/package-lifecycle.test.mjs#3",
+      "baseline_file_sha256": "b97bad7a875b88151f2583395d13dcee65cee339304f6bbd575c9b65c92587ad",
+      "name": "package lifecycle runner bounds a stalled child and rejects missing executables",
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/xtask/src/tool_process.rs#failed_launch_and_exit_are_not_success",
+        "rust/xtask/src/tool_process.rs#output_and_deadline_are_bounded_and_metadata_never_contains_output"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Missing executable and stalled deadline produce failure metadata in native process helper."
+      ],
+      "remaining": [
+        "Exact baseline rejected Promise shapes (deadline error, ENOENT code) differ from Rust structured result; mapping needs explicit native contract adaptation and assertions on that chosen interface, rather than treating equal purpose as exact parity."
+      ],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+      },
+      "review_notes": []
+    },
+    {
+      "baseline_test": "test/auth.test.mjs#12",
+      "baseline_file_sha256": "79d517251358aa3d2a63dc9979ec86bd592c25a39eb93a147949b272d0c9e2b1",
+      "name": "subscription launcher starts and stops its proxy with a fake Claude process, without reading a login",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/launcher_contracts.rs#subscription_launch_uses_only_local_header_auth_and_cleans_its_listener_and_overlay"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Actual subscription launch never invokes a login/version probe: fake Claude accepts only generated --settings PATH plus original --model sonnet. Evaluator remains visible while all four API/auth/OAuth/evaluator credentials are absent.",
+        "Child reads the live generated command statusline with refreshInterval1 and initial schema1 empty sessions, verifies independent X-Autorouter-Token header/64-character credential, and obtains authenticated /health success.",
+        "After child completion stderr is empty, status and settings paths are gone, no status directory remains and the former gateway connection is refused."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-contracts-tests.log",
+        "log_sha256": "05c1d030e169859a01d7c268917a5eb5c11d001f5b8d93cba3d4e10b54a58600",
+        "scope": "Native macOS arm64 executable integration, isolated homes and synthetic local services; no Node in fake Claude PATH. Installed artifacts and other platforms are separate qualification."
+      },
+      "review_notes": [
+        "The baseline statusline.mjs command is replaced by the exact POSIX-quoted native executable plus statusline. The test actually invokes that command with no Node on PATH; legitimate node_modules installation paths are supported. Lifecycle and settings schema assertions are retained."
+      ]
+    },
+    {
+      "baseline_test": "test/auth.test.mjs#13",
+      "baseline_file_sha256": "79d517251358aa3d2a63dc9979ec86bd592c25a39eb93a147949b272d0c9e2b1",
+      "name": "explicit Auto launch configures real routing and preserves permission arguments and settings",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/launcher_contracts.rs#four_permission_argument_cases_route_without_changing_claude_permissions_or_settings"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "All four real-launch cases are exercised: compatible plus separated auto, native plus inline auto, later manual overriding earlier auto, and -- preventing automatic flag scanning.",
+        "Each child receives exact original arguments, expected client model (Auto Sonnet5-5 or compatible Haiku), correct absent/zero thinking, gateway hints1 and no injected Auto permission-control variables. Existing permission settings bytes remain identical in child and parent.",
+        "Every launch calls a mock Jev that selects Haiku and performs actual gateway inference. Response and complete upstream request have the expected policy-selected model and exact original task/max_tokens; four evaluator and four provider calls prove each parameter scenario took the routing path."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-contracts-tests.log",
+        "log_sha256": "05c1d030e169859a01d7c268917a5eb5c11d001f5b8d93cba3d4e10b54a58600",
+        "scope": "Native macOS arm64 executable integration, isolated homes and synthetic local services; no Node in fake Claude PATH. Installed artifacts and other platforms are separate qualification."
+      },
+      "review_notes": []
+    },
+    {
+      "baseline_test": "test/auth.test.mjs#14",
+      "baseline_file_sha256": "79d517251358aa3d2a63dc9979ec86bd592c25a39eb93a147949b272d0c9e2b1",
+      "name": "statusline opt-out or setup failure passes original settings and clears inherited router status",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/launcher_contracts.rs#disabled_or_malformed_status_settings_keep_original_arguments_and_clear_stale_state"
+      ],
+      "shared_cases": [],
+      "assertions_with_evidence": [
+        "Both baseline branches are explicit: disabled statusline with supplied custom status command, and enabled statusline with malformed JSON.",
+        "Each child receives exact original settings arguments, sees evaluator Jev and no inherited stale AUTOROUTER_STATUS_FILE; malformed settings warn about unavailable statusline, disabled settings remain quiet, and no status directory survives."
+      ],
+      "remaining": [],
+      "evidence": {
+        "log": "artifacts/rust-rewrite/cli-launcher-contracts-tests.log",
+        "log_sha256": "05c1d030e169859a01d7c268917a5eb5c11d001f5b8d93cba3d4e10b54a58600",
+        "scope": "Native macOS arm64 executable integration, isolated homes and synthetic local services; no Node in fake Claude PATH. Installed artifacts and other platforms are separate qualification."
+      },
+      "review_notes": []
+    }
+  ],
+  "reviewed_worktree_files": [
+    {
+      "path": "rust/crates/claude-autorouter/tests/launcher_logging.rs",
+      "sha256": "81cc049f5f713ae2413da950af812a59e1c1c08db9f0b5acea3dce41905d80dc"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/tests/launcher_contracts.rs",
+      "sha256": "8a5f6bf25606fbed4deea64a406d20c4c40787e5fcfa42ba22f562f5359cb0f9"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/tests/startup_options.rs",
+      "sha256": "eb60ef8eb6e6637710d21875f641d907deb8ac94b237dd9840b8cba44cb2cf7b"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/main.rs",
+      "sha256": "7d77e4231e2a5ce6f5cc3880d409c07498521167a5638db9d779f22a7d41045f"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/tests/config_contracts.rs",
+      "sha256": "40a3514358fe2a754417e8092d735ff96ffad18ebc327e17cf83fe5048254d4f"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/tests/support/mod.rs",
+      "sha256": "203dc1db36680557a6a99725611f8d98aa87c47a5e2052bfefdae08db7dac599"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "sha256": "23d656ab313d65334e7b1297bfe79aae94b9fe0049dc570d5d2f7da79c67f971"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/onboarding.rs",
+      "sha256": "0535aa4a4252f198ed1415e9e19d44f2c0a3f6fb618a2e0a610a5e04804a990f"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs",
+      "sha256": "ad44e315251b2d2b60090860fafc7b2fff299658b0d68b8b9e8236a10e12790d"
+    }
+  ],
+  "reviewed_source_note": "Checkpoint base plus the source files hashed in reviewed_worktree_files; the new startup selector diagnostic check is the sole CLI product change in this increment.",
+  "installed_validation": {
+    "scope": "All seven native CLI integration suites against unchanged preserved host-4 staged dispatcher and native artifact; 60 tests passed. Exact native artifact path is supplied for argv0 diagnostics through the shell dispatcher.",
+    "log": "artifacts/rust-rewrite/installed-host-4-cli-corrected.log",
+    "log_sha256": "206a80a892b493bcfb32e50d402d00efd6dfdd5706c67822c525e21cb440e6ac",
+    "failure_log": "artifacts/rust-rewrite/installed-host-4-cli-reproduction.log",
+    "failure_log_sha256": "d302589bf2e8c6d8d67bf17805f6ac7d7abc37eebbab5eb9ca0478f631ce1bea",
+    "artifacts": [
+      {
+        "path": "artifacts/rust-rewrite/native-package-host-4/claude-autorouter-0.5.2.tgz",
+        "sha256": "b76b5dfb25c171382221e44d40dba069f8adf1381e06abdb37bbef5bdc64e7af"
+      },
+      {
+        "path": "artifacts/rust-rewrite/native-package-host-4/stage/bin/autorouter",
+        "sha256": "962eb7d9550b2060647d9240c639e0e161b9a63bd81b5ae717b12e583f247639"
+      },
+      {
+        "path": "artifacts/rust-rewrite/native-package-host-4/stage/native/aarch64-apple-darwin/claude-autorouter",
+        "sha256": "a6a8514c87dbfc48bf4a92b582f49b5324bbecb863763d33545536ae4a5f2df1"
+      }
+    ]
+  },
+  "npm_install_validation": {
+    "report": "artifacts/rust-rewrite/host4-real-install-reproduction/report.json",
+    "report_sha256": "69273a08e00a4d9945408d62319d1dc96436fba61c2a078fef644c74468acded",
+    "scope": "Unchanged host-4 archive installed offline through npm into a prefix containing spaces, single quote and dollar. The npm command symlink and unrelated cwd are used; all seven integration suites/60 tests pass, and the actual generated status command executes without Node on PATH."
+  }
+}

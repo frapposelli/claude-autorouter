@@ -2,7 +2,7 @@
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
-use std::process::{Child, Command, Stdio};
+use std::process::{Child, Command, ExitStatus, Stdio};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 const MAX_STDOUT: u64 = 128 * 1024 * 1024;
@@ -10,23 +10,162 @@ const MAX_STDERR: u64 = 64 * 1024;
 
 struct Scratch(PathBuf);
 
-struct OwnedChild(Child);
+struct OwnedChild {
+    child: Child,
+    cleaned: bool,
+    #[cfg(unix)]
+    group: Option<nix::unistd::Pid>,
+}
+
+impl OwnedChild {
+    fn new(child: Child) -> Self {
+        Self {
+            cleaned: false,
+            #[cfg(unix)]
+            group: Some(nix::unistd::Pid::from_raw(child.id() as i32)),
+            child,
+        }
+    }
+
+    fn cleanup(&mut self) {
+        if self.cleaned {
+            return;
+        }
+        self.cleaned = true;
+        // The leader may already have exited while fixture descendants still
+        // own output files or sockets. End the owned group on every path,
+        // including successful completion, before returning captured bytes.
+        #[cfg(unix)]
+        if let Some(group) = self.group.take() {
+            let _ = nix::sys::signal::killpg(group, nix::sys::signal::Signal::SIGKILL);
+        }
+        let _ = self.child.kill();
+        let _ = self.child.wait();
+    }
+}
+
+// Observe completion without reaping the leader. Keeping its PID reserved
+// until after killpg prevents signaling a reused process-group identifier.
+struct ExitObserver {
+    #[cfg(target_os = "macos")]
+    queue: nix::sys::event::Kqueue,
+    #[cfg(target_os = "macos")]
+    exited: bool,
+}
+
+impl ExitObserver {
+    fn new(pid: u32) -> Result<Self, String> {
+        #[cfg(target_os = "macos")]
+        {
+            use nix::sys::event::{EvFlags, EventFilter, FilterFlag, KEvent, Kqueue};
+            let queue = Kqueue::new().map_err(|_| "Cannot observe fixture executable")?;
+            let change = KEvent::new(
+                pid as usize,
+                EventFilter::EVFILT_PROC,
+                EvFlags::EV_ADD | EvFlags::EV_ONESHOT,
+                FilterFlag::NOTE_EXIT,
+                0,
+                0,
+            );
+            // With no output slots, registration errors are returned directly.
+            // ESRCH means this owned, unreaped child exited before registration.
+            let exited = match queue.kevent(&[change], &mut [], None) {
+                Ok(_) => false,
+                Err(nix::errno::Errno::ESRCH) => true,
+                Err(_) => return Err("Cannot observe fixture executable".into()),
+            };
+            Ok(Self { queue, exited })
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            let _ = pid;
+            Ok(Self {})
+        }
+    }
+
+    fn exited(&mut self, child: &mut OwnedChild) -> Result<bool, String> {
+        #[cfg(target_os = "macos")]
+        {
+            use nix::sys::event::{EvFlags, EventFilter, FilterFlag, KEvent};
+            if self.exited {
+                return Ok(true);
+            }
+            let mut events = [KEvent::new(
+                child.id() as usize,
+                EventFilter::EVFILT_PROC,
+                EvFlags::empty(),
+                FilterFlag::empty(),
+                0,
+                0,
+            )];
+            match self.queue.kevent(
+                &[],
+                &mut events,
+                Some(nix::libc::timespec {
+                    tv_sec: 0,
+                    tv_nsec: 0,
+                }),
+            ) {
+                Ok(0) | Err(nix::errno::Errno::EINTR) => Ok(false),
+                Ok(1)
+                    if !events[0].flags().contains(EvFlags::EV_ERROR)
+                        && events[0].ident() == child.id() as usize
+                        && events[0].fflags().contains(FilterFlag::NOTE_EXIT) =>
+                {
+                    self.exited = true;
+                    Ok(true)
+                }
+                _ => Err("Cannot wait for fixture executable".into()),
+            }
+        }
+        #[cfg(target_os = "linux")]
+        {
+            use nix::sys::wait::{Id, WaitPidFlag, WaitStatus, waitid};
+            match waitid(
+                Id::Pid(nix::unistd::Pid::from_raw(child.id() as i32)),
+                WaitPidFlag::WEXITED | WaitPidFlag::WNOHANG | WaitPidFlag::WNOWAIT,
+            ) {
+                Ok(WaitStatus::Exited(_, _) | WaitStatus::Signaled(_, _, _)) => Ok(true),
+                Ok(WaitStatus::StillAlive) | Err(nix::errno::Errno::EINTR) => Ok(false),
+                Err(nix::errno::Errno::ECHILD) => {
+                    // An unexpected external reaper has ended our ownership.
+                    // Do not signal a numeric PID/group that can now be reused.
+                    child.cleaned = true;
+                    child.group = None;
+                    Err("Cannot wait for fixture executable".into())
+                }
+                _ => Err("Cannot wait for fixture executable".into()),
+            }
+        }
+        #[cfg(not(unix))]
+        {
+            child
+                .try_wait()
+                .map(|status| status.is_some())
+                .map_err(|_| "Cannot wait for fixture executable".into())
+        }
+        #[cfg(all(unix, not(any(target_os = "macos", target_os = "linux"))))]
+        {
+            let _ = child;
+            Err("Fixture process observation is supported only on macOS and Linux".into())
+        }
+    }
+}
 
 impl std::ops::Deref for OwnedChild {
     type Target = Child;
     fn deref(&self) -> &Child {
-        &self.0
+        &self.child
     }
 }
 impl std::ops::DerefMut for OwnedChild {
     fn deref_mut(&mut self) -> &mut Child {
-        &mut self.0
+        &mut self.child
     }
 }
 impl Drop for OwnedChild {
     fn drop(&mut self) {
-        let _ = self.0.kill();
-        let _ = self.0.wait();
+        self.cleanup();
     }
 }
 
@@ -71,6 +210,30 @@ impl Drop for Scratch {
 }
 
 pub fn capture(command: &mut Command, input: &[u8], timeout: Duration) -> Result<Vec<u8>, String> {
+    let result = capture_result(command, input, timeout)?;
+    if !result.status.success() {
+        // Default diagnostics never disclose subprocess payloads.
+        return Err(format!(
+            "Fixture executable failed ({}); run the reference baseline check separately",
+            result.status
+        ));
+    }
+    Ok(result.stdout)
+}
+
+/// Bounded output for explicit fixture/report consumers. Callers decide which
+/// synthetic diagnostics to retain; routine errors must not print these bytes.
+pub struct CapturedProcess {
+    pub status: ExitStatus,
+    pub stdout: Vec<u8>,
+    pub stderr: Vec<u8>,
+}
+
+pub fn capture_result(
+    command: &mut Command,
+    input: &[u8],
+    timeout: Duration,
+) -> Result<CapturedProcess, String> {
     let scratch = Scratch::new()?;
     scratch
         .file("stdin")?
@@ -79,7 +242,12 @@ pub fn capture(command: &mut Command, input: &[u8], timeout: Duration) -> Result
     let stdout = scratch.file("stdout")?;
     let stderr = scratch.file("stderr")?;
     let input = File::open(scratch.0.join("stdin")).map_err(|_| "Cannot read fixture input")?;
-    let mut child = OwnedChild(
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        command.process_group(0);
+    }
+    let mut child = OwnedChild::new(
         command
             .stdin(Stdio::from(input))
             .stdout(Stdio::from(
@@ -97,6 +265,7 @@ pub fn capture(command: &mut Command, input: &[u8], timeout: Duration) -> Result
             .spawn()
             .map_err(|_| "Cannot start fixture executable")?,
     );
+    let mut observer = ExitObserver::new(child.id())?;
     let started = Instant::now();
     let status = loop {
         let oversized = stdout
@@ -110,8 +279,7 @@ pub fn capture(command: &mut Command, input: &[u8], timeout: Duration) -> Result
                 .len()
                 > MAX_STDERR;
         if oversized || started.elapsed() >= timeout {
-            let _ = child.kill();
-            let _ = child.wait();
+            child.cleanup();
             return Err(if oversized {
                 "Fixture executable exceeded output limit"
             } else {
@@ -119,23 +287,26 @@ pub fn capture(command: &mut Command, input: &[u8], timeout: Duration) -> Result
             }
             .into());
         }
-        match child.try_wait() {
-            Ok(Some(status)) => break status,
-            Ok(None) => std::thread::sleep(Duration::from_millis(10)),
-            Err(_) => {
-                let _ = child.kill();
-                let _ = child.wait();
-                return Err("Cannot wait for fixture executable".into());
+        match observer.exited(&mut child) {
+            Ok(true) => {
+                child.cleanup();
+                break child
+                    .wait()
+                    .map_err(|_| "Cannot wait for fixture executable")?;
+            }
+            Ok(false) => std::thread::sleep(Duration::from_millis(10)),
+            Err(error) => {
+                child.cleanup();
+                return Err(error);
             }
         }
     };
-    if !status.success() {
-        // Report exit state only: subprocess diagnostics can contain fixtures.
-        return Err(format!(
-            "Fixture executable failed ({status}); run the reference baseline check separately"
-        ));
-    }
-    read_bounded(&scratch.0.join("stdout"), MAX_STDOUT)
+    child.cleanup();
+    Ok(CapturedProcess {
+        status,
+        stdout: read_bounded(&scratch.0.join("stdout"), MAX_STDOUT)?,
+        stderr: read_bounded(&scratch.0.join("stderr"), MAX_STDERR)?,
+    })
 }
 
 pub fn read_bounded(path: &Path, max: u64) -> Result<Vec<u8>, String> {
@@ -176,6 +347,20 @@ mod tests {
     }
 
     #[test]
+    fn completed_fixture_capture_retains_exit_status_and_separate_streams() {
+        let mut command = Command::new("/bin/sh");
+        command.args(["-c", "cat; printf synthetic-error >&2; exit 17"]);
+        let output =
+            capture_result(&mut command, b"synthetic-input", Duration::from_secs(1)).unwrap();
+        assert_eq!(output.status.code(), Some(17));
+        assert_eq!(output.stdout, b"synthetic-input");
+        assert_eq!(output.stderr, b"synthetic-error");
+        let error = capture(&mut command, b"synthetic-input", Duration::from_secs(1)).unwrap_err();
+        assert!(!error.contains("synthetic-input"));
+        assert!(!error.contains("synthetic-error"));
+    }
+
+    #[test]
     fn stalled_process_has_a_deadline() {
         let mut command = Command::new("/bin/sh");
         command.args(["-c", "exec sleep 30"]);
@@ -185,6 +370,166 @@ mod tests {
             "Fixture executable timed out"
         );
         assert!(started.elapsed() < Duration::from_secs(2));
+    }
+
+    #[cfg(unix)]
+    fn descendant_fixture(mode: &str) -> (Scratch, Result<CapturedProcess, String>) {
+        let scratch = Scratch::new().unwrap();
+        // The descendant announces that it is running, ignores shell HUP,
+        // and waits for a release file created only after capture returns.
+        // Without group cleanup it can then write the escaped marker.
+        let script = r#"
+            (
+                trap '' HUP
+                printf ready > "$1/started"
+                while [ ! -f "$1/release" ]; do sleep 0.01; done
+                printf escaped > "$1/escaped"
+            ) &
+            while [ ! -f "$1/started" ]; do sleep 0.01; done
+            case "$2" in
+                timeout) wait ;;
+                overflow) dd if=/dev/zero bs=65536 count=2 1>&2 2>/dev/null; wait ;;
+                success) printf synthetic-completion ;;
+                failure) printf synthetic-failure >&2; exit 17 ;;
+            esac
+        "#;
+        let mut command = Command::new("/bin/sh");
+        command
+            .args(["-c", script, "owned-descendant-fixture"])
+            .arg(&scratch.0)
+            .arg(mode);
+        let result = capture_result(&mut command, b"", Duration::from_secs(2));
+        // Release even if the assertion below fails, so a regressed helper
+        // cannot leave this synthetic descendant waiting indefinitely.
+        fs::write(scratch.0.join("release"), b"released").unwrap();
+        std::thread::sleep(Duration::from_millis(200));
+        assert_eq!(fs::read(scratch.0.join("started")).unwrap(), b"ready");
+        assert!(
+            !scratch.0.join("escaped").exists(),
+            "fixture descendant continued after capture returned ({mode})"
+        );
+        (scratch, result)
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn timeout_stops_spawned_descendants_before_returning() {
+        let (_scratch, result) = descendant_fixture("timeout");
+        assert_eq!(result.err().unwrap(), "Fixture executable timed out");
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn output_overflow_stops_spawned_descendants_before_returning() {
+        let (_scratch, result) = descendant_fixture("overflow");
+        assert_eq!(
+            result.err().unwrap(),
+            "Fixture executable exceeded output limit"
+        );
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn completed_capture_cleans_descendants_and_preserves_the_leader_status() {
+        for mode in ["success", "failure"] {
+            let (_scratch, result) = descendant_fixture(mode);
+            let result = result.unwrap();
+            if mode == "success" {
+                assert!(result.status.success());
+                assert_eq!(result.stdout, b"synthetic-completion");
+                assert!(result.stderr.is_empty());
+            } else {
+                assert_eq!(result.status.code(), Some(17));
+                assert!(result.stdout.is_empty());
+                assert_eq!(result.stderr, b"synthetic-failure");
+            }
+        }
+    }
+
+    #[test]
+    #[cfg(any(target_os = "macos", target_os = "linux"))]
+    fn exit_observation_keeps_the_leader_waitable_until_group_cleanup() {
+        use nix::sys::wait::{WaitPidFlag, WaitStatus, waitpid};
+        use nix::unistd::Pid;
+        use std::os::unix::process::CommandExt;
+        for already_exited in [false, true] {
+            for _ in 0..8 {
+                let child = Command::new("/bin/sh")
+                    .args(["-c", "exit 23"])
+                    .process_group(0)
+                    .spawn()
+                    .unwrap();
+                let mut child = OwnedChild::new(child);
+                if already_exited {
+                    std::thread::sleep(Duration::from_millis(10));
+                }
+                let mut observer = ExitObserver::new(child.id()).unwrap();
+                let deadline = Instant::now() + Duration::from_secs(2);
+                while !observer.exited(&mut child).unwrap() {
+                    assert!(Instant::now() < deadline);
+                    std::thread::sleep(Duration::from_millis(1));
+                }
+                // An independent OS wait proves observation did not consume
+                // exit status or release the PID; Child's cached status alone
+                // would not detect an accidental try_wait implementation.
+                let pid = Pid::from_raw(child.id() as i32);
+                let result = waitpid(pid, Some(WaitPidFlag::WNOHANG));
+                if matches!(
+                    result,
+                    Ok(WaitStatus::Exited(_, _) | WaitStatus::Signaled(_, _, _))
+                        | Err(nix::errno::Errno::ECHILD)
+                ) {
+                    // This test intentionally reaped it: never signal its
+                    // numeric ID after ending ownership.
+                    child.cleaned = true;
+                    child.group = None;
+                }
+                assert_eq!(result.unwrap(), WaitStatus::Exited(pid, 23));
+            }
+        }
+    }
+
+    #[test]
+    #[cfg(any(target_os = "macos", target_os = "linux"))]
+    fn capture_cleanup_does_not_signal_a_separate_owned_fixture_group() {
+        use std::os::unix::process::CommandExt;
+        let scratch = Scratch::new().unwrap();
+        let child = Command::new("/bin/sh")
+            .args([
+                "-c",
+                "while [ ! -f \"$1/release\" ]; do sleep 0.01; done; printf survived > \"$1/survived\"",
+                "separate-owned-fixture",
+            ])
+            .arg(&scratch.0)
+            .process_group(0)
+            .spawn()
+            .unwrap();
+        let mut other = OwnedChild::new(child);
+        assert_eq!(
+            nix::unistd::getpgid(Some(nix::unistd::Pid::from_raw(other.id() as i32))).unwrap(),
+            nix::unistd::Pid::from_raw(other.id() as i32)
+        );
+        assert_ne!(
+            nix::unistd::getpgrp(),
+            nix::unistd::Pid::from_raw(other.id() as i32)
+        );
+        let error = capture(
+            Command::new("/bin/sh").args(["-c", "exec sleep 30"]),
+            b"",
+            Duration::from_millis(30),
+        )
+        .unwrap_err();
+        assert_eq!(error, "Fixture executable timed out");
+        fs::write(scratch.0.join("release"), b"released").unwrap();
+        let mut observer = ExitObserver::new(other.id()).unwrap();
+        let deadline = Instant::now() + Duration::from_secs(2);
+        while !observer.exited(&mut other).unwrap() {
+            assert!(Instant::now() < deadline);
+            std::thread::sleep(Duration::from_millis(1));
+        }
+        other.cleanup();
+        assert!(other.wait().unwrap().success());
+        assert_eq!(fs::read(scratch.0.join("survived")).unwrap(), b"survived");
     }
 
     #[test]

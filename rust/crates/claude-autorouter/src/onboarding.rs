@@ -16,6 +16,9 @@ use std::ffi::OsString;
 use tokio_util::sync::CancellationToken;
 
 const USAGE: &str = "Usage: claude-autorouter setup [--auth-mode subscription|api-key] [--client-profile compatible|native|auto] [--evaluator jev|ollama] [--ollama-model TAG] [--ollama-timeout-ms N] [--stop-hook-block-cap N] [--session-log-dir DIR] [--session-log-mode metadata|prompts] [--secret-store file|keychain] [--pull] [--force|--replace]";
+#[cfg(test)]
+#[path = "onboarding_contract_tests.rs"]
+mod contract_tests;
 fn value(env: &Value, key: &str, fallback: &str) -> String {
     env.get(key)
         .and_then(Value::as_str)

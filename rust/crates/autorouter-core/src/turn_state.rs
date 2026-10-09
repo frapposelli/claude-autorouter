@@ -735,8 +735,55 @@ mod tests {
                 0
             ));
         }
+        assert_eq!(state.record_count(), 1);
         assert_eq!(state.alias_count(), 8);
+        assert_eq!(state.get("prompt", 0).unwrap()["model"], "opus");
         assert_eq!(state.get("prompt", 0).unwrap()["confirmed"], false);
         assert_eq!(state.get("discovery-99", 0).unwrap()["model"], "opus");
+    }
+
+    #[test]
+    fn failed_old_retry_releases_retired_task_after_newer_task_commits() {
+        let mut state = TurnState::new(1000, 10);
+        stage(&mut state, &["old"], "opus", "initial", 1);
+        state.complete("initial", Some(&done("opus", json!([]))), 0);
+        stage(&mut state, &["old"], "opus", "retry", 2);
+        stage(&mut state, &["new"], "haiku", "new", 3);
+        state.complete("new", Some(&done("haiku", json!([]))), 0);
+        state.complete("retry", None, 0);
+        assert!(state.get("old", 11).is_none());
+        assert_eq!(state.get("new", 11).unwrap()["model"], "haiku");
+    }
+
+    #[test]
+    fn different_prompt_identity_cannot_replace_pending_same_content_tools() {
+        let mut state = TurnState::default();
+        stage(
+            &mut state,
+            &["prompt-one", "same-content"],
+            "opus",
+            "one",
+            1,
+        );
+        state.complete(
+            "one",
+            Some(&done("opus", json!([{"id":"pending","model":"opus"}]))),
+            0,
+        );
+        stage(
+            &mut state,
+            &["prompt-two", "same-content"],
+            "haiku",
+            "two",
+            2,
+        );
+        state.complete("two", Some(&done("haiku", json!([]))), 0);
+        assert_eq!(state.get("prompt-one", 0).unwrap()["model"], "opus");
+        assert_eq!(state.get("prompt-two", 0).unwrap()["model"], "haiku");
+        assert!(state.get("same-content", 0).is_none());
+        assert_eq!(
+            state.tool_owner("s", &["pending".into()]).unwrap()["pin"]["model"],
+            "opus"
+        );
     }
 }
