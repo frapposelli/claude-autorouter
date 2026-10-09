@@ -6,6 +6,7 @@ mod service;
 #[path = "benchmark_stream.rs"]
 mod stream;
 use crate::process::read_bounded;
+use crate::process::resource::ResourceChild;
 use crate::tool_process::Scratch;
 use autorouter_runtime::http_client::{HttpTransport, NativeHttpClient};
 use bytes::Bytes;
@@ -29,6 +30,7 @@ const MODEL: &str = "claude-opus-5-5";
 const SELECTED: &str = "claude-sonnet-5";
 const PROTOCOL: &str = include_str!("../../parity/local-benchmark-v1.json");
 const PROTOCOL_V2: &str = include_str!("../../parity/local-benchmark-v2.json");
+const PROTOCOL_V3: &str = include_str!("../../parity/local-benchmark-v3.json");
 const GATES: &str = include_str!("../../parity/performance-gates.json");
 fn digest(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
@@ -167,24 +169,49 @@ impl Fixture {
         Bytes::from(bytes)
     }
 }
+enum GatewayChild {
+    Direct(Child),
+    Measured(ResourceChild),
+}
+impl GatewayChild {
+    fn id(&self) -> u32 {
+        match self {
+            Self::Direct(child) => child.id(),
+            Self::Measured(child) => child.id(),
+        }
+    }
+    fn exited(&mut self) -> Result<bool, String> {
+        match self {
+            Self::Direct(child) => child
+                .try_wait()
+                .map(|value| value.is_some())
+                .map_err(|_| "Cannot inspect benchmark gateway".into()),
+            Self::Measured(child) => child.exited(),
+        }
+    }
+}
+impl Drop for GatewayChild {
+    fn drop(&mut self) {
+        if let Self::Direct(child) = self {
+            let _ = child.kill();
+            let _ = child.wait();
+        }
+    }
+}
 struct Gateway {
-    child: Child,
+    child: GatewayChild,
     address: std::net::SocketAddr,
     ready_ms: f64,
     _scratch: Scratch,
     stderr: PathBuf,
-}
-impl Drop for Gateway {
-    fn drop(&mut self) {
-        let _ = self.child.kill();
-        let _ = self.child.wait();
-    }
+    resources: Option<Value>,
 }
 impl Gateway {
     async fn start(
         executable: &Executable,
         mock: &service::Mock,
         client: &NativeHttpClient,
+        resources: bool,
     ) -> Result<Self, String> {
         let scratch = Scratch::new("benchmark-gateway")?;
         scratch.file("absent-config.json", b"{}")?;
@@ -200,8 +227,8 @@ impl Gateway {
             .open(&stderr)
             .map_err(|_| "Cannot open gateway diagnostics")?;
         let started = Instant::now();
-        let child = executable
-            .command(&scratch.0, "serve")
+        let mut command = executable.command(&scratch.0, "serve");
+        command
             .env("AUTOROUTER_PORT", address.port().to_string())
             .env(
                 "AUTOROUTER_UPSTREAM_URL",
@@ -210,26 +237,29 @@ impl Gateway {
             .env(
                 "AUTOROUTER_JEV_URL",
                 format!("http://{}/v1/systemone", mock.address),
+            );
+        let child = if resources {
+            GatewayChild::Measured(ResourceChild::spawn(&command, output).await?)
+        } else {
+            GatewayChild::Direct(
+                command
+                    .stdin(Stdio::null())
+                    .stdout(Stdio::null())
+                    .stderr(Stdio::from(output))
+                    .spawn()
+                    .map_err(|_| "Cannot launch benchmark gateway")?,
             )
-            .stdin(Stdio::null())
-            .stdout(Stdio::null())
-            .stderr(Stdio::from(output))
-            .spawn()
-            .map_err(|_| "Cannot launch benchmark gateway")?;
+        };
         let mut gateway = Self {
             child,
             address,
             ready_ms: 0.0,
             _scratch: scratch,
             stderr,
+            resources: None,
         };
         loop {
-            if gateway
-                .child
-                .try_wait()
-                .map_err(|_| "Cannot inspect benchmark gateway")?
-                .is_some()
-            {
+            if gateway.child.exited()? {
                 return Err(format!(
                     "{} gateway exited before readiness",
                     executable.name
@@ -269,13 +299,24 @@ impl Gateway {
     }
     async fn stop(&mut self) -> Result<f64, String> {
         let started = Instant::now();
+        if let GatewayChild::Measured(child) = &mut self.child {
+            self.resources = Some(child.stop().await?);
+            if std::net::TcpStream::connect_timeout(&self.address, Duration::from_millis(50))
+                .is_ok()
+            {
+                return Err("Benchmark gateway left its listener open".into());
+            }
+            return Ok(started.elapsed().as_secs_f64() * 1000.0);
+        }
+        let GatewayChild::Direct(child) = &mut self.child else {
+            unreachable!()
+        };
         let _ = nix::sys::signal::kill(
-            nix::unistd::Pid::from_raw(self.child.id() as i32),
+            nix::unistd::Pid::from_raw(child.id() as i32),
             nix::sys::signal::Signal::SIGTERM,
         );
         loop {
-            if let Some(status) = self
-                .child
+            if let Some(status) = child
                 .try_wait()
                 .map_err(|_| "Cannot wait for benchmark gateway cleanup")?
             {
@@ -435,6 +476,7 @@ async fn http(
     round: usize,
     validate: bool,
     v2: bool,
+    resources: bool,
 ) -> Result<Value, String> {
     let fixture = Arc::new(Fixture::new(workload, round));
     let stream_fixture = workload.stream.map(stream::Fixture::new);
@@ -461,7 +503,7 @@ async fn http(
     .await?;
     let client = NativeHttpClient::new().map_err(|_| "Cannot initialize benchmark HTTP client")?;
     let mut gateway = match executable {
-        Some(executable) => Some(Gateway::start(executable, &mock, &client).await?),
+        Some(executable) => Some(Gateway::start(executable, &mock, &client, resources).await?),
         None => None,
     };
     let address = gateway.as_ref().map(|v| v.address).unwrap_or(mock.address);
@@ -489,7 +531,19 @@ async fn http(
         expected.clone(),
         v2,
     )
-    .await?;
+    .await
+    .map_err(|error| {
+        format!(
+            "{} {} c{} warmup: {error}; observed calls {:?}, streams {:?}",
+            executable
+                .map(|value| value.name)
+                .unwrap_or("direct_upstream"),
+            workload.id,
+            workload.concurrency,
+            mock.counts.snapshot(),
+            mock.streams.snapshot()
+        )
+    })?;
     let before = mock.counts.snapshot();
     let streams_before = mock.streams.snapshot();
     let cpu_before = match &gateway {
@@ -525,7 +579,18 @@ async fn http(
     let peak = sampler
         .await
         .map_err(|_| "Benchmark resource sampler failed")?;
-    let batch = measured_result?;
+    let batch = measured_result.map_err(|error| {
+        format!(
+            "{} {} c{} measured: {error}; observed calls {:?}, streams {:?}",
+            executable
+                .map(|value| value.name)
+                .unwrap_or("direct_upstream"),
+            workload.id,
+            workload.concurrency,
+            mock.counts.snapshot(),
+            mock.streams.snapshot()
+        )
+    })?;
     let seconds = batch.seconds;
     let times: Vec<_> = batch.observations.iter().map(|v| v.total_ms).collect();
     let firsts: Vec<_> = batch.observations.iter().map(|v| v.headers_ms).collect();
@@ -598,6 +663,16 @@ async fn http(
         None => None,
     };
     let mut row = json!({"implementation":executable.map(|v|v.name).unwrap_or("direct_upstream"),"workload":workload.id,"concurrency":workload.concurrency,"round":round,"fixture_bytes":fixture.bytes.len(),"fixture_sha256":digest(&fixture.bytes),"response_sha256":digest(&expected),"deterministic_counts_passed":true,"requests":measured,"warmup_requests":warmup,"evaluator_calls":delta[0],"upstream_calls":delta[1],"count_token_calls":delta[2],"duration_seconds":seconds,"requests_per_second":measured as f64/seconds,"route_ms":measure::stats(&times),"first_response_headers_ms":measure::stats(&firsts),"raw_route_ms":times,"raw_first_response_headers_ms":firsts,"ready_ms":ready,"cleanup_ms":cleanup,"idle_rss_bytes":idle["rss_bytes"],"sampled_peak_rss_bytes":peak,"cpu_time_per_request_ms":cpu_ms,"cpu_time_delta_ms":cpu_delta_ms,"cpu_time_resolution_ms":resolution_ms,"diagnostic_bytes":stderr_bytes,"allocations":null,"open_file_descriptors":null,"true_peak_rss_bytes":null});
+    if resources {
+        let lifetime = gateway
+            .as_ref()
+            .and_then(|gateway| gateway.resources.as_ref());
+        row["resource_collection_verified"] = json!(lifetime.is_some());
+        row["lifetime_resources"] = json!(lifetime);
+        row["true_peak_rss_bytes"] = lifetime
+            .map(|value| value["peak_rss_bytes"].clone())
+            .unwrap_or(Value::Null);
+    }
     if v2 {
         row["driver_peak_in_flight_requests"] = json!(batch.peak_in_flight);
         row["upstream_and_count_request_fields_verified"] = json!(true);
@@ -706,7 +781,7 @@ fn comparisons(rows: &[Value], v2: bool) -> Vec<Value> {
                 find("node").zip(find("rust"))
             })
             .collect::<Vec<_>>();
-        let paths: Vec<(&str, Vec<&str>, f64, bool)> = if workload.starts_with("startup_") {
+        let mut paths: Vec<(&str, Vec<&str>, f64, bool)> = if workload.starts_with("startup_") {
             vec![(
                 "startup_median_ratio",
                 vec!["startup_ms", "p50"],
@@ -725,10 +800,29 @@ fn comparisons(rows: &[Value], v2: bool) -> Vec<Value> {
                 ("throughput_ratio", vec!["requests_per_second"], 0.9, true),
             ]
         };
+        if workload == "large_catalog_miss"
+            && pairs.iter().any(|(a, b)| {
+                a["resource_collection_verified"] == true
+                    && b["resource_collection_verified"] == true
+            })
+        {
+            paths.push((
+                "lifetime_peak_rss_ratio",
+                vec!["true_peak_rss_bytes"],
+                0.7,
+                false,
+            ));
+        }
         for (metric, path, threshold, minimum) in paths {
             let ratios = pairs
                 .iter()
                 .filter_map(|(a, b)| {
+                    if metric == "lifetime_peak_rss_ratio"
+                        && (a["resource_collection_verified"] != true
+                            || b["resource_collection_verified"] != true)
+                    {
+                        return None;
+                    }
                     scalar(a, &path)
                         .zip(scalar(b, &path))
                         .filter(|(a, _)| *a > 0.0)
@@ -854,8 +948,22 @@ async fn execute(
     binary: &Path,
     validate: bool,
     v2: bool,
+    resources: bool,
 ) -> Result<bool, String> {
-    let protocol = if v2 { PROTOCOL_V2 } else { PROTOCOL };
+    let protocol = if resources {
+        PROTOCOL_V3
+    } else if v2 {
+        PROTOCOL_V2
+    } else {
+        PROTOCOL
+    };
+    let schema_version = if resources {
+        3
+    } else if v2 {
+        2
+    } else {
+        1
+    };
     let reference = root.join("artifacts/rust-rewrite/reference");
     crate::reference::freeze(root, &reference)?;
     let node = Executable {
@@ -896,7 +1004,7 @@ async fn execute(
         source.push(json!({"path":path,"sha256":digest(&bytes),"bytes":bytes.len()}));
     }
     let before = measure::environment(root);
-    let preflight = json!({"schema_version":if v2 {2} else {1},"kind":"synthetic_native_benchmark_preflight","mode":if validate{"deterministic_validation"}else{"exploratory_measurement"},"baseline_commit":"ea930c247626ce2af5ccdad721b5121417bf4ad8","protocol":serde_json::from_str::<Value>(protocol).unwrap(),"protocol_sha256":digest(protocol.as_bytes()),"gates":serde_json::from_str::<Value>(GATES).unwrap(),"gates_sha256":digest(GATES.as_bytes()),"candidate_sha256":digest(&read_bounded(&native.program,32*1024*1024)?),"node_binary_sha256":digest(&read_bounded(&node.program,256*1024*1024)?),"source_manifest":source,"environment":before,"provider_calls":0,"reference_integrity_verified":true});
+    let preflight = json!({"schema_version":schema_version,"kind":"synthetic_native_benchmark_preflight","mode":if validate{"deterministic_validation"}else{"exploratory_measurement"},"baseline_commit":"ea930c247626ce2af5ccdad721b5121417bf4ad8","protocol":serde_json::from_str::<Value>(protocol).unwrap(),"protocol_sha256":digest(protocol.as_bytes()),"gates":serde_json::from_str::<Value>(GATES).unwrap(),"gates_sha256":digest(GATES.as_bytes()),"candidate_sha256":digest(&read_bounded(&native.program,32*1024*1024)?),"node_binary_sha256":digest(&read_bounded(&node.program,256*1024*1024)?),"source_manifest":source,"environment":before,"provider_calls":0,"reference_integrity_verified":true});
     write(&destination.join("preflight.json"), &preflight)?;
     let mut rows = Vec::new();
     let mut sequence = 0;
@@ -925,8 +1033,12 @@ async fn execute(
                         | "sampled_peak_rss_bytes"
                         | "cpu_time_per_request_ms"
                         | "cpu_time_delta_ms"
+                        | "lifetime_resources"
                 )
             });
+            if resources {
+                row.as_object_mut().unwrap().remove("true_peak_rss_bytes");
+            }
         }
         sequence += 1;
         write(&destination.join(format!("row-{sequence:04}.json")), &row)?;
@@ -959,9 +1071,9 @@ async fn execute(
             }
         }
         for workload in workloads(v2) {
-            save(http(None, &workload, round, validate, v2).await?)?;
+            save(http(None, &workload, round, validate, v2, resources).await?)?;
             for executable in order {
-                save(http(Some(executable), &workload, round, validate, v2).await?)?;
+                save(http(Some(executable), &workload, round, validate, v2, resources).await?)?;
             }
         }
         write(
@@ -974,7 +1086,6 @@ async fn execute(
         "cold_disk_cache",
         "npm_dispatcher_timing",
         "gateway_processing_only_latency",
-        "true_peak_rss",
         "allocations",
         "open_file_descriptors",
         "near_limit_body",
@@ -990,6 +1101,9 @@ async fn execute(
         "real_evaluator_quality",
         "other_hardware_and_platforms",
     ];
+    if !resources || validate {
+        unmeasured.push("true_peak_rss");
+    }
     if !v2 {
         unmeasured.push("streaming");
     } else if validate {
@@ -998,7 +1112,12 @@ async fn execute(
     if v2 {
         unmeasured.push("stream_backpressure_failure_cancellation_performance");
     }
-    let mut report = json!({"schema_version":if v2 {2} else {1},"kind":if validate{"synthetic_runtime_neutral_validation"}else{"synthetic_runtime_neutral_benchmark"},"completed":true,"deterministic_parity":true,"representative_hardware_acceptance":false,"overall_plan_performance_gate":"incomplete","rounds":rounds,"protocol_sha256":digest(protocol.as_bytes()),"comparisons":if validate{Vec::new()}else{comparisons(&rows,v2)},"rows":rows,"environment_after":measure::environment(root),"unmeasured":unmeasured,"limits":"Uncontrolled developer workstation; complete HTTP latency includes driver/network/mocks. Sampled peak RSS cannot certify the peak-memory target. No live-provider or model-quality evidence."});
+    let mut report = json!({"schema_version":schema_version,"kind":if validate{"synthetic_runtime_neutral_validation"}else{"synthetic_runtime_neutral_benchmark"},"completed":true,"deterministic_parity":true,"representative_hardware_acceptance":false,"overall_plan_performance_gate":"incomplete","rounds":rounds,"protocol_sha256":digest(protocol.as_bytes()),"comparisons":if validate{Vec::new()}else{comparisons(&rows,v2)},"rows":rows,"environment_after":measure::environment(root),"unmeasured":unmeasured,"limits":"Uncontrolled developer workstation; complete HTTP latency includes driver/network/mocks. Sampled peak RSS cannot certify the peak-memory target. No live-provider or model-quality evidence."});
+    if resources {
+        report["limits"] = json!(
+            "Uncontrolled developer workstation; complete HTTP latency includes driver/network/mocks. Isolated child getrusage reports full-lifetime maximum individual RSS, including waited descendants, not aggregate process-tree memory or only the measured interval. Ready/cleanup timings include resource collector overhead; startup commands remain direct. Lifetime CPU is descriptive and never substituted for measured-interval CPU. No live-provider or model-quality evidence."
+        );
+    }
     if v2 {
         report["deterministic_parity_scope"] = json!(
             "Complete inference/count fixture fields, target models, expected stage call counts, exact response bytes through EOF, mock fully-yielded/abandoned bodies and clean gateway exit/listener closure. Evaluator inputs have object-shape/count checks only; rubric/state, cancellation and transport acknowledgement parity require their separate suites."
@@ -1016,12 +1135,13 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
     let mut binary = root.join("rust/target/release/claude-autorouter");
     let mut validate = false;
     let mut v2 = false;
+    let mut resources = false;
     let mut index = 0;
     while index < args.len() {
         match args[index].as_str() {
             "--help" => {
                 println!(
-                    "cargo xtask benchmark --output NEW_DIRECTORY [--rust EXECUTABLE] [--protocol v1|v2] [--validate]\nSynthetic loopback services only; --validate checks counts/bytes without retaining timing results. Default v1 retains the original workload; v2 adds first-body observations and exact streamed responses. Full measurements remain local opt-in evidence; never pool protocol versions."
+                    "cargo xtask benchmark --output NEW_DIRECTORY [--rust EXECUTABLE] [--protocol v1|v2|v3] [--validate]\nSynthetic loopback services only; --validate checks counts/bytes without retaining timing results. Default v1 retains the original workload; v2 adds first-body observations and exact streamed responses; v3 adds isolated lifetime resource collection. Full measurements remain local opt-in evidence; never pool protocol versions."
                 );
                 return Ok(true);
             }
@@ -1036,10 +1156,11 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
             "--validate" => validate = true,
             "--protocol" => {
                 index += 1;
-                v2 = match args.get(index).map(String::as_str) {
-                    Some("v1") => false,
-                    Some("v2") => true,
-                    _ => return Err("--protocol requires v1 or v2".into()),
+                (v2, resources) = match args.get(index).map(String::as_str) {
+                    Some("v1") => (false, false),
+                    Some("v2") => (true, false),
+                    Some("v3") => (true, true),
+                    _ => return Err("--protocol requires v1, v2 or v3".into()),
                 };
             }
             _ => return Err("Unknown benchmark option; use --help".into()),
@@ -1060,7 +1181,14 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
         .enable_all()
         .build()
         .map_err(|_| "Cannot create benchmark driver runtime")?;
-    match runtime.block_on(execute(root, &destination, &binary, validate, v2)) {
+    match runtime.block_on(execute(
+        root,
+        &destination,
+        &binary,
+        validate,
+        v2,
+        resources,
+    )) {
         Ok(result) => Ok(result),
         Err(error) => {
             let _ = write(
@@ -1105,6 +1233,50 @@ mod tests {
             json!({"implementation":"rust","workload":"startup_help","round":1,"startup_ms":{"p50":1}}),
         ];
         assert_eq!(comparisons(&rows, false)[0]["status"], "unmeasured");
+    }
+    #[test]
+    fn peak_memory_gate_uses_lifetime_peaks_and_requires_five_pairs() {
+        let mut rows = Vec::new();
+        for round in 1..=5 {
+            for (name, peak, sampled) in [("node", 100, 100), ("rust", 80, 30)] {
+                rows.push(json!({"implementation":name,"workload":"large_catalog_miss","concurrency":128,"round":round,"true_peak_rss_bytes":peak,"sampled_peak_rss_bytes":sampled,"resource_collection_verified":true}));
+            }
+        }
+        let find = |rows: &[Value]| {
+            comparisons(rows, true)
+                .into_iter()
+                .find(|row| row["metric"] == "lifetime_peak_rss_ratio")
+                .unwrap()
+        };
+        let complete = find(&rows);
+        assert_eq!(complete["interval"]["median"], 0.8);
+        assert_eq!(complete["threshold"], 0.7);
+        assert_eq!(complete["status"], "observed_target_not_met");
+        assert_eq!(complete["acceptance_qualified"], false);
+        // Numeric peaks alone cannot stand in for successful collection. One
+        // verified pair must not authorize the other four unverified pairs.
+        let mut unverified = rows.clone();
+        for row in &mut unverified {
+            if row["implementation"] == "rust" {
+                row["true_peak_rss_bytes"] = json!(30);
+                if row["round"] != 1 {
+                    row["resource_collection_verified"] = json!(false);
+                }
+            }
+        }
+        assert_eq!(find(&unverified)["paired_rounds"], 1);
+        assert_eq!(find(&unverified)["status"], "unmeasured");
+        unverified[1]
+            .as_object_mut()
+            .unwrap()
+            .remove("resource_collection_verified");
+        assert!(
+            !comparisons(&unverified, true)
+                .iter()
+                .any(|row| row["metric"] == "lifetime_peak_rss_ratio")
+        );
+        rows.pop();
+        assert_eq!(find(&rows)["status"], "unmeasured");
     }
     #[test]
     fn first_body_regression_is_separate_from_headers_and_full_response() {

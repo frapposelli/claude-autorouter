@@ -1,15 +1,20 @@
-//! Explicit fresh-handshake policy for the pinned reference. Configuration
-//! initializers and session caches deliberately remain outside stage A.
+//! Shared trust snapshot and test-only handshake policy for the pinned reference.
+use openssl::ex_data::Index;
 use std::path::{Path, PathBuf};
+use std::sync::{
+    Arc, OnceLock,
+    atomic::{AtomicU64, Ordering},
+};
 
 use openssl::ssl::{
-    SslContext, SslContextBuilder, SslMethod, SslMode, SslOptions, SslSessionCacheMode,
+    Ssl, SslContext, SslContextBuilder, SslMethod, SslMode, SslOptions, SslSessionCacheMode,
     SslVerifyMode, SslVersion,
 };
-use openssl::x509::{X509PurposeId, verify::X509VerifyFlags};
+use openssl::x509::{X509PurposeId, store::X509Store, verify::X509VerifyFlags};
 
 use super::super::{Warning, default_paths, load};
 use super::options::Options;
+use super::session::{PolicyId, TicketState};
 use crate::http_client::HttpError;
 use crate::tls_policy::Mode;
 
@@ -37,12 +42,21 @@ pub(super) enum Profile {
 #[derive(Clone)]
 pub(super) struct Context {
     pub tls: SslContext,
+    pub unverified: SslContext,
+    pub index: Option<Index<Ssl, Arc<TicketState>>>,
+    pub generation: PolicyId,
     // Node creates a secure context on connection, so an invalid cipher
     // expression fails that request before opening a socket, not gateway boot.
     pub valid_ciphers: bool,
 }
 
-pub(super) fn context(profile: Profile) -> Result<Context, HttpError> {
+pub(super) struct TrustSnapshot {
+    store: X509Store,
+    policy: Options,
+    generation: PolicyId,
+}
+
+pub(super) fn trust_snapshot() -> Result<TrustSnapshot, HttpError> {
     let policy = Options::process()?;
     let extra = std::env::var_os("NODE_EXTRA_CA_CERTS").filter(|value| !value.is_empty());
     let (default_file, default_directory) = default_paths();
@@ -71,6 +85,51 @@ pub(super) fn context(profile: Profile) -> Result<Context, HttpError> {
         ),
         None => {}
     }
+    static GENERATION: AtomicU64 = AtomicU64::new(1);
+    let generation = GENERATION
+        .try_update(Ordering::Relaxed, Ordering::Relaxed, |n| n.checked_add(1))
+        .map_err(|_| HttpError::CertificateRoots)?;
+    Ok(TrustSnapshot {
+        store,
+        policy,
+        generation: PolicyId(generation),
+    })
+}
+
+pub(super) fn context(
+    snapshot: &TrustSnapshot,
+    profile: Profile,
+    sessions: bool,
+) -> Result<Context, HttpError> {
+    static SESSION_INDEX: OnceLock<Result<Index<Ssl, Arc<TicketState>>, ()>> = OnceLock::new();
+    let index = if sessions {
+        Some(
+            *SESSION_INDEX
+                .get_or_init(|| Ssl::new_ex_index::<Arc<TicketState>>().map_err(|_| ()))
+                .as_ref()
+                .map_err(|_| HttpError::CertificateRoots)?,
+        )
+    } else {
+        None
+    };
+    let (tls, valid_ciphers) = build_context(snapshot, profile, index, true)?;
+    let (unverified, _) = build_context(snapshot, profile, index, false)?;
+    Ok(Context {
+        tls,
+        unverified,
+        index,
+        generation: snapshot.generation,
+        valid_ciphers,
+    })
+}
+
+fn build_context(
+    snapshot: &TrustSnapshot,
+    profile: Profile,
+    index: Option<Index<Ssl, Arc<TicketState>>>,
+    reject: bool,
+) -> Result<(SslContext, bool), HttpError> {
+    let policy = &snapshot.policy;
     let failure = |_| HttpError::CertificateRoots;
     let mut context = SslContextBuilder::new(SslMethod::tls_client()).map_err(failure)?;
     context.set_security_level(1);
@@ -90,10 +149,14 @@ pub(super) fn context(profile: Profile) -> Result<Context, HttpError> {
     // The OpenSSL default TLS1.3 suites remain when the expression has no
     // TLS_ terms. Pin that default to the reference before applying overrides.
     context.set_ciphersuites(CIPHERS13).map_err(failure)?;
-    let valid_ciphers = configure_ciphers(&mut context, &policy).is_ok();
+    let valid_ciphers = configure_ciphers(&mut context, policy).is_ok();
     context.set_groups_list(GROUPS).map_err(failure)?;
-    context.set_cert_store(store);
-    context.set_verify(SslVerifyMode::PEER);
+    context.set_cert_store(snapshot.store.try_clone().map_err(failure)?);
+    context.set_verify(if reject {
+        SslVerifyMode::PEER
+    } else {
+        SslVerifyMode::NONE
+    });
     context.set_verify_depth(100);
     let parameters = context.verify_param_mut();
     // Let libssl derive authentication strength from the effective cipher
@@ -104,15 +167,30 @@ pub(super) fn context(profile: Profile) -> Result<Context, HttpError> {
     parameters
         .set_flags(X509VerifyFlags::TRUSTED_FIRST)
         .map_err(failure)?;
-    // Fresh handshakes only: no internal storage or application session cache.
-    context.set_session_cache_mode(SslSessionCacheMode::OFF);
+    if let Some(index) = index {
+        context.set_session_cache_mode(
+            SslSessionCacheMode::CLIENT
+                | SslSessionCacheMode::SERVER
+                | SslSessionCacheMode::NO_INTERNAL
+                | SslSessionCacheMode::NO_AUTO_CLEAR,
+        );
+        context.set_bound_new_session_callback(move |ssl, result| {
+            if let Some(state) = ssl.ex_data(index)
+                && let Ok(ticket) = result
+            {
+                let bytes = ticket.encoded_len();
+                state.ticket(ticket, bytes);
+            }
+            // Capture failure disables this ticket only; it cannot change
+            // peer verification or trigger a second transport attempt.
+        });
+    } else {
+        context.set_session_cache_mode(SslSessionCacheMode::OFF);
+    }
     if profile == Profile::Fetch {
         context.set_alpn_protos(b"\x08http/1.1").map_err(failure)?;
     }
-    Ok(Context {
-        tls: context.build(),
-        valid_ciphers,
-    })
+    Ok((context.build(), valid_ciphers))
 }
 
 fn configure_ciphers(context: &mut SslContextBuilder, policy: &Options) -> Result<(), ()> {
@@ -189,4 +267,35 @@ fn cipher_errors_do_not_fallback_or_override_selected_security_level() {
             "{expression:?}"
         );
     }
+}
+
+#[test]
+fn profiles_and_verification_contexts_share_one_trust_store() {
+    openssl::init_without_config().unwrap();
+    let snapshot = TrustSnapshot {
+        store: openssl::x509::store::X509StoreBuilder::new()
+            .unwrap()
+            .build(),
+        policy: Options::parse("").unwrap(),
+        generation: PolicyId(77),
+    };
+    let raw = context(&snapshot, Profile::Raw, true).unwrap();
+    let fetch = context(&snapshot, Profile::Fetch, false).unwrap();
+    assert!(std::ptr::eq(snapshot.store.as_ref(), raw.tls.cert_store()));
+    assert!(std::ptr::eq(
+        raw.tls.cert_store(),
+        raw.unverified.cert_store()
+    ));
+    assert!(std::ptr::eq(raw.tls.cert_store(), fetch.tls.cert_store()));
+    assert!(std::ptr::eq(
+        raw.tls.cert_store(),
+        fetch.unverified.cert_store()
+    ));
+    assert!(raw.generation == fetch.generation);
+    assert!(raw.index.is_some());
+    assert!(fetch.index.is_none());
+    assert_eq!(raw.tls.verify_mode(), SslVerifyMode::PEER);
+    assert_eq!(raw.unverified.verify_mode(), SslVerifyMode::NONE);
+    drop(snapshot);
+    assert!(std::ptr::eq(raw.tls.cert_store(), fetch.tls.cert_store()));
 }

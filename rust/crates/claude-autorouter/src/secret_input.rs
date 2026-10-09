@@ -156,8 +156,18 @@ async fn collect_hidden(input: &AsyncFd<Input>) -> Result<String, String> {
                 // Continue restores hidden editing without printing the line.
                 let terminal = input.get_ref().terminal.as_ref().expect("hidden terminal");
                 restore_hidden_terminal(input.get_ref(), terminal).map_err(|_| READ_ERROR)?;
+                // dup() shares file status flags with the shell's descriptor.
+                // Restore those too while stopped, then re-enable nonblocking
+                // readiness reads before returning to hidden editing.
+                fcntl(input.get_ref(), FcntlArg::F_SETFL(input.get_ref().flags))
+                    .map_err(|_| READ_ERROR)?;
                 nix::sys::signal::kill(nix::unistd::getpid(), nix::sys::signal::Signal::SIGTSTP)
                     .map_err(|_| READ_ERROR)?;
+                fcntl(
+                    input.get_ref(),
+                    FcntlArg::F_SETFL(input.get_ref().flags | OFlag::O_NONBLOCK),
+                )
+                .map_err(|_| READ_ERROR)?;
                 tcsetattr(input.get_ref(), SetArg::TCSANOW, &hidden_mode(terminal))
                     .map_err(|_| READ_ERROR)?;
                 action = editor.feed(&[]);

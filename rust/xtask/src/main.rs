@@ -24,6 +24,17 @@ mod upgrade_rollback;
 use std::path::PathBuf;
 
 fn main() {
+    // The collector must run before any operation capable of creating children.
+    // It owns exactly one measured child; the benchmark driver owns all mocks.
+    if std::env::args_os().nth(1).as_deref()
+        == Some(std::ffi::OsStr::new("__benchmark-resource-child"))
+    {
+        if process::resource::run_helper().is_err() {
+            eprintln!("Benchmark resource collector failed");
+            std::process::exit(1);
+        }
+        return;
+    }
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
         .canonicalize()

@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "scope": "Test-only OpenSSL B2 shared store and raw HTTPS sessions",
+  "production_eligible": false,
+  "production_transport_changed": false,
+  "manifests_vendor_gateway_unchanged": true,
+  "snapshot": {
+    "path": "artifacts/rust-rewrite/openssl-b2-final-snapshot",
+    "manifest_sha256": "ce4680189df4a7cb38b39f578a78bcd7283f0462f76ee766671467b9b015b493",
+    "binaries": {
+      "runtime-tests": {
+        "source": "rust/target/debug/deps/autorouter_runtime-638f0b9fa31b6a75",
+        "sha256": "37b69083f3221349c3edccc1cbf5fafdf8b7b794092e0e252e1801757cdbc2e1"
+      },
+      "shipping-cli": {
+        "source": "rust/target/release/claude-autorouter",
+        "sha256": "65a1ef18217d5486abd817c09e86354e975bd0b8a9e5a27a6f0c5570b240dfd6"
+      }
+    },
+    "source_sha256": {
+      "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike.rs": "62c4b82c01701a49b3127b399246312436f79fc04d19eaf2792f25fd2df0b2b1",
+      "rust/parity/check-openssl-sessions.mjs": "4d4a308f426083a0e8ca148eec600bcc0d490a98f6fb21d1df9e70c38239684e",
+      "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/policy.rs": "90d6e85018e0f7e282e79932cd5c670ea6e3ee0a27b9bbb9eed59336c82603a5",
+      "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/session.rs": "137cb3fb17c36591b6f064e4272d32460bf6a7c1203b8a912723bfcfd8a9c540",
+      "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/client.rs": "0bc72ea6fe757ce04b7257d848b9679b28b39b3266952b89232e0eb767ac4445",
+      "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/options.rs": "75dc3af4090905dd82bcd080e58005c71465f93f35b63b5b6b2f0ef1b3609f5d"
+    }
+  },
+  "final_matrix": {
+    "path": "artifacts/rust-rewrite/evidence/openssl-b2-sessions-75bf037a3335c4da57d8a9b8f02ede587754f23f87809356649bcc6c5f4c15f4.json",
+    "sha256": "75bf037a3335c4da57d8a9b8f02ede587754f23f87809356649bcc6c5f4c15f4",
+    "passed": false,
+    "matched": 13,
+    "count": 18,
+    "candidate_cleanup_passed": 18,
+    "all_application_contracts_passed": true
+  },
+  "remaining_exact_differences": [
+    {
+      "id": "TLSv1.2-abrupt-after-complete",
+      "cause": "Immediate idle-close pool assignment race differs; original schedule retained unchanged."
+    },
+    {
+      "id": "TLSv1.2-cancel-body",
+      "cause": "Gateway cancellation intent is unavailable; Drop alone is not an error-close signal."
+    },
+    {
+      "id": "TLSv1.3-rejected-host-then-valid",
+      "cause": "Server secureConnection event ordering differs during rejected TLS1.3 hostname handshake; application rejection/no rejected-session reuse agree."
+    },
+    {
+      "id": "TLSv1.3-abrupt-after-complete",
+      "cause": "Immediate idle-close pool assignment race differs; original schedule retained unchanged."
+    },
+    {
+      "id": "TLSv1.3-cancel-body",
+      "cause": "Gateway cancellation intent is unavailable; Drop alone is not an error-close signal."
+    }
+  ],
+  "additional_barrier_cases": "TLS1.2/1.3 explicit server close plus two gateway health round trips match; they do not replace the original race cases.",
+  "earlier_failed_matrices": [
+    {
+      "sha256": "fc54791ac3e9eb5e26e0f4ec8acccf6041952ff2e7d78209acff0b3d2455876e",
+      "matched": 9,
+      "count": 16,
+      "qualification": "Generic request/body error eviction was too broad; exact original evidence retained."
+    },
+    {
+      "sha256": "4503caf0241c27cdba80bd6fb7a87bf1267cc69cc6bb286149da3ffb908a66bc",
+      "matched": 13,
+      "count": 18,
+      "qualification": "IO-based mapping with five remaining exact gaps; no normalization."
+    }
+  ],
+  "regressions": {
+    "fresh_candidate": {
+      "passed": true,
+      "matched": 223,
+      "count": 223,
+      "report_sha256": "2b65fb28826492975558df1762ea6df92c16bcff294591009fb527bf8a7fd04b",
+      "candidate_sha256": "37b69083f3221349c3edccc1cbf5fafdf8b7b794092e0e252e1801757cdbc2e1"
+    },
+    "shipping": {
+      "passed": true,
+      "matched": 115,
+      "count": 115,
+      "report_sha256": "c9db61e2da283fbe2dc1baf18af2ea98a63ad5e27051093fada34725a3fa562a",
+      "candidate_sha256": "65a1ef18217d5486abd817c09e86354e975bd0b8a9e5a27a6f0c5570b240dfd6"
+    }
+  },
+  "focused_tests": {
+    "passed": 10,
+    "failed": 0,
+    "log_sha256": "f9d80297b7a2212d0a43bf0cc069b1955c8f97096d22593aa9def584a1b48ab2"
+  },
+  "scoped_runtime_clippy": {
+    "passed": true,
+    "warnings_denied": true,
+    "log_sha256": "d0b194705829e801d42a9a81a6e750371827f9e7c2f8703bc7a0cb5a8dffb0ac"
+  },
+  "retained_fixture_failures": {
+    "logs": "artifacts/rust-rewrite/openssl-b2-session-reference-{1..5}.log",
+    "cause": "Explicitly empty OpenSSL config required a request section; reusing the CA prompt=no config caused macOS LibreSSL to ignore -subj and reuse its subject. Separate leaf request config plus issuer/signature/actual TLS preflights fixed the fixture.",
+    "reports_preserved": true,
+    "permission_failure": "Initial focused cancellation test lacked loopback permission; rerun with authorized loopback binding passed."
+  },
+  "limits": [
+    "Fetch weak-cache and V8 GC behavior are not implemented.",
+    "B3 configuration initialization remains separate.",
+    "Full pooling/cancellation and background connection races are unqualified.",
+    "Raw entries are capped at100; retained byte accounting exists but a worst-case byte bound/ticket-flood gate is not qualified.",
+    "Trust snapshot is shared per client instance; global lifetime across independent clients is not qualified.",
+    "Verification context isolation under dynamic environment mutation is not Node equivalence.",
+    "Immutable session DER remains ordinary private heap memory; no extra guaranteed wiping.",
+    "Snapshot serialization failure policy and backend-wide OpenSSL3.0.15/3.6.3 equivalence remain unqualified."
+  ],
+  "central_evidence_unchanged": true
+}

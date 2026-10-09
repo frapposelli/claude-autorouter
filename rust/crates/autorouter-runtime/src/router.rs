@@ -233,6 +233,10 @@ fn set_latency(value: &mut Value, evaluation: f64, start: Instant) {
 }
 
 #[cfg(test)]
+#[path = "router_contracts.rs"]
+mod contracts;
+
+#[cfg(test)]
 mod tests {
     use super::*;
     use crate::http_client::HttpError;

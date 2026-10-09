@@ -1,0 +1,3478 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "reviewed_checkpoint": "748cedb",
+  "scope": "Reviewed51-definition frozen router assertion mapping, with full native core and classifier/count/cache replay. JavaScript API and wall-clock boundaries remain explicit.",
+  "status": "Root reviewed47 covered/4 partial definitions. No production routing behavior change.",
+  "counts": {
+    "covered": 47,
+    "partial": 4,
+    "definitions": 51,
+    "static_assertions": 222,
+    "captured_instances": 121,
+    "captured_routes": 263,
+    "captured_evaluator_calls": 208,
+    "captured_count_calls": 21,
+    "captured_pure_calls": 29,
+    "non_json_count_outcomes": 3,
+    "native_core_tests": 3,
+    "native_runtime_new_tests": 7,
+    "native_runtime_existing_router_tests": 6
+  },
+  "current_sources": [
+    {
+      "path": "rust/parity/capture-router-contracts.mjs",
+      "sha256": "8971b97486eb151a9ff91f70e762e19adbeaace4ff1ab03558e32b9cddf36df1",
+      "bytes": 13780
+    },
+    {
+      "path": "rust/parity/cases/router-contracts.jsonl",
+      "sha256": "296f68fc81b50e6e24d277c43adb50d9613b4816a1b9d6a1e610299faa6126e3",
+      "bytes": 2102659
+    },
+    {
+      "path": "rust/parity/cases/router-contracts.capture.json",
+      "sha256": "a2b40b92412bfe643f7cb2f256b2c995c103207211b7ec29fcc48991c3d2df7b",
+      "bytes": 19606
+    },
+    {
+      "path": "rust/crates/autorouter-core/tests/router_contracts.rs",
+      "sha256": "9f0e0aaea027584f11fdbef40ac19c62073ce4a6915d9ef1c6c32f187b639e28",
+      "bytes": 8682
+    },
+    {
+      "path": "rust/crates/autorouter-core/tests/support/router_contract.rs",
+      "sha256": "34264a2de39da4c0198c31b526a2fd68f4764f0811a6218ed4e49454840f1abd",
+      "bytes": 2844
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/router.rs",
+      "sha256": "d62fee8fc62e05e6bc9159a39d6326f7c13d33734e353821b3c0bef80469f53e",
+      "bytes": 18485
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/router_contracts.rs",
+      "sha256": "272f861b7df46d513f9ab4761402969550d0d77fd141d7ee512d2825bf255c72",
+      "bytes": 12893
+    }
+  ],
+  "evidence": {
+    "frozen_capture": {
+      "path": "artifacts/rust-rewrite/evidence/a2b40b92412bfe643f7cb2f256b2c995c103207211b7ec29fcc48991c3d2df7b.json",
+      "sha256": "a2b40b92412bfe643f7cb2f256b2c995c103207211b7ec29fcc48991c3d2df7b",
+      "original_path": "rust/parity/cases/router-contracts.capture.json"
+    },
+    "capture_run5": {
+      "path": "artifacts/rust-rewrite/evidence/21ac0bc3d3de450bad5b35288e0474edf7677a3a88c75d96be15e9d9184ec9ad.log",
+      "sha256": "21ac0bc3d3de450bad5b35288e0474edf7677a3a88c75d96be15e9d9184ec9ad",
+      "original_path": "artifacts/rust-rewrite/router-capture-5.log"
+    },
+    "capture_run6": {
+      "path": "artifacts/rust-rewrite/evidence/f3c0bbcc60b71bb041e224958af7eb084857ee679252be0647b85c1d5e2f8170.log",
+      "sha256": "f3c0bbcc60b71bb041e224958af7eb084857ee679252be0647b85c1d5e2f8170",
+      "original_path": "artifacts/rust-rewrite/router-capture-6.log"
+    },
+    "native_core": {
+      "path": "artifacts/rust-rewrite/evidence/360d690c0cfbee0d4d9a8b81b140b52631eecf07319ea7a0b8137966cad4dc7d.log",
+      "sha256": "360d690c0cfbee0d4d9a8b81b140b52631eecf07319ea7a0b8137966cad4dc7d",
+      "original_path": "artifacts/rust-rewrite/router-core-contracts-6.log"
+    },
+    "native_runtime": {
+      "path": "artifacts/rust-rewrite/evidence/d6edbb3f5051e75431ebb14bd9e0bd2fcfce1de2f38a61fa8e31c3fa0dd6e5f4.log",
+      "sha256": "d6edbb3f5051e75431ebb14bd9e0bd2fcfce1de2f38a61fa8e31c3fa0dd6e5f4",
+      "original_path": "artifacts/rust-rewrite/router-runtime-contracts-3.log"
+    },
+    "clippy": {
+      "path": "artifacts/rust-rewrite/evidence/45b3eb9d3db6c6ee09ea3c7cfe2731cadd011a0e0a40649f1d79e85d465bdac1.log",
+      "sha256": "45b3eb9d3db6c6ee09ea3c7cfe2731cadd011a0e0a40649f1d79e85d465bdac1",
+      "original_path": "artifacts/rust-rewrite/router-contracts-clippy-2.log"
+    }
+  },
+  "reproducibility": {
+    "runs": [
+      5,
+      6
+    ],
+    "cases_and_capture_reports_byte_identical": true,
+    "cases_sha256": "296f68fc81b50e6e24d277c43adb50d9613b4816a1b9d6a1e610299faa6126e3",
+    "capture_sha256": "a2b40b92412bfe643f7cb2f256b2c995c103207211b7ec29fcc48991c3d2df7b",
+    "dictionary": "First line carries fixed4096 UTF16-code-unit text chunks; every reconstructed body checked against original SHA before parse. Changed/missing/reordered reconstruction controls and missing-field/wrong-number/count/input comparison controls pass.",
+    "clock": {
+      "epoch_ms": 1800000000000,
+      "advance_ms_per_route": 1,
+      "scope": "Only the documented injected TurnState clock; evaluator deadlines, performance clock and classifier cache TTL remain real."
+    }
+  },
+  "runtime_groups": [
+    {
+      "source_definitions": [
+        1,
+        2,
+        3,
+        8,
+        10,
+        14,
+        35,
+        47,
+        48
+      ],
+      "native_test": "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::all_jev_tiers_guards_and_cache_use_exact_request_contracts"
+    },
+    {
+      "source_definitions": [
+        4,
+        5,
+        6,
+        9,
+        24,
+        33,
+        36,
+        46
+      ],
+      "native_test": "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::bypass_review_and_large_context_preserve_exact_payloads_and_call_totals"
+    },
+    {
+      "source_definitions": [
+        7,
+        12,
+        13,
+        15,
+        19,
+        20,
+        21,
+        22,
+        23,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        34,
+        43,
+        44,
+        45
+      ],
+      "native_test": "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+    },
+    {
+      "source_definitions": [
+        11
+      ],
+      "native_test": "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::twenty_ms_timeout_cleans_transport_and_same_body_retries_without_cached_failure"
+    },
+    {
+      "source_definitions": [
+        37,
+        38,
+        39,
+        41,
+        42,
+        49,
+        50
+      ],
+      "native_test": "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::exact_count_requests_cover_both_source_models_and_invalid_count_adaptations"
+    },
+    {
+      "source_definitions": [
+        51
+      ],
+      "native_test": "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::small_and_large_hard_locked_requests_never_start_count_transport"
+    }
+  ],
+  "comparison_scope": [
+    "Full decisions except the two explicitly excluded latency fields; full original document SHA after actual native execution.",
+    "Actual native evaluator URL/method/headers/complete parsed body, response status/body/error outcomes, exact evaluator/count calls, cache source and model continuity.",
+    "Actual native count request compared to separate frozen createTokenCounter observation of its preparation, including original-body hash and target.",
+    "Persistent invalid-request marker fails the parent assertion even when an injected network failure could otherwise look like expected fallback.",
+    "No real providers, sockets, user settings, evaluator models or numerical performance acceptance; synthetic injectable HttpTransport only."
+  ],
+  "mappings": [
+    {
+      "baseline_test": "test/router.test.mjs#1",
+      "name": "routes all three tiers using the documented Jev request and caches identical requests",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 10,
+      "baseline_definition_sha256": "1eb8709d288a43410f1a8c93de57d585877fd623a0b94dc7b4195f9039f5a598",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 7,
+      "parameter_review": "Three tiers x two identical routes; default Jev URL, Bearer key, choice question, original_task, selected model, second cache source and one fetch.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::all_jev_tiers_guards_and_cache_use_exact_request_contracts"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-1",
+        "baseline-router-instance-2",
+        "baseline-router-instance-3"
+      ],
+      "direct_assertions": [
+        {
+          "line": 15,
+          "expression": "assert.equal(url, 'https://api.typesafe.ai/v1/systemone')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/0/rust_tests",
+          "captured_cases_ref": "#/mappings/0/shared_cases"
+        },
+        {
+          "line": 16,
+          "expression": "assert.equal(options.headers.authorization, 'Bearer test-jev')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/0/rust_tests",
+          "captured_cases_ref": "#/mappings/0/shared_cases"
+        },
+        {
+          "line": 18,
+          "expression": "assert.equal(payload.questions.tier.type, 'choice')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/0/rust_tests",
+          "captured_cases_ref": "#/mappings/0/shared_cases"
+        },
+        {
+          "line": 19,
+          "expression": "assert.equal(payload.state.original_task, 'Task')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/0/rust_tests",
+          "captured_cases_ref": "#/mappings/0/shared_cases"
+        },
+        {
+          "line": 22,
+          "expression": "assert.equal((await router.route(request('Task'))).model, config().models[tier])",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/0/rust_tests",
+          "captured_cases_ref": "#/mappings/0/shared_cases"
+        },
+        {
+          "line": 23,
+          "expression": "assert.equal((await router.route(request('Task'))).source, 'cache')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/0/rust_tests",
+          "captured_cases_ref": "#/mappings/0/shared_cases"
+        },
+        {
+          "line": 24,
+          "expression": "assert.equal(calls, 1)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/0/rust_tests",
+          "captured_cases_ref": "#/mappings/0/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#2",
+      "name": "auto profile floors ordinary Haiku decisions while retaining evaluator results and turn continuity",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 28,
+      "baseline_definition_sha256": "8edb262c8a3b3fde43c6f270634a8d64ac56c4924728f8288ce3961c98474e95",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 6,
+      "parameter_review": "Three tiers in Auto; disabled thinking; no input mutation; same scoped prompt tool continuation preserves chosen model.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::all_jev_tiers_guards_and_cache_use_exact_request_contracts"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-4",
+        "baseline-router-instance-5",
+        "baseline-router-instance-6"
+      ],
+      "direct_assertions": [
+        {
+          "line": 36,
+          "expression": "assert.equal(decision.model, c.models[tier === 'haiku' ? 'sonnet' : tier])",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/1/rust_tests",
+          "captured_cases_ref": "#/mappings/1/shared_cases"
+        },
+        {
+          "line": 37,
+          "expression": "assert.equal(decision.classified_tier, tier)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/1/rust_tests",
+          "captured_cases_ref": "#/mappings/1/shared_cases"
+        },
+        {
+          "line": 38,
+          "expression": "assert.equal(decision.reason, tier === 'haiku' ? 'auto_mode_floor' : 'classified')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/1/rust_tests",
+          "captured_cases_ref": "#/mappings/1/shared_cases"
+        },
+        {
+          "line": 39,
+          "expression": "assert.deepEqual(body, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/1/rust_tests",
+          "captured_cases_ref": "#/mappings/1/shared_cases"
+        },
+        {
+          "line": 45,
+          "expression": "assert.equal(next.model, decision.model)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/1/rust_tests",
+          "captured_cases_ref": "#/mappings/1/shared_cases"
+        },
+        {
+          "line": 46,
+          "expression": "assert.equal(next.reason, 'tool_turn_pinned')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/1/rust_tests",
+          "captured_cases_ref": "#/mappings/1/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#3",
+      "name": "auto profile still preserves unknown models, unsupported native features, and older thinking histories",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 50,
+      "baseline_definition_sha256": "f317bf683bf9f12991117228c9e69f0a786c4d779606ccc17f8357e896a0f08a",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "Four Auto hard locks: custom model, between_tools, unknown context edit and older signed thinking; exact model/reason and unchanged body.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::all_jev_tiers_guards_and_cache_use_exact_request_contracts"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-7",
+        "baseline-router-instance-8",
+        "baseline-router-instance-9",
+        "baseline-router-instance-10"
+      ],
+      "direct_assertions": [
+        {
+          "line": 66,
+          "expression": "assert.equal(decision.model, body.model)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        },
+        {
+          "line": 67,
+          "expression": "assert.equal(decision.reason, reason)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        },
+        {
+          "line": 68,
+          "expression": "assert.deepEqual(body, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#4",
+      "name": "auxiliary classifiers bypass evaluation, counting, and turn pins in every profile",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 72,
+      "baseline_definition_sha256": "09cbad1a64719c2855bf96efffb35a160ad7157d81a3625a9742dfc5200eb950",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 11,
+      "parameter_review": "Three profiles; initial Opus then two large auxiliary bodies (with/without safeguards); no extra evaluation/count; original Opus tool continuity and second evaluation.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::bypass_review_and_large_context_preserve_exact_payloads_and_call_totals"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-11",
+        "baseline-router-instance-12",
+        "baseline-router-instance-13"
+      ],
+      "direct_assertions": [
+        {
+          "line": 80,
+          "expression": "assert.equal((await router.route(initial, options)).model, c.models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        },
+        {
+          "line": 86,
+          "expression": "assert.equal(decision.model, body.model)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        },
+        {
+          "line": 87,
+          "expression": "assert.equal(decision.reason, 'internal_request')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        },
+        {
+          "line": 88,
+          "expression": "assert.equal(decision.source, 'passthrough')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        },
+        {
+          "line": 89,
+          "expression": "assert.equal(decision.classified_tier, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        },
+        {
+          "line": 90,
+          "expression": "assert.equal(evaluations, 1)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        },
+        {
+          "line": 91,
+          "expression": "assert.equal(counts, 0)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        },
+        {
+          "line": 92,
+          "expression": "assert.deepEqual(body, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        },
+        {
+          "line": 96,
+          "expression": "assert.equal(decision.model, c.models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        },
+        {
+          "line": 97,
+          "expression": "assert.equal(decision.reason, 'tool_turn_pinned')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        },
+        {
+          "line": 98,
+          "expression": "assert.equal(evaluations, 2)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#5",
+      "name": "unknown server safeguard contracts pass through and replace stale main-model pins without evaluation",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 102,
+      "baseline_definition_sha256": "09aa9d868923f1eb067e0a64891ef3526fca1a93366acdd3b6bf865df584445e",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 12,
+      "parameter_review": "Three profiles x six unknown safeguard values; initial Opus pin replaced by requested Sonnet; zero extra evaluation/count; body intact; scoped and headerless tool continuations follow replacement.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::bypass_review_and_large_context_preserve_exact_payloads_and_call_totals"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-14",
+        "baseline-router-instance-15",
+        "baseline-router-instance-16",
+        "baseline-router-instance-17",
+        "baseline-router-instance-18",
+        "baseline-router-instance-19",
+        "baseline-router-instance-20",
+        "baseline-router-instance-21",
+        "baseline-router-instance-22",
+        "baseline-router-instance-23",
+        "baseline-router-instance-24",
+        "baseline-router-instance-25",
+        "baseline-router-instance-26",
+        "baseline-router-instance-27",
+        "baseline-router-instance-28",
+        "baseline-router-instance-29",
+        "baseline-router-instance-30",
+        "baseline-router-instance-31"
+      ],
+      "direct_assertions": [
+        {
+          "line": 112,
+          "expression": "assert.equal((await router.route(initial, options)).model, c.models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/4/rust_tests",
+          "captured_cases_ref": "#/mappings/4/shared_cases"
+        },
+        {
+          "line": 119,
+          "expression": "assert.equal(decision.model, initial.model)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/4/rust_tests",
+          "captured_cases_ref": "#/mappings/4/shared_cases"
+        },
+        {
+          "line": 120,
+          "expression": "assert.equal(decision.reason, 'auto_mode_safeguards')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/4/rust_tests",
+          "captured_cases_ref": "#/mappings/4/shared_cases"
+        },
+        {
+          "line": 121,
+          "expression": "assert.equal(decision.source, 'passthrough')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/4/rust_tests",
+          "captured_cases_ref": "#/mappings/4/shared_cases"
+        },
+        {
+          "line": 122,
+          "expression": "assert.equal(decision.classified_tier, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/4/rust_tests",
+          "captured_cases_ref": "#/mappings/4/shared_cases"
+        },
+        {
+          "line": 123,
+          "expression": "assert.equal(evaluations, 1)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/4/rust_tests",
+          "captured_cases_ref": "#/mappings/4/shared_cases"
+        },
+        {
+          "line": 124,
+          "expression": "assert.equal(counts, 0)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/4/rust_tests",
+          "captured_cases_ref": "#/mappings/4/shared_cases"
+        },
+        {
+          "line": 125,
+          "expression": "assert.deepEqual(protectedBody, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/4/rust_tests",
+          "captured_cases_ref": "#/mappings/4/shared_cases"
+        },
+        {
+          "line": 132,
+          "expression": "assert.equal(next.model, protectedBody.model)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/4/rust_tests",
+          "captured_cases_ref": "#/mappings/4/shared_cases"
+        },
+        {
+          "line": 133,
+          "expression": "assert.equal(next.reason, 'tool_turn_pinned')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/4/rust_tests",
+          "captured_cases_ref": "#/mappings/4/shared_cases"
+        },
+        {
+          "line": 137,
+          "expression": "assert.equal(headerless.model, protectedBody.model)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/4/rust_tests",
+          "captured_cases_ref": "#/mappings/4/shared_cases"
+        },
+        {
+          "line": 138,
+          "expression": "assert.equal(headerless.reason, 'tool_turn_pinned')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/4/rust_tests",
+          "captured_cases_ref": "#/mappings/4/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#6",
+      "name": "recognized server review routes execution across Sonnet and Opus in every profile without exposing its context to the evaluator",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 143,
+      "baseline_definition_sha256": "b4b46c9308460f9b9595c63024281b3481065bfa0def382882819f4b7f907892",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 9,
+      "parameter_review": "Three profiles x three tiers with recognized review, signed reasoning and trailing system; redacted evaluator payload; classified tier/source; model floor; exactly one evaluation and zero counts; unchanged body.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::bypass_review_and_large_context_preserve_exact_payloads_and_call_totals"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-32",
+        "baseline-router-instance-33",
+        "baseline-router-instance-34",
+        "baseline-router-instance-35",
+        "baseline-router-instance-36",
+        "baseline-router-instance-37",
+        "baseline-router-instance-38",
+        "baseline-router-instance-39",
+        "baseline-router-instance-40"
+      ],
+      "direct_assertions": [
+        {
+          "line": 150,
+          "expression": "assert.ok(!options.body.includes('PRIVATE_REVIEW_CONTEXT'))",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/5/rust_tests",
+          "captured_cases_ref": "#/mappings/5/shared_cases"
+        },
+        {
+          "line": 151,
+          "expression": "assert.ok(!options.body.includes('PRIVATE_SIGNED_REASONING'))",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/5/rust_tests",
+          "captured_cases_ref": "#/mappings/5/shared_cases"
+        },
+        {
+          "line": 165,
+          "expression": "assert.equal(decision.model, c.models[tier === 'haiku' ? 'sonnet' : tier])",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/5/rust_tests",
+          "captured_cases_ref": "#/mappings/5/shared_cases"
+        },
+        {
+          "line": 166,
+          "expression": "assert.equal(decision.classified_tier, tier)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/5/rust_tests",
+          "captured_cases_ref": "#/mappings/5/shared_cases"
+        },
+        {
+          "line": 167,
+          "expression": "assert.equal(decision.reason, tier === 'haiku' ? 'auto_mode_floor' : 'classified')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/5/rust_tests",
+          "captured_cases_ref": "#/mappings/5/shared_cases"
+        },
+        {
+          "line": 168,
+          "expression": "assert.equal(decision.source, 'jev')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/5/rust_tests",
+          "captured_cases_ref": "#/mappings/5/shared_cases"
+        },
+        {
+          "line": 169,
+          "expression": "assert.equal(evaluations, 1)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/5/rust_tests",
+          "captured_cases_ref": "#/mappings/5/shared_cases"
+        },
+        {
+          "line": 170,
+          "expression": "assert.equal(counts, 0)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/5/rust_tests",
+          "captured_cases_ref": "#/mappings/5/shared_cases"
+        },
+        {
+          "line": 171,
+          "expression": "assert.deepEqual(body, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/5/rust_tests",
+          "captured_cases_ref": "#/mappings/5/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#7",
+      "name": "Auto classifier failure retains the prior execution model across new human turns",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 175,
+      "baseline_definition_sha256": "0c2cd46d28adb8d3989932efe8d7db83c186577fcf4776dc42b03474220b56b9",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "Auto recognized-review first Opus success then new prompt/new human task classifier outage; prior Opus retained with fallback source/classifier_unavailable.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-41"
+      ],
+      "direct_assertions": [
+        {
+          "line": 185,
+          "expression": "assert.equal(first.model, c.models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/6/rust_tests",
+          "captured_cases_ref": "#/mappings/6/shared_cases"
+        },
+        {
+          "line": 188,
+          "expression": "assert.equal(failed.model, c.models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/6/rust_tests",
+          "captured_cases_ref": "#/mappings/6/shared_cases"
+        },
+        {
+          "line": 189,
+          "expression": "assert.equal(failed.source, 'fallback')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/6/rust_tests",
+          "captured_cases_ref": "#/mappings/6/shared_cases"
+        },
+        {
+          "line": 190,
+          "expression": "assert.equal(failed.reason, 'classifier_unavailable')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/6/rust_tests",
+          "captured_cases_ref": "#/mappings/6/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#8",
+      "name": "a configured target without the shared Auto capabilities cannot receive safeguarded requests",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 193,
+      "baseline_definition_sha256": "a3523da7c2c9149f974d5d16b5a9fb80411a0a5967b77124660ecfe609d75693",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "Auto configured Opus4.6 cannot receive safeguarded Sonnet request; preserve requested model/body, retain classified Opus and auto_mode_incompatible.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::all_jev_tiers_guards_and_cache_use_exact_request_contracts"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-42"
+      ],
+      "direct_assertions": [
+        {
+          "line": 200,
+          "expression": "assert.equal(decision.model, body.model)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/7/rust_tests",
+          "captured_cases_ref": "#/mappings/7/shared_cases"
+        },
+        {
+          "line": 201,
+          "expression": "assert.equal(decision.reason, 'auto_mode_incompatible')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/7/rust_tests",
+          "captured_cases_ref": "#/mappings/7/shared_cases"
+        },
+        {
+          "line": 202,
+          "expression": "assert.equal(decision.classified_tier, 'opus')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/7/rust_tests",
+          "captured_cases_ref": "#/mappings/7/shared_cases"
+        },
+        {
+          "line": 203,
+          "expression": "assert.deepEqual(body, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/7/rust_tests",
+          "captured_cases_ref": "#/mappings/7/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#9",
+      "name": "safeguarded compaction never replaces a foreground model pin",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 206,
+      "baseline_definition_sha256": "0c0b0fca01a976ff3d3c00c48eff4e2f1e6d66ec7b56f850ecf1f580c91a8821",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 2,
+      "parameter_review": "Initial Auto Opus selection, safeguarded compaction preserves requested Sonnet, following original tool continuation still Opus.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::bypass_review_and_large_context_preserve_exact_payloads_and_call_totals"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-43"
+      ],
+      "direct_assertions": [
+        {
+          "line": 213,
+          "expression": "assert.equal((await router.route(compaction, { ...options, requestClass: 'compaction' })).model, initial.model)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/8/rust_tests",
+          "captured_cases_ref": "#/mappings/8/shared_cases"
+        },
+        {
+          "line": 215,
+          "expression": "assert.equal((await router.route(continuation, options)).model, c.models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/8/rust_tests",
+          "captured_cases_ref": "#/mappings/8/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#10",
+      "name": "uncertainty and invalid classifier responses cannot downgrade Opus",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 218,
+      "baseline_definition_sha256": "e7c6572d4849ae600f7f6a5cfc5f443cc607906b3b5e1a82e00a78d3127e1343",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 1,
+      "parameter_review": "Four evaluator responses: Haiku confidence.1, invalid choice, string confidence0.9, empty response; requested Opus never downgraded.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::all_jev_tiers_guards_and_cache_use_exact_request_contracts"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-44",
+        "baseline-router-instance-45",
+        "baseline-router-instance-46",
+        "baseline-router-instance-47"
+      ],
+      "direct_assertions": [
+        {
+          "line": 222,
+          "expression": "assert.equal((await router.route(body)).model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/9/rust_tests",
+          "captured_cases_ref": "#/mappings/9/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#11",
+      "name": "timeouts fall back promptly and failures are not cached",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 226,
+      "baseline_definition_sha256": "79cab3462e54bcf9b0e391ee8edff59787f862ef3bfa016f9e744252bcf3c156",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "First20ms evaluator timeout returns fallback/Sonnet promptly; same body retries successfully as Haiku rather than cached failure.",
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::twenty_ms_timeout_cleans_transport_and_same_body_retries_without_cached_failure"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-48"
+      ],
+      "direct_assertions": [
+        {
+          "line": 238,
+          "expression": "assert.equal(first.source, 'fallback')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/10/rust_tests",
+          "captured_cases_ref": "#/mappings/10/shared_cases"
+        },
+        {
+          "line": 239,
+          "expression": "assert.equal(first.model, config().models.sonnet)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/10/rust_tests",
+          "captured_cases_ref": "#/mappings/10/shared_cases"
+        },
+        {
+          "line": 240,
+          "expression": "assert.ok(performance.now() - start < 1000)",
+          "status": "partially_represented",
+          "native_tests_ref": "#/mappings/10/rust_tests",
+          "captured_cases_ref": "#/mappings/10/shared_cases",
+          "remaining_ref": "#/mappings/10/remaining"
+        },
+        {
+          "line": 241,
+          "expression": "assert.equal((await router.route(request('Task'))).model, config().models.haiku)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/10/rust_tests",
+          "captured_cases_ref": "#/mappings/10/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [
+        "The original assertion performance.now()-start<1000 is a real-clock scheduling condition. Native replay proves a20ms virtual deadline (pending at19ms), dropped transport, fallback and uncached same-body retry; it does not measure host wall-clock scheduling."
+      ],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#12",
+      "name": "tool continuations are still evaluated but stay with the originating model, per agent",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 244,
+      "baseline_definition_sha256": "e888f43e5537ea6ad7f38d5e403fd59e8d7a07e34d630bd7975f59796baa6823",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 6,
+      "parameter_review": "First Opus selection; continuation evaluated a second time but remains Opus/tool_turn_pinned; other agent preserves source; new human task can switch to Haiku.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-49"
+      ],
+      "direct_assertions": [
+        {
+          "line": 248,
+          "expression": "assert.equal((await router.route(body, { scope: 'session/agent1' })).model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/11/rust_tests",
+          "captured_cases_ref": "#/mappings/11/shared_cases"
+        },
+        {
+          "line": 254,
+          "expression": "assert.equal(calls, 2)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/11/rust_tests",
+          "captured_cases_ref": "#/mappings/11/shared_cases"
+        },
+        {
+          "line": 255,
+          "expression": "assert.equal(decision.model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/11/rust_tests",
+          "captured_cases_ref": "#/mappings/11/shared_cases"
+        },
+        {
+          "line": 256,
+          "expression": "assert.equal(decision.reason, 'tool_turn_pinned')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/11/rust_tests",
+          "captured_cases_ref": "#/mappings/11/shared_cases"
+        },
+        {
+          "line": 257,
+          "expression": "assert.equal((await router.route(continuation, { scope: 'session/agent2' })).model, body.model)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/11/rust_tests",
+          "captured_cases_ref": "#/mappings/11/shared_cases"
+        },
+        {
+          "line": 259,
+          "expression": "assert.equal((await router.route(newTurn, { scope: 'session/agent1' })).model, config().models.haiku)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/11/rust_tests",
+          "captured_cases_ref": "#/mappings/11/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#13",
+      "name": "thinking history keeps the actual model of the previous routed turn",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 262,
+      "baseline_definition_sha256": "212501590dd5bb90f5b1161d5110a2da4fa9d7918c30c639a881bf598d216cc6",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 1,
+      "parameter_review": "First routed Opus followed by signed thinking and a new human followup retains actual previous Opus.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-50"
+      ],
+      "direct_assertions": [
+        {
+          "line": 270,
+          "expression": "assert.equal((await router.route(next)).model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/12/rust_tests",
+          "captured_cases_ref": "#/mappings/12/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#14",
+      "name": "capability guards preserve bodies and avoid unsupported Haiku downgrades",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 273,
+      "baseline_definition_sha256": "3f30b998519a3d1ad59867def78ea514890b40909b2a914403eaa9d5de23f385",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "Five capability patches adaptive/effort/max_tokens/context edits/computer tool preserve Sonnet and complete body;160KB text yields large_or_multimodal_request.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::all_jev_tiers_guards_and_cache_use_exact_request_contracts"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-51"
+      ],
+      "direct_assertions": [
+        {
+          "line": 278,
+          "expression": "assert.equal((await router.route(body)).model, config().models.sonnet)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/13/rust_tests",
+          "captured_cases_ref": "#/mappings/13/shared_cases"
+        },
+        {
+          "line": 279,
+          "expression": "assert.deepEqual(body, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/13/rust_tests",
+          "captured_cases_ref": "#/mappings/13/shared_cases"
+        },
+        {
+          "line": 282,
+          "expression": "assert.equal((await router.route(body)).reason, 'large_or_multimodal_request')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/13/rust_tests",
+          "captured_cases_ref": "#/mappings/13/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#15",
+      "name": "native between_tools and unknown thinking modes preserve the requested model on new human turns",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 285,
+      "baseline_definition_sha256": "13e29e1d86417e00da291d27adc30d8a0019bb95ebc3f5b0094863d393deb7b3",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "Two native/unknown thinking types x three later outcomes Haiku/Opus/outage after initial Haiku; new human turn always preserves requested Sonnet5.5 and body.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-52",
+        "baseline-router-instance-53",
+        "baseline-router-instance-54",
+        "baseline-router-instance-55",
+        "baseline-router-instance-56",
+        "baseline-router-instance-57"
+      ],
+      "direct_assertions": [
+        {
+          "line": 300,
+          "expression": "assert.equal(decision.model, body.model)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/14/rust_tests",
+          "captured_cases_ref": "#/mappings/14/shared_cases"
+        },
+        {
+          "line": 301,
+          "expression": "assert.equal(decision.reason, 'model_specific_features')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/14/rust_tests",
+          "captured_cases_ref": "#/mappings/14/shared_cases"
+        },
+        {
+          "line": 302,
+          "expression": "assert.deepEqual(body, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/14/rust_tests",
+          "captured_cases_ref": "#/mappings/14/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#16",
+      "name": "Jev receives bounded excerpts without attachments or signed thinking",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 307,
+      "baseline_definition_sha256": "2a03fee1e403b0b3e3baf6e7378992d9770dd44fc6be4846fda9f1ae6485414e",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "Bounded buildState output excludes signed PRIVATE_THINKING and image PRIVATE_BASE64 under a300KB escaping-heavy current task.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls"
+      ],
+      "shared_cases": [
+        "baseline-router-16-1"
+      ],
+      "direct_assertions": [
+        {
+          "line": 312,
+          "expression": "assert.ok(state.length <= 12000)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/15/rust_tests",
+          "captured_cases_ref": "#/mappings/15/shared_cases"
+        },
+        {
+          "line": 313,
+          "expression": "assert.ok(!state.includes('PRIVATE_THINKING'))",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/15/rust_tests",
+          "captured_cases_ref": "#/mappings/15/shared_cases"
+        },
+        {
+          "line": 314,
+          "expression": "assert.ok(!state.includes('PRIVATE_BASE64'))",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/15/rust_tests",
+          "captured_cases_ref": "#/mappings/15/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#17",
+      "name": "the excerpt budget includes escaping in initial system and task text",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 317,
+      "baseline_definition_sha256": "2a6fadd05a5688eebee22f9d98de216562363e52ee1524b4dfdd93633b487a03",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "buildState of NUL-heavy original task/system fits12000 and2000; both original_task and system remain nonempty.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls"
+      ],
+      "shared_cases": [
+        "baseline-router-17-1",
+        "baseline-router-17-2"
+      ],
+      "direct_assertions": [
+        {
+          "line": 321,
+          "expression": "assert.ok(JSON.stringify(state).length <= limit)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/16/rust_tests",
+          "captured_cases_ref": "#/mappings/16/shared_cases"
+        },
+        {
+          "line": 322,
+          "expression": "assert.ok(state.system.length > 0)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/16/rust_tests",
+          "captured_cases_ref": "#/mappings/16/shared_cases"
+        },
+        {
+          "line": 323,
+          "expression": "assert.ok(state.original_task.length > 0)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/16/rust_tests",
+          "captured_cases_ref": "#/mappings/16/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#18",
+      "name": "configuration rejects invalid budgets and insecure remote endpoints",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 327,
+      "baseline_definition_sha256": "affe203ed029eff0503da6464e4570dd9b29cd46e807bf76111c773aa7eed990",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 1,
+      "parameter_review": "Four invalid environments: timeout NaN string, confidence2, port3.5, remote insecure JevURL all throw.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls"
+      ],
+      "shared_cases": [
+        "baseline-router-18-1",
+        "baseline-router-18-2",
+        "baseline-router-18-3",
+        "baseline-router-18-4"
+      ],
+      "direct_assertions": [
+        {
+          "line": 329,
+          "expression": "assert.throws(() => readConfig({ AUTOROUTER_EVALUATOR: 'jev', ...env }))",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/17/rust_tests",
+          "captured_cases_ref": "#/mappings/17/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#19",
+      "name": "trailing system messages preserve a capable model and establish the human turn for later tool results",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 333,
+      "baseline_definition_sha256": "601884339a100bea30be0330bca10c6e94c1ac998887d390a4341da26a564183",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 6,
+      "parameter_review": "Trailing system preserves Opus/mid_conversation_system and complete body; bounded state retains system entry; later tool continuation without cleared system remains Opus/tool_turn_pinned.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-58",
+        "baseline-router-19-1"
+      ],
+      "direct_assertions": [
+        {
+          "line": 340,
+          "expression": "assert.equal(decision.model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/18/rust_tests",
+          "captured_cases_ref": "#/mappings/18/shared_cases"
+        },
+        {
+          "line": 341,
+          "expression": "assert.equal(decision.reason, 'mid_conversation_system')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/18/rust_tests",
+          "captured_cases_ref": "#/mappings/18/shared_cases"
+        },
+        {
+          "line": 342,
+          "expression": "assert.deepEqual(body, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/18/rust_tests",
+          "captured_cases_ref": "#/mappings/18/shared_cases"
+        },
+        {
+          "line": 343,
+          "expression": "assert.ok(buildState(body).recent_messages.some(m => m.role === 'system'))",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/18/rust_tests",
+          "captured_cases_ref": "#/mappings/18/shared_cases"
+        },
+        {
+          "line": 351,
+          "expression": "assert.equal(next.model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/18/rust_tests",
+          "captured_cases_ref": "#/mappings/18/shared_cases"
+        },
+        {
+          "line": 352,
+          "expression": "assert.equal(next.reason, 'tool_turn_pinned')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/18/rust_tests",
+          "captured_cases_ref": "#/mappings/18/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#20",
+      "name": "a system capability introduced during a tool turn updates its pinned model",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 355,
+      "baseline_definition_sha256": "94cebbf060a2c1017929244f19dc887daf110b85fc85556e5d8aab09de371bbd",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "Initial Opus request selects Haiku; large system instruction introduced within continuation switches to Opus; removing it retains new Opus pin.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-59"
+      ],
+      "direct_assertions": [
+        {
+          "line": 358,
+          "expression": "assert.equal((await router.route(initial)).model, config().models.haiku)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/19/rust_tests",
+          "captured_cases_ref": "#/mappings/19/shared_cases"
+        },
+        {
+          "line": 363,
+          "expression": "assert.equal((await router.route(continuation)).model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/19/rust_tests",
+          "captured_cases_ref": "#/mappings/19/shared_cases"
+        },
+        {
+          "line": 366,
+          "expression": "assert.equal(next.model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/19/rust_tests",
+          "captured_cases_ref": "#/mappings/19/shared_cases"
+        },
+        {
+          "line": 367,
+          "expression": "assert.equal(next.reason, 'tool_turn_pinned')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/19/rust_tests",
+          "captured_cases_ref": "#/mappings/19/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#21",
+      "name": "moving API cache markers preserves a tool turn without erasing tool input",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 370,
+      "baseline_definition_sha256": "10ce6266b2790c315c2606674c9f199a103c65e7614c17f473475bd5479621dd",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "Moving cache markers in system/tools/nested tool-result/user content retains Opus turn; complete body unchanged; changing literal cache_control inside historical tool input yields unknown_continuation.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-60"
+      ],
+      "direct_assertions": [
+        {
+          "line": 396,
+          "expression": "assert.equal(next.model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/20/rust_tests",
+          "captured_cases_ref": "#/mappings/20/shared_cases"
+        },
+        {
+          "line": 397,
+          "expression": "assert.equal(next.reason, 'tool_turn_pinned')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/20/rust_tests",
+          "captured_cases_ref": "#/mappings/20/shared_cases"
+        },
+        {
+          "line": 398,
+          "expression": "assert.deepEqual(continuation, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/20/rust_tests",
+          "captured_cases_ref": "#/mappings/20/shared_cases"
+        },
+        {
+          "line": 403,
+          "expression": "assert.equal((await router.route(continuation)).reason, 'unknown_continuation')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/20/rust_tests",
+          "captured_cases_ref": "#/mappings/20/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#22",
+      "name": "gateway prompt IDs keep tool continuations pinned when available tools change, scoped by agent",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 406,
+      "baseline_definition_sha256": "10b3464ca5b760cff2f2462964621d4423100e02e5605e9386a3c48438127b33",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 5,
+      "parameter_review": "Same scoped prompt survives new tool discovery, other agent is unknown, next prompt with signed thinking recovers preceding Opus.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-61"
+      ],
+      "direct_assertions": [
+        {
+          "line": 418,
+          "expression": "assert.equal(next.model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/21/rust_tests",
+          "captured_cases_ref": "#/mappings/21/shared_cases"
+        },
+        {
+          "line": 419,
+          "expression": "assert.equal(next.reason, 'tool_turn_pinned')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/21/rust_tests",
+          "captured_cases_ref": "#/mappings/21/shared_cases"
+        },
+        {
+          "line": 420,
+          "expression": "assert.equal((await router.route(continuation, { scope: 'session/agent2', promptId: 'prompt-1' })).reason, 'unknown_continuation')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/21/rust_tests",
+          "captured_cases_ref": "#/mappings/21/shared_cases"
+        },
+        {
+          "line": 426,
+          "expression": "assert.equal(following.model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/21/rust_tests",
+          "captured_cases_ref": "#/mappings/21/shared_cases"
+        },
+        {
+          "line": 427,
+          "expression": "assert.equal(following.reason, 'thinking_history')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/21/rust_tests",
+          "captured_cases_ref": "#/mappings/21/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#23",
+      "name": "thinking history recovers the preceding model across different gateway prompt IDs",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 430,
+      "baseline_definition_sha256": "35c565efc4d681ffe83916f67e209c4fc53cf59c23d02e16629af1fb1ff4475b",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 2,
+      "parameter_review": "New prompt ID with signed thinking recovers actual Opus from previous prompt via content identity.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-62"
+      ],
+      "direct_assertions": [
+        {
+          "line": 439,
+          "expression": "assert.equal(decision.model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/22/rust_tests",
+          "captured_cases_ref": "#/mappings/22/shared_cases"
+        },
+        {
+          "line": 440,
+          "expression": "assert.equal(decision.reason, 'thinking_history')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/22/rust_tests",
+          "captured_cases_ref": "#/mappings/22/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#24",
+      "name": "same scoped prompt keeps goal feedback on its originating model without pinning auxiliary evaluation",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 443,
+      "baseline_definition_sha256": "6ee512ca69f49afe39ef97976dfeb84f2a1a803855a4ceecd228eb65c048bdb0",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 12,
+      "parameter_review": "Initial demanding Opus; structured-output auxiliary evaluation stays original Haiku and body; stop feedback remains Opus despite classified Haiku; new human prompt switches Haiku; evaluator calls2 then3.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::bypass_review_and_large_context_preserve_exact_payloads_and_call_totals"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-63"
+      ],
+      "direct_assertions": [
+        {
+          "line": 448,
+          "expression": "assert.equal((await router.route(initial, options)).model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/23/rust_tests",
+          "captured_cases_ref": "#/mappings/23/shared_cases"
+        },
+        {
+          "line": 455,
+          "expression": "assert.equal(auxiliary.model, evaluation.model)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/23/rust_tests",
+          "captured_cases_ref": "#/mappings/23/shared_cases"
+        },
+        {
+          "line": 456,
+          "expression": "assert.equal(auxiliary.reason, 'internal_request')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/23/rust_tests",
+          "captured_cases_ref": "#/mappings/23/shared_cases"
+        },
+        {
+          "line": 457,
+          "expression": "assert.deepEqual(evaluation, evaluationBefore)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/23/rust_tests",
+          "captured_cases_ref": "#/mappings/23/shared_cases"
+        },
+        {
+          "line": 465,
+          "expression": "assert.equal(decision.classified_tier, 'haiku')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/23/rust_tests",
+          "captured_cases_ref": "#/mappings/23/shared_cases"
+        },
+        {
+          "line": 466,
+          "expression": "assert.equal(decision.model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/23/rust_tests",
+          "captured_cases_ref": "#/mappings/23/shared_cases"
+        },
+        {
+          "line": 467,
+          "expression": "assert.equal(decision.reason, 'prompt_turn_pinned')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/23/rust_tests",
+          "captured_cases_ref": "#/mappings/23/shared_cases"
+        },
+        {
+          "line": 468,
+          "expression": "assert.deepEqual(feedback, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/23/rust_tests",
+          "captured_cases_ref": "#/mappings/23/shared_cases"
+        },
+        {
+          "line": 469,
+          "expression": "assert.equal(calls, 2)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/23/rust_tests",
+          "captured_cases_ref": "#/mappings/23/shared_cases"
+        },
+        {
+          "line": 475,
+          "expression": "assert.equal(next.model, config().models.haiku)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/23/rust_tests",
+          "captured_cases_ref": "#/mappings/23/shared_cases"
+        },
+        {
+          "line": 476,
+          "expression": "assert.equal(next.reason, 'classified')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/23/rust_tests",
+          "captured_cases_ref": "#/mappings/23/shared_cases"
+        },
+        {
+          "line": 477,
+          "expression": "assert.equal(calls, 3)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/23/rust_tests",
+          "captured_cases_ref": "#/mappings/23/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#25",
+      "name": "same scoped prompt pin does not leak between sessions, agents, prompt IDs, or absent IDs",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 480,
+      "baseline_definition_sha256": "8120e8d5da3e08d91ffc53c2a438283d693123ee2620972e2899c0c1bcbf25ed",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "Same prompt pins Opus; other session, agent, prompt or absent promptId all classify Haiku.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-64"
+      ],
+      "direct_assertions": [
+        {
+          "line": 490,
+          "expression": "assert.equal(pinned.model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/24/rust_tests",
+          "captured_cases_ref": "#/mappings/24/shared_cases"
+        },
+        {
+          "line": 491,
+          "expression": "assert.equal(pinned.reason, 'prompt_turn_pinned')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/24/rust_tests",
+          "captured_cases_ref": "#/mappings/24/shared_cases"
+        },
+        {
+          "line": 498,
+          "expression": "assert.equal(decision.model, config().models.haiku)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/24/rust_tests",
+          "captured_cases_ref": "#/mappings/24/shared_cases"
+        },
+        {
+          "line": 499,
+          "expression": "assert.equal(decision.reason, 'classified')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/24/rust_tests",
+          "captured_cases_ref": "#/mappings/24/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#26",
+      "name": "same scoped prompt retains its model when feedback classification fails",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 503,
+      "baseline_definition_sha256": "c8f71b94cefe9934261900df0c62fe5385b53c571471a126478f568189a57d20",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 5,
+      "parameter_review": "Same prompt feedback after evaluator network error retains Opus, fallback source, network_error and prompt_turn_pinned; body unchanged.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-65"
+      ],
+      "direct_assertions": [
+        {
+          "line": 517,
+          "expression": "assert.equal(decision.source, 'fallback')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/25/rust_tests",
+          "captured_cases_ref": "#/mappings/25/shared_cases"
+        },
+        {
+          "line": 518,
+          "expression": "assert.equal(decision.classifier_error, 'network_error')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/25/rust_tests",
+          "captured_cases_ref": "#/mappings/25/shared_cases"
+        },
+        {
+          "line": 519,
+          "expression": "assert.equal(decision.model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/25/rust_tests",
+          "captured_cases_ref": "#/mappings/25/shared_cases"
+        },
+        {
+          "line": 520,
+          "expression": "assert.equal(decision.reason, 'prompt_turn_pinned')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/25/rust_tests",
+          "captured_cases_ref": "#/mappings/25/shared_cases"
+        },
+        {
+          "line": 521,
+          "expression": "assert.deepEqual(feedback, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/25/rust_tests",
+          "captured_cases_ref": "#/mappings/25/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#27",
+      "name": "same scoped prompt cannot override new model-specific modes, unknown models, or system-message requirements",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 524,
+      "baseline_definition_sha256": "c50161cc0e05974532d731a33a46e60e01e05e80319dfde9e56be11b75bcf9ec",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "Four same-prompt new-text changes: between_tools/future thinking/custom model/trailing system; each preserves newly requested model, exact reason, body.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-66",
+        "baseline-router-instance-67",
+        "baseline-router-instance-68",
+        "baseline-router-instance-69"
+      ],
+      "direct_assertions": [
+        {
+          "line": 542,
+          "expression": "assert.equal(decision.model, next.model)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/26/rust_tests",
+          "captured_cases_ref": "#/mappings/26/shared_cases"
+        },
+        {
+          "line": 543,
+          "expression": "assert.equal(decision.reason, reason)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/26/rust_tests",
+          "captured_cases_ref": "#/mappings/26/shared_cases"
+        },
+        {
+          "line": 544,
+          "expression": "assert.deepEqual(next, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/26/rust_tests",
+          "captured_cases_ref": "#/mappings/26/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#28",
+      "name": "same scoped prompt cannot keep Haiku when new text requests require Sonnet capabilities",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 548,
+      "baseline_definition_sha256": "e30aa3c1ce52dfe8894314b994c1094caab69084bf2ad16883371df029a5f9b6",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "Three same-prompt capability requirements adaptive/high-effort/100000 max_tokens raise prior Haiku to Sonnet with requires_sonnet_capabilities and no input mutation.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-70",
+        "baseline-router-instance-71",
+        "baseline-router-instance-72"
+      ],
+      "direct_assertions": [
+        {
+          "line": 553,
+          "expression": "assert.equal((await router.route(initial, options)).model, config().models.haiku)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/27/rust_tests",
+          "captured_cases_ref": "#/mappings/27/shared_cases"
+        },
+        {
+          "line": 559,
+          "expression": "assert.equal(decision.model, config().models.sonnet)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/27/rust_tests",
+          "captured_cases_ref": "#/mappings/27/shared_cases"
+        },
+        {
+          "line": 560,
+          "expression": "assert.equal(decision.reason, 'requires_sonnet_capabilities')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/27/rust_tests",
+          "captured_cases_ref": "#/mappings/27/shared_cases"
+        },
+        {
+          "line": 561,
+          "expression": "assert.deepEqual(next, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/27/rust_tests",
+          "captured_cases_ref": "#/mappings/27/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#29",
+      "name": "same scoped prompt text pin does not undo a client-requested fallback model change",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 565,
+      "baseline_definition_sha256": "d145e24fb1d5b29668a1f3d82a45ed008ff6041fa8b6f716c16bc8e96abbd39d",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "After initial Opus selection, client retries same prompt with requested Haiku; selected Haiku and reason must not be prompt_turn_pinned; input unchanged.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-73"
+      ],
+      "direct_assertions": [
+        {
+          "line": 570,
+          "expression": "assert.equal((await router.route(initial, options)).model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/28/rust_tests",
+          "captured_cases_ref": "#/mappings/28/shared_cases"
+        },
+        {
+          "line": 574,
+          "expression": "assert.equal(decision.model, config().models.haiku)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/28/rust_tests",
+          "captured_cases_ref": "#/mappings/28/shared_cases"
+        },
+        {
+          "line": 575,
+          "expression": "assert.notEqual(decision.reason, 'prompt_turn_pinned')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/28/rust_tests",
+          "captured_cases_ref": "#/mappings/28/shared_cases"
+        },
+        {
+          "line": 576,
+          "expression": "assert.deepEqual(retry, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/28/rust_tests",
+          "captured_cases_ref": "#/mappings/28/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#30",
+      "name": "active scoped prompts retain continuity beyond the idle-cache deadline",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 579,
+      "baseline_definition_sha256": "c3bfdf17580c666adca87c148df961018128928fbc3367968c351a091a5d77c1",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "turnTtlMs0 still retains active same-prompt continuity after later feedback.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-74"
+      ],
+      "direct_assertions": [
+        {
+          "line": 584,
+          "expression": "assert.equal((await router.route(initial, options)).model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/29/rust_tests",
+          "captured_cases_ref": "#/mappings/29/shared_cases"
+        },
+        {
+          "line": 589,
+          "expression": "assert.equal(decision.model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/29/rust_tests",
+          "captured_cases_ref": "#/mappings/29/shared_cases"
+        },
+        {
+          "line": 590,
+          "expression": "assert.equal(decision.reason, 'prompt_turn_pinned')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/29/rust_tests",
+          "captured_cases_ref": "#/mappings/29/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#31",
+      "name": "headerless goal feedback keeps its original task model through subsequent tool calls",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 593,
+      "baseline_definition_sha256": "86f74be3ce1219d0c1e1c85bafd0f33f39956f8bba37d37e2b67b85b29d1041a",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 9,
+      "parameter_review": "Headerless exact goal feedback with cache marker stays Opus despite Haiku verdict; subsequent tool use retains Opus; new human text selects Haiku; four evaluations and unchanged feedback.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-75"
+      ],
+      "direct_assertions": [
+        {
+          "line": 600,
+          "expression": "assert.equal((await router.route(initial, options)).model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/30/rust_tests",
+          "captured_cases_ref": "#/mappings/30/shared_cases"
+        },
+        {
+          "line": 607,
+          "expression": "assert.equal(decision.classified_tier, 'haiku')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/30/rust_tests",
+          "captured_cases_ref": "#/mappings/30/shared_cases"
+        },
+        {
+          "line": 608,
+          "expression": "assert.equal(decision.model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/30/rust_tests",
+          "captured_cases_ref": "#/mappings/30/shared_cases"
+        },
+        {
+          "line": 609,
+          "expression": "assert.equal(decision.reason, 'goal_turn_pinned')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/30/rust_tests",
+          "captured_cases_ref": "#/mappings/30/shared_cases"
+        },
+        {
+          "line": 610,
+          "expression": "assert.deepEqual(feedback, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/30/rust_tests",
+          "captured_cases_ref": "#/mappings/30/shared_cases"
+        },
+        {
+          "line": 616,
+          "expression": "assert.equal(next.model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/30/rust_tests",
+          "captured_cases_ref": "#/mappings/30/shared_cases"
+        },
+        {
+          "line": 617,
+          "expression": "assert.equal(next.reason, 'tool_turn_pinned')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/30/rust_tests",
+          "captured_cases_ref": "#/mappings/30/shared_cases"
+        },
+        {
+          "line": 621,
+          "expression": "assert.equal((await router.route(newHuman, options)).model, config().models.haiku)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/30/rust_tests",
+          "captured_cases_ref": "#/mappings/30/shared_cases"
+        },
+        {
+          "line": 622,
+          "expression": "assert.equal(calls, 4)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/30/rust_tests",
+          "captured_cases_ref": "#/mappings/30/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#32",
+      "name": "headerless goal feedback with no matching scoped model never invents a previous choice",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 625,
+      "baseline_definition_sha256": "43a0f7dad3219c1b50915723744d50fb0b89689ebb870ea7fb56f371df84eea9",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "Recognized goal feedback in a different scope must preserve requested Haiku with unknown_continuation, despite evaluator Opus; no body mutation.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-76"
+      ],
+      "direct_assertions": [
+        {
+          "line": 637,
+          "expression": "assert.equal(decision.model, initial.model)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/31/rust_tests",
+          "captured_cases_ref": "#/mappings/31/shared_cases"
+        },
+        {
+          "line": 638,
+          "expression": "assert.equal(decision.reason, 'unknown_continuation')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/31/rust_tests",
+          "captured_cases_ref": "#/mappings/31/shared_cases"
+        },
+        {
+          "line": 639,
+          "expression": "assert.deepEqual(feedback, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/31/rust_tests",
+          "captured_cases_ref": "#/mappings/31/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#33",
+      "name": "large internal requests preserve their requested model instead of the human turn model",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 642,
+      "baseline_definition_sha256": "19975486403df0b7df022ab55a7225cdc1d7d8de6bbbdc8d008cd11fa2a61074",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 2,
+      "parameter_review": "Large continuation used as compaction/auxiliary retains its requested Opus instead of earlier selected Haiku, internal_request.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::bypass_review_and_large_context_preserve_exact_payloads_and_call_totals"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-77"
+      ],
+      "direct_assertions": [
+        {
+          "line": 649,
+          "expression": "assert.equal(decision.model, initial.model)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/32/rust_tests",
+          "captured_cases_ref": "#/mappings/32/shared_cases"
+        },
+        {
+          "line": 650,
+          "expression": "assert.equal(decision.reason, 'internal_request')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/32/rust_tests",
+          "captured_cases_ref": "#/mappings/32/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#34",
+      "name": "unknown requested models are preserved even when a preceding routed turn is known",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 654,
+      "baseline_definition_sha256": "ff66e3852ddb2cc041de1021a91f833dac249a5194fe73896811b8723275db46",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 2,
+      "parameter_review": "New large human task requests custom unknown model after earlier routed turn; model and unknown_model preserved.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-78"
+      ],
+      "direct_assertions": [
+        {
+          "line": 663,
+          "expression": "assert.equal(decision.model, unknown.model)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/33/rust_tests",
+          "captured_cases_ref": "#/mappings/33/shared_cases"
+        },
+        {
+          "line": 664,
+          "expression": "assert.equal(decision.reason, 'unknown_model')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/33/rust_tests",
+          "captured_cases_ref": "#/mappings/33/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#35",
+      "name": "large and multimodal requests can upgrade a compatible Haiku client, but never downgrade Opus",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 667,
+      "baseline_definition_sha256": "cc6a07c732abd9ee1af143eb553b9ca0b61df625e60135f1c17326e1136d9a2e",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "Large text and small image requests can upgrade requested Haiku to Opus; weak Haiku verdict never downgrades requested Opus and uses large_or_multimodal_request.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::all_jev_tiers_guards_and_cache_use_exact_request_contracts"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-79",
+        "baseline-router-instance-80",
+        "baseline-router-instance-81",
+        "baseline-router-instance-82"
+      ],
+      "direct_assertions": [
+        {
+          "line": 671,
+          "expression": "assert.equal((await strong.route(body)).model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/34/rust_tests",
+          "captured_cases_ref": "#/mappings/34/shared_cases"
+        },
+        {
+          "line": 674,
+          "expression": "assert.equal(decision.model, config().models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/34/rust_tests",
+          "captured_cases_ref": "#/mappings/34/shared_cases"
+        },
+        {
+          "line": 675,
+          "expression": "assert.equal(decision.reason, 'large_or_multimodal_request')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/34/rust_tests",
+          "captured_cases_ref": "#/mappings/34/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#36",
+      "name": "large system prompts and tool schemas raise a simple Haiku choice to a model with enough context",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 679,
+      "baseline_definition_sha256": "081aa79154c931175f4216edc3bdbb2dbc3970f8a0d1143ca6cafee04981c04f",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 5,
+      "parameter_review": "Large system or tool schema still produces bounded Jev state<=12000, one evaluation/no count network, Haiku request upgrades Sonnet/context_capacity, request unchanged.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::bypass_review_and_large_context_preserve_exact_payloads_and_call_totals"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-83",
+        "baseline-router-instance-84"
+      ],
+      "direct_assertions": [
+        {
+          "line": 687,
+          "expression": "assert.ok(JSON.stringify(JSON.parse(options.body).state).length <= 12000)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/35/rust_tests",
+          "captured_cases_ref": "#/mappings/35/shared_cases"
+        },
+        {
+          "line": 693,
+          "expression": "assert.equal(decision.model, config().models.sonnet)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/35/rust_tests",
+          "captured_cases_ref": "#/mappings/35/shared_cases"
+        },
+        {
+          "line": 694,
+          "expression": "assert.equal(decision.reason, 'context_capacity')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/35/rust_tests",
+          "captured_cases_ref": "#/mappings/35/shared_cases"
+        },
+        {
+          "line": 695,
+          "expression": "assert.equal(evaluations, 1)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/35/rust_tests",
+          "captured_cases_ref": "#/mappings/35/shared_cases"
+        },
+        {
+          "line": 696,
+          "expression": "assert.deepEqual(body, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/35/rust_tests",
+          "captured_cases_ref": "#/mappings/35/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#37",
+      "name": "unused deferred schemas do not force a simple prompt away from Haiku and remain unchanged on the wire",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 710,
+      "baseline_definition_sha256": "3f2bfa2f7685c23abf8e1a48034c662d622319cba85471883a271a9b311cd69f",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 5,
+      "parameter_review": "Serialized deferred tool request>150000 but context_size<1000; model remains Haiku/classified and original tools/body remain unchanged.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::exact_count_requests_cover_both_source_models_and_invalid_count_adaptations"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-85",
+        "baseline-router-37-1"
+      ],
+      "direct_assertions": [
+        {
+          "line": 714,
+          "expression": "assert.ok(Buffer.byteLength(JSON.stringify(body)) > 150000)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/36/rust_tests",
+          "captured_cases_ref": "#/mappings/36/shared_cases"
+        },
+        {
+          "line": 715,
+          "expression": "assert.ok(contextSizeBytes(body) < 1000)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/36/rust_tests",
+          "captured_cases_ref": "#/mappings/36/shared_cases"
+        },
+        {
+          "line": 717,
+          "expression": "assert.equal(decision.model, config().models.haiku)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/36/rust_tests",
+          "captured_cases_ref": "#/mappings/36/shared_cases"
+        },
+        {
+          "line": 718,
+          "expression": "assert.equal(decision.reason, 'classified')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/36/rust_tests",
+          "captured_cases_ref": "#/mappings/36/shared_cases"
+        },
+        {
+          "line": 719,
+          "expression": "assert.deepEqual(body, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/36/rust_tests",
+          "captured_cases_ref": "#/mappings/36/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier.",
+        "The frozen source explicitly asserts preservation of the request object; it does not observe provider response/request forwarding. No forwarding claim is made here."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#38",
+      "name": "deferred schemas count when discovered through direct or nested references or historical calls",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 722,
+      "baseline_definition_sha256": "de5517b862455f7629f311ca684416b281e949cddf9830aac4f628e2372809ab",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "Five direct/nested/server/historical/unknown-wrapper reference shapes each expand large schema; four capacity-upgrade Sonnet, unknown wrapper preserves original/model_incompatible, body unchanged.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::exact_count_requests_cover_both_source_models_and_invalid_count_adaptations"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-86",
+        "baseline-router-instance-87",
+        "baseline-router-instance-88",
+        "baseline-router-instance-89",
+        "baseline-router-instance-90",
+        "baseline-router-38-1",
+        "baseline-router-38-2",
+        "baseline-router-38-3",
+        "baseline-router-38-4",
+        "baseline-router-38-5"
+      ],
+      "direct_assertions": [
+        {
+          "line": 735,
+          "expression": "assert.ok(contextSizeBytes(body) > 150000)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/37/rust_tests",
+          "captured_cases_ref": "#/mappings/37/shared_cases"
+        },
+        {
+          "line": 738,
+          "expression": "assert.equal(decision.model, unfamiliar ? body.model : config().models.sonnet)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/37/rust_tests",
+          "captured_cases_ref": "#/mappings/37/shared_cases"
+        },
+        {
+          "line": 739,
+          "expression": "assert.equal(decision.reason, unfamiliar ? 'model_incompatible' : 'context_capacity')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/37/rust_tests",
+          "captured_cases_ref": "#/mappings/37/shared_cases"
+        },
+        {
+          "line": 740,
+          "expression": "assert.deepEqual(body, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/37/rust_tests",
+          "captured_cases_ref": "#/mappings/37/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#39",
+      "name": "repeated references count repeated schema expansions across conversation history",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 744,
+      "baseline_definition_sha256": "4c5fb5945bddfb0c90fa63627a69f1945c99c1e1b961cdb3b7baeee74e6294a1",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "One reference is below150000, second repeated reference above; route then selects Sonnet.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::exact_count_requests_cover_both_source_models_and_invalid_count_adaptations"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-91",
+        "baseline-router-39-1",
+        "baseline-router-39-2"
+      ],
+      "direct_assertions": [
+        {
+          "line": 749,
+          "expression": "assert.ok(contextSizeBytes(body) < 150000)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/38/rust_tests",
+          "captured_cases_ref": "#/mappings/38/shared_cases"
+        },
+        {
+          "line": 751,
+          "expression": "assert.ok(contextSizeBytes(body) > 150000)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/38/rust_tests",
+          "captured_cases_ref": "#/mappings/38/shared_cases"
+        },
+        {
+          "line": 753,
+          "expression": "assert.equal((await router.route(body)).model, config().models.sonnet)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/38/rust_tests",
+          "captured_cases_ref": "#/mappings/38/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#40",
+      "name": "deferral never excludes unknown or malformed tool shapes or models from the context guard",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 756,
+      "baseline_definition_sha256": "03690d5d562dfe6f04b50a948119d4d122be447cc945d9e9b8118b59adef5e5c",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 1,
+      "parameter_review": "Ten malformed/unknown deferral cases exactly equal full JSON byte length, including custom model, string flags, schema/type/unknownfields/strict/description/callers/cache/all-deferred/null reference.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls"
+      ],
+      "shared_cases": [
+        "baseline-router-40-1",
+        "baseline-router-40-2",
+        "baseline-router-40-3",
+        "baseline-router-40-4",
+        "baseline-router-40-5",
+        "baseline-router-40-6",
+        "baseline-router-40-7",
+        "baseline-router-40-8",
+        "baseline-router-40-9",
+        "baseline-router-40-10"
+      ],
+      "direct_assertions": [
+        {
+          "line": 771,
+          "expression": "assert.equal(contextSizeBytes(body), Buffer.byteLength(JSON.stringify(body)))",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/39/rust_tests",
+          "captured_cases_ref": "#/mappings/39/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#41",
+      "name": "deferral only affects top-level eligible schemas and keeps other request context in the guard",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 775,
+      "baseline_definition_sha256": "a1cc97b52562ce577e73963a1cd6116a2f7cdb8d72023eeacee5f977d3150ef5",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 2,
+      "parameter_review": "Large remaining system or nested schema property named defer_loading must remain in context guard and cause Sonnet upgrade.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::exact_count_requests_cover_both_source_models_and_invalid_count_adaptations"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-92",
+        "baseline-router-instance-93",
+        "baseline-router-41-1",
+        "baseline-router-41-2"
+      ],
+      "direct_assertions": [
+        {
+          "line": 782,
+          "expression": "assert.ok(contextSizeBytes(body) > 150000)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/40/rust_tests",
+          "captured_cases_ref": "#/mappings/40/shared_cases"
+        },
+        {
+          "line": 784,
+          "expression": "assert.equal((await router.route(body)).model, config().models.sonnet)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/40/rust_tests",
+          "captured_cases_ref": "#/mappings/40/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#42",
+      "name": "deferred server tool types still preserve the existing model-specific compatibility lock",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 788,
+      "baseline_definition_sha256": "5b49dcef96e977d8817f4b6326b384ed101d31b501c6c7c28bf5e0db2fa94a67",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "Deferred computer tool stays fully counted and preserves requested model with model_specific_features despite Opus verdict.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::exact_count_requests_cover_both_source_models_and_invalid_count_adaptations"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-94",
+        "baseline-router-42-1"
+      ],
+      "direct_assertions": [
+        {
+          "line": 791,
+          "expression": "assert.equal(contextSizeBytes(body), Buffer.byteLength(JSON.stringify(body)))",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/41/rust_tests",
+          "captured_cases_ref": "#/mappings/41/shared_cases"
+        },
+        {
+          "line": 794,
+          "expression": "assert.equal(decision.model, body.model)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/41/rust_tests",
+          "captured_cases_ref": "#/mappings/41/shared_cases"
+        },
+        {
+          "line": 795,
+          "expression": "assert.equal(decision.reason, 'model_specific_features')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/41/rust_tests",
+          "captured_cases_ref": "#/mappings/41/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#43",
+      "name": "a growing unsigned Haiku tool turn upgrades once and retains the new model within its scope",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 798,
+      "baseline_definition_sha256": "16ff25a3c16973cdccf9a95e55c4a805f2310b0c121cc5663131b8e3789690f2",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 8,
+      "parameter_review": "Haiku tool turn grows above capacity→Sonnet; shortening output retains Sonnet pin; another agent sees requested Haiku/unknown_continuation; input not mutated by upgrade.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-95"
+      ],
+      "direct_assertions": [
+        {
+          "line": 802,
+          "expression": "assert.equal((await router.route(initial, options)).model, config().models.haiku)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/42/rust_tests",
+          "captured_cases_ref": "#/mappings/42/shared_cases"
+        },
+        {
+          "line": 809,
+          "expression": "assert.equal(upgrade.model, config().models.sonnet)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/42/rust_tests",
+          "captured_cases_ref": "#/mappings/42/shared_cases"
+        },
+        {
+          "line": 810,
+          "expression": "assert.equal(upgrade.reason, 'context_capacity')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/42/rust_tests",
+          "captured_cases_ref": "#/mappings/42/shared_cases"
+        },
+        {
+          "line": 811,
+          "expression": "assert.deepEqual(continuation, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/42/rust_tests",
+          "captured_cases_ref": "#/mappings/42/shared_cases"
+        },
+        {
+          "line": 815,
+          "expression": "assert.equal(next.model, config().models.sonnet)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/42/rust_tests",
+          "captured_cases_ref": "#/mappings/42/shared_cases"
+        },
+        {
+          "line": 816,
+          "expression": "assert.equal(next.reason, 'tool_turn_pinned')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/42/rust_tests",
+          "captured_cases_ref": "#/mappings/42/shared_cases"
+        },
+        {
+          "line": 818,
+          "expression": "assert.equal(other.model, config().models.haiku)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/42/rust_tests",
+          "captured_cases_ref": "#/mappings/42/shared_cases"
+        },
+        {
+          "line": 819,
+          "expression": "assert.equal(other.reason, 'unknown_continuation')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/42/rust_tests",
+          "captured_cases_ref": "#/mappings/42/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#44",
+      "name": "nested tool attachments trigger the capacity floor even with a small request body",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 822,
+      "baseline_definition_sha256": "1b5354fd1901bcb0299946602dbd3235e0eb858da5cdb586fbb9f35163aa87c3",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "Nested tool_result image and document bodies below150000 still require Sonnet/context_capacity; unchanged body.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-96",
+        "baseline-router-instance-97"
+      ],
+      "direct_assertions": [
+        {
+          "line": 832,
+          "expression": "assert.ok(Buffer.byteLength(JSON.stringify(body)) < 150000)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/43/rust_tests",
+          "captured_cases_ref": "#/mappings/43/shared_cases"
+        },
+        {
+          "line": 835,
+          "expression": "assert.equal(decision.model, config().models.sonnet)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/43/rust_tests",
+          "captured_cases_ref": "#/mappings/43/shared_cases"
+        },
+        {
+          "line": 836,
+          "expression": "assert.equal(decision.reason, 'context_capacity')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/43/rust_tests",
+          "captured_cases_ref": "#/mappings/43/shared_cases"
+        },
+        {
+          "line": 837,
+          "expression": "assert.deepEqual(body, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/43/rust_tests",
+          "captured_cases_ref": "#/mappings/43/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#45",
+      "name": "capacity upgrades never override thinking or model-specific locks hidden behind a turn pin",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 841,
+      "baseline_definition_sha256": "e8df6e88f9412159f82c6c16fde0eedf03c509a73fb41e7b842b19e3efb669ae",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "Ten thinking/model-specific locks after prior Haiku turn prevent large-context upgrade; reason tool_turn_pinned and body unchanged.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::full_continuity_schedules_and_actual_outages_retain_safe_model_ownership"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-98",
+        "baseline-router-instance-99",
+        "baseline-router-instance-100",
+        "baseline-router-instance-101",
+        "baseline-router-instance-102",
+        "baseline-router-instance-103",
+        "baseline-router-instance-104",
+        "baseline-router-instance-105",
+        "baseline-router-instance-106",
+        "baseline-router-instance-107"
+      ],
+      "direct_assertions": [
+        {
+          "line": 865,
+          "expression": "assert.equal(decision.model, config().models.haiku)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/44/rust_tests",
+          "captured_cases_ref": "#/mappings/44/shared_cases"
+        },
+        {
+          "line": 866,
+          "expression": "assert.equal(decision.reason, 'tool_turn_pinned')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/44/rust_tests",
+          "captured_cases_ref": "#/mappings/44/shared_cases"
+        },
+        {
+          "line": 867,
+          "expression": "assert.deepEqual(body, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/44/rust_tests",
+          "captured_cases_ref": "#/mappings/44/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#46",
+      "name": "large compaction Haiku requests can upgrade without changing the foreground turn pin",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 871,
+      "baseline_definition_sha256": "ac618841d8de281278cd512405f32bb3118b995cc12e1bc7468366c7e11a6b79",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "Large compaction may upgrade Haiku to Sonnet/context_capacity but subsequent normal original continuation stays foreground Haiku.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::bypass_review_and_large_context_preserve_exact_payloads_and_call_totals"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-108"
+      ],
+      "direct_assertions": [
+        {
+          "line": 879,
+          "expression": "assert.equal(decision.model, config().models.sonnet)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/45/rust_tests",
+          "captured_cases_ref": "#/mappings/45/shared_cases"
+        },
+        {
+          "line": 880,
+          "expression": "assert.equal(decision.reason, 'context_capacity')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/45/rust_tests",
+          "captured_cases_ref": "#/mappings/45/shared_cases"
+        },
+        {
+          "line": 881,
+          "expression": "assert.equal((await router.route(continuation, options)).model, config().models.haiku)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/45/rust_tests",
+          "captured_cases_ref": "#/mappings/45/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#47",
+      "name": "capacity upgrades use a known large-window Opus when configured Sonnet only has 200K",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 884,
+      "baseline_definition_sha256": "98cfe5711530c2fcb4ff32b6d62a058336c3f489783d78231f413f7e6ffe2272",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "Old200K Sonnet config falls through to capable modern Opus; changing Opus to old200K model leaves requested Haiku/large_or_multimodal_request.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::all_jev_tiers_guards_and_cache_use_exact_request_contracts"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-109",
+        "baseline-router-instance-110"
+      ],
+      "direct_assertions": [
+        {
+          "line": 889,
+          "expression": "assert.equal(decision.model, c.models.opus)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/46/rust_tests",
+          "captured_cases_ref": "#/mappings/46/shared_cases"
+        },
+        {
+          "line": 890,
+          "expression": "assert.equal(decision.reason, 'context_capacity')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/46/rust_tests",
+          "captured_cases_ref": "#/mappings/46/shared_cases"
+        },
+        {
+          "line": 894,
+          "expression": "assert.equal(unchanged.model, c.models.haiku)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/46/rust_tests",
+          "captured_cases_ref": "#/mappings/46/shared_cases"
+        },
+        {
+          "line": 895,
+          "expression": "assert.equal(unchanged.reason, 'large_or_multimodal_request')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/46/rust_tests",
+          "captured_cases_ref": "#/mappings/46/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#48",
+      "name": "capacity floor preserves unknown models and mid-conversation system compatibility",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 898,
+      "baseline_definition_sha256": "c068b20930aefbff4bf43e56b1cf4ee8b0be7005c7c459036fd7a360322de4dc",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "Four unknown custom model names preserve model and avoid capacity reason; trailing system on large Haiku request preserves Haiku/mid_conversation_system.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::all_jev_tiers_guards_and_cache_use_exact_request_contracts"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-111"
+      ],
+      "direct_assertions": [
+        {
+          "line": 903,
+          "expression": "assert.equal(unknown.model, model)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/47/rust_tests",
+          "captured_cases_ref": "#/mappings/47/shared_cases"
+        },
+        {
+          "line": 904,
+          "expression": "assert.notEqual(unknown.reason, 'context_capacity')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/47/rust_tests",
+          "captured_cases_ref": "#/mappings/47/shared_cases"
+        },
+        {
+          "line": 908,
+          "expression": "assert.equal(decision.model, config().models.haiku)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/47/rust_tests",
+          "captured_cases_ref": "#/mappings/47/shared_cases"
+        },
+        {
+          "line": 909,
+          "expression": "assert.equal(decision.reason, 'mid_conversation_system')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/47/rust_tests",
+          "captured_cases_ref": "#/mappings/47/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#49",
+      "name": "a large serialized request that fits Haiku stays on Haiku after token counting",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 912,
+      "baseline_definition_sha256": "099655c576c7546f8df712a7f57380c22a5acd619c363608b0400e87edb0c7c7",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 9,
+      "parameter_review": "Requested Haiku and Sonnet large body; one count callback receives unchanged original request and Haiku target,54481 fits; exact classified/context/count fields; body unchanged.",
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::exact_count_requests_cover_both_source_models_and_invalid_count_adaptations"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-112",
+        "baseline-router-instance-113"
+      ],
+      "direct_assertions": [
+        {
+          "line": 920,
+          "expression": "assert.deepEqual(received, before)",
+          "status": "partially_represented",
+          "native_tests_ref": "#/mappings/48/rust_tests",
+          "captured_cases_ref": "#/mappings/48/shared_cases",
+          "remaining_ref": "#/mappings/48/remaining"
+        },
+        {
+          "line": 921,
+          "expression": "assert.equal(model, config().models.haiku)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/48/rust_tests",
+          "captured_cases_ref": "#/mappings/48/shared_cases"
+        },
+        {
+          "line": 924,
+          "expression": "assert.equal(decision.model, config().models.haiku)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/48/rust_tests",
+          "captured_cases_ref": "#/mappings/48/shared_cases"
+        },
+        {
+          "line": 925,
+          "expression": "assert.equal(decision.reason, 'classified')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/48/rust_tests",
+          "captured_cases_ref": "#/mappings/48/shared_cases"
+        },
+        {
+          "line": 926,
+          "expression": "assert.equal(decision.classified_tier, 'haiku')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/48/rust_tests",
+          "captured_cases_ref": "#/mappings/48/shared_cases"
+        },
+        {
+          "line": 927,
+          "expression": "assert.equal(decision.context_check, 'within_budget')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/48/rust_tests",
+          "captured_cases_ref": "#/mappings/48/shared_cases"
+        },
+        {
+          "line": 928,
+          "expression": "assert.equal(decision.counted_input_tokens, 54481)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/48/rust_tests",
+          "captured_cases_ref": "#/mappings/48/shared_cases"
+        },
+        {
+          "line": 929,
+          "expression": "assert.equal(calls, 1)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/48/rust_tests",
+          "captured_cases_ref": "#/mappings/48/shared_cases"
+        },
+        {
+          "line": 930,
+          "expression": "assert.deepEqual(body, before)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/48/rust_tests",
+          "captured_cases_ref": "#/mappings/48/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [
+        "Source callback argument received is deep-equal to the original request before count preparation. Native Router owns TokenCounter instead of accepting that callback: tests prove original immutable document preservation, exact source-observed prepared HTTP request, target, call count and complete decisions; they do not expose the literal source callback argument contract."
+      ],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#50",
+      "name": "near-limit, overflowing, and uncountable large requests keep the capacity floor",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 934,
+      "baseline_definition_sha256": "2968c7c82d1512c1e23d05243311b166cbe44f8d9509efff6215f68d754ae961",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "Counts190001,227338,undefined,-1,NaN,Infinity all retain Sonnet/context_capacity; valid nonnegative safe counts over_budget, invalid outcomes count_unavailable.",
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::exact_count_requests_cover_both_source_models_and_invalid_count_adaptations"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-114",
+        "baseline-router-instance-115",
+        "baseline-router-instance-116",
+        "baseline-router-instance-117",
+        "baseline-router-instance-118",
+        "baseline-router-instance-119"
+      ],
+      "direct_assertions": [
+        {
+          "line": 939,
+          "expression": "assert.equal(decision.model, config().models.sonnet)",
+          "status": "partially_represented",
+          "native_tests_ref": "#/mappings/49/rust_tests",
+          "captured_cases_ref": "#/mappings/49/shared_cases",
+          "remaining_ref": "#/mappings/49/remaining"
+        },
+        {
+          "line": 940,
+          "expression": "assert.equal(decision.reason, 'context_capacity')",
+          "status": "partially_represented",
+          "native_tests_ref": "#/mappings/49/rust_tests",
+          "captured_cases_ref": "#/mappings/49/shared_cases",
+          "remaining_ref": "#/mappings/49/remaining"
+        },
+        {
+          "line": 941,
+          "expression": "assert.equal(decision.context_check, Number.isSafeInteger(count) && count >= 0 ? 'over_budget' : 'count_unavailable')",
+          "status": "partially_represented",
+          "native_tests_ref": "#/mappings/49/rust_tests",
+          "captured_cases_ref": "#/mappings/49/shared_cases",
+          "remaining_ref": "#/mappings/49/remaining"
+        }
+      ],
+      "migration_boundaries": [
+        {
+          "source_test": "test/router.test.mjs#50",
+          "instance": "baseline-router-instance-116",
+          "route": 0,
+          "count": 0,
+          "outcome": {
+            "kind": "undefined"
+          }
+        },
+        {
+          "source_test": "test/router.test.mjs#50",
+          "instance": "baseline-router-instance-118",
+          "route": 0,
+          "count": 0,
+          "outcome": {
+            "kind": "nan"
+          }
+        },
+        {
+          "source_test": "test/router.test.mjs#50",
+          "instance": "baseline-router-instance-119",
+          "route": 0,
+          "count": 0,
+          "outcome": {
+            "kind": "positive_infinity"
+          }
+        }
+      ],
+      "remaining": [
+        "Three original callback return types (undefined, NaN,+Infinity) remain explicitly tagged. Core replays downstream Option::None; runtime uses missing HTTP input_tokens as the typed adaptation. Outcomes/routing are equal, but this is not literal nonJSON callback API equality."
+      ],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    },
+    {
+      "baseline_test": "test/router.test.mjs#51",
+      "name": "token checking overlaps classification, while small requests and hard locks need no count call",
+      "baseline_file_sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516",
+      "baseline_line": 945,
+      "baseline_definition_sha256": "e52253318d002cbc744cba5d9adfd64cac54ae5a667bc88cfba61500cac328c0",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "Count callback starts before evaluator fetch for suspicious input; counted request retains Haiku; small and enabled-thinking hard-locked requests must not invoke count callback.",
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::small_and_large_hard_locked_requests_never_start_count_transport"
+      ],
+      "shared_cases": [
+        "baseline-router-instance-120",
+        "baseline-router-instance-121"
+      ],
+      "direct_assertions": [
+        {
+          "line": 948,
+          "expression": "assert.equal(counted, true)",
+          "status": "partially_represented",
+          "native_tests_ref": "#/mappings/50/rust_tests",
+          "captured_cases_ref": "#/mappings/50/shared_cases",
+          "remaining_ref": "#/mappings/50/remaining"
+        },
+        {
+          "line": 953,
+          "expression": "assert.equal(decision.model, config().models.haiku)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/50/rust_tests",
+          "captured_cases_ref": "#/mappings/50/shared_cases"
+        },
+        {
+          "line": 955,
+          "expression": "assert.fail('Must not add a counting request')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/50/rust_tests",
+          "captured_cases_ref": "#/mappings/50/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "remaining": [
+        "Original source synchronously enters countTokens before fetchImpl. Native replay verifies both endpoint counts, full payloads and no-count small/locked paths; existing semaphore regression proves overlap/reuse. Neither proves the same JavaScript callback-start ordering across asynchronous native transport scheduling."
+      ],
+      "review_notes": [
+        "Original assertions and loops ran unchanged in frozen Node; source/classifier/counter clocks and fixture dictionary encoding are described in capture report.",
+        "Core replay proves synchronous policy and exact pure operations. Runtime replay consumes actual captured synthetic HTTP responses/errors and checks full requests/calls/decisions; it never supplies the captured classification decision to native Classifier."
+      ],
+      "previous_mapping": {
+        "coverage_status": "pending_assertion_mapping",
+        "audit_path": "/private/tmp/router-assertion-audit.json",
+        "audit_sha256": "0dd448498ef7669b97d47d8aa1e833f90f3ff3bbce193ceeab9340af982329f4"
+      }
+    }
+  ],
+  "root_review": {
+    "date": "2026-10-09",
+    "baseline_ast_check": "Independently parsed frozen source with pinned TypeScript; all51 definition hashes and222 exact assertion expressions/lines matched.",
+    "evidence_check": "Every current-source and content-addressed evidence hash verified before merge. Native tests and generator reviewed; full requests and decisions compared.",
+    "partial_definitions": [
+      11,
+      49,
+      50,
+      51
+    ]
+  }
+}

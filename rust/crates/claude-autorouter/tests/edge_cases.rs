@@ -16,6 +16,27 @@ use std::path::{Path, PathBuf};
 use std::process::{Child, Command, ExitStatus, Output, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+#[path = "support/job_control.rs"]
+mod job_control;
+
+#[test]
+fn hidden_secret_real_stop_resume_preserves_private_unicode_editing_and_cancellation() {
+    if job_control::helper_entry() {
+        return;
+    }
+    for scenario in [
+        "pre-ready-failure",
+        "timeout",
+        "stopped-anchor",
+        "stopped-manager",
+        "control-eof",
+        "capture-overflow",
+        "success",
+        "cancel",
+    ] {
+        job_control::check(scenario);
+    }
+}
 
 struct Home(PathBuf);
 impl Home {

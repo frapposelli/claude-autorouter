@@ -1,4 +1,6 @@
 //! Bounded subprocess protocol without pipe deadlocks or inherited Node hooks.
+#[path = "process_resource.rs"]
+pub(crate) mod resource;
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};

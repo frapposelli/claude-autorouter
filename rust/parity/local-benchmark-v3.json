@@ -1,0 +1,151 @@
+{
+  "schema_version": 3,
+  "protocol_id": "native-http-process-stream-resources-v3",
+  "declared_before_first_measurement": "2026-10-09",
+  "predecessor": "native-http-process-stream-v2",
+  "predecessor_policy": "Retain v1/v2 protocols and reports unchanged. Never pool samples across versions; v3 requires fresh matched Node/native runs.",
+  "repetitions": 5,
+  "ordering": "Node then Rust on odd rounds; Rust then Node on even rounds; same fixture order",
+  "http_warmup_requests": 200,
+  "http_measured_requests": 2000,
+  "startup_warmup_processes": 10,
+  "startup_measured_processes": 100,
+  "idle_settle_ms": 200,
+  "rss_sample_interval_ms": 100,
+  "latency_absolute_noise_floor_ms": 0.5,
+  "bootstrap_resamples": 5000,
+  "bootstrap_seed": 1597463007,
+  "bootstrap_unit": "paired round; median of paired metric ratios or differences; 2.5th and 97.5th percentile interval",
+  "http_connection_policy": "Identical pooled HTTP/1 driver client per implementation/workload; no retries; fully consume and compare every response. Mocks share a separate driver-owned HTTP/1 listener with persistent connections.",
+  "driver_build": "Optimized release profile required for numerical runs; --validate records byte/count/cleanup checks without timing results.",
+  "validation_samples": "One round, max(8, configured concurrency) warmup and max(32, configured concurrency) measured requests; retain actual driver peak in-flight requests separately from configured concurrency. Validation is functional coverage, not a timing or representative load result.",
+  "execution": "Complete serve CLI process with cleared environment, private empty config, synthetic keys and loopback-only evaluator/upstream; no user configuration, live provider calls or model downloads.",
+  "workloads": [
+    {
+      "id": "startup_help",
+      "kind": "process",
+      "argument": "--help"
+    },
+    {
+      "id": "startup_version",
+      "kind": "process",
+      "argument": "--version"
+    },
+    {
+      "id": "startup_status",
+      "kind": "process",
+      "argument": "native statusline / Node bin/statusline.mjs",
+      "columns": 80,
+      "snapshot": "absent"
+    },
+    {
+      "id": "small_miss",
+      "kind": "http",
+      "tools": false,
+      "cache": false,
+      "evaluator_delay_ms": 0,
+      "concurrency": [
+        1,
+        8,
+        32,
+        128
+      ]
+    },
+    {
+      "id": "small_delayed",
+      "kind": "http",
+      "tools": false,
+      "cache": false,
+      "evaluator_delay_ms": 5,
+      "concurrency": [
+        1
+      ]
+    },
+    {
+      "id": "large_catalog_miss",
+      "kind": "http",
+      "tools": 300,
+      "tool_description_repetitions": 30,
+      "cache": false,
+      "evaluator_delay_ms": 0,
+      "concurrency": [
+        1,
+        8,
+        32,
+        128
+      ]
+    },
+    {
+      "id": "cache_hit",
+      "kind": "http",
+      "tools": false,
+      "cache": true,
+      "evaluator_delay_ms": 0,
+      "concurrency": [
+        1,
+        8,
+        32,
+        128
+      ]
+    },
+    {
+      "id": "stream_burst",
+      "kind": "http_stream",
+      "tools": false,
+      "cache": false,
+      "evaluator_delay_ms": 0,
+      "delta_frames": 128,
+      "text_bytes_per_delta": 32768,
+      "first_frame_delay_ms": 0,
+      "gap_after_yield_ms": 0,
+      "concurrency": [
+        1,
+        8,
+        32,
+        128
+      ]
+    },
+    {
+      "id": "stream_paced",
+      "kind": "http_stream",
+      "tools": false,
+      "cache": false,
+      "evaluator_delay_ms": 0,
+      "delta_frames": 32,
+      "text_bytes_per_delta": 2048,
+      "first_frame_delay_ms": 5,
+      "gap_after_yield_ms": 1,
+      "concurrency": [
+        1,
+        8,
+        32,
+        128
+      ]
+    }
+  ],
+  "fixture": {
+    "model": "claude-opus-5-5",
+    "max_tokens": 128,
+    "selected_model": "claude-sonnet-5 except large catalog retains claude-opus-5-5",
+    "response_usage": {
+      "input_tokens": 32,
+      "output_tokens": 8
+    },
+    "stream_framing": "message_start, content_block_start, declared text deltas, content_block_stop, message_delta(end_turn), message_stop; exact UTF-8 LF/LF SSE bytes"
+  },
+  "identity": "Miss inputs include round/stage/index; cache input is identical; independent prompt IDs and agent ID modulo concurrency. Stream requests explicitly set stream=true. Request and expected response lengths/hashes are retained.",
+  "controls": "Direct upstream runs use identical request/response fixtures before each gateway pair. Do not subtract independently measured percentiles. Every measured inference reaches upstream exactly once; misses evaluate once, warm cache zero; large catalog counts once against claude-haiku-4-5-20251001; other workloads zero. Compare the complete parsed inference/count body against the fixture with only the intended target-model/count-generation-field changes and twelve decimal request-index bytes varying. Stream producer started/fully-yielded/abandoned counts must equal measured/measured/zero; driver validates all expected bytes through EOF separately. Evaluator requests are checked for object shape and count only; exact rubric/state input parity is a separate contract suite.",
+  "body_metrics": "First-body latency ends at the first nonempty DATA frame observed by the driver, separately from response headers. Compare bytes incrementally across arbitrary HTTP fragmentation with an 8MiB response bound. Per-response maximum DATA gap excludes empty frames, headers and trailers and is null when fewer than two data frames arrive. HTTP may coalesce/split source frames; this is a driver observation, not an upstream flush/stall clock. Retain raw header/body/total/gap samples, observed data-frame counts, complete response byte throughput and paired-round intervals.",
+  "latency_gates": "Apply the unchanged 10% relative allowance and 0.5ms absolute noise floor to p95/p99 complete-response and first-body latency. Stream DATA gaps and response-byte throughput are descriptive; no new acceptance threshold. All comparisons remain unqualified on uncontrolled hardware.",
+  "resources": "Each HTTP gateway runs as the only direct child of a fresh single-threaded xtask collector and shares its owned process group. The driver retains the unreaped collector group leader. After the measured child is reaped, getrusage(RUSAGE_CHILDREN) reports full-lifetime peak RSS (bytes on macOS; KiB times1024 on Linux) and lifetime user/system CPU microseconds. The collector flushes a complete report with an intentional group-termination marker, then kills its group. The driver also cleans that still-owned group before reaping the collector and accepts only its expected SIGKILL termination plus a successful measured gateway status. Driver mocks, ps samplers, collector and previous workload children are excluded. Waited descendants contribute CPU and largest individual RSS; this is not summed process-tree memory. Unwaited descendants are terminated by group cleanup but do not gain an attribution claim. Lifetime includes startup, readiness, idle, warmup, measurement and shutdown. Sampled RSS/ps measured-interval CPU remain separate; no subtraction of lifetime peaks or replacement of interval CPU. Direct controls have no separately attributable child resource metric.",
+  "startup_limits": "Warm filesystem/OS-cache process startup; no cold reboot/cache purge or npm dispatcher timing.",
+  "environment": "Record source/toolchain/binary/fixture hashes, CPU/OS/RAM, power settings, worker counts and load. Driver two Tokio workers; native one current-thread executor; runtime background workers remain part of whole-process observations. Do not collect process names, secrets or private paths.",
+  "acceptance_limits": "No numerical v3 measurements exist at declaration. Resource collection plus successful response coverage does not establish allocation/FD bounds, measured-interval peak memory, processing-only latency, backpressure/failure/cancellation performance, storage/history/status, resource soak, representative hardware or real-provider quality. Existing thresholds and original failures remain unchanged.",
+  "resource_gates": "Apply unchanged0.7 maximum candidate/baseline ratio to five individually verified paired full-lifetime RSS peaks for each large_catalog_miss concurrency. Missing or unverified collection cannot contribute a numeric pair. Record uncertainty and retain acceptance_qualified=false on uncontrolled hardware. All other lifetime resources are descriptive. Ready/cleanup timing includes collector startup/control overhead and is descriptive; startup command timing remains direct. Allocations/descriptor counts remain unmeasured.",
+  "resource_collection_bounds": "4096-byte control records; one owned collector/gateway group; driver cleanup retains the unreaped group leader and therefore also ends a stopped collector and its gateway. A responsive collector handles owner EOF/error by terminating its group. A complete final report is flushed before intentional group termination, without waiting for driver acknowledgement. Successful measured gateway SIGTERM exit within10s;30-minute per-gateway hard lifetime. Simultaneous abrupt driver death and an unresponsive collector, processes escaping the owned group, and OS-uninterruptible processes are outside this portable cleanup guarantee. Use the same collector for both implementations; no extra runtime dependencies or unsafe code. Numerical runs require release driver; --validate retains only successful collection checks, not resource values. Prior pre-fix v3 validation reports retain their original protocol hashes; no numerical v3 measurements preceded this refinement.",
+  "resource_sources": [
+    "https://github.com/apple/darwin-xnu/blob/main/bsd/man/man2/getrusage.2",
+    "https://man7.org/linux/man-pages/man2/getrusage.2.html",
+    "nix0.31.3 src/sys/resource.rs::Usage::max_rss"
+  ]
+}

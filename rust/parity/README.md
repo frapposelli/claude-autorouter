@@ -33,6 +33,8 @@ node scripts/rust-reference.mjs --root artifacts/rust-rewrite/reference --check-
 
 The opt-in `--protocol v2` selects `local-benchmark-v2.json`: the same initial workloads plus successful burst and paced SSE forwarding. Version 1 remains the default and its prior evidence stays intact. Version 2 records response-header and first-nonempty-body latency separately, exact response hashes and lengths, driver-observed maximum data-frame gaps and byte throughput. It compares bytes incrementally across arbitrary HTTP fragmentation and rejects truncation, changed bytes, unexpected trailers or missing body observations. Producer counters establish that mocks yielded their complete bodies; the driver separately requires the complete bytes through EOF. Neither observation substitutes for the gateway's transport acknowledgement tests. Five fresh matched rounds are required for comparisons; `--validate` retains only functional evidence. Stream cancellation, backpressure, failure timing and the other missing resource workloads remain open.
 
+The opt-in `--protocol v3` adds a fresh collector for each HTTP gateway's full-lifetime peak RSS and CPU usage. The gateway and collector share a process group whose leader remains unreaped in the driver until cleanup. A complete report preserves the gateway's exit status; the collector then deliberately terminates its group with SIGKILL, and the driver verifies that protocol and cleans the still-owned group before accepting a row. This also permits driver cleanup of a stopped collector. Responsive collectors handle driver loss; simultaneous abrupt driver death and an unresponsive collector are outside the portable guarantee. RSS is the largest individual process peak among the child and its waited descendants, not aggregate process-tree or measured-interval memory. All five peak-memory pairs must have verified collection; numerical values alone cannot qualify a pair. `--validate` retains no numerical resource results. Earlier validation reports retain their original protocol hashes; this cleanup refinement predates numerical v3 measurements.
+
 ```sh
 # Deterministic protocol/count/byte validation; no retained numerical timings.
 cargo xtask benchmark --validate --output artifacts/rust-rewrite/benchmark-validation-NEW
@@ -87,3 +89,22 @@ ICU 76.1 / CLDR 46.0; pinned ICU4X 2.3.1 embeds CLDR 48.2.1. Version differences
 remain visible in the retained locale reports. `check-history-locales.mjs`
 separately compares actual CLI behavior under isolated `LC_ALL`, `LC_MESSAGES`,
 and `LANG` settings.
+
+The frozen router capture runs all 51 original definitions and 222 assertion
+sites, preserving 121 Router instances, 263 routes and 29 pure helper calls.
+Its lossless string dictionary verifies every reconstructed request hash.
+Native core tests replay policy; separate runtime tests execute the actual
+classifier, cache and token counter against captured synthetic transport
+responses, checking complete requests, decisions and call totals. Only the
+injected turn-state clock is fixed; evaluator deadlines and classifier cache
+TTL retain their original clock behavior. Four definitions remain partial for
+the wall-clock deadline assertion, original count-callback argument shape,
+non-JSON callback return types and synchronous callback-start ordering.
+The [router assertion mapping](assertion-mappings/router-contracts.json) retains
+those boundaries and exact evidence hashes.
+
+```sh
+node parity/capture-router-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/router-contracts-NEW
+cargo test --locked --package autorouter-core --test router_contracts
+cargo test --locked --package autorouter-runtime router::contracts
+```

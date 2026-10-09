@@ -8,6 +8,11 @@ use std::io::{Read, Write};
 use std::os::unix::fs::{MetadataExt, OpenOptionsExt};
 use std::path::{Path, PathBuf};
 const ROOT: &str = "autorouter-benchmark";
+const LARGE_SYNTHETIC_CORPORA: &[&str] = &[
+    "rust/parity/cases/router-contracts.jsonl",
+    "rust/parity/cases/response-observer-contracts.jsonl",
+    "rust/parity/cases/telemetry-statusline-contracts.jsonl",
+];
 const FIXED: &[&str] = &[
     "LICENSE",
     "rust/Cargo.toml",
@@ -16,6 +21,17 @@ const FIXED: &[&str] = &[
     "rust/.cargo/config.toml",
     "rust/parity/local-benchmark-v1.json",
     "rust/parity/local-benchmark-v2.json",
+    "rust/parity/local-benchmark-v3.json",
+    "rust/xtask/tests/benchmark_resources.rs",
+    "rust/parity/live-gateway.mjs",
+    "rust/parity/cases/router-contracts.jsonl",
+    "rust/parity/cases/router-contracts.capture.json",
+    "rust/parity/cases/response-observer-contracts.jsonl",
+    "rust/parity/cases/response-observer-contracts.capture.json",
+    "rust/parity/cases/telemetry-statusline-contracts.jsonl",
+    "rust/parity/cases/telemetry-statusline-contracts.capture.json",
+    "rust/parity/cases/status-state-contracts.jsonl",
+    "rust/parity/cases/status-state-contracts.capture.json",
     "rust/parity/performance-gates.json",
     "rust/parity/benchmark-protocol.json",
     "rust/parity/baseline.json",
@@ -237,6 +253,13 @@ fn walk(directory: &Path, root: &Path, paths: &mut Vec<String>) -> Result<(), St
     Ok(())
 }
 fn regular(root: &Path, relative: &str) -> Result<Vec<u8>, String> {
+    // These exact synthetic corpora are compile-time test dependencies. Keep
+    // other source files at1MiB and the whole SOURCE archive at32MiB expanded.
+    let limit = if LARGE_SYNTHETIC_CORPORA.contains(&relative) {
+        4 * 1024 * 1024
+    } else {
+        1024 * 1024
+    };
     let mut path = root.to_path_buf();
     for part in Path::new(relative).components() {
         path.push(part);
@@ -249,7 +272,7 @@ fn regular(root: &Path, relative: &str) -> Result<Vec<u8>, String> {
         }
     }
     let info = fs::symlink_metadata(&path).map_err(|_| "Cannot inspect bundle source")?;
-    if !info.is_file() || info.nlink() != 1 || info.len() > 1024 * 1024 {
+    if !info.is_file() || info.nlink() != 1 || info.len() > limit {
         return Err("Benchmark source must be a bounded regular file".into());
     }
     let file = OpenOptions::new()
@@ -264,10 +287,10 @@ fn regular(root: &Path, relative: &str) -> Result<Vec<u8>, String> {
         return Err("Bundle source changed during inspection".into());
     }
     let mut bytes = Vec::new();
-    file.take(1024 * 1024 + 1)
+    file.take(limit + 1)
         .read_to_end(&mut bytes)
         .map_err(|_| "Cannot read bundle source")?;
-    if bytes.len() > 1024 * 1024 {
+    if bytes.len() as u64 > limit {
         return Err("Benchmark source exceeds byte limit".into());
     }
     Ok(bytes)
@@ -294,7 +317,7 @@ fn collect(root: &Path) -> Result<BTreeMap<String, Entry>, String> {
         manifest.insert(path.clone(), sha(&bytes));
         files.insert(path, Entry { bytes, mode: 0o644 });
     }
-    let readme=b"# AutoRouter native benchmark source bundle\n\nPublic source and synthetic fixtures only. Install the pinned Rust toolchain, a C compiler, Make and Perl for the bundled OpenSSL build, and fetch the Cargo.lock dependencies (or provide an existing Cargo cache), then run from rust/:\n\n    cargo build --locked --release --package xtask\n    cargo xtask evaluate-ollama --help\n\nReading help makes no evaluator calls. Hardware evaluator runs are explicitly opt-in, do not download models, and must retain fixture hashes, model digest, residency, cold/warm conditions and the unchanged acceptance rubric. Existing experimental quality failures remain visible. The historical docs describe the original Node commands; use native xtask help for the replacement interface.\n\nThe runtime-neutral Node/Rust HTTP benchmark requires its separately verified frozen Node reference; no Node source/runtime, private reports, credentials, user configuration, Cargo cache or binaries are included here. This source bundle itself does not establish build provenance, platform qualification, task quality or performance acceptance.\n".to_vec();
+    let readme=b"# AutoRouter native benchmark source bundle\n\nPublic source and synthetic fixtures only. Install the pinned Rust toolchain, a C compiler, Make and Perl for the bundled OpenSSL build, and fetch the Cargo.lock dependencies (or provide an existing Cargo cache), then run from rust/:\n\n    cargo build --locked --release --package xtask\n    cargo xtask evaluate-ollama --help\n\nReading help makes no evaluator calls. Hardware evaluator runs are explicitly opt-in, do not download models, and must retain fixture hashes, model digest, residency, cold/warm conditions and the unchanged acceptance rubric. Existing experimental quality failures remain visible. The historical docs describe the original Node commands; use native xtask help for the replacement interface.\n\nThe runtime-neutral Node/Rust HTTP benchmark requires its separately verified frozen Node reference; no frozen Node product source/runtime, private reports, credentials, user configuration, Cargo cache or binaries are included here. This source bundle itself does not establish build provenance, platform qualification, task quality or performance acceptance.\n".to_vec();
     manifest.insert("README.native.md".into(), sha(&readme));
     files.insert(
         "README.native.md".into(),
@@ -364,7 +387,7 @@ pub fn create(root: &Path, destination: &Path) -> Result<Value, String> {
 pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
     if args == ["--help"] {
         println!(
-            "cargo xtask benchmark-bundle [NEW_DESTINATION.tar.gz]\nCreate an allowlisted public Rust source and synthetic-fixture bundle; no credentials, private reports, binaries or Node sources. Requires pinned Rust and Cargo dependencies on destination host; performs no evaluator calls."
+            "cargo xtask benchmark-bundle [NEW_DESTINATION.tar.gz]\nCreate an allowlisted public Rust source and synthetic-fixture bundle; no credentials, private reports, binaries or frozen Node product sources. Requires pinned Rust and Cargo dependencies on destination host; performs no evaluator calls."
         );
         return Ok(true);
     }
@@ -426,6 +449,30 @@ mod tests {
         for (path, hash) in manifest["files"].as_object().unwrap() {
             assert_eq!(hash, &json!(sha(&files[path].bytes)));
         }
+        // Compile-time embedded inputs are build dependencies even when the
+        // Rust file itself is allowlisted. Inspect the actual packed sources.
+        let embedded = regex::Regex::new(r#"include_(?:str|bytes)!\s*\(\s*"([^"]+)""#).unwrap();
+        for (path, entry) in files.iter().filter(|(path, _)| path.ends_with(".rs")) {
+            let source = String::from_utf8_lossy(&entry.bytes);
+            for capture in embedded.captures_iter(&source) {
+                let mut parts: Vec<_> = path.split('/').collect();
+                parts.pop();
+                for part in capture[1].split('/') {
+                    match part {
+                        ".." => {
+                            assert!(parts.pop().is_some());
+                        }
+                        "." => {}
+                        value => parts.push(value),
+                    }
+                }
+                let required = parts.join("/");
+                assert!(
+                    files.contains_key(&required),
+                    "Packed {path} is missing embedded source {required}"
+                );
+            }
+        }
         assert!(
             files.keys().all(|p| allowed(p)
                 || ["source-manifest.json", "README.native.md"].contains(&p.as_str()))
@@ -456,5 +503,24 @@ mod tests {
             .file("large.rs", &vec![b'x'; 1024 * 1024 + 1])
             .unwrap();
         assert!(regular(&scratch.0, "large.rs").is_err());
+        fs::create_dir_all(scratch.0.join("rust/parity/cases")).unwrap();
+        for path in LARGE_SYNTHETIC_CORPORA {
+            let file = scratch.file(path, &vec![b'x'; 4 * 1024 * 1024]).unwrap();
+            assert_eq!(regular(&scratch.0, path).unwrap().len(), 4 * 1024 * 1024);
+            OpenOptions::new()
+                .append(true)
+                .open(file)
+                .unwrap()
+                .write_all(b"x")
+                .unwrap();
+            assert!(regular(&scratch.0, path).is_err());
+        }
+        scratch
+            .file(
+                "rust/parity/cases/adjacent.jsonl",
+                &vec![b'x'; 1024 * 1024 + 1],
+            )
+            .unwrap();
+        assert!(regular(&scratch.0, "rust/parity/cases/adjacent.jsonl").is_err());
     }
 }

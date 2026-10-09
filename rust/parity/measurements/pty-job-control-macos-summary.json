@@ -1,0 +1,273 @@
+{
+  "schema_version": 1,
+  "kind": "synthetic_pty_job_control_qualification",
+  "platform": {
+    "os": "macos",
+    "arch": "aarch64",
+    "kernel": "27.0.0"
+  },
+  "source_head": "748cedb426124fd18e0ac742e80040ecaab9ef35",
+  "release_approved": false,
+  "native_focused_passed": true,
+  "baseline_usable_resume_parity_claimed": false,
+  "coverage_promotions": 0,
+  "sources_after_pinned_format": [
+    {
+      "path": "rust/crates/claude-autorouter/src/secret_input.rs",
+      "bytes": 15894,
+      "sha256": "fc3861843d6623545d19ca8ba4cc8b5199384cf5f38643c3d8096161800f4f82",
+      "retained_path": "artifacts/rust-rewrite/evidence/fc3861843d6623545d19ca8ba4cc8b5199384cf5f38643c3d8096161800f4f82.rs"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/tests/edge_cases.rs",
+      "bytes": 25199,
+      "sha256": "c3040f784bec697999f2698181a38699cf08cf755f2a83178fa1acf48d9bc8f9",
+      "retained_path": "artifacts/rust-rewrite/evidence/c3040f784bec697999f2698181a38699cf08cf755f2a83178fa1acf48d9bc8f9.rs"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/tests/support/job_control.rs",
+      "bytes": 33168,
+      "sha256": "76c717520ce8c76569db1480c9072ea872f4eebe635a0a6a9a200bcb47522b4f",
+      "retained_path": "artifacts/rust-rewrite/evidence/76c717520ce8c76569db1480c9072ea872f4eebe635a0a6a9a200bcb47522b4f.rs"
+    }
+  ],
+  "frozen_reference": {
+    "verification": {
+      "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+      "files_verified": 111,
+      "node_version": "v22.14.0",
+      "node_sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0"
+    },
+    "verification_evidence": {
+      "path": "artifacts/rust-rewrite/pty-job-control-1/baseline-verification.json",
+      "bytes": 208,
+      "sha256": "e7505eaecda9259cd88fe2552e87fe798a886ee1b7b6866e12694ed9084442ad",
+      "retained_path": "artifacts/rust-rewrite/evidence/e7505eaecda9259cd88fe2552e87fe798a886ee1b7b6866e12694ed9084442ad.json"
+    },
+    "node_builtin_readline": {
+      "path": "artifacts/rust-rewrite/pty-job-control-1/node-v22.14.0-readline-interface.js",
+      "bytes": 39048,
+      "sha256": "3be7a1509b3d8110dbf3a4150cda608e361a5f440e0199aec1129dbda99054cf",
+      "retained_path": "artifacts/rust-rewrite/evidence/3be7a1509b3d8110dbf3a4150cda608e361a5f440e0199aec1129dbda99054cf.js"
+    },
+    "characterization_probe": {
+      "path": "artifacts/rust-rewrite/pty-job-control-1/probe-frozen-stop-3.py",
+      "bytes": 7855,
+      "sha256": "93bbad1048b4be1ce28ea474e1de1ae8db38961922db91fa36ea4abc0c79a773",
+      "retained_path": "artifacts/rust-rewrite/evidence/93bbad1048b4be1ce28ea474e1de1ae8db38961922db91fa36ea4abc0c79a773.py"
+    },
+    "observations": [
+      {
+        "scenario": "true-stop then intended success",
+        "observed": "Actual WUNTRACED SIGTSTP; original terminal attributes and F_GETFL=2 restored while stopped. After SIGCONT the frozen CLI exited13 with unsettled top-level await, without completing the question.",
+        "evidence": {
+          "path": "artifacts/rust-rewrite/pty-job-control-1/node-success.stdout",
+          "bytes": 1646,
+          "sha256": "ca5f4189ac07f715d4fb4f38c0299c424d07efca6462400223620f4baa270517",
+          "retained_path": "artifacts/rust-rewrite/evidence/ca5f4189ac07f715d4fb4f38c0299c424d07efca6462400223620f4baa270517.stdout"
+        }
+      },
+      {
+        "scenario": "true-stop then intended cancellation",
+        "observed": "Actual SIGTSTP and restored terminal. After SIGCONT the same unsettled-await diagnostic appeared; the raw-mode barrier timed out. Cleanup reaped the child, but this probe did not retain its final exit status.",
+        "evidence": {
+          "path": "artifacts/rust-rewrite/pty-job-control-1/node-cancel.stdout",
+          "bytes": 1199,
+          "sha256": "9f78488e10e380db754aa5fad4f040dc05248dffe2f08f1b4563283221ec92be",
+          "retained_path": "artifacts/rust-rewrite/evidence/9f78488e10e380db754aa5fad4f040dc05248dffe2f08f1b4563283221ec92be.stdout"
+        }
+      }
+    ],
+    "exact_diagnostic_prefix": "Warning: Detected unsettled top-level await at file:///<frozen-reference>/bin/autorouter.mjs:40",
+    "diagnostic_source_line": "      if (await configCommand(args) === false) process.exitCode = 1;",
+    "source_explanation": "Frozen askSecret has SIGINT/close handling, but no SIGCONT resume listener. Pinned readline SIGCONT pauses input before restoring raw mode. The original planning assumption of usable frozen resume was disproved; native does not deliberately reproduce exit13.",
+    "no_suspend_controls": [
+      {
+        "path": "artifacts/rust-rewrite/pty-job-control-1/node-no-suspend-success.stdout",
+        "bytes": 946,
+        "sha256": "21b4c351af2e14aaa8f295b6ae1ebf7ebab7773e48fff1a5247bc5c0a7f52c6c",
+        "retained_path": "artifacts/rust-rewrite/evidence/21b4c351af2e14aaa8f295b6ae1ebf7ebab7773e48fff1a5247bc5c0a7f52c6c.stdout"
+      },
+      {
+        "path": "artifacts/rust-rewrite/pty-job-control-1/node-no-suspend-cancel.stdout",
+        "bytes": 944,
+        "sha256": "a311a0cfec37380badf417cb4cf884452c4b6a1c2e622f804c55f9ed2848ac18",
+        "retained_path": "artifacts/rust-rewrite/evidence/a311a0cfec37380badf417cb4cf884452c4b6a1c2e622f804c55f9ed2848ac18.stdout"
+      }
+    ],
+    "control_probe": {
+      "path": "artifacts/rust-rewrite/pty-job-control-1/probe.py",
+      "bytes": 8121,
+      "sha256": "e9871e1cc1ec27703076d8a90ec4168e91a8fb207e225a091b8130cc9afe0974",
+      "retained_path": "artifacts/rust-rewrite/evidence/e9871e1cc1ec27703076d8a90ec4168e91a8fb207e225a091b8130cc9afe0974.py"
+    },
+    "privacy_limit": "The success probe typed cursor-edit bytes after the transient resume barrier and process exit; subsequent canonical echo is not claimed to be a hidden-input leak. No synthetic secret prefix was submitted after exit."
+  },
+  "native_change": {
+    "observed_failure": "Actual stopped native CLI restored termios but retained O_NONBLOCK: raw F_GETFL=65542, mutable status flag assertion failed. Both ordinary native resume scenarios already worked.",
+    "fix": "Before SIGTSTP restore the original F_SETFL flags; after resume restore original|O_NONBLOCK before hidden editing/readiness reads. Existing Input Drop handles error restoration. No evaluator, configuration, or permission behavior changed.",
+    "failure_evidence": {
+      "path": "artifacts/rust-rewrite/pty-job-control-1/native-regression-redesigned-before-fix.log",
+      "bytes": 1990,
+      "sha256": "37b23814a2b7004cc495f2c34dfb463b53aa515a7f3506a5be7733caf6733189",
+      "retained_path": "artifacts/rust-rewrite/evidence/37b23814a2b7004cc495f2c34dfb463b53aa515a7f3506a5be7733caf6733189.log"
+    },
+    "before_source": {
+      "path": "artifacts/rust-rewrite/pty-job-control-1/secret_input.before.rs",
+      "bytes": 15334,
+      "sha256": "7bcfc226fc4b56b5c312a038334ec573e403dc559779828c383bf6d33235ba2f",
+      "retained_path": "artifacts/rust-rewrite/evidence/7bcfc226fc4b56b5c312a038334ec573e403dc559779828c383bf6d33235ba2f.rs"
+    },
+    "flags": {
+      "asserted": "O_NONBLOCK, O_APPEND, O_ASYNC and access mode; original=2, corrected stopped raw=65538, prior stopped raw=65542.",
+      "excluded_raw_bit": "macOS XNU FWASWRITTEN 0x10000 records prior descriptor writes; raw observations are retained, full F_GETFL equality is not claimed.",
+      "primary_source": "https://github.com/apple/darwin-xnu/blob/main/bsd/sys/fcntl.h"
+    }
+  },
+  "native_regression": {
+    "test": "rust/crates/claude-autorouter/tests/edge_cases.rs#hidden_secret_real_stop_resume_preserves_private_unicode_editing_and_cancellation",
+    "schedules": [
+      "pre-ready failure",
+      "ordinary bounded timeout",
+      "stopped anchor with responsive manager",
+      "stopped manager with responsive anchor",
+      "control EOF with closed output",
+      "bounded-output rejection",
+      "two real SIGTSTP cycles followed by Unicode cursor edit and successful save",
+      "two real SIGTSTP cycles followed by Ctrl-C cancellation"
+    ],
+    "assertions": [
+      "Same-session foreground CLI group has a live parent in another group, so it is not orphaned. Manager observes actual CLI Stopped(SIGTSTP) via waitpid WUNTRACED.",
+      "Original terminal attributes (except kernel PENDIN bookkeeping) and mutable status flags restored at each real stop and final exit.",
+      "Raw, noecho and ISIG-disabled barrier before input and after each resume. No synthetic secret prefix echoed.",
+      "Editing preserves the retained emoji-bearing line across both suspension cycles; exact saved value synthetic-PRIVATE-a🧪Zb, mode0600/currentUID.",
+      "Cancellation exits1, reports Setup cancelled, preserves original saved configuration bytes.",
+      "Manager reaps its direct CLI; anchor reaps its own manager. Cleanup acknowledgment is a private marker written after waitpid, independent of diagnostic delivery.",
+      "Outer only signals its own unreaped anchor group; never signals reported manager PIDs. Cleanup drains have fixed16-read work bounds."
+    ],
+    "focused_evidence": {
+      "path": "artifacts/rust-rewrite/pty-job-control-1/native-regression-anchored-4.log",
+      "bytes": 5707,
+      "sha256": "dc529b80d4fe2257ee0bea6dcadfe8c43785609e8ab4ead00c8a82457524306a",
+      "retained_path": "artifacts/rust-rewrite/evidence/dc529b80d4fe2257ee0bea6dcadfe8c43785609e8ab4ead00c8a82457524306a.log"
+    },
+    "scoped_clippy": {
+      "path": "artifacts/rust-rewrite/pty-job-control-1/cli-clippy-final.log",
+      "bytes": 176,
+      "sha256": "8648acd66f77f1d70a0dca262db65222762836d991422e1c4667aa77c6cad696",
+      "retained_path": "artifacts/rust-rewrite/evidence/8648acd66f77f1d70a0dca262db65222762836d991422e1c4667aa77c6cad696.log"
+    },
+    "earlier_affected_cli_run": {
+      "counts": {
+        "binary_unit": 11,
+        "edge_cases": 11,
+        "onboarding_local": 24
+      },
+      "evidence": {
+        "path": "artifacts/rust-rewrite/pty-job-control-1/affected-cli-tests.log",
+        "bytes": 5079,
+        "sha256": "317d0d1ec2f145e2f750559129d949521fdef588ab3e549cfa6683d559e1f956",
+        "retained_path": "artifacts/rust-rewrite/evidence/317d0d1ec2f145e2f750559129d949521fdef588ab3e549cfa6683d559e1f956.log"
+      },
+      "limit": "Product flag fix tested; helper at that point predates the final anchored failure-path design."
+    },
+    "source_note": "Focused execution precedes pinned formatting and a waitpid-specific Clippy annotation. Final pinned source hashes are listed and all543 workspace tests passed with those exact source inputs in sixth-final-2."
+  },
+  "fixture_contract": {
+    "ownership": "Outer owns the unreaped foreground anchor/session leader. Separate same-session manager starts CLI in the anchored foreground group. Only direct owners signal separately grouped descendants. AnchorGuard cleans manager before killing its self-owned foreground group.",
+    "test_only_dependency": "/bin/ps observes stopped state of the owned, unreaped anchor, with1s execution and128-byte output checks. No Node is required by native integration. CLI SIGTSTP uses manager waitpid, not ps.",
+    "unsupported_combination": "Portable fixture does not guarantee both helpers simultaneously stopped/unresponsive can be fully cleaned. It returns bounded failure and avoids stale-PID/group signaling; this is a test-fixture limitation, not a native runtime regression.",
+    "discard_boundary": "No input is sent while echo is deliberately restored during suspension. TCIFLUSH concerns unread kernel input; already-read editor content survives. No claim of atomic flush/restore or protection for typing after cancellation."
+  },
+  "negative_evidence": [
+    {
+      "path": "artifacts/rust-rewrite/pty-job-control-1/native-regression-before-fix.log",
+      "bytes": 1130,
+      "sha256": "2211b8dabf6a38a6cad2fa5f1f5f1068a12a2764ee9c461f70ee9d16049d17db",
+      "retained_path": "artifacts/rust-rewrite/evidence/2211b8dabf6a38a6cad2fa5f1f5f1068a12a2764ee9c461f70ee9d16049d17db.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/pty-job-control-1/failed-supervisor-sample.txt",
+      "bytes": 18390,
+      "sha256": "cd231be38be1dbbfbd121f169d4d06688625e9951ebe1cb360af56893e9555cf",
+      "retained_path": "artifacts/rust-rewrite/evidence/cd231be38be1dbbfbd121f169d4d06688625e9951ebe1cb360af56893e9555cf.txt"
+    },
+    {
+      "path": "artifacts/rust-rewrite/pty-job-control-1/job-control-failed-supervisor.rs",
+      "bytes": 15932,
+      "sha256": "926cca0a967cf891d15ba451c01e3e7d1ff33785f1fdb595c967394b893cf460",
+      "retained_path": "artifacts/rust-rewrite/evidence/926cca0a967cf891d15ba451c01e3e7d1ff33785f1fdb595c967394b893cf460.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/pty-job-control-1/native-regression-anchored-1.log",
+      "bytes": 1670,
+      "sha256": "c2187d407fbd7444ae1bef0ab3d61179d1483b61ffc1ae57e6e69870cec3fd71",
+      "retained_path": "artifacts/rust-rewrite/evidence/c2187d407fbd7444ae1bef0ab3d61179d1483b61ffc1ae57e6e69870cec3fd71.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/pty-job-control-1/native-regression-anchored-3.log",
+      "bytes": 1733,
+      "sha256": "2d51afab49b82012228aec6461498e7c4b0e09880aff80f47b8857a8f8eb6737",
+      "retained_path": "artifacts/rust-rewrite/evidence/2d51afab49b82012228aec6461498e7c4b0e09880aff80f47b8857a8f8eb6737.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/pty-job-control-1/cli-clippy.log",
+      "bytes": 1039,
+      "sha256": "58a532dcbe35248bcb9028d12947df413c77e439abdd57fa51e24b1337e4e46d",
+      "retained_path": "artifacts/rust-rewrite/evidence/58a532dcbe35248bcb9028d12947df413c77e439abdd57fa51e24b1337e4e46d.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/pty-job-control-1/sandbox-node-success.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retained_path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.stdout"
+    },
+    {
+      "path": "artifacts/rust-rewrite/pty-job-control-1/close-master-node-success.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "retained_path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.stdout"
+    }
+  ],
+  "limits": [
+    "Local macOS arm64 synthetic evidence only; Linux CI has not yet qualified this increment.",
+    "No live Claude, evaluator, provider, real Keychain, downloads, or user configuration accessed.",
+    "No whole frozen baseline definition asserts Ctrl-Z; this increment does not promote any baseline mapping status.",
+    "Pre-fix generated native binary was not retained before rebuild; source failure evidence is not an immutable installed-artifact claim."
+  ],
+  "final_workspace": {
+    "passed": 543,
+    "failed": 0,
+    "ignored": 2,
+    "suites": 21,
+    "checks": {
+      "path": "artifacts/rust-rewrite/sixth-final-2-checks.json",
+      "bytes": 1542,
+      "sha256": "dfad9bbbf6cf12318fc11238748221d29321d85ad2114adbf282bbe46dbbceaa",
+      "retained_path": "artifacts/rust-rewrite/evidence/dfad9bbbf6cf12318fc11238748221d29321d85ad2114adbf282bbe46dbbceaa.json"
+    },
+    "source_manifest": {
+      "path": "artifacts/rust-rewrite/sixth-final-2-source-inputs.json",
+      "bytes": 60915,
+      "sha256": "7d196463bf3cc1ccf93f0a0d0746b1ae8d349f5ce91756650373ebf51f9cc7c1",
+      "retained_path": "artifacts/rust-rewrite/evidence/7d196463bf3cc1ccf93f0a0d0746b1ae8d349f5ce91756650373ebf51f9cc7c1.json"
+    },
+    "log": {
+      "path": "artifacts/rust-rewrite/sixth-final-2-workspace.log",
+      "bytes": 55877,
+      "sha256": "434638d314a2db611028c29ac3995a70a18c34c1d11f0b6a83a2ac61f70d84d0",
+      "retained_path": "artifacts/rust-rewrite/evidence/434638d314a2db611028c29ac3995a70a18c34c1d11f0b6a83a2ac61f70d84d0.log"
+    },
+    "scope": "All workspace product/tool suites at the listed pinned-format source inputs passed; exact installed archive is qualified separately."
+  },
+  "installed_qualification": {
+    "summary": "rust/parity/measurements/native-host-9-summary.json",
+    "summary_sha256": "d1b619138ecbb9b2020ebc11bee49675ce5b5b9ec11a20483f6a37bf3a1120a3",
+    "archive_sha256": "ac7afc5a19029e26ba0d604fd1b2619199550b853b442c5eb16f5b14190e66e1",
+    "installed_tests": 74,
+    "suites": 7,
+    "passed": true,
+    "upgrade_rollback_report": "artifacts/rust-rewrite/upgrade-rollback-host-8/report.json",
+    "limit": "Local macOS arm64 only; no Linux qualification inferred."
+  }
+}

@@ -106,14 +106,21 @@ Local package assembly records binary and Cargo lock hashes, source revision/dir
 A source-only transfer bundle is also available:
 
 ```sh
-cargo xtask benchmark-bundle --output artifacts/rust-rewrite/benchmark-source-NEW.tar.gz
+cargo xtask benchmark-bundle artifacts/rust-rewrite/benchmark-source-NEW.tar.gz
 ```
 
 It includes the native workspace, lockfile, synthetic fixtures, public hardware
 notes, vendored parser and OpenSSL wrapper source/licenses, and a per-file checksum manifest. It
 excludes configuration, credentials, captured traffic, logs, build artifacts,
-and JavaScript runtime sources. The destination still needs the pinned Rust
+and frozen JavaScript product sources. A temporary Node comparison adapter
+is included because native live-reference tooling embeds it; using that path
+still requires a separately verified frozen checkout and Node runtime. The destination still needs the pinned Rust
 toolchain, a C compiler, Make, Perl and locked Cargo dependencies; this is not a standalone executable
 or an offline dependency vendor. Building it and requesting tool help does
 not invoke an evaluator. Actual evaluator and Claude-startup commands retain
 their explicit opt-in requirements.
+
+Source files retain a 1 MiB limit except the three explicitly named router,
+response-observer and telemetry/statusline synthetic corpora (4 MiB each).
+The source archive retains its 32 MiB expanded bound. Package tests check that
+all literal `include_str!`/`include_bytes!` inputs are present in the actual archive.

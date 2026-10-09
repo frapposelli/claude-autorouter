@@ -98,22 +98,89 @@ expressions or OpenSSL3.0/3.6 equivalence. Original stage-A reports remain under
 content-addressed evidence paths, including
 `openssl-spike-5a8a99915d3665ea2edaf88875f3255c393e5f95f910c2b4c7dbcc3d98c6c94d.json`.
 
-The candidate is **not eligible for production**. Session reuse is disabled; no
-application cache exists. The candidate constructs a root store per profile, so a
-single shared trust snapshot and once-only extra-root warning timing remain unqualified. Exact Node pooling/idle behavior, TLS session ownership
-and tickets, the Hyper background connection race, complete streaming/error
-ordering and resource bounds still need qualification. Certificate failure
-flight timing is not established by matching HTTP error status. Configuration
-initialization remains rejected and unqualified. Arbitrary cipher/provider
-expressions and security policy across backend releases are not qualified by
-the finite B1 corpus. The existing safe `NO_LOAD_CONFIG` initializer is unchanged.
-B1 added no binding APIs. The separately reviewed B2 binding extension now
-provides context-bound immutable session snapshots and shared-store ownership,
-with seven targeted ownership tests and three compile-fail checks. The candidate
-transport still uses neither a session cache nor the new store-sharing API;
-runtime B2 integration requires separate review. See
-[the binding contract](../vendor/TLS-TRUST.md#context-bound-session-and-store-apis)
-for the weak-cache capture and ordinary private DER heap limits.
+The candidate is **not eligible for production**. The ordinary `stage-a`
+runner keeps session reuse disabled so the original fresh-handshake corpus
+remains unchanged. The separate `stage-b2` marker enables only the test-only
+raw HTTPS cache. Production `NativeHttpClient` still uses Rustls. Both test
+profiles now share one root-store snapshot per client instance; process-global
+sharing across independently constructed clients remains unqualified.
+
+The reviewed B2 bindings provide context-bound immutable session snapshots and
+shared-store ownership, with seven ownership tests and three compile-fail
+checks. See [the binding contract](../vendor/TLS-TRUST.md#context-bound-session-and-store-apis)
+for the weak-cache capture and ordinary private DER heap limits. No additional
+binding, Cargo, gateway or production transport changes were made for runtime B2.
+
+### B2 raw session increment
+
+`session.rs` implements raw HTTPS's 100-entry FIFO cache. Replacing an existing
+key retains its position; a later observed error-close evicts by key, including
+a newer ticket installed by another connection. One close cannot evict twice.
+Typed keys separate origin, SNI, trust/policy generation and verification mode;
+fetch receives no session cache and has separate contexts. SSL ex-data uses one
+process-wide index, avoiding an index allocation for each new client.
+
+A connection retains only its latest pending ticket until the handshake's peer
+and hostname checks pass. Rejected/abandoned attempts never publish it. Later
+TLS1.3 tickets update accepted entries. The callback captures no strong cache
+reference; connection state points weakly to the cache. Neither keys nor
+session snapshots have Debug output. Only entry/byte counts appear in synthetic
+cleanup diagnostics; DER and keys are never emitted.
+
+Actual connect/IO errors provide error-close evidence. HTTP parser errors,
+short bodies and ordinary request/body Drop do not. Frozen Node observations
+and `_http_client.js` show that parsing/EOF failures can destroy a socket
+without the error argument used by the raw agent's eviction hook. The candidate
+therefore forwards `Incoming` directly and does not infer cancellation from
+Drop. The current Gateway transport interface carries no cancellation cause;
+matching active downstream cancellation needs a separately reviewed seam.
+
+The final frozen B2 matrix is **13/18 exact matches and remains failed**. Its
+five retained differences are:
+
+- TLS1.2 and TLS1.3 immediate reuse after an idle peer's abrupt close: Node can
+  assign the stale socket and fail that request; the candidate opens another
+  connection. Separate cases with a server socket-close barrier and two gateway
+  `/health` round trips match, while the original schedules remain failures.
+- TLS1.2 and TLS1.3 downstream body cancellation: Node evicts the session;
+  the candidate lacks explicit cancellation intent and retains it.
+- TLS1.3 rejected hostname: application rejection, absence of a rejected cached
+  session, and subsequent full/resumed requests match; the server's
+  `secureConnection` event occurs in a different handshake/close order.
+
+Exact matches include fresh/resumed TLS1.2/1.3, keepalive, server ticket-key
+rotation declining a ticket without replay, parser-error and short-body session
+retention, the two additional close-barrier cases, and TLS1.2 rejected-host
+publication control. All 18 candidate cleanup checks reach zero active
+connections and release the cache. Ten focused Rust tests pass, including shared
+store identity, FIFO/replacement/byte accounting, pending/accepted/rejected
+transitions, weak ownership, ordinary Drop and idempotent late-error handling.
+Scoped runtime Clippy passes with warnings denied. The unchanged frozen
+regressions pass 223/223 candidate and 115/115 shipping cases.
+
+The source-controlled [B2 summary](measurements/openssl-b2-runtime-summary.json)
+binds immutable source/binary snapshots, the final and earlier failed matrices,
+unit/Clippy evidence, and all five gaps. The driver is
+`check-openssl-sessions.mjs <frozen-reference> <runtime-lib-test-executable>`;
+`--reference-only` retains characterization without claiming parity. It
+verifies the frozen baseline first, uses only isolated synthetic CAs and
+loopback endpoints, validates CA/leaf identity and signatures, and performs an
+actual TLS fixture preflight. Original fixture-generation failures are retained:
+macOS LibreSSL reused the CA's configured subject despite a `-subj` operand;
+separate explicit leaf CSR configuration fixes the fixture without weakening
+certificate checks.
+
+Fetch's weak-cache/GC behavior, B3 configuration initialization, complete pool
+and cancellation semantics, ticket-flood/retained-byte bounds, global trust-store
+lifetime and backend-wide cipher/provider equivalence remain promotion gates.
+The finite B1/B2 corpora do not prove all OpenSSL3.0.15/3.6.3 behavior. Dynamic
+in-process changes to the rejection environment also remain unqualified; the
+candidate isolates strict and explicitly disabled verification contexts.
+The existing `NO_LOAD_CONFIG` initializer is unchanged.
+
+B2 lifecycle sources: [raw HTTPS session eviction](https://github.com/nodejs/node/blob/v22.14.0/lib/https.js#L130-L173),
+[HTTP parser and socket-end destruction](https://github.com/nodejs/node/blob/v22.14.0/lib/_http_client.js#L435-L533),
+and [TLS acceptance before session publication](https://github.com/nodejs/node/blob/v22.14.0/lib/_tls_wrap.js#L1562-L1615).
 
 B1 sources: [Node 22.14 option defaults](https://github.com/nodejs/node/blob/v22.14.0/lib/tls.js),
 [cipher expression processing](https://github.com/nodejs/node/blob/v22.14.0/lib/internal/tls/secure-context.js),

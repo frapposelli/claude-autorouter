@@ -3,6 +3,7 @@
 mod client;
 mod options;
 mod policy;
+mod session;
 
 use crate::server::Gateway;
 use crate::server_events::EventSinks;
@@ -13,7 +14,8 @@ use std::sync::Arc;
 /// child process. Ordinary cargo test never starts this synthetic gateway.
 #[tokio::test]
 async fn gateway_child() {
-    if std::env::var("AUTOROUTER_SYNTHETIC_OPENSSL_SPIKE").as_deref() != Ok("stage-a") {
+    let mode = std::env::var("AUTOROUTER_SYNTHETIC_OPENSSL_SPIKE").unwrap_or_default();
+    if !matches!(mode.as_str(), "stage-a" | "stage-b2") {
         return;
     }
     let options = std::env::var("NODE_OPTIONS").unwrap_or_default();
@@ -24,7 +26,7 @@ async fn gateway_child() {
         }
         std::process::exit(9);
     }
-    let transport = match SpikeHttpClient::new() {
+    let transport = match SpikeHttpClient::with_sessions(mode == "stage-b2") {
         Ok(transport) => Arc::new(transport),
         Err(error) => {
             eprintln!("{error}");
@@ -53,9 +55,34 @@ async fn gateway_child() {
     tokio::signal::ctrl_c().await.unwrap();
     server.close().await;
     drop(gateway);
-    // Stage-B cleanup and pool-race tests will qualify these counters. This
-    // runner does not report missing lifecycle assertions as covered.
-    let _counts = (&transport.raw_counts, &transport.fetch_counts);
+    if mode == "stage-b2" {
+        use std::sync::atomic::Ordering;
+        let raw = transport.raw_counts.clone();
+        let fetch = transport.fetch_counts.clone();
+        let cache = transport.raw_sessions.as_ref().unwrap();
+        let (entries, bytes, peak_bytes) = cache.lock().unwrap().snapshot();
+        let weak_cache = Arc::downgrade(cache);
+        drop(transport);
+        let cleaned = tokio::time::timeout(std::time::Duration::from_secs(3), async {
+            while raw.active.load(Ordering::SeqCst) != 0 || fetch.active.load(Ordering::SeqCst) != 0
+            {
+                tokio::task::yield_now().await;
+            }
+        })
+        .await
+        .is_ok();
+        eprintln!(
+            "OpenSSL session fixture: {}",
+            serde_json::json!({
+                "raw_attempts": raw.attempts.load(Ordering::SeqCst),
+                "raw_completed": raw.completed.load(Ordering::SeqCst),
+                "raw_active": raw.active.load(Ordering::SeqCst),
+                "fetch_active": fetch.active.load(Ordering::SeqCst),
+                "entries_before_drop": entries, "bytes_before_drop": bytes, "peak_bytes": peak_bytes,
+                "cache_released": weak_cache.upgrade().is_none(), "cleaned": cleaned,
+            })
+        );
+    }
 }
 
 #[tokio::test]
@@ -134,7 +161,7 @@ async fn stalled_handshake_cancellation_releases_owned_socket_and_preserves_sibl
         "synthetic"
     );
     waiter.abort();
-    assert!(waiter.await.unwrap_err().is_cancelled());
+    assert!(matches!(waiter.await, Err(error) if error.is_cancelled()));
     tokio::time::timeout(Duration::from_secs(3), stalled_peer)
         .await
         .unwrap()
