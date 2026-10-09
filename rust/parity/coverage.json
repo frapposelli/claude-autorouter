@@ -8233,26 +8233,265 @@
       "file": "test/ollama-routing.test.mjs",
       "name": "Claude-shaped requests preserve native Haiku, Sonnet and Opus decisions for every supported model family",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#all_six_claude_shapes_route_across_four_original_model_tags"
+      ],
+      "shared_cases": [
+        "baseline-ollama-routing-1-1",
+        "baseline-ollama-routing-1-2",
+        "baseline-ollama-routing-1-3",
+        "baseline-ollama-routing-1-4",
+        "baseline-ollama-routing-1-5",
+        "baseline-ollama-routing-1-6",
+        "baseline-ollama-routing-1-7",
+        "baseline-ollama-routing-1-8",
+        "baseline-ollama-routing-1-9",
+        "baseline-ollama-routing-1-10",
+        "baseline-ollama-routing-1-11",
+        "baseline-ollama-routing-1-12",
+        "baseline-ollama-routing-1-13",
+        "baseline-ollama-routing-1-14",
+        "baseline-ollama-routing-1-15",
+        "baseline-ollama-routing-1-16",
+        "baseline-ollama-routing-1-17",
+        "baseline-ollama-routing-1-18",
+        "baseline-ollama-routing-1-19",
+        "baseline-ollama-routing-1-20",
+        "baseline-ollama-routing-1-21",
+        "baseline-ollama-routing-1-22",
+        "baseline-ollama-routing-1-23",
+        "baseline-ollama-routing-1-24"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/ollama-routing-contracts.json",
+        "assertion_mapping_sha256": "2dfffd967cd9440bcc45dc176d06542d4876c267148fbf138d37b4feb87868de",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/193658b94d3e0de3dbde428d4c627f95cf37558c857dad87f06bcd6c6bcb0aa4.json",
+          "sha256": "193658b94d3e0de3dbde428d4c627f95cf37558c857dad87f06bcd6c6bcb0aa4",
+          "bytes": 12803,
+          "original_path": "/private/tmp/autorouter-ollama-routing-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/692b58344b0326c1b19cf34599807ca0567368851934af718f644851ba1a3fc2.json",
+          "sha256": "692b58344b0326c1b19cf34599807ca0567368851934af718f644851ba1a3fc2",
+          "bytes": 15116,
+          "original_path": "/private/tmp/autorouter-ollama-routing-independent-review-2.json"
+        },
+        "execution": {
+          "0-eleventh-ollama-routing-capture-a.log": {
+            "path": "artifacts/rust-rewrite/evidence/a4a5e5b973b4a3e16c473b57d9e8082a5974249e9b0f387dd6d0d8d217d1134e.log",
+            "bytes": 206,
+            "sha256": "a4a5e5b973b4a3e16c473b57d9e8082a5974249e9b0f387dd6d0d8d217d1134e",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-capture-a.log"
+          },
+          "1-eleventh-ollama-routing-capture-b.log": {
+            "path": "artifacts/rust-rewrite/evidence/a4a5e5b973b4a3e16c473b57d9e8082a5974249e9b0f387dd6d0d8d217d1134e.log",
+            "bytes": 206,
+            "sha256": "a4a5e5b973b4a3e16c473b57d9e8082a5974249e9b0f387dd6d0d8d217d1134e",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-capture-b.log"
+          },
+          "2-eleventh-ollama-routing-capture-invocations.json": {
+            "path": "artifacts/rust-rewrite/evidence/d2585eb79e77ef63136a4af647f8990ca63878eb14afad8a4599029fcda3b9bc.json",
+            "bytes": 917,
+            "sha256": "d2585eb79e77ef63136a4af647f8990ca63878eb14afad8a4599029fcda3b9bc",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-capture-invocations.json"
+          },
+          "3-eleventh-ollama-routing-frozen-control-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/ef4d7973c7377a637a73212c0c05eb2d8189179b79b542a67d85ef698a5ee42a.log",
+            "bytes": 861,
+            "sha256": "ef4d7973c7377a637a73212c0c05eb2d8189179b79b542a67d85ef698a5ee42a",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-frozen-control-1.log"
+          },
+          "4-eleventh-ollama-routing-native-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/0d6cdc79a90fec9dba26d3ce69a3218857183f8595eabba22bdd388240f4c1e8.log",
+            "bytes": 1898,
+            "sha256": "0d6cdc79a90fec9dba26d3ce69a3218857183f8595eabba22bdd388240f4c1e8",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-1.log"
+          },
+          "5-eleventh-ollama-routing-native-negative-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/185aa4422d4a75cf2b83535297049c980900eab18c4111693f7ed0f837caa962.log",
+            "bytes": 1636,
+            "sha256": "185aa4422d4a75cf2b83535297049c980900eab18c4111693f7ed0f837caa962",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-negative-2.log"
+          },
+          "6-eleventh-ollama-routing-native-3.log": {
+            "path": "artifacts/rust-rewrite/evidence/767300fc025775ae5b50bddb95757b6c320cb5e084e393b5a2b919979ce3569f.log",
+            "bytes": 1897,
+            "sha256": "767300fc025775ae5b50bddb95757b6c320cb5e084e393b5a2b919979ce3569f",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-3.log"
+          },
+          "7-eleventh-ollama-routing-native-4.log": {
+            "path": "artifacts/rust-rewrite/evidence/9151b9d9f3c0ece7ed94ec243f7e6c5d8279b16399b7aacdab5ef0cf3bfcbfa0.log",
+            "bytes": 1347,
+            "sha256": "9151b9d9f3c0ece7ed94ec243f7e6c5d8279b16399b7aacdab5ef0cf3bfcbfa0",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-4.log"
+          },
+          "8-eleventh-ollama-routing-clippy-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/0f5ab11c3c850c8063829bf3cd11740c39740568a6832f585acc5377601a4d2b.log",
+            "bytes": 678,
+            "sha256": "0f5ab11c3c850c8063829bf3cd11740c39740568a6832f585acc5377601a4d2b",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-clippy-1.log"
+          },
+          "9-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a.jsonl",
+            "bytes": 647550,
+            "sha256": "88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-contracts-capture-a/cases.jsonl"
+          },
+          "10-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424.json",
+            "bytes": 29554,
+            "sha256": "7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-contracts-capture-a/capture.json"
+          },
+          "11-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a.jsonl",
+            "bytes": 647550,
+            "sha256": "88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-contracts-capture-b/cases.jsonl"
+          },
+          "12-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424.json",
+            "bytes": 29554,
+            "sha256": "7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-contracts-capture-b/capture.json"
+          }
+        },
+        "scope": "Three complete finite definitions:26 original Routers,29routes,58requests and544executed original assertions. Exact model-dependent config, full request/result and same-instance task/thinking continuity; no real classification or completion claim."
+      },
       "related_components": [
         "evaluators"
-      ]
+      ],
+      "remaining_assertions": [],
+      "assertion_mapping": "rust/parity/assertion-mappings/ollama-routing-contracts.json"
     },
     {
       "id": "test/ollama-routing.test.mjs#2",
       "file": "test/ollama-routing.test.mjs",
       "name": "new human prompts in one session may move from Sonnet to Opus to Haiku without stale turn pinning",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#same_router_switches_human_turns_from_sonnet_to_opus_to_haiku"
+      ],
+      "shared_cases": [
+        "baseline-ollama-routing-2-1"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/ollama-routing-contracts.json",
+        "assertion_mapping_sha256": "2dfffd967cd9440bcc45dc176d06542d4876c267148fbf138d37b4feb87868de",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/193658b94d3e0de3dbde428d4c627f95cf37558c857dad87f06bcd6c6bcb0aa4.json",
+          "sha256": "193658b94d3e0de3dbde428d4c627f95cf37558c857dad87f06bcd6c6bcb0aa4",
+          "bytes": 12803,
+          "original_path": "/private/tmp/autorouter-ollama-routing-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/692b58344b0326c1b19cf34599807ca0567368851934af718f644851ba1a3fc2.json",
+          "sha256": "692b58344b0326c1b19cf34599807ca0567368851934af718f644851ba1a3fc2",
+          "bytes": 15116,
+          "original_path": "/private/tmp/autorouter-ollama-routing-independent-review-2.json"
+        },
+        "execution": {
+          "0-eleventh-ollama-routing-capture-a.log": {
+            "path": "artifacts/rust-rewrite/evidence/a4a5e5b973b4a3e16c473b57d9e8082a5974249e9b0f387dd6d0d8d217d1134e.log",
+            "bytes": 206,
+            "sha256": "a4a5e5b973b4a3e16c473b57d9e8082a5974249e9b0f387dd6d0d8d217d1134e",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-capture-a.log"
+          },
+          "1-eleventh-ollama-routing-capture-b.log": {
+            "path": "artifacts/rust-rewrite/evidence/a4a5e5b973b4a3e16c473b57d9e8082a5974249e9b0f387dd6d0d8d217d1134e.log",
+            "bytes": 206,
+            "sha256": "a4a5e5b973b4a3e16c473b57d9e8082a5974249e9b0f387dd6d0d8d217d1134e",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-capture-b.log"
+          },
+          "2-eleventh-ollama-routing-capture-invocations.json": {
+            "path": "artifacts/rust-rewrite/evidence/d2585eb79e77ef63136a4af647f8990ca63878eb14afad8a4599029fcda3b9bc.json",
+            "bytes": 917,
+            "sha256": "d2585eb79e77ef63136a4af647f8990ca63878eb14afad8a4599029fcda3b9bc",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-capture-invocations.json"
+          },
+          "3-eleventh-ollama-routing-frozen-control-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/ef4d7973c7377a637a73212c0c05eb2d8189179b79b542a67d85ef698a5ee42a.log",
+            "bytes": 861,
+            "sha256": "ef4d7973c7377a637a73212c0c05eb2d8189179b79b542a67d85ef698a5ee42a",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-frozen-control-1.log"
+          },
+          "4-eleventh-ollama-routing-native-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/0d6cdc79a90fec9dba26d3ce69a3218857183f8595eabba22bdd388240f4c1e8.log",
+            "bytes": 1898,
+            "sha256": "0d6cdc79a90fec9dba26d3ce69a3218857183f8595eabba22bdd388240f4c1e8",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-1.log"
+          },
+          "5-eleventh-ollama-routing-native-negative-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/185aa4422d4a75cf2b83535297049c980900eab18c4111693f7ed0f837caa962.log",
+            "bytes": 1636,
+            "sha256": "185aa4422d4a75cf2b83535297049c980900eab18c4111693f7ed0f837caa962",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-negative-2.log"
+          },
+          "6-eleventh-ollama-routing-native-3.log": {
+            "path": "artifacts/rust-rewrite/evidence/767300fc025775ae5b50bddb95757b6c320cb5e084e393b5a2b919979ce3569f.log",
+            "bytes": 1897,
+            "sha256": "767300fc025775ae5b50bddb95757b6c320cb5e084e393b5a2b919979ce3569f",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-3.log"
+          },
+          "7-eleventh-ollama-routing-native-4.log": {
+            "path": "artifacts/rust-rewrite/evidence/9151b9d9f3c0ece7ed94ec243f7e6c5d8279b16399b7aacdab5ef0cf3bfcbfa0.log",
+            "bytes": 1347,
+            "sha256": "9151b9d9f3c0ece7ed94ec243f7e6c5d8279b16399b7aacdab5ef0cf3bfcbfa0",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-4.log"
+          },
+          "8-eleventh-ollama-routing-clippy-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/0f5ab11c3c850c8063829bf3cd11740c39740568a6832f585acc5377601a4d2b.log",
+            "bytes": 678,
+            "sha256": "0f5ab11c3c850c8063829bf3cd11740c39740568a6832f585acc5377601a4d2b",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-clippy-1.log"
+          },
+          "9-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a.jsonl",
+            "bytes": 647550,
+            "sha256": "88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-contracts-capture-a/cases.jsonl"
+          },
+          "10-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424.json",
+            "bytes": 29554,
+            "sha256": "7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-contracts-capture-a/capture.json"
+          },
+          "11-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a.jsonl",
+            "bytes": 647550,
+            "sha256": "88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-contracts-capture-b/cases.jsonl"
+          },
+          "12-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424.json",
+            "bytes": 29554,
+            "sha256": "7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-contracts-capture-b/capture.json"
+          }
+        },
+        "scope": "Three complete finite definitions:26 original Routers,29routes,58requests and544executed original assertions. Exact model-dependent config, full request/result and same-instance task/thinking continuity; no real classification or completion claim."
+      },
       "related_components": [
         "evaluators"
-      ]
+      ],
+      "remaining_assertions": [],
+      "assertion_mapping": "rust/parity/assertion-mappings/ollama-routing-contracts.json"
     },
     {
       "id": "test/ollama-routing.test.mjs#3",
@@ -8272,65 +8511,1135 @@
       "file": "test/ollama-routing.test.mjs",
       "name": "signed thinking preserves the earlier model while exposing the fresh classifier choice",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_routing_contracts.rs#signed_thinking_retains_sonnet_while_exposing_fresh_haiku_classification"
+      ],
+      "shared_cases": [
+        "baseline-ollama-routing-4-1"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/ollama-routing-contracts.json",
+        "assertion_mapping_sha256": "2dfffd967cd9440bcc45dc176d06542d4876c267148fbf138d37b4feb87868de",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/193658b94d3e0de3dbde428d4c627f95cf37558c857dad87f06bcd6c6bcb0aa4.json",
+          "sha256": "193658b94d3e0de3dbde428d4c627f95cf37558c857dad87f06bcd6c6bcb0aa4",
+          "bytes": 12803,
+          "original_path": "/private/tmp/autorouter-ollama-routing-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/692b58344b0326c1b19cf34599807ca0567368851934af718f644851ba1a3fc2.json",
+          "sha256": "692b58344b0326c1b19cf34599807ca0567368851934af718f644851ba1a3fc2",
+          "bytes": 15116,
+          "original_path": "/private/tmp/autorouter-ollama-routing-independent-review-2.json"
+        },
+        "execution": {
+          "0-eleventh-ollama-routing-capture-a.log": {
+            "path": "artifacts/rust-rewrite/evidence/a4a5e5b973b4a3e16c473b57d9e8082a5974249e9b0f387dd6d0d8d217d1134e.log",
+            "bytes": 206,
+            "sha256": "a4a5e5b973b4a3e16c473b57d9e8082a5974249e9b0f387dd6d0d8d217d1134e",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-capture-a.log"
+          },
+          "1-eleventh-ollama-routing-capture-b.log": {
+            "path": "artifacts/rust-rewrite/evidence/a4a5e5b973b4a3e16c473b57d9e8082a5974249e9b0f387dd6d0d8d217d1134e.log",
+            "bytes": 206,
+            "sha256": "a4a5e5b973b4a3e16c473b57d9e8082a5974249e9b0f387dd6d0d8d217d1134e",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-capture-b.log"
+          },
+          "2-eleventh-ollama-routing-capture-invocations.json": {
+            "path": "artifacts/rust-rewrite/evidence/d2585eb79e77ef63136a4af647f8990ca63878eb14afad8a4599029fcda3b9bc.json",
+            "bytes": 917,
+            "sha256": "d2585eb79e77ef63136a4af647f8990ca63878eb14afad8a4599029fcda3b9bc",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-capture-invocations.json"
+          },
+          "3-eleventh-ollama-routing-frozen-control-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/ef4d7973c7377a637a73212c0c05eb2d8189179b79b542a67d85ef698a5ee42a.log",
+            "bytes": 861,
+            "sha256": "ef4d7973c7377a637a73212c0c05eb2d8189179b79b542a67d85ef698a5ee42a",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-frozen-control-1.log"
+          },
+          "4-eleventh-ollama-routing-native-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/0d6cdc79a90fec9dba26d3ce69a3218857183f8595eabba22bdd388240f4c1e8.log",
+            "bytes": 1898,
+            "sha256": "0d6cdc79a90fec9dba26d3ce69a3218857183f8595eabba22bdd388240f4c1e8",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-1.log"
+          },
+          "5-eleventh-ollama-routing-native-negative-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/185aa4422d4a75cf2b83535297049c980900eab18c4111693f7ed0f837caa962.log",
+            "bytes": 1636,
+            "sha256": "185aa4422d4a75cf2b83535297049c980900eab18c4111693f7ed0f837caa962",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-negative-2.log"
+          },
+          "6-eleventh-ollama-routing-native-3.log": {
+            "path": "artifacts/rust-rewrite/evidence/767300fc025775ae5b50bddb95757b6c320cb5e084e393b5a2b919979ce3569f.log",
+            "bytes": 1897,
+            "sha256": "767300fc025775ae5b50bddb95757b6c320cb5e084e393b5a2b919979ce3569f",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-3.log"
+          },
+          "7-eleventh-ollama-routing-native-4.log": {
+            "path": "artifacts/rust-rewrite/evidence/9151b9d9f3c0ece7ed94ec243f7e6c5d8279b16399b7aacdab5ef0cf3bfcbfa0.log",
+            "bytes": 1347,
+            "sha256": "9151b9d9f3c0ece7ed94ec243f7e6c5d8279b16399b7aacdab5ef0cf3bfcbfa0",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-native-4.log"
+          },
+          "8-eleventh-ollama-routing-clippy-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/0f5ab11c3c850c8063829bf3cd11740c39740568a6832f585acc5377601a4d2b.log",
+            "bytes": 678,
+            "sha256": "0f5ab11c3c850c8063829bf3cd11740c39740568a6832f585acc5377601a4d2b",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-clippy-1.log"
+          },
+          "9-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a.jsonl",
+            "bytes": 647550,
+            "sha256": "88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-contracts-capture-a/cases.jsonl"
+          },
+          "10-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424.json",
+            "bytes": 29554,
+            "sha256": "7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-contracts-capture-a/capture.json"
+          },
+          "11-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a.jsonl",
+            "bytes": 647550,
+            "sha256": "88ea9d384ae10c4106c3a5843a72bdd65f66faf4312002b8b4a5864b36abf12a",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-contracts-capture-b/cases.jsonl"
+          },
+          "12-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424.json",
+            "bytes": 29554,
+            "sha256": "7ddad0837cf4f93ea26ad91b69431539c33663aa181b2c97aa9086b4fb1bd424",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-contracts-capture-b/capture.json"
+          }
+        },
+        "scope": "Three complete finite definitions:26 original Routers,29routes,58requests and544executed original assertions. Exact model-dependent config, full request/result and same-instance task/thinking continuity; no real classification or completion claim."
+      },
       "related_components": [
         "evaluators"
-      ]
+      ],
+      "remaining_assertions": [],
+      "assertion_mapping": "rust/parity/assertion-mappings/ollama-routing-contracts.json"
     },
     {
       "id": "test/ollama-routing.test.mjs#5",
       "file": "test/ollama-routing.test.mjs",
       "name": "the opt-in live harness warms once, routes every case, and reports only metadata",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/xtask/src/ollama_routing_contracts.rs#full_report_warms_once_and_preserves_every_original_metadata_assertion"
+      ],
+      "shared_cases": [
+        "ollama-routing-tool-5-1"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/ollama-routing-tool-contracts.json",
+        "assertion_mapping_sha256": "0546c167849e08ff11bf8da24038729dc70a796b39dd72239b5d2cdf544c0de2",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/b9ddb75ae55a996adc3d16f9ef9ea049edda2664627d189839ed4c1a66fd7621.json",
+          "sha256": "b9ddb75ae55a996adc3d16f9ef9ea049edda2664627d189839ed4c1a66fd7621",
+          "bytes": 26886,
+          "original_path": "/private/tmp/autorouter-ollama-routing-tool-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/71f3009a8555be27228b73be7ee73e6a543814ce793b578476bdf36c4c8f33d7.json",
+          "sha256": "71f3009a8555be27228b73be7ee73e6a543814ce793b578476bdf36c4c8f33d7",
+          "bytes": 7435,
+          "original_path": "/private/tmp/autorouter-ollama-routing-tool-independent-review.json"
+        },
+        "execution": {
+          "0-eleventh-ollama-tool-capture-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/8daa5a957c896c4cbefa049c04b839afce43509e112ee35305e6db5c4cc25786.log",
+            "bytes": 135,
+            "sha256": "8daa5a957c896c4cbefa049c04b839afce43509e112ee35305e6db5c4cc25786",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-1.log"
+          },
+          "1-eleventh-ollama-tool-capture-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/5bf262e5a00b828d25ac3c4667f8cb4d89dbf56730a56ee1ef3404c9e6796bc2.log",
+            "bytes": 135,
+            "sha256": "5bf262e5a00b828d25ac3c4667f8cb4d89dbf56730a56ee1ef3404c9e6796bc2",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-2.log"
+          },
+          "2-eleventh-ollama-tool-capture-3.log": {
+            "path": "artifacts/rust-rewrite/evidence/d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3.log",
+            "bytes": 135,
+            "sha256": "d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-3.log"
+          },
+          "3-eleventh-ollama-tool-capture-4.log": {
+            "path": "artifacts/rust-rewrite/evidence/d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3.log",
+            "bytes": 135,
+            "sha256": "d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-4.log"
+          },
+          "4-eleventh-ollama-tool-clippy-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/2e086aa86e2b5de9fdf76a16001b300b148ce2eafe870d8f468b23862b109863.log",
+            "bytes": 1701,
+            "sha256": "2e086aa86e2b5de9fdf76a16001b300b148ce2eafe870d8f468b23862b109863",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-clippy-1.log"
+          },
+          "5-eleventh-ollama-tool-clippy-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/74a66b8e0997dddd9afa0c67e5fb2ae508ebd65543417714b1336dcffd5463c2.log",
+            "bytes": 645,
+            "sha256": "74a66b8e0997dddd9afa0c67e5fb2ae508ebd65543417714b1336dcffd5463c2",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-clippy-2.log"
+          },
+          "6-eleventh-ollama-tool-clippy-3.log": {
+            "path": "artifacts/rust-rewrite/evidence/b72b894291a6736bbac1a55d7c1cf5422776ff7275ab27cff6008622586d95db.log",
+            "bytes": 645,
+            "sha256": "b72b894291a6736bbac1a55d7c1cf5422776ff7275ab27cff6008622586d95db",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-clippy-3.log"
+          },
+          "7-eleventh-ollama-tool-existing-regression.log": {
+            "path": "artifacts/rust-rewrite/evidence/977edf31ddf14e60617a62c3eadf8928771d9d8bae5383ea134c4e95479947dc.log",
+            "bytes": 1125,
+            "sha256": "977edf31ddf14e60617a62c3eadf8928771d9d8bae5383ea134c4e95479947dc",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-existing-regression.log"
+          },
+          "8-eleventh-ollama-tool-frozen-control.log": {
+            "path": "artifacts/rust-rewrite/evidence/d747e41ed71faa001e468604470d0537f74aae3ea51bc85c862e10c54bf3cbf6.log",
+            "bytes": 1047,
+            "sha256": "d747e41ed71faa001e468604470d0537f74aae3ea51bc85c862e10c54bf3cbf6",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-frozen-control.log"
+          },
+          "9-eleventh-ollama-tool-native-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/77b86c8b6e8b88279dbeb5f725a2479cb84bfc498fbb1d3d5cf0ac0130e1d734.log",
+            "bytes": 1165,
+            "sha256": "77b86c8b6e8b88279dbeb5f725a2479cb84bfc498fbb1d3d5cf0ac0130e1d734",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-1.log"
+          },
+          "10-eleventh-ollama-tool-native-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/a1d77c688c4cc94d5d57769ae1a34e9b7aba4a0ecae03e2af6976875e85a65ee.log",
+            "bytes": 1052,
+            "sha256": "a1d77c688c4cc94d5d57769ae1a34e9b7aba4a0ecae03e2af6976875e85a65ee",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-2.log"
+          },
+          "11-eleventh-ollama-tool-native-3.log": {
+            "path": "artifacts/rust-rewrite/evidence/7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1.log",
+            "bytes": 3551,
+            "sha256": "7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-3.log"
+          },
+          "12-eleventh-ollama-tool-native-4.log": {
+            "path": "artifacts/rust-rewrite/evidence/da07bff7246fad09826593cca5a40ad45cc3f651fcb598847bce0a4509a4661d.log",
+            "bytes": 2277,
+            "sha256": "da07bff7246fad09826593cca5a40ad45cc3f651fcb598847bce0a4509a4661d",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-4.log"
+          },
+          "13-eleventh-ollama-tool-native-5.log": {
+            "path": "artifacts/rust-rewrite/evidence/af00bfc6e02ca14aaa3317f9bbc177dddc662773d670f49d6046b43ceb2448e2.log",
+            "bytes": 1794,
+            "sha256": "af00bfc6e02ca14aaa3317f9bbc177dddc662773d670f49d6046b43ceb2448e2",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-5.log"
+          },
+          "14-eleventh-ollama-tool-native-6.log": {
+            "path": "artifacts/rust-rewrite/evidence/331860fb968a60b59213b29f5279565cd231ae40c90bf577d6223f8b3673b42d.log",
+            "bytes": 1794,
+            "sha256": "331860fb968a60b59213b29f5279565cd231ae40c90bf577d6223f8b3673b42d",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-6.log"
+          },
+          "15-eleventh-ollama-routing-tool-checks-1.json": {
+            "path": "artifacts/rust-rewrite/evidence/7c1cad86c0215d62ca8edeb6548c612bb81ee6f9fe9f7eec5f4dd6051df24f98.json",
+            "bytes": 1028,
+            "sha256": "7c1cad86c0215d62ca8edeb6548c612bb81ee6f9fe9f7eec5f4dd6051df24f98",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-checks-1.json"
+          },
+          "16-eleventh-ollama-routing-tool-clippy-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/6cf477bff90e7cee5ba9463fe72a9cf852984a906abb7d5683e00f389a12f714.log",
+            "bytes": 645,
+            "sha256": "6cf477bff90e7cee5ba9463fe72a9cf852984a906abb7d5683e00f389a12f714",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-clippy-2.log"
+          },
+          "17-eleventh-ollama-routing-tool-fmt-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-fmt-1.log"
+          },
+          "18-eleventh-ollama-routing-tool-native-5.log": {
+            "path": "artifacts/rust-rewrite/evidence/2405a85db86bce976775dd6e38893428092fb80bdf77bf5cf16e1ae50faf2b0f.log",
+            "bytes": 1721,
+            "sha256": "2405a85db86bce976775dd6e38893428092fb80bdf77bf5cf16e1ae50faf2b0f",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-native-5.log"
+          },
+          "19-report.json": {
+            "path": "artifacts/rust-rewrite/evidence/7990afeccdb75b4af7fae6036c21661167a464742729b108c3d6bc67ed445509.json",
+            "bytes": 1228,
+            "sha256": "7990afeccdb75b4af7fae6036c21661167a464742729b108c3d6bc67ed445509",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/report.json"
+          },
+          "20-ollama_routing_contracts.rs": {
+            "path": "artifacts/rust-rewrite/evidence/0937406b290899e64fa1eecb0ff843be3b3fb384cb3ca46040ffebff2d9f316f.rs",
+            "bytes": 12117,
+            "sha256": "0937406b290899e64fa1eecb0ff843be3b3fb384cb3ca46040ffebff2d9f316f",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/ollama_routing_contracts.rs"
+          },
+          "21-ollama_routing.rs": {
+            "path": "artifacts/rust-rewrite/evidence/606830442ee4b0b41e857e21262ecb57e9eecb8d8a6ab2cac4cc15b743fa9bc4.rs",
+            "bytes": 13895,
+            "sha256": "606830442ee4b0b41e857e21262ecb57e9eecb8d8a6ab2cac4cc15b743fa9bc4",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/ollama_routing.rs"
+          },
+          "22-eleventh-ollama-tool-native-3.log": {
+            "path": "artifacts/rust-rewrite/evidence/7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1.log",
+            "bytes": 3551,
+            "sha256": "7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/eleventh-ollama-tool-native-3.log"
+          },
+          "23-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/566292a2fd4b2aa13f6eff77ae34f2963168080b8344faf28dba8e37db83ccac.jsonl",
+            "bytes": 107979,
+            "sha256": "566292a2fd4b2aa13f6eff77ae34f2963168080b8344faf28dba8e37db83ccac",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-1/cases.jsonl"
+          },
+          "24-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/03ea305be5d4f4c536ca92f5d26e99c08927af0028efbcf7c4b2ee0d84bf2430.json",
+            "bytes": 55512,
+            "sha256": "03ea305be5d4f4c536ca92f5d26e99c08927af0028efbcf7c4b2ee0d84bf2430",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-1/capture.json"
+          },
+          "25-observations.json": {
+            "path": "artifacts/rust-rewrite/evidence/715a72197f569fd76c9f5a8916e6b45e836cbd09567ea978563f45b8ee5c74d3.json",
+            "bytes": 14543,
+            "sha256": "715a72197f569fd76c9f5a8916e6b45e836cbd09567ea978563f45b8ee5c74d3",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-1/observations.json"
+          },
+          "26-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/a35ad9ac249a53b061ee0bca913e7d105984894e3f3fa98296fa7163eaedbdb4.jsonl",
+            "bytes": 107976,
+            "sha256": "a35ad9ac249a53b061ee0bca913e7d105984894e3f3fa98296fa7163eaedbdb4",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-2/cases.jsonl"
+          },
+          "27-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/34ccbde3cb8fc0c86d77294122b470afdf768a78af5b8c40b0b572844d652e64.json",
+            "bytes": 55512,
+            "sha256": "34ccbde3cb8fc0c86d77294122b470afdf768a78af5b8c40b0b572844d652e64",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-2/capture.json"
+          },
+          "28-observations.json": {
+            "path": "artifacts/rust-rewrite/evidence/da730ee4cc3cc9a9eb1d842546deaaa9bf0ffb38e5bc3a55a57ccf7474fb8616.json",
+            "bytes": 14537,
+            "sha256": "da730ee4cc3cc9a9eb1d842546deaaa9bf0ffb38e5bc3a55a57ccf7474fb8616",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-2/observations.json"
+          },
+          "29-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d.jsonl",
+            "bytes": 108024,
+            "sha256": "a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-3/cases.jsonl"
+          },
+          "30-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d.json",
+            "bytes": 55512,
+            "sha256": "757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-3/capture.json"
+          },
+          "31-observations.json": {
+            "path": "artifacts/rust-rewrite/evidence/7009ad543882e9bb5d1026ec2b14a2d582c9f0a063786711a342599c0351f9ba.json",
+            "bytes": 14533,
+            "sha256": "7009ad543882e9bb5d1026ec2b14a2d582c9f0a063786711a342599c0351f9ba",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-3/observations.json"
+          },
+          "32-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d.jsonl",
+            "bytes": 108024,
+            "sha256": "a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-4/cases.jsonl"
+          },
+          "33-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d.json",
+            "bytes": 55512,
+            "sha256": "757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-4/capture.json"
+          },
+          "34-observations.json": {
+            "path": "artifacts/rust-rewrite/evidence/d0e37537c0b57e6ac9441d86bfaf349c799b6323c0c258fdf9de3bfb76c07516.json",
+            "bytes": 14539,
+            "sha256": "d0e37537c0b57e6ac9441d86bfaf349c799b6323c0c258fdf9de3bfb76c07516",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-4/observations.json"
+          }
+        },
+        "scope": "Four complete finite tool definitions:6synthetic runs/58requests and377executed original assertions. Full reports/progress/error identity retain warmup, collapsed/fallback tiers, duplicate classifications and safe preflight; no live evaluator or numerical timing evidence."
+      },
       "related_components": [
         "evaluators"
-      ]
+      ],
+      "remaining_assertions": [],
+      "assertion_mapping": "rust/parity/assertion-mappings/ollama-routing-tool-contracts.json"
     },
     {
       "id": "test/ollama-routing.test.mjs#6",
       "file": "test/ollama-routing.test.mjs",
       "name": "the live harness fails honestly when native answers collapse to Sonnet or become fallbacks",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/xtask/src/ollama_routing_contracts.rs#collapsed_and_invalid_answers_remain_distinct_failed_reports"
+      ],
+      "shared_cases": [
+        "ollama-routing-tool-6-1",
+        "ollama-routing-tool-6-2"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/ollama-routing-tool-contracts.json",
+        "assertion_mapping_sha256": "0546c167849e08ff11bf8da24038729dc70a796b39dd72239b5d2cdf544c0de2",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/b9ddb75ae55a996adc3d16f9ef9ea049edda2664627d189839ed4c1a66fd7621.json",
+          "sha256": "b9ddb75ae55a996adc3d16f9ef9ea049edda2664627d189839ed4c1a66fd7621",
+          "bytes": 26886,
+          "original_path": "/private/tmp/autorouter-ollama-routing-tool-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/71f3009a8555be27228b73be7ee73e6a543814ce793b578476bdf36c4c8f33d7.json",
+          "sha256": "71f3009a8555be27228b73be7ee73e6a543814ce793b578476bdf36c4c8f33d7",
+          "bytes": 7435,
+          "original_path": "/private/tmp/autorouter-ollama-routing-tool-independent-review.json"
+        },
+        "execution": {
+          "0-eleventh-ollama-tool-capture-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/8daa5a957c896c4cbefa049c04b839afce43509e112ee35305e6db5c4cc25786.log",
+            "bytes": 135,
+            "sha256": "8daa5a957c896c4cbefa049c04b839afce43509e112ee35305e6db5c4cc25786",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-1.log"
+          },
+          "1-eleventh-ollama-tool-capture-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/5bf262e5a00b828d25ac3c4667f8cb4d89dbf56730a56ee1ef3404c9e6796bc2.log",
+            "bytes": 135,
+            "sha256": "5bf262e5a00b828d25ac3c4667f8cb4d89dbf56730a56ee1ef3404c9e6796bc2",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-2.log"
+          },
+          "2-eleventh-ollama-tool-capture-3.log": {
+            "path": "artifacts/rust-rewrite/evidence/d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3.log",
+            "bytes": 135,
+            "sha256": "d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-3.log"
+          },
+          "3-eleventh-ollama-tool-capture-4.log": {
+            "path": "artifacts/rust-rewrite/evidence/d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3.log",
+            "bytes": 135,
+            "sha256": "d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-4.log"
+          },
+          "4-eleventh-ollama-tool-clippy-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/2e086aa86e2b5de9fdf76a16001b300b148ce2eafe870d8f468b23862b109863.log",
+            "bytes": 1701,
+            "sha256": "2e086aa86e2b5de9fdf76a16001b300b148ce2eafe870d8f468b23862b109863",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-clippy-1.log"
+          },
+          "5-eleventh-ollama-tool-clippy-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/74a66b8e0997dddd9afa0c67e5fb2ae508ebd65543417714b1336dcffd5463c2.log",
+            "bytes": 645,
+            "sha256": "74a66b8e0997dddd9afa0c67e5fb2ae508ebd65543417714b1336dcffd5463c2",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-clippy-2.log"
+          },
+          "6-eleventh-ollama-tool-clippy-3.log": {
+            "path": "artifacts/rust-rewrite/evidence/b72b894291a6736bbac1a55d7c1cf5422776ff7275ab27cff6008622586d95db.log",
+            "bytes": 645,
+            "sha256": "b72b894291a6736bbac1a55d7c1cf5422776ff7275ab27cff6008622586d95db",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-clippy-3.log"
+          },
+          "7-eleventh-ollama-tool-existing-regression.log": {
+            "path": "artifacts/rust-rewrite/evidence/977edf31ddf14e60617a62c3eadf8928771d9d8bae5383ea134c4e95479947dc.log",
+            "bytes": 1125,
+            "sha256": "977edf31ddf14e60617a62c3eadf8928771d9d8bae5383ea134c4e95479947dc",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-existing-regression.log"
+          },
+          "8-eleventh-ollama-tool-frozen-control.log": {
+            "path": "artifacts/rust-rewrite/evidence/d747e41ed71faa001e468604470d0537f74aae3ea51bc85c862e10c54bf3cbf6.log",
+            "bytes": 1047,
+            "sha256": "d747e41ed71faa001e468604470d0537f74aae3ea51bc85c862e10c54bf3cbf6",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-frozen-control.log"
+          },
+          "9-eleventh-ollama-tool-native-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/77b86c8b6e8b88279dbeb5f725a2479cb84bfc498fbb1d3d5cf0ac0130e1d734.log",
+            "bytes": 1165,
+            "sha256": "77b86c8b6e8b88279dbeb5f725a2479cb84bfc498fbb1d3d5cf0ac0130e1d734",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-1.log"
+          },
+          "10-eleventh-ollama-tool-native-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/a1d77c688c4cc94d5d57769ae1a34e9b7aba4a0ecae03e2af6976875e85a65ee.log",
+            "bytes": 1052,
+            "sha256": "a1d77c688c4cc94d5d57769ae1a34e9b7aba4a0ecae03e2af6976875e85a65ee",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-2.log"
+          },
+          "11-eleventh-ollama-tool-native-3.log": {
+            "path": "artifacts/rust-rewrite/evidence/7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1.log",
+            "bytes": 3551,
+            "sha256": "7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-3.log"
+          },
+          "12-eleventh-ollama-tool-native-4.log": {
+            "path": "artifacts/rust-rewrite/evidence/da07bff7246fad09826593cca5a40ad45cc3f651fcb598847bce0a4509a4661d.log",
+            "bytes": 2277,
+            "sha256": "da07bff7246fad09826593cca5a40ad45cc3f651fcb598847bce0a4509a4661d",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-4.log"
+          },
+          "13-eleventh-ollama-tool-native-5.log": {
+            "path": "artifacts/rust-rewrite/evidence/af00bfc6e02ca14aaa3317f9bbc177dddc662773d670f49d6046b43ceb2448e2.log",
+            "bytes": 1794,
+            "sha256": "af00bfc6e02ca14aaa3317f9bbc177dddc662773d670f49d6046b43ceb2448e2",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-5.log"
+          },
+          "14-eleventh-ollama-tool-native-6.log": {
+            "path": "artifacts/rust-rewrite/evidence/331860fb968a60b59213b29f5279565cd231ae40c90bf577d6223f8b3673b42d.log",
+            "bytes": 1794,
+            "sha256": "331860fb968a60b59213b29f5279565cd231ae40c90bf577d6223f8b3673b42d",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-6.log"
+          },
+          "15-eleventh-ollama-routing-tool-checks-1.json": {
+            "path": "artifacts/rust-rewrite/evidence/7c1cad86c0215d62ca8edeb6548c612bb81ee6f9fe9f7eec5f4dd6051df24f98.json",
+            "bytes": 1028,
+            "sha256": "7c1cad86c0215d62ca8edeb6548c612bb81ee6f9fe9f7eec5f4dd6051df24f98",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-checks-1.json"
+          },
+          "16-eleventh-ollama-routing-tool-clippy-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/6cf477bff90e7cee5ba9463fe72a9cf852984a906abb7d5683e00f389a12f714.log",
+            "bytes": 645,
+            "sha256": "6cf477bff90e7cee5ba9463fe72a9cf852984a906abb7d5683e00f389a12f714",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-clippy-2.log"
+          },
+          "17-eleventh-ollama-routing-tool-fmt-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-fmt-1.log"
+          },
+          "18-eleventh-ollama-routing-tool-native-5.log": {
+            "path": "artifacts/rust-rewrite/evidence/2405a85db86bce976775dd6e38893428092fb80bdf77bf5cf16e1ae50faf2b0f.log",
+            "bytes": 1721,
+            "sha256": "2405a85db86bce976775dd6e38893428092fb80bdf77bf5cf16e1ae50faf2b0f",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-native-5.log"
+          },
+          "19-report.json": {
+            "path": "artifacts/rust-rewrite/evidence/7990afeccdb75b4af7fae6036c21661167a464742729b108c3d6bc67ed445509.json",
+            "bytes": 1228,
+            "sha256": "7990afeccdb75b4af7fae6036c21661167a464742729b108c3d6bc67ed445509",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/report.json"
+          },
+          "20-ollama_routing_contracts.rs": {
+            "path": "artifacts/rust-rewrite/evidence/0937406b290899e64fa1eecb0ff843be3b3fb384cb3ca46040ffebff2d9f316f.rs",
+            "bytes": 12117,
+            "sha256": "0937406b290899e64fa1eecb0ff843be3b3fb384cb3ca46040ffebff2d9f316f",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/ollama_routing_contracts.rs"
+          },
+          "21-ollama_routing.rs": {
+            "path": "artifacts/rust-rewrite/evidence/606830442ee4b0b41e857e21262ecb57e9eecb8d8a6ab2cac4cc15b743fa9bc4.rs",
+            "bytes": 13895,
+            "sha256": "606830442ee4b0b41e857e21262ecb57e9eecb8d8a6ab2cac4cc15b743fa9bc4",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/ollama_routing.rs"
+          },
+          "22-eleventh-ollama-tool-native-3.log": {
+            "path": "artifacts/rust-rewrite/evidence/7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1.log",
+            "bytes": 3551,
+            "sha256": "7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/eleventh-ollama-tool-native-3.log"
+          },
+          "23-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/566292a2fd4b2aa13f6eff77ae34f2963168080b8344faf28dba8e37db83ccac.jsonl",
+            "bytes": 107979,
+            "sha256": "566292a2fd4b2aa13f6eff77ae34f2963168080b8344faf28dba8e37db83ccac",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-1/cases.jsonl"
+          },
+          "24-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/03ea305be5d4f4c536ca92f5d26e99c08927af0028efbcf7c4b2ee0d84bf2430.json",
+            "bytes": 55512,
+            "sha256": "03ea305be5d4f4c536ca92f5d26e99c08927af0028efbcf7c4b2ee0d84bf2430",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-1/capture.json"
+          },
+          "25-observations.json": {
+            "path": "artifacts/rust-rewrite/evidence/715a72197f569fd76c9f5a8916e6b45e836cbd09567ea978563f45b8ee5c74d3.json",
+            "bytes": 14543,
+            "sha256": "715a72197f569fd76c9f5a8916e6b45e836cbd09567ea978563f45b8ee5c74d3",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-1/observations.json"
+          },
+          "26-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/a35ad9ac249a53b061ee0bca913e7d105984894e3f3fa98296fa7163eaedbdb4.jsonl",
+            "bytes": 107976,
+            "sha256": "a35ad9ac249a53b061ee0bca913e7d105984894e3f3fa98296fa7163eaedbdb4",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-2/cases.jsonl"
+          },
+          "27-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/34ccbde3cb8fc0c86d77294122b470afdf768a78af5b8c40b0b572844d652e64.json",
+            "bytes": 55512,
+            "sha256": "34ccbde3cb8fc0c86d77294122b470afdf768a78af5b8c40b0b572844d652e64",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-2/capture.json"
+          },
+          "28-observations.json": {
+            "path": "artifacts/rust-rewrite/evidence/da730ee4cc3cc9a9eb1d842546deaaa9bf0ffb38e5bc3a55a57ccf7474fb8616.json",
+            "bytes": 14537,
+            "sha256": "da730ee4cc3cc9a9eb1d842546deaaa9bf0ffb38e5bc3a55a57ccf7474fb8616",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-2/observations.json"
+          },
+          "29-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d.jsonl",
+            "bytes": 108024,
+            "sha256": "a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-3/cases.jsonl"
+          },
+          "30-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d.json",
+            "bytes": 55512,
+            "sha256": "757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-3/capture.json"
+          },
+          "31-observations.json": {
+            "path": "artifacts/rust-rewrite/evidence/7009ad543882e9bb5d1026ec2b14a2d582c9f0a063786711a342599c0351f9ba.json",
+            "bytes": 14533,
+            "sha256": "7009ad543882e9bb5d1026ec2b14a2d582c9f0a063786711a342599c0351f9ba",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-3/observations.json"
+          },
+          "32-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d.jsonl",
+            "bytes": 108024,
+            "sha256": "a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-4/cases.jsonl"
+          },
+          "33-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d.json",
+            "bytes": 55512,
+            "sha256": "757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-4/capture.json"
+          },
+          "34-observations.json": {
+            "path": "artifacts/rust-rewrite/evidence/d0e37537c0b57e6ac9441d86bfaf349c799b6323c0c258fdf9de3bfb76c07516.json",
+            "bytes": 14539,
+            "sha256": "d0e37537c0b57e6ac9441d86bfaf349c799b6323c0c258fdf9de3bfb76c07516",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-4/observations.json"
+          }
+        },
+        "scope": "Four complete finite tool definitions:6synthetic runs/58requests and377executed original assertions. Full reports/progress/error identity retain warmup, collapsed/fallback tiers, duplicate classifications and safe preflight; no live evaluator or numerical timing evidence."
+      },
       "related_components": [
         "evaluators"
-      ]
+      ],
+      "remaining_assertions": [],
+      "assertion_mapping": "rust/parity/assertion-mappings/ollama-routing-tool-contracts.json"
     },
     {
       "id": "test/ollama-routing.test.mjs#7",
       "file": "test/ollama-routing.test.mjs",
       "name": "duplicate live cases still perform native evaluations instead of passing from the router cache",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/xtask/src/ollama_routing_contracts.rs#duplicate_tasks_are_reclassified_without_fabricated_tier_coverage"
+      ],
+      "shared_cases": [
+        "ollama-routing-tool-7-1"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/ollama-routing-tool-contracts.json",
+        "assertion_mapping_sha256": "0546c167849e08ff11bf8da24038729dc70a796b39dd72239b5d2cdf544c0de2",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/b9ddb75ae55a996adc3d16f9ef9ea049edda2664627d189839ed4c1a66fd7621.json",
+          "sha256": "b9ddb75ae55a996adc3d16f9ef9ea049edda2664627d189839ed4c1a66fd7621",
+          "bytes": 26886,
+          "original_path": "/private/tmp/autorouter-ollama-routing-tool-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/71f3009a8555be27228b73be7ee73e6a543814ce793b578476bdf36c4c8f33d7.json",
+          "sha256": "71f3009a8555be27228b73be7ee73e6a543814ce793b578476bdf36c4c8f33d7",
+          "bytes": 7435,
+          "original_path": "/private/tmp/autorouter-ollama-routing-tool-independent-review.json"
+        },
+        "execution": {
+          "0-eleventh-ollama-tool-capture-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/8daa5a957c896c4cbefa049c04b839afce43509e112ee35305e6db5c4cc25786.log",
+            "bytes": 135,
+            "sha256": "8daa5a957c896c4cbefa049c04b839afce43509e112ee35305e6db5c4cc25786",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-1.log"
+          },
+          "1-eleventh-ollama-tool-capture-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/5bf262e5a00b828d25ac3c4667f8cb4d89dbf56730a56ee1ef3404c9e6796bc2.log",
+            "bytes": 135,
+            "sha256": "5bf262e5a00b828d25ac3c4667f8cb4d89dbf56730a56ee1ef3404c9e6796bc2",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-2.log"
+          },
+          "2-eleventh-ollama-tool-capture-3.log": {
+            "path": "artifacts/rust-rewrite/evidence/d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3.log",
+            "bytes": 135,
+            "sha256": "d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-3.log"
+          },
+          "3-eleventh-ollama-tool-capture-4.log": {
+            "path": "artifacts/rust-rewrite/evidence/d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3.log",
+            "bytes": 135,
+            "sha256": "d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-4.log"
+          },
+          "4-eleventh-ollama-tool-clippy-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/2e086aa86e2b5de9fdf76a16001b300b148ce2eafe870d8f468b23862b109863.log",
+            "bytes": 1701,
+            "sha256": "2e086aa86e2b5de9fdf76a16001b300b148ce2eafe870d8f468b23862b109863",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-clippy-1.log"
+          },
+          "5-eleventh-ollama-tool-clippy-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/74a66b8e0997dddd9afa0c67e5fb2ae508ebd65543417714b1336dcffd5463c2.log",
+            "bytes": 645,
+            "sha256": "74a66b8e0997dddd9afa0c67e5fb2ae508ebd65543417714b1336dcffd5463c2",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-clippy-2.log"
+          },
+          "6-eleventh-ollama-tool-clippy-3.log": {
+            "path": "artifacts/rust-rewrite/evidence/b72b894291a6736bbac1a55d7c1cf5422776ff7275ab27cff6008622586d95db.log",
+            "bytes": 645,
+            "sha256": "b72b894291a6736bbac1a55d7c1cf5422776ff7275ab27cff6008622586d95db",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-clippy-3.log"
+          },
+          "7-eleventh-ollama-tool-existing-regression.log": {
+            "path": "artifacts/rust-rewrite/evidence/977edf31ddf14e60617a62c3eadf8928771d9d8bae5383ea134c4e95479947dc.log",
+            "bytes": 1125,
+            "sha256": "977edf31ddf14e60617a62c3eadf8928771d9d8bae5383ea134c4e95479947dc",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-existing-regression.log"
+          },
+          "8-eleventh-ollama-tool-frozen-control.log": {
+            "path": "artifacts/rust-rewrite/evidence/d747e41ed71faa001e468604470d0537f74aae3ea51bc85c862e10c54bf3cbf6.log",
+            "bytes": 1047,
+            "sha256": "d747e41ed71faa001e468604470d0537f74aae3ea51bc85c862e10c54bf3cbf6",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-frozen-control.log"
+          },
+          "9-eleventh-ollama-tool-native-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/77b86c8b6e8b88279dbeb5f725a2479cb84bfc498fbb1d3d5cf0ac0130e1d734.log",
+            "bytes": 1165,
+            "sha256": "77b86c8b6e8b88279dbeb5f725a2479cb84bfc498fbb1d3d5cf0ac0130e1d734",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-1.log"
+          },
+          "10-eleventh-ollama-tool-native-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/a1d77c688c4cc94d5d57769ae1a34e9b7aba4a0ecae03e2af6976875e85a65ee.log",
+            "bytes": 1052,
+            "sha256": "a1d77c688c4cc94d5d57769ae1a34e9b7aba4a0ecae03e2af6976875e85a65ee",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-2.log"
+          },
+          "11-eleventh-ollama-tool-native-3.log": {
+            "path": "artifacts/rust-rewrite/evidence/7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1.log",
+            "bytes": 3551,
+            "sha256": "7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-3.log"
+          },
+          "12-eleventh-ollama-tool-native-4.log": {
+            "path": "artifacts/rust-rewrite/evidence/da07bff7246fad09826593cca5a40ad45cc3f651fcb598847bce0a4509a4661d.log",
+            "bytes": 2277,
+            "sha256": "da07bff7246fad09826593cca5a40ad45cc3f651fcb598847bce0a4509a4661d",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-4.log"
+          },
+          "13-eleventh-ollama-tool-native-5.log": {
+            "path": "artifacts/rust-rewrite/evidence/af00bfc6e02ca14aaa3317f9bbc177dddc662773d670f49d6046b43ceb2448e2.log",
+            "bytes": 1794,
+            "sha256": "af00bfc6e02ca14aaa3317f9bbc177dddc662773d670f49d6046b43ceb2448e2",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-5.log"
+          },
+          "14-eleventh-ollama-tool-native-6.log": {
+            "path": "artifacts/rust-rewrite/evidence/331860fb968a60b59213b29f5279565cd231ae40c90bf577d6223f8b3673b42d.log",
+            "bytes": 1794,
+            "sha256": "331860fb968a60b59213b29f5279565cd231ae40c90bf577d6223f8b3673b42d",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-6.log"
+          },
+          "15-eleventh-ollama-routing-tool-checks-1.json": {
+            "path": "artifacts/rust-rewrite/evidence/7c1cad86c0215d62ca8edeb6548c612bb81ee6f9fe9f7eec5f4dd6051df24f98.json",
+            "bytes": 1028,
+            "sha256": "7c1cad86c0215d62ca8edeb6548c612bb81ee6f9fe9f7eec5f4dd6051df24f98",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-checks-1.json"
+          },
+          "16-eleventh-ollama-routing-tool-clippy-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/6cf477bff90e7cee5ba9463fe72a9cf852984a906abb7d5683e00f389a12f714.log",
+            "bytes": 645,
+            "sha256": "6cf477bff90e7cee5ba9463fe72a9cf852984a906abb7d5683e00f389a12f714",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-clippy-2.log"
+          },
+          "17-eleventh-ollama-routing-tool-fmt-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-fmt-1.log"
+          },
+          "18-eleventh-ollama-routing-tool-native-5.log": {
+            "path": "artifacts/rust-rewrite/evidence/2405a85db86bce976775dd6e38893428092fb80bdf77bf5cf16e1ae50faf2b0f.log",
+            "bytes": 1721,
+            "sha256": "2405a85db86bce976775dd6e38893428092fb80bdf77bf5cf16e1ae50faf2b0f",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-native-5.log"
+          },
+          "19-report.json": {
+            "path": "artifacts/rust-rewrite/evidence/7990afeccdb75b4af7fae6036c21661167a464742729b108c3d6bc67ed445509.json",
+            "bytes": 1228,
+            "sha256": "7990afeccdb75b4af7fae6036c21661167a464742729b108c3d6bc67ed445509",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/report.json"
+          },
+          "20-ollama_routing_contracts.rs": {
+            "path": "artifacts/rust-rewrite/evidence/0937406b290899e64fa1eecb0ff843be3b3fb384cb3ca46040ffebff2d9f316f.rs",
+            "bytes": 12117,
+            "sha256": "0937406b290899e64fa1eecb0ff843be3b3fb384cb3ca46040ffebff2d9f316f",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/ollama_routing_contracts.rs"
+          },
+          "21-ollama_routing.rs": {
+            "path": "artifacts/rust-rewrite/evidence/606830442ee4b0b41e857e21262ecb57e9eecb8d8a6ab2cac4cc15b743fa9bc4.rs",
+            "bytes": 13895,
+            "sha256": "606830442ee4b0b41e857e21262ecb57e9eecb8d8a6ab2cac4cc15b743fa9bc4",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/ollama_routing.rs"
+          },
+          "22-eleventh-ollama-tool-native-3.log": {
+            "path": "artifacts/rust-rewrite/evidence/7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1.log",
+            "bytes": 3551,
+            "sha256": "7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/eleventh-ollama-tool-native-3.log"
+          },
+          "23-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/566292a2fd4b2aa13f6eff77ae34f2963168080b8344faf28dba8e37db83ccac.jsonl",
+            "bytes": 107979,
+            "sha256": "566292a2fd4b2aa13f6eff77ae34f2963168080b8344faf28dba8e37db83ccac",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-1/cases.jsonl"
+          },
+          "24-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/03ea305be5d4f4c536ca92f5d26e99c08927af0028efbcf7c4b2ee0d84bf2430.json",
+            "bytes": 55512,
+            "sha256": "03ea305be5d4f4c536ca92f5d26e99c08927af0028efbcf7c4b2ee0d84bf2430",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-1/capture.json"
+          },
+          "25-observations.json": {
+            "path": "artifacts/rust-rewrite/evidence/715a72197f569fd76c9f5a8916e6b45e836cbd09567ea978563f45b8ee5c74d3.json",
+            "bytes": 14543,
+            "sha256": "715a72197f569fd76c9f5a8916e6b45e836cbd09567ea978563f45b8ee5c74d3",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-1/observations.json"
+          },
+          "26-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/a35ad9ac249a53b061ee0bca913e7d105984894e3f3fa98296fa7163eaedbdb4.jsonl",
+            "bytes": 107976,
+            "sha256": "a35ad9ac249a53b061ee0bca913e7d105984894e3f3fa98296fa7163eaedbdb4",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-2/cases.jsonl"
+          },
+          "27-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/34ccbde3cb8fc0c86d77294122b470afdf768a78af5b8c40b0b572844d652e64.json",
+            "bytes": 55512,
+            "sha256": "34ccbde3cb8fc0c86d77294122b470afdf768a78af5b8c40b0b572844d652e64",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-2/capture.json"
+          },
+          "28-observations.json": {
+            "path": "artifacts/rust-rewrite/evidence/da730ee4cc3cc9a9eb1d842546deaaa9bf0ffb38e5bc3a55a57ccf7474fb8616.json",
+            "bytes": 14537,
+            "sha256": "da730ee4cc3cc9a9eb1d842546deaaa9bf0ffb38e5bc3a55a57ccf7474fb8616",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-2/observations.json"
+          },
+          "29-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d.jsonl",
+            "bytes": 108024,
+            "sha256": "a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-3/cases.jsonl"
+          },
+          "30-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d.json",
+            "bytes": 55512,
+            "sha256": "757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-3/capture.json"
+          },
+          "31-observations.json": {
+            "path": "artifacts/rust-rewrite/evidence/7009ad543882e9bb5d1026ec2b14a2d582c9f0a063786711a342599c0351f9ba.json",
+            "bytes": 14533,
+            "sha256": "7009ad543882e9bb5d1026ec2b14a2d582c9f0a063786711a342599c0351f9ba",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-3/observations.json"
+          },
+          "32-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d.jsonl",
+            "bytes": 108024,
+            "sha256": "a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-4/cases.jsonl"
+          },
+          "33-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d.json",
+            "bytes": 55512,
+            "sha256": "757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-4/capture.json"
+          },
+          "34-observations.json": {
+            "path": "artifacts/rust-rewrite/evidence/d0e37537c0b57e6ac9441d86bfaf349c799b6323c0c258fdf9de3bfb76c07516.json",
+            "bytes": 14539,
+            "sha256": "d0e37537c0b57e6ac9441d86bfaf349c799b6323c0c258fdf9de3bfb76c07516",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-4/observations.json"
+          }
+        },
+        "scope": "Four complete finite tool definitions:6synthetic runs/58requests and377executed original assertions. Full reports/progress/error identity retain warmup, collapsed/fallback tiers, duplicate classifications and safe preflight; no live evaluator or numerical timing evidence."
+      },
       "related_components": [
         "evaluators"
-      ]
+      ],
+      "remaining_assertions": [],
+      "assertion_mapping": "rust/parity/assertion-mappings/ollama-routing-tool-contracts.json"
     },
     {
       "id": "test/ollama-routing.test.mjs#8",
       "file": "test/ollama-routing.test.mjs",
       "name": "live preflight never unloads another resident model or downloads a missing selected model",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/xtask/src/ollama_routing_contracts.rs#busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks"
+      ],
+      "shared_cases": [
+        "ollama-routing-tool-8-1",
+        "ollama-routing-tool-8-2"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/ollama-routing-tool-contracts.json",
+        "assertion_mapping_sha256": "0546c167849e08ff11bf8da24038729dc70a796b39dd72239b5d2cdf544c0de2",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/b9ddb75ae55a996adc3d16f9ef9ea049edda2664627d189839ed4c1a66fd7621.json",
+          "sha256": "b9ddb75ae55a996adc3d16f9ef9ea049edda2664627d189839ed4c1a66fd7621",
+          "bytes": 26886,
+          "original_path": "/private/tmp/autorouter-ollama-routing-tool-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/71f3009a8555be27228b73be7ee73e6a543814ce793b578476bdf36c4c8f33d7.json",
+          "sha256": "71f3009a8555be27228b73be7ee73e6a543814ce793b578476bdf36c4c8f33d7",
+          "bytes": 7435,
+          "original_path": "/private/tmp/autorouter-ollama-routing-tool-independent-review.json"
+        },
+        "execution": {
+          "0-eleventh-ollama-tool-capture-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/8daa5a957c896c4cbefa049c04b839afce43509e112ee35305e6db5c4cc25786.log",
+            "bytes": 135,
+            "sha256": "8daa5a957c896c4cbefa049c04b839afce43509e112ee35305e6db5c4cc25786",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-1.log"
+          },
+          "1-eleventh-ollama-tool-capture-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/5bf262e5a00b828d25ac3c4667f8cb4d89dbf56730a56ee1ef3404c9e6796bc2.log",
+            "bytes": 135,
+            "sha256": "5bf262e5a00b828d25ac3c4667f8cb4d89dbf56730a56ee1ef3404c9e6796bc2",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-2.log"
+          },
+          "2-eleventh-ollama-tool-capture-3.log": {
+            "path": "artifacts/rust-rewrite/evidence/d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3.log",
+            "bytes": 135,
+            "sha256": "d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-3.log"
+          },
+          "3-eleventh-ollama-tool-capture-4.log": {
+            "path": "artifacts/rust-rewrite/evidence/d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3.log",
+            "bytes": 135,
+            "sha256": "d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-4.log"
+          },
+          "4-eleventh-ollama-tool-clippy-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/2e086aa86e2b5de9fdf76a16001b300b148ce2eafe870d8f468b23862b109863.log",
+            "bytes": 1701,
+            "sha256": "2e086aa86e2b5de9fdf76a16001b300b148ce2eafe870d8f468b23862b109863",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-clippy-1.log"
+          },
+          "5-eleventh-ollama-tool-clippy-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/74a66b8e0997dddd9afa0c67e5fb2ae508ebd65543417714b1336dcffd5463c2.log",
+            "bytes": 645,
+            "sha256": "74a66b8e0997dddd9afa0c67e5fb2ae508ebd65543417714b1336dcffd5463c2",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-clippy-2.log"
+          },
+          "6-eleventh-ollama-tool-clippy-3.log": {
+            "path": "artifacts/rust-rewrite/evidence/b72b894291a6736bbac1a55d7c1cf5422776ff7275ab27cff6008622586d95db.log",
+            "bytes": 645,
+            "sha256": "b72b894291a6736bbac1a55d7c1cf5422776ff7275ab27cff6008622586d95db",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-clippy-3.log"
+          },
+          "7-eleventh-ollama-tool-existing-regression.log": {
+            "path": "artifacts/rust-rewrite/evidence/977edf31ddf14e60617a62c3eadf8928771d9d8bae5383ea134c4e95479947dc.log",
+            "bytes": 1125,
+            "sha256": "977edf31ddf14e60617a62c3eadf8928771d9d8bae5383ea134c4e95479947dc",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-existing-regression.log"
+          },
+          "8-eleventh-ollama-tool-frozen-control.log": {
+            "path": "artifacts/rust-rewrite/evidence/d747e41ed71faa001e468604470d0537f74aae3ea51bc85c862e10c54bf3cbf6.log",
+            "bytes": 1047,
+            "sha256": "d747e41ed71faa001e468604470d0537f74aae3ea51bc85c862e10c54bf3cbf6",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-frozen-control.log"
+          },
+          "9-eleventh-ollama-tool-native-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/77b86c8b6e8b88279dbeb5f725a2479cb84bfc498fbb1d3d5cf0ac0130e1d734.log",
+            "bytes": 1165,
+            "sha256": "77b86c8b6e8b88279dbeb5f725a2479cb84bfc498fbb1d3d5cf0ac0130e1d734",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-1.log"
+          },
+          "10-eleventh-ollama-tool-native-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/a1d77c688c4cc94d5d57769ae1a34e9b7aba4a0ecae03e2af6976875e85a65ee.log",
+            "bytes": 1052,
+            "sha256": "a1d77c688c4cc94d5d57769ae1a34e9b7aba4a0ecae03e2af6976875e85a65ee",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-2.log"
+          },
+          "11-eleventh-ollama-tool-native-3.log": {
+            "path": "artifacts/rust-rewrite/evidence/7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1.log",
+            "bytes": 3551,
+            "sha256": "7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-3.log"
+          },
+          "12-eleventh-ollama-tool-native-4.log": {
+            "path": "artifacts/rust-rewrite/evidence/da07bff7246fad09826593cca5a40ad45cc3f651fcb598847bce0a4509a4661d.log",
+            "bytes": 2277,
+            "sha256": "da07bff7246fad09826593cca5a40ad45cc3f651fcb598847bce0a4509a4661d",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-4.log"
+          },
+          "13-eleventh-ollama-tool-native-5.log": {
+            "path": "artifacts/rust-rewrite/evidence/af00bfc6e02ca14aaa3317f9bbc177dddc662773d670f49d6046b43ceb2448e2.log",
+            "bytes": 1794,
+            "sha256": "af00bfc6e02ca14aaa3317f9bbc177dddc662773d670f49d6046b43ceb2448e2",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-5.log"
+          },
+          "14-eleventh-ollama-tool-native-6.log": {
+            "path": "artifacts/rust-rewrite/evidence/331860fb968a60b59213b29f5279565cd231ae40c90bf577d6223f8b3673b42d.log",
+            "bytes": 1794,
+            "sha256": "331860fb968a60b59213b29f5279565cd231ae40c90bf577d6223f8b3673b42d",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-6.log"
+          },
+          "15-eleventh-ollama-routing-tool-checks-1.json": {
+            "path": "artifacts/rust-rewrite/evidence/7c1cad86c0215d62ca8edeb6548c612bb81ee6f9fe9f7eec5f4dd6051df24f98.json",
+            "bytes": 1028,
+            "sha256": "7c1cad86c0215d62ca8edeb6548c612bb81ee6f9fe9f7eec5f4dd6051df24f98",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-checks-1.json"
+          },
+          "16-eleventh-ollama-routing-tool-clippy-2.log": {
+            "path": "artifacts/rust-rewrite/evidence/6cf477bff90e7cee5ba9463fe72a9cf852984a906abb7d5683e00f389a12f714.log",
+            "bytes": 645,
+            "sha256": "6cf477bff90e7cee5ba9463fe72a9cf852984a906abb7d5683e00f389a12f714",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-clippy-2.log"
+          },
+          "17-eleventh-ollama-routing-tool-fmt-1.log": {
+            "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-fmt-1.log"
+          },
+          "18-eleventh-ollama-routing-tool-native-5.log": {
+            "path": "artifacts/rust-rewrite/evidence/2405a85db86bce976775dd6e38893428092fb80bdf77bf5cf16e1ae50faf2b0f.log",
+            "bytes": 1721,
+            "sha256": "2405a85db86bce976775dd6e38893428092fb80bdf77bf5cf16e1ae50faf2b0f",
+            "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-native-5.log"
+          },
+          "19-report.json": {
+            "path": "artifacts/rust-rewrite/evidence/7990afeccdb75b4af7fae6036c21661167a464742729b108c3d6bc67ed445509.json",
+            "bytes": 1228,
+            "sha256": "7990afeccdb75b4af7fae6036c21661167a464742729b108c3d6bc67ed445509",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/report.json"
+          },
+          "20-ollama_routing_contracts.rs": {
+            "path": "artifacts/rust-rewrite/evidence/0937406b290899e64fa1eecb0ff843be3b3fb384cb3ca46040ffebff2d9f316f.rs",
+            "bytes": 12117,
+            "sha256": "0937406b290899e64fa1eecb0ff843be3b3fb384cb3ca46040ffebff2d9f316f",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/ollama_routing_contracts.rs"
+          },
+          "21-ollama_routing.rs": {
+            "path": "artifacts/rust-rewrite/evidence/606830442ee4b0b41e857e21262ecb57e9eecb8d8a6ab2cac4cc15b743fa9bc4.rs",
+            "bytes": 13895,
+            "sha256": "606830442ee4b0b41e857e21262ecb57e9eecb8d8a6ab2cac4cc15b743fa9bc4",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/ollama_routing.rs"
+          },
+          "22-eleventh-ollama-tool-native-3.log": {
+            "path": "artifacts/rust-rewrite/evidence/7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1.log",
+            "bytes": 3551,
+            "sha256": "7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/eleventh-ollama-tool-native-3.log"
+          },
+          "23-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/566292a2fd4b2aa13f6eff77ae34f2963168080b8344faf28dba8e37db83ccac.jsonl",
+            "bytes": 107979,
+            "sha256": "566292a2fd4b2aa13f6eff77ae34f2963168080b8344faf28dba8e37db83ccac",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-1/cases.jsonl"
+          },
+          "24-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/03ea305be5d4f4c536ca92f5d26e99c08927af0028efbcf7c4b2ee0d84bf2430.json",
+            "bytes": 55512,
+            "sha256": "03ea305be5d4f4c536ca92f5d26e99c08927af0028efbcf7c4b2ee0d84bf2430",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-1/capture.json"
+          },
+          "25-observations.json": {
+            "path": "artifacts/rust-rewrite/evidence/715a72197f569fd76c9f5a8916e6b45e836cbd09567ea978563f45b8ee5c74d3.json",
+            "bytes": 14543,
+            "sha256": "715a72197f569fd76c9f5a8916e6b45e836cbd09567ea978563f45b8ee5c74d3",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-1/observations.json"
+          },
+          "26-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/a35ad9ac249a53b061ee0bca913e7d105984894e3f3fa98296fa7163eaedbdb4.jsonl",
+            "bytes": 107976,
+            "sha256": "a35ad9ac249a53b061ee0bca913e7d105984894e3f3fa98296fa7163eaedbdb4",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-2/cases.jsonl"
+          },
+          "27-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/34ccbde3cb8fc0c86d77294122b470afdf768a78af5b8c40b0b572844d652e64.json",
+            "bytes": 55512,
+            "sha256": "34ccbde3cb8fc0c86d77294122b470afdf768a78af5b8c40b0b572844d652e64",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-2/capture.json"
+          },
+          "28-observations.json": {
+            "path": "artifacts/rust-rewrite/evidence/da730ee4cc3cc9a9eb1d842546deaaa9bf0ffb38e5bc3a55a57ccf7474fb8616.json",
+            "bytes": 14537,
+            "sha256": "da730ee4cc3cc9a9eb1d842546deaaa9bf0ffb38e5bc3a55a57ccf7474fb8616",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-2/observations.json"
+          },
+          "29-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d.jsonl",
+            "bytes": 108024,
+            "sha256": "a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-3/cases.jsonl"
+          },
+          "30-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d.json",
+            "bytes": 55512,
+            "sha256": "757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-3/capture.json"
+          },
+          "31-observations.json": {
+            "path": "artifacts/rust-rewrite/evidence/7009ad543882e9bb5d1026ec2b14a2d582c9f0a063786711a342599c0351f9ba.json",
+            "bytes": 14533,
+            "sha256": "7009ad543882e9bb5d1026ec2b14a2d582c9f0a063786711a342599c0351f9ba",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-3/observations.json"
+          },
+          "32-cases.jsonl": {
+            "path": "artifacts/rust-rewrite/evidence/a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d.jsonl",
+            "bytes": 108024,
+            "sha256": "a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-4/cases.jsonl"
+          },
+          "33-capture.json": {
+            "path": "artifacts/rust-rewrite/evidence/757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d.json",
+            "bytes": 55512,
+            "sha256": "757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-4/capture.json"
+          },
+          "34-observations.json": {
+            "path": "artifacts/rust-rewrite/evidence/d0e37537c0b57e6ac9441d86bfaf349c799b6323c0c258fdf9de3bfb76c07516.json",
+            "bytes": 14539,
+            "sha256": "d0e37537c0b57e6ac9441d86bfaf349c799b6323c0c258fdf9de3bfb76c07516",
+            "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-4/observations.json"
+          }
+        },
+        "scope": "Four complete finite tool definitions:6synthetic runs/58requests and377executed original assertions. Full reports/progress/error identity retain warmup, collapsed/fallback tiers, duplicate classifications and safe preflight; no live evaluator or numerical timing evidence."
+      },
       "related_components": [
         "evaluators"
-      ]
+      ],
+      "remaining_assertions": [],
+      "assertion_mapping": "rust/parity/assertion-mappings/ollama-routing-tool-contracts.json"
     },
     {
       "id": "test/ollama-setup.test.mjs#1",
@@ -18259,210 +19568,566 @@
       "file": "test/savings.test.mjs",
       "name": "compares provider-confirmed token usage with Opus and exposes only aggregate estimates",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/savings.rs#savings::tests::exact_rates_cache_ttls_and_negative_savings_are_retained"
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#provider_confirmed_usage_settles_only_at_completion_and_keeps_aggregate_privacy"
       ],
       "shared_cases": [
-        "accounting-3993",
-        "accounting-3995",
-        "accounting-3997"
+        "savings-finite-1-1"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+        "assertion_mapping_sha256": "1a73a4fe3f0aef20dc4675ec39251963456b1a037e6e8ade746ad23d670fbe13",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62.json",
+          "sha256": "d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62",
+          "bytes": 3987,
+          "original_path": "/private/tmp/autorouter-savings-finite-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f.json",
+          "sha256": "c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f",
+          "bytes": 10764,
+          "original_path": "/private/tmp/autorouter-savings-finite-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107.log",
+            "sha256": "7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107",
+            "bytes": 1685,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/native.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187.log",
+            "sha256": "94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187",
+            "bytes": 3272,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/frozen-controls.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4.log",
+            "sha256": "ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4",
+            "bytes": 172,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/clippy.log"
+          },
+          "capture_repeat": {
+            "path": "artifacts/rust-rewrite/evidence/2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25.json",
+            "sha256": "2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25",
+            "bytes": 702,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/capture-checks.json"
+          },
+          "initial_native_failure": {
+            "path": "artifacts/rust-rewrite/evidence/8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754.log",
+            "sha256": "8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754",
+            "bytes": 9177,
+            "original_path": "artifacts/rust-rewrite/savings-finite-2/native-initial.log"
+          },
+          "validation": {
+            "path": "artifacts/rust-rewrite/evidence/86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7.json",
+            "sha256": "86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7",
+            "bytes": 3574,
+            "original_path": "/private/tmp/autorouter-savings-finite-validation.json"
+          }
+        },
+        "scope": "Fifteen complete finite definitions:47 trackers,421updates,104original snapshots and21outcomes;61static/130executed assertions. Exact complete native values with reviewed JSON Number/undefined/native-map adapters; frozen pricing unchanged."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Intermediate pre-completion zero totals, selected-versus-confirmed mismatch, and aggregate-only privacy are not jointly asserted by the retained tracker cases; native rate test covers the final ordinary estimate only."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/savings.test.mjs#2",
       "file": "test/savings.test.mjs",
       "name": "prices cache reads and both write TTLs without counting cached input twice",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/savings.rs#savings::tests::exact_rates_cache_ttls_and_negative_savings_are_retained"
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#cache_reads_both_write_ttls_and_accumulated_percentage_match"
       ],
       "shared_cases": [
-        "accounting-3993",
-        "accounting-3995",
-        "accounting-3997"
+        "savings-finite-2-1"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+        "assertion_mapping_sha256": "1a73a4fe3f0aef20dc4675ec39251963456b1a037e6e8ade746ad23d670fbe13",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62.json",
+          "sha256": "d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62",
+          "bytes": 3987,
+          "original_path": "/private/tmp/autorouter-savings-finite-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f.json",
+          "sha256": "c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f",
+          "bytes": 10764,
+          "original_path": "/private/tmp/autorouter-savings-finite-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107.log",
+            "sha256": "7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107",
+            "bytes": 1685,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/native.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187.log",
+            "sha256": "94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187",
+            "bytes": 3272,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/frozen-controls.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4.log",
+            "sha256": "ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4",
+            "bytes": 172,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/clippy.log"
+          },
+          "capture_repeat": {
+            "path": "artifacts/rust-rewrite/evidence/2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25.json",
+            "sha256": "2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25",
+            "bytes": 702,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/capture-checks.json"
+          },
+          "initial_native_failure": {
+            "path": "artifacts/rust-rewrite/evidence/8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754.log",
+            "sha256": "8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754",
+            "bytes": 9177,
+            "original_path": "artifacts/rust-rewrite/savings-finite-2/native-initial.log"
+          },
+          "validation": {
+            "path": "artifacts/rust-rewrite/evidence/86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7.json",
+            "sha256": "86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7",
+            "bytes": 3574,
+            "original_path": "/private/tmp/autorouter-savings-finite-validation.json"
+          }
+        },
+        "scope": "Fifteen complete finite definitions:47 trackers,421updates,104original snapshots and21outcomes;61static/130executed assertions. Exact complete native values with reviewed JSON Number/undefined/native-map adapters; frozen pricing unchanged."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Native exact mixed-TTL values are asserted, but the second cache-read-only request and its cumulative actual/baseline/saved totals are not retained together."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/savings.test.mjs#3",
       "file": "test/savings.test.mjs",
       "name": "supports documented exact aliases, an Opus baseline override, and negative savings",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/savings.rs#savings::tests::exact_rates_cache_ttls_and_negative_savings_are_retained"
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#all_exact_aliases_baseline_override_and_negative_savings_match"
       ],
       "shared_cases": [
-        "accounting-3993",
-        "accounting-3995",
-        "accounting-3997"
+        "savings-finite-3-1",
+        "savings-finite-3-2",
+        "savings-finite-3-3",
+        "savings-finite-3-4",
+        "savings-finite-3-5",
+        "savings-finite-3-6",
+        "savings-finite-3-7",
+        "savings-finite-3-8"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+        "assertion_mapping_sha256": "1a73a4fe3f0aef20dc4675ec39251963456b1a037e6e8ade746ad23d670fbe13",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62.json",
+          "sha256": "d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62",
+          "bytes": 3987,
+          "original_path": "/private/tmp/autorouter-savings-finite-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f.json",
+          "sha256": "c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f",
+          "bytes": 10764,
+          "original_path": "/private/tmp/autorouter-savings-finite-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107.log",
+            "sha256": "7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107",
+            "bytes": 1685,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/native.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187.log",
+            "sha256": "94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187",
+            "bytes": 3272,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/frozen-controls.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4.log",
+            "sha256": "ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4",
+            "bytes": 172,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/clippy.log"
+          },
+          "capture_repeat": {
+            "path": "artifacts/rust-rewrite/evidence/2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25.json",
+            "sha256": "2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25",
+            "bytes": 702,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/capture-checks.json"
+          },
+          "initial_native_failure": {
+            "path": "artifacts/rust-rewrite/evidence/8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754.log",
+            "sha256": "8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754",
+            "bytes": 9177,
+            "original_path": "artifacts/rust-rewrite/savings-finite-2/native-initial.log"
+          },
+          "validation": {
+            "path": "artifacts/rust-rewrite/evidence/86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7.json",
+            "sha256": "86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7",
+            "bytes": 3574,
+            "original_path": "/private/tmp/autorouter-savings-finite-validation.json"
+          }
+        },
+        "scope": "Fifteen complete finite definitions:47 trackers,421updates,104original snapshots and21outcomes;61static/130executed assertions. Exact complete native values with reviewed JSON Number/undefined/native-map adapters; frozen pricing unchanged."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "All six known model IDs and Opus baseline override are in differential cases; add the exact positive override percent=80 assertion and the complete baseline alias/result matrix as one auditable definition mapping."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/savings.test.mjs#4",
       "file": "test/savings.test.mjs",
       "name": "includes main, subagent and auxiliary calls and settles overlapping requests independently",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/savings.rs#savings::tests::overlapping_calls_and_duplicate_notifications_have_independent_settlement"
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#overlapping_main_subagent_and_auxiliary_requests_settle_independently"
       ],
       "shared_cases": [
-        "accounting-3993",
-        "accounting-3995",
-        "accounting-3997"
+        "savings-finite-4-1"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+        "assertion_mapping_sha256": "1a73a4fe3f0aef20dc4675ec39251963456b1a037e6e8ade746ad23d670fbe13",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62.json",
+          "sha256": "d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62",
+          "bytes": 3987,
+          "original_path": "/private/tmp/autorouter-savings-finite-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f.json",
+          "sha256": "c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f",
+          "bytes": 10764,
+          "original_path": "/private/tmp/autorouter-savings-finite-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107.log",
+            "sha256": "7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107",
+            "bytes": 1685,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/native.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187.log",
+            "sha256": "94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187",
+            "bytes": 3272,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/frozen-controls.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4.log",
+            "sha256": "ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4",
+            "bytes": 172,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/clippy.log"
+          },
+          "capture_repeat": {
+            "path": "artifacts/rust-rewrite/evidence/2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25.json",
+            "sha256": "2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25",
+            "bytes": 702,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/capture-checks.json"
+          },
+          "initial_native_failure": {
+            "path": "artifacts/rust-rewrite/evidence/8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754.log",
+            "sha256": "8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754",
+            "bytes": 9177,
+            "original_path": "artifacts/rust-rewrite/savings-finite-2/native-initial.log"
+          },
+          "validation": {
+            "path": "artifacts/rust-rewrite/evidence/86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7.json",
+            "sha256": "86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7",
+            "bytes": 3574,
+            "original_path": "/private/tmp/autorouter-savings-finite-validation.json"
+          }
+        },
+        "scope": "Fifteen complete finite definitions:47 trackers,421updates,104original snapshots and21outcomes;61static/130executed assertions. Exact complete native values with reviewed JSON Number/undefined/native-map adapters; frozen pricing unchanged."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Native overlapping settlement covers three models and order, but omits explicit agent_id/request_class main/subagent/auxiliary fields and the full baseline/saved totals assertions."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/savings.test.mjs#5",
       "file": "test/savings.test.mjs",
       "name": "keeps sessions isolated and rejects malformed IDs without prototype pollution",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/savings.rs#savings::tests::overlapping_calls_and_duplicate_notifications_have_independent_settlement"
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#sessions_and_literal_prototype_keys_remain_isolated"
       ],
       "shared_cases": [
-        "accounting-3993",
-        "accounting-3995",
-        "accounting-3997"
+        "savings-finite-5-1"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+        "assertion_mapping_sha256": "1a73a4fe3f0aef20dc4675ec39251963456b1a037e6e8ade746ad23d670fbe13",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62.json",
+          "sha256": "d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62",
+          "bytes": 3987,
+          "original_path": "/private/tmp/autorouter-savings-finite-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f.json",
+          "sha256": "c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f",
+          "bytes": 10764,
+          "original_path": "/private/tmp/autorouter-savings-finite-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107.log",
+            "sha256": "7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107",
+            "bytes": 1685,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/native.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187.log",
+            "sha256": "94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187",
+            "bytes": 3272,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/frozen-controls.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4.log",
+            "sha256": "ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4",
+            "bytes": 172,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/clippy.log"
+          },
+          "capture_repeat": {
+            "path": "artifacts/rust-rewrite/evidence/2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25.json",
+            "sha256": "2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25",
+            "bytes": 702,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/capture-checks.json"
+          },
+          "initial_native_failure": {
+            "path": "artifacts/rust-rewrite/evidence/8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754.log",
+            "sha256": "8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754",
+            "bytes": 9177,
+            "original_path": "artifacts/rust-rewrite/savings-finite-2/native-initial.log"
+          },
+          "validation": {
+            "path": "artifacts/rust-rewrite/evidence/86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7.json",
+            "sha256": "86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7",
+            "bytes": 3574,
+            "original_path": "/private/tmp/autorouter-savings-finite-validation.json"
+          }
+        },
+        "scope": "Fifteen complete finite definitions:47 trackers,421updates,104original snapshots and21outcomes;61static/130executed assertions. Exact complete native values with reviewed JSON Number/undefined/native-map adapters; frozen pricing unchanged."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "The corpus varies anonymous/prototype/malformed session IDs separately. It does not retain the combined five-session snapshot, malformed request ID rejection, and unrelated-object pollution check from this definition."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/savings.test.mjs#6",
       "file": "test/savings.test.mjs",
       "name": "duplicate events and terminal notifications do not count the same request twice",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/savings.rs#savings::tests::overlapping_calls_and_duplicate_notifications_have_independent_settlement"
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#duplicate_terminals_and_detached_snapshot_mutation_do_not_change_totals"
       ],
       "shared_cases": [
-        "accounting-3993",
-        "accounting-3995",
-        "accounting-3997"
+        "savings-finite-6-1"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+        "assertion_mapping_sha256": "1a73a4fe3f0aef20dc4675ec39251963456b1a037e6e8ade746ad23d670fbe13",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62.json",
+          "sha256": "d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62",
+          "bytes": 3987,
+          "original_path": "/private/tmp/autorouter-savings-finite-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f.json",
+          "sha256": "c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f",
+          "bytes": 10764,
+          "original_path": "/private/tmp/autorouter-savings-finite-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107.log",
+            "sha256": "7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107",
+            "bytes": 1685,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/native.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187.log",
+            "sha256": "94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187",
+            "bytes": 3272,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/frozen-controls.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4.log",
+            "sha256": "ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4",
+            "bytes": 172,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/clippy.log"
+          },
+          "capture_repeat": {
+            "path": "artifacts/rust-rewrite/evidence/2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25.json",
+            "sha256": "2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25",
+            "bytes": 702,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/capture-checks.json"
+          },
+          "initial_native_failure": {
+            "path": "artifacts/rust-rewrite/evidence/8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754.log",
+            "sha256": "8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754",
+            "bytes": 9177,
+            "original_path": "artifacts/rust-rewrite/savings-finite-2/native-initial.log"
+          },
+          "validation": {
+            "path": "artifacts/rust-rewrite/evidence/86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7.json",
+            "sha256": "86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7",
+            "bytes": 3574,
+            "original_path": "/private/tmp/autorouter-savings-finite-validation.json"
+          }
+        },
+        "scope": "Fifteen complete finite definitions:47 trackers,421updates,104original snapshots and21outcomes;61static/130executed assertions. Exact complete native values with reviewed JSON Number/undefined/native-map adapters; frozen pricing unchanged."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Native tests cover late completion and detached snapshot mutation, but not the full repeated request_start/usage/terminal/upstream_error sequence and all aggregate counters."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/savings.test.mjs#7",
       "file": "test/savings.test.mjs",
       "name": "unknown models or a custom non-Opus baseline remain unpriced",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/savings.rs#savings::tests::malformed_usage_and_unsupported_modifiers_never_gain_a_guessed_price"
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unknown_models_and_invalid_baselines_never_guess_prices"
       ],
       "shared_cases": [
-        "accounting-3993",
-        "accounting-3995",
-        "accounting-3997"
+        "savings-finite-7-1",
+        "savings-finite-7-2",
+        "savings-finite-7-3",
+        "savings-finite-7-4",
+        "savings-finite-7-5",
+        "savings-finite-7-6",
+        "savings-finite-7-7"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+        "assertion_mapping_sha256": "1a73a4fe3f0aef20dc4675ec39251963456b1a037e6e8ade746ad23d670fbe13",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62.json",
+          "sha256": "d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62",
+          "bytes": 3987,
+          "original_path": "/private/tmp/autorouter-savings-finite-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f.json",
+          "sha256": "c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f",
+          "bytes": 10764,
+          "original_path": "/private/tmp/autorouter-savings-finite-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107.log",
+            "sha256": "7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107",
+            "bytes": 1685,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/native.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187.log",
+            "sha256": "94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187",
+            "bytes": 3272,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/frozen-controls.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4.log",
+            "sha256": "ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4",
+            "bytes": 172,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/clippy.log"
+          },
+          "capture_repeat": {
+            "path": "artifacts/rust-rewrite/evidence/2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25.json",
+            "sha256": "2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25",
+            "bytes": 702,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/capture-checks.json"
+          },
+          "initial_native_failure": {
+            "path": "artifacts/rust-rewrite/evidence/8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754.log",
+            "sha256": "8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754",
+            "bytes": 9177,
+            "original_path": "artifacts/rust-rewrite/savings-finite-2/native-initial.log"
+          },
+          "validation": {
+            "path": "artifacts/rust-rewrite/evidence/86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7.json",
+            "sha256": "86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7",
+            "bytes": 3574,
+            "original_path": "/private/tmp/autorouter-savings-finite-validation.json"
+          }
+        },
+        "scope": "Fifteen complete finite definitions:47 trackers,421updates,104original snapshots and21outcomes;61static/130executed assertions. Exact complete native values with reviewed JSON Number/undefined/native-map adapters; frozen pricing unchanged."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "The corpus covers unknown/null/missing serving models and custom/non-Opus baselines. Exact future-date/opus99 aliases and escape-bearing baseline variants are absent."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/savings.test.mjs#8",
@@ -18499,150 +20164,415 @@
       "file": "test/savings.test.mjs",
       "name": "accepts explicit zero usage and a complete TTL split without an aggregate field",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/savings.rs#savings::tests::exact_rates_cache_ttls_and_negative_savings_are_retained"
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#zero_usage_and_split_only_cache_creation_match"
       ],
       "shared_cases": [
-        "accounting-3993",
-        "accounting-3995",
-        "accounting-3997"
+        "savings-finite-9-1"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+        "assertion_mapping_sha256": "1a73a4fe3f0aef20dc4675ec39251963456b1a037e6e8ade746ad23d670fbe13",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62.json",
+          "sha256": "d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62",
+          "bytes": 3987,
+          "original_path": "/private/tmp/autorouter-savings-finite-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f.json",
+          "sha256": "c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f",
+          "bytes": 10764,
+          "original_path": "/private/tmp/autorouter-savings-finite-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107.log",
+            "sha256": "7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107",
+            "bytes": 1685,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/native.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187.log",
+            "sha256": "94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187",
+            "bytes": 3272,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/frozen-controls.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4.log",
+            "sha256": "ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4",
+            "bytes": 172,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/clippy.log"
+          },
+          "capture_repeat": {
+            "path": "artifacts/rust-rewrite/evidence/2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25.json",
+            "sha256": "2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25",
+            "bytes": 702,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/capture-checks.json"
+          },
+          "initial_native_failure": {
+            "path": "artifacts/rust-rewrite/evidence/8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754.log",
+            "sha256": "8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754",
+            "bytes": 9177,
+            "original_path": "artifacts/rust-rewrite/savings-finite-2/native-initial.log"
+          },
+          "validation": {
+            "path": "artifacts/rust-rewrite/evidence/86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7.json",
+            "sha256": "86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7",
+            "bytes": 3574,
+            "original_path": "/private/tmp/autorouter-savings-finite-validation.json"
+          }
+        },
+        "scope": "Fifteen complete finite definitions:47 trackers,421updates,104original snapshots and21outcomes;61static/130executed assertions. Exact complete native values with reviewed JSON Number/undefined/native-map adapters; frozen pricing unchanged."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "TTL splits without aggregate are exercised; the all-zero input/output counters case with percent=0 and exact isolated one-hour-only total is not retained as an explicit tracker case."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/savings.test.mjs#10",
       "file": "test/savings.test.mjs",
       "name": "unsupported request or actual usage pricing modifiers remain unpriced",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/savings.rs#savings::tests::malformed_usage_and_unsupported_modifiers_never_gain_a_guessed_price"
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#request_and_actual_usage_modifiers_have_exact_unpriced_behavior"
       ],
       "shared_cases": [
-        "accounting-3993",
-        "accounting-3995",
-        "accounting-3997"
+        "savings-finite-10-1",
+        "savings-finite-10-2",
+        "savings-finite-10-3",
+        "savings-finite-10-4",
+        "savings-finite-10-5",
+        "savings-finite-10-6",
+        "savings-finite-10-7",
+        "savings-finite-10-8",
+        "savings-finite-10-9"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+        "assertion_mapping_sha256": "1a73a4fe3f0aef20dc4675ec39251963456b1a037e6e8ade746ad23d670fbe13",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62.json",
+          "sha256": "d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62",
+          "bytes": 3987,
+          "original_path": "/private/tmp/autorouter-savings-finite-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f.json",
+          "sha256": "c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f",
+          "bytes": 10764,
+          "original_path": "/private/tmp/autorouter-savings-finite-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107.log",
+            "sha256": "7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107",
+            "bytes": 1685,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/native.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187.log",
+            "sha256": "94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187",
+            "bytes": 3272,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/frozen-controls.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4.log",
+            "sha256": "ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4",
+            "bytes": 172,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/clippy.log"
+          },
+          "capture_repeat": {
+            "path": "artifacts/rust-rewrite/evidence/2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25.json",
+            "sha256": "2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25",
+            "bytes": 702,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/capture-checks.json"
+          },
+          "initial_native_failure": {
+            "path": "artifacts/rust-rewrite/evidence/8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754.log",
+            "sha256": "8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754",
+            "bytes": 9177,
+            "original_path": "artifacts/rust-rewrite/savings-finite-2/native-initial.log"
+          },
+          "validation": {
+            "path": "artifacts/rust-rewrite/evidence/86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7.json",
+            "sha256": "86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7",
+            "bytes": 3574,
+            "original_path": "/private/tmp/autorouter-savings-finite-validation.json"
+          }
+        },
+        "scope": "Fifteen complete finite definitions:47 trackers,421updates,104original snapshots and21outcomes;61static/130executed assertions. Exact complete native values with reviewed JSON Number/undefined/native-map adapters; frozen pricing unchanged."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Unsupported context/usage variants exist, but batch/unknown service tier and each unsupported flag across both request and actual-usage locations plus the full standard triple are not all represented."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/savings.test.mjs#11",
       "file": "test/savings.test.mjs",
       "name": "prices Haiku 4.5 unavailable geography at its documented standard rate only",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/savings.rs#savings::tests::geography_exception_belongs_only_to_confirmed_haiku_usage"
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unavailable_geography_is_limited_to_exact_haiku_models"
       ],
       "shared_cases": [
-        "accounting-4379",
-        "accounting-4389",
-        "accounting-4780"
+        "savings-finite-11-1",
+        "savings-finite-11-2",
+        "savings-finite-11-3",
+        "savings-finite-11-4",
+        "savings-finite-11-5",
+        "savings-finite-11-6",
+        "savings-finite-11-7",
+        "savings-finite-11-8"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+        "assertion_mapping_sha256": "1a73a4fe3f0aef20dc4675ec39251963456b1a037e6e8ade746ad23d670fbe13",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62.json",
+          "sha256": "d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62",
+          "bytes": 3987,
+          "original_path": "/private/tmp/autorouter-savings-finite-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f.json",
+          "sha256": "c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f",
+          "bytes": 10764,
+          "original_path": "/private/tmp/autorouter-savings-finite-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107.log",
+            "sha256": "7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107",
+            "bytes": 1685,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/native.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187.log",
+            "sha256": "94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187",
+            "bytes": 3272,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/frozen-controls.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4.log",
+            "sha256": "ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4",
+            "bytes": 172,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/clippy.log"
+          },
+          "capture_repeat": {
+            "path": "artifacts/rust-rewrite/evidence/2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25.json",
+            "sha256": "2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25",
+            "bytes": 702,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/capture-checks.json"
+          },
+          "initial_native_failure": {
+            "path": "artifacts/rust-rewrite/evidence/8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754.log",
+            "sha256": "8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754",
+            "bytes": 9177,
+            "original_path": "artifacts/rust-rewrite/savings-finite-2/native-initial.log"
+          },
+          "validation": {
+            "path": "artifacts/rust-rewrite/evidence/86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7.json",
+            "sha256": "86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7",
+            "bytes": 3574,
+            "original_path": "/private/tmp/autorouter-savings-finite-validation.json"
+          }
+        },
+        "scope": "Fifteen complete finite definitions:47 trackers,421updates,104original snapshots and21outcomes;61static/130executed assertions. Exact complete native values with reviewed JSON Number/undefined/native-map adapters; frozen pricing unchanged."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Unavailable geography is exercised for several exact models; missing the complete context-not_available plus actual null/unknown geography matrix and both Sonnet aliases in the native exception test."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/savings.test.mjs#12",
       "file": "test/savings.test.mjs",
       "name": "HTTP, streaming, transport and cancelled failures never appear as savings",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/savings.rs#savings::tests::errors_cancellation_and_unconfirmed_completion_never_count_as_savings"
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#http_streaming_transport_and_cancelled_failures_never_become_savings"
       ],
       "shared_cases": [
-        "accounting-3993",
-        "accounting-3995",
-        "accounting-3997"
+        "savings-finite-12-1",
+        "savings-finite-12-2",
+        "savings-finite-12-3",
+        "savings-finite-12-4"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+        "assertion_mapping_sha256": "1a73a4fe3f0aef20dc4675ec39251963456b1a037e6e8ade746ad23d670fbe13",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62.json",
+          "sha256": "d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62",
+          "bytes": 3987,
+          "original_path": "/private/tmp/autorouter-savings-finite-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f.json",
+          "sha256": "c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f",
+          "bytes": 10764,
+          "original_path": "/private/tmp/autorouter-savings-finite-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107.log",
+            "sha256": "7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107",
+            "bytes": 1685,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/native.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187.log",
+            "sha256": "94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187",
+            "bytes": 3272,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/frozen-controls.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4.log",
+            "sha256": "ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4",
+            "bytes": 172,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/clippy.log"
+          },
+          "capture_repeat": {
+            "path": "artifacts/rust-rewrite/evidence/2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25.json",
+            "sha256": "2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25",
+            "bytes": 702,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/capture-checks.json"
+          },
+          "initial_native_failure": {
+            "path": "artifacts/rust-rewrite/evidence/8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754.log",
+            "sha256": "8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754",
+            "bytes": 9177,
+            "original_path": "artifacts/rust-rewrite/savings-finite-2/native-initial.log"
+          },
+          "validation": {
+            "path": "artifacts/rust-rewrite/evidence/86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7.json",
+            "sha256": "86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7",
+            "bytes": 3574,
+            "original_path": "/private/tmp/autorouter-savings-finite-validation.json"
+          }
+        },
+        "scope": "Fifteen complete finite definitions:47 trackers,421updates,104original snapshots and21outcomes;61static/130executed assertions. Exact complete native values with reviewed JSON Number/undefined/native-map adapters; frozen pricing unchanged."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Native failures cover upstream/request errors, cancellation and repeat completion; corpus covers HTTP429. Preserve a single definition-level mapping asserting zero priced/one unpriced for each full baseline failure sequence."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/savings.test.mjs#13",
       "file": "test/savings.test.mjs",
       "name": "conflicting model or final usage observations invalidate the request",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/savings.rs#savings::tests::historical_estimates_require_recorded_provenance_and_clean_outcomes"
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#conflicting_model_and_usage_observations_invalidate_requests"
       ],
       "shared_cases": [
-        "accounting-3993",
-        "accounting-3995",
-        "accounting-3997"
+        "savings-finite-13-1",
+        "savings-finite-13-2",
+        "savings-finite-13-3"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+        "assertion_mapping_sha256": "1a73a4fe3f0aef20dc4675ec39251963456b1a037e6e8ade746ad23d670fbe13",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62.json",
+          "sha256": "d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62",
+          "bytes": 3987,
+          "original_path": "/private/tmp/autorouter-savings-finite-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f.json",
+          "sha256": "c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f",
+          "bytes": 10764,
+          "original_path": "/private/tmp/autorouter-savings-finite-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107.log",
+            "sha256": "7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107",
+            "bytes": 1685,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/native.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187.log",
+            "sha256": "94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187",
+            "bytes": 3272,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/frozen-controls.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4.log",
+            "sha256": "ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4",
+            "bytes": 172,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/clippy.log"
+          },
+          "capture_repeat": {
+            "path": "artifacts/rust-rewrite/evidence/2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25.json",
+            "sha256": "2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25",
+            "bytes": 702,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/capture-checks.json"
+          },
+          "initial_native_failure": {
+            "path": "artifacts/rust-rewrite/evidence/8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754.log",
+            "sha256": "8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754",
+            "bytes": 9177,
+            "original_path": "artifacts/rust-rewrite/savings-finite-2/native-initial.log"
+          },
+          "validation": {
+            "path": "artifacts/rust-rewrite/evidence/86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7.json",
+            "sha256": "86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7",
+            "bytes": 3574,
+            "original_path": "/private/tmp/autorouter-savings-finite-validation.json"
+          }
+        },
+        "scope": "Fifteen complete finite definitions:47 trackers,421updates,104original snapshots and21outcomes;61static/130executed assertions. Exact complete native values with reviewed JSON Number/undefined/native-map adapters; frozen pricing unchanged."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Corpus has differing model and differing usage observations; explicit second null usage after valid usage is not present, so that invalidation branch remains unmapped."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/savings.test.mjs#14",
@@ -18792,60 +20722,158 @@
       "file": "test/savings.test.mjs",
       "name": "unpriced reasons are bounded aggregate counts, detached from tracker state",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/savings.rs#savings::tests::errors_cancellation_and_unconfirmed_completion_never_count_as_savings"
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#unpriced_reason_counts_remain_detached_and_private"
       ],
       "shared_cases": [
-        "accounting-3993",
-        "accounting-3995",
-        "accounting-3997"
+        "savings-finite-19-1"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+        "assertion_mapping_sha256": "1a73a4fe3f0aef20dc4675ec39251963456b1a037e6e8ade746ad23d670fbe13",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62.json",
+          "sha256": "d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62",
+          "bytes": 3987,
+          "original_path": "/private/tmp/autorouter-savings-finite-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f.json",
+          "sha256": "c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f",
+          "bytes": 10764,
+          "original_path": "/private/tmp/autorouter-savings-finite-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107.log",
+            "sha256": "7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107",
+            "bytes": 1685,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/native.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187.log",
+            "sha256": "94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187",
+            "bytes": 3272,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/frozen-controls.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4.log",
+            "sha256": "ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4",
+            "bytes": 172,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/clippy.log"
+          },
+          "capture_repeat": {
+            "path": "artifacts/rust-rewrite/evidence/2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25.json",
+            "sha256": "2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25",
+            "bytes": 702,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/capture-checks.json"
+          },
+          "initial_native_failure": {
+            "path": "artifacts/rust-rewrite/evidence/8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754.log",
+            "sha256": "8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754",
+            "bytes": 9177,
+            "original_path": "artifacts/rust-rewrite/savings-finite-2/native-initial.log"
+          },
+          "validation": {
+            "path": "artifacts/rust-rewrite/evidence/86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7.json",
+            "sha256": "86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7",
+            "bytes": 3574,
+            "original_path": "/private/tmp/autorouter-savings-finite-validation.json"
+          }
+        },
+        "scope": "Fifteen complete finite definitions:47 trackers,421updates,104original snapshots and21outcomes;61static/130executed assertions. Exact complete native values with reviewed JSON Number/undefined/native-map adapters; frozen pricing unchanged."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Individual unpriced reasons are covered; combined reason histogram, mutation of its returned map, and unknown/private reason suppression are not asserted together."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/savings.test.mjs#20",
       "file": "test/savings.test.mjs",
       "name": "mixed serving models remain unpriced even when their rate tables are identical",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/savings.rs#savings::tests::historical_estimates_require_recorded_provenance_and_clean_outcomes"
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#distinct_serving_models_are_unpriced_even_with_identical_rates"
       ],
       "shared_cases": [
-        "accounting-3993",
-        "accounting-3995",
-        "accounting-3997"
+        "savings-finite-20-1"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+        "assertion_mapping_sha256": "1a73a4fe3f0aef20dc4675ec39251963456b1a037e6e8ade746ad23d670fbe13",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62.json",
+          "sha256": "d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62",
+          "bytes": 3987,
+          "original_path": "/private/tmp/autorouter-savings-finite-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f.json",
+          "sha256": "c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f",
+          "bytes": 10764,
+          "original_path": "/private/tmp/autorouter-savings-finite-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107.log",
+            "sha256": "7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107",
+            "bytes": 1685,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/native.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187.log",
+            "sha256": "94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187",
+            "bytes": 3272,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/frozen-controls.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4.log",
+            "sha256": "ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4",
+            "bytes": 172,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/clippy.log"
+          },
+          "capture_repeat": {
+            "path": "artifacts/rust-rewrite/evidence/2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25.json",
+            "sha256": "2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25",
+            "bytes": 702,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/capture-checks.json"
+          },
+          "initial_native_failure": {
+            "path": "artifacts/rust-rewrite/evidence/8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754.log",
+            "sha256": "8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754",
+            "bytes": 9177,
+            "original_path": "artifacts/rust-rewrite/savings-finite-2/native-initial.log"
+          },
+          "validation": {
+            "path": "artifacts/rust-rewrite/evidence/86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7.json",
+            "sha256": "86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7",
+            "bytes": 3574,
+            "original_path": "/private/tmp/autorouter-savings-finite-validation.json"
+          }
+        },
+        "scope": "Fifteen complete finite definitions:47 trackers,421updates,104original snapshots and21outcomes;61static/130executed assertions. Exact complete native values with reviewed JSON Number/undefined/native-map adapters; frozen pricing unchanged."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Core historical estimator covers distinct Sonnet5 and Sonnet5.5 transitions. Tracker-specific two equal-price observations and final zero-dollar/unpriced behavior are not directly retained."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/savings.test.mjs#21",
@@ -18880,30 +20908,99 @@
       "file": "test/savings.test.mjs",
       "name": "saved outcomes require their recorded pricing version, Opus baseline and confirmed completion",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/savings.rs#savings::tests::historical_estimates_require_recorded_provenance_and_clean_outcomes"
+        "rust/crates/autorouter-core/tests/savings_finite_contracts.rs#saved_outcomes_require_recorded_provenance_and_confirmed_completion"
       ],
       "shared_cases": [
-        "accounting-4",
-        "accounting-9",
-        "accounting-14"
+        "savings-finite-22-1",
+        "savings-finite-22-2",
+        "savings-finite-22-3",
+        "savings-finite-22-4",
+        "savings-finite-22-5",
+        "savings-finite-22-6",
+        "savings-finite-22-7",
+        "savings-finite-22-8",
+        "savings-finite-22-9",
+        "savings-finite-22-10",
+        "savings-finite-22-11",
+        "savings-finite-22-12",
+        "savings-finite-22-13",
+        "savings-finite-22-14",
+        "savings-finite-22-15",
+        "savings-finite-22-16",
+        "savings-finite-22-17",
+        "savings-finite-22-18",
+        "savings-finite-22-19",
+        "savings-finite-22-20",
+        "savings-finite-22-21"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+        "assertion_mapping_sha256": "1a73a4fe3f0aef20dc4675ec39251963456b1a037e6e8ade746ad23d670fbe13",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+          "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+          "bytes": 1434838,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "path": "artifacts/rust-rewrite/evidence/d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62.json",
+          "sha256": "d8dcd33975d4a3c37cc17ee9b92187307128dff7422a091d1fb015811bdd6b62",
+          "bytes": 3987,
+          "original_path": "/private/tmp/autorouter-savings-finite-root-review.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f.json",
+          "sha256": "c7a5e0588606893810444a0e0f7053a1c2e6922cb2900aba7cec7baf8fd6590f",
+          "bytes": 10764,
+          "original_path": "/private/tmp/autorouter-savings-finite-independent-review.json"
+        },
+        "execution": {
+          "native": {
+            "path": "artifacts/rust-rewrite/evidence/7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107.log",
+            "sha256": "7c77586774f08db94140589b14ceaf8ee1f2d5270385d1d1786db636de3da107",
+            "bytes": 1685,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/native.log"
+          },
+          "frozen_controls": {
+            "path": "artifacts/rust-rewrite/evidence/94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187.log",
+            "sha256": "94e3aeaad85c7535a7c154cda0f1725c09ffe969c7ff20ef02301f5cf4b31187",
+            "bytes": 3272,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/frozen-controls.log"
+          },
+          "clippy": {
+            "path": "artifacts/rust-rewrite/evidence/ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4.log",
+            "sha256": "ddafddc452dcf347380059d88719a5af2bd392975c29b747d96cc3e0247d82c4",
+            "bytes": 172,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/clippy.log"
+          },
+          "capture_repeat": {
+            "path": "artifacts/rust-rewrite/evidence/2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25.json",
+            "sha256": "2957809124e07c40b2e6a3b0353c583536ec3b444a4efaf966a1f662b5dcea25",
+            "bytes": 702,
+            "original_path": "artifacts/rust-rewrite/savings-finite-3/capture-checks.json"
+          },
+          "initial_native_failure": {
+            "path": "artifacts/rust-rewrite/evidence/8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754.log",
+            "sha256": "8f4fd8f26f400b45547995db7b4a18f1440d9a496446db5b82f8b54be1861754",
+            "bytes": 9177,
+            "original_path": "artifacts/rust-rewrite/savings-finite-2/native-initial.log"
+          },
+          "validation": {
+            "path": "artifacts/rust-rewrite/evidence/86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7.json",
+            "sha256": "86bba04ccecce9f9808466e27fa443e0b22ddf6ddc778d9a654e5f1ab6fa71f7",
+            "bytes": 3574,
+            "original_path": "/private/tmp/autorouter-savings-finite-validation.json"
+          }
+        },
+        "scope": "Fifteen complete finite definitions:47 trackers,421updates,104original snapshots and21outcomes;61static/130executed assertions. Exact complete native values with reviewed JSON Number/undefined/native-map adapters; frozen pricing unchanged."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Core estimator asserts most provenance/completion negatives and corpus covers field mutations. Missing a complete mapping for absent completion confirmation, malformed legacy decision input, and all 18 negative baseline variants as a set."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/savings-finite-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/server.test.mjs#1",

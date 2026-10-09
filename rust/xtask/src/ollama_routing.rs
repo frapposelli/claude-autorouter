@@ -9,7 +9,7 @@ use autorouter_core::router::RouteOptions;
 use autorouter_runtime::bounded_json::read_response_document;
 use autorouter_runtime::evaluator::ollama_questions;
 use autorouter_runtime::http_client::{HttpTransport, NativeHttpClient};
-use autorouter_runtime::ollama_setup::{SetupOptions, setup_ollama};
+use autorouter_runtime::ollama_setup::{SetupError, SetupOptions, setup_ollama};
 use autorouter_runtime::router::Router;
 use bytes::Bytes;
 use http_body_util::Full;
@@ -20,6 +20,41 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio_util::sync::CancellationToken;
 const TIERS: &[&str] = &["haiku", "sonnet", "opus"];
+/// Tool callers retain setup error identity; CLI diagnostics display only the safe message.
+#[derive(Debug)]
+pub struct RoutingTestError {
+    // Native tool callers can inspect identity; the CLI intentionally prints only message.
+    #[allow(dead_code)]
+    pub code: &'static str,
+    pub message: String,
+}
+impl std::fmt::Display for RoutingTestError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.message)
+    }
+}
+impl std::error::Error for RoutingTestError {}
+impl From<String> for RoutingTestError {
+    fn from(message: String) -> Self {
+        Self {
+            code: "ROUTING_TEST_ERROR",
+            message,
+        }
+    }
+}
+impl From<&str> for RoutingTestError {
+    fn from(message: &str) -> Self {
+        message.to_owned().into()
+    }
+}
+impl From<SetupError> for RoutingTestError {
+    fn from(error: SetupError) -> Self {
+        Self {
+            code: error.code,
+            message: error.message,
+        }
+    }
+}
 fn identity(model: &str) -> String {
     let model = model.strip_prefix("registry.ollama.ai/").unwrap_or(model);
     let model = model.strip_prefix("library/").unwrap_or(model);
@@ -129,7 +164,7 @@ pub async fn run_tests<T: HttpTransport + 'static>(
     fixture: &[u8],
     cancel: &CancellationToken,
     write: &mut impl FnMut(String),
-) -> Result<Value, String> {
+) -> Result<Value, RoutingTestError> {
     if config.evaluator != Evaluator::Ollama {
         return Err("This test requires the local Ollama evaluator.".into());
     }
@@ -151,8 +186,7 @@ pub async fn run_tests<T: HttpTransport + 'static>(
         &SetupOptions::default(),
         write,
     )
-    .await
-    .map_err(|e| e.message)?;
+    .await?;
     let mut report = json!({"type":"ollama_router_integration","timestamp":autorouter_runtime::server_events::timestamp(),"evaluator_model":config.ollama_model,"timeout_ms":config.ollama_timeout_ms,"protocol":"/v1/systemone","fixture_sha256":digest(fixture),"questions_sha256":digest(ollama_questions().to_string().as_bytes()),"resident_before":!resident.is_empty(),"warmup_ms":start.elapsed().as_millis(),"paid_provider_calls":0,"downloads":0,"model_unloaded_by_test":false,"keep_alive":config.ollama_keep_alive,"rows":[]});
     for item in cases.as_array().unwrap() {
         if cancel.is_cancelled() {
@@ -207,13 +241,18 @@ pub async fn run_tests<T: HttpTransport + 'static>(
             }
         }
         write(format!(
-            "{}: {}; evaluator={}, selected={}, source={}, reason={}, {}ms",
+            "{}: {}; evaluator={}, selected={}, source={}, reason={}{}, {}ms",
             item["id"].as_str().unwrap(),
             row["result"].as_str().unwrap(),
             row["classified_tier"].as_str().unwrap_or("none"),
             row["selected_model"].as_str().unwrap_or(""),
             row["source"].as_str().unwrap_or(""),
             row["reason"].as_str().unwrap_or(""),
+            row["classifier_error"]
+                .as_str()
+                .filter(|s| !s.is_empty())
+                .map(|error| format!(", error={error}"))
+                .unwrap_or_default(),
             row["latency_ms"]
         ));
         report["rows"].as_array_mut().unwrap().push(row);
@@ -269,6 +308,7 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
             println!("{line}")
         })
         .await
+        .map_err(|error| error.message)
     })?;
     if let Some(output) = options["output"].as_str() {
         write_report(Path::new(output), &report, true)?;
@@ -317,3 +357,7 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+#[path = "ollama_routing_contracts.rs"]
+mod contracts;

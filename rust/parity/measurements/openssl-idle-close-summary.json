@@ -1,0 +1,276 @@
+{
+  "schema_version": 1,
+  "kind": "test_only_idle_close_order_characterization",
+  "production_eligible": false,
+  "complete_transport_parity": false,
+  "source_baseline": "19a66a919436e9678927f81d3d71f50d84e2abaf",
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/idle-close-final-snapshot/snapshot.json",
+    "bytes": 1985,
+    "sha256": "4e5befe80ae25af72fb1dc66de9a5eb45db9ee6e1e774d3f8c860283ad64871f"
+  },
+  "binary": {
+    "path": "artifacts/rust-rewrite/idle-close-final-snapshot/runtime-tests",
+    "bytes": 75465792,
+    "sha256": "99e5f54507ca26eb780250e93c671a1fc725c65e5562d0d1b566718dd5aba4e5"
+  },
+  "positive_native_tests": {
+    "new_actual_schedules": 6,
+    "additional_control_child_entrypoint": 1,
+    "total_spike_tests": 90,
+    "passed": 90,
+    "failed": 0,
+    "log": {
+      "path": "artifacts/rust-rewrite/idle-close-spike-regression-1.log",
+      "bytes": 20465,
+      "sha256": "caa4ac4022fa641d9417878e0bf0ce0aa82844383baf4163b9eee777f3f9db8d"
+    },
+    "note": "The control child returns immediately without its explicit synthetic environment; it is exercised by the independent driver."
+  },
+  "validation": {
+    "build": {
+      "path": "artifacts/rust-rewrite/idle-close-build-3.jsonl",
+      "bytes": 146577,
+      "sha256": "e3cf56dd347844210e2b821262c8f045a146c5ca1671a6b1604029b408dbac30"
+    },
+    "build_log": {
+      "path": "artifacts/rust-rewrite/idle-close-build-3.log",
+      "bytes": 180,
+      "sha256": "3b8700ff6faa24e56cc1400a20378bf701031c389cfe3830fa3fdb0503759756"
+    },
+    "clippy": {
+      "passed": true,
+      "log": {
+        "path": "artifacts/rust-rewrite/idle-close-clippy-1.log",
+        "bytes": 678,
+        "sha256": "0893e9ff1ca9141c8fcf30ea6e18a475b9f2fbbd8a50b91423335a19cfe0b602"
+      },
+      "note": "Existing vendored unused timer warning retained."
+    },
+    "fmt": {
+      "passed": true,
+      "log": {
+        "path": "artifacts/rust-rewrite/idle-close-fmt-1.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "node_syntax": {
+      "passed": true,
+      "files": [
+        "rust/parity/check-openssl-idle-close.mjs",
+        "rust/parity/idle-close-reference.mjs"
+      ]
+    }
+  },
+  "independent_driver": {
+    "report": {
+      "path": "artifacts/rust-rewrite/evidence/openssl-idle-close-61de6db7279461587e0492ffa272def2a2259bbbb436424bcf93f1cc6e4435ce.json",
+      "bytes": 56491,
+      "sha256": "61de6db7279461587e0492ffa272def2a2259bbbb436424bcf93f1cc6e4435ce"
+    },
+    "completed": true,
+    "matched": 4,
+    "count": 10,
+    "passed": false,
+    "all_cleanup_passed": true,
+    "barrier_schedules": {
+      "matched": 4,
+      "count": 4
+    },
+    "unbarriered_repetitions": {
+      "matched": 0,
+      "count": 6
+    },
+    "observed_close_before_next": {
+      "versions": [
+        "TLS1.2",
+        "TLS1.3"
+      ],
+      "node_and_native_statuses": [
+        200,
+        200,
+        200
+      ],
+      "connections": 2,
+      "resumed": [
+        false,
+        true
+      ],
+      "required_evidence": "Actual client ReadEof or read/socket error followed by connection release before sending the next request."
+    },
+    "selected_before_close": {
+      "versions": [
+        "TLS1.2",
+        "TLS1.3"
+      ],
+      "node_and_native_statuses": [
+        200,
+        502,
+        200
+      ],
+      "connections": 2,
+      "resumed": [
+        false,
+        true
+      ],
+      "required_evidence": "Exact second request assignment to connection 1 and held write before peer close; no connection retry; subsequent request uses connection 2."
+    },
+    "unbarriered": {
+      "versions": [
+        "TLS1.2",
+        "TLS1.3"
+      ],
+      "repetitions_per_version": 3,
+      "node_statuses": [
+        200,
+        502,
+        200
+      ],
+      "native_statuses": [
+        200,
+        200,
+        200
+      ],
+      "node_connections": 2,
+      "native_connections": 3,
+      "meaning": "Original downstream keep-alive, GET paths, provider bytes, abrupt-close callback and peer-side close polling are retained; read-only instrumentation can still affect scheduling."
+    }
+  },
+  "regressions": {
+    "original_b2": {
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-b2-sessions-1c733c3bee107bace6c3631463c83f961601d08c67d5e725d25c6d2fe992cc18.json",
+        "bytes": 66837,
+        "sha256": "1c733c3bee107bace6c3631463c83f961601d08c67d5e725d25c6d2fe992cc18"
+      },
+      "passed": false,
+      "matched": 13,
+      "count": 18,
+      "remaining_mismatches": [
+        "TLSv1.2-abrupt-after-complete",
+        "TLSv1.2-cancel-body",
+        "TLSv1.3-rejected-host-then-valid",
+        "TLSv1.3-abrupt-after-complete",
+        "TLSv1.3-cancel-body"
+      ],
+      "all_cleanup_passed": true
+    },
+    "optin_gateway_intent_b2": {
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-b2-gateway-intent-fc06d9329d1aee12ff946909076dbe50a6f0af71c961faf7ba083912b797f5a9.json",
+        "bytes": 77764,
+        "sha256": "fc06d9329d1aee12ff946909076dbe50a6f0af71c961faf7ba083912b797f5a9"
+      },
+      "passed": false,
+      "matched": 15,
+      "count": 18,
+      "remaining_mismatches": [
+        "TLSv1.2-abrupt-after-complete",
+        "TLSv1.3-rejected-host-then-valid",
+        "TLSv1.3-abrupt-after-complete"
+      ],
+      "all_cleanup_passed": true
+    },
+    "fresh_handshakes": {
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-spike-1d8c9927d6adb229da1ed40f7e6cafed95c4a19dfbdf4f564bb0ae90d0161fb4.json",
+        "bytes": 105679,
+        "sha256": "1d8c9927d6adb229da1ed40f7e6cafed95c4a19dfbdf4f564bb0ae90d0161fb4"
+      },
+      "passed": true,
+      "matched": 223,
+      "count": 223,
+      "remaining_mismatches": []
+    }
+  },
+  "retained_drafts": [
+    {
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-idle-close-8fbd07f5a20fd687f6d3975cc755c0791cd69456f7dd1a1b3a5081cfd628fcec.json",
+        "bytes": 2592,
+        "sha256": "8fbd07f5a20fd687f6d3975cc755c0791cd69456f7dd1a1b3a5081cfd628fcec"
+      },
+      "accepted": false,
+      "meaning": "Initial Node cleanup incorrectly assumed one setImmediate proved socket close; child failure diagnostics were not yet retained. The full source and candidate snapshot are retained."
+    },
+    {
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-idle-close-c6e952a0cae5631ba6327e68f99afdaabd55a7b519be7eae99d3eed267568d41.json",
+        "bytes": 4100,
+        "sha256": "c6e952a0cae5631ba6327e68f99afdaabd55a7b519be7eae99d3eed267568d41"
+      },
+      "accepted": false,
+      "meaning": "Same Node cleanup race, now retained with the exact 1 != 0 assertion and completed application observations. Fixed by bounded actual close-event waits."
+    },
+    {
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-idle-close-66a9942aae624d1d34ee3177fe0c5fc744031ebef5ee069766fb0169b28e6b67.json",
+        "bytes": 57581,
+        "sha256": "66a9942aae624d1d34ee3177fe0c5fc744031ebef5ee069766fb0169b28e6b67"
+      },
+      "accepted": false,
+      "meaning": "The apparent 10/10 pass used agent:false for downstream HTTP, differing from the original keep-alive driver. It is non-equivalent evidence and earns no parity credit."
+    },
+    {
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-idle-close-0e895aba6bf0483ecf8e01a77c6bcf9b4d7835e8d1d21e5ddc218ddd493ee634.json",
+        "bytes": 56487,
+        "sha256": "0e895aba6bf0483ecf8e01a77c6bcf9b4d7835e8d1d21e5ddc218ddd493ee634"
+      },
+      "accepted": "historical only",
+      "meaning": "Restored original downstream keep-alive and peer-close polling yielded 4/10 with all six unbarriered mismatches. Final qualification additionally bounds all startup under the outer deadline, checks peer cleanup, and strengthens native response/teardown bounds."
+    }
+  ],
+  "draft_binary": {
+    "path": "artifacts/rust-rewrite/idle-close-failed-1/runtime-tests",
+    "bytes": 75465600,
+    "sha256": "a228d1c29462dd99a6d3ebdcf4ba17fb4d1184a6c59281afe99b37d8494f0cd2"
+  },
+  "history_source_retention": {
+    "path": "artifacts/rust-rewrite/idle-close-final-snapshot/history-source-retention.json",
+    "bytes": 13623,
+    "sha256": "d1e1fbea0f054a71efdf493b5f644adc96c767016de21403f244b5da61e60a60"
+  },
+  "unchanged_prior_evidence": {
+    "gateway_intent_summary": {
+      "path": "rust/parity/measurements/openssl-gateway-intent-summary.json",
+      "bytes": 7597,
+      "sha256": "b35c59003c832dbe7b06a7d325ab86b23a11432e43eb818b8f7d64384d0a9412"
+    },
+    "original_driver": {
+      "path": "rust/parity/check-openssl-sessions.mjs",
+      "bytes": 13197,
+      "sha256": "4d4a308f426083a0e8ca148eec600bcc0d490a98f6fb21d1df9e70c38239684e"
+    },
+    "optin_driver": {
+      "path": "artifacts/rust-rewrite/gateway-intent-final-snapshot/check-openssl-sessions-intent.mjs",
+      "bytes": 13272,
+      "sha256": "0d0137e105fcb6a8ef153233ca0a231904eb206fef4484800bb10fd86267c522"
+    }
+  },
+  "bounds": {
+    "driver_scenario_ms": 8000,
+    "barrier_ms": 2000,
+    "trace_events": 256,
+    "connections": 8,
+    "requests": 16,
+    "response_bytes": 65536,
+    "control_reply_bytes_less_than": 32768,
+    "control_command_bytes": 512,
+    "diagnostic_bytes": 65536,
+    "native_control_watchdog_ms": 20000,
+    "failure_child_shutdown_ms": 2000,
+    "failure_child_kill_ms": 2000
+  },
+  "limits": [
+    "Client transport release is observed directly; pool insertion, idle-entry removal and lease retirement are not separately instrumented.",
+    "Native direct tests use the existing exact-request lease negative claim to show old A cannot abort reassigned B; this is disclosed separately from read-only observation.",
+    "Node socket.pause and ClientRequest._flush gates and native AsyncRead/AsyncWrite gates intentionally control the two declared schedules.",
+    "No weak is_open guard, known-closed reuse, retry, body read-ahead, handshake algorithm, vendor, Cargo, server.rs or production transport change.",
+    "Original 13/18 and opt-in 15/18 reports remain incomplete, and their two idle-close differences are not closed by barrier matches.",
+    "Fresh-handshake 223/223 does not qualify the three separately unqualified B3 configuration modes.",
+    "No universal timing or performance claim, provider call, live evaluator or cross-platform qualification follows from synthetic local macOS observations.",
+    "Only owned task/socket and explicit shutdown counters are asserted; this does not establish a process-wide FD-baseline measurement or complete pooling/fetch behavior."
+  ]
+}

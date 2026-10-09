@@ -5,6 +5,8 @@ mod abort_tests;
 mod client;
 pub(crate) mod gateway_intent;
 mod gateway_intent_tests;
+mod idle_close;
+mod idle_close_tests;
 mod lifecycle;
 mod lifecycle_tests;
 mod options;

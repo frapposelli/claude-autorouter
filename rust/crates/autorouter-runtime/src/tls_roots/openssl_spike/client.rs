@@ -99,6 +99,7 @@ pub(super) struct TransportIo {
     session: Option<Arc<TicketState>>,
     lifetime: Arc<ConnectionLifetime>,
     abort: Option<Arc<AbortControl>>,
+    idle: Option<Arc<super::idle_close::Connection>>,
 }
 impl Connection for TransportIo {
     fn connected(&self) -> Connected {
@@ -107,8 +108,12 @@ impl Connection for TransportIo {
             Stream::Tls(io) => io.inner().get_ref().connected(),
         }
         .extra(ConnectionIdentity::new(&self.lifetime));
-        match &self.abort {
+        let connected = match &self.abort {
             Some(control) => connected.extra(control.handle()),
+            None => connected,
+        };
+        match &self.idle {
+            Some(connection) => connected.extra(connection.identity()),
             None => connected,
         }
     }
@@ -138,6 +143,11 @@ impl AsyncRead for TransportIo {
         cx: &mut Context<'_>,
         buffer: &mut ReadBuf<'_>,
     ) -> Poll<io::Result<()>> {
+        if let Some(idle) = &self.idle
+            && idle.read_ready(cx).is_pending()
+        {
+            return Poll::Pending;
+        }
         let before = buffer.filled().len();
         let capacity = buffer.remaining();
         let result = match &mut self.stream {
@@ -149,8 +159,16 @@ impl AsyncRead for TransportIo {
             .read_bytes
             .fetch_add(buffer.filled().len() - before, Ordering::SeqCst);
         match &result {
-            Poll::Ready(Err(_)) => self.io_error(),
+            Poll::Ready(Err(error)) => {
+                if let Some(idle) = &self.idle {
+                    idle.event(|id| super::idle_close::Event::ReadError(id, error.kind()));
+                }
+                self.io_error();
+            }
             Poll::Ready(Ok(())) if capacity != 0 && buffer.filled().len() == before => {
+                if let Some(idle) = &self.idle {
+                    idle.event(super::idle_close::Event::ReadEof);
+                }
                 self.ordinary_close()
             }
             _ => {}
@@ -164,11 +182,19 @@ impl AsyncWrite for TransportIo {
         cx: &mut Context<'_>,
         bytes: &[u8],
     ) -> Poll<io::Result<usize>> {
+        if let Some(idle) = &self.idle
+            && idle.write_ready(cx).is_pending()
+        {
+            return Poll::Pending;
+        }
         let result = match &mut self.stream {
             Stream::Plain(io) => Pin::new(io).poll_write(cx, bytes),
             Stream::Tls(io) => Pin::new(io).poll_write(cx, bytes),
         };
-        if matches!(result, Poll::Ready(Err(_))) {
+        if let Poll::Ready(Err(error)) = &result {
+            if let Some(idle) = &self.idle {
+                idle.event(|id| super::idle_close::Event::WriteError(id, error.kind()));
+            }
             self.io_error();
         }
         result
@@ -178,7 +204,10 @@ impl AsyncWrite for TransportIo {
             Stream::Plain(io) => Pin::new(io).poll_flush(cx),
             Stream::Tls(io) => Pin::new(io).poll_flush(cx),
         };
-        if matches!(result, Poll::Ready(Err(_))) {
+        if let Poll::Ready(Err(error)) = &result {
+            if let Some(idle) = &self.idle {
+                idle.event(|id| super::idle_close::Event::FlushError(id, error.kind()));
+            }
             self.io_error();
         }
         result
@@ -206,11 +235,19 @@ impl AsyncWrite for TransportIo {
         cx: &mut Context<'_>,
         buffers: &[io::IoSlice<'_>],
     ) -> Poll<io::Result<usize>> {
+        if let Some(idle) = &self.idle
+            && idle.write_ready(cx).is_pending()
+        {
+            return Poll::Pending;
+        }
         let result = match &mut self.stream {
             Stream::Plain(io) => Pin::new(io).poll_write_vectored(cx, buffers),
             Stream::Tls(io) => Pin::new(io).poll_write_vectored(cx, buffers),
         };
-        if matches!(result, Poll::Ready(Err(_))) {
+        if let Poll::Ready(Err(error)) = &result {
+            if let Some(idle) = &self.idle {
+                idle.event(|id| super::idle_close::Event::WriteError(id, error.kind()));
+            }
             self.io_error();
         }
         result
@@ -226,6 +263,7 @@ struct Connector {
     sessions: Option<RawCache>,
     aborts: bool,
     dial_gate: Option<Arc<DialGate>>,
+    idle: Option<super::idle_close::Probe>,
 }
 impl Service<Uri> for Connector {
     type Response = TokioIo<TransportIo>;
@@ -294,6 +332,7 @@ impl Service<Uri> for Connector {
         let profile = self.profile;
         let aborts = self.aborts;
         let dial_gate = self.dial_gate.clone();
+        let idle = self.idle.clone();
         // Capture the attempt now; a cancelled future owns and releases its IO.
         let tcp = self.tcp.call(uri.clone());
         Box::pin(async move {
@@ -328,6 +367,7 @@ impl Service<Uri> for Connector {
                         session: None,
                         lifetime: Arc::new(ConnectionLifetime),
                         abort,
+                        idle: idle.as_ref().map(super::idle_close::Probe::connected),
                     }));
                 }
                 if uri.scheme_str() != Some("https") {
@@ -401,6 +441,7 @@ impl Service<Uri> for Connector {
                     session,
                     lifetime: Arc::new(ConnectionLifetime),
                     abort,
+                    idle: idle.as_ref().map(super::idle_close::Probe::connected),
                 }))
             };
             let result = if profile == Profile::Fetch {
@@ -427,6 +468,7 @@ pub(super) struct SpikeHttpClient {
     pub fetch_counts: Arc<Counts>,
     pub raw_sessions: Option<RawCache>,
     pub raw_dial_gate: Option<Arc<DialGate>>,
+    idle: Option<super::idle_close::Probe>,
 }
 impl SpikeHttpClient {
     pub fn new() -> Result<Self, HttpError> {
@@ -446,6 +488,21 @@ impl SpikeHttpClient {
         snapshot: &TrustSnapshot,
         aborts: bool,
     ) -> Result<Self, HttpError> {
+        Self::with_snapshot_controls(sessions, snapshot, aborts, None)
+    }
+    pub(super) fn with_snapshot_idle(
+        sessions: bool,
+        snapshot: &TrustSnapshot,
+        probe: super::idle_close::Probe,
+    ) -> Result<Self, HttpError> {
+        Self::with_snapshot_controls(sessions, snapshot, false, Some(probe))
+    }
+    fn with_snapshot_controls(
+        sessions: bool,
+        snapshot: &TrustSnapshot,
+        aborts: bool,
+        idle: Option<super::idle_close::Probe>,
+    ) -> Result<Self, HttpError> {
         fn client(
             profile: Profile,
             counts: Arc<Counts>,
@@ -453,6 +510,7 @@ impl SpikeHttpClient {
             sessions: Option<RawCache>,
             aborts: bool,
             dial_gate: Option<Arc<DialGate>>,
+            idle: Option<super::idle_close::Probe>,
         ) -> Result<Client<Connector, Full<Bytes>>, HttpError> {
             let mut tcp = HttpConnector::new();
             tcp.enforce_http(false);
@@ -464,6 +522,7 @@ impl SpikeHttpClient {
                 sessions,
                 aborts,
                 dial_gate,
+                idle,
             };
             let mut builder = Client::builder(Executor(counts));
             builder.retry_canceled_requests(false);
@@ -483,6 +542,7 @@ impl SpikeHttpClient {
                 raw_sessions.clone(),
                 aborts,
                 raw_dial_gate.clone(),
+                idle.clone(),
             )?,
             fetch: client(
                 Profile::Fetch,
@@ -491,9 +551,11 @@ impl SpikeHttpClient {
                 None,
                 false,
                 None,
+                None,
             )?,
             raw_sessions,
             raw_dial_gate,
+            idle,
             raw_counts,
             fetch_counts,
         })
@@ -528,13 +590,19 @@ impl HttpTransport for SpikeHttpClient {
                 hyper_util::client::legacy::connect::capture_http1_assignment(&mut request);
             intent.install(capture);
         }
+        let observed = self.idle.as_ref().map(|probe| probe.attach(&mut request));
         request
             .extensions_mut()
             .insert(hyper::ext::NodeHttpResponsePolicy);
-        self.raw
-            .request(request)
-            .await
-            .map_err(|_| HttpError::Network)
+        let result = self.raw.request(request).await;
+        if let (Some(probe), Some(id)) = (&self.idle, observed) {
+            probe.record(if result.is_ok() {
+                super::idle_close::Event::ResponseHead(id)
+            } else {
+                super::idle_close::Event::ResponseError(id)
+            });
+        }
+        result.map_err(|_| HttpError::Network)
     }
     async fn request(
         &self,

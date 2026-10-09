@@ -416,3 +416,37 @@ process-stop intent, two-origin schedules, multi-threaded OS-close races, full
 pooling/fetch behavior, B3 initialization and production transport promotion
 remain separate gates. All new socket/session fixtures use synthetic loopback
 peers; there are no provider calls or performance claims.
+
+### Idle-close ordering experiment (eleventh increment, test builds)
+
+A separate observation-only client probe and explicit test gates distinguish
+client transport closure from assignment to a still-live connection. Six native
+HTTP/TLS1.2/TLS1.3 schedules pass; the independent frozen-Node/native driver
+matches all four declared TLS barrier schedules. Once actual client EOF/error
+and connection release precede the next request, both clients open a fresh
+connection and return 200/200/200. If the second request first acquires the exact
+existing connection and its write is held across the peer close, both return
+200/502/200 without retry; the next connection resumes its TLS session.
+
+All six unbarriered repetitions retain the original difference: Node returns
+200/502/200 using two connections, while the native client returns 200/200/200
+using three. Thus the added driver is **4/10**, not a transport qualification.
+An earlier apparent 10/10 result used `agent: false` for downstream HTTP and is
+retained as non-equivalent evidence. The corrected driver preserves the original
+downstream keep-alive behavior and provider-close polling. It also retains the
+initial fixture cleanup failure; cleanup now awaits actual owned-socket close
+events under a deadline instead of assuming one event-loop turn was enough.
+
+Client transport release is observed directly. Pool insertion/removal and lease
+retirement are not separately observed, and instrumentation can affect ordering.
+The test gates use Node socket pause/request flush and native AsyncRead/AsyncWrite
+boundaries. They do not weaken closed-connection guards, add retries or read-ahead,
+or change the production transport. Old-request abort ownership remains protected
+by the existing exact-request lease assertions.
+
+The [idle-close summary](measurements/openssl-idle-close-summary.json) binds the
+immutable source/executable snapshots, all drafts and final reports. All 90 spike
+tests, scoped Clippy and formatting pass. Unchanged regression drivers still yield
+**13/18** original, **15/18** gateway intent and **223/223** fresh handshakes. The
+two original idle-close differences, rejected TLS1.3 handshake ordering, buffering
+policy, broader pooling/fetch behavior and B3 configuration remain open.

@@ -150,6 +150,41 @@ and retry sequence. The oversized metadata fixture retains its full input;
 the production metadata limit stays at 1 MiB. Deadline, cancellation and
 continuity definitions remain separate.
 
+`ollama-routing-contracts.jsonl` retains 26 original Router instances and 29
+routes across four model tags and six Claude-shaped fixtures. Native replay
+compares all 58 requests and complete decisions, including successive human
+prompt identities and signed-thinking preservation. The two unasserted elapsed
+fields are checked for finite, nonnegative values before comparison. Selected
+models remain unconfirmed selections; these fixtures do not simulate successful
+provider execution.
+
+`ollama-routing-tool-contracts.jsonl` exercises six synthetic runs of the local
+routing-test tool, including warmup, collapsed classifications, invalid answers,
+duplicate prompts and unsafe preflight. Its native tool API preserves setup
+error codes; CLI diagnostics continue to print the safe message. Progress output
+includes the classifier error when present. Clock fields and fixture-hash API
+differences are explicitly recorded in the capture rather than counted as live
+model, timing or quality evidence.
+
+`savings-finite-contracts.jsonl` preserves 47 trackers, 421 updates, 104 original
+snapshot reads and 21 saved-outcome estimates from 15 complete callbacks.
+Native tests compare complete intermediate totals and outcomes, then mutate
+detached snapshots to check state isolation. Numeric comparisons use exact
+JavaScript Number values without tolerance; integral and floating JSON spellings
+of the same number are equivalent. Omitted own-undefined fields and native map
+isolation are explicit API adaptations. Prices and their recorded provenance
+remain the frozen baseline; capacity, hostile accessors and pricing-fact
+immutability have separate obligations.
+
+```sh
+node parity/capture-ollama-routing-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/ollama-routing-NEW
+node parity/capture-ollama-routing-tool-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/ollama-routing-tool-NEW
+node parity/capture-savings-finite-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/savings-finite-NEW
+cargo test --locked --package autorouter-runtime --test ollama_routing_contracts
+cargo test --locked --package xtask ollama_routing::contracts
+cargo test --locked --package autorouter-core --test savings_finite_contracts
+```
+
 The [redaction mapping](assertion-mappings/redaction-contracts.json) compares
 93 complete pure-call results and covers twelve functional definitions.
 Two more definitions remain partial: their 28 timing assertions have not been
