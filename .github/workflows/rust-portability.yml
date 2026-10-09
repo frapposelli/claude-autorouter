@@ -65,6 +65,10 @@ jobs:
         with:
           node-version: '22.14.0'
           package-manager-cache: false
+      - name: Trust the runner checkout inside the build container
+        run: |
+          set -euo pipefail
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Install checksum-pinned standalone Rust toolchain
         run: |
           set -euo pipefail
@@ -81,7 +85,9 @@ jobs:
           bash "$autorouter_bootstrap/rust-1.99.0-$AUTOROUTER_BUILD_TARGET/install.sh" \
             --prefix=/opt/autorouter-rust --disable-ldconfig --without=rust-docs
           printf '%s\n' /opt/autorouter-rust/bin >> "$GITHUB_PATH"
-          printf 'SOURCE_DATE_EPOCH=%s\n' "$(git show -s --format=%ct HEAD)" >> "$GITHUB_ENV"
+          autorouter_source_epoch=$(git show -s --format=%ct HEAD)
+          [[ "$autorouter_source_epoch" =~ ^[0-9]+$ ]]
+          printf 'SOURCE_DATE_EPOCH=%s\n' "$autorouter_source_epoch" >> "$GITHUB_ENV"
           /opt/autorouter-rust/bin/rustc --version | awk '$2 != "1.99.0" { exit 1 }'
       - name: Record builder provenance without private environment values
         run: |
