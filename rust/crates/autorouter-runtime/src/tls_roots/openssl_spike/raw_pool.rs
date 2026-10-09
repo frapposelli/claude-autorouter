@@ -817,12 +817,11 @@ fn pool_key(uri: &Uri) -> Result<String, HttpError> {
             })
     ))
 }
-impl HttpTransport for RawPoolClient {
-    type ResponseBody = OwnedBody<Incoming>;
-    async fn request_raw(
+impl RawPoolClient {
+    async fn request_parts(
         &self,
         mut request: Request<Full<Bytes>>,
-    ) -> Result<Response<Self::ResponseBody>, HttpError> {
+    ) -> Result<(Response<Incoming>, Completion, Arc<Gate>), HttpError> {
         if !matches!(request.uri().scheme_str(), Some("http" | "https"))
             || request.method() == hyper::Method::CONNECT
             || request.headers().contains_key("upgrade")
@@ -888,15 +887,21 @@ impl HttpTransport for RawPoolClient {
         let timeout = idle_timeout(response.headers());
         let shared = self.shared.clone();
         let gate = self.probe.gate(label);
-        Ok(response.map(|body| {
-            OwnedBody::new(
-                body,
-                Some(Box::new(move |clean| {
-                    shared.complete(key, entry, reservation, timeout, clean)
-                })),
-                Some(gate),
-            )
-        }))
+        Ok((
+            response,
+            Box::new(move |clean| shared.complete(key, entry, reservation, timeout, clean)),
+            gate,
+        ))
+    }
+}
+impl HttpTransport for RawPoolClient {
+    type ResponseBody = OwnedBody<Incoming>;
+    async fn request_raw(
+        &self,
+        request: Request<Full<Bytes>>,
+    ) -> Result<Response<Self::ResponseBody>, HttpError> {
+        let (response, completion, gate) = self.request_parts(request).await?;
+        Ok(response.map(|body| OwnedBody::new(body, Some(completion), Some(gate))))
     }
     async fn request(
         &self,
@@ -917,3 +922,6 @@ mod child;
 
 #[path = "raw_pool_adversarial.rs"]
 mod adversarial;
+
+#[path = "raw_pool_buffered.rs"]
+pub(super) mod buffered;

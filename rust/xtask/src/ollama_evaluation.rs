@@ -541,7 +541,7 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
         let transport =
             Arc::new(NativeHttpClient::new().map_err(|_| "Cannot construct HTTP transport")?);
         {
-            let signals = crate::tool_process::Signals::new();
+            let signals = crate::tool_process::Signals::new()?;
             run_benchmark(transport, &options, &fixture, &signals.token).await
         }
     })?;

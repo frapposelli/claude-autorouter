@@ -237,6 +237,10 @@ fn set_latency(value: &mut Value, evaluation: f64, start: Instant) {
 mod contracts;
 
 #[cfg(test)]
+#[path = "router_turn_contracts.rs"]
+mod turn_contracts;
+
+#[cfg(test)]
 #[path = "router_concurrency_contracts.rs"]
 mod concurrency_contracts;
 

@@ -4,7 +4,15 @@ The native application does not provide a drop-in replacement for an ESM import 
 
 Use `autorouter-runtime::server::Gateway` for the complete authenticated HTTP boundary. Construct it with a validated `RouterConfig`, an `Arc<impl HttpTransport>`, and `EventSinks`; call `listen()` and retain the returned handle. `GatewayHandle::close().await` stops admission and waits for shutdown. The CLI additionally owns status/history drains and child-process cleanup; library callers own any sinks or child processes they create.
 
-For a routing-only integration, `autorouter-runtime::router::Router` accepts an injected transport and configuration. `with_clock` supplies a deterministic clock for tests. The routing interface is:
+For a routing-only integration, `autorouter-runtime::router::Router` accepts an injected transport and configuration. `with_clock` supplies a deterministic clock for tests.
+
+`RouterConfig::turn_entries` is the optional native equivalent of the original
+embedding configuration's `turnEntries`. `None` retains the 1,000-entry limit;
+`Some(limit)` applies that limit to both task records and pending attempts when
+the router is constructed. CLI configuration leaves it absent. Capacity rejection
+preserves active tasks and their confirmed tool ownership.
+
+The routing interface is:
 
 | Operation | Contract |
 | --- | --- |

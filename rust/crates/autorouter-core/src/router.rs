@@ -452,7 +452,7 @@ pub struct Router {
 }
 impl Router {
     pub fn new(config: RouterConfig) -> Self {
-        let turns = TurnState::new(1000, config.turn_ttl_ms);
+        let turns = TurnState::new(config.turn_entries.unwrap_or(1000), config.turn_ttl_ms);
         Self {
             config,
             turns,

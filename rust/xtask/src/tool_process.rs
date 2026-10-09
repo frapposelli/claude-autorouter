@@ -14,27 +14,35 @@ pub struct Signals {
     task: tokio::task::JoinHandle<()>,
 }
 impl Signals {
-    pub fn new() -> Self {
+    pub fn new() -> Result<Self, String> {
+        // Register before returning or exposing any tool startup evidence. On a
+        // current-thread runtime the spawned receiver cannot run until a yield.
+        #[cfg(unix)]
+        let receive = {
+            use tokio::signal::unix::{SignalKind, signal};
+            let mut interrupt = signal(SignalKind::interrupt())
+                .map_err(|_| "Cannot register tool interrupt handler")?;
+            let mut terminate = signal(SignalKind::terminate())
+                .map_err(|_| "Cannot register tool termination handler")?;
+            async move {
+                tokio::select! { _ = interrupt.recv() => {}, _ = terminate.recv() => {} }
+            }
+        };
+        #[cfg(windows)]
+        let receive = {
+            let mut interrupt = tokio::signal::windows::ctrl_c()
+                .map_err(|_| "Cannot register tool interrupt handler")?;
+            async move {
+                interrupt.recv().await;
+            }
+        };
         let token = CancellationToken::new();
         let copy = token.clone();
         let task = tokio::spawn(async move {
-            #[cfg(unix)]
-            {
-                if let Ok(mut term) =
-                    tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-                {
-                    tokio::select! {_=tokio::signal::ctrl_c()=>{},_=term.recv()=>{}}
-                } else {
-                    let _ = tokio::signal::ctrl_c().await;
-                }
-            }
-            #[cfg(not(unix))]
-            {
-                let _ = tokio::signal::ctrl_c().await;
-            }
+            receive.await;
             copy.cancel();
         });
-        Self { token, task }
+        Ok(Self { token, task })
     }
 }
 impl Drop for Signals {
@@ -261,6 +269,95 @@ pub async fn capture(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(unix)]
+    #[test]
+    #[ignore = "isolated subprocess entry; invoked by the signal ownership tests"]
+    fn signal_startup_child() {
+        let case = std::env::var("AUTOROUTER_TEST_SIGNAL_CASE").expect("isolated signal case");
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+        runtime.block_on(async {
+            let signals = Signals::new().unwrap();
+            let token = signals.token.clone();
+            let task = signals.task.abort_handle();
+            let dropped = case.starts_with("drop-");
+            let signal = match case.as_str() {
+                "interrupt" | "drop-interrupt" => nix::sys::signal::Signal::SIGINT,
+                "terminate" | "drop-terminate" => nix::sys::signal::Signal::SIGTERM,
+                _ => panic!("Unknown isolated signal case"),
+            };
+            if dropped {
+                drop(signals);
+            }
+            // There is deliberately no runtime yield between construction and
+            // the real process signal. The receiver task cannot have run yet.
+            nix::sys::signal::kill(nix::unistd::Pid::this(), signal).unwrap();
+            if !dropped {
+                tokio::time::timeout(Duration::from_secs(1), token.cancelled())
+                    .await
+                    .expect("registered signal must cancel the owner");
+            }
+            tokio::time::timeout(Duration::from_secs(1), async {
+                while !task.is_finished() {
+                    tokio::task::yield_now().await;
+                }
+            })
+            .await
+            .expect("signal receiver task must finish");
+            assert_eq!(token.is_cancelled(), !dropped);
+        });
+    }
+    #[cfg(unix)]
+    async fn isolated_signal_case(case: &str) {
+        let cancel = CancellationToken::new();
+        let response = CancellationToken::new();
+        let mut command = Command::new(std::env::current_exe().unwrap());
+        command
+            .args([
+                "--exact",
+                "tool_process::tests::signal_startup_child",
+                "--ignored",
+                "--nocapture",
+            ])
+            .env("AUTOROUTER_TEST_SIGNAL_CASE", case);
+        let result = run_child(
+            &mut command,
+            RunOptions {
+                timeout: Duration::from_secs(3),
+                grace: Duration::from_millis(100),
+                max_stdout: Some(4096),
+                interactive: false,
+                response: &response,
+                cancel: &cancel,
+                initial: InputAction {
+                    close: true,
+                    ..Default::default()
+                },
+            },
+            |_| InputAction::default(),
+        )
+        .await;
+        assert_eq!(result["exit_code"], 0, "{case}: {result}");
+        assert_eq!(result["exit_signal"], Value::Null, "{case}: {result}");
+        assert_eq!(result["timed_out"], false, "{case}: {result}");
+        assert_eq!(result["output_limit_exceeded"], false);
+    }
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn signals_are_registered_before_first_runtime_yield() {
+        for case in ["interrupt", "terminate"] {
+            isolated_signal_case(case).await;
+        }
+    }
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn dropped_signal_owner_stops_unpolled_receiver() {
+        for case in ["drop-interrupt", "drop-terminate"] {
+            isolated_signal_case(case).await;
+        }
+    }
     #[tokio::test]
     async fn output_and_deadline_are_bounded_and_metadata_never_contains_output() {
         let token = CancellationToken::new();

@@ -100,6 +100,8 @@ Use `cargo xtask benchmark --compare-legacy REPORT.json` to compare historical J
 
 The [measured comparisons and profiling notes](docs/performance.md) retain all three runs, including earlier failures. The third run meets measured CPU, throughput and latency nonregression targets on the developer workstation. Processing-only latency, true peak memory, additional workloads and representative hardware still keep the overall performance gate incomplete.
 
+The [synthetic storage tool](docs/storage-benchmark.md) provides explicit native or frozen-reference validation of status snapshots and session logs. Numerical collection uses a separate opt-in mode and does not qualify the full performance gate.
+
 ## Distribution and remaining gates
 
 Native feasibility archives contain a POSIX dispatcher, prebuilt binaries, checksums, dependency licenses, and a source/build manifest. They install offline with `--ignore-scripts`, perform no download, and run without Node on `PATH`. `cargo xtask package --binary TARGET=PATH --output NEW_DIRECTORY --smoke` creates and tests a private candidate. The [reviewed native limits](distribution/expanded-cap-proposal.md) are 32 MiB compressed, 64 MiB expanded, 32 MiB per file and 256 entries. Historical JavaScript archives and source bundles retain 32 MiB expansion; the complete qualified target matrix must still fit.

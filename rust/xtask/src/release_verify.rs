@@ -530,7 +530,7 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
     crate::evaluation::runtime()?.block_on(execute(mode, tag, options, root))
 }
 async fn execute(mode: &str, tag: &str, options: Value, root: &Path) -> Result<bool, String> {
-    let signals = crate::tool_process::Signals::new();
+    let signals = crate::tool_process::Signals::new()?;
     let mut artifact = None;
     let action:Result<Option<Value>,ReleaseError>=async{if mode=="artifact-source"{let client=NativeHttpClient::new().map_err(|_|unavailable("network_error"))?;
 let result=artifact_source(&client,root,tag,&options,&signals.token).await?;release::github_output(&result).map_err(|_|error("report_failed","github_output"))?;

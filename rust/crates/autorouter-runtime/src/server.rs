@@ -15,6 +15,11 @@ use crate::tls_roots::openssl_spike::gateway_intent::{
     Cause as IntentCause, Event as IntentEvent, Intent, IntentIo, Probe as IntentProbe,
     Registry as IntentRegistry,
 };
+#[cfg(test)]
+use crate::tls_roots::openssl_spike::gateway_terminal::{
+    ConnectionHandle, ConnectionTerminal, FailureCause, Probe as TerminalProbe, RequestTerminal,
+    TerminalIo,
+};
 use crate::transport_completion::{
     CompletionRegistry, Delivery, RequestReceiveDeadline, serve_http1,
 };
@@ -356,6 +361,10 @@ struct ForwardBody<B> {
     finished: bool,
     #[cfg(test)]
     intent: Option<Arc<Intent>>,
+    #[cfg(test)]
+    terminal: Option<RequestTerminal>,
+    #[cfg(test)]
+    prefix: Option<Frame<Bytes>>,
 }
 impl<B> ForwardBody<B> {
     fn new(
@@ -374,12 +383,42 @@ impl<B> ForwardBody<B> {
             finished: false,
             #[cfg(test)]
             intent: None,
+            #[cfg(test)]
+            terminal: None,
+            #[cfg(test)]
+            prefix: None,
         }
+    }
+    #[cfg(test)]
+    fn with_terminal(mut self, terminal: Option<RequestTerminal>) -> Self {
+        self.terminal = terminal;
+        self
     }
     #[cfg(test)]
     fn with_intent(mut self, intent: Option<Arc<Intent>>) -> Self {
         self.intent = intent;
         self
+    }
+}
+#[cfg(test)]
+impl<B: Body<Data = Bytes>> ForwardBody<B> {
+    async fn stage_first(&mut self) -> Result<(), io::Error> {
+        let frame = std::future::poll_fn(|cx| {
+            // Empty data is not a first write. Bound work for arbitrary fake
+            // bodies; the isolated application buffer emits only nonempty data.
+            for _ in 0..16 {
+                match Pin::new(&mut *self).poll_frame(cx) {
+                    Poll::Ready(Some(Ok(frame)))
+                        if frame.data_ref().is_some_and(Bytes::is_empty) => {}
+                    result => return result,
+                }
+            }
+            cx.waker().wake_by_ref();
+            Poll::Pending
+        })
+        .await;
+        self.prefix = frame.transpose()?;
+        Ok(())
     }
 }
 impl<B: Body<Data = Bytes>> Body for ForwardBody<B> {
@@ -393,7 +432,16 @@ impl<B: Body<Data = Bytes>> Body for ForwardBody<B> {
         if this.finished {
             return Poll::Ready(None);
         }
+        #[cfg(test)]
+        if this.terminal.as_ref().is_some_and(RequestTerminal::failed) {
+            this.finished = true;
+            return Poll::Ready(Some(Err(io::Error::other("Upstream body failed"))));
+        }
         if this.cancelled.as_mut().poll(cx).is_ready() {
+            #[cfg(test)]
+            if let Some(terminal) = &this.terminal {
+                terminal.fail(FailureCause::Cancelled);
+            }
             #[cfg(test)]
             if let Some(intent) = &this.intent {
                 intent.observe(IntentEvent::GenericCancellation);
@@ -405,6 +453,12 @@ impl<B: Body<Data = Bytes>> Body for ForwardBody<B> {
             return Poll::Ready(Some(Err(io::Error::other("Request cancelled"))));
         }
         if this.deadline.as_mut().poll(cx).is_ready() {
+            #[cfg(test)]
+            if let Some(terminal) = &this.terminal {
+                terminal.fail(FailureCause::Deadline);
+                this.finished = true;
+                return Poll::Ready(Some(Err(io::Error::other("Upstream deadline exceeded"))));
+            }
             #[cfg(test)]
             if let Some(intent) = &this.intent {
                 intent.finish(IntentCause::Deadline);
@@ -424,6 +478,12 @@ impl<B: Body<Data = Bytes>> Body for ForwardBody<B> {
         {
             return Poll::Pending;
         }
+        #[cfg(test)]
+        if let Some(frame) = this.prefix.take() {
+            // Replay runs after the same terminal/cancellation/deadline checks,
+            // without polling or observing the upstream frame a second time.
+            return Poll::Ready(Some(Ok(frame)));
+        }
         match this.inner.as_mut().poll_frame(cx) {
             Poll::Ready(Some(Ok(frame))) if frame.is_trailers() => {
                 // Node's upstream pipeline consumes trailers without calling
@@ -433,6 +493,12 @@ impl<B: Body<Data = Bytes>> Body for ForwardBody<B> {
                 Poll::Pending
             }
             Poll::Ready(Some(Err(_))) => {
+                #[cfg(test)]
+                if let Some(terminal) = &this.terminal {
+                    terminal.fail(FailureCause::Upstream);
+                    this.finished = true;
+                    return Poll::Ready(Some(Err(io::Error::other("Upstream body failed"))));
+                }
                 #[cfg(test)]
                 if let Some(intent) = &this.intent {
                     intent.finish(IntentCause::UpstreamFailure);
@@ -472,6 +538,8 @@ pub struct Gateway<T, R = Router<T>> {
     sinks: EventSinks,
     #[cfg(test)]
     intent_probe: Option<IntentProbe>,
+    #[cfg(test)]
+    terminal_probe: Option<TerminalProbe>,
 }
 impl<T: HttpTransport + 'static> Gateway<T>
 where
@@ -510,6 +578,8 @@ where
             sinks,
             #[cfg(test)]
             intent_probe: None,
+            #[cfg(test)]
+            terminal_probe: None,
         }))
     }
     #[cfg(test)]
@@ -517,6 +587,13 @@ where
         Arc::get_mut(&mut gateway)
             .expect("unique fixture gateway")
             .intent_probe = Some(probe);
+        gateway
+    }
+    #[cfg(test)]
+    pub(crate) fn with_test_terminal(mut gateway: Arc<Self>, probe: TerminalProbe) -> Arc<Self> {
+        Arc::get_mut(&mut gateway)
+            .expect("unique fixture gateway")
+            .terminal_probe = Some(probe);
         gateway
     }
     pub async fn listen(self: &Arc<Self>, port: u16) -> Result<GatewayHandle, String> {
@@ -542,13 +619,47 @@ where
                             #[cfg(test)]
                             let intent_registry = gateway.intent_probe.clone().map(|probe| IntentRegistry::new(probe, 16));
                             #[cfg(test)]
+                            let terminal_owner = gateway.terminal_probe.clone().map(|probe| ConnectionTerminal::new(probe, 16));
+                            #[cfg(test)]
+                            let terminal_service = terminal_owner.as_ref().map(ConnectionTerminal::handle);
+                            // Observe real downstream IO before IntentIo performs
+                            // abort effects that can make the upstream body fail.
+                            #[cfg(test)]
+                            let stream = TerminalIo::new(stream, terminal_service.clone());
+                            #[cfg(test)]
                             let stream = IntentIo::new(stream, intent_registry.clone());
                             let service=service_fn(move|request: Request<Incoming>|{
                                 #[cfg(test)]
                                 let request = { let mut request = request; if let Some(registry) = &intent_registry { request.extensions_mut().insert(registry.clone()); } request };
-                                let gateway=gateway.clone();let registry=for_service.clone();let token=request_token.child_token();async move{if request.method() == Method::CONNECT { return Err(io::Error::new(io::ErrorKind::ConnectionAborted,"CONNECT is not supported")); } Ok::<_,io::Error>(gateway.handle(request,registry,token).await)}});
+                                #[cfg(test)]
+                                let terminal_service = terminal_service.clone();
+                                let gateway=gateway.clone();let registry=for_service.clone();let token=request_token.child_token();async move{
+                                    if request.method() == Method::CONNECT { return Err(io::Error::new(io::ErrorKind::ConnectionAborted,"CONNECT is not supported")); }
+                                    #[cfg(test)]
+                                    let request = {
+                                        let mut request = request;
+                                        if let Some(owner) = terminal_service {
+                                            request.extensions_mut().insert(owner);
+                                        }
+                                        request
+                                    };
+                                    Ok::<_,io::Error>(gateway.handle(request,registry,token).await)
+                                }});
+                            #[cfg(test)]
+                            {
+                                let terminal_failure = async {
+                                    match &terminal_owner {
+                                        Some(owner) => owner.claim_connection_failure().await,
+                                        None => std::future::pending().await,
+                                    }
+                                };
+                                tokio::select!{biased;_=terminal_failure=>{},_=token.cancelled()=>{},_=serve_http1(stream,registry,service)=>{}}
+                            }
+                            #[cfg(not(test))]
                             tokio::select!{biased;_=token.cancelled()=>{},_=serve_http1(stream,registry,service)=>{}}
                             token.cancel();
+                            #[cfg(test)]
+                            if let Some(owner) = terminal_owner { owner.close().await; }
                         });
                     }
                 }
@@ -571,6 +682,18 @@ where
         cancellation: CancellationToken,
     ) -> Response<GatewayBody> {
         let (parts, mut incoming) = request.into_parts();
+        #[cfg(test)]
+        let terminal_owner = match parts.extensions.get::<ConnectionHandle>() {
+            Some(owner) => match owner.register() {
+                Ok(owner) => Some(owner),
+                Err(()) => {
+                    return json_error(502, "Router could not complete the upstream request");
+                }
+            },
+            None => None,
+        };
+        #[cfg(test)]
+        let terminal = terminal_owner.as_ref().map(|owner| owner.publisher());
         let receive_deadline = parts
             .extensions
             .get::<RequestReceiveDeadline>()
@@ -862,6 +985,51 @@ where
         if let Some(events) = &events {
             events.forwarding();
         }
+        #[cfg(test)]
+        if let Some(terminal) = &terminal {
+            request.extensions_mut().insert(terminal.clone());
+            let terminal_events = events.clone();
+            let terminal_log = self.sinks.log.clone();
+            let terminal_intent = intent.clone();
+            terminal_owner
+                .as_ref()
+                .expect("terminal admission owner")
+                .start(
+                    deadline,
+                    cancellation.clone(),
+                    move |cause| {
+                        if let Some(intent) = &terminal_intent {
+                            match cause {
+                                FailureCause::Upstream => {
+                                    intent.finish(IntentCause::UpstreamFailure)
+                                }
+                                FailureCause::Deadline => intent.finish(IntentCause::Deadline),
+                                FailureCause::Downstream(cause) => {
+                                    intent.finish(IntentCause::Downstream(cause))
+                                }
+                                FailureCause::Cancelled => {
+                                    intent.observe(IntentEvent::GenericCancellation)
+                                }
+                            }
+                        }
+                    },
+                    move |cause| {
+                        if matches!(cause, FailureCause::Upstream | FailureCause::Deadline) {
+                            // A body failure closes the response; the frozen
+                            // Node outer catch suppresses proxy_error after that
+                            // downstream close. It is not a new pre-header 502.
+                            if cause == FailureCause::Deadline {
+                                emit(&terminal_log, json!({"event":"proxy_error","status":502}));
+                            }
+                            if let Some(events) = &terminal_events {
+                                events.status("request_error", json!({"status":502}));
+                            }
+                        } else if let Some(events) = &terminal_events {
+                            events.status("request_cancelled", json!({}));
+                        }
+                    },
+                );
+        }
         let response_deadline = tokio::time::sleep_until(deadline);
         #[cfg(test)]
         let response_deadline = async {
@@ -898,6 +1066,12 @@ where
         );
         if let Some(events) = &events {
             events.status("upstream_response", json!({"status":status.as_u16()}));
+        }
+        #[cfg(test)]
+        if let Some(owner) = &terminal_owner {
+            // Acquired headers remain observable even if the independent body
+            // producer latched an error before the response could attach.
+            owner.attach();
         }
         let (mut parts, body) = response.into_parts();
         let observe = header_text(&parts.headers, "content-encoding")
@@ -958,10 +1132,26 @@ where
             self.sinks.log.clone(),
         );
         #[cfg(test)]
-        let forward = forward.with_intent(intent.clone());
+        let mut forward = forward
+            .with_intent(intent.clone())
+            .with_terminal(terminal.clone());
+        #[cfg(test)]
+        if terminal.is_some() && forward.stage_first().await.is_err() {
+            // Headers were acquired and status recorded. A failure before the
+            // first write remains a connection-owned close, not a new 502 head.
+            // The retained request owner retires when serve_http1 is destroyed.
+            debug_assert!(terminal.as_ref().is_some_and(RequestTerminal::failed));
+            std::future::pending::<()>().await;
+        }
         let response = Response::from_parts(parts, forward);
         if let Some(lease) = lease {
             match registry.track(response, move |delivery| {
+                #[cfg(test)]
+                let mut delivery_claim = terminal_owner.map(|owner| owner.claim_delivery(delivery));
+                #[cfg(test)]
+                let delivery = delivery_claim
+                    .as_ref()
+                    .map_or(delivery, |claim| claim.delivery());
                 #[cfg(test)]
                 if let Some(intent) = &intent {
                     if delivery == Delivery::Flushed {
@@ -972,6 +1162,10 @@ where
                 }
                 let evidence = evidence.lock().unwrap().take();
                 lease.finish(delivery, evidence, status.is_success());
+                #[cfg(test)]
+                if let Some(claim) = &mut delivery_claim {
+                    claim.callback_finished();
+                }
             }) {
                 Ok(response) => response.map(boxed),
                 Err(_) => json_error(502, "Router could not complete the upstream request"),
@@ -980,11 +1174,29 @@ where
             #[cfg(test)]
             if let Some(intent) = intent {
                 return match registry.track(response, move |delivery| {
+                    let mut delivery_claim =
+                        terminal_owner.map(|owner| owner.claim_delivery(delivery));
+                    let delivery = delivery_claim
+                        .as_ref()
+                        .map_or(delivery, |claim| claim.delivery());
                     if delivery == Delivery::Flushed {
                         intent.finish(IntentCause::Delivered);
                     } else {
                         intent.observe(IntentEvent::DeliveryFailed);
                     }
+                    if let Some(claim) = &mut delivery_claim {
+                        claim.callback_finished();
+                    }
+                }) {
+                    Ok(response) => response.map(boxed),
+                    Err(_) => json_error(502, "Router could not complete the upstream request"),
+                };
+            }
+            #[cfg(test)]
+            if let Some(owner) = terminal_owner {
+                return match registry.track(response, move |delivery| {
+                    let mut claim = owner.claim_delivery(delivery);
+                    claim.callback_finished();
                 }) {
                     Ok(response) => response.map(boxed),
                     Err(_) => json_error(502, "Router could not complete the upstream request"),
@@ -1140,5 +1352,140 @@ mod forwarding_tests {
             }
             assert!(body.is_end_stream());
         }
+    }
+
+    struct CountedFrames {
+        frames: VecDeque<Result<Frame<Bytes>, io::Error>>,
+        polls: Arc<std::sync::atomic::AtomicUsize>,
+    }
+    impl Body for CountedFrames {
+        type Data = Bytes;
+        type Error = io::Error;
+        fn poll_frame(
+            mut self: Pin<&mut Self>,
+            _: &mut Context<'_>,
+        ) -> Poll<Option<Result<Frame<Bytes>, io::Error>>> {
+            self.polls.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            Poll::Ready(self.frames.pop_front())
+        }
+    }
+    #[tokio::test]
+    async fn staged_prefix_rechecks_every_failure_without_another_inner_poll() {
+        use crate::tls_roots::openssl_spike::gateway_terminal::{ConnectionTerminal, Probe};
+        use std::sync::atomic::{AtomicUsize, Ordering};
+        for cause in [
+            FailureCause::Upstream,
+            FailureCause::Cancelled,
+            FailureCause::Deadline,
+        ] {
+            let terminal_probe = Probe::default();
+            let connection = ConnectionTerminal::new(terminal_probe.clone(), 1);
+            let owner = connection.handle().register().unwrap();
+            owner.attach();
+            let publisher = owner.publisher();
+            let token = CancellationToken::new();
+            let polls = Arc::new(AtomicUsize::new(0));
+            let mut body = ForwardBody::new(
+                CountedFrames {
+                    frames: VecDeque::from([Ok(Frame::data(Bytes::from_static(b"prefix")))]),
+                    polls: polls.clone(),
+                },
+                Instant::now() + Duration::from_secs(30),
+                token.clone(),
+                None,
+                None,
+            )
+            .with_terminal(Some(publisher.clone()));
+            body.stage_first().await.unwrap();
+            assert_eq!(polls.load(Ordering::SeqCst), 1);
+            match cause {
+                FailureCause::Upstream => {
+                    publisher.fail(cause);
+                }
+                FailureCause::Cancelled => token.cancel(),
+                FailureCause::Deadline => {
+                    body.deadline.as_mut().reset(Instant::now());
+                    // A reset schedules the timer; first observe it ready before
+                    // claiming that replay is racing an elapsed deadline.
+                    body.deadline.as_mut().await;
+                }
+                _ => unreachable!(),
+            }
+            let frame = tokio::time::timeout(Duration::from_secs(2), body.frame())
+                .await
+                .unwrap();
+            assert!(frame.unwrap().is_err(), "staged replay after {cause:?}");
+            assert!(publisher.failed());
+            assert_eq!(polls.load(Ordering::SeqCst), 1, "no second observation");
+            drop((body, owner));
+            connection.close().await;
+            assert_eq!(terminal_probe.tasks(), 0);
+        }
+    }
+    #[tokio::test]
+    async fn staged_prefix_replays_once_and_empty_frames_do_not_submit_a_head() {
+        use std::sync::atomic::{AtomicUsize, Ordering};
+        let polls = Arc::new(AtomicUsize::new(0));
+        let mut frames = VecDeque::new();
+        for _ in 0..33 {
+            frames.push_back(Ok(Frame::data(Bytes::new())));
+        }
+        frames.push_back(Ok(Frame::trailers(HeaderMap::new())));
+        frames.push_back(Ok(Frame::data(Bytes::from_static(b"first"))));
+        frames.push_back(Ok(Frame::data(Bytes::from_static(b"second"))));
+        let mut body = ForwardBody::new(
+            CountedFrames {
+                frames,
+                polls: polls.clone(),
+            },
+            Instant::now() + Duration::from_secs(30),
+            CancellationToken::new(),
+            None,
+            None,
+        );
+        body.stage_first().await.unwrap();
+        assert_eq!(polls.load(Ordering::SeqCst), 35);
+        assert_eq!(
+            body.frame().await.unwrap().unwrap().into_data().unwrap(),
+            "first"
+        );
+        assert_eq!(polls.load(Ordering::SeqCst), 35);
+        assert_eq!(
+            body.frame().await.unwrap().unwrap().into_data().unwrap(),
+            "second"
+        );
+        assert!(body.frame().await.is_none());
+    }
+    #[tokio::test]
+    async fn staged_clean_empty_eof_and_preframe_cancel_keep_distinct_outcomes() {
+        use crate::tls_roots::openssl_spike::gateway_terminal::{ConnectionTerminal, Probe};
+        let mut body = ForwardBody::new(
+            Frames(VecDeque::new()),
+            Instant::now() + Duration::from_secs(30),
+            CancellationToken::new(),
+            None,
+            None,
+        );
+        body.stage_first().await.unwrap();
+        assert!(body.is_end_stream());
+        assert!(body.frame().await.is_none());
+        let connection = ConnectionTerminal::new(Probe::default(), 1);
+        let owner = connection.handle().register().unwrap();
+        owner.attach();
+        let publisher = owner.publisher();
+        let token = CancellationToken::new();
+        token.cancel();
+        let mut body = ForwardBody::new(
+            Frames(VecDeque::new()),
+            Instant::now() + Duration::from_secs(30),
+            token,
+            None,
+            None,
+        )
+        .with_terminal(Some(publisher.clone()));
+        assert!(body.stage_first().await.is_err());
+        assert!(publisher.failed());
+        drop((body, owner));
+        connection.close().await;
     }
 }

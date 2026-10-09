@@ -1,0 +1,498 @@
+{
+  "schema_version": 1,
+  "kind": "native_storage_tooling_revision_summary",
+  "revision": 2,
+  "status": "passed_scoped_extracted_storage_execution",
+  "scope": "Four-file source-bundle dependency correction. Native deterministic validation no longer fingerprints the JavaScript-only oracle, verifier or baseline; paired mode retains those inputs and the archive now contains the verifier imported by the oracle. Exact pre-signal-fix source and executable scope.",
+  "prior_summary": {
+    "path": "rust/parity/measurements/native-storage-tooling-summary.json",
+    "sha256": "e47c59851ecc426a5678d36a3cf63371518596340805c77b3f5be4e78f0b7b72",
+    "bytes": 41534,
+    "retained_path": "artifacts/rust-rewrite/evidence/e47c59851ecc426a5678d36a3cf63371518596340805c77b3f5be4e78f0b7b72.json"
+  },
+  "prior_eleven_frozen_sources_reverified": true,
+  "prior_frozen_snapshot": {
+    "path": "artifacts/rust-rewrite/storage-final-snapshot-2/sources.json",
+    "sha256": "6ff66387720a64f00ad4704f783f94225f8bf85b6159649cbe8d889740903ddc",
+    "bytes": 3370,
+    "retained_path": "artifacts/rust-rewrite/evidence/6ff66387720a64f00ad4704f783f94225f8bf85b6159649cbe8d889740903ddc.json"
+  },
+  "triggering_failure": {
+    "description": "Bundle9 compiled and printed native help, but actual extracted native storage validation with PATH=/nonexistent exited 1 because an unused reference verifier path was fingerprinted. Compilation alone did not prove tool execution.",
+    "evidence": {
+      "stderr.log": {
+        "path": "artifacts/rust-rewrite/source-bundle-9-storage-validation/stderr.log",
+        "sha256": "0f51ab4a846d84ab25251eaf9eaa46871bbf8225d2777b631c0d7c23f4e8102a",
+        "bytes": 37,
+        "retained_path": "artifacts/rust-rewrite/evidence/0f51ab4a846d84ab25251eaf9eaa46871bbf8225d2777b631c0d7c23f4e8102a.log"
+      },
+      "stdout.log": {
+        "path": "artifacts/rust-rewrite/source-bundle-9-storage-validation/stdout.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "retained_path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log"
+      },
+      "invocation.json": {
+        "path": "artifacts/rust-rewrite/source-bundle-9-storage-validation/invocation.json",
+        "sha256": "48e3e7dda5369562273274cca8000ab3f54352bb4ef3ba8510aab1b7d58ae2b1",
+        "bytes": 766,
+        "retained_path": "artifacts/rust-rewrite/evidence/48e3e7dda5369562273274cca8000ab3f54352bb4ef3ba8510aab1b7d58ae2b1.json"
+      }
+    }
+  },
+  "source_change": {
+    "changed_paths": [
+      "rust/xtask/src/benchmark_storage.rs",
+      "rust/xtask/src/bundle.rs",
+      "rust/xtask/tests/benchmark_storage.rs",
+      "rust/docs/storage-benchmark.md"
+    ],
+    "frozen_inputs": [
+      {
+        "source_path": "rust/xtask/src/benchmark_storage.rs",
+        "archive_source": {
+          "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-tree-intact/rust/xtask/src/benchmark_storage.rs",
+          "sha256": "ab5a7797b4cbcc88f71ad8a93ab840963ae81a82c9eb77aff7b2cf10dc5f94d8",
+          "bytes": 48863,
+          "retained_path": "artifacts/rust-rewrite/evidence/ab5a7797b4cbcc88f71ad8a93ab840963ae81a82c9eb77aff7b2cf10dc5f94d8.rs"
+        },
+        "before_sha256": "40ea64ed5573c5fdbef938615c723827018f18db9aebcc512cab700ae332437a"
+      },
+      {
+        "source_path": "rust/xtask/src/bundle.rs",
+        "archive_source": {
+          "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-tree-intact/rust/xtask/src/bundle.rs",
+          "sha256": "3d62f00b07f7551aa0dbf326a689a7db1f50e5091cc1fc343856d303d590dbfe",
+          "bytes": 27695,
+          "retained_path": "artifacts/rust-rewrite/evidence/3d62f00b07f7551aa0dbf326a689a7db1f50e5091cc1fc343856d303d590dbfe.rs"
+        },
+        "before_sha256": "d5d814bd53f8bea31df5867048c839425ebabcbdaa1d1bc4a4e1cd4e02c93a9b"
+      },
+      {
+        "source_path": "rust/xtask/tests/benchmark_storage.rs",
+        "archive_source": {
+          "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-tree-intact/rust/xtask/tests/benchmark_storage.rs",
+          "sha256": "de7d7f0b7f1b1f2599fa9fb18222b724171f6f67f2dc6172d61ff2176b124791",
+          "bytes": 8898,
+          "retained_path": "artifacts/rust-rewrite/evidence/de7d7f0b7f1b1f2599fa9fb18222b724171f6f67f2dc6172d61ff2176b124791.rs"
+        },
+        "before_sha256": "f0573f19ef94db8993a511e8be5b7d544b155deb9efd505756bad12f4c967389"
+      },
+      {
+        "source_path": "rust/docs/storage-benchmark.md",
+        "archive_source": {
+          "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-tree-intact/rust/docs/storage-benchmark.md",
+          "sha256": "864df824ef039494382112f704a2d20d5a2f831d18de29670e8e93e55435dffd",
+          "bytes": 4312,
+          "retained_path": "artifacts/rust-rewrite/evidence/864df824ef039494382112f704a2d20d5a2f831d18de29670e8e93e55435dffd.md"
+        },
+        "before_sha256": "567124e9018df2ee15cdb835251b3dd69e40747a8df382a6935bbe655a7dad38"
+      },
+      {
+        "source_path": "scripts/rust-reference.mjs",
+        "archive_source": {
+          "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-tree-intact/scripts/rust-reference.mjs",
+          "sha256": "5744dd82040445879174bb9c17a0ce8a1543985f0dc355b2493984748677e388",
+          "bytes": 18800,
+          "retained_path": "artifacts/rust-rewrite/evidence/5744dd82040445879174bb9c17a0ce8a1543985f0dc355b2493984748677e388.mjs"
+        },
+        "before_sha256": "5744dd82040445879174bb9c17a0ce8a1543985f0dc355b2493984748677e388"
+      },
+      {
+        "source_path": "rust/parity/storage-reference.mjs",
+        "archive_source": {
+          "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-tree-intact/rust/parity/storage-reference.mjs",
+          "sha256": "8827fd89fae3fce296530d1c9c6968bd36e505c74e37e4c24e5ad52dc12b420e",
+          "bytes": 19640,
+          "retained_path": "artifacts/rust-rewrite/evidence/8827fd89fae3fce296530d1c9c6968bd36e505c74e37e4c24e5ad52dc12b420e.mjs"
+        },
+        "before_sha256": "8827fd89fae3fce296530d1c9c6968bd36e505c74e37e4c24e5ad52dc12b420e"
+      },
+      {
+        "source_path": "rust/parity/storage-benchmark-v1.json",
+        "archive_source": {
+          "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-tree-intact/rust/parity/storage-benchmark-v1.json",
+          "sha256": "2aded28c2436047f2845193d8ea88a7e2a94cecd7a7869e431e23f8597f5a709",
+          "bytes": 3911,
+          "retained_path": "artifacts/rust-rewrite/evidence/2aded28c2436047f2845193d8ea88a7e2a94cecd7a7869e431e23f8597f5a709.json"
+        },
+        "before_sha256": "2aded28c2436047f2845193d8ea88a7e2a94cecd7a7869e431e23f8597f5a709"
+      },
+      {
+        "source_path": "rust/parity/storage-contracts.capture.json",
+        "archive_source": {
+          "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-tree-intact/rust/parity/storage-contracts.capture.json",
+          "sha256": "e900b763342ee16aadcb8cabb7eaacbfde1171f4e754443b1c02c7806acf82b9",
+          "bytes": 9487,
+          "retained_path": "artifacts/rust-rewrite/evidence/e900b763342ee16aadcb8cabb7eaacbfde1171f4e754443b1c02c7806acf82b9.capture.json"
+        },
+        "before_sha256": "e900b763342ee16aadcb8cabb7eaacbfde1171f4e754443b1c02c7806acf82b9"
+      }
+    ],
+    "unchanged_protocol_oracle_golden_verifier_paths": [
+      "scripts/rust-reference.mjs",
+      "rust/parity/storage-reference.mjs",
+      "rust/parity/storage-benchmark-v1.json",
+      "rust/parity/storage-contracts.capture.json"
+    ],
+    "before": {
+      "path": "artifacts/rust-rewrite/storage-bundle-fix-1/before.json",
+      "sha256": "8f4cd9b51390f7ff3f377977fd83de23b588b1742db003c2cf86bc3102d8dfa9",
+      "bytes": 1597,
+      "retained_path": "artifacts/rust-rewrite/evidence/8f4cd9b51390f7ff3f377977fd83de23b588b1742db003c2cf86bc3102d8dfa9.json"
+    },
+    "frozen_candidate_inputs": {
+      "path": "artifacts/rust-rewrite/storage-bundle-fix-1/candidate-inputs.json",
+      "sha256": "f032d4c1fd6aa60998ef9fbfbdecc7fd1350bae0b855fd070f6716ed679e5f95",
+      "bytes": 1271,
+      "retained_path": "artifacts/rust-rewrite/evidence/f032d4c1fd6aa60998ef9fbfbdecc7fd1350bae0b855fd070f6716ed679e5f95.json"
+    },
+    "static_import_control_limit": "The actual-archive test checks currently used single-line relative import-from syntax in packed .mjs inputs; it is not a general JavaScript dependency parser.",
+    "production_storage_api_changed": false
+  },
+  "focused_checks": {
+    "report": {
+      "path": "artifacts/rust-rewrite/storage-bundle-fix-1/checks.json",
+      "sha256": "537b75991ea121333ba87957d59a007a3d87e853e1691d155cd85ed5f53efdbc",
+      "bytes": 2234,
+      "retained_path": "artifacts/rust-rewrite/evidence/537b75991ea121333ba87957d59a007a3d87e853e1691d155cd85ed5f53efdbc.json"
+    },
+    "commands_and_logs": [
+      {
+        "name": "storage-unit",
+        "argv": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "-p",
+          "xtask",
+          "--bin",
+          "xtask",
+          "benchmark_storage::"
+        ],
+        "exit_code": 0,
+        "log": "artifacts/rust-rewrite/storage-bundle-fix-1/storage-unit.log",
+        "sha256": "11acac9a3231153fba4dac761bad550bd8083ee7af05dcd364b345d405786508",
+        "log_descriptor": {
+          "path": "artifacts/rust-rewrite/storage-bundle-fix-1/storage-unit.log",
+          "sha256": "11acac9a3231153fba4dac761bad550bd8083ee7af05dcd364b345d405786508",
+          "bytes": 2698,
+          "retained_path": "artifacts/rust-rewrite/evidence/11acac9a3231153fba4dac761bad550bd8083ee7af05dcd364b345d405786508.log"
+        }
+      },
+      {
+        "name": "storage-process",
+        "argv": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "-p",
+          "xtask",
+          "--test",
+          "benchmark_storage"
+        ],
+        "exit_code": 0,
+        "log": "artifacts/rust-rewrite/storage-bundle-fix-1/storage-process.log",
+        "sha256": "221f0593b11b3a9fa1af5af27cffe5678200f86110d92c586ecca93f9bac680e",
+        "log_descriptor": {
+          "path": "artifacts/rust-rewrite/storage-bundle-fix-1/storage-process.log",
+          "sha256": "221f0593b11b3a9fa1af5af27cffe5678200f86110d92c586ecca93f9bac680e",
+          "bytes": 1116,
+          "retained_path": "artifacts/rust-rewrite/evidence/221f0593b11b3a9fa1af5af27cffe5678200f86110d92c586ecca93f9bac680e.log"
+        }
+      },
+      {
+        "name": "bundle",
+        "argv": [
+          "cargo",
+          "test",
+          "--offline",
+          "--locked",
+          "-p",
+          "xtask",
+          "--bin",
+          "xtask",
+          "bundle::tests::actual_bundle_checks_every_hash_excludes_canary_and_refuses_overwrite"
+        ],
+        "exit_code": 0,
+        "log": "artifacts/rust-rewrite/storage-bundle-fix-1/bundle.log",
+        "sha256": "c8f4af9c4169c236fe9e6a16852aaa86095e6bfc38595604f99dbaa4b6ba684b",
+        "log_descriptor": {
+          "path": "artifacts/rust-rewrite/storage-bundle-fix-1/bundle.log",
+          "sha256": "c8f4af9c4169c236fe9e6a16852aaa86095e6bfc38595604f99dbaa4b6ba684b",
+          "bytes": 838,
+          "retained_path": "artifacts/rust-rewrite/evidence/c8f4af9c4169c236fe9e6a16852aaa86095e6bfc38595604f99dbaa4b6ba684b.log"
+        }
+      },
+      {
+        "name": "clippy",
+        "argv": [
+          "cargo",
+          "clippy",
+          "--offline",
+          "--locked",
+          "-p",
+          "xtask",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit_code": 0,
+        "log": "artifacts/rust-rewrite/storage-bundle-fix-1/clippy.log",
+        "sha256": "d318dfe72bdc9270c4629ab9383ce753ded6a8a79a0453cf457030c1197a5ef0",
+        "log_descriptor": {
+          "path": "artifacts/rust-rewrite/storage-bundle-fix-1/clippy.log",
+          "sha256": "d318dfe72bdc9270c4629ab9383ce753ded6a8a79a0453cf457030c1197a5ef0",
+          "bytes": 751,
+          "retained_path": "artifacts/rust-rewrite/evidence/d318dfe72bdc9270c4629ab9383ce753ded6a8a79a0453cf457030c1197a5ef0.log"
+        }
+      },
+      {
+        "name": "build",
+        "argv": [
+          "cargo",
+          "build",
+          "--offline",
+          "--locked",
+          "-p",
+          "xtask",
+          "--bin",
+          "xtask",
+          "--message-format=json"
+        ],
+        "exit_code": 0,
+        "log": "artifacts/rust-rewrite/storage-bundle-fix-1/build.log",
+        "sha256": "fecede7c2157efe2f16c8c8b9dce94b0fb4dd384dca8207046c8bf7636eb0ffe",
+        "log_descriptor": {
+          "path": "artifacts/rust-rewrite/storage-bundle-fix-1/build.log",
+          "sha256": "fecede7c2157efe2f16c8c8b9dce94b0fb4dd384dca8207046c8bf7636eb0ffe",
+          "bytes": 72,
+          "retained_path": "artifacts/rust-rewrite/evidence/fecede7c2157efe2f16c8c8b9dce94b0fb4dd384dca8207046c8bf7636eb0ffe.log"
+        }
+      }
+    ],
+    "unit_tests_passed": 17,
+    "process_tests_passed": 4,
+    "actual_bundle_tests_passed": 1,
+    "format_checks": {
+      "path": "artifacts/rust-rewrite/storage-bundle-fix-1/format-checks.json",
+      "sha256": "be7eb267fe7e253054f0f7e7c7a94f8d4da02f731ec85665c687fd08e0c5a3f7",
+      "bytes": 296,
+      "retained_path": "artifacts/rust-rewrite/evidence/be7eb267fe7e253054f0f7e7c7a94f8d4da02f731ec85665c687fd08e0c5a3f7.json"
+    },
+    "build_json": {
+      "path": "artifacts/rust-rewrite/storage-bundle-fix-1/build.jsonl",
+      "sha256": "abe99f3460fdfd83226a5b89987e93c06a75bd2dacc1669b1ff0db36f87d8bf2",
+      "bytes": 145377,
+      "retained_path": "artifacts/rust-rewrite/evidence/abe99f3460fdfd83226a5b89987e93c06a75bd2dacc1669b1ff0db36f87d8bf2.jsonl"
+    },
+    "producer_binary": {
+      "path": "artifacts/rust-rewrite/storage-bundle-fix-1/candidate-xtask",
+      "sha256": "6fee72e013848f24bf1305e24f753fabc30876c533649892e44632f20f078fda",
+      "bytes": 51157256,
+      "retained_path": "artifacts/rust-rewrite/evidence/6fee72e013848f24bf1305e24f753fabc30876c533649892e44632f20f078fda"
+    },
+    "runner": {
+      "path": "artifacts/rust-rewrite/evidence/0d68de1b6452eb6c3c475e2fb1910132a3116234e0d39e4a936ec006b7ca3342.py",
+      "sha256": "0d68de1b6452eb6c3c475e2fb1910132a3116234e0d39e4a936ec006b7ca3342",
+      "bytes": 2261,
+      "retained_path": "artifacts/rust-rewrite/evidence/0d68de1b6452eb6c3c475e2fb1910132a3116234e0d39e4a936ec006b7ca3342.py",
+      "original_path": "/private/tmp/autorouter-storage-bundle-fix-checks-1.py"
+    }
+  },
+  "actual_extracted_execution": {
+    "archive": {
+      "path": "artifacts/rust-rewrite/source-bundle-validation-10/autorouter-native-source.tar.gz",
+      "sha256": "24e89333a97724e02c30aebb11608d379bb4daead0e6e5b5ed75eb7d04bcb1d0",
+      "bytes": 2019549,
+      "retained_path": "artifacts/rust-rewrite/evidence/24e89333a97724e02c30aebb11608d379bb4daead0e6e5b5ed75eb7d04bcb1d0.tar.gz"
+    },
+    "compiled_binary": {
+      "path": "artifacts/rust-rewrite/source-bundle-validation-10/compiled-xtask",
+      "sha256": "357441b1d591db7b43eff82b7f0f1b93f71b09c6ce9d185f0dff1d59dff7b447",
+      "bytes": 51248328,
+      "retained_path": "artifacts/rust-rewrite/evidence/357441b1d591db7b43eff82b7f0f1b93f71b09c6ce9d185f0dff1d59dff7b447"
+    },
+    "binary_descriptor": {
+      "path": "artifacts/rust-rewrite/source-bundle-validation-10/compiled-xtask.json",
+      "sha256": "ba4f397f14d1b4e34b23b432f243fb7f3f2b21832a12e97a01e3dc0792ee2bd4",
+      "bytes": 513,
+      "retained_path": "artifacts/rust-rewrite/evidence/ba4f397f14d1b4e34b23b432f243fb7f3f2b21832a12e97a01e3dc0792ee2bd4.json"
+    },
+    "canonical_compile": {
+      "path": "artifacts/rust-rewrite/source-bundle-validation-10/report.json",
+      "sha256": "2e8a7111740e98f10dcdd2951ad6df4e2a8979c9b3efceb00c7e3614015cc024",
+      "bytes": 6713,
+      "retained_path": "artifacts/rust-rewrite/evidence/2e8a7111740e98f10dcdd2951ad6df4e2a8979c9b3efceb00c7e3614015cc024.json"
+    },
+    "report": {
+      "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-execution.json",
+      "sha256": "884bd4e575921f32e8f41f3b709c76e7162a6e66ee0c2be6704266cd93ef5267",
+      "bytes": 5862,
+      "retained_path": "artifacts/rust-rewrite/evidence/884bd4e575921f32e8f41f3b709c76e7162a6e66ee0c2be6704266cd93ef5267.json"
+    },
+    "states": [
+      {
+        "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-tree-intact.json",
+        "sha256": "f8bccd67e6088f36599eda7d08c4e8df87067e907ef9197001111eb630413d78",
+        "bytes": 63008,
+        "retained_path": "artifacts/rust-rewrite/evidence/f8bccd67e6088f36599eda7d08c4e8df87067e907ef9197001111eb630413d78.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-tree-reference-files-absent.json",
+        "sha256": "0c5b05ff156a835161e2aed9c243dd4b69dce06c4d7853c99c50b25078eee14c",
+        "bytes": 62838,
+        "retained_path": "artifacts/rust-rewrite/evidence/0c5b05ff156a835161e2aed9c243dd4b69dce06c4d7853c99c50b25078eee14c.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-tree-restored.json",
+        "sha256": "fda04ac6bd65a09e8c5af20557cf45fb92cd80d444dc959a1960367e98448b52",
+        "bytes": 63012,
+        "retained_path": "artifacts/rust-rewrite/evidence/fda04ac6bd65a09e8c5af20557cf45fb92cd80d444dc959a1960367e98448b52.json"
+      }
+    ],
+    "runs": [
+      {
+        "name": "intact-native",
+        "invocation": {
+          "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-intact-native-invocation.json",
+          "sha256": "8f7dd4d3e8315d6933dcb45655d26c96482500e5d996666b5138d1a2f8b99e04",
+          "bytes": 1267,
+          "retained_path": "artifacts/rust-rewrite/evidence/8f7dd4d3e8315d6933dcb45655d26c96482500e5d996666b5138d1a2f8b99e04.json"
+        },
+        "report": {
+          "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-intact-native-evidence/report.json",
+          "sha256": "b941460664491e9c2c1b679f0b6660556cef29194d845d2876ead6ad67b3863f",
+          "bytes": 3392,
+          "retained_path": "artifacts/rust-rewrite/evidence/b941460664491e9c2c1b679f0b6660556cef29194d845d2876ead6ad67b3863f.json"
+        },
+        "preflight": {
+          "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-intact-native-evidence/preflight.json",
+          "sha256": "b5251b8079aaac8025c44dc7a465c3a3268d699d1ab8dce1018a8df0cdab1c81",
+          "bytes": 6470,
+          "retained_path": "artifacts/rust-rewrite/evidence/b5251b8079aaac8025c44dc7a465c3a3268d699d1ab8dce1018a8df0cdab1c81.json"
+        },
+        "postflight": {
+          "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-intact-native-evidence/postflight.json",
+          "sha256": "61012adb95688022ab552514b3c478a2bff1e1b3cf60239ee78e821f90c0f99f",
+          "bytes": 1635,
+          "retained_path": "artifacts/rust-rewrite/evidence/61012adb95688022ab552514b3c478a2bff1e1b3cf60239ee78e821f90c0f99f.json"
+        },
+        "executions": 16,
+        "passed": true,
+        "cleanup_all_joined_and_removed": true,
+        "node_children": 0
+      },
+      {
+        "name": "reference-files-absent-native",
+        "invocation": {
+          "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-reference-files-absent-native-invocation.json",
+          "sha256": "606741c468b40e8fa701a733d1916f39f9ce339a46a4c1896307f14c09229c70",
+          "bytes": 1322,
+          "retained_path": "artifacts/rust-rewrite/evidence/606741c468b40e8fa701a733d1916f39f9ce339a46a4c1896307f14c09229c70.json"
+        },
+        "report": {
+          "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-reference-files-absent-native-evidence/report.json",
+          "sha256": "b941460664491e9c2c1b679f0b6660556cef29194d845d2876ead6ad67b3863f",
+          "bytes": 3392,
+          "retained_path": "artifacts/rust-rewrite/evidence/b941460664491e9c2c1b679f0b6660556cef29194d845d2876ead6ad67b3863f.json"
+        },
+        "preflight": {
+          "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-reference-files-absent-native-evidence/preflight.json",
+          "sha256": "b5251b8079aaac8025c44dc7a465c3a3268d699d1ab8dce1018a8df0cdab1c81",
+          "bytes": 6470,
+          "retained_path": "artifacts/rust-rewrite/evidence/b5251b8079aaac8025c44dc7a465c3a3268d699d1ab8dce1018a8df0cdab1c81.json"
+        },
+        "postflight": {
+          "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-reference-files-absent-native-evidence/postflight.json",
+          "sha256": "61012adb95688022ab552514b3c478a2bff1e1b3cf60239ee78e821f90c0f99f",
+          "bytes": 1635,
+          "retained_path": "artifacts/rust-rewrite/evidence/61012adb95688022ab552514b3c478a2bff1e1b3cf60239ee78e821f90c0f99f.json"
+        },
+        "executions": 16,
+        "passed": true,
+        "cleanup_all_joined_and_removed": true,
+        "node_children": 0
+      },
+      {
+        "name": "restored-paired",
+        "invocation": {
+          "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-restored-paired-invocation.json",
+          "sha256": "06dab625851655e62fb11bc5a6627395b52c12e5f4d6c284ea6cadd4b525cbda",
+          "bytes": 1443,
+          "retained_path": "artifacts/rust-rewrite/evidence/06dab625851655e62fb11bc5a6627395b52c12e5f4d6c284ea6cadd4b525cbda.json"
+        },
+        "report": {
+          "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-restored-paired-evidence/report.json",
+          "sha256": "86a21c7f53cd234d6d38694622ea6749318409aac6dab639d09ae97ee05368b3",
+          "bytes": 7803,
+          "retained_path": "artifacts/rust-rewrite/evidence/86a21c7f53cd234d6d38694622ea6749318409aac6dab639d09ae97ee05368b3.json"
+        },
+        "preflight": {
+          "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-restored-paired-evidence/preflight.json",
+          "sha256": "19a76cda58021470464eaf321f36cf6bfb48938b7c5868b6968f974a0b2bb4e8",
+          "bytes": 7248,
+          "retained_path": "artifacts/rust-rewrite/evidence/19a76cda58021470464eaf321f36cf6bfb48938b7c5868b6968f974a0b2bb4e8.json"
+        },
+        "postflight": {
+          "path": "artifacts/rust-rewrite/source-bundle-validation-10/storage-restored-paired-evidence/postflight.json",
+          "sha256": "bd295cf4661b8153b47548b30910c9d4ec55ccf37bdbd57dd1918c7d546ac8d6",
+          "bytes": 2117,
+          "retained_path": "artifacts/rust-rewrite/evidence/bd295cf4661b8153b47548b30910c9d4ec55ccf37bdbd57dd1918c7d546ac8d6.json"
+        },
+        "executions": 32,
+        "passed": true,
+        "cleanup_all_joined_and_removed": true,
+        "node_children": 16
+      }
+    ],
+    "native_intact": 16,
+    "native_with_three_reference_paths_physically_absent": 16,
+    "restored_paired": 32,
+    "total_child_executions": 64,
+    "paired_comparisons": 16,
+    "all_inputs_restored_byte_identically": true,
+    "all_child_io_joined_and_scratch_removed": true,
+    "runner": {
+      "path": "artifacts/rust-rewrite/evidence/6955f572302d02453bda490fa26d64f57a2a252cd45420975d4ab129569e595e.py",
+      "sha256": "6955f572302d02453bda490fa26d64f57a2a252cd45420975d4ab129569e595e",
+      "bytes": 7382,
+      "retained_path": "artifacts/rust-rewrite/evidence/6955f572302d02453bda490fa26d64f57a2a252cd45420975d4ab129569e595e.py",
+      "original_path": "/private/tmp/autorouter-storage-bundle-execution-1.py"
+    }
+  },
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/evidence/7b5526912d22b08eeb11ee7c5abf05efa29eac3f9b83b008ca4107f56a222b57.json",
+    "sha256": "7b5526912d22b08eeb11ee7c5abf05efa29eac3f9b83b008ca4107f56a222b57",
+    "bytes": 59748,
+    "retained_path": "artifacts/rust-rewrite/evidence/7b5526912d22b08eeb11ee7c5abf05efa29eac3f9b83b008ca4107f56a222b57.json",
+    "original_path": "/private/tmp/autorouter-storage-bundle-fix-independent-review.json"
+  },
+  "known_later_failure": {
+    "description": "A later full-workspace run on these bytes found a separate preflight SIGINT startup race. This revision does not claim that lifecycle fixed or full-workspace acceptance; revision3 records the later signal change.",
+    "checks": {
+      "path": "artifacts/rust-rewrite/thirteenth-final-3-checks.json",
+      "sha256": "5b2d201e3c0a1795e94677d062c0dce0e708b13e4147a09a012e0b0f71609f21",
+      "bytes": 2908,
+      "retained_path": "artifacts/rust-rewrite/evidence/5b2d201e3c0a1795e94677d062c0dce0e708b13e4147a09a012e0b0f71609f21.json"
+    },
+    "log": {
+      "path": "artifacts/rust-rewrite/thirteenth-final-3-workspace.log",
+      "sha256": "3dbbc328ec95cab746f017b2fec729c270c6d4de0060ed4775a05a7346390be6",
+      "bytes": 94816,
+      "retained_path": "artifacts/rust-rewrite/evidence/3dbbc328ec95cab746f017b2fec729c270c6d4de0060ed4775a05a7346390be6.log"
+    }
+  },
+  "limits": [
+    "Synthetic/local deterministic scenarios on one macOS ARM64 host with cached dependencies.",
+    "The paired oracle requires an explicit existing Node executable and separately verified frozen reference product checkout; product JavaScript sources are absent from the source archive.",
+    "No original-test coverage promotion, numerical benchmark or performance acceptance, provider/evaluator call, production storage change or release approval."
+  ],
+  "numerical_measurements_performed": false,
+  "original_coverage_promotions": 0,
+  "provider_calls": 0,
+  "release_approved": false
+}

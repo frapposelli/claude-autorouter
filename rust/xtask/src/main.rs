@@ -1,4 +1,5 @@
 mod benchmark;
+mod benchmark_storage;
 mod bundle;
 mod context_probe;
 mod env_file;
@@ -28,6 +29,20 @@ mod upgrade_rollback;
 use std::path::PathBuf;
 
 fn main() {
+    if std::env::args_os().nth(1).as_deref() == Some(std::ffi::OsStr::new("__storage-child")) {
+        std::panic::set_hook(Box::new(|_| {}));
+        let args: Result<Vec<_>, _> = std::env::args_os()
+            .skip(2)
+            .map(|s| s.into_string())
+            .collect();
+        let result = args
+            .map_err(|_| "Invalid storage child arguments".to_owned())
+            .and_then(|args| benchmark_storage::child(&args));
+        if result.is_err() {
+            std::process::exit(1);
+        }
+        return;
+    }
     // The collector must run before any operation capable of creating children.
     // It owns exactly one measured child; the benchmark driver owns all mocks.
     if std::env::args_os().nth(1).as_deref()
@@ -67,7 +82,7 @@ fn main() {
     let result = match args.first().map(String::as_str) {
         None | Some("--help" | "help") => {
             println!(
-                "Usage: cargo xtask [--env-file PATH] COMMAND [OPTIONS]\n\nChecks: parity, fixture, freeze-reference\nNative artifacts: package, package-inspect, package-verify, package-smoke, upgrade-rollback\nRelease: release-pack, release-check, release-verify\nSynthetic transport: benchmark, benchmark-bundle\nExplicit evaluator calls: evaluate, evaluate-ollama, test-ollama-routing\nExplicit Claude startup/live calls: context-probe, live-validation\n\nEach opt-in tool provides --help. Environment files load only when explicitly supplied before COMMAND. Jev/Anthropic calls, model benchmarks and Claude/MCP startup are never ordinary contribution checks."
+                "Usage: cargo xtask [--env-file PATH] COMMAND [OPTIONS]\n\nChecks: parity, fixture, freeze-reference\nNative artifacts: package, package-inspect, package-verify, package-smoke, upgrade-rollback\nRelease: release-pack, release-check, release-verify\nSynthetic tools: benchmark, benchmark-storage, benchmark-bundle\nExplicit evaluator calls: evaluate, evaluate-ollama, test-ollama-routing\nExplicit Claude startup/live calls: context-probe, live-validation\n\nEach opt-in tool provides --help. Environment files load only when explicitly supplied before COMMAND. Jev/Anthropic calls, model benchmarks and Claude/MCP startup are never ordinary contribution checks."
             );
             Ok(true)
         }
@@ -77,6 +92,7 @@ fn main() {
         Some("upgrade-rollback") => upgrade_rollback::run(&args[1..], &root),
         Some("benchmark-bundle") => bundle::run(&args[1..], &root),
         Some("benchmark") => benchmark::run(&args[1..], &root),
+        Some("benchmark-storage") => benchmark_storage::run(&args[1..], &root),
         Some("context-probe") => context_probe::run(&args[1..], &root),
         Some("live-validation") => live::run(&args[1..], &root),
         Some("evaluate") => evaluation::run(&args[1..], &root),

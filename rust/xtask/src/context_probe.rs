@@ -561,7 +561,7 @@ pub fn run(args: &[String], _root: &Path) -> Result<bool, String> {
 }
 async fn execute(options: Value) -> Result<bool, String> {
     let interactive = options["interactive"] == true;
-    let signals = Signals::new();
+    let signals = Signals::new()?;
     let mut env = crate::evaluation::environment();
     env["AUTOROUTER_AUTH_MODE"] = json!("subscription");
     env["AUTOROUTER_CLIENT_PROFILE"] = json!("compatible");

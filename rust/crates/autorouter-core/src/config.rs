@@ -89,6 +89,10 @@ pub struct RouterConfig {
     pub cache_entries: usize,
     pub cache_ttl_ms: u64,
     pub turn_ttl_ms: u64,
+    /// Optional embedding limit, matching RouterConfig.turnEntries. CLI
+    /// configuration leaves this absent and retains the 1,000-entry default.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub turn_entries: Option<usize>,
     pub upstream_timeout_ms: u64,
 }
 
@@ -503,6 +507,7 @@ pub fn read_config(env: &Value, validate_all: bool, cwd: &Path) -> Result<Router
         cache_entries: 1000,
         cache_ttl_ms: 5 * 60 * 1000,
         turn_ttl_ms: 30 * 60 * 1000,
+        turn_entries: None,
         upstream_timeout_ms: 10 * 60 * 1000,
     })
 }

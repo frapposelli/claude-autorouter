@@ -2,9 +2,11 @@
 //! library test executable; there is no shipping CLI switch or transport hook.
 mod abort;
 mod abort_tests;
+mod buffered_body;
 mod client;
 pub(crate) mod gateway_intent;
 mod gateway_intent_tests;
+pub(crate) mod gateway_terminal;
 mod idle_close;
 mod idle_close_tests;
 mod lifecycle;

@@ -580,7 +580,7 @@ async fn execute(
     options: Value,
     reference: Option<reference_gateway::Reference>,
 ) -> Result<bool, String> {
-    let signals = Signals::new();
+    let signals = Signals::new()?;
     let fixtures = cases();
     let mut env = environment();
     env["AUTOROUTER_AUTH_MODE"] = json!("subscription");

@@ -77,6 +77,16 @@ comparisons that still differ. Clean response consumption and pool retirement
 do not establish successful downstream forwarding. The ordinary native
 release remains Rustls, with both experimental vendor features absent.
 
+The [buffered-response experiment](measurements/openssl-buffered-response-summary.json)
+adds bounded application buffers and first-frame response submission to that
+test-only transport. Its exact comparison passes 146 of 150 cases, including
+all 42 earlier header-timing mismatches. Four truncated responses still forward
+65,536 of the expected 65,537 bytes; they remain failures. All 300 reference and
+native executions complete cleanup. Twelve separate Node flow observations
+inform the next handoff design and are not native equivalence evidence. The
+summary retains conditional allocation bounds, source drift and earlier failed
+drafts; no production transport or full memory gate is approved.
+
 The auto-routing baseline also has a dynamic contract capture. It verifies the
 frozen source hashes, runs all 23 original test callbacks and assertions, and
 records every JSON-safe guard call with its result and before/after request
@@ -121,6 +131,22 @@ those boundaries and exact evidence hashes.
 node parity/capture-router-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/router-contracts-NEW
 cargo test --locked --package autorouter-core --test router_contracts
 cargo test --locked --package autorouter-runtime router::contracts
+```
+
+The [turn-routing mapping](assertion-mappings/turn-routing-contracts.json)
+covers four complete async-router definitions with 19 original assertions:
+provider fallback continuity, rejected capacity admission, exact scoped tool
+ownership and ambiguous continuations. The capacity test uses the native
+`RouterConfig::turn_entries` option through the real constructor. Its absent
+default remains 1,000 and adds no CLI setting. The frozen advanced-clock case
+makes no actual clock calls while tasks remain active or pending, so it does
+not establish retired-task expiration or clock-call timing parity. The
+[focused summary](measurements/turn-routing-contracts-summary.json) separates
+original assertions from the additional captured reference decisions.
+
+```sh
+node parity/capture-turn-routing-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/turn-routing-contracts-NEW
+cargo test --locked --package autorouter-runtime --lib router::turn_contracts
 ```
 
 The [concurrency mapping](assertion-mappings/router-concurrency-contracts.json)
@@ -268,6 +294,25 @@ unspawned `/usr/bin/security` command construction. It does not qualify actual
 Keychain access. The [empty-history mapping](assertion-mappings/history-empty-contracts.json)
 covers three real inspection commands with disabled logging or a missing
 directory, including `ENOENT`, no file creation and a forbidden secret store.
+
+The [history reader and command mapping](assertion-mappings/history-contracts.json)
+covers the ten original definitions preceding that empty-history case. Seven
+reader tests use real private files, symlinks and hard links; three command tests
+check human and JSON pricing provenance, fallback denominators and terminal
+sanitization without accessing Keychain. All 88 original assertion sites execute
+100 times across 21 direct reader calls and seven commands. The frozen callbacks
+and native counterparts pass independent review, and the capture preserves the
+original assertion expressions and operation order. All fourteen baseline
+session-history definitions now have individual coverage mappings. The
+[focused summary](measurements/history-contracts-summary.json) retains the
+earlier failed test expectations and capture attempt; these checks do not
+establish history performance, full workspace or platform acceptance.
+
+```sh
+node parity/capture-history-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/history-contracts-NEW
+cargo test --locked --package autorouter-runtime --test session_history_contracts
+cargo test --locked --package claude-autorouter sessions::contracts
+```
 
 The [server response mapping](assertion-mappings/server-response-contracts.json)
 covers three definitions and 22 static assertions through actual synthetic

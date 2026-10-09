@@ -23,6 +23,9 @@
       "available_case_ids": [],
       "status": "partial_evidence",
       "rust_tests": [
+        "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_command_sanitizes_controls_and_preserves_bounded_json_excerpts",
+        "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_fallback_denominator_uses_selections_then_outcome_only_zero",
+        "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_list_and_show_retain_pricing_provenance_in_text_and_json",
         "rust/crates/claude-autorouter/tests/commands.rs#config_edits_validate_saved_values_and_preserve_unrelated_settings",
         "rust/crates/claude-autorouter/tests/commands.rs#config_show_is_redacted_and_reports_source_and_inactive_settings_without_node",
         "rust/crates/claude-autorouter/tests/commands.rs#direct_claude_help_forwards_literal_arguments_and_removes_router_secrets",
@@ -1186,6 +1189,10 @@
         "rust/crates/autorouter-runtime/src/router.rs#early_count_and_classification_run_concurrently_and_count_is_reused",
         "rust/crates/autorouter-runtime/src/router.rs#exact_auxiliary_model_reaches_request_preparation_without_unicode_repair",
         "rust/crates/autorouter-runtime/src/router.rs#unused_early_count_retains_bounded_source_lifetime_and_request_cancellation",
+        "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_ambiguous_headerless_continuation_cannot_overwrite_either_task",
+        "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_headerless_continuation_recovers_scoped_tool_owner",
+        "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_provider_fallback_survives_expiry_and_new_task_can_downgrade",
+        "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_unknown_safeguards_reject_admission_and_retain_active_continuity",
         "rust/crates/autorouter-runtime/src/server_events.rs#exact_callbacks_do_not_relax_normalized_model_privacy",
         "rust/crates/autorouter-runtime/src/server_events.rs#exact_model_transition_identity_applies_capacity_before_normalization",
         "rust/crates/autorouter-runtime/src/server_events.rs#metadata_omits_prompts_and_prompt_records_are_redacted",
@@ -1329,7 +1336,17 @@
         "rust/crates/autorouter-runtime/src/session_log.rs#native_files_are_exclusive_private_and_metadata_only",
         "rust/crates/autorouter-runtime/src/session_log.rs#native_writer_rejects_links_replaced_directory_and_existing_file",
         "rust/crates/autorouter-runtime/src/session_log.rs#pending_bytes_and_sessions_are_bounded_without_losing_accepted_rows",
-        "rust/crates/autorouter-runtime/src/session_log.rs#storage_failure_warns_once_closes_and_does_not_echo_error"
+        "rust/crates/autorouter-runtime/src/session_log.rs#storage_failure_warns_once_closes_and_does_not_echo_error",
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_correlates_selections_outcomes_and_only_covered_usage",
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_counts_skipped_oversized_malformed_foreign_and_future_rows",
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_exposes_record_line_byte_and_incomplete_tail_limits",
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_keeps_mixed_provenance_and_deduplicates_recorded_outcomes",
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_legacy_and_metadata_never_invent_success_or_private_fields",
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_lists_newest_ids_with_aggregate_byte_and_directory_bounds",
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_rejects_traversal_symlinks_and_hardlinks_without_target_changes",
+        "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_command_sanitizes_controls_and_preserves_bounded_json_excerpts",
+        "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_fallback_denominator_uses_selections_then_outcome_only_zero",
+        "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_list_and_show_retain_pricing_provenance_in_text_and_json"
       ],
       "evidence": [
         "telemetry_savings_history"
@@ -14231,7 +14248,7 @@
       ],
       "remaining_assertions": [
         "Historical JavaScript archive release-check acceptance and exact npm packed-file/source comparisons are intentionally not admitted by native publication gates. Synthetic native baseline has real temporary HEAD/lock identity and all admission checks; approval declarations are test fixtures, not qualification evidence.",
-        "Nested nine original diagnostic/format assertions remain partial; see definitions #8\u201316."
+        "Nested nine original diagnostic/format assertions remain partial; see definitions #8–16."
       ],
       "assertion_mapping": "rust/parity/assertion-mappings/release-remaining-contracts.json"
     },
@@ -22400,38 +22417,55 @@
       "file": "test/session-history.test.mjs",
       "name": "history correlates selections and confirmed outcomes and prices only covered usage",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/session_history.rs#session_history::tests::conflicting_duplicates_and_legacy_selections_never_imply_completed_execution"
+        "rust/crates/autorouter-core/src/session_history.rs#session_history::tests::conflicting_duplicates_and_legacy_selections_never_imply_completed_execution",
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_correlates_selections_outcomes_and_only_covered_usage"
       ],
       "shared_cases": [
         "history-19",
         "history-25"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/history-contracts.json",
+        "assertion_mapping_sha256": "7d2e8eefd627569cd811e441f61cf1eedeeb657eb08a5e6677bbccaf8f0f277c",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/4c64eac66c08f133cfb4c71cab4cdfdab23e4d0b3abf957df70535d455ecc124.json",
+          "sha256": "4c64eac66c08f133cfb4c71cab4cdfdab23e4d0b3abf957df70535d455ecc124",
+          "bytes": 1633064,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "reader_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3.json",
+          "sha256": "d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3",
+          "bytes": 5002,
+          "original_path": "/private/tmp/autorouter-history-reader-independent-review.json"
+        },
+        "command_and_capture_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f.json",
+          "sha256": "9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f",
+          "bytes": 21384,
+          "original_path": "/private/tmp/autorouter-history-command-independent-review.json"
+        },
+        "static_assertions": 17,
+        "expanded_original_assertions": 17,
+        "scope": "Complete original callback counterpart using actual private files and reader/command APIs. Native and unchanged frozen tests pass; full workspace and performance qualification are separate."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Random history sequences compare full summaries, but none is identified as the full seven-request/five-decision/five-outcome mixture with the exact fallback/latency/provenance/legacy counts from this definition."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/history-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-history.test.mjs#2",
       "file": "test/session-history.test.mjs",
       "name": "unknown pricing versions and mixed recorded baselines stay explicit, duplicate rows do not double count",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/session_history.rs#session_history::tests::conflicting_duplicates_and_legacy_selections_never_imply_completed_execution"
+        "rust/crates/autorouter-core/src/session_history.rs#session_history::tests::conflicting_duplicates_and_legacy_selections_never_imply_completed_execution",
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_keeps_mixed_provenance_and_deduplicates_recorded_outcomes"
       ],
       "shared_cases": [
         "history-6",
@@ -22439,83 +22473,133 @@
         "history-8"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/history-contracts.json",
+        "assertion_mapping_sha256": "7d2e8eefd627569cd811e441f61cf1eedeeb657eb08a5e6677bbccaf8f0f277c",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/4c64eac66c08f133cfb4c71cab4cdfdab23e4d0b3abf957df70535d455ecc124.json",
+          "sha256": "4c64eac66c08f133cfb4c71cab4cdfdab23e4d0b3abf957df70535d455ecc124",
+          "bytes": 1633064,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "reader_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3.json",
+          "sha256": "d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3",
+          "bytes": 5002,
+          "original_path": "/private/tmp/autorouter-history-reader-independent-review.json"
+        },
+        "command_and_capture_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f.json",
+          "sha256": "9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f",
+          "bytes": 21384,
+          "original_path": "/private/tmp/autorouter-history-command-independent-review.json"
+        },
+        "static_assertions": 10,
+        "expanded_original_assertions": 10,
+        "scope": "Complete original callback counterpart using actual private files and reader/command APIs. Native and unchanged frozen tests pass; full workspace and performance qualification are separate."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Corpus includes future/missing versions, duplicate/conflicting rows and Opus5 baseline. Missing the precise non-conflicting duplicate plus mixed-baseline/future/missing-baseline combined fixture and all resulting counters."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/history-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-history.test.mjs#3",
       "file": "test/session-history.test.mjs",
       "name": "list and show report pricing versions and missing provenance in human and JSON summaries",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
-      "rust_tests": [],
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_list_and_show_retain_pricing_provenance_in_text_and_json"
+      ],
       "shared_cases": [
         "history-6",
         "history-7"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/history-contracts.json",
+        "assertion_mapping_sha256": "7d2e8eefd627569cd811e441f61cf1eedeeb657eb08a5e6677bbccaf8f0f277c",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/4c64eac66c08f133cfb4c71cab4cdfdab23e4d0b3abf957df70535d455ecc124.json",
+          "sha256": "4c64eac66c08f133cfb4c71cab4cdfdab23e4d0b3abf957df70535d455ecc124",
+          "bytes": 1633064,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "reader_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3.json",
+          "sha256": "d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3",
+          "bytes": 5002,
+          "original_path": "/private/tmp/autorouter-history-reader-independent-review.json"
+        },
+        "command_and_capture_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f.json",
+          "sha256": "9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f",
+          "bytes": 21384,
+          "original_path": "/private/tmp/autorouter-history-command-independent-review.json"
+        },
+        "static_assertions": 9,
+        "expanded_original_assertions": 18,
+        "scope": "Complete original callback counterpart using actual private files and reader/command APIs. Native and unchanged frozen tests pass; full workspace and performance qualification are separate."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Pure history text and JSON are compared, but native list/show CLI wiring with saved config, mixed versions, missing version, pricing facts and both output modes is not retained as this complete four-command matrix."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/history-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-history.test.mjs#4",
       "file": "test/session-history.test.mjs",
       "name": "fallback rates use observed selections including legacy/pending records, not HTTP failures or outcomes",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
-      "rust_tests": [],
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_fallback_denominator_uses_selections_then_outcome_only_zero"
+      ],
       "shared_cases": [
         "history-2",
         "history-3"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/history-contracts.json",
+        "assertion_mapping_sha256": "7d2e8eefd627569cd811e441f61cf1eedeeb657eb08a5e6677bbccaf8f0f277c",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/4c64eac66c08f133cfb4c71cab4cdfdab23e4d0b3abf957df70535d455ecc124.json",
+          "sha256": "4c64eac66c08f133cfb4c71cab4cdfdab23e4d0b3abf957df70535d455ecc124",
+          "bytes": 1633064,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "reader_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3.json",
+          "sha256": "d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3",
+          "bytes": 5002,
+          "original_path": "/private/tmp/autorouter-history-reader-independent-review.json"
+        },
+        "command_and_capture_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f.json",
+          "sha256": "9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f",
+          "bytes": 21384,
+          "original_path": "/private/tmp/autorouter-history-command-independent-review.json"
+        },
+        "static_assertions": 8,
+        "expanded_original_assertions": 8,
+        "scope": "Complete original callback counterpart using actual private files and reader/command APIs. Native and unchanged frozen tests pass; full workspace and performance qualification are separate."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Fallback/legacy/error/outcome variants occur in generated histories. Exact denominator=three selections, 2/3 fallback rate, human 66.7% output and subsequent outcome-only zero rate are not mapped together."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/history-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-history.test.mjs#5",
       "file": "test/session-history.test.mjs",
       "name": "legacy records and metadata-only sessions never invent successful responses or reveal private fields",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/session_history.rs#session_history::tests::conflicting_duplicates_and_legacy_selections_never_imply_completed_execution"
+        "rust/crates/autorouter-core/src/session_history.rs#session_history::tests::conflicting_duplicates_and_legacy_selections_never_imply_completed_execution",
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_legacy_and_metadata_never_invent_success_or_private_fields"
       ],
       "shared_cases": [
         "history-2",
@@ -22523,56 +22607,89 @@
         "history-14"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/history-contracts.json",
+        "assertion_mapping_sha256": "7d2e8eefd627569cd811e441f61cf1eedeeb657eb08a5e6677bbccaf8f0f277c",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/4c64eac66c08f133cfb4c71cab4cdfdab23e4d0b3abf957df70535d455ecc124.json",
+          "sha256": "4c64eac66c08f133cfb4c71cab4cdfdab23e4d0b3abf957df70535d455ecc124",
+          "bytes": 1633064,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "reader_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3.json",
+          "sha256": "d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3",
+          "bytes": 5002,
+          "original_path": "/private/tmp/autorouter-history-reader-independent-review.json"
+        },
+        "command_and_capture_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f.json",
+          "sha256": "9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f",
+          "bytes": 21384,
+          "original_path": "/private/tmp/autorouter-history-command-independent-review.json"
+        },
+        "static_assertions": 5,
+        "expanded_original_assertions": 5,
+        "scope": "Complete original callback counterpart using actual private files and reader/command APIs. Native and unchanged frozen tests pass; full workspace and performance qualification are separate."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Legacy and metadata fixtures are present, but this exact two-pending-record combination with private body/header removal and empty confirmed_models is not retained explicitly."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/history-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-history.test.mjs#6",
       "file": "test/session-history.test.mjs",
       "name": "human show sanitizes terminal controls and JSON retains only bounded prompt excerpts",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
-      "rust_tests": [],
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_command_sanitizes_controls_and_preserves_bounded_json_excerpts"
+      ],
       "shared_cases": [
         "history-14"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/history-contracts.json",
+        "assertion_mapping_sha256": "7d2e8eefd627569cd811e441f61cf1eedeeb657eb08a5e6677bbccaf8f0f277c",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/4c64eac66c08f133cfb4c71cab4cdfdab23e4d0b3abf957df70535d455ecc124.json",
+          "sha256": "4c64eac66c08f133cfb4c71cab4cdfdab23e4d0b3abf957df70535d455ecc124",
+          "bytes": 1633064,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "reader_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3.json",
+          "sha256": "d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3",
+          "bytes": 5002,
+          "original_path": "/private/tmp/autorouter-history-reader-independent-review.json"
+        },
+        "command_and_capture_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f.json",
+          "sha256": "9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f",
+          "bytes": 21384,
+          "original_path": "/private/tmp/autorouter-history-command-independent-review.json"
+        },
+        "static_assertions": 8,
+        "expanded_original_assertions": 8,
+        "scope": "Complete original callback counterpart using actual private files and reader/command APIs. Native and unchanged frozen tests pass; full workspace and performance qualification are separate."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "history-14 compares control-bearing 500-code-point prompt JSON and sanitized human text. Missing native sessions command using invalid inactive evaluator settings and its explicit successful return value."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/history-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-history.test.mjs#7",
       "file": "test/session-history.test.mjs",
       "name": "bounded reads report partial coverage for bytes, records, lines, and incomplete tails",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
         "rust/crates/autorouter-core/src/session_history.rs#session_history::tests::truncated_tail_bad_schema_and_mixed_identity_are_explicit",
-        "rust/crates/autorouter-runtime/src/session_history.rs#session_history::tests::file_record_directory_and_byte_bounds_are_visible_without_modifying_logs"
+        "rust/crates/autorouter-runtime/src/session_history.rs#session_history::tests::file_record_directory_and_byte_bounds_are_visible_without_modifying_logs",
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_exposes_record_line_byte_and_incomplete_tail_limits"
       ],
       "shared_cases": [
         "history-19",
@@ -22580,29 +22697,45 @@
         "history-21"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/history-contracts.json",
+        "assertion_mapping_sha256": "7d2e8eefd627569cd811e441f61cf1eedeeb657eb08a5e6677bbccaf8f0f277c",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/4c64eac66c08f133cfb4c71cab4cdfdab23e4d0b3abf957df70535d455ecc124.json",
+          "sha256": "4c64eac66c08f133cfb4c71cab4cdfdab23e4d0b3abf957df70535d455ecc124",
+          "bytes": 1633064,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "reader_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3.json",
+          "sha256": "d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3",
+          "bytes": 5002,
+          "original_path": "/private/tmp/autorouter-history-reader-independent-review.json"
+        },
+        "command_and_capture_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f.json",
+          "sha256": "9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f",
+          "bytes": 21384,
+          "original_path": "/private/tmp/autorouter-history-command-independent-review.json"
+        },
+        "static_assertions": 9,
+        "expanded_original_assertions": 9,
+        "scope": "Complete original callback counterpart using actual private files and reader/command APIs. Native and unchanged frozen tests pass; full workspace and performance qualification are separate."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Generated limits cover maxRecords/maxLines/maxFileBytes and incomplete tails. The exact separate one-record, one-line,30-byte and appended-tail read matrix is not mapped, including native file reader bytes_read."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/history-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-history.test.mjs#8",
       "file": "test/session-history.test.mjs",
       "name": "oversized, malformed, foreign-session, and unknown-version records are skipped with coverage counts",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/session_history.rs#session_history::tests::truncated_tail_bad_schema_and_mixed_identity_are_explicit"
+        "rust/crates/autorouter-core/src/session_history.rs#session_history::tests::truncated_tail_bad_schema_and_mixed_identity_are_explicit",
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_counts_skipped_oversized_malformed_foreign_and_future_rows"
       ],
       "shared_cases": [
         "history-10",
@@ -22610,72 +22743,119 @@
         "history-280"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/history-contracts.json",
+        "assertion_mapping_sha256": "7d2e8eefd627569cd811e441f61cf1eedeeb657eb08a5e6677bbccaf8f0f277c",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/4c64eac66c08f133cfb4c71cab4cdfdab23e4d0b3abf957df70535d455ecc124.json",
+          "sha256": "4c64eac66c08f133cfb4c71cab4cdfdab23e4d0b3abf957df70535d455ecc124",
+          "bytes": 1633064,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "reader_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3.json",
+          "sha256": "d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3",
+          "bytes": 5002,
+          "original_path": "/private/tmp/autorouter-history-reader-independent-review.json"
+        },
+        "command_and_capture_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f.json",
+          "sha256": "9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f",
+          "bytes": 21384,
+          "original_path": "/private/tmp/autorouter-history-command-independent-review.json"
+        },
+        "static_assertions": 6,
+        "expanded_original_assertions": 6,
+        "scope": "Complete original callback counterpart using actual private files and reader/command APIs. Native and unchanged frozen tests pass; full workspace and performance qualification are separate."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Oversize, malformed, foreign and unsupported schema cases exist separately and randomly. Add one fixture retaining exact combined invalid_records=2/oversized_lines=1/mixed=1 plus private marker exclusion."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/history-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-history.test.mjs#9",
       "file": "test/session-history.test.mjs",
       "name": "list chooses bounded newest IDs deterministically and limits total bytes without deleting files",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/session_history.rs#session_history::tests::file_record_directory_and_byte_bounds_are_visible_without_modifying_logs"
+        "rust/crates/autorouter-runtime/src/session_history.rs#session_history::tests::file_record_directory_and_byte_bounds_are_visible_without_modifying_logs",
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_lists_newest_ids_with_aggregate_byte_and_directory_bounds"
       ],
       "shared_cases": [],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/history-contracts.json",
+        "assertion_mapping_sha256": "7d2e8eefd627569cd811e441f61cf1eedeeb657eb08a5e6677bbccaf8f0f277c",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/4c64eac66c08f133cfb4c71cab4cdfdab23e4d0b3abf957df70535d455ecc124.json",
+          "sha256": "4c64eac66c08f133cfb4c71cab4cdfdab23e4d0b3abf957df70535d455ecc124",
+          "bytes": 1633064,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "reader_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3.json",
+          "sha256": "d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3",
+          "bytes": 5002,
+          "original_path": "/private/tmp/autorouter-history-reader-independent-review.json"
+        },
+        "command_and_capture_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f.json",
+          "sha256": "9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f",
+          "bytes": 21384,
+          "original_path": "/private/tmp/autorouter-history-command-independent-review.json"
+        },
+        "static_assertions": 8,
+        "expanded_original_assertions": 8,
+        "scope": "Complete original callback counterpart using actual private files and reader/command APIs. Native and unchanged frozen tests pass; full workspace and performance qualification are separate."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Runtime test covers newest IDs, file cap, total byte cap and nonmutation; maxDirectoryEntries=1 flag and exact 100-byte total are not asserted."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/history-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-history.test.mjs#10",
       "file": "test/session-history.test.mjs",
       "name": "history rejects traversal, directory or file symlinks, and hardlinks without reading their targets",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/session_history.rs#session_history::tests::rejects_links_special_files_and_nonregular_directories"
+        "rust/crates/autorouter-runtime/src/session_history.rs#session_history::tests::rejects_links_special_files_and_nonregular_directories",
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_rejects_traversal_symlinks_and_hardlinks_without_target_changes"
       ],
       "shared_cases": [],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/history-contracts.json",
+        "assertion_mapping_sha256": "7d2e8eefd627569cd811e441f61cf1eedeeb657eb08a5e6677bbccaf8f0f277c",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/4c64eac66c08f133cfb4c71cab4cdfdab23e4d0b3abf957df70535d455ecc124.json",
+          "sha256": "4c64eac66c08f133cfb4c71cab4cdfdab23e4d0b3abf957df70535d455ecc124",
+          "bytes": 1633064,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "reader_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3.json",
+          "sha256": "d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3",
+          "bytes": 5002,
+          "original_path": "/private/tmp/autorouter-history-reader-independent-review.json"
+        },
+        "command_and_capture_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f.json",
+          "sha256": "9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f",
+          "bytes": 21384,
+          "original_path": "/private/tmp/autorouter-history-command-independent-review.json"
+        },
+        "static_assertions": 8,
+        "expanded_original_assertions": 11,
+        "scope": "Complete original callback counterpart using actual private files and reader/command APIs. Native and unchanged frozen tests pass; full workspace and performance qualification are separate."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Native test covers file/directory symlink, hardlink, FIFO and target preservation. The four traversal/newline/extension ID rejection variants are not asserted in that test."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/history-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-history.test.mjs#11",
@@ -28048,28 +28228,72 @@
       "file": "test/turn-state.test.mjs",
       "name": "gateway routing commits actual provider fallback, retains it after expiry, then permits a new task to downgrade",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_provider_fallback_survives_expiry_and_new_task_can_downgrade"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/turn-routing-contracts.json",
+        "assertion_mapping_sha256": "6333a7e984cd456052c458a42c3787fed1eb39a1345e6c73d4ac22b48b00d3a6",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/ed045ec148b5981f756e92a6c2c8a511778d036d468514b13182928e6f705132.json",
+          "sha256": "ed045ec148b5981f756e92a6c2c8a511778d036d468514b13182928e6f705132",
+          "bytes": 1644683,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/60028931e70daa82563a1cc14cdce5ea38225dddb89e45767b0444a63eaf42a8.json",
+          "sha256": "60028931e70daa82563a1cc14cdce5ea38225dddb89e45767b0444a63eaf42a8",
+          "bytes": 16212,
+          "original_path": "/private/tmp/autorouter-turn-routing-independent-review.json"
+        },
+        "static_assertions": 3,
+        "expanded_original_assertions": 3,
+        "scope": "Complete original async Router counterpart; actual classifier/routing/completion with synthetic HTTP answers. No retired-TTL, full captured-decision, clock-call-count or transport equivalence claim."
+      },
       "related_components": [
         "js_document",
         "router_continuity"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/turn-routing-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/turn-state.test.mjs#6",
       "file": "test/turn-state.test.mjs",
       "name": "unknown safeguards report rejected turn admission without replacing active continuity",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_unknown_safeguards_reject_admission_and_retain_active_continuity"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/turn-routing-contracts.json",
+        "assertion_mapping_sha256": "6333a7e984cd456052c458a42c3787fed1eb39a1345e6c73d4ac22b48b00d3a6",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/ed045ec148b5981f756e92a6c2c8a511778d036d468514b13182928e6f705132.json",
+          "sha256": "ed045ec148b5981f756e92a6c2c8a511778d036d468514b13182928e6f705132",
+          "bytes": 1644683,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/60028931e70daa82563a1cc14cdce5ea38225dddb89e45767b0444a63eaf42a8.json",
+          "sha256": "60028931e70daa82563a1cc14cdce5ea38225dddb89e45767b0444a63eaf42a8",
+          "bytes": 16212,
+          "original_path": "/private/tmp/autorouter-turn-routing-independent-review.json"
+        },
+        "static_assertions": 8,
+        "expanded_original_assertions": 8,
+        "scope": "Complete original async Router counterpart; actual classifier/routing/completion with synthetic HTTP answers. No retired-TTL, full captured-decision, clock-call-count or transport equivalence claim."
+      },
       "related_components": [
         "js_document",
         "router_continuity"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/turn-routing-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/turn-state.test.mjs#7",
@@ -28268,28 +28492,72 @@
       "file": "test/turn-state.test.mjs",
       "name": "headerless continuations recover exact scoped tool ownership despite same-content tasks",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_headerless_continuation_recovers_scoped_tool_owner"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/turn-routing-contracts.json",
+        "assertion_mapping_sha256": "6333a7e984cd456052c458a42c3787fed1eb39a1345e6c73d4ac22b48b00d3a6",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/ed045ec148b5981f756e92a6c2c8a511778d036d468514b13182928e6f705132.json",
+          "sha256": "ed045ec148b5981f756e92a6c2c8a511778d036d468514b13182928e6f705132",
+          "bytes": 1644683,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/60028931e70daa82563a1cc14cdce5ea38225dddb89e45767b0444a63eaf42a8.json",
+          "sha256": "60028931e70daa82563a1cc14cdce5ea38225dddb89e45767b0444a63eaf42a8",
+          "bytes": 16212,
+          "original_path": "/private/tmp/autorouter-turn-routing-independent-review.json"
+        },
+        "static_assertions": 3,
+        "expanded_original_assertions": 3,
+        "scope": "Complete original async Router counterpart; actual classifier/routing/completion with synthetic HTTP answers. No retired-TTL, full captured-decision, clock-call-count or transport equivalence claim."
+      },
       "related_components": [
         "js_document",
         "router_continuity"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/turn-routing-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/turn-state.test.mjs#16",
       "file": "test/turn-state.test.mjs",
       "name": "ambiguous headerless continuity never stages an overwrite of either confirmed task",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/router_turn_contracts.rs#router::turn_contracts::original_ambiguous_headerless_continuation_cannot_overwrite_either_task"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/turn-routing-contracts.json",
+        "assertion_mapping_sha256": "6333a7e984cd456052c458a42c3787fed1eb39a1345e6c73d4ac22b48b00d3a6",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/ed045ec148b5981f756e92a6c2c8a511778d036d468514b13182928e6f705132.json",
+          "sha256": "ed045ec148b5981f756e92a6c2c8a511778d036d468514b13182928e6f705132",
+          "bytes": 1644683,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/60028931e70daa82563a1cc14cdce5ea38225dddb89e45767b0444a63eaf42a8.json",
+          "sha256": "60028931e70daa82563a1cc14cdce5ea38225dddb89e45767b0444a63eaf42a8",
+          "bytes": 16212,
+          "original_path": "/private/tmp/autorouter-turn-routing-independent-review.json"
+        },
+        "static_assertions": 5,
+        "expanded_original_assertions": 5,
+        "scope": "Complete original async Router counterpart; actual classifier/routing/completion with synthetic HTTP answers. No retired-TTL, full captured-decision, clock-call-count or transport equivalence claim."
+      },
       "related_components": [
         "js_document",
         "router_continuity"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/turn-routing-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/user-config.test.mjs#1",

@@ -23,6 +23,12 @@ const FIXED: &[&str] = &[
     "rust/parity/local-benchmark-v1.json",
     "rust/parity/local-benchmark-v2.json",
     "rust/parity/local-benchmark-v3.json",
+    "rust/parity/storage-benchmark-v1.json",
+    "rust/parity/storage-contracts.capture.json",
+    "rust/parity/storage-reference.mjs",
+    "scripts/rust-reference.mjs",
+    "rust/xtask/tests/benchmark_storage.rs",
+    "rust/docs/storage-benchmark.md",
     "rust/xtask/tests/benchmark_resources.rs",
     "rust/parity/live-gateway.mjs",
     "rust/parity/cases/router-contracts.jsonl",
@@ -598,6 +604,29 @@ mod tests {
                 assert!(
                     files.contains_key(&required),
                     "Packed {path} is missing embedded source {required}"
+                );
+            }
+        }
+        // A packed Node oracle must retain its static relative imports even
+        // though the frozen product modules are supplied separately at runtime.
+        let imports =
+            regex::Regex::new(r#"(?m)^import[^\n;]*\bfrom\s*['"](\.[^'"]+)['"]"#).unwrap();
+        for (path, entry) in files.iter().filter(|(path, _)| path.ends_with(".mjs")) {
+            let source = String::from_utf8_lossy(&entry.bytes);
+            for capture in imports.captures_iter(&source) {
+                let mut parts: Vec<_> = path.split('/').collect();
+                parts.pop();
+                for part in capture[1].split('/') {
+                    match part {
+                        ".." => assert!(parts.pop().is_some()),
+                        "." => {}
+                        value => parts.push(value),
+                    }
+                }
+                let required = parts.join("/");
+                assert!(
+                    files.contains_key(&required),
+                    "Packed {path} is missing imported helper {required}"
                 );
             }
         }
