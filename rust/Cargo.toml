@@ -1,6 +1,6 @@
 [workspace]
 members = ["crates/autorouter-core", "crates/autorouter-runtime", "crates/claude-autorouter", "xtask"]
-exclude = ["vendor/hyper", "vendor/openssl", "fuzz"]
+exclude = ["vendor/hyper", "vendor/openssl", "vendor/hyper-util", "fuzz"]
 resolver = "3"
 
 [workspace.package]
@@ -28,7 +28,7 @@ icu_locale_core = "=2.3.0"
 tokio = { version = "=1.53.2", features = ["rt-multi-thread", "net", "io-util", "sync", "time", "macros", "process", "signal", "fs", "test-util"] }
 tokio-util = { version = "0.7", features = ["rt"] }
 hyper = { version = "=1.12.0", features = ["http1", "client", "server", "node-http1-compat"] }
-hyper-util = { version = "0.1", features = ["tokio", "client-legacy", "http1"] }
+hyper-util = { version = "=0.1.21", features = ["tokio", "client-legacy", "http1"] }
 hyper-rustls = { version = "0.27", default-features = false, features = ["http1", "tls12", "ring"] }
 rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
 openssl = { version = "=0.10.81", features = ["vendored"] }
@@ -42,6 +42,7 @@ unsafe_code = "forbid"
 [patch.crates-io]
 hyper = { path = "vendor/hyper" }
 openssl = { path = "vendor/openssl" }
+hyper-util = { path = "vendor/hyper-util" }
 
 [profile.release]
 lto = "thin"

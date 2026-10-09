@@ -32,6 +32,10 @@ const FIXED: &[&str] = &[
     "rust/parity/cases/evaluation-report-contracts.capture.json",
     "rust/parity/cases/local-setup-diagnostic.jsonl",
     "rust/parity/cases/local-setup-diagnostic.capture.json",
+    "rust/parity/cases/local-finite-contracts.jsonl",
+    "rust/parity/cases/local-finite-contracts.capture.json",
+    "rust/parity/cases/release-contracts.jsonl",
+    "rust/parity/cases/release-contracts.capture.json",
     "rust/parity/cases/response-observer-contracts.jsonl",
     "rust/parity/cases/response-observer-contracts.capture.json",
     "rust/parity/cases/telemetry-statusline-contracts.jsonl",
@@ -64,6 +68,10 @@ const FIXED: &[&str] = &[
     "rust/vendor/hyper-provenance.json",
     "rust/vendor/hyper-node-http1-compat.patch",
     "rust/vendor/verify-hyper.mjs",
+    "rust/vendor/hyper-util-provenance.json",
+    "rust/vendor/hyper-util-request-lease.patch",
+    "rust/vendor/verify-hyper-util.mjs",
+    "rust/vendor/verify-production-features.mjs",
     "rust/vendor/openssl-provenance.json",
     "rust/vendor/openssl-node-trust.patch",
     "rust/vendor/verify-openssl.mjs",
@@ -190,6 +198,73 @@ const OPENSSL_FILES: &[&str] = &[
     "test/subca.crt",
     "test/test.crl",
 ];
+// Pinned hyper-util archive inventory plus the reviewed opt-in lease module.
+// An adjacent file is never included merely because its extension is Rust.
+const HYPER_UTIL_FILES: &[&str] = &[
+    ".cargo_vcs_info.json",
+    ".github/workflows/CI.yml",
+    ".github/workflows/rustdoc-preview.yml",
+    ".gitignore",
+    "CHANGELOG.md",
+    "Cargo.lock",
+    "Cargo.toml",
+    "Cargo.toml.orig",
+    "LICENSE",
+    "README.md",
+    "examples/client.rs",
+    "examples/client_tracing.rs",
+    "examples/server.rs",
+    "examples/server_graceful.rs",
+    "src/client/legacy/client.rs",
+    "src/client/legacy/connect/capture.rs",
+    "src/client/legacy/connect/dns.rs",
+    "src/client/legacy/connect/http.rs",
+    "src/client/legacy/connect/mod.rs",
+    "src/client/legacy/connect/proxy/mod.rs",
+    "src/client/legacy/connect/proxy/socks/mod.rs",
+    "src/client/legacy/connect/proxy/socks/v4/errors.rs",
+    "src/client/legacy/connect/proxy/socks/v4/messages.rs",
+    "src/client/legacy/connect/proxy/socks/v4/mod.rs",
+    "src/client/legacy/connect/proxy/socks/v5/errors.rs",
+    "src/client/legacy/connect/proxy/socks/v5/messages.rs",
+    "src/client/legacy/connect/proxy/socks/v5/mod.rs",
+    "src/client/legacy/connect/proxy/tunnel.rs",
+    "src/client/legacy/connect/request_lease.rs",
+    "src/client/legacy/mod.rs",
+    "src/client/legacy/pool.rs",
+    "src/client/mod.rs",
+    "src/client/pool/cache.rs",
+    "src/client/pool/map.rs",
+    "src/client/pool/mod.rs",
+    "src/client/pool/negotiate.rs",
+    "src/client/pool/singleton.rs",
+    "src/client/proxy/matcher.rs",
+    "src/client/proxy/mod.rs",
+    "src/common/exec.rs",
+    "src/common/lazy.rs",
+    "src/common/mod.rs",
+    "src/common/rewind.rs",
+    "src/common/sync.rs",
+    "src/common/timer.rs",
+    "src/lib.rs",
+    "src/rt/io.rs",
+    "src/rt/mod.rs",
+    "src/rt/tokio.rs",
+    "src/rt/tokio/with_hyper_io.rs",
+    "src/rt/tokio/with_tokio_io.rs",
+    "src/rt/tracing.rs",
+    "src/server/conn/auto/mod.rs",
+    "src/server/conn/auto/upgrade.rs",
+    "src/server/conn/mod.rs",
+    "src/server/graceful.rs",
+    "src/server/mod.rs",
+    "src/service/glue.rs",
+    "src/service/mod.rs",
+    "src/service/oneshot.rs",
+    "tests/legacy_client.rs",
+    "tests/proxy.rs",
+    "tests/test_utils/mod.rs",
+];
 fn sha(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
@@ -207,6 +282,12 @@ fn allowed(path: &str) -> bool {
     if path
         .strip_prefix("rust/vendor/openssl/")
         .is_some_and(|relative| OPENSSL_FILES.contains(&relative))
+    {
+        return true;
+    }
+    if path
+        .strip_prefix("rust/vendor/hyper-util/")
+        .is_some_and(|relative| HYPER_UTIL_FILES.contains(&relative))
     {
         return true;
     }
@@ -307,6 +388,11 @@ fn collect(root: &Path) -> Result<BTreeMap<String, Entry>, String> {
         OPENSSL_FILES
             .iter()
             .map(|relative| format!("rust/vendor/openssl/{relative}")),
+    );
+    paths.extend(
+        HYPER_UTIL_FILES
+            .iter()
+            .map(|relative| format!("rust/vendor/hyper-util/{relative}")),
     );
     for directory in ["rust/crates", "rust/xtask/src", "rust/vendor/hyper/src"] {
         walk(&root.join(directory), root, &mut paths)?;
@@ -429,6 +515,9 @@ mod tests {
             ".git/config",
             "rust/vendor/openssl/test/private-session.pem",
             "rust/vendor/openssl/.env",
+            "rust/vendor/hyper-util/.env",
+            "rust/vendor/hyper-util/src/private.rs",
+            "rust/vendor/hyper-util/tests/private-session.json",
             "rust/xtask/src/../secret.rs",
             "rust/crates/autorouter-core/src/nested/.env",
         ] {
@@ -436,6 +525,10 @@ mod tests {
         }
         assert!(allowed("rust/xtask/src/bundle.rs"));
         assert!(allowed("rust/vendor/hyper/src/lib.rs"));
+        assert!(allowed("rust/vendor/hyper-util/LICENSE"));
+        assert!(allowed(
+            "rust/vendor/hyper-util/src/client/legacy/connect/request_lease.rs"
+        ));
         assert!(allowed("rust/vendor/openssl/build.rs"));
         assert!(allowed("rust/vendor/openssl/test/root-ca.key"));
     }
@@ -483,16 +576,21 @@ mod tests {
             files.keys().all(|p| allowed(p)
                 || ["source-manifest.json", "README.native.md"].contains(&p.as_str()))
         );
-        let provenance: Value =
-            serde_json::from_slice(&files["rust/vendor/openssl-provenance.json"].bytes).unwrap();
-        let declared = provenance["patched_files"].as_object().unwrap();
-        assert_eq!(declared.len(), OPENSSL_FILES.len());
-        for (relative, expected) in declared {
-            assert!(OPENSSL_FILES.contains(&relative.as_str()));
-            assert_eq!(
-                *expected,
-                json!(sha(&files[&format!("rust/vendor/openssl/{relative}")].bytes))
-            );
+        for (name, allowed_files) in [("openssl", OPENSSL_FILES), ("hyper-util", HYPER_UTIL_FILES)]
+        {
+            let provenance: Value = serde_json::from_slice(
+                &files[&format!("rust/vendor/{name}-provenance.json")].bytes,
+            )
+            .unwrap();
+            let declared = provenance["patched_files"].as_object().unwrap();
+            assert_eq!(declared.len(), allowed_files.len());
+            for (relative, expected) in declared {
+                assert!(allowed_files.contains(&relative.as_str()));
+                assert_eq!(
+                    *expected,
+                    json!(sha(&files[&format!("rust/vendor/{name}/{relative}")].bytes))
+                );
+            }
         }
         assert!(create(&root, &destination).is_err());
         assert_eq!(fs::read(&destination).unwrap(), bytes);

@@ -388,3 +388,7 @@ fn normalized_value(key: &str, value: &str, cwd: &Path) -> Result<String, String
     }
     Ok(value.into())
 }
+
+#[cfg(test)]
+#[path = "configuration_keychain_contracts.rs"]
+mod configuration_keychain_contracts;

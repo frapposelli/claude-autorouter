@@ -15,6 +15,8 @@ mod parity;
 mod process;
 mod reference;
 mod release;
+#[cfg(test)]
+mod release_contracts;
 mod release_install;
 mod release_pack;
 mod release_verify;

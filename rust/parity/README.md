@@ -127,9 +127,30 @@ boundaries; unmeasured quality gates remain unmeasured.
 The [setup and diagnostic mapping](assertion-mappings/local-setup-diagnostic-contracts.json)
 adds nine finite error transcripts and bounded warmup, pull and residency
 cancellation schedules. Two definitions are covered and four remain partial
-for JavaScript signal/reason observations. Twenty-two other setup/diagnostic
-definitions remain pending. These synthetic tests make no local-model timing
-or quality claim.
+for JavaScript signal/reason observations. The separate
+[finite setup mapping](assertion-mappings/local-finite-setup-contracts.json)
+covers six more definitions with 24 original operations and 63 requests,
+including minimum versions, model aliases and warmup progress. Sixteen other
+setup/diagnostic definitions remain pending. These synthetic tests make no
+local-model timing or quality claim.
+
+The [bounded JSON mapping](assertion-mappings/bounded-json-contracts.json)
+checks exact UTF-8 byte limits, malformed input, stalled cancellation and
+owned-body cleanup. One definition is covered and four remain partial for
+JavaScript reader, reason-identity and cancellation-promise observations.
+The [configuration/Keychain mapping](assertion-mappings/config-keychain-contracts.json)
+covers four command definitions using private temporary files and an injected
+memory Keychain, including migrations, locked storage, failed writes and
+redacted provenance. It requires the system policy path to be absent and does
+not modify it.
+
+The [release-tool mapping](assertion-mappings/release-contracts.json) covers
+15 definitions and leaves four partial. Five original pure callbacks produce
+61 captured calls; native tests also replay synthetic registry and installer
+schedules. JavaScript private-error injection, independent clock injection
+and native publication eligibility remain explicit boundaries. Fourteen other
+release-tool definitions, including archive subtests, remain pending. These
+tests do not publish a package or qualify an actual release.
 
 ```sh
 node parity/capture-router-concurrency-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/concurrency-NEW
@@ -139,4 +160,10 @@ cargo test --locked --package autorouter-runtime router::concurrency_contracts
 cargo test --locked --package autorouter-core --test evaluation_report_contracts
 cargo test --locked --package xtask evaluation_contracts
 cargo test --locked --package autorouter-runtime --test local_setup_diagnostic_contracts
+node parity/capture-local-finite-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/local-finite-NEW
+node parity/capture-release-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/release-contracts-NEW
+cargo test --locked --package autorouter-runtime --test local_finite_contracts
+cargo test --locked --package autorouter-runtime --test bounded_json_contracts
+cargo test --locked --package claude-autorouter configuration_keychain_contracts
+cargo test --locked --package xtask release_contracts
 ```

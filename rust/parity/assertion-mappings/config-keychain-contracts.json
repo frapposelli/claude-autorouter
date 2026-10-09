@@ -1,0 +1,681 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_config_keychain_contracts_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_head": "bf50b60fb702699f0c1cac5e62b8fecf28cb2209",
+  "production_changes": false,
+  "scope": "Four covered configuration command definitions using isolated files and an injected memory Keychain. Existing runtime evidence is retained. No real Keychain or system-policy mutation is exercised.",
+  "counts": {
+    "definitions": 4,
+    "static_assertions": 24,
+    "new_native_tests": 4,
+    "unchanged_frozen_tests_passed": 14,
+    "baseline_files_verified": 111,
+    "covered": 4,
+    "partial": 0
+  },
+  "audit_tool": {
+    "typescript_version": "6.0.3",
+    "method": "Pinned TypeScript AST static statement/call/assert-expression extraction; source assertions and all local command sequences reviewed, not textual test-name matching."
+  },
+  "current_sources": [
+    {
+      "path": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs",
+      "bytes": 12971,
+      "sha256": "482d0db85f04be50faf2bfbeb1e08ad8d109e298a03c4c7c3ad8e27508718773"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/configuration.rs",
+      "bytes": 15663,
+      "sha256": "05c1a9b39f591f5d79585b7f425a3080e5a52352e9facbd01ddb14b8190df5d9"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/user_config.rs",
+      "bytes": 56424,
+      "sha256": "33e3c12730d6075a9d8262d23d6bb332fd06cfba72c13370b5c791b678fa220f"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/keychain.rs",
+      "bytes": 11872,
+      "sha256": "dc39739da83339122ca678d7311cf25ba08b087851ea125336a41a50ba32c1f5"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/policy.rs",
+      "bytes": 8992,
+      "sha256": "4cb1405055faa941752aa5234a462e7b8d37db4912cb184dcf76cf490c36aa3e"
+    }
+  ],
+  "evidence": {
+    "config-keychain-contracts-frozen-baseline.log": {
+      "path": "artifacts/rust-rewrite/evidence/21029ce95d76b88101261479cb0b3090b8980a00e3a9fd8050bc7a5663bcd2a0.log",
+      "sha256": "21029ce95d76b88101261479cb0b3090b8980a00e3a9fd8050bc7a5663bcd2a0",
+      "bytes": 84,
+      "original_path": "artifacts/rust-rewrite/config-keychain-contracts-frozen-baseline.log"
+    },
+    "config-keychain-contracts-frozen-tests.log": {
+      "path": "artifacts/rust-rewrite/evidence/adc59f081a86991c39d396a12d6d7505a546d3414f5c54f54dd54f190946b9fe.log",
+      "sha256": "adc59f081a86991c39d396a12d6d7505a546d3414f5c54f54dd54f190946b9fe",
+      "bytes": 3063,
+      "original_path": "artifacts/rust-rewrite/config-keychain-contracts-frozen-tests.log"
+    },
+    "config-keychain-contracts-native-tests-1.log": {
+      "path": "artifacts/rust-rewrite/evidence/10fdaa613340a1633babe9e7a5cd17786367caed6c245501dc6810d4cb1faff8.log",
+      "sha256": "10fdaa613340a1633babe9e7a5cd17786367caed6c245501dc6810d4cb1faff8",
+      "bytes": 1643,
+      "original_path": "artifacts/rust-rewrite/config-keychain-contracts-native-tests-1.log"
+    },
+    "config-keychain-contracts-clippy-1.log": {
+      "path": "artifacts/rust-rewrite/evidence/c53ec01e1a431fcb36e30b676429af05fef4b6d307b06e615443a6459164b795.log",
+      "sha256": "c53ec01e1a431fcb36e30b676429af05fef4b6d307b06e615443a6459164b795",
+      "bytes": 782,
+      "original_path": "artifacts/rust-rewrite/config-keychain-contracts-clippy-1.log"
+    },
+    "config-keychain-contracts-clippy-tests-1.log": {
+      "path": "artifacts/rust-rewrite/evidence/d074fcc4c947f28b435d775beb5de1f37ceb1bf110d386a274706767d650ea37.log",
+      "sha256": "d074fcc4c947f28b435d775beb5de1f37ceb1bf110d386a274706767d650ea37",
+      "bytes": 782,
+      "original_path": "artifacts/rust-rewrite/config-keychain-contracts-clippy-tests-1.log"
+    }
+  },
+  "limits": [
+    "MemoryKeychain only; no actual security process, provider, network or model.",
+    "Each fixture has a random exclusively created mode0700 directory; explicit saved config/cwd/home and an independent two-key environment; no process-environment mutation.",
+    "System organization-policy path must be absent, checked by symlink_metadata before command invocation; no content read, write or override. Tests intentionally fail this environmental precondition rather than bypass an installed policy. Policy path absence can race external administration; this is not a sandbox guarantee.",
+    "Synthetic file <=4096 bytes before read; mock <=64 calls, <=3 items, account/secret<=512 bytes and label<=1024 bytes; actual finite test inputs are smaller.",
+    "Each asynchronous command has a two-second timeout; this timeout cannot preempt synchronous filesystem calls, which access only owned regular fixture files on the ordinary test filesystem.",
+    "macOS local execution; portable fake-Keychain command behavior is exercised without a Darwin runtime branch. No Linux run or real-Keychain qualification claimed.",
+    "JS thrown errors map to Rust Result<String>; these four original predicates assert message rejection only, not Error class, code, identity or callback object identity.",
+    "No original source callback capture added for this batch; untouched frozen14 control and directly reviewed native assertions establish these finite command scenarios.",
+    "Clippy completed successfully; separately owned vendored hyper-util emits an existing unused timer dependency warning recorded in logs."
+  ],
+  "remaining_other_definitions": "Keychain#5 stdin and #8/#11/#12 setup are untouched; all rows outside #4/#6/#7/#10 remain unchanged by this proposal.",
+  "rows": [
+    {
+      "id": "test/keychain.test.mjs#4",
+      "file": "test/keychain.test.mjs",
+      "name": "changing the store moves saved secrets in both directions without loss",
+      "line": 97,
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "definition_statement": "test('changing the store moves saved secrets in both directions without loss', async t => {\n  const env = fixture(t), keychain = memoryKeychain(), lines = [];\n  const options = { env, keychain, write: line => lines.push(line) };\n  saveUserConfig({ AUTOROUTER_AUTH_MODE: 'api-key', ANTHROPIC_API_KEY: 'private-anthropic', AUTOROUTER_PORT: '8123' }, { env });\n  assert.equal(await configCommand(['set', 'AUTOROUTER_SECRET_STORE', 'keychain'], options), true);\n  assert.deepEqual(saved(env), { AUTOROUTER_AUTH_MODE: 'api-key', AUTOROUTER_PORT: '8123', AUTOROUTER_SECRET_STORE: 'keychain' });\n  assert.deepEqual(valuesIn(keychain), ['private-anthropic']);\n  assert.match(lines.at(-1), /Moved 1 saved secret to the macOS Keychain/);\n\n  assert.equal(await configCommand(['set', 'AUTOROUTER_SECRET_STORE', 'file'], options), true);\n  assert.equal(saved(env).ANTHROPIC_API_KEY, 'private-anthropic');\n  assert.equal(keychain.items.size, 0);\n\n  await configCommand(['set', 'AUTOROUTER_SECRET_STORE', 'keychain'], options);\n  assert.equal(await configCommand(['unset', 'AUTOROUTER_SECRET_STORE'], options), true);\n  assert.equal(saved(env).ANTHROPIC_API_KEY, 'private-anthropic');\n  assert.equal(keychain.items.size, 0);\n  assert.ok(!lines.join('\\n').includes('private-'));\n});",
+      "definition_sha256": "14fdc7d527b176b34f755530f66a05bda7035297b9318a4662f1370026b7aeb0",
+      "definition_call_sha256": "a757238a13856dbe13fc41f912d9561f8d0a03e22771e9872b5f8315013b2744",
+      "historical_definition_block_sha256": "8eba15a007f978f148f79e486acd5243d4c179917305dd70347d700c895a5553",
+      "historical_hash_boundary": "AST statement plus two trailing newline characters; independently verified against frozen bytes",
+      "hash_boundary": "statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::both_store_migrations_preserve_secrets_and_failed_writes_leave_original_intact",
+        "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::store_set_and_unset_migrate_both_directions_with_exact_private_messages"
+      ],
+      "shared_cases": [],
+      "assertions": [
+        {
+          "line": 101,
+          "expression": "assert.equal(await configCommand(['set', 'AUTOROUTER_SECRET_STORE', 'keychain'], options), true)",
+          "sha256": "89184520f4ab488f2f7099ec92e490f1a03938d4063beeef337136684e53410e",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::store_set_and_unset_migrate_both_directions_with_exact_private_messages",
+          "native_lines": [
+            203
+          ]
+        },
+        {
+          "line": 102,
+          "expression": "assert.deepEqual(saved(env), { AUTOROUTER_AUTH_MODE: 'api-key', AUTOROUTER_PORT: '8123', AUTOROUTER_SECRET_STORE: 'keychain' })",
+          "sha256": "ea7ce5c937461db33aec8242ebdd6ef9a41f73535bc83c3eac0deca471c2e29c",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::store_set_and_unset_migrate_both_directions_with_exact_private_messages",
+          "native_lines": [
+            206,
+            208,
+            221
+          ]
+        },
+        {
+          "line": 103,
+          "expression": "assert.deepEqual(valuesIn(keychain), ['private-anthropic'])",
+          "sha256": "50f69b81091593106a159ebdf2a841a49a38cea12de9988472fbc81a8bbac3c8",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::store_set_and_unset_migrate_both_directions_with_exact_private_messages",
+          "native_lines": [
+            211
+          ]
+        },
+        {
+          "line": 104,
+          "expression": "assert.match(lines.at(-1), /Moved 1 saved secret to the macOS Keychain/)",
+          "sha256": "6f0dfe237cb67c5d2132bdd6a47044178d4caa3c17af49e4e8ae9ede64cc4e51",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::store_set_and_unset_migrate_both_directions_with_exact_private_messages",
+          "native_lines": [
+            181,
+            204
+          ]
+        },
+        {
+          "line": 106,
+          "expression": "assert.equal(await configCommand(['set', 'AUTOROUTER_SECRET_STORE', 'file'], options), true)",
+          "sha256": "db13c5ebb641845c7fc9f0e7e1c5cbb81f11e0cb8ae6a92b4591156a1783a19b",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::store_set_and_unset_migrate_both_directions_with_exact_private_messages",
+          "native_lines": [
+            203
+          ]
+        },
+        {
+          "line": 107,
+          "expression": "assert.equal(saved(env).ANTHROPIC_API_KEY, 'private-anthropic')",
+          "sha256": "0146199ddcf88f073688cb8a5a6d024c71188cb096bb45d14462df77d2e09eb4",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::store_set_and_unset_migrate_both_directions_with_exact_private_messages",
+          "native_lines": [
+            218,
+            221
+          ]
+        },
+        {
+          "line": 108,
+          "expression": "assert.equal(keychain.items.size, 0)",
+          "sha256": "0f57ff47ebb54054bd7f6f5f353f92a63b794a5dacb1f4dba688e48310a3c5a9",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::store_set_and_unset_migrate_both_directions_with_exact_private_messages",
+          "native_lines": [
+            219
+          ]
+        },
+        {
+          "line": 111,
+          "expression": "assert.equal(await configCommand(['unset', 'AUTOROUTER_SECRET_STORE'], options), true)",
+          "sha256": "88a7f16a16eb9e5c238a3d6aeecb8292c78d1fefbe1250964269275ebeb620eb",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::store_set_and_unset_migrate_both_directions_with_exact_private_messages",
+          "native_lines": [
+            203
+          ]
+        },
+        {
+          "line": 112,
+          "expression": "assert.equal(saved(env).ANTHROPIC_API_KEY, 'private-anthropic')",
+          "sha256": "0146199ddcf88f073688cb8a5a6d024c71188cb096bb45d14462df77d2e09eb4",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::store_set_and_unset_migrate_both_directions_with_exact_private_messages",
+          "native_lines": [
+            218,
+            221
+          ]
+        },
+        {
+          "line": 113,
+          "expression": "assert.equal(keychain.items.size, 0)",
+          "sha256": "0f57ff47ebb54054bd7f6f5f353f92a63b794a5dacb1f4dba688e48310a3c5a9",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::store_set_and_unset_migrate_both_directions_with_exact_private_messages",
+          "native_lines": [
+            219
+          ]
+        },
+        {
+          "line": 114,
+          "expression": "assert.ok(!lines.join('\\n').includes('private-'))",
+          "sha256": "e53988bd71960ebec317ab0d35c9afdc689d37160c6052e7b7f6d7e86e1c3a83",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::store_set_and_unset_migrate_both_directions_with_exact_private_messages",
+          "native_lines": [
+            224
+          ]
+        }
+      ],
+      "scenarios": [
+        "file -> keychain",
+        "keychain -> explicit file",
+        "file -> keychain",
+        "keychain -> implicit file by unset"
+      ],
+      "review_notes": [
+        "Same initial auth-mode, Anthropic secret and port; all four real command dispatches compare success, entire saved object, item values/count and full migration message. All output excludes private-. Additional file-mode/owner/no-leftover checks do not substitute for original assertions."
+      ],
+      "remaining": [],
+      "new_native_evidence": {
+        "test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::store_set_and_unset_migrate_both_directions_with_exact_private_messages",
+        "source_line": 172,
+        "source_sha256": "482d0db85f04be50faf2bfbeb1e08ad8d109e298a03c4c7c3ad8e27508718773",
+        "execution_log": "artifacts/rust-rewrite/config-keychain-contracts-native-tests-1.log",
+        "retained_execution": {
+          "path": "artifacts/rust-rewrite/evidence/10fdaa613340a1633babe9e7a5cd17786367caed6c245501dc6810d4cb1faff8.log",
+          "sha256": "10fdaa613340a1633babe9e7a5cd17786367caed6c245501dc6810d4cb1faff8",
+          "bytes": 1643,
+          "original_path": "artifacts/rust-rewrite/config-keychain-contracts-native-tests-1.log"
+        }
+      },
+      "retained_runtime_evidence": [
+        {
+          "test": "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::both_store_migrations_preserve_secrets_and_failed_writes_leave_original_intact",
+          "source_sha256": "33e3c12730d6075a9d8262d23d6bb332fd06cfba72c13370b5c791b678fa220f",
+          "source_line": 934,
+          "execution_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+          "execution_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+          "current_source_hash_matches_historical": true,
+          "retained_execution": {
+            "path": "artifacts/rust-rewrite/evidence/6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d.log",
+            "sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+            "bytes": 2831,
+            "original_path": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test/keychain.test.mjs#6",
+      "file": "test/keychain.test.mjs",
+      "name": "a locked keychain blocks only operations that need the unreadable secret",
+      "line": 131,
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "definition_statement": "test('a locked keychain blocks only operations that need the unreadable secret', async t => {\n  const env = fixture(t), keychain = memoryKeychain();\n  saveUserConfig({ AUTOROUTER_SECRET_STORE: 'keychain', ANTHROPIC_API_KEY: 'private-anthropic' }, { env, keychain });\n  keychain.locked = true;\n  assert.throws(() => loadUserConfig(env, { keychain }), /macOS Keychain|locked/);\n  const overridden = { ...env, ANTHROPIC_API_KEY: 'env-a', TYPESAFE_API_KEY: 'env-b', AUTOROUTER_TOKEN: 'env-token-0123456789' };\n  const loaded = loadUserConfig(overridden, { keychain });\n  assert.equal(loaded.env.ANTHROPIC_API_KEY, 'env-a');\n  assert.deepEqual(loaded.unavailableSecrets, ['ANTHROPIC_API_KEY', 'TYPESAFE_API_KEY', 'AUTOROUTER_TOKEN']);\n  assert.throws(() => keychainRemovals(loaded, 'file'), /every saved secret/);\n  await assert.rejects(configCommand(['set', 'AUTOROUTER_SECRET_STORE', 'file'], { env: overridden, keychain, write: () => {} }), /every saved secret/);\n  keychain.locked = false;\n  assert.deepEqual(valuesIn(keychain), ['private-anthropic']);\n  assert.equal(saved(env).AUTOROUTER_SECRET_STORE, 'keychain');\n});",
+      "definition_sha256": "6fb7048f5468be6e056d390831dd7efd2196e23c5ccd836c330686d121345bb2",
+      "definition_call_sha256": "7e209729e0b0aeefaeea3f15dbe92072731a3a152496152dfaa99f918b442b52",
+      "historical_definition_block_sha256": "5629453d0a4737951672c4722041ecf0f43f51ee0538a445b7f70b4008e34354",
+      "historical_hash_boundary": "AST statement plus two trailing newline characters; independently verified against frozen bytes",
+      "hash_boundary": "statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::unavailable_keychain_can_be_overridden_but_not_destructively_migrated",
+        "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::locked_store_environment_overrides_allow_loading_but_refuse_destructive_command_migration"
+      ],
+      "shared_cases": [],
+      "assertions": [
+        {
+          "line": 135,
+          "expression": "assert.throws(() => loadUserConfig(env, { keychain }), /macOS Keychain|locked/)",
+          "sha256": "9e9dcc645918a4372fe27f6384db46aae6ed35728d726509f7e460eda80a19e2",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::locked_store_environment_overrides_allow_loading_but_refuse_destructive_command_migration",
+          "native_lines": [
+            240
+          ]
+        },
+        {
+          "line": 138,
+          "expression": "assert.equal(loaded.env.ANTHROPIC_API_KEY, 'env-a')",
+          "sha256": "a06f14df01e51354a05fa909e8e65d866229c7173b382ddde9837e7dd0bf93b1",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::locked_store_environment_overrides_allow_loading_but_refuse_destructive_command_migration",
+          "native_lines": [
+            266
+          ]
+        },
+        {
+          "line": 139,
+          "expression": "assert.deepEqual(loaded.unavailableSecrets, ['ANTHROPIC_API_KEY', 'TYPESAFE_API_KEY', 'AUTOROUTER_TOKEN'])",
+          "sha256": "cc55c465397f5c8234d4272b8fdcbf624870a431b49bdfe63f59adbf092e3d3e",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::locked_store_environment_overrides_allow_loading_but_refuse_destructive_command_migration",
+          "native_lines": [
+            270
+          ]
+        },
+        {
+          "line": 140,
+          "expression": "assert.throws(() => keychainRemovals(loaded, 'file'), /every saved secret/)",
+          "sha256": "f6ab3efd76573105e2345d40b9aaf7e1c037d21d1977ba908ee0ccdd63fe45a2",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::locked_store_environment_overrides_allow_loading_but_refuse_destructive_command_migration",
+          "native_lines": [
+            271
+          ]
+        },
+        {
+          "line": 141,
+          "expression": "assert.rejects(configCommand(['set', 'AUTOROUTER_SECRET_STORE', 'file'], { env: overridden, keychain, write: () => {} }), /every saved secret/)",
+          "sha256": "a5c17440d6024e88a56b4c761994c55139541b5d3e06587416d76312f62cf081",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::locked_store_environment_overrides_allow_loading_but_refuse_destructive_command_migration",
+          "native_lines": [
+            276,
+            285
+          ]
+        },
+        {
+          "line": 143,
+          "expression": "assert.deepEqual(valuesIn(keychain), ['private-anthropic'])",
+          "sha256": "50f69b81091593106a159ebdf2a841a49a38cea12de9988472fbc81a8bbac3c8",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::locked_store_environment_overrides_allow_loading_but_refuse_destructive_command_migration",
+          "native_lines": [
+            289,
+            290
+          ]
+        },
+        {
+          "line": 144,
+          "expression": "assert.equal(saved(env).AUTOROUTER_SECRET_STORE, 'keychain')",
+          "sha256": "4528492d3fb61c1205e094dcbee44eb20ee2a862b760ca8c07c6db3aa841a7dc",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::locked_store_environment_overrides_allow_loading_but_refuse_destructive_command_migration",
+          "native_lines": [
+            291
+          ]
+        }
+      ],
+      "scenarios": [
+        "locked read without overrides fails",
+        "three explicit environment overrides allow load",
+        "helper and command both refuse destructive migration",
+        "unlock retains original key and stored selection"
+      ],
+      "review_notes": [
+        "Same source Anthropic secret and three exact override values; direct load verifies exact locked diagnostic, env-a and ordered unavailable keys. Real config set store=file rejects with exact complete every-saved-secret diagnostic; no write/remove occurs and full saved bytes stay unchanged. Unlock proves retained original item and store."
+      ],
+      "remaining": [],
+      "new_native_evidence": {
+        "test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::locked_store_environment_overrides_allow_loading_but_refuse_destructive_command_migration",
+        "source_line": 228,
+        "source_sha256": "482d0db85f04be50faf2bfbeb1e08ad8d109e298a03c4c7c3ad8e27508718773",
+        "execution_log": "artifacts/rust-rewrite/config-keychain-contracts-native-tests-1.log",
+        "retained_execution": {
+          "path": "artifacts/rust-rewrite/evidence/10fdaa613340a1633babe9e7a5cd17786367caed6c245501dc6810d4cb1faff8.log",
+          "sha256": "10fdaa613340a1633babe9e7a5cd17786367caed6c245501dc6810d4cb1faff8",
+          "bytes": 1643,
+          "original_path": "artifacts/rust-rewrite/config-keychain-contracts-native-tests-1.log"
+        }
+      },
+      "retained_runtime_evidence": [
+        {
+          "test": "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::unavailable_keychain_can_be_overridden_but_not_destructively_migrated",
+          "source_sha256": "33e3c12730d6075a9d8262d23d6bb332fd06cfba72c13370b5c791b678fa220f",
+          "source_line": 999,
+          "execution_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+          "execution_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+          "current_source_hash_matches_historical": true,
+          "retained_execution": {
+            "path": "artifacts/rust-rewrite/evidence/6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d.log",
+            "sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+            "bytes": 2831,
+            "original_path": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test/keychain.test.mjs#7",
+      "file": "test/keychain.test.mjs",
+      "name": "a failed keychain write leaves the existing plaintext configuration untouched",
+      "line": 147,
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "definition_statement": "test('a failed keychain write leaves the existing plaintext configuration untouched', async t => {\n  const env = fixture(t), keychain = memoryKeychain();\n  saveUserConfig({ ANTHROPIC_API_KEY: 'private-anthropic' }, { env });\n  const before = readFileSync(env.AUTOROUTER_CONFIG, 'utf8');\n  keychain.write = () => { throw Object.assign(new Error('Could not save an AutoRouter secret to the macOS Keychain.'), { code: 'AUTOROUTER_CONFIG_ERROR' }); };\n  await assert.rejects(configCommand(['set', 'AUTOROUTER_SECRET_STORE', 'keychain'], { env, keychain, write: () => {} }), /Could not save/);\n  assert.equal(readFileSync(env.AUTOROUTER_CONFIG, 'utf8'), before);\n});",
+      "definition_sha256": "b4c5bcdccb13263dbadffcc8db8d1fc35afea6eca7a0e8769b1e878d58b5f45b",
+      "definition_call_sha256": "f60d7276fd79128a006e7f2fc899056587639f02db0042b13c8780e8beec0ac1",
+      "historical_definition_block_sha256": "ca9f9aabf8443d78c1a54f7bf38639074b65b30d9ee11dafac5a3ff19f531c5d",
+      "historical_hash_boundary": "AST statement plus two trailing newline characters; independently verified against frozen bytes",
+      "hash_boundary": "statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::both_store_migrations_preserve_secrets_and_failed_writes_leave_original_intact",
+        "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::failed_keychain_write_preserves_original_plaintext_bytes_and_private_file"
+      ],
+      "shared_cases": [],
+      "assertions": [
+        {
+          "line": 152,
+          "expression": "assert.rejects(configCommand(['set', 'AUTOROUTER_SECRET_STORE', 'keychain'], { env, keychain, write: () => {} }), /Could not save/)",
+          "sha256": "a210b93f5d3ef8db5d5cff5e85d063fecf840f6d18f5920a4ac1249057bcd024",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::failed_keychain_write_preserves_original_plaintext_bytes_and_private_file",
+          "native_lines": [
+            310,
+            319
+          ]
+        },
+        {
+          "line": 153,
+          "expression": "assert.equal(readFileSync(env.AUTOROUTER_CONFIG, 'utf8'), before)",
+          "sha256": "29d635d57d81522925775f14e7354603b1a3d50118311cc53f271dc5e1b30818",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::failed_keychain_write_preserves_original_plaintext_bytes_and_private_file",
+          "native_lines": [
+            320
+          ]
+        }
+      ],
+      "scenarios": [
+        "file -> keychain command write fails"
+      ],
+      "review_notes": [
+        "Same single plaintext Anthropic secret and injected write error. Real command rejects with the complete source error message and preserves exact pre-edit bytes. Also verifies exactly one failed write, no removals/items, private regular file and no temporary sibling."
+      ],
+      "remaining": [],
+      "new_native_evidence": {
+        "test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::failed_keychain_write_preserves_original_plaintext_bytes_and_private_file",
+        "source_line": 299,
+        "source_sha256": "482d0db85f04be50faf2bfbeb1e08ad8d109e298a03c4c7c3ad8e27508718773",
+        "execution_log": "artifacts/rust-rewrite/config-keychain-contracts-native-tests-1.log",
+        "retained_execution": {
+          "path": "artifacts/rust-rewrite/evidence/10fdaa613340a1633babe9e7a5cd17786367caed6c245501dc6810d4cb1faff8.log",
+          "sha256": "10fdaa613340a1633babe9e7a5cd17786367caed6c245501dc6810d4cb1faff8",
+          "bytes": 1643,
+          "original_path": "artifacts/rust-rewrite/config-keychain-contracts-native-tests-1.log"
+        }
+      },
+      "retained_runtime_evidence": [
+        {
+          "test": "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::both_store_migrations_preserve_secrets_and_failed_writes_leave_original_intact",
+          "source_sha256": "33e3c12730d6075a9d8262d23d6bb332fd06cfba72c13370b5c791b678fa220f",
+          "source_line": 934,
+          "execution_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+          "execution_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+          "current_source_hash_matches_historical": true,
+          "retained_execution": {
+            "path": "artifacts/rust-rewrite/evidence/6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d.log",
+            "sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+            "bytes": 2831,
+            "original_path": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log"
+          }
+        }
+      ]
+    },
+    {
+      "id": "test/keychain.test.mjs#10",
+      "file": "test/keychain.test.mjs",
+      "name": "config show reports keychain provenance without values",
+      "line": 186,
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "definition_statement": "test('config show reports keychain provenance without values', async t => {\n  const env = fixture(t), keychain = memoryKeychain(), lines = [];\n  saveUserConfig({ AUTOROUTER_SECRET_STORE: 'keychain', TYPESAFE_API_KEY: 'private-jev' }, { env, keychain });\n  assert.equal(await configCommand(['show', '--json'], { env, keychain, write: line => lines.push(line) }), true);\n  const report = JSON.parse(lines.join('\\n'));\n  assert.deepEqual(report.settings.TYPESAFE_API_KEY, { source: 'keychain', active: true, secret: true, present: true });\n  assert.deepEqual(report.settings.AUTOROUTER_SECRET_STORE, { source: 'file', active: true, value: 'keychain' });\n  assert.ok(!lines.join('\\n').includes('private-'));\n});",
+      "definition_sha256": "ba18ac9d070d3ad3fa36b9711d4dba7b5589a94579aad158be557af8cba20a7d",
+      "definition_call_sha256": "815920bff41bd56621d3b2c1b350fdcebad4daec61a256d7b34732dca817500a",
+      "historical_definition_block_sha256": "e3fd6ec09b5725cd3a57545ec9cac2868c16dc767b103872008ed8724e481106",
+      "historical_hash_boundary": "AST statement plus two trailing newline characters; independently verified against frozen bytes",
+      "hash_boundary": "statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::show_reports_saved_keychain_provenance_and_secret_presence_without_values"
+      ],
+      "shared_cases": [],
+      "assertions": [
+        {
+          "line": 189,
+          "expression": "assert.equal(await configCommand(['show', '--json'], { env, keychain, write: line => lines.push(line) }), true)",
+          "sha256": "ceb99b7ea6464fc5d0d9af8f1b44f61dffc724242b4d0ce6789f3287a562069b",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::show_reports_saved_keychain_provenance_and_secret_presence_without_values",
+          "native_lines": [
+            338,
+            342
+          ]
+        },
+        {
+          "line": 191,
+          "expression": "assert.deepEqual(report.settings.TYPESAFE_API_KEY, { source: 'keychain', active: true, secret: true, present: true })",
+          "sha256": "60fd605466ef59b10dd1c30138c48d6fd4cb4c5220e48096d46c80fc37844f66",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::show_reports_saved_keychain_provenance_and_secret_presence_without_values",
+          "native_lines": [
+            350
+          ]
+        },
+        {
+          "line": 192,
+          "expression": "assert.deepEqual(report.settings.AUTOROUTER_SECRET_STORE, { source: 'file', active: true, value: 'keychain' })",
+          "sha256": "f4bdf411f7de3a2222cca18a8b2032007b9afd18a890e796573e0f1e2b016e6d",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::show_reports_saved_keychain_provenance_and_secret_presence_without_values",
+          "native_lines": [
+            354
+          ]
+        },
+        {
+          "line": 193,
+          "expression": "assert.ok(!lines.join('\\n').includes('private-'))",
+          "sha256": "e53988bd71960ebec317ab0d35c9afdc689d37160c6052e7b7f6d7e86e1c3a83",
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::show_reports_saved_keychain_provenance_and_secret_presence_without_values",
+          "native_lines": [
+            364
+          ]
+        }
+      ],
+      "scenarios": [
+        "show --json loads one fake saved Jev key"
+      ],
+      "review_notes": [
+        "Same saved store and Jev secret. Real command succeeds and complete source-asserted secret/provenance dictionaries compare exactly with no value field or leaked private-. Additional absent-secret dictionaries, full report identity, text hidden markers and unchanged file/items are verified."
+      ],
+      "remaining": [],
+      "new_native_evidence": {
+        "test": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs#configuration::configuration_keychain_contracts::show_reports_saved_keychain_provenance_and_secret_presence_without_values",
+        "source_line": 328,
+        "source_sha256": "482d0db85f04be50faf2bfbeb1e08ad8d109e298a03c4c7c3ad8e27508718773",
+        "execution_log": "artifacts/rust-rewrite/config-keychain-contracts-native-tests-1.log",
+        "retained_execution": {
+          "path": "artifacts/rust-rewrite/evidence/10fdaa613340a1633babe9e7a5cd17786367caed6c245501dc6810d4cb1faff8.log",
+          "sha256": "10fdaa613340a1633babe9e7a5cd17786367caed6c245501dc6810d4cb1faff8",
+          "bytes": 1643,
+          "original_path": "artifacts/rust-rewrite/config-keychain-contracts-native-tests-1.log"
+        }
+      },
+      "retained_runtime_evidence": []
+    }
+  ],
+  "input_coverage": {
+    "path": "artifacts/rust-rewrite/evidence/d2fff1c0986516787e60403abdfb670b3cb7c38bb4e804560c6eeec9d306273b.json",
+    "sha256": "d2fff1c0986516787e60403abdfb670b3cb7c38bb4e804560c6eeec9d306273b",
+    "bytes": 984107,
+    "original_path": "rust/parity/coverage.json",
+    "source_commit": "bf50b60fb702699f0c1cac5e62b8fecf28cb2209"
+  },
+  "status": "Reviewed assertion mapping; full rewrite qualification remains incomplete.",
+  "review": {
+    "proposal": {
+      "path": "artifacts/rust-rewrite/evidence/ef04eab71cd5eade7acd208ae835f936a4774b58b352603bde9506f98004e405.json",
+      "sha256": "ef04eab71cd5eade7acd208ae835f936a4774b58b352603bde9506f98004e405",
+      "bytes": 33227,
+      "original_path": "/private/tmp/autorouter-config-keychain-mapping-proposal.json"
+    },
+    "review": {
+      "path": "artifacts/rust-rewrite/evidence/3c88cff79aa1a54c0dfe3a66eb7cdbb9c6aaec286fb1ff01180f24809d3fbfd3.json",
+      "sha256": "3c88cff79aa1a54c0dfe3a66eb7cdbb9c6aaec286fb1ff01180f24809d3fbfd3",
+      "bytes": 1009,
+      "original_path": "/private/tmp/autorouter-config-keychain-root-review.json"
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/evidence/4abf759508cbf1a4bbb591ee53b35bb244439437a358b49761f087771b49a26c.json",
+      "sha256": "4abf759508cbf1a4bbb591ee53b35bb244439437a358b49761f087771b49a26c",
+      "bytes": 1318,
+      "original_path": "/private/tmp/autorouter-config-keychain-independent-review.json"
+    }
+  },
+  "previous_coverage_rows": [
+    {
+      "id": "test/keychain.test.mjs#4",
+      "file": "test/keychain.test.mjs",
+      "name": "changing the store moves saved secrets in both directions without loss",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::both_store_migrations_preserve_secrets_and_failed_writes_leave_original_intact"
+      ],
+      "shared_cases": [],
+      "evidence": {
+        "native_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+        "native_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+        "scope": "Only the exact mapped native assertions; no actual system policy/Keychain interaction, cross-platform or installed-artifact qualification is implied."
+      },
+      "related_components": [
+        "config_auth_policy"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
+      "remaining_assertions": [
+        "Native CLI set/unset store transitions and both migration messages/privacy checks are not exercised with a fake Keychain. Runtime operations alone do not cover the command routing and output assertions."
+      ]
+    },
+    {
+      "id": "test/keychain.test.mjs#6",
+      "file": "test/keychain.test.mjs",
+      "name": "a locked keychain blocks only operations that need the unreadable secret",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::unavailable_keychain_can_be_overridden_but_not_destructively_migrated"
+      ],
+      "shared_cases": [],
+      "evidence": {
+        "native_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+        "native_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+        "scope": "Only the exact mapped native assertions; no actual system policy/Keychain interaction, cross-platform or installed-artifact qualification is implied."
+      },
+      "related_components": [
+        "config_auth_policy"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
+      "remaining_assertions": [
+        "The exact config set store=file rejection through the command layer, followed by unlocked item values and unchanged store file, is not retained."
+      ]
+    },
+    {
+      "id": "test/keychain.test.mjs#7",
+      "file": "test/keychain.test.mjs",
+      "name": "a failed keychain write leaves the existing plaintext configuration untouched",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::both_store_migrations_preserve_secrets_and_failed_writes_leave_original_intact"
+      ],
+      "shared_cases": [],
+      "evidence": {
+        "native_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+        "native_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+        "scope": "Only the exact mapped native assertions; no actual system policy/Keychain interaction, cross-platform or installed-artifact qualification is implied."
+      },
+      "related_components": [
+        "config_auth_policy"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
+      "remaining_assertions": [
+        "The baseline initiates this failure through config set AUTOROUTER_SECRET_STORE keychain; no retained fake-Keychain command test covers that dispatch/error boundary."
+      ]
+    },
+    {
+      "id": "test/keychain.test.mjs#10",
+      "file": "test/keychain.test.mjs",
+      "name": "config show reports keychain provenance without values",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": {
+        "native_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+        "native_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+        "scope": "Only the exact mapped native assertions; no actual system policy/Keychain interaction, cross-platform or installed-artifact qualification is implied."
+      },
+      "related_components": [
+        "config_auth_policy"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
+      "remaining_assertions": [
+        "The complete secret-presence-only Keychain setting and file-store provenance JSON plus output privacy need an internal fake-Keychain config-show test."
+      ]
+    }
+  ]
+}

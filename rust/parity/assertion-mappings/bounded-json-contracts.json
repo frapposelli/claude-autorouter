@@ -1,0 +1,364 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_bounded_json_contracts_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "reviewed_checkpoint": "bf50b60",
+  "scope": "One covered and four partial bounded JSON definitions. Native owned-body cleanup is proved; JavaScript reader, reason-identity and cancellation-promise boundaries remain explicit.",
+  "counts": {
+    "definitions": 5,
+    "static_assertions": 16,
+    "native_tests": 5,
+    "frozen_control_tests": 5,
+    "covered": 1,
+    "partial": 4
+  },
+  "current_sources": [
+    {
+      "path": "rust/crates/autorouter-runtime/tests/bounded_json_contracts.rs",
+      "sha256": "9efd7a78215afda1ce6030dc4016586223ef97970e5ebddd252477734f4bfbab",
+      "bytes": 6567
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+      "sha256": "e1548d83034ad97dd8f6ec4da65636d8e52c9c25ce3a4d29f6794e7566d451e3",
+      "bytes": 23125
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/evaluator.rs",
+      "sha256": "a44198f1c62c7b4d45d1427bf67b673f8b0b252f97244354a0cfc66eb9933527",
+      "bytes": 44305
+    }
+  ],
+  "evidence": {
+    "native": {
+      "path": "artifacts/rust-rewrite/evidence/25d27c052d1cfa2cb832b16c851d84ff3da18f47732dc983c2136a1794e182dc.log",
+      "sha256": "25d27c052d1cfa2cb832b16c851d84ff3da18f47732dc983c2136a1794e182dc",
+      "bytes": 818,
+      "original_path": "artifacts/rust-rewrite/eighth-bounded-json-native-2.log"
+    },
+    "frozen_control": {
+      "path": "artifacts/rust-rewrite/evidence/5293cb4cc39b443c205dabf7481c6e87100b746636af3f18c8261344737ecde7.log",
+      "sha256": "5293cb4cc39b443c205dabf7481c6e87100b746636af3f18c8261344737ecde7",
+      "bytes": 1163,
+      "original_path": "artifacts/rust-rewrite/eighth-bounded-json-frozen-control.log"
+    },
+    "clippy": {
+      "path": "artifacts/rust-rewrite/evidence/9d9a19fdb0d56aba49cc053c8eed42a00fe7faa94029b9edfd8c35dcf0fe4af0.log",
+      "sha256": "9d9a19fdb0d56aba49cc053c8eed42a00fe7faa94029b9edfd8c35dcf0fe4af0",
+      "bytes": 178,
+      "original_path": "artifacts/rust-rewrite/eighth-bounded-json-clippy-1.log"
+    }
+  },
+  "retained_failure": {
+    "path": "artifacts/rust-rewrite/evidence/bef543c717d5fa65170afdf793c09e7e490cabc5462c2ed6f456edef7aa389de.log",
+    "sha256": "bef543c717d5fa65170afdf793c09e7e490cabc5462c2ed6f456edef7aa389de",
+    "bytes": 989,
+    "reason": "Initialtestcompile E0716 temporary HeaderMap borrowed acrossjoin; replaced with local owned binding, no productionchange.",
+    "original_path": "artifacts/rust-rewrite/eighth-bounded-json-native-1.log"
+  },
+  "boundedness": "Independent1s Tokio timeout around each complete yielding asyncschedule; no guarantee for blocking destructor/non-yieldingCPU code.",
+  "rows": [
+    {
+      "id": "test/bounded-json.test.mjs#1",
+      "name": "shared reader accepts chunked UTF-8 exactly at the byte boundary",
+      "baseline_file_sha256": "d31ef9d55dfdc07e236a5e9c305908343f4a488b04563a231d138c06560a33c4",
+      "line": 5,
+      "definition_sha256": "e458072316de34352d96dc3e10623380b31d9bd134eda80d096e1a3f4649c710",
+      "definition_hash_scope": "Exact ExpressionStatement including terminating semicolon.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/bounded_json_contracts.rs#exact_frozen_utf8_boundary_releases_body_and_preserves_public_limits"
+      ],
+      "shared_cases": [],
+      "scenarios": [
+        "Original one-byte chunks of UTF8 JSON containing fox emoji and accent at exact bytes.len limit; complete value and both exported limits."
+      ],
+      "assertions": [
+        {
+          "id": "test/bounded-json.test.mjs#1/assert-1",
+          "line": 11,
+          "expression": "assert.deepEqual(await readBoundedJson(response, { limit: bytes.length }), { text: '\ud83e\udd8a\u00e9' })",
+          "sha256": "7c9fe0007530a1074e0c2a4f148544d354629ba0735da2ef1c02299a59ec9f15"
+        },
+        {
+          "id": "test/bounded-json.test.mjs#1/assert-2",
+          "line": 12,
+          "expression": "assert.equal(response.body.locked, false)",
+          "sha256": "d7af3125cad90e4307010cbd1d4da5a1327d1b94cb440774bc6c2b8044258753"
+        },
+        {
+          "id": "test/bounded-json.test.mjs#1/assert-3",
+          "line": 13,
+          "expression": "assert.equal(DECISION_RESPONSE_LIMIT, 65536)",
+          "sha256": "ab90961a8e7deb779dd9d030c473a929f15e410438f8e722b53d3d4d4ffc1e05"
+        },
+        {
+          "id": "test/bounded-json.test.mjs#1/assert-4",
+          "line": 14,
+          "expression": "assert.equal(MODEL_METADATA_LIMIT, 1048576)",
+          "sha256": "13e4337aec9592a7432c4d8d4a97fd49036d86dcc6b2ec8891670a1b474f697a"
+        }
+      ],
+      "native_ownership_adaptation": "Rust consumes an owned Body. Exactlyone Drop and no retained Arc body-state handles before return replace reader-release observations; no JavaScript reader-lock object is claimed.",
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/bounded-json.test.mjs#2",
+      "name": "stream bytes override missing or inaccurate headers and oversized bodies are cancelled",
+      "baseline_file_sha256": "d31ef9d55dfdc07e236a5e9c305908343f4a488b04563a231d138c06560a33c4",
+      "line": 17,
+      "definition_sha256": "68bac565d09205ef35685162ca45909fcf877db8b9df5fa776f9098784fed156",
+      "definition_hash_scope": "Exact ExpressionStatement including terminating semicolon.",
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/bounded_json_contracts.rs#exact_65537_byte_overflow_releases_body_under_all_three_frozen_headers"
+      ],
+      "shared_cases": [],
+      "scenarios": [
+        "Original65537zero bytes and all3headers:absent,1,65537. Typed Oversized, stream actually polled under missing/low headers and zero polls under oversized early-rejection header."
+      ],
+      "assertions": [
+        {
+          "id": "test/bounded-json.test.mjs#2/assert-1",
+          "line": 22,
+          "expression": "assert.rejects(readBoundedJson(response), /classifier_invalid_response/)",
+          "sha256": "1e91987c2235b21324f089aa03564bd5ee165dd2e6307dabffba3374fdcb7e65"
+        },
+        {
+          "id": "test/bounded-json.test.mjs#2/assert-2",
+          "line": 23,
+          "expression": "assert.equal(cancelled, true)",
+          "sha256": "9d31057f08f6678980db9b13aafdf0e260b7d4325f227b62d44b8bd566f219e3"
+        },
+        {
+          "id": "test/bounded-json.test.mjs#2/assert-3",
+          "line": 24,
+          "expression": "assert.equal(response.body.locked, false)",
+          "sha256": "d7af3125cad90e4307010cbd1d4da5a1327d1b94cb440774bc6c2b8044258753"
+        }
+      ],
+      "native_ownership_adaptation": "Rust consumes an owned Body. Exactlyone Drop and no retained Arc body-state handles before return replace reader-release observations; no JavaScript reader-lock object is claimed.",
+      "remaining_assertions": [
+        "Native helper returns typed ReadError::Oversized, not the literal JavaScript classifier_invalid_response Error string. The evaluator adapter is separately tested; this direct helper mapping does not substitute that boundary."
+      ]
+    },
+    {
+      "id": "test/bounded-json.test.mjs#3",
+      "name": "malformed JSON exposes only the stable category and releases the body",
+      "baseline_file_sha256": "d31ef9d55dfdc07e236a5e9c305908343f4a488b04563a231d138c06560a33c4",
+      "line": 28,
+      "definition_sha256": "d37dffc61efaeda731255c33b0964dc9694497afbbf11cf8ebd99d480b9641f8",
+      "definition_hash_scope": "Exact ExpressionStatement including terminating semicolon.",
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/bounded_json_contracts.rs#frozen_private_malformed_and_empty_bodies_return_payload_free_typed_errors"
+      ],
+      "shared_cases": [],
+      "scenarios": [
+        "Original private unterminated JSON and empty bytes. Payload-free InvalidJson enum; both owned bodies fully released."
+      ],
+      "assertions": [
+        {
+          "id": "test/bounded-json.test.mjs#3/assert-1",
+          "line": 30,
+          "expression": "assert.rejects(readBoundedJson(response), error => error.message === 'classifier_invalid_response')",
+          "sha256": "399fb7072233f53b6f32264946fc6444b96ca4310deb0a4abc4c8c21597668f7"
+        },
+        {
+          "id": "test/bounded-json.test.mjs#3/assert-2",
+          "line": 31,
+          "expression": "assert.equal(response.body.locked, false)",
+          "sha256": "d7af3125cad90e4307010cbd1d4da5a1327d1b94cb440774bc6c2b8044258753"
+        },
+        {
+          "id": "test/bounded-json.test.mjs#3/assert-3",
+          "line": 32,
+          "expression": "assert.rejects(readBoundedJson(new Response(null)), /classifier_invalid_response/)",
+          "sha256": "6cae6fe97109001c7e2aed4c7b7e635d93357844934b127c5cd0c45739b2cc87"
+        }
+      ],
+      "native_ownership_adaptation": "Rust consumes an owned Body. Exactlyone Drop and no retained Arc body-state handles before return replace reader-release observations; no JavaScript reader-lock object is claimed.",
+      "remaining_assertions": [
+        "Native returns typed ReadError::InvalidJson, not the literal classifier_invalid_response Error.message. Empty native Body represents empty response data, not a distinct Response(null) absent-body object."
+      ]
+    },
+    {
+      "id": "test/bounded-json.test.mjs#4",
+      "name": "caller cancellation interrupts stalled reads even when source cancellation never resolves",
+      "baseline_file_sha256": "d31ef9d55dfdc07e236a5e9c305908343f4a488b04563a231d138c06560a33c4",
+      "line": 35,
+      "definition_sha256": "611f03514a0233d055f810c2b5e17989cbc059d39ea1c9074eae1843f74c5f2f",
+      "definition_hash_scope": "Exact ExpressionStatement including terminating semicolon.",
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/bounded_json_contracts.rs#cancellation_after_first_pending_poll_releases_exactly_one_native_body"
+      ],
+      "shared_cases": [],
+      "scenarios": [
+        "Empty pending Body; cancellation only after observed first Pending poll; exactlyone destruction and no retained strong body-state handles."
+      ],
+      "assertions": [
+        {
+          "id": "test/bounded-json.test.mjs#4/assert-1",
+          "line": 41,
+          "expression": "assert.rejects(pending, error => error === reason)",
+          "sha256": "c0065bee46960438cc173948a907f21ad99186544e72b6304b030d11497a5d0d"
+        },
+        {
+          "id": "test/bounded-json.test.mjs#4/assert-2",
+          "line": 44,
+          "expression": "assert.equal(cancelled, 1)",
+          "sha256": "2d682b1aa295c21729513321c91a9941beb083e69dc41e1aa8f583057ef39b19"
+        },
+        {
+          "id": "test/bounded-json.test.mjs#4/assert-3",
+          "line": 45,
+          "expression": "assert.equal(response.body.locked, false)",
+          "sha256": "d7af3125cad90e4307010cbd1d4da5a1327d1b94cb440774bc6c2b8044258753"
+        }
+      ],
+      "native_ownership_adaptation": "Rust consumes an owned Body. Exactlyone Drop and no retained Arc body-state handles before return replace reader-release observations; no JavaScript reader-lock object is claimed.",
+      "remaining_assertions": [
+        "Native CancellationToken has no caller-supplied Error reason identity. No JavaScript cancel callback returning an unresolved Promise or reader.locked object exists; exactlyonce body release and prompt cancellation are proven only in the native ownership model."
+      ]
+    },
+    {
+      "id": "test/bounded-json.test.mjs#5",
+      "name": "already aborted and oversized reads do not await uncooperative cancellation",
+      "baseline_file_sha256": "d31ef9d55dfdc07e236a5e9c305908343f4a488b04563a231d138c06560a33c4",
+      "line": 48,
+      "definition_sha256": "3dc1424fbfba1fcf2f755dc6950ed7adcadbcf0c6ab4fb82f5707f206f383305",
+      "definition_hash_scope": "Exact ExpressionStatement including terminating semicolon.",
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/bounded_json_contracts.rs#already_cancelled_overflow_is_not_polled_and_ordinary_overflow_is_released"
+      ],
+      "shared_cases": [],
+      "scenarios": [
+        "Original65537zero bytes under pre-cancelledfalse/true, respectively Oversized/Cancelled. Already-cancelled path does not poll body; both are released exactlyonce."
+      ],
+      "assertions": [
+        {
+          "id": "test/bounded-json.test.mjs#5/assert-1",
+          "line": 55,
+          "expression": "assert.rejects(readBoundedJson(response, { signal: controller.signal }), aborted ? /already stopped/ : /classifier_invalid_response/)",
+          "sha256": "8e2998177197bd0c541aa2ec190a9a4cd675eaba8425c7c2bf38ecacb25078fd"
+        },
+        {
+          "id": "test/bounded-json.test.mjs#5/assert-2",
+          "line": 56,
+          "expression": "assert.equal(cancelled, true)",
+          "sha256": "9d31057f08f6678980db9b13aafdf0e260b7d4325f227b62d44b8bd566f219e3"
+        },
+        {
+          "id": "test/bounded-json.test.mjs#5/assert-3",
+          "line": 57,
+          "expression": "assert.equal(response.body.locked, false)",
+          "sha256": "d7af3125cad90e4307010cbd1d4da5a1327d1b94cb440774bc6c2b8044258753"
+        }
+      ],
+      "native_ownership_adaptation": "Rust consumes an owned Body. Exactlyone Drop and no retained Arc body-state handles before return replace reader-release observations; no JavaScript reader-lock object is claimed.",
+      "remaining_assertions": [
+        "Native pre-cancellation has no arbitrary already stopped Error reason. Native synchronous Body destruction does not execute the frozen unresolved cancel Promise; source cancellation callback and reader.locked identity are not claimed."
+      ]
+    }
+  ],
+  "input_coverage": {
+    "path": "artifacts/rust-rewrite/evidence/d2fff1c0986516787e60403abdfb670b3cb7c38bb4e804560c6eeec9d306273b.json",
+    "sha256": "d2fff1c0986516787e60403abdfb670b3cb7c38bb4e804560c6eeec9d306273b",
+    "bytes": 984107,
+    "original_path": "rust/parity/coverage.json",
+    "source_commit": "bf50b60fb702699f0c1cac5e62b8fecf28cb2209"
+  },
+  "status": "Reviewed assertion mapping; full rewrite qualification remains incomplete.",
+  "review": {
+    "proposal": {
+      "path": "artifacts/rust-rewrite/evidence/8ac49e8c1093b597ae49b6fd44f65d8bae3a9b38ef408d92e5b6e86ba683947d.json",
+      "sha256": "8ac49e8c1093b597ae49b6fd44f65d8bae3a9b38ef408d92e5b6e86ba683947d",
+      "bytes": 13594,
+      "original_path": "/private/tmp/autorouter-bounded-json-coverage-proposal.json"
+    },
+    "review": {
+      "path": "artifacts/rust-rewrite/evidence/1d4b01c4a0c16870d116c8b54d776307bebeaebcaf5471532deb03b2c47d0e92.json",
+      "sha256": "1d4b01c4a0c16870d116c8b54d776307bebeaebcaf5471532deb03b2c47d0e92",
+      "original_path": "/private/tmp/autorouter-bounded-json-independent-review-3.json"
+    },
+    "recovered_original_proposal": {
+      "path": "artifacts/rust-rewrite/evidence/062d28793f52f9c091542f59dba521b53746535fbdc1e4f5cf4e42bfdb8f943e.json",
+      "sha256": "062d28793f52f9c091542f59dba521b53746535fbdc1e4f5cf4e42bfdb8f943e",
+      "scope": "Exact original proposal recovered by removing later Clippy evidence; its bytes independently match the old review hash. Historical review is retained unchanged; the new review binds the final proposal."
+    }
+  },
+  "previous_coverage_rows": [
+    {
+      "id": "test/bounded-json.test.mjs#1",
+      "file": "test/bounded-json.test.mjs",
+      "name": "shared reader accepts chunked UTF-8 exactly at the byte boundary",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "response_observer",
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/bounded-json.test.mjs#2",
+      "file": "test/bounded-json.test.mjs",
+      "name": "stream bytes override missing or inaccurate headers and oversized bodies are cancelled",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "response_observer",
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/bounded-json.test.mjs#3",
+      "file": "test/bounded-json.test.mjs",
+      "name": "malformed JSON exposes only the stable category and releases the body",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "response_observer",
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/bounded-json.test.mjs#4",
+      "file": "test/bounded-json.test.mjs",
+      "name": "caller cancellation interrupts stalled reads even when source cancellation never resolves",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "response_observer",
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/bounded-json.test.mjs#5",
+      "file": "test/bounded-json.test.mjs",
+      "name": "already aborted and oversized reads do not await uncooperative cancellation",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "response_observer",
+        "evaluators"
+      ]
+    }
+  ]
+}

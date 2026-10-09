@@ -34,6 +34,8 @@ cargo fetch --locked
 cargo metadata --format-version 1 --locked --offline > /dev/null
 cargo fmt --check
 node vendor/verify-hyper.mjs
+node vendor/verify-hyper-util.mjs
+node vendor/verify-production-features.mjs --self-test
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 cargo xtask freeze-reference
@@ -59,6 +61,17 @@ npm run test:package
 ```
 
 The four existing Node/OS CI jobs remain required. Native CI adds compiler, contract, integration, and executable comparison checks; it does not invoke live tools or impose workstation timing thresholds.
+
+The experimental connection lease in vendored hyper-util is enabled only by a
+runtime test dependency. CI records the ordinary release build's Cargo JSON
+messages and rejects an artifact compiled with `node-http1-request-lease`.
+To repeat that check locally:
+
+```sh
+mkdir -p ../artifacts/rust-rewrite
+cargo build --release --locked --package claude-autorouter --message-format=json > ../artifacts/rust-rewrite/production-build.jsonl
+node vendor/verify-production-features.mjs --build-report ../artifacts/rust-rewrite/production-build.jsonl
+```
 
 The separate [sanitizer fuzz workspace](fuzz/README.md) exercises JSON edits,
 redaction, observer framing and history parsing with synthetic seeds. Its pinned

@@ -192,6 +192,8 @@ jobs:
       - run: cargo fetch --locked
       - run: cargo metadata --format-version 1 --locked --offline > /dev/null
       - run: node vendor/verify-hyper.mjs
+      - run: node vendor/verify-hyper-util.mjs
+      - run: node vendor/verify-production-features.mjs --self-test
       - run: node vendor/verify-node-ca.mjs
       - run: node vendor/verify-openssl.mjs
       - run: cargo fmt --check
@@ -204,7 +206,11 @@ jobs:
       - run: cargo xtask parity --all --output artifacts/rust-rewrite/parity-gnu-portability
       - run: node parity/capture-auto-routing-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/auto-routing-contracts
       - run: cargo xtask parity --cases artifacts/rust-rewrite/auto-routing-contracts/cases.jsonl --report artifacts/rust-rewrite/parity-auto-routing-contracts.json
-      - run: cargo build --release --offline --locked --package claude-autorouter
+      - name: Build release and verify experimental features are absent
+        run: |
+          set -euo pipefail
+          cargo build --release --offline --locked --package claude-autorouter --message-format=json > ../artifacts/rust-rewrite/gnu-portability/production-build.jsonl
+          node vendor/verify-production-features.mjs --build-report ../artifacts/rust-rewrite/gnu-portability/production-build.jsonl > ../artifacts/rust-rewrite/gnu-portability/production-features.json
       - name: Inspect actual ELF and enforce required GLIBC symbol versions
         run: |
           set -euo pipefail

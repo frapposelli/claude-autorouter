@@ -5,6 +5,7 @@ mod lifecycle;
 mod lifecycle_tests;
 mod options;
 mod policy;
+mod request_lease_tests;
 mod session;
 
 use crate::server::Gateway;

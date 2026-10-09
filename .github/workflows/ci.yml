@@ -69,6 +69,8 @@ jobs:
       - run: cargo fetch --locked
       - run: cargo metadata --format-version 1 --locked --offline > /dev/null
       - run: node vendor/verify-hyper.mjs
+      - run: node vendor/verify-hyper-util.mjs
+      - run: node vendor/verify-production-features.mjs --self-test
       - run: node vendor/verify-node-ca.mjs
       - run: node vendor/verify-openssl.mjs
       - run: cargo fmt --check
@@ -77,7 +79,11 @@ jobs:
       - run: cargo xtask parity --all --output artifacts/rust-rewrite/parity-ci
       - run: node parity/capture-auto-routing-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/auto-routing-contracts
       - run: cargo xtask parity --cases artifacts/rust-rewrite/auto-routing-contracts/cases.jsonl --report artifacts/rust-rewrite/parity-auto-routing-contracts.json
-      - run: cargo build --release --locked --package claude-autorouter
+      - name: Build release and verify experimental features are absent
+        run: |
+          mkdir -p ../artifacts/rust-rewrite
+          cargo build --release --locked --package claude-autorouter --message-format=json > ../artifacts/rust-rewrite/production-build.jsonl
+          node vendor/verify-production-features.mjs --build-report ../artifacts/rust-rewrite/production-build.jsonl > ../artifacts/rust-rewrite/production-features.json
       - run: ./target/release/claude-autorouter --version
       - run: node parity/check-config-commands.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
       - run: node parity/check-node-options-startup.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
@@ -103,4 +109,6 @@ jobs:
             artifacts/rust-rewrite/auto-routing-contracts/*
             artifacts/rust-rewrite/evidence/*.json
             artifacts/rust-rewrite/native-package-ci/*
+            artifacts/rust-rewrite/production-build.jsonl
+            artifacts/rust-rewrite/production-features.json
           if-no-files-found: ignore

@@ -252,3 +252,65 @@ Primary policy sources: [Node 22.14 cipher defaults](https://github.com/nodejs/n
 [raw HTTPS agent](https://github.com/nodejs/node/blob/v22.14.0/lib/https.js),
 [fetch connector](https://github.com/nodejs/node/blob/v22.14.0/deps/undici/src/lib/core/connect.js),
 and the [published stream API](https://docs.rs/hyper-openssl/0.10.2/hyper_openssl/struct.SslStream.html).
+
+### B2 reservation-lease foundation (eighth increment, test builds only)
+
+A local, feature-gated hyper-util 0.1.21 patch now makes the reservation boundary
+explicit. `capture_http1_assignment` creates a request-owned pending guard before
+submission; the first submission consumes its single-use slot. `Assignment`
+observes the selected reservation, and `claim_abort` checks that it is still
+active and poisons that exact connection under the same short mutex used for
+retirement. `Guarded<Pooled>` retires before returning the connection to the pool,
+including Hyper's immediate return, deferred readiness task, cancellation, error,
+and unwinding paths. Metadata cloning, destruction, watch wakeups, public tracing,
+and pool return happen outside that mutex. Connector-provided extras retain their
+own ownership semantics; this spike stores weak connection identities.
+
+The claim is **only a once-only pool-poisoning authorization foundation**. It does
+not close IO, evict a session, infer cancellation from `Incoming` Drop, or change
+the shipping transport. Attached requests reject retry-enabled/pool-disabled
+clients, HTTP2, CONNECT and upgrade requests. A cloned request cannot consume the
+same attachment twice. A selected connection marked as negotiated HTTP2 is also
+rejected before assignment; unsolicited 101 responses retire before returning.
+
+Fourteen bounded native tests exercise actual Hyper scheduling, including its
+immediate and deferred branches, executor rejection, pending/unpolled/error
+cleanup, and a pool winner while a losing connection attempt remains held.
+HTTP, TLS1.2 and TLS1.3 loopback peers prove that A's unconsumed old body cannot
+claim the connection after B has selected it. A valid B claim leaves B's response
+readable and prevents the connection from serving C. Thirteen private ownership
+tests cover once-only claims, concurrent and forced lock orders, metadata
+Clone/Drop and watch-wake panics, weak ownership, and negotiated-HTTP2 rejection
+using an in-memory connector. This is not an actual TLS ALPN qualification.
+
+The published upstream tests and dev dependencies are retained. The isolated
+test graph explicitly selects the current vendored Hyper1.12 and Tokio1.53.2;
+its full-feature library suite passes 115 tests with one upstream ignored network
+test, and its legacy-client HTTP1/HTTP2 integration suite passes 21. These reports precede
+the final private metadata-Drop assertion refinement; the final thirteen private
+tests and three mutation controls bind the corrected source separately. Early reports
+using the published upstream lock's Hyper1.9 are retained separately. Mutation
+controls deliberately remove early retirement and the phase check; both must
+be detected. The first metadata-Drop negative exposed an overly broad panic
+catch; its failed-control report is preserved, and the test now requires the
+exact intended panic payload as well as retired state.
+
+`node-http1-request-lease` is absent from `default` and `full` and is enabled only
+by the runtime's dev dependency. The ordinary release build is audited from
+Cargo compiler-artifact JSON, with exact package identity, a release CLI artifact,
+successful build completion, and absence of the lease feature required. Its
+self-test rejects 21 malformed, missing, unsuccessful, or feature-enabled inputs.
+The [source verifier](../vendor/verify-hyper-util.mjs) checks all 62 published
+members, the one added module, and exact forward/reverse patch hashes. This is a
+local MIT-licensed dependency patch, not an upstream-approved API.
+
+The original B2 differential remains failed at **13/18**. Actual destructive
+IO cancellation, gateway cancellation-intent ownership, raw-session eviction
+integration, fetch-session caching, B3 configuration initialization, full pooling
+qualification, and the original five mismatches remain separate gates. Neither
+this foundation nor its native tests promote the OpenSSL spike into production.
+
+The [foundation summary](measurements/hyper-util-lease-foundation-summary.json)
+binds the final private-test executable, exact isolated graph, source/patch
+hashes, positive and mutation results, and every retained failure. The shipping
+feature-off release proof remains separate, parent-owned final validation.

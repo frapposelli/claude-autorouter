@@ -36,14 +36,14 @@ use crate::http_client::HttpTransport;
 
 const LIMIT: Duration = Duration::from_secs(5);
 
-struct Reply {
-    first: &'static [u8],
-    remainder: Option<oneshot::Receiver<&'static [u8]>>,
+pub(super) struct Reply {
+    pub(super) first: &'static [u8],
+    pub(super) remainder: Option<oneshot::Receiver<&'static [u8]>>,
 }
-struct PeerRequest {
-    connection: usize,
-    path: String,
-    reply: oneshot::Sender<Reply>,
+pub(super) struct PeerRequest {
+    pub(super) connection: usize,
+    pub(super) path: String,
+    pub(super) reply: oneshot::Sender<Reply>,
 }
 struct PeerLease(Arc<AtomicUsize>);
 impl Drop for PeerLease {
@@ -52,14 +52,14 @@ impl Drop for PeerLease {
     }
 }
 
-struct Fixture {
-    client: Arc<SpikeHttpClient>,
-    origin: String,
-    requests: mpsc::Receiver<PeerRequest>,
+pub(super) struct Fixture {
+    pub(super) client: Arc<SpikeHttpClient>,
+    pub(super) origin: String,
+    pub(super) requests: mpsc::Receiver<PeerRequest>,
     tasks: JoinSet<io::Result<()>>,
     stop: CancellationToken,
     active: Arc<AtomicUsize>,
-    accepted: Arc<AtomicUsize>,
+    pub(super) accepted: Arc<AtomicUsize>,
 }
 
 fn isolated_tls(version: Option<SslVersion>) -> (TrustSnapshot, Option<SslContext>) {
@@ -178,7 +178,7 @@ async fn peer<S: AsyncRead + AsyncWrite + Unpin>(
 }
 
 impl Fixture {
-    async fn new(version: Option<SslVersion>) -> Self {
+    pub(super) async fn new(version: Option<SslVersion>) -> Self {
         let (trust, tls) = isolated_tls(version);
         let client = Arc::new(SpikeHttpClient::with_snapshot(true, &trust).unwrap());
         let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -244,7 +244,7 @@ impl Fixture {
         }
     }
 
-    async fn finish(mut self) {
+    pub(super) async fn finish(mut self) {
         let raw = self.client.raw_counts.clone();
         let fetch = self.client.fetch_counts.clone();
         let cache = Arc::downgrade(self.client.raw_sessions.as_ref().unwrap());
