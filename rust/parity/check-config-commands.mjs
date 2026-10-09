@@ -1,15 +1,23 @@
 // Temporary Node-reference comparison only; the installed product does not use
 // this driver. All configurations, credentials and homes are synthetic.
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
+import { verifyBaseline } from '../../scripts/rust-reference.mjs';
 
 const root = resolve(import.meta.dirname, '../..');
 const reference = resolve(process.argv[2] ?? join(root, 'artifacts/rust-rewrite/reference'));
 const candidate = resolve(process.argv[3] ?? join(root, 'rust/target/debug/claude-autorouter'));
 const baseline = JSON.parse(readFileSync(join(root, 'rust/parity/baseline.json'), 'utf8'));
+await verifyBaseline(reference);
+const evidenceDirectory = join(root, 'artifacts/rust-rewrite');
+mkdirSync(evidenceDirectory, { recursive: true });
+const evidencePath = join(evidenceDirectory, `parity-config-commands-${Date.now()}.json`);
+const digest = bytes => createHash('sha256').update(bytes).digest('hex');
+const provenance = { node: process.version, candidate_sha256: digest(readFileSync(candidate)), reference_integrity_verified: true };
 const directory = mkdtempSync(join(tmpdir(), 'autorouter-native-config-parity-'));
 const path = join(directory, 'config.json');
 const base = { HOME: directory, XDG_CONFIG_HOME: directory, AUTOROUTER_CONFIG: path, PATH: directory };
@@ -62,14 +70,20 @@ for (const key of ['AUTOROUTER_HAIKU_MODEL', 'AUTOROUTER_SONNET_MODEL', 'AUTOROU
     if (key !== 'TYPESAFE_API_KEY') cases.push({ saved, env: {}, args: ['config', 'set', key, `synthetic-${suffix.replace(/[\ud800-\udfff]/g, '\ufffd')}`] });
   }
 }
-function run(executable, prefix, testCase) {
+let activeCase, completedCases = 0;
+function run(executable, prefix, testCase, index, implementation) {
+  activeCase = { case: index, implementation };
   rmSync(path, { force: true });
   if (testCase.saved !== undefined) writeFileSync(path, JSON.stringify(testCase.saved), { mode: 0o600 });
   const output = spawnSync(executable, [...prefix, ...testCase.args], {
     cwd: directory, env: { ...base, ...testCase.env }, input: testCase.stdin ?? '', encoding: 'utf8',
     timeout: 15000, maxBuffer: 1024 * 1024,
   });
-  if (output.error || output.signal) throw new Error('A synthetic configuration command did not complete.');
+  if (output.error || output.signal) {
+    activeCase.signal = output.signal ?? null;
+    activeCase.error_code = typeof output.error?.code === 'string' ? output.error.code : null;
+    throw new Error(`Synthetic configuration case ${index} (${implementation}) did not complete: ${activeCase.signal ?? activeCase.error_code ?? 'unknown failure'}.`);
+  }
   let saved;
   try { saved = JSON.parse(readFileSync(path, 'utf8')); } catch { saved = null; }
   const stdout = testCase.args.includes('--json') ? JSON.parse(output.stdout)
@@ -79,12 +93,18 @@ function run(executable, prefix, testCase) {
 try {
   const failures = [];
   for (const [index, testCase] of cases.entries()) {
-    const expected = run(process.execPath, [join(reference, 'bin/autorouter.mjs')], testCase);
-    const actual = run(candidate, [], testCase);
+    const expected = run(process.execPath, [join(reference, 'bin/autorouter.mjs')], testCase, index, 'node');
+    const actual = run(candidate, [], testCase, index, 'rust');
     if (!isDeepStrictEqual(actual, expected)) failures.push({ case: index, args: testCase.args, fields: Object.keys(actual).filter(key => !isDeepStrictEqual(actual[key], expected[key])) });
+    completedCases++;
   }
-  console.log(JSON.stringify({ schema_version: 1, baseline_commit: baseline.commit ?? baseline.baseline_commit,
+  const report = { schema_version: 1, baseline_commit: baseline.commit ?? baseline.baseline_commit, ...provenance, completed: true,
     cases: cases.length, matched: cases.length - failures.length, failures,
-    deliberate_differences: ['Plain doctor replaces the Node.js prerequisite line with native version and target diagnostics, as required by the rewrite plan.'] }, null, 2));
+    deliberate_differences: ['Plain doctor replaces the Node.js prerequisite line with native version and target diagnostics, as required by the rewrite plan.'] };
+  writeFileSync(evidencePath, `${JSON.stringify(report, null, 2)}\n`, { flag: 'wx' });
+  console.log(JSON.stringify(report, null, 2));
   if (failures.length) process.exitCode = 1;
+} catch (error) {
+  writeFileSync(evidencePath, `${JSON.stringify({ schema_version: 1, ...provenance, completed: false, completed_cases: completedCases, active_case: activeCase, error: 'Synthetic command comparison could not complete.' }, null, 2)}\n`, { flag: 'wx' });
+  throw error;
 } finally { rmSync(directory, { recursive: true, force: true }); }
