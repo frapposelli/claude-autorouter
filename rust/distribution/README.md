@@ -9,10 +9,8 @@ installed smoke test with 27 CLI tests. Combining their executables was rejected
 the archive needs at least 39,386,112 expanded bytes, above the unchanged
 33,554,432-byte limit. The [retained size evidence](../parity/measurements/package-ci-5cd7118-summary.json)
 records each archive hash and its build-manifest source identity. These artifacts
-predate the OpenSSL TLS change. Current binary sizes across all four targets, the expanded 60-test
-installed suite on other targets, additional architectures and oldest-runtime
-qualification remain pending; this result does not establish a shippable
-aggregate package.
+predate the OpenSSL TLS change. They remain historical evidence; this result
+does not establish a shippable aggregate package.
 
 The later macOS ARM64 host archive passed all 60 installed CLI tests and the
 offline upgrade/rollback rehearsal. Its [retained summary](../parity/measurements/native-host-4-summary.json)
@@ -26,8 +24,8 @@ The [next host archive](../parity/measurements/native-host-5-summary.json) passe
 66 installed CLI tests and the same offline upgrade/rollback rehearsal after
 TLS-version and hidden-input cancellation changes. It contains 5,954,732
 compressed bytes and 14,449,152 expanded tar bytes. The original Linux
-cancellation failure still requires a fresh Linux CI result; passing macOS
-tests does not resolve that platform evidence gap.
+cancellation failure was still unresolved at that checkpoint; the later
+cross-platform result below supplies the missing evidence.
 
 The [corrected host archive](../parity/measurements/native-host-6-summary.json)
 replaces output-draining terminal restoration with separate input discard and
@@ -36,6 +34,29 @@ CLI tests and offline upgrade/rollback rehearsal pass. The archive is 5,955,906
 compressed bytes and 14,449,664 expanded tar bytes. Earlier archive bytes and
 their test reports remain retained; real Ctrl-Z lifecycle and existing prompt
 output behavior still need separate qualification.
+
+At `8e94a9b`, [all ten CI jobs passed](../parity/measurements/ci-8e94-qualification-summary.json).
+Each of six native builds passed 463 source tests and 66 installed CLI tests;
+the GNU builds also passed in pinned GLIBC 2.28 userlands. The exact four-target
+selection contains 57,183,424 executable bytes and needs at least 58,833,408
+expanded bytes with package materials, so the unchanged 32 MiB cap rejects it.
+No aggregate archive was produced by that attempt. The 115 supported TLS cases
+pass, while all 11 separate policy characterizations remain unqualified in
+those production binaries. Later test-only transport experiments do not change
+that archive qualification.
+
+The [fourth local checkpoint](../parity/measurements/native-host-7-summary.json)
+passes 73 installed CLI tests and upgrade/rollback. Its runtime executable is
+byte-identical to host 6; new tests cover local diagnosis, default Ollama launch
+and invalid Stop-hook cap admission. The new archive retains updated license
+and source metadata.
+
+An [isolated cap experiment](expanded-cap-proposal.md) assembled those four CI
+binaries into a 23,943,704-byte compressed, 58,821,120-byte expanded archive and
+passed the matching host installed tests. It supports review of separate
+32 MiB compressed, 64 MiB expanded and 32 MiB per-file bounds. Main limits remain
+unchanged; full-matrix fit, reader hardening and final-artifact qualification
+are still required before adopting that proposal.
 
 Inspection of those same historical Linux executables found non-weak GLIBC
 version requirements through **2.34 on x86_64** and **2.39 on ARM64**. Their
@@ -50,8 +71,8 @@ The separate [GNU portability workflow](gnu-portability.md) now pins older
 builder images and checks a GLIBC 2.28 symbol bound. Its first run stopped at
 Git provenance recording; the next exposed an ARM assembly flag override and
 missing Perl core modules. Scoped compiler wrappers and a pinned build-only
-Perl bootstrap are awaiting CI. Failed attempts, pins and remaining limits are
-recorded there.
+Perl bootstrap now pass both jobs, including symbol inspection and installed
+lifecycle checks. Failed attempts, pins and remaining limits are recorded there.
 
 The initial macOS ARM64/x86_64 and Linux ARM64/x86_64 candidates do not cover every platform where the existing unrestricted JavaScript package can run. Node 22 additionally lists Linux armv7, ppc64le and s390x, plus experimental architectures. These remain audit items in [platforms.json](platforms.json), alongside Claude executable availability. See the [Node 22 platform table](https://raw.githubusercontent.com/nodejs/node/v22.x/BUILDING.md).
 

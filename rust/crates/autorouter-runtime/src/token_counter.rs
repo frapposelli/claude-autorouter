@@ -435,6 +435,7 @@ mod tests {
         stall: bool,
         wait: bool,
         headers: HeaderMap,
+        network_error: bool,
     }
     impl Step {
         fn json(value: Value) -> Self {
@@ -444,12 +445,14 @@ mod tests {
                 stall: false,
                 wait: false,
                 headers: HeaderMap::new(),
+                network_error: false,
             }
         }
     }
     struct Mock {
         steps: Mutex<VecDeque<Step>>,
         requests: Mutex<Vec<(String, HeaderMap, Bytes)>>,
+        methods: Mutex<Vec<hyper::Method>>,
         dropped: Arc<AtomicUsize>,
     }
     impl Mock {
@@ -457,6 +460,7 @@ mod tests {
             Self {
                 steps: Mutex::new(steps.into_iter().collect()),
                 requests: Mutex::new(Vec::new()),
+                methods: Mutex::new(Vec::new()),
                 dropped: Arc::new(AtomicUsize::new(0)),
             }
         }
@@ -472,6 +476,7 @@ mod tests {
         ) -> Result<Response<TestBody>, HttpError> {
             let (parts, body) = request.into_parts();
             let bytes = body.collect().await.unwrap().to_bytes();
+            self.methods.lock().unwrap().push(parts.method);
             self.requests
                 .lock()
                 .unwrap()
@@ -482,6 +487,9 @@ mod tests {
                 .unwrap()
                 .pop_front()
                 .unwrap_or_else(|| Step::json(json!({"input_tokens":self.calls()})));
+            if step.network_error {
+                return Err(HttpError::Network);
+            }
             let body = TestBody {
                 chunks: step.bytes.chunks(31).map(Bytes::copy_from_slice).collect(),
                 stall: step.stall,
@@ -523,7 +531,11 @@ mod tests {
     async fn full_context_projection_shares_adaptation_and_keeps_request_credentials() {
         let mock = Arc::new(Mock::new([Step::json(json!({"input_tokens":87654}))]));
         let counter = TokenCounter::new(mock.clone(), &config());
-        let body = request();
+        let mut body = request();
+        body["output_config"] = json!({"format":{"type":"json_schema","schema":{"type":"object"}}});
+        body["tool_choice"] = json!({"type":"auto"});
+        body["context_management"] = json!({"edits":[]});
+        body["cache_control"] = json!({"type":"ephemeral","ttl":"1h"});
         let original = document(body.clone());
         let before = original.stringify();
         let mut headers = headers();
@@ -542,6 +554,8 @@ mod tests {
         );
         assert_eq!(original.stringify(), before);
         let requests = mock.requests.lock().unwrap();
+        assert_eq!(requests.len(), 1);
+        assert_eq!(*mock.methods.lock().unwrap(), vec![hyper::Method::POST]);
         let (url, headers, bytes) = &requests[0];
         assert_eq!(
             url,
@@ -551,9 +565,10 @@ mod tests {
         assert_eq!(headers["content-type"], "application/json");
         assert_eq!(headers["accept"], "application/json");
         assert_eq!(headers["authorization"], "Bearer synthetic-request-key");
+        assert_eq!(headers["anthropic-beta"], "oauth-2025-04-20");
         let mut expected = body;
-        for key in GENERATION_FIELDS {
-            expected.as_object_mut().unwrap().remove(*key);
+        for key in ["max_tokens", "stream", "metadata"] {
+            expected.as_object_mut().unwrap().remove(key);
         }
         expected["model"] = json!("claude-opus-5");
         expected["thinking"] = json!({"type":"adaptive"});
@@ -660,6 +675,9 @@ mod tests {
         for extra in [
             json!({"tools":[{"type":"web_search_20250305"}]}),
             json!({"tools":[{"type":"tool_search_tool_regex_20251119"}]}),
+            json!({"tools":[{"type":"code_execution_20260120","name":"code_execution"}]}),
+            json!({"messages":[{"role":"user","content":[{"type":"tool_result","tool_use_id":"read","content":[{"type":"image","source":{"type":"url","url":"https://example.test/file","file_id":"file_test"}}]}]}]}),
+            json!({"messages":[{"role":"user","content":[{"type":"tool_result","tool_use_id":"read","content":[{"type":"document","source":{"type":"file","url":"https://example.test/file","file_id":"file_test"}}]}]}]}),
             json!({"mcp_servers":[]}),
             json!({"future_input_context":"opaque"}),
             json!({"container":"id"}),
@@ -716,6 +734,10 @@ mod tests {
     #[tokio::test]
     async fn failures_invalid_counts_and_oversized_responses_never_cache() {
         for first in [
+            Step {
+                network_error: true,
+                ..Step::json(json!({}))
+            },
             Step {
                 status: 429,
                 ..Step::json(json!({"input_tokens":1}))
@@ -850,6 +872,330 @@ mod tests {
                 )
                 .await,
             Some(123)
+        );
+    }
+    #[tokio::test]
+    async fn every_baseline_thinking_target_preserves_complete_context_and_source() {
+        for (source, target, expected_thinking) in [
+            (HAIKU, "claude-sonnet-5-5", "between_tools"),
+            (HAIKU, "claude-opus-5-5", "adaptive"),
+            (HAIKU, SONNET, "disabled"),
+            ("claude-sonnet-5-5", "claude-sonnet-5-5", "disabled"),
+        ] {
+            let mock = Arc::new(Mock::new([Step::json(json!({"input_tokens":12000}))]));
+            let counter = TokenCounter::new(mock.clone(), &config());
+            let mut body = request();
+            body["model"] = json!(source);
+            body["output_config"] = json!({"effort":"medium"});
+            body["tool_choice"] = json!({"type":"auto"});
+            let original = document(body.clone());
+            let before = original.stringify();
+            assert_eq!(
+                counter
+                    .count(&original, target, &headers(), &CancellationToken::new(), "")
+                    .await,
+                Some(12000)
+            );
+            assert_eq!(original.stringify(), before);
+            for key in ["max_tokens", "stream", "metadata"] {
+                body.as_object_mut().unwrap().remove(key);
+            }
+            body["model"] = json!(target);
+            body["thinking"] = json!({"type":expected_thinking});
+            let requests = mock.requests.lock().unwrap();
+            assert_eq!(requests.len(), 1);
+            assert_eq!(
+                serde_json::from_slice::<Value>(&requests[0].2).unwrap(),
+                body
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn adapted_thinking_and_high_effort_have_exact_cache_equivalence() {
+        let mock = Arc::new(Mock::new([]));
+        let counter = TokenCounter::new(mock.clone(), &config());
+        let target = "claude-sonnet-5-5";
+        let mut body = request();
+        body["model"] = json!(HAIKU);
+        let h = headers();
+        let cancel = CancellationToken::new();
+        assert_eq!(
+            counter
+                .count(&document(body.clone()), target, &h, &cancel, "")
+                .await,
+            Some(1)
+        );
+        let payload: Value = serde_json::from_slice(&mock.requests.lock().unwrap()[0].2).unwrap();
+        assert_eq!(payload["thinking"], json!({"type":"between_tools"}));
+        let mut generation = body.clone();
+        generation["max_tokens"] = json!(20);
+        assert_eq!(
+            counter
+                .count(&document(generation), target, &h, &cancel, "")
+                .await,
+            Some(1)
+        );
+        let mut explicit = body.clone();
+        explicit["model"] = json!(target);
+        explicit["thinking"] = json!({"type":"between_tools"});
+        assert_eq!(
+            counter
+                .count(&document(explicit), target, &h, &cancel, "")
+                .await,
+            Some(1)
+        );
+        let mut high = body.clone();
+        high["output_config"] = json!({"effort":"xhigh"});
+        assert_eq!(
+            counter
+                .count(&document(high.clone()), target, &h, &cancel, "")
+                .await,
+            Some(2)
+        );
+        let payload: Value = serde_json::from_slice(&mock.requests.lock().unwrap()[1].2).unwrap();
+        assert_eq!(payload["thinking"], json!({"type":"adaptive"}));
+        assert_eq!(payload["output_config"], high["output_config"]);
+        high["thinking"] = json!({"type":"adaptive"});
+        assert_eq!(
+            counter
+                .count(&document(high), target, &h, &cancel, "")
+                .await,
+            Some(2)
+        );
+        assert_eq!(
+            counter
+                .count(&document(body), target, &h, &cancel, "")
+                .await,
+            Some(1)
+        );
+        assert_eq!(mock.calls(), 2);
+    }
+
+    #[tokio::test]
+    async fn tokenizer_context_modifiers_credentials_and_features_each_separate_cache_entries() {
+        let mock = Arc::new(Mock::new([]));
+        let counter = TokenCounter::new(mock.clone(), &config());
+        let body = request();
+        let h = headers();
+        let cancel = CancellationToken::new();
+        assert_eq!(
+            counter
+                .count(&document(body.clone()), HAIKU, &h, &cancel, "")
+                .await,
+            Some(1)
+        );
+        let mut generation = body.clone();
+        generation["max_tokens"] = json!(128);
+        generation["stream"] = json!(false);
+        assert_eq!(
+            counter
+                .count(&document(generation), HAIKU, &h, &cancel, "")
+                .await,
+            Some(1)
+        );
+        assert_eq!(
+            counter
+                .count(&document(body.clone()), SONNET, &h, &cancel, "")
+                .await,
+            Some(2)
+        );
+        let mut thinking = body.clone();
+        thinking["thinking"] = json!({"type":"adaptive"});
+        assert_eq!(
+            counter
+                .count(&document(thinking), SONNET, &h, &cancel, "")
+                .await,
+            Some(3)
+        );
+        let mut effort = body.clone();
+        effort["output_config"] = json!({"effort":"low"});
+        assert_eq!(
+            counter
+                .count(&document(effort), SONNET, &h, &cancel, "")
+                .await,
+            Some(4)
+        );
+        for (key, value, expected) in [
+            ("authorization", "Bearer refreshed-test-credential", 5),
+            ("anthropic-beta", "different-feature", 6),
+            ("anthropic-workspace-id", "workspace-2", 7),
+        ] {
+            let mut scoped = h.clone();
+            scoped.insert(
+                hyper::header::HeaderName::from_static(key),
+                value.parse().unwrap(),
+            );
+            assert_eq!(
+                counter
+                    .count(&document(body.clone()), HAIKU, &scoped, &cancel, "")
+                    .await,
+                Some(expected)
+            );
+        }
+        assert_eq!(
+            counter.count(&document(body), HAIKU, &h, &cancel, "").await,
+            Some(1)
+        );
+        assert_eq!(mock.calls(), 7);
+    }
+
+    #[tokio::test]
+    async fn allowed_base64_client_advisor_and_beta_context_reaches_count_api_unchanged() {
+        let mock = Arc::new(Mock::new([Step::json(json!({"input_tokens":1000}))]));
+        let counter = TokenCounter::new(mock.clone(), &config());
+        let mut body = request();
+        body["model"] = json!(HAIKU);
+        body["compaction"] = json!({"type":"summarize"});
+        body["speed"] = json!("standard");
+        body["output_format"] = json!({"type":"json_schema","schema":{"type":"object"}});
+        body["tools"] = json!([{"name":"bash","type":"bash_20250124"},{"name":"advisor","type":"advisor_20260301","model":"claude-opus-5-5"}]);
+        body["messages"] = json!([{"role":"user","content":[{"type":"image","source":{"type":"base64","media_type":"image/png","data":"test-image"}}]}]);
+        assert_eq!(
+            counter
+                .count(
+                    &document(body.clone()),
+                    HAIKU,
+                    &headers(),
+                    &CancellationToken::new(),
+                    ""
+                )
+                .await,
+            Some(1000)
+        );
+        for key in ["max_tokens", "stream", "metadata"] {
+            body.as_object_mut().unwrap().remove(key);
+        }
+        let requests = mock.requests.lock().unwrap();
+        assert_eq!(requests.len(), 1);
+        assert_eq!(
+            serde_json::from_slice::<Value>(&requests[0].2).unwrap(),
+            body
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn configured_deadline_is_exact_for_fetch_and_body_and_failed_work_is_retriable() {
+        for wait in [true, false] {
+            let mock = Arc::new(Mock::new([
+                Step {
+                    wait,
+                    stall: !wait,
+                    ..Step::json(json!({"input_tokens":123}))
+                },
+                Step::json(json!({"input_tokens":123})),
+            ]));
+            let mut configuration = config();
+            configuration.token_count_timeout_ms = 15;
+            let counter = Arc::new(TokenCounter::new(mock.clone(), &configuration));
+            let pending = counter.clone();
+            let started = tokio::time::Instant::now();
+            let task = tokio::spawn(async move {
+                pending
+                    .count(
+                        &document(request()),
+                        HAIKU,
+                        &headers(),
+                        &CancellationToken::new(),
+                        "",
+                    )
+                    .await
+            });
+            while mock.calls() == 0 {
+                tokio::task::yield_now().await;
+            }
+            tokio::time::advance(Duration::from_millis(14)).await;
+            tokio::task::yield_now().await;
+            assert!(
+                !task.is_finished(),
+                "configured deadline must not fire early"
+            );
+            assert_eq!(mock.dropped.load(Ordering::SeqCst), 0);
+            tokio::time::advance(Duration::from_millis(1)).await;
+            assert_eq!(task.await.unwrap(), None);
+            assert_eq!(started.elapsed(), Duration::from_millis(15));
+            assert_eq!(mock.dropped.load(Ordering::SeqCst), 1);
+            assert_eq!(
+                counter
+                    .count(
+                        &document(request()),
+                        HAIKU,
+                        &headers(),
+                        &CancellationToken::new(),
+                        ""
+                    )
+                    .await,
+                Some(123)
+            );
+            assert_eq!(mock.calls(), 2);
+        }
+    }
+
+    #[tokio::test]
+    async fn native_count_transport_rejects_redirect_without_following_location() {
+        use crate::http_client::NativeHttpClient;
+        use hyper::body::Incoming;
+        use hyper::service::service_fn;
+        use hyper_util::rt::TokioIo;
+        use std::convert::Infallible;
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let requests = Arc::new(Mutex::new(Vec::new()));
+        let observed = requests.clone();
+        let server = tokio::spawn(async move {
+            let mut children = tokio::task::JoinSet::new();
+            loop {
+                let (socket, _) = listener.accept().await.unwrap();
+                let observed = observed.clone();
+                children.spawn(async move {
+                    let service = service_fn(move |request: Request<Incoming>| {
+                        let observed = observed.clone();
+                        async move {
+                            observed
+                                .lock()
+                                .unwrap()
+                                .push((request.method().clone(), request.uri().path().to_owned()));
+                            let follow = request.uri().path() == "/must-not-follow";
+                            let _ = request.into_body().collect().await.unwrap();
+                            let response = if follow {
+                                Response::builder()
+                                    .body(Full::new(Bytes::from_static(br#"{"input_tokens":123}"#)))
+                                    .unwrap()
+                            } else {
+                                Response::builder()
+                                    .status(307)
+                                    .header("location", format!("http://{address}/must-not-follow"))
+                                    .body(Full::new(Bytes::from_static(b"synthetic redirect")))
+                                    .unwrap()
+                            };
+                            Ok::<_, Infallible>(response)
+                        }
+                    });
+                    let _ = hyper::server::conn::http1::Builder::new()
+                        .serve_connection(TokioIo::new(socket), service)
+                        .await;
+                });
+            }
+        });
+        let mut configuration = config();
+        configuration.upstream = format!("http://{address}");
+        configuration.token_count_timeout_ms = 1000;
+        let counter = TokenCounter::new(Arc::new(NativeHttpClient::new().unwrap()), &configuration);
+        let result = counter
+            .count(
+                &document(request()),
+                HAIKU,
+                &headers(),
+                &CancellationToken::new(),
+                "",
+            )
+            .await;
+        server.abort();
+        let _ = server.await;
+        assert_eq!(result, None);
+        assert_eq!(
+            *requests.lock().unwrap(),
+            vec![(hyper::Method::POST, "/v1/messages/count_tokens".into())]
         );
     }
 }

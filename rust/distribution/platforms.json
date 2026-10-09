@@ -21,14 +21,32 @@
       "candidate": true,
       "rust_minimum": "macOS 11.0",
       "node22_minimum": "macOS 11.0",
-      "qualification": "pending"
+      "qualification": "pending",
+      "current_ci_observation": {
+        "head_commit": "8e94a9b43f40b134d65cc3dadc399e993c69d217",
+        "runtime": "macOS15",
+        "native_source_tests": 463,
+        "installed_cli_tests": 66,
+        "result": "passed",
+        "evidence": "rust/parity/measurements/ci-8e94-qualification-summary.json",
+        "oldest_macos_and_complete_platform_qualification": "pending"
+      }
     },
     {
       "target": "x86_64-apple-darwin",
       "candidate": true,
       "rust_minimum": "macOS 10.12",
       "node22_minimum": "macOS 11.0",
-      "qualification": "pending"
+      "qualification": "pending",
+      "current_ci_observation": {
+        "head_commit": "8e94a9b43f40b134d65cc3dadc399e993c69d217",
+        "runtime": "macOS15",
+        "native_source_tests": 463,
+        "installed_cli_tests": 66,
+        "result": "passed",
+        "evidence": "rust/parity/measurements/ci-8e94-qualification-summary.json",
+        "oldest_macos_and_complete_platform_qualification": "pending"
+      }
     },
     {
       "target": "aarch64-unknown-linux-gnu",
@@ -42,6 +60,15 @@
         "meets_recorded_node22_glibc228_baseline": false,
         "evidence": "rust/parity/measurements/elf-ci-5cd7118-summary.json",
         "oldest_runtime_execution": "pending"
+      },
+      "current_ci_observation": {
+        "head_commit": "8e94a9b43f40b134d65cc3dadc399e993c69d217",
+        "maximum_nonweak_glibc_requirement": "2.28",
+        "glibc228_userland_source_and_installed_tests": "passed",
+        "native_source_tests": 463,
+        "installed_cli_tests": 66,
+        "evidence": "rust/parity/measurements/ci-8e94-qualification-summary.json",
+        "oldest_kernel_and_complete_platform_qualification": "pending"
       }
     },
     {
@@ -56,6 +83,15 @@
         "meets_recorded_node22_glibc228_baseline": false,
         "evidence": "rust/parity/measurements/elf-ci-5cd7118-summary.json",
         "oldest_runtime_execution": "pending"
+      },
+      "current_ci_observation": {
+        "head_commit": "8e94a9b43f40b134d65cc3dadc399e993c69d217",
+        "maximum_nonweak_glibc_requirement": "2.28",
+        "glibc228_userland_source_and_installed_tests": "passed",
+        "native_source_tests": 463,
+        "installed_cli_tests": 66,
+        "evidence": "rust/parity/measurements/ci-8e94-qualification-summary.json",
+        "oldest_kernel_and_complete_platform_qualification": "pending"
       }
     },
     {
@@ -131,8 +167,9 @@
   "gnu_portability_workflow": {
     "path": ".github/workflows/rust-portability.yml",
     "pins": "rust/distribution/gnu-builder-pins.json",
-    "status": "qualification_in_progress_previous_build_failures_retained",
+    "status": "both_glibc228_jobs_passed_at_8e94; full_platform_qualification_pending",
     "gate": "All non-weak numeric GLIBC version needs <=2.28, no unresolved strong GLIBC ABI markers; native tests and installed smoke in pinned container userland.",
-    "scope": "No oldest-kernel, full-distribution, WSL, musl, CPU-fleet or release qualification inferred."
+    "scope": "No oldest-kernel, full-distribution, WSL, musl, CPU-fleet or release qualification inferred.",
+    "evidence": "rust/parity/measurements/ci-8e94-qualification-summary.json"
   }
 }

@@ -785,4 +785,35 @@ mod tests {
         assert!(line.contains("timeout"));
         assert!(width(&line) <= 40);
     }
+
+    #[test]
+    fn frozen_statusline_calls_preserve_every_captured_width_qualifier_and_escape_sequence() {
+        let corpus = include_str!("../../../parity/cases/telemetry-statusline-contracts.jsonl");
+        assert_eq!(
+            format!(
+                "{:x}",
+                <sha2::Sha256 as sha2::Digest>::digest(corpus.as_bytes())
+            ),
+            "5dc77be68c7b2db1516fc372573b40f5a2f813aa343fc9a6274be0e93dff1746"
+        );
+        let mut cases = 0;
+        for line in corpus.lines() {
+            let row: Value = serde_json::from_str(line).unwrap();
+            if row["op"] != "render_statusline" {
+                continue;
+            }
+            let input = &row["input"];
+            let before = input.clone();
+            let actual = render_status_line(&input["input"], &input["snapshot"], &input["options"]);
+            assert_eq!(
+                serde_json::json!({"kind":"value","value":actual}),
+                row["node_expected"],
+                "{}",
+                row["id"]
+            );
+            assert_eq!(input, &before, "{} mutated the input", row["id"]);
+            cases += 1;
+        }
+        assert_eq!(cases, 1659, "Frozen capture inventory changed");
+    }
 }

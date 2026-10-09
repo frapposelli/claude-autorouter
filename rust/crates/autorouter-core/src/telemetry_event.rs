@@ -723,4 +723,116 @@ mod tests {
             true
         );
     }
+
+    fn equal_js_json(left: &Value, right: &Value) -> bool {
+        match (left, right) {
+            (Value::Number(a), Value::Number(b)) if a != b => {
+                if !a.is_f64() && !b.is_f64() {
+                    return false;
+                }
+                let (Some(a_float), Some(b_float)) = (a.as_f64(), b.as_f64()) else {
+                    return false;
+                };
+                if a_float != b_float {
+                    return false;
+                }
+                if a.is_f64() && b.is_f64() {
+                    return true;
+                }
+                let integer = if a.is_f64() { b } else { a };
+                if let Some(value) = integer.as_u64() {
+                    (0.0..18_446_744_073_709_551_616.0).contains(&a_float)
+                        && a_float as u64 == value
+                } else if let Some(value) = integer.as_i64() {
+                    (-9_223_372_036_854_775_808.0..9_223_372_036_854_775_808.0).contains(&a_float)
+                        && a_float as i64 == value
+                } else {
+                    false
+                }
+            }
+            (Value::Array(a), Value::Array(b)) => {
+                a.len() == b.len() && a.iter().zip(b).all(|(a, b)| equal_js_json(a, b))
+            }
+            (Value::Object(a), Value::Object(b)) => {
+                a.len() == b.len()
+                    && a.iter()
+                        .all(|(key, a)| b.get(key).is_some_and(|b| equal_js_json(a, b)))
+            }
+            _ => left == right,
+        }
+    }
+
+    #[test]
+    fn captured_json_comparison_matches_numbers_without_masking_distinct_values() {
+        assert!(equal_js_json(&json!({"x":[14.0]}), &json!({"x":[14]})));
+        assert!(!equal_js_json(
+            &json!(9_007_199_254_740_993_u64),
+            &json!(9_007_199_254_740_992_f64)
+        ));
+        assert!(!equal_js_json(
+            &json!(18_446_744_073_709_551_615_u64),
+            &json!(18_446_744_073_709_551_616_f64)
+        ));
+        assert!(!equal_js_json(&json!({"x":[14]}), &json!({"x":["14"]})));
+        assert!(!equal_js_json(&json!({"x":null}), &json!({})));
+    }
+
+    #[test]
+    fn frozen_telemetry_calls_preserve_complete_outputs_and_explicit_absence() {
+        let corpus = include_str!("../../../parity/cases/telemetry-statusline-contracts.jsonl");
+        assert_eq!(
+            format!(
+                "{:x}",
+                <sha2::Sha256 as sha2::Digest>::digest(corpus.as_bytes())
+            ),
+            "5dc77be68c7b2db1516fc372573b40f5a2f813aa343fc9a6274be0e93dff1746"
+        );
+        let mut cases = 0;
+        for line in corpus.lines() {
+            let row: Value = serde_json::from_str(line).unwrap();
+            let op = row["op"].as_str().unwrap();
+            if op == "render_statusline" {
+                continue;
+            }
+            let input = &row["input"];
+            let document =
+                crate::js_json::JsDocument::parse(input["json"].as_str().unwrap().as_bytes())
+                    .unwrap();
+            let before = document.stringify();
+            let now = input["now"].as_str().unwrap();
+            let result = match op {
+                "normalize_telemetry" => normalize_telemetry_document(&document, now),
+                "normalize_session" => normalize_session_document(
+                    &document,
+                    input["include_prompts"].as_bool().unwrap(),
+                    now,
+                ),
+                "normalize_usage" => {
+                    normalize_usage_telemetry(Some(&normalization_projection(&document)))
+                }
+                "normalize_pricing" => {
+                    normalize_pricing_context(Some(&normalization_projection(&document)))
+                }
+                other => panic!("unexpected captured normalizer {other}"),
+            };
+            let result = match result {
+                Some(value) => json!({"kind":"value","value":value}),
+                None => json!({"kind":"undefined"}),
+            };
+            assert!(
+                equal_js_json(&result, &row["node_expected"]),
+                "{}: actual={result:?} expected={:?}",
+                row["id"],
+                row["node_expected"]
+            );
+            assert_eq!(
+                document.stringify(),
+                before,
+                "{} mutated the input",
+                row["id"]
+            );
+            cases += 1;
+        }
+        assert_eq!(cases, 68, "Frozen capture inventory changed");
+    }
 }

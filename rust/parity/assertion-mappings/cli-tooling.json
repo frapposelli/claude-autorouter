@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
-  "reviewed_source_commit": "280a7985766173c096e52220271c4427deeffb49",
+  "reviewed_source_commit": "8e94a9b43f40b134d65cc3dadc399e993c69d217",
   "scope": "CLI, onboarding, launcher and lifecycle assertion audit. Whole definitions are covered only where every baseline assertion and parameter scenario has direct native evidence; related component coverage does not imply wrapper or integration coverage.",
   "summary": {
     "definitions": 54,
@@ -899,22 +899,27 @@
       "name": "native Stop-hook block cap setup rejects invalid CLI and environment values before prompts, persistence or providers",
       "status": "partial_assertion_mapping",
       "rust_tests": [
-        "rust/crates/claude-autorouter/tests/commands.rs#invalid_setup_arguments_fail_before_prompting_network_or_writes"
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#invalid_stop_cap_admission_matrix_rejects_before_prompts_network_or_persistence"
       ],
       "shared_cases": [],
       "assertions_with_evidence": [
-        "Single CLI cap-1 rejects/no file."
+        "Both Jev and Ollama: all eleven CLI cases (missing value, empty, space, --pull, -1, 1.5, 2.0, 1e2, 1e-999, Infinity, 9007199254740992) exit1 with the exact --stop-hook-block-cap diagnostic and no stdout/prompt, config file, directory changes, local provider requests or fake-Claude calls.",
+        "Both evaluators: all six OS-representable inherited values (empty, space, -1, 1.5, 1e2, 9007199254740992) exit1 with the exact CLAUDE_CODE_STOP_HOOK_BLOCK_CAP diagnostic and the same absence of side effects.",
+        "A successful Jev setup creates a real synthetic saved config. A forced switch to Ollama with both empty CLI and inherited caps rejects with the CLI-specific error, leaves the original file byte-for-byte unchanged, emits no stdout and makes no provider or Claude call. All35 runtime scenarios are asserted through the actual CLI executable."
       ],
       "remaining": [
-        "Full two-evaluator matrix: 11 CLI values and8 inherited values, plus invalid forced update preserving old file, not exercised through setup. Core scalar rejection is not proof of setup admission/persistence order."
+        "Four parameterized source cases inject JavaScript null/false as environment values (two values for each evaluator). Rust process environments contain OS strings and cannot represent these values. They remain explicit embedding-boundary adaptations, not claimed covered by stringification or by pure scalar-parser tests."
       ],
       "evidence": {
-        "log": "artifacts/rust-rewrite/evidence/3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3.log",
-        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate.",
-        "log_source": "artifacts/rust-rewrite/rust-workspace-checkpoint.log"
+        "log": "artifacts/rust-rewrite/evidence/20ede64ced8ef7a6f115f989d0bf9c437fed5ee39b013b38f29eacf1f77ee301.log",
+        "log_sha256": "20ede64ced8ef7a6f115f989d0bf9c437fed5ee39b013b38f29eacf1f77ee301",
+        "scope": "One focused native executable test asserts35 scenarios on macOS arm64 using isolated fixture homes, null stdin, file secret storage, Node-free child PATH and loopback-only provider mocks. Installed and cross-platform execution remain separate qualification.",
+        "log_source": "artifacts/rust-rewrite/cli-invalid-stop-cap-admission-tests.log"
       },
-      "review_notes": []
+      "review_notes": [
+        "The complete source definition remains partial until the four injected non-string environment cases are explicitly reviewed as a Rust embedding adaptation. No production seam, secret store change, external service or real Keychain access was introduced.",
+        "The test supplies no keys in the34 initial admission failures and asserts empty stdout plus exact stderr, so reaching a hidden prompt or setup disclosure is observable as a failure. The forced-update scenario starts from a successful synthetic Jev setup."
+      ]
     },
     {
       "baseline_test": "test/onboarding.test.mjs#16",
@@ -1335,22 +1340,35 @@
       "name": "explicit local diagnosis bypasses cloud credentials and Claude authentication and keeps JSON output singular",
       "status": "partial_assertion_mapping",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/local_diagnostic.rs#synthetic_diagnostic_separates_labels_from_transport_and_task_claims"
+        "rust/crates/autorouter-runtime/src/local_diagnostic.rs#synthetic_diagnostic_separates_labels_from_transport_and_task_claims",
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#local_diagnostic_cli_bypasses_cloud_keys_and_claude_auth_and_emits_one_json_record"
       ],
       "shared_cases": [],
       "assertions_with_evidence": [
-        "Diagnostic component report format, label gates and controlled transport exist."
+        "An installed-executable-compatible CLI test runs doctor --evaluate-local --json with saved API-key mode and custom tev1:0.8b, no Anthropic/Jev credentials, isolated HOME and a fake Claude failure sentinel. It makes zero Claude authentication/subprocess calls and sends no authorization, x-api-key or local-token header to its loopback evaluator.",
+        "Both exact-label and collapsed-label fixtures perform startup plus all six packaged synthetic cases; stdout is exactly one newline-terminated JSON record despite startup/case progress. Process exit0/1 matches report.passed true/false; model identity, rubric/cases/startup/evaluator gates, case IDs and task matching are asserted.",
+        "Report asserts zero paid-provider calls, downloads, model unloads and configuration changes. Every mock endpoint is allowlisted and saved config bytes remain unchanged."
       ],
       "remaining": [
-        "doctor --evaluate-local --json dispatch with saved API mode but absent credentials, zero Claude subprocesses, custom model and exactly one JSON record despite progress is not tested at CLI boundary."
+        "The JavaScript definition injects an arbitrary diagnosticRunner result and asserts exact passthrough of that particular four-field object. Native CLI tests execute the real diagnostic and assert its observable report/exit contract; Rust exposes no equivalent injected runner API. Literal injected-object parity remains a deliberate embedding-boundary adaptation to review."
       ],
       "evidence": {
-        "log": "artifacts/rust-rewrite/evidence/3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3.log",
-        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate.",
-        "log_source": "artifacts/rust-rewrite/rust-workspace-checkpoint.log"
+        "log": "artifacts/rust-rewrite/evidence/97372eab57c84f23f00d350af2fe358f61ebff10ffa02654e734c49c14bd2305.log",
+        "log_sha256": "97372eab57c84f23f00d350af2fe358f61ebff10ffa02654e734c49c14bd2305",
+        "log_source": "artifacts/rust-rewrite/cli-local-diagnostic-default-launch-tests.log",
+        "scope": "Native macOS arm64 CLI tests: 10 launcher and23 onboarding tests pass. Synthetic loopback services, isolated homes and fake Claude only; no real providers, Keychain or downloads. New installed-archive/Linux runs are separate qualification."
       },
-      "review_notes": []
+      "review_notes": [
+        "Reviewed executable observable obligations independently of the JavaScript injected dependency contract. Status remains partial_assertion_mapping; no central coverage promotion is requested until embedding-boundary adaptations are reviewed."
+      ],
+      "earlier_evidence": [
+        {
+          "log": "artifacts/rust-rewrite/evidence/3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3.log",
+          "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+          "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate.",
+          "log_source": "artifacts/rust-rewrite/rust-workspace-checkpoint.log"
+        }
+      ]
     },
     {
       "baseline_test": "test/onboarding.test.mjs#32",
@@ -1358,22 +1376,36 @@
       "name": "local diagnosis rejects the cloud backend without requests and caller cancellation propagates",
       "status": "partial_assertion_mapping",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/local_diagnostic.rs#invalid_settings_and_early_cancellation_do_not_perform_io"
+        "rust/crates/autorouter-runtime/src/local_diagnostic.rs#invalid_settings_and_early_cancellation_do_not_perform_io",
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#local_diagnostic_cli_rejects_jev_without_io_or_claude_authentication",
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#local_diagnostic_cli_cancellation_after_request_closes_transport_without_a_report"
       ],
       "shared_cases": [],
       "assertions_with_evidence": [
-        "Diagnostic component tests invalid settings and cancellation before I/O."
+        "Jev local-diagnosis rejection returns exit1 and exactly one complete configuration_error JSON object with the exact local-only message, empty stderr, no HTTP or Claude call, and unchanged saved bytes.",
+        "For SIGINT and SIGTERM, in text and JSON modes, cancellation is sent only after the mock has accepted the complete startup inference request. CLI returns exit1 with exact Evaluation cancelled stderr; JSON stdout is empty, while text stdout contains only the two preflight/startup progress lines and no final report.",
+        "The accepted request connection closes promptly. Request paths stop at version/tags/show/ps/show/systemone; no later inference, Claude subprocess or config write occurs. Process-group cleanup observes an unreaped leader and output/exit waits are bounded."
       ],
       "remaining": [
-        "Doctor wrapper cloud-backend JSON configuration_error/no subprocess/inference and later cancellation propagation are not mapped; component tests do not prove dispatcher behavior."
+        "The JavaScript definition asserts rejection with the identical Error object supplied by its injected diagnosticRunner (error === reason). Rust uses Result<bool,String> and executable exit/diagnostic output; the tests preserve cancellation as an error instead of converting it to a configuration_error report, but literal JavaScript object identity is not a supported native boundary and remains an explicit adaptation to review."
       ],
       "evidence": {
-        "log": "artifacts/rust-rewrite/evidence/3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3.log",
-        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate.",
-        "log_source": "artifacts/rust-rewrite/rust-workspace-checkpoint.log"
+        "log": "artifacts/rust-rewrite/evidence/97372eab57c84f23f00d350af2fe358f61ebff10ffa02654e734c49c14bd2305.log",
+        "log_sha256": "97372eab57c84f23f00d350af2fe358f61ebff10ffa02654e734c49c14bd2305",
+        "log_source": "artifacts/rust-rewrite/cli-local-diagnostic-default-launch-tests.log",
+        "scope": "Native macOS arm64 CLI tests: 10 launcher and23 onboarding tests pass. Synthetic loopback services, isolated homes and fake Claude only; no real providers, Keychain or downloads. New installed-archive/Linux runs are separate qualification."
       },
-      "review_notes": []
+      "review_notes": [
+        "Reviewed executable observable obligations independently of the JavaScript injected dependency contract. Status remains partial_assertion_mapping; no central coverage promotion is requested until embedding-boundary adaptations are reviewed."
+      ],
+      "earlier_evidence": [
+        {
+          "log": "artifacts/rust-rewrite/evidence/3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3.log",
+          "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+          "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate.",
+          "log_source": "artifacts/rust-rewrite/rust-workspace-checkpoint.log"
+        }
+      ]
     },
     {
       "baseline_test": "test/onboarding.test.mjs#33",
@@ -1696,7 +1728,7 @@
     },
     {
       "path": "rust/crates/claude-autorouter/tests/launcher_contracts.rs",
-      "sha256": "fb721dbbfb82e96f1712b9be739b8024084b6ff8adc37085f1b4a7d6809d264f"
+      "sha256": "4d89192b060732e80a0fa32db40df7b32ca4a119999a621efef52ec50e8b6be7"
     },
     {
       "path": "rust/crates/claude-autorouter/tests/startup_options.rs",
@@ -1712,11 +1744,11 @@
     },
     {
       "path": "rust/crates/claude-autorouter/tests/support/mod.rs",
-      "sha256": "32789703adb6cd9488cb0025c75e562ac7bdcbb6d2cc715734bb501a1bf23229"
+      "sha256": "42695a0a5eb0fe85b0e2d683963114b49a7c3e8e733d4c76bffb0be970c225be"
     },
     {
       "path": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
-      "sha256": "91eceda555ee33cfaa369627a7b8384f854731a6103b1c0e8bed8fd192c4b079"
+      "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1"
     },
     {
       "path": "rust/crates/claude-autorouter/src/onboarding.rs",
@@ -1741,6 +1773,14 @@
     {
       "path": "rust/crates/claude-autorouter/src/secret_edit.rs",
       "sha256": "f510948d874d9fbbdbd62495a775e76522ed45494d61e36593ad3b1da54dbaf4"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/doctor.rs",
+      "sha256": "138e2cf87bcaac735e696bee74caadc229e5b0173c758ac81be2b554739e3d3a"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/launch.rs",
+      "sha256": "28704bae5701c011a1a87596bf2a2f4f8f38afc64171333242f6b5a7e7a18532"
     }
   ],
   "reviewed_source_note": "Checkpoint base plus the source files hashed below. This increment adds five full onboarding mappings and hardens synthetic prompt/signal barriers. CLI product changes are the coordinated per-line startup diagnostic prefix and flushing already-queued hidden input followed by immediate, non-output-draining terminal restoration. The two restoration syscalls are not atomic.",
@@ -1897,5 +1937,108 @@
       "This correction removes the terminal-attribute output-drain wait. Existing synchronous prompt/newline writes are unchanged and are not qualified against stalled terminal output.",
       "Flush and restoration errors are not retried indefinitely; Drop cannot report errors. No atomicity or later-typing protection is claimed."
     ]
+  },
+  "local_diagnostic_and_default_launch_increment": {
+    "source_changes": "CLI integration tests and support only. No production code or API changes.",
+    "validation": {
+      "new_test_definitions": 6,
+      "launcher_contracts": 10,
+      "onboarding_local": 23,
+      "total_focused_integration": 33,
+      "scoped_clippy": "passed",
+      "git_diff_check": "passed"
+    },
+    "log": {
+      "path": "artifacts/rust-rewrite/evidence/97372eab57c84f23f00d350af2fe358f61ebff10ffa02654e734c49c14bd2305.log",
+      "sha256": "97372eab57c84f23f00d350af2fe358f61ebff10ffa02654e734c49c14bd2305",
+      "path_source": "artifacts/rust-rewrite/cli-local-diagnostic-default-launch-tests.log"
+    },
+    "clippy_log": {
+      "path": "artifacts/rust-rewrite/evidence/11351b0cb2b7f6d2d53468575e4fbec640af0a92d9e734aceb350b1c1ec5211e.log",
+      "sha256": "11351b0cb2b7f6d2d53468575e4fbec640af0a92d9e734aceb350b1c1ec5211e",
+      "path_source": "artifacts/rust-rewrite/cli-local-diagnostic-default-launch-clippy.log"
+    },
+    "retained_fixture_failures": [
+      {
+        "path": "artifacts/rust-rewrite/evidence/e58be3e6b7b79aac494cabe1a3112b1cbd6f1c248fe0b140d1a379507bff85d2.log",
+        "sha256": "e58be3e6b7b79aac494cabe1a3112b1cbd6f1c248fe0b140d1a379507bff85d2",
+        "path_source": "artifacts/rust-rewrite/cli-local-diagnostic-default-launch-tests.failure-fixture-auth-model.log"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/9f4f92f4535a8e54d6273ad35c14ee750987761683b617112354e985f4bcbf4f.log",
+        "sha256": "9f4f92f4535a8e54d6273ad35c14ee750987761683b617112354e985f4bcbf4f",
+        "path_source": "artifacts/rust-rewrite/cli-local-diagnostic-default-launch-tests.failure-fixture-health-auth.log"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/a98bfc27a6862b66135f49b95fbdea3e9ab56bad7b9dca36f00f1f68401d08ee.log",
+        "sha256": "a98bfc27a6862b66135f49b95fbdea3e9ab56bad7b9dca36f00f1f68401d08ee",
+        "path_source": "artifacts/rust-rewrite/cli-local-diagnostic-default-launch-tests.failure-fixture-warm-usage.log"
+      }
+    ],
+    "fixture_corrections": "Runtime config defaults to API-key auth unless setup has saved subscription mode; the new default-evaluator fixtures now explicitly select subscription where no provider key is needed. The compatible profile default Sonnet is claude-sonnet-5. Fake health requests send the generated local header, and warmup responses include required usage fields. No product mismatch was found.",
+    "default_ollama_obligations": [
+      {
+        "test": "rust/crates/claude-autorouter/tests/launcher_contracts.rs#default_ollama_launcher_warms_before_claude_and_preserves_saved_configuration",
+        "assertions": "With evaluator unset in saved/env config, version/tags/show/show/systemone warmup finishes before fake Claude starts. No evaluator/API key is needed in explicitly selected subscription auth. Exact startup diagnostic, child exit23, authenticated gateway health, gateway/status cleanup and saved-byte preservation are asserted."
+      },
+      {
+        "test": "rust/crates/claude-autorouter/tests/launcher_contracts.rs#default_ollama_preparation_failure_still_launches_with_conservative_fallback",
+        "assertions": "A local metadata disconnect causes the exact conservative-fallback warning but still launches fake Claude. A real request through the local gateway reaches only the loopback provider and selects compatible Sonnet after classifier failure. Credential separation, final provider model, one provider call, exact local paths, child/gateway/status cleanup and saved-byte preservation are asserted."
+      },
+      {
+        "test": "rust/crates/claude-autorouter/tests/launcher_contracts.rs#default_ollama_preparation_cancellation_does_not_launch_or_allocate_resources",
+        "assertions": "For both claude and serve, SIGINT/SIGTERM after accepted warmup request returns130/143 with only the preparation diagnostic, closes the local connection, starts no Claude process, and allocates no status/settings/log artifacts. Original config bytes remain identical."
+      }
+    ],
+    "safe_test_support": "Stream-aware loopback handlers provide complete-request barriers and connection-close observations. signalled_output checks byte limits both before readiness and while awaiting exit, uses bounded final reads, and shares existing nonreaping process-group ownership with hidden input fixtures. No sleeping delay is used to assume request readiness.",
+    "limits": [
+      "All evidence is synthetic and macOS arm64; no real-model quality or provider availability claim.",
+      "Baseline31/32 remain partial solely for explicitly recorded JavaScript injected-runner/object-identity adaptations.",
+      "Current installed-executable tests support AUTOROUTER_TEST_EXECUTABLE, but this increment has not yet been replayed against a new archive.",
+      "Actual Ctrl-Z lifecycle remains subsequent scope."
+    ]
+  },
+  "invalid_stop_cap_admission_increment": {
+    "source_changes": "One additional integration-test definition in onboarding_local.rs; no production or support changes.",
+    "baseline_definition": "test/onboarding.test.mjs#15",
+    "runtime_scenarios": {
+      "cli": 22,
+      "environment_strings": 12,
+      "forced_update_saved_bytes": 1,
+      "total": 35
+    },
+    "typed_environment_adaptations_remaining": 4,
+    "validation": {
+      "focused_test_definitions_passed": 1,
+      "scenario_assertions_passed": 35,
+      "scoped_clippy": "passed",
+      "whole_baseline_definition_status": "partial_assertion_mapping"
+    },
+    "log": {
+      "path": "artifacts/rust-rewrite/evidence/20ede64ced8ef7a6f115f989d0bf9c437fed5ee39b013b38f29eacf1f77ee301.log",
+      "sha256": "20ede64ced8ef7a6f115f989d0bf9c437fed5ee39b013b38f29eacf1f77ee301",
+      "path_source": "artifacts/rust-rewrite/cli-invalid-stop-cap-admission-tests.log"
+    },
+    "clippy_log": {
+      "path": "artifacts/rust-rewrite/evidence/eab96c871accc1c2c66645706a752b34e85d624d76de50d33379ee8b098d8a38.log",
+      "sha256": "eab96c871accc1c2c66645706a752b34e85d624d76de50d33379ee8b098d8a38",
+      "path_source": "artifacts/rust-rewrite/cli-invalid-stop-cap-admission-clippy.log"
+    },
+    "prior_six_test_increment_logs": "Preserved unchanged; not rerun for this increment."
+  },
+  "fourth_checkpoint_validation": {
+    "scope": "Pinned1.99 formatting followed by full workspace tests and exact installed host archive. Earlier per-increment source hashes/logs remain historical; these are the current reviewed files.",
+    "previous_file_hashes": [
+      {
+        "path": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+        "sha256": "44b60fd8849ded0f96e3f3f58e1e160f5393a15b5f867a0b9070fd348e9e8af7"
+      }
+    ],
+    "source_test_log": "artifacts/rust-rewrite/fourth-final-workspace.log",
+    "source_test_log_sha256": "67af0cde0fde8d0210ee502f43bae1ce72e722abc57dad7b2defb453a7932074",
+    "workspace_passed": 487,
+    "installed_report": "artifacts/rust-rewrite/native-package-host-7/package-report.json",
+    "installed_report_sha256": "c087e47706cbc5d1fb5d7526bb33f86530605e9e2a17dc43e6696f99c4b2bb60",
+    "installed_cli_tests": 73
   }
 }

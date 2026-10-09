@@ -11,10 +11,205 @@ use std::path::Path;
 use std::process::{Child, Command, Stdio};
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
-use support::{Home, Response, Server, output, quote, success};
+use support::{Home, Request, Response, Server, output, quote, signalled_output, success};
 
 const HAIKU: &str = "claude-haiku-4-5-20251001";
 const SONNET: &str = "claude-sonnet-5-5";
+const COMPATIBLE_SONNET: &str = "claude-sonnet-5";
+const LOCAL_MODEL: &str = autorouter_core::config::DEFAULT_OLLAMA_MODEL;
+
+fn local_reply(request: &Request) -> Response {
+    for header in ["authorization", "x-api-key", "x-autorouter-token"] {
+        assert!(!request.headers.contains_key(header));
+    }
+    Response::json(match request.path.as_str() {
+        "/api/version" => json!({"version":"0.35.0"}),
+        "/api/tags" => json!({"models":[{"name":LOCAL_MODEL}]}),
+        "/api/show" => {
+            assert_eq!(request.json()["model"], LOCAL_MODEL);
+            json!({"details":{"parameter_size":"9B"}})
+        }
+        "/v1/systemone" => {
+            assert_eq!(request.json()["model"], LOCAL_MODEL);
+            assert_eq!(
+                request.json()["state"]["current_task"],
+                "Return the literal word ready."
+            );
+            json!({"model":LOCAL_MODEL,"answers":{"tier":{"type":"choice","choice":"haiku","confidence":1,"probabilities":{"haiku":1,"sonnet":0,"opus":0}}},"usage":{"input_tokens":200,"output_tokens":1}})
+        }
+        _ => panic!("Launcher attempted an unexpected local operation"),
+    })
+}
+
+#[test]
+fn default_ollama_launcher_warms_before_claude_and_preserves_saved_configuration() {
+    let home = Home::new();
+    home.save(&json!({"AUTOROUTER_PORT":"8123"}));
+    let before = fs::read(home.config()).unwrap();
+    let warmed = home.0.join("warm-complete");
+    let launched = home.0.join("claude-started");
+    let marker = warmed.clone();
+    let absent_child = launched.clone();
+    let local = Server::new(move |request| {
+        assert!(
+            !absent_child.exists(),
+            "Claude started before preparation finished"
+        );
+        let response = local_reply(request);
+        if request.path == "/v1/systemone" {
+            fs::write(&marker, b"warm").unwrap();
+        }
+        response
+    });
+    home.claude(&format!("#!/bin/sh\nset -eu\n[ -f {} ] || exit 71\n[ -z \"${{TYPESAFE_API_KEY-}}${{ANTHROPIC_API_KEY-}}\" ] || exit 72\nprintf started > {}\n/usr/bin/curl --silent --show-error --fail --max-time 5 -H \"$ANTHROPIC_CUSTOM_HEADERS\" \"$ANTHROPIC_BASE_URL/health\" --output /dev/null\nprintf '%s\\n%s\\n' \"$ANTHROPIC_BASE_URL\" \"$AUTOROUTER_STATUS_FILE\"\nexit 23\n",quote(&warmed),quote(&launched)));
+    let result = output(
+        home.command()
+            .arg("claude")
+            .env("AUTOROUTER_AUTH_MODE", "subscription")
+            .env("AUTOROUTER_OLLAMA_URL", local.url()),
+    );
+    assert_eq!(result.status.code(), Some(23));
+    assert_eq!(
+        String::from_utf8(result.stderr).unwrap(),
+        format!(
+            "Preparing local Ollama evaluator ({LOCAL_MODEL}); routing deadline 30000 ms per request…\n"
+        )
+    );
+    let text = String::from_utf8(result.stdout).unwrap();
+    let rows: Vec<_> = text.lines().collect();
+    assert_eq!(rows.len(), 2);
+    closed(rows[0]);
+    assert!(!Path::new(rows[1]).exists());
+    assert_eq!(
+        local.paths(),
+        [
+            "/api/version",
+            "/api/tags",
+            "/api/show",
+            "/api/show",
+            "/v1/systemone"
+        ]
+    );
+    assert_eq!(fs::read(home.config()).unwrap(), before);
+    no_status(&home);
+    local.assert_clean();
+}
+
+#[test]
+fn default_ollama_preparation_failure_still_launches_with_conservative_fallback() {
+    let home = Home::new();
+    home.save(&json!({"AUTOROUTER_PORT":"8123"}));
+    let before = fs::read(home.config()).unwrap();
+    let local = Server::disconnecting();
+    let upstream = Server::new(|request| {
+        assert_eq!(request.path, "/v1/messages");
+        assert_eq!(request.headers["x-api-key"], "synthetic-provider-key");
+        assert!(!request.headers.contains_key("x-autorouter-token"));
+        assert_eq!(request.json()["model"], COMPATIBLE_SONNET);
+        Response::json(
+            json!({"type":"message","role":"assistant","model":COMPATIBLE_SONNET,"content":[{"type":"text","text":"0"}],"stop_reason":"end_turn","usage":{"input_tokens":5,"output_tokens":1}}),
+        )
+    });
+    let body = home.write("request.json", serde_json::to_vec(&json!({"model":HAIKU,"max_tokens":32,"messages":[{"role":"user","content":"Print exactly zero."}]})).unwrap());
+    let response = home.0.join("response.json");
+    home.claude(&format!("#!/bin/sh\nset -eu\n[ -z \"${{TYPESAFE_API_KEY-}}\" ] || exit 71\n[ \"$ANTHROPIC_API_KEY\" != synthetic-provider-key ] || exit 72\n/usr/bin/curl --silent --show-error --fail --max-time 5 -H 'content-type: application/json' -H \"x-api-key: $ANTHROPIC_API_KEY\" --data-binary @{} \"$ANTHROPIC_BASE_URL/v1/messages\" --output {}\nprintf '%s\\n%s\\n' \"$ANTHROPIC_BASE_URL\" \"$AUTOROUTER_STATUS_FILE\"\n",quote(&body),quote(&response)));
+    let result = output(
+        home.command()
+            .arg("claude")
+            .env("AUTOROUTER_OLLAMA_URL", local.url())
+            .env("AUTOROUTER_AUTH_MODE", "api-key")
+            .env("ANTHROPIC_API_KEY", "synthetic-provider-key")
+            .env("AUTOROUTER_UPSTREAM_URL", upstream.url()),
+    );
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    assert_eq!(
+        String::from_utf8(result.stderr).unwrap(),
+        format!(
+            "Preparing local Ollama evaluator ({LOCAL_MODEL}); routing deadline 30000 ms per request…\nOllama could not be prepared. Requests will use the conservative fallback while it is unavailable; run claude-autorouter doctor.\n"
+        )
+    );
+    assert_eq!(
+        serde_json::from_slice::<Value>(&fs::read(response).unwrap()).unwrap()["model"],
+        COMPATIBLE_SONNET
+    );
+    assert_eq!(upstream.calls().len(), 1);
+    assert_eq!(local.paths(), ["/api/version", "/api/show"]);
+    let text = String::from_utf8(result.stdout).unwrap();
+    let rows: Vec<_> = text.lines().collect();
+    assert_eq!(rows.len(), 2);
+    closed(rows[0]);
+    assert!(!Path::new(rows[1]).exists());
+    assert_eq!(fs::read(home.config()).unwrap(), before);
+    no_status(&home);
+    upstream.assert_clean();
+}
+
+#[test]
+fn default_ollama_preparation_cancellation_does_not_launch_or_allocate_resources() {
+    for command_name in ["claude", "serve"] {
+        for (signal, code) in [(Signal::SIGINT, 130), (Signal::SIGTERM, 143)] {
+            let home = Home::new();
+            home.save(&json!({"AUTOROUTER_PORT":"8123"}));
+            let before = fs::read(home.config()).unwrap();
+            let launched = home.0.join("claude-started");
+            home.claude(&format!(
+                "#!/bin/sh\nprintf unexpected > {}\nexit 93\n",
+                quote(&launched)
+            ));
+            let (ready_tx, ready_rx) = mpsc::channel();
+            let (closed_tx, closed_rx) = mpsc::channel();
+            let local = Server::with_connection(move |request, stream| {
+                let response = local_reply(request);
+                if request.path != "/v1/systemone" {
+                    return Some(response);
+                }
+                ready_tx.send(()).unwrap();
+                let closed = match stream.read(&mut [0; 1]) {
+                    Ok(0) => true,
+                    Err(error) if error.kind() == std::io::ErrorKind::ConnectionReset => true,
+                    _ => false,
+                };
+                closed_tx.send(closed).unwrap();
+                None
+            });
+            let result = signalled_output(
+                home.command()
+                    .arg(command_name)
+                    .env("AUTOROUTER_AUTH_MODE", "subscription")
+                    .env("AUTOROUTER_OLLAMA_URL", local.url()),
+                &ready_rx,
+                signal,
+            );
+            assert_eq!(result.status.code(), Some(code));
+            assert!(result.stdout.is_empty());
+            assert_eq!(
+                String::from_utf8(result.stderr).unwrap(),
+                format!(
+                    "Preparing local Ollama evaluator ({LOCAL_MODEL}); routing deadline 30000 ms per request…\n"
+                )
+            );
+            assert!(closed_rx.recv_timeout(Duration::from_secs(2)).unwrap());
+            assert_eq!(
+                local.paths(),
+                [
+                    "/api/version",
+                    "/api/tags",
+                    "/api/show",
+                    "/api/show",
+                    "/v1/systemone"
+                ]
+            );
+            assert!(!launched.exists());
+            assert_eq!(fs::read(home.config()).unwrap(), before);
+            assert_eq!(home.names(), ["claude", "config.json"]);
+            local.assert_clean();
+        }
+    }
+}
 fn launch(home: &Home) -> Command {
     let mut command = home.command();
     command

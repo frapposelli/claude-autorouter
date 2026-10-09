@@ -3,11 +3,240 @@ mod support;
 use autorouter_core::config::{DEFAULT_OLLAMA_MODEL, read_config};
 use serde_json::{Value, json};
 use std::fs;
+use std::io::Read;
 use std::process::Command;
 use std::sync::{Arc, Mutex};
 use support::{
-    HiddenInput, Home, Response, Server, hidden_inputs, hidden_secret, output, quote, success,
+    HiddenInput, Home, Request, Response, Server, hidden_inputs, hidden_secret, output, quote,
+    signalled_output, success,
 };
+
+fn diagnostic_reply(request: &Request, model: &str, collapsed: bool) -> Response {
+    for header in ["authorization", "x-api-key", "x-autorouter-token"] {
+        assert!(!request.headers.contains_key(header));
+    }
+    let body = match request.path.as_str() {
+        "/api/version" => json!({"version":"0.35.0"}),
+        "/api/tags" | "/api/ps" => json!({"models":[{"name":model}]}),
+        "/api/show" => {
+            assert_eq!(request.json()["model"], model);
+            json!({"details":{"parameter_size":"0.8B"}})
+        }
+        "/v1/systemone" => {
+            let body = request.json();
+            assert_eq!(body["model"], model);
+            assert_eq!(body["keep_alive"], "5m");
+            let cases = autorouter_runtime::local_diagnostic::local_diagnostic_cases();
+            let tier = if body["state"]["current_task"] == "Return the literal word ready." {
+                "haiku"
+            } else {
+                let fixture = cases
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .find(|item| item["prompt"] == body["state"]["current_task"])
+                    .expect("Only packaged synthetic tasks may reach local diagnosis");
+                if collapsed {
+                    "sonnet"
+                } else {
+                    fixture["expected"].as_str().unwrap()
+                }
+            };
+            json!({"model":model,"answers":{"tier":{"type":"choice","choice":tier,"confidence":1,
+                "probabilities":{"haiku":u8::from(tier=="haiku"),"sonnet":u8::from(tier=="sonnet"),"opus":u8::from(tier=="opus")}}},
+                "usage":{"input_tokens":900,"output_tokens":1}})
+        }
+        _ => panic!("Local diagnosis reached an unexpected endpoint"),
+    };
+    Response::json(body)
+}
+
+fn diagnostic_home(model: &str) -> Home {
+    let home = Home::new();
+    home.save(&json!({"AUTOROUTER_AUTH_MODE":"api-key","AUTOROUTER_EVALUATOR":"ollama","AUTOROUTER_OLLAMA_MODEL":model}));
+    home.claude(&format!(
+        "#!/bin/sh\nprintf unexpected > {}\nexit 93\n",
+        quote(&home.0.join("unexpected-claude"))
+    ));
+    home
+}
+
+#[test]
+fn local_diagnostic_cli_bypasses_cloud_keys_and_claude_auth_and_emits_one_json_record() {
+    for collapsed in [false, true] {
+        let home = diagnostic_home("tev1:0.8b");
+        let before = fs::read(home.config()).unwrap();
+        let server = Server::new(move |request| diagnostic_reply(request, "tev1:0.8b", collapsed));
+        let result = output(
+            home.command()
+                .args(["doctor", "--evaluate-local", "--json"])
+                .env("AUTOROUTER_OLLAMA_URL", server.url()),
+        );
+        assert_eq!(result.status.code(), Some(i32::from(collapsed)));
+        assert!(
+            result.stderr.is_empty(),
+            "{}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+        let text = std::str::from_utf8(&result.stdout).unwrap();
+        assert!(text.ends_with('\n'));
+        assert_eq!(
+            text.lines().count(),
+            1,
+            "Progress must not contaminate JSON output"
+        );
+        let report: Value = serde_json::from_str(text).unwrap();
+        assert_eq!(report["schema_version"], 1);
+        assert_eq!(report["type"], "local_evaluator_diagnostic");
+        assert_eq!(report["evaluator_model"], "tev1:0.8b");
+        assert_eq!(report["passed"], !collapsed);
+        assert_eq!(report["gates"]["rubric"]["passed"], !collapsed);
+        for gate in ["preflight", "startup", "cases", "evaluator"] {
+            assert_eq!(report["gates"][gate]["passed"], true);
+        }
+        for key in ["paid_provider_calls", "downloads", "models_unloaded"] {
+            assert_eq!(report[key], 0);
+        }
+        assert_eq!(report["configuration_changed"], false);
+        assert_eq!(
+            report["rows"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|row| row["case"].as_str().unwrap())
+                .collect::<Vec<_>>(),
+            [
+                "literal",
+                "array-length",
+                "bounded-feature",
+                "distributed-fencing",
+                "new-mechanical-task",
+                "new-difficult-task"
+            ]
+        );
+        assert!(
+            report["rows"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|row| row["current_task_matches"] == true)
+        );
+        assert_eq!(
+            server
+                .paths()
+                .iter()
+                .filter(|path| *path == "/v1/systemone")
+                .count(),
+            7
+        );
+        assert_eq!(
+            server
+                .paths()
+                .iter()
+                .filter(|path| *path == "/api/ps")
+                .count(),
+            7
+        );
+        assert!(!home.0.join("unexpected-claude").exists());
+        assert_eq!(fs::read(home.config()).unwrap(), before);
+        server.assert_clean();
+    }
+}
+
+#[test]
+fn local_diagnostic_cli_rejects_jev_without_io_or_claude_authentication() {
+    let home = diagnostic_home("tev1:0.8b");
+    home.save(&json!({"AUTOROUTER_EVALUATOR":"jev"}));
+    let before = fs::read(home.config()).unwrap();
+    let server = Server::new(|_| panic!("Rejected Jev diagnosis must perform no HTTP requests"));
+    let result = output(
+        home.command()
+            .args(["doctor", "--evaluate-local", "--json"])
+            .env(
+                "AUTOROUTER_JEV_URL",
+                format!("{}/v1/systemone", server.url()),
+            )
+            .env("AUTOROUTER_OLLAMA_URL", server.url()),
+    );
+    assert_eq!(result.status.code(), Some(1));
+    assert!(result.stderr.is_empty());
+    assert_eq!(
+        std::str::from_utf8(&result.stdout).unwrap().lines().count(),
+        1
+    );
+    assert_eq!(
+        serde_json::from_slice::<Value>(&result.stdout).unwrap(),
+        json!({
+            "schema_version":1,"type":"local_evaluator_diagnostic","passed":false,
+            "error":{"code":"configuration_error","message":"Local evaluation requires AUTOROUTER_EVALUATOR=ollama. It does not call Jev or Anthropic."}
+        })
+    );
+    assert!(server.calls().is_empty());
+    assert!(!home.0.join("unexpected-claude").exists());
+    assert_eq!(fs::read(home.config()).unwrap(), before);
+}
+
+#[test]
+fn local_diagnostic_cli_cancellation_after_request_closes_transport_without_a_report() {
+    use nix::sys::signal::Signal;
+    use std::sync::mpsc;
+    use std::time::Duration;
+    for signal in [Signal::SIGINT, Signal::SIGTERM] {
+        for json_output in [false, true] {
+            let home = diagnostic_home("tev1:0.8b");
+            let before = fs::read(home.config()).unwrap();
+            let (ready_tx, ready_rx) = mpsc::channel();
+            let (closed_tx, closed_rx) = mpsc::channel();
+            let server = Server::with_connection(move |request, stream| {
+                let response = diagnostic_reply(request, "tev1:0.8b", false);
+                if request.path != "/v1/systemone" {
+                    return Some(response);
+                }
+                ready_tx.send(()).unwrap();
+                let closed = match stream.read(&mut [0; 1]) {
+                    Ok(0) => true,
+                    Err(error) if error.kind() == std::io::ErrorKind::ConnectionReset => true,
+                    _ => false,
+                };
+                closed_tx.send(closed).unwrap();
+                None
+            });
+            let mut command = home.command();
+            command
+                .args(["doctor", "--evaluate-local"])
+                .env("AUTOROUTER_OLLAMA_URL", server.url());
+            if json_output {
+                command.arg("--json");
+            }
+            let result = signalled_output(&mut command, &ready_rx, signal);
+            assert_eq!(result.status.code(), Some(1));
+            assert_eq!(result.stderr, b"Evaluation cancelled\n");
+            if json_output {
+                assert!(result.stdout.is_empty());
+            } else {
+                assert_eq!(
+                    String::from_utf8(result.stdout).unwrap(),
+                    "Checking the local evaluator; no Claude authentication or cloud requests are used.\nPreparing the local model with a separate 60-second startup deadline…\n"
+                );
+            }
+            assert!(closed_rx.recv_timeout(Duration::from_secs(2)).unwrap());
+            assert_eq!(
+                server.paths(),
+                [
+                    "/api/version",
+                    "/api/tags",
+                    "/api/show",
+                    "/api/ps",
+                    "/api/show",
+                    "/v1/systemone"
+                ]
+            );
+            assert!(!home.0.join("unexpected-claude").exists());
+            assert_eq!(fs::read(home.config()).unwrap(), before);
+            server.assert_clean();
+        }
+    }
+}
 struct State {
     model: String,
     installed: bool,
@@ -496,6 +725,113 @@ fn explicitly_selected_backend_and_auth_use_environment_values_without_overwriti
     assert_eq!(actual["AUTOROUTER_CLIENT_PROFILE"], "native");
     assert!(local.server.calls().is_empty());
 }
+#[test]
+fn invalid_stop_cap_admission_matrix_rejects_before_prompts_network_or_persistence() {
+    const ERROR: &str =
+        "requires a nonnegative safe integer (0 disables the Stop-hook continuation cap)";
+    let rejected = |local: &Local, command: &mut Command, source: &str, scenario: &str| {
+        let before = fs::read(local.home.config()).ok();
+        let names = local.home.names();
+        let result = output(command);
+        assert_eq!(result.status.code(), Some(1), "{scenario}");
+        assert!(
+            result.stdout.is_empty(),
+            "Prompt/disclosure before {scenario}"
+        );
+        assert_eq!(
+            std::str::from_utf8(&result.stderr).unwrap(),
+            format!("{source} {ERROR}\n"),
+            "{scenario}"
+        );
+        assert_eq!(fs::read(local.home.config()).ok(), before, "{scenario}");
+        assert_eq!(local.home.names(), names, "{scenario}");
+        assert!(local.server.calls().is_empty(), "Provider call: {scenario}");
+        assert!(local.auth_calls().is_empty(), "Claude call: {scenario}");
+    };
+    let mut scenarios = 0;
+    for evaluator in ["jev", "ollama"] {
+        let local = Local::new(DEFAULT_OLLAMA_MODEL);
+        // Both possible providers stay on loopback even if admission regresses.
+        // No keys are supplied: reaching the first hidden prompt is a failure.
+        let command = || {
+            let mut command = local.command();
+            command.env(
+                "AUTOROUTER_JEV_URL",
+                format!("{}/v1/systemone", local.server.url()),
+            );
+            command
+        };
+        for value in [
+            None,
+            Some(""),
+            Some(" "),
+            Some("--pull"),
+            Some("-1"),
+            Some("1.5"),
+            Some("2.0"),
+            Some("1e2"),
+            Some("1e-999"),
+            Some("Infinity"),
+            Some("9007199254740992"),
+        ] {
+            rejected(
+                &local,
+                command()
+                    .args(["setup", "--evaluator", evaluator, "--stop-hook-block-cap"])
+                    .args(value),
+                "--stop-hook-block-cap",
+                &format!("{evaluator} CLI {value:?}"),
+            );
+            assert!(!local.home.config().exists());
+            scenarios += 1;
+        }
+        // OS environment values are strings. The baseline's injected null/false
+        // objects are separate embedding adaptations, not aliases for these cases.
+        for value in ["", " ", "-1", "1.5", "1e2", "9007199254740992"] {
+            rejected(
+                &local,
+                command()
+                    .args(["setup", "--evaluator", evaluator])
+                    .env("CLAUDE_CODE_STOP_HOOK_BLOCK_CAP", value),
+                "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP",
+                &format!("{evaluator} environment {value:?}"),
+            );
+            assert!(!local.home.config().exists());
+            scenarios += 1;
+        }
+    }
+    let local = Local::new(DEFAULT_OLLAMA_MODEL);
+    success(&output(
+        local
+            .command()
+            .args(["setup", "--evaluator", "jev"])
+            .env(
+                "AUTOROUTER_JEV_URL",
+                format!("{}/v1/systemone", local.server.url()),
+            )
+            .env("TYPESAFE_API_KEY", "synthetic-saved-jev-key"),
+    ));
+    assert_eq!(local.home.saved()["AUTOROUTER_EVALUATOR"], "jev");
+    rejected(
+        &local,
+        local
+            .command()
+            .args([
+                "setup",
+                "--force",
+                "--evaluator",
+                "ollama",
+                "--stop-hook-block-cap",
+                "",
+            ])
+            .env("CLAUDE_CODE_STOP_HOOK_BLOCK_CAP", ""),
+        "--stop-hook-block-cap",
+        "Invalid forced evaluator change preserves the exact saved bytes",
+    );
+    scenarios += 1;
+    assert_eq!(scenarios, 35);
+}
+
 #[test]
 fn stop_cap_cli_precedence_normalization_and_doctor_overrides_work_for_both_evaluators() {
     for evaluator in ["jev", "ollama"] {

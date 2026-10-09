@@ -1454,4 +1454,190 @@ mod tests {
         let body = ObservedBody::new(Full::new(bytes.clone()), observer);
         assert_eq!(body.collect().await.unwrap().to_bytes(), bytes);
     }
+
+    // These chunks come from every observe() invocation in the unchanged
+    // frozen baseline definitions, with expected callbacks and bytes captured
+    // from Node's actual stream. This exercises production ObservedBody rather
+    // than copying fixture input into a purported forwarded result.
+    struct ContractBody(std::collections::VecDeque<Bytes>);
+    impl Body for ContractBody {
+        type Data = Bytes;
+        type Error = std::convert::Infallible;
+        fn poll_frame(
+            mut self: Pin<&mut Self>,
+            _: &mut Context<'_>,
+        ) -> Poll<Option<Result<Frame<Bytes>, Self::Error>>> {
+            Poll::Ready(self.0.pop_front().map(|bytes| Ok(Frame::data(bytes))))
+        }
+    }
+
+    fn poll_contract_frame<B: Body<Data = Bytes> + Unpin>(body: &mut B) -> Option<Bytes>
+    where
+        B::Error: std::fmt::Debug,
+    {
+        let mut cx = Context::from_waker(std::task::Waker::noop());
+        match Pin::new(body).poll_frame(&mut cx) {
+            Poll::Ready(Some(Ok(frame))) => Some(frame.into_data().unwrap()),
+            Poll::Ready(None) => None,
+            other => panic!("ready fixture frame must be delivered immediately: {other:?}"),
+        }
+    }
+
+    fn contract_event(event: &Observation) -> (&'static str, Value) {
+        match event {
+            Observation::Model { model } => ("models", json!({"model":model})),
+            Observation::Error { error_type } => ("errors", json!({"error_type":error_type})),
+            Observation::Usage { usage } => ("usages", json!({"usage":usage})),
+            Observation::Execution { model, source } => {
+                ("executions", json!({"model":model,"source":source}))
+            }
+            Observation::Complete(evidence) => ("completions", json!(evidence)),
+        }
+    }
+
+    fn contract_events(events: &Events) -> Value {
+        let mut result =
+            json!({"models":[],"errors":[],"usages":[],"executions":[],"completions":[]});
+        for event in events.lock().unwrap().iter() {
+            let (kind, value) = contract_event(event);
+            result[kind].as_array_mut().unwrap().push(value);
+        }
+        result
+    }
+
+    #[test]
+    fn frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks() {
+        let source = include_str!("../../../parity/cases/response-observer-contracts.jsonl");
+        assert_eq!(
+            format!(
+                "{:x}",
+                <sha2::Sha256 as sha2::Digest>::digest(source.as_bytes())
+            ),
+            "c9833a7f743165f201e0a7b5c314cc34c125c0ae5460a5a4e1c6913d5e88c2d3",
+            "Retained baseline capture changed"
+        );
+        let mut count = 0;
+        for line in source.lines() {
+            let row: Value = serde_json::from_str(line).unwrap();
+            let input = &row["input"];
+            let chunks: Vec<Bytes> = input["chunks"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|chunk| {
+                    Bytes::from(
+                        chunk
+                            .as_array()
+                            .unwrap()
+                            .iter()
+                            .map(|byte| u8::try_from(byte.as_u64().unwrap()).unwrap())
+                            .collect::<Vec<_>>(),
+                    )
+                })
+                .collect();
+            let events = Events::default();
+            let target = events.clone();
+            let panics = input["panic_callbacks"]
+                .as_array()
+                .cloned()
+                .unwrap_or_default();
+            let observer = ResponseObserver::new(
+                input["content_type"]
+                    .as_str()
+                    .unwrap_or("text/event-stream"),
+                input["max_buffer_bytes"].as_u64().unwrap_or(65536) as usize,
+                move |event| {
+                    let (kind, _) = contract_event(&event);
+                    assert!(
+                        !panics.iter().any(|value| value == kind),
+                        "synthetic callback failure"
+                    );
+                    target.lock().unwrap().push(event);
+                },
+            )
+            .unwrap();
+            let mut body =
+                ObservedBody::new(ContractBody(chunks.iter().cloned().collect()), observer);
+            let mut forwarded = Vec::new();
+            for chunk in &chunks {
+                let actual = poll_contract_frame(&mut body).expect("expected fixture chunk");
+                assert_eq!(
+                    actual.as_ptr(),
+                    chunk.as_ptr(),
+                    "{} changed chunk identity",
+                    row["id"]
+                );
+                assert_eq!(&actual, chunk, "{} changed chunk bytes", row["id"]);
+                forwarded.extend_from_slice(&actual);
+            }
+            assert!(poll_contract_frame(&mut body).is_none());
+            let mut result = contract_events(&events);
+            result["forwarded"] = json!(forwarded);
+            assert_eq!(result, row["node_expected"], "{}", row["id"]);
+            count += 1;
+        }
+        assert_eq!(
+            count, 98,
+            "Frozen capture inventory changed; review its provenance"
+        );
+    }
+
+    #[test]
+    fn incomplete_model_frame_is_forwarded_before_observation_and_repeated_model_is_ignored() {
+        let first = Bytes::from_static(b"event: message_start\ndata: {\"type\":\"message_start\",");
+        let final_part =
+            Bytes::from_static(b"\"message\":{\"model\":\"claude-sonnet-5\",\"content\":[]}}\n\n");
+        let rest = Bytes::from_static(b"event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"model\":\"ignored\"}}\n\ndata: PRIVATE_CONTENT\n\n");
+        let chunks = [first, final_part, rest];
+        let (observer, events) = observer("text/event-stream; charset=utf-8", 65536);
+        let mut body = ObservedBody::new(ContractBody(chunks.iter().cloned().collect()), observer);
+        let mut received = Vec::new();
+        let first = poll_contract_frame(&mut body).unwrap();
+        assert_eq!(first.as_ptr(), chunks[0].as_ptr());
+        received.extend_from_slice(&first);
+        assert_eq!(contract_events(&events)["models"], json!([]));
+        received.extend_from_slice(&poll_contract_frame(&mut body).unwrap());
+        assert_eq!(
+            contract_events(&events)["models"],
+            json!([{"model":"claude-sonnet-5"}])
+        );
+        received.extend_from_slice(&poll_contract_frame(&mut body).unwrap());
+        assert!(poll_contract_frame(&mut body).is_none());
+        assert_eq!(
+            contract_events(&events)["models"],
+            json!([{"model":"claude-sonnet-5"}])
+        );
+        assert_eq!(received, chunks.concat());
+    }
+
+    #[test]
+    fn message_stop_does_not_confirm_until_actual_eof_and_drop_never_confirms() {
+        let model = "claude-opus-5-5";
+        let chunks: Vec<Bytes> = vec![frame(json!({"type":"message_start","message":{"model":model,"usage":{"input_tokens":4,"output_tokens":1}}})), frame(json!({"type":"message_delta","usage":{"output_tokens":4},"delta":{"stop_reason":"end_turn"}})), frame(json!({"type":"message_stop"}))]
+            .into_iter().map(Bytes::from).collect();
+        let (observer, events) = observer("text/event-stream", 65536);
+        let mut body = ObservedBody::new(ContractBody(chunks.iter().cloned().collect()), observer);
+        assert!(poll_contract_frame(&mut body).is_some());
+        assert_eq!(
+            contract_events(&events)["executions"],
+            json!([{"model":model,"source":"message_start"}])
+        );
+        assert_eq!(contract_events(&events)["completions"], json!([]));
+        assert!(poll_contract_frame(&mut body).is_some());
+        assert!(poll_contract_frame(&mut body).is_some());
+        assert_eq!(contract_events(&events)["completions"], json!([]));
+        assert!(poll_contract_frame(&mut body).is_none());
+        assert_eq!(
+            contract_events(&events)["completions"],
+            json!([{"model":model,"continuation_model":model,"stop_reason":"end_turn","tool_uses":[]}])
+        );
+
+        let (observer, events) = self::observer("text/event-stream", 65536);
+        let mut body = ObservedBody::new(ContractBody(vec![Bytes::from(frame(json!({"type":"message_start","message":{"model":"claude-sonnet-5","usage":{"input_tokens":4,"output_tokens":1}}}))), Bytes::from(end("end_turn"))].into()), observer);
+        assert!(poll_contract_frame(&mut body).is_some());
+        assert!(poll_contract_frame(&mut body).is_some());
+        drop(body);
+        assert_eq!(contract_events(&events)["usages"], json!([]));
+        assert_eq!(contract_events(&events)["completions"], json!([]));
+    }
 }

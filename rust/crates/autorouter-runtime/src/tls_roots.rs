@@ -1060,3 +1060,6 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+mod openssl_spike;

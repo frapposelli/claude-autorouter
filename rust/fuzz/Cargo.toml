@@ -1,0 +1,50 @@
+[package]
+name = "autorouter-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+license = "Apache-2.0"
+
+[package.metadata]
+cargo-fuzz = true
+
+[workspace]
+members = ["."]
+resolver = "3"
+
+[dependencies]
+libfuzzer-sys = "=0.4.13"
+autorouter-core = { path = "../crates/autorouter-core" }
+autorouter-runtime = { path = "../crates/autorouter-runtime" }
+
+[patch.crates-io]
+hyper = { path = "../vendor/hyper" }
+openssl = { path = "../vendor/openssl" }
+
+[[bin]]
+name = "json_document"
+path = "fuzz_targets/json_document.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "redaction"
+path = "fuzz_targets/redaction.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "response_observer"
+path = "fuzz_targets/response_observer.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "session_history"
+path = "fuzz_targets/session_history.rs"
+test = false
+doc = false
+bench = false

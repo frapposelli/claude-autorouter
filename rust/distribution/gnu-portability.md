@@ -1,8 +1,15 @@
 # GNU portability checks
 
 The [separate workflow](../../.github/workflows/rust-portability.yml) builds and
-runs native x86_64 and ARM64 candidates in pinned GLIBC 2.28 userlands. It is
-implemented and has begun qualification. The first run installed both pinned
+runs native x86_64 and ARM64 candidates in pinned GLIBC 2.28 userlands. Both
+jobs passed at `8e94a9b`: 463 source tests, 66 installed CLI tests, the shared
+differential suites and the GLIBC 2.28 symbol gate. The
+[retained CI summary](../parity/measurements/ci-8e94-qualification-summary.json)
+binds exact source trees, binaries, archives and logs. This establishes the
+recorded userland checks; oldest-kernel and complete platform qualification
+remain pending. The existing CI jobs remain required.
+
+Earlier attempts remain retained. The first run installed both pinned
 toolchains but stopped at Git provenance recording because the container and
 runner checkout had different owners. The workflow now trusts only the exact
 runner checkout path and fails immediately if source-timestamp lookup fails.
@@ -10,9 +17,9 @@ The next run reached compilation and exposed two build prerequisites: global
 ARM64 `CFLAGS` overrode the hashing crate's specialized assembly flags, and the
 minimal Perl installation lacked `IPC::Cmd`. Both failed runs are retained in
 the pin record. The current corrections use scoped compiler wrappers and a
-checksum-pinned, build-only Perl installation; their CI execution is pending.
-Successful product artifacts and compatibility results remain pending. The
-existing CI jobs remain required.
+checksum-pinned, build-only Perl installation. Those prerequisites now pass.
+A subsequent source run exposed terminal and launcher test failures; the
+`8e94a9b` correction passes on both architectures.
 
 The historical Ubuntu 24 builds have required GLIBC symbol versions through
 2.34 on x86_64 and 2.39 on ARM64. Those values come from the actual binaries,

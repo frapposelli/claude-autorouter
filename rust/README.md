@@ -60,6 +60,11 @@ npm run test:package
 
 The four existing Node/OS CI jobs remain required. Native CI adds compiler, contract, integration, and executable comparison checks; it does not invoke live tools or impose workstation timing thresholds.
 
+The separate [sanitizer fuzz workspace](fuzz/README.md) exercises JSON edits,
+redaction, observer framing and history parsing with synthetic seeds. Its pinned
+nightly/tooling and bounded campaigns are opt-in; the production workspace and
+ordinary CI do not include libFuzzer.
+
 ## Native tooling
 
 `cargo xtask evaluate`, `evaluate-ollama`, `test-ollama-routing`, `live-validation`, and `context-probe` replace the corresponding source tools. Use each command's `--help` for its arguments. They retain separate availability, transport, classification, policy, and task-quality results. Explicit `--env-file=.env` and `--env-file-if-exists=.env` options load an environment file without shell expansion; ordinary product launches never implicitly load a project `.env`.

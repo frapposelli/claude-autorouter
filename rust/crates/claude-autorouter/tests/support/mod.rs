@@ -188,6 +188,11 @@ impl Server {
     fn with_response(
         handler: impl Fn(&Request) -> Option<Response> + Send + Sync + 'static,
     ) -> Self {
+        Self::with_connection(move |request, _stream| handler(request))
+    }
+    pub fn with_connection(
+        handler: impl Fn(&Request, &mut TcpStream) -> Option<Response> + Send + Sync + 'static,
+    ) -> Self {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         listener.set_nonblocking(true).unwrap();
         let address = listener.local_addr().unwrap();
@@ -207,7 +212,7 @@ impl Server {
                         let failures = failures.clone();
                         let handler = handler.clone();
                         workers.push(thread::spawn(move||{stream.set_nonblocking(false).unwrap();
-                            stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();stream.set_write_timeout(Some(Duration::from_secs(5))).unwrap();let request=match read_request(&mut stream){Ok(request)=>request,Err(error)=>{failures.lock().unwrap().push(error);return}};recorded.lock().unwrap().push(request.clone());let Some(response)=handler(&request) else{return};let header=format!("HTTP/1.1 {} OK\r\nContent-Type: {}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",response.status,response.kind,response.body.len());if stream.write_all(header.as_bytes()).and_then(|()|stream.write_all(&response.body)).is_err(){failures.lock().unwrap().push("Synthetic response write failed")}}));
+                            stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();stream.set_write_timeout(Some(Duration::from_secs(5))).unwrap();let request=match read_request(&mut stream){Ok(request)=>request,Err(error)=>{failures.lock().unwrap().push(error);return}};recorded.lock().unwrap().push(request.clone());let Some(response)=handler(&request,&mut stream) else{return};let header=format!("HTTP/1.1 {} OK\r\nContent-Type: {}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",response.status,response.kind,response.body.len());if stream.write_all(header.as_bytes()).and_then(|()|stream.write_all(&response.body)).is_err(){failures.lock().unwrap().push("Synthetic response write failed")}}));
                     }
                     Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
                         thread::sleep(Duration::from_millis(2))
@@ -324,6 +329,191 @@ fn read_request(stream: &mut TcpStream) -> Result<Request, &'static str> {
     })
 }
 
+struct OwnedFixtureChild(std::process::Child, bool);
+impl OwnedFixtureChild {
+    fn clean_group(&mut self) {
+        if !self.1 {
+            let _ = nix::sys::signal::killpg(
+                nix::unistd::Pid::from_raw(self.0.id() as i32),
+                nix::sys::signal::Signal::SIGKILL,
+            );
+            self.1 = true;
+        }
+    }
+}
+impl Drop for OwnedFixtureChild {
+    fn drop(&mut self) {
+        self.clean_group();
+        let _ = self.0.wait();
+    }
+}
+// Observe without reaping, so the process-group ID remains reserved until
+// descendants have been stopped. This follows xtask's fixture ownership.
+struct ExitObserver {
+    #[cfg(target_os = "macos")]
+    queue: nix::sys::event::Kqueue,
+    #[cfg(target_os = "macos")]
+    exited: bool,
+}
+impl ExitObserver {
+    fn new(pid: u32) -> Self {
+        #[cfg(target_os = "macos")]
+        {
+            use nix::sys::event::{EvFlags, EventFilter, FilterFlag, KEvent, Kqueue};
+            let queue = Kqueue::new().unwrap();
+            let event = KEvent::new(
+                pid as usize,
+                EventFilter::EVFILT_PROC,
+                EvFlags::EV_ADD | EvFlags::EV_ONESHOT,
+                FilterFlag::NOTE_EXIT,
+                0,
+                0,
+            );
+            let exited = match queue.kevent(&[event], &mut [], None) {
+                Ok(_) => false,
+                Err(nix::errno::Errno::ESRCH) => true,
+                Err(error) => panic!("Cannot observe synthetic prompt process: {error}"),
+            };
+            Self { queue, exited }
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            let _ = pid;
+            Self {}
+        }
+    }
+    fn exited(&mut self, child: &mut OwnedFixtureChild) -> bool {
+        #[cfg(target_os = "macos")]
+        {
+            use nix::sys::event::{EvFlags, EventFilter, FilterFlag, KEvent};
+            if self.exited {
+                return true;
+            }
+            let mut events = [KEvent::new(
+                child.0.id() as usize,
+                EventFilter::EVFILT_PROC,
+                EvFlags::empty(),
+                FilterFlag::empty(),
+                0,
+                0,
+            )];
+            match self.queue.kevent(
+                &[],
+                &mut events,
+                Some(nix::libc::timespec {
+                    tv_sec: 0,
+                    tv_nsec: 0,
+                }),
+            ) {
+                Ok(0) | Err(nix::errno::Errno::EINTR) => false,
+                Ok(1)
+                    if !events[0].flags().contains(EvFlags::EV_ERROR)
+                        && events[0].ident() == child.0.id() as usize
+                        && events[0].fflags().contains(FilterFlag::NOTE_EXIT) =>
+                {
+                    self.exited = true;
+                    true
+                }
+                _ => panic!("Cannot observe synthetic prompt process"),
+            }
+        }
+        #[cfg(target_os = "linux")]
+        {
+            use nix::sys::wait::{Id, WaitPidFlag, WaitStatus, waitid};
+            match waitid(
+                Id::Pid(nix::unistd::Pid::from_raw(child.0.id() as i32)),
+                WaitPidFlag::WEXITED | WaitPidFlag::WNOHANG | WaitPidFlag::WNOWAIT,
+            ) {
+                Ok(WaitStatus::Exited(_, _) | WaitStatus::Signaled(_, _, _)) => true,
+                Ok(WaitStatus::StillAlive) | Err(nix::errno::Errno::EINTR) => false,
+                Err(nix::errno::Errno::ECHILD) => {
+                    child.1 = true;
+                    panic!("Synthetic prompt process was reaped outside its fixture");
+                }
+                _ => panic!("Cannot observe synthetic prompt process"),
+            }
+        }
+        #[cfg(not(any(target_os = "macos", target_os = "linux")))]
+        {
+            let _ = child;
+            panic!("Synthetic prompt observation supports macOS and Linux only");
+        }
+    }
+}
+
+/// Signal only after a mock reports a complete accepted request. Observe exit
+/// without reaping, clean the owned group, then collect bounded synthetic files.
+pub fn signalled_output(
+    command: &mut Command,
+    ready: &std::sync::mpsc::Receiver<()>,
+    signal: nix::sys::signal::Signal,
+) -> Output {
+    use std::fs::File;
+    let scratch = Home::new();
+    let stdout = scratch.write("stdout", []);
+    let stderr = scratch.write("stderr", []);
+    let mut child = OwnedFixtureChild(
+        command
+            .process_group(0)
+            .stdout(File::options().write(true).open(&stdout).unwrap())
+            .stderr(File::options().write(true).open(&stderr).unwrap())
+            .spawn()
+            .unwrap(),
+        false,
+    );
+    let mut observer = ExitObserver::new(child.0.id());
+    let check_output = || {
+        for path in [&stdout, &stderr] {
+            assert!(fs::metadata(path).unwrap().len() <= 1024 * 1024);
+        }
+    };
+    let ready_deadline = Instant::now() + Duration::from_secs(10);
+    loop {
+        check_output();
+        match ready.try_recv() {
+            Ok(()) => break,
+            Err(std::sync::mpsc::TryRecvError::Empty) => {}
+            Err(error) => panic!("Synthetic request barrier failed: {error}"),
+        }
+        assert!(
+            !observer.exited(&mut child),
+            "Child exited before mock request"
+        );
+        assert!(
+            Instant::now() < ready_deadline,
+            "Synthetic request deadline"
+        );
+        thread::sleep(Duration::from_millis(2));
+    }
+    nix::sys::signal::kill(nix::unistd::Pid::from_raw(child.0.id() as i32), signal).unwrap();
+    let deadline = Instant::now() + Duration::from_secs(5);
+    loop {
+        check_output();
+        if observer.exited(&mut child) {
+            break;
+        }
+        assert!(Instant::now() < deadline, "Synthetic cancellation deadline");
+        thread::sleep(Duration::from_millis(2));
+    }
+    child.clean_group();
+    let status = child.0.wait().unwrap();
+    let read = |path| {
+        let mut bytes = Vec::new();
+        File::open(path)
+            .unwrap()
+            .take(1024 * 1024 + 1)
+            .read_to_end(&mut bytes)
+            .unwrap();
+        assert!(bytes.len() <= 1024 * 1024);
+        bytes
+    };
+    Output {
+        status,
+        stdout: read(stdout),
+        stderr: read(stderr),
+    }
+}
+
 pub fn hidden_secret(command: &mut Command, label: &str, secret: &str) -> Output {
     hidden_inputs(command, &[(label, HiddenInput::Secret(secret))])
 }
@@ -337,117 +527,6 @@ pub fn hidden_inputs(command: &mut Command, inputs: &[(&str, HiddenInput<'_>)]) 
     use nix::fcntl::{FcntlArg, OFlag, fcntl};
     use nix::pty::openpty;
     use std::fs::File;
-    struct PromptChild(std::process::Child, bool);
-    impl PromptChild {
-        fn clean_group(&mut self) {
-            if !self.1 {
-                let _ = nix::sys::signal::killpg(
-                    nix::unistd::Pid::from_raw(self.0.id() as i32),
-                    nix::sys::signal::Signal::SIGKILL,
-                );
-                self.1 = true;
-            }
-        }
-    }
-    impl Drop for PromptChild {
-        fn drop(&mut self) {
-            self.clean_group();
-            let _ = self.0.wait();
-        }
-    }
-    // Observe without reaping, so the process-group ID remains reserved until
-    // descendants have been stopped. This follows xtask's fixture ownership.
-    struct ExitObserver {
-        #[cfg(target_os = "macos")]
-        queue: nix::sys::event::Kqueue,
-        #[cfg(target_os = "macos")]
-        exited: bool,
-    }
-    impl ExitObserver {
-        fn new(pid: u32) -> Self {
-            #[cfg(target_os = "macos")]
-            {
-                use nix::sys::event::{EvFlags, EventFilter, FilterFlag, KEvent, Kqueue};
-                let queue = Kqueue::new().unwrap();
-                let event = KEvent::new(
-                    pid as usize,
-                    EventFilter::EVFILT_PROC,
-                    EvFlags::EV_ADD | EvFlags::EV_ONESHOT,
-                    FilterFlag::NOTE_EXIT,
-                    0,
-                    0,
-                );
-                let exited = match queue.kevent(&[event], &mut [], None) {
-                    Ok(_) => false,
-                    Err(nix::errno::Errno::ESRCH) => true,
-                    Err(error) => panic!("Cannot observe synthetic prompt process: {error}"),
-                };
-                Self { queue, exited }
-            }
-            #[cfg(not(target_os = "macos"))]
-            {
-                let _ = pid;
-                Self {}
-            }
-        }
-        fn exited(&mut self, child: &mut PromptChild) -> bool {
-            #[cfg(target_os = "macos")]
-            {
-                use nix::sys::event::{EvFlags, EventFilter, FilterFlag, KEvent};
-                if self.exited {
-                    return true;
-                }
-                let mut events = [KEvent::new(
-                    child.0.id() as usize,
-                    EventFilter::EVFILT_PROC,
-                    EvFlags::empty(),
-                    FilterFlag::empty(),
-                    0,
-                    0,
-                )];
-                match self.queue.kevent(
-                    &[],
-                    &mut events,
-                    Some(nix::libc::timespec {
-                        tv_sec: 0,
-                        tv_nsec: 0,
-                    }),
-                ) {
-                    Ok(0) | Err(nix::errno::Errno::EINTR) => false,
-                    Ok(1)
-                        if !events[0].flags().contains(EvFlags::EV_ERROR)
-                            && events[0].ident() == child.0.id() as usize
-                            && events[0].fflags().contains(FilterFlag::NOTE_EXIT) =>
-                    {
-                        self.exited = true;
-                        true
-                    }
-                    _ => panic!("Cannot observe synthetic prompt process"),
-                }
-            }
-            #[cfg(target_os = "linux")]
-            {
-                use nix::sys::wait::{Id, WaitPidFlag, WaitStatus, waitid};
-                match waitid(
-                    Id::Pid(nix::unistd::Pid::from_raw(child.0.id() as i32)),
-                    WaitPidFlag::WEXITED | WaitPidFlag::WNOHANG | WaitPidFlag::WNOWAIT,
-                ) {
-                    Ok(WaitStatus::Exited(_, _) | WaitStatus::Signaled(_, _, _)) => true,
-                    Ok(WaitStatus::StillAlive) | Err(nix::errno::Errno::EINTR) => false,
-                    Err(nix::errno::Errno::ECHILD) => {
-                        child.1 = true;
-                        panic!("Synthetic prompt process was reaped outside its fixture");
-                    }
-                    _ => panic!("Cannot observe synthetic prompt process"),
-                }
-            }
-            #[cfg(not(any(target_os = "macos", target_os = "linux")))]
-            {
-                let _ = child;
-                panic!("Synthetic prompt observation supports macOS and Linux only");
-            }
-        }
-    }
     fn read_ready(reader: &mut impl Read, output: &mut Vec<u8>, limit: usize, pty: bool) -> bool {
         let mut bytes = [0; 4096];
         match reader.read(&mut bytes) {
@@ -475,7 +554,7 @@ pub fn hidden_inputs(command: &mut Command, inputs: &[(&str, HiddenInput<'_>)]) 
     let slave = File::from(pair.slave);
     let flags = OFlag::from_bits_truncate(fcntl(&master, FcntlArg::F_GETFL).unwrap());
     fcntl(&master, FcntlArg::F_SETFL(flags | OFlag::O_NONBLOCK)).unwrap();
-    let mut child = PromptChild(
+    let mut child = OwnedFixtureChild(
         command
             .process_group(0)
             .stdin(slave.try_clone().unwrap())
