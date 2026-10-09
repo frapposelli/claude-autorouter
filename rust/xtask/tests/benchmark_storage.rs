@@ -2,7 +2,7 @@
 use serde_json::Value;
 use std::fs;
 use std::io::Read;
-use std::os::unix::fs::DirBuilderExt;
+use std::os::unix::fs::{DirBuilderExt, MetadataExt};
 use std::path::PathBuf;
 use std::process::{Child, Command, Output, Stdio};
 use std::time::{Duration, Instant};
@@ -108,9 +108,23 @@ fn help_and_rejected_modes_need_no_node_or_output_directory() {
 fn complete_native_validation_needs_no_node_and_retains_every_scenario() {
     let scratch = Scratch::new();
     let destination = scratch.0.join("evidence");
+    // Reproduce Cargo's Linux executable layout without linking or modifying
+    // the actual build artifact. Both names point only to this private copy.
+    let original = fs::metadata(env!("CARGO_BIN_EXE_xtask")).unwrap();
+    let native = scratch.0.join("native-xtask");
+    fs::copy(env!("CARGO_BIN_EXE_xtask"), &native).unwrap();
+    fs::hard_link(&native, scratch.0.join("native-xtask-link")).unwrap();
+    let copied = fs::metadata(&native).unwrap();
+    assert_eq!(copied.nlink(), 2);
+    assert_ne!(
+        (copied.dev(), copied.ino()),
+        (original.dev(), original.ino())
+    );
     let output = capture(
-        Command::new(env!("CARGO_BIN_EXE_xtask"))
-            .args(["benchmark-storage", "--validate", "--output"])
+        Command::new(&native)
+            .args(["benchmark-storage", "--validate", "--native"])
+            .arg(&native)
+            .arg("--output")
             .arg(&destination)
             .env_clear()
             .env("PATH", ""),
@@ -127,6 +141,21 @@ fn complete_native_validation_needs_no_node_and_retains_every_scenario() {
     assert_eq!(report["expected_executions"], 16);
     assert_eq!(report["numerical_values_retained"], false);
     assert_eq!(report["acceptance_qualified"], false);
+    let postflight: Value =
+        serde_json::from_slice(&fs::read(destination.join("postflight.json")).unwrap()).unwrap();
+    assert_eq!(postflight["passed"], true);
+    assert!(
+        postflight["inputs"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|input| input["unchanged"] == true)
+    );
+    assert_eq!(fs::metadata(&native).unwrap().nlink(), 2);
+    assert_eq!(
+        fs::metadata(env!("CARGO_BIN_EXE_xtask")).unwrap().nlink(),
+        original.nlink()
+    );
     let preflight: Value =
         serde_json::from_slice(&fs::read(destination.join("preflight.json")).unwrap()).unwrap();
     assert_eq!(preflight["reference_verified"], false);

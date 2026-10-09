@@ -42,6 +42,14 @@ fn sha(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
 fn read(path: &Path, max: usize) -> Result<Vec<u8>, String> {
+    read_regular(path, max, true)
+}
+fn read_public_input(path: &Path, max: usize) -> Result<Vec<u8>, String> {
+    // Cargo may hardlink an executable into target/debug. Source and executable
+    // fingerprints need immutable byte comparisons, not private-file ownership.
+    read_regular(path, max, false)
+}
+fn read_regular(path: &Path, max: usize, require_unique_link: bool) -> Result<Vec<u8>, String> {
     let mut file = OpenOptions::new()
         .read(true)
         .custom_flags((nix::fcntl::OFlag::O_NOFOLLOW | nix::fcntl::OFlag::O_NONBLOCK).bits())
@@ -50,7 +58,10 @@ fn read(path: &Path, max: usize) -> Result<Vec<u8>, String> {
     let metadata = file
         .metadata()
         .map_err(|_| "Cannot inspect storage evidence")?;
-    if !metadata.is_file() || metadata.nlink() != 1 || metadata.len() > max as u64 {
+    if !metadata.is_file()
+        || (require_unique_link && metadata.nlink() != 1)
+        || metadata.len() > max as u64
+    {
         return Err("Storage evidence type or byte bound rejected".into());
     }
     let mut bytes = Vec::new();
@@ -107,7 +118,7 @@ fn save(path: &Path, value: &Value, total: &mut usize) -> Result<(), String> {
     Ok(())
 }
 fn descriptor(path: &Path, maximum: usize) -> Result<Value, String> {
-    let bytes = read(path, maximum)?;
+    let bytes = read_public_input(path, maximum)?;
     Ok(json!({"path":path,"bytes":bytes.len(),"sha256":sha(&bytes)}))
 }
 fn semantic_sha(value: &Value) -> Result<String, String> {
@@ -718,7 +729,7 @@ async fn execute(options: Options, root: &Path) -> Result<bool, String> {
             if relative.starts_with("rust/target") || relative.starts_with("target") {
                 continue;
             }
-            let bytes = read(path, 2 * 1024 * 1024)?;
+            let bytes = read_public_input(path, 2 * 1024 * 1024)?;
             if bytes.len() > RUN_LIMIT.saturating_sub(total) {
                 return Err("Storage input snapshot bound".into());
             }
@@ -848,7 +859,7 @@ async fn execute(options: Options, root: &Path) -> Result<bool, String> {
     }
     deadline_owner.abort();
     let _ = deadline_owner.await;
-    let identity_checks=inputs.iter().map(|input|{let path=Path::new(input["path"].as_str().unwrap());let check=read(path,256*1024*1024).map(|bytes|json!({"path":path,"unchanged":sha(&bytes)==input["sha256"].as_str().unwrap()&&bytes.len()as u64==input["bytes"].as_u64().unwrap()})).unwrap_or_else(|_|json!({"path":path,"unchanged":false}));passed&=check["unchanged"]==true;check}).collect::<Vec<_>>();
+    let identity_checks=inputs.iter().map(|input|{let path=Path::new(input["path"].as_str().unwrap());let check=read_public_input(path,256*1024*1024).map(|bytes|json!({"path":path,"unchanged":sha(&bytes)==input["sha256"].as_str().unwrap()&&bytes.len()as u64==input["bytes"].as_u64().unwrap()})).unwrap_or_else(|_|json!({"path":path,"unchanged":false}));passed&=check["unchanged"]==true;check}).collect::<Vec<_>>();
     if paired && crate::reference::verify(root, &reference).is_err() {
         passed = false;
     }
@@ -987,15 +998,25 @@ mod tests {
         )
         .unwrap();
         assert!(read(&fifo, 1024).is_err());
+        assert!(read_public_input(&fifo, 1024).is_err());
         let file = scratch.file("input", b"12345").unwrap();
         assert!(read(&file, 4).is_err());
+        assert!(read_public_input(&file, 4).is_err());
         assert_eq!(read(&file, 5).unwrap(), b"12345");
+        assert_eq!(read_public_input(&file, 5).unwrap(), b"12345");
         let link = scratch.0.join("link");
         std::os::unix::fs::symlink(&file, &link).unwrap();
         assert!(read(&link, 5).is_err());
+        assert!(read_public_input(&link, 5).is_err());
         let hard = scratch.0.join("hard");
         fs::hard_link(&file, &hard).unwrap();
         assert!(read(&hard, 5).is_err());
+        assert!(read(&file, 5).is_err());
+        assert_eq!(read_public_input(&hard, 5).unwrap(), b"12345");
+        assert_eq!(descriptor(&file, 5).unwrap()["sha256"], sha(b"12345"));
+        assert_eq!(descriptor(&hard, 5).unwrap()["sha256"], sha(b"12345"));
+        assert!(descriptor(&hard, 4).is_err());
+        assert!(read_public_input(&scratch.0, 1024).is_err());
     }
     #[test]
     fn encoding_and_aggregate_newline_are_bounded_before_write() {
