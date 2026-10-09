@@ -241,6 +241,10 @@ mod contracts;
 mod concurrency_contracts;
 
 #[cfg(test)]
+#[path = "ollama_router_contracts.rs"]
+mod ollama_contracts;
+
+#[cfg(test)]
 mod tests {
     use super::*;
     use crate::http_client::HttpError;

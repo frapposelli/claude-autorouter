@@ -1,4 +1,6 @@
 //! Explicit synthetic measurements of complete executables, never a CI timer gate.
+#[path = "benchmark_legacy.rs"]
+mod legacy;
 #[path = "benchmark_measure.rs"]
 mod measure;
 #[path = "benchmark_service.rs"]
@@ -1131,6 +1133,12 @@ async fn execute(
     Ok(true)
 }
 pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
+    if args.iter().any(|arg| arg == "--compare-legacy") {
+        if args.len() != 2 || args[0] != "--compare-legacy" || args[1].starts_with("--") {
+            return Err("Usage: cargo xtask benchmark --compare-legacy REPORT.json".into());
+        }
+        return legacy::run(&root.join(&args[1]));
+    }
     let mut destination = None;
     let mut binary = root.join("rust/target/release/claude-autorouter");
     let mut validate = false;
@@ -1141,7 +1149,7 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
         match args[index].as_str() {
             "--help" => {
                 println!(
-                    "cargo xtask benchmark --output NEW_DIRECTORY [--rust EXECUTABLE] [--protocol v1|v2|v3] [--validate]\nSynthetic loopback services only; --validate checks counts/bytes without retaining timing results. Default v1 retains the original workload; v2 adds first-body observations and exact streamed responses; v3 adds isolated lifetime resource collection. Full measurements remain local opt-in evidence; never pool protocol versions."
+                    "cargo xtask benchmark --output NEW_DIRECTORY [--rust EXECUTABLE] [--protocol v1|v2|v3] [--validate]\ncargo xtask benchmark --compare-legacy REPORT.json\nSynthetic loopback services only; --validate checks counts/bytes without retaining timing results. Default v1 retains the original workload; v2 adds first-body observations and exact streamed responses; v3 adds isolated lifetime resource collection. Full measurements remain local opt-in evidence; never pool protocol versions.\n--compare-legacy only reads a combined historical baseline/candidate report (at most 16 MiB, 4096 rows each), recomputes the original JS heap/event-loop/latency/coalescing gates and prints JSON. Both reports must be unmarked historical shapes or schema_version 1/type synthetic_router_benchmark; finite nonnegative metrics and safe integer counts are required. Missing candidate maxima serialize as null. No measurements or files are written; these gates do not qualify native paired protocols."
                 );
                 return Ok(true);
             }

@@ -31,6 +31,8 @@ node scripts/rust-reference.mjs --root artifacts/rust-rewrite/reference --check-
 
 `performance-gates.json` retains the plan's thresholds. `benchmark-protocol.json` inventories the complete workload matrix; `local-benchmark-v1.json` freezes the initial driver settings before measurement. The native driver starts each complete executable against identical local mock services. Its initial subset covers warm-filesystem process startup, small requests, a 300-tool catalog, cache hits, a fixed evaluator delay and concurrency 1/8/32/128. It records five alternating paired rounds, 200 warmup and 2,000 measured HTTP samples per run, raw samples and paired bootstrap intervals. The 0.5 ms latency noise floor and all missing metrics remain visible; unimplemented workloads and uncontrolled hardware cannot pass the overall gate. True peak RSS, isolated gateway processing time, cold disk-cache startup and real evaluator performance are not inferred from these measurements.
 
+`cargo xtask benchmark --compare-legacy REPORT.json` reads a bounded historical `{ "baseline": ..., "candidate": ... }` report and prints the frozen JavaScript comparator result without running measurements. The eight captured calls in `benchmark-router-contracts.jsonl` preserve complete results, scenario order, workload/environment checks, maximum-of-rounds limits, row counts and evaluator-call ratios. Empty candidate maxima retain their original JSON `null` representation. This compatibility mode cannot qualify the native paired protocols or transfer-bundle format.
+
 The opt-in `--protocol v2` selects `local-benchmark-v2.json`: the same initial workloads plus successful burst and paced SSE forwarding. Version 1 remains the default and its prior evidence stays intact. Version 2 records response-header and first-nonempty-body latency separately, exact response hashes and lengths, driver-observed maximum data-frame gaps and byte throughput. It compares bytes incrementally across arbitrary HTTP fragmentation and rejects truncation, changed bytes, unexpected trailers or missing body observations. Producer counters establish that mocks yielded their complete bodies; the driver separately requires the complete bytes through EOF. Neither observation substitutes for the gateway's transport acknowledgement tests. Five fresh matched rounds are required for comparisons; `--validate` retains only functional evidence. Stream cancellation, backpressure, failure timing and the other missing resource workloads remain open.
 
 The opt-in `--protocol v3` adds a fresh collector for each HTTP gateway's full-lifetime peak RSS and CPU usage. The gateway and collector share a process group whose leader remains unreaped in the driver until cleanup. A complete report preserves the gateway's exit status; the collector then deliberately terminates its group with SIGKILL, and the driver verifies that protocol and cleans the still-owned group before accepting a row. This also permits driver cleanup of a stopped collector. Responsive collectors handle driver loss; simultaneous abrupt driver death and an unresponsive collector are outside the portable guarantee. RSS is the largest individual process peak among the child and its waited descendants, not aggregate process-tree or measured-interval memory. All five peak-memory pairs must have verified collection; numerical values alone cannot qualify a pair. `--validate` retains no numerical resource results. Earlier validation reports retain their original protocol hashes; this cleanup refinement predates numerical v3 measurements.
@@ -139,6 +141,22 @@ remain required. Formatter tests compare the raw captured timing values without
 exclusions. Nine other setup/diagnostic definitions remain pending. These
 synthetic tests make no local-model timing or quality claim.
 
+The [finite Ollama evaluator mapping](assertion-mappings/ollama-evaluator-finite-contracts.json)
+covers five definitions across 15 scenarios, comparing complete task states,
+requests and results. The [Ollama router mapping](assertion-mappings/ollama-router-contracts.json)
+covers five more definitions with 26 scenarios and 79 fetches through the
+actual shared classifier and router. Each original instance keeps its cache
+and retry sequence. The oversized metadata fixture retains its full input;
+the production metadata limit stays at 1 MiB. Deadline, cancellation and
+continuity definitions remain separate.
+
+The [redaction mapping](assertion-mappings/redaction-contracts.json) compares
+93 complete pure-call results and covers twelve functional definitions.
+Two more definitions remain partial: their 28 timing assertions have not been
+executed or converted into performance claims.
+Constructed synthetic credentials use lossless JSON escapes in the captured
+corpus; decoded fixture values and expected results match the frozen source.
+
 The [bounded JSON mapping](assertion-mappings/bounded-json-contracts.json)
 checks exact UTF-8 byte limits, malformed input, stalled cancellation and
 owned-body cleanup. One definition is covered and four remain partial for
@@ -150,6 +168,12 @@ redacted provenance. It requires the system policy path to be absent and does
 not modify it. The [additional Keychain mapping](assertion-mappings/keychain-extra-contracts.json)
 covers secret edits through real isolated stdin and verifies that session
 history never reads the Keychain. Its adapter remains an in-memory fixture.
+The [setup/command mapping](assertion-mappings/keychain-setup-contracts.json)
+covers four more definitions using private platform/prompt adapters and exact
+unspawned `/usr/bin/security` command construction. It does not qualify actual
+Keychain access. The [empty-history mapping](assertion-mappings/history-empty-contracts.json)
+covers three real inspection commands with disabled logging or a missing
+directory, including `ENOENT`, no file creation and a forbidden secret store.
 
 The [server response mapping](assertion-mappings/server-response-contracts.json)
 covers three definitions and 22 static assertions through actual synthetic
@@ -157,6 +181,13 @@ downstream and upstream HTTP. It checks token-count errors, local rejections,
 and exact compressed bytes with response observation bypassed. The input
 extractor evaluates frozen synthetic initializers and gzip construction;
 separate unchanged Node tests provide the original callback controls.
+The [subscription mapping](assertion-mappings/server-subscription-contracts.json)
+covers four more definitions and 24 assertion sites: all six original rejected
+credential combinations, exact 401/429 provider responses without API-key
+fallback, OAuth model discovery/token counting, and turn-scoped system
+messages. It also checks event privacy after normal gateway cleanup. These
+finite loopback tests do not qualify live subscription accounts or transport
+timing.
 
 The [release-tool mapping](assertion-mappings/release-contracts.json) covers
 15 definitions and leaves four partial. Five original pure callbacks produce

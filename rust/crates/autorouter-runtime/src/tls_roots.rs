@@ -1062,4 +1062,4 @@ mod tests {
 }
 
 #[cfg(test)]
-mod openssl_spike;
+pub(crate) mod openssl_spike;

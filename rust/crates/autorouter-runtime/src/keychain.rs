@@ -38,6 +38,18 @@ pub trait SecurityRunner: Send {
 }
 
 pub struct NativeSecurityRunner;
+
+fn security_command(args: &[&str]) -> tokio::process::Command {
+    let mut command = tokio::process::Command::new("/usr/bin/security");
+    command
+        .args(args)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .kill_on_drop(true);
+    command
+}
+
 async fn limited_read(reader: impl AsyncRead + Unpin) -> Result<Vec<u8>, String> {
     let mut bytes = Vec::new();
     reader
@@ -52,14 +64,7 @@ async fn limited_read(reader: impl AsyncRead + Unpin) -> Result<Vec<u8>, String>
 }
 impl SecurityRunner for NativeSecurityRunner {
     async fn run(&mut self, args: &[&str], input: Option<&str>) -> Result<SecurityOutput, String> {
-        let mut child = tokio::process::Command::new("/usr/bin/security")
-            .args(args)
-            .stdin(Stdio::piped())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped())
-            .kill_on_drop(true)
-            .spawn()
-            .map_err(|_| TOOL_ERROR)?;
+        let mut child = security_command(args).spawn().map_err(|_| TOOL_ERROR)?;
         let mut stdin = child.stdin.take().ok_or(TOOL_ERROR)?;
         let stdout = child.stdout.take().ok_or(TOOL_ERROR)?;
         let stderr = child.stderr.take().ok_or(TOOL_ERROR)?;
@@ -225,6 +230,111 @@ mod tests {
             },
             true,
         )
+    }
+    #[tokio::test]
+    async fn frozen_security_tuple_uses_exact_program_and_stdin_without_spawning() {
+        let secret = "quote\" back\\slash $HOME 'single'";
+        let line = format!("{secret}\n");
+        let mut keychain = fixture(&[
+            (0, ""),
+            (0, &line),
+            (0, &line),
+            (44, ""),
+            (0, "attributes"),
+            (0, "attributes"),
+        ]);
+        keychain
+            .write("KEY:abc", secret, "AutoRouter KEY")
+            .await
+            .unwrap();
+        assert_eq!(
+            keychain.read("KEY:abc").await.unwrap().as_deref(),
+            Some(secret)
+        );
+        assert_eq!(keychain.read("MISSING").await.unwrap(), None);
+        keychain.remove("KEY:abc").await.unwrap();
+        keychain.remove("KEY:abc").await.unwrap();
+        assert_eq!(keychain.runner.calls.len(), 6);
+        assert!(keychain.runner.outputs.is_empty());
+        assert_eq!(
+            keychain
+                .runner
+                .calls
+                .iter()
+                .map(|(args, _)| args.iter().map(String::as_str).collect::<Vec<_>>())
+                .collect::<Vec<_>>(),
+            vec![
+                vec!["-i"],
+                vec![
+                    "find-generic-password",
+                    "-s",
+                    "claude-autorouter",
+                    "-a",
+                    "KEY:abc",
+                    "-w"
+                ],
+                vec![
+                    "find-generic-password",
+                    "-s",
+                    "claude-autorouter",
+                    "-a",
+                    "KEY:abc",
+                    "-w"
+                ],
+                vec![
+                    "find-generic-password",
+                    "-s",
+                    "claude-autorouter",
+                    "-a",
+                    "MISSING",
+                    "-w"
+                ],
+                vec![
+                    "delete-generic-password",
+                    "-s",
+                    "claude-autorouter",
+                    "-a",
+                    "KEY:abc"
+                ],
+                vec![
+                    "delete-generic-password",
+                    "-s",
+                    "claude-autorouter",
+                    "-a",
+                    "KEY:abc"
+                ],
+            ]
+        );
+        for (args, input) in &keychain.runner.calls {
+            let borrowed = args.iter().map(String::as_str).collect::<Vec<_>>();
+            // Inspect the same builder used by NativeSecurityRunner. No child
+            // is spawned and no real Keychain or configured executable is used.
+            let command = security_command(&borrowed);
+            assert_eq!(command.as_std().get_program(), "/usr/bin/security");
+            assert_eq!(
+                command.as_std().get_args().collect::<Vec<_>>(),
+                args.iter().map(std::ffi::OsStr::new).collect::<Vec<_>>()
+            );
+            assert!(!args.join(" ").contains("back\\slash"));
+            assert_eq!(input.is_some(), args == &["-i"]);
+        }
+        assert_eq!(
+            keychain.runner.calls[0].1.as_deref(),
+            Some(
+                "add-generic-password -U -s \"claude-autorouter\" -a \"KEY:abc\" -l \"AutoRouter KEY\" -w \"quote\\\" back\\\\slash $HOME 'single'\"\n"
+            )
+        );
+        assert_eq!(keychain.runner.calls[4].0, keychain.runner.calls[5].0);
+        assert_eq!(
+            keychain.runner.calls[4].0,
+            [
+                "delete-generic-password",
+                "-s",
+                "claude-autorouter",
+                "-a",
+                "KEY:abc"
+            ]
+        );
     }
     #[tokio::test]
     async fn secrets_use_stdin_and_readback_checks_interactive_failures() {

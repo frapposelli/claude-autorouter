@@ -138,6 +138,23 @@ pub async fn doctor(
     cancellation: &CancellationToken,
     write: &mut impl FnMut(String),
 ) -> Result<bool, String> {
+    doctor_for_platform(
+        context,
+        keychain,
+        cancellation,
+        write,
+        cfg!(target_os = "macos"),
+    )
+    .await
+}
+
+pub(super) async fn doctor_for_platform(
+    context: &ConfigContext<'_>,
+    keychain: &mut impl Keychain,
+    cancellation: &CancellationToken,
+    write: &mut impl FnMut(String),
+    macos: bool,
+) -> Result<bool, String> {
     let mut healthy = true;
     report(
         &mut healthy,
@@ -158,7 +175,7 @@ pub async fn doctor(
         write(format!("Config: {}{}",loaded.path.to_string_lossy(),if loaded.exists{""}else{" (absent; using environment)"}));
         if let Some(path)=loaded.policy_path{write(format!("Organization policy: {} (locks: {}).",path.to_string_lossy(),if loaded.policy_locked.is_empty(){"none".into()}else{loaded.policy_locked.iter().map(|key|key.replacen("AUTOROUTER_","",1)).collect::<Vec<_>>().join(", ")}));}
         if loaded.secret_store=="keychain"{write(format!("Saved secrets: macOS Keychain ({} found).",loaded.keychain_secrets.len()));}
-        else if cfg!(target_os="macos") && SECRET_CONFIG_KEYS.iter().any(|key|loaded.values.contains_key(*key)){write("WARN  Saved keys are plaintext in the configuration file. Move them into the macOS Keychain: claude-autorouter config set AUTOROUTER_SECRET_STORE keychain".into());}
+        else if macos && SECRET_CONFIG_KEYS.iter().any(|key|loaded.values.contains_key(*key)){write("WARN  Saved keys are plaintext in the configuration file. Move them into the macOS Keychain: claude-autorouter config set AUTOROUTER_SECRET_STORE keychain".into());}
         config=Some(read_config_document(&loaded.env_document,false,context.cwd)?);
         require_keys(config.as_ref().unwrap())?;
         Ok::<_,String>(())

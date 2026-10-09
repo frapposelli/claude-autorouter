@@ -586,7 +586,7 @@ mod tests {
     #[test]
     #[cfg(any(target_os = "macos", target_os = "linux"))]
     fn exit_observation_keeps_the_leader_waitable_until_group_cleanup() {
-        use nix::sys::wait::{WaitPidFlag, WaitStatus, waitpid};
+        use nix::sys::wait::WaitStatus;
         use nix::unistd::Pid;
         use std::os::unix::process::CommandExt;
         for already_exited in [false, true] {
@@ -610,20 +610,72 @@ mod tests {
                 // exit status or release the PID; Child's cached status alone
                 // would not detect an accidental try_wait implementation.
                 let pid = Pid::from_raw(child.id() as i32);
-                let result = waitpid(pid, Some(WaitPidFlag::WNOHANG));
-                if matches!(
-                    result,
-                    Ok(WaitStatus::Exited(_, _) | WaitStatus::Signaled(_, _, _))
-                        | Err(nix::errno::Errno::ECHILD)
-                ) {
-                    // This test intentionally reaped it: never signal its
-                    // numeric ID after ending ownership.
-                    child.cleaned = true;
-                    child.group = None;
-                }
+                let result = independent_exit_status(&mut child, deadline);
                 assert_eq!(result.unwrap(), WaitStatus::Exited(pid, 23));
             }
         }
+    }
+
+    #[cfg(any(target_os = "macos", target_os = "linux"))]
+    fn independent_exit_status(
+        child: &mut OwnedChild,
+        deadline: Instant,
+    ) -> nix::Result<nix::sys::wait::WaitStatus> {
+        use nix::sys::wait::{WaitPidFlag, WaitStatus, waitpid};
+        let pid = nix::unistd::Pid::from_raw(child.id() as i32);
+        loop {
+            let result = waitpid(pid, Some(WaitPidFlag::WNOHANG));
+            if matches!(
+                result,
+                Ok(WaitStatus::StillAlive) | Err(nix::errno::Errno::EINTR)
+            ) {
+                // Darwin publishes NOTE_EXIT before SZOMB (Apple XNU
+                // xnu-11417.140.69, bsd/kern/kern_exit.c). Observation need not
+                // make the very first WNOHANG wait return terminal status.
+                assert!(Instant::now() < deadline, "Owned child status deadline");
+                std::thread::sleep(Duration::from_millis(1));
+                continue;
+            }
+            if matches!(
+                result,
+                Ok(WaitStatus::Exited(_, _) | WaitStatus::Signaled(_, _, _))
+                    | Err(nix::errno::Errno::ECHILD)
+            ) {
+                // Terminal wait consumed ownership, or ECHILD reports its
+                // loss. Disarm before any assertion could unwind the guard.
+                child.cleaned = true;
+                child.group = None;
+            }
+            return result;
+        }
+    }
+
+    #[test]
+    #[cfg(any(target_os = "macos", target_os = "linux"))]
+    fn independent_wait_rejects_a_reaping_observer_instead_of_accepting_cached_status() {
+        use std::os::unix::process::CommandExt;
+        let mut child = OwnedChild::new(
+            Command::new("/bin/sh")
+                .args(["-c", "exit 23"])
+                .process_group(0)
+                .spawn()
+                .unwrap(),
+        );
+        let deadline = Instant::now() + Duration::from_secs(2);
+        // Deliberately substitute the dangerous observer implementation. Its
+        // cached Child status must not satisfy the independent OS assertion.
+        while child.try_wait().unwrap().is_none() {
+            assert!(Instant::now() < deadline);
+            std::thread::sleep(Duration::from_millis(1));
+        }
+        // The intentional mutation has already reaped this fixture. Never
+        // leave the numeric group armed while inspecting the resulting error.
+        child.cleaned = true;
+        child.group = None;
+        let result = independent_exit_status(&mut child, deadline);
+        assert_eq!(result, Err(nix::errno::Errno::ECHILD));
+        assert!(child.cleaned && child.group.is_none());
+        assert_eq!(child.wait().unwrap().code(), Some(23));
     }
 
     #[test]

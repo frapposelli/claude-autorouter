@@ -13,12 +13,16 @@ use autorouter_runtime::user_config::{
 };
 use serde_json::{Value, json};
 use std::ffi::OsString;
+use std::future::Future;
 use tokio_util::sync::CancellationToken;
 
 const USAGE: &str = "Usage: claude-autorouter setup [--auth-mode subscription|api-key] [--client-profile compatible|native|auto] [--evaluator jev|ollama] [--ollama-model TAG] [--ollama-timeout-ms N] [--stop-hook-block-cap N] [--session-log-dir DIR] [--session-log-mode metadata|prompts] [--secret-store file|keychain] [--pull] [--force|--replace]";
 #[cfg(test)]
 #[path = "onboarding_contract_tests.rs"]
 mod contract_tests;
+#[cfg(test)]
+#[path = "onboarding_keychain_contracts.rs"]
+mod keychain_contracts;
 fn value(env: &Value, key: &str, fallback: &str) -> String {
     env.get(key)
         .and_then(Value::as_str)
@@ -60,6 +64,38 @@ pub async fn setup(
     keychain: &mut impl Keychain,
     cancellation: &CancellationToken,
     write: &mut impl FnMut(String),
+) -> Result<(), String> {
+    setup_with_prompt(
+        args,
+        context,
+        keychain,
+        cancellation,
+        write,
+        cfg!(target_os = "macos"),
+        &mut NativeSecretPrompt,
+    )
+    .await
+}
+
+trait SecretPrompt {
+    fn read(&mut self, key: &str) -> impl Future<Output = Result<String, String>>;
+}
+
+struct NativeSecretPrompt;
+impl SecretPrompt for NativeSecretPrompt {
+    async fn read(&mut self, key: &str) -> Result<String, String> {
+        crate::secret_input::read_secret(key, false).await
+    }
+}
+
+async fn setup_with_prompt(
+    args: &[OsString],
+    context: &ConfigContext<'_>,
+    keychain: &mut impl Keychain,
+    cancellation: &CancellationToken,
+    write: &mut impl FnMut(String),
+    macos: bool,
+    prompt: &mut impl SecretPrompt,
 ) -> Result<(), String> {
     check_cancel(cancellation)?;
     let loaded = load_user_config(
@@ -253,9 +289,8 @@ pub async fn setup(
     if let Some(store) = secret_store {
         values.insert("AUTOROUTER_SECRET_STORE".into(), json!(store));
     }
-    let defaulted_store = !values.contains_key("AUTOROUTER_SECRET_STORE")
-        && cfg!(target_os = "macos")
-        && (!loaded.exists || replace);
+    let defaulted_store =
+        !values.contains_key("AUTOROUTER_SECRET_STORE") && macos && (!loaded.exists || replace);
     if defaulted_store {
         values.insert("AUTOROUTER_SECRET_STORE".into(), json!("keychain"));
     }
@@ -302,9 +337,7 @@ pub async fn setup(
     if let Some(policy) = &loaded.policy {
         apply_policy(&Value::Object(values.clone()), policy, true)?;
     }
-    if values.get("AUTOROUTER_SECRET_STORE") == Some(&json!("keychain"))
-        && !cfg!(target_os = "macos")
-    {
+    if values.get("AUTOROUTER_SECRET_STORE") == Some(&json!("keychain")) && !macos {
         return Err("--secret-store keychain is available only on macOS".into());
     }
     for key in &keys {
@@ -327,7 +360,7 @@ pub async fn setup(
             .or_else(|| trim(&environment));
         let supplied = match supplied {
             Some(value) => value,
-            None => crate::secret_input::read_secret(key, false).await?,
+            None => prompt.read(key).await?,
         };
         check_cancel(cancellation)?;
         let supplied = js_trim(&supplied);
@@ -429,11 +462,7 @@ pub async fn setup(
                 "Keys and settings are"
             }
         ));
-        if !keys.is_empty()
-            && cfg!(target_os = "macos")
-            && saved_store == "file"
-            && !defaulted_store
-        {
+        if !keys.is_empty() && macos && saved_store == "file" && !defaulted_store {
             write("Keys are plaintext in this file. Move them into the macOS Keychain: claude-autorouter config set AUTOROUTER_SECRET_STORE keychain".into());
         }
     }

@@ -3,6 +3,8 @@
 mod abort;
 mod abort_tests;
 mod client;
+pub(crate) mod gateway_intent;
+mod gateway_intent_tests;
 mod lifecycle;
 mod lifecycle_tests;
 mod options;
@@ -19,6 +21,16 @@ use std::sync::Arc;
 /// child process. Ordinary cargo test never starts this synthetic gateway.
 #[tokio::test]
 async fn gateway_child() {
+    run_gateway_child(false).await;
+}
+
+/// Separate test executable entrypoint; the original stage A/B2 mode is unchanged.
+#[tokio::test]
+async fn gateway_intent_child() {
+    run_gateway_child(true).await;
+}
+
+async fn run_gateway_child(intents: bool) {
     let mode = std::env::var("AUTOROUTER_SYNTHETIC_OPENSSL_SPIKE").unwrap_or_default();
     if !matches!(mode.as_str(), "stage-a" | "stage-b2") {
         return;
@@ -31,7 +43,14 @@ async fn gateway_child() {
         }
         std::process::exit(9);
     }
-    let transport = match SpikeHttpClient::with_sessions(mode == "stage-b2") {
+    let candidate = if intents {
+        policy::trust_snapshot().and_then(|snapshot| {
+            SpikeHttpClient::with_snapshot_aborts(mode == "stage-b2", &snapshot, true)
+        })
+    } else {
+        SpikeHttpClient::with_sessions(mode == "stage-b2")
+    };
+    let transport = match candidate {
         Ok(transport) => Arc::new(transport),
         Err(error) => {
             eprintln!("{error}");
@@ -48,6 +67,12 @@ async fn gateway_child() {
     )
     .unwrap();
     let gateway = Gateway::new(config, transport.clone(), EventSinks::default()).unwrap();
+    let probe = gateway_intent::Probe::default();
+    let gateway = if intents {
+        Gateway::with_test_intent(gateway, probe.clone())
+    } else {
+        gateway
+    };
     let server = gateway.listen(0).await.unwrap();
     eprintln!("AutoRouter listening on http://{}", server.address);
     #[cfg(unix)]
@@ -60,6 +85,10 @@ async fn gateway_child() {
     tokio::signal::ctrl_c().await.unwrap();
     server.close().await;
     drop(gateway);
+    if intents {
+        assert_eq!(probe.live(), 0, "gateway intent cleanup");
+        eprintln!("OpenSSL gateway intent fixture: {:?}", probe.rows());
+    }
     if mode == "stage-b2" {
         use std::sync::atomic::Ordering;
         let raw = transport.raw_counts.clone();

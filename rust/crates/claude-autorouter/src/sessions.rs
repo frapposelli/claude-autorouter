@@ -10,6 +10,10 @@ use serde_json::json;
 use std::ffi::OsString;
 use std::path::PathBuf;
 
+#[cfg(test)]
+#[path = "sessions_contracts.rs"]
+mod contracts;
+
 pub async fn command(
     args: &[OsString],
     context: &ConfigContext<'_>,

@@ -519,6 +519,15 @@ impl HttpTransport for SpikeHttpClient {
         &self,
         mut request: Request<Full<Bytes>>,
     ) -> Result<Response<Incoming>, HttpError> {
+        if let Some(intent) = request
+            .extensions()
+            .get::<Arc<super::gateway_intent::Intent>>()
+            .cloned()
+        {
+            let capture =
+                hyper_util::client::legacy::connect::capture_http1_assignment(&mut request);
+            intent.install(capture);
+        }
         request
             .extensions_mut()
             .insert(hyper::ext::NodeHttpResponsePolicy);

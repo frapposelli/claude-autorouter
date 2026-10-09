@@ -10,6 +10,7 @@ use std::path::{Path, PathBuf};
 const ROOT: &str = "autorouter-benchmark";
 const LARGE_SYNTHETIC_CORPORA: &[&str] = &[
     "rust/parity/cases/router-contracts.jsonl",
+    "rust/parity/cases/ollama-router-contracts.jsonl",
     "rust/parity/cases/response-observer-contracts.jsonl",
     "rust/parity/cases/telemetry-statusline-contracts.jsonl",
 ];
@@ -38,6 +39,16 @@ const FIXED: &[&str] = &[
     "rust/parity/cases/local-diagnostic-contracts.capture.json",
     "rust/parity/cases/server-response-contracts.jsonl",
     "rust/parity/cases/server-response-contracts.capture.json",
+    "rust/parity/cases/ollama-evaluator-finite-contracts.jsonl",
+    "rust/parity/cases/ollama-evaluator-finite-contracts.capture.json",
+    "rust/parity/cases/redaction-contracts.jsonl",
+    "rust/parity/cases/redaction-contracts.capture.json",
+    "rust/parity/cases/ollama-router-contracts.jsonl",
+    "rust/parity/cases/ollama-router-contracts.capture.json",
+    "rust/parity/cases/server-subscription-contracts.jsonl",
+    "rust/parity/cases/server-subscription-contracts.capture.json",
+    "rust/parity/cases/benchmark-router-contracts.jsonl",
+    "rust/parity/cases/benchmark-router-contracts.capture.json",
     "rust/parity/cases/release-contracts.jsonl",
     "rust/parity/cases/release-contracts.capture.json",
     "rust/parity/cases/response-observer-contracts.jsonl",

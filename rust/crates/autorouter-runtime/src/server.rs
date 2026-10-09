@@ -10,6 +10,11 @@ use crate::router::Router;
 use crate::server_events::{
     EventSink, EventSinks, RequestEvents, emit, emit_document, event_document,
 };
+#[cfg(test)]
+use crate::tls_roots::openssl_spike::gateway_intent::{
+    Cause as IntentCause, Event as IntentEvent, Intent, IntentIo, Probe as IntentProbe,
+    Registry as IntentRegistry,
+};
 use crate::transport_completion::{
     CompletionRegistry, Delivery, RequestReceiveDeadline, serve_http1,
 };
@@ -349,6 +354,8 @@ struct ForwardBody<B> {
     events: Option<Arc<RequestEvents>>,
     log: Option<EventSink>,
     finished: bool,
+    #[cfg(test)]
+    intent: Option<Arc<Intent>>,
 }
 impl<B> ForwardBody<B> {
     fn new(
@@ -365,7 +372,14 @@ impl<B> ForwardBody<B> {
             events,
             log,
             finished: false,
+            #[cfg(test)]
+            intent: None,
         }
+    }
+    #[cfg(test)]
+    fn with_intent(mut self, intent: Option<Arc<Intent>>) -> Self {
+        self.intent = intent;
+        self
     }
 }
 impl<B: Body<Data = Bytes>> Body for ForwardBody<B> {
@@ -380,6 +394,10 @@ impl<B: Body<Data = Bytes>> Body for ForwardBody<B> {
             return Poll::Ready(None);
         }
         if this.cancelled.as_mut().poll(cx).is_ready() {
+            #[cfg(test)]
+            if let Some(intent) = &this.intent {
+                intent.observe(IntentEvent::GenericCancellation);
+            }
             this.finished = true;
             if let Some(events) = &this.events {
                 events.status("request_cancelled", json!({}));
@@ -387,12 +405,24 @@ impl<B: Body<Data = Bytes>> Body for ForwardBody<B> {
             return Poll::Ready(Some(Err(io::Error::other("Request cancelled"))));
         }
         if this.deadline.as_mut().poll(cx).is_ready() {
+            #[cfg(test)]
+            if let Some(intent) = &this.intent {
+                intent.finish(IntentCause::Deadline);
+            }
             this.finished = true;
             emit(&this.log, json!({"event":"proxy_error","status":502}));
             if let Some(events) = &this.events {
                 events.status("request_error", json!({"status":502}));
             }
             return Poll::Ready(Some(Err(io::Error::other("Upstream deadline exceeded"))));
+        }
+        #[cfg(test)]
+        if this
+            .intent
+            .as_ref()
+            .is_some_and(|intent| !intent.body_ready(cx))
+        {
+            return Poll::Pending;
         }
         match this.inner.as_mut().poll_frame(cx) {
             Poll::Ready(Some(Ok(frame))) if frame.is_trailers() => {
@@ -403,6 +433,10 @@ impl<B: Body<Data = Bytes>> Body for ForwardBody<B> {
                 Poll::Pending
             }
             Poll::Ready(Some(Err(_))) => {
+                #[cfg(test)]
+                if let Some(intent) = &this.intent {
+                    intent.finish(IntentCause::UpstreamFailure);
+                }
                 this.finished = true;
                 emit(&this.log, json!({"event":"proxy_error","status":502}));
                 if let Some(events) = &this.events {
@@ -411,6 +445,10 @@ impl<B: Body<Data = Bytes>> Body for ForwardBody<B> {
                 Poll::Ready(Some(Err(io::Error::other("Upstream body failed"))))
             }
             Poll::Ready(None) => {
+                #[cfg(test)]
+                if let Some(intent) = &this.intent {
+                    intent.observe(IntentEvent::UpstreamEof);
+                }
                 this.finished = true;
                 Poll::Ready(None)
             }
@@ -432,6 +470,8 @@ pub struct Gateway<T, R = Router<T>> {
     transport: Arc<T>,
     router: Arc<R>,
     sinks: EventSinks,
+    #[cfg(test)]
+    intent_probe: Option<IntentProbe>,
 }
 impl<T: HttpTransport + 'static> Gateway<T>
 where
@@ -468,7 +508,16 @@ where
             transport,
             router,
             sinks,
+            #[cfg(test)]
+            intent_probe: None,
         }))
+    }
+    #[cfg(test)]
+    pub(crate) fn with_test_intent(mut gateway: Arc<Self>, probe: IntentProbe) -> Arc<Self> {
+        Arc::get_mut(&mut gateway)
+            .expect("unique fixture gateway")
+            .intent_probe = Some(probe);
+        gateway
     }
     pub async fn listen(self: &Arc<Self>, port: u16) -> Result<GatewayHandle, String> {
         let listener = tokio::net::TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, port))
@@ -490,7 +539,14 @@ where
                         let Ok((stream,_))=incoming else{break};let gateway=gateway.clone();let token=stopping.child_token();
                         connections.spawn(async move{
                             let registry=CompletionRegistry::new(16);let for_service=registry.clone();let request_token=token.clone();
-                            let service=service_fn(move|request: Request<Incoming>|{let gateway=gateway.clone();let registry=for_service.clone();let token=request_token.child_token();async move{if request.method() == Method::CONNECT { return Err(io::Error::new(io::ErrorKind::ConnectionAborted,"CONNECT is not supported")); } Ok::<_,io::Error>(gateway.handle(request,registry,token).await)}});
+                            #[cfg(test)]
+                            let intent_registry = gateway.intent_probe.clone().map(|probe| IntentRegistry::new(probe, 16));
+                            #[cfg(test)]
+                            let stream = IntentIo::new(stream, intent_registry.clone());
+                            let service=service_fn(move|request: Request<Incoming>|{
+                                #[cfg(test)]
+                                let request = { let mut request = request; if let Some(registry) = &intent_registry { request.extensions_mut().insert(registry.clone()); } request };
+                                let gateway=gateway.clone();let registry=for_service.clone();let token=request_token.child_token();async move{if request.method() == Method::CONNECT { return Err(io::Error::new(io::ErrorKind::ConnectionAborted,"CONNECT is not supported")); } Ok::<_,io::Error>(gateway.handle(request,registry,token).await)}});
                             tokio::select!{biased;_=token.cancelled()=>{},_=serve_http1(stream,registry,service)=>{}}
                             token.cancel();
                         });
@@ -791,12 +847,44 @@ where
                 hyper::header::HeaderValue::from(body.len()),
             );
         }
+        #[cfg(test)]
+        let intent = match parts.extensions.get::<IntentRegistry>() {
+            Some(registry) => match registry.register() {
+                Ok(intent) => {
+                    request.extensions_mut().insert(intent.clone());
+                    Some(intent)
+                }
+                Err(()) => return reject(502, "Router could not complete the upstream request"),
+            },
+            None => None,
+        };
         let deadline = Instant::now() + Duration::from_millis(self.config.upstream_timeout_ms);
         if let Some(events) = &events {
             events.forwarding();
         }
-        let response = match tokio::select! {biased;_=cancellation.cancelled()=>Err(()),_=tokio::time::sleep_until(deadline)=>Err(()),result=self.transport.request_raw(request)=>result.map_err(|_|())}
-        {
+        let response_deadline = tokio::time::sleep_until(deadline);
+        #[cfg(test)]
+        let response_deadline = async {
+            response_deadline.await;
+            // select! drops losing futures before its branch body. The test
+            // intent must claim while the request future still owns its lease.
+            if let Some(intent) = &intent {
+                intent.finish(IntentCause::Deadline);
+            }
+        };
+        let response = match tokio::select! {
+            biased;
+            _=cancellation.cancelled()=>{
+                #[cfg(test)]
+                if let Some(intent) = &intent { intent.observe(IntentEvent::GenericCancellation); }
+                Err(())
+            },
+            _=response_deadline=>Err(()),
+            result=self.transport.request_raw(request)=>result.map_err(|_| {
+                #[cfg(test)]
+                if let Some(intent) = &intent { intent.finish(IntentCause::UpstreamFailure); }
+            })
+        } {
             Ok(response) => response,
             Err(()) => {
                 emit(&self.sinks.log, json!({"event":"proxy_error","status":502}));
@@ -862,18 +950,26 @@ where
                 }
             })
             .expect("fixed observer bound");
-        let response = Response::from_parts(
-            parts,
-            ForwardBody::new(
-                ObservedBody::new(body, observer),
-                deadline,
-                cancellation,
-                events,
-                self.sinks.log.clone(),
-            ),
+        let forward = ForwardBody::new(
+            ObservedBody::new(body, observer),
+            deadline,
+            cancellation,
+            events,
+            self.sinks.log.clone(),
         );
+        #[cfg(test)]
+        let forward = forward.with_intent(intent.clone());
+        let response = Response::from_parts(parts, forward);
         if let Some(lease) = lease {
             match registry.track(response, move |delivery| {
+                #[cfg(test)]
+                if let Some(intent) = &intent {
+                    if delivery == Delivery::Flushed {
+                        intent.finish(IntentCause::Delivered);
+                    } else {
+                        intent.observe(IntentEvent::DeliveryFailed);
+                    }
+                }
                 let evidence = evidence.lock().unwrap().take();
                 lease.finish(delivery, evidence, status.is_success());
             }) {
@@ -881,6 +977,19 @@ where
                 Err(_) => json_error(502, "Router could not complete the upstream request"),
             }
         } else {
+            #[cfg(test)]
+            if let Some(intent) = intent {
+                return match registry.track(response, move |delivery| {
+                    if delivery == Delivery::Flushed {
+                        intent.finish(IntentCause::Delivered);
+                    } else {
+                        intent.observe(IntentEvent::DeliveryFailed);
+                    }
+                }) {
+                    Ok(response) => response.map(boxed),
+                    Err(_) => json_error(502, "Router could not complete the upstream request"),
+                };
+            }
             response.map(boxed)
         }
     }

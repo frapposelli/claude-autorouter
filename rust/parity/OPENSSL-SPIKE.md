@@ -362,3 +362,57 @@ vendor patch. The original failed B2 **13/18** report and all five differences
 remain qualification gates. In particular, GET `/v1/models` downstream intent,
 IO-before-body-Drop timing, idle-pool scheduling, TLS1.3 rejection flight ordering,
 and B3 initialization remain separate work.
+
+### Gateway intent experiment (tenth increment, opt-in test builds)
+
+A separate `gateway_intent_child` entrypoint now enables request-owned intent on
+all forwarded endpoints, including GET `/v1/models`. The original gateway fixture
+and shipping Rustls transport keep their existing behavior. Downstream read EOF,
+read error and write failure are observed before the IO result returns to Hyper;
+only a valid, still-exclusive reservation claim can reach the private socket
+shutdown control. Ordinary body Drop, generic cancellation-token teardown and
+local socket shutdown do not manufacture an abort cause. Upstream failures keep
+their first-cause protection, while genuine physical upstream IO errors retain
+their independent existing session-eviction behavior.
+
+Header deadlines notify inside the deadline future before `select!` drops its
+losing request future. A retained failed draft put notification in the branch
+body and therefore found the assignment already retired. Response delivery for
+GET/count requests uses the existing completion registry's framing/flush proof;
+clean upstream EOF and body Drop are not successful delivery. The existing
+inference continuity operation and completion-registry implementation are unchanged.
+
+The 25 new tests include deterministic cause/weak-registry controls, the eleven
+observed Node GET closure schedules, 204 delivery, header/body deadlines, HTTP
+old-request/sibling isolation, and six TLS1.2/TLS1.3 cancellation/reuse schedules.
+Server-counted cancellation handshakes are full, full, then resumed. All 83 spike
+tests and scoped Clippy pass. Three isolated mutation controls reject missing IO
+notification, overwritten first cause and the former late deadline notification;
+the positive and all three mutated test executables are retained.
+
+The unchanged original B2 fixture remains **13/18**. Running the same cases and
+comparisons through the opt-in entrypoint yields **15/18**, closing only the two
+body-cancellation rows. Both idle-close scheduling differences and the rejected
+TLS1.3 host handshake-event difference remain. The fresh-handshake/option
+regression remains 223/223, with its three separately unqualified configuration
+modes still explicit.
+
+A buffering-policy gap also remains. With an artificially unpolled `Incoming`,
+the native driver did not observe a short body's EOF; the original failed
+hypothesis, source and executable are retained. The revised native test only
+shows a live transport at the held-body boundary, then actual upstream failure
+after releasing the gate. Frozen Node with `Incoming.resume` held still observes
+EOF for seven buffered bytes below its observed 64 KiB high-water mark. At an
+actual buffer-saturation barrier with a 128 KiB body, Node has not observed EOF;
+cancelling then legitimately makes its abort signal the first cause. Sending FIN
+alone is never treated as proof the receiver observed EOF. This experiment does
+not qualify general backpressure equivalence, add socket peeking or parallel TLS
+reads, or implement a read-ahead adapter.
+
+The [gateway-intent summary](measurements/openssl-gateway-intent-summary.json)
+binds the source/executable snapshots, Node traces, exact driver derivation,
+positive and negative results, and retained failures. Preassignment cancellation,
+process-stop intent, two-origin schedules, multi-threaded OS-close races, full
+pooling/fetch behavior, B3 initialization and production transport promotion
+remain separate gates. All new socket/session fixtures use synthetic loopback
+peers; there are no provider calls or performance claims.
