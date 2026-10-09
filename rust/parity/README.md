@@ -59,6 +59,23 @@ configuration/authentication, status, history, and evaluation report logic.
 This command does not run HTTP executable comparisons, installed-archive
 lifecycle tests, timing measurements, or live evaluators.
 
+The auto-routing baseline also has a dynamic contract capture. It verifies the
+frozen source hashes, runs all 23 original test callbacks and assertions, and
+records every JSON-safe guard call with its result and before/after request
+serialization. The native fixture invokes the document-based guard used by the
+runtime. Two non-finite-number API calls remain explicit migration boundaries;
+they are not silently converted to null and counted as covered.
+
+```sh
+node parity/capture-auto-routing-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/auto-routing-contracts-NEW
+cargo xtask parity --cases artifacts/rust-rewrite/auto-routing-contracts-NEW/cases.jsonl --report artifacts/rust-rewrite/parity-auto-routing-contracts-NEW.json
+```
+
+The retained capture identifies every baseline definition and dynamic case.
+Capturing the reference alone is not native evidence; the second command must
+pass against the same corpus. This supplements the broader generated guard
+corpus and does not establish complete gateway routing or provider behavior.
+
 The pure history fixture defaults explicitly to `en-US`; actual environment
 selection is tested separately. History count ordering uses the native ICU4X collator and preserves JavaScript
 integer-key enumeration and stable insertion order for collation ties. The

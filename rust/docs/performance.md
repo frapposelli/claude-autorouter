@@ -1,9 +1,10 @@
 # Native performance investigation
 
-The second five-round comparison preserves the same protocol and thresholds.
-Small requests and cache hits improved, but large-catalog throughput and CPU
-still fail the targets. The rewrite's overall performance gate remains
-incomplete. Both runs below retain failures and unmeasured metrics.
+The third five-round comparison meets the measured CPU, throughput and latency
+nonregression targets on this workstation, including the previously failing
+large-catalog workload. The rewrite's overall performance gate remains
+incomplete: true peak memory, processing-only latency, additional workloads and
+representative hardware are still unmeasured. Earlier failed runs remain below.
 
 ## First comparison
 
@@ -111,13 +112,49 @@ dominant sampled function; this is profiling evidence, not a timing result.
 The 17-family differential suite passed all 206,625 cases after this change,
 including escaped keys, all UTF-16 code units, opaque provider fields, and
 JavaScript number semantics. These checks establish correctness within that
-corpus; a new immutable benchmark is still required to measure the change.
+corpus. The third immutable comparison below measures this change together with
+the corrected certificate verifier.
 
 Shared storage has a memory tradeoff: each string carries reference-count and
 cache metadata, and escaped scalar strings can retain both UTF-8 and UTF-16.
 Inputs dominated by tiny strings may therefore use more memory than before.
 The initial large-catalog workload does not qualify that case; it requires a
 separate measured workload before making a general memory-improvement claim.
+
+## Third comparison
+
+The [third retained summary](../parity/measurements/local-v1-run-3-summary.json)
+contains every aggregate row and paired interval from the unchanged five-round,
+225-row protocol. All request, evaluator and count calls and response bytes
+matched. The offline build used detached commit
+`c58df75e3753f0df5d957243e0f98eb792c6bc16`; its source archive SHA-256 is
+`c32e6a820ce432d5cbecfaac23798e2ce89d151553e1484a71d3458ae0f91bee` and
+native executable SHA-256 is
+`e143efa31e5e230ee26345b271eb295c1ad4caa6c3e1b36e098a3804aa93de49`.
+Local agent builds and tests were paused during measurements. The hardware,
+runtime/compiler versions, sample counts and thresholds match the earlier
+protocol; the workstation remains uncontrolled and results are exploratory.
+
+| Observation | Native / Node paired-round median ratio |
+| --- | --- |
+| Help/version startup | About 0.058 |
+| Status renderer startup | About 0.097 |
+| Idle whole-process RSS | About 0.176 |
+| Small-request CPU per request | 0.352–0.359 |
+| Small-request throughput | 1.80–2.00 |
+| Cache-hit CPU per request | 0.467–0.493 |
+| Cache-hit throughput | 1.31–1.53 |
+| Large-catalog CPU per request | 0.581–0.620 |
+| Large-catalog throughput | 1.39–1.43 |
+
+Every measured HTTP workload's p95/p99 interval detected no regression under
+the declared allowance. Large-catalog CPU and throughput now meet the 0.7 CPU
+ceiling and 0.9 throughput floor. Its concurrency-one HTTP p95 ratio is 0.686;
+that includes transport and mock overhead and does not establish the separate
+0.5 processing-only target. The response timing records when headers are ready,
+not the first body byte. Sampled RSS does not establish true peak memory.
+No result qualifies later source edits, unmeasured workloads, other hardware,
+live providers, or production cutover.
 
 The [measurement protocol](../parity/local-benchmark-v1.json) and
 [acceptance gates](../parity/performance-gates.json) remain unchanged. Raw

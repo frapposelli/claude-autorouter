@@ -37,6 +37,26 @@ pub fn execute(fixture: &Value, cwd: &Path) -> Result<Value, String> {
     let op = text(fixture, "op")?;
     let input = field(fixture, "input")?;
     match op {
+        "guard_contract_json" => {
+            let document = document_input(input, true)?;
+            let before = document.stringify();
+            let result = match text(input, "guard")? {
+                "safeguards" => json!(crate::auto_routing::has_routable_safeguards_document(
+                    &document
+                )),
+                "auto" => json!(crate::auto_routing::can_route_auto_request_document(
+                    &document,
+                    text(input, "target")?
+                )),
+                "target" => crate::auto_routing::target_compatibility_document_exact(
+                    &document,
+                    &crate::js_json::JsString::from_scalar(text(input, "target")?),
+                    input["auto_mode"].as_bool().unwrap_or(false),
+                ),
+                _ => return Err("Invalid guard contract fixture".into()),
+            };
+            Ok(json!({"result":result,"before":before,"after":document.stringify()}))
+        }
         "validate_request_json" => Ok(crate::request_validation::validate_request_document(
             &document_input(input, true)?,
         )),

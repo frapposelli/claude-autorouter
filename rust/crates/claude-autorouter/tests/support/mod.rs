@@ -180,6 +180,14 @@ pub struct Server {
 }
 impl Server {
     pub fn new(handler: impl Fn(&Request) -> Response + Send + Sync + 'static) -> Self {
+        Self::with_response(move |request| Some(handler(request)))
+    }
+    pub fn disconnecting() -> Self {
+        Self::with_response(|_| None)
+    }
+    fn with_response(
+        handler: impl Fn(&Request) -> Option<Response> + Send + Sync + 'static,
+    ) -> Self {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
         listener.set_nonblocking(true).unwrap();
         let address = listener.local_addr().unwrap();
@@ -199,7 +207,7 @@ impl Server {
                         let failures = failures.clone();
                         let handler = handler.clone();
                         workers.push(thread::spawn(move||{stream.set_nonblocking(false).unwrap();
-                            stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();stream.set_write_timeout(Some(Duration::from_secs(5))).unwrap();let request=match read_request(&mut stream){Ok(request)=>request,Err(error)=>{failures.lock().unwrap().push(error);return}};recorded.lock().unwrap().push(request.clone());let response=handler(&request);let header=format!("HTTP/1.1 {} OK\r\nContent-Type: {}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",response.status,response.kind,response.body.len());if stream.write_all(header.as_bytes()).and_then(|()|stream.write_all(&response.body)).is_err(){failures.lock().unwrap().push("Synthetic response write failed")}}));
+                            stream.set_read_timeout(Some(Duration::from_secs(5))).unwrap();stream.set_write_timeout(Some(Duration::from_secs(5))).unwrap();let request=match read_request(&mut stream){Ok(request)=>request,Err(error)=>{failures.lock().unwrap().push(error);return}};recorded.lock().unwrap().push(request.clone());let Some(response)=handler(&request) else{return};let header=format!("HTTP/1.1 {} OK\r\nContent-Type: {}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",response.status,response.kind,response.body.len());if stream.write_all(header.as_bytes()).and_then(|()|stream.write_all(&response.body)).is_err(){failures.lock().unwrap().push("Synthetic response write failed")}}));
                     }
                     Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
                         thread::sleep(Duration::from_millis(2))
@@ -317,61 +325,234 @@ fn read_request(stream: &mut TcpStream) -> Result<Request, &'static str> {
 }
 
 pub fn hidden_secret(command: &mut Command, label: &str, secret: &str) -> Output {
+    hidden_inputs(command, &[(label, HiddenInput::Secret(secret))])
+}
+
+pub enum HiddenInput<'a> {
+    Secret(&'a str),
+    Cancel,
+}
+
+pub fn hidden_inputs(command: &mut Command, inputs: &[(&str, HiddenInput<'_>)]) -> Output {
     use nix::fcntl::{FcntlArg, OFlag, fcntl};
     use nix::pty::openpty;
     use std::fs::File;
+    struct PromptChild(std::process::Child, bool);
+    impl PromptChild {
+        fn clean_group(&mut self) {
+            if !self.1 {
+                let _ = nix::sys::signal::killpg(
+                    nix::unistd::Pid::from_raw(self.0.id() as i32),
+                    nix::sys::signal::Signal::SIGKILL,
+                );
+                self.1 = true;
+            }
+        }
+    }
+    impl Drop for PromptChild {
+        fn drop(&mut self) {
+            self.clean_group();
+            let _ = self.0.wait();
+        }
+    }
+    // Observe without reaping, so the process-group ID remains reserved until
+    // descendants have been stopped. This follows xtask's fixture ownership.
+    struct ExitObserver {
+        #[cfg(target_os = "macos")]
+        queue: nix::sys::event::Kqueue,
+        #[cfg(target_os = "macos")]
+        exited: bool,
+    }
+    impl ExitObserver {
+        fn new(pid: u32) -> Self {
+            #[cfg(target_os = "macos")]
+            {
+                use nix::sys::event::{EvFlags, EventFilter, FilterFlag, KEvent, Kqueue};
+                let queue = Kqueue::new().unwrap();
+                let event = KEvent::new(
+                    pid as usize,
+                    EventFilter::EVFILT_PROC,
+                    EvFlags::EV_ADD | EvFlags::EV_ONESHOT,
+                    FilterFlag::NOTE_EXIT,
+                    0,
+                    0,
+                );
+                let exited = match queue.kevent(&[event], &mut [], None) {
+                    Ok(_) => false,
+                    Err(nix::errno::Errno::ESRCH) => true,
+                    Err(error) => panic!("Cannot observe synthetic prompt process: {error}"),
+                };
+                Self { queue, exited }
+            }
+            #[cfg(not(target_os = "macos"))]
+            {
+                let _ = pid;
+                Self {}
+            }
+        }
+        fn exited(&mut self, child: &mut PromptChild) -> bool {
+            #[cfg(target_os = "macos")]
+            {
+                use nix::sys::event::{EvFlags, EventFilter, FilterFlag, KEvent};
+                if self.exited {
+                    return true;
+                }
+                let mut events = [KEvent::new(
+                    child.0.id() as usize,
+                    EventFilter::EVFILT_PROC,
+                    EvFlags::empty(),
+                    FilterFlag::empty(),
+                    0,
+                    0,
+                )];
+                match self.queue.kevent(
+                    &[],
+                    &mut events,
+                    Some(nix::libc::timespec {
+                        tv_sec: 0,
+                        tv_nsec: 0,
+                    }),
+                ) {
+                    Ok(0) | Err(nix::errno::Errno::EINTR) => false,
+                    Ok(1)
+                        if !events[0].flags().contains(EvFlags::EV_ERROR)
+                            && events[0].ident() == child.0.id() as usize
+                            && events[0].fflags().contains(FilterFlag::NOTE_EXIT) =>
+                    {
+                        self.exited = true;
+                        true
+                    }
+                    _ => panic!("Cannot observe synthetic prompt process"),
+                }
+            }
+            #[cfg(target_os = "linux")]
+            {
+                use nix::sys::wait::{Id, WaitPidFlag, WaitStatus, waitid};
+                match waitid(
+                    Id::Pid(nix::unistd::Pid::from_raw(child.0.id() as i32)),
+                    WaitPidFlag::WEXITED | WaitPidFlag::WNOHANG | WaitPidFlag::WNOWAIT,
+                ) {
+                    Ok(WaitStatus::Exited(_, _) | WaitStatus::Signaled(_, _, _)) => true,
+                    Ok(WaitStatus::StillAlive) | Err(nix::errno::Errno::EINTR) => false,
+                    Err(nix::errno::Errno::ECHILD) => {
+                        child.1 = true;
+                        panic!("Synthetic prompt process was reaped outside its fixture");
+                    }
+                    _ => panic!("Cannot observe synthetic prompt process"),
+                }
+            }
+            #[cfg(not(any(target_os = "macos", target_os = "linux")))]
+            {
+                let _ = child;
+                panic!("Synthetic prompt observation supports macOS and Linux only");
+            }
+        }
+    }
+    fn read_ready(reader: &mut impl Read, output: &mut Vec<u8>, limit: usize, pty: bool) -> bool {
+        let mut bytes = [0; 4096];
+        match reader.read(&mut bytes) {
+            Ok(0) => true,
+            Ok(count) => {
+                output.extend_from_slice(&bytes[..count]);
+                assert!(
+                    output.len() <= limit,
+                    "Synthetic prompt output exceeded its bound"
+                );
+                false
+            }
+            Err(error)
+                if error.kind() == std::io::ErrorKind::WouldBlock
+                    || error.kind() == std::io::ErrorKind::Interrupted =>
+            {
+                false
+            }
+            Err(error) if pty && error.raw_os_error() == Some(5) => true,
+            Err(error) => panic!("Synthetic prompt read failed: {error}"),
+        }
+    }
     let pair = openpty(None, None).unwrap();
     let mut master = File::from(pair.master);
     let slave = File::from(pair.slave);
     let flags = OFlag::from_bits_truncate(fcntl(&master, FcntlArg::F_GETFL).unwrap());
     fcntl(&master, FcntlArg::F_SETFL(flags | OFlag::O_NONBLOCK)).unwrap();
-    let mut child = command
-        .process_group(0)
-        .stdin(slave.try_clone().unwrap())
-        .stderr(slave)
-        .stdout(Stdio::piped())
-        .spawn()
-        .unwrap();
+    let mut child = PromptChild(
+        command
+            .process_group(0)
+            .stdin(slave.try_clone().unwrap())
+            .stderr(slave)
+            .stdout(Stdio::piped())
+            .spawn()
+            .unwrap(),
+        false,
+    );
+    // Command retains its configured files after spawn. Release those parent
+    // slave handles so the PTY can reach EOF after the owned child group exits.
+    command.stdin(Stdio::null()).stderr(Stdio::null());
+    let mut child_stdout = child.0.stdout.take().unwrap();
+    let mut observer = ExitObserver::new(child.0.id());
+    let flags = OFlag::from_bits_truncate(fcntl(&child_stdout, FcntlArg::F_GETFL).unwrap());
+    fcntl(&child_stdout, FcntlArg::F_SETFL(flags | OFlag::O_NONBLOCK)).unwrap();
+    let mut stdout = Vec::new();
     let mut visible = Vec::new();
-    let mut sent = false;
+    let mut stdout_closed = false;
+    let mut terminal_closed = false;
+    let mut exited = None;
+    let mut sent = 0;
+    let mut prompt_start = 0;
     let deadline = Instant::now() + Duration::from_secs(15);
     let status = loop {
-        let mut bytes = [0; 4096];
-        match master.read(&mut bytes) {
-            Ok(n) => {
-                visible.extend_from_slice(&bytes[..n]);
-                assert!(visible.len() < 65536);
-            }
-            Err(e) if e.kind() == std::io::ErrorKind::WouldBlock || e.raw_os_error() == Some(5) => {
-            }
-            Err(e) => panic!("Synthetic prompt read failed: {e}"),
-        };
-        if !sent && String::from_utf8_lossy(&visible).contains(&format!("{label} (hidden): ")) {
-            master.write_all(format!("{secret}\r").as_bytes()).unwrap();
-            sent = true;
+        if !terminal_closed {
+            terminal_closed = read_ready(&mut master, &mut visible, 65536, true);
         }
-        if let Some(status) = child.try_wait().unwrap() {
+        if !stdout_closed {
+            stdout_closed = read_ready(&mut child_stdout, &mut stdout, 2 * 1024 * 1024, false);
+        }
+        if let Some((label, input)) = inputs.get(sent) {
+            let prompt = format!("{label} (hidden): ");
+            if let Some(at) = visible[prompt_start..]
+                .windows(prompt.len())
+                .position(|bytes| bytes == prompt.as_bytes())
+            {
+                match input {
+                    HiddenInput::Secret(secret) => {
+                        master.write_all(format!("{secret}\r").as_bytes()).unwrap();
+                    }
+                    HiddenInput::Cancel => master.write_all(b"\x03").unwrap(),
+                }
+                prompt_start += at + prompt.len();
+                sent += 1;
+            }
+        }
+        if exited.is_none() && observer.exited(&mut child) {
+            child.clean_group();
+            exited = Some(child.0.wait().unwrap());
+        }
+        if let Some(status) = exited
+            && stdout_closed
+            && terminal_closed
+        {
             break status;
         }
         if Instant::now() >= deadline {
-            let _ = nix::sys::signal::killpg(
-                nix::unistd::Pid::from_raw(child.id() as i32),
-                nix::sys::signal::Signal::SIGKILL,
+            panic!(
+                "Synthetic prompt timed out after {sent} of {} inputs",
+                inputs.len()
             );
-            let _ = child.wait();
-            panic!("Synthetic prompt timed out")
         }
         std::thread::sleep(Duration::from_millis(3));
     };
-    let mut stdout = Vec::new();
-    child
-        .stdout
-        .take()
-        .unwrap()
-        .read_to_end(&mut stdout)
-        .unwrap();
-    assert!(sent, "Requested secret was not prompted");
-    assert!(!String::from_utf8_lossy(&visible).contains(secret));
+    assert_eq!(
+        sent,
+        inputs.len(),
+        "Requested secrets were not all prompted"
+    );
+    for (_, input) in inputs {
+        if let HiddenInput::Secret(secret) = input
+            && !secret.is_empty()
+        {
+            assert!(!String::from_utf8_lossy(&visible).contains(*secret));
+        }
+    }
     Output {
         status,
         stdout,

@@ -234,11 +234,13 @@ fn disabled_or_malformed_status_settings_keep_original_arguments_and_clear_stale
     }
 }
 
-struct Running(Child);
+struct Running(Child, bool);
 impl Drop for Running {
     fn drop(&mut self) {
-        let _ = killpg(Pid::from_raw(self.0.id() as i32), Signal::SIGKILL);
-        let _ = self.0.wait();
+        if !self.1 {
+            let _ = killpg(Pid::from_raw(self.0.id() as i32), Signal::SIGKILL);
+            let _ = self.0.wait();
+        }
     }
 }
 #[test]
@@ -261,43 +263,66 @@ fn both_launcher_modes_forward_each_requested_signal_once_and_reap_the_child() {
                     .stderr(Stdio::piped())
                     .spawn()
                     .unwrap(),
+                false,
             );
             let stdout = child.0.stdout.take().unwrap();
-            let mut stderr = child.0.stderr.take().unwrap();
+            let stderr = child.0.stderr.take().unwrap();
             let (tx, rx) = mpsc::channel();
+            let (tail_tx, tail_rx) = mpsc::channel();
             let reader = std::thread::spawn(move || {
-                let mut reader = BufReader::new(stdout);
-                let mut first = String::new();
-                reader.read_line(&mut first).unwrap();
-                tx.send(first).unwrap();
+                let mut reader = BufReader::new(stdout).take(65536);
+                let mut records = Vec::new();
+                // The fake child can handle a signal as soon as it prints its
+                // first marker. Wait for its complete record before signaling.
+                for _ in 0..4 {
+                    let mut line = String::new();
+                    assert!(reader.read_line(&mut line).unwrap() > 0);
+                    assert!(line.ends_with('\n'));
+                    records.push(line.trim_end_matches('\n').to_owned());
+                }
+                tx.send(records).unwrap();
                 let mut rest = String::new();
                 reader.read_to_string(&mut rest).unwrap();
-                rest
+                tail_tx.send(rest).unwrap();
             });
-            let ready: Value =
-                serde_json::from_str(&rx.recv_timeout(Duration::from_secs(10)).unwrap()).unwrap();
+            let (error_tx, error_rx) = mpsc::channel();
+            let error_reader = std::thread::spawn(move || {
+                let mut errors = Vec::new();
+                stderr.take(65537).read_to_end(&mut errors).unwrap();
+                assert!(errors.len() <= 65536);
+                error_tx.send(errors).unwrap();
+            });
+            let records = rx.recv_timeout(Duration::from_secs(10)).unwrap();
+            let ready: Value = serde_json::from_str(&records[0]).unwrap();
             assert_eq!(ready["gateway"], "synthetic");
             kill(Pid::from_raw(child.0.id() as i32), signal).unwrap();
             let deadline = Instant::now() + Duration::from_secs(5);
             let status = loop {
                 if let Some(status) = child.0.try_wait().unwrap() {
+                    // Reaping ends ownership of the numeric process-group ID.
+                    child.1 = true;
                     break status;
                 }
                 assert!(Instant::now() < deadline, "Launcher did not stop");
                 std::thread::sleep(Duration::from_millis(3));
             };
             assert_eq!(status.code(), Some(23));
-            let mut errors = Vec::new();
-            stderr.read_to_end(&mut errors).unwrap();
+            let errors = error_rx.recv_timeout(Duration::from_secs(5)).unwrap();
             assert!(errors.is_empty());
-            let rest = reader.join().unwrap();
-            let lines: Vec<_> = rest.lines().collect();
-            let pid = Pid::from_raw(lines[0].parse().unwrap());
+            assert!(
+                tail_rx
+                    .recv_timeout(Duration::from_secs(5))
+                    .unwrap()
+                    .is_empty()
+            );
+            reader.join().unwrap();
+            error_reader.join().unwrap();
+            let pid = Pid::from_raw(records[1].parse().unwrap());
             assert_eq!(kill(pid, None).unwrap_err(), nix::errno::Errno::ESRCH);
             assert_eq!(fs::read_to_string(signal_file).unwrap(), "received");
             if !direct {
-                assert!(!Path::new(lines[1]).exists());
-                closed(lines[2]);
+                assert!(!Path::new(&records[2]).exists());
+                closed(&records[3]);
             }
             no_status(&home);
         }

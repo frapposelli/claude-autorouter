@@ -202,6 +202,8 @@ jobs:
           cargo test --workspace --offline --locked --no-run
           env -u LD_LIBRARY_PATH -u LD_PRELOAD cargo test --workspace --offline --locked
       - run: cargo xtask parity --all --output artifacts/rust-rewrite/parity-gnu-portability
+      - run: node parity/capture-auto-routing-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/auto-routing-contracts
+      - run: cargo xtask parity --cases artifacts/rust-rewrite/auto-routing-contracts/cases.jsonl --report artifacts/rust-rewrite/parity-auto-routing-contracts.json
       - run: cargo build --release --offline --locked --package claude-autorouter
       - name: Inspect actual ELF and enforce required GLIBC symbol versions
         run: |
@@ -227,6 +229,7 @@ jobs:
       - run: node parity/check-node-options-startup.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
       - run: node parity/check-gateway.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
       - run: node parity/check-gateway.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter --unicode
+      - run: node parity/check-gateway-resources.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
       - run: node parity/check-http-parser.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
       - run: node parity/check-upstream-transport.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
       - run: node parity/check-upstream-security.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
@@ -247,5 +250,6 @@ jobs:
             artifacts/rust-rewrite/tls-*.json
             artifacts/rust-rewrite/evidence/*.json
             artifacts/rust-rewrite/parity-gnu-portability/*.json
+            artifacts/rust-rewrite/auto-routing-contracts/*
             artifacts/rust-rewrite/native-package-glibc228/*
           if-no-files-found: warn

@@ -75,12 +75,15 @@ jobs:
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - run: cargo test --workspace --locked
       - run: cargo xtask parity --all --output artifacts/rust-rewrite/parity-ci
+      - run: node parity/capture-auto-routing-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/auto-routing-contracts
+      - run: cargo xtask parity --cases artifacts/rust-rewrite/auto-routing-contracts/cases.jsonl --report artifacts/rust-rewrite/parity-auto-routing-contracts.json
       - run: cargo build --release --locked --package claude-autorouter
       - run: ./target/release/claude-autorouter --version
       - run: node parity/check-config-commands.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
       - run: node parity/check-node-options-startup.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
       - run: node parity/check-gateway.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
       - run: node parity/check-gateway.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter --unicode
+      - run: node parity/check-gateway-resources.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
       - run: node parity/check-http-parser.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
       - run: node parity/check-upstream-transport.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
       - run: node parity/check-upstream-security.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
@@ -97,6 +100,7 @@ jobs:
             artifacts/rust-rewrite/parity*.json
             artifacts/rust-rewrite/tls-*.json
             artifacts/rust-rewrite/parity-ci/*.json
+            artifacts/rust-rewrite/auto-routing-contracts/*
             artifacts/rust-rewrite/evidence/*.json
             artifacts/rust-rewrite/native-package-ci/*
           if-no-files-found: ignore

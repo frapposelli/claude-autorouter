@@ -44,6 +44,39 @@ not universal equivalence. A runtime unit test asserts the linked version number
   exactly the digest length. PKCS#1 signatures are allowed only in TLS 1.2.
   Tampering, a wrong message/key/digest/scheme/salt, and keys below 1024 bits fail.
 
+## Version and P-521 qualification
+
+The client additionally parses `--tls-min-v1.2`, `--tls-min-v1.3`,
+`--tls-max-v1.2`, and `--tls-max-v1.3`. It preserves the frozen release's
+independent Boolean flags, underscore aliases, negation, ignored Boolean values,
+fixed minimum/maximum priority, and startup conflict diagnostic. The protocol
+selection is passed to Rustls before building the connector. Default trust and
+default TLS versions remain unchanged. Simultaneous trust-selector and version
+conflicts produce both diagnostics in Node's order, each with the executable
+prefix and exit status 9 before command dispatch.
+
+The verifier also selects OpenSSL for P-521 handshake signatures: SHA-256,
+SHA-384, or SHA-512 in TLS 1.2; only SHA-512 in TLS 1.3. Advertising the P-521
+scheme also advertises ECDSA/SHA-512 for P-256/P-384 in TLS 1.2, so those two
+new hash/curve combinations use the same selected verifier. Existing ring
+combinations retain ring. The selection happens before signature verification;
+errors never trigger a second verifier. Unit fixtures reject tampered and
+malformed signatures, wrong messages/keys/digests, non-ECDSA schemes, and
+TLS 1.3 curve/hash mismatches. The focused 13-test TLS suite and the preserved
+104-case startup differential pass.
+
+The local handshake matrix restricts peer protocol versions and signature
+schemes, records connection attempts, and requires fresh, non-resumed
+handshakes. All 115 qualified cases pass, including TLS 1.2/1.3 bounds and the
+forced hash/curve combinations. Four P-521 TLS 1.2 cases remain explicit known
+differences: Node succeeds, while the native client rejects the handshake once,
+without a retry. OpenSSL checks the certificate curve against the client's
+supported groups; ring has no P-521 key exchange. Signature verification alone
+does not close that negotiation gap, and the client does not advertise an
+unsupported key-exchange group to bypass it. The failed discovery report and
+previous characterization reports are retained under content-derived names in
+`artifacts/rust-rewrite/evidence/`.
+
 ## Remaining qualification boundaries
 
 The supported-selector gate is `parity/check-tls-options.mjs`, producing
@@ -53,10 +86,11 @@ TLS policy modes and curves. The latter is not passing TLS-parity evidence.
 Neither report qualifies real providers or reads user certificate files: all
 certificate sources and network peers are isolated synthetic fixtures.
 
-`OPENSSL_CONF`, `--openssl-config`, `--openssl-shared-config`, cipher-list and TLS
-version overrides, FIPS flags, and `NODE_TLS_REJECT_UNAUTHORIZED=0` remain explicit
-unsupported modes in the native transport. P-521 end-entity handshake signatures
-remain unqualified by the ring provider. Other curves, RSA-PSS-constrained keys,
+`OPENSSL_CONF`, `--openssl-config`, `--openssl-shared-config`, cipher-list overrides,
+TLS 1.0/1.1 minimum overrides, FIPS flags, and `NODE_TLS_REJECT_UNAUTHORIZED=0` remain
+explicit unsupported modes in the native transport. Together with the four
+P-521 TLS 1.2 cases, these account for 11 unqualified characterization rows;
+they are not counted in the 115 passing cases. Other curves, RSA-PSS-constrained keys,
 revocation overrides, custom Node builds, and later Node system-root behavior
 also need separate evidence. The frozen version ignores `NODE_USE_SYSTEM_CA` and
 rejects `--use-system-ca` before application dispatch; those frozen behaviors do

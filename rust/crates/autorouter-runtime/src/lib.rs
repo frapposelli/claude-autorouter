@@ -22,4 +22,5 @@ pub mod token_counter;
 pub mod transport_completion;
 pub mod user_config;
 
+mod tls_policy;
 pub mod tls_roots;

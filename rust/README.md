@@ -74,7 +74,7 @@ cargo xtask benchmark --output artifacts/rust-rewrite/validation-run --validate
 
 Omitting `--validate` runs the declared measurement protocol. Choose a fresh output directory for each run. The [local protocol](parity/local-benchmark-v1.json) freezes sample counts, ordering, uncertainty, and noise floors before measurement. Its initial workload coverage is incomplete; exploratory workstation results cannot approve the full [performance gates](parity/performance-gates.json). True peak RSS, allocations, the remaining workloads, and representative hardware require separate evidence.
 
-The [measured comparisons and profiling notes](docs/performance.md) retain both runs, including the initial regressions and the second run's improvements. Large-catalog CPU and throughput still fail their targets, so the performance gate remains incomplete.
+The [measured comparisons and profiling notes](docs/performance.md) retain all three runs, including earlier failures. The third run meets measured CPU, throughput and latency nonregression targets on the developer workstation. Processing-only latency, true peak memory, additional workloads and representative hardware still keep the overall performance gate incomplete.
 
 ## Distribution and remaining gates
 

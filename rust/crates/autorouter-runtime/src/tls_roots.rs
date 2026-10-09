@@ -20,156 +20,13 @@ use rustls::{CertificateError, DigitallySignedStruct, Error, SignatureScheme};
 
 const BUNDLED: &[u8] = include_bytes!("../../../vendor/node-ca/node-v22.14.0.pem");
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum TrustError {
-    InvalidBundle,
-    UnsupportedOptions,
-    ConflictingSelectors,
-    UnsupportedSystemSelector,
-}
-
-/// Pure check for errors which Node rejects before application command dispatch.
-/// Loading roots or reading certificate files is deliberately deferred.
-pub fn startup_error(options: &str) -> Option<TrustError> {
-    startup_diagnostic(options).map(|message| {
-        if message.starts_with("either ") {
-            TrustError::ConflictingSelectors
-        } else {
-            TrustError::UnsupportedSystemSelector
-        }
-    })
-}
-
-/// Preserves Node's original option spelling and its trailing '=' diagnostic.
-pub fn startup_diagnostic(options: &str) -> Option<String> {
-    let (mut openssl, mut bundled) = (false, false);
-    for word in option_words(options).ok()? {
-        let option = word.split('=').next()?.replace('_', "-");
-        if !option.starts_with("--") {
-            continue;
-        }
-        let (name, enabled) = option
-            .strip_prefix("--no-")
-            .map_or((option.strip_prefix("--")?, true), |name| (name, false));
-        match name {
-            "use-system-ca" => {
-                let original = word
-                    .split_once('=')
-                    .map_or_else(|| word.clone(), |(name, _)| format!("{name}="));
-                return Some(format!("{original} is not allowed in NODE_OPTIONS"));
-            }
-            "use-openssl-ca" => openssl = enabled,
-            "use-bundled-ca" => bundled = enabled,
-            _ => {}
-        }
-    }
-    (openssl && bundled)
-        .then(|| "either --use-openssl-ca or --use-bundled-ca can be used, not both".into())
-}
+use crate::tls_policy::{Mode, process_policy};
+pub use crate::tls_policy::{TrustError, startup_diagnostic, startup_error};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Warning {
     UnreadableExtra,
     MalformedExtra,
-}
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum Mode {
-    Bundled,
-    OpenSsl,
-}
-
-// Node's NODE_OPTIONS grammar uses double quotes and ASCII space, with a
-// backslash escape only inside quotes. Values on Boolean options are ignored.
-fn option_words(options: &str) -> Result<Vec<String>, TrustError> {
-    let mut words = Vec::new();
-    let mut word = String::new();
-    let mut quoted = false;
-    let mut chars = options.chars();
-    for_next(&mut chars, &mut word, &mut words, &mut quoted)?;
-    if quoted {
-        return Err(TrustError::UnsupportedOptions);
-    }
-    if !word.is_empty() {
-        words.push(word);
-    }
-    Ok(words)
-}
-
-fn for_next(
-    chars: &mut std::str::Chars<'_>,
-    word: &mut String,
-    words: &mut Vec<String>,
-    quoted: &mut bool,
-) -> Result<(), TrustError> {
-    while let Some(character) = chars.next() {
-        match character {
-            '\\' if *quoted => word.push(chars.next().ok_or(TrustError::UnsupportedOptions)?),
-            '"' => *quoted = !*quoted,
-            ' ' if !*quoted => {
-                if !word.is_empty() {
-                    words.push(std::mem::take(word));
-                }
-            }
-            _ => word.push(character),
-        }
-    }
-    Ok(())
-}
-
-fn selected_mode(
-    options: &str,
-    _system: Option<&str>,
-    reject: Option<&str>,
-) -> Result<Mode, TrustError> {
-    // These modes require a separate, version-specific contract. In particular,
-    // system CA support was added after the pinned Node release.
-    // NODE_USE_SYSTEM_CA is ignored by the pinned 22.14 release.
-    if reject == Some("0") {
-        return Err(TrustError::UnsupportedOptions);
-    }
-    let mut mode = Mode::Bundled;
-    let (mut openssl, mut bundled) = (false, false);
-    for word in option_words(options)? {
-        let option = word.split('=').next().unwrap_or_default().replace('_', "-");
-        let (name, enabled) = option
-            .strip_prefix("--no-")
-            .map_or((option.as_str(), true), |name| (name, false));
-        let name = name.strip_prefix("--").unwrap_or(name);
-        match name {
-            "use-openssl-ca" => {
-                openssl = enabled;
-                if enabled {
-                    mode = Mode::OpenSsl;
-                }
-            }
-            "use-bundled-ca" => {
-                bundled = enabled;
-                if enabled {
-                    mode = Mode::Bundled;
-                }
-            }
-            "use-system-ca" => return Err(TrustError::UnsupportedSystemSelector),
-            "openssl-config"
-            | "openssl-shared-config"
-            | "tls-cipher-list"
-            | "tls-min-v1.0"
-            | "tls-min-v1.1"
-            | "tls-min-v1.2"
-            | "tls-min-v1.3"
-            | "tls-max-v1.2"
-            | "tls-max-v1.3"
-            | "enable-fips"
-            | "force-fips" => {
-                return Err(TrustError::UnsupportedOptions);
-            }
-            _ => {}
-        }
-    }
-    if openssl && bundled {
-        return Err(TrustError::ConflictingSelectors);
-    }
-    Ok(mode)
 }
 
 // Official frozen Node binaries use these OPENSSLDIR settings. Do not inherit
@@ -384,7 +241,9 @@ impl ServerCertVerifier for NodeCertVerifier {
         cert: &CertificateDer<'_>,
         dss: &DigitallySignedStruct,
     ) -> Result<HandshakeSignatureValid, Error> {
-        if let Some(valid) = verify_small_rsa(message, cert, dss.scheme, dss.signature(), false)? {
+        if let Some(valid) =
+            verify_openssl_signature(message, cert, dss.scheme, dss.signature(), false)?
+        {
             return Ok(valid);
         }
         rustls::crypto::verify_tls12_signature(message, cert, dss, &self.algorithms)
@@ -396,21 +255,28 @@ impl ServerCertVerifier for NodeCertVerifier {
         cert: &CertificateDer<'_>,
         dss: &DigitallySignedStruct,
     ) -> Result<HandshakeSignatureValid, Error> {
-        if let Some(valid) = verify_small_rsa(message, cert, dss.scheme, dss.signature(), true)? {
+        if let Some(valid) =
+            verify_openssl_signature(message, cert, dss.scheme, dss.signature(), true)?
+        {
             return Ok(valid);
         }
         rustls::crypto::verify_tls13_signature(message, cert, dss, &self.algorithms)
     }
 
     fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
-        self.algorithms.supported_schemes()
+        let mut schemes = self.algorithms.supported_schemes();
+        // Preserve the existing preference order. In TLS 1.2 this new scheme
+        // also advertises ECDSA/SHA512 with the already supported EC curves.
+        schemes.push(SignatureScheme::ECDSA_NISTP521_SHA512);
+        schemes
     }
 }
 
-// Node's OpenSSL 3.0 level-1 policy permits 1024..2047-bit RSA keys. Ring's PSS
-// implementation starts at 2048 bits. Select the vetted OpenSSL verifier by key
-// type/size before verifying; a failed signature is never retried elsewhere.
-fn verify_small_rsa(
+// Select the vetted OpenSSL verifier by key type/size/curve and scheme before
+// verifying; a failed signature is never retried elsewhere. Node's OpenSSL 3.0
+// level-1 policy permits 1024..2047-bit RSA keys (ring PSS starts at 2048), and
+// the ECDSA extension below handles only the combinations missing from ring.
+fn verify_openssl_signature(
     message: &[u8],
     certificate: &CertificateDer<'_>,
     scheme: SignatureScheme,
@@ -424,6 +290,9 @@ fn verify_small_rsa(
     let certificate = X509::from_der(certificate)
         .map_err(|_| Error::InvalidCertificate(CertificateError::BadEncoding))?;
     let key = certificate.public_key().map_err(|_| bad_signature())?;
+    if key.id() == openssl::pkey::Id::EC {
+        return verify_extended_ecdsa(message, &key, scheme, signature, tls13);
+    }
     if key.id() != openssl::pkey::Id::RSA || key.bits() >= 2048 {
         return Ok(None);
     }
@@ -465,20 +334,53 @@ fn verify_small_rsa(
     }
 }
 
+// Select only combinations missing from ring. TLS 1.2's ECDSA scheme specifies
+// the digest, not the key curve; TLS 1.3 fixes both. This distinction is also
+// present in the pinned rustls ring provider's verification mapping. Once a
+// key/scheme is selected here, a failed signature never falls through to ring.
+fn verify_extended_ecdsa(
+    message: &[u8],
+    key: &openssl::pkey::PKeyRef<openssl::pkey::Public>,
+    scheme: SignatureScheme,
+    signature: &[u8],
+    tls13: bool,
+) -> Result<Option<HandshakeSignatureValid>, Error> {
+    use openssl::hash::MessageDigest;
+    use openssl::sign::Verifier;
+    let bad_signature = || Error::InvalidCertificate(CertificateError::BadSignature);
+    let curve = key
+        .ec_key()
+        .map_err(|_| bad_signature())?
+        .group()
+        .curve_name();
+    let p521 = curve == Some(Nid::SECP521R1);
+    let existing_curve = matches!(curve, Some(Nid::X9_62_PRIME256V1 | Nid::SECP384R1));
+    if !p521 && !(existing_curve && scheme == SignatureScheme::ECDSA_NISTP521_SHA512) {
+        return Ok(None);
+    }
+    if tls13 && (!p521 || scheme != SignatureScheme::ECDSA_NISTP521_SHA512) {
+        return Err(bad_signature());
+    }
+    let digest = match scheme {
+        SignatureScheme::ECDSA_NISTP256_SHA256 if !tls13 => MessageDigest::sha256(),
+        SignatureScheme::ECDSA_NISTP384_SHA384 if !tls13 => MessageDigest::sha384(),
+        SignatureScheme::ECDSA_NISTP521_SHA512 => MessageDigest::sha512(),
+        _ => return Err(bad_signature()),
+    };
+    if Verifier::new(digest, key)
+        .and_then(|mut verifier| verifier.verify_oneshot(signature, message))
+        .map_err(|_| bad_signature())?
+    {
+        Ok(Some(HandshakeSignatureValid::assertion()))
+    } else {
+        Err(bad_signature())
+    }
+}
+
 pub fn process_verifier() -> Result<Arc<NodeCertVerifier>, TrustError> {
     static VERIFIER: OnceLock<Result<Arc<NodeCertVerifier>, TrustError>> = OnceLock::new();
     VERIFIER.get_or_init(|| {
-        let options = match std::env::var("NODE_OPTIONS") {
-            Ok(options) => options,
-            Err(std::env::VarError::NotPresent) => String::new(),
-            Err(_) => return Err(TrustError::UnsupportedOptions),
-        };
-        let mode = selected_mode(&options,
-            std::env::var("NODE_USE_SYSTEM_CA").ok().as_deref(),
-            std::env::var("NODE_TLS_REJECT_UNAUTHORIZED").ok().as_deref())?;
-        if std::env::var_os("OPENSSL_CONF").is_some() {
-            return Err(TrustError::UnsupportedOptions);
-        }
+        let mode = process_policy()?.mode;
         let extra = std::env::var_os("NODE_EXTRA_CA_CERTS").filter(|value| !value.is_empty());
         let (default_file, default_directory) = default_paths();
         let file = std::env::var_os("SSL_CERT_FILE").map_or(default_file, PathBuf::from);
@@ -574,52 +476,6 @@ mod tests {
             load(Mode::Bundled, Some(&absent.join("absent.pem")), &absent, "").unwrap();
         assert_eq!(store.all_certificates().len(), 149);
         assert_eq!(warning, Some(Warning::UnreadableExtra));
-    }
-
-    #[test]
-    fn selectors_preserve_node_boolean_implications_and_tokenization() {
-        for option in [
-            "--use-openssl-ca",
-            "--use-openssl-ca=false",
-            "\"--use_openssl_ca\"",
-            "--use-openssl-ca --no-use-openssl-ca",
-            "--use-openssl-ca --no-use-bundled-ca",
-        ] {
-            assert_eq!(
-                selected_mode(option, None, None),
-                Ok(Mode::OpenSsl),
-                "{option}"
-            );
-        }
-        for option in [
-            "",
-            "--no-use-openssl-ca",
-            "--use-bundled-ca --no-use-bundled-ca",
-            "--title=--use-openssl-ca",
-            "--use-openssl-ca --no-use-openssl-ca --use-bundled-ca",
-        ] {
-            assert_eq!(
-                selected_mode(option, None, None),
-                Ok(Mode::Bundled),
-                "{option}"
-            );
-        }
-        assert_eq!(
-            selected_mode("--use-openssl-ca --use-bundled-ca", None, None),
-            Err(TrustError::ConflictingSelectors)
-        );
-        assert_eq!(
-            selected_mode("--use_system_ca", None, None),
-            Err(TrustError::UnsupportedSystemSelector)
-        );
-        for option in ["--tls-cipher-list=DEFAULT", "\"unterminated"] {
-            assert_eq!(
-                selected_mode(option, None, None),
-                Err(TrustError::UnsupportedOptions)
-            );
-        }
-        assert_eq!(selected_mode("", Some("1"), None), Ok(Mode::Bundled));
-        assert!(selected_mode("", None, Some("0")).is_err());
     }
 
     #[test]
@@ -937,7 +793,7 @@ mod tests {
         );
         for tls13 in [false, true] {
             assert!(
-                verify_small_rsa(
+                verify_openssl_signature(
                     message,
                     &certificate,
                     SignatureScheme::RSA_PSS_SHA256,
@@ -950,7 +806,7 @@ mod tests {
             let mut corrupted = pss.clone();
             corrupted[0] ^= 1;
             assert!(
-                verify_small_rsa(
+                verify_openssl_signature(
                     message,
                     &certificate,
                     SignatureScheme::RSA_PSS_SHA256,
@@ -960,7 +816,7 @@ mod tests {
                 .is_err()
             );
             assert!(
-                verify_small_rsa(
+                verify_openssl_signature(
                     b"changed message",
                     &certificate,
                     SignatureScheme::RSA_PSS_SHA256,
@@ -970,7 +826,7 @@ mod tests {
                 .is_err()
             );
             assert!(
-                verify_small_rsa(
+                verify_openssl_signature(
                     message,
                     &certificate,
                     SignatureScheme::RSA_PSS_SHA384,
@@ -980,7 +836,7 @@ mod tests {
                 .is_err()
             );
             assert!(
-                verify_small_rsa(
+                verify_openssl_signature(
                     message,
                     &certificate,
                     SignatureScheme::ECDSA_NISTP256_SHA256,
@@ -996,7 +852,7 @@ mod tests {
             RsaPssSaltlen::custom(0),
         );
         assert!(
-            verify_small_rsa(
+            verify_openssl_signature(
                 message,
                 &certificate,
                 SignatureScheme::RSA_PSS_SHA256,
@@ -1011,7 +867,7 @@ mod tests {
             RsaPssSaltlen::DIGEST_LENGTH,
         );
         assert!(
-            verify_small_rsa(
+            verify_openssl_signature(
                 message,
                 &certificate,
                 SignatureScheme::RSA_PKCS1_SHA256,
@@ -1022,7 +878,7 @@ mod tests {
             .is_some()
         );
         assert!(
-            verify_small_rsa(
+            verify_openssl_signature(
                 message,
                 &certificate,
                 SignatureScheme::RSA_PKCS1_SHA256,
@@ -1032,7 +888,7 @@ mod tests {
             .is_err()
         );
         assert!(
-            verify_small_rsa(
+            verify_openssl_signature(
                 message,
                 &certificate,
                 SignatureScheme::RSA_PSS_SHA256,
@@ -1045,7 +901,7 @@ mod tests {
             let wrong = PKey::from_rsa(Rsa::generate(bits).unwrap()).unwrap();
             let wrong = fixture_certificate(&wrong, None, "other RSA", true, false, None, false);
             assert!(
-                verify_small_rsa(
+                verify_openssl_signature(
                     message,
                     &CertificateDer::from(wrong.to_der().unwrap()),
                     SignatureScheme::RSA_PSS_SHA256,
@@ -1059,7 +915,7 @@ mod tests {
         let normal = fixture_certificate(&normal, None, "normal RSA", true, false, None, false);
         // Existing supported keys are delegated, never asserted valid here.
         assert!(
-            verify_small_rsa(
+            verify_openssl_signature(
                 message,
                 &CertificateDer::from(normal.to_der().unwrap()),
                 SignatureScheme::RSA_PSS_SHA256,
@@ -1068,6 +924,139 @@ mod tests {
             )
             .unwrap()
             .is_none()
+        );
+    }
+
+    #[test]
+    fn extended_ecdsa_preserves_tls_version_curve_and_digest_boundaries() {
+        use openssl::ec::{EcGroup, EcKey};
+        use openssl::hash::MessageDigest;
+        use openssl::pkey::PKey;
+        use openssl::sign::Signer;
+        openssl::init_without_config().unwrap();
+        let message = b"synthetic ECDSA CertificateVerify message";
+        let algorithms = [
+            (
+                MessageDigest::sha256(),
+                SignatureScheme::ECDSA_NISTP256_SHA256,
+            ),
+            (
+                MessageDigest::sha384(),
+                SignatureScheme::ECDSA_NISTP384_SHA384,
+            ),
+            (
+                MessageDigest::sha512(),
+                SignatureScheme::ECDSA_NISTP521_SHA512,
+            ),
+        ];
+        for curve in [Nid::X9_62_PRIME256V1, Nid::SECP384R1, Nid::SECP521R1] {
+            let group = EcGroup::from_curve_name(curve).unwrap();
+            let key = PKey::from_ec_key(EcKey::generate(&group).unwrap()).unwrap();
+            let certificate =
+                fixture_certificate(&key, None, "synthetic EC", true, false, None, false);
+            let certificate = CertificateDer::from(certificate.to_der().unwrap());
+            let other_key = PKey::from_ec_key(EcKey::generate(&group).unwrap()).unwrap();
+            let other_certificate =
+                fixture_certificate(&other_key, None, "other EC", true, false, None, false);
+            let other_certificate = CertificateDer::from(other_certificate.to_der().unwrap());
+            for (digest, scheme) in algorithms {
+                let mut signer = Signer::new(digest, &key).unwrap();
+                let signature = signer.sign_oneshot_to_vec(message).unwrap();
+                let extended =
+                    curve == Nid::SECP521R1 || scheme == SignatureScheme::ECDSA_NISTP521_SHA512;
+                for tls13 in [false, true] {
+                    let result =
+                        verify_openssl_signature(message, &certificate, scheme, &signature, tls13);
+                    if !extended {
+                        // Existing hash/curve pairs retain ring's verifier, not
+                        // an OpenSSL assertion or an alternate success path.
+                        assert!(result.unwrap().is_none());
+                        continue;
+                    }
+                    let allowed = !tls13
+                        || (curve == Nid::SECP521R1
+                            && scheme == SignatureScheme::ECDSA_NISTP521_SHA512);
+                    if !allowed {
+                        assert!(result.is_err(), "{curve:?} {scheme:?} TLS1.3");
+                        continue;
+                    }
+                    assert!(result.unwrap().is_some(), "{curve:?} {scheme:?}");
+                    let mut corrupted = signature.clone();
+                    let last = corrupted.len() - 1;
+                    corrupted[last] ^= 1;
+                    for invalid in [
+                        &corrupted[..],
+                        &signature[..signature.len() - 1],
+                        b"invalid DER",
+                    ] {
+                        assert!(
+                            verify_openssl_signature(message, &certificate, scheme, invalid, tls13)
+                                .is_err()
+                        );
+                    }
+                    assert!(
+                        verify_openssl_signature(
+                            b"changed message",
+                            &certificate,
+                            scheme,
+                            &signature,
+                            tls13
+                        )
+                        .is_err()
+                    );
+                    assert!(
+                        verify_openssl_signature(
+                            message,
+                            &other_certificate,
+                            scheme,
+                            &signature,
+                            tls13
+                        )
+                        .is_err()
+                    );
+                }
+                if curve == Nid::SECP521R1 {
+                    let wrong_scheme = if scheme == SignatureScheme::ECDSA_NISTP256_SHA256 {
+                        SignatureScheme::ECDSA_NISTP384_SHA384
+                    } else {
+                        SignatureScheme::ECDSA_NISTP256_SHA256
+                    };
+                    assert!(
+                        verify_openssl_signature(
+                            message,
+                            &certificate,
+                            wrong_scheme,
+                            &signature,
+                            false
+                        )
+                        .is_err()
+                    );
+                    assert!(
+                        verify_openssl_signature(
+                            message,
+                            &certificate,
+                            SignatureScheme::RSA_PSS_SHA512,
+                            &signature,
+                            false
+                        )
+                        .is_err()
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn advertised_p521_retains_existing_signature_preferences() {
+        let original = rustls::crypto::ring::default_provider()
+            .signature_verification_algorithms
+            .supported_schemes();
+        let verifier = verifier_fixture(&[]);
+        let advertised = verifier.supported_verify_schemes();
+        assert_eq!(&advertised[..original.len()], original);
+        assert_eq!(
+            &advertised[original.len()..],
+            &[SignatureScheme::ECDSA_NISTP521_SHA512]
         );
     }
 }

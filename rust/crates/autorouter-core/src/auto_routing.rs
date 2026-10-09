@@ -1070,6 +1070,41 @@ pub fn target_compatibility_document(
 mod tests {
     use super::*;
 
+    // Baseline fixtures exercise the authoritative document path used by the
+    // runtime as well as the serde-based embedding adapter.
+    fn fixture_document(body: &Value) -> crate::js_json::JsDocument {
+        crate::js_json::JsDocument::parse(&serde_json::to_vec(body).unwrap()).unwrap()
+    }
+
+    fn checked_compatibility(body: &Value, target: &str, auto_mode: bool) -> Value {
+        let document = fixture_document(body);
+        let before = document.stringify();
+        let result = target_compatibility_document_exact(
+            &document,
+            &crate::js_json::JsString::from_scalar(target),
+            auto_mode,
+        );
+        assert_eq!(result, super::target_compatibility(body, target, auto_mode));
+        assert_eq!(document.stringify(), before);
+        result
+    }
+
+    fn checked_auto_request(body: &Value, target: &str) -> bool {
+        let document = fixture_document(body);
+        let before = document.stringify();
+        let result = can_route_auto_request_document(&document, target);
+        assert_eq!(result, super::can_route_auto_request(body, target));
+        assert_eq!(document.stringify(), before);
+        result
+    }
+
+    fn checked_safeguards(body: &Value) -> bool {
+        let document = fixture_document(body);
+        let result = has_routable_safeguards_document(&document);
+        assert_eq!(result, super::has_routable_safeguards(body));
+        result
+    }
+
     const MODERN: &[&str] = &[
         "claude-sonnet-5",
         "claude-sonnet-5-5",
@@ -1177,12 +1212,12 @@ mod tests {
         let before = body.clone();
         for auto_mode in [false, true] {
             assert_eq!(
-                target_compatibility(&body, target, auto_mode),
+                checked_compatibility(&body, target, auto_mode),
                 incompatible(reason),
                 "{body}"
             );
             assert_eq!(
-                target_compatibility(&body, body["model"].as_str().unwrap(), auto_mode),
+                checked_compatibility(&body, body["model"].as_str().unwrap(), auto_mode),
                 compatible()
             );
         }
@@ -1193,7 +1228,7 @@ mod tests {
     fn all_exact_modern_pairs_route_while_aliases_and_older_auto_targets_do_not() {
         for source in MODERN {
             for target in MODERN {
-                assert!(can_route_auto_request(
+                assert!(checked_auto_request(
                     &request(json!({"model":source})),
                     target
                 ));
@@ -1208,14 +1243,14 @@ mod tests {
             "team/claude-opus-5-5",
             "claude-opus-5-5-future",
         ] {
-            assert!(!can_route_auto_request(&request(json!({})), model));
-            assert!(!can_route_auto_request(
+            assert!(!checked_auto_request(&request(json!({})), model));
+            assert!(!checked_auto_request(
                 &request(json!({"model":model})),
                 "claude-opus-5-5"
             ));
         }
         assert_eq!(
-            target_compatibility(
+            checked_compatibility(
                 &request(json!({"model":"custom","future":true})),
                 "custom",
                 true
@@ -1228,8 +1263,8 @@ mod tests {
     fn guards_preserve_safeguards_version_and_unknown_contracts() {
         let known = json!({"type":"dangerous_tool_use","classifier_context":{"v":1,"policy":{"opaque":true}}});
         let body = request(json!({"safeguards":[known]}));
-        assert!(has_routable_safeguards(&body));
-        assert!(can_route_auto_request(&body, "claude-opus-5-5"));
+        assert!(checked_safeguards(&body));
+        assert!(checked_auto_request(&body, "claude-opus-5-5"));
         for safeguards in [
             Value::Null,
             json!({}),
@@ -1243,9 +1278,9 @@ mod tests {
             json!([{"type":"dangerous_tool_use","classifier_context":{"v":1},"future":true}]),
         ] {
             let body = request(json!({"safeguards":safeguards}));
-            assert!(!has_routable_safeguards(&body));
+            assert!(!checked_safeguards(&body));
             assert_eq!(
-                target_compatibility(&body, "claude-opus-5-5", false),
+                checked_compatibility(&body, "claude-opus-5-5", false),
                 incompatible("safeguards")
             );
         }
@@ -1282,9 +1317,9 @@ mod tests {
                     {"type":"tool_addition","tool":{"type":"tool_reference","name":"Read"}},
                     {"type":"tool_removal","tool":{"type":"tool_reference","name":"Old"}}]}]}));
         let before = body.clone();
-        assert!(can_route_auto_request(&body, "claude-opus-5-5"));
+        assert!(checked_auto_request(&body, "claude-opus-5-5"));
         assert_eq!(
-            target_compatibility(&body, "claude-opus-5-5", false),
+            checked_compatibility(&body, "claude-opus-5-5", false),
             compatible()
         );
         assert_eq!(body, before);
@@ -1411,7 +1446,7 @@ mod tests {
         let before = body.clone();
         for auto_mode in [false, true] {
             assert_eq!(
-                target_compatibility(&body, "claude-opus-5-5", auto_mode),
+                checked_compatibility(&body, "claude-opus-5-5", auto_mode),
                 compatible()
             );
         }
@@ -1426,14 +1461,14 @@ mod tests {
             );
             for model in ["claude-sonnet-5-5", "claude-opus-5-5"] {
                 assert_eq!(
-                    target_compatibility(&body, model, false),
+                    checked_compatibility(&body, model, false),
                     incompatible("forced_tool_choice")
                 );
             }
             for model in ["claude-sonnet-5", "claude-opus-5"] {
-                assert_eq!(target_compatibility(&body, model, false), compatible());
+                assert_eq!(checked_compatibility(&body, model, false), compatible());
             }
-            assert!(!can_route_auto_request(
+            assert!(!checked_auto_request(
                 &request(json!({"tool_choice":choice})),
                 "claude-opus-5-5"
             ));
@@ -1447,7 +1482,7 @@ mod tests {
             assert_reason(extra, "claude-opus-5-5", "execution_facility");
         }
         assert_reason(json!({"speed":"fast"}), "claude-opus-5-5", "speed");
-        assert!(can_route_auto_request(
+        assert!(checked_auto_request(
             &request(json!({"speed":"standard"})),
             "claude-opus-5-5"
         ));
@@ -1508,12 +1543,12 @@ mod tests {
             ),
         ] {
             assert_eq!(
-                target_compatibility(&request(extra), target, false),
+                checked_compatibility(&request(extra), target, false),
                 incompatible(reason)
             );
         }
         for max_tokens in [json!(0), json!(1), json!(128000), json!(128000.0)] {
-            assert!(can_route_auto_request(
+            assert!(checked_auto_request(
                 &request(json!({"max_tokens":max_tokens})),
                 "claude-opus-5-5"
             ));
@@ -1532,7 +1567,7 @@ mod tests {
             );
         }
         assert_eq!(
-            target_compatibility(
+            checked_compatibility(
                 &request(json!({"model":"claude-haiku-4-5","temperature":1,"top_p":1})),
                 "claude-sonnet-5",
                 false
@@ -1559,10 +1594,10 @@ mod tests {
         ] {
             let body = request(extra);
             assert_eq!(
-                target_compatibility(&body, "claude-sonnet-5", true),
+                checked_compatibility(&body, "claude-sonnet-5", true),
                 incompatible(reason)
             );
-            assert!(can_route_auto_request(&body, "claude-opus-5-5"));
+            assert!(checked_auto_request(&body, "claude-opus-5-5"));
         }
     }
 
@@ -1570,11 +1605,11 @@ mod tests {
     fn between_tools_requires_exact_source_and_no_extensions() {
         let body = request(json!({"thinking":{"type":"between_tools"}}));
         for model in ["claude-sonnet-5-5", "claude-opus-5", "claude-opus-5-5"] {
-            assert!(can_route_auto_request(&body, model));
+            assert!(checked_auto_request(&body, model));
         }
-        assert!(!can_route_auto_request(&body, "claude-sonnet-5"));
+        assert!(!checked_auto_request(&body, "claude-sonnet-5"));
         for model in ["claude-sonnet-5", "claude-opus-5", "claude-opus-5-5"] {
-            assert!(!can_route_auto_request(
+            assert!(!checked_auto_request(
                 &request(json!({"model":model,"thinking":{"type":"between_tools"}})),
                 "claude-opus-5-5"
             ));
@@ -1588,18 +1623,18 @@ mod tests {
             json!({"type":"between_tools","budget_tokens":1000}),
             json!({"type":"between_tools","block_binding":{"prefix_mismatch_behavior":"error"}}),
         ] {
-            assert!(!can_route_auto_request(
+            assert!(!checked_auto_request(
                 &request(json!({"thinking":thinking})),
                 "claude-opus-5-5"
             ));
         }
         let native =
             request(json!({"thinking":{"type":"between_tools"},"output_config":{"effort":"max"}}));
-        assert!(!can_route_auto_request(&native, "claude-sonnet-5-5"));
+        assert!(!checked_auto_request(&native, "claude-sonnet-5-5"));
         assert_eq!(
-            target_compatibility(&native, "claude-sonnet-5-5", true),
+            checked_compatibility(&native, "claude-sonnet-5-5", true),
             compatible()
         );
-        assert!(can_route_auto_request(&native, "claude-opus-5-5"));
+        assert!(checked_auto_request(&native, "claude-opus-5-5"));
     }
 }

@@ -51,6 +51,15 @@ export async function createReference(root = repository) {
     try {
       let result;
       switch (op) {
+        case 'guard_contract_json': {
+          const body = JSON.parse(Buffer.from(input.bytes).toString('utf8'));
+          const before = JSON.stringify(body);
+          const guarded = input.guard === 'safeguards' ? compatibility.hasRoutableSafeguards(body)
+            : input.guard === 'auto' ? compatibility.canRouteAutoRequest(body, input.target)
+              : input.guard === 'target' ? compatibility.targetCompatibility(body, input.target, { autoMode: input.auto_mode ?? false })
+                : (() => { throw Error('Invalid guard contract fixture'); })();
+          result = { result: guarded, before, after: JSON.stringify(body) }; break;
+        }
         case 'prepare_request_json': {
           const prepared = preparation.prepareRequest(JSON.parse(Buffer.from(input.bytes).toString('utf8')), input.target);
           result = { serialized: [...Buffer.from(JSON.stringify(prepared.request))], adjustments: prepared.adjustments }; break;

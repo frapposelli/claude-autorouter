@@ -22,6 +22,21 @@ it does not establish release provenance or multi-target package feasibility.
 Completed lifecycle-test failures retain bounded synthetic output in private
 diagnostic files. Timeout and output-limit failures discard partial output.
 
+The [next host archive](../parity/measurements/native-host-5-summary.json) passed
+66 installed CLI tests and the same offline upgrade/rollback rehearsal after
+TLS-version and hidden-input cancellation changes. It contains 5,954,732
+compressed bytes and 14,449,152 expanded tar bytes. The original Linux
+cancellation failure still requires a fresh Linux CI result; passing macOS
+tests does not resolve that platform evidence gap.
+
+The [corrected host archive](../parity/measurements/native-host-6-summary.json)
+replaces output-draining terminal restoration with separate input discard and
+immediate attribute restoration. Its stopped-output regression, 66 installed
+CLI tests and offline upgrade/rollback rehearsal pass. The archive is 5,955,906
+compressed bytes and 14,449,664 expanded tar bytes. Earlier archive bytes and
+their test reports remain retained; real Ctrl-Z lifecycle and existing prompt
+output behavior still need separate qualification.
+
 Inspection of those same historical Linux executables found non-weak GLIBC
 version requirements through **2.34 on x86_64** and **2.39 on ARM64**. Their
 complete dependency/version tables match an independent LLVM `readelf` inspection;
@@ -32,8 +47,11 @@ requirement is only a lower bound: transitive libraries, loader behavior and
 execution on the oldest claimed runtime still need qualification.
 
 The separate [GNU portability workflow](gnu-portability.md) now pins older
-builder images and checks a GLIBC 2.28 symbol bound. It has not yet executed;
-its image/toolchain pins and remaining qualification limits are recorded there.
+builder images and checks a GLIBC 2.28 symbol bound. Its first run stopped at
+Git provenance recording; the next exposed an ARM assembly flag override and
+missing Perl core modules. Scoped compiler wrappers and a pinned build-only
+Perl bootstrap are awaiting CI. Failed attempts, pins and remaining limits are
+recorded there.
 
 The initial macOS ARM64/x86_64 and Linux ARM64/x86_64 candidates do not cover every platform where the existing unrestricted JavaScript package can run. Node 22 additionally lists Linux armv7, ppc64le and s390x, plus experimental architectures. These remain audit items in [platforms.json](platforms.json), alongside Claude executable availability. See the [Node 22 platform table](https://raw.githubusercontent.com/nodejs/node/v22.x/BUILDING.md).
 

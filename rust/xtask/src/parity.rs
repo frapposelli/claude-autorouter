@@ -139,6 +139,8 @@ pub fn compare(cases: &[Value], reference: &[Value], candidate: &[Value]) -> Val
             failures.push(
                 json!({"id":case["id"], "op":case["op"], "reason":"unimplemented_operation"}),
             );
+        } else if let Some(pointer) = captured_difference(case, expected) {
+            failures.push(json!({"id":case["id"], "op":case["op"], "reason":"captured_reference_result", "pointer":pointer}));
         } else if let Some(pointer) = difference(expected, actual, "") {
             failures.push(json!({"id":case["id"], "op":case["op"], "reason":"different_result", "pointer":pointer}));
         } else {
@@ -146,6 +148,14 @@ pub fn compare(cases: &[Value], reference: &[Value], candidate: &[Value]) -> Val
         }
     }
     json!({"passed":failures.is_empty() && !cases.is_empty(), "cases":cases.len(), "matched":passed, "failures":failures})
+}
+
+fn captured_difference(case: &Value, reference: &Value) -> Option<String> {
+    let captured = case.get("node_expected")?;
+    match reference.get("result") {
+        Some(result) if reference.get("error").is_none() => difference(captured, result, "/result"),
+        _ => Some("/result".into()),
+    }
 }
 
 fn serialize_lines(rows: &[Value]) -> Vec<u8> {
@@ -445,6 +455,38 @@ mod tests {
     }
     fn result(value: Value) -> Value {
         json!({"id":"tier", "op":"target_compatibility", "result":value})
+    }
+
+    #[test]
+    fn matching_adapter_failures_cannot_replace_a_captured_baseline_result() {
+        let mut captured = case();
+        captured["node_expected"] = json!({"compatible":true});
+        for response in [
+            result(json!({"compatible":false})),
+            json!({"id":"tier","op":"target_compatibility","error":"synthetic-private-error"}),
+        ] {
+            let report = compare(
+                std::slice::from_ref(&captured),
+                std::slice::from_ref(&response),
+                std::slice::from_ref(&response),
+            );
+            assert_eq!(report["passed"], false);
+            assert_eq!(report["matched"], 0);
+            assert_eq!(report["failures"][0]["reason"], "captured_reference_result");
+            assert!(!report.to_string().contains("synthetic-private-error"));
+        }
+        for value in [json!({"compatible":true}), Value::Null] {
+            captured["node_expected"] = value.clone();
+            let response = result(value);
+            assert_eq!(
+                compare(
+                    std::slice::from_ref(&captured),
+                    std::slice::from_ref(&response),
+                    std::slice::from_ref(&response)
+                )["passed"],
+                true
+            );
+        }
     }
 
     #[test]

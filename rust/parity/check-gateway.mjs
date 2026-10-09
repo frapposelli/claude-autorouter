@@ -3,7 +3,8 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { spawn, spawnSync } from 'node:child_process';
-import { mkdtemp, readFile, readdir, rm, mkdir, writeFile } from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
+import { chmod, copyFile, mkdtemp, readFile, readdir, rm, mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
@@ -13,7 +14,7 @@ const root = resolve(import.meta.dirname, '../..');
 const unicode = process.argv.includes('--unicode');
 const positional = process.argv.slice(2).filter(value => value !== '--unicode');
 const reference = resolve(positional[0] ?? join(root, 'artifacts/rust-rewrite/reference'));
-const candidate = resolve(positional[1] ?? join(root, 'rust/target/debug/claude-autorouter'));
+const originalCandidate = resolve(positional[1] ?? join(root, 'rust/target/debug/claude-autorouter'));
 const corpusBytes = await readFile(join(reference, 'test/fixtures/claude-protocol-v1.json'));
 const corpus = JSON.parse(corpusBytes);
 if (unicode) {
@@ -32,6 +33,27 @@ const baseline = JSON.parse(await readFile(join(root, 'rust/parity/baseline.json
 const checked = spawnSync(process.execPath, [join(root, 'scripts/rust-reference.mjs'), '--root', reference, '--check-baseline'], { encoding: 'utf8', timeout: 15000, maxBuffer: 1024 * 1024 });
 assert.equal(checked.status, 0, 'Frozen source verification failed');
 const scratch = await mkdtemp(join(tmpdir(), 'autorouter-gateway-differential-'));
+const candidate = join(scratch, 'candidate');
+let identity;
+try {
+  await copyFile(originalCandidate, candidate);
+  await chmod(candidate, 0o700);
+  const hashFile = async path => {
+    const hash = createHash('sha256');
+    for await (const chunk of createReadStream(path)) hash.update(chunk);
+    return hash.digest('hex');
+  };
+  identity = {
+    frozen_source: JSON.parse(checked.stdout), node_version: process.version,
+    node_executable_sha256: await hashFile(process.execPath),
+    candidate_executable: originalCandidate, candidate_sha256: await hashFile(candidate),
+    candidate_execution: 'isolated immutable byte-identical snapshot',
+    harness_sha256: await hashFile(new URL(import.meta.url)),
+  };
+} catch (error) {
+  await rm(scratch, { recursive: true, force: true });
+  throw error;
+}
 const token = 'synthetic-gateway-differential-token';
 const failures = [];
 const sockets = new Set();
@@ -119,6 +141,6 @@ try {
       diff(actual[key], expected[key]); failures.push({ scenario: scenario.id, field: key, pointers });
     }
   }
-  const report = { schema_version: 1, kind: 'native_gateway_executable_differential', passed: failures.length === 0, scenarios: corpus.cases.length, requests: corpus.cases.reduce((sum,c) => sum+c.steps.length,0), baseline_commit: baseline.baseline_commit, fixture_sha256: createHash('sha256').update(unicode ? JSON.stringify(corpus) : corpusBytes).digest('hex'), variant: unicode ? 'saved_utf16' : 'frozen_protocol', normalized: ['generated request IDs', 'timestamps', 'present duration values', 'random session file enumeration order'], failures, scope: 'Synthetic actual executable HTTP protocol corpus, evaluator inputs, provider bytes, logs and persisted metadata; no live-provider evidence.' };
+  const report = { schema_version: 1, kind: 'native_gateway_executable_differential', identity, passed: failures.length === 0, scenarios: corpus.cases.length, requests: corpus.cases.reduce((sum,c) => sum+c.steps.length,0), baseline_commit: baseline.baseline_commit, fixture_sha256: createHash('sha256').update(unicode ? JSON.stringify(corpus) : corpusBytes).digest('hex'), variant: unicode ? 'saved_utf16' : 'frozen_protocol', normalized: ['generated request IDs', 'timestamps', 'present duration values', 'random session file enumeration order'], failures, scope: 'Synthetic actual executable HTTP protocol corpus, evaluator inputs, provider bytes, logs and persisted metadata; no live-provider evidence.' };
   await writeFile(join(root, `artifacts/rust-rewrite/parity-gateway-${unicode ? 'utf16' : 'executable'}.json`), JSON.stringify(report,null,2)+'\n'); console.log(JSON.stringify(report,null,2)); if (failures.length) process.exitCode = 1;
 } finally { for (const socket of sockets) socket.destroy(); await new Promise(ok => mock.close(ok)); await rm(scratch,{recursive:true,force:true}); }

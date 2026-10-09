@@ -31,7 +31,9 @@ fn main() -> ExitCode {
         let executable = std::env::args_os()
             .next()
             .unwrap_or_else(|| "claude-autorouter".into());
-        eprintln!("{}: {message}", executable.to_string_lossy());
+        for line in message.lines() {
+            eprintln!("{}: {line}", executable.to_string_lossy());
+        }
         return ExitCode::from(9);
     }
     // Panics from optional sinks may be caught by runtime adapters; the default

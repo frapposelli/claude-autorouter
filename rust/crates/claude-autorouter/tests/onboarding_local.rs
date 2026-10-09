@@ -5,7 +5,9 @@ use serde_json::{Value, json};
 use std::fs;
 use std::process::Command;
 use std::sync::{Arc, Mutex};
-use support::{Home, Response, Server, hidden_secret, output, quote, success};
+use support::{
+    HiddenInput, Home, Response, Server, hidden_inputs, hidden_secret, output, quote, success,
+};
 struct State {
     model: String,
     installed: bool,
@@ -777,4 +779,287 @@ fn environment_only_api_doctor_checks_only_claude_version_and_never_creates_conf
     assert!(text.contains("key validity") && text.contains("not tested"));
     assert!(local.server.calls().is_empty());
     assert!(!local.home.config().exists());
+}
+
+#[test]
+fn logging_setup_resolves_cli_directory_and_disables_without_creating_history() {
+    let local = Local::new(DEFAULT_OLLAMA_MODEL);
+    let directory = fs::canonicalize(&local.home.0)
+        .unwrap()
+        .join("decision logs");
+    let ignored = local.home.0.join("ignored logs");
+    let mut command = local.home.command();
+    command
+        .args([
+            "setup",
+            "--session-log-dir",
+            "./decision logs",
+            "--session-log-mode",
+            "prompts",
+        ])
+        .env("AUTOROUTER_EVALUATOR", "jev")
+        .env("AUTOROUTER_JEV_URL", local.server.url())
+        .env("TYPESAFE_API_KEY", "synthetic-jev-key")
+        .env("AUTOROUTER_SESSION_LOG_DIR", &ignored);
+    let environment = command
+        .get_envs()
+        .map(|(key, value)| (key.to_os_string(), value.map(std::ffi::OsStr::to_os_string)))
+        .collect::<Vec<_>>();
+    let text = success(&output(&mut command));
+    assert!(text.contains("Session decision logs enabled"));
+    assert_eq!(
+        command
+            .get_envs()
+            .map(|(key, value)| (key.to_os_string(), value.map(std::ffi::OsStr::to_os_string)))
+            .collect::<Vec<_>>(),
+        environment
+    );
+    let before = fs::read(local.home.config()).unwrap();
+    let saved = local.home.saved();
+    assert_eq!(saved["AUTOROUTER_SESSION_LOG_DIR"], json!(directory));
+    assert_eq!(saved["AUTOROUTER_SESSION_LOG_MODE"], "prompts");
+    assert_eq!(
+        read_config(&saved, false, &local.home.0)
+            .unwrap()
+            .session_log_dir,
+        Some(directory.to_str().unwrap().to_owned())
+    );
+    let mut disabled = saved;
+    disabled["AUTOROUTER_SESSION_LOG_DIR"] = json!("");
+    assert!(
+        read_config(&disabled, false, &local.home.0)
+            .unwrap()
+            .session_log_dir
+            .is_none()
+    );
+    assert!(!directory.exists());
+    assert!(!ignored.exists());
+    assert!(local.server.calls().is_empty());
+    assert!(local.auth_calls().is_empty());
+
+    let text = success(&output(local.home.command().arg("doctor")));
+    assert!(text.contains("Session decision logs enabled"));
+    assert_eq!(local.auth_calls(), ["--version", "auth status --json"]);
+    assert!(local.server.calls().is_empty());
+    assert!(!directory.exists());
+    assert_eq!(fs::read(local.home.config()).unwrap(), before);
+    let text = success(&output(
+        local
+            .home
+            .command()
+            .arg("doctor")
+            .env("AUTOROUTER_SESSION_LOG_DIR", ""),
+    ));
+    assert!(!text.contains("Session decision logs enabled"));
+    assert_eq!(fs::read(local.home.config()).unwrap(), before);
+
+    success(&output(
+        local
+            .home
+            .command()
+            .args(["setup", "--force", "--session-log-dir", ""])
+            .env("AUTOROUTER_SESSION_LOG_DIR", &ignored),
+    ));
+    assert_eq!(local.home.saved()["AUTOROUTER_SESSION_LOG_DIR"], "");
+    assert!(!directory.exists());
+    assert!(!ignored.exists());
+    assert!(local.server.calls().is_empty());
+}
+
+#[test]
+fn setup_missing_keys_prompt_in_order_and_reject_blank_cancelled_or_nonterminal_input() {
+    let local = Local::new(DEFAULT_OLLAMA_MODEL);
+    let command = || {
+        let mut command = local.home.command();
+        command
+            .env("AUTOROUTER_EVALUATOR", "jev")
+            .env("AUTOROUTER_JEV_URL", local.server.url());
+        command
+    };
+    let result = hidden_inputs(
+        command().args(["setup", "--auth-mode", "api-key"]),
+        &[
+            ("TYPESAFE_API_KEY", HiddenInput::Secret("jev-secret")),
+            ("ANTHROPIC_API_KEY", HiddenInput::Secret("")),
+        ],
+    );
+    assert!(!result.status.success());
+    let visible = String::from_utf8_lossy(&result.stderr);
+    assert_eq!(visible.matches("(hidden): ").count(), 2);
+    assert!(
+        visible.find("TYPESAFE_API_KEY (hidden): ").unwrap()
+            < visible.find("ANTHROPIC_API_KEY (hidden): ").unwrap()
+    );
+    assert!(visible.contains("ANTHROPIC_API_KEY must be a nonempty, single-line key"));
+    assert!(!String::from_utf8_lossy(&result.stdout).contains("jev-secret"));
+    assert!(!local.home.config().exists());
+
+    let result = hidden_inputs(
+        command().arg("setup"),
+        &[("TYPESAFE_API_KEY", HiddenInput::Cancel)],
+    );
+    assert!(!result.status.success());
+    assert!(String::from_utf8_lossy(&result.stderr).contains("Setup cancelled"));
+    assert!(!local.home.config().exists());
+
+    let result = output(command().args(["setup", "--key", "private-secret-sentinel"]));
+    assert!(!result.status.success());
+    assert!(!String::from_utf8_lossy(&result.stderr).contains("private-secret-sentinel"));
+    assert!(!String::from_utf8_lossy(&result.stdout).contains("private-secret-sentinel"));
+    assert!(!local.home.config().exists());
+
+    let result = output(command().arg("setup"));
+    assert!(!result.status.success());
+    assert!(
+        String::from_utf8_lossy(&result.stderr).contains("environment for noninteractive setup")
+    );
+    assert!(!local.home.config().exists());
+    assert!(local.server.calls().is_empty());
+    assert!(local.auth_calls().is_empty());
+}
+
+#[test]
+fn replacement_discards_old_backend_auth_preferences_and_prompts_only_for_jev() {
+    let local = Local::new(DEFAULT_OLLAMA_MODEL);
+    local.home.save(&json!({
+        "AUTOROUTER_AUTH_MODE":"api-key",
+        "AUTOROUTER_EVALUATOR":"ollama",
+        "AUTOROUTER_CLIENT_PROFILE":"native",
+        "ANTHROPIC_API_KEY":"discarded-secret",
+        "TYPESAFE_API_KEY":"old-secret",
+        "AUTOROUTER_PORT":"8123",
+        "AUTOROUTER_OLLAMA_MODEL":"tev1:4b",
+        "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP":"2"
+    }));
+    let result = hidden_secret(
+        local
+            .home
+            .command()
+            .args(["setup", "--replace"])
+            .env("AUTOROUTER_EVALUATOR", "jev")
+            .env("AUTOROUTER_JEV_URL", local.server.url()),
+        "TYPESAFE_API_KEY",
+        "replacement-secret",
+    );
+    assert!(result.status.success());
+    let visible = String::from_utf8_lossy(&result.stderr);
+    assert_eq!(visible.matches("(hidden): ").count(), 1);
+    assert!(!visible.contains("ANTHROPIC_API_KEY"));
+    assert_eq!(
+        local.home.saved(),
+        json!({
+            "AUTOROUTER_AUTH_MODE":"subscription",
+            "AUTOROUTER_CLIENT_PROFILE":"compatible",
+            "AUTOROUTER_EVALUATOR":"jev",
+            "TYPESAFE_API_KEY":"replacement-secret",
+            "AUTOROUTER_SECRET_STORE":"file",
+            "AUTOROUTER_JEV_URL":local.server.url()
+        })
+    );
+    assert!(local.server.calls().is_empty());
+    assert!(local.auth_calls().is_empty());
+    for secret in ["discarded-secret", "old-secret", "replacement-secret"] {
+        assert!(!String::from_utf8_lossy(&result.stdout).contains(secret));
+        assert!(!visible.contains(secret));
+    }
+}
+
+#[test]
+fn invalid_setup_settings_fail_before_keys_and_cancelled_replacement_preserves_bytes() {
+    let local = Local::new(DEFAULT_OLLAMA_MODEL);
+    let command = || {
+        let mut command = local.home.command();
+        command
+            .env("AUTOROUTER_EVALUATOR", "jev")
+            .env("AUTOROUTER_JEV_URL", local.server.url());
+        command
+    };
+    for (key, value) in [
+        ("AUTOROUTER_PORT", ""),
+        ("AUTOROUTER_JEV_URL", "private-invalid-url"),
+        ("AUTOROUTER_DEBUG", "false"),
+    ] {
+        let result = output(command().arg("setup").env(key, value));
+        assert!(!result.status.success());
+        let error = String::from_utf8_lossy(&result.stderr);
+        assert!(error.contains(key));
+        assert!(!error.contains("environment for noninteractive setup"));
+        assert!(!error.contains("(hidden):"));
+        assert!(!error.contains("private-invalid-url"));
+        assert!(!String::from_utf8_lossy(&result.stdout).contains("private-invalid-url"));
+        assert!(!local.home.config().exists());
+        assert!(local.server.calls().is_empty());
+        assert!(local.auth_calls().is_empty());
+    }
+    local.home.save(&json!({
+        "AUTOROUTER_AUTH_MODE":"subscription",
+        "TYPESAFE_API_KEY":"preserved-secret",
+        "AUTOROUTER_PORT":"8123"
+    }));
+    let before = fs::read(local.home.config()).unwrap();
+    let result = hidden_inputs(
+        command().args(["setup", "--replace"]),
+        &[("TYPESAFE_API_KEY", HiddenInput::Cancel)],
+    );
+    assert!(!result.status.success());
+    assert!(String::from_utf8_lossy(&result.stderr).contains("Setup cancelled"));
+    assert_eq!(fs::read(local.home.config()).unwrap(), before);
+    assert!(local.server.calls().is_empty());
+    assert!(local.auth_calls().is_empty());
+}
+
+#[test]
+fn default_ollama_failure_saves_nothing_and_only_implicit_selection_suggests_jev() {
+    let home = Home::new();
+    let server = Server::disconnecting();
+    for explicit in [false, true] {
+        server.clear();
+        let mut command = home.command();
+        command
+            .arg("setup")
+            .env("AUTOROUTER_OLLAMA_URL", server.url());
+        if explicit {
+            command.args(["--evaluator", "ollama"]);
+        }
+        let result = output(&mut command);
+        assert!(!result.status.success());
+        let error = String::from_utf8_lossy(&result.stderr);
+        assert!(error.contains("Cannot reach local Ollama"));
+        assert_eq!(error.contains("setup --evaluator jev"), !explicit);
+        assert!(!error.contains("environment for noninteractive setup"));
+        assert!(!error.contains("(hidden):"));
+        assert!(!error.contains("TYPESAFE_API_KEY"));
+        assert!(!home.config().exists());
+        assert_eq!(server.paths(), ["/api/version"]);
+        assert_eq!(server.calls()[0].method, "GET");
+    }
+}
+
+#[test]
+fn prompt_fixture_closes_descendants_holding_output_after_the_leader_exits() {
+    let home = Home::new();
+    let script = r#"
+        (
+            trap '' HUP
+            printf ready > "$1/started"
+            while [ ! -f "$1/release" ]; do /bin/sleep 0.01; done
+            printf escaped > "$1/escaped"
+        ) &
+        while [ ! -f "$1/started" ]; do /bin/sleep 0.01; done
+        printf completed
+        exit 23
+    "#;
+    let mut command = Command::new("/bin/sh");
+    command
+        .env_clear()
+        .args(["-c", script, "synthetic-prompt-fixture"])
+        .arg(&home.0);
+    let started = std::time::Instant::now();
+    let result = hidden_inputs(&mut command, &[]);
+    assert_eq!(result.status.code(), Some(23));
+    assert_eq!(result.stdout, b"completed");
+    assert!(started.elapsed() < std::time::Duration::from_secs(3));
+    home.write("release", b"released");
+    std::thread::sleep(std::time::Duration::from_millis(40));
+    assert!(!home.0.join("escaped").exists());
 }

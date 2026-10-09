@@ -1931,299 +1931,1233 @@
       "file": "test/auto-routing.test.mjs",
       "name": "modern Auto requests retain the complete safeguards, context edits and signed history",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#opaque_schema_and_signed_history_survive_all_shared_envelopes",
+        "rust/crates/autorouter-core/src/auto_routing.rs#guards_preserve_safeguards_version_and_unknown_contracts"
+      ],
+      "shared_cases": [
+        "baseline-auto-1-1",
+        "baseline-auto-1-2",
+        "baseline-auto-1-3",
+        "baseline-auto-1-4"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 4,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#2",
       "file": "test/auto-routing.test.mjs",
       "name": "ordinary requests route among exact supported model IDs without requiring Auto safeguards",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#all_exact_modern_pairs_route_while_aliases_and_older_auto_targets_do_not"
+      ],
+      "shared_cases": [
+        "baseline-auto-2-1",
+        "baseline-auto-2-2",
+        "baseline-auto-2-3",
+        "baseline-auto-2-4",
+        "baseline-auto-2-5",
+        "baseline-auto-2-6",
+        "baseline-auto-2-7",
+        "baseline-auto-2-8",
+        "baseline-auto-2-9",
+        "baseline-auto-2-10",
+        "baseline-auto-2-11",
+        "baseline-auto-2-12",
+        "baseline-auto-2-13",
+        "baseline-auto-2-14",
+        "baseline-auto-2-15",
+        "baseline-auto-2-16",
+        "baseline-auto-2-17",
+        "baseline-auto-2-18",
+        "baseline-auto-2-19",
+        "baseline-auto-2-20",
+        "baseline-auto-2-21",
+        "baseline-auto-2-22",
+        "baseline-auto-2-23",
+        "baseline-auto-2-24",
+        "baseline-auto-2-25",
+        "baseline-auto-2-26",
+        "baseline-auto-2-27",
+        "baseline-auto-2-28",
+        "baseline-auto-2-29",
+        "baseline-auto-2-30"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 30,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#3",
       "file": "test/auto-routing.test.mjs",
       "name": "an unrecognized safeguards version or mixed contract is retained on the requested model",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#guards_preserve_safeguards_version_and_unknown_contracts"
+      ],
+      "shared_cases": [
+        "baseline-auto-3-1",
+        "baseline-auto-3-2",
+        "baseline-auto-3-3",
+        "baseline-auto-3-4",
+        "baseline-auto-3-5",
+        "baseline-auto-3-6",
+        "baseline-auto-3-7",
+        "baseline-auto-3-8",
+        "baseline-auto-3-9",
+        "baseline-auto-3-10",
+        "baseline-auto-3-11",
+        "baseline-auto-3-12",
+        "baseline-auto-3-13",
+        "baseline-auto-3-14",
+        "baseline-auto-3-15",
+        "baseline-auto-3-16",
+        "baseline-auto-3-17",
+        "baseline-auto-3-18",
+        "baseline-auto-3-19",
+        "baseline-auto-3-20"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 20,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#4",
       "file": "test/auto-routing.test.mjs",
       "name": "shared client and tool-search tools do not pin a compatible request",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#opaque_schema_and_signed_history_survive_all_shared_envelopes"
+      ],
+      "shared_cases": [
+        "baseline-auto-4-1",
+        "baseline-auto-4-2",
+        "baseline-auto-4-3",
+        "baseline-auto-4-4"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 4,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#5",
       "file": "test/auto-routing.test.mjs",
       "name": "model-specific server tools and unknown tool types prevent a cross-model route",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#unknown_semantic_envelopes_pin_instead_of_dropping_fields"
+      ],
+      "shared_cases": [
+        "baseline-auto-5-1",
+        "baseline-auto-5-2",
+        "baseline-auto-5-3",
+        "baseline-auto-5-4",
+        "baseline-auto-5-5",
+        "baseline-auto-5-6",
+        "baseline-auto-5-7",
+        "baseline-auto-5-8",
+        "baseline-auto-5-9",
+        "baseline-auto-5-10",
+        "baseline-auto-5-11"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 11,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#6",
       "file": "test/auto-routing.test.mjs",
       "name": "inline shared tool definitions and references keep their system-message semantics unchanged",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#opaque_schema_and_signed_history_survive_all_shared_envelopes"
+      ],
+      "shared_cases": [
+        "baseline-auto-6-1",
+        "baseline-auto-6-2",
+        "baseline-auto-6-3",
+        "baseline-auto-6-4"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 4,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#7",
       "file": "test/auto-routing.test.mjs",
       "name": "inline tool additions cannot bypass typed-tool and unknown-reference compatibility guards",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#unknown_semantic_envelopes_pin_instead_of_dropping_fields"
+      ],
+      "shared_cases": [
+        "baseline-auto-7-1",
+        "baseline-auto-7-2",
+        "baseline-auto-7-3",
+        "baseline-auto-7-4",
+        "baseline-auto-7-5",
+        "baseline-auto-7-6",
+        "baseline-auto-7-7",
+        "baseline-auto-7-8",
+        "baseline-auto-7-9",
+        "baseline-auto-7-10",
+        "baseline-auto-7-11",
+        "baseline-auto-7-12",
+        "baseline-auto-7-13",
+        "baseline-auto-7-14"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 14,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#8",
       "file": "test/auto-routing.test.mjs",
       "name": "context management accepts only the two proven shared edit types",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#opaque_schema_and_signed_history_survive_all_shared_envelopes",
+        "rust/crates/autorouter-core/src/auto_routing.rs#unknown_semantic_envelopes_pin_instead_of_dropping_fields"
+      ],
+      "shared_cases": [
+        "baseline-auto-8-1",
+        "baseline-auto-8-2",
+        "baseline-auto-8-3",
+        "baseline-auto-8-4",
+        "baseline-auto-8-5",
+        "baseline-auto-8-6",
+        "baseline-auto-8-7"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 7,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#9",
       "file": "test/auto-routing.test.mjs",
       "name": "finite tool and execution envelopes reject unfamiliar fields without changing native requests",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#unknown_semantic_envelopes_pin_instead_of_dropping_fields",
+        "rust/crates/autorouter-core/src/auto_routing.rs#unknown_nested_content_fields_cannot_cross_a_model_boundary"
+      ],
+      "shared_cases": [
+        "baseline-auto-9-1",
+        "baseline-auto-9-2",
+        "baseline-auto-9-3",
+        "baseline-auto-9-4",
+        "baseline-auto-9-5",
+        "baseline-auto-9-6",
+        "baseline-auto-9-7",
+        "baseline-auto-9-8",
+        "baseline-auto-9-9",
+        "baseline-auto-9-10",
+        "baseline-auto-9-11",
+        "baseline-auto-9-12",
+        "baseline-auto-9-13",
+        "baseline-auto-9-14",
+        "baseline-auto-9-15",
+        "baseline-auto-9-16",
+        "baseline-auto-9-17",
+        "baseline-auto-9-18",
+        "baseline-auto-9-19",
+        "baseline-auto-9-20",
+        "baseline-auto-9-21",
+        "baseline-auto-9-22",
+        "baseline-auto-9-23",
+        "baseline-auto-9-24",
+        "baseline-auto-9-25",
+        "baseline-auto-9-26",
+        "baseline-auto-9-27",
+        "baseline-auto-9-28",
+        "baseline-auto-9-29",
+        "baseline-auto-9-30",
+        "baseline-auto-9-31",
+        "baseline-auto-9-32",
+        "baseline-auto-9-33",
+        "baseline-auto-9-34",
+        "baseline-auto-9-35",
+        "baseline-auto-9-36",
+        "baseline-auto-9-37",
+        "baseline-auto-9-38",
+        "baseline-auto-9-39",
+        "baseline-auto-9-40",
+        "baseline-auto-9-41",
+        "baseline-auto-9-42",
+        "baseline-auto-9-43",
+        "baseline-auto-9-44",
+        "baseline-auto-9-45",
+        "baseline-auto-9-46",
+        "baseline-auto-9-47",
+        "baseline-auto-9-48",
+        "baseline-auto-9-49",
+        "baseline-auto-9-50",
+        "baseline-auto-9-51",
+        "baseline-auto-9-52",
+        "baseline-auto-9-53",
+        "baseline-auto-9-54",
+        "baseline-auto-9-55",
+        "baseline-auto-9-56",
+        "baseline-auto-9-57",
+        "baseline-auto-9-58",
+        "baseline-auto-9-59",
+        "baseline-auto-9-60",
+        "baseline-auto-9-61",
+        "baseline-auto-9-62",
+        "baseline-auto-9-63",
+        "baseline-auto-9-64"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 64,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#10",
       "file": "test/auto-routing.test.mjs",
       "name": "documented built-in tool, output and thinking envelopes retain all opaque data while routing",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#opaque_schema_and_signed_history_survive_all_shared_envelopes",
+        "rust/crates/autorouter-core/src/auto_routing.rs#all_profile_forced_tools_and_model_specific_facilities_are_preserved"
+      ],
+      "shared_cases": [
+        "baseline-auto-10-1",
+        "baseline-auto-10-2",
+        "baseline-auto-10-3",
+        "baseline-auto-10-4",
+        "baseline-auto-10-5",
+        "baseline-auto-10-6"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 6,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#11",
       "file": "test/auto-routing.test.mjs",
       "name": "documented null optional envelopes preserve their default meaning and wire representation",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#null_optional_envelopes_retain_defaults_without_being_omitted"
+      ],
+      "shared_cases": [
+        "baseline-auto-11-1",
+        "baseline-auto-11-2"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 2,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#12",
       "file": "test/auto-routing.test.mjs",
       "name": "unknown semantic message, custom-tool and edit fields retain the source model without rejecting opaque task data",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#unknown_semantic_envelopes_pin_instead_of_dropping_fields",
+        "rust/crates/autorouter-core/src/auto_routing.rs#opaque_schema_and_signed_history_survive_all_shared_envelopes"
+      ],
+      "shared_cases": [
+        "baseline-auto-12-1",
+        "baseline-auto-12-2",
+        "baseline-auto-12-3",
+        "baseline-auto-12-4",
+        "baseline-auto-12-5",
+        "baseline-auto-12-6",
+        "baseline-auto-12-7",
+        "baseline-auto-12-8",
+        "baseline-auto-12-9",
+        "baseline-auto-12-10",
+        "baseline-auto-12-11",
+        "baseline-auto-12-12",
+        "baseline-auto-12-13",
+        "baseline-auto-12-14",
+        "baseline-auto-12-15",
+        "baseline-auto-12-16",
+        "baseline-auto-12-17",
+        "baseline-auto-12-18",
+        "baseline-auto-12-19",
+        "baseline-auto-12-20",
+        "baseline-auto-12-21"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 21,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#13",
       "file": "test/auto-routing.test.mjs",
       "name": "known content types with unfamiliar semantic fields cannot cross a model boundary",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#unknown_nested_content_fields_cannot_cross_a_model_boundary",
+        "rust/crates/autorouter-core/src/auto_routing.rs#unknown_semantic_envelopes_pin_instead_of_dropping_fields"
+      ],
+      "shared_cases": [
+        "baseline-auto-13-1",
+        "baseline-auto-13-2",
+        "baseline-auto-13-3",
+        "baseline-auto-13-4",
+        "baseline-auto-13-5",
+        "baseline-auto-13-6",
+        "baseline-auto-13-7",
+        "baseline-auto-13-8",
+        "baseline-auto-13-9",
+        "baseline-auto-13-10",
+        "baseline-auto-13-11",
+        "baseline-auto-13-12",
+        "baseline-auto-13-13",
+        "baseline-auto-13-14",
+        "baseline-auto-13-15",
+        "baseline-auto-13-16",
+        "baseline-auto-13-17",
+        "baseline-auto-13-18",
+        "baseline-auto-13-19",
+        "baseline-auto-13-20",
+        "baseline-auto-13-21",
+        "baseline-auto-13-22",
+        "baseline-auto-13-23",
+        "baseline-auto-13-24",
+        "baseline-auto-13-25",
+        "baseline-auto-13-26",
+        "baseline-auto-13-27",
+        "baseline-auto-13-28",
+        "baseline-auto-13-29",
+        "baseline-auto-13-30",
+        "baseline-auto-13-31",
+        "baseline-auto-13-32",
+        "baseline-auto-13-33",
+        "baseline-auto-13-34",
+        "baseline-auto-13-35",
+        "baseline-auto-13-36",
+        "baseline-auto-13-37",
+        "baseline-auto-13-38",
+        "baseline-auto-13-39",
+        "baseline-auto-13-40",
+        "baseline-auto-13-41",
+        "baseline-auto-13-42",
+        "baseline-auto-13-43",
+        "baseline-auto-13-44",
+        "baseline-auto-13-45",
+        "baseline-auto-13-46",
+        "baseline-auto-13-47",
+        "baseline-auto-13-48",
+        "baseline-auto-13-49",
+        "baseline-auto-13-50",
+        "baseline-auto-13-51",
+        "baseline-auto-13-52",
+        "baseline-auto-13-53",
+        "baseline-auto-13-54",
+        "baseline-auto-13-55",
+        "baseline-auto-13-56",
+        "baseline-auto-13-57",
+        "baseline-auto-13-58",
+        "baseline-auto-13-59",
+        "baseline-auto-13-60",
+        "baseline-auto-13-61",
+        "baseline-auto-13-62",
+        "baseline-auto-13-63",
+        "baseline-auto-13-64",
+        "baseline-auto-13-65",
+        "baseline-auto-13-66",
+        "baseline-auto-13-67",
+        "baseline-auto-13-68",
+        "baseline-auto-13-69",
+        "baseline-auto-13-70",
+        "baseline-auto-13-71",
+        "baseline-auto-13-72",
+        "baseline-auto-13-73",
+        "baseline-auto-13-74",
+        "baseline-auto-13-75",
+        "baseline-auto-13-76",
+        "baseline-auto-13-77",
+        "baseline-auto-13-78",
+        "baseline-auto-13-79",
+        "baseline-auto-13-80",
+        "baseline-auto-13-81",
+        "baseline-auto-13-82",
+        "baseline-auto-13-83",
+        "baseline-auto-13-84",
+        "baseline-auto-13-85",
+        "baseline-auto-13-86",
+        "baseline-auto-13-87",
+        "baseline-auto-13-88",
+        "baseline-auto-13-89",
+        "baseline-auto-13-90"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 90,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#14",
       "file": "test/auto-routing.test.mjs",
       "name": "documented block attributes remain routable and opaque payloads round-trip without inspection",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#opaque_schema_and_signed_history_survive_all_shared_envelopes"
+      ],
+      "shared_cases": [
+        "baseline-auto-14-1",
+        "baseline-auto-14-2"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 2,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#15",
       "file": "test/auto-routing.test.mjs",
       "name": "forced tool choice, fast mode and retained execution facilities prevent routing",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#all_profile_forced_tools_and_model_specific_facilities_are_preserved"
+      ],
+      "shared_cases": [
+        "baseline-auto-15-1",
+        "baseline-auto-15-2",
+        "baseline-auto-15-3",
+        "baseline-auto-15-4",
+        "baseline-auto-15-5",
+        "baseline-auto-15-6",
+        "baseline-auto-15-7",
+        "baseline-auto-15-8",
+        "baseline-auto-15-9",
+        "baseline-auto-15-10",
+        "baseline-auto-15-11",
+        "baseline-auto-15-12",
+        "baseline-auto-15-13"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 13,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#16",
       "file": "test/auto-routing.test.mjs",
       "name": "output caps must fit the target standard Messages API window",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#output_thinking_effort_sampling_and_prefill_restrictions_have_exact_reasons",
+        "rust/crates/autorouter-core/src/auto_routing.rs#authoritative_guard_preserves_overflow_truthiness_and_optional_envelopes"
+      ],
+      "shared_cases": [
+        "baseline-auto-16-1",
+        "baseline-auto-16-2",
+        "baseline-auto-16-3",
+        "baseline-auto-16-4",
+        "baseline-auto-16-5",
+        "baseline-auto-16-6",
+        "baseline-auto-16-7",
+        "baseline-auto-16-8",
+        "baseline-auto-16-9",
+        "baseline-auto-16-10"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 10,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "JavaScript API calls with max_tokens=NaN and max_tokens=Infinity are skipped rather than serialized to null. These two calls need explicit API-migration evidence; finite wire cases are covered."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#17",
       "file": "test/auto-routing.test.mjs",
       "name": "Sonnet 5 cannot receive mid-conversation instructions, per-message effort or task budgets",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#sonnet5_cannot_receive_modern_system_effort_or_task_budget"
+      ],
+      "shared_cases": [
+        "baseline-auto-17-1",
+        "baseline-auto-17-2",
+        "baseline-auto-17-3",
+        "baseline-auto-17-4",
+        "baseline-auto-17-5",
+        "baseline-auto-17-6",
+        "baseline-auto-17-7"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 7,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#18",
       "file": "test/auto-routing.test.mjs",
       "name": "between_tools routing is restricted to Sonnet 5.5 and its exact native shape",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#between_tools_requires_exact_source_and_no_extensions"
+      ],
+      "shared_cases": [
+        "baseline-auto-18-1",
+        "baseline-auto-18-2",
+        "baseline-auto-18-3",
+        "baseline-auto-18-4",
+        "baseline-auto-18-5",
+        "baseline-auto-18-6",
+        "baseline-auto-18-7",
+        "baseline-auto-18-8",
+        "baseline-auto-18-9",
+        "baseline-auto-18-10",
+        "baseline-auto-18-11",
+        "baseline-auto-18-12",
+        "baseline-auto-18-13",
+        "baseline-auto-18-14",
+        "baseline-auto-18-15"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 15,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#19",
       "file": "test/auto-routing.test.mjs",
       "name": "all-profile target checks preserve forced tool intent instead of producing invalid 5.5 requests",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#all_profile_forced_tools_and_model_specific_facilities_are_preserved"
+      ],
+      "shared_cases": [
+        "baseline-auto-19-1",
+        "baseline-auto-19-2",
+        "baseline-auto-19-3",
+        "baseline-auto-19-4",
+        "baseline-auto-19-5",
+        "baseline-auto-19-6",
+        "baseline-auto-19-7",
+        "baseline-auto-19-8"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 8,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#20",
       "file": "test/auto-routing.test.mjs",
       "name": "ordinary compatible requests still support all three configured tiers",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#all_exact_modern_pairs_route_while_aliases_and_older_auto_targets_do_not"
+      ],
+      "shared_cases": [
+        "baseline-auto-20-1",
+        "baseline-auto-20-2",
+        "baseline-auto-20-3",
+        "baseline-auto-20-4",
+        "baseline-auto-20-5",
+        "baseline-auto-20-6",
+        "baseline-auto-20-7",
+        "baseline-auto-20-8",
+        "baseline-auto-20-9"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 9,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#21",
       "file": "test/auto-routing.test.mjs",
       "name": "zero-output cache population remains compatible across profiles and preserves the request",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#output_thinking_effort_sampling_and_prefill_restrictions_have_exact_reasons"
+      ],
+      "shared_cases": [
+        "baseline-auto-21-1",
+        "baseline-auto-21-2",
+        "baseline-auto-21-3",
+        "baseline-auto-21-4",
+        "baseline-auto-21-5",
+        "baseline-auto-21-6",
+        "baseline-auto-21-7",
+        "baseline-auto-21-8",
+        "baseline-auto-21-9"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 9,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#22",
       "file": "test/auto-routing.test.mjs",
       "name": "target checks apply output, thinking, effort, sampling and prefill restrictions across profiles",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#output_thinking_effort_sampling_and_prefill_restrictions_have_exact_reasons"
+      ],
+      "shared_cases": [
+        "baseline-auto-22-1",
+        "baseline-auto-22-2",
+        "baseline-auto-22-3",
+        "baseline-auto-22-4",
+        "baseline-auto-22-5",
+        "baseline-auto-22-6",
+        "baseline-auto-22-7",
+        "baseline-auto-22-8",
+        "baseline-auto-22-9",
+        "baseline-auto-22-10",
+        "baseline-auto-22-11"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 11,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/auto-routing.test.mjs#23",
       "file": "test/auto-routing.test.mjs",
       "name": "unfamiliar native identities and provider extensions remain on their source model unmodified",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/auto_routing.rs#unknown_semantic_envelopes_pin_instead_of_dropping_fields",
+        "rust/crates/autorouter-core/src/auto_routing.rs#all_exact_modern_pairs_route_while_aliases_and_older_auto_targets_do_not"
+      ],
+      "shared_cases": [
+        "baseline-auto-23-1",
+        "baseline-auto-23-2",
+        "baseline-auto-23-3",
+        "baseline-auto-23-4",
+        "baseline-auto-23-5",
+        "baseline-auto-23-6",
+        "baseline-auto-23-7",
+        "baseline-auto-23-8",
+        "baseline-auto-23-9",
+        "baseline-auto-23-10",
+        "baseline-auto-23-11"
+      ],
+      "evidence": {
+        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
+        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
+        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "cases": 372,
+        "matched": 372,
+        "definition_cases": 11,
+        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
+        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
+        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
+        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+      },
       "related_components": [
         "model_guards"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
+        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
+      }
     },
     {
       "id": "test/benchmark-bundle.test.mjs#1",
@@ -2498,16 +3432,23 @@
       ],
       "shared_cases": [],
       "evidence": {
-        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "log": "artifacts/rust-rewrite/evidence/3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3.log",
         "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate.",
+        "log_source": "artifacts/rust-rewrite/rust-workspace-checkpoint.log"
       },
       "related_components": [
         "config_auth_policy",
         "native_cli_package"
       ],
       "assertion_mapping": "rust/parity/assertion-mappings/cli-tooling.json",
-      "remaining_assertions": []
+      "remaining_assertions": [],
+      "additional_evidence": {
+        "log": "artifacts/rust-rewrite/evidence/c5521698e20a403588e24566c5ba86b10604e533fe7cd969a9078d39fdb3c583.log",
+        "log_sha256": "c5521698e20a403588e24566c5ba86b10604e533fe7cd969a9078d39fdb3c583",
+        "scope": "One focused strengthened stale-edit test passed before checkpoint c58df75; the original broader PTY cancellation evidence remains unchanged.",
+        "log_source": "artifacts/rust-rewrite/config-stale-exact-diagnostic.log"
+      }
     },
     {
       "id": "test/config-command.test.mjs#7",
@@ -4823,22 +5764,23 @@
       "file": "test/onboarding.test.mjs",
       "name": "session logging setup saves an absolute directory with CLI precedence and supports disabling at runtime",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
-      "rust_tests": [],
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#logging_setup_resolves_cli_directory_and_disables_without_creating_history"
+      ],
       "shared_cases": [],
       "evidence": {
-        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+        "log": "artifacts/rust-rewrite/evidence/e749f8572e05c4ebd5d6a40e38109a65691210f120440609dbad28cf31a8f458.log",
+        "log_sha256": "e749f8572e05c4ebd5d6a40e38109a65691210f120440609dbad28cf31a8f458",
+        "scope": "Native macOS arm64 executable assertions after hidden-input restoration hardening: all 42 tests in config_contracts, edge_cases, launcher_contracts and onboarding_local passed. Synthetic homes/PTYs/local services only; fresh Linux CI and installed archive qualification remain separate.",
+        "log_source": "artifacts/rust-rewrite/cli-c58-regressions-after.log"
       },
       "related_components": [
         "config_auth_policy",
         "native_cli_package"
       ],
       "assertion_mapping": "rust/parity/assertion-mappings/cli-tooling.json",
-      "remaining_assertions": [
-        "Baseline CLI directory overriding a conflicting inherited directory, prompts mode, empty runtime disable, empty forced disable, no directory creation and byte-preservation across doctor are not reproduced as the full lifecycle."
-      ]
+      "remaining_assertions": []
     },
     {
       "id": "test/onboarding.test.mjs#7",
@@ -4889,24 +5831,23 @@
       "file": "test/onboarding.test.mjs",
       "name": "setup prompts only for missing keys and leaves no file on invalid or cancelled input",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/claude-autorouter/tests/edge_cases.rs#hidden_secret_cancellation_restores_echo_and_preserves_saved_configuration"
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#setup_missing_keys_prompt_in_order_and_reject_blank_cancelled_or_nonterminal_input"
       ],
       "shared_cases": [],
       "evidence": {
-        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+        "log": "artifacts/rust-rewrite/evidence/e749f8572e05c4ebd5d6a40e38109a65691210f120440609dbad28cf31a8f458.log",
+        "log_sha256": "e749f8572e05c4ebd5d6a40e38109a65691210f120440609dbad28cf31a8f458",
+        "scope": "Native macOS arm64 executable assertions after hidden-input restoration hardening: all 42 tests in config_contracts, edge_cases, launcher_contracts and onboarding_local passed. Synthetic homes/PTYs/local services only; fresh Linux CI and installed archive qualification remain separate.",
+        "log_source": "artifacts/rust-rewrite/cli-c58-regressions-after.log"
       },
       "related_components": [
         "config_auth_policy",
         "native_cli_package"
       ],
       "assertion_mapping": "rust/parity/assertion-mappings/cli-tooling.json",
-      "remaining_assertions": [
-        "Setup API-key prompt order TYPESAFE then ANTHROPIC, second blank key/no file, cancelled initial setup/no file, forbidden --key argument redaction and askSecret non-TTY refusal are not tested at onboarding boundary."
-      ]
+      "remaining_assertions": []
     },
     {
       "id": "test/onboarding.test.mjs#10",
@@ -5311,48 +6252,46 @@
       "file": "test/onboarding.test.mjs",
       "name": "explicit replacement starts with defaults and supplied values instead of retaining old settings",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/claude-autorouter/tests/commands.rs#native_setup_jev_preserves_unrelated_saved_preferences_and_requires_explicit_replace"
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#replacement_discards_old_backend_auth_preferences_and_prompts_only_for_jev"
       ],
       "shared_cases": [],
       "evidence": {
-        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+        "log": "artifacts/rust-rewrite/evidence/e749f8572e05c4ebd5d6a40e38109a65691210f120440609dbad28cf31a8f458.log",
+        "log_sha256": "e749f8572e05c4ebd5d6a40e38109a65691210f120440609dbad28cf31a8f458",
+        "scope": "Native macOS arm64 executable assertions after hidden-input restoration hardening: all 42 tests in config_contracts, edge_cases, launcher_contracts and onboarding_local passed. Synthetic homes/PTYs/local services only; fresh Linux CI and installed archive qualification remain separate.",
+        "log_source": "artifacts/rust-rewrite/cli-c58-regressions-after.log"
       },
       "related_components": [
         "config_auth_policy",
         "native_cli_package"
       ],
       "assertion_mapping": "rust/parity/assertion-mappings/cli-tooling.json",
-      "remaining_assertions": [
-        "Baseline replacement from Ollama/API/native with discarded secrets/model/cap and exactly one TYPESAFE prompt is absent; current replacement supplies credentials noninteractively."
-      ]
+      "remaining_assertions": []
     },
     {
       "id": "test/onboarding.test.mjs#29",
       "file": "test/onboarding.test.mjs",
       "name": "setup rejects invalid saved or explicit settings before secret input and cancellation preserves the old file",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/claude-autorouter/tests/edge_cases.rs#hidden_secret_cancellation_restores_echo_and_preserves_saved_configuration"
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#invalid_setup_settings_fail_before_keys_and_cancelled_replacement_preserves_bytes"
       ],
       "shared_cases": [],
       "evidence": {
-        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+        "log": "artifacts/rust-rewrite/evidence/e749f8572e05c4ebd5d6a40e38109a65691210f120440609dbad28cf31a8f458.log",
+        "log_sha256": "e749f8572e05c4ebd5d6a40e38109a65691210f120440609dbad28cf31a8f458",
+        "scope": "Native macOS arm64 executable assertions after hidden-input restoration hardening: all 42 tests in config_contracts, edge_cases, launcher_contracts and onboarding_local passed. Synthetic homes/PTYs/local services only; fresh Linux CI and installed archive qualification remain separate.",
+        "log_source": "artifacts/rust-rewrite/cli-c58-regressions-after.log"
       },
       "related_components": [
         "config_auth_policy",
         "native_cli_package"
       ],
       "assertion_mapping": "rust/parity/assertion-mappings/cli-tooling.json",
-      "remaining_assertions": [
-        "Onboarding rejection of blank port/private invalid URL/DEBUG=false before any prompt/provider work, then cancelled --replace preserving old config, is not covered at setup boundary."
-      ]
+      "remaining_assertions": []
     },
     {
       "id": "test/onboarding.test.mjs#30",
@@ -5453,22 +6392,23 @@
       "file": "test/onboarding.test.mjs",
       "name": "setup defaults to local Ollama, needs no evaluator key, and points to Jev when Ollama is unavailable",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
-      "rust_tests": [],
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#default_ollama_failure_saves_nothing_and_only_implicit_selection_suggests_jev"
+      ],
       "shared_cases": [],
       "evidence": {
-        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+        "log": "artifacts/rust-rewrite/evidence/e749f8572e05c4ebd5d6a40e38109a65691210f120440609dbad28cf31a8f458.log",
+        "log_sha256": "e749f8572e05c4ebd5d6a40e38109a65691210f120440609dbad28cf31a8f458",
+        "scope": "Native macOS arm64 executable assertions after hidden-input restoration hardening: all 42 tests in config_contracts, edge_cases, launcher_contracts and onboarding_local passed. Synthetic homes/PTYs/local services only; fresh Linux CI and installed archive qualification remain separate.",
+        "log_source": "artifacts/rust-rewrite/cli-c58-regressions-after.log"
       },
       "related_components": [
         "config_auth_policy",
         "native_cli_package"
       ],
       "assertion_mapping": "rust/parity/assertion-mappings/cli-tooling.json",
-      "remaining_assertions": [
-        "No command test proves default Ollama unreachable failure saves nothing, prompts no key, includes setup --evaluator jev hint only for implicit default, and excludes it for explicit Ollama."
-      ]
+      "remaining_assertions": []
     },
     {
       "id": "test/package-lifecycle.test.mjs#1",
@@ -6121,78 +7061,225 @@
       "file": "test/redaction.test.mjs",
       "name": "redacts recognized credential formats while keeping surrounding task text",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#provider_tokens_and_markers_are_redacted_idempotently",
+        "rust/crates/autorouter-core/src/redaction.rs#private_key_blocks_and_cut_off_tails_are_redacted"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
       "related_components": [
         "prompt_redaction"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Missing baseline original-format values: Stripe secret,AWS,GitHub PAT,GitLab,Slack token/webhook,Google API,npm,JWT with exact context/marker assertions."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
     },
     {
       "id": "test/redaction.test.mjs#2",
       "file": "test/redaction.test.mjs",
       "name": "redacts secret assignments, authorization headers and URL credentials but keeps their names",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#names_and_context_survive_while_secret_values_are_removed"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
       "related_components": [
         "prompt_redaction"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Missing exact curl -H quoted Bearer example."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
     },
     {
       "id": "test/redaction.test.mjs#3",
       "file": "test/redaction.test.mjs",
       "name": "redacts emails and checksum-valid IBANs and card numbers only",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#formats_checksum_and_boundaries_match_reviewed_rules"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
       "related_components": [
         "prompt_redaction"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Missing exact hyphenated-card result and unchanged commit hash/RFC7519; compact-IBAN case differs surrounding string."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
     },
     {
       "id": "test/redaction.test.mjs#4",
       "file": "test/redaction.test.mjs",
       "name": "keeps ordinary engineering text intact",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#ordinary_text_and_boolean_controls_remain_readable"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
       "related_components": [
         "prompt_redaction"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Missing exact package.json author sentence,secret-rotation sentence and Bearer tokens ordinary sentence."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
     },
     {
       "id": "test/redaction.test.mjs#5",
       "file": "test/redaction.test.mjs",
       "name": "redaction is idempotent and stays linear on adversarial input",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#provider_tokens_and_markers_are_redacted_idempotently"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          },
+          "prompt-state": {
+            "report": "artifacts/rust-rewrite/evidence/f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b.json",
+            "report_sha256": "f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b",
+            "cases": 3092,
+            "matched": 3092,
+            "cases_sha256": "5be32e7c9604c2ff376e3406a3e173a59c6699e3cf6144e190147b16b98e4354",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/prompt-state.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
       "related_components": [
         "prompt_redaction"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Exact password20+email idempotence fixture absent; each individual <2000ms assertion is not supplied by batch differential equality/termination."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
     },
     {
       "id": "test/redaction.test.mjs#6",
       "file": "test/redaction.test.mjs",
       "name": "evaluator state never contains a secret from tool output, system text or long excerpts",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
+      "status": "partial_assertion_mapping",
       "rust_tests": [],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          },
+          "prompt-state": {
+            "report": "artifacts/rust-rewrite/evidence/f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b.json",
+            "report_sha256": "f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b",
+            "cases": 3092,
+            "matched": 3092,
+            "cases_sha256": "5be32e7c9604c2ff376e3406a3e173a59c6699e3cf6144e190147b16b98e4354",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/prompt-state.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
       "related_components": [
         "prompt_redaction"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Original mixed AWS system/email human/password+PEM+IBAN long tool-output fixture absent; retain all5 leak checks,redaction marker,current_task for Jev12000/Ollama3000."
+      ],
+      "source_hashes": {}
     },
     {
       "id": "test/redaction.test.mjs#7",
@@ -6200,12 +7287,43 @@
       "name": "a private key cut by excerpt windows is redacted at either edge",
       "parameterized": false,
       "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#private_key_blocks_and_cut_off_tails_are_redacted"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          },
+          "prompt-state": {
+            "report": "artifacts/rust-rewrite/evidence/f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b.json",
+            "report_sha256": "f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b",
+            "cases": 3092,
+            "matched": 3092,
+            "cases_sha256": "5be32e7c9604c2ff376e3406a3e173a59c6699e3cf6144e190147b16b98e4354",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/prompt-state.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
       "related_components": [
         "prompt_redaction"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Both400-line key-body cases with60000-character prefix/suffix and absence of Kx64 in resulting state are missing."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
     },
     {
       "id": "test/redaction.test.mjs#8",
@@ -6215,114 +7333,333 @@
       "status": "pending_assertion_mapping",
       "rust_tests": [],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          },
+          "prompt-state": {
+            "report": "artifacts/rust-rewrite/evidence/f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b.json",
+            "report_sha256": "f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b",
+            "cases": 3092,
+            "matched": 3092,
+            "cases_sha256": "5be32e7c9604c2ff376e3406a3e173a59c6699e3cf6144e190147b16b98e4354",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/prompt-state.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
       "related_components": [
         "prompt_redaction"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Add complete mocked Jev request body test using GitHub secret, expected redaction text, unchanged input (and actual upstream preservation if claiming the test title beyond assertions)."
+      ],
+      "source_hashes": {}
     },
     {
       "id": "test/redaction.test.mjs#9",
       "file": "test/redaction.test.mjs",
       "name": "session-log prompt excerpts are redacted, including a secret at the retention boundary",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
+      "status": "partial_assertion_mapping",
       "rust_tests": [],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          },
+          "prompt-state": {
+            "report": "artifacts/rust-rewrite/evidence/f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b.json",
+            "report_sha256": "f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b",
+            "cases": 3092,
+            "matched": 3092,
+            "cases_sha256": "5be32e7c9604c2ff376e3406a3e173a59c6699e3cf6144e190147b16b98e4354",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/prompt-state.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
       "related_components": [
         "prompt_redaction"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Missing exact email+GitHub excerpt,490-prefix/501-limit secret straddle including partial-token check and marker, and schema2 historical AWS excerpt re-redaction."
+      ],
+      "source_hashes": {}
     },
     {
       "id": "test/redaction.test.mjs#10",
       "file": "test/redaction.test.mjs",
       "name": "redacts additional provider token formats",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#provider_tokens_and_markers_are_redacted_idempotently"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status.",
+        "native_log": "artifacts/rust-rewrite/evidence/00169f469d3a62805148b114bc7185788216afced53ad25c7d8451102b3adc38.log",
+        "native_log_sha256": "00169f469d3a62805148b114bc7185788216afced53ad25c7d8451102b3adc38"
+      },
       "related_components": [
         "prompt_redaction"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
     },
     {
       "id": "test/redaction.test.mjs#11",
       "file": "test/redaction.test.mjs",
       "name": "redacts URL credentials with an empty user or a password containing @",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#names_and_context_survive_while_secret_values_are_removed",
+        "rust/crates/autorouter-core/src/redaction.rs#formats_checksum_and_boundaries_match_reviewed_rules"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
       "related_components": [
         "prompt_redaction"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Missing exact amqps multiple-@ password,localhost and ssh://github.com ordinary cases."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
     },
     {
       "id": "test/redaction.test.mjs#12",
       "file": "test/redaction.test.mjs",
       "name": "redacts the common setting-name forms the first filter missed, without leaking any part of the value",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#names_and_context_survive_while_secret_values_are_removed"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
       "related_components": [
         "prompt_redaction"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Missing full14 case-list assertions including quoted SIGNING_KEY,DB_AUTH,AUTH,JSON pass/password,connection-string Password and AccountKey exactvalues."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
     },
     {
       "id": "test/redaction.test.mjs#13",
       "file": "test/redaction.test.mjs",
       "name": "redacts credentials passed on command lines",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#names_and_context_survive_while_secret_values_are_removed",
+        "rust/crates/autorouter-core/src/redaction.rs#ordinary_text_and_boolean_controls_remain_readable"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
       "related_components": [
         "prompt_redaction"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Missing exact curl --user,tool --db-password=,and quoted --token cases."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
     },
     {
       "id": "test/redaction.test.mjs#14",
       "file": "test/redaction.test.mjs",
       "name": "redacts international phone numbers, Italian tax codes and US social security numbers",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#formats_checksum_and_boundaries_match_reviewed_rules"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
       "related_components": [
         "prompt_redaction"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Missing unchanged at +123 ms and ratio3-2-1 exact strings."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
     },
     {
       "id": "test/redaction.test.mjs#15",
       "file": "test/redaction.test.mjs",
       "name": "ordinary words that contain a secret keyword are left alone",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#ordinary_text_and_boolean_controls_remain_readable"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status.",
+        "native_log": "artifacts/rust-rewrite/evidence/00169f469d3a62805148b114bc7185788216afced53ad25c7d8451102b3adc38.log",
+        "native_log_sha256": "00169f469d3a62805148b114bc7185788216afced53ad25c7d8451102b3adc38"
+      },
       "related_components": [
         "prompt_redaction"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
     },
     {
       "id": "test/redaction.test.mjs#16",
       "file": "test/redaction.test.mjs",
       "name": "the widened rules are idempotent and stay linear on adversarial input",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/redaction.rs#provider_tokens_and_markers_are_redacted_idempotently"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          },
+          "prompt-state": {
+            "report": "artifacts/rust-rewrite/evidence/f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b.json",
+            "report_sha256": "f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b",
+            "cases": 3092,
+            "matched": 3092,
+            "cases_sha256": "5be32e7c9604c2ff376e3406a3e173a59c6699e3cf6144e190147b16b98e4354",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/prompt-state.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
       "related_components": [
         "prompt_redaction"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Native idempotence sample omits --api-key and SSN from original joined input; exact per-input<2000ms assertions remain unqualified."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+      }
     },
     {
       "id": "test/redaction.test.mjs#17",
@@ -6332,10 +7669,37 @@
       "status": "pending_assertion_mapping",
       "rust_tests": [],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "redaction-adversarial": {
+            "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+            "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/redaction-adversarial.report.json"
+          },
+          "prompt-state": {
+            "report": "artifacts/rust-rewrite/evidence/f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b.json",
+            "report_sha256": "f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b",
+            "cases": 3092,
+            "matched": 3092,
+            "cases_sha256": "5be32e7c9604c2ff376e3406a3e173a59c6699e3cf6144e190147b16b98e4354",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/prompt-state.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
       "related_components": [
         "prompt_redaction"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Original .env tool-result fixture with all5 secret/email absence checks and APP_NAME=autorouter retained in both builders is missing."
+      ],
+      "source_hashes": {}
     },
     {
       "id": "test/release-check.test.mjs#1",
@@ -8145,67 +9509,264 @@
       "status": "pending_assertion_mapping",
       "rust_tests": [],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "router": {
+            "report": "artifacts/rust-rewrite/evidence/ed9f8d26291daa9647688ecca24369c09f0be2b047fa4b9960d693af4f0ef7e7.json",
+            "report_sha256": "ed9f8d26291daa9647688ecca24369c09f0be2b047fa4b9960d693af4f0ef7e7",
+            "cases": 11733,
+            "matched": 11733,
+            "cases_sha256": "d577ca30deccc3ba83c3c8ea73acf2100b38e13dfb67abc600218c5b311f63bd",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/router.report.json"
+          },
+          "compatibility": {
+            "report": "artifacts/rust-rewrite/evidence/ea71939f858dfb190cff660b7cb0b47eec7c16ea87ccb066a42a13b93742529e.json",
+            "report_sha256": "ea71939f858dfb190cff660b7cb0b47eec7c16ea87ccb066a42a13b93742529e",
+            "cases": 84495,
+            "matched": 84495,
+            "cases_sha256": "787b2cb4a78f2f3bdb2f8f6bb271b2274f83813e70d5cdd6851b93e692244744",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/compatibility.report.json"
+          },
+          "core": {
+            "report": "artifacts/rust-rewrite/evidence/b3d2c7e7a78adc7b0055c5b987259b4f0099504bd81ffe326b890f4be2708166.json",
+            "report_sha256": "b3d2c7e7a78adc7b0055c5b987259b4f0099504bd81ffe326b890f4be2708166",
+            "cases": 217,
+            "matched": 217,
+            "cases_sha256": "6e0457c692f48897bd176205f95895290861f0a0b58e087e70a54cc55fd95cc7",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/core.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
       "related_components": [
         "model_guards",
         "router_continuity"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Complete3 profiles x2 classified tiers x2 forced choices; assert selected model, classified_tier, exact reason/compatibility_reason, unchanged input."
+      ],
+      "source_hashes": {}
     },
     {
       "id": "test/routing-compatibility.test.mjs#2",
       "file": "test/routing-compatibility.test.mjs",
       "name": "gateway preserves forced tool bodies and headers in compatible, native and Auto profiles",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "router": {
+            "report": "artifacts/rust-rewrite/evidence/ed9f8d26291daa9647688ecca24369c09f0be2b047fa4b9960d693af4f0ef7e7.json",
+            "report_sha256": "ed9f8d26291daa9647688ecca24369c09f0be2b047fa4b9960d693af4f0ef7e7",
+            "cases": 11733,
+            "matched": 11733,
+            "cases_sha256": "d577ca30deccc3ba83c3c8ea73acf2100b38e13dfb67abc600218c5b311f63bd",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/router.report.json"
+          },
+          "compatibility": {
+            "report": "artifacts/rust-rewrite/evidence/ea71939f858dfb190cff660b7cb0b47eec7c16ea87ccb066a42a13b93742529e.json",
+            "report_sha256": "ea71939f858dfb190cff660b7cb0b47eec7c16ea87ccb066a42a13b93742529e",
+            "cases": 84495,
+            "matched": 84495,
+            "cases_sha256": "787b2cb4a78f2f3bdb2f8f6bb271b2274f83813e70d5cdd6851b93e692244744",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/compatibility.report.json"
+          },
+          "core": {
+            "report": "artifacts/rust-rewrite/evidence/b3d2c7e7a78adc7b0055c5b987259b4f0099504bd81ffe326b890f4be2708166.json",
+            "report_sha256": "b3d2c7e7a78adc7b0055c5b987259b4f0099504bd81ffe326b890f4be2708166",
+            "cases": 217,
+            "matched": 217,
+            "cases_sha256": "6e0457c692f48897bd176205f95895290861f0a0b58e087e70a54cc55fd95cc7",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/core.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
       "related_components": [
         "model_guards",
         "router_continuity"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "No forced-tool request appears in shared protocol corpus. Add3-profile fixture with original body/model/request-id/beta/query preservation and evaluation=1,count=0."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-runtime/tests/gateway.rs": "869ebcce695d54aee1a9150777a32bfc9c34175c1a999ce752651272e314b7fd"
+      }
     },
     {
       "id": "test/routing-compatibility.test.mjs#3",
       "file": "test/routing-compatibility.test.mjs",
       "name": "gateway rejects malformed consumed shapes before evaluation, token counting or upstream forwarding",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/gateway_failures.rs#local_rejections_never_call_router_or_upstream_and_hide_payloads"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "router": {
+            "report": "artifacts/rust-rewrite/evidence/ed9f8d26291daa9647688ecca24369c09f0be2b047fa4b9960d693af4f0ef7e7.json",
+            "report_sha256": "ed9f8d26291daa9647688ecca24369c09f0be2b047fa4b9960d693af4f0ef7e7",
+            "cases": 11733,
+            "matched": 11733,
+            "cases_sha256": "d577ca30deccc3ba83c3c8ea73acf2100b38e13dfb67abc600218c5b311f63bd",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/router.report.json"
+          },
+          "compatibility": {
+            "report": "artifacts/rust-rewrite/evidence/ea71939f858dfb190cff660b7cb0b47eec7c16ea87ccb066a42a13b93742529e.json",
+            "report_sha256": "ea71939f858dfb190cff660b7cb0b47eec7c16ea87ccb066a42a13b93742529e",
+            "cases": 84495,
+            "matched": 84495,
+            "cases_sha256": "787b2cb4a78f2f3bdb2f8f6bb271b2274f83813e70d5cdd6851b93e692244744",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/compatibility.report.json"
+          },
+          "core": {
+            "report": "artifacts/rust-rewrite/evidence/b3d2c7e7a78adc7b0055c5b987259b4f0099504bd81ffe326b890f4be2708166.json",
+            "report_sha256": "b3d2c7e7a78adc7b0055c5b987259b4f0099504bd81ffe326b890f4be2708166",
+            "cases": 217,
+            "matched": 217,
+            "cases_sha256": "6e0457c692f48897bd176205f95895290861f0a0b58e087e70a54cc55fd95cc7",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/core.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
       "related_components": [
         "model_guards",
         "router_continuity"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Missing all5 original malformed shapes x2 endpoints, exact shape-error text, separate count/evaluation counters and PRIVATE_TEST_VALUE suppression in logs."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-runtime/tests/gateway_failures.rs": "f782df4ef1f909a9646039a216cdf6232b5efaf95786000cb8bf88ab120e9330"
+      }
     },
     {
       "id": "test/routing-compatibility.test.mjs#4",
       "file": "test/routing-compatibility.test.mjs",
       "name": "unfamiliar provider extensions and native same-model contracts pass through unmodified",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "router": {
+            "report": "artifacts/rust-rewrite/evidence/ed9f8d26291daa9647688ecca24369c09f0be2b047fa4b9960d693af4f0ef7e7.json",
+            "report_sha256": "ed9f8d26291daa9647688ecca24369c09f0be2b047fa4b9960d693af4f0ef7e7",
+            "cases": 11733,
+            "matched": 11733,
+            "cases_sha256": "d577ca30deccc3ba83c3c8ea73acf2100b38e13dfb67abc600218c5b311f63bd",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/router.report.json"
+          },
+          "compatibility": {
+            "report": "artifacts/rust-rewrite/evidence/ea71939f858dfb190cff660b7cb0b47eec7c16ea87ccb066a42a13b93742529e.json",
+            "report_sha256": "ea71939f858dfb190cff660b7cb0b47eec7c16ea87ccb066a42a13b93742529e",
+            "cases": 84495,
+            "matched": 84495,
+            "cases_sha256": "787b2cb4a78f2f3bdb2f8f6bb271b2274f83813e70d5cdd6851b93e692244744",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/compatibility.report.json"
+          },
+          "core": {
+            "report": "artifacts/rust-rewrite/evidence/b3d2c7e7a78adc7b0055c5b987259b4f0099504bd81ffe326b890f4be2708166.json",
+            "report_sha256": "b3d2c7e7a78adc7b0055c5b987259b4f0099504bd81ffe326b890f4be2708166",
+            "cases": 217,
+            "matched": 217,
+            "cases_sha256": "6e0457c692f48897bd176205f95895290861f0a0b58e087e70a54cc55fd95cc7",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/core.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
       "related_components": [
         "model_guards",
         "router_continuity"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Add actual gateway five variants: future top-level/system/message blocks, team model, same-model Opus5.5 disabled thinking +forced any."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-runtime/tests/gateway.rs": "869ebcce695d54aee1a9150777a32bfc9c34175c1a999ce752651272e314b7fd"
+      }
     },
     {
       "id": "test/routing-compatibility.test.mjs#5",
       "file": "test/routing-compatibility.test.mjs",
       "name": "internal token counting avoids incompatible targets and retains native provider-owned requests",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/token_counter.rs#unsupported_fields_tools_and_deep_remote_attachments_make_no_request",
+        "rust/crates/autorouter-runtime/src/token_counter.rs#full_context_projection_shares_adaptation_and_keeps_request_credentials"
+      ],
       "shared_cases": [],
-      "evidence": null,
+      "evidence": {
+        "related_differential_reports": {
+          "router": {
+            "report": "artifacts/rust-rewrite/evidence/ed9f8d26291daa9647688ecca24369c09f0be2b047fa4b9960d693af4f0ef7e7.json",
+            "report_sha256": "ed9f8d26291daa9647688ecca24369c09f0be2b047fa4b9960d693af4f0ef7e7",
+            "cases": 11733,
+            "matched": 11733,
+            "cases_sha256": "d577ca30deccc3ba83c3c8ea73acf2100b38e13dfb67abc600218c5b311f63bd",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/router.report.json"
+          },
+          "compatibility": {
+            "report": "artifacts/rust-rewrite/evidence/ea71939f858dfb190cff660b7cb0b47eec7c16ea87ccb066a42a13b93742529e.json",
+            "report_sha256": "ea71939f858dfb190cff660b7cb0b47eec7c16ea87ccb066a42a13b93742529e",
+            "cases": 84495,
+            "matched": 84495,
+            "cases_sha256": "787b2cb4a78f2f3bdb2f8f6bb271b2274f83813e70d5cdd6851b93e692244744",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/compatibility.report.json"
+          },
+          "core": {
+            "report": "artifacts/rust-rewrite/evidence/b3d2c7e7a78adc7b0055c5b987259b4f0099504bd81ffe326b890f4be2708166.json",
+            "report_sha256": "b3d2c7e7a78adc7b0055c5b987259b4f0099504bd81ffe326b890f4be2708166",
+            "cases": 217,
+            "matched": 217,
+            "cases_sha256": "6e0457c692f48897bd176205f95895290861f0a0b58e087e70a54cc55fd95cc7",
+            "scope": "Only the supplied pure fixture cases. Gateway, full CLI, lifecycle, privacy, packaging, performance and provider quality remain separate pending gates.",
+            "original_report": "artifacts/rust-rewrite/parity-shared-strings-1/core.report.json"
+          }
+        },
+        "scope": "Related evidence only; individual assertions and remaining gaps determine the definition status."
+      },
       "related_components": [
         "model_guards",
         "router_continuity"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/routing-redaction.json",
+      "remaining_assertions": [
+        "Missing exact forced-any->Opus5.5 and adaptive->Haiku rejection followed by forced same-model count=100 on same counter, with calls0 then1."
+      ],
+      "source_hashes": {
+        "rust/crates/autorouter-runtime/src/token_counter.rs": "c01d1d19c8107a097a3eb0d44937d9366a158713c6cb92c6ca51a4c89497b6ad"
+      }
     },
     {
       "id": "test/savings.test.mjs#1",

@@ -19,6 +19,7 @@ pub enum HttpError {
     CertificateRoots,
     UnsupportedTrustOptions,
     ConflictingTrustOptions,
+    ConflictingTlsVersions,
     UnsupportedSystemTrustOption,
 }
 
@@ -26,6 +27,7 @@ impl fmt::Display for HttpError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str(match self {
             Self::ConflictingTrustOptions => "either --use-openssl-ca or --use-bundled-ca can be used, not both",
+            Self::ConflictingTlsVersions => "either --tls-min-v1.3 or --tls-max-v1.2 can be used, not both",
             Self::UnsupportedSystemTrustOption => "--use-system-ca is not allowed in NODE_OPTIONS",
             Self::Network => "HTTP transport failed",
             Self::InvalidRequest => "Invalid HTTP request",
@@ -35,6 +37,19 @@ impl fmt::Display for HttpError {
     }
 }
 impl std::error::Error for HttpError {}
+
+impl From<crate::tls_roots::TrustError> for HttpError {
+    fn from(error: crate::tls_roots::TrustError) -> Self {
+        use crate::tls_roots::TrustError;
+        match error {
+            TrustError::InvalidBundle => Self::CertificateRoots,
+            TrustError::UnsupportedOptions => Self::UnsupportedTrustOptions,
+            TrustError::ConflictingSelectors => Self::ConflictingTrustOptions,
+            TrustError::ConflictingVersions => Self::ConflictingTlsVersions,
+            TrustError::UnsupportedSystemSelector => Self::UnsupportedSystemTrustOption,
+        }
+    }
+}
 
 /// Fetch's Headers constructor uses WebIDL ByteString, then trims HTTP
 /// whitespace. Encoding a Rust string as UTF-8 changes Latin-1 credentials.
@@ -82,20 +97,13 @@ pub struct NativeHttpClient {
 
 impl NativeHttpClient {
     pub fn new() -> Result<Self, HttpError> {
-        let verifier = crate::tls_roots::process_verifier().map_err(|error| match error {
-            crate::tls_roots::TrustError::InvalidBundle => HttpError::CertificateRoots,
-            crate::tls_roots::TrustError::UnsupportedOptions => HttpError::UnsupportedTrustOptions,
-            crate::tls_roots::TrustError::ConflictingSelectors => {
-                HttpError::ConflictingTrustOptions
-            }
-            crate::tls_roots::TrustError::UnsupportedSystemSelector => {
-                HttpError::UnsupportedSystemTrustOption
-            }
-        })?;
-        let tls = rustls::ClientConfig::builder()
-            .dangerous()
-            .with_custom_certificate_verifier(verifier)
-            .with_no_client_auth();
+        let policy = crate::tls_policy::process_policy()?;
+        let verifier = crate::tls_roots::process_verifier()?;
+        let tls =
+            rustls::ClientConfig::builder_with_protocol_versions(policy.versions.rustls_versions())
+                .dangerous()
+                .with_custom_certificate_verifier(verifier)
+                .with_no_client_auth();
         let connector = HttpsConnectorBuilder::new()
             .with_tls_config(tls)
             .https_or_http()

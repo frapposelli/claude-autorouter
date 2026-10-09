@@ -65,7 +65,7 @@ export async function transportHarness(prefix) {
         return { startup_failure };
       }
       assert.ok(port, 'Synthetic gateway failed startup');
-      return { port, stop };
+      return { port, stop, exit: () => ({ code: child.exitCode, signal: child.signalCode }) };
     } catch (error) { await stop(); throw error; }
   }
   const close = server => bounded(new Promise(resolve => server.close(resolve)), 2000, 'Synthetic server cleanup deadline');
