@@ -1,0 +1,2834 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "updated": "2026-10-09",
+  "status": "partial_evidence_no_cutover_approval",
+  "rules": [
+    "Reports are copied to content-addressed local artifact paths; source index retains their SHA256 and observed results.",
+    "Related component evidence never marks an individual baseline assertion covered. Each assertion stays pending until reviewed against a specific Rust test/shared case.",
+    "Test definition inventory does not itself claim those tests ran or passed.",
+    "No synthetic report establishes live evaluator/task quality, full platform support, release approval or overall performance acceptance."
+  ],
+  "components": [
+    {
+      "id": "config_auth_policy",
+      "areas": [
+        "configuration",
+        "organization_policy",
+        "secret_storage",
+        "launcher_and_lifecycle"
+      ],
+      "baseline_test_files": [
+        "test/config.test.mjs",
+        "test/auth.test.mjs",
+        "test/policy.test.mjs",
+        "test/user-config.test.mjs",
+        "test/keychain.test.mjs",
+        "test/config-command.test.mjs",
+        "test/onboarding.test.mjs"
+      ],
+      "implementation_files": [
+        "rust/crates/autorouter-core/src/config.rs",
+        "rust/crates/autorouter-core/src/auth.rs",
+        "rust/crates/autorouter-core/src/policy.rs",
+        "rust/crates/autorouter-runtime/src/policy.rs",
+        "rust/crates/autorouter-runtime/src/user_config.rs",
+        "rust/crates/autorouter-runtime/src/keychain.rs",
+        "rust/crates/claude-autorouter/src/configuration.rs"
+      ],
+      "reports": [
+        {
+          "report": "artifacts/rust-rewrite/evidence/a93795b8c88fbdbc937a746bd300cabb9f33cf362e6320aaf5c72775e228fc02.json",
+          "report_sha256": "a93795b8c88fbdbc937a746bd300cabb9f33cf362e6320aaf5c72775e228fc02",
+          "original_report": "artifacts/rust-rewrite/parity-core-current.json",
+          "observed": {
+            "passed": true,
+            "cases": 209,
+            "matched": 209,
+            "cases_sha256": "4adcce89e004f235fbd090009cd459a8a4ba33dfecfde6069c05ca82ad50d8f1",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "rust_pure_function_differential"
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948.json",
+          "report_sha256": "2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948",
+          "original_report": "artifacts/rust-rewrite/parity-config-commands-utf16.json",
+          "observed": {
+            "cases": 296,
+            "matched": 296,
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "passed": true
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/514e3f30e6ca4bc805fc7fb80881730c21a15d194ed217936b0c3c148970fc9a.json",
+          "report_sha256": "514e3f30e6ca4bc805fc7fb80881730c21a15d194ed217936b0c3c148970fc9a",
+          "original_report": "artifacts/rust-rewrite/parity-config-auth.json",
+          "observed": {
+            "passed": true,
+            "cases": 460,
+            "matched": 460,
+            "cases_sha256": "77c1f6e3cfa1b97581defbb21fe704fe44041bf1cf0cf82b9609adc60f982f9e",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "rust_pure_function_differential"
+          }
+        }
+      ],
+      "status": "implemented_with_partial_evidence",
+      "remaining": [
+        "Audit every baseline filesystem/policy/Keychain assertion; native Keychain testing uses synthetic process adapters, not a real user credential store.",
+        "Qualify actual system policy ownership and TLS/OS behavior on every supported platform."
+      ],
+      "rust_test_definitions": [
+        {
+          "file": "rust/crates/autorouter-core/src/config.rs",
+          "function": "defaults_and_selected_backend_validation",
+          "line": 599,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/config.rs",
+          "function": "deadlines_recognize_only_official_tags",
+          "line": 614,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/config.rs",
+          "function": "numeric_semantics_preserve_zero_and_reject_coercion",
+          "line": 649,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/config.rs",
+          "function": "endpoints_are_local_and_diagnostics_do_not_echo_values",
+          "line": 683,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/config.rs",
+          "function": "paths_modes_profiles_and_required_credentials",
+          "line": 706,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/auth.rs",
+          "function": "argument_boundaries_and_last_permission_selection_are_preserved",
+          "line": 169,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/auth.rs",
+          "function": "subscription_scrubs_only_conflicting_auth_and_preserves_parent",
+          "line": 192,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/auth.rs",
+          "function": "subscription_recognition_does_not_validate_provider_eligibility",
+          "line": 218,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/auth.rs",
+          "function": "api_key_and_auto_profiles_keep_explicit_client_choices",
+          "line": 242,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/policy.rs",
+          "function": "invalid_policy_is_closed_and_does_not_echo_payload",
+          "line": 137,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/policy.rs",
+          "function": "defaults_are_subject_to_allowlists_and_repairs_still_keep_locks",
+          "line": 150,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/policy.rs",
+          "function": "only_trusted_regular_files_and_directories_are_loaded",
+          "line": 86,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/user_config.rs",
+          "function": "paths_missing_files_and_environment_precedence_match_existing_behavior",
+          "line": 658,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/user_config.rs",
+          "function": "saved_utf16_survives_edits_and_environment_overrides_without_identity_aliases",
+          "line": 728,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/user_config.rs",
+          "function": "private_atomic_files_reject_stale_revisions_and_all_symlinks",
+          "line": 797,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/user_config.rs",
+          "function": "both_store_migrations_preserve_secrets_and_failed_writes_leave_original_intact",
+          "line": 893,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/user_config.rs",
+          "function": "unavailable_keychain_can_be_overridden_but_not_destructively_migrated",
+          "line": 958,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/user_config.rs",
+          "function": "invalid_content_and_hostile_paths_fail_without_secret_disclosure_or_side_effects",
+          "line": 1008,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/user_config.rs",
+          "function": "organization_locks_override_values_and_environment_including_repair_mode",
+          "line": 1080,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/keychain.rs",
+          "function": "secrets_use_stdin_and_readback_checks_interactive_failures",
+          "line": 229,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/keychain.rs",
+          "function": "invalid_names_and_secrets_never_invoke_the_tool_and_errors_are_private",
+          "line": 262,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        }
+      ]
+    },
+    {
+      "id": "model_guards",
+      "areas": [
+        "routing_and_model_compatibility",
+        "local_gateway"
+      ],
+      "baseline_test_files": [
+        "test/model-catalog.test.mjs",
+        "test/model-request.test.mjs",
+        "test/auto-routing.test.mjs",
+        "test/request-validation.test.mjs",
+        "test/routing-compatibility.test.mjs",
+        "test/token-counter.test.mjs"
+      ],
+      "implementation_files": [
+        "rust/crates/autorouter-core/src/model_catalog.rs",
+        "rust/crates/autorouter-core/src/model_request.rs",
+        "rust/crates/autorouter-core/src/auto_routing.rs",
+        "rust/crates/autorouter-core/src/request_validation.rs",
+        "rust/crates/autorouter-runtime/src/token_counter.rs"
+      ],
+      "reports": [
+        {
+          "report": "artifacts/rust-rewrite/evidence/ea71939f858dfb190cff660b7cb0b47eec7c16ea87ccb066a42a13b93742529e.json",
+          "report_sha256": "ea71939f858dfb190cff660b7cb0b47eec7c16ea87ccb066a42a13b93742529e",
+          "original_report": "artifacts/rust-rewrite/parity-compatibility-document.json",
+          "observed": {
+            "passed": true,
+            "cases": 84495,
+            "matched": 84495,
+            "cases_sha256": "787b2cb4a78f2f3bdb2f8f6bb271b2274f83813e70d5cdd6851b93e692244744",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "rust_pure_function_differential"
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/ea2bb6fd3359608d8c89b99af7cf147e67b19921d26ba363fec66f1f90189a53.json",
+          "report_sha256": "ea2bb6fd3359608d8c89b99af7cf147e67b19921d26ba363fec66f1f90189a53",
+          "original_report": "artifacts/rust-rewrite/parity-guards-json.json",
+          "observed": {
+            "passed": true,
+            "cases": 76,
+            "matched": 76,
+            "cases_sha256": "55e033f08e5caa667c6a5e2a1391267fe03c3f32b48c50238b79abf7eb9c7931",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "rust_pure_function_differential"
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/058741e32940b872a3e24665bf3fb1e62679ab953f4df8847babc1ee5c6e47fd.json",
+          "report_sha256": "058741e32940b872a3e24665bf3fb1e62679ab953f4df8847babc1ee5c6e47fd",
+          "original_report": "artifacts/rust-rewrite/parity-validation-json.json",
+          "observed": {
+            "passed": true,
+            "cases": 93,
+            "matched": 93,
+            "cases_sha256": "e51728c225a2d0b545e065dfbe65dab30cf201691ab69134ffb71eda498f82c6",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "rust_pure_function_differential"
+          }
+        }
+      ],
+      "status": "implemented_with_partial_evidence",
+      "remaining": [
+        "Generated cross-products and raw JSON cases cover supplied fixtures, not every opaque extension combination or live provider capability."
+      ],
+      "rust_test_definitions": [
+        {
+          "file": "rust/crates/autorouter-core/src/model_catalog.rs",
+          "function": "catalog_uses_exact_reviewed_ids_and_shared_alias_facts",
+          "line": 217,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/model_catalog.rs",
+          "function": "subscription_sensitive_context_is_not_an_unconditional_million",
+          "line": 247,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/model_request.rs",
+          "function": "document_preparation_preserves_opaque_utf16_and_original_unknown_model",
+          "line": 217,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/model_request.rs",
+          "function": "original_effort_values_use_js_identity_and_utf16_equality",
+          "line": 246,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/model_request.rs",
+          "function": "disabled_thinking_adapts_only_to_exact_targets_without_mutation",
+          "line": 280,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/model_request.rs",
+          "function": "sonnet_preserves_high_and_per_message_effort_by_using_adaptive",
+          "line": 316,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/model_request.rs",
+          "function": "signed_history_and_safeguards_survive_between_tools_adaptation",
+          "line": 351,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/model_request.rs",
+          "function": "native_and_extended_contracts_are_never_rewritten",
+          "line": 366,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/auto_routing.rs",
+          "function": "authoritative_guard_preserves_overflow_truthiness_and_optional_envelopes",
+          "line": 1084,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/auto_routing.rs",
+          "function": "arbitrary_depth_content_is_checked_while_opaque_payloads_stay_opaque",
+          "line": 1117,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/auto_routing.rs",
+          "function": "unknown_utf16_ids_do_not_compare_equal_to_replacement_characters",
+          "line": 1150,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/auto_routing.rs",
+          "function": "all_exact_modern_pairs_route_while_aliases_and_older_auto_targets_do_not",
+          "line": 1192,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/auto_routing.rs",
+          "function": "guards_preserve_safeguards_version_and_unknown_contracts",
+          "line": 1227,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/auto_routing.rs",
+          "function": "opaque_schema_and_signed_history_survive_all_shared_envelopes",
+          "line": 1254,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/auto_routing.rs",
+          "function": "unknown_semantic_envelopes_pin_instead_of_dropping_fields",
+          "line": 1293,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/auto_routing.rs",
+          "function": "unknown_nested_content_fields_cannot_cross_a_model_boundary",
+          "line": 1372,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/auto_routing.rs",
+          "function": "null_optional_envelopes_retain_defaults_without_being_omitted",
+          "line": 1402,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/auto_routing.rs",
+          "function": "all_profile_forced_tools_and_model_specific_facilities_are_preserved",
+          "line": 1421,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/auto_routing.rs",
+          "function": "output_thinking_effort_sampling_and_prefill_restrictions_have_exact_reasons",
+          "line": 1456,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/auto_routing.rs",
+          "function": "sonnet5_cannot_receive_modern_system_effort_or_task_budget",
+          "line": 1544,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/auto_routing.rs",
+          "function": "between_tools_requires_exact_source_and_no_extensions",
+          "line": 1569,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/request_validation.rs",
+          "function": "malformed_consumed_shapes_have_content_free_errors",
+          "line": 187,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/request_validation.rs",
+          "function": "null_defaults_unknown_extensions_and_signed_blocks_pass_through",
+          "line": 233,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/request_validation.rs",
+          "function": "known_content_nesting_is_bounded_but_opaque_data_is_not_walked",
+          "line": 250,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/request_validation.rs",
+          "function": "safe_integer_and_ecmascript_trim_edges_match_javascript",
+          "line": 277,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/token_counter.rs",
+          "function": "full_context_projection_shares_adaptation_and_keeps_request_credentials",
+          "line": 522,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/token_counter.rs",
+          "function": "cache_separates_auth_features_query_and_adaptations_not_generation_settings",
+          "line": 563,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/token_counter.rs",
+          "function": "bounded_lru_refreshes_hits_and_expires_successful_counts",
+          "line": 625,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/token_counter.rs",
+          "function": "unsupported_fields_tools_and_deep_remote_attachments_make_no_request",
+          "line": 656,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/token_counter.rs",
+          "function": "wire_projection_preserves_opaque_surrogates_deep_input_and_signed_history",
+          "line": 701,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/token_counter.rs",
+          "function": "failures_invalid_counts_and_oversized_responses_never_cache",
+          "line": 716,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/token_counter.rs",
+          "function": "deadline_covers_fetch_and_body_and_cancellation_precedes_cache_hits",
+          "line": 762,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/token_counter.rs",
+          "function": "caller_cancellation_drops_inflight_fetch_and_does_not_affect_other_counts",
+          "line": 793,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/token_counter.rs",
+          "function": "response_content_length_is_not_authoritative_and_opaque_json_is_allowed",
+          "line": 831,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        }
+      ]
+    },
+    {
+      "id": "js_document",
+      "areas": [
+        "routing_and_model_compatibility",
+        "classification_and_task_extraction",
+        "execution_continuity"
+      ],
+      "baseline_test_files": [
+        "test/model-request.test.mjs",
+        "test/prompt-state.test.mjs",
+        "test/response-observer.test.mjs",
+        "test/turn-state.test.mjs"
+      ],
+      "implementation_files": [
+        "rust/crates/autorouter-core/src/js_json.rs"
+      ],
+      "reports": [
+        {
+          "report": "artifacts/rust-rewrite/evidence/51186e16b0cb9c9dc86ab299c781e901d7f89b8596e19d3988ea821ee96ab4e4.json",
+          "report_sha256": "51186e16b0cb9c9dc86ab299c781e901d7f89b8596e19d3988ea821ee96ab4e4",
+          "original_report": "artifacts/rust-rewrite/parity-json.json",
+          "observed": {
+            "passed": true,
+            "cases": 75573,
+            "matched": 75573,
+            "cases_sha256": "c1c6adc0f8784e0ac94d885665225f4bfc7203d78c637536f9844d2057ee02a8",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "rust_pure_function_differential"
+          }
+        }
+      ],
+      "status": "implemented_with_partial_evidence",
+      "remaining": [
+        "Full UTF-16 code-unit and seeded f64 fixture sweep verifies the parser/stringifier; audit every consumer for accidental lossy projection and all filesystem/environment string boundaries."
+      ],
+      "rust_test_definitions": [
+        {
+          "file": "rust/crates/autorouter-core/src/js_json.rs",
+          "function": "integer_keys_duplicates_and_proto_names_match_javascript",
+          "line": 646,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/js_json.rs",
+          "function": "lone_surrogates_and_unicode_pairs_are_preserved",
+          "line": 654,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/js_json.rs",
+          "function": "doubles_use_javascript_formatting_rounding_and_overflow",
+          "line": 671,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/js_json.rs",
+          "function": "invalid_syntax_is_rejected_without_including_payload",
+          "line": 679,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/js_json.rs",
+          "function": "deep_opaque_data_parses_serializes_and_drops_without_recursive_stack",
+          "line": 704,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/js_json.rs",
+          "function": "invalid_utf8_matches_node_buffer_replacement",
+          "line": 715,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/js_json.rs",
+          "function": "lossy_projection_does_not_replace_the_authoritative_document",
+          "line": 723,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/js_json.rs",
+          "function": "approved_model_and_thinking_changes_preserve_opaque_utf16",
+          "line": 738,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        }
+      ]
+    },
+    {
+      "id": "prompt_redaction",
+      "areas": [
+        "classification_and_task_extraction"
+      ],
+      "baseline_test_files": [
+        "test/prompt-state.test.mjs",
+        "test/redaction.test.mjs"
+      ],
+      "implementation_files": [
+        "rust/crates/autorouter-core/src/prompt_state.rs",
+        "rust/crates/autorouter-core/src/redaction.rs"
+      ],
+      "reports": [
+        {
+          "report": "artifacts/rust-rewrite/evidence/f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b.json",
+          "report_sha256": "f0bcf86e5decbec333919cc5996fc0430aefa0f0f96ce461ec18dd45bc3c452b",
+          "original_report": "autorouter-prompt-report.json",
+          "observed": {
+            "passed": true,
+            "cases": 3092,
+            "matched": 3092,
+            "cases_sha256": "5be32e7c9604c2ff376e3406a3e173a59c6699e3cf6144e190147b16b98e4354",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "rust_pure_function_differential"
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9.json",
+          "report_sha256": "04fa319349cad6be2e1b4b73f5077facf76e21ee1d0a5705de262ccf689606f9",
+          "original_report": "autorouter-redaction-adversarial-report.json",
+          "observed": {
+            "passed": true,
+            "cases": 6020,
+            "matched": 6020,
+            "cases_sha256": "4d38f25dc4301c1cd2edf00edaf63f5bc7c14fb0b6f05dc0dc6eeca8b3281f66",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "rust_pure_function_differential"
+          }
+        }
+      ],
+      "status": "implemented_with_partial_evidence",
+      "remaining": [
+        "Prompt budgets use reachable configured numeric limits; pathological unreachable JavaScript API argument types are not claimed complete.",
+        "Privacy regressions still require end-to-end sink and process-boundary coverage."
+      ],
+      "rust_test_definitions": [
+        {
+          "file": "rust/crates/autorouter-core/src/prompt_state.rs",
+          "function": "goal_feedback_preserves_steering_and_requires_full_label_first",
+          "line": 658,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/prompt_state.rs",
+          "function": "diagnostics_omit_payloads_and_stop_on_new_attachment_task",
+          "line": 670,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/prompt_state.rs",
+          "function": "escaped_budget_keeps_task_ends_and_tool_error",
+          "line": 681,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/prompt_state.rs",
+          "function": "utf16_is_retained_for_classifier_and_repaired_for_logs",
+          "line": 697,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/prompt_state.rs",
+          "function": "redaction_precedes_excerpt_boundary",
+          "line": 708,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/redaction.rs",
+          "function": "names_and_context_survive_while_secret_values_are_removed",
+          "line": 625,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/redaction.rs",
+          "function": "formats_checksum_and_boundaries_match_reviewed_rules",
+          "line": 688,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/redaction.rs",
+          "function": "ordinary_text_and_boolean_controls_remain_readable",
+          "line": 727,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/redaction.rs",
+          "function": "private_key_blocks_and_cut_off_tails_are_redacted",
+          "line": 756,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/redaction.rs",
+          "function": "provider_tokens_and_markers_are_redacted_idempotently",
+          "line": 768,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/redaction.rs",
+          "function": "utf16_value_lengths_and_ascii_boundaries_do_not_use_rust_defaults",
+          "line": 800,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        }
+      ]
+    },
+    {
+      "id": "router_continuity",
+      "areas": [
+        "routing_and_model_compatibility",
+        "execution_continuity",
+        "classification_and_task_extraction"
+      ],
+      "baseline_test_files": [
+        "test/router.test.mjs",
+        "test/router-concurrency.test.mjs",
+        "test/turn-state.test.mjs",
+        "test/routing-compatibility.test.mjs"
+      ],
+      "implementation_files": [
+        "rust/crates/autorouter-core/src/router.rs",
+        "rust/crates/autorouter-core/src/turn_state.rs",
+        "rust/crates/autorouter-runtime/src/router.rs",
+        "rust/crates/autorouter-runtime/src/classifier.rs"
+      ],
+      "reports": [
+        {
+          "report": "artifacts/rust-rewrite/evidence/ed9f8d26291daa9647688ecca24369c09f0be2b047fa4b9960d693af4f0ef7e7.json",
+          "report_sha256": "ed9f8d26291daa9647688ecca24369c09f0be2b047fa4b9960d693af4f0ef7e7",
+          "original_report": "artifacts/rust-rewrite/parity-router-exact.json",
+          "observed": {
+            "passed": true,
+            "cases": 11733,
+            "matched": 11733,
+            "cases_sha256": "d577ca30deccc3ba83c3c8ea73acf2100b38e13dfb67abc600218c5b311f63bd",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "rust_pure_function_differential"
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/09c0cf9b48f328cd5f48d39e32334acb1de664a1cf7bc4268284c7642a3f49ca.json",
+          "report_sha256": "09c0cf9b48f328cd5f48d39e32334acb1de664a1cf7bc4268284c7642a3f49ca",
+          "original_report": "artifacts/rust-rewrite/parity-guards-router-json.json",
+          "observed": {
+            "passed": true,
+            "cases": 90,
+            "matched": 90,
+            "cases_sha256": "75ebd654224d6ba266b1bec618ca0f9d13971729a2bd28667f65b04a0bc5afb5",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "rust_pure_function_differential"
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/a93795b8c88fbdbc937a746bd300cabb9f33cf362e6320aaf5c72775e228fc02.json",
+          "report_sha256": "a93795b8c88fbdbc937a746bd300cabb9f33cf362e6320aaf5c72775e228fc02",
+          "original_report": "artifacts/rust-rewrite/parity-core-current.json",
+          "observed": {
+            "passed": true,
+            "cases": 209,
+            "matched": 209,
+            "cases_sha256": "4adcce89e004f235fbd090009cd459a8a4ba33dfecfde6069c05ca82ad50d8f1",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "rust_pure_function_differential"
+          }
+        }
+      ],
+      "status": "implemented_with_partial_evidence",
+      "remaining": [
+        "Timing/cancellation/retention/resource behavior has native tests but every baseline assertion still requires individual mapping.",
+        "Long-running mixed-task resource soak and all explicit shared-waiter schedule combinations remain separate gates."
+      ],
+      "rust_test_definitions": [
+        {
+          "file": "rust/crates/autorouter-core/src/router.rs",
+          "function": "exact_configured_aliases_have_distinct_ranks_and_preserve_selected_wire_model",
+          "line": 1029,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/router.rs",
+          "function": "auxiliary_bypasses_evaluation_and_does_not_claim_turn",
+          "line": 1092,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/router.rs",
+          "function": "cache_markers_do_not_change_turn_identity_but_tool_inputs_do",
+          "line": 1109,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/router.rs",
+          "function": "turn_hash_matches_frozen_node_for_integer_order_surrogates_and_overflow",
+          "line": 1125,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/router.rs",
+          "function": "deferred_schemas_count_only_when_referenced_and_count_repeated_expansion",
+          "line": 1142,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/router.rs",
+          "function": "counted_haiku_capacity_and_auto_floor_follow_policy",
+          "line": 1151,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/turn_state.rs",
+          "function": "exact_tool_and_model_ownership_does_not_collapse_repaired_unicode",
+          "line": 546,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/turn_state.rs",
+          "function": "cancellation_and_supersession_cannot_replace_confirmation",
+          "line": 626,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/turn_state.rs",
+          "function": "active_tools_survive_ttl_pressure_and_rejected_admission",
+          "line": 640,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/turn_state.rs",
+          "function": "same_content_is_ambiguous_but_tool_ownership_is_scoped",
+          "line": 662,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/turn_state.rs",
+          "function": "old_late_tool_completion_cannot_retire_newer_task",
+          "line": 684,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/turn_state.rs",
+          "function": "failed_same_content_attempt_retains_prior_alias",
+          "line": 701,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/turn_state.rs",
+          "function": "aliases_are_bounded_and_unexecuted_selections_are_unconfirmed",
+          "line": 724,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/router.rs",
+          "function": "early_count_and_classification_run_concurrently_and_count_is_reused",
+          "line": 344,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/router.rs",
+          "function": "advisory_count_disabled_never_contacts_count_endpoint_for_large_context",
+          "line": 376,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/router.rs",
+          "function": "exact_auxiliary_model_reaches_request_preparation_without_unicode_repair",
+          "line": 398,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/router.rs",
+          "function": "unused_early_count_retains_bounded_source_lifetime_and_request_cancellation",
+          "line": 430,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/router.rs",
+          "function": "dropping_route_aborts_advisory_count_and_last_classifier_waiter",
+          "line": 456,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/router.rs",
+          "function": "auxiliary_passthrough_avoids_classifier_and_clean_completion_is_explicit",
+          "line": 482,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "function": "evaluator_cache_identity_distinguishes_unpaired_configured_model_units",
+          "line": 438,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "function": "identical_work_is_shared_but_a_waiters_cancel_does_not_cancel_others",
+          "line": 566,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "function": "all_cancelled_work_cannot_cache_or_remove_a_replacement_entry",
+          "line": 592,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "function": "cancellation_at_completion_and_future_drop_release_registry_without_caching",
+          "line": 621,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "function": "already_cancelled_calls_skip_network_and_cached_decisions",
+          "line": 653,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "function": "subscriber_and_work_capacity_have_distinct_bounded_admission",
+          "line": 677,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "function": "successful_cache_is_bounded_lru_with_expiration_but_failures_are_not_cached",
+          "line": 733,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "function": "full_request_and_evaluator_settings_account_and_floor_are_cache_identity",
+          "line": 783,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "function": "bounded_excerpt_uses_exact_utf16_wire_and_retains_no_full_body_in_registry",
+          "line": 845,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "function": "shutdown_cancels_all_subscribers_and_pending_transport",
+          "line": 863,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        }
+      ]
+    },
+    {
+      "id": "response_observer",
+      "areas": [
+        "execution_continuity",
+        "local_gateway"
+      ],
+      "baseline_test_files": [
+        "test/response-observer.test.mjs",
+        "test/protocol-fixtures.test.mjs",
+        "test/bounded-json.test.mjs"
+      ],
+      "implementation_files": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs",
+        "rust/crates/autorouter-runtime/src/transport_completion.rs",
+        "rust/crates/autorouter-runtime/src/bounded_json.rs"
+      ],
+      "reports": [
+        {
+          "report": "artifacts/rust-rewrite/evidence/b556dbf0be8493affad5f483274056f8d535ba2ff2ef11b0b5db7b7d83e5c006.json",
+          "report_sha256": "b556dbf0be8493affad5f483274056f8d535ba2ff2ef11b0b5db7b7d83e5c006",
+          "original_report": "artifacts/rust-rewrite/parity-observer-promoted.json",
+          "observed": {
+            "passed": true,
+            "cases": 87,
+            "matched": 87,
+            "cases_sha256": "7b5f6133c92b2f914507fc0b2602065c15c4f112027c399e254650f9a012d90f",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "rust_pure_function_differential"
+          }
+        }
+      ],
+      "status": "implemented_with_partial_evidence",
+      "remaining": [
+        "87 byte-chunk fixtures include lone-surrogate consumed model identities; hostile streaming/cancellation full matrix and real-provider behavior remain separate."
+      ],
+      "rust_test_definitions": [
+        {
+          "file": "rust/crates/autorouter-runtime/src/response_observer.rs",
+          "function": "consumed_utf16_models_remain_distinct_in_completion_and_fallback_checks",
+          "line": 991,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/response_observer.rs",
+          "function": "clean_eof_is_required_after_final_delta_and_observation_is_immediate",
+          "line": 1019,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/response_observer.rs",
+          "function": "every_chunk_boundary_preserves_unicode_crlf_comments_and_multiline_data",
+          "line": 1052,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/response_observer.rs",
+          "function": "many_ping_frames_do_not_consume_the_per_frame_budget",
+          "line": 1085,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/response_observer.rs",
+          "function": "oversized_output_is_skipped_but_later_errors_remain_sanitized",
+          "line": 1097,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/response_observer.rs",
+          "function": "skipped_metadata_and_malformed_frames_never_invent_completion",
+          "line": 1124,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/response_observer.rs",
+          "function": "destruction_after_terminal_frame_cannot_publish_completion_or_usage",
+          "line": 1149,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/response_observer.rs",
+          "function": "cumulative_usage_replaces_counts_and_retains_only_safe_metadata",
+          "line": 1160,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/response_observer.rs",
+          "function": "invalid_usage_does_not_erase_independent_execution_evidence",
+          "line": 1183,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/response_observer.rs",
+          "function": "fallback_boundaries_discard_earlier_tools_and_use_final_model",
+          "line": 1206,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/response_observer.rs",
+          "function": "sticky_fallback_iterations_cannot_reassign_an_existing_tool",
+          "line": 1244,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/response_observer.rs",
+          "function": "open_duplicate_invalid_excessive_or_missing_client_tools_never_pin",
+          "line": 1284,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/response_observer.rs",
+          "function": "unknown_or_refused_stops_never_pin_and_private_stop_names_are_sanitized",
+          "line": 1331,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/response_observer.rs",
+          "function": "json_final_boundary_and_nullable_cache_usage_preserve_native_behavior",
+          "line": 1348,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/response_observer.rs",
+          "function": "json_oversize_unknown_media_and_malformed_data_cannot_emit_metadata",
+          "line": 1381,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/response_observer.rs",
+          "function": "iteration_accounting_is_cumulative_and_unknown_shapes_are_unsupported",
+          "line": 1404,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/response_observer.rs",
+          "function": "body_adapter_retains_original_bytes_and_defers_finish_until_actual_eof",
+          "line": 1433,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/response_observer.rs",
+          "function": "callback_panics_do_not_change_forwarded_bytes",
+          "line": 1447,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/transport_completion.rs",
+          "function": "concurrent_pipeline_keeps_queued_bodyless_response_unsubmitted_until_its_write",
+          "line": 687,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/transport_completion.rs",
+          "function": "pipeline_retains_each_request_method_and_body_while_futures_finish_out_of_order",
+          "line": 784,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/transport_completion.rs",
+          "function": "pipeline_backpressure_bounds_pending_services_without_rejecting_later_requests",
+          "line": 832,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/transport_completion.rs",
+          "function": "keepalive_request_body_delivers_eof_before_waiting_for_another_head",
+          "line": 887,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/transport_completion.rs",
+          "function": "node_header_limits_apply_before_truncation_and_before_complete_head",
+          "line": 911,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/transport_completion.rs",
+          "function": "discarded_header_whitespace_never_changes_body_or_next_pipeline_request",
+          "line": 960,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/transport_completion.rs",
+          "function": "body_deadline_includes_the_header_read_phase",
+          "line": 995,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/transport_completion.rs",
+          "function": "bodyless_responses_wait_for_service_handoff_and_header_flush",
+          "line": 1057,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/transport_completion.rs",
+          "function": "bodyless_response_dropped_before_service_handoff_is_not_delivered",
+          "line": 1152,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/transport_completion.rs",
+          "function": "partial_vectored_and_pending_writes_flush_before_open_keepalive_confirmation",
+          "line": 1171,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/transport_completion.rs",
+          "function": "error_after_all_payload_and_framing_bytes_before_flush_never_confirms",
+          "line": 1214,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/transport_completion.rs",
+          "function": "cancellation_after_body_drop_while_flush_pending_releases_attempt",
+          "line": 1239,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/transport_completion.rs",
+          "function": "partial_flush_does_not_confirm_and_later_body_error_releases_attempt",
+          "line": 1258,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/transport_completion.rs",
+          "function": "trailer_frame_does_not_skip_source_eof_or_the_transport_flush",
+          "line": 1306,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/transport_completion.rs",
+          "function": "two_pipelined_responses_confirm_first_before_second_framing_write_fails",
+          "line": 1367,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/transport_completion.rs",
+          "function": "admission_is_bounded_and_unpolled_body_drop_is_failure",
+          "line": 1407,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/transport_completion.rs",
+          "function": "provider_completion_and_successful_transport_are_independent_required_evidence",
+          "line": 1434,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+          "function": "exact_limit_and_many_tiny_chunks_parse_without_retaining_chunk_objects",
+          "line": 420,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+          "function": "streamed_limit_is_authoritative_and_all_failures_drop_the_body",
+          "line": 438,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+          "function": "cancellation_interrupts_stalled_body_without_waiting_for_cleanup",
+          "line": 458,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+          "function": "cancelled_and_malformed_inputs_are_distinct_safe_errors",
+          "line": 473,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+          "function": "supported_decoders_handle_every_chunk_boundary_stacks_and_gzip_members",
+          "line": 524,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+          "function": "decoded_byte_bound_and_compressed_header_hint_are_both_enforced",
+          "line": 552,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+          "function": "unknown_coding_skips_the_whole_decode_chain_like_fetch",
+          "line": 577,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+          "function": "decoder_eof_never_hides_stalled_or_failed_http_body",
+          "line": 594,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+          "function": "clean_truncated_trailer_matches_fetch_flush_but_invalid_json_and_reset_do_not",
+          "line": 618,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        }
+      ]
+    },
+    {
+      "id": "gateway",
+      "areas": [
+        "local_gateway",
+        "launcher_and_lifecycle",
+        "execution_continuity"
+      ],
+      "baseline_test_files": [
+        "test/server.test.mjs",
+        "test/auth.test.mjs",
+        "test/request-validation.test.mjs",
+        "test/protocol-fixtures.test.mjs",
+        "test/launcher-logging.test.mjs"
+      ],
+      "implementation_files": [
+        "rust/crates/autorouter-runtime/src/server.rs",
+        "rust/crates/autorouter-runtime/src/server_events.rs",
+        "rust/crates/autorouter-runtime/src/http_client.rs",
+        "rust/crates/autorouter-runtime/tests/gateway.rs"
+      ],
+      "reports": [
+        {
+          "report": "artifacts/rust-rewrite/evidence/f5670eab4e675a05ee8875206e59c48d50af675889d93f3d7c14989c266c72a6.json",
+          "report_sha256": "f5670eab4e675a05ee8875206e59c48d50af675889d93f3d7c14989c266c72a6",
+          "original_report": "artifacts/rust-rewrite/parity-gateway-executable.json",
+          "observed": {
+            "passed": true,
+            "requests": 14,
+            "scenarios": 7,
+            "fixture_sha256": "4cdaa7716255ec17032e26437f65c22aea170d8abb4d259c35c61e2709a1b41f",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "native_gateway_executable_differential"
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/172757aec6d75f69472c8ce793b3d72c78c4ce0b2b720c622d6f29b1a5985d2c.json",
+          "report_sha256": "172757aec6d75f69472c8ce793b3d72c78c4ce0b2b720c622d6f29b1a5985d2c",
+          "original_report": "artifacts/rust-rewrite/parity-gateway-utf16.json",
+          "observed": {
+            "passed": true,
+            "requests": 4,
+            "scenarios": 4,
+            "fixture_sha256": "612ed909514e1cab3951ee8696ac97d48517c0d6539b84c4cd34ea8cb9922755",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "native_gateway_executable_differential"
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/bd516b579623ac910f57ad9de69f062d1713f43ee066646da8345a32992f18c0.json",
+          "report_sha256": "bd516b579623ac910f57ad9de69f062d1713f43ee066646da8345a32992f18c0",
+          "original_report": "artifacts/rust-rewrite/parity-http-parser.json",
+          "observed": {
+            "passed": true,
+            "cases": 98,
+            "kind": "raw_http_parser_differential"
+          }
+        }
+      ],
+      "status": "implemented_with_partial_evidence",
+      "remaining": [
+        "Full executable differential14 requests plus raw parser98 cases do not prove the entire HTTP/TLS/proxy/certificate/platform matrix.",
+        "Protocol framing hardening and near-limit/long-stream/failure/cancellation lifecycle coverage remain subject to final native integration suite."
+      ],
+      "rust_test_definitions": [
+        {
+          "file": "rust/crates/autorouter-runtime/src/server.rs",
+          "function": "upstream_trailers_are_consumed_and_do_not_hide_a_later_body_failure",
+          "line": 997,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/server_events.rs",
+          "function": "observation_without_confirmed_delivery_stays_unpriced_and_finish_is_once",
+          "line": 393,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/server_events.rs",
+          "function": "metadata_omits_prompts_and_prompt_records_are_redacted",
+          "line": 411,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/server_events.rs",
+          "function": "exact_callbacks_do_not_relax_normalized_model_privacy",
+          "line": 429,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/server_events.rs",
+          "function": "exact_model_transition_identity_applies_capacity_before_normalization",
+          "line": 471,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/http_client.rs",
+          "function": "fetch_headers_use_latin1_and_reject_non_byte_strings",
+          "line": 151,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/http_client.rs",
+          "function": "raw_provider_response_policy_checks_framing_bounds_and_retained_headers",
+          "line": 164,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/http_client.rs",
+          "function": "chunked_provider_trailers_and_extensions_keep_node_bounds_and_grammar",
+          "line": 224,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/http_client.rs",
+          "function": "local_http_reuses_connections_preserves_credentials_and_never_decodes_or_redirects",
+          "line": 295,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/tests/gateway.rs",
+          "function": "protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity",
+          "line": 73,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        }
+      ]
+    },
+    {
+      "id": "evaluators",
+      "areas": [
+        "local_evaluator_operations",
+        "classification_and_task_extraction"
+      ],
+      "baseline_test_files": [
+        "test/ollama-evaluator.test.mjs",
+        "test/ollama-setup.test.mjs",
+        "test/ollama-routing.test.mjs",
+        "test/local-diagnostic.test.mjs",
+        "test/bounded-json.test.mjs",
+        "test/router-concurrency.test.mjs"
+      ],
+      "implementation_files": [
+        "rust/crates/autorouter-runtime/src/evaluator.rs",
+        "rust/crates/autorouter-runtime/src/ollama_setup.rs",
+        "rust/crates/autorouter-runtime/src/local_diagnostic.rs",
+        "rust/crates/autorouter-runtime/src/classifier.rs",
+        "rust/crates/autorouter-runtime/src/bounded_json.rs"
+      ],
+      "reports": [],
+      "status": "implemented_with_partial_evidence",
+      "remaining": [
+        "Native injected-transport tests exercise synthetic requests, parsing, deadlines, independent cancellation and setup. No real model downloads or current evaluator availability/quality is claimed.",
+        "Inherited experimental Ollama absolute quality failures stay visible and must not be relabeled or fixed by changing rubric/model merely for rewrite acceptance."
+      ],
+      "rust_test_definitions": [
+        {
+          "file": "rust/crates/autorouter-runtime/src/evaluator.rs",
+          "function": "configured_jev_identity_is_serialized_without_repair",
+          "line": 581,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/evaluator.rs",
+          "function": "opaque_json_edges_do_not_reject_valid_answers_or_weaken_local_gate",
+          "line": 751,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/evaluator.rs",
+          "function": "frozen_rubric_bytes_match_javascript_baseline_hashes",
+          "line": 807,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/evaluator.rs",
+          "function": "all_native_tiers_require_metadata_first_and_never_send_cloud_credentials",
+          "line": 829,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/evaluator.rs",
+          "function": "cloud_metadata_and_invalid_tags_are_rejected_before_task_text",
+          "line": 871,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/evaluator.rs",
+          "function": "malformed_native_contracts_are_never_predictions",
+          "line": 910,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/evaluator.rs",
+          "function": "jev_confidence_floor_and_request_owned_auth_match_existing_policy",
+          "line": 946,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/evaluator.rs",
+          "function": "failures_fall_back_without_retries_and_do_not_downgrade_opus",
+          "line": 978,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/evaluator.rs",
+          "function": "ollama_endpoint_version_guidance_is_limited_to_systemone_404",
+          "line": 1013,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/evaluator.rs",
+          "function": "one_deadline_includes_metadata_then_inference_and_body_consumption",
+          "line": 1042,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/evaluator.rs",
+          "function": "zero_deadline_still_accepts_delayed_valid_work_and_retains_byte_limits",
+          "line": 1075,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/evaluator.rs",
+          "function": "zero_deadline_cancellation_stops_metadata_or_inference_reads_without_fallback",
+          "line": 1102,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/evaluator.rs",
+          "function": "already_cancelled_work_makes_no_request_and_metadata_limit_is_separate",
+          "line": 1135,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/ollama_setup.rs",
+          "function": "version_gate_and_local_validation_precede_downloads_or_task_data",
+          "line": 583,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/ollama_setup.rs",
+          "function": "canonical_model_aliases_match_but_cloud_backing_and_ambiguous_metadata_fail",
+          "line": 630,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/ollama_setup.rs",
+          "function": "missing_model_is_read_only_until_an_explicit_pull_and_warmup_uses_only_fixed_state",
+          "line": 676,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/ollama_setup.rs",
+          "function": "split_download_stream_deduplicates_safe_progress_and_verifies_installation",
+          "line": 738,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/ollama_setup.rs",
+          "function": "incomplete_failed_and_oversized_downloads_never_warm",
+          "line": 793,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/ollama_setup.rs",
+          "function": "warmup_has_its_own_deadline_and_cancellation_releases_stalled_bodies",
+          "line": 831,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/ollama_setup.rs",
+          "function": "model_that_becomes_remote_before_warmup_is_rejected_before_synthetic_inference",
+          "line": 873,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/local_diagnostic.rs",
+          "function": "packaged_fixtures_and_rubric_retain_recorded_reference_hashes",
+          "line": 592,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/local_diagnostic.rs",
+          "function": "synthetic_diagnostic_separates_labels_from_transport_and_task_claims",
+          "line": 603,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/local_diagnostic.rs",
+          "function": "unsafe_preflight_conditions_prevent_task_transmission",
+          "line": 653,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/local_diagnostic.rs",
+          "function": "newly_resident_other_model_stops_next_inference_without_unloading",
+          "line": 711,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/local_diagnostic.rs",
+          "function": "wrong_labels_and_startup_http_errors_fail_distinct_gates",
+          "line": 729,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/local_diagnostic.rs",
+          "function": "invalid_settings_and_early_cancellation_do_not_perform_io",
+          "line": 768,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/local_diagnostic.rs",
+          "function": "disabled_runtime_deadline_preserves_cancellation_and_finite_deadline_fallbacks",
+          "line": 802,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "function": "evaluator_cache_identity_distinguishes_unpaired_configured_model_units",
+          "line": 438,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "function": "identical_work_is_shared_but_a_waiters_cancel_does_not_cancel_others",
+          "line": 566,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "function": "all_cancelled_work_cannot_cache_or_remove_a_replacement_entry",
+          "line": 592,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "function": "cancellation_at_completion_and_future_drop_release_registry_without_caching",
+          "line": 621,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "function": "already_cancelled_calls_skip_network_and_cached_decisions",
+          "line": 653,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "function": "subscriber_and_work_capacity_have_distinct_bounded_admission",
+          "line": 677,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "function": "successful_cache_is_bounded_lru_with_expiration_but_failures_are_not_cached",
+          "line": 733,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "function": "full_request_and_evaluator_settings_account_and_floor_are_cache_identity",
+          "line": 783,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "function": "bounded_excerpt_uses_exact_utf16_wire_and_retains_no_full_body_in_registry",
+          "line": 845,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/classifier.rs",
+          "function": "shutdown_cancels_all_subscribers_and_pending_transport",
+          "line": 863,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+          "function": "exact_limit_and_many_tiny_chunks_parse_without_retaining_chunk_objects",
+          "line": 420,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+          "function": "streamed_limit_is_authoritative_and_all_failures_drop_the_body",
+          "line": 438,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+          "function": "cancellation_interrupts_stalled_body_without_waiting_for_cleanup",
+          "line": 458,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+          "function": "cancelled_and_malformed_inputs_are_distinct_safe_errors",
+          "line": 473,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+          "function": "supported_decoders_handle_every_chunk_boundary_stacks_and_gzip_members",
+          "line": 524,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+          "function": "decoded_byte_bound_and_compressed_header_hint_are_both_enforced",
+          "line": 552,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+          "function": "unknown_coding_skips_the_whole_decode_chain_like_fetch",
+          "line": 577,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+          "function": "decoder_eof_never_hides_stalled_or_failed_http_body",
+          "line": 594,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+          "function": "clean_truncated_trailer_matches_fetch_flush_but_invalid_json_and_reset_do_not",
+          "line": 618,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        }
+      ]
+    },
+    {
+      "id": "status",
+      "areas": [
+        "status_and_telemetry",
+        "launcher_and_lifecycle"
+      ],
+      "baseline_test_files": [
+        "test/status-state.test.mjs",
+        "test/statusline.test.mjs",
+        "test/status-settings.test.mjs",
+        "test/status-cleanup.test.mjs"
+      ],
+      "implementation_files": [
+        "rust/crates/autorouter-core/src/status_state.rs",
+        "rust/crates/autorouter-core/src/statusline.rs",
+        "rust/crates/autorouter-runtime/src/status_store.rs",
+        "rust/crates/autorouter-runtime/src/status_settings.rs",
+        "rust/crates/autorouter-runtime/src/status_cleanup.rs"
+      ],
+      "reports": [
+        {
+          "report": "artifacts/rust-rewrite/evidence/b2c85c27a1878d90f6afc24278b7ef0c111ac263058c204c4eed773d2b7c1e3e.json",
+          "report_sha256": "b2c85c27a1878d90f6afc24278b7ef0c111ac263058c204c4eed773d2b7c1e3e",
+          "original_report": "artifacts/rust-rewrite/parity-status.json",
+          "observed": {
+            "passed": true,
+            "cases": 6841,
+            "matched": 6841,
+            "cases_sha256": "4c74c7d4ad88606c94a5461876a1a1da98a32813ba73e82f7f931b9046575e50",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "rust_pure_function_differential"
+          }
+        }
+      ],
+      "status": "implemented_with_partial_evidence",
+      "remaining": [
+        "Generated state/rendering6841 cases plus native storage tests are partial assertion coverage; multi-platform filesystem/terminal/signal qualification remains pending."
+      ],
+      "rust_test_definitions": [
+        {
+          "file": "rust/crates/autorouter-core/src/status_state.rs",
+          "function": "superseded_and_agent_requests_cannot_replace_foreground",
+          "line": 227,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/status_state.rs",
+          "function": "failed_context_cannot_be_restored_by_late_usage_and_sessions_are_bounded",
+          "line": 242,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/statusline.rs",
+          "function": "selection_and_incomplete_completion_are_not_reported_as_confirmed",
+          "line": 755,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/statusline.rs",
+          "function": "narrow_fallback_keeps_failure_cause",
+          "line": 776,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/status_store.rs",
+          "function": "stalled_writer_coalesces_bursts_and_close_owns_accepted_work",
+          "line": 445,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/status_store.rs",
+          "function": "readiness_deadline_disables_ui_but_waits_for_writer_before_cleanup",
+          "line": 482,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/status_store.rs",
+          "function": "native_files_are_private_atomic_bounded_and_removed",
+          "line": 504,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/status_settings.rs",
+          "function": "permission_anchors_and_unknown_utf16_are_preserved",
+          "line": 200,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/status_settings.rs",
+          "function": "relative_sandbox_paths_decline_without_echoing_secrets",
+          "line": 220,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/status_settings.rs",
+          "function": "shell_metacharacters_are_literal",
+          "line": 245,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/status_settings.rs",
+          "function": "overlay_file_is_private_and_original_is_unchanged",
+          "line": 255,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/status_cleanup.rs",
+          "function": "removes_dead_and_reused_pids_but_keeps_live_and_untrusted_paths",
+          "line": 147,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/status_cleanup.rs",
+          "function": "unreadable_snapshot_grace_and_foreign_owner_are_conservative",
+          "line": 195,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/status_cleanup.rs",
+          "function": "cleanup_is_bounded_and_missing_directory_is_ignored",
+          "line": 214,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        }
+      ]
+    },
+    {
+      "id": "telemetry_savings_history",
+      "areas": [
+        "status_and_telemetry",
+        "history_and_savings"
+      ],
+      "baseline_test_files": [
+        "test/telemetry-event.test.mjs",
+        "test/savings.test.mjs",
+        "test/session-log.test.mjs",
+        "test/session-history.test.mjs",
+        "test/static-checks.test.mjs"
+      ],
+      "implementation_files": [
+        "rust/crates/autorouter-core/src/telemetry_event.rs",
+        "rust/crates/autorouter-core/src/savings.rs",
+        "rust/crates/autorouter-core/src/session_history.rs",
+        "rust/crates/autorouter-runtime/src/session_log.rs",
+        "rust/crates/autorouter-runtime/src/session_history.rs"
+      ],
+      "reports": [
+        {
+          "report": "artifacts/rust-rewrite/evidence/d00e77a0f826a5d59b3abc3726b8e75f1a389eab2bc8418527e2f9491a5a83af.json",
+          "report_sha256": "d00e77a0f826a5d59b3abc3726b8e75f1a389eab2bc8418527e2f9491a5a83af",
+          "original_report": "autorouter-accounting-report.json",
+          "observed": {
+            "passed": true,
+            "cases": 7726,
+            "matched": 7726,
+            "cases_sha256": "d5cc5b0df7fb38d7a430f9afc74093e8ae43df87c0d5e16a4abbc0c8331b8e56",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "rust_pure_function_differential"
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/f7fe9ba1b062b85522a0808026b3b5e6ec498959c2afc4c3e831297703ce6492.json",
+          "report_sha256": "f7fe9ba1b062b85522a0808026b3b5e6ec498959c2afc4c3e831297703ce6492",
+          "original_report": "artifacts/rust-rewrite/parity-history.json",
+          "observed": {
+            "passed": true,
+            "cases": 282,
+            "matched": 282,
+            "cases_sha256": "5b425f190a9906e293294fa6b15f3806cbaae543b7c5394f7bc723f11fc0b79d",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "rust_pure_function_differential"
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/12e61b2957284a76ca8d061b3c783737258be07e84970ac65bf6216d79464f30.json",
+          "report_sha256": "12e61b2957284a76ca8d061b3c783737258be07e84970ac65bf6216d79464f30",
+          "original_report": "artifacts/rust-rewrite/parity-telemetry-json-3.json",
+          "observed": {
+            "passed": true,
+            "cases": 4544,
+            "matched": 4544,
+            "cases_sha256": "9947e1377db9b2909b5594376aa6f1121986dfbca7dbbfc1bb3766d270a73372",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "rust_pure_function_differential"
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/7663d3c73a59b6496b33119f5cefda369584600444b9dd82faa9cc08fedde0b2.json",
+          "report_sha256": "7663d3c73a59b6496b33119f5cefda369584600444b9dd82faa9cc08fedde0b2",
+          "original_report": "artifacts/rust-rewrite/parity-history-locales-3.json",
+          "observed": {
+            "passed": true,
+            "cases": 224,
+            "matched": 224,
+            "cases_sha256": "1f5b74f2020fc71ab8c09c48a99ec65bc7f7a479b78772de8f07aa516a5793ed",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "rust_pure_function_differential"
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/8f31c7c96a138cd716fd14130922a31255ac16a1b42beeec0320cbc261843d49.json",
+          "report_sha256": "8f31c7c96a138cd716fd14130922a31255ac16a1b42beeec0320cbc261843d49",
+          "original_report": "artifacts/rust-rewrite/parity-history-locale-cli.json",
+          "observed": {
+            "passed": true,
+            "cases": 22,
+            "matched": 22,
+            "fixture_sha256": "7844c5208cfbe0959f9692fe4989274be2ec595e3c520a4a0a8be3d75b4c5fe3",
+            "kind": "native_history_locale_cli_differential"
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/7663d3c73a59b6496b33119f5cefda369584600444b9dd82faa9cc08fedde0b2.json",
+          "report_sha256": "7663d3c73a59b6496b33119f5cefda369584600444b9dd82faa9cc08fedde0b2",
+          "original_report": "artifacts/rust-rewrite/parity-all-final-1/history-locales.report.json",
+          "observed": {
+            "kind": "rust_pure_function_differential",
+            "passed": true,
+            "cases": 224,
+            "matched": 224,
+            "cases_sha256": "1f5b74f2020fc71ab8c09c48a99ec65bc7f7a479b78772de8f07aa516a5793ed"
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/12e61b2957284a76ca8d061b3c783737258be07e84970ac65bf6216d79464f30.json",
+          "report_sha256": "12e61b2957284a76ca8d061b3c783737258be07e84970ac65bf6216d79464f30",
+          "original_report": "artifacts/rust-rewrite/parity-all-final-1/telemetry-json.report.json",
+          "observed": {
+            "kind": "rust_pure_function_differential",
+            "passed": true,
+            "cases": 4544,
+            "matched": 4544,
+            "cases_sha256": "9947e1377db9b2909b5594376aa6f1121986dfbca7dbbfc1bb3766d270a73372"
+          }
+        }
+      ],
+      "status": "implemented_with_partial_evidence",
+      "remaining": [
+        "Accounting7726, history282, rawtelemetry4544, and224 locale ordering cases plus22 actual locale-environment CLI cases pass. Unrepresented locales, newer ICU/CLDR changes and filesystem failure schedules remain separate review items.",
+        "Optional prompt logging privacy, metadata omission, queue bounds and shutdown ownership have native tests; full historical schema/assertion mapping remains pending."
+      ],
+      "rust_test_definitions": [
+        {
+          "file": "rust/crates/autorouter-core/src/telemetry_event.rs",
+          "function": "raw_nonfinite_identity_is_invalid_while_null_is_absent",
+          "line": 595,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/telemetry_event.rs",
+          "function": "raw_nonfinite_type_cannot_become_a_valid_prompt_or_transition_list",
+          "line": 609,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/telemetry_event.rs",
+          "function": "normalization_drops_payload_and_rejects_invalid_explicit_identities",
+          "line": 619,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/telemetry_event.rs",
+          "function": "usage_modifiers_and_counters_remain_allowlisted_and_unpriced_when_invalid",
+          "line": 647,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/telemetry_event.rs",
+          "function": "metadata_omits_prompts_and_prompt_mode_redacts_before_unicode_truncation",
+          "line": 676,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/telemetry_event.rs",
+          "function": "transition_bounds_and_timestamp_validation_preserve_failure_evidence",
+          "line": 699,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/savings.rs",
+          "function": "exact_rates_cache_ttls_and_negative_savings_are_retained",
+          "line": 676,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/savings.rs",
+          "function": "malformed_usage_and_unsupported_modifiers_never_gain_a_guessed_price",
+          "line": 707,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/savings.rs",
+          "function": "geography_exception_belongs_only_to_confirmed_haiku_usage",
+          "line": 747,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/savings.rs",
+          "function": "overlapping_calls_and_duplicate_notifications_have_independent_settlement",
+          "line": 772,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/savings.rs",
+          "function": "errors_cancellation_and_unconfirmed_completion_never_count_as_savings",
+          "line": 799,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/savings.rs",
+          "function": "bounded_inflight_and_duplicate_history_report_partial_coverage",
+          "line": 827,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/savings.rs",
+          "function": "evicted_sessions_ignore_old_requests_and_mark_returning_sessions_partial",
+          "line": 849,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/savings.rs",
+          "function": "historical_estimates_require_recorded_provenance_and_clean_outcomes",
+          "line": 867,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/session_history.rs",
+          "function": "native_collation_preserves_locale_contractions_case_and_stable_ties",
+          "line": 627,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/session_history.rs",
+          "function": "locale_environment_honors_present_empty_overrides",
+          "line": 648,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/session_history.rs",
+          "function": "conflicting_duplicates_and_legacy_selections_never_imply_completed_execution",
+          "line": 670,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-core/src/session_history.rs",
+          "function": "truncated_tail_bad_schema_and_mixed_identity_are_explicit",
+          "line": 691,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/session_log.rs",
+          "function": "close_owns_stalled_writes_and_later_records_are_rejected",
+          "line": 381,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/session_log.rs",
+          "function": "pending_bytes_and_sessions_are_bounded_without_losing_accepted_rows",
+          "line": 415,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/session_log.rs",
+          "function": "storage_failure_warns_once_closes_and_does_not_echo_error",
+          "line": 458,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/session_log.rs",
+          "function": "native_files_are_exclusive_private_and_metadata_only",
+          "line": 480,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/session_log.rs",
+          "function": "native_writer_rejects_links_replaced_directory_and_existing_file",
+          "line": 517,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/session_history.rs",
+          "function": "rejects_links_special_files_and_nonregular_directories",
+          "line": 199,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/autorouter-runtime/src/session_history.rs",
+          "function": "file_record_directory_and_byte_bounds_are_visible_without_modifying_logs",
+          "line": 250,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        }
+      ]
+    },
+    {
+      "id": "native_cli_package",
+      "areas": [
+        "commands_and_help",
+        "launcher_and_lifecycle",
+        "secret_storage",
+        "contributor_and_release_tools"
+      ],
+      "baseline_test_files": [
+        "test/cli-help.test.mjs",
+        "test/onboarding.test.mjs",
+        "test/config-command.test.mjs",
+        "test/launcher-logging.test.mjs",
+        "test/package-lifecycle.test.mjs",
+        "test/local-diagnostic.test.mjs"
+      ],
+      "implementation_files": [
+        "rust/crates/claude-autorouter/src/main.rs",
+        "rust/crates/claude-autorouter/src/launch.rs",
+        "rust/crates/claude-autorouter/src/doctor.rs",
+        "rust/crates/claude-autorouter/src/onboarding.rs",
+        "rust/crates/claude-autorouter/src/secret_input.rs",
+        "rust/crates/claude-autorouter/src/sessions.rs",
+        "rust/crates/claude-autorouter/src/statusline.rs",
+        "rust/crates/claude-autorouter/tests/commands.rs",
+        "rust/crates/claude-autorouter/tests/edge_cases.rs",
+        "rust/xtask/src/package.rs",
+        "rust/xtask/src/package_archive.rs",
+        "rust/xtask/src/package_binary.rs",
+        "rust/distribution/autorouter.sh"
+      ],
+      "reports": [
+        {
+          "report": "artifacts/rust-rewrite/evidence/2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948.json",
+          "report_sha256": "2922e052c22ace75fc8637928e26cbf5a1d373a7bce4fdea68d7ef4da6de8948",
+          "original_report": "artifacts/rust-rewrite/parity-config-commands-utf16.json",
+          "observed": {
+            "cases": 296,
+            "matched": 296,
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "passed": true
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/514e3f30e6ca4bc805fc7fb80881730c21a15d194ed217936b0c3c148970fc9a.json",
+          "report_sha256": "514e3f30e6ca4bc805fc7fb80881730c21a15d194ed217936b0c3c148970fc9a",
+          "original_report": "artifacts/rust-rewrite/parity-config-auth.json",
+          "observed": {
+            "passed": true,
+            "cases": 460,
+            "matched": 460,
+            "cases_sha256": "77c1f6e3cfa1b97581defbb21fe704fe44041bf1cf0cf82b9609adc60f982f9e",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "rust_pure_function_differential"
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/bbfb3732a211beec6c5eabe09f5fc582cdf051f28c76231a5389a555a6568502.json",
+          "report_sha256": "bbfb3732a211beec6c5eabe09f5fc582cdf051f28c76231a5389a555a6568502",
+          "original_report": "artifacts/rust-rewrite/native-package-host-2/installed-smoke.json",
+          "observed": {
+            "passed": true,
+            "complete_launcher_lifecycle": {
+              "passed": true,
+              "test_suite": "crates/claude-autorouter/tests/commands.rs",
+              "summary": "test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.49s"
+            }
+          }
+        }
+      ],
+      "status": "implemented_with_partial_evidence",
+      "remaining": [
+        "Exact installed17 CLI tests pass only on the current macOS ARM64 host. The private archive is feasibility evidence, not an approved production release.",
+        "Full target/libc/OS matrix, aggregate32MiB archive proof, license review, reproducible provenance, direct native archives, upgrade/rollback and production release gates remain pending."
+      ],
+      "rust_test_definitions": [
+        {
+          "file": "rust/crates/claude-autorouter/tests/commands.rs",
+          "function": "help_and_version_are_native_and_do_not_read_configuration",
+          "line": 53,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/commands.rs",
+          "function": "direct_claude_help_forwards_literal_arguments_and_removes_router_secrets",
+          "line": 81,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/commands.rs",
+          "function": "missing_claude_has_stable_bounded_diagnostic",
+          "line": 94,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/commands.rs",
+          "function": "direct_help_forwards_termination_and_reaps_the_child",
+          "line": 106,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/commands.rs",
+          "function": "config_show_is_redacted_and_reports_source_and_inactive_settings_without_node",
+          "line": 142,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/commands.rs",
+          "function": "config_edits_validate_saved_values_and_preserve_unrelated_settings",
+          "line": 172,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/commands.rs",
+          "function": "secret_input_is_bounded_and_never_accepted_as_a_command_argument",
+          "line": 225,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/commands.rs",
+          "function": "invalid_config_show_uses_json_stdout_and_never_echoes_corrupt_secrets",
+          "line": 296,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/commands.rs",
+          "function": "native_setup_jev_preserves_unrelated_saved_preferences_and_requires_explicit_replace",
+          "line": 318,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/commands.rs",
+          "function": "invalid_setup_arguments_fail_before_prompting_network_or_writes",
+          "line": 383,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/commands.rs",
+          "function": "plain_doctor_uses_native_diagnostics_and_scrubbed_claude_auth_checks",
+          "line": 402,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/commands.rs",
+          "function": "doctor_rejects_unbounded_child_output_without_echoing_it",
+          "line": 426,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/commands.rs",
+          "function": "internal_status_renderer_is_native_bounded_and_ignores_configuration",
+          "line": 442,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/commands.rs",
+          "function": "full_launcher_preserves_arguments_scrubs_credentials_and_cleans_private_overlay",
+          "line": 510,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/commands.rs",
+          "function": "failed_child_spawn_and_unsafe_settings_leave_no_status_directory",
+          "line": 553,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/commands.rs",
+          "function": "launcher_checks_subscription_bare_and_provider_conflicts_before_allocating_resources",
+          "line": 589,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/commands.rs",
+          "function": "full_launcher_forwards_signal_waits_for_child_and_removes_overlay",
+          "line": 622,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/edge_cases.rs",
+          "function": "hidden_secret_uses_raw_editing_and_restores_terminal_before_exit",
+          "line": 241,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/edge_cases.rs",
+          "function": "hidden_secret_cancellation_restores_echo_and_preserves_saved_configuration",
+          "line": 271,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/edge_cases.rs",
+          "function": "stale_hidden_edit_cannot_replace_a_concurrent_configuration_change",
+          "line": 293,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/edge_cases.rs",
+          "function": "stdin_secret_accepts_regular_files_and_exact_limit_but_rejects_terminal_input",
+          "line": 309,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/edge_cases.rs",
+          "function": "persisted_settings_are_owned_private_atomic_and_never_follow_write_symlinks",
+          "line": 347,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/edge_cases.rs",
+          "function": "hidden_status_renderer_selects_exact_utf16_identity_before_display_projection",
+          "line": 429,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/edge_cases.rs",
+          "function": "hidden_status_renderer_handles_invalid_and_bounded_input_without_leaks",
+          "line": 461,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/edge_cases.rs",
+          "function": "opaque_unix_arguments_and_environment_reach_claude_byte_for_byte",
+          "line": 499,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/edge_cases.rs",
+          "function": "repeated_launches_preserve_saved_settings_permission_anchors_and_cleanup",
+          "line": 531,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/crates/claude-autorouter/tests/edge_cases.rs",
+          "function": "installed_launcher_owns_private_status_and_settings_until_child_exit",
+          "line": 597,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/package.rs",
+          "function": "license_inventory_includes_subcrate_authors_and_bundled_sources",
+          "line": 675,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/package.rs",
+          "function": "dispatcher_forwards_literal_arguments_and_exit_status_without_node",
+          "line": 712,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/package.rs",
+          "function": "missing_native_executable_fails_without_a_download_or_fallback",
+          "line": 764,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/package.rs",
+          "function": "integrity_encoding_matches_known_vectors",
+          "line": 780,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/package_archive.rs",
+          "function": "rejects_traversal_links_bad_checksums_and_truncated_payloads",
+          "line": 225,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/package_archive.rs",
+          "function": "duplicate_entries_are_rejected_before_extraction",
+          "line": 251,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/package_archive.rs",
+          "function": "decompression_bound_is_enforced_before_parsing_entries",
+          "line": 267,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/package_binary.rs",
+          "function": "binary_names_do_not_override_architecture_checks",
+          "line": 184,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        }
+      ]
+    },
+    {
+      "id": "developer_tools",
+      "areas": [
+        "contributor_and_release_tools",
+        "local_evaluator_operations"
+      ],
+      "baseline_test_files": [
+        "test/evaluation-report.test.mjs",
+        "test/benchmark-router.test.mjs",
+        "test/benchmark-bundle.test.mjs",
+        "test/live-rubric.test.mjs",
+        "test/release-check.test.mjs",
+        "test/release-verification.test.mjs"
+      ],
+      "implementation_files": [
+        "rust/xtask/src/parity.rs",
+        "rust/xtask/src/reference.rs",
+        "rust/xtask/src/process.rs",
+        "rust/xtask/src/observer_fixture.rs",
+        "rust/xtask/src/evaluation.rs",
+        "rust/xtask/src/ollama_evaluation.rs",
+        "rust/xtask/src/ollama_routing.rs",
+        "rust/xtask/src/live.rs",
+        "rust/xtask/src/live_claude.rs",
+        "rust/xtask/src/context_probe.rs",
+        "rust/xtask/src/benchmark.rs",
+        "rust/xtask/src/benchmark_measure.rs",
+        "rust/xtask/src/benchmark_service.rs",
+        "rust/xtask/src/bundle.rs",
+        "rust/xtask/src/release.rs",
+        "rust/xtask/src/release_verify.rs",
+        "rust/xtask/src/release_install.rs",
+        "rust/xtask/src/tool_process.rs",
+        "rust/xtask/src/env_file.rs",
+        "rust/xtask/src/release_pack.rs",
+        "rust/xtask/src/release_direct.rs",
+        "rust/xtask/src/upgrade_rollback.rs"
+      ],
+      "reports": [
+        {
+          "report": "artifacts/rust-rewrite/evidence/475ca849eb64127145acf21cde91c3e7e5c18a9ac2468f1b5ad872aea5a54bb2.json",
+          "report_sha256": "475ca849eb64127145acf21cde91c3e7e5c18a9ac2468f1b5ad872aea5a54bb2",
+          "original_report": "autorouter-evaluation-report.json",
+          "observed": {
+            "passed": true,
+            "cases": 5072,
+            "matched": 5072,
+            "cases_sha256": "d17a29cae13bd137971d8809332c99c53f1dcc6e293c890dea40608de1f298ef",
+            "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+            "kind": "rust_pure_function_differential"
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/c078b1eb9ff40ab057f56ce037fc6dcae22e480b7004885c957087d82c56b594.json",
+          "report_sha256": "c078b1eb9ff40ab057f56ce037fc6dcae22e480b7004885c957087d82c56b594",
+          "original_report": "artifacts/rust-rewrite/benchmark-validation-4/report.json",
+          "observed": {
+            "kind": "synthetic_runtime_neutral_validation",
+            "overall_plan_performance_gate": "incomplete",
+            "completed": true
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/ee7215f2cbb82e7ed661ad3fbe12fcde37276152ae079316328f6905ca10b322.json",
+          "report_sha256": "ee7215f2cbb82e7ed661ad3fbe12fcde37276152ae079316328f6905ca10b322",
+          "original_report": "artifacts/rust-rewrite/benchmark-run-1/report.json",
+          "observed": {
+            "kind": "synthetic_runtime_neutral_benchmark",
+            "overall_plan_performance_gate": "incomplete",
+            "completed": true
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/9081bbb667374efcd4af23e00d2deed10179b38c31eeeace2f5838e5c74746bc.json",
+          "report_sha256": "9081bbb667374efcd4af23e00d2deed10179b38c31eeeace2f5838e5c74746bc",
+          "original_report": "artifacts/rust-rewrite/parity-all-1/suite.json",
+          "observed": {
+            "passed": true,
+            "kind": "deterministic_parity_suite"
+          }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168.json",
+          "report_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+          "original_report": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+          "observed": {
+            "kind": "deterministic_parity_suite",
+            "passed": true,
+            "complete": true,
+            "families": 17,
+            "cases": 206617,
+            "matched": 206617
+          }
+        }
+      ],
+      "status": "implemented_with_partial_evidence",
+      "remaining": [
+        "Evaluation-report5072 pure cases and benchmark45 deterministic rows are not model-quality or performance evidence.",
+        "Live/probe tools have synthetic tests only; do not execute user startup hooks/MCP/provider calls without opt-in.",
+        "Native release verifier rejects private feasibility artifacts. No version/tag/publication or registry release occurred.",
+        "Measured immutable snapshot: five paired rounds,225 rows. Startup/idle RSS targets observed; cache-hit throughput and large-catalog CPU/latency/throughput regressions remain. Uncontrolled workstation results do not satisfy full performance acceptance.",
+        "Benchmark initial13 HTTP/3startup workload subset leaves full streaming/cancellation/storage/soak/real-provider/hardware gates incomplete."
+      ],
+      "rust_test_definitions": [
+        {
+          "file": "rust/xtask/src/parity.rs",
+          "function": "exact_large_integer_double_encoding_matches_without_rounding_neighbors",
+          "line": 450,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/parity.rs",
+          "function": "mutation_of_model_guard_or_permission_is_detected_without_payloads",
+          "line": 471,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/parity.rs",
+          "function": "omitted_extra_reordered_and_duplicate_cases_cannot_pass",
+          "line": 490,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/parity.rs",
+          "function": "missing_null_bytes_and_large_integer_differences_remain_visible",
+          "line": 512,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/parity.rs",
+          "function": "matching_unimplemented_operations_are_not_functional_parity",
+          "line": 527,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/parity.rs",
+          "function": "malformed_or_ambiguous_envelopes_are_rejected",
+          "line": 541,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/reference.rs",
+          "function": "source_drift_fails_even_when_size_is_unchanged",
+          "line": 149,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/reference.rs",
+          "function": "manifest_paths_cannot_escape_the_owned_snapshot",
+          "line": 156,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/process.rs",
+          "function": "failed_process_is_not_an_empty_passing_run",
+          "line": 170,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/process.rs",
+          "function": "stalled_process_has_a_deadline",
+          "line": 178,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/process.rs",
+          "function": "reads_are_bounded",
+          "line": 190,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/evaluation.rs",
+          "function": "thresholds_are_validated_before_help_or_any_provider_admission",
+          "line": 288,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/evaluation.rs",
+          "function": "percentile_keeps_nearest_rank_including_single_case",
+          "line": 305,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/ollama_evaluation.rs",
+          "function": "parser_keeps_heldout_and_positive_cold_deadline_defaults",
+          "line": 578,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/ollama_evaluation.rs",
+          "function": "stress_input_keeps_task_and_changes_early_background_nonce",
+          "line": 597,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/ollama_evaluation.rs",
+          "function": "reports_keep_errors_in_latency_denominator_and_separate_wrong_labels",
+          "line": 611,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/ollama_routing.rs",
+          "function": "requires_explicit_model_and_validates_all_checked_in_shapes",
+          "line": 298,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/ollama_routing.rs",
+          "function": "synthetic_wrapper_extracts_exact_task",
+          "line": 308,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/live.rs",
+          "function": "default_cases_and_expensive_case_opt_in_are_preserved",
+          "line": 839,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/live.rs",
+          "function": "native_fixture_records_version_and_distinct_provenance",
+          "line": 867,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/live.rs",
+          "function": "independent_verification_restores_modified_tests_before_executing",
+          "line": 883,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/live_claude.rs",
+          "function": "continuation_waits_for_success_and_reports_only_allowlisted_metadata",
+          "line": 389,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/live_claude.rs",
+          "function": "arguments_preserve_isolation_and_scope_permissions_to_native_fixture",
+          "line": 411,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/context_probe.rs",
+          "function": "metadata_preserves_exact_sizes_but_omits_private_payloads",
+          "line": 765,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/context_probe.rs",
+          "function": "stub_never_emits_tool_actions_and_keeps_stream_protocol",
+          "line": 778,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/context_probe.rs",
+          "function": "local_stub_authentication_bounds_and_exact_model_identity",
+          "line": 805,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/benchmark.rs",
+          "function": "body_identity_changes_misses_and_retains_cache_input",
+          "line": 865,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/benchmark.rs",
+          "function": "regression_comparison_does_not_pass_missing_rounds",
+          "line": 888,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/benchmark.rs",
+          "function": "repeated_real_regression_is_not_hidden_by_noise_floor",
+          "line": 896,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/benchmark_measure.rs",
+          "function": "parses_ps_day_hour_and_fraction_units",
+          "line": 137,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/benchmark_measure.rs",
+          "function": "tail_is_nearest_rank_and_small_rounds_are_not_certified",
+          "line": 143,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/bundle.rs",
+          "function": "explicit_allowlist_rejects_private_adjacent_material",
+          "line": 258,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/bundle.rs",
+          "function": "actual_bundle_checks_every_hash_excludes_canary_and_refuses_overwrite",
+          "line": 277,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/bundle.rs",
+          "function": "source_symlink_and_oversize_are_rejected",
+          "line": 300,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/release.rs",
+          "function": "strict_semver_and_arbitrary_numeric_prereleases_preserve_order",
+          "line": 741,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/release.rs",
+          "function": "release_identity_and_github_tag_are_exact",
+          "line": 766,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/release.rs",
+          "function": "feasibility_build_cannot_be_marked_public_by_manifest_only",
+          "line": 779,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/release.rs",
+          "function": "archive_identity_and_historical_opt_in_are_explicit",
+          "line": 788,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/release.rs",
+          "function": "source_tag_must_match_clean_head_on_main",
+          "line": 844,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/release.rs",
+          "function": "production_reader_binds_all_files_modes_docs_and_qualification_to_source",
+          "line": 973,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/release_verify.rs",
+          "function": "preflight_distinguishes_absence_outages_and_unknown_retries",
+          "line": 715,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/release_verify.rs",
+          "function": "delayed_metadata_and_tarball_are_polled_before_single_install",
+          "line": 766,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/release_verify.rs",
+          "function": "pending_retains_bounded_timeline_and_never_republishes",
+          "line": 803,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/release_verify.rs",
+          "function": "immutable_mismatch_fails_immediately_and_superseded_versions_still_install",
+          "line": 832,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/release_verify.rs",
+          "function": "older_tag_does_not_start_install_and_install_failure_is_not_verified",
+          "line": 878,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/release_verify.rs",
+          "function": "original_tag_artifact_provenance_cannot_be_replaced_by_fork_or_retry_artifact",
+          "line": 911,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/release_install.rs",
+          "function": "installed_bytes_are_checked_before_executable_and_temp_dirs_removed",
+          "line": 368,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/tool_process.rs",
+          "function": "output_and_deadline_are_bounded_and_metadata_never_contains_output",
+          "line": 264,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/tool_process.rs",
+          "function": "failed_launch_and_exit_are_not_success",
+          "line": 280,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/tool_process.rs",
+          "function": "initial_input_backpressure_does_not_disable_timeout_or_cancellation",
+          "line": 302,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/tool_process.rs",
+          "function": "scratch_removed_and_private",
+          "line": 334,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/env_file.rs",
+          "function": "explicit_file_grammar_does_not_execute_expansions_or_hooks",
+          "line": 133,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/env_file.rs",
+          "function": "node22_final_line_quotes_and_space_rules_are_preserved",
+          "line": 143,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/upgrade_rollback.rs",
+          "function": "frozen_public_allowlist_does_not_pick_up_adjacent_private_files",
+          "line": 416,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/upgrade_rollback.rs",
+          "function": "options_fail_before_creating_an_output_or_invoking_npm",
+          "line": 445,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        }
+      ]
+    }
+  ],
+  "source_controlled_benchmark_summary": {
+    "path": "rust/parity/measurements/local-v1-summary.json",
+    "sha256": "a3eb4c37b676f650f020b6cf99300df6374604ce495dfee510b0250e1212f821",
+    "raw_report_sha256": "ee7215f2cbb82e7ed661ad3fbe12fcde37276152ae079316328f6905ca10b322",
+    "status": "observed_regressions; overall_performance_acceptance_incomplete"
+  },
+  "locale_provenance": {
+    "oracle_node": "22.14.0",
+    "oracle_icu": "76.1",
+    "oracle_cldr": "46.0",
+    "native_icu4x": "2.3.1",
+    "native_cldr": "48.2.1",
+    "ordering_comparison": "explicit ordered key arrays and terminal text; never normalized away"
+  },
+  "checkpoint_checks": [
+    {
+      "command": "cargo test --offline --locked --package xtask package::",
+      "log": "artifacts/rust-rewrite/evidence/6da381511dfc6d217e78e29dbb2eec62d39403116fd1009b7b20279109e96f92.log",
+      "sha256": "6da381511dfc6d217e78e29dbb2eec62d39403116fd1009b7b20279109e96f92",
+      "observed_exit_code": 0,
+      "scope": "current local development workspace; separate from baseline assertion mappings"
+    },
+    {
+      "command": "cargo test --offline --locked --package xtask bundle::",
+      "log": "artifacts/rust-rewrite/evidence/18d1a3edc65bbd43113ad499d338042458007d2845b804b874e0e0a82a6996d1.log",
+      "sha256": "18d1a3edc65bbd43113ad499d338042458007d2845b804b874e0e0a82a6996d1",
+      "observed_exit_code": 0,
+      "scope": "current local development workspace; separate from baseline assertion mappings"
+    },
+    {
+      "command": "cargo test --offline --locked --package xtask parity::",
+      "log": "artifacts/rust-rewrite/evidence/5d79d8722ae8e7b2a8029745e8a4ff62989ec4193c2f12ae3e5cf3fb02338aaa.log",
+      "sha256": "5d79d8722ae8e7b2a8029745e8a4ff62989ec4193c2f12ae3e5cf3fb02338aaa",
+      "observed_exit_code": 0,
+      "scope": "current local development workspace; separate from baseline assertion mappings"
+    },
+    {
+      "command": "cargo clippy --offline --locked --package autorouter-core --package autorouter-runtime --package xtask --all-targets -- -D warnings",
+      "log": "artifacts/rust-rewrite/evidence/c16abb2915e5a00ab29406d8b5f92d1b5adee645d8b74b9d84ae8e00f066065e.log",
+      "sha256": "c16abb2915e5a00ab29406d8b5f92d1b5adee645d8b74b9d84ae8e00f066065e",
+      "observed_exit_code": 0,
+      "scope": "current local development workspace; separate from baseline assertion mappings"
+    }
+  ],
+  "license_inventory": {
+    "status": "all_current_dependency_license_texts_found; legal_release_review_pending",
+    "override_provenance": "rust/distribution/licenses/provenance.json",
+    "includes": [
+      "r-efi AUTHORS MIT notice and copyright",
+      "alloc-stdlib pinned upstream BSD license",
+      "vendored Hyper MIT license",
+      "bundled Node certificate LICENSE and provenance"
+    ]
+  }
+}

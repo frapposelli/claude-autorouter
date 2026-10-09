@@ -1,0 +1,53 @@
+// Shared scalar configuration/authentication assertions from the frozen tests.
+// This source-only generator is never included in the installed product.
+import { writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+const cases = [];
+const emit = (file, assertion, op, input) => cases.push({ id: `${file}-${assertion}-${cases.length}`, op, input,
+  source_tests: [`test/${file}.test.mjs`], source_test_id: `test/${file}.test.mjs#${assertion}` });
+const config = (assertion, env, extra = {}) => emit('config', assertion, 'read_config', { env, ...extra });
+for (const value of [undefined, '', './local session logs', ' ', 'private\npath', 'private\0path', false, null, 0, {}]) config(1, value === undefined ? {} : { AUTOROUTER_SESSION_LOG_DIR: value });
+for (const value of [undefined, 'prompts', 'metadata', '', ' ', 'private-value', false, null]) config(2, value === undefined ? {} : { AUTOROUTER_SESSION_LOG_MODE: value });
+const profiles = ['compatible', 'native', 'auto'];
+for (const profile of [...profiles, '', 'Auto', 'automatic', 'unknown']) config(3, { AUTOROUTER_CLIENT_PROFILE: profile });
+config(3, {});
+for (const [sonnet, opus] of [['claude-sonnet-4-6', 'claude-opus-4-6'], ['claude-sonnet-5', 'claude-opus-4-7'], ['claude-sonnet-5-5', 'claude-opus-5-5']]) config(3, { AUTOROUTER_CLIENT_PROFILE: 'auto', AUTOROUTER_SONNET_MODEL: sonnet, AUTOROUTER_OPUS_MODEL: opus });
+for (const key of ['AUTOROUTER_SONNET_MODEL', 'AUTOROUTER_OPUS_MODEL']) for (const model of ['claude-haiku-4-5-20251001', 'claude-sonnet-4-5', 'claude-opus-4-5', 'sonnet', 'opus', 'custom/claude-sonnet-5', 'claude-opus-5-5-custom', 'claude-sonnet-99']) for (const profile of profiles) config(4, { AUTOROUTER_CLIENT_PROFILE: profile, [key]: model });
+config(5, {});
+for (const value of [0, '0', 2, '2', '002', Number.MAX_SAFE_INTEGER, String(Number.MAX_SAFE_INTEGER)]) for (const evaluator of ['jev', 'ollama']) config(5, { AUTOROUTER_EVALUATOR: evaluator, CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value });
+// NaN/Infinity cannot be represented by JSON; the Rust library's typed numeric
+// contract is reviewed separately, never silently counted as this JSON corpus.
+for (const value of [-1, '-1', 1.5, '1.5', '2.0', '1e2', '1e-999', '-1e-999', '0x2', '+2', '', ' ', '2\n3', null, false, true, [], {}, 'Infinity', 'invalid', Number.MAX_SAFE_INTEGER + 1, '9007199254740992']) config(6, { CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: value });
+for (const env of [{}, { AUTOROUTER_EVALUATOR: 'jev' }, { AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_OLLAMA_MODEL: 'team/decision-model:v1' }]) config(7, env);
+for (const prefix of ['', 'library/', 'registry.ollama.ai/', 'registry.ollama.ai/library/']) for (const tag of ['tev1', 'tev1:latest', 'tev1:4b', 'tev1:4b-q4_K_M', 'tev1:4b-q8_0', 'tev1:4b-f16', 'tev1:0.8b', 'tev1:0.8b-q8_0', 'nimble', 'nimble:latest', 'nimble:9b', 'nimble:9b-q4_K_M', 'nimble:9b-q8_0', 'nimble:9b-f16']) config(8, { AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_OLLAMA_MODEL: prefix + tag });
+for (const model of ['team/nimble', 'team/tev1:4b', 'registry.ollama.ai/team/nimble:9b-q4_K_M', 'registry.example/library/nimble:9b', 'library/team/tev1:4b', 'tev1:40b', 'tev1:4b-experimental', 'nimble:small', 'nimble:9b-custom', 'nimble:9b-q4_K_M-extra', 'nimble-other:9b', 'custom:v1']) config(9, { AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_OLLAMA_MODEL: model });
+for (const model of ['tev1:0.8b', 'tev1:4b', 'nimble:9b-q4_K_M', 'team/nimble']) for (const timeout of [0, 1, 1500, 18000, 30000]) config(10, { AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_OLLAMA_MODEL: model, AUTOROUTER_OLLAMA_TIMEOUT_MS: String(timeout) });
+for (const value of ['-1', '30001', '1.5', '1e-999', '-1e-999', 'Infinity', 'unknown', '', ' ', null, false, true, [], {}]) config(10, { AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_OLLAMA_TIMEOUT_MS: value });
+for (const env of [{ AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_AUTH_MODE: 'subscription' }, { AUTOROUTER_AUTH_MODE: 'subscription' }, { AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_AUTH_MODE: 'subscription' }, { AUTOROUTER_EVALUATOR: 'ollama' }, { AUTOROUTER_EVALUATOR: 'ollama', ANTHROPIC_API_KEY: 'test-api' }]) config(11, env, { require_keys: true });
+for (const env of [{ AUTOROUTER_EVALUATOR: 'auto' }, { AUTOROUTER_OLLAMA_URL: 'https://example.com' }, { AUTOROUTER_OLLAMA_URL: 'http://127.0.0.1:11434/redirect' }, { AUTOROUTER_OLLAMA_MODEL: 'model:cloud' }, { AUTOROUTER_OLLAMA_TIMEOUT_MS: '-1' }, { AUTOROUTER_OLLAMA_KEEP_ALIVE: '-1' }]) config(12, { AUTOROUTER_EVALUATOR: 'ollama', ...env });
+for (const env of [{ AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_OLLAMA_URL: 'https://private-sentinel:secret@example.test', AUTOROUTER_OLLAMA_TIMEOUT_MS: '' }, { AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_JEV_URL: 'private-invalid-url', AUTOROUTER_MIN_CONFIDENCE: '' }]) for (const validate_all of [false, true]) config(13, env, { validate_all });
+for (const key of ['AUTOROUTER_PORT', 'AUTOROUTER_JEV_TIMEOUT_MS', 'AUTOROUTER_TOKEN_COUNT_TIMEOUT_MS', 'AUTOROUTER_MIN_CONFIDENCE']) for (const value of ['', ' ', null, false, '0x10', '1e2']) config(14, { AUTOROUTER_EVALUATOR: 'jev', [key]: value });
+for (const env of [{ AUTOROUTER_PORT: '0' }, { AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_MIN_CONFIDENCE: '0' }, { AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_MIN_CONFIDENCE: '.5' }]) config(14, env);
+for (const key of ['AUTOROUTER_STATUSLINE', 'AUTOROUTER_DEBUG']) for (const value of ['', 'false', 'true', '2', false, '0', '1']) config(15, { [key]: value });
+for (const key of ['AUTOROUTER_HAIKU_MODEL', 'AUTOROUTER_SONNET_MODEL', 'AUTOROUTER_OPUS_MODEL', 'AUTOROUTER_JEV_MODEL']) for (const value of ['', ' ', 'private\nsentinel', null, 'custom/team-model:v1']) config(15, { AUTOROUTER_EVALUATOR: 'jev', [key]: value });
+config(15, { ENABLE_TOOL_SEARCH: 'auto:5' });
+const auth = (assertion, op, input) => emit('auth', assertion, op, input);
+const envCase = (assertion, config, parent = {}) => auth(assertion, 'build_claude_env', { config: { ...config, AUTOROUTER_TOKEN: 'test-local-token-123456789' }, parent });
+for (const key of ['CLAUDE_CODE_USE_BEDROCK', 'CLAUDE_CODE_USE_VERTEX', 'CLAUDE_CODE_USE_FOUNDRY', 'CLAUDE_CODE_USE_MANTLE', 'CLAUDE_CODE_USE_ANTHROPIC_AWS']) for (const enabled of ['1', 'true', 'TRUE', '0', 'false', '', undefined]) auth(1, 'conflicting_providers', enabled === undefined ? {} : { [key]: enabled });
+for (const env of [{ AUTOROUTER_AUTH_MODE: 'subscription', TYPESAFE_API_KEY: 'test-jev', ANTHROPIC_API_KEY: 'ignored' }, { AUTOROUTER_AUTH_MODE: 'subscription' }, { TYPESAFE_API_KEY: 'test-jev' }, { TYPESAFE_API_KEY: 'test-jev', ANTHROPIC_API_KEY: 'test-api' }, { AUTOROUTER_AUTH_MODE: 'automatic' }]) auth(2, 'read_config', { env: { AUTOROUTER_EVALUATOR: 'jev', ...env }, require_keys: true });
+for (const upstream of ['https://example.com', 'https://api.anthropic.com.example.com', 'https://api.anthropic.com/other', 'http://127.0.0.1:1234']) auth(3, 'read_config', { env: { AUTOROUTER_AUTH_MODE: 'subscription', AUTOROUTER_UPSTREAM_URL: upstream } });
+envCase(4, { AUTOROUTER_AUTH_MODE: 'subscription' }, { ANTHROPIC_API_KEY: 'old-api-key', ANTHROPIC_AUTH_TOKEN: 'old-bearer', CLAUDE_CODE_OAUTH_TOKEN: 'old-setup-token', TYPESAFE_API_KEY: 'jev-secret', AUTOROUTER_TOKEN: 'old-router-token', ANTHROPIC_CUSTOM_HEADERS: 'X-Team: coding\r\nAuthorization: Bearer stale\r\nx-API-key: stale\r\nX-Autorouter-Token: stale', CLAUDE_CONFIG_DIR: '/custom/claude', PATH: '/usr/bin' });
+envCase(5, {}, { ANTHROPIC_API_KEY: 'upstream-secret', TYPESAFE_API_KEY: 'jev-secret' });
+for (const profile of ['compatible', 'native']) envCase(6, { AUTOROUTER_CLIENT_PROFILE: profile }, { ANTHROPIC_MODEL: 'claude-opus-5-5', MAX_THINKING_TOKENS: '10000' });
+auth(6, 'read_config', { env: { AUTOROUTER_CLIENT_PROFILE: 'unknown' } });
+for (const profile of profiles) for (const args of [[], ['--permission-mode', 'auto'], ['--permission-mode=auto'], ['--permission-mode', 'auto', '--permission-mode=plan'], ['--permission-mode=manual', '--permission-mode', 'auto'], ['--', '--permission-mode', 'auto'], ['--permission-mode', 'auto', '--', '--permission-mode=manual'], ['--settings', '{"permissions":{"defaultMode":"auto"}}'], ['--permission-mode', 'Auto']]) auth(7, 'client_profile', { profile, args });
+for (const mode of ['subscription', 'api-key']) for (const parent of [{}, { ANTHROPIC_MODEL: 'claude-opus-5-5', MAX_THINKING_TOKENS: '10000', CLAUDE_CODE_AUTO_MODE_SERVER: '0', CLAUDE_CONFIG_DIR: '/synthetic/managed-claude' }]) envCase(8, { AUTOROUTER_AUTH_MODE: mode, AUTOROUTER_CLIENT_PROFILE: 'auto' }, parent);
+for (const profile of profiles) for (const value of [undefined, 'true', 'false', 'auto', 'auto:5', '']) envCase(9, { AUTOROUTER_CLIENT_PROFILE: profile }, value === undefined ? {} : { ENABLE_TOOL_SEARCH: value });
+for (const mode of ['subscription', 'api-key']) for (const profile of profiles) for (const cap of [undefined, 0, 2]) for (const explicit of [undefined, '0', '7']) envCase(10, { AUTOROUTER_AUTH_MODE: mode, AUTOROUTER_CLIENT_PROFILE: profile, ...(cap === undefined ? {} : { CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: cap }) }, { CLAUDE_CODE_GOAL_CHECKIN_MINUTES: '0', CLAUDE_CONFIG_DIR: '/test/claude', UNRELATED_SETTING: 'keep', ANTHROPIC_CUSTOM_HEADERS: 'X-Team: coding', ...(explicit === undefined ? {} : { CLAUDE_CODE_STOP_HOOK_BLOCK_CAP: explicit }) });
+const valid = { authorization: 'Bearer fake-login-token', 'anthropic-beta': 'some-beta, oauth-2025-04-20, future-beta' };
+for (const headers of [valid, {}, { authorization: valid.authorization }, { ...valid, 'x-api-key': 'api-key' }, { ...valid, authorization: 'Basic abc' }, { ...valid, authorization: 'Bearer ' }, { ...valid, 'anthropic-beta': 'not-oauth-2025-04-20' }]) auth(11, 'subscription_request', headers);
+const policy = { allowed_evaluators: ['ollama'], allowed_auth_modes: ['subscription'], session_log_mode: 'metadata', upstream_url: 'https://api.anthropic.com' };
+for (const input of [{ env: { AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_AUTH_MODE: 'subscription' }, policy }, { env: {}, policy }, { env: { AUTOROUTER_AUTH_MODE: 'subscription' }, policy: { allowed_evaluators: ['jev'] } }, { env: { AUTOROUTER_AUTH_MODE: 'subscription', AUTOROUTER_SESSION_LOG_MODE: 'prompts', AUTOROUTER_UPSTREAM_URL: 'https://evil.example', KEEP: '1' }, policy }, { env: { AUTOROUTER_EVALUATOR: 'jev' }, policy, allowlists: false }]) emit('policy', 4, 'apply_policy', input);
+const destination = process.argv[2] ?? resolve(import.meta.dirname, 'cases/config-auth.jsonl');
+writeFileSync(destination, cases.map(value => JSON.stringify(value)).join('\n') + '\n');
+console.log(`Wrote ${cases.length} config/auth/policy cases`);

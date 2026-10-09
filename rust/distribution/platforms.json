@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "status": "release_matrix_not_approved",
+  "reviewed_at": "2026-10-09",
+  "scope": "macOS and Linux including WSL; native Windows remains out of scope. Rust target availability is not AutoRouter qualification.",
+  "baseline": {"package": "claude-autorouter@0.5.2", "node": ">=22", "cpu_restriction": null, "note": "Four convenient native targets cannot establish parity with an unrestricted JavaScript package."},
+  "sources": [
+    "https://raw.githubusercontent.com/nodejs/node/v22.x/BUILDING.md",
+    "https://doc.rust-lang.org/rustc/platform-support.html",
+    "https://doc.rust-lang.org/rustc/platform-support/apple-darwin.html",
+    "https://docs.npmjs.com/cli/v11/configuring-npm/package-json/"
+  ],
+  "targets": [
+    {"target":"aarch64-apple-darwin","candidate":true,"rust_minimum":"macOS 11.0","node22_minimum":"macOS 11.0","qualification":"pending"},
+    {"target":"x86_64-apple-darwin","candidate":true,"rust_minimum":"macOS 10.12","node22_minimum":"macOS 11.0","qualification":"pending"},
+    {"target":"aarch64-unknown-linux-gnu","candidate":true,"rust_minimum":"kernel 4.1, glibc 2.17","node22_minimum":"kernel 4.18, glibc 2.28","qualification":"pending"},
+    {"target":"x86_64-unknown-linux-gnu","candidate":true,"rust_minimum":"kernel 3.2, glibc 2.17","node22_minimum":"kernel 4.18, glibc 2.28","qualification":"pending"},
+    {"target":"aarch64-unknown-linux-musl","candidate":true,"rust_minimum":"musl target uses 1.2.5; kernel/linked-artifact audit pending","qualification":"pending"},
+    {"target":"x86_64-unknown-linux-musl","candidate":true,"rust_minimum":"musl target uses 1.2.5; kernel/linked-artifact audit pending","qualification":"pending"},
+    {"target":"armv7-unknown-linux-gnueabihf","candidate":false,"baseline_relevance":"Node22 tier1 Linux armv7","qualification":"pending"},
+    {"target":"powerpc64le-unknown-linux-gnu","candidate":false,"baseline_relevance":"Node22 tier2 Linux power8+","qualification":"pending"},
+    {"target":"s390x-unknown-linux-gnu","candidate":false,"baseline_relevance":"Node22 tier2 Linux","qualification":"pending"},
+    {"target":"loongarch64-unknown-linux-gnu","candidate":false,"baseline_relevance":"Node22 experimental Linux","qualification":"pending"},
+    {"target":"riscv64gc-unknown-linux-gnu","candidate":false,"baseline_relevance":"audit alternative Node builds and Claude availability","qualification":"pending"}
+  ],
+  "unresolved_baseline_architectures": ["Linux x86", "Linux armv6", "other working Node22+ ports without a published Claude executable"],
+  "required_qualification": ["oldest supported OS and libc runtime", "actual binary dynamic dependencies and CPU requirements", "system/corporate/custom CA behavior", "Claude installed-executable availability", "terminal and signal lifecycle", "offline npm install with lifecycle scripts disabled", "WSL-specific terminal and networking", "full aggregate archive under compressed and expanded 32 MiB caps"],
+  "artifact_caps": {"compressed_bytes":33554432,"expanded_tar_bytes":33554432},
+  "rules": ["Use portable compiler CPU defaults, never target-cpu=native.","MACOSX_DEPLOYMENT_TARGET and Mach-O load commands must agree with the supported OS claim.","Rust's glibc baseline does not prove the linked executable's glibc floor; inspect versioned symbols and run it on the oldest image.","A static musl artifact needs ELF interpreter/DT_NEEDED checks plus TLS/DNS/lifecycle qualification.","No runtime downloader, install hook, or hidden Node fallback.","Unverified targets and minimum versions stay pending; local host success is not cross-platform evidence."]
+}

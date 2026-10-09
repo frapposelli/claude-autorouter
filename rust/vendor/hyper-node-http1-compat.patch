@@ -1,0 +1,1356 @@
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -67,6 +67,7 @@
+ from = "capi/include/hyper.h"
+ 
+ [features]
++node-http1-compat = ["http1", "server"]
+ capi = []
+ client = [
+     "dep:want",
+--- a/src/ext/mod.rs
++++ b/src/ext/mod.rs
+@@ -261,3 +261,35 @@
+         self.entry_order.iter()
+     }
+ }
++
++/// Opt-in Node native HTTP response parsing for AutoRouter's raw provider path.
++/// Other clients retain upstream Hyper behavior unless this request marker is set.
++#[cfg(all(feature = "node-http1-compat", feature = "client", feature = "http1"))]
++#[derive(Clone, Copy, Debug)]
++pub struct NodeHttpResponsePolicy;
++
++/// Callback immediately before a response head is encoded, after ordered service
++/// dispatch. This only identifies submission; it does not prove a successful flush.
++#[cfg(all(feature = "node-http1-compat", feature = "server", feature = "http1"))]
++#[derive(Clone)]
++pub struct NodeHttpResponseSubmission(std::sync::Arc<dyn Fn() + Send + Sync>);
++#[cfg(all(feature = "node-http1-compat", feature = "server", feature = "http1"))]
++impl NodeHttpResponseSubmission {
++    /// Construct a synchronous callback. It must never panic or block.
++    pub fn new(callback: impl Fn() + Send + Sync + 'static) -> Self {
++        Self(std::sync::Arc::new(callback))
++    }
++    pub(crate) fn call(&self) { (self.0)(); }
++}
++#[cfg(all(feature = "node-http1-compat", feature = "server", feature = "http1"))]
++impl std::fmt::Debug for NodeHttpResponseSubmission {
++    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
++        formatter.write_str("NodeHttpResponseSubmission")
++    }
++}
++
++/// Node's bundled fetch response parser: semantic header bound without status
++/// text accounting or the native HTTP API's 1000-field observation truncation.
++#[cfg(all(feature = "node-http1-compat", feature = "client", feature = "http1"))]
++#[derive(Clone, Copy, Debug)]
++pub struct NodeFetchResponsePolicy;
+--- a/src/proto/h1/conn.rs
++++ b/src/proto/h1/conn.rs
+@@ -51,6 +51,12 @@
+         Conn {
+             io: Buffered::new(io),
+             state: State {
++                #[cfg(feature = "node-http1-compat")]
++                node_requests: std::collections::VecDeque::new(),
++                #[cfg(feature = "node-http1-compat")]
++                node_read_keep_alive: true,
++                #[cfg(feature = "node-http1-compat")]
++                node_write_active: false,
+                 allow_half_close: false,
+                 cached_headers: None,
+                 error: None,
+@@ -220,6 +226,16 @@
+         debug_assert!(self.can_read_head());
+         trace!("Conn::read_head");
+ 
++        #[cfg(all(feature = "node-http1-compat", feature = "server"))]
++        if T::is_server() && !self.state.h1_header_read_timeout_running && self.io.read_buf().is_empty() {
++            // Node starts header/request receipt deadlines on message bytes,
++            // not while an earlier pipelined response is still running.
++            match self.io.poll_read_from_io(cx) {
++                Poll::Pending => return Poll::Pending,
++                Poll::Ready(Err(error)) => return self.on_read_head_error(crate::Error::new_io(error)),
++                Poll::Ready(Ok(_)) => {}
++            }
++        }
+         #[cfg(feature = "server")]
+         if !self.state.h1_header_read_timeout_running {
+             if let Some(h1_header_read_timeout) = self.state.h1_header_read_timeout {
+@@ -239,10 +255,17 @@
+             }
+         }
+ 
++        #[cfg(feature = "node-http1-compat")]
++        let mut node_method = None;
+         let msg = match self.io.parse::<T>(
+             cx,
+             ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+                 cached_headers: &mut self.state.cached_headers,
++                #[cfg(feature = "node-http1-compat")]
++                req_method: if T::is_server() { &mut node_method } else { &mut self.state.method },
++                #[cfg(not(feature = "node-http1-compat"))]
+                 req_method: &mut self.state.method,
+                 h1_parser_config: self.state.h1_parser_config.clone(),
+                 h1_max_headers: self.state.h1_max_headers,
+@@ -297,8 +320,24 @@
+         }
+ 
+         self.state.busy();
+-        self.state.keep_alive &= msg.keep_alive;
+-        self.state.version = msg.head.version;
++        #[cfg(feature = "node-http1-compat")]
++        if T::is_server() {
++            self.state.node_read_keep_alive = msg.keep_alive && !msg.wants_upgrade;
++            self.state.node_requests.push_back(NodeRequest {
++                method: node_method,
++                version: msg.head.version,
++                keep_alive: msg.keep_alive,
++                trailers: headers::te_is_trailers(&msg.head.headers),
++            });
++        } else {
++            self.state.keep_alive &= msg.keep_alive;
++            self.state.version = msg.head.version;
++        }
++        #[cfg(not(feature = "node-http1-compat"))]
++        {
++            self.state.keep_alive &= msg.keep_alive;
++            self.state.version = msg.head.version;
++        }
+ 
+         let mut wants = if msg.wants_upgrade {
+             Wants::UPGRADE
+@@ -331,7 +370,17 @@
+             ));
+         }
+ 
+-        self.state.allow_trailer_fields = headers::te_is_trailers(&msg.head.headers);
++        #[cfg(feature = "node-http1-compat")]
++        if let Some(fetch) = if T::is_server() { Some(false) } else { self.io.node_response_policy() } {
++            if let Reading::Continue(decoder) | Reading::Body(decoder) = &mut self.state.reading {
++                decoder.node_compat(fetch);
++            }
++        }
++        #[cfg(not(feature = "node-http1-compat"))]
++        { self.state.allow_trailer_fields = headers::te_is_trailers(&msg.head.headers); }
++        #[cfg(feature = "node-http1-compat")]
++        if T::is_server() { self.try_keep_alive(cx); }
++        else { self.state.allow_trailer_fields = headers::te_is_trailers(&msg.head.headers); }
+ 
+         Poll::Ready(Some(Ok((msg.head, msg.decode, wants))))
+     }
+@@ -409,6 +458,10 @@
+                 }
+             }
+             Reading::Continue(decoder) => {
++                #[cfg(feature = "node-http1-compat")]
++                if T::is_server() && (!matches!(self.state.writing, Writing::Init) || self.state.node_requests.len() > 1) {
++                    return Poll::Pending;
++                }
+                 // Write the 100 Continue if not already responded...
+                 if let Writing::Init = self.state.writing {
+                     trace!("automatically sending 100 Continue");
+@@ -568,6 +621,14 @@
+     }
+ 
+     fn try_keep_alive(&mut self, cx: &mut Context<'_>) {
++        #[cfg(feature = "node-http1-compat")]
++        if T::is_server() {
++            if matches!(self.state.reading, Reading::KeepAlive) && self.state.node_read_keep_alive {
++                self.state.reading = Reading::Init;
++                self.state.notify_read = true;
++            }
++            return;
++        }
+         self.state.try_keep_alive::<T>();
+         self.maybe_notify(cx);
+     }
+@@ -600,6 +661,19 @@
+     }
+ 
+     pub(crate) fn write_head(&mut self, head: MessageHead<T::Outgoing>, body: Option<BodyLength>) {
++        #[cfg(feature = "node-http1-compat")]
++        if T::is_server() {
++            if let Some(request) = self.state.node_requests.pop_front() {
++                self.state.method = request.method;
++                self.state.version = request.version;
++                self.state.keep_alive = if request.keep_alive { KA::Busy } else { KA::Disabled };
++                self.state.allow_trailer_fields = request.trailers;
++            }
++            self.state.node_write_active = true;
++            // Multiple heads may have been parsed before this response. The
++            // previous response's empty map is only a disposable allocation cache.
++            self.state.cached_headers.take();
++        }
+         if let Some(encoder) = self.encode_head(head, body) {
+             self.state.writing = if !encoder.is_eof() {
+                 Writing::Body(encoder)
+@@ -631,6 +705,16 @@
+             }
+         }
+ 
++        #[cfg(all(feature = "node-http1-compat", feature = "client"))]
++        if T::is_client() {
++            let native = head.extensions.remove::<crate::ext::NodeHttpResponsePolicy>().is_some();
++            let fetch = head.extensions.remove::<crate::ext::NodeFetchResponsePolicy>().is_some();
++            self.io.set_node_response_policy(native || fetch, fetch && !native);
++        }
++        #[cfg(all(feature = "node-http1-compat", feature = "server"))]
++        if T::is_server() {
++            if let Some(callback) = head.extensions.remove::<crate::ext::NodeHttpResponseSubmission>() { callback.call(); }
++        }
+         self.enforce_version(&mut head);
+ 
+         let buf = self.io.headers_buf();
+@@ -854,6 +938,20 @@
+ 
+     pub(crate) fn poll_flush(&mut self, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
+         ready!(Pin::new(&mut self.io).poll_flush(cx))?;
++        #[cfg(feature = "node-http1-compat")]
++        if T::is_server() {
++            if matches!(self.state.writing, Writing::Closed) {
++                self.state.close();
++            } else if self.state.node_write_active && matches!(self.state.writing, Writing::KeepAlive) {
++                self.state.node_write_active = false;
++                self.state.writing = Writing::Init;
++                if self.state.node_requests.is_empty() && matches!(self.state.reading, Reading::Init) {
++                    self.state.keep_alive.idle();
++                }
++                self.state.notify_read = true;
++                cx.waker().wake_by_ref();
++            }
++        }
+         self.try_keep_alive(cx);
+         trace!("flushed({}): {:?}", T::LOG, self.state);
+         Poll::Ready(Ok(()))
+@@ -936,7 +1034,21 @@
+ // B and T are never pinned
+ impl<I: Unpin, B, T> Unpin for Conn<I, B, T> {}
+ 
++#[cfg(feature = "node-http1-compat")]
++struct NodeRequest {
++    method: Option<Method>,
++    version: Version,
++    keep_alive: bool,
++    trailers: bool,
++}
++
+ struct State {
++    #[cfg(feature = "node-http1-compat")]
++    node_requests: std::collections::VecDeque<NodeRequest>,
++    #[cfg(feature = "node-http1-compat")]
++    node_read_keep_alive: bool,
++    #[cfg(feature = "node-http1-compat")]
++    node_write_active: bool,
+     allow_half_close: bool,
+     /// Re-usable `HeaderMap` to reduce allocating new ones.
+     cached_headers: Option<HeaderMap>,
+--- a/src/proto/h1/decode.rs
++++ b/src/proto/h1/decode.rs
+@@ -46,6 +46,8 @@
+         trailers_cnt: usize,
+         h1_max_headers: Option<usize>,
+         h1_max_header_size: Option<usize>,
++        #[cfg(feature = "node-http1-compat")]
++        node: Option<super::node_compat::Chunked>,
+     },
+     /// A Reader used for responses that don't indicate a length or chunked.
+     ///
+@@ -105,6 +107,8 @@
+                 trailers_cnt: 0,
+                 h1_max_headers,
+                 h1_max_header_size,
++                #[cfg(feature = "node-http1-compat")]
++                node: None,
+             },
+         }
+     }
+@@ -124,6 +128,13 @@
+             DecodedLength::CHUNKED => Decoder::chunked(h1_max_headers, h1_max_header_size),
+             DecodedLength::CLOSE_DELIMITED => Decoder::eof(),
+             length => Decoder::length(length.danger_len()),
++        }
++    }
++
++    #[cfg(feature = "node-http1-compat")]
++    pub(crate) fn node_compat(&mut self, fetch: bool) {
++        if let Kind::Chunked { node, .. } = &mut self.kind {
++            *node = Some(super::node_compat::Chunked::new(fetch));
+         }
+     }
+ 
+@@ -176,11 +187,23 @@
+                 trailers_cnt,
+                 h1_max_headers,
+                 h1_max_header_size,
++                #[cfg(feature = "node-http1-compat")]
++                node,
+             } => {
+                 let h1_max_headers = h1_max_headers.unwrap_or(DEFAULT_MAX_HEADERS);
+                 let h1_max_header_size = h1_max_header_size.unwrap_or(TRAILER_LIMIT);
++                #[cfg(feature = "node-http1-compat")]
++                let (h1_max_headers, h1_max_header_size) = if node.is_some() { (super::node_compat::HEADER_BYTES, super::node_compat::HEADER_BYTES * 4 + 4) } else { (h1_max_headers, h1_max_header_size) };
+                 loop {
+                     let mut buf = None;
++                    #[cfg(feature = "node-http1-compat")]
++                    if let Some(node) = node.as_mut() {
++                        if *state == ChunkedState::Start { node.new_chunk(); }
++                        if *state == ChunkedState::Extension {
++                            *state = ready!(ChunkedState::read_node_extension(cx, body, node))?;
++                            continue;
++                        }
++                    }
+                     // advances the chunked state
+                     *state = ready!(state.step(
+                         cx,
+@@ -195,6 +218,10 @@
+                             max_headers_bytes: h1_max_header_size,
+                         }
+                     ))?;
++                    #[cfg(feature = "node-http1-compat")]
++                    if let (Some(node), Some(trailers)) = (node.as_mut(), trailers_buf.as_mut()) {
++                        node.trailers.observe(trailers).map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "chunk trailers bytes over limit"))?;
++                    }
+                     if *state == ChunkedState::End {
+                         trace!("end of chunked");
+ 
+@@ -423,6 +450,13 @@
+             ))),
+         }
+     }
++    #[cfg(feature = "node-http1-compat")]
++    fn read_node_extension<R: MemRead>(cx: &mut Context<'_>, rdr: &mut R, node: &mut super::node_compat::Chunked) -> Poll<Result<ChunkedState, io::Error>> {
++        let byte = byte!(rdr, cx);
++        node.extension(byte)?;
++        Poll::Ready(Ok(if byte == b'\r' { ChunkedState::SizeLf } else { ChunkedState::Extension }))
++    }
++
+     fn read_extension<R: MemRead>(
+         cx: &mut Context<'_>,
+         rdr: &mut R,
+--- a/src/proto/h1/dispatch.rs
++++ b/src/proto/h1/dispatch.rs
+@@ -40,13 +40,17 @@
+         -> crate::Result<()>;
+     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), ()>>;
+     fn should_poll(&self) -> bool;
++    fn poll_pending(&mut self, _cx: &mut Context<'_>) -> crate::Result<()> { Ok(()) }
+ }
+ 
+ cfg_server! {
+     use crate::service::HttpService;
+ 
+     pub(crate) struct Server<S: HttpService<B>, B> {
++        #[cfg(not(feature = "node-http1-compat"))]
+         in_flight: Pin<Box<Option<S::Future>>>,
++        #[cfg(feature = "node-http1-compat")]
++        in_flight: std::collections::VecDeque<(Pin<Box<S::Future>>, Option<Result<http::Response<S::ResBody>, S::Error>>)>,
+         pub(crate) service: S,
+     }
+ }
+@@ -171,6 +175,7 @@
+         // benchmarks often use. Perhaps it should be a config option instead.
+         for _ in 0..16 {
+             let _ = self.poll_read(cx)?;
++            self.dispatch.poll_pending(cx)?;
+             let write_ready = self.poll_write(cx)?.is_ready();
+             let flush_ready = self.poll_flush(cx)?.is_ready();
+ 
+@@ -250,6 +255,12 @@
+                                 let chunk = frame.into_data().unwrap_or_else(|_| unreachable!());
+                                 match body.try_send_data(chunk) {
+                                     Ok(()) => {
++                                        #[cfg(feature = "node-http1-compat")]
++                                        if T::is_server() && !self.conn.can_read_body() {
++                                            // The next pipelined head may now be readable.
++                                            // Close this channel before advancing to it.
++                                            continue;
++                                        }
+                                         self.body_tx.set(body);
+                                     }
+                                     Err(_canceled) => {
+@@ -264,6 +275,12 @@
+                                     frame.into_trailers().unwrap_or_else(|_| unreachable!());
+                                 match body.try_send_trailers(trailers) {
+                                     Ok(()) => {
++                                        #[cfg(feature = "node-http1-compat")]
++                                        if T::is_server() && !self.conn.can_read_body() {
++                                            // The next pipelined head may now be readable.
++                                            // Close this channel before advancing to it.
++                                            continue;
++                                        }
+                                         self.body_tx.set(body);
+                                     }
+                                     Err(_canceled) => {
+@@ -570,7 +587,10 @@
+     {
+         pub(crate) fn new(service: S) -> Server<S, B> {
+             Server {
++                #[cfg(not(feature = "node-http1-compat"))]
+                 in_flight: Box::pin(None),
++                #[cfg(feature = "node-http1-compat")]
++                in_flight: std::collections::VecDeque::new(),
+                 service,
+             }
+         }
+@@ -598,6 +618,19 @@
+             mut self: Pin<&mut Self>,
+             cx: &mut Context<'_>,
+         ) -> Poll<Option<Result<(Self::PollItem, Self::PollBody), Self::PollError>>> {
++            #[cfg(feature = "node-http1-compat")]
++            {
++                let _ = cx;
++                let this = self.as_mut().get_mut();
++                let front = this.in_flight.front_mut().expect("pending response");
++                let Some(result) = front.1.take() else { return Poll::Pending; };
++                this.in_flight.pop_front();
++                let response = result?;
++                let (parts, body) = response.into_parts();
++                return Poll::Ready(Some(Ok((MessageHead { version: parts.version, subject: parts.status, headers: parts.headers, extensions: parts.extensions }, body))));
++            }
++            #[cfg(not(feature = "node-http1-compat"))]
++            {
+             let mut this = self.as_mut();
+             let ret = if let Some(fut) = &mut this.in_flight.as_mut().as_pin_mut() {
+                 let resp = ready!(fut.as_mut().poll(cx)?);
+@@ -616,6 +649,7 @@
+             // Since in_flight finished, remove it
+             this.in_flight.set(None);
+             ret
++            }
+         }
+ 
+         fn recv_msg(&mut self, msg: crate::Result<(Self::RecvItem, IncomingBody)>) -> crate::Result<()> {
+@@ -627,20 +661,40 @@
+             *req.version_mut() = msg.version;
+             *req.extensions_mut() = msg.extensions;
+             let fut = self.service.call(req);
++            #[cfg(not(feature = "node-http1-compat"))]
+             self.in_flight.set(Some(fut));
++            #[cfg(feature = "node-http1-compat")]
++            self.in_flight.push_back((Box::pin(fut), None));
+             Ok(())
+         }
+ 
+         fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), ()>> {
+-            if self.in_flight.is_some() {
+-                Poll::Pending
+-            } else {
+-                Poll::Ready(Ok(()))
+-            }
++            #[cfg(feature = "node-http1-compat")]
++            let full = self.in_flight.len() >= 15;
++            #[cfg(not(feature = "node-http1-compat"))]
++            let full = self.in_flight.is_some();
++            if full { Poll::Pending } else { Poll::Ready(Ok(())) }
+         }
+ 
+         fn should_poll(&self) -> bool {
+-            self.in_flight.is_some()
++            #[cfg(feature = "node-http1-compat")]
++            { !self.in_flight.is_empty() }
++            #[cfg(not(feature = "node-http1-compat"))]
++            { self.in_flight.is_some() }
++        }
++
++        #[cfg(feature = "node-http1-compat")]
++        fn poll_pending(&mut self, cx: &mut Context<'_>) -> crate::Result<()> {
++            for (future, result) in &mut self.in_flight {
++                if result.is_none() {
++                    match future.as_mut().poll(cx) {
++                        Poll::Ready(Ok(value)) => { *result = Some(Ok(value)); }
++                        Poll::Ready(Err(error)) => return Err(crate::Error::new_user_service(error)),
++                        Poll::Pending => {}
++                    }
++                }
++            }
++            Ok(())
+         }
+     }
+ }
+--- a/src/proto/h1/io.rs
++++ b/src/proto/h1/io.rs
+@@ -33,6 +33,10 @@
+     flush_pipeline: bool,
+     io: T,
+     partial_len: Option<usize>,
++    #[cfg(feature = "node-http1-compat")]
++    node_headers: super::node_compat::Counter,
++    #[cfg(feature = "node-http1-compat")]
++    node_response_policy: bool,
+     read_blocked: bool,
+     read_buf: BytesMut,
+     read_buf_strategy: ReadStrategy,
+@@ -67,6 +71,10 @@
+             flush_pipeline: false,
+             io,
+             partial_len: None,
++            #[cfg(feature = "node-http1-compat")]
++            node_headers: super::node_compat::Counter::default(),
++            #[cfg(feature = "node-http1-compat")]
++            node_response_policy: false,
+             read_blocked: false,
+             read_buf: BytesMut::with_capacity(0),
+             read_buf_strategy: ReadStrategy::default(),
+@@ -81,6 +89,17 @@
+         if enabled {
+             self.set_write_strategy_flatten();
+         }
++    }
++
++    #[cfg(feature = "node-http1-compat")]
++    pub(crate) fn node_response_policy(&self) -> Option<bool> {
++        self.node_response_policy.then(|| !self.node_headers.is_native_response())
++    }
++
++    #[cfg(feature = "node-http1-compat")]
++    pub(crate) fn set_node_response_policy(&mut self, enabled: bool, fetch: bool) {
++        self.node_response_policy = enabled;
++        self.node_headers = if fetch { super::node_compat::Counter::fetch_response() } else { super::node_compat::Counter::response() };
+     }
+ 
+     pub(crate) fn set_max_buf_size(&mut self, max: usize) {
+@@ -180,10 +199,14 @@
+         S: Http1Transaction,
+     {
+         loop {
++            #[cfg(feature = "node-http1-compat")]
++            if S::is_server() || self.node_response_policy { self.node_headers.observe(&mut self.read_buf)?; }
+             if let Some(msg) = super::role::parse_headers::<S>(
+                 &mut self.read_buf,
+                 self.partial_len,
+                 ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: if self.node_response_policy { Some(&mut self.node_headers) } else { None },
+                     cached_headers: parse_ctx.cached_headers,
+                     req_method: parse_ctx.req_method,
+                     h1_parser_config: parse_ctx.h1_parser_config.clone(),
+@@ -199,6 +222,8 @@
+             )? {
+                 debug!("parsed {} headers", msg.head.headers.len());
+                 self.partial_len = None;
++                #[cfg(feature = "node-http1-compat")]
++                if S::is_server() { self.node_headers = super::node_compat::Counter::default(); }
+                 return Poll::Ready(Ok(msg));
+             } else {
+                 let curr_len = self.read_buf.len();
+@@ -700,6 +725,8 @@
+         // Rather, this `poll_fn` will wrap the `Poll` result.
+         futures_util::future::poll_fn(|cx| {
+             let parse_ctx = ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+                 cached_headers: &mut None,
+                 req_method: &mut None,
+                 h1_parser_config: Default::default(),
+--- a/src/proto/h1/mod.rs
++++ b/src/proto/h1/mod.rs
+@@ -18,6 +18,8 @@
+ mod encode;
+ mod io;
+ mod role;
++#[cfg(feature = "node-http1-compat")]
++mod node_compat;
+ 
+ cfg_client! {
+     pub(crate) type ClientTransaction = role::Client;
+@@ -69,6 +71,8 @@
+ }
+ 
+ pub(crate) struct ParseContext<'ctx> {
++    #[cfg(feature = "node-http1-compat")]
++    node_response_headers: Option<&'ctx mut node_compat::Counter>,
+     cached_headers: &'ctx mut Option<HeaderMap>,
+     req_method: &'ctx mut Option<Method>,
+     h1_parser_config: ParserConfig,
+--- /dev/null
++++ b/src/proto/h1/node_compat.rs
+@@ -0,0 +1,390 @@
++//! AutoRouter's opt-in Node 22/24 server header policy. This is not a second
++//! HTTP decoder: httparse still validates grammar and Hyper still frames bodies.
++//! The incremental counter mirrors Node's on_url/on_header_field/on_header_value
++//! byte accounting; raw fields are bounded before normalization or truncation.
++use crate::error::Parse;
++use bytes::BytesMut;
++
++pub(super) const HEADER_BYTES: usize = 16 * 1024;
++pub(super) const RETAINED_FIELDS: usize = 1000;
++const METHODS: &[&str] = &[
++    "ACL",
++    "BIND",
++    "CHECKOUT",
++    "CONNECT",
++    "COPY",
++    "DELETE",
++    "GET",
++    "HEAD",
++    "LINK",
++    "LOCK",
++    "M-SEARCH",
++    "MERGE",
++    "MKACTIVITY",
++    "MKCALENDAR",
++    "MKCOL",
++    "MOVE",
++    "NOTIFY",
++    "OPTIONS",
++    "PATCH",
++    "POST",
++    "PROPFIND",
++    "PROPPATCH",
++    "PURGE",
++    "PUT",
++    "QUERY",
++    "REBIND",
++    "REPORT",
++    "SEARCH",
++    "SOURCE",
++    "SUBSCRIBE",
++    "TRACE",
++    "UNBIND",
++    "UNLINK",
++    "UNLOCK",
++    "UNSUBSCRIBE",
++];
++
++#[derive(Default, Debug, Clone, PartialEq)]
++pub(super) struct Counter {
++    offset: usize,
++    bytes: usize,
++    fields: usize,
++    state: State,
++    method: [u8; 16],
++    method_len: usize,
++    fetch_response: bool,
++}
++#[derive(Default, Debug, Clone, PartialEq)]
++enum State {
++    #[default]
++    Method,
++    ResponseVersion,
++    ResponseCode,
++    ResponseReason,
++    TargetStart,
++    Target,
++    VersionStart,
++    Version,
++    RequestLf,
++    Name,
++    BeforeValue,
++    Value,
++    HeaderLf,
++    EndLf,
++    Done,
++}
++impl Counter {
++    pub(super) fn trailers() -> Self {
++        Self {
++            state: State::Name,
++            ..Self::default()
++        }
++    }
++    pub(super) fn response() -> Self {
++        Self {
++            state: State::ResponseVersion,
++            ..Self::default()
++        }
++    }
++
++    pub(super) fn fetch_response() -> Self {
++        Self {
++            fetch_response: true,
++            ..Self::response()
++        }
++    }
++    pub(super) fn is_native_response(&self) -> bool {
++        !self.fetch_response
++    }
++    pub(super) fn observe(&mut self, input: &mut BytesMut) -> Result<(), Parse> {
++        let mut read = self.offset;
++        let mut written = self.offset;
++        while read < input.len() {
++            if matches!(self.state, State::Done) {
++                break;
++            }
++            let byte = input[read];
++            read += 1;
++            // Node does not retain leading header OWS or repeated request-line
++            // delimiters. Discard them incrementally so arbitrarily long OWS
++            // cannot grow Hyper's buffered head beyond the semantic byte bound.
++            let discard = (matches!(self.state, State::BeforeValue)
++                && matches!(byte, b' ' | b'\t'))
++                || (matches!(self.state, State::TargetStart | State::VersionStart) && byte == b' ');
++            if !discard {
++                if written != read - 1 {
++                    input[written] = byte;
++                }
++                written += 1;
++            }
++            if byte == b'\n'
++                && !matches!(
++                    self.state,
++                    State::RequestLf | State::HeaderLf | State::EndLf | State::Method
++                )
++            {
++                return Err(Parse::Header(crate::error::Header::Token));
++            }
++            match self.state {
++                State::Method => {
++                    if self.method_len == 0 && matches!(byte, b'\r' | b'\n') {
++                        continue;
++                    }
++                    if byte == b' ' {
++                        if !METHODS
++                            .iter()
++                            .any(|method| method.as_bytes() == &self.method[..self.method_len])
++                        {
++                            return Err(Parse::Method);
++                        }
++                        self.state = State::TargetStart;
++                    } else if self.method_len < self.method.len() {
++                        self.method[self.method_len] = byte;
++                        self.method_len += 1;
++                        if !METHODS.iter().any(|method| {
++                            method
++                                .as_bytes()
++                                .starts_with(&self.method[..self.method_len])
++                        }) {
++                            return Err(Parse::Method);
++                        }
++                    } else {
++                        return Err(Parse::Method);
++                    }
++                }
++                State::ResponseVersion => {
++                    if byte == b' ' {
++                        self.state = State::ResponseCode;
++                    }
++                }
++                State::ResponseCode => {
++                    if byte == b' ' {
++                        self.state = State::ResponseReason;
++                    } else if byte == b'\r' {
++                        self.state = State::RequestLf;
++                    }
++                }
++                State::ResponseReason => {
++                    if byte == b'\r' {
++                        self.state = State::RequestLf;
++                    } else if !self.fetch_response {
++                        self.count(1)?;
++                    }
++                }
++                State::TargetStart => {
++                    if byte != b' ' {
++                        self.count(1)?;
++                        self.state = State::Target;
++                    }
++                }
++                State::Target => {
++                    if byte == b' ' {
++                        self.state = State::VersionStart;
++                    } else {
++                        self.count(1)?;
++                    }
++                }
++                State::VersionStart => {
++                    if byte != b' ' {
++                        self.state = State::Version;
++                    }
++                }
++                State::Version => {
++                    if byte == b'\r' {
++                        self.state = State::RequestLf;
++                    } else if byte == b'\n' {
++                        return Err(Parse::Header(crate::error::Header::Token));
++                    }
++                }
++                State::RequestLf => {
++                    self.state = State::Name;
++                }
++                State::Name => {
++                    if byte == b'\r' {
++                        self.state = State::EndLf;
++                    } else if byte == b':' {
++                        self.fields += 1;
++                        self.state = State::BeforeValue;
++                    } else {
++                        self.count(1)?;
++                    }
++                }
++                State::BeforeValue => {
++                    if byte == b'\r' {
++                        self.state = State::HeaderLf;
++                    } else if !matches!(byte, b' ' | b'\t') {
++                        self.count(1)?;
++                        self.state = State::Value;
++                    }
++                }
++                State::Value => {
++                    if byte == b'\r' {
++                        self.state = State::HeaderLf;
++                    } else {
++                        self.count(1)?;
++                    }
++                }
++                State::HeaderLf => {
++                    self.state = State::Name;
++                }
++                State::EndLf => {
++                    self.state = State::Done;
++                }
++                State::Done => unreachable!(),
++            }
++        }
++        self.offset = written;
++        if written != read {
++            let tail = input.len() - read;
++            input.copy_within(read.., written);
++            input.truncate(written + tail);
++        }
++        Ok(())
++    }
++    fn count(&mut self, count: usize) -> Result<(), Parse> {
++        self.bytes += count;
++        if self.bytes >= HEADER_BYTES {
++            Err(Parse::TooLarge)
++        } else {
++            Ok(())
++        }
++    }
++}
++
++// httparse needs storage for each raw line in order to validate all framing
++// fields even after Node's application-visible rawHeaders has reached 1000.
++// Ordinary requests keep Hyper's existing 100-entry stack fast path.
++pub(super) fn header_capacity(input: &[u8]) -> usize {
++    let mut lines = 0;
++    for line in input.split(|byte| *byte == b'\n') {
++        if matches!(line, b"\r" | b"") {
++            if lines > 0 {
++                break;
++            }
++        } else {
++            lines += 1;
++        }
++    }
++    lines.clamp(100, HEADER_BYTES)
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    #[test]
++    fn counter_is_incremental_and_does_not_count_framing_or_leading_whitespace() {
++        let input = b"POST /test HTTP/1.1\r\nx:\t  abc  \r\nz:\r\n\r\nBODY";
++        let mut counter = Counter::default();
++        let mut buffered = BytesMut::new();
++        for &byte in input {
++            buffered.extend_from_slice(&[byte]);
++            counter.observe(&mut buffered).unwrap();
++        }
++        assert!(buffered.ends_with(b"\r\n\r\nBODY"));
++        assert_eq!(counter.bytes, 5 + 1 + 5 + 1);
++        assert_eq!(counter.fields, 2);
++        assert_eq!(header_capacity(input), 100);
++    }
++    #[test]
++    fn partial_oversized_values_fail_before_header_terminator() {
++        let mut bytes = b"GET / HTTP/1.1\r\nx:".to_vec();
++        bytes.extend(std::iter::repeat_n(b'a', HEADER_BYTES - 2));
++        assert!(Counter::default()
++            .observe(&mut BytesMut::from(bytes.as_slice()))
++            .is_err());
++        bytes.pop();
++        assert!(Counter::default()
++            .observe(&mut BytesMut::from(bytes.as_slice()))
++            .is_ok());
++    }
++}
++
++/// llhttp's chunk-extension token/quoted-value grammar and Node native HTTP's
++/// per-chunk name/value byte accounting. Extension text is never retained.
++#[derive(Debug, Clone, PartialEq)]
++pub(super) struct Chunked {
++    pub(super) trailers: Counter,
++    fetch: bool,
++    extension_state: Extension,
++    extension_bytes: usize,
++}
++#[derive(Debug, Clone, Copy, PartialEq)]
++enum Extension {
++    NameStart,
++    Name,
++    ValueStart,
++    Value,
++    Quoted,
++    Escape,
++    AfterQuoted,
++}
++impl Chunked {
++    pub(super) fn new(fetch: bool) -> Self {
++        Self {
++            trailers: Counter::trailers(),
++            fetch,
++            extension_state: Extension::NameStart,
++            extension_bytes: 0,
++        }
++    }
++    pub(super) fn new_chunk(&mut self) {
++        self.extension_state = Extension::NameStart;
++        self.extension_bytes = 0;
++    }
++    pub(super) fn extension(&mut self, byte: u8) -> Result<(), std::io::Error> {
++        use Extension::*;
++        let token = byte.is_ascii_alphanumeric() || b"!#$%&'*+-.^_`|~".contains(&byte);
++        let mut count = false;
++        let state = match (self.extension_state, byte) {
++            (NameStart | Name, _) if token => {
++                count = true;
++                Name
++            }
++            (Name, b'=') => ValueStart,
++            (Name | Value | AfterQuoted | ValueStart, b';') => NameStart,
++            (Name | Value | AfterQuoted | ValueStart, b'\r') => NameStart,
++            (ValueStart, b'"') => {
++                count = true;
++                Quoted
++            }
++            (ValueStart | Value, _) if token => {
++                count = true;
++                Value
++            }
++            (Quoted, b'"') => {
++                count = true;
++                AfterQuoted
++            }
++            (Quoted, b'\\') => {
++                count = true;
++                Escape
++            }
++            (Quoted, b'\t' | b' ' | b'!' | b'#'..=b'[' | b']'..=b'~' | 0x80..=0xff) => {
++                count = true;
++                Quoted
++            }
++            (Escape, b'\t' | b' '..=b'~' | 0x80..=0xff) => {
++                count = true;
++                Quoted
++            }
++            _ => {
++                return Err(std::io::Error::new(
++                    std::io::ErrorKind::InvalidData,
++                    "invalid chunk extension",
++                ))
++            }
++        };
++        self.extension_state = state;
++        if count && !self.fetch {
++            self.extension_bytes += 1;
++            if self.extension_bytes > HEADER_BYTES {
++                return Err(std::io::Error::new(
++                    std::io::ErrorKind::InvalidData,
++                    "chunk extensions over limit",
++                ));
++            }
++        }
++        Ok(())
++    }
++}
+--- a/src/proto/h1/role.rs
++++ b/src/proto/h1/role.rs
+@@ -159,14 +159,21 @@
+         // but we *never* read any of it until after httparse has assigned
+         // values into it. By not zeroing out the stack memory, this saves
+         // a good ~5% on pipeline benchmarks.
++        #[cfg(feature = "node-http1-compat")]
++        let header_capacity = ctx.h1_max_headers.or_else(|| {
++            let count = super::node_compat::header_capacity(buf);
++            (count > DEFAULT_MAX_HEADERS).then_some(count)
++        });
++        #[cfg(not(feature = "node-http1-compat"))]
++        let header_capacity = ctx.h1_max_headers;
+         let mut headers_indices: SmallVec<[MaybeUninit<HeaderIndices>; DEFAULT_MAX_HEADERS]> =
+-            match ctx.h1_max_headers {
++            match header_capacity {
+                 Some(cap) => smallvec![MaybeUninit::uninit(); cap],
+                 None => smallvec_inline![MaybeUninit::uninit(); DEFAULT_MAX_HEADERS],
+             };
+         {
+             let mut headers: SmallVec<[MaybeUninit<httparse::Header<'_>>; DEFAULT_MAX_HEADERS]> =
+-                match ctx.h1_max_headers {
++                match header_capacity {
+                     Some(cap) => smallvec![MaybeUninit::uninit(); cap],
+                     None => smallvec_inline![MaybeUninit::uninit(); DEFAULT_MAX_HEADERS],
+                 };
+@@ -263,9 +270,12 @@
+         let mut headers = ctx.cached_headers.take().unwrap_or_default();
+         let mut saw_connection_close = false;
+ 
++        #[cfg(feature = "node-http1-compat")]
++        headers.reserve(headers_len.min(super::node_compat::RETAINED_FIELDS));
++        #[cfg(not(feature = "node-http1-compat"))]
+         headers.reserve(headers_len);
+ 
+-        for header in &headers_indices[..headers_len] {
++        for (_index, header) in headers_indices[..headers_len].iter().enumerate() {
+             // SAFETY: array is valid up to `headers_len`
+             let header = unsafe { header.assume_init_ref() };
+             let name = header_name!(&slice[header.name.0..header.name.1]);
+@@ -273,6 +283,8 @@
+ 
+             match name {
+                 header::TRANSFER_ENCODING => {
++                    #[cfg(feature = "node-http1-compat")]
++                    if is_cl { return Err(Parse::transfer_encoding_unexpected()); }
+                     // https://tools.ietf.org/html/rfc7230#section-3.3.3
+                     // If Transfer-Encoding header is present, and 'chunked' is
+                     // not the final encoding, and this is a Request, then it is
+@@ -293,6 +305,8 @@
+                     }
+                 }
+                 header::CONTENT_LENGTH => {
++                    #[cfg(feature = "node-http1-compat")]
++                    if is_cl || is_te { return Err(Parse::content_length_invalid()); }
+                     is_cl = true;
+                     if is_te {
+                         continue;
+@@ -338,6 +352,9 @@
+ 
+                 _ => (),
+             }
++
++            #[cfg(feature = "node-http1-compat")]
++            if _index >= super::node_compat::RETAINED_FIELDS { continue; }
+ 
+             if let Some(header_case_map) = &mut header_case_map {
+                 header_case_map.append(&name, slice.slice(header.name.0..header.name.1));
+@@ -1034,20 +1051,32 @@
+     #[cfg(feature = "tracing")]
+     const LOG: &'static str = "{role=client}";
+ 
+-    fn parse(buf: &mut BytesMut, ctx: ParseContext<'_>) -> ParseResult<StatusCode> {
++    fn parse(buf: &mut BytesMut, mut ctx: ParseContext<'_>) -> ParseResult<StatusCode> {
+         debug_assert!(!buf.is_empty(), "parse called with empty buf");
+ 
+         // Loop to skip information status code headers (100 Continue, etc).
+         loop {
++            #[cfg(feature = "node-http1-compat")]
++            let node_policy = ctx.node_response_headers.is_some();
++            #[cfg(feature = "node-http1-compat")]
++            let node_native = ctx.node_response_headers.as_ref().is_some_and(|counter| counter.is_native_response());
++            #[cfg(feature = "node-http1-compat")]
++            if let Some(counter) = ctx.node_response_headers.as_deref_mut() { counter.observe(buf)?; }
++            #[cfg(feature = "node-http1-compat")]
++            let node_capacity = node_policy.then(|| super::node_compat::header_capacity(buf));
++            #[cfg(feature = "node-http1-compat")]
++            let max_headers = node_capacity.or(ctx.h1_max_headers);
++            #[cfg(not(feature = "node-http1-compat"))]
++            let max_headers = ctx.h1_max_headers;
+             let mut headers_indices: SmallVec<[MaybeUninit<HeaderIndices>; DEFAULT_MAX_HEADERS]> =
+-                match ctx.h1_max_headers {
++                match max_headers {
+                     Some(cap) => smallvec![MaybeUninit::uninit(); cap],
+                     None => smallvec_inline![MaybeUninit::uninit(); DEFAULT_MAX_HEADERS],
+                 };
+             let (len, status, reason, version, headers_len) = {
+                 let mut headers: SmallVec<
+                     [MaybeUninit<httparse::Header<'_>>; DEFAULT_MAX_HEADERS],
+-                > = match ctx.h1_max_headers {
++                > = match max_headers {
+                     Some(cap) => smallvec![MaybeUninit::uninit(); cap],
+                     None => smallvec_inline![MaybeUninit::uninit(); DEFAULT_MAX_HEADERS],
+                 };
+@@ -1131,12 +1160,32 @@
+             };
+ 
+             headers.reserve(headers_len);
+-            for header in &headers_indices[..headers_len] {
++            #[cfg(feature = "node-http1-compat")]
++            let mut retained = HeaderMap::new();
++            #[cfg(feature = "node-http1-compat")]
++            let mut seen_length = false;
++            #[cfg(feature = "node-http1-compat")]
++            let mut seen_transfer = false;
++            for (_index, header) in headers_indices[..headers_len].iter().enumerate() {
+                 // SAFETY: array is valid up to `headers_len`
+                 let header = unsafe { header.assume_init_ref() };
+                 let name = header_name!(&slice[header.name.0..header.name.1]);
+                 let value = header_value!(slice.slice(header.value.0..header.value.1));
+ 
++                #[cfg(feature = "node-http1-compat")]
++                if node_policy {
++                    if name == header::CONTENT_LENGTH {
++                        if value.as_bytes().is_empty() || !value.as_bytes().iter().all(u8::is_ascii_digit) || value.to_str().ok().and_then(|value| value.parse::<u64>().ok()).is_none() { return Err(Parse::content_length_invalid()); }
++                        if seen_length || seen_transfer { return Err(Parse::content_length_invalid()); }
++                        seen_length = true;
++                    } else if name == header::TRANSFER_ENCODING {
++                        if seen_length { return Err(Parse::transfer_encoding_unexpected()); }
++                        seen_transfer = true;
++                    }
++                    if _index < super::node_compat::RETAINED_FIELDS {
++                        retained.append(name.clone(), value.clone());
++                    }
++                }
+                 if let header::CONNECTION = name {
+                     // A message may carry more than one `Connection` line. Once
+                     // any of them asks to close, a later `keep-alive` must not
+@@ -1180,13 +1229,19 @@
+                 extensions.insert(reason);
+             }
+ 
+-            let head = MessageHead {
++            let mut head = MessageHead {
+                 version,
+                 subject: status,
+                 headers,
+                 extensions,
+             };
++            #[cfg(feature = "node-http1-compat")]
++            if node_policy && !node_native && matches!(head.subject.as_u16(), 100 | 101) {
++                return Err(Parse::Status);
++            }
+             if let Some((decode, is_upgrade)) = Client::decoder(&head, ctx.req_method)? {
++                #[cfg(feature = "node-http1-compat")]
++                if node_native { head.headers = retained; }
+                 return Ok(Some(ParsedMessage {
+                     head,
+                     decode,
+@@ -1204,6 +1259,10 @@
+                 }
+             }
+ 
++            #[cfg(feature = "node-http1-compat")]
++            if let Some(counter) = ctx.node_response_headers.as_deref_mut() {
++                *counter = if node_native { super::node_compat::Counter::response() } else { super::node_compat::Counter::fetch_response() };
++            }
+             // Parsing a 1xx response could have consumed the buffer, check if
+             // it is empty now...
+             if buf.is_empty() {
+@@ -1709,6 +1768,8 @@
+         let msg = Server::parse(
+             &mut raw,
+             ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+                 cached_headers: &mut None,
+                 req_method: &mut method,
+                 h1_parser_config: Default::default(),
+@@ -1738,6 +1799,8 @@
+         let _ = pretty_env_logger::try_init();
+         let mut raw = BytesMut::from("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n");
+         let ctx = ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+             cached_headers: &mut None,
+             req_method: &mut Some(crate::Method::GET),
+             h1_parser_config: Default::default(),
+@@ -1763,6 +1826,8 @@
+     fn test_parse_request_errors() {
+         let mut raw = BytesMut::from("GET htt:p// HTTP/1.1\r\nHost: hyper.rs\r\n\r\n");
+         let ctx = ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+             cached_headers: &mut None,
+             req_method: &mut None,
+             h1_parser_config: Default::default(),
+@@ -1785,6 +1850,8 @@
+         let _ = pretty_env_logger::try_init();
+         let mut raw = BytesMut::from(H09_RESPONSE);
+         let ctx = ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+             cached_headers: &mut None,
+             req_method: &mut Some(crate::Method::GET),
+             h1_parser_config: Default::default(),
+@@ -1809,6 +1876,8 @@
+         let _ = pretty_env_logger::try_init();
+         let mut raw = BytesMut::from(H09_RESPONSE);
+         let ctx = ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+             cached_headers: &mut None,
+             req_method: &mut Some(crate::Method::GET),
+             h1_parser_config: Default::default(),
+@@ -1837,6 +1906,8 @@
+         let mut h1_parser_config = ParserConfig::default();
+         h1_parser_config.allow_spaces_after_header_name_in_responses(true);
+         let ctx = ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+             cached_headers: &mut None,
+             req_method: &mut Some(crate::Method::GET),
+             h1_parser_config,
+@@ -1862,6 +1933,8 @@
+         let _ = pretty_env_logger::try_init();
+         let mut raw = BytesMut::from(RESPONSE_WITH_WHITESPACE_BETWEEN_HEADER_NAME_AND_COLON);
+         let ctx = ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+             cached_headers: &mut None,
+             req_method: &mut Some(crate::Method::GET),
+             h1_parser_config: Default::default(),
+@@ -1891,6 +1964,8 @@
+         h1_parser_config.allow_multiple_spaces_in_request_line_delimiters(true);
+         let mut method = None;
+         let ctx = ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+             cached_headers: &mut None,
+             req_method: &mut method,
+             h1_parser_config,
+@@ -1919,6 +1994,8 @@
+         let _ = pretty_env_logger::try_init();
+         let mut raw = BytesMut::from(REQUEST_WITH_MULTIPLE_SPACES_IN_REQUEST_LINE);
+         let ctx = ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+             cached_headers: &mut None,
+             req_method: &mut None,
+             h1_parser_config: Default::default(),
+@@ -1940,6 +2017,8 @@
+         let mut raw =
+             BytesMut::from("GET / HTTP/1.1\r\nHost: hyper.rs\r\nX-BREAD: baguette\r\n\r\n");
+         let ctx = ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+             cached_headers: &mut None,
+             req_method: &mut None,
+             h1_parser_config: Default::default(),
+@@ -1980,6 +2059,8 @@
+             Server::parse(
+                 &mut bytes,
+                 ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+                     cached_headers: &mut None,
+                     req_method: &mut None,
+                     h1_parser_config: Default::default(),
+@@ -2002,6 +2083,8 @@
+             Server::parse(
+                 &mut bytes,
+                 ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+                     cached_headers: &mut None,
+                     req_method: &mut None,
+                     h1_parser_config: Default::default(),
+@@ -2243,6 +2326,8 @@
+             assert!(Client::parse(
+                 &mut bytes,
+                 ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+                     cached_headers: &mut None,
+                     req_method: &mut Some(Method::GET),
+                     h1_parser_config: Default::default(),
+@@ -2265,6 +2350,8 @@
+             Client::parse(
+                 &mut bytes,
+                 ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+                     cached_headers: &mut None,
+                     req_method: &mut Some(m),
+                     h1_parser_config: Default::default(),
+@@ -2287,6 +2374,8 @@
+             Client::parse(
+                 &mut bytes,
+                 ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+                     cached_headers: &mut None,
+                     req_method: &mut Some(Method::GET),
+                     h1_parser_config: Default::default(),
+@@ -2571,6 +2660,8 @@
+             Server::parse(
+                 &mut bytes,
+                 ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+                     cached_headers: &mut None,
+                     req_method: &mut None,
+                     h1_parser_config: Default::default(),
+@@ -2649,6 +2740,8 @@
+             Client::parse(
+                 &mut bytes,
+                 ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+                     cached_headers: &mut None,
+                     req_method: &mut Some(Method::GET),
+                     h1_parser_config: Default::default(),
+@@ -3130,6 +3223,8 @@
+         let parsed = Client::parse(
+             &mut bytes,
+             ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+                 cached_headers: &mut None,
+                 req_method: &mut Some(Method::GET),
+                 h1_parser_config: Default::default(),
+@@ -3175,6 +3270,8 @@
+                 let result = Server::parse(
+                     &mut bytes,
+                     ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+                         cached_headers: &mut None,
+                         req_method: &mut None,
+                         h1_parser_config: Default::default(),
+@@ -3200,6 +3297,8 @@
+                 let result = Client::parse(
+                     &mut bytes,
+                     ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+                         cached_headers: &mut None,
+                         req_method: &mut None,
+                         h1_parser_config: Default::default(),
+@@ -3294,6 +3393,8 @@
+             Server::parse(
+                 &mut bytes,
+                 ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+                     cached_headers: &mut None,
+                     req_method: &mut None,
+                     h1_parser_config: Default::default(),
+@@ -3330,6 +3431,8 @@
+             Client::parse(
+                 &mut bytes,
+                 ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+                     cached_headers: &mut None,
+                     req_method: &mut None,
+                     h1_parser_config: Default::default(),
+@@ -3393,6 +3496,8 @@
+         Server::parse(
+             &mut bytes,
+             ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+                 cached_headers: &mut None,
+                 req_method: &mut None,
+                 h1_parser_config: Default::default(),
+@@ -3477,6 +3582,8 @@
+             let mut msg = Server::parse(
+                 &mut raw,
+                 ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+                     cached_headers: &mut headers,
+                     req_method: &mut None,
+                     h1_parser_config: Default::default(),
+@@ -3523,6 +3630,8 @@
+             let mut msg = Server::parse(
+                 &mut raw,
+                 ParseContext {
++                    #[cfg(feature = "node-http1-compat")]
++                    node_response_headers: None,
+                     cached_headers: &mut headers,
+                     req_method: &mut None,
+                     h1_parser_config: Default::default(),

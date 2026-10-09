@@ -1,0 +1,23 @@
+AutoRouter — automatic model routing for Claude Code
+
+Usage: claude-autorouter <command> [options]
+
+  setup      Configure Jev or local Ollama; prompt for keys privately
+  doctor     Check configuration and local dependencies
+  config     Inspect or change saved settings without replacing them
+  sessions   Read optional local decision and outcome history
+  claude     Launch Claude Code with automatic routing
+  serve      Run the local gateway separately
+  --version  Print the AutoRouter version
+
+Start: claude-autorouter setup
+       claude-autorouter doctor
+       claude-autorouter claude --permission-mode auto
+
+Run claude-autorouter help <command> for options and examples.
+Local Ollama is the default evaluator and uses only the local /v1/systemone
+endpoint. Jev is optional; it receives bounded, redacted prompt excerpts. Complete requests go to Anthropic.
+Session logging is off unless AUTOROUTER_SESSION_LOG_DIR is configured.
+Environment variables override ~/.config/claude-autorouter/config.json.
+AUTOROUTER_CONFIG selects another file. Project .env files are not auto-loaded.
+Reference: docs/reference.md
