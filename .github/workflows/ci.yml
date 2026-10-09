@@ -60,6 +60,9 @@ jobs:
           package-manager-cache: false
       # rust-toolchain.toml pins this checkout without changing runner defaults.
       - run: rustup show active-toolchain
+      # License inventory covers the complete lockfile, including other targets.
+      - run: cargo fetch --locked
+      - run: cargo metadata --format-version 1 --locked --offline > /dev/null
       - run: node vendor/verify-hyper.mjs
       - run: node vendor/verify-node-ca.mjs
       - run: cargo fmt --check
@@ -85,5 +88,5 @@ jobs:
           path: |
             artifacts/rust-rewrite/parity*.json
             artifacts/rust-rewrite/parity-ci/*.json
-            artifacts/rust-rewrite/native-package-ci/*report.json
+            artifacts/rust-rewrite/native-package-ci/*
           if-no-files-found: ignore
