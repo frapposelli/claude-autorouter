@@ -1869,3 +1869,365 @@ fn cipher_id() {
     let cipher_id = cipher.protocol_id();
     assert_eq!(cipher_id, [0x13, 0x02]);
 }
+// AutoRouter B2 ownership tests. Synthetic loopback only; no trust-policy claim.
+// Run this filtered module in a fresh process with the pinned vendored backend.
+#[cfg(ossl300)]
+mod autorouter_bound_sessions {
+    use super::*;
+    use crate::ssl::{BoundSessionError, ContextBoundSession, SslRef};
+    use foreign_types::{ForeignType, ForeignTypeRef};
+    use std::sync::{Arc, Mutex};
+    use std::time::Instant;
+
+    type Captures = Arc<Mutex<Vec<Result<ContextBoundSession, BoundSessionError>>>>;
+
+    fn initialize() {
+        crate::init_without_config().unwrap();
+        assert_eq!(
+            crate::version::number(),
+            0x30600030,
+            "B2 requires pinned OpenSSL3.6.3"
+        );
+    }
+
+    struct CallbackLifetime(Arc<AtomicUsize>);
+    impl Drop for CallbackLifetime {
+        fn drop(&mut self) {
+            self.0.fetch_add(1, Ordering::SeqCst);
+        }
+    }
+
+    fn client_context(
+        version: SslVersion,
+        captures: &Captures,
+        dropped: Arc<AtomicUsize>,
+    ) -> SslContext {
+        initialize();
+        let mut builder = SslContextBuilder::new(SslMethod::tls_client()).unwrap();
+        builder.set_min_proto_version(Some(version)).unwrap();
+        builder.set_max_proto_version(Some(version)).unwrap();
+        // Certificate qualification belongs to runtime matrix tests, not these
+        // ownership tests using the upstream crate's public synthetic fixture.
+        builder.set_verify(SslVerifyMode::NONE);
+        builder
+            .set_session_cache_mode(SslSessionCacheMode::CLIENT | SslSessionCacheMode::NO_INTERNAL);
+        let weak = Arc::downgrade(captures);
+        let lifetime = CallbackLifetime(dropped);
+        builder.set_bound_new_session_callback(move |_, session| {
+            let _keep_lifetime_in_callback = &lifetime;
+            if let Some(captures) = weak.upgrade() {
+                // Snapshot creation already finished; no OpenSSL operation
+                // occurs while holding this application's cache mutex.
+                captures.lock().unwrap().push(session);
+            }
+        });
+        builder.build()
+    }
+
+    fn peer(
+        version: SslVersion,
+        attempts: usize,
+    ) -> (
+        SocketAddr,
+        thread::JoinHandle<Result<Vec<bool>, &'static str>>,
+    ) {
+        initialize();
+        let mut builder = SslContextBuilder::new(SslMethod::tls_server()).unwrap();
+        builder
+            .set_certificate(&X509::from_pem(CERT).unwrap())
+            .unwrap();
+        builder
+            .set_private_key(&PKey::private_key_from_pem(KEY).unwrap())
+            .unwrap();
+        builder.set_min_proto_version(Some(version)).unwrap();
+        builder.set_max_proto_version(Some(version)).unwrap();
+        builder
+            .set_session_id_context(b"synthetic-bound-session")
+            .unwrap();
+        builder
+            .set_session_cache_mode(SslSessionCacheMode::SERVER | SslSessionCacheMode::NO_INTERNAL);
+        let context = builder.build();
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+        listener.set_nonblocking(true).unwrap();
+        let worker = thread::spawn(move || {
+            let mut reused = Vec::new();
+            for _ in 0..attempts {
+                let deadline = Instant::now() + Duration::from_secs(3);
+                let socket = loop {
+                    match listener.accept() {
+                        Ok((socket, _)) => break socket,
+                        Err(error)
+                            if error.kind() == io::ErrorKind::WouldBlock
+                                && Instant::now() < deadline =>
+                        {
+                            thread::sleep(Duration::from_millis(5))
+                        }
+                        Err(_) => return Err("bounded synthetic accept failed"),
+                    }
+                };
+                // macOS inherits the listener's nonblocking flag on accept;
+                // this helper deliberately drives the blocking OpenSSL API.
+                socket
+                    .set_nonblocking(false)
+                    .map_err(|_| "blocking fixture socket")?;
+                socket
+                    .set_read_timeout(Some(Duration::from_secs(3)))
+                    .map_err(|_| "read deadline")?;
+                socket
+                    .set_write_timeout(Some(Duration::from_secs(3)))
+                    .map_err(|_| "write deadline")?;
+                let ssl = Ssl::new(&context).map_err(|_| "server allocation")?;
+                let mut stream = ssl.accept(socket).map_err(|_| "server handshake")?;
+                reused.push(stream.ssl().session_reused());
+                stream
+                    .write_all(&[1])
+                    .map_err(|_| "server application write")?;
+                let mut acknowledgement = [0];
+                stream
+                    .read_exact(&mut acknowledgement)
+                    .map_err(|_| "server acknowledgement")?;
+                if acknowledgement != [2] {
+                    return Err("wrong synthetic acknowledgement");
+                }
+                // Send close_notify without requiring an abrupt client to reply.
+                let _ = stream.shutdown();
+            }
+            Ok(reused)
+        });
+        (address, worker)
+    }
+
+    fn connect(mut ssl: Ssl, address: SocketAddr, clean: bool) -> bool {
+        let socket = TcpStream::connect_timeout(&address, Duration::from_secs(3)).unwrap();
+        socket
+            .set_read_timeout(Some(Duration::from_secs(3)))
+            .unwrap();
+        socket
+            .set_write_timeout(Some(Duration::from_secs(3)))
+            .unwrap();
+        ssl.set_connect_state();
+        let mut stream = ssl.connect(socket).unwrap();
+        let reused = stream.ssl().session_reused();
+        stream.read_exact(&mut [0]).unwrap(); // also processes TLS1.3 tickets
+        stream.write_all(&[2]).unwrap();
+        if clean {
+            let _ = stream.shutdown();
+            let _ = stream.shutdown();
+        }
+        // An unclean drop can mark the native session non-resumable. The saved
+        // DER must remain independent of that mutable native object.
+        drop(stream);
+        reused
+    }
+
+    fn captured_session(captures: &Captures) -> ContextBoundSession {
+        let captured = captures.lock().unwrap();
+        assert!(!captured.is_empty(), "missing actual new-session callback");
+        assert!(captured.iter().all(Result::is_ok));
+        captured.last().unwrap().as_ref().unwrap().clone()
+    }
+
+    #[test]
+    fn immutable_snapshots_resume_after_clean_and_unclean_close_tls12_tls13() {
+        for version in [SslVersion::TLS1_2, SslVersion::TLS1_3] {
+            for clean in [false, true] {
+                let captures = Arc::new(Mutex::new(Vec::new()));
+                let context = client_context(version, &captures, Arc::new(AtomicUsize::new(0)));
+                let (address, worker) = peer(version, 2);
+                assert!(!connect(Ssl::new(&context).unwrap(), address, clean));
+                let snapshot = captured_session(&captures);
+                assert!(snapshot.encoded_len() > 0);
+                let same_context = context.clone();
+                let mut ssl = Ssl::new(&same_context).unwrap();
+                ssl.set_bound_session(&snapshot.clone()).unwrap();
+                assert!(connect(ssl, address, true));
+                assert_eq!(worker.join().unwrap().unwrap(), [false, true]);
+            }
+        }
+    }
+
+    #[test]
+    fn foreign_original_and_current_contexts_reject_before_changing_session() {
+        let captures = Arc::new(Mutex::new(Vec::new()));
+        let context = client_context(SslVersion::TLS1_2, &captures, Arc::new(AtomicUsize::new(0)));
+        let (address, worker) = peer(SslVersion::TLS1_2, 1);
+        connect(Ssl::new(&context).unwrap(), address, true);
+        worker.join().unwrap().unwrap();
+        let snapshot = captured_session(&captures);
+        let foreign = SslContextBuilder::new(SslMethod::tls_client())
+            .unwrap()
+            .build();
+        let mut other = Ssl::new(&foreign).unwrap();
+        assert_eq!(
+            other.set_bound_session(&snapshot),
+            Err(BoundSessionError::ForeignContext)
+        );
+        assert!(other.session().is_none());
+        // Current context now matches the snapshot, but original context does
+        // not: a guard based only on ssl_context() would incorrectly accept.
+        other.set_ssl_context(&context).unwrap();
+        assert_eq!(
+            other.set_bound_session(&snapshot),
+            Err(BoundSessionError::ContextChanged)
+        );
+        assert!(other.session().is_none());
+        let mut original = Ssl::new(&context).unwrap();
+        original.set_bound_session(&snapshot).unwrap();
+        let installed = original.session().unwrap().to_der().unwrap();
+        original.set_ssl_context(&foreign).unwrap();
+        assert_eq!(
+            original.set_bound_session(&snapshot),
+            Err(BoundSessionError::ContextChanged)
+        );
+        assert_eq!(original.session().unwrap().to_der().unwrap(), installed);
+        // Restoring the original context is allowed; the API checks current
+        // identity and original ownership, not a historical context-swap bit.
+        original.set_ssl_context(&context).unwrap();
+        original.set_bound_session(&snapshot).unwrap();
+    }
+
+    #[test]
+    fn callback_refuses_snapshots_from_a_currently_swapped_context() {
+        let captures = Arc::new(Mutex::new(Vec::new()));
+        let original = client_context(SslVersion::TLS1_2, &captures, Arc::new(AtomicUsize::new(0)));
+        let mut builder = SslContextBuilder::new(SslMethod::tls_client()).unwrap();
+        builder
+            .set_max_proto_version(Some(SslVersion::TLS1_2))
+            .unwrap();
+        let changed = builder.build();
+        let (address, worker) = peer(SslVersion::TLS1_2, 1);
+        let mut ssl = Ssl::new(&original).unwrap();
+        ssl.set_ssl_context(&changed).unwrap();
+        connect(ssl, address, true);
+        worker.join().unwrap().unwrap();
+        let captured = captures.lock().unwrap();
+        assert!(!captured.is_empty());
+        assert!(captured
+            .iter()
+            .all(|result| matches!(result, Err(BoundSessionError::ContextChanged))));
+    }
+
+    #[test]
+    fn retained_snapshots_keep_original_context_alive_without_callback_cycle() {
+        let captures = Arc::new(Mutex::new(Vec::new()));
+        let dropped = Arc::new(AtomicUsize::new(0));
+        let context = client_context(SslVersion::TLS1_2, &captures, dropped.clone());
+        let (address, worker) = peer(SslVersion::TLS1_2, 1);
+        connect(Ssl::new(&context).unwrap(), address, true);
+        worker.join().unwrap().unwrap();
+        let snapshot = captured_session(&captures);
+        drop(context);
+        drop(captures);
+        assert_eq!(
+            dropped.load(Ordering::SeqCst),
+            0,
+            "snapshot must retain original context"
+        );
+        let clone = snapshot.clone();
+        drop(snapshot);
+        assert_eq!(dropped.load(Ordering::SeqCst), 0);
+        drop(clone);
+        assert_eq!(
+            dropped.load(Ordering::SeqCst),
+            1,
+            "weak cache capture must release context and callback"
+        );
+    }
+
+    #[test]
+    fn missing_original_slot_and_wrong_context_never_reach_der_installation() {
+        initialize();
+        // This test deliberately exercises existing unsafe raw interop inside
+        // the vendor unit module; runtime and public extension APIs stay safe.
+        let context = SslContextBuilder::new(SslMethod::tls_client())
+            .unwrap()
+            .build();
+        let wrong = SslContextBuilder::new(SslMethod::tls_client())
+            .unwrap()
+            .build();
+        let malformed = ContextBoundSession {
+            inner: Arc::new(super::super::ContextBoundSessionInner {
+                der: b"not a session".to_vec().into_boxed_slice(),
+                context: context.clone(),
+            }),
+        };
+        let mut foreign = Ssl::new(&wrong).unwrap();
+        assert_eq!(
+            foreign.set_bound_session(&malformed),
+            Err(BoundSessionError::ForeignContext)
+        );
+        let raw = unsafe { ffi::SSL_new(context.as_ptr()) };
+        assert!(!raw.is_null());
+        let mut missing = unsafe { Ssl::from_ptr(raw) };
+        assert_eq!(
+            missing.set_bound_session(&malformed),
+            Err(BoundSessionError::MissingOriginalContext)
+        );
+        assert!(missing.session().is_none());
+        let mut same = Ssl::new(&context).unwrap();
+        assert_eq!(
+            same.set_bound_session(&malformed),
+            Err(BoundSessionError::DecodeFailed)
+        );
+        assert!(same.session().is_none());
+    }
+
+    #[test]
+    fn concurrent_installations_decode_distinct_native_sessions() {
+        let captures = Arc::new(Mutex::new(Vec::new()));
+        let context = client_context(SslVersion::TLS1_2, &captures, Arc::new(AtomicUsize::new(0)));
+        let (address, worker) = peer(SslVersion::TLS1_2, 1);
+        connect(Ssl::new(&context).unwrap(), address, true);
+        worker.join().unwrap().unwrap();
+        let snapshot = captured_session(&captures);
+        let attempts: Vec<_> = (0..2)
+            .map(|_| {
+                let context = context.clone();
+                let snapshot = snapshot.clone();
+                thread::spawn(move || {
+                    let mut ssl = Ssl::new(&context).unwrap();
+                    ssl.set_bound_session(&snapshot).unwrap();
+                    ssl
+                })
+            })
+            .collect();
+        let mut connections: Vec<_> = attempts
+            .into_iter()
+            .map(|attempt| attempt.join().unwrap())
+            .collect();
+        assert_ne!(
+            connections[0].session().unwrap().as_ptr(),
+            connections[1].session().unwrap().as_ptr()
+        );
+        drop(connections.remove(0));
+        assert!(connections[0].session().unwrap().to_der().is_ok());
+    }
+
+    #[test]
+    fn store_clones_share_one_snapshot_and_outlive_original_owners() {
+        initialize();
+        let certificate = X509::from_pem(ROOT_CERT).unwrap();
+        let expected = certificate.to_der().unwrap();
+        let mut builder = X509StoreBuilder::new().unwrap();
+        builder.add_cert(certificate).unwrap();
+        let store = builder.build();
+        let shared = store.try_clone().unwrap();
+        assert_eq!(store.as_ptr(), shared.as_ptr());
+        let mut first = SslContextBuilder::new(SslMethod::tls_client()).unwrap();
+        first.set_cert_store(store.try_clone().unwrap());
+        let first = first.build();
+        let mut second = SslContextBuilder::new(SslMethod::tls_client()).unwrap();
+        second.set_cert_store(shared);
+        let second = second.build();
+        assert_eq!(first.cert_store().as_ptr(), second.cert_store().as_ptr());
+        drop(store);
+        drop(first);
+        let retained = second.cert_store().try_clone().unwrap();
+        drop(second);
+        let certificates = retained.all_certificates();
+        assert_eq!(certificates.len(), 1);
+        assert_eq!(certificates[0].to_der().unwrap(), expected);
+        drop(retained); // final owned up_ref is released exactly once
+    }
+}

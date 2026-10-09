@@ -1,5 +1,5 @@
 //! Explicit public-source transfer allowlist; never copies a checkout wholesale.
-use crate::package::archive::{Entry, decode_root, encode_root};
+use crate::package::archive::{Entry, SOURCE, decode_root, encode_root};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
@@ -15,6 +15,7 @@ const FIXED: &[&str] = &[
     "rust/rust-toolchain.toml",
     "rust/.cargo/config.toml",
     "rust/parity/local-benchmark-v1.json",
+    "rust/parity/local-benchmark-v2.json",
     "rust/parity/performance-gates.json",
     "rust/parity/benchmark-protocol.json",
     "rust/parity/baseline.json",
@@ -319,8 +320,8 @@ pub fn create(root: &Path, destination: &Path) -> Result<Value, String> {
         return Err("Refusing to overwrite an existing bundle or checksum".into());
     }
     let files = collect(root)?;
-    let bytes = encode_root(ROOT, &files)?;
-    let (verified, expanded) = decode_root(&bytes, ROOT)?;
+    let bytes = encode_root(ROOT, &files, SOURCE)?;
+    let (verified, expanded) = decode_root(&bytes, ROOT, SOURCE)?.into_parts();
     if verified.len() != files.len()
         || files.iter().any(|(path, file)| {
             verified
@@ -420,7 +421,7 @@ mod tests {
         let result = create(&root, &destination).unwrap();
         let bytes = fs::read(&destination).unwrap();
         assert_eq!(result["sha256"], sha(&bytes));
-        let (files, _) = decode_root(&bytes, ROOT).unwrap();
+        let (files, _) = decode_root(&bytes, ROOT, SOURCE).unwrap().into_parts();
         let manifest: Value = serde_json::from_slice(&files["source-manifest.json"].bytes).unwrap();
         for (path, hash) in manifest["files"].as_object().unwrap() {
             assert_eq!(hash, &json!(sha(&files[path].bytes)));

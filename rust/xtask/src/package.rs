@@ -302,7 +302,7 @@ fn assemble(
         {
             return Err("Native artifacts must be regular files, not symbolic links".into());
         }
-        let bytes = read_bounded(path, archive::MAX_ARCHIVE as u64)?;
+        let bytes = read_bounded(path, archive::MAX_FILE as u64)?;
         let inspection = binary::inspect(target, &bytes)?;
         let relative = format!("native/{target}/claude-autorouter");
         inspected.push(json!({"target":target,"path":relative,"sha256":sha(&bytes),"bytes":bytes.len(),"inspection":inspection}));
@@ -352,16 +352,7 @@ fn assemble(
             mode: 0o644,
         },
     );
-    let minimum_expanded: usize = files
-        .values()
-        .map(|entry| 512 + entry.bytes.len().div_ceil(512) * 512)
-        .sum::<usize>()
-        + 1024;
-    if minimum_expanded > archive::MAX_ARCHIVE {
-        return Err(format!(
-            "Native bundle needs at least {minimum_expanded} expanded bytes, exceeding the existing 32 MiB cap; no cap was changed"
-        ));
-    }
+    archive::expanded_size(&files, archive::NATIVE)?;
     for (path, entry) in &files {
         put(&stage.join(path), &entry.bytes, entry.mode)?;
     }
@@ -390,8 +381,9 @@ fn assemble(
         return Err("Unsafe npm archive filename".into());
     }
     let archive_path = destination.join(filename);
-    let bytes = read_bounded(&archive_path, archive::MAX_ARCHIVE as u64)?;
-    let (actual, _) = archive::decode(&bytes)?;
+    let bytes = read_bounded(&archive_path, archive::MAX_COMPRESSED as u64)?;
+    let decoded = archive::decode(&bytes, archive::NATIVE)?;
+    let actual = &decoded.files;
     if actual.len() != files.len()
         || files.iter().any(|(path, expected)| {
             actual.get(path).is_none_or(|actual| {
@@ -407,7 +399,8 @@ fn assemble(
         format!("{checksum}  {filename}\n").as_bytes(),
         0o644,
     )?;
-    let mut report = verify(&archive_path, Some(&checksum))?;
+    drop(files);
+    let mut report = verify_decoded(&bytes, &decoded)?;
     report["archive"] = json!(archive_path);
     if smoke_requested {
         report["smoke"] = smoke(&archive_path, root)?;
@@ -442,12 +435,22 @@ fn base64(bytes: &[u8]) -> String {
     text
 }
 pub(crate) fn verify(path: &Path, expected: Option<&str>) -> Result<Value, String> {
-    let bytes = read_bounded(path, archive::MAX_ARCHIVE as u64)?;
+    let bytes = read_bounded(path, archive::MAX_COMPRESSED as u64)?;
     let checksum = sha(&bytes);
     if expected.is_some_and(|value| value != checksum) {
         return Err("Archive SHA256 differs from expected immutable artifact".into());
     }
-    let (files, expanded) = archive::decode(&bytes)?;
+    let decoded = archive::decode(&bytes, archive::NATIVE)?;
+    verify_decoded(&bytes, &decoded)
+}
+pub(crate) fn verify_decoded(
+    bytes: &[u8],
+    decoded: &archive::DecodedArchive,
+) -> Result<Value, String> {
+    decoded.require_policy(archive::NATIVE)?;
+    let files = &decoded.files;
+    let expanded = decoded.expanded_bytes;
+    let checksum = sha(bytes);
     if files.keys().any(|p| !allowed(p)) {
         return Err("Native archive contains an unexpected file".into());
     }
@@ -552,7 +555,7 @@ pub(crate) fn verify(path: &Path, expected: Option<&str>) -> Result<Value, Strin
         return Err("Native archive has undeclared executable targets".into());
     }
     Ok(
-        json!({"schema_version":1,"kind":"native_npm_feasibility","verified":true,"release_approved":false,"sha256":checksum,"integrity":format!("sha512-{}",base64(&Sha512::digest(&bytes))),"compressed_bytes":bytes.len(),"expanded_tar_bytes":expanded,"files":files.len(),"artifacts":artifacts,"archive_caps_bytes":archive::MAX_ARCHIVE,"platform_qualification":"pending","full_supported_matrix":"pending","source_to_binary_provenance":"unverified","license_files_missing":build["license_files_missing"],"license_review":"pending"}),
+        json!({"schema_version":1,"kind":"native_npm_feasibility","verified":true,"release_approved":false,"sha256":checksum,"integrity":format!("sha512-{}",base64(&Sha512::digest(bytes))),"compressed_bytes":bytes.len(),"expanded_tar_bytes":expanded,"files":files.len(),"artifacts":artifacts,"archive_caps":{"compressed_bytes":archive::MAX_COMPRESSED,"expanded_tar_bytes":archive::MAX_NATIVE_EXPANDED,"file_bytes":archive::MAX_FILE,"entries":archive::NATIVE.entries},"platform_qualification":"pending","full_supported_matrix":"pending","source_to_binary_provenance":"unverified","license_files_missing":build["license_files_missing"],"license_review":"pending"}),
     )
 }
 struct Temporary(PathBuf);
@@ -768,7 +771,7 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
                     "Usage: cargo xtask package-inspect TARGET BINARY [--max-glibc VERSION]".into(),
                 );
             }
-            let bytes = read_bounded(&root.join(&args[2]), archive::MAX_ARCHIVE as u64)?;
+            let bytes = read_bounded(&root.join(&args[2]), archive::MAX_FILE as u64)?;
             let inspection = binary::inspect(&args[1], &bytes)?;
             if let Some(baseline) = args.get(4) {
                 binary::enforce_glibc_baseline(&inspection, baseline)?;

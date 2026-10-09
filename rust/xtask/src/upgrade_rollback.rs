@@ -32,11 +32,9 @@ fn same_json(left: &Value, right: &Value) -> bool {
     }
 }
 fn verify_native(path: &Path) -> Result<Value, String> {
-    if let Ok(report) = package::verify(path, None) {
-        return Ok(report);
-    }
-    let bytes = crate::release::regular(path, archive::MAX_ARCHIVE as u64)?;
-    let (files, _) = archive::decode(&bytes)?;
+    let bytes = crate::release::regular(path, archive::MAX_COMPRESSED as u64)?;
+    let decoded = archive::decode(&bytes, archive::NATIVE)?;
+    let files = &decoded.files;
     let manifest: Value = serde_json::from_slice(
         &files
             .get("package.json")
@@ -44,7 +42,10 @@ fn verify_native(path: &Path) -> Result<Value, String> {
             .bytes,
     )
     .map_err(|_| "Invalid native package manifest")?;
-    let build = crate::release::native_files(&files, &manifest)?;
+    if manifest["private"] == true {
+        return package::verify_decoded(&bytes, &decoded);
+    }
+    let build = crate::release::native_files(files, &manifest)?;
     Ok(
         json!({"verified":true,"kind":"native_npm_candidate","release_approved":false,"final_authorization":false,"sha256":hash(&bytes),"source":build["source"],"qualification":build["qualification"]}),
     )
@@ -164,8 +165,8 @@ fn baseline_archive(
         &[&output_dir],
     )?;
     let tarball = output_dir.join("claude-autorouter-0.5.2.tgz");
-    let bytes = crate::release::regular(&tarball, archive::MAX_ARCHIVE as u64)?;
-    let (files, _) = archive::decode(&bytes)?;
+    let bytes = crate::release::regular(&tarball, archive::MAX_COMPRESSED as u64)?;
+    let (files, _) = archive::decode(&bytes, archive::HISTORICAL)?.into_parts();
     crate::release::legacy_files(&files)?;
     if files.len() != expected.len()
         || files
@@ -180,9 +181,15 @@ fn baseline_archive(
     )?;
     Ok((tarball, commit.to_owned()))
 }
-fn install(tarball: &Path, prefix: &Path, cwd: &Path, env: &Environment) -> Result<(), String> {
-    let bytes = crate::release::regular(tarball, archive::MAX_ARCHIVE as u64)?;
-    let (files, _) = archive::decode(&bytes)?;
+fn install(
+    tarball: &Path,
+    prefix: &Path,
+    cwd: &Path,
+    env: &Environment,
+    policy: archive::ArchivePolicy,
+) -> Result<(), String> {
+    let bytes = crate::release::regular(tarball, archive::MAX_COMPRESSED as u64)?;
+    let (files, _) = archive::decode(&bytes, policy)?.into_parts();
     npm(
         env,
         cwd,
@@ -282,7 +289,7 @@ fn execute(root: &Path, native: &Path, output: &Path) -> Result<Value, String> {
         .map_err(|_| "Cannot create isolated npm environment")?;
     npm_env.insert("HOME".into(), scratch.0.clone().into_os_string());
     let (baseline, commit) = baseline_archive(root, &scratch.0, output, &npm_env)?;
-    let native_bytes = crate::release::regular(native, archive::MAX_ARCHIVE as u64)?;
+    let native_bytes = crate::release::regular(native, archive::MAX_COMPRESSED as u64)?;
     let candidate = output.join("candidate.tgz");
     write_private(&candidate, &native_bytes)?;
     let prefix = scratch.0.join("install prefix ' $ with spaces");
@@ -302,10 +309,16 @@ fn execute(root: &Path, native: &Path, output: &Path) -> Result<Value, String> {
     ] {
         env.insert(key.into(), value);
     }
-    install(&baseline, &prefix, &scratch.0, &npm_env)?;
+    install(
+        &baseline,
+        &prefix,
+        &scratch.0,
+        &npm_env,
+        archive::HISTORICAL,
+    )?;
     let original = inspect(&prefix, &scratch.0, &env)?;
     let config_before = fs::read(&config).map_err(|_| "Cannot inspect synthetic configuration")?;
-    install(&candidate, &prefix, &scratch.0, &npm_env)?;
+    install(&candidate, &prefix, &scratch.0, &npm_env, archive::NATIVE)?;
     let no_node = scratch.0.join("without-node");
     fs::create_dir(&no_node).map_err(|_| "Cannot isolate native PATH")?;
     let mut native_env = env.clone();
@@ -344,7 +357,13 @@ fn execute(root: &Path, native: &Path, output: &Path) -> Result<Value, String> {
     {
         return Err("Updated configuration is not private".into());
     }
-    install(&baseline, &prefix, &scratch.0, &npm_env)?;
+    install(
+        &baseline,
+        &prefix,
+        &scratch.0,
+        &npm_env,
+        archive::HISTORICAL,
+    )?;
     if !same_json(&inspect(&prefix, &scratch.0, &env)?, &edited) {
         return Err("Rollback cannot read native-edited settings and historical records".into());
     }
@@ -355,7 +374,7 @@ fn execute(root: &Path, native: &Path, output: &Path) -> Result<Value, String> {
         &["config", "set", "AUTOROUTER_PORT", "8009"],
     )?;
     let rollback_edit = inspect(&prefix, &scratch.0, &env)?;
-    install(&candidate, &prefix, &scratch.0, &npm_env)?;
+    install(&candidate, &prefix, &scratch.0, &npm_env, archive::NATIVE)?;
     if !same_json(&inspect(&prefix, &scratch.0, &native_env)?, &rollback_edit) {
         return Err("Re-upgrade cannot read rollback-edited settings".into());
     }
@@ -364,7 +383,7 @@ fn execute(root: &Path, native: &Path, output: &Path) -> Result<Value, String> {
     }
     let baseline_hash = hash(&crate::release::regular(
         &baseline,
-        archive::MAX_ARCHIVE as u64,
+        archive::MAX_COMPRESSED as u64,
     )?);
     let private_directory = scratch.0.clone();
     drop(scratch);

@@ -20,7 +20,9 @@ const MAX_EVIDENCE_TOTAL: usize = 512 * 1024 * 1024;
 mod authorization;
 #[path = "release_direct.rs"]
 mod direct;
+#[cfg(test)]
 pub use authorization::verify as verify_authorization;
+pub use authorization::verify_decoded as verify_authorization_decoded;
 
 fn json_bytes(value: &Value) -> Vec<u8> {
     let mut bytes = serde_json::to_vec_pretty(value).expect("serializable release metadata");
@@ -216,7 +218,7 @@ fn qualify(
         return Err("Production release requires native_release_inputs schema 1".into());
     }
     let platforms = descriptor(base, &inputs["platforms"], MAX_INPUT)?;
-    let licenses = descriptor(base, &inputs["licenses"], archive::MAX_ARCHIVE as u64)?;
+    let licenses = descriptor(base, &inputs["licenses"], archive::MAX_FILE as u64)?;
     if licenses.is_empty() || std::str::from_utf8(&licenses).is_err() {
         return Err("Reviewed license material must be nonempty UTF-8".into());
     }
@@ -296,11 +298,11 @@ fn qualify(
         if !targets.contains(target) || artifacts.contains_key(target) {
             return Err("Duplicate or undeclared native artifact".into());
         }
-        let binary = descriptor(base, &row["binary"], archive::MAX_ARCHIVE as u64)?;
+        let binary = descriptor(base, &row["binary"], archive::MAX_FILE as u64)?;
         artifact_bytes = artifact_bytes
             .checked_add(binary.len())
             .ok_or("Binary size overflow")?;
-        if artifact_bytes > archive::MAX_ARCHIVE {
+        if artifact_bytes > archive::MAX_NATIVE_EXPANDED {
             return Err("Aggregate native binaries exceed the expanded npm archive cap".into());
         }
         let provenance_bytes = descriptor(base, &row["provenance"], MAX_INPUT)?;
@@ -477,9 +479,10 @@ fn assemble(
     let build = json!({"schema_version":2,"kind":"native_npm_release","release_approved":false,"qualification_approved":true,"version":version,"source":source,"qualification":qualified.qualification,"approval":qualified.approval,"files":declarations(&files),"artifacts":artifacts});
     insert(&mut files, "build-manifest.json", json_bytes(&build), 0o644);
     release::native_files(&files, &manifest)?;
-    let npm = archive::encode_root("package", &files)?;
-    let (decoded, _) = archive::decode(&npm)?;
-    release::native_files(&decoded, &manifest)?;
+    let npm = archive::encode_root("package", &files, archive::NATIVE)?;
+    drop(files);
+    let (files, _) = archive::decode(&npm, archive::NATIVE)?.into_parts();
+    release::native_files(&files, &manifest)?;
     let npm_name = format!("{PACKAGE}-{version}.tgz");
     let mut output = BTreeMap::new();
     let npm_sha = digest(&npm);

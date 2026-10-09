@@ -67,7 +67,7 @@ async fn get<T: HttpTransport>(
         let maximum = if json_body {
             16 * 1024 * 1024
         } else {
-            crate::package::archive::MAX_ARCHIVE
+            crate::package::archive::MAX_COMPRESSED
         };
         if response
             .headers()

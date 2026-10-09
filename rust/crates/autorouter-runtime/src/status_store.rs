@@ -239,7 +239,12 @@ impl StatusStore {
         if self.inner.disabled.load(Ordering::SeqCst) {
             return;
         }
-        let target = self.inner.schedule();
+        let target = {
+            // Join the same acceptance boundary as update() and the worker's
+            // quiescence check. No filesystem operation runs under this lock.
+            let _state = self.inner.state.lock().unwrap_or_else(|e| e.into_inner());
+            self.inner.schedule()
+        };
         let mut completed = self.inner.completed.subscribe();
         let mut initialized = self.inner.initialized.subscribe();
         loop {
@@ -306,7 +311,6 @@ async fn run(
     if !published {
         inner.disable();
     }
-    inner.completed.send_replace(initial_epoch);
     inner.initialized.send_replace(true);
     let mut last = initial_epoch;
     let mut heartbeat = tokio::time::interval_at(
@@ -321,8 +325,17 @@ async fn run(
                 let _ = io.write(directory.clone(), bytes).await;
             }
             last = epoch;
-            inner.completed.send_replace(epoch);
             continue;
+        }
+        {
+            // A flush owns the whole active drain, including updates accepted
+            // during a write. Publish only once that drain is quiescent, and
+            // serialize publication with update()/flush()/close() acceptance.
+            let _state = inner.state.lock().unwrap_or_else(|e| e.into_inner());
+            if inner.generation.load(Ordering::SeqCst) != last {
+                continue;
+            }
+            inner.completed.send_replace(last);
         }
         if inner.closing.load(Ordering::SeqCst) {
             break;
@@ -383,11 +396,18 @@ mod tests {
     use super::*;
     use serde_json::json;
     use std::sync::atomic::AtomicUsize;
-    use tokio::sync::Semaphore;
+    use tokio::sync::{Notify, Semaphore};
     struct ControlledIo {
         gate: Semaphore,
         stall: AtomicBool,
         entered: AtomicUsize,
+        entered_notice: Notify,
+        written_notice: Notify,
+        active: AtomicUsize,
+        maximum: AtomicUsize,
+        removals: AtomicUsize,
+        fail_next: AtomicBool,
+        native: bool,
         writes: Mutex<Vec<Value>>,
         removed: AtomicBool,
         created: Mutex<Option<PathBuf>>,
@@ -398,6 +418,13 @@ mod tests {
                 gate: Semaphore::new(0),
                 stall: AtomicBool::new(false),
                 entered: AtomicUsize::new(0),
+                entered_notice: Notify::new(),
+                written_notice: Notify::new(),
+                active: AtomicUsize::new(0),
+                maximum: AtomicUsize::new(0),
+                removals: AtomicUsize::new(0),
+                fail_next: AtomicBool::new(false),
+                native: false,
                 writes: Mutex::new(Vec::new()),
                 removed: AtomicBool::new(false),
                 created: Mutex::new(None),
@@ -407,40 +434,245 @@ mod tests {
     impl StatusIo for ControlledIo {
         fn create(&self, parent: PathBuf) -> IoFuture<'_, PathBuf> {
             Box::pin(async move {
-                let path = parent.join("synthetic-status");
+                let path = if self.native {
+                    NativeStatusIo.create(parent).await?
+                } else {
+                    parent.join("synthetic-status")
+                };
                 *self.created.lock().unwrap() = Some(path.clone());
                 Ok(path)
             })
         }
-        fn write(&self, _directory: PathBuf, bytes: Vec<u8>) -> IoFuture<'_, ()> {
+        fn write(&self, directory: PathBuf, bytes: Vec<u8>) -> IoFuture<'_, ()> {
             Box::pin(async move {
                 self.entered.fetch_add(1, Ordering::SeqCst);
+                let active = self.active.fetch_add(1, Ordering::SeqCst) + 1;
+                self.maximum.fetch_max(active, Ordering::SeqCst);
+                self.entered_notice.notify_waiters();
                 if self.stall.load(Ordering::SeqCst) {
                     self.gate.acquire().await.unwrap().forget();
                 }
                 assert!(!self.removed.load(Ordering::SeqCst), "write after removal");
+                if self.fail_next.swap(false, Ordering::SeqCst) {
+                    self.active.fetch_sub(1, Ordering::SeqCst);
+                    return Err(io::Error::other("synthetic storage failure"));
+                }
+                if self.native {
+                    NativeStatusIo.write(directory, bytes.clone()).await?;
+                }
                 self.writes
                     .lock()
                     .unwrap()
                     .push(serde_json::from_slice(&bytes).unwrap());
+                self.active.fetch_sub(1, Ordering::SeqCst);
+                self.written_notice.notify_waiters();
                 Ok(())
             })
         }
-        fn remove(&self, _directory: PathBuf) -> IoFuture<'_, ()> {
+        fn remove(&self, directory: PathBuf) -> IoFuture<'_, ()> {
             Box::pin(async move {
+                assert_eq!(
+                    self.active.load(Ordering::SeqCst),
+                    0,
+                    "cleanup overlaps a write"
+                );
+                self.removals.fetch_add(1, Ordering::SeqCst);
+                if self.native {
+                    NativeStatusIo.remove(directory).await?;
+                }
                 self.removed.store(true, Ordering::SeqCst);
                 Ok(())
             })
         }
     }
     async fn entered(io: &ControlledIo, count: usize) {
-        for _ in 0..1000 {
-            if io.entered.load(Ordering::SeqCst) >= count {
-                return;
+        tokio::time::timeout(Duration::from_secs(5), async {
+            loop {
+                let notified = io.entered_notice.notified();
+                if io.entered.load(Ordering::SeqCst) >= count {
+                    return;
+                }
+                notified.await;
             }
-            tokio::task::yield_now().await;
+        })
+        .await
+        .expect("worker did not enter write");
+    }
+    async fn written(io: &ControlledIo, count: usize) {
+        tokio::time::timeout(Duration::from_secs(5), async {
+            loop {
+                let notified = io.written_notice.notified();
+                if io.writes.lock().unwrap().len() >= count {
+                    return;
+                }
+                notified.await;
+            }
+        })
+        .await
+        .expect("worker did not complete write");
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn flush_retains_shared_drain_until_updates_accepted_during_write_are_saved() {
+        use std::future::Future;
+        let io = Arc::new(ControlledIo::new());
+        let store = Arc::new(StatusStore::create(StatusOptions {
+            io: io.clone(),
+            ..StatusOptions::default()
+        }));
+        assert!(store.ready().await.is_some());
+        io.stall.store(true, Ordering::SeqCst);
+        store.update(&json!({"event":"request_start","request_id":"r","session_id":"s"}));
+        let flushed = store.flush();
+        tokio::pin!(flushed);
+        // Poll flush before yielding to the writer, so the blocked snapshot
+        // owns the flush generation rather than an earlier update generation.
+        tokio::select! {
+            biased;
+            () = &mut flushed => panic!("flush completed before its write"),
+            () = entered(&io, 2) => {},
         }
-        panic!("worker did not enter write");
+        store.update(
+            &json!({"event":"route","request_id":"r","session_id":"s","model":"claude-sonnet-5-5"}),
+        );
+        io.gate.add_permits(1);
+        entered(&io, 3).await;
+        let returned_before_latest_write =
+            std::future::poll_fn(|cx| std::task::Poll::Ready(flushed.as_mut().poll(cx).is_ready()))
+                .await;
+        io.stall.store(false, Ordering::SeqCst);
+        io.gate.add_permits(1);
+        if !returned_before_latest_write {
+            flushed.await;
+        }
+        written(&io, 3).await;
+        let final_snapshot = io.writes.lock().unwrap().last().unwrap().clone();
+        store.close().await;
+        assert!(
+            !returned_before_latest_write,
+            "flush returned while the same drain still owned a blocked accepted update"
+        );
+        assert_eq!(
+            final_snapshot["sessions"]["s"]["selected_model"],
+            "claude-sonnet-5-5"
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn multiple_flushers_share_one_drain_without_waiting_for_the_next_drain() {
+        use std::future::Future;
+        let io = Arc::new(ControlledIo::new());
+        let store = StatusStore::create(StatusOptions {
+            io: io.clone(),
+            ..StatusOptions::default()
+        });
+        assert!(store.ready().await.is_some());
+        io.stall.store(true, Ordering::SeqCst);
+        store.update(&json!({"event":"request_start","request_id":"first","session_id":"s"}));
+        let first = store.flush();
+        let second = store.flush();
+        tokio::pin!(first, second);
+        assert!(
+            !std::future::poll_fn(|cx| std::task::Poll::Ready(first.as_mut().poll(cx).is_ready()))
+                .await
+        );
+        assert!(
+            !std::future::poll_fn(|cx| std::task::Poll::Ready(second.as_mut().poll(cx).is_ready()))
+                .await
+        );
+        entered(&io, 2).await;
+        store.update(&json!({"event":"route","request_id":"first","session_id":"s","model":"claude-sonnet-5-5"}));
+        io.gate.add_permits(1);
+        entered(&io, 3).await;
+        assert!(
+            !std::future::poll_fn(|cx| std::task::Poll::Ready(first.as_mut().poll(cx).is_ready()))
+                .await
+        );
+        assert!(
+            !std::future::poll_fn(|cx| std::task::Poll::Ready(second.as_mut().poll(cx).is_ready()))
+                .await
+        );
+        io.gate.add_permits(1);
+        written(&io, 3).await;
+        let mut completed = store.inner.completed.subscribe();
+        while *completed.borrow_and_update() < 4 {
+            completed.changed().await.unwrap();
+        }
+        // A later drain must not retroactively extend either completed flush.
+        store.update(&json!({"event":"request_start","request_id":"next","session_id":"s"}));
+        entered(&io, 4).await;
+        tokio::time::timeout(Duration::from_secs(1), async {
+            tokio::join!(&mut first, &mut second);
+        })
+        .await
+        .unwrap();
+        assert_eq!(io.writes.lock().unwrap().len(), 3);
+        let next = store.flush();
+        tokio::pin!(next);
+        assert!(
+            !std::future::poll_fn(|cx| std::task::Poll::Ready(next.as_mut().poll(cx).is_ready()))
+                .await
+        );
+        store.update(&json!({"event":"route","request_id":"next","session_id":"s","model":"claude-haiku-4-5"}));
+        io.gate.add_permits(1);
+        entered(&io, 5).await;
+        assert!(
+            !std::future::poll_fn(|cx| std::task::Poll::Ready(next.as_mut().poll(cx).is_ready()))
+                .await
+        );
+        io.stall.store(false, Ordering::SeqCst);
+        io.gate.add_permits(1);
+        next.await;
+        assert_eq!(io.writes.lock().unwrap().len(), 5);
+        let final_snapshot = io.writes.lock().unwrap().last().unwrap().clone();
+        assert_eq!(final_snapshot["sessions"]["s"]["request_id"], "next");
+        assert_eq!(
+            final_snapshot["sessions"]["s"]["selected_model"],
+            "claude-haiku-4-5"
+        );
+        store.close().await;
+        assert_eq!(io.maximum.load(Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn flush_during_initialization_waits_for_updates_accepted_during_initial_write() {
+        use std::future::Future;
+        let io = Arc::new(ControlledIo::new());
+        io.stall.store(true, Ordering::SeqCst);
+        let store = StatusStore::create(StatusOptions {
+            io: io.clone(),
+            ..StatusOptions::default()
+        });
+        let flushed = store.flush();
+        tokio::pin!(flushed);
+        assert!(
+            !std::future::poll_fn(|cx| std::task::Poll::Ready(
+                flushed.as_mut().poll(cx).is_ready()
+            ))
+            .await
+        );
+        entered(&io, 1).await;
+        store.update(
+            &json!({"event":"request_start","request_id":"during-initialization","session_id":"s"}),
+        );
+        io.gate.add_permits(1);
+        entered(&io, 2).await;
+        assert!(
+            !std::future::poll_fn(|cx| std::task::Poll::Ready(
+                flushed.as_mut().poll(cx).is_ready()
+            ))
+            .await
+        );
+        io.stall.store(false, Ordering::SeqCst);
+        io.gate.add_permits(1);
+        flushed.await;
+        assert!(store.ready().await.is_some());
+        assert_eq!(io.writes.lock().unwrap().len(), 2);
+        assert_eq!(
+            io.writes.lock().unwrap()[1]["sessions"]["s"]["request_id"],
+            "during-initialization"
+        );
+        store.close().await;
     }
     #[tokio::test(start_paused = true)]
     async fn coalesced_updates_and_idle_heartbeat_use_the_injected_clock() {
@@ -562,9 +794,15 @@ mod tests {
         std::fs::create_dir(&parent).unwrap();
         let store = StatusStore::create(StatusOptions {
             directory: parent.clone(),
+            now: Arc::new(|| 100_000),
             ..StatusOptions::default()
         });
         let path = store.ready().await.unwrap();
+        let initial: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+        assert_eq!(initial["version"], 1);
+        assert_eq!(initial["pid"], std::process::id());
+        assert_eq!(initial["heartbeat_at"], 100_000);
+        assert_eq!(initial["sessions"], json!({}));
         assert_eq!(
             std::fs::metadata(path.parent().unwrap())
                 .unwrap()
@@ -579,6 +817,10 @@ mod tests {
         );
         store.update(&json!({"event":"request_start","request_id":"r","session_id":"s","body":"synthetic-private-canary"}));
         store.flush().await;
+        assert_eq!(
+            std::fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+            0o600
+        );
         let value = read_snapshot(&path).await.unwrap();
         assert_eq!(value["sessions"]["s"]["phase"], "routing");
         assert!(!value.to_string().contains("canary"));
@@ -593,6 +835,311 @@ mod tests {
         store.update(&json!({"event":"request_start","request_id":"after-close"}));
         tokio::join!(store.close(), store.flush());
         assert_eq!(std::fs::read_dir(&parent).unwrap().count(), 0);
+        std::fs::remove_dir(parent).unwrap();
+    }
+
+    #[tokio::test]
+    async fn blocked_native_snapshot_preserves_file_and_allows_complete_duplex_stream() {
+        use tokio::io::{AsyncReadExt, AsyncWriteExt};
+        let parent = std::env::temp_dir().join(format!(
+            "autorouter-status-stream-{}",
+            random_name().unwrap()
+        ));
+        std::fs::create_dir(&parent).unwrap();
+        let io = Arc::new(ControlledIo {
+            native: true,
+            ..ControlledIo::new()
+        });
+        let store = Arc::new(StatusStore::create(StatusOptions {
+            directory: parent.clone(),
+            io: io.clone(),
+            now: Arc::new(|| 100_000),
+            ..StatusOptions::default()
+        }));
+        let path = store.ready().await.unwrap();
+        let before = std::fs::read(&path).unwrap();
+        io.stall.store(true, Ordering::SeqCst);
+        store.update(&json!({"event":"request_start","request_id":"r","session_id":"s"}));
+        let flushed = {
+            let store = store.clone();
+            tokio::spawn(async move { store.flush().await })
+        };
+        entered(&io, 2).await;
+        assert_eq!(std::fs::read(&path).unwrap(), before);
+        for index in 0..2000 {
+            let request = format!("burst-{index}");
+            store.update(&json!({"event":"request_start","request_id":request,"session_id":"s"}));
+            store.update(&json!({"event":"route","request_id":request,"session_id":"s","model":"claude-sonnet-5-5"}));
+        }
+        let (mut producer, mut consumer) = tokio::io::duplex(7);
+        let delivered = tokio::spawn(async move {
+            let mut bytes = Vec::new();
+            consumer.read_to_end(&mut bytes).await.unwrap();
+            bytes
+        });
+        let mut expected = Vec::new();
+        for index in 0..10 {
+            tokio::task::yield_now().await;
+            let chunk = format!("chunk-{index}");
+            producer.write_all(chunk.as_bytes()).await.unwrap();
+            expected.extend_from_slice(chunk.as_bytes());
+        }
+        producer.shutdown().await.unwrap();
+        assert_eq!(delivered.await.unwrap(), expected);
+        assert!(!flushed.is_finished());
+        assert_eq!(io.entered.load(Ordering::SeqCst), 2);
+        assert_eq!(io.writes.lock().unwrap().len(), 1);
+        assert_eq!(io.maximum.load(Ordering::SeqCst), 1);
+        assert_eq!(std::fs::read(&path).unwrap(), before);
+        io.stall.store(false, Ordering::SeqCst);
+        io.gate.add_permits(1);
+        flushed.await.unwrap();
+        entered(&io, 3).await;
+        assert_eq!(io.writes.lock().unwrap().len(), 3);
+        let saved: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+        assert_eq!(saved["sessions"]["s"]["request_id"], "burst-1999");
+        assert_eq!(
+            saved["sessions"]["s"]["selected_model"],
+            "claude-sonnet-5-5"
+        );
+        assert_eq!(
+            std::fs::read_dir(path.parent().unwrap()).unwrap().count(),
+            1
+        );
+        store.close().await;
+        assert_eq!(io.maximum.load(Ordering::SeqCst), 1);
+        assert_eq!(io.removals.load(Ordering::SeqCst), 1);
+        std::fs::remove_dir(parent).unwrap();
+    }
+
+    #[tokio::test]
+    async fn concurrent_close_callers_wait_for_one_native_drain_and_cannot_recreate_files() {
+        let parent = std::env::temp_dir().join(format!(
+            "autorouter-status-close-{}",
+            random_name().unwrap()
+        ));
+        std::fs::create_dir(&parent).unwrap();
+        let io = Arc::new(ControlledIo {
+            native: true,
+            ..ControlledIo::new()
+        });
+        let store = Arc::new(StatusStore::create(StatusOptions {
+            directory: parent.clone(),
+            io: io.clone(),
+            ..StatusOptions::default()
+        }));
+        let path = store.ready().await.unwrap();
+        io.stall.store(true, Ordering::SeqCst);
+        store.update(&json!({"event":"request_start","request_id":"request-1","session_id":"s"}));
+        let flushed = {
+            let store = store.clone();
+            tokio::spawn(async move { store.flush().await })
+        };
+        entered(&io, 2).await;
+        store.update(&json!({"event":"route","request_id":"request-1","session_id":"s","model":"claude-opus-5-5"}));
+        let first = {
+            let store = store.clone();
+            tokio::spawn(async move { store.close().await })
+        };
+        let second = {
+            let store = store.clone();
+            tokio::spawn(async move { store.close().await })
+        };
+        tokio::time::timeout(Duration::from_secs(5), async {
+            while !store.inner.closing.load(Ordering::SeqCst) {
+                tokio::task::yield_now().await;
+            }
+        })
+        .await
+        .expect("close did not acquire the final state boundary");
+        store.update(&json!({"event":"request_start","request_id":"too-late","session_id":"s"}));
+        assert!(!first.is_finished());
+        assert!(!second.is_finished());
+        assert!(path.parent().unwrap().exists());
+        io.stall.store(false, Ordering::SeqCst);
+        io.gate.add_permits(1);
+        first.await.unwrap();
+        second.await.unwrap();
+        flushed.await.unwrap();
+        let saved = io.writes.lock().unwrap().last().unwrap().clone();
+        assert_eq!(saved["sessions"]["s"]["selected_model"], "claude-opus-5-5");
+        assert_eq!(saved["sessions"]["s"]["request_id"], "request-1");
+        assert_eq!(io.maximum.load(Ordering::SeqCst), 1);
+        assert_eq!(io.removals.load(Ordering::SeqCst), 1);
+        assert!(!path.parent().unwrap().exists());
+        let writes = io.entered.load(Ordering::SeqCst);
+        store.flush().await;
+        tokio::time::pause();
+        tokio::time::advance(Duration::from_secs(10)).await;
+        store.update(&json!({"event":"request_start","request_id":"late-again","session_id":"s"}));
+        store.close().await;
+        assert_eq!(io.entered.load(Ordering::SeqCst), writes);
+        assert_eq!(io.removals.load(Ordering::SeqCst), 1);
+        assert_eq!(std::fs::read_dir(&parent).unwrap().count(), 0);
+        std::fs::remove_dir(parent).unwrap();
+    }
+
+    #[tokio::test]
+    async fn stalled_initial_native_write_times_out_ignores_updates_and_leaves_empty_parent() {
+        let parent = std::env::temp_dir().join(format!(
+            "autorouter-status-ready-{}",
+            random_name().unwrap()
+        ));
+        std::fs::create_dir(&parent).unwrap();
+        let io = Arc::new(ControlledIo {
+            native: true,
+            ..ControlledIo::new()
+        });
+        io.stall.store(true, Ordering::SeqCst);
+        let store = Arc::new(StatusStore::create(StatusOptions {
+            directory: parent.clone(),
+            io: io.clone(),
+            ..StatusOptions::default()
+        }));
+        assert!(store.path().is_none());
+        entered(&io, 1).await;
+        tokio::time::pause();
+        tokio::time::advance(Duration::from_secs(1)).await;
+        assert!(store.ready().await.is_none());
+        store.update(
+            &json!({"event":"request_start","request_id":"after-disabled","session_id":"s"}),
+        );
+        let closing = {
+            let store = store.clone();
+            tokio::spawn(async move { store.close().await })
+        };
+        tokio::task::yield_now().await;
+        assert!(!closing.is_finished());
+        assert_eq!(std::fs::read_dir(&parent).unwrap().count(), 1);
+        io.gate.add_permits(1);
+        closing.await.unwrap();
+        assert_eq!(io.entered.load(Ordering::SeqCst), 1);
+        assert_eq!(io.writes.lock().unwrap().len(), 1);
+        assert_eq!(io.writes.lock().unwrap()[0]["sessions"], json!({}));
+        assert_eq!(io.removals.load(Ordering::SeqCst), 1);
+        assert_eq!(std::fs::read_dir(&parent).unwrap().count(), 0);
+        std::fs::remove_dir(parent).unwrap();
+    }
+
+    #[tokio::test]
+    async fn unavailable_and_removed_storage_accepts_malformed_updates_without_side_effects() {
+        let parent = std::env::temp_dir().join(format!(
+            "autorouter-status-unavailable-{}",
+            random_name().unwrap()
+        ));
+        std::fs::create_dir(&parent).unwrap();
+        let not_directory = parent.join("file");
+        std::fs::write(&not_directory, b"not a directory").unwrap();
+        let unavailable = StatusStore::create(StatusOptions {
+            directory: not_directory.clone(),
+            ..StatusOptions::default()
+        });
+        assert!(unavailable.ready().await.is_none());
+        unavailable.update(&json!({"event":"request_start","request_id":"r"}));
+        unavailable.flush().await;
+        unavailable.close().await;
+        assert_eq!(std::fs::read(&not_directory).unwrap(), b"not a directory");
+        let store = StatusStore::create(StatusOptions {
+            directory: parent.clone(),
+            ..StatusOptions::default()
+        });
+        let path = store.ready().await.unwrap();
+        std::fs::remove_dir_all(path.parent().unwrap()).unwrap();
+        for event in [
+            Value::Null,
+            json!([]),
+            json!({"event":{}}),
+            json!({"event":"request_start","request_id":"r"}),
+        ] {
+            store.update(&event);
+        }
+        store.flush().await;
+        store.close().await;
+        assert!(store.path().is_none());
+        assert!(!path.parent().unwrap().exists());
+        std::fs::remove_dir_all(parent).unwrap();
+    }
+
+    #[tokio::test]
+    async fn failed_native_rename_removes_temporary_file_and_can_retry() {
+        let parent = std::env::temp_dir().join(format!(
+            "autorouter-status-rename-{}",
+            random_name().unwrap()
+        ));
+        std::fs::create_dir(&parent).unwrap();
+        let directory = NativeStatusIo.create(parent.clone()).await.unwrap();
+        let path = directory.join("state.json");
+        // A directory at the destination forces the actual rename operation
+        // to fail after the temporary file has been opened and written.
+        std::fs::create_dir(&path).unwrap();
+        std::fs::write(path.join("preserved"), b"synthetic destination").unwrap();
+        assert!(
+            NativeStatusIo
+                .write(directory.clone(), b"first".to_vec())
+                .await
+                .is_err()
+        );
+        assert_eq!(std::fs::read_dir(&directory).unwrap().count(), 1);
+        assert_eq!(
+            std::fs::read(path.join("preserved")).unwrap(),
+            b"synthetic destination"
+        );
+        std::fs::remove_dir_all(&path).unwrap();
+        NativeStatusIo
+            .write(directory.clone(), b"second".to_vec())
+            .await
+            .unwrap();
+        assert_eq!(std::fs::read(&path).unwrap(), b"second");
+        assert_eq!(
+            std::fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+            0o600
+        );
+        assert_eq!(std::fs::read_dir(&directory).unwrap().count(), 1);
+        NativeStatusIo.remove(directory).await.unwrap();
+        std::fs::remove_dir(parent).unwrap();
+    }
+
+    #[tokio::test]
+    async fn failed_snapshot_keeps_previous_file_and_later_update_recovers() {
+        let parent = std::env::temp_dir().join(format!(
+            "autorouter-status-retry-{}",
+            random_name().unwrap()
+        ));
+        std::fs::create_dir(&parent).unwrap();
+        let io = Arc::new(ControlledIo {
+            native: true,
+            ..ControlledIo::new()
+        });
+        let store = StatusStore::create(StatusOptions {
+            directory: parent.clone(),
+            io: io.clone(),
+            ..StatusOptions::default()
+        });
+        let path = store.ready().await.unwrap();
+        let original = std::fs::read(&path).unwrap();
+        io.fail_next.store(true, Ordering::SeqCst);
+        store.update(&json!({"event":"request_start","request_id":"r","session_id":"s"}));
+        store.flush().await;
+        assert_eq!(std::fs::read(&path).unwrap(), original);
+        assert_eq!(
+            std::fs::read_dir(path.parent().unwrap()).unwrap().count(),
+            1
+        );
+        store.update(
+            &json!({"event":"route","request_id":"r","session_id":"s","model":"claude-sonnet-5-5"}),
+        );
+        store.flush().await;
+        let saved: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+        assert_eq!(
+            saved["sessions"]["s"]["selected_model"],
+            "claude-sonnet-5-5"
+        );
+        assert_eq!(io.maximum.load(Ordering::SeqCst), 1);
+        assert_eq!(
+            std::fs::read_dir(path.parent().unwrap()).unwrap().count(),
+            1
+        );
+        store.close().await;
         std::fs::remove_dir(parent).unwrap();
     }
 

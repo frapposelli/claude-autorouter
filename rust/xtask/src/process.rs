@@ -3,10 +3,11 @@ use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, ExitStatus, Stdio};
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant};
 
 const MAX_STDOUT: u64 = 128 * 1024 * 1024;
 const MAX_STDERR: u64 = 64 * 1024;
+const SCRATCH_ATTEMPTS: usize = 8;
 
 struct Scratch(PathBuf);
 
@@ -171,22 +172,39 @@ impl Drop for OwnedChild {
 
 impl Scratch {
     fn new() -> Result<Self, String> {
-        let nonce = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map_err(|_| "Invalid system clock")?
-            .as_nanos();
-        let directory =
-            std::env::temp_dir().join(format!("autorouter-parity-{}-{nonce}", std::process::id()));
+        Self::new_in(&std::env::temp_dir(), || {
+            let mut nonce = [0; 16];
+            getrandom::fill(&mut nonce)
+                .map_err(|_| "Cannot obtain private fixture directory entropy")?;
+            Ok(nonce)
+        })
+    }
+
+    fn new_in(
+        root: &Path,
+        mut nonce: impl FnMut() -> Result<[u8; 16], String>,
+    ) -> Result<Self, String> {
         let mut builder = fs::DirBuilder::new();
         #[cfg(unix)]
         {
             use std::os::unix::fs::DirBuilderExt;
             builder.mode(0o700);
         }
-        builder
-            .create(&directory)
-            .map_err(|_| "Cannot create private fixture directory")?;
-        Ok(Self(directory))
+        for _ in 0..SCRATCH_ATTEMPTS {
+            let nonce: String = nonce()?.iter().map(|byte| format!("{byte:02x}")).collect();
+            let directory = root.join(format!("autorouter-parity-{}-{nonce}", std::process::id()));
+            match builder.create(&directory) {
+                Ok(()) => return Ok(Self(directory)),
+                Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
+                Err(error) => {
+                    return Err(format!(
+                        "Cannot create private fixture directory ({:?})",
+                        error.kind()
+                    ));
+                }
+            }
+        }
+        Err("Cannot create private fixture directory (name collisions)".into())
     }
 
     fn file(&self, name: &str) -> Result<File, String> {
@@ -337,6 +355,123 @@ pub fn read_bounded(path: &Path, max: u64) -> Result<Vec<u8>, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn scratch_collisions_preserve_existing_directories_and_files() {
+        for existing_file in [false, true] {
+            let root = Scratch::new().unwrap();
+            let existing = Scratch::new_in(&root.0, || Ok([0; 16])).unwrap();
+            let existing_path = existing.0.clone();
+            drop(existing);
+            let marker = if existing_file {
+                existing_path.clone()
+            } else {
+                fs::create_dir(&existing_path).unwrap();
+                existing_path.join("marker")
+            };
+            fs::write(&marker, b"existing owner").unwrap();
+            let mut attempts = 0;
+            let created = Scratch::new_in(&root.0, || {
+                let value = attempts;
+                attempts += 1;
+                Ok([value; 16])
+            })
+            .unwrap();
+            assert_eq!(attempts, 2);
+            assert_ne!(created.0, existing_path);
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                assert_eq!(
+                    fs::metadata(&created.0).unwrap().permissions().mode() & 0o777,
+                    0o700
+                );
+                let file = created.file("private").unwrap();
+                assert_eq!(file.metadata().unwrap().permissions().mode() & 0o777, 0o600);
+            }
+            let created_path = created.0.clone();
+            drop(created);
+            assert!(!created_path.exists());
+            assert_eq!(fs::read(marker).unwrap(), b"existing owner");
+        }
+    }
+
+    #[test]
+    fn scratch_repeated_collision_is_bounded_and_preserves_existing_owner() {
+        let root = Scratch::new().unwrap();
+        let existing = Scratch::new_in(&root.0, || Ok([0; 16])).unwrap();
+        fs::write(existing.0.join("marker"), b"existing owner").unwrap();
+        let mut attempts = 0;
+        let error = Scratch::new_in(&root.0, || {
+            attempts += 1;
+            Ok([0; 16])
+        })
+        .err()
+        .unwrap();
+        assert_eq!(attempts, SCRATCH_ATTEMPTS);
+        assert_eq!(
+            error,
+            "Cannot create private fixture directory (name collisions)"
+        );
+        assert_eq!(
+            fs::read(existing.0.join("marker")).unwrap(),
+            b"existing owner"
+        );
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn scratch_symlink_collision_does_not_follow_or_remove_link() {
+        let root = Scratch::new().unwrap();
+        let existing = Scratch::new_in(&root.0, || Ok([0; 16])).unwrap();
+        let link = existing.0.clone();
+        drop(existing);
+        let target = root.0.join("target");
+        fs::create_dir(&target).unwrap();
+        fs::write(target.join("marker"), b"existing owner").unwrap();
+        std::os::unix::fs::symlink(&target, &link).unwrap();
+        let mut attempts = 0;
+        let created = Scratch::new_in(&root.0, || {
+            let value = attempts;
+            attempts += 1;
+            Ok([value; 16])
+        })
+        .unwrap();
+        assert_eq!(attempts, 2);
+        assert_ne!(created.0, link);
+        drop(created);
+        assert!(
+            fs::symlink_metadata(&link)
+                .unwrap()
+                .file_type()
+                .is_symlink()
+        );
+        assert_eq!(fs::read(target.join("marker")).unwrap(), b"existing owner");
+    }
+
+    #[test]
+    fn scratch_non_collision_failure_is_reported_without_retry_or_path() {
+        let root = Scratch::new().unwrap();
+        let missing = root.0.join("sensitive-fixture-parent");
+        let mut attempts = 0;
+        let error = Scratch::new_in(&missing, || {
+            attempts += 1;
+            Ok([0; 16])
+        })
+        .err()
+        .unwrap();
+        assert_eq!(attempts, 1);
+        assert_eq!(error, "Cannot create private fixture directory (NotFound)");
+        assert!(!error.contains("sensitive-fixture-parent"));
+        assert!(!missing.exists());
+        assert_eq!(
+            Scratch::new_in(&root.0, || Err("synthetic entropy failure".into()))
+                .err()
+                .unwrap(),
+            "synthetic entropy failure"
+        );
+        assert_eq!(fs::read_dir(&root.0).unwrap().count(), 0);
+    }
 
     #[test]
     fn failed_process_is_not_an_empty_passing_run() {

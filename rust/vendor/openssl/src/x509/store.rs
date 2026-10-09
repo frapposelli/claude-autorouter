@@ -293,6 +293,24 @@ foreign_type_and_impl_send_sync! {
 }
 
 impl X509StoreRef {
+    /// Acquires another owned reference to this same certificate store.
+    ///
+    /// AutoRouter's local OpenSSL 3 extension. This shares the store, including
+    /// lazy lookup caches; it does not copy certificates or broaden trust. Each
+    /// successful returned owner releases exactly one reference on drop.
+    #[cfg(ossl300)]
+    pub fn try_clone(&self) -> Result<X509Store, ErrorStack> {
+        // OpenSSL 3.6.3 include/openssl/x509_vfy.h.in. The pinned sys binding
+        // omits this existing public function; no alternate implementation.
+        extern "C" {
+            fn X509_STORE_up_ref(store: *mut ffi::X509_STORE) -> libc::c_int;
+        }
+        unsafe {
+            cvt(X509_STORE_up_ref(self.as_ptr()))?;
+            Ok(X509Store::from_ptr(self.as_ptr()))
+        }
+    }
+
     /// Get a reference to the cache of certificates in this store.
     ///
     /// This method is deprecated. It is **unsound** and will be removed in a

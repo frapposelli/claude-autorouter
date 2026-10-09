@@ -12533,423 +12533,452 @@
       "file": "test/status-state.test.mjs",
       "name": "a protocol-unconfirmed response retains its observed model but displays unknown completion and no savings",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::superseded_and_agent_requests_cannot_replace_foreground",
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::failed_context_cannot_be_restored_by_late_usage_and_sessions_are_bounded",
-        "rust/crates/autorouter-core/src/telemetry_event.rs#telemetry_event::tests::normalization_drops_payload_and_rejects_invalid_explicit_identities"
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
       ],
       "shared_cases": [
-        "status_state-6490",
-        "status_state-6491",
-        "status_state-6492"
+        "baseline-status-state-1-1",
+        "baseline-status-render-1-1"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Random event corpus includes completion_confirmed=false; rendering corpus checks unknown completion separately. Missing integrated observed model, zero savings/unconfirmed reason and40-column line from one saved snapshot."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/status-state.test.mjs#2",
       "file": "test/status-state.test.mjs",
       "name": "readiness creates a private atomic snapshot and cleans up idempotently",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::stalled_writer_coalesces_bursts_and_close_owns_accepted_work",
-        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::readiness_deadline_disables_ui_but_waits_for_writer_before_cleanup",
         "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::native_files_are_private_atomic_bounded_and_removed"
       ],
       "shared_cases": [],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "scope": "Exact per-symbol execution logs and source hashes are in the mapping catalog; no broader fixture-family equivalence is claimed."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Private atomic output, one-file directory, repeated cleanup and post-close update/flush are now asserted. Initial version/PID/heartbeat tolerance and initial empty native file still need explicit assertions."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/status-state.test.mjs#3",
       "file": "test/status-state.test.mjs",
       "name": "tracks requested, selected and confirmed models distinctly and retains last confirmed model",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::superseded_and_agent_requests_cannot_replace_foreground",
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::failed_context_cannot_be_restored_by_late_usage_and_sessions_are_bounded",
-        "rust/crates/autorouter-core/src/telemetry_event.rs#telemetry_event::tests::normalization_drops_payload_and_rejects_invalid_explicit_identities"
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
       ],
       "shared_cases": [
-        "status_state-6490",
-        "status_state-6491",
-        "status_state-6492"
+        "baseline-status-state-3-1",
+        "baseline-status-state-3-2",
+        "baseline-status-state-3-3",
+        "baseline-status-state-3-4",
+        "baseline-status-state-3-5"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Random event sequences cover resets/model observation, but exact requested/selected/confirmed phases, context capacity metadata and prompt-id clearing with retained last_model are not mapped."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/status-state.test.mjs#4",
       "file": "test/status-state.test.mjs",
       "name": "shared telemetry retains safe compatibility, continuity and distinct timing evidence for the current request",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::superseded_and_agent_requests_cannot_replace_foreground",
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::failed_context_cannot_be_restored_by_late_usage_and_sessions_are_bounded",
-        "rust/crates/autorouter-core/src/telemetry_event.rs#telemetry_event::tests::normalization_drops_payload_and_rejects_invalid_explicit_identities"
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
       ],
       "shared_cases": [
-        "status_state-6490",
-        "status_state-6491",
-        "status_state-6492"
+        "baseline-status-state-4-1",
+        "baseline-status-state-4-2"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Missing combined very long distinct timings/compatibility/continuity/completion privacy fixture and second-request clearing after Infinity/negative/invalid route fields."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/status-state.test.mjs#5",
       "file": "test/status-state.test.mjs",
       "name": "invalid agent and class identities cannot collapse into foreground or anonymous status",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::superseded_and_agent_requests_cannot_replace_foreground",
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::failed_context_cannot_be_restored_by_late_usage_and_sessions_are_bounded",
-        "rust/crates/autorouter-core/src/telemetry_event.rs#telemetry_event::tests::normalization_drops_payload_and_rejects_invalid_explicit_identities"
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
       ],
       "shared_cases": [
-        "status_state-6490",
-        "status_state-6491",
-        "status_state-6492"
+        "baseline-status-state-5-1",
+        "baseline-status-state-5-2",
+        "baseline-status-state-5-3"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Normalizer corpus rejects invalid identities; status corpus does not test all four invalid agent/class/session/prompt variants against an existing foreground snapshot."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/status-state.test.mjs#6",
       "file": "test/status-state.test.mjs",
       "name": "Auto safety pass-through is visible without stale evaluator decisions from the previous request",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::superseded_and_agent_requests_cannot_replace_foreground",
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::failed_context_cannot_be_restored_by_late_usage_and_sessions_are_bounded",
-        "rust/crates/autorouter-core/src/telemetry_event.rs#telemetry_event::tests::normalization_drops_payload_and_rejects_invalid_explicit_identities"
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
       ],
       "shared_cases": [
-        "status_state-6490",
-        "status_state-6491",
-        "status_state-6492"
+        "baseline-status-state-6-1",
+        "baseline-status-state-6-2",
+        "baseline-status-state-6-3",
+        "baseline-status-state-6-4",
+        "baseline-status-render-6-1",
+        "baseline-status-render-6-2",
+        "baseline-status-render-6-3"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "No retained status sequence combines classified Auto floor, completion, new request and Auto safety passthrough while proving stale evaluator/tier removed from rendered output."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/status-state.test.mjs#7",
       "file": "test/status-state.test.mjs",
       "name": "context uses the latest foreground response input including cache without summing the session",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::superseded_and_agent_requests_cannot_replace_foreground",
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::failed_context_cannot_be_restored_by_late_usage_and_sessions_are_bounded",
-        "rust/crates/autorouter-core/src/telemetry_event.rs#telemetry_event::tests::normalization_drops_payload_and_rejects_invalid_explicit_identities"
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
       ],
       "shared_cases": [
-        "status_state-6492",
-        "status_state-6493",
-        "status_state-6495"
+        "baseline-status-state-7-1",
+        "baseline-status-state-7-2",
+        "baseline-status-state-7-3",
+        "baseline-status-state-7-4",
+        "baseline-status-state-7-5"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Usage/caches and superseded events appear in random cases. Missing exact224891-token total excluding output, last_context preservation, stale/subagent suppression and nextHaiku context snapshot sequence."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/status-state.test.mjs#8",
       "file": "test/status-state.test.mjs",
       "name": "unconfirmed, invalid or interrupted usage cannot become a current API context claim",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::superseded_and_agent_requests_cannot_replace_foreground",
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::failed_context_cannot_be_restored_by_late_usage_and_sessions_are_bounded",
-        "rust/crates/autorouter-core/src/telemetry_event.rs#telemetry_event::tests::normalization_drops_payload_and_rejects_invalid_explicit_identities"
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
       ],
       "shared_cases": [
-        "status_state-6492",
-        "status_state-6493",
-        "status_state-6495"
+        "baseline-status-state-8-1",
+        "baseline-status-state-8-2",
+        "baseline-status-state-8-3",
+        "baseline-status-state-8-4",
+        "baseline-status-state-8-5",
+        "baseline-status-state-8-6",
+        "baseline-status-state-8-7",
+        "baseline-status-state-8-8",
+        "baseline-status-state-8-9",
+        "baseline-status-state-8-10",
+        "baseline-status-state-8-11",
+        "baseline-status-state-8-12",
+        "baseline-status-state-8-13",
+        "baseline-status-state-8-14"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Core regression protects cancellation from late usage. Missing complete nine-invalid-usage matrix, selected-but-unobserved case and all four failure variants followed by usage."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/status-state.test.mjs#9",
       "file": "test/status-state.test.mjs",
       "name": "latest-started request wins under overlapping same-session requests",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::superseded_and_agent_requests_cannot_replace_foreground",
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::failed_context_cannot_be_restored_by_late_usage_and_sessions_are_bounded",
-        "rust/crates/autorouter-core/src/telemetry_event.rs#telemetry_event::tests::normalization_drops_payload_and_rejects_invalid_explicit_identities"
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
       ],
       "shared_cases": [
-        "status_state-6490",
-        "status_state-6491",
-        "status_state-6492"
+        "baseline-status-state-9-1"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Core verifies old model and agent start cannot replace newer request; random sequences add terminals. Missing explicit seven-event old-request loop and retained last_model/status/error assertions."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/status-state.test.mjs#10",
       "file": "test/status-state.test.mjs",
       "name": "keeps sessions and anonymous requests isolated without prototype pollution",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::superseded_and_agent_requests_cannot_replace_foreground",
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::failed_context_cannot_be_restored_by_late_usage_and_sessions_are_bounded",
-        "rust/crates/autorouter-core/src/telemetry_event.rs#telemetry_event::tests::normalization_drops_payload_and_rejects_invalid_explicit_identities"
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
       ],
       "shared_cases": [
-        "status_state-6490",
-        "status_state-6491",
-        "status_state-6492"
+        "baseline-status-state-10-1"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "No status corpus uses the combined anonymous,__proto__, constructor and two ordinary sessions plus invalid/nonstarted events; savings identity coverage is not a substitute."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/status-state.test.mjs#11",
       "file": "test/status-state.test.mjs",
       "name": "ignores agent events and every non-main request class",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::superseded_and_agent_requests_cannot_replace_foreground",
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::failed_context_cannot_be_restored_by_late_usage_and_sessions_are_bounded",
-        "rust/crates/autorouter-core/src/telemetry_event.rs#telemetry_event::tests::normalization_drops_payload_and_rejects_invalid_explicit_identities"
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
       ],
       "shared_cases": [
-        "status_state-6490",
-        "status_state-6491",
-        "status_state-6492"
+        "baseline-status-state-11-1",
+        "baseline-status-state-11-2"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Random corpus has worker-agent and count class. Missing auxiliary/compaction/background/subagent/workflow/future class matrix and explicit main-class acceptance."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/status-state.test.mjs#12",
       "file": "test/status-state.test.mjs",
       "name": "preserves HTTP, SSE and transport errors through completion",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::superseded_and_agent_requests_cannot_replace_foreground",
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::failed_context_cannot_be_restored_by_late_usage_and_sessions_are_bounded",
-        "rust/crates/autorouter-core/src/telemetry_event.rs#telemetry_event::tests::normalization_drops_payload_and_rejects_invalid_explicit_identities"
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
       ],
       "shared_cases": [
-        "status_state-6491",
-        "status_state-6492",
-        "status_state-6493"
+        "baseline-status-state-12-1",
+        "baseline-status-state-12-2",
+        "baseline-status-state-12-3",
+        "baseline-status-state-12-4"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Random corpus contains HTTP529, SSE overload, request_error and cancellation. Exact429/502 failures followed by complete with error_type preservation are not identified as definition counterparts."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/status-state.test.mjs#13",
       "file": "test/status-state.test.mjs",
       "name": "classifier fallback diagnostics do not imply an upstream error",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
+      ],
+      "shared_cases": [
+        "baseline-status-state-13-1"
+      ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Status random generator does not emit fallback diagnostics, so successful upstream200/completion with retained classifier503 and ready phase is not represented."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/status-state.test.mjs#14",
       "file": "test/status-state.test.mjs",
       "name": "evaluator identity survives local, cached and fallback routes without retaining arbitrary metadata",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::evaluator_identity_and_private_fields_stay_separate_across_local_cache_and_fallback"
+      ],
       "shared_cases": [],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
       "remaining_assertions": [
-        "Status generator includes ollama route but not local/cache/fallback evaluator/privacy matrix or stale/agent/invalid/jev overwrite sequence."
+        "Two source route events explicitly own classifier_error=undefined. The complete source schedules execute in Node, but native Value cannot preserve explicit undefined ownership; those calls and six dependent snapshots are not differential evidence. Typed native regression covers local/cache/fallback and stale/agent/invalid/jev overwrite behavior with absent optional fields."
       ]
     },
     {
@@ -12959,27 +12988,27 @@
       "parameterized": false,
       "status": "partial_assertion_mapping",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::superseded_and_agent_requests_cannot_replace_foreground",
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::failed_context_cannot_be_restored_by_late_usage_and_sessions_are_bounded",
-        "rust/crates/autorouter-core/src/telemetry_event.rs#telemetry_event::tests::normalization_drops_payload_and_rejects_invalid_explicit_identities"
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::session_eviction_and_malformed_metadata_never_expose_private_extras"
       ],
-      "shared_cases": [
-        "status_state-6840"
-      ],
+      "shared_cases": [],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
       "remaining_assertions": [
-        "Core and corpus prove100-session cap. Missing oversized/control-bearing model fields, arbitrary sensitive extras and unknown_error fallback combined after102 sessions."
+        "Source supplies an actual JavaScript Error instance in an unknown event property; the capture skips that nonplain event and its dependent snapshot. Native Value has no Error instance equivalent. The typed regression verifies the full102-session/invalid metadata/privacy schedule with a synthetic string in error, but does not establish arbitrary JavaScript object/getter behavior."
       ]
     },
     {
@@ -12993,13 +13022,21 @@
       ],
       "shared_cases": [],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "scope": "Exact per-symbol execution logs and source hashes are in the mapping catalog; no broader fixture-family equivalence is claimed."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
       "remaining_assertions": []
     },
     {
@@ -13013,13 +13050,21 @@
       ],
       "shared_cases": [],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "scope": "Exact per-symbol execution logs and source hashes are in the mapping catalog; no broader fixture-family equivalence is claimed."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
       "remaining_assertions": []
     },
     {
@@ -13029,25 +13074,27 @@
       "parameterized": false,
       "status": "partial_assertion_mapping",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::stalled_writer_coalesces_bursts_and_close_owns_accepted_work",
-        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::readiness_deadline_disables_ui_but_waits_for_writer_before_cleanup",
-        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::native_files_are_private_atomic_bounded_and_removed"
+        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::unavailable_and_removed_storage_accepts_malformed_updates_without_side_effects"
       ],
       "shared_cases": [],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
       "remaining_assertions": [
-        "No native regression for parent path being a regular file, directory removal after readiness and null/malformed update no-throw; throwing JS options/getters require boundary rationale."
+        "Native storage cases cover non-directory parent, removed storage, null/array/malformed telemetry, fail-soft update/flush/close and no file recreation. Throwing JavaScript option/telemetry getters have no native typed API counterpart and remain an explicit adaptation."
       ]
     },
     {
@@ -13055,56 +13102,61 @@
       "file": "test/status-state.test.mjs",
       "name": "session savings include overlapping and background calls without changing the foreground model",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::superseded_and_agent_requests_cannot_replace_foreground",
-        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::failed_context_cannot_be_restored_by_late_usage_and_sessions_are_bounded",
-        "rust/crates/autorouter-core/src/telemetry_event.rs#telemetry_event::tests::normalization_drops_payload_and_rejects_invalid_explicit_identities"
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
       ],
       "shared_cases": [
-        "status_state-6492",
-        "status_state-6493",
-        "status_state-6495"
+        "baseline-status-state-19-1",
+        "baseline-status-state-19-2"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Pure savings overlap is tested independently. Missing StatusState integrated background/older/latest calls with exact cumulative0.0105/0.018/0.0075 and foreground unchanged across next turn."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/status-state.test.mjs#20",
       "file": "test/status-state.test.mjs",
       "name": "a blocked snapshot leaves inference streaming and coalesces a large burst into one latest snapshot",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::stalled_writer_coalesces_bursts_and_close_owns_accepted_work",
-        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::readiness_deadline_disables_ui_but_waits_for_writer_before_cleanup",
-        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::native_files_are_private_atomic_bounded_and_removed"
+        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::blocked_native_snapshot_preserves_file_and_allows_complete_duplex_stream",
+        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::flush_retains_shared_drain_until_updates_accepted_during_write_are_saved",
+        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::multiple_flushers_share_one_drain_without_waiting_for_the_next_drain"
       ],
       "shared_cases": [],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "scope": "Exact per-symbol execution logs and source hashes are in the mapping catalog; no broader fixture-family equivalence is claimed."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Controlled I/O now proves old snapshot retention,2000-update coalescing and ten chunks of unrelated asynchronous work finishing while blocked. The baseline whole HTTP/inference streaming pipeline and explicit maximum writer concurrency remain unmapped."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/status-state.test.mjs#21",
@@ -13113,21 +13165,27 @@
       "parameterized": false,
       "status": "partial_assertion_mapping",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::stalled_writer_coalesces_bursts_and_close_owns_accepted_work",
-        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::readiness_deadline_disables_ui_but_waits_for_writer_before_cleanup",
-        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::native_files_are_private_atomic_bounded_and_removed"
+        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::concurrent_close_callers_wait_for_one_native_drain_and_cannot_recreate_files"
       ],
       "shared_cases": [],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "scope": "Exact per-symbol execution logs and source hashes are in the mapping catalog; no broader fixture-family equivalence is claimed."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
       "remaining_assertions": [
-        "Controlled I/O now proves latest accepted state drains, post-close events reject and repeated close/flush cannot write after deletion. Explicit concurrent-close shared completion identity/count and native file recreation schedule remain unmapped."
+        "Concurrent native shutdown futures now share one actual drain/removal and preserve accepted/latest state, reject later events and cannot recreate files. JavaScript close() returns the same Promise object; Rust async futures have no equivalent JavaScript reference-identity assertion."
       ]
     },
     {
@@ -13135,52 +13193,57 @@
       "file": "test/status-state.test.mjs",
       "name": "readiness fails soft on stalled storage while close retains ownership of the late write",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::stalled_writer_coalesces_bursts_and_close_owns_accepted_work",
-        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::readiness_deadline_disables_ui_but_waits_for_writer_before_cleanup",
-        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::native_files_are_private_atomic_bounded_and_removed"
+        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::stalled_initial_native_write_times_out_ignores_updates_and_leaves_empty_parent"
       ],
       "shared_cases": [],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Paused-time native test covers1s readiness failure and late writer ownership. Missing update-after-disabled plus exact one-write count and empty real parent directory assertions."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/status-state.test.mjs#23",
       "file": "test/status-state.test.mjs",
       "name": "write failure cleans the temporary file and a later snapshot can recover without rejecting",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::failed_native_rename_removes_temporary_file_and_can_retry",
+        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::failed_snapshot_keeps_previous_file_and_later_update_recovers"
+      ],
       "shared_cases": [],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+        "assertion_mapping_sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "capture": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "capture_sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "cases_sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+        "native_state_log": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+        "native_state_log_sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+        "native_storage_log": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+        "native_storage_log_sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+        "scope": "Complete captured saved snapshots/rendered strings and explicitly mapped native filesystem/drain assertions; skipped JavaScript API boundaries remain partial."
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "No injected rename-failure regression proves temporary-file cleanup, retained old snapshot and successful later recovery."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/status-state-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/statusline.test.mjs#1",

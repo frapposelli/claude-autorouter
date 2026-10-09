@@ -1,6 +1,6 @@
 # Proposed native archive bounds
 
-Status: review proposal only. Production compressed and expanded limits remain **32 MiB**. The isolated experiment below does not approve a release or narrow the supported platform baseline.
+Status: historical proposal accepted for the Rust native readers. The implemented native policy is **32 MiB compressed / 64 MiB expanded / 32 MiB per file / 256 entries**; historical JavaScript and source policies retain 32 MiB expansion. The measurements below describe the unchanged isolated experiment, not the later streaming implementation. Neither approves a release or narrows the supported platform baseline.
 
 Prefer a self-contained npm archive with a **32 MiB compressed limit, 64 MiB expanded tar limit, and 32 MiB individual-file limit**, subject to the implementation and full-matrix checks below. This preserves the existing offline, `--ignore-scripts`, dependency-free installation contract. It is sufficient for the four measured binaries; additional baseline platforms remain unresolved.
 
@@ -57,11 +57,11 @@ The JavaScript release scripts remain the frozen baseline during migration. Thei
 
 ## Memory and acceptance checks
 
-The current decoder holds the expanded tar and copies every file into an owned map; its caller also holds compressed bytes. Private assembly may additionally retain its original input map during verification. At the proposed ceilings, these logical buffers can total roughly **160 MiB for verification** and **224 MiB while an assembler retains another full file map**, before allocator capacity, metadata and parsed JSON. These are buffer-accounting estimates, not RSS bounds. `Vec` growth may reserve beyond its current length.
+The decoder used by this historical experiment holds the expanded tar and copies every file into an owned map; its caller also holds compressed bytes. Private assembly may additionally retain its original input map during verification. At the proposed ceilings, these logical buffers can total roughly **160 MiB for verification** and **224 MiB while an assembler retains another full file map**, before allocator capacity, metadata and parsed JSON. These are buffer-accounting estimates, not RSS bounds. `Vec` growth may reserve beyond its current length.
 
 One isolated debug-tool verification of the real archive reported **154,632,192 bytes maximum RSS** and **148,144,704 bytes peak memory footprint** on this Mac. The first assembly timing wrapper failed on sandbox-restricted `kern.clockrate` after producing the archive; no assembly RSS result is claimed. Neither observation is a hardware acceptance benchmark or a concurrent process-tree memory bound.
 
-Before adopting the cap, bound native archive entry count (256 accommodates the current schema's at-most-64 targets plus public files and directory records), enforce the 32 MiB file bound before copying, and prevent geometric buffer growth from defeating the intended allocation budget. Keep malformed-archive processing sequential and retain checked integer arithmetic. Avoid retaining a second decoded archive unnecessarily, and assess release-set verification, which can retain multiple direct payload maps under its existing 512 MiB budget. A streaming/range-backed decoder is a possible later optimization, not evidence supplied by this experiment.
+Before adopting the cap, bound native archive entry count (256 accommodates the current schema's at-most-64 targets plus public files and directory records), enforce the 32 MiB file bound before copying, and prevent geometric buffer growth from defeating the intended allocation budget. Keep malformed-archive processing sequential and retain checked integer arithmetic. Avoid retaining a second decoded archive unnecessarily, and assess release-set verification, which can retain multiple direct payload maps under its existing 512 MiB budget. The subsequent implementation streams decoding and encoding, bounds compressed-writer growth and reuses decoded maps. Those later changes are not evidence supplied by this historical experiment.
 
 Required acceptance tests:
 

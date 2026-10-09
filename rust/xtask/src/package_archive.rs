@@ -1,12 +1,86 @@
-//! Restricted npm gzip/ustar verification. Never extracts untrusted paths.
+//! Bounded gzip/ustar verification. Never extracts untrusted paths.
 use flate2::read::MultiGzDecoder;
-use std::collections::BTreeMap;
-use std::io::Read;
-pub const MAX_ARCHIVE: usize = 32 * 1024 * 1024;
+use std::collections::{BTreeMap, HashSet};
+use std::io::{self, Read, Write};
+
+pub const MAX_COMPRESSED: usize = 32 * 1024 * 1024;
+pub const MAX_FILE: usize = 32 * 1024 * 1024;
+pub const MAX_NATIVE_EXPANDED: usize = 64 * 1024 * 1024;
+const MAX_OLD_EXPANDED: usize = 32 * 1024 * 1024;
+
+#[derive(Clone, Copy, Debug)]
+pub struct ArchivePolicy {
+    pub compressed: usize,
+    pub expanded: usize,
+    pub file: usize,
+    pub entries: usize,
+}
+pub const NATIVE: ArchivePolicy = ArchivePolicy {
+    compressed: MAX_COMPRESSED,
+    expanded: MAX_NATIVE_EXPANDED,
+    file: MAX_FILE,
+    entries: 256,
+};
+pub const HISTORICAL: ArchivePolicy = ArchivePolicy {
+    compressed: MAX_COMPRESSED,
+    expanded: MAX_OLD_EXPANDED,
+    file: MAX_FILE,
+    // Every prior tar entry used at least one block, plus two end blocks.
+    entries: MAX_OLD_EXPANDED / 512 - 2,
+};
+pub const SOURCE: ArchivePolicy = HISTORICAL;
+pub const MIXED: ArchivePolicy = ArchivePolicy {
+    expanded: MAX_NATIVE_EXPANDED,
+    ..HISTORICAL
+};
+impl ArchivePolicy {
+    pub fn remaining(self, expanded: usize) -> Self {
+        Self {
+            expanded: self.expanded.min(expanded),
+            ..self
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Entry {
     pub bytes: Vec<u8>,
     pub mode: u32,
+}
+#[derive(Clone, Debug)]
+pub struct DecodedArchive {
+    pub files: BTreeMap<String, Entry>,
+    pub expanded_bytes: usize,
+    pub entries: usize,
+}
+impl DecodedArchive {
+    pub fn into_parts(self) -> (BTreeMap<String, Entry>, usize) {
+        (self.files, self.expanded_bytes)
+    }
+    /// Recheck the selected format after an explicitly mixed-format inspection.
+    pub fn require_policy(&self, policy: ArchivePolicy) -> Result<(), String> {
+        if self.expanded_bytes > policy.expanded {
+            return Err(bound("Expanded archive", policy.expanded));
+        }
+        if self.entries > policy.entries {
+            return Err("Archive entry count exceeds limit".into());
+        }
+        if self
+            .files
+            .values()
+            .any(|file| file.bytes.len() > policy.file)
+        {
+            return Err(bound("Individual archive entry", policy.file));
+        }
+        Ok(())
+    }
+}
+fn bound(kind: &str, maximum: usize) -> String {
+    if maximum.is_multiple_of(1024 * 1024) && maximum != 0 {
+        format!("{kind} exceeds {} MiB", maximum / (1024 * 1024))
+    } else {
+        format!("{kind} exceeds {maximum} bytes")
+    }
 }
 fn field(bytes: &[u8]) -> Result<&str, String> {
     let end = bytes.iter().position(|b| *b == 0).unwrap_or(bytes.len());
@@ -27,36 +101,96 @@ fn path_safe(path: &str) -> bool {
             .split('/')
             .all(|c| !c.is_empty() && c != "." && c != ".." && !c.chars().any(char::is_control))
 }
-pub fn decode(bytes: &[u8]) -> Result<(BTreeMap<String, Entry>, usize), String> {
-    decode_root(bytes, "package")
+fn padded(size: usize) -> Result<usize, String> {
+    size.checked_add(511)
+        .map(|size| size / 512 * 512)
+        .ok_or_else(|| "Archive size overflow".into())
 }
-pub fn decode_root(bytes: &[u8], root: &str) -> Result<(BTreeMap<String, Entry>, usize), String> {
+struct Inflater<'a> {
+    reader: MultiGzDecoder<&'a [u8]>,
+    maximum: usize,
+    count: usize,
+}
+impl Read for Inflater<'_> {
+    fn read(&mut self, output: &mut [u8]) -> io::Result<usize> {
+        if output.is_empty() {
+            return Ok(0);
+        }
+        let remaining = self.maximum - self.count;
+        if remaining == 0 {
+            let mut probe = [0];
+            return if self.reader.read(&mut probe)? == 0 {
+                Ok(0)
+            } else {
+                Err(io::Error::new(
+                    io::ErrorKind::FileTooLarge,
+                    bound("Expanded archive", self.maximum),
+                ))
+            };
+        }
+        let maximum = remaining.min(output.len());
+        let count = self.reader.read(&mut output[..maximum])?;
+        self.count += count;
+        Ok(count)
+    }
+}
+fn read_error(error: io::Error) -> String {
+    if error.kind() == io::ErrorKind::FileTooLarge {
+        error.to_string()
+    } else if error.kind() == io::ErrorKind::UnexpectedEof {
+        "Incomplete tar archive".into()
+    } else {
+        "Invalid gzip archive".into()
+    }
+}
+pub fn decode(bytes: &[u8], policy: ArchivePolicy) -> Result<DecodedArchive, String> {
+    decode_root(bytes, "package", policy)
+}
+pub fn decode_root(
+    bytes: &[u8],
+    root: &str,
+    policy: ArchivePolicy,
+) -> Result<DecodedArchive, String> {
     if !path_safe(root) || root.contains('/') {
         return Err("Invalid archive root".into());
     }
-    if bytes.len() > MAX_ARCHIVE {
-        return Err("Compressed archive exceeds 32 MiB".into());
+    if bytes.len() > policy.compressed {
+        return Err(bound("Compressed archive", policy.compressed));
     }
-    let mut expanded = Vec::new();
-    MultiGzDecoder::new(bytes)
-        .take(MAX_ARCHIVE as u64 + 1)
-        .read_to_end(&mut expanded)
-        .map_err(|_| "Invalid gzip archive")?;
-    if expanded.len() > MAX_ARCHIVE {
-        return Err("Expanded archive exceeds 32 MiB".into());
-    }
+    let mut reader = Inflater {
+        reader: MultiGzDecoder::new(bytes),
+        maximum: policy.expanded,
+        count: 0,
+    };
     let mut files = BTreeMap::new();
-    let mut seen = std::collections::HashSet::new();
-    let mut offset = 0;
-    let mut ended = false;
-    while offset + 512 <= expanded.len() {
-        let header = &expanded[offset..offset + 512];
+    let mut seen = HashSet::new();
+    let mut entries = 0usize;
+    loop {
+        let mut header = [0u8; 512];
+        reader.read_exact(&mut header).map_err(read_error)?;
         if header.iter().all(|b| *b == 0) {
-            if expanded.len() - offset < 1024 || expanded[offset..].iter().any(|b| *b != 0) {
+            reader.read_exact(&mut header).map_err(read_error)?;
+            if header.iter().any(|b| *b != 0) {
                 return Err("Invalid tar end marker".into());
             }
-            ended = true;
+            let mut tail = [0; 8192];
+            loop {
+                let count = reader.read(&mut tail).map_err(read_error)?;
+                if count == 0 {
+                    break;
+                }
+                if tail[..count].iter().any(|b| *b != 0) {
+                    return Err("Invalid tar end marker".into());
+                }
+            }
             break;
+        }
+        // Bound count before allocating path strings, sets, maps or payloads.
+        entries = entries
+            .checked_add(1)
+            .ok_or("Archive entry count overflow")?;
+        if entries > policy.entries {
+            return Err("Archive entry count exceeds limit".into());
         }
         let expected = octal(&header[148..156])?;
         let actual: u64 = header
@@ -73,12 +207,25 @@ pub fn decode_root(bytes: &[u8], root: &str) -> Result<(BTreeMap<String, Entry>,
         if expected != actual {
             return Err("Invalid tar header checksum".into());
         }
+        let size = usize::try_from(octal(&header[124..136])?).map_err(|_| "Invalid tar size")?;
+        if size > policy.file {
+            return Err(bound("Individual archive entry", policy.file));
+        }
+        let padded = padded(size)?;
+        let minimum = reader
+            .count
+            .checked_add(padded)
+            .and_then(|n| n.checked_add(1024))
+            .ok_or("Archive size overflow")?;
+        if minimum > policy.expanded {
+            return Err(bound("Expanded archive", policy.expanded));
+        }
         let prefix = field(&header[345..500])?;
-        let raw_name = field(&header[..100])?;
+        let raw = field(&header[..100])?;
         let name = if prefix.is_empty() {
-            raw_name.to_owned()
+            raw.to_owned()
         } else {
-            format!("{prefix}/{raw_name}")
+            format!("{prefix}/{raw}")
         };
         let relative = name
             .strip_prefix(&format!("{root}/"))
@@ -92,22 +239,22 @@ pub fn decode_root(bytes: &[u8], root: &str) -> Result<(BTreeMap<String, Entry>,
         if !path_safe(path) || !seen.insert(path.to_owned()) {
             return Err("Unsafe or duplicate tar path".into());
         }
-        let size = usize::try_from(octal(&header[124..136])?).map_err(|_| "Invalid tar size")?;
         let mode = u32::try_from(octal(&header[100..108])?).map_err(|_| "Invalid tar mode")?;
         if mode & !0o777 != 0 {
             return Err("Privileged tar file modes are not permitted".into());
         }
-        let start = offset + 512;
-        let end = start
-            .checked_add(size)
-            .filter(|end| *end <= expanded.len())
-            .ok_or("Tar entry exceeds archive")?;
         match kind {
             0 | b'0' => {
+                let mut payload = Vec::new();
+                payload
+                    .try_reserve_exact(size)
+                    .map_err(|_| "Cannot allocate bounded archive entry")?;
+                payload.resize(size, 0);
+                reader.read_exact(&mut payload).map_err(read_error)?;
                 files.insert(
                     path.into(),
                     Entry {
-                        bytes: expanded[start..end].to_vec(),
+                        bytes: payload,
                         mode,
                     },
                 );
@@ -115,25 +262,95 @@ pub fn decode_root(bytes: &[u8], root: &str) -> Result<(BTreeMap<String, Entry>,
             b'5' if size == 0 => {}
             _ => return Err("Links and extended tar headers are not permitted".into()),
         }
-        offset = start
-            .checked_add(size.div_ceil(512) * 512)
-            .ok_or("Invalid tar size")?;
+        let mut padding = [0; 512];
+        reader
+            .read_exact(&mut padding[..padded - size])
+            .map_err(read_error)?;
     }
-    if !ended || files.is_empty() {
+    if files.is_empty() {
         return Err("Incomplete or empty tar archive".into());
     }
-    Ok((files, expanded.len()))
+    Ok(DecodedArchive {
+        files,
+        expanded_bytes: reader.count,
+        entries,
+    })
 }
-pub fn encode_root(root: &str, files: &BTreeMap<String, Entry>) -> Result<Vec<u8>, String> {
-    use std::io::Write;
-    if !path_safe(root) || root.contains('/') || files.is_empty() {
-        return Err("Invalid archive root or empty archive".into());
+struct CompressedWriter {
+    bytes: Vec<u8>,
+    maximum: usize,
+}
+impl Write for CompressedWriter {
+    fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+        let end = self
+            .bytes
+            .len()
+            .checked_add(bytes.len())
+            .filter(|n| *n <= self.maximum)
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::FileTooLarge,
+                    bound("Compressed archive", self.maximum),
+                )
+            })?;
+        if end > self.bytes.capacity() {
+            // Clamp growth before allocation, including the gzip trailer.
+            let capacity = end
+                .max(self.bytes.capacity().saturating_mul(2))
+                .min(self.maximum);
+            self.bytes
+                .try_reserve_exact(capacity - self.bytes.len())
+                .map_err(|_| io::Error::other("Cannot allocate bounded compressed archive"))?;
+        }
+        self.bytes.extend_from_slice(bytes);
+        Ok(bytes.len())
     }
-    let mut tar = Vec::new();
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+pub fn expanded_size(
+    files: &BTreeMap<String, Entry>,
+    policy: ArchivePolicy,
+) -> Result<usize, String> {
+    if files.is_empty() || files.len() > policy.entries {
+        return Err("Archive entry count exceeds limit".into());
+    }
+    let mut expanded = 1024usize;
     for (path, entry) in files {
         if !path_safe(path) || entry.mode & !0o777 != 0 {
             return Err("Unsafe archive entry".into());
         }
+        if entry.bytes.len() > policy.file {
+            return Err(bound("Individual archive entry", policy.file));
+        }
+        expanded = expanded
+            .checked_add(512)
+            .and_then(|n| n.checked_add(padded(entry.bytes.len()).ok()?))
+            .ok_or("Archive size overflow")?;
+        if expanded > policy.expanded {
+            return Err(bound("Expanded archive", policy.expanded));
+        }
+    }
+    Ok(expanded)
+}
+pub fn encode_root(
+    root: &str,
+    files: &BTreeMap<String, Entry>,
+    policy: ArchivePolicy,
+) -> Result<Vec<u8>, String> {
+    if !path_safe(root) || root.contains('/') {
+        return Err("Invalid archive root".into());
+    }
+    expanded_size(files, policy)?;
+    let sink = CompressedWriter {
+        bytes: Vec::new(),
+        maximum: policy.compressed,
+    };
+    let mut writer = flate2::GzBuilder::new()
+        .mtime(0)
+        .write(sink, flate2::Compression::default());
+    for (path, entry) in files {
         let full = format!("{root}/{path}");
         let (prefix, name) = if full.len() <= 100 {
             ("", full.as_str())
@@ -169,108 +386,19 @@ pub fn encode_root(root: &str, files: &BTreeMap<String, Entry>) -> Result<Vec<u8
         header[148..156].fill(b' ');
         let checksum: u64 = header.iter().map(|b| *b as u64).sum();
         header[148..156].copy_from_slice(format!("{checksum:06o}\0 ").as_bytes());
-        let expanded = tar
-            .len()
-            .checked_add(512 + entry.bytes.len().div_ceil(512) * 512 + 1024)
-            .ok_or("Archive size overflow")?;
-        if expanded > MAX_ARCHIVE {
-            return Err("Expanded archive exceeds 32 MiB".into());
-        }
-        tar.extend(header);
-        tar.extend(&entry.bytes);
-        tar.resize(tar.len().next_multiple_of(512), 0);
+        writer
+            .write_all(&header)
+            .and_then(|()| writer.write_all(&entry.bytes))
+            .and_then(|()| {
+                writer
+                    .write_all(&[0; 512][..padded(entry.bytes.len()).unwrap() - entry.bytes.len()])
+            })
+            .map_err(|e| e.to_string())?;
     }
-    tar.resize(tar.len() + 1024, 0);
-    let mut writer = flate2::GzBuilder::new()
-        .mtime(0)
-        .write(Vec::new(), flate2::Compression::default());
-    writer
-        .write_all(&tar)
-        .map_err(|_| "Cannot compress source bundle")?;
-    let bytes = writer.finish().map_err(|_| "Cannot finish source bundle")?;
-    if bytes.len() > MAX_ARCHIVE {
-        return Err("Compressed archive exceeds 32 MiB".into());
-    }
-    Ok(bytes)
+    writer.write_all(&[0; 1024]).map_err(|e| e.to_string())?;
+    Ok(writer.finish().map_err(|e| e.to_string())?.bytes)
 }
+
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use flate2::{Compression, write::GzEncoder};
-    use std::io::Write;
-    fn archive(name: &str, kind: u8, content: &[u8]) -> Vec<u8> {
-        let mut h = [0u8; 512];
-        h[..name.len()].copy_from_slice(name.as_bytes());
-        for (start, len, value) in [
-            (100, 8, 0o644u64),
-            (108, 8, 0),
-            (116, 8, 0),
-            (124, 12, content.len() as u64),
-            (136, 12, 0),
-        ] {
-            let field = format!("{:0width$o}\0", value, width = len - 1);
-            h[start..start + len].copy_from_slice(field.as_bytes());
-        }
-        h[156] = kind;
-        h[148..156].fill(b' ');
-        let checksum: u64 = h.iter().map(|b| *b as u64).sum();
-        h[148..156].copy_from_slice(format!("{checksum:06o}\0 ").as_bytes());
-        let mut tar = h.to_vec();
-        tar.extend(content);
-        tar.resize(512 + content.len().div_ceil(512) * 512 + 1024, 0);
-        let mut gzip = GzEncoder::new(Vec::new(), Compression::default());
-        gzip.write_all(&tar).unwrap();
-        gzip.finish().unwrap()
-    }
-    #[test]
-    fn rejects_traversal_links_bad_checksums_and_truncated_payloads() {
-        for (name, kind) in [
-            ("package/../secret", b'0'),
-            ("outside/file", b'0'),
-            ("package/link", b'2'),
-            ("package/hard", b'1'),
-            ("package/a//b", b'0'),
-        ] {
-            assert!(decode(&archive(name, kind, b"synthetic")).is_err());
-        }
-        let good = archive("package/README.md", b'0', b"synthetic");
-        assert_eq!(decode(&good).unwrap().0["README.md"].bytes, b"synthetic");
-        assert!(decode(&good[..good.len() - 1]).is_err());
-        let mut tar = Vec::new();
-        MultiGzDecoder::new(good.as_slice())
-            .read_to_end(&mut tar)
-            .unwrap();
-        tar[0] ^= 1;
-        let mut gzip = GzEncoder::new(Vec::new(), Compression::default());
-        gzip.write_all(&tar).unwrap();
-        assert_eq!(
-            decode(&gzip.finish().unwrap()).unwrap_err(),
-            "Invalid tar header checksum"
-        );
-    }
-    #[test]
-    fn duplicate_entries_are_rejected_before_extraction() {
-        let bytes = archive("package/README.md", b'0', b"synthetic");
-        let mut tar = Vec::new();
-        MultiGzDecoder::new(bytes.as_slice())
-            .read_to_end(&mut tar)
-            .unwrap();
-        let entry = tar[..1024].to_vec();
-        tar.splice(1024..1024, entry);
-        let mut gzip = GzEncoder::new(Vec::new(), Compression::default());
-        gzip.write_all(&tar).unwrap();
-        assert_eq!(
-            decode(&gzip.finish().unwrap()).unwrap_err(),
-            "Unsafe or duplicate tar path"
-        );
-    }
-    #[test]
-    fn decompression_bound_is_enforced_before_parsing_entries() {
-        let mut gzip = GzEncoder::new(Vec::new(), Compression::default());
-        gzip.write_all(&vec![0; MAX_ARCHIVE + 1]).unwrap();
-        assert_eq!(
-            decode(&gzip.finish().unwrap()).unwrap_err(),
-            "Expanded archive exceeds 32 MiB"
-        );
-    }
-}
+#[path = "package_archive_tests.rs"]
+mod tests;

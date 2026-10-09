@@ -21,7 +21,7 @@ impl Fixture {
         let dir = Scratch::new("release-pack-synthetic").unwrap();
         let source = json!({"commit":"a".repeat(40),"dirty":false,"cargo_lock_sha256":"b".repeat(64),"provenance":"ci-source-build"});
         let target = "aarch64-apple-darwin";
-        let baseline = json!({"baseline":{"package":"claude-autorouter@0.5.2","node":">=22","cpu_restriction":null},"targets":[{"target":target}],"unresolved_baseline_architectures":["synthetic unresolved platform"],"artifact_caps":{"compressed_bytes":archive::MAX_ARCHIVE,"expanded_tar_bytes":archive::MAX_ARCHIVE}});
+        let baseline = json!({"baseline":{"package":"claude-autorouter@0.5.2","node":">=22","cpu_restriction":null},"targets":[{"target":target}],"unresolved_baseline_architectures":["synthetic unresolved platform"],"artifact_caps":{"compressed_bytes":archive::MAX_COMPRESSED,"expanded_tar_bytes":archive::MAX_NATIVE_EXPANDED,"file_bytes":archive::MAX_FILE,"entries":archive::NATIVE.entries}});
         let evidence = material(
             &dir,
             "evidence.json",
@@ -124,7 +124,9 @@ fn production_assembly_is_deterministic_bounded_and_has_no_node_runtime() {
     let files = fixture.assembled();
     assert_eq!(files, fixture.assembled());
     assert_eq!(files.len(), 6); // npm, one direct archive, index, and sidecars.
-    let (npm, _) = archive::decode(&files["claude-autorouter-0.4.0.tgz"]).unwrap();
+    let (npm, _) = archive::decode(&files["claude-autorouter-0.4.0.tgz"], archive::NATIVE)
+        .unwrap()
+        .into_parts();
     let manifest = json_read(&npm["package.json"].bytes).unwrap();
     assert!(manifest.get("scripts").is_none());
     assert!(manifest.get("engines").is_none());
@@ -247,7 +249,9 @@ fn direct_verifier_rejects_foreign_architecture_runtime_and_undeclared_docs() {
         "npm-hash",
         "self-approved",
     ] {
-        let (mut files, _) = archive::decode_root(&output[name], PACKAGE).unwrap();
+        let (mut files, _) = archive::decode_root(&output[name], PACKAGE, archive::NATIVE)
+            .unwrap()
+            .into_parts();
         match mutation {
             "foreign-cpu" => files.get_mut("bin/claude-autorouter").unwrap().bytes[4..8]
                 .copy_from_slice(&0x01000007u32.to_le_bytes()),
@@ -266,7 +270,7 @@ fn direct_verifier_rejects_foreign_architecture_runtime_and_undeclared_docs() {
                 files.get_mut("build-manifest.json").unwrap().bytes = json_bytes(&build);
             }
         }
-        let archive = archive::encode_root(PACKAGE, &files).unwrap();
+        let archive = archive::encode_root(PACKAGE, &files, archive::NATIVE).unwrap();
         assert!(direct::verify_bytes(name, &archive).is_err(), "{mutation}");
     }
 }
@@ -367,6 +371,11 @@ fn final_authorization_requires_exact_archive_bytes_and_all_distribution_checks(
     let npm = output.join("claude-autorouter-0.4.0.tgz");
     assert!(
         release::inspect_artifact(&npm, "v0.4.0", false)
+            .unwrap()
+            .native
+    );
+    assert!(
+        release::inspect_artifact(&npm, "v0.4.0", true)
             .unwrap()
             .native
     );

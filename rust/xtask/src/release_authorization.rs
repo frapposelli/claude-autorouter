@@ -3,6 +3,7 @@ use super::{MAX_INPUT, descriptor, digest, exact_set, hex, json_bytes, json_read
 use crate::package::archive;
 use crate::release::{self, PACKAGE};
 use serde_json::{Value, json};
+use std::borrow::Cow;
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 const NAME: &str = "release-authorization.json";
@@ -21,11 +22,15 @@ fn sidecar(path: &Path, cap: u64) -> Result<Vec<u8>, String> {
         .and_then(|s| s.to_str())
         .ok_or("Invalid artifact path")?;
     let bytes = release::regular(path, cap)?;
+    check_sidecar(path, name, &bytes)?;
+    Ok(bytes)
+}
+fn check_sidecar(path: &Path, name: &str, bytes: &[u8]) -> Result<(), String> {
     let checksum = release::regular(&path.with_file_name(format!("{name}.sha256")), 1024)?;
-    if checksum != format!("{}  {name}\n", digest(&bytes)).as_bytes() {
+    if checksum != format!("{}  {name}\n", digest(bytes)).as_bytes() {
         return Err("Final artifact sidecar mismatch".into());
     }
-    Ok(bytes)
+    Ok(())
 }
 fn safe_name(value: &Value) -> Result<&str, String> {
     value
@@ -46,6 +51,12 @@ pub(super) struct Candidate {
     pub(super) expected: BTreeMap<(String, String), Value>,
 }
 pub(super) fn candidate(dir: &Path) -> Result<Candidate, String> {
+    candidate_reusing(dir, None)
+}
+fn candidate_reusing(
+    dir: &Path,
+    reused: Option<(&str, &[u8], &archive::DecodedArchive)>,
+) -> Result<Candidate, String> {
     let index_bytes = sidecar(&dir.join(INDEX), MAX_INPUT)?;
     let index = json_read(&index_bytes)?;
     let version = index["version"].as_str().ok_or("Missing release version")?;
@@ -59,7 +70,14 @@ pub(super) fn candidate(dir: &Path) -> Result<Candidate, String> {
     }
     let npm_name = format!("{PACKAGE}-{version}.tgz");
     let mut archive_names = BTreeSet::new();
-    let mut expanded_total = 0usize;
+    if let Some((name, bytes, decoded)) = reused {
+        if name != npm_name || bytes.len() > archive::MAX_COMPRESSED {
+            return Err("Invalid reused npm archive identity".into());
+        }
+        decoded.require_policy(archive::NATIVE)?;
+    }
+    // Reserve the already-decoded npm archive up front, independent of index order.
+    let mut expanded_total = reused.map_or(0, |(_, _, decoded)| decoded.expanded_bytes);
     let mut direct_targets = BTreeSet::new();
     let mut expected = BTreeMap::new();
     let mut npm_files = None;
@@ -76,18 +94,39 @@ pub(super) fn candidate(dir: &Path) -> Result<Candidate, String> {
         if !archive_names.insert(name.to_owned()) {
             return Err("Duplicate candidate archive".into());
         }
-        let bytes = sidecar(&dir.join(name), archive::MAX_ARCHIVE as u64)?;
+        let reuse = reused.filter(|(reused_name, _, _)| *reused_name == name);
+        let bytes = if let Some((_, bytes, _)) = reuse {
+            check_sidecar(&dir.join(name), name, bytes)?;
+            Cow::Borrowed(bytes)
+        } else {
+            Cow::Owned(sidecar(&dir.join(name), archive::MAX_COMPRESSED as u64)?)
+        };
         if declared["sha256"] != digest(&bytes)
             || declared["bytes"].as_u64() != Some(bytes.len() as u64)
             || declared["integrity"] != release::integrity(&bytes)
         {
             return Err("Candidate archive changed after qualification".into());
         }
-        if name == npm_name {
-            let (files, expanded) = archive::decode(&bytes)?;
+        // Clamp inflation before allocating the next archive, even when an
+        // attacker supplies many individually valid archives in arbitrary order.
+        let remaining = super::MAX_EVIDENCE_TOTAL
+            .checked_sub(expanded_total)
+            .ok_or("Expanded release set exceeds 512 MiB verification budget")?;
+        let root = if name == npm_name { "package" } else { PACKAGE };
+        let decoded = if let Some((_, _, decoded)) = reuse {
+            Cow::Borrowed(decoded)
+        } else {
+            let decoded = archive::decode_root(&bytes, root, archive::NATIVE.remaining(remaining))?;
             expanded_total = expanded_total
-                .checked_add(expanded)
+                .checked_add(decoded.expanded_bytes)
                 .ok_or("Release set size overflow")?;
+            Cow::Owned(decoded)
+        };
+        if name == npm_name {
+            let files = match decoded {
+                Cow::Borrowed(decoded) => Cow::Borrowed(&decoded.files),
+                Cow::Owned(decoded) => Cow::Owned(decoded.files),
+            };
             let manifest = json_read(
                 &files
                     .get("package.json")
@@ -111,14 +150,11 @@ pub(super) fn candidate(dir: &Path) -> Result<Candidate, String> {
             npm_targets = Some(targets);
             npm_hash = Some(digest(&bytes));
         } else {
-            let report = super::direct::verify_bytes(name, &bytes)?;
-            expanded_total = expanded_total
-                .checked_add(report["expanded_tar_bytes"].as_u64().unwrap() as usize)
-                .ok_or("Release set size overflow")?;
-            direct_files.push((
-                report["target"].as_str().unwrap().to_owned(),
-                archive::decode_root(&bytes, PACKAGE)?.0,
-            ));
+            let report = super::direct::verify_decoded(name, &bytes, &decoded)?;
+            let Cow::Owned(decoded) = decoded else {
+                return Err("Only the npm archive can reuse a decoded map".into());
+            };
+            direct_files.push((report["target"].as_str().unwrap().to_owned(), decoded.files));
             if report["version"] != version || report["source"] != index["source"] {
                 return Err("Direct candidate identity differs from index".into());
             }
@@ -291,7 +327,25 @@ pub(super) fn authorize(
 }
 pub fn verify(archive: &Path) -> Result<Value, String> {
     let dir = archive.parent().unwrap_or(Path::new("."));
-    let candidate = candidate(dir)?;
+    verify_candidate(archive, &candidate(dir)?)
+}
+pub fn verify_decoded(
+    archive: &Path,
+    bytes: &[u8],
+    decoded: &archive::DecodedArchive,
+) -> Result<Value, String> {
+    let dir = archive.parent().unwrap_or(Path::new("."));
+    let name = archive
+        .file_name()
+        .and_then(|s| s.to_str())
+        .ok_or("Invalid npm archive filename")?;
+    verify_candidate(
+        archive,
+        &candidate_reusing(dir, Some((name, bytes, decoded)))?,
+    )
+}
+fn verify_candidate(archive: &Path, candidate: &Candidate) -> Result<Value, String> {
+    let dir = archive.parent().unwrap_or(Path::new("."));
     let name = archive
         .file_name()
         .and_then(|s| s.to_str())
@@ -311,7 +365,7 @@ pub fn verify(archive: &Path) -> Result<Value, String> {
     {
         return Err("Missing exact final archive authorization".into());
     }
-    instances(&authorization["instances"], &candidate)?;
+    instances(&authorization["instances"], candidate)?;
     for row in authorization["instances"].as_array().unwrap() {
         let hashes = exact_set(&row["evidence_sha256"])?;
         if hashes.is_empty() || hashes.iter().any(|s| !hex(&json!(s), 64)) {

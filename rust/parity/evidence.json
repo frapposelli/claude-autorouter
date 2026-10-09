@@ -6473,12 +6473,248 @@
       },
       "caps_unchanged": true,
       "no_live_calls_or_default_cutover": true
+    },
+    {
+      "id": "fifth_increment_status_drain_archive_policy_and_stream_validation",
+      "scope": "Status-state shared-drain parity fix; reviewed bounded native64MiB expanded policy; safe context-bound OpenSSL session/store APIs awaiting test-only integration; benchmarkv2 successful-stream qualification; robust private fixture directory allocation. Shipping JavaScript/default transport unchanged.",
+      "rust_tests": {
+        "passed": 519,
+        "failed": 0,
+        "ignored": 1
+      },
+      "node_tests": 596,
+      "installed_cli_tests": 73,
+      "baseline_mapping_counts": {
+        "covered": 250,
+        "partial": 111,
+        "pending": 227,
+        "total": 588
+      },
+      "checks": [
+        {
+          "name": "fmt",
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "original_path": "artifacts/rust-rewrite/fifth-final-fmt.log"
+          },
+          "exit_code": 0,
+          "exit_code_source": "Recorded subprocess completion in fifth-final-checks.json."
+        },
+        {
+          "name": "clippy",
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/f4403412cb20dc7d8a0a94c08c9c8853e4bac9b3e8489158834f30512311ed97.log",
+            "sha256": "f4403412cb20dc7d8a0a94c08c9c8853e4bac9b3e8489158834f30512311ed97",
+            "original_path": "artifacts/rust-rewrite/fifth-final-clippy.log"
+          },
+          "exit_code": 0,
+          "exit_code_source": "Recorded subprocess completion in fifth-final-checks.json."
+        },
+        {
+          "name": "workspace",
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/0c3aa68ba0106d06d2767ece0cdcdd1053ab9b25a67d2b95f08dbfe1f4f0141f.log",
+            "sha256": "0c3aa68ba0106d06d2767ece0cdcdd1053ab9b25a67d2b95f08dbfe1f4f0141f",
+            "original_path": "artifacts/rust-rewrite/fifth-final-workspace.log"
+          },
+          "exit_code": 0,
+          "exit_code_source": "Recorded subprocess completion in fifth-final-checks.json."
+        },
+        {
+          "name": "release",
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/f4fdab90ea31db21d1e1abadb4c40568f154d5e95185d11b1ab4d023d44d859d.log",
+            "sha256": "f4fdab90ea31db21d1e1abadb4c40568f154d5e95185d11b1ab4d023d44d859d",
+            "original_path": "artifacts/rust-rewrite/fifth-final-release.log"
+          },
+          "exit_code": 0,
+          "exit_code_source": "Recorded subprocess completion in fifth-final-checks.json."
+        },
+        {
+          "name": "node-check",
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/4882654ddbf9853bf4f185dc398c36b83eaa63b59fbb76d525b746ce417b768f.log",
+            "sha256": "4882654ddbf9853bf4f185dc398c36b83eaa63b59fbb76d525b746ce417b768f",
+            "original_path": "artifacts/rust-rewrite/fifth-node-check.log"
+          },
+          "exit_code": 0,
+          "exit_code_source": "Root observed successful tool process completion."
+        },
+        {
+          "name": "node-test",
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/6392dc0d2fdcc35c867dc2197444f908f120ba8069ef711835b9c721bf017672.log",
+            "sha256": "6392dc0d2fdcc35c867dc2197444f908f120ba8069ef711835b9c721bf017672",
+            "original_path": "artifacts/rust-rewrite/fifth-node-test.log"
+          },
+          "exit_code": 0,
+          "exit_code_source": "Root observed successful tool process completion."
+        },
+        {
+          "name": "node-package",
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/0c8e9eeb61827041357f9bb72c389c17daff9c3b157892c8231717df3eeebc83.log",
+            "sha256": "0c8e9eeb61827041357f9bb72c389c17daff9c3b157892c8231717df3eeebc83",
+            "original_path": "artifacts/rust-rewrite/fifth-node-package.log"
+          },
+          "exit_code": 0,
+          "exit_code_source": "Root observed successful tool process completion."
+        },
+        {
+          "name": "verify-openssl",
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/48b1eac4538fecd1908df10b85bfedc79be07c4006e4124ebf3550cabc7a08c3.log",
+            "sha256": "48b1eac4538fecd1908df10b85bfedc79be07c4006e4124ebf3550cabc7a08c3",
+            "original_path": "artifacts/rust-rewrite/fifth-verify-openssl.log"
+          },
+          "exit_code": 0,
+          "exit_code_source": "Root observed successful tool process completion."
+        },
+        {
+          "name": "verify-hyper",
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/5e10b572ac528eddaa3d19d4b1a17c944eb129d4156697b65d359d14c0985cb0.log",
+            "sha256": "5e10b572ac528eddaa3d19d4b1a17c944eb129d4156697b65d359d14c0985cb0",
+            "original_path": "artifacts/rust-rewrite/fifth-verify-hyper.log"
+          },
+          "exit_code": 0,
+          "exit_code_source": "Root observed successful tool process completion."
+        },
+        {
+          "name": "verify-spike",
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/f52c1be3e52f9f32c6072551730ed21d70f3ba0fbbf836df13be57a2143abb59.log",
+            "sha256": "f52c1be3e52f9f32c6072551730ed21d70f3ba0fbbf836df13be57a2143abb59",
+            "original_path": "artifacts/rust-rewrite/fifth-verify-spike.log"
+          },
+          "exit_code": 0,
+          "exit_code_source": "Root observed successful tool process completion."
+        },
+        {
+          "name": "verify-fuzz",
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/5f8c53164f127e2c6823f5f836244c5a606baaa23daa6432854fbded66c3b0a7.log",
+            "sha256": "5f8c53164f127e2c6823f5f836244c5a606baaa23daa6432854fbded66c3b0a7",
+            "original_path": "artifacts/rust-rewrite/fifth-verify-fuzz.log"
+          },
+          "exit_code": 0,
+          "exit_code_source": "Root observed successful tool process completion."
+        },
+        {
+          "name": "benchmark-v1-validation",
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/89434e5ccea0eb5f22199f5e60e6d23d1aecb36b8dddf465ef406c2b6883efc2.log",
+            "sha256": "89434e5ccea0eb5f22199f5e60e6d23d1aecb36b8dddf465ef406c2b6883efc2",
+            "original_path": "artifacts/rust-rewrite/fifth-benchmark-v1-validation.log"
+          },
+          "exit_code": 0,
+          "exit_code_source": "Root observed successful tool process completion."
+        },
+        {
+          "name": "benchmark-v2-validation-2",
+          "result": {
+            "path": "artifacts/rust-rewrite/evidence/49f8ce2954ba0a7cfcfc89ec802d55337e5cbe53f14a1095488ab48b82282782.log",
+            "sha256": "49f8ce2954ba0a7cfcfc89ec802d55337e5cbe53f14a1095488ab48b82282782",
+            "original_path": "artifacts/rust-rewrite/fifth-benchmark-v2-validation-2.log"
+          },
+          "exit_code": 0,
+          "exit_code_source": "Root observed successful tool process completion."
+        }
+      ],
+      "check_report": {
+        "path": "artifacts/rust-rewrite/evidence/e84b2ff704ec6772735ede6f92a1d0eac798c36b164d31603a0e817cb8d8ad37.json",
+        "sha256": "e84b2ff704ec6772735ede6f92a1d0eac798c36b164d31603a0e817cb8d8ad37",
+        "original_path": "artifacts/rust-rewrite/fifth-final-checks.json"
+      },
+      "source_inputs": {
+        "path": "artifacts/rust-rewrite/evidence/dec098c128d10571eebc674d4c11cd134198e4a70212bcb9f92b2e46b9dd0ced.json",
+        "sha256": "dec098c128d10571eebc674d4c11cd134198e4a70212bcb9f92b2e46b9dd0ced",
+        "original_path": "artifacts/rust-rewrite/fifth-final-source-inputs.json"
+      },
+      "assertion_mapping": {
+        "path": "artifacts/rust-rewrite/evidence/e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e.json",
+        "sha256": "e36866516565832cc5e3048a061d2017aa451e2c09967e79a90f244e9a18fc3e",
+        "original_path": "rust/parity/assertion-mappings/status-state-contracts.json"
+      },
+      "status_capture": {
+        "path": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+        "sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+        "original_path": "rust/parity/cases/status-state-contracts.capture.json"
+      },
+      "status_fix": "flush waits for the active drain to reach quiescence, including updates accepted during a blocked write; one acceptance lock defines completion without spanning filesystem I/O. Original failing regression and frozen Node control retained.",
+      "native_archive_policy": {
+        "path": "artifacts/rust-rewrite/evidence/977026fb34ebdfbe9c1210bebc5b57018da3175e32dc266c25b36a78b2ab55af.json",
+        "sha256": "977026fb34ebdfbe9c1210bebc5b57018da3175e32dc266c25b36a78b2ab55af",
+        "original_path": "rust/parity/measurements/native-cap-policy-main-summary.json"
+      },
+      "native_caps": {
+        "compressed": 33554432,
+        "expanded": 67108864,
+        "file": 33554432,
+        "entries": 256
+      },
+      "historical_source_expansion_caps_unchanged": 33554432,
+      "test_only_tls_bindings": {
+        "path": "artifacts/rust-rewrite/evidence/952132ec3bbab934639cd67fb5ae4ff5938a440c600d72f429561a0f7d16f70b.json",
+        "sha256": "952132ec3bbab934639cd67fb5ae4ff5938a440c600d72f429561a0f7d16f70b",
+        "original_path": "rust/parity/measurements/openssl-b2-bindings-summary.json"
+      },
+      "tls_limits": "7 ownership tests and3 compile-fail tests qualify safe binding ownership only. No runtime session cache or production transport promotion. Existing223/115transport reports remain historical against their exact candidates.",
+      "benchmark_v2": {
+        "path": "artifacts/rust-rewrite/evidence/2f6fc5f40aa4576ea24c1a40e6feee69d068d84f8b86c517ab7af666ece8a9c2.json",
+        "sha256": "2f6fc5f40aa4576ea24c1a40e6feee69d068d84f8b86c517ab7af666ece8a9c2",
+        "original_path": "rust/parity/measurements/local-v2-validation-summary.json"
+      },
+      "benchmark_v1_default_validation": {
+        "path": "artifacts/rust-rewrite/evidence/37caeb300a61416f869e2cf6df234f209bdeca9d1822b7b077a541392a508b38.json",
+        "sha256": "37caeb300a61416f869e2cf6df234f209bdeca9d1822b7b077a541392a508b38",
+        "original_path": "artifacts/rust-rewrite/benchmark-v1-validation-fifth/report.json"
+      },
+      "benchmark_limits": "69v2rows/3456measuredrequests including1344streamrequests; exact fields/counts/bytes and observedconcurrency. Validation retains no numerical performance metrics; overall gates remain incomplete. Defaultv1also passes45rows.",
+      "native_host_summary": {
+        "path": "artifacts/rust-rewrite/evidence/e935ea99d63b7a423b1db6487d7c8405dad26e6442c4660711994d46cbd6ca90.json",
+        "sha256": "e935ea99d63b7a423b1db6487d7c8405dad26e6442c4660711994d46cbd6ca90",
+        "original_path": "rust/parity/measurements/native-host-8-summary.json"
+      },
+      "runtime_binary_sha256": "65a1ef18217d5486abd817c09e86354e975bd0b8a9e5a27a6f0c5570b240dfd6",
+      "final_release_runtime_identical_to_installed_archive": true,
+      "prior_ci_checkpoint_outcomes": {
+        "path": "artifacts/rust-rewrite/evidence/b23f20361730c550d3a9331510e6ebd910b9fb8953d7b2d9471a1548a20d8a97.json",
+        "sha256": "b23f20361730c550d3a9331510e6ebd910b9fb8953d7b2d9471a1548a20d8a97",
+        "original_path": "rust/parity/measurements/ci-1d8-checkpoint-summary.json"
+      },
+      "fixture_directory_fix": {
+        "path": "artifacts/rust-rewrite/evidence/5e348e0fea6c28f4f927906fb2042743e0beca8b3f470177af72d32a33c6c89f.json",
+        "sha256": "5e348e0fea6c28f4f927906fb2042743e0beca8b3f470177af72d32a33c6c89f",
+        "original_path": "artifacts/rust-rewrite/evidence/process-scratch-fix-5e348e0fea6c28f4f927906fb2042743e0beca8b3f470177af72d32a33c6c89f.json"
+      },
+      "retained_failures": [
+        {
+          "path": "artifacts/rust-rewrite/evidence/6dc9d8ac34b4bdba2a4f9a06cf44f1761ab36d824db43db22507609cc93a7413.log",
+          "sha256": "6dc9d8ac34b4bdba2a4f9a06cf44f1761ab36d824db43db22507609cc93a7413",
+          "original_path": "artifacts/rust-rewrite/fifth-workspace-1.log"
+        },
+        {
+          "path": "artifacts/rust-rewrite/evidence/827edcf399e027aeb4772f2b8dd7404c6ae23207974b243d1fd0ed33e911ac37.log",
+          "sha256": "827edcf399e027aeb4772f2b8dd7404c6ae23207974b243d1fd0ed33e911ac37",
+          "original_path": "artifacts/rust-rewrite/native-archive-policy-xtask-1.log"
+        },
+        {
+          "path": "artifacts/rust-rewrite/evidence/952ee97c7f51b143ef168cc87e1f820f556913e80f3aad91efbdeaec9af48b56.json",
+          "sha256": "952ee97c7f51b143ef168cc87e1f820f556913e80f3aad91efbdeaec9af48b56",
+          "original_path": "artifacts/rust-rewrite/benchmark-v2-validation-1/failure.json"
+        }
+      ],
+      "failure_limits": "Workspace directory-creation failure did not retain ErrorKind; timestamp collision is plausible, not established. Random naming/collision retries now have deterministic regression coverage. Archive-tool failure was sandbox loopback binding; explicit retry passed. Benchmark first invocation rejected oversized debug executable before workloads. No assertions/limits relaxed.",
+      "no_live_calls_or_default_cutover": true,
+      "release_approved": false
     }
   ],
   "native_package_host_summary": {
-    "path": "artifacts/rust-rewrite/evidence/7b5d452ac65b4d0d789431513488603b2aecd7729d1754d45a2f72be366aa9c0.json",
-    "sha256": "7b5d452ac65b4d0d789431513488603b2aecd7729d1754d45a2f72be366aa9c0",
-    "original_path": "rust/parity/measurements/native-host-7-summary.json"
+    "path": "artifacts/rust-rewrite/evidence/e935ea99d63b7a423b1db6487d7c8405dad26e6442c4660711994d46cbd6ca90.json",
+    "sha256": "e935ea99d63b7a423b1db6487d7c8405dad26e6442c4660711994d46cbd6ca90",
+    "original_path": "rust/parity/measurements/native-host-8-summary.json"
   },
   "native_package_host_summary_history": [
     {
@@ -6580,6 +6816,11 @@
         "input_discard_and_restoration_are_separate_nondraining_syscalls;typing_after_flush_is_outside_discard_boundary",
         "real_Ctrl_Z_and_existing_synchronous_prompt_output_require_separate_qualification"
       ]
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/7b5d452ac65b4d0d789431513488603b2aecd7729d1754d45a2f72be366aa9c0.json",
+      "sha256": "7b5d452ac65b4d0d789431513488603b2aecd7729d1754d45a2f72be366aa9c0",
+      "original_path": "rust/parity/measurements/native-host-7-summary.json"
     }
   ],
   "native_ci_checkpoint_summary": {
@@ -6596,5 +6837,25 @@
     "path": "artifacts/rust-rewrite/evidence/d846e7566cfa515845cf2219445c64df7d6864d59319623a492cbf7b4574d33d.json",
     "sha256": "d846e7566cfa515845cf2219445c64df7d6864d59319623a492cbf7b4574d33d",
     "original_path": "rust/parity/measurements/expanded-cap-8e94-summary.json"
+  },
+  "native_ci_workflow_outcomes": {
+    "path": "artifacts/rust-rewrite/evidence/b23f20361730c550d3a9331510e6ebd910b9fb8953d7b2d9471a1548a20d8a97.json",
+    "sha256": "b23f20361730c550d3a9331510e6ebd910b9fb8953d7b2d9471a1548a20d8a97",
+    "original_path": "rust/parity/measurements/ci-1d8-checkpoint-summary.json"
+  },
+  "expanded_archive_cap_implementation": {
+    "path": "artifacts/rust-rewrite/evidence/977026fb34ebdfbe9c1210bebc5b57018da3175e32dc266c25b36a78b2ab55af.json",
+    "sha256": "977026fb34ebdfbe9c1210bebc5b57018da3175e32dc266c25b36a78b2ab55af",
+    "original_path": "rust/parity/measurements/native-cap-policy-main-summary.json"
+  },
+  "test_only_session_binding_summary": {
+    "path": "artifacts/rust-rewrite/evidence/952132ec3bbab934639cd67fb5ae4ff5938a440c600d72f429561a0f7d16f70b.json",
+    "sha256": "952132ec3bbab934639cd67fb5ae4ff5938a440c600d72f429561a0f7d16f70b",
+    "original_path": "rust/parity/measurements/openssl-b2-bindings-summary.json"
+  },
+  "benchmark_v2_validation_summary": {
+    "path": "artifacts/rust-rewrite/evidence/2f6fc5f40aa4576ea24c1a40e6feee69d068d84f8b86c517ab7af666ece8a9c2.json",
+    "sha256": "2f6fc5f40aa4576ea24c1a40e6feee69d068d84f8b86c517ab7af666ece8a9c2",
+    "original_path": "rust/parity/measurements/local-v2-validation-summary.json"
   }
 }

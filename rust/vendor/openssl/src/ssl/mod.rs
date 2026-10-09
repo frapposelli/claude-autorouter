@@ -1440,6 +1440,33 @@ impl SslContextBuilder {
         }
     }
 
+    /// Receives immutable sessions bound to the connection's original context.
+    ///
+    /// AutoRouter's local OpenSSL 3 extension. This replaces the ordinary new
+    /// session callback and uses its existing callback trampoline. Session
+    /// caching must be enabled separately. No snapshot is produced when the
+    /// connection's current context differs from its original context.
+    ///
+    /// A snapshot proves context ownership, not successful peer verification.
+    /// Callers must delay cache publication until their connection acceptance
+    /// checks pass, isolate cache keys by peer and verification policy, and
+    /// bound cache memory. A callback which retains snapshots must capture its
+    /// cache weakly: a strong context -> callback -> cache -> snapshot -> context
+    /// cycle would otherwise retain the context indefinitely.
+    #[cfg(ossl300)]
+    pub fn set_bound_new_session_callback<F>(&mut self, callback: F)
+    where
+        F: Fn(&mut SslRef, Result<ContextBoundSession, BoundSessionError>)
+            + 'static
+            + Sync
+            + Send,
+    {
+        self.set_new_session_callback(move |ssl, session| {
+            let snapshot = ContextBoundSession::capture(ssl, &session);
+            callback(ssl, snapshot);
+        });
+    }
+
     /// Sets the callback which is called when sessions are removed from the context.
     ///
     /// Sessions can be removed because they have timed out or because they are considered faulty.
@@ -2263,6 +2290,118 @@ impl SslSessionRef {
     }
 }
 
+/// A private immutable session snapshot retained with its original context.
+///
+/// AutoRouter's local OpenSSL 3 extension. Only an actual new-session callback
+/// can construct this value. It exposes neither serialized bytes nor a native
+/// mutable session and deliberately implements no `Debug` or deserialization.
+/// Cloning shares the immutable snapshot, not a mutable `SSL_SESSION` object.
+/// Each installation decodes a fresh independent session.
+///
+/// No public byte constructor or field access can forge context ownership:
+///
+/// ```compile_fail
+/// use openssl::ssl::ContextBoundSession;
+/// let forged = ContextBoundSession::from_der(b"arbitrary session");
+/// ```
+///
+/// ```compile_fail
+/// use openssl::ssl::ContextBoundSession;
+/// fn inspect(snapshot: &ContextBoundSession) { let _ = &snapshot.inner; }
+/// ```
+///
+/// Formatting must not accidentally expose session material:
+///
+/// ```compile_fail
+/// use openssl::ssl::ContextBoundSession;
+/// fn log(snapshot: &ContextBoundSession) { let _ = format!("{snapshot:?}"); }
+/// ```
+///
+/// Context identity alone does not establish peer, hostname or policy identity.
+/// Applications must isolate caches and publish only accepted connections.
+#[cfg(ossl300)]
+#[derive(Clone)]
+pub struct ContextBoundSession {
+    inner: Arc<ContextBoundSessionInner>,
+}
+
+#[cfg(ossl300)]
+struct ContextBoundSessionInner {
+    der: Box<[u8]>,
+    context: SslContext,
+}
+
+/// Sanitized failures from the context-bound session extension.
+///
+/// These variants carry no session bytes, keys, certificate contents, addresses
+/// or OpenSSL error-stack data. A failure never selects a replacement context.
+#[cfg(ossl300)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[non_exhaustive]
+pub enum BoundSessionError {
+    /// The connection was not created with the binding's original-context slot.
+    MissingOriginalContext,
+    /// The current context differs from the connection's original context.
+    ContextChanged,
+    /// The snapshot originated from a different context.
+    ForeignContext,
+    /// OpenSSL could not serialize the callback's session.
+    SnapshotFailed,
+    /// OpenSSL could not decode the private snapshot for this attempt.
+    DecodeFailed,
+    /// OpenSSL rejected installation of the decoded session.
+    InstallFailed,
+}
+
+#[cfg(ossl300)]
+impl fmt::Display for BoundSessionError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(match self {
+            Self::MissingOriginalContext => "original TLS context is unavailable",
+            Self::ContextChanged => "TLS context was changed",
+            Self::ForeignContext => "TLS session belongs to a different context",
+            Self::SnapshotFailed => "TLS session snapshot failed",
+            Self::DecodeFailed => "TLS session snapshot could not be decoded",
+            Self::InstallFailed => "TLS session could not be installed",
+        })
+    }
+}
+
+#[cfg(ossl300)]
+impl std::error::Error for BoundSessionError {}
+
+#[cfg(ossl300)]
+impl ContextBoundSession {
+    // Deliberately private: never bind caller-supplied bytes or an arbitrary
+    // (session, context) pair. The sole caller is the actual callback adapter.
+    fn capture(ssl: &SslRef, session: &SslSessionRef) -> Result<Self, BoundSessionError> {
+        let index = SESSION_CTX_INDEX
+            .get()
+            .ok_or(BoundSessionError::MissingOriginalContext)?;
+        let original = ssl
+            .ex_data(*index)
+            .ok_or(BoundSessionError::MissingOriginalContext)?;
+        if original.as_ptr() != ssl.ssl_context().as_ptr() {
+            return Err(BoundSessionError::ContextChanged);
+        }
+        let der = session
+            .to_der()
+            .map_err(|_| BoundSessionError::SnapshotFailed)?;
+        Ok(Self {
+            inner: Arc::new(ContextBoundSessionInner {
+                der: der.into_boxed_slice(),
+                context: original.clone(),
+            }),
+        })
+    }
+
+    /// Returns the encoded size for application cache accounting, without
+    /// exposing the secret serialized session itself.
+    pub fn encoded_len(&self) -> usize {
+        self.inner.der.len()
+    }
+}
+
 foreign_type_and_impl_send_sync! {
     type CType = ffi::SSL;
     fn drop = ffi::SSL_free;
@@ -2875,6 +3014,44 @@ impl SslRef {
     #[corresponds(SSL_set_session)]
     pub unsafe fn set_session(&mut self, session: &SslSessionRef) -> Result<(), ErrorStack> {
         cvt(ffi::SSL_set_session(self.as_ptr(), session.as_ptr())).map(|_| ())
+    }
+
+    /// Installs an independently decoded session from this original context.
+    ///
+    /// AutoRouter's local OpenSSL 3 extension. Call before the client handshake.
+    /// Both the binding's original context and the current context must match
+    /// the snapshot's retained context. Identity checks happen before decoding
+    /// or installing anything; an identity failure leaves the existing session alone.
+    ///
+    /// Like `set_session`, success does not promise the server will resume.
+    /// This operation performs no network action, retry, cache lookup, peer
+    /// verification or hostname check. Application cache-key/acceptance rules
+    /// remain the caller's responsibility.
+    #[cfg(ossl300)]
+    pub fn set_bound_session(
+        &mut self,
+        snapshot: &ContextBoundSession,
+    ) -> Result<(), BoundSessionError> {
+        let index = SESSION_CTX_INDEX
+            .get()
+            .ok_or(BoundSessionError::MissingOriginalContext)?;
+        let original = self
+            .ex_data(*index)
+            .ok_or(BoundSessionError::MissingOriginalContext)?;
+        if original.as_ptr() != self.ssl_context().as_ptr() {
+            return Err(BoundSessionError::ContextChanged);
+        }
+        if original.as_ptr() != snapshot.inner.context.as_ptr() {
+            return Err(BoundSessionError::ForeignContext);
+        }
+        let session = SslSession::from_der(&snapshot.inner.der)
+            .map_err(|_| BoundSessionError::DecodeFailed)?;
+        // SAFETY: Only the real new-session callback can create a snapshot.
+        // Its original context stays alive with the immutable DER, preventing
+        // pointer reuse. Both original/current target contexts match it above.
+        // A fresh decode avoids sharing a native session's mutable state.
+        unsafe { self.set_session(&session) }
+            .map_err(|_| BoundSessionError::InstallFailed)
     }
 
     /// Determines if the session provided to `set_session` was successfully reused.

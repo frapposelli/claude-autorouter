@@ -2,7 +2,7 @@
 
 This directory defines an experimental archive format. The shipping JavaScript npm package is unchanged. Candidate archives are private, use the existing version, and must not be published. Platform and performance gates remain pending.
 
-The POSIX dispatcher resolves npm's symbolic links, selects a bundled executable and uses `exec` with the original arguments. It performs no downloads and has no Node fallback. Package verification rejects links, traversal, duplicate files, incorrect binary architecture, checksum drift and non-executable launchers. Both compressed and expanded archives retain the existing 32 MiB bounds.
+The POSIX dispatcher resolves npm's symbolic links, selects a bundled executable and uses `exec` with the original arguments. It performs no downloads and has no Node fallback. Package verification rejects links, traversal, duplicate files, incorrect binary architecture, checksum drift and non-executable launchers. Native npm and direct archives use separate limits: 32 MiB compressed, 64 MiB expanded, 32 MiB per file and 256 tar entries. Historical JavaScript archives and source bundles retain 32 MiB expansion. The complete supported target matrix must fit these bounds; changing a cap does not qualify a platform or authorize publication.
 
 The four historical CI archives for head `5cd7118` each passed an offline
 installed smoke test with 27 CLI tests. Combining their executables was rejected:
@@ -53,10 +53,19 @@ and source metadata.
 
 An [isolated cap experiment](expanded-cap-proposal.md) assembled those four CI
 binaries into a 23,943,704-byte compressed, 58,821,120-byte expanded archive and
-passed the matching host installed tests. It supports review of separate
-32 MiB compressed, 64 MiB expanded and 32 MiB per-file bounds. Main limits remain
-unchanged; full-matrix fit, reader hardening and final-artifact qualification
-are still required before adopting that proposal.
+passed the matching host installed tests. That retained experiment supported
+the separately reviewed native bounds now implemented in the Rust readers.
+Historical reports remain unchanged. Full-matrix fit and final-artifact
+qualification are still required.
+
+The [main-policy replay](../parity/measurements/native-cap-policy-main-summary.json)
+packages the same four CI binaries with the current reader policy: 23,943,910
+compressed bytes and 58,835,456 expanded bytes. Its exact archive passed all
+73 installed host tests; the retained old verifier rejects it at 32 MiB expansion.
+The new streaming reader also passed exact-bound and malformed-input tests.
+These are private feasibility and local resource observations, not qualification
+of later runtime changes, foreign execution, the complete platform matrix or a
+release artifact.
 
 Inspection of those same historical Linux executables found non-weak GLIBC
 version requirements through **2.34 on x86_64** and **2.39 on ARM64**. Their

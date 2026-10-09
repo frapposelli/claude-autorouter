@@ -41,12 +41,22 @@ pub fn assemble(
     direct_artifact["path"] = json!(EXECUTABLE);
     let manifest = json!({"schema_version":2,"kind":"native_direct_release","release_approved":false,"qualification_approved":true,"version":version,"target":target,"source":build["source"],"qualification":build["qualification"],"approval":build["approval"],"npm":{"filename":npm_name,"sha256":npm_sha},"files":declarations(&files),"artifact":direct_artifact});
     insert(&mut files, MANIFEST, json_bytes(&manifest), 0o644);
-    let bytes = archive::encode_root(PACKAGE, &files)?;
+    let bytes = archive::encode_root(PACKAGE, &files, archive::NATIVE)?;
     verify_bytes(&filename(version, target), &bytes)?;
     Ok((filename(version, target), bytes))
 }
 pub fn verify_bytes(name: &str, bytes: &[u8]) -> Result<Value, String> {
-    let (files, expanded) = archive::decode_root(bytes, PACKAGE)?;
+    let decoded = archive::decode_root(bytes, PACKAGE, archive::NATIVE)?;
+    verify_decoded(name, bytes, &decoded)
+}
+pub(super) fn verify_decoded(
+    name: &str,
+    bytes: &[u8],
+    decoded: &archive::DecodedArchive,
+) -> Result<Value, String> {
+    decoded.require_policy(archive::NATIVE)?;
+    let files = &decoded.files;
+    let expanded = decoded.expanded_bytes;
     let build = json_read(
         &files
             .get(MANIFEST)
@@ -164,7 +174,7 @@ pub fn verify_path(path: &Path) -> Result<Value, String> {
         .file_name()
         .and_then(|v| v.to_str())
         .ok_or("Invalid direct archive filename")?;
-    let bytes = release::regular(path, archive::MAX_ARCHIVE as u64)?;
+    let bytes = release::regular(path, archive::MAX_COMPRESSED as u64)?;
     let checksum = release::regular(&path.with_file_name(format!("{name}.sha256")), 1024)?;
     if checksum != format!("{}  {name}\n", digest(&bytes)).as_bytes() {
         return Err("Direct archive checksum sidecar differs".into());

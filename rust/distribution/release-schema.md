@@ -16,7 +16,7 @@ cargo xtask release-verify verify vVERSION --archive ../dist/claude-autorouter-V
 
 Assembly and authorization are offline and never run builds, installers, measurements or provider calls. These commands never publish, move a dist-tag, create a version/tag, or edit user configuration. `preflight`, `verify`, and `artifact-source` make read-only registry/GitHub calls when explicitly invoked; `verify` also runs an isolated npm installation and the installed CLI's help/version. No such calls are part of the unit tests.
 
-The source check requires an exact version-tag/HEAD match, ancestry from `origin/main`, and a clean checkout. The archive check retains the compressed and expanded 32 MiB bounds, rejects links, traversal, duplicate paths, altered checksums and undeclared files, and verifies the runtime documentation baseline. Package identity, repository and public-registry settings must match the established package.
+The source check requires an exact version-tag/HEAD match, ancestry from `origin/main`, and a clean checkout. The native archive check enforces 32 MiB compressed, 64 MiB expanded, 32 MiB per file and 256 tar entries, rejects links, traversal, duplicate paths, altered checksums and undeclared files, and verifies the runtime documentation baseline. Package identity, repository and public-registry settings must match the established package.
 
 `package` currently produces **private feasibility artifacts**, with build schema 1 and `release_approved: false`. Those artifacts deliberately fail the production release checks. Creating a public manifest or recomputing an archive checksum does not turn schema 1 into a qualified release. `release-pack` is the separate production candidate assembler. It fails closed until the rewrite's required platform, compatibility, performance, license and lifecycle evidence is available. Current pending matrices and host-only reports cannot satisfy it. Distribution cutover remains separate work.
 
@@ -39,7 +39,7 @@ Embedded qualification cannot authorize publication: every candidate retains `re
 
 ## Candidate inputs and direct archives
 
-`release-pack vVERSION --inputs FILE --output FRESH_DIRECTORY` requires an existing output parent and refuses to replace any directory or symlink. It reads only explicit inputs and the public source allowlist. Paths in descriptors resolve relative to the input JSON file; absolute paths are permitted. Every material descriptor has `path` and its lowercase `sha256`. Input JSON is bounded to 2 MiB, individual retained evidence to 128 MiB and all evidence verification to 512 MiB. The compressed and expanded 32 MiB caps apply separately to every archive, including the complete npm target matrix; the assembler does not increase them when the matrix cannot fit.
+`release-pack vVERSION --inputs FILE --output FRESH_DIRECTORY` requires an existing output parent and refuses to replace any directory or symlink. It reads only explicit inputs and the public source allowlist. Paths in descriptors resolve relative to the input JSON file; absolute paths are permitted. Every material descriptor has `path` and its lowercase `sha256`. Input JSON is bounded to 2 MiB, individual retained evidence to 128 MiB and all evidence verification to 512 MiB. The 32 MiB compressed, 64 MiB expanded, 32 MiB individual-file and 256-entry native caps apply separately to every archive, including the complete npm target matrix. The assembler rejects a matrix that cannot fit; embedded cap declarations never authorize larger allocations. Release-set verification applies its remaining 512 MiB expanded budget before decoding each archive and reuses validated maps, including an npm map already checked by release inspection.
 
 The input document has `schema_version: 1`, `kind: "native_release_inputs"`, and:
 
@@ -98,3 +98,33 @@ Unavailable metadata, delayed tags/tarballs and installation outages remain pend
 `release-verify inspect-legacy TAG --archive PATH` explicitly reads supported historical JavaScript package archives without executing them. `verify-historical` explicitly performs registry and isolated-install verification for those archives. Historical inspection cannot authorize native publication; the native preflight requires production schema 2. This preserves older package evidence without giving the new product a Node runtime fallback.
 
 `release-verify notes TAG --archive PATH --report PATH` writes release notes from the checked source and immutable archive identity. GitHub output values are bounded to single-line validated metadata. Reports contain states, identifiers, hashes and metadata, never response bodies, credentials or command diagnostics.
+
+## Archive reader policies
+
+Native-only package, direct-release, installed-native and candidate readers select
+native limits before inflation. They check the entry count before allocating
+paths or metadata and check declared file size and the remaining expanded budget
+before allocating payloads. Inflation and encoding stream through fixed buffers;
+encoding uses a bounded compressed writer, including its gzip trailer. All gzip
+members and trailing zero padding share the selected expanded budget. The reader
+preserves historical acceptance of non-block-aligned trailing zero padding.
+
+Known frozen JavaScript rollback archives and benchmark source bundles select
+32 MiB compressed/expanded/file limits before inflation. Their compatible count
+ceiling is 65,534 entries, derived from the old expanded bound and tar headers.
+`--allow-historical` permits both native and historical formats, so inspection
+uses an explicit mixed envelope: 32 MiB compressed/file, 64 MiB expanded and
+65,534 entries until classification. Native classification immediately rechecks
+256 entries; historical classification rechecks 32 MiB expanded. An invalid
+native manifest never retries historical validation. This mixed inspection can
+therefore allocate up to the native expanded envelope before rejecting a large
+historical archive; known historical callers retain their tighter allocation
+bound from the outset.
+
+These limits bound accepted data and requested payload allocation, not process
+RSS. Owned files, compressed input, bounded metadata, allocator overhead and
+parsed manifests coexist. Release-set verification may retain maps totaling up
+to 512 MiB expanded; the already-decoded npm map is reserved up front regardless
+of index order. Network responses, JSON descriptors, evidence files, runtime
+requests and observers retain their separate existing limits. No source archive,
+HTTP response or individual executable inherits the native 64 MiB expansion cap.

@@ -567,6 +567,13 @@ pub fn inspect_artifact(
     tag: &str,
     allow_historical: bool,
 ) -> Result<Artifact, ReleaseError> {
+    inspect_artifact_decoded(path, tag, allow_historical).map(|(artifact, _)| artifact)
+}
+fn inspect_artifact_decoded(
+    path: &Path,
+    tag: &str,
+    allow_historical: bool,
+) -> Result<(Artifact, archive::DecodedArchive), ReleaseError> {
     let version = tag
         .strip_prefix('v')
         .ok_or_else(|| error("invalid_version", "release_tag_required"))?;
@@ -575,7 +582,7 @@ pub fn inspect_artifact(
     if path.file_name().and_then(|s| s.to_str()) != Some(&filename) {
         return Err(error("invalid_archive", "filename_mismatch"));
     }
-    let bytes = regular(path, archive::MAX_ARCHIVE as u64)
+    let bytes = regular(path, archive::MAX_COMPRESSED as u64)
         .map_err(|_| error("invalid_archive", "archive_not_regular_or_bounded"))?;
     let checksum = regular(&path.with_extension("tgz.sha256"), 1024)
         .map_err(|_| error("invalid_archive", "checksum_not_regular_or_bounded"))?;
@@ -583,8 +590,14 @@ pub fn inspect_artifact(
     if String::from_utf8_lossy(&checksum).trim_end() != format!("{hash}  {filename}") {
         return Err(error("invalid_archive", "checksum_mismatch"));
     }
-    let (files, _) =
-        archive::decode(&bytes).map_err(|_| error("invalid_archive", "archive_format"))?;
+    let envelope = if allow_historical {
+        archive::MIXED
+    } else {
+        archive::NATIVE
+    };
+    let decoded = archive::decode(&bytes, envelope)
+        .map_err(|_| error("invalid_archive", "archive_format"))?;
+    let files = &decoded.files;
     let manifest: Value = serde_json::from_slice(
         &files
             .get("package.json")
@@ -596,29 +609,41 @@ pub fn inspect_artifact(
         .map_err(|_| error("invalid_archive", "manifest_identity"))?;
     let native =
         files.contains_key("build-manifest.json") || manifest["bin"][PACKAGE] == "bin/autorouter";
+    // A native marker selects native validation irrevocably; malformed native
+    // manifests cannot fall back to historical compatibility.
+    decoded
+        .require_policy(if native {
+            archive::NATIVE
+        } else {
+            archive::HISTORICAL
+        })
+        .map_err(|_| error("invalid_archive", "archive_format_limits"))?;
     if native {
-        native_files(&files, &manifest)
+        native_files(files, &manifest)
             .map_err(|_| error("invalid_archive", "native_release_not_qualified"))?;
-        crate::release_pack::verify_authorization(path)
+        crate::release_pack::verify_authorization_decoded(path, &bytes, &decoded)
             .map_err(|_| error("invalid_archive", "native_final_authorization_required"))?;
     } else if allow_historical {
-        legacy_files(&files).map_err(|_| error("invalid_archive", "legacy_archive_files"))?;
+        legacy_files(files).map_err(|_| error("invalid_archive", "legacy_archive_files"))?;
     } else {
         return Err(error("invalid_archive", "native_release_required"));
     }
-    Ok(Artifact {
-        version: version.into(),
-        tag: tag.into(),
-        dist_tag: metadata["dist_tag"].as_str().unwrap().into(),
-        archive: path
-            .canonicalize()
-            .map_err(|_| error("invalid_archive", "archive_path"))?,
-        filename,
-        sha256: hash,
-        integrity: integrity(&bytes),
-        bytes: bytes.len(),
-        native,
-    })
+    Ok((
+        Artifact {
+            version: version.into(),
+            tag: tag.into(),
+            dist_tag: metadata["dist_tag"].as_str().unwrap().into(),
+            archive: path
+                .canonicalize()
+                .map_err(|_| error("invalid_archive", "archive_path"))?,
+            filename,
+            sha256: hash,
+            integrity: integrity(&bytes),
+            bytes: bytes.len(),
+            native,
+        },
+        decoded,
+    ))
 }
 pub fn github_output(values: &Value) -> Result<(), String> {
     let env = crate::env_file::effective();
@@ -649,8 +674,9 @@ fn check_archive(root: &Path, tag: &str, manifest: &Value, metadata: &Value) -> 
         return Err("dist must be a real directory".into());
     }
     let archive = root.join(metadata["archive"].as_str().unwrap());
-    let artifact = inspect_artifact(&archive, tag, false).map_err(|e| e.to_string())?;
-    let (files, _) = archive::decode(&regular(&archive, archive::MAX_ARCHIVE as u64)?)?;
+    let (artifact, decoded) =
+        inspect_artifact_decoded(&archive, tag, false).map_err(|e| e.to_string())?;
+    let files = decoded.files;
     let embedded = JsManifest::parse(&files["package.json"].bytes)?;
     if embedded
         != JsManifest::parse(
@@ -692,7 +718,7 @@ fn check_archive(root: &Path, tag: &str, manifest: &Value, metadata: &Value) -> 
         } else {
             root.join(path)
         };
-        if regular(&source, archive::MAX_ARCHIVE as u64)? != entry.bytes {
+        if regular(&source, archive::MAX_FILE as u64)? != entry.bytes {
             return Err(format!("Archive content differs from checkout: {path}"));
         }
     }
@@ -818,7 +844,7 @@ mod tests {
                 mode: 0o644,
             },
         );
-        let bytes = archive::encode_root("package", &files).unwrap();
+        let bytes = archive::encode_root("package", &files, archive::HISTORICAL).unwrap();
         let filename = "claude-autorouter-0.4.0.tgz";
         let path = dir.file(filename, &bytes).unwrap();
         let checksum = format!("{}  {filename}\n", digest(&bytes));
@@ -839,6 +865,95 @@ mod tests {
                 .unwrap()
                 .detail["reason"],
             "checksum_mismatch"
+        );
+    }
+    #[test]
+    fn mixed_inspection_preserves_historical_count_but_never_falls_back_from_native() {
+        let dir = crate::tool_process::Scratch::new("release-mixed").unwrap();
+        let filename = "claude-autorouter-0.4.0.tgz";
+        let mut m = manifest();
+        m["bin"] = json!({PACKAGE:"bin/autorouter.mjs"});
+        let mut files = BTreeMap::new();
+        for path in [
+            "README.md",
+            "LICENSE",
+            "bin/autorouter.mjs",
+            "bin/statusline.mjs",
+            "src/config.mjs",
+            "src/router.mjs",
+            "src/server.mjs",
+        ]
+        .into_iter()
+        .chain(REQUIRED_DOCS.iter().copied())
+        {
+            files.insert(
+                path.into(),
+                Entry {
+                    bytes: b"synthetic".to_vec(),
+                    mode: 0o644,
+                },
+            );
+        }
+        files.insert(
+            "package.json".into(),
+            Entry {
+                bytes: m.to_string().into_bytes(),
+                mode: 0o644,
+            },
+        );
+        let inspect = |files: &BTreeMap<String, Entry>| {
+            // MIXED is used only to construct otherwise forbidden test inputs.
+            let bytes = archive::encode_root("package", files, archive::MIXED).unwrap();
+            let path = dir.file(filename, &bytes).unwrap();
+            dir.file(
+                &format!("{filename}.sha256"),
+                format!("{}  {filename}\n", digest(&bytes)).as_bytes(),
+            )
+            .unwrap();
+            inspect_artifact(&path, "v0.4.0", true)
+        };
+        files.get_mut("README.md").unwrap().bytes = vec![0; 16 * 1024 * 1024];
+        files.get_mut("LICENSE").unwrap().bytes = vec![0; 16 * 1024 * 1024];
+        assert_eq!(
+            inspect(&files).err().unwrap().detail["reason"],
+            "archive_format_limits"
+        );
+        files.insert(
+            "build-manifest.json".into(),
+            Entry {
+                bytes: b"invalid native JSON".to_vec(),
+                mode: 0o644,
+            },
+        );
+        // The same >32 MiB input is admitted as native, then rejected by its
+        // native manifest. It cannot retry historical validation.
+        assert_eq!(
+            inspect(&files).err().unwrap().detail["reason"],
+            "native_release_not_qualified"
+        );
+        files.get_mut("README.md").unwrap().bytes = vec![];
+        files.get_mut("LICENSE").unwrap().bytes = vec![];
+        files.remove("build-manifest.json");
+        for n in files.len()..257 {
+            files.insert(
+                format!("src/extra{n}.mjs"),
+                Entry {
+                    bytes: vec![],
+                    mode: 0o644,
+                },
+            );
+        }
+        assert!(!inspect(&files).unwrap().native);
+        files.insert(
+            "build-manifest.json".into(),
+            Entry {
+                bytes: b"{}".to_vec(),
+                mode: 0o644,
+            },
+        );
+        assert_eq!(
+            inspect(&files).err().unwrap().detail["reason"],
+            "archive_format_limits"
         );
     }
     #[test]

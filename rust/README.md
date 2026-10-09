@@ -79,11 +79,13 @@ cargo xtask benchmark --output artifacts/rust-rewrite/validation-run --validate
 
 Omitting `--validate` runs the declared measurement protocol. Choose a fresh output directory for each run. The [local protocol](parity/local-benchmark-v1.json) freezes sample counts, ordering, uncertainty, and noise floors before measurement. Its initial workload coverage is incomplete; exploratory workstation results cannot approve the full [performance gates](parity/performance-gates.json). True peak RSS, allocations, the remaining workloads, and representative hardware require separate evidence.
 
+Add `--protocol v2` to select the [streaming protocol](parity/local-benchmark-v2.json). It measures the first nonempty response-body frame separately from headers and adds burst and paced SSE workloads at concurrency 1/8/32/128. The driver checks complete response bytes, evaluator/upstream counts, and stream producer cleanup before reporting results. Observed data-frame gaps can reflect HTTP coalescing or fragmentation. Version 2 requires fresh matched runs; its samples must not be pooled with version 1. `--validate` exercises the fixtures without retaining numerical performance results.
+
 The [measured comparisons and profiling notes](docs/performance.md) retain all three runs, including earlier failures. The third run meets measured CPU, throughput and latency nonregression targets on the developer workstation. Processing-only latency, true peak memory, additional workloads and representative hardware still keep the overall performance gate incomplete.
 
 ## Distribution and remaining gates
 
-Native feasibility archives contain a POSIX dispatcher, prebuilt binaries, checksums, dependency licenses, and a source/build manifest. They install offline with `--ignore-scripts`, perform no download, and run without Node on `PATH`. `cargo xtask package --binary TARGET=PATH --output NEW_DIRECTORY --smoke` creates and tests a private candidate. The existing compressed and expanded 32 MiB archive caps remain unchanged.
+Native feasibility archives contain a POSIX dispatcher, prebuilt binaries, checksums, dependency licenses, and a source/build manifest. They install offline with `--ignore-scripts`, perform no download, and run without Node on `PATH`. `cargo xtask package --binary TARGET=PATH --output NEW_DIRECTORY --smoke` creates and tests a private candidate. The [reviewed native limits](distribution/expanded-cap-proposal.md) are 32 MiB compressed, 64 MiB expanded, 32 MiB per file and 256 entries. Historical JavaScript archives and source bundles retain 32 MiB expansion; the complete qualified target matrix must still fit.
 
 The [qualification and rollback guide](docs/rollout.md) describes the isolated `cargo xtask upgrade-rollback` rehearsal and the evidence needed for a later cutover.
 

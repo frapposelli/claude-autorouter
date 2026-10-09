@@ -104,12 +104,50 @@ the process environment. Embedding callers must invoke
 `openssl::init_without_config()` before any independent OpenSSL use; already
 loaded global configuration cannot be undone. An isolated subprocess regression
 compares explicit initialization with ordinary initialization under a private
-restrictive config, including a negative control. It changes three upstream files and
-contains no alternate certificate verification. `openssl-provenance.json`,
+restrictive config, including a negative control. The complete local patch changes five upstream files and contains no alternate
+certificate verification. `openssl-provenance.json`,
 `openssl-node-trust.patch`, and `verify-openssl.mjs` reconstruct and hash-check all
 112 original crate files. This patch requires local review; upstream has not
 approved or committed to maintaining it. The upstream Apache-2.0 license remains
 in `openssl/LICENSE`.
+
+## Context-bound session and store APIs
+
+The B2 binding extension adds an immutable `ContextBoundSession` created only
+by the actual new-session callback, a guarded safe setter, and
+`X509StoreRef::try_clone`. The session callback and setter both inspect the
+binding's retained original `SESSION_CTX_INDEX` context and refuse a currently
+swapped context. A snapshot retains that original context and decodes a new
+native session per installation. Callers cannot construct snapshots from
+arbitrary bytes, extract their secret DER, or Debug-format them. Typed errors
+carry no secret data. The store helper shares one existing store through
+OpenSSL's public checked reference-count increment; it adds no trust sources.
+
+These APIs do not enable a production OpenSSL transport or session cache.
+A snapshot proves context ownership, not peer acceptance: runtime integration
+must delay publication until verification/hostname checks pass and isolate
+origin, profile and policy generations. Callbacks that retain snapshots must
+capture caches weakly to avoid a context/callback/cache cycle. Private DER uses
+ordinary heap storage, without an additional guaranteed-wiping mechanism;
+`encoded_len` supports explicit future cache byte budgets. Configuration
+initialization, runtime cache behavior, pooling and lifecycle tests remain
+separate gates. Targeted vendor ownership/doc-tests are maintained with the
+binding patch and require a dedicated pinned-backend test invocation, since
+vendor crates are excluded from the application workspace.
+
+The targeted suite passes seven ownership tests on OpenSSL3.6.3, including
+clean and abrupt close followed by real TLS1.2/1.3 resumption, original/current
+context rejection, independent concurrent installations, callback lifetime,
+and shared-store ownership. Three compile-fail doc tests reject forged byte
+construction, private-field access and Debug formatting. Tests use an isolated
+copy with the application dependency versions: the original upstream test lock
+uses OpenSSL3.6.2 and is retained unchanged for source provenance. The only new
+active test dependency is its already-declared `hex0.4.3` dev dependency.
+
+`openssl-node-trust.patch` is a byte-preserved unified-diff artifact. Its blank
+context lines require a single-space prefix; the directory's `.gitattributes`
+disables only the end-of-line-space check for that exact patch file. Source
+whitespace checks and the patch's context/hash verification remain intact.
 
 Primary contracts: [Node root-store construction](https://github.com/nodejs/node/blob/v22.14.0/src/crypto/crypto_context.cc),
 [Node hostname matching](https://github.com/nodejs/node/blob/v22.14.0/lib/tls.js),

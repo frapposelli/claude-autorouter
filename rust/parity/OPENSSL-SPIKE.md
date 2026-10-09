@@ -106,7 +106,14 @@ ordering and resource bounds still need qualification. Certificate failure
 flight timing is not established by matching HTTP error status. Configuration
 initialization remains rejected and unqualified. Arbitrary cipher/provider
 expressions and security policy across backend releases are not qualified by
-the finite B1 corpus. The existing safe `NO_LOAD_CONFIG` initializer is unchanged. No binding APIs were added.
+the finite B1 corpus. The existing safe `NO_LOAD_CONFIG` initializer is unchanged.
+B1 added no binding APIs. The separately reviewed B2 binding extension now
+provides context-bound immutable session snapshots and shared-store ownership,
+with seven targeted ownership tests and three compile-fail checks. The candidate
+transport still uses neither a session cache nor the new store-sharing API;
+runtime B2 integration requires separate review. See
+[the binding contract](../vendor/TLS-TRUST.md#context-bound-session-and-store-apis)
+for the weak-cache capture and ordinary private DER heap limits.
 
 B1 sources: [Node 22.14 option defaults](https://github.com/nodejs/node/blob/v22.14.0/lib/tls.js),
 [cipher expression processing](https://github.com/nodejs/node/blob/v22.14.0/lib/internal/tls/secure-context.js),
