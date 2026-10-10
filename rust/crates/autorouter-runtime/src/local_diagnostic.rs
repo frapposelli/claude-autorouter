@@ -191,6 +191,13 @@ fn finish(mut report: Value) -> Value {
     report
 }
 
+/// Progress is best effort. With unwinding enabled, ordinary callback panics
+/// are contained after the caller's panic hook runs; callback errors are ignored.
+/// This synchronous callback API does not await JavaScript-style promises.
+fn emit_progress<F: FnMut(&Value) -> Result<(), ()>>(progress: &mut F, event: &Value) {
+    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| progress(event)));
+}
+
 pub async fn run_local_diagnostic<T: HttpTransport + 'static>(
     transport: Arc<T>,
     config: &RouterConfig,
@@ -244,7 +251,7 @@ where
         report["evaluator_model"] = json!(config.ollama_model);
         report["runtime_timeout_ms"] = json!(config.ollama_timeout_ms);
         report["keep_alive"] = config.ollama_keep_alive.clone();
-        let _ = progress(&json!({"event":"preflight"}));
+        emit_progress(&mut progress, &json!({"event":"preflight"}));
         let inspection = inspect_ollama(transport.as_ref(), config, cancellation, 5000)
             .await
             .map_err(|e| known_code(e.code))?;
@@ -254,7 +261,8 @@ where
         let resident = residency(transport.as_ref(), config, cancellation).await?;
         report["residency_before"] = json!(resident);
         report["preflight_passed"] = json!(true);
-        let _ = progress(
+        emit_progress(
+            &mut progress,
             &json!({"event":"startup","residency_before":resident,"timeout_ms":STARTUP_TIMEOUT_MS}),
         );
         let mut startup_config = config.clone();
@@ -285,7 +293,7 @@ where
             .as_object_mut()
             .unwrap()
             .extend(details.as_object().unwrap().clone());
-        let _ = progress(&event);
+        emit_progress(&mut progress, &event);
         if startup["source"] != "ollama" {
             return Err("startup_failed");
         }
@@ -294,7 +302,8 @@ where
                 return Err("OLLAMA_UNAVAILABLE");
             }
             let resident = residency(transport.as_ref(), config, cancellation).await?;
-            let _ = progress(
+            emit_progress(
+                &mut progress,
                 &json!({"event":"case_start","case":item["id"],"residency_before":resident}),
             );
             let body = request_body(item);
@@ -332,7 +341,7 @@ where
                 .as_object_mut()
                 .unwrap()
                 .extend(row.as_object().unwrap().clone());
-            let _ = progress(&event);
+            emit_progress(&mut progress, &event);
         }
         Ok(())
     }

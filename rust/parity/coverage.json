@@ -6570,14 +6570,37 @@
       "file": "test/local-diagnostic.test.mjs",
       "name": "invalid settings, other backends and keep-alive zero are rejected without requests",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#original_invalid_representable_settings_return_safe_reports_without_io",
+        "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#nan_timeout_is_a_typed_configuration_admission_boundary_not_a_native_report"
+      ],
+      "shared_cases": [
+        "operation-1",
+        "operation-2",
+        "operation-3",
+        "operation-4",
+        "operation-5"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/local-diagnostic-boundary-contracts.json",
+        "assertion_mapping_sha256": "226ebadf69dc58c5fde1f4f3acd1fb544ec31703aef45132db6517bf81b1ec13",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/b003b009a8b6f6092569224bfd056e654f5ed9dc5ca8f1d44dbbb3f50c3262c4.json",
+          "sha256": "b003b009a8b6f6092569224bfd056e654f5ed9dc5ca8f1d44dbbb3f50c3262c4",
+          "bytes": 10456,
+          "original_path": "/private/tmp/autorouter-local-diagnostic-boundary-independent-review.json"
+        },
+        "scope": "Reviewed partial correspondence only; explicit API boundaries remain."
+      },
       "related_components": [
         "evaluators",
         "native_cli_package"
-      ]
+      ],
+      "remaining_assertions": [
+        "Three source report assertions each execute for a fifth NaN configuration. Native u64 cannot represent NaN; real string-reader rejection is separate admission evidence and does not execute those three report assertions."
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/local-diagnostic-boundary-contracts.json"
     },
     {
       "id": "test/local-diagnostic.test.mjs#7",
@@ -6999,14 +7022,33 @@
       "file": "test/local-diagnostic.test.mjs",
       "name": "caller cancellation propagates before I/O and during timeout-disabled runtime evaluation",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#original_cancellation_before_io_and_at_second_inference_releases_owned_work"
+      ],
+      "shared_cases": [
+        "operation-6",
+        "operation-7"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/local-diagnostic-boundary-contracts.json",
+        "assertion_mapping_sha256": "226ebadf69dc58c5fde1f4f3acd1fb544ec31703aef45132db6517bf81b1ec13",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/b003b009a8b6f6092569224bfd056e654f5ed9dc5ca8f1d44dbbb3f50c3262c4.json",
+          "sha256": "b003b009a8b6f6092569224bfd056e654f5ed9dc5ca8f1d44dbbb3f50c3262c4",
+          "bytes": 10456,
+          "original_path": "/private/tmp/autorouter-local-diagnostic-boundary-independent-review.json"
+        },
+        "scope": "Reviewed partial correspondence only; explicit API boundaries remain."
+      },
       "related_components": [
         "evaluators",
         "native_cli_package"
-      ]
+      ],
+      "remaining_assertions": [
+        "Source rejection regexes cancelled-before and cancelled-during depend on arbitrary caller Error reasons. Native returns typed Cancelled without arbitrary reason message or Error identity."
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/local-diagnostic-boundary-contracts.json"
     },
     {
       "id": "test/local-diagnostic.test.mjs#13",
@@ -7015,41 +7057,65 @@
       "parameterized": false,
       "status": "partial_assertion_mapping",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/tests/local_setup_diagnostic_contracts.rs#cancellation_of_stalled_residency_releases_reader_before_any_synthetic_task"
+        "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#original_stalled_residency_cancellation_drops_reader_before_return_without_task_text"
       ],
-      "shared_cases": [],
+      "shared_cases": [
+        "operation-8"
+      ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/local-setup-diagnostic-contracts.json",
-        "assertion_mapping_sha256": "4d0da410d2635d2936b6fd55b87cb53311b823c342e14b9d9c8d566c3279c7dd",
-        "capture": "rust/parity/cases/local-setup-diagnostic.capture.json",
-        "capture_sha256": "26bc8e5d46b922333a87b154dc01b90744764839fd81bbb9ceb0b05f96b6f1d8",
-        "cases_sha256": "e7ee94e954db3e2e78735921b5e6412f3d26d45f9fe2158292aa63406717457d",
-        "native_runtime_log": "artifacts/rust-rewrite/evidence/aef3ce306045e919ef605a2d715c4bc08b634a8f46ff4bcef38737cc719a4fa5.log",
-        "native_runtime_log_sha256": "aef3ce306045e919ef605a2d715c4bc08b634a8f46ff4bcef38737cc719a4fa5",
-        "scope": "Exact nine finite setup/residency responses and complete request observations; six warm/pull schedules and one residency cancellation. Four custom JS signal/reason boundaries remain partial."
+        "assertion_mapping": "rust/parity/assertion-mappings/local-diagnostic-boundary-contracts.json",
+        "assertion_mapping_sha256": "226ebadf69dc58c5fde1f4f3acd1fb544ec31703aef45132db6517bf81b1ec13",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/b003b009a8b6f6092569224bfd056e654f5ed9dc5ca8f1d44dbbb3f50c3262c4.json",
+          "sha256": "b003b009a8b6f6092569224bfd056e654f5ed9dc5ca8f1d44dbbb3f50c3262c4",
+          "bytes": 10456,
+          "original_path": "/private/tmp/autorouter-local-diagnostic-boundary-independent-review.json"
+        },
+        "scope": "Reviewed partial correspondence only; explicit API boundaries remain."
       },
       "related_components": [
         "evaluators",
         "native_cli_package"
       ],
       "remaining_assertions": [
-        "Source rejection must match /cancelled-residency/, its caller-supplied Error reason. Native returns typed Cancelled and does not preserve arbitrary JS reason strings."
+        "Source rejection regex cancelled-residency depends on an arbitrary caller Error reason; native returns typed Cancelled. Native body Drop proves release, not invocation of JavaScript ReadableStream.cancel."
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/local-setup-diagnostic-contracts.json"
+      "assertion_mapping": "rust/parity/assertion-mappings/local-diagnostic-boundary-contracts.json"
     },
     {
       "id": "test/local-diagnostic.test.mjs#14",
       "file": "test/local-diagnostic.test.mjs",
       "name": "progress callback throws or rejected promises cannot prevent diagnostic completion",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#original_progress_callback_panic_cannot_prevent_complete_diagnostic",
+        "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#original_rejected_progress_promise_migrates_to_synchronous_result_error",
+        "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#callback_panic_containment_covers_each_original_progress_site_and_repeats"
+      ],
+      "shared_cases": [
+        "operation-9",
+        "operation-10"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/local-diagnostic-boundary-contracts.json",
+        "assertion_mapping_sha256": "226ebadf69dc58c5fde1f4f3acd1fb544ec31703aef45132db6517bf81b1ec13",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/b003b009a8b6f6092569224bfd056e654f5ed9dc5ca8f1d44dbbb3f50c3262c4.json",
+          "sha256": "b003b009a8b6f6092569224bfd056e654f5ed9dc5ca8f1d44dbbb3f50c3262c4",
+          "bytes": 10456,
+          "original_path": "/private/tmp/autorouter-local-diagnostic-boundary-independent-review.json"
+        },
+        "scope": "Reviewed partial correspondence only; explicit API boundaries remain."
+      },
       "related_components": [
         "evaluators",
         "native_cli_package"
-      ]
+      ],
+      "remaining_assertions": [
+        "The source assertion executes for both a throwing callback and a rejected async Promise. Native ordinary unwind containment covers the first; synchronous Result Err is separate migration evidence and does not qualify async Promise rejection."
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/local-diagnostic-boundary-contracts.json"
     },
     {
       "id": "test/model-catalog.test.mjs#1",
@@ -14481,7 +14547,7 @@
       ],
       "remaining_assertions": [
         "Historical JavaScript archive release-check acceptance and exact npm packed-file/source comparisons are intentionally not admitted by native publication gates. Synthetic native baseline has real temporary HEAD/lock identity and all admission checks; approval declarations are test fixtures, not qualification evidence.",
-        "Nested nine original diagnostic/format assertions remain partial; see definitions #8–16."
+        "Nested nine original diagnostic/format assertions remain partial; see definitions #8\u201316."
       ],
       "assertion_mapping": "rust/parity/assertion-mappings/release-remaining-contracts.json"
     },

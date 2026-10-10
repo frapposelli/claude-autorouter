@@ -281,7 +281,7 @@ fn preflight_diagnostic(
         })
     };
     serde_json::json!({
-        "stage":"waiting_for_storage_preflight",
+        "stage":"waiting_for_held_initial_write",
         "child_exit":child.try_wait().ok().flatten().map(|status| status.to_string()),
         "requested_executable":identity(metadata.as_ref()),
         "observed_linux_executable":identity(observed_metadata.as_ref()),
@@ -294,10 +294,62 @@ fn preflight_diagnostic(
     })
     .to_string()
 }
+fn held_initial_write(children: &std::path::Path) -> Option<PathBuf> {
+    let entries = fs::read_dir(children)
+        .unwrap()
+        .take(17)
+        .collect::<Result<Vec<_>, _>>()
+        .unwrap();
+    // The driver executes children serially. Every directory here belongs to
+    // this test's private TMPDIR, not another concurrent storage test. A scan
+    // may straddle removal/creation; bound it by the declared 16 scenarios.
+    assert!(entries.len() <= 16, "Storage child directory bound");
+    for entry in entries {
+        let path = entry.path();
+        let metadata = match fs::symlink_metadata(&path) {
+            Ok(metadata) => metadata,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(error) => panic!("Cannot inspect owned storage child: {error}"),
+        };
+        assert!(metadata.is_dir() && !metadata.file_type().is_symlink());
+        assert!(
+            entry
+                .file_name()
+                .to_string_lossy()
+                .starts_with("autorouter-storage-child-")
+        );
+        assert_eq!(metadata.mode() & 0o777, 0o700);
+        let marker = path.join("held-io.json");
+        let Ok(mut file) = fs::OpenOptions::new()
+            .read(true)
+            .custom_flags((nix::fcntl::OFlag::O_NONBLOCK | nix::fcntl::OFlag::O_NOFOLLOW).bits())
+            .open(&marker)
+        else {
+            continue;
+        };
+        let metadata = file.metadata().unwrap();
+        assert!(metadata.is_file() && metadata.nlink() == 1 && metadata.len() <= 256);
+        let mut bytes = Vec::new();
+        Read::by_ref(&mut file)
+            .take(257)
+            .read_to_end(&mut bytes)
+            .unwrap();
+        assert!(bytes.len() <= 256, "Storage child barrier byte bound");
+        // Creation and the bounded write need not appear atomically to us.
+        if serde_json::from_slice::<Value>(&bytes).ok()
+            == Some(serde_json::json!({"stage":"initial_write_held","active":1}))
+        {
+            return Some(path);
+        }
+    }
+    None
+}
 #[test]
 fn driver_sigint_retains_partial_failure_and_removes_owned_scratch() {
     let scratch = Scratch::new();
     let destination = scratch.0.join("interrupted");
+    let children = scratch.0.join("owned-children");
+    fs::DirBuilder::new().mode(0o700).create(&children).unwrap();
     let stderr = scratch.0.join("driver-stderr.log");
     let error_file = fs::OpenOptions::new()
         .write(true)
@@ -310,29 +362,69 @@ fn driver_sigint_retains_partial_failure_and_removes_owned_scratch() {
         .arg(&destination)
         .env_clear()
         .env("PATH", "")
+        .env("TMPDIR", &children)
         .stdout(Stdio::null())
         .stderr(error_file)
         .spawn()
         .unwrap();
     let mut child = OwnedChild(child);
-    let started = Instant::now();
-    while !destination.join("preflight.json").exists() {
+    let setup_started = Instant::now();
+    let held_child = loop {
         assert!(
             fs::metadata(&stderr).unwrap().len() <= 65536,
             "Storage driver stderr bound"
         );
         assert!(
             child.try_wait().unwrap().is_none(),
-            "Storage driver exited before preflight: {}",
+            "Storage driver exited before held child ownership: {}",
             preflight_diagnostic(&destination, &stderr, &mut child)
         );
         assert!(
-            started.elapsed() < Duration::from_secs(5),
-            "Storage driver preflight deadline: {}",
+            // GNU x64's real 182 MB debug executable exceeded the old 5-second
+            // setup assumption. The same job completed the full real-binary
+            // validation in 14.93s. This is a test setup allowance, not a product
+            // deadline or a measured claim about individual digest latency.
+            setup_started.elapsed() < Duration::from_secs(20),
+            "Storage driver setup deadline before held child: {}",
             preflight_diagnostic(&destination, &stderr, &mut child)
         );
-        std::thread::sleep(Duration::from_millis(5));
-    }
+        if destination.join("preflight.json").is_file()
+            && let Some(held) = held_initial_write(&children)
+        {
+            let preflight: Value =
+                serde_json::from_slice(&fs::read(destination.join("preflight.json")).unwrap())
+                    .unwrap();
+            assert_eq!(
+                preflight["inputs"][0]["path"],
+                fs::canonicalize(env!("CARGO_BIN_EXE_xtask"))
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+            );
+            assert_eq!(
+                preflight["inputs"][0]["bytes"],
+                fs::metadata(env!("CARGO_BIN_EXE_xtask")).unwrap().len()
+            );
+            // This marker is emitted only by status_readiness_timeout. The
+            // serial driver must have completed its four preceding scenarios.
+            for scenario in [
+                "status_normal",
+                "status_held",
+                "status_create_failure",
+                "status_initial_failure",
+            ] {
+                let evidence: Value = serde_json::from_slice(
+                    &fs::read(destination.join(format!("0-{scenario}-native.json"))).unwrap(),
+                )
+                .unwrap();
+                assert_eq!(evidence["execution"]["accepted"], true);
+                assert_eq!(evidence["report"]["scenario"], scenario);
+            }
+            break held;
+        }
+        std::thread::sleep(Duration::from_millis(2));
+    };
+    let interrupted = Instant::now();
     nix::sys::signal::kill(
         nix::unistd::Pid::from_raw(child.id() as i32),
         nix::sys::signal::Signal::SIGINT,
@@ -342,7 +434,7 @@ fn driver_sigint_retains_partial_failure_and_removes_owned_scratch() {
         if let Some(status) = child.try_wait().unwrap() {
             break status;
         }
-        if started.elapsed() > Duration::from_secs(12) {
+        if interrupted.elapsed() > Duration::from_secs(7) {
             let _ = child.kill();
             let _ = child.wait();
             panic!("Interrupted storage driver did not stop");
@@ -358,11 +450,47 @@ fn driver_sigint_retains_partial_failure_and_removes_owned_scratch() {
         serde_json::from_slice(&fs::read(destination.join("report.json")).unwrap()).unwrap();
     assert_eq!(report["passed"], false);
     assert_eq!(report["completed"], false);
-    assert!(
-        report["executions"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .all(|row| row["scratch_removed"] == true)
+    let executions = report["executions"].as_array().unwrap();
+    assert_eq!(
+        executions.len(),
+        5,
+        "Four completed children and one interrupted owner"
     );
+    let interrupted_row = executions.last().unwrap();
+    assert_eq!(interrupted_row["scenario"], "status_readiness_timeout");
+    assert_eq!(interrupted_row["implementation"], "native");
+    assert_eq!(interrupted_row["accepted"], false);
+    assert_eq!(
+        interrupted_row["evidence"],
+        "0-status_readiness_timeout-native.json"
+    );
+    assert!(executions.iter().all(|row| row["scratch_removed"] == true));
+    let interrupted_evidence: Value = serde_json::from_slice(
+        &fs::read(destination.join("0-status_readiness_timeout-native.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        interrupted_evidence["execution"]["process"]["cancelled"],
+        true
+    );
+    assert_eq!(
+        interrupted_evidence["execution"]["process"]["timed_out"],
+        false
+    );
+    assert_eq!(
+        interrupted_evidence["report"]["scenario"],
+        "status_readiness_timeout"
+    );
+    assert_eq!(interrupted_evidence["report"]["passed"], false);
+    assert_eq!(interrupted_evidence["report"]["cleanup"]["active_io"], 0);
+    assert_eq!(interrupted_evidence["report"]["cleanup"]["joined"], true);
+    assert_eq!(
+        interrupted_evidence["report"]["cleanup"]["scratch_empty"],
+        true
+    );
+    assert!(
+        !held_child.exists(),
+        "The positively observed child scratch was removed"
+    );
+    assert_eq!(fs::read_dir(&children).unwrap().count(), 0);
 }

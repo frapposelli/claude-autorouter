@@ -67,6 +67,8 @@ const FIXED: &[&str] = &[
     "rust/parity/cases/statusline-boundary-contracts.capture.json",
     "rust/parity/cases/local-diagnostic-timeout-contracts.jsonl",
     "rust/parity/cases/local-diagnostic-timeout-contracts.capture.json",
+    "rust/parity/cases/local-diagnostic-boundary-contracts.jsonl",
+    "rust/parity/cases/local-diagnostic-boundary-contracts.capture.json",
     "rust/parity/cases/server-subscription-contracts.jsonl",
     "rust/parity/cases/server-subscription-contracts.capture.json",
     "rust/parity/cases/benchmark-router-contracts.jsonl",
