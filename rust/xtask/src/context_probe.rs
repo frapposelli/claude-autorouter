@@ -483,6 +483,16 @@ async fn stub_request(
     let (kind, message) = stub_message(&doc, decision.as_ref());
     Ok(response(200, &kind, message))
 }
+// The listener retains this cleanup future independently of its close caller.
+async fn finish_stub_connections<R: GatewayRouter>(
+    mut connections: tokio::task::JoinSet<()>,
+    router: Arc<R>,
+) {
+    connections.abort_all();
+    while connections.join_next().await.is_some() {}
+    router.close().await;
+}
+
 struct Stub {
     address: std::net::SocketAddr,
     cancel: CancellationToken,
@@ -529,8 +539,9 @@ impl Stub {
                     _ = connections.join_next(), if !connections.is_empty() => {}
                 }
             }
-            connections.abort_all();
-            while connections.join_next().await.is_some() {}
+            drop(listener);
+            signal.cancel();
+            finish_stub_connections(connections, router).await;
         });
         Ok(Self {
             address,
@@ -728,7 +739,6 @@ async fn execute(options: Value) -> Result<bool, String> {
     if let Some(handle) = stub {
         handle.close().await;
     }
-    router.shutdown();
     let mut report = json!({"probe":if live{"live_inference_tools_prohibited"}else if classify{"local_stub_live_evaluator"}else{"local_stub_no_inference"},"evaluator":if config.evaluator==Evaluator::Ollama{"ollama"}else{"jev"},"mode":if interactive{"interactive"}else{"print"},"example":options.get("example").cloned().unwrap_or(json!("ok")),"tool_search":options["toolSearch"],"code":result["exit_code"],"signal":result["exit_signal"],"timed_out":result["timed_out"],"stdout_bytes":result["stdout_bytes"],"stderr_bytes":result["stderr_bytes"],"requests":*requests.lock().unwrap()});
     if result["spawn_error"] == true {
         report["spawn_error"] = json!(true);
@@ -833,3 +843,7 @@ mod tests {
         server.close().await;
     }
 }
+
+#[cfg(test)]
+#[path = "context_probe_shutdown_contracts.rs"]
+mod shutdown_contracts;

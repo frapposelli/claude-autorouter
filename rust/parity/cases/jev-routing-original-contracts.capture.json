@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "kind": "frozen_jev_routing_original_contracts",
+  "baseline": {
+    "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+    "files_verified": 111
+  },
+  "node": {
+    "version": "v22.14.0",
+    "sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0"
+  },
+  "generator_sha256": "3a79dabd27b98746823036e958eb0dfb8641f5fc5309514a00cc01c273a3cff9",
+  "sources": [
+    {
+      "path": "test/redaction.test.mjs",
+      "bytes": 15782,
+      "sha256": "2c39564dea427488ffa04caeb78281a77c753d6a9deb61c067e8d1d505dab3a6",
+      "helpers": [
+        {
+          "statement": "const fake = {\n  anthropic: ['sk', 'ant', 'api03', 'Z'.repeat(40)].join('-'),\n  stripe: ['sk', 'live', 'Q'.repeat(24)].join('_'),\n  aws: ['AKIA', 'IOSFODNN7EXAMPLE'].join(''),\n  github: ['gh', 'p_', 'B'.repeat(36)].join(''),\n  githubPat: ['github', 'pat', 'C'.repeat(30)].join('_'),\n  gitlab: ['glpat', 'D'.repeat(24)].join('-'),\n  slack: ['xoxb', '1234567890', 'E'.repeat(12)].join('-'),\n  slackHook: ['https://hooks.slack.com', 'services', 'T000', 'B000', 'F'.repeat(12)].join('/'),\n  google: ['AI', 'za', 'G'.repeat(35)].join(''),\n  npm: ['npm', 'H'.repeat(36)].join('_'),\n  jwt: ['eyJ' + 'h'.repeat(12), 'eyJ' + 'p'.repeat(12), 's'.repeat(16)].join('.'),\n  pem: ['-----BEGIN RSA PRIVATE KEY-----', 'M'.repeat(64), 'N'.repeat(64), '-----END RSA PRIVATE KEY-----'].join('\\n'),\n};",
+          "sha256": "ad0d0c41419700d2f6ccd991257df284f8b4fc88c1993515833c10c1c84ef467"
+        },
+        {
+          "statement": "const more = {\n  googleOauth: ['ya', '29.', 'a'.repeat(30)].join(''),\n  sendgrid: ['SG', 'b'.repeat(22), 'c'.repeat(22)].join('.'),\n  shopify: ['shp', 'at_', 'd'.repeat(32)].join(''),\n  huggingFace: ['hf', '_', 'e'.repeat(34)].join(''),\n  digitalOcean: ['dop', '_v1_', 'f'.repeat(64)].join(''),\n  pypi: ['pypi', '-', 'g'.repeat(60)].join(''),\n  linear: ['lin', '_api_', 'h'.repeat(34)].join(''),\n  notion: ['ntn', '_', 'i'.repeat(34)].join(''),\n  databricks: ['dapi', 'a1'.repeat(16)].join(''),\n  atlassian: ['ATATT', '3', 'j'.repeat(30)].join(''),\n  mailgun: ['key', '-', '0a'.repeat(16)].join(''),\n  twilio: ['SK', '1b'.repeat(16)].join(''),\n  telegram: ['123456789', ':', 'k'.repeat(35)].join(''),\n  stripeWebhook: ['whsec', '_', 'l'.repeat(24)].join(''),\n};",
+          "sha256": "fd5dc1dfcd6c5b111f2790af2b8d4c94c569e8b07eb54fa4326b0e223342eb4b"
+        }
+      ]
+    },
+    {
+      "path": "test/routing-compatibility.test.mjs",
+      "bytes": 6983,
+      "sha256": "54007c625ab9227cc79c22e33738742d46373723cc51ddd103bede948808fa0a",
+      "helpers": [
+        {
+          "statement": "const token = 'compatibility-test-local-token';",
+          "sha256": "1817338188475f1e5476f1fc6f5749749ddd1fe6dcbea8c3191d6a57b867ffea"
+        },
+        {
+          "statement": "const config = profile => readConfig({ AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_CLIENT_PROFILE: profile,\n  AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5', AUTOROUTER_OPUS_MODEL: 'claude-opus-5-5',\n  ANTHROPIC_API_KEY: 'synthetic-upstream-key', TYPESAFE_API_KEY: 'synthetic-classifier-key' });",
+          "sha256": "811e1c1a2484256d5e9da01040df16edfd6ca9bb11ef2337c7a39ce046198e7d"
+        },
+        {
+          "statement": "const answer = choice => Response.json({ answers: { tier: { choice, confidence: 0.99 } } });",
+          "sha256": "2bd8ccb1f3d0082b1406676ecaa42f41f7ea0c3e88f12812a27f0f704f05a261"
+        },
+        {
+          "statement": "const request = (profile, extra = {}) => ({\n  model: profile === 'auto' ? 'claude-sonnet-5' : 'claude-haiku-4-5-20251001',\n  max_tokens: 4096, thinking: { type: 'disabled' },\n  messages: [{ role: 'user', content: 'Read the synthetic test file.' }],\n  tools: [{ name: 'Read', input_schema: { type: 'object', properties: {} } }], ...extra,\n});",
+          "sha256": "5e6772ef919479a7481937a1bb9d3f1d4680ec6524e8f24ee7a0321438cdb8c3"
+        },
+        {
+          "statement": "async function gateway(t, profile = 'compatible') {\n  const received = [], logs = [];\n  let evaluations = 0, counts = 0;\n  const upstream = http.createServer(async (req, res) => {\n    let raw = ''; for await (const chunk of req) raw += chunk;\n    const body = JSON.parse(raw);\n    received.push({ body, headers: req.headers, path: req.url });\n    res.writeHead(200, { 'content-type': 'application/json', 'request-id': 'synthetic-upstream-id' });\n    res.end(JSON.stringify({ type: 'message', role: 'assistant', model: body.model,\n      content: [{ type: 'text', text: 'Synthetic response.' }], stop_reason: 'end_turn',\n      usage: { input_tokens: 10, output_tokens: 4 } }));\n  });\n  t.after(() => { upstream.closeAllConnections(); upstream.close(); });\n  const upstreamAddress = await listen(upstream, 0);\n  const c = { ...config(profile), localToken: token, upstream: `http://127.0.0.1:${upstreamAddress.port}` };\n  const router = new Router(c, { fetchImpl: async () => { evaluations++; return answer('opus'); } });\n  const server = createRouterServer(c, { router, log: entry => logs.push(entry),\n    tokenCounter: async () => { counts++; return 100; } });\n  t.after(() => { server.closeAllConnections(); server.close(); });\n  const address = await listen(server, 0);\n  return { received, logs, evaluations: () => evaluations, counts: () => counts,\n    send: (body, path = '/v1/messages') => fetch(`http://127.0.0.1:${address.port}${path}`, {\n      method: 'POST', headers: { 'x-api-key': token, 'content-type': 'application/json',\n        'anthropic-beta': 'synthetic-future-beta', 'x-claude-code-session-id': 'synthetic-session' },\n      body: JSON.stringify(body),\n    }) };\n}",
+          "sha256": "b444f2ab8d9e719fea158cf2f0dbf6562c1a44f40aec42caef3ffa74e58de935"
+        }
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "test/redaction.test.mjs#8",
+      "name": "the Jev request body carries only redacted excerpts; Anthropic receives the request unchanged",
+      "statement": "test('the Jev request body carries only redacted excerpts; Anthropic receives the request unchanged', async () => {\n  let payload;\n  const router = new Router(readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'test-jev', ANTHROPIC_API_KEY: 'test-anthropic' }), {\n    fetchImpl: async (_url, options) => {\n      payload = options.body;\n      return Response.json({ answers: { tier: { choice: 'sonnet', confidence: 0.9 } } });\n    },\n  });\n  const body = { model: 'claude-sonnet-5', max_tokens: 1024, messages: [{ role: 'user', content: `Use ${fake.github} to push` }] };\n  const before = structuredClone(body);\n  await router.route(body);\n  assert.ok(payload && !payload.includes(fake.github));\n  assert.match(payload, /Use \\[REDACTED:secret\\] to push/);\n  assert.deepEqual(body, before);\n});",
+      "sha256": "1ddaaeb0b2df6599ed6f8f64c5beac0f8796b061345663726ea84128b90d2470",
+      "line": 113,
+      "assertions": [
+        {
+          "id": "test/redaction.test.mjs#8:assert-1",
+          "expression": "assert.ok(payload && !payload.includes(fake.github))",
+          "sha256": "d579d32d029c562656ae53f84f486d59a0d00bcf36d97f75d4db528c671feee8",
+          "line": 124,
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/redaction.test.mjs#8:assert-2",
+          "expression": "assert.match(payload, /Use \\[REDACTED:secret\\] to push/)",
+          "sha256": "f4c844d031cc63aba83b2524bb2c1019030d9158fa02d697c926178d1a80aaf8",
+          "line": 125,
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/redaction.test.mjs#8:assert-3",
+          "expression": "assert.deepEqual(body, before)",
+          "sha256": "4db7a0a3ea7659d0009a2fa4db6fdd081bba254f1f5c5fc64bd0bae2179c1239",
+          "line": 126,
+          "expanded_executions": 1
+        }
+      ],
+      "passed": true
+    },
+    {
+      "id": "test/routing-compatibility.test.mjs#1",
+      "name": "every routing profile rejects incompatible forced-tool upgrades while preserving the original contract",
+      "statement": "test('every routing profile rejects incompatible forced-tool upgrades while preserving the original contract', async () => {\n  for (const profile of ['compatible', 'native', 'auto']) {\n    for (const tier of ['sonnet', 'opus']) for (const tool_choice of [{ type: 'any' }, { type: 'tool', name: 'Read' }]) {\n      const body = request(profile, { tool_choice });\n      const before = structuredClone(body);\n      const router = new Router(config(profile), { fetchImpl: async () => answer(tier) });\n      const decision = await router.route(body);\n      assert.equal(decision.model, body.model, `${profile}/${tier}/${tool_choice.type}`);\n      assert.equal(decision.classified_tier, tier);\n      assert.equal(decision.reason, profile === 'auto' ? 'auto_mode_incompatible' : 'model_incompatible');\n      assert.equal(decision.compatibility_reason, 'forced_tool_choice');\n      assert.deepEqual(body, before);\n    }\n  }\n});",
+      "sha256": "c72174d1807e4143f25b0b39e21a6e01406d5ad2af6be918c709356db0045625",
+      "line": 21,
+      "assertions": [
+        {
+          "id": "test/routing-compatibility.test.mjs#1:assert-1",
+          "expression": "assert.equal(decision.model, body.model, `${profile}/${tier}/${tool_choice.type}`)",
+          "sha256": "295fd6d875dd3370daee5bdc18a963e5c2d274436abcda67d111ffeb14803e72",
+          "line": 28,
+          "expanded_executions": 12
+        },
+        {
+          "id": "test/routing-compatibility.test.mjs#1:assert-2",
+          "expression": "assert.equal(decision.classified_tier, tier)",
+          "sha256": "c88540699b25260f011279a8c5aa90aac8ff47f265a2955e21048d9c974ab6c1",
+          "line": 29,
+          "expanded_executions": 12
+        },
+        {
+          "id": "test/routing-compatibility.test.mjs#1:assert-3",
+          "expression": "assert.equal(decision.reason, profile === 'auto' ? 'auto_mode_incompatible' : 'model_incompatible')",
+          "sha256": "98eea1c98aaa46af16a31e21adacd232261801b71dcc5fd2c2c3f8c91fb6dc22",
+          "line": 30,
+          "expanded_executions": 12
+        },
+        {
+          "id": "test/routing-compatibility.test.mjs#1:assert-4",
+          "expression": "assert.equal(decision.compatibility_reason, 'forced_tool_choice')",
+          "sha256": "29851df26a2818f21a5a19b813bcaebcd9f91d548822ea77437ef74591a157dd",
+          "line": 31,
+          "expanded_executions": 12
+        },
+        {
+          "id": "test/routing-compatibility.test.mjs#1:assert-5",
+          "expression": "assert.deepEqual(body, before)",
+          "sha256": "4db7a0a3ea7659d0009a2fa4db6fdd081bba254f1f5c5fc64bd0bae2179c1239",
+          "line": 32,
+          "expanded_executions": 12
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "static_assertions": 8,
+  "expanded_assertions": 63,
+  "assertion_calls": [
+    "test/redaction.test.mjs#8:assert-1",
+    "test/redaction.test.mjs#8:assert-2",
+    "test/redaction.test.mjs#8:assert-3",
+    "test/routing-compatibility.test.mjs#1:assert-1",
+    "test/routing-compatibility.test.mjs#1:assert-2",
+    "test/routing-compatibility.test.mjs#1:assert-3",
+    "test/routing-compatibility.test.mjs#1:assert-4",
+    "test/routing-compatibility.test.mjs#1:assert-5",
+    "test/routing-compatibility.test.mjs#1:assert-1",
+    "test/routing-compatibility.test.mjs#1:assert-2",
+    "test/routing-compatibility.test.mjs#1:assert-3",
+    "test/routing-compatibility.test.mjs#1:assert-4",
+    "test/routing-compatibility.test.mjs#1:assert-5",
+    "test/routing-compatibility.test.mjs#1:assert-1",
+    "test/routing-compatibility.test.mjs#1:assert-2",
+    "test/routing-compatibility.test.mjs#1:assert-3",
+    "test/routing-compatibility.test.mjs#1:assert-4",
+    "test/routing-compatibility.test.mjs#1:assert-5",
+    "test/routing-compatibility.test.mjs#1:assert-1",
+    "test/routing-compatibility.test.mjs#1:assert-2",
+    "test/routing-compatibility.test.mjs#1:assert-3",
+    "test/routing-compatibility.test.mjs#1:assert-4",
+    "test/routing-compatibility.test.mjs#1:assert-5",
+    "test/routing-compatibility.test.mjs#1:assert-1",
+    "test/routing-compatibility.test.mjs#1:assert-2",
+    "test/routing-compatibility.test.mjs#1:assert-3",
+    "test/routing-compatibility.test.mjs#1:assert-4",
+    "test/routing-compatibility.test.mjs#1:assert-5",
+    "test/routing-compatibility.test.mjs#1:assert-1",
+    "test/routing-compatibility.test.mjs#1:assert-2",
+    "test/routing-compatibility.test.mjs#1:assert-3",
+    "test/routing-compatibility.test.mjs#1:assert-4",
+    "test/routing-compatibility.test.mjs#1:assert-5",
+    "test/routing-compatibility.test.mjs#1:assert-1",
+    "test/routing-compatibility.test.mjs#1:assert-2",
+    "test/routing-compatibility.test.mjs#1:assert-3",
+    "test/routing-compatibility.test.mjs#1:assert-4",
+    "test/routing-compatibility.test.mjs#1:assert-5",
+    "test/routing-compatibility.test.mjs#1:assert-1",
+    "test/routing-compatibility.test.mjs#1:assert-2",
+    "test/routing-compatibility.test.mjs#1:assert-3",
+    "test/routing-compatibility.test.mjs#1:assert-4",
+    "test/routing-compatibility.test.mjs#1:assert-5",
+    "test/routing-compatibility.test.mjs#1:assert-1",
+    "test/routing-compatibility.test.mjs#1:assert-2",
+    "test/routing-compatibility.test.mjs#1:assert-3",
+    "test/routing-compatibility.test.mjs#1:assert-4",
+    "test/routing-compatibility.test.mjs#1:assert-5",
+    "test/routing-compatibility.test.mjs#1:assert-1",
+    "test/routing-compatibility.test.mjs#1:assert-2",
+    "test/routing-compatibility.test.mjs#1:assert-3",
+    "test/routing-compatibility.test.mjs#1:assert-4",
+    "test/routing-compatibility.test.mjs#1:assert-5",
+    "test/routing-compatibility.test.mjs#1:assert-1",
+    "test/routing-compatibility.test.mjs#1:assert-2",
+    "test/routing-compatibility.test.mjs#1:assert-3",
+    "test/routing-compatibility.test.mjs#1:assert-4",
+    "test/routing-compatibility.test.mjs#1:assert-5",
+    "test/routing-compatibility.test.mjs#1:assert-1",
+    "test/routing-compatibility.test.mjs#1:assert-2",
+    "test/routing-compatibility.test.mjs#1:assert-3",
+    "test/routing-compatibility.test.mjs#1:assert-4",
+    "test/routing-compatibility.test.mjs#1:assert-5"
+  ],
+  "routes": 13,
+  "evaluator_calls": 13,
+  "cases_sha256": "78693d36774927695cbad9487b82e4d3d2742ab895a6cee8fde218ac36b710ab",
+  "actual_network_calls": 0,
+  "transformations": "Complete selected callbacks and all non-import helper statements retained. Only imports/unselected definitions removed; assertion result wrappers count successful unchanged assertions. Recording facades delegate frozen config/Router and original mock fetch callbacks without extra response consumption or timer/clock changes.",
+  "projections": [
+    "Only top-level latency_ms/evaluation_latency_ms are removed after finite nonnegative validation; complete raw decisions retained separately.",
+    "Undefined config fields retain a tagged undefined value."
+  ],
+  "scope": "Original route-only privacy test does not invoke Anthropic; actual upstream preservation needs a separate supplemental native gateway control. No production/network/performance/native-equivalence claim from capture."
+}

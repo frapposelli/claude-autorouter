@@ -344,6 +344,84 @@ fn held_initial_write(children: &std::path::Path) -> Option<PathBuf> {
     }
     None
 }
+fn bounded_phase_evidence(path: &std::path::Path) -> Option<Value> {
+    let file = fs::OpenOptions::new()
+        .read(true)
+        .custom_flags((nix::fcntl::OFlag::O_NONBLOCK | nix::fcntl::OFlag::O_NOFOLLOW).bits())
+        .open(path)
+        .ok()?;
+    let metadata = file.metadata().ok()?;
+    if !metadata.is_file() || metadata.nlink() != 1 || metadata.len() > 65536 {
+        return None;
+    }
+    let mut bytes = Vec::new();
+    file.take(65537).read_to_end(&mut bytes).ok()?;
+    if bytes.len() > 65536 {
+        return None;
+    }
+    // The serial driver creates then writes evidence. Only complete JSON can
+    // establish cleanup; observing the directory entry alone cannot do so.
+    serde_json::from_slice(&bytes).ok()
+}
+fn interrupted_child_clean(evidence: &Value) -> bool {
+    evidence["execution"]["accepted"] == false
+        && evidence["execution"]["process"]["cancelled"] == true
+        && evidence["execution"]["process"]["timed_out"] == false
+        && evidence["report"]["implementation"] == "native"
+        && evidence["report"]["scenario"] == "status_readiness_timeout"
+        && evidence["report"]["passed"] == false
+        && evidence["report"]["cleanup"]["active_io"] == 0
+        && evidence["report"]["cleanup"]["joined"] == true
+        && evidence["report"]["cleanup"]["scratch_empty"] == true
+}
+fn interrupt_phase_diagnostic(
+    destination: &std::path::Path,
+    stderr: &std::path::Path,
+    child: &mut Child,
+    held_child: &std::path::Path,
+    phase: &str,
+    elapsed: Duration,
+) -> String {
+    let mut diagnostic: Value =
+        serde_json::from_str(&preflight_diagnostic(destination, stderr, child)).unwrap();
+    diagnostic["stage"] = phase.into();
+    diagnostic["elapsed_ms"] = serde_json::json!(elapsed.as_millis());
+    diagnostic["held_child_exists"] = held_child.exists().into();
+    diagnostic["owned_directory_count_up_to_17"] = fs::read_dir(held_child.parent().unwrap())
+        .ok()
+        .map(|entries| entries.take(17).count())
+        .into();
+    let files = [
+        "preflight.json",
+        "0-status_readiness_timeout-native.json",
+        "postflight.json",
+        "report.json",
+    ]
+    .map(|name| {
+        let metadata = fs::symlink_metadata(destination.join(name)).ok();
+        serde_json::json!({"name":name,"present":metadata.is_some(),
+            "bytes":metadata.map(|metadata|metadata.len())})
+    });
+    diagnostic["evidence_files"] = serde_json::json!(files);
+    let evidence =
+        bounded_phase_evidence(&destination.join("0-status_readiness_timeout-native.json"));
+    diagnostic["interrupted_evidence_complete"] = evidence.is_some().into();
+    if let Some(evidence) = evidence {
+        // Preserve only process/ownership status, never semantic payloads.
+        diagnostic["interrupted_child"] = serde_json::json!({
+            "accepted":evidence["execution"]["accepted"].as_bool(),
+            "cancelled":evidence["execution"]["process"]["cancelled"].as_bool(),
+            "timed_out":evidence["execution"]["process"]["timed_out"].as_bool(),
+            "exit_code":evidence["execution"]["process"]["exit_code"].as_i64(),
+            "exit_signal":evidence["execution"]["process"]["exit_signal"].as_str().map(|signal| signal.chars().take(32).collect::<String>()),
+            "passed":evidence["report"]["passed"].as_bool(),
+            "active_io":evidence["report"]["cleanup"]["active_io"].as_i64(),
+            "joined":evidence["report"]["cleanup"]["joined"].as_bool(),
+            "scratch_empty":evidence["report"]["cleanup"]["scratch_empty"].as_bool()
+        });
+    }
+    diagnostic.to_string()
+}
 #[test]
 fn driver_sigint_retains_partial_failure_and_removes_owned_scratch() {
     let scratch = Scratch::new();
@@ -430,14 +508,63 @@ fn driver_sigint_retains_partial_failure_and_removes_owned_scratch() {
         nix::sys::signal::Signal::SIGINT,
     )
     .unwrap();
+    loop {
+        let exited = child.try_wait().unwrap().is_some();
+        let evidence =
+            bounded_phase_evidence(&destination.join("0-status_readiness_timeout-native.json"));
+        if evidence.as_ref().is_some_and(interrupted_child_clean)
+            && !held_child.try_exists().unwrap()
+            && fs::read_dir(&children).unwrap().next().is_none()
+        {
+            break;
+        }
+        if exited || interrupted.elapsed() > Duration::from_secs(7) {
+            let diagnostic = interrupt_phase_diagnostic(
+                &destination,
+                &stderr,
+                &mut child,
+                &held_child,
+                "waiting_for_cancelled_child_cleanup",
+                interrupted.elapsed(),
+            );
+            let _ = child.kill();
+            let _ = child.wait();
+            panic!("Interrupted storage child cleanup was not established: {diagnostic}");
+        }
+        std::thread::sleep(Duration::from_millis(5));
+    }
+    eprintln!(
+        "STORAGE_SIGINT_CLEANUP {}",
+        interrupt_phase_diagnostic(
+            &destination,
+            &stderr,
+            &mut child,
+            &held_child,
+            "cancelled_child_cleanup_observed",
+            interrupted.elapsed(),
+        )
+    );
+    // Child cancellation stays under its original seven-second test bound.
+    // The unchanged driver now rehashes the entire actual executable and all
+    // inputs before publishing postflight/report. Allow that separate work a
+    // bounded setup-sized interval; this is not a product timing threshold.
+    let finalizing = Instant::now();
     let status = loop {
         if let Some(status) = child.try_wait().unwrap() {
             break status;
         }
-        if interrupted.elapsed() > Duration::from_secs(7) {
+        if finalizing.elapsed() > Duration::from_secs(20) {
+            let diagnostic = interrupt_phase_diagnostic(
+                &destination,
+                &stderr,
+                &mut child,
+                &held_child,
+                "waiting_for_postflight_and_exit",
+                finalizing.elapsed(),
+            );
             let _ = child.kill();
             let _ = child.wait();
-            panic!("Interrupted storage driver did not stop");
+            panic!("Interrupted storage driver did not finalize: {diagnostic}");
         }
         std::thread::sleep(Duration::from_millis(5));
     };
@@ -446,6 +573,12 @@ fn driver_sigint_retains_partial_failure_and_removes_owned_scratch() {
         "Storage final driver stderr bound"
     );
     assert!(!status.success());
+    let postflight: Value =
+        serde_json::from_slice(&fs::read(destination.join("postflight.json")).unwrap()).unwrap();
+    assert_eq!(postflight["passed"], false);
+    let identities = postflight["inputs"].as_array().unwrap();
+    assert!(!identities.is_empty());
+    assert!(identities.iter().all(|input| input["unchanged"] == true));
     let report: Value =
         serde_json::from_slice(&fs::read(destination.join("report.json")).unwrap()).unwrap();
     assert_eq!(report["passed"], false);
@@ -493,4 +626,15 @@ fn driver_sigint_retains_partial_failure_and_removes_owned_scratch() {
         "The positively observed child scratch was removed"
     );
     assert_eq!(fs::read_dir(&children).unwrap().count(), 0);
+    eprintln!(
+        "STORAGE_SIGINT_FINALIZED {}",
+        interrupt_phase_diagnostic(
+            &destination,
+            &stderr,
+            &mut child,
+            &held_child,
+            "postflight_and_exit_observed",
+            finalizing.elapsed(),
+        )
+    );
 }
