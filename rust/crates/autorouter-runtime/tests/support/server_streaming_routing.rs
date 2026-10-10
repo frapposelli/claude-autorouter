@@ -9,6 +9,7 @@ use hyper::{
 };
 use hyper_util::rt::{TokioIo, TokioTimer};
 use std::{
+    collections::VecDeque,
     convert::Infallible,
     future::Future,
     io,
@@ -73,7 +74,7 @@ impl ResponsePlan {
             headers,
             body: PeerBody {
                 first: Some(body.into()),
-                last: None,
+                tail: VecDeque::new(),
                 gate: None,
                 released: None,
             },
@@ -87,7 +88,7 @@ impl ResponsePlan {
         };
         let body = PeerBody {
             first: Some(first),
-            last: Some(last),
+            tail: VecDeque::from([last]),
             gate: Some(gate.clone()),
             released: Some(Box::pin(gate.release.clone().cancelled_owned())),
         };
@@ -100,11 +101,41 @@ impl ResponsePlan {
             gate,
         )
     }
+    // This helper is also compiled by the earlier integration-test consumer.
+    #[allow(dead_code)]
+    pub fn chunks(status: u16, headers: HeaderMap, chunks: Vec<Bytes>) -> Self {
+        let mut tail: VecDeque<_> = chunks.into();
+        let first = tail.pop_front();
+        Self {
+            status,
+            headers,
+            body: PeerBody {
+                first,
+                tail,
+                gate: None,
+                released: None,
+            },
+        }
+    }
+    #[allow(dead_code)]
+    pub fn held_tail(
+        status: u16,
+        headers: HeaderMap,
+        first: Bytes,
+        tail: Vec<Bytes>,
+    ) -> (Self, StreamGate) {
+        let (mut plan, gate) = Self::held(status, headers, first, Bytes::new());
+        plan.body.tail = tail.into();
+        (plan, gate)
+    }
     fn into_response(self) -> Result<Response<PeerBody>, String> {
         validate_headers(&self.headers)?;
+        if self.body.gate.is_some() && self.body.tail.is_empty() {
+            return Err("held mock response requires at least one tail chunk".into());
+        }
         let size = self.body.first.as_ref().map_or(0, Bytes::len)
-            + self.body.last.as_ref().map_or(0, Bytes::len);
-        if size > BODY_LIMIT {
+            + self.body.tail.iter().map(Bytes::len).sum::<usize>();
+        if size > BODY_LIMIT || usize::from(self.body.first.is_some()) + self.body.tail.len() > 16 {
             return Err("mock response exceeds its byte bound".into());
         }
         let mut response = Response::builder()
@@ -118,7 +149,7 @@ impl ResponsePlan {
 
 struct PeerBody {
     first: Option<Bytes>,
-    last: Option<Bytes>,
+    tail: VecDeque<Bytes>,
     gate: Option<StreamGate>,
     released: Option<Pin<Box<dyn Future<Output = ()> + Send>>>,
 }
@@ -143,8 +174,10 @@ impl Body for PeerBody {
             }
             body.released = None;
         }
-        if let Some(last) = body.last.take() {
-            if let Some(gate) = &body.gate {
+        if let Some(last) = body.tail.pop_front() {
+            if body.tail.is_empty()
+                && let Some(gate) = &body.gate
+            {
                 gate.last.cancel();
             }
             return Poll::Ready(Some(Ok(Frame::data(last))));
@@ -152,13 +185,16 @@ impl Body for PeerBody {
         Poll::Ready(None)
     }
     fn is_end_stream(&self) -> bool {
-        self.first.is_none() && self.last.is_none()
+        self.first.is_none() && self.tail.is_empty()
     }
     fn size_hint(&self) -> SizeHint {
         if self.gate.is_some() {
             SizeHint::default()
         } else {
-            SizeHint::with_exact(self.first.as_ref().map_or(0, Bytes::len) as u64)
+            SizeHint::with_exact(
+                (self.first.as_ref().map_or(0, Bytes::len)
+                    + self.tail.iter().map(Bytes::len).sum::<usize>()) as u64,
+            )
         }
     }
 }
