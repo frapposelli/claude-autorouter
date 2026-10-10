@@ -20,6 +20,7 @@ const FIXED: &[&str] = &[
     "rust/Cargo.toml",
     "rust/Cargo.lock",
     "rust/rust-toolchain.toml",
+    "rust/crates/autorouter-runtime/src/server_deadline_contracts.rs",
     "rust/.cargo/config.toml",
     "rust/parity/local-benchmark-v1.json",
     "rust/parity/local-benchmark-v2.json",

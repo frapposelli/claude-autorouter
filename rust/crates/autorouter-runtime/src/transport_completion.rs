@@ -36,6 +36,8 @@ use hyper::service::Service;
 use hyper::{Request, Response};
 use hyper_util::rt::{TokioIo, TokioTimer};
 use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
+use tokio::sync::Notify;
+use tokio::time::Instant;
 
 /// Metadata-only transport outcome; never carries provider or request text.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -50,6 +52,7 @@ pub enum Failure {
     Io,
     Abandoned,
     ConnectionClosed,
+    Deadline,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -64,6 +67,7 @@ struct Record {
     id: u64,
     eof: bool,
     submitted: bool,
+    deadline: Option<Instant>,
     callback: Callback,
 }
 
@@ -72,12 +76,18 @@ struct State {
     next_id: u64,
     limit: usize,
     closed: bool,
+    deadline_expired: bool,
+}
+
+struct Shared {
+    state: Mutex<State>,
+    changed: Notify,
 }
 
 /// Bounded connection-owned records. Callbacks must be short and synchronous.
 /// Do not perform I/O or await persistence from the continuity commit callback.
 #[derive(Clone)]
-pub struct CompletionRegistry(Arc<Mutex<State>>);
+pub struct CompletionRegistry(Arc<Shared>);
 
 #[derive(Clone)]
 struct ResponseReceipt {
@@ -87,16 +97,21 @@ struct ResponseReceipt {
 
 impl CompletionRegistry {
     pub fn new(limit: usize) -> Self {
-        Self(Arc::new(Mutex::new(State {
-            records: VecDeque::new(),
-            next_id: 0,
-            limit,
-            closed: false,
-        })))
+        Self(Arc::new(Shared {
+            state: Mutex::new(State {
+                records: VecDeque::new(),
+                next_id: 0,
+                limit,
+                closed: false,
+                deadline_expired: false,
+            }),
+            changed: Notify::new(),
+        }))
     }
 
     fn lock(&self) -> MutexGuard<'_, State> {
         self.0
+            .state
             .lock()
             .unwrap_or_else(|poisoned| poisoned.into_inner())
     }
@@ -115,7 +130,19 @@ impl CompletionRegistry {
         callback: impl FnOnce(Delivery) + Send + 'static,
     ) -> Result<Response<CompletionBody<B>>, AdmissionError> {
         let empty = matches!(response.status().as_u16(), 204 | 304);
-        self.track_response(response, callback, empty)
+        self.track_response(response, callback, empty, None)
+    }
+
+    /// The gateway's existing absolute upstream deadline also bounds queued
+    /// output and final flush. Clean body EOF must not retire this deadline.
+    pub(crate) fn track_with_deadline<B>(
+        &self,
+        response: Response<B>,
+        deadline: Option<Instant>,
+        callback: impl FnOnce(Delivery) + Send + 'static,
+    ) -> Result<Response<CompletionBody<B>>, AdmissionError> {
+        let empty = matches!(response.status().as_u16(), 204 | 304);
+        self.track_response(response, callback, empty, deadline)
     }
 
     /// Track a response whose method/status forbids a wire body. Submission to
@@ -126,7 +153,7 @@ impl CompletionRegistry {
         response: Response<B>,
         callback: impl FnOnce(Delivery) + Send + 'static,
     ) -> Result<Response<CompletionBody<B>>, AdmissionError> {
-        self.track_response(response, callback, true)
+        self.track_response(response, callback, true, None)
     }
 
     fn track_response<B>(
@@ -134,6 +161,7 @@ impl CompletionRegistry {
         response: Response<B>,
         callback: impl FnOnce(Delivery) + Send + 'static,
         empty: bool,
+        deadline: Option<Instant>,
     ) -> Result<Response<CompletionBody<B>>, AdmissionError> {
         let id = {
             let mut state = self.lock();
@@ -149,10 +177,12 @@ impl CompletionRegistry {
                 id,
                 eof: empty,
                 submitted: false,
+                deadline,
                 callback: Box::new(callback),
             });
             id
         };
+        self.0.changed.notify_one();
         let (mut parts, body) = response.into_parts();
         parts.headers.remove(CONTENT_LENGTH);
         parts.headers.remove(TRANSFER_ENCODING);
@@ -216,23 +246,36 @@ impl CompletionRegistry {
                 .and_then(|index| state.records.remove(index))
         };
         if let Some(record) = record {
+            self.0.changed.notify_one();
             emit(record.callback, Delivery::Failed(reason));
         }
     }
 
     fn flushed(&self) {
-        let ready = {
+        let (ready, expired, now) = {
             let mut state = self.lock();
+            let now = Instant::now();
             let mut ready = Vec::new();
-            while state
-                .records
-                .front()
-                .is_some_and(|record| record.eof && record.submitted)
+            // Deadline and delivery claims share this lock. A writer becoming
+            // ready at expiry cannot confirm a response ahead of the timer.
+            let expired = Self::take_expired(&mut state, now);
+            while expired.is_none()
+                && state
+                    .records
+                    .front()
+                    .is_some_and(|record| record.eof && record.submitted)
             {
                 ready.push(state.records.pop_front().expect("front exists"));
             }
-            ready
+            (ready, expired, now)
         };
+        if let Some(expired) = expired {
+            self.emit_expired(expired, now);
+            return;
+        }
+        if !ready.is_empty() {
+            self.0.changed.notify_one();
+        }
         for record in ready {
             emit(record.callback, Delivery::Flushed);
         }
@@ -244,8 +287,74 @@ impl CompletionRegistry {
             state.closed = true;
             std::mem::take(&mut state.records)
         };
+        self.0.changed.notify_one();
         for record in records {
             emit(record.callback, Delivery::Failed(reason));
+        }
+    }
+
+    fn take_expired(state: &mut State, now: Instant) -> Option<VecDeque<Record>> {
+        if !state
+            .records
+            .iter()
+            .any(|record| record.deadline.is_some_and(|at| at <= now))
+        {
+            return None;
+        }
+        state.closed = true;
+        state.deadline_expired = true;
+        Some(std::mem::take(&mut state.records))
+    }
+
+    fn emit_expired(&self, records: VecDeque<Record>, now: Instant) {
+        // Publish the persistent latch before callbacks; a panicking observer
+        // cannot suppress the connection owner's close notification.
+        self.0.changed.notify_one();
+        for record in records {
+            let reason = if record.deadline.is_some_and(|at| at <= now) {
+                Failure::Deadline
+            } else {
+                Failure::ConnectionClosed
+            };
+            emit(record.callback, Delivery::Failed(reason));
+        }
+    }
+
+    /// Polled by the existing connection task, never a detached request task.
+    /// At most one timer and the existing bounded records are retained.
+    pub(crate) async fn deadline_expired(&self) {
+        loop {
+            let changed = self.0.changed.notified();
+            tokio::pin!(changed);
+            // Register before inspecting state: a newly admitted earlier
+            // deadline or retired record cannot be lost between check and wait.
+            changed.as_mut().enable();
+            let (expired, deadline, closed, now) = {
+                let mut state = self.lock();
+                let now = Instant::now();
+                let expired = Self::take_expired(&mut state, now);
+                let deadline = state
+                    .records
+                    .iter()
+                    .filter_map(|record| record.deadline)
+                    .min();
+                (expired, deadline, state.deadline_expired, now)
+            };
+            if let Some(records) = expired {
+                self.emit_expired(records, now);
+            }
+            if closed {
+                return;
+            }
+            if let Some(deadline) = deadline {
+                tokio::select! {
+                    biased;
+                    _ = tokio::time::sleep_until(deadline) => {},
+                    _ = &mut changed => {},
+                }
+            } else {
+                changed.await;
+            }
         }
     }
 }

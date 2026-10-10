@@ -1,6 +1,6 @@
 # Native performance investigation
 
-The third five-round comparison meets the measured CPU, throughput and latency
+The fourth five-round comparison meets the measured CPU, throughput and latency
 nonregression targets on this workstation, including the previously failing
 large-catalog workload. The rewrite's overall performance gate remains
 incomplete: true peak memory, processing-only latency, additional workloads and
@@ -161,3 +161,38 @@ The [measurement protocol](../parity/local-benchmark-v1.json) and
 samples, source archive, build log, and profiler captures are retained under
 `artifacts/rust-rewrite/` in the development checkout; the checked-in summary
 does not claim that those local files are published release evidence.
+
+## Fourth comparison
+
+The [fourth retained summary](../parity/measurements/local-v1-run-4-summary.json)
+records one unchanged v1 run on the same M2 Ultra host: five alternating rounds,
+225 rows, and matching response bytes and evaluator/upstream/count calls. It
+took about 11.6 minutes. The measured checkpoint19 executable SHA-256 is
+`6ce97bbf7d093867e3d15ac4bfed3c0ca44e2ddd7b84a6c38d63109c3d2cda3c`;
+the retained optimized driver is `8bd9ae6d…`. No tuning or retry followed the
+results, and earlier failures remain retained.
+
+Help/version startup was about 2.7 ms native versus 48–49 ms Node; status startup
+was 2.76 versus 30.0 ms. Median idle RSS was about 10.1 MiB versus 58 MiB.
+The following ratios are paired-round medians across the declared concurrency
+groups; the delayed workload uses concurrency one only.
+
+| Workload | Native / Node CPU per request | Native / Node throughput |
+| --- | --- | --- |
+| Small request | 0.356–0.362 | 1.75–1.94 |
+| Cache hit | 0.469–0.494 | 1.31–1.51 |
+| Large catalog | 0.571–0.621 | 1.41–1.44 |
+| Small request, 5 ms mock delay | 0.442 | 1.04 |
+
+All 42 measured ratio targets were met, and all 26 p95/p99 checks detected no
+regression under the unchanged thresholds. Large-catalog concurrency-one HTTP
+p95 was about 3.65 ms native versus 5.45 ms Node; this does not establish the
+separate processing-only target. True peak memory, streaming performance,
+allocations, resource soak, other hardware and live quality remain unqualified.
+
+The binaries were built with pinned Rust 1.99.0. The raw environment report's
+Rust 1.81.0 is the subsequently observed executable on `PATH`, not the build
+compiler. A separate deadline-under-backpressure fix was drafted during this
+run without builds or tests; it is absent from the measured immutable binary.
+These results support the checkpoint19 candidate's local opt-in performance
+case and do not qualify that later fix, publication or default cutover.

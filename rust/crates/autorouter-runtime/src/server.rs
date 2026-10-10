@@ -21,7 +21,7 @@ use crate::tls_roots::openssl_spike::gateway_terminal::{
     TerminalIo,
 };
 use crate::transport_completion::{
-    CompletionRegistry, Delivery, RequestReceiveDeadline, serve_http1,
+    CompletionRegistry, Delivery, Failure, RequestReceiveDeadline, serve_http1,
 };
 use autorouter_core::auth::{LOCAL_AUTH_HEADER, is_subscription_request};
 use autorouter_core::config::{AuthMode, RouterConfig, js_trim};
@@ -620,53 +620,9 @@ where
                     Some(_)=connections.join_next(),if !connections.is_empty()=>{},
                     incoming=listener.accept()=>{
                         let Ok((stream,_))=incoming else{break};let gateway=gateway.clone();let token=stopping.child_token();
-                        connections.spawn(async move{
-                            let registry=CompletionRegistry::new(16);let for_service=registry.clone();let request_token=token.clone();
-                            #[cfg(test)]
-                            let intent_registry = gateway.intent_probe.clone().map(|probe| IntentRegistry::new(probe, 16));
-                            #[cfg(test)]
-                            let terminal_owner = gateway.terminal_probe.clone().map(|probe| ConnectionTerminal::new(probe, 16));
-                            #[cfg(test)]
-                            let terminal_service = terminal_owner.as_ref().map(ConnectionTerminal::handle);
-                            // Observe real downstream IO before IntentIo performs
-                            // abort effects that can make the upstream body fail.
-                            #[cfg(test)]
-                            let stream = TerminalIo::new(stream, terminal_service.clone());
-                            #[cfg(test)]
-                            let stream = IntentIo::new(stream, intent_registry.clone());
-                            let service=service_fn(move|request: Request<Incoming>|{
-                                #[cfg(test)]
-                                let request = { let mut request = request; if let Some(registry) = &intent_registry { request.extensions_mut().insert(registry.clone()); } request };
-                                #[cfg(test)]
-                                let terminal_service = terminal_service.clone();
-                                let gateway=gateway.clone();let registry=for_service.clone();let token=request_token.child_token();async move{
-                                    if request.method() == Method::CONNECT { return Err(io::Error::new(io::ErrorKind::ConnectionAborted,"CONNECT is not supported")); }
-                                    #[cfg(test)]
-                                    let request = {
-                                        let mut request = request;
-                                        if let Some(owner) = terminal_service {
-                                            request.extensions_mut().insert(owner);
-                                        }
-                                        request
-                                    };
-                                    Ok::<_,io::Error>(gateway.handle(request,registry,token).await)
-                                }});
-                            #[cfg(test)]
-                            {
-                                let terminal_failure = async {
-                                    match &terminal_owner {
-                                        Some(owner) => owner.claim_connection_failure().await,
-                                        None => std::future::pending().await,
-                                    }
-                                };
-                                tokio::select!{biased;_=terminal_failure=>{},_=token.cancelled()=>{},_=serve_http1(stream,registry,service)=>{}}
-                            }
-                            #[cfg(not(test))]
-                            tokio::select!{biased;_=token.cancelled()=>{},_=serve_http1(stream,registry,service)=>{}}
-                            token.cancel();
-                            #[cfg(test)]
-                            if let Some(owner) = terminal_owner { owner.close().await; }
-                        });
+                        connections.spawn(gateway.serve_connection(
+                            stream, CompletionRegistry::new(16), token,
+                        ));
                     }
                 }
             }
@@ -680,6 +636,97 @@ where
             cancellation,
             task: Some(task),
         })
+    }
+    // The listener and deterministic writer regression use this same connection
+    // owner. It creates no tasks beyond the listener-owned connection task.
+    async fn serve_connection<I>(
+        self: Arc<Self>,
+        stream: I,
+        registry: CompletionRegistry,
+        token: CancellationToken,
+    ) where
+        I: tokio::io::AsyncRead + tokio::io::AsyncWrite + Unpin + Send + 'static,
+    {
+        let for_service = registry.clone();
+        let request_token = token.clone();
+        #[cfg(test)]
+        let intent_registry = self
+            .intent_probe
+            .clone()
+            .map(|probe| IntentRegistry::new(probe, 16));
+        #[cfg(test)]
+        let terminal_owner = self
+            .terminal_probe
+            .clone()
+            .map(|probe| ConnectionTerminal::new(probe, 16));
+        #[cfg(test)]
+        let terminal_service = terminal_owner.as_ref().map(ConnectionTerminal::handle);
+        // Observe real downstream IO before IntentIo performs
+        // abort effects that can make the upstream body fail.
+        #[cfg(test)]
+        let stream = TerminalIo::new(stream, terminal_service.clone());
+        #[cfg(test)]
+        let stream = IntentIo::new(stream, intent_registry.clone());
+        let gateway = self.clone();
+        let service = service_fn(move |request: Request<Incoming>| {
+            #[cfg(test)]
+            let request = {
+                let mut request = request;
+                if let Some(registry) = &intent_registry {
+                    request.extensions_mut().insert(registry.clone());
+                }
+                request
+            };
+            #[cfg(test)]
+            let terminal_service = terminal_service.clone();
+            let gateway = gateway.clone();
+            let registry = for_service.clone();
+            let token = request_token.child_token();
+            async move {
+                if request.method() == Method::CONNECT {
+                    return Err(io::Error::new(
+                        io::ErrorKind::ConnectionAborted,
+                        "CONNECT is not supported",
+                    ));
+                }
+                #[cfg(test)]
+                let request = {
+                    let mut request = request;
+                    if let Some(owner) = terminal_service {
+                        request.extensions_mut().insert(owner);
+                    }
+                    request
+                };
+                Ok::<_, io::Error>(gateway.handle(request, registry, token).await)
+            }
+        });
+        let deadline_expired = registry.deadline_expired();
+        #[cfg(test)]
+        let deadline_expired = async {
+            // Keep opt-in experimental terminal ownership unchanged.
+            if self.intent_probe.is_none() && self.terminal_probe.is_none() {
+                deadline_expired.await;
+            } else {
+                std::future::pending::<()>().await;
+            }
+        };
+        #[cfg(test)]
+        {
+            let terminal_failure = async {
+                match &terminal_owner {
+                    Some(owner) => owner.claim_connection_failure().await,
+                    None => std::future::pending().await,
+                }
+            };
+            tokio::select! {biased;_=terminal_failure=>{},_=token.cancelled()=>{},_=deadline_expired=>{},_=serve_http1(stream,registry.clone(),service)=>{}}
+        }
+        #[cfg(not(test))]
+        tokio::select! {biased;_=token.cancelled()=>{},_=deadline_expired=>{},_=serve_http1(stream,registry.clone(),service)=>{}}
+        token.cancel();
+        #[cfg(test)]
+        if let Some(owner) = terminal_owner {
+            owner.close().await;
+        }
     }
     async fn handle(
         self: Arc<Self>,
@@ -1158,8 +1205,16 @@ where
             std::future::pending::<()>().await;
         }
         let response = Response::from_parts(parts, forward);
+        let delivery_deadline = Some(deadline);
+        #[cfg(test)]
+        let delivery_deadline = if self.intent_probe.is_some() || self.terminal_probe.is_some() {
+            None
+        } else {
+            delivery_deadline
+        };
+        let deadline_log = self.sinks.log.clone();
         if let Some(lease) = lease {
-            match registry.track(response, move |delivery| {
+            match registry.track_with_deadline(response, delivery_deadline, move |delivery| {
                 #[cfg(test)]
                 let mut delivery_claim = terminal_owner.map(|owner| owner.claim_delivery(delivery));
                 #[cfg(test)]
@@ -1173,6 +1228,10 @@ where
                     } else {
                         intent.observe(IntentEvent::DeliveryFailed);
                     }
+                }
+                if delivery == Delivery::Failed(Failure::Deadline) {
+                    emit(&deadline_log, json!({"event":"proxy_error","status":502}));
+                    lease.events.status("request_error", json!({"status":502}));
                 }
                 let evidence = evidence.lock().unwrap().take();
                 lease.finish(delivery, evidence, status.is_success());
@@ -1216,7 +1275,14 @@ where
                     Err(_) => json_error(502, "Router could not complete the upstream request"),
                 };
             }
-            response.map(boxed)
+            match registry.track_with_deadline(response, delivery_deadline, move |delivery| {
+                if delivery == Delivery::Failed(Failure::Deadline) {
+                    emit(&deadline_log, json!({"event":"proxy_error","status":502}));
+                }
+            }) {
+                Ok(response) => response.map(boxed),
+                Err(_) => json_error(502, "Router could not complete the upstream request"),
+            }
         }
     }
 }
@@ -1503,3 +1569,7 @@ mod forwarding_tests {
         connection.close().await;
     }
 }
+
+#[cfg(test)]
+#[path = "server_deadline_contracts.rs"]
+mod deadline_contracts;

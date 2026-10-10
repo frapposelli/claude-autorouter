@@ -1,6 +1,6 @@
 # Native AutoRouter development
 
-This workspace implements the [Rust rewrite plan](../docs/rust-rewrite-plan.md) alongside the shipping JavaScript package. The development executable contains the product commands and does not start Node. The npm release remains on JavaScript while compatibility, distribution, performance, and live qualification are completed.
+This workspace implements the [Rust rewrite plan](../docs/rust-rewrite-plan.md) alongside the shipping JavaScript package. The experimental native executable implements the product commands and does not start Node. The npm release remains on JavaScript while compatibility, distribution, performance, and live qualification are completed.
 
 Run all Cargo commands from this directory so `rust-toolchain.toml` selects the pinned compiler:
 
@@ -11,6 +11,8 @@ cargo build --release --locked --package claude-autorouter
 ```
 
 Select an implementation for a complete launch. Running the native `claude`, `serve`, `setup`, or configuration commands uses the existing configuration and storage paths. Contributor tests use isolated synthetic homes. Do not run two launchers against one temporary status directory or switch an engine during an active Claude task.
+
+After configuration, opt into one native Claude launch with `./target/release/claude-autorouter claude` from this directory. This runs the real product with the existing Claude installation and configured services.
 
 ## Workspace
 
@@ -62,6 +64,8 @@ npm run test:package
 
 The four existing Node/OS CI jobs remain required. Native CI adds compiler, contract, integration, and executable comparison checks; it does not invoke live tools or impose workstation timing thresholds.
 
+Ordinary native builds retain Rustls for TLS. The OpenSSL transport and Node
+connection-close experiments remain test-only and have not been promoted.
 The experimental hyper-util connection lease and raw pool, and Hyper body
 handoff observer, are enabled only by runtime test dependencies. CI records the
 ordinary release build's Cargo JSON messages and independently rejects
@@ -116,5 +120,7 @@ The [qualification and rollback guide](docs/rollout.md) describes the isolated `
 `cargo xtask release-pack` assembles qualified candidates, verifies per-target native archives, and records separate final authorization after exact installed-archive checks. The [release input schema](distribution/release-schema.md) specifies its commands and required evidence. Embedded candidate declarations cannot authorize publication; the current pending platform/performance evidence is insufficient for a production release.
 
 The [platform matrix](distribution/platforms.json) records unverified targets and OS/libc/TLS questions. A passing host archive does not qualify the full matrix. Exact installed CLI tests can also be run with `AUTOROUTER_TEST_EXECUTABLE` set to the absolute installed dispatcher path.
+
+Use the [checkpoint 19 summary](parity/measurements/nineteenth-integration-summary.json) as the bounded evidence baseline for experimental candidate review. That review can conclude once blocking fixes and required CI pass for the selected source and artifact, with its supported host scope and limitations recorded. Exhaustive assertion mapping is deferred refinement for this review; partial or pending ledger rows do not automatically mean a feature is missing. Production cutover still requires an explicit supported-platform scope, an authorized real-use canary, and the release and performance qualification described above.
 
 Full completion still requires assertion-level parity coverage, remaining JSON/configuration and locale edge cases, parser/timing qualification, all declared resource/performance workloads, the supported platform matrix, dependency/license and build-provenance review, upgrade/rollback rehearsal, and explicitly invoked live canaries. Release tools, release artifacts, and cutover are separate gates. No version bump, release tag, publication, or change to the default implementation is implied by building this workspace.
