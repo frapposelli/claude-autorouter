@@ -33,3 +33,82 @@ jobs:
       - run: npm run check
       - run: npm test
       - run: npm run test:package
+
+  rust:
+    name: Rust / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    # Intel macOS's uncached debug + release OpenSSL builds exceed 15 minutes.
+    # Individual process/test deadlines remain enforced by their harnesses.
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-15, macos-15-intel]
+    defaults:
+      run:
+        working-directory: rust
+    env:
+      MACOSX_DEPLOYMENT_TARGET: '11.0'
+      # openssl-sys otherwise permits a host-library override of `vendored`.
+      # TLS provenance tests also check the exact compiled backend version.
+      OPENSSL_NO_VENDOR: '0'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          # Keep parser/Intl/reference experiments tied to the measured runtime.
+          # The four shipping checks above still cover current Node 22 and 24.
+          node-version: '22.14.0'
+          package-manager-cache: false
+      # rust-toolchain.toml pins this checkout without changing runner defaults.
+      - run: rustup show active-toolchain
+      # License inventory covers the complete lockfile, including other targets.
+      - run: cargo fetch --locked
+      - run: cargo metadata --format-version 1 --locked --offline > /dev/null
+      - run: node vendor/verify-hyper.mjs
+      - run: node vendor/verify-hyper-util.mjs
+      - run: node vendor/verify-production-features.mjs --self-test
+      - run: node vendor/verify-node-ca.mjs
+      - run: node vendor/verify-openssl.mjs
+      - run: cargo fmt --check
+      - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - run: cargo test --workspace --locked
+      - run: cargo xtask parity --all --output artifacts/rust-rewrite/parity-ci
+      - run: node parity/capture-auto-routing-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/auto-routing-contracts
+      - run: cargo xtask parity --cases artifacts/rust-rewrite/auto-routing-contracts/cases.jsonl --report artifacts/rust-rewrite/parity-auto-routing-contracts.json
+      - name: Build release and verify experimental features are absent
+        run: |
+          mkdir -p ../artifacts/rust-rewrite
+          cargo build --release --locked --package claude-autorouter --message-format=json > ../artifacts/rust-rewrite/production-build.jsonl
+          node vendor/verify-production-features.mjs --build-report ../artifacts/rust-rewrite/production-build.jsonl > ../artifacts/rust-rewrite/production-features.json
+      - run: ./target/release/claude-autorouter --version
+      - run: node parity/check-config-commands.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+      - run: node parity/check-node-options-startup.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+      - run: node parity/check-gateway.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+      - run: node parity/check-gateway.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter --unicode
+      - run: node parity/check-gateway-resources.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+      - run: node parity/check-http-parser.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+      - run: node parity/check-upstream-transport.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+      - run: node parity/check-upstream-security.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+      - run: node parity/check-tls-options.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+      - name: Verify exact native npm archive and installed lifecycle
+        run: |
+          autorouter_host_target=$(rustc -vV | awk '/^host:/ { print $2 }')
+          cargo xtask package --binary "$autorouter_host_target=rust/target/release/claude-autorouter" --output artifacts/rust-rewrite/native-package-ci --smoke
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: rust-parity-${{ matrix.os }}
+          path: |
+            artifacts/rust-rewrite/parity*.json
+            artifacts/rust-rewrite/tls-*.json
+            artifacts/rust-rewrite/parity-ci/*.json
+            artifacts/rust-rewrite/auto-routing-contracts/*
+            artifacts/rust-rewrite/evidence/*.json
+            artifacts/rust-rewrite/native-package-ci/*
+            artifacts/rust-rewrite/production-build.jsonl
+            artifacts/rust-rewrite/production-features.json
+          if-no-files-found: ignore

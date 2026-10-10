@@ -1,0 +1,409 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_benchmark_router_contracts_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_head": "46587867cd0b4db89b273ba293555a5619009a4c",
+  "production_changes": {
+    "scope": "Native explicit read-only --compare-legacy mode and isolated historical comparator; existing native paired measurement protocols/defaults/gates unchanged.",
+    "paths": [
+      "rust/xtask/src/benchmark.rs",
+      "rust/xtask/src/benchmark_legacy.rs"
+    ],
+    "command": "cargo xtask benchmark --compare-legacy REPORT.json"
+  },
+  "counts": {
+    "definitions": 2,
+    "static_assertions": 6,
+    "executed_assertions": 11,
+    "captured_calls": 8,
+    "native_contract_tests": 6,
+    "existing_native_protocol_controls": 5,
+    "unchanged_frozen_controls": 2,
+    "cli_cases": 18,
+    "additional_arithmetic_oracle_cases": 41,
+    "covered": 2,
+    "partial": 0
+  },
+  "capture_method": "Replace only static imports and wrap original assertion calls. Execute both unchanged frozen test callbacks around actual compareRouterBenchmarks; verify111 frozen source hashes first. Complete input snapshots and JSON result outputs retained; exactly one empty-candidate case retains3 raw -Infinity tags. Two captures byte-identical. runRouterBenchmark never called.",
+  "native_method": "Replay actual production comparator for all8 frozen calls, with complete recursive value equality (JSON numbers compared as IEEE754 values), exact source schedules, canonical corpus/capture SHA pins and byte bounds. Unknown or malformed shapes fail admission. Negative controls prove changed gates/requests/forged corpus/missing cases fail and CLI mode stays read-only.",
+  "evidence": {
+    "0-tenth-benchmark-native-3.log": {
+      "path": "artifacts/rust-rewrite/evidence/62e143ff3aef8590483cbd71120e9d1a41648af2d60cd6f5f231684c7f406110.log",
+      "sha256": "62e143ff3aef8590483cbd71120e9d1a41648af2d60cd6f5f231684c7f406110",
+      "bytes": 1870,
+      "retained_path": "artifacts/rust-rewrite/evidence/62e143ff3aef8590483cbd71120e9d1a41648af2d60cd6f5f231684c7f406110.log",
+      "original_path": "artifacts/rust-rewrite/tenth-benchmark-native-3.log"
+    },
+    "1-tenth-benchmark-clippy-3.log": {
+      "path": "artifacts/rust-rewrite/evidence/47762efe7663a7c5ef3143b0fc6b50582361397c1f96fbeadab6b315624c9380.log",
+      "sha256": "47762efe7663a7c5ef3143b0fc6b50582361397c1f96fbeadab6b315624c9380",
+      "bytes": 751,
+      "retained_path": "artifacts/rust-rewrite/evidence/47762efe7663a7c5ef3143b0fc6b50582361397c1f96fbeadab6b315624c9380.log",
+      "original_path": "artifacts/rust-rewrite/tenth-benchmark-clippy-3.log"
+    },
+    "2-tenth-benchmark-frozen-control.log": {
+      "path": "artifacts/rust-rewrite/evidence/114db7af8f2b030b46fd478ffe76c49540433a06d2850319d33af5a9319960f8.log",
+      "sha256": "114db7af8f2b030b46fd478ffe76c49540433a06d2850319d33af5a9319960f8",
+      "bytes": 558,
+      "retained_path": "artifacts/rust-rewrite/evidence/114db7af8f2b030b46fd478ffe76c49540433a06d2850319d33af5a9319960f8.log",
+      "original_path": "artifacts/rust-rewrite/tenth-benchmark-frozen-control.log"
+    },
+    "3-tenth-benchmark-native-protocol-control.log": {
+      "path": "artifacts/rust-rewrite/evidence/200602d7093bb5e6a8f010cc9ff1ad29cc6aa1055438db43f0412c2ddb963474.log",
+      "sha256": "200602d7093bb5e6a8f010cc9ff1ad29cc6aa1055438db43f0412c2ddb963474",
+      "bytes": 1461,
+      "retained_path": "artifacts/rust-rewrite/evidence/200602d7093bb5e6a8f010cc9ff1ad29cc6aa1055438db43f0412c2ddb963474.log",
+      "original_path": "artifacts/rust-rewrite/tenth-benchmark-native-protocol-control.log"
+    },
+    "4-tenth-benchmark-capture-repeat.json": {
+      "path": "artifacts/rust-rewrite/evidence/573f8c5a59628c9b609f6c3ec04c08724500213568255d542c1fa0f40e259b58.json",
+      "sha256": "573f8c5a59628c9b609f6c3ec04c08724500213568255d542c1fa0f40e259b58",
+      "bytes": 492,
+      "retained_path": "artifacts/rust-rewrite/evidence/573f8c5a59628c9b609f6c3ec04c08724500213568255d542c1fa0f40e259b58.json",
+      "original_path": "artifacts/rust-rewrite/tenth-benchmark-capture-repeat.json"
+    },
+    "5-report.json": {
+      "path": "artifacts/rust-rewrite/evidence/25c2519db0fc38317c1b9d76e5b824b29eb3536ed5e14460c5a34657de6daca5.json",
+      "sha256": "25c2519db0fc38317c1b9d76e5b824b29eb3536ed5e14460c5a34657de6daca5",
+      "bytes": 7371,
+      "retained_path": "artifacts/rust-rewrite/evidence/25c2519db0fc38317c1b9d76e5b824b29eb3536ed5e14460c5a34657de6daca5.json",
+      "original_path": "artifacts/rust-rewrite/benchmark-legacy-cli-1/report.json"
+    },
+    "6-report.json": {
+      "path": "artifacts/rust-rewrite/evidence/7e0ddb2d312e829bfb4590180e78ae2fc4f5890c4ca4a059a53179c46ef7b2f3.json",
+      "sha256": "7e0ddb2d312e829bfb4590180e78ae2fc4f5890c4ca4a059a53179c46ef7b2f3",
+      "bytes": 514,
+      "retained_path": "artifacts/rust-rewrite/evidence/7e0ddb2d312e829bfb4590180e78ae2fc4f5890c4ca4a059a53179c46ef7b2f3.json",
+      "original_path": "artifacts/rust-rewrite/benchmark-legacy-numeric-1/report.json"
+    },
+    "7-runner.py": {
+      "path": "artifacts/rust-rewrite/evidence/13ca80db7332607bcb3a871538767e6e5c339ee7c004cc501c08ce80d4822c8a.py",
+      "sha256": "13ca80db7332607bcb3a871538767e6e5c339ee7c004cc501c08ce80d4822c8a",
+      "bytes": 4116,
+      "retained_path": "artifacts/rust-rewrite/evidence/13ca80db7332607bcb3a871538767e6e5c339ee7c004cc501c08ce80d4822c8a.py",
+      "original_path": "artifacts/rust-rewrite/benchmark-legacy-cli-1/runner.py"
+    },
+    "8-runner.mjs": {
+      "path": "artifacts/rust-rewrite/evidence/2eb671e13f32873ef9a01d986ca0a70f9a1c587bb9bb21b6c64feb733b1f4c82.mjs",
+      "sha256": "2eb671e13f32873ef9a01d986ca0a70f9a1c587bb9bb21b6c64feb733b1f4c82",
+      "bytes": 3001,
+      "retained_path": "artifacts/rust-rewrite/evidence/2eb671e13f32873ef9a01d986ca0a70f9a1c587bb9bb21b6c64feb733b1f4c82.mjs",
+      "original_path": "artifacts/rust-rewrite/benchmark-legacy-numeric-1/runner.mjs"
+    },
+    "9-cases.jsonl": {
+      "path": "artifacts/rust-rewrite/evidence/92be6ca1e287c91f5d5dc01c88f91c1395ab9973781c5bdd405a0d04672683ef.jsonl",
+      "sha256": "92be6ca1e287c91f5d5dc01c88f91c1395ab9973781c5bdd405a0d04672683ef",
+      "bytes": 103003,
+      "retained_path": "artifacts/rust-rewrite/evidence/92be6ca1e287c91f5d5dc01c88f91c1395ab9973781c5bdd405a0d04672683ef.jsonl",
+      "original_path": "artifacts/rust-rewrite/benchmark-legacy-numeric-1/cases.jsonl"
+    }
+  },
+  "current_sources": [
+    {
+      "path": "rust/xtask/src/benchmark.rs",
+      "sha256": "226bb5336ad6d6c2590629340a141583309c9b9b0aa67b17f58c376af5c6c64b",
+      "bytes": 53795,
+      "retained_path": "artifacts/rust-rewrite/evidence/226bb5336ad6d6c2590629340a141583309c9b9b0aa67b17f58c376af5c6c64b.rs"
+    },
+    {
+      "path": "rust/xtask/src/benchmark_legacy.rs",
+      "sha256": "07b37a4cd676db8b297da481f9bda60754ce2992108ac5fe9cc41e29ca1fd8a2",
+      "bytes": 8438,
+      "retained_path": "artifacts/rust-rewrite/evidence/07b37a4cd676db8b297da481f9bda60754ce2992108ac5fe9cc41e29ca1fd8a2.rs"
+    },
+    {
+      "path": "rust/xtask/src/benchmark_legacy_contracts.rs",
+      "sha256": "da6aa3dedc3cae1c757d8f527a40c1dadb60f7f06894bc1b3d3c5151fdc852d7",
+      "bytes": 12029,
+      "retained_path": "artifacts/rust-rewrite/evidence/da6aa3dedc3cae1c757d8f527a40c1dadb60f7f06894bc1b3d3c5151fdc852d7.rs"
+    },
+    {
+      "path": "rust/parity/capture-benchmark-router-contracts.mjs",
+      "sha256": "35fa145aac8275b3eacd6de87da9a1bbdc9da8dec20129ab23fbae8d0f7eb3bc",
+      "bytes": 7045,
+      "retained_path": "artifacts/rust-rewrite/evidence/35fa145aac8275b3eacd6de87da9a1bbdc9da8dec20129ab23fbae8d0f7eb3bc.mjs"
+    },
+    {
+      "path": "rust/parity/cases/benchmark-router-contracts.jsonl",
+      "sha256": "ef49a1758c74c0b27bf17f61d7dd71d032a1819a75908ec99d76f605f7d9b3cb",
+      "bytes": 13775,
+      "retained_path": "artifacts/rust-rewrite/evidence/ef49a1758c74c0b27bf17f61d7dd71d032a1819a75908ec99d76f605f7d9b3cb.jsonl"
+    },
+    {
+      "path": "rust/parity/cases/benchmark-router-contracts.capture.json",
+      "sha256": "9383073e2e785a7c452a4b131d57023fd9bf818d8598940de5a69d57f700ae75",
+      "bytes": 6457,
+      "retained_path": "artifacts/rust-rewrite/evidence/9383073e2e785a7c452a4b131d57023fd9bf818d8598940de5a69d57f700ae75.json"
+    }
+  ],
+  "rows": [
+    {
+      "id": "test/benchmark-router.test.mjs#1",
+      "file": "test/benchmark-router.test.mjs",
+      "name": "local benchmark gates derive limits from the recorded baseline and reject unshared work",
+      "baseline_file_sha256": "8d6362920817014ae11d8d8a13835ae736b57828140d791c56eee383e6f0b014",
+      "definition_sha256": "09bd72435a079d6d5489bd55ec984fc319f9a0b11730db78902b3abc539a7b0b",
+      "statement_sha256": "cc04e4041c032864a8b43b8e4756194e08f139a7590c71e27c77f48bf2ab0ebb",
+      "hash_scope": "definition_sha256 covers exact AST test call without trailing semicolon; statement_sha256 includes semicolon; assertion SHA covers exact assert call.",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete unchanged callback; complete product JSON result replay",
+      "rust_tests": [
+        "rust/xtask/src/benchmark_legacy_contracts.rs#all_frozen_callbacks_replay_complete_outputs_with_nonfinite_wire_boundary"
+      ],
+      "shared_cases": [
+        "benchmark-router-contract-1-1",
+        "benchmark-router-contract-1-2"
+      ],
+      "assertions": [
+        {
+          "line": 13,
+          "expression": "assert.equal(result.passed, true)",
+          "sha256": "8169ba0acd2262223df1ecceab6c33d927815250b9b59cae2ef8468505931f05",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/xtask/src/benchmark_legacy_contracts.rs#all_frozen_callbacks_replay_complete_outputs_with_nonfinite_wire_boundary",
+            "shared_cases_pointer": "#/rows/0/shared_cases",
+            "capture_assertion_id": "test/benchmark-router.test.mjs#1:assert-1"
+          },
+          "native_source": {
+            "path": "rust/xtask/src/benchmark_legacy_contracts.rs",
+            "line": 80,
+            "anchor": "compare_row(row).unwrap();"
+          },
+          "remaining": []
+        },
+        {
+          "line": 14,
+          "expression": "assert.equal(result.latency[0].limit_ms, 4)",
+          "sha256": "2cc4d737594159b5a281d2f4dc89010e257ba21d842d1882cd5349d9e8bc07f7",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/xtask/src/benchmark_legacy_contracts.rs#all_frozen_callbacks_replay_complete_outputs_with_nonfinite_wire_boundary",
+            "shared_cases_pointer": "#/rows/0/shared_cases",
+            "capture_assertion_id": "test/benchmark-router.test.mjs#1:assert-2"
+          },
+          "native_source": {
+            "path": "rust/xtask/src/benchmark_legacy_contracts.rs",
+            "line": 80,
+            "anchor": "compare_row(row).unwrap();"
+          },
+          "remaining": []
+        },
+        {
+          "line": 15,
+          "expression": "assert.equal(result.resources[0].sampled_peak_heap_limit_bytes, 2000)",
+          "sha256": "6d122c66a8d31becfea59361808b700ec3a62cefc4d5ab5279b29991620c6d7b",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/xtask/src/benchmark_legacy_contracts.rs#all_frozen_callbacks_replay_complete_outputs_with_nonfinite_wire_boundary",
+            "shared_cases_pointer": "#/rows/0/shared_cases",
+            "capture_assertion_id": "test/benchmark-router.test.mjs#1:assert-3"
+          },
+          "native_source": {
+            "path": "rust/xtask/src/benchmark_legacy_contracts.rs",
+            "line": 80,
+            "anchor": "compare_row(row).unwrap();"
+          },
+          "remaining": []
+        },
+        {
+          "line": 16,
+          "expression": "assert.equal(result.resources[0].event_loop_p95_limit_ms, 20)",
+          "sha256": "95075396e1f1e8dc1292865b48248815372e77eba62affb5159f024c946df82b",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/xtask/src/benchmark_legacy_contracts.rs#all_frozen_callbacks_replay_complete_outputs_with_nonfinite_wire_boundary",
+            "shared_cases_pointer": "#/rows/0/shared_cases",
+            "capture_assertion_id": "test/benchmark-router.test.mjs#1:assert-4"
+          },
+          "native_source": {
+            "path": "rust/xtask/src/benchmark_legacy_contracts.rs",
+            "line": 80,
+            "anchor": "compare_row(row).unwrap();"
+          },
+          "remaining": []
+        },
+        {
+          "line": 17,
+          "expression": "assert.equal(compareRouterBenchmarks(baseline, report(8)).evaluator_calls.passed, false)",
+          "sha256": "b51cde87acff03e6057a0edab4a10370b3a6620b518e63da24690fa1c413af47",
+          "status": "covered",
+          "expanded_executions": 1,
+          "evidence": {
+            "native_test": "rust/xtask/src/benchmark_legacy_contracts.rs#all_frozen_callbacks_replay_complete_outputs_with_nonfinite_wire_boundary",
+            "shared_cases_pointer": "#/rows/0/shared_cases",
+            "capture_assertion_id": "test/benchmark-router.test.mjs#1:assert-5"
+          },
+          "native_source": {
+            "path": "rust/xtask/src/benchmark_legacy_contracts.rs",
+            "line": 80,
+            "anchor": "compare_row(row).unwrap();"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/benchmark-router.test.mjs#2",
+      "file": "test/benchmark-router.test.mjs",
+      "name": "latency, heap, event-loop and incomparable-run regressions fail independently",
+      "baseline_file_sha256": "8d6362920817014ae11d8d8a13835ae736b57828140d791c56eee383e6f0b014",
+      "definition_sha256": "0942a495ab24e588fa5462e42c64415a98133d3f9e8d917f7ad608a6e9f1b04f",
+      "statement_sha256": "e023a52995ca73399424c2bc837a3f043346547e8eb7a30d658d9d38930486fa",
+      "hash_scope": "definition_sha256 covers exact AST test call without trailing semicolon; statement_sha256 includes semicolon; assertion SHA covers exact assert call.",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "execution_scope": "complete unchanged callback; complete product JSON result replay",
+      "rust_tests": [
+        "rust/xtask/src/benchmark_legacy_contracts.rs#all_frozen_callbacks_replay_complete_outputs_with_nonfinite_wire_boundary"
+      ],
+      "shared_cases": [
+        "benchmark-router-contract-2-1",
+        "benchmark-router-contract-2-2",
+        "benchmark-router-contract-2-3",
+        "benchmark-router-contract-2-4",
+        "benchmark-router-contract-2-5",
+        "benchmark-router-contract-2-6"
+      ],
+      "assertions": [
+        {
+          "line": 31,
+          "expression": "assert.equal(compareRouterBenchmarks(report(8), candidate).passed, false)",
+          "sha256": "d1e7da15b202f332f0571e652d239e6db0ad57fd9180c0bcf2749112702a9a23",
+          "status": "covered",
+          "expanded_executions": 6,
+          "evidence": {
+            "native_test": "rust/xtask/src/benchmark_legacy_contracts.rs#all_frozen_callbacks_replay_complete_outputs_with_nonfinite_wire_boundary",
+            "shared_cases_pointer": "#/rows/1/shared_cases",
+            "capture_assertion_id": "test/benchmark-router.test.mjs#2:assert-1"
+          },
+          "native_source": {
+            "path": "rust/xtask/src/benchmark_legacy_contracts.rs",
+            "line": 80,
+            "anchor": "compare_row(row).unwrap();"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    }
+  ],
+  "boundaries": [
+    "Historical input file <=16MiB; at most4096 rows per report,256byte scenario and4096byte compared environment strings; finite nonnegative metrics, safe integer counts and positive concurrency.",
+    "Both reports must omit schema/type or both carry schema_version1/type synthetic_router_benchmark. Mixed/native/partial markers reject before workload/build/output side effects. Missing/empty baseline rejected; empty candidate accepted and fails original gates.",
+    "This is a bounded historical JSON interface, not arbitrary JavaScript objects/getters/coercion/undefined. Raw nonfinite maxima serialize to null exactly as Node JSON.stringify; native comparison result has only JSON values.",
+    "Original expected/rationale text, first-seen scenario order, count equality, maximum-of-rounds limits and coalescing ratio retained. Old heap/event-loop gates do not qualify native CPU/RSS/paired uncertainty gates.",
+    "No measurements, provider requests, hardware claims, model downloads, defaults or threshold changes. Pure arithmetic edge tests are not performance evidence.",
+    "Benchmark-bundle#1 remains outside this promotion; schema2/source-cache compile proof is not the original dependency-free Node schema1/help contract."
+  ],
+  "history": {
+    "initial_test_clippy_failure": {
+      "path": "artifacts/rust-rewrite/tenth-benchmark-clippy-1.log",
+      "sha256": "3e3405d81f18679550d4f1102e0f5a5a9d1656b8e372f55d0dc64a0ab62c69af",
+      "bytes": 1316,
+      "retained_path": "artifacts/rust-rewrite/evidence/3e3405d81f18679550d4f1102e0f5a5a9d1656b8e372f55d0dc64a0ab62c69af.log"
+    },
+    "resolution": "Test-only cmp_owned cleanup; later regression strengthened unequal-round maxima before final native3/Clippy3. Earlier native/clippy logs remain historical."
+  },
+  "retained_sources": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/226bb5336ad6d6c2590629340a141583309c9b9b0aa67b17f58c376af5c6c64b.rs",
+      "sha256": "226bb5336ad6d6c2590629340a141583309c9b9b0aa67b17f58c376af5c6c64b",
+      "bytes": 53795,
+      "original_path": "rust/xtask/src/benchmark.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/07b37a4cd676db8b297da481f9bda60754ce2992108ac5fe9cc41e29ca1fd8a2.rs",
+      "sha256": "07b37a4cd676db8b297da481f9bda60754ce2992108ac5fe9cc41e29ca1fd8a2",
+      "bytes": 8438,
+      "original_path": "rust/xtask/src/benchmark_legacy.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/da6aa3dedc3cae1c757d8f527a40c1dadb60f7f06894bc1b3d3c5151fdc852d7.rs",
+      "sha256": "da6aa3dedc3cae1c757d8f527a40c1dadb60f7f06894bc1b3d3c5151fdc852d7",
+      "bytes": 12029,
+      "original_path": "rust/xtask/src/benchmark_legacy_contracts.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/35fa145aac8275b3eacd6de87da9a1bbdc9da8dec20129ab23fbae8d0f7eb3bc.mjs",
+      "sha256": "35fa145aac8275b3eacd6de87da9a1bbdc9da8dec20129ab23fbae8d0f7eb3bc",
+      "bytes": 7045,
+      "original_path": "rust/parity/capture-benchmark-router-contracts.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/ef49a1758c74c0b27bf17f61d7dd71d032a1819a75908ec99d76f605f7d9b3cb.jsonl",
+      "sha256": "ef49a1758c74c0b27bf17f61d7dd71d032a1819a75908ec99d76f605f7d9b3cb",
+      "bytes": 13775,
+      "original_path": "rust/parity/cases/benchmark-router-contracts.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/9383073e2e785a7c452a4b131d57023fd9bf818d8598940de5a69d57f700ae75.json",
+      "sha256": "9383073e2e785a7c452a4b131d57023fd9bf818d8598940de5a69d57f700ae75",
+      "bytes": 6457,
+      "original_path": "rust/parity/cases/benchmark-router-contracts.capture.json"
+    }
+  ],
+  "input_coverage": {
+    "path": "artifacts/rust-rewrite/evidence/9c13d15d45378f169c3ffbeb5ec8e4aaea3d3ba928badb67bc4244e38c04c1e4.json",
+    "sha256": "9c13d15d45378f169c3ffbeb5ec8e4aaea3d3ba928badb67bc4244e38c04c1e4",
+    "bytes": 1275411,
+    "original_path": "rust/parity/coverage.json",
+    "source_commit": "46587867cd0b4db89b273ba293555a5619009a4c"
+  },
+  "scope": "Two covered historical benchmark comparator definitions through explicit read-only native legacy mode. Bounded JSON admission and nonfinite-to-null wire adaptation are explicit; native paired protocols, thresholds, performance results and bundle format remain separate.",
+  "status": "Reviewed assertion mapping; full rewrite qualification remains incomplete.",
+  "review": {
+    "proposal": {
+      "path": "artifacts/rust-rewrite/evidence/8a49ec220e60dcbe1fe0088ed00f723483901812738409fd965704735dc0e39d.json",
+      "sha256": "8a49ec220e60dcbe1fe0088ed00f723483901812738409fd965704735dc0e39d",
+      "bytes": 16160,
+      "original_path": "/private/tmp/autorouter-benchmark-router-coverage-proposal.json"
+    },
+    "review": {
+      "path": "artifacts/rust-rewrite/evidence/0eb32033f5c058aa8a109acfda9b666978fc82bf67f6ececd687aa0d2c872220.json",
+      "sha256": "0eb32033f5c058aa8a109acfda9b666978fc82bf67f6ececd687aa0d2c872220",
+      "bytes": 4277,
+      "original_path": "/private/tmp/autorouter-benchmark-router-root-review.json"
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/evidence/9253e0cb3d5b6554fb293ba662bfd7efa2a43c64ba757accafbdf22e477dc296.json",
+      "sha256": "9253e0cb3d5b6554fb293ba662bfd7efa2a43c64ba757accafbdf22e477dc296",
+      "bytes": 10322,
+      "original_path": "/private/tmp/benchmark-router-independent-review.json"
+    }
+  },
+  "previous_coverage_rows": [
+    {
+      "id": "test/benchmark-router.test.mjs#1",
+      "file": "test/benchmark-router.test.mjs",
+      "name": "local benchmark gates derive limits from the recorded baseline and reject unshared work",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    },
+    {
+      "id": "test/benchmark-router.test.mjs#2",
+      "file": "test/benchmark-router.test.mjs",
+      "name": "latency, heap, event-loop and incomparable-run regressions fail independently",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    }
+  ]
+}

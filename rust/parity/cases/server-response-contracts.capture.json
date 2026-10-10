@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "kind": "frozen_server_response_input_extraction",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "baseline_file_sha256": "b82681e2383f3466d66f9801745d4e62fb45d20065f136804f677089f2d41809",
+  "node_version": "v22.14.0",
+  "typescript_version": "6.0.3",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "zlib_version": "1.3.0.1-motley-82a5fec",
+  "generator_sha256": "90560670f4407091b5e6e7e7ad648b9280faaee104301380da3cafd56681be2b",
+  "cases_sha256": "7c158c333972674c503b3a8767fa5077ec775369998894a72bde8609bcd3e217",
+  "definitions": [
+    {
+      "id": "test/server.test.mjs#2",
+      "number": 2,
+      "name": "token counting bypasses Jev and upstream errors pass through unchanged",
+      "definition_sha256": "f23d766a139beb036659bec0668e0b62700676288082ce908798ef6a2d067374",
+      "assertions": [
+        {
+          "line": 77,
+          "expression": "assert.deepEqual(JSON.parse(text), body)",
+          "sha256": "5f789651c34dd95ebb754a8b1104722af2298c7823370d950bee401c7e5ead5d"
+        },
+        {
+          "line": 81,
+          "expression": "assert.equal(response.status, 429)",
+          "sha256": "2cde139a350256177b81ce7b0a36d01bf156edeb95bba8dc88c2ebc36976be68"
+        },
+        {
+          "line": 82,
+          "expression": "assert.equal(response.headers.get('retry-after'), '7')",
+          "sha256": "affc8d3a180ed93369072ce65e891f38ba4f0e3bea50185c8aa1dd3c94aa98e3"
+        },
+        {
+          "line": 83,
+          "expression": "assert.equal(await response.text(), error)",
+          "sha256": "9f24cb4621a0afa7e72cd82d9e472209adf111c4500ca734c64ae26a71c3be49"
+        },
+        {
+          "line": 84,
+          "expression": "assert.equal(f.evaluations(), 0)",
+          "sha256": "b483891e8e71725fc2a96f39c496d0c12e39d964366915d9a976f02610786fc6"
+        },
+        {
+          "line": 85,
+          "expression": "assert.deepEqual(f.statuses, [])",
+          "sha256": "f82b2eddfd70636dd2660473d8f16e0429e0d22650510fbd6f87d3ef899b45f9"
+        },
+        {
+          "line": 86,
+          "expression": "assert.deepEqual(decisions, [])",
+          "sha256": "ad518870f1b16ab6f89dc48c76dc059263d1d3e7bfe373c02113bc2e8e8f7fa6"
+        }
+      ]
+    },
+    {
+      "id": "test/server.test.mjs#3",
+      "number": 3,
+      "name": "rejects missing auth, browser origins, malformed JSON, unsupported paths and oversized input locally",
+      "definition_sha256": "f8585b20e14d7addb6a09741b6a56f2ba815193887e33e5f4f4195cbd0d924a0",
+      "assertions": [
+        {
+          "line": 91,
+          "expression": "assert.fail('Must not reach upstream')",
+          "sha256": "fc761ec4108f8ae31dcc63ae767e4fee134ebef5f261e8d3f6313ed21a1e7c86"
+        },
+        {
+          "line": 92,
+          "expression": "assert.equal((await f.call('/v1/messages', { method: 'POST', headers: { 'x-api-key': 'wrong' } })).status, 401)",
+          "sha256": "678fc98753b6ecf7b824466c48893a4f5e6c70121a732f18817b49ee9df5e4a0"
+        },
+        {
+          "line": 93,
+          "expression": "assert.equal((await f.call('/health', { headers: { origin: 'https://example.com' } })).status, 403)",
+          "sha256": "c9b766e53cb4686a53def7322aaea04dcfba8719431d62a0e0669890a66b47cd"
+        },
+        {
+          "line": 94,
+          "expression": "assert.equal((await f.call('/v1/messages', { method: 'POST', body: '{bad' })).status, 400)",
+          "sha256": "396e2cd5c0495872f4743cf73ab95c681ae78718ddfd2856ea345e3f391f65a7"
+        },
+        {
+          "line": 95,
+          "expression": "assert.equal((await f.call('/v1/messages', { method: 'POST', body: JSON.stringify({ ...body, messages: [null] }) })).status, 400)",
+          "sha256": "e6b282a99772910f0737930e39c4dde317ea4ae87d35b17f90491e4830e48b5f"
+        },
+        {
+          "line": 96,
+          "expression": "assert.equal((await f.call('/unexpected')).status, 404)",
+          "sha256": "ee6a5623c9f62bd6c8c3807e82126bf813de0de40333a0df2f6f07c2e5944957"
+        },
+        {
+          "line": 98,
+          "expression": "assert.equal(oversized.status, 413)",
+          "sha256": "2e608563f293049eba5b20c1bd46cce1f775104b29dfb813bcb1145736d7be1a"
+        },
+        {
+          "line": 99,
+          "expression": "assert.equal(oversized.headers.get('connection'), 'close', 'An oversized body is not drained on a kept-alive socket')",
+          "sha256": "3ec123badb825eba1648130800bd21aa34ab30a2e27c8d87fe93e940729204dc"
+        },
+        {
+          "line": 100,
+          "expression": "assert.equal((await f.call('/health')).status, 200)",
+          "sha256": "693f423088eb6e631319962f40fbf942953e49c6fc5360ebf4f89eda8965bf1e"
+        },
+        {
+          "line": 101,
+          "expression": "assert.equal(f.evaluations(), 0)",
+          "sha256": "b483891e8e71725fc2a96f39c496d0c12e39d964366915d9a976f02610786fc6"
+        },
+        {
+          "line": 102,
+          "expression": "assert.deepEqual(decisions, [])",
+          "sha256": "ad518870f1b16ab6f89dc48c76dc059263d1d3e7bfe373c02113bc2e8e8f7fa6"
+        }
+      ]
+    },
+    {
+      "id": "test/server.test.mjs#20",
+      "number": 20,
+      "name": "compressed upstream responses preserve their exact bytes and skip model observation",
+      "definition_sha256": "87a13f54c21b1d30cba83fb34714da5e1adb804f08ac422d06ff77e886029c41",
+      "assertions": [
+        {
+          "line": 850,
+          "expression": "assert.equal(req.headers['accept-encoding'], 'identity')",
+          "sha256": "d60ef811beb9076e32bcadaa3ca36b3b5d4604c1c8d042b29e750596d5fa03d1"
+        },
+        {
+          "line": 859,
+          "expression": "assert.equal(response.headers['content-encoding'], 'gzip')",
+          "sha256": "ac9bdca755f123f198c668357b51dd17dc8f9de60b440c164c225ab6402ca4d6"
+        },
+        {
+          "line": 868,
+          "expression": "assert.deepEqual(received, compressed)",
+          "sha256": "526c7d29b73dfd70d224fc31e24d983df860c64fdb4e085c4f27fb41da9655a6"
+        },
+        {
+          "line": 869,
+          "expression": "assert.equal(f.logs.some(entry => entry.event === 'upstream_model'), false)",
+          "sha256": "bbd58a44c186c32624a32711daabe0ba72dece3b6fea1d848c764aec2cbf4f53"
+        }
+      ]
+    }
+  ],
+  "cases": 3,
+  "static_assertions": 22,
+  "original_callbacks_executed": 0,
+  "scope": "Only exact literal body/token/error initializers and the original gzip constructor expression are evaluated. Three complete original definitions and their assertions are hash-bound. Run unchanged frozen Node controls separately; this extraction is input provenance, not reference or native behavioral evidence."
+}

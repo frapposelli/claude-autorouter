@@ -1,0 +1,479 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "kind": "complete_frozen_server_identity_safety_callbacks",
+  "baseline": {
+    "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+    "files_verified": 111
+  },
+  "node": {
+    "version": "v22.14.0",
+    "sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0"
+  },
+  "generator_sha256": "9241ea2885d60c86bf15ef85aafcaf06be2400b67380530dd48d012a6d16017d",
+  "baseline_file_sha256": "b82681e2383f3466d66f9801745d4e62fb45d20065f136804f677089f2d41809",
+  "helpers": [
+    {
+      "statement": "const token = 'local-test-token-123456789';",
+      "sha256": "5dda796ceeca0fea036443e6719fae79167ac2c6f02c7ece2059bf907bc150cd"
+    },
+    {
+      "statement": "const body = { model: 'claude-sonnet-5', stream: true, max_tokens: 1024, system: [{ type: 'text', text: 'system', cache_control: { type: 'ephemeral' } }], messages: [{ role: 'user', content: 'Fix a typo' }], tools: [{ name: 'Read', input_schema: { type: 'object' } }] };",
+      "sha256": "610c8e3e707dfd5cfc92d007659e4abd400be1c8ff9b4e561d97bea553cd8bd8"
+    },
+    {
+      "statement": "async function fixture(t, handler, overrides = {}, routeImpl, onStatus, onDecision, onRecord) {\n  const upstream = http.createServer(handler);\n  const address = await listen(upstream, 0);\n  let evaluations = 0;\n  const logs = [];\n  const statuses = [];\n  const config = { ...readConfig({ AUTOROUTER_EVALUATOR: 'jev', ANTHROPIC_API_KEY: 'upstream-secret', TYPESAFE_API_KEY: 'classifier-secret' }), localToken: token, upstream: `http://127.0.0.1:${address.port}`, ...overrides };\n  const server = createRouterServer(config, {\n    router: {\n      route: async (...args) => { evaluations++; return routeImpl?.route ? routeImpl.route(...args)\n        : routeImpl ? routeImpl(...args) : { model: config.models.haiku, source: 'test' }; },\n      complete: (...args) => routeImpl?.complete?.(...args),\n    },\n    log: entry => logs.push(entry), onStatus: entry => { statuses.push(entry); return onStatus?.(entry); },\n    onDecision, onRecord,\n  });\n  const local = await listen(server, 0);\n  t.after(() => { server.closeAllConnections(); server.close(); upstream.closeAllConnections(); upstream.close(); });\n  const localAuth = config.authMode === 'subscription' ? { 'x-autorouter-token': token } : { 'x-api-key': token };\n  const baseUrl = `http://127.0.0.1:${local.port}`;\n  const call = (path, options = {}) => fetch(`${baseUrl}${path}`, { ...options, headers: { ...localAuth, ...options.headers } });\n  return { call, baseUrl, logs, statuses, evaluations: () => evaluations };\n}",
+      "sha256": "7c78ac5d771adb4044bdb12dad87f158232592e41d5493a1ce8eb2ce730f8026"
+    },
+    {
+      "statement": "async function waitForStatus(f, event) {\n  for (let i = 0; i < 100; i++) {\n    if (f.statuses.some(entry => entry.event === event)) return;\n    await new Promise(resolve => setTimeout(resolve, 5));\n  }\n  assert.fail(`Missing status event: ${event}`);\n}",
+      "sha256": "f9600fd02bfdb90b814db6ccf0b988ae38555e7c1bcb5dc89e61ad122329d93d"
+    },
+    {
+      "statement": "const oauthHeaders = { authorization: 'Bearer fake-subscription-token', 'anthropic-beta': 'oauth-2025-04-20,future-capability', 'anthropic-version': '2023-06-01' };",
+      "sha256": "92aea0530edfe378aeb32dcf9e99196b8ccfa68fea2e0664cef1b25b93da3a17"
+    }
+  ],
+  "definitions": [
+    {
+      "number": 15,
+      "id": "test/server.test.mjs#15",
+      "name": "subscription forwards gateway identity and adapted Opus thinking, and observes the actual streamed model",
+      "statement": "test('subscription forwards gateway identity and adapted Opus thinking, and observes the actual streamed model', async t => {\n  const payload = { ...body, model: 'claude-haiku-4-5-20251001', thinking: { type: 'disabled' } };\n  const before = structuredClone(payload);\n  const selected = 'claude-opus-5-5';\n  const reported = 'claude-opus-5-5-provider-revision';\n  const first = 'event: message_start\\r\\ndata: {\"type\":\"message_start\",';\n  const next = `\"message\":{\"model\":\"${reported}\",\"content\":[]}}\\r\\n\\r\\n`;\n  const last = 'event: message_stop\\r\\ndata: {\"type\":\"message_stop\"}\\r\\n\\r\\n';\n  let continueStream;\n  const f = await fixture(t, async (req, res) => {\n    let text = ''; for await (const chunk of req) text += chunk;\n    assert.deepEqual(JSON.parse(text), { ...payload, model: selected, thinking: { type: 'adaptive' } });\n    assert.equal(req.headers.authorization, oauthHeaders.authorization);\n    assert.equal(req.headers['x-autorouter-token'], undefined);\n    assert.equal(req.headers['accept-encoding'], 'identity');\n    res.writeHead(200, { 'content-type': 'text/event-stream', 'request-id': 'provider-request' });\n    continueStream = () => { res.write(next); res.end(last); };\n    res.write(first);\n  }, { authMode: 'subscription' }, (original, context) => {\n    assert.deepEqual(original, payload);\n    assert.equal(context.promptId, 'human-prompt-1');\n    assert.equal(context.scope, JSON.stringify(['session-1', 'agent-1']));\n    assert.equal(context.requestClass, 'main');\n    assert.ok(context.signal instanceof AbortSignal);\n    return { model: selected, source: 'test' };\n  });\n  const response = await f.call('/v1/messages', { method: 'POST', headers: {\n    ...oauthHeaders, 'accept-encoding': 'gzip', 'x-claude-code-prompt-id': 'human-prompt-1',\n    'x-claude-code-session-id': 'session-1', 'x-claude-code-agent-id': 'agent-1', 'x-claude-code-request-class': 'main',\n  }, body: JSON.stringify(payload) });\n  assert.equal(response.status, 200);\n  const reader = response.body.getReader();\n  const initial = await reader.read();\n  assert.equal(Buffer.from(initial.value).toString(), first);\n  assert.equal(f.logs.some(entry => entry.event === 'upstream_model'), false);\n  continueStream();\n  const chunks = [initial.value];\n  for (;;) { const chunk = await reader.read(); if (chunk.done) break; chunks.push(chunk.value); }\n  assert.equal(Buffer.concat(chunks).toString(), first + next + last);\n  assert.deepEqual(payload, before);\n  assert.deepEqual(f.logs.find(entry => entry.event === 'route'), {\n    event: 'route', requested_model: payload.model, model: selected, source: 'test', request_adjustments: ['adaptive_thinking_required'],\n  });\n  assert.deepEqual(f.logs.filter(entry => entry.event === 'upstream_model'), [{ event: 'upstream_model', model: reported }]);\n  assert.ok(f.logs.some(entry => entry.event === 'upstream_response' && entry.status === 200));\n  for (const privateValue of ['Fix a typo', 'fake-subscription-token', token]) assert.ok(!JSON.stringify(f.logs).includes(privateValue));\n});",
+      "sha256": "867e9a911ab5970c57e245560c4607424709c96ea03ae2f8084f48fbf3967c01",
+      "assertions": [
+        {
+          "id": "server#15:assert-1",
+          "expression": "assert.deepEqual(JSON.parse(text), { ...payload, model: selected, thinking: { type: 'adaptive' } })",
+          "sha256": "3ba1afa8940b30908dc34de9d05ff5316e1c9caf1090988f30208f90588ae381",
+          "line": 437,
+          "executions": 1
+        },
+        {
+          "id": "server#15:assert-2",
+          "expression": "assert.equal(req.headers.authorization, oauthHeaders.authorization)",
+          "sha256": "eef89dd65a86aa771879b9ddd8d8f1b5c29b07b68f9c316c45574f2436ac645e",
+          "line": 438,
+          "executions": 1
+        },
+        {
+          "id": "server#15:assert-3",
+          "expression": "assert.equal(req.headers['x-autorouter-token'], undefined)",
+          "sha256": "0cd9ed0e32b31cec139db3b3d2368936faa1d892c452e24b5e562c3403862e78",
+          "line": 439,
+          "executions": 1
+        },
+        {
+          "id": "server#15:assert-4",
+          "expression": "assert.equal(req.headers['accept-encoding'], 'identity')",
+          "sha256": "d60ef811beb9076e32bcadaa3ca36b3b5d4604c1c8d042b29e750596d5fa03d1",
+          "line": 440,
+          "executions": 1
+        },
+        {
+          "id": "server#15:assert-5",
+          "expression": "assert.deepEqual(original, payload)",
+          "sha256": "1f98fe5c71856cbd30d410dc2595f4901a7dc384a4341637c0da3f5130411e08",
+          "line": 445,
+          "executions": 1
+        },
+        {
+          "id": "server#15:assert-6",
+          "expression": "assert.equal(context.promptId, 'human-prompt-1')",
+          "sha256": "7cedbfbd1573eafebf8ae1f35b12ccd7c97b980495fab4eb4b2e2bd2d2cd6e77",
+          "line": 446,
+          "executions": 1
+        },
+        {
+          "id": "server#15:assert-7",
+          "expression": "assert.equal(context.scope, JSON.stringify(['session-1', 'agent-1']))",
+          "sha256": "b71e4756ed38acbb96618d53e85caad7f29568ed85ddf3153ac064712eca76ac",
+          "line": 447,
+          "executions": 1
+        },
+        {
+          "id": "server#15:assert-8",
+          "expression": "assert.equal(context.requestClass, 'main')",
+          "sha256": "2089e71a6fd96d573fd9d0ffeaa20f9295c794842d23061be55f77ea50476166",
+          "line": 448,
+          "executions": 1
+        },
+        {
+          "id": "server#15:assert-9",
+          "expression": "assert.ok(context.signal instanceof AbortSignal)",
+          "sha256": "9d46cabc988b30d34c35206cabae7f0fcf7e15d6976978fcce2886e8016f66a4",
+          "line": 449,
+          "executions": 1
+        },
+        {
+          "id": "server#15:assert-10",
+          "expression": "assert.equal(response.status, 200)",
+          "sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "line": 456,
+          "executions": 1
+        },
+        {
+          "id": "server#15:assert-11",
+          "expression": "assert.equal(Buffer.from(initial.value).toString(), first)",
+          "sha256": "b59adf5cf4b87196eaa286a926147e2e8fb7dae8643878c34ac46a549cf2b455",
+          "line": 459,
+          "executions": 1
+        },
+        {
+          "id": "server#15:assert-12",
+          "expression": "assert.equal(f.logs.some(entry => entry.event === 'upstream_model'), false)",
+          "sha256": "bbd58a44c186c32624a32711daabe0ba72dece3b6fea1d848c764aec2cbf4f53",
+          "line": 460,
+          "executions": 1
+        },
+        {
+          "id": "server#15:assert-13",
+          "expression": "assert.equal(Buffer.concat(chunks).toString(), first + next + last)",
+          "sha256": "6464601dd57fbe5c2b1d9ad306c7b26a51b4b57d662a7a8222149bceeed55d4a",
+          "line": 464,
+          "executions": 1
+        },
+        {
+          "id": "server#15:assert-14",
+          "expression": "assert.deepEqual(payload, before)",
+          "sha256": "f8261a55a17c6e22361598d73e93a603ee33383ea4061e0a539e51047eb3e015",
+          "line": 465,
+          "executions": 1
+        },
+        {
+          "id": "server#15:assert-15",
+          "expression": "assert.deepEqual(f.logs.find(entry => entry.event === 'route'), {\n    event: 'route', requested_model: payload.model, model: selected, source: 'test', request_adjustments: ['adaptive_thinking_required'],\n  })",
+          "sha256": "8fe5d545c2019b543a4273311e99aad1dd19a42fa7efd32a7a1befdc6448972f",
+          "line": 466,
+          "executions": 1
+        },
+        {
+          "id": "server#15:assert-16",
+          "expression": "assert.deepEqual(f.logs.filter(entry => entry.event === 'upstream_model'), [{ event: 'upstream_model', model: reported }])",
+          "sha256": "dac622d11b2808ebffb58f674a7f04158939e677c72d6b311e9262cd02474c77",
+          "line": 469,
+          "executions": 1
+        },
+        {
+          "id": "server#15:assert-17",
+          "expression": "assert.ok(f.logs.some(entry => entry.event === 'upstream_response' && entry.status === 200))",
+          "sha256": "4c28c7d8dc46de664d5df2539f3c805058c6d3dd9d08f8639bcd48a735b48fb6",
+          "line": 470,
+          "executions": 1
+        },
+        {
+          "id": "server#15:assert-18",
+          "expression": "assert.ok(!JSON.stringify(f.logs).includes(privateValue))",
+          "sha256": "81e3fc345998bdf41b20caae9b3659187a6cd534d340703912791bac7b09500b",
+          "line": 471,
+          "executions": 3
+        }
+      ],
+      "options": null,
+      "passed": true
+    },
+    {
+      "number": 16,
+      "id": "test/server.test.mjs#16",
+      "name": "real routing adapts low-confidence Sonnet 5.5 and its signed tool continuation without altering SSE",
+      "statement": "test('real routing adapts low-confidence Sonnet 5.5 and its signed tool continuation without altering SSE', { timeout: 5000 }, async t => {\n  const selected = 'claude-sonnet-5-5';\n  const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_SONNET_MODEL: selected, TYPESAFE_API_KEY: 'classifier-secret' });\n  let classifications = 0;\n  const router = new Router(config, { fetchImpl: async (url, options) => {\n    assert.equal(url, config.jevEndpoint);\n    assert.equal(options.headers.authorization, 'Bearer classifier-secret');\n    assert.equal(JSON.parse(options.body).state.current_task, 'Fix a typo');\n    classifications++;\n    return Response.json({ answers: { tier: { choice: 'haiku', confidence: classifications === 1 ? 0.6 : 0.99 } } });\n  } });\n  const thinking = { type: 'thinking', thinking: 'Synthetic private reasoning: inspect → edit.', signature: 'synthetic-signature+/==' };\n  const toolUse = { type: 'tool_use', id: 'tool_sonnet_55', name: 'Read', input: { path: 'README.md' } };\n  const initial = { ...body, model: config.models.haiku, thinking: { type: 'disabled' } };\n  const continuation = { ...initial, messages: [\n    ...initial.messages,\n    { role: 'assistant', content: [thinking, toolUse] },\n    { role: 'user', content: [{ type: 'tool_result', tool_use_id: toolUse.id, content: 'Synthetic file text.' }] },\n  ] };\n  const requests = [initial, continuation];\n  const originals = structuredClone(requests);\n  const event = payload => `event: ${payload.type}\\r\\ndata: ${JSON.stringify(payload)}\\r\\n\\r\\n`;\n  const streamed = Buffer.from([\n    { type: 'message_start', message: { id: 'msg_sonnet_55', model: selected, content: [], usage: { input_tokens: 10, output_tokens: 1 } } },\n    { type: 'content_block_start', index: 0, content_block: { type: 'thinking', thinking: '' } },\n    { type: 'content_block_delta', index: 0, delta: { type: 'thinking_delta', thinking: thinking.thinking } },\n    { type: 'content_block_delta', index: 0, delta: { type: 'signature_delta', signature: thinking.signature } },\n    { type: 'content_block_stop', index: 0 },\n    { type: 'content_block_start', index: 1, content_block: { ...toolUse, input: {} } },\n    { type: 'content_block_delta', index: 1, delta: { type: 'input_json_delta', partial_json: JSON.stringify(toolUse.input) } },\n    { type: 'content_block_stop', index: 1 },\n    { type: 'message_delta', delta: { stop_reason: 'tool_use' }, usage: { output_tokens: 20 } },\n    { type: 'message_stop' },\n  ].map(event).join(''));\n  const finished = Buffer.from([\n    { type: 'message_start', message: { id: 'msg_sonnet_55_done', model: selected, content: [] } },\n    { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },\n    { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Done.' } },\n    { type: 'content_block_stop', index: 0 },\n    { type: 'message_delta', delta: { stop_reason: 'end_turn' }, usage: { output_tokens: 2 } },\n    { type: 'message_stop' },\n  ].map(event).join(''));\n  const replies = [streamed, finished];\n  let upstreamCalls = 0;\n  const received = [];\n  const f = await fixture(t, async (req, res) => {\n    let text = ''; for await (const chunk of req) text += chunk;\n    const parsed = JSON.parse(text);\n    const index = upstreamCalls++;\n    received.push(parsed);\n    // Reproduce the provider rejection instead of accepting an invalid body.\n    if (parsed.model !== selected || parsed.thinking?.type !== 'between_tools') {\n      res.writeHead(400, { 'content-type': 'application/json' });\n      res.end(JSON.stringify({ type: 'error', error: { type: 'invalid_request_error', message: 'Sonnet 5.5 requires between_tools thinking for this request' } }));\n      return;\n    }\n    assert.equal(req.headers.authorization, oauthHeaders.authorization);\n    assert.equal(req.headers['x-autorouter-token'], undefined);\n    res.writeHead(200, { 'content-type': 'text/event-stream' });\n    const reply = replies[index];\n    // Split inside a UTF-8 character to catch accidental decode/re-encode.\n    const split = index === 0 ? reply.indexOf(Buffer.from('→')) + 1 : 31;\n    res.write(reply.subarray(0, split));\n    res.end(reply.subarray(split));\n  }, { authMode: 'subscription', models: config.models }, router);\n  for (const [index, request] of requests.entries()) {\n    const response = await f.call('/v1/messages', { method: 'POST', headers: {\n      ...oauthHeaders, 'x-claude-code-session-id': 'sonnet-55-session',\n      'x-claude-code-prompt-id': 'sonnet-55-turn', 'x-claude-code-request-class': 'main',\n    }, body: JSON.stringify(request) });\n    assert.equal(response.status, 200);\n    assert.deepEqual(Buffer.from(await response.arrayBuffer()), replies[index]);\n    assert.deepEqual(received[index], { ...request, model: selected, thinking: { type: 'between_tools' } });\n  }\n  assert.equal(upstreamCalls, 2);\n  assert.equal(classifications, 2);\n  assert.deepEqual(requests, originals);\n  const routes = f.statuses.filter(entry => entry.event === 'route');\n  assert.deepEqual(routes.map(({ model, source, reason, classified_tier }) => ({ model, source, reason, classified_tier })), [\n    { model: selected, source: 'jev', reason: 'low_confidence', classified_tier: 'haiku' },\n    { model: selected, source: 'jev', reason: 'tool_turn_pinned', classified_tier: 'haiku' },\n  ]);\n  assert.deepEqual(f.logs.filter(entry => entry.event === 'upstream_model').map(entry => entry.model), [selected, selected]);\n  assert.deepEqual(f.logs.filter(entry => entry.event === 'upstream_response').map(entry => entry.status), [200, 200]);\n  for (const secret of [thinking.thinking, thinking.signature, 'classifier-secret', 'fake-subscription-token']) {\n    assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes(secret));\n  }\n});",
+      "sha256": "66724185c3dfb5d80c7af3c2bbfeb99c749d67b848878bcc0c10a05251f24a5f",
+      "assertions": [
+        {
+          "id": "server#16:assert-1",
+          "expression": "assert.equal(url, config.jevEndpoint)",
+          "sha256": "86983dba3f95631c4fb3381d4f7f579b0b67dc027e3fb4e157ccc6c116a9fbb9",
+          "line": 479,
+          "executions": 2
+        },
+        {
+          "id": "server#16:assert-2",
+          "expression": "assert.equal(options.headers.authorization, 'Bearer classifier-secret')",
+          "sha256": "744649ec1d73757a8e2af52fd164709938cd095919ecc6eb6afc8b68b33c661e",
+          "line": 480,
+          "executions": 2
+        },
+        {
+          "id": "server#16:assert-3",
+          "expression": "assert.equal(JSON.parse(options.body).state.current_task, 'Fix a typo')",
+          "sha256": "51ad3b0a0657b7a25d7dfc633671aba7c1677f44d83a8f799dad7f7032af4ebd",
+          "line": 481,
+          "executions": 2
+        },
+        {
+          "id": "server#16:assert-4",
+          "expression": "assert.equal(req.headers.authorization, oauthHeaders.authorization)",
+          "sha256": "eef89dd65a86aa771879b9ddd8d8f1b5c29b07b68f9c316c45574f2436ac645e",
+          "line": 530,
+          "executions": 2
+        },
+        {
+          "id": "server#16:assert-5",
+          "expression": "assert.equal(req.headers['x-autorouter-token'], undefined)",
+          "sha256": "0cd9ed0e32b31cec139db3b3d2368936faa1d892c452e24b5e562c3403862e78",
+          "line": 531,
+          "executions": 2
+        },
+        {
+          "id": "server#16:assert-6",
+          "expression": "assert.equal(response.status, 200)",
+          "sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "line": 544,
+          "executions": 2
+        },
+        {
+          "id": "server#16:assert-7",
+          "expression": "assert.deepEqual(Buffer.from(await response.arrayBuffer()), replies[index])",
+          "sha256": "198df34b6991b93b8d5b71c534643b10f0fdcbede20c32a0036000fc17a19317",
+          "line": 545,
+          "executions": 2
+        },
+        {
+          "id": "server#16:assert-8",
+          "expression": "assert.deepEqual(received[index], { ...request, model: selected, thinking: { type: 'between_tools' } })",
+          "sha256": "23ac6bb53c554f2533efbe68fd3978d597a3204e2225187c4c90d198aa83c5db",
+          "line": 546,
+          "executions": 2
+        },
+        {
+          "id": "server#16:assert-9",
+          "expression": "assert.equal(upstreamCalls, 2)",
+          "sha256": "a33dc9a86ed5b577255eb142dd4ae8c4994822e9fad83f9cf303e125737abc03",
+          "line": 548,
+          "executions": 1
+        },
+        {
+          "id": "server#16:assert-10",
+          "expression": "assert.equal(classifications, 2)",
+          "sha256": "5de4e64028c5c171d22966703c85a6fe979a7bc95bd8e6b5c39053d1ebf920cf",
+          "line": 549,
+          "executions": 1
+        },
+        {
+          "id": "server#16:assert-11",
+          "expression": "assert.deepEqual(requests, originals)",
+          "sha256": "3a1ea6d1182fb50d67d6e7580ccc8a36066061229e1adbdbef502f478369b1d4",
+          "line": 550,
+          "executions": 1
+        },
+        {
+          "id": "server#16:assert-12",
+          "expression": "assert.deepEqual(routes.map(({ model, source, reason, classified_tier }) => ({ model, source, reason, classified_tier })), [\n    { model: selected, source: 'jev', reason: 'low_confidence', classified_tier: 'haiku' },\n    { model: selected, source: 'jev', reason: 'tool_turn_pinned', classified_tier: 'haiku' },\n  ])",
+          "sha256": "2c0ce6f1a1e6add5c9607f349a082350a535d08f73dfbc54b6176b51713d71bc",
+          "line": 552,
+          "executions": 1
+        },
+        {
+          "id": "server#16:assert-13",
+          "expression": "assert.deepEqual(f.logs.filter(entry => entry.event === 'upstream_model').map(entry => entry.model), [selected, selected])",
+          "sha256": "888507ef64f0f7c02b37f13a9d8ae5abccab1f77812d5c1cc9c7b4194da17fd1",
+          "line": 556,
+          "executions": 1
+        },
+        {
+          "id": "server#16:assert-14",
+          "expression": "assert.deepEqual(f.logs.filter(entry => entry.event === 'upstream_response').map(entry => entry.status), [200, 200])",
+          "sha256": "3d52dcd796cbda0e0c72b7075c1d143b4a71e1f89f7379a5327e37e4f1060920",
+          "line": 557,
+          "executions": 1
+        },
+        {
+          "id": "server#16:assert-15",
+          "expression": "assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes(secret))",
+          "sha256": "b1c3415ef076264108c361d7372aabbb90efd71334431450848dd5cd58e79175",
+          "line": 559,
+          "executions": 4
+        }
+      ],
+      "options": {
+        "timeout": 5000
+      },
+      "passed": true
+    },
+    {
+      "number": 17,
+      "id": "test/server.test.mjs#17",
+      "name": "auto execution routes independently while auxiliary permission checks and denied safeguard verdicts remain unchanged",
+      "statement": "test('auto execution routes independently while auxiliary permission checks and denied safeguard verdicts remain unchanged', async t => {\n  const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'classifier-secret', AUTOROUTER_CLIENT_PROFILE: 'auto', AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5' });\n  let classifications = 0;\n  const router = new Router(config, { fetchImpl: async (url, options) => {\n    assert.equal(url, config.jevEndpoint);\n    assert.equal(JSON.parse(options.body).state.current_task, 'Design a secure cross-process transaction protocol.');\n    classifications++;\n    return Response.json({ answers: { tier: { choice: 'opus', confidence: 0.99 } } });\n  } });\n  const explanation = 'Synthetic denied action';\n  const auxiliary = { ...body, model: config.models.haiku,\n    system: [{ type: 'text', text: 'Synthetic classifier attribution. ' + 'review context '.repeat(11000) }],\n    messages: [{ role: 'user', content: 'Evaluate the synthetic tool permission request.' }],\n    tools: [], stop_sequences: ['</block>'], thinking: { type: 'disabled' },\n  };\n  const signedHistory = { type: 'thinking', thinking: 'Synthetic prior reasoning → retained.', signature: 'synthetic-safety-signature+/==' };\n  const safeguarded = { ...body, model: config.models.sonnet, thinking: { type: 'adaptive' },\n    messages: [...body.messages, { role: 'assistant', content: [signedHistory, { type: 'text', text: 'The typo is fixed.' }] },\n      { role: 'user', content: 'Design a secure cross-process transaction protocol.' }],\n    safeguards: [{ type: 'dangerous_tool_use', classifier_context: { v: 1, synthetic_context: 'Preserve this review context.' } }],\n  };\n  const requests = [auxiliary, safeguarded];\n  const expectedModels = [auxiliary.model, config.models.opus];\n  const originals = structuredClone(requests);\n  const classes = ['auxiliary', 'main'];\n  const beta = oauthHeaders['anthropic-beta'] + ',dangerous-tool-use-2026-09-03';\n  const event = payload => `event: ${payload.type}\\r\\ndata: ${JSON.stringify(payload)}\\r\\n\\r\\n`;\n  const replies = requests.map((_request, index) => Buffer.from([\n    { type: 'message_start', message: { id: `msg_safety_${index}`, model: expectedModels[index], content: [] } },\n    { type: 'content_block_start', index: 0, content_block: index === 0 ? { type: 'text', text: '' }\n      : { type: 'tool_use', id: 'tool_test', name: 'Bash', input: {} } },\n    { type: 'content_block_delta', index: 0, delta: index === 0\n      ? { type: 'text_delta', text: `<block>${explanation}</block>` }\n      : { type: 'input_json_delta', partial_json: JSON.stringify({ command: 'printf synthetic' }) } },\n    { type: 'content_block_stop', index: 0 },\n    { type: 'message_delta', delta: index === 0 ? { stop_reason: 'stop_sequence', stop_sequence: '</block>' }\n      : { stop_reason: 'tool_use', safeguard_results: [{ type: 'dangerous_tool_use', status: { type: 'available',\n        tool_uses: { tool_test: { type: 'evaluated', outcome: 'flagged', explanation } } } }] }, usage: { output_tokens: 20 } },\n    { type: 'message_stop' },\n  ].map(event).join('')));\n  let upstreamCalls = 0;\n  const f = await fixture(t, async (req, res) => {\n    let text = ''; for await (const chunk of req) text += chunk;\n    const index = upstreamCalls++;\n    assert.equal(req.url, '/v1/messages?beta=true');\n    assert.equal(req.headers.authorization, oauthHeaders.authorization);\n    assert.equal(req.headers['anthropic-beta'], beta);\n    assert.equal(req.headers['anthropic-version'], oauthHeaders['anthropic-version']);\n    assert.equal(req.headers['x-claude-code-request-class'], classes[index]);\n    assert.equal(req.headers['x-claude-code-session-id'], 'safety-session');\n    assert.equal(req.headers['x-autorouter-token'], undefined);\n    assert.equal(text, JSON.stringify({ ...requests[index], model: expectedModels[index] }));\n    res.writeHead(200, { 'content-type': 'text/event-stream', 'request-id': `safety-provider-${index}`, 'x-safety-fixture': 'retained' });\n    res.write(replies[index].subarray(0, 37));\n    res.end(replies[index].subarray(37));\n  }, { authMode: 'subscription', models: config.models, clientProfile: 'auto' }, router);\n  for (const [index, request] of requests.entries()) {\n    const response = await f.call('/v1/messages?beta=true', { method: 'POST', headers: {\n      ...oauthHeaders, 'anthropic-beta': beta, 'x-claude-code-request-class': classes[index], 'x-claude-code-session-id': 'safety-session',\n    }, body: JSON.stringify(request) });\n    assert.equal(response.status, 200);\n    assert.equal(response.headers.get('request-id'), `safety-provider-${index}`);\n    assert.equal(response.headers.get('x-safety-fixture'), 'retained');\n    assert.deepEqual(Buffer.from(await response.arrayBuffer()), replies[index]);\n  }\n  assert.equal(classifications, 1);\n  assert.equal(upstreamCalls, 2);\n  assert.deepEqual(requests, originals);\n  assert.deepEqual(f.statuses.filter(entry => entry.event === 'route').map(({ model, source, reason, classified_tier }) =>\n    ({ model, source, reason, classified_tier })), [\n    { model: auxiliary.model, source: 'passthrough', reason: 'internal_request', classified_tier: undefined },\n    { model: config.models.opus, source: 'jev', reason: 'classified', classified_tier: 'opus' },\n  ]);\n  for (const value of [explanation, signedHistory.thinking, signedHistory.signature, safeguarded.safeguards[0].classifier_context.synthetic_context, 'classifier-secret', 'fake-subscription-token']) {\n    assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes(value));\n  }\n});",
+      "sha256": "aefc012f26f2afac192c086ca598170f25f8475cb22ff590b83ec986d4d2baf2",
+      "assertions": [
+        {
+          "id": "server#17:assert-1",
+          "expression": "assert.equal(url, config.jevEndpoint)",
+          "sha256": "86983dba3f95631c4fb3381d4f7f579b0b67dc027e3fb4e157ccc6c116a9fbb9",
+          "line": 567,
+          "executions": 1
+        },
+        {
+          "id": "server#17:assert-2",
+          "expression": "assert.equal(JSON.parse(options.body).state.current_task, 'Design a secure cross-process transaction protocol.')",
+          "sha256": "d1516a1e34a3406b7799b8de10804f662855d74a8d5e2cf08d6d74eb2183f398",
+          "line": 568,
+          "executions": 1
+        },
+        {
+          "id": "server#17:assert-3",
+          "expression": "assert.equal(req.url, '/v1/messages?beta=true')",
+          "sha256": "04f4434dac9189e462941da5cba054c97bceae86a8196f16542fdb59d70382a0",
+          "line": 607,
+          "executions": 2
+        },
+        {
+          "id": "server#17:assert-4",
+          "expression": "assert.equal(req.headers.authorization, oauthHeaders.authorization)",
+          "sha256": "eef89dd65a86aa771879b9ddd8d8f1b5c29b07b68f9c316c45574f2436ac645e",
+          "line": 608,
+          "executions": 2
+        },
+        {
+          "id": "server#17:assert-5",
+          "expression": "assert.equal(req.headers['anthropic-beta'], beta)",
+          "sha256": "cbe6bcb713e3425ac553532340cb3c6cbc95c21dd0e646a66605de2f15169e77",
+          "line": 609,
+          "executions": 2
+        },
+        {
+          "id": "server#17:assert-6",
+          "expression": "assert.equal(req.headers['anthropic-version'], oauthHeaders['anthropic-version'])",
+          "sha256": "b4fb97aff23405e1cd6bb05e7684454f5e4020e9c589be36e1d9ff6636009ec7",
+          "line": 610,
+          "executions": 2
+        },
+        {
+          "id": "server#17:assert-7",
+          "expression": "assert.equal(req.headers['x-claude-code-request-class'], classes[index])",
+          "sha256": "9b2dc56e08851418053dc820274f3f8b2bab3d51fb43053ebc7d642e125ab004",
+          "line": 611,
+          "executions": 2
+        },
+        {
+          "id": "server#17:assert-8",
+          "expression": "assert.equal(req.headers['x-claude-code-session-id'], 'safety-session')",
+          "sha256": "ba2c3ffe9c9eae6921313284329a272ccf7f991a1f97a937fa3089b7eb54728e",
+          "line": 612,
+          "executions": 2
+        },
+        {
+          "id": "server#17:assert-9",
+          "expression": "assert.equal(req.headers['x-autorouter-token'], undefined)",
+          "sha256": "0cd9ed0e32b31cec139db3b3d2368936faa1d892c452e24b5e562c3403862e78",
+          "line": 613,
+          "executions": 2
+        },
+        {
+          "id": "server#17:assert-10",
+          "expression": "assert.equal(text, JSON.stringify({ ...requests[index], model: expectedModels[index] }))",
+          "sha256": "b848dae58b139704cec0a762ee9a7bbf642fae1942dcc4a7076fd864a4dbc5a5",
+          "line": 614,
+          "executions": 2
+        },
+        {
+          "id": "server#17:assert-11",
+          "expression": "assert.equal(response.status, 200)",
+          "sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "line": 623,
+          "executions": 2
+        },
+        {
+          "id": "server#17:assert-12",
+          "expression": "assert.equal(response.headers.get('request-id'), `safety-provider-${index}`)",
+          "sha256": "fbd963da2f428060ea34d1a3770cf89ef9d029f266ed36ac4d44a895fcc2d6c4",
+          "line": 624,
+          "executions": 2
+        },
+        {
+          "id": "server#17:assert-13",
+          "expression": "assert.equal(response.headers.get('x-safety-fixture'), 'retained')",
+          "sha256": "0e1699fd5b4491ababf5cecf2a9a32dc187e2c4279b6b0fcef1d5d11fdcb8458",
+          "line": 625,
+          "executions": 2
+        },
+        {
+          "id": "server#17:assert-14",
+          "expression": "assert.deepEqual(Buffer.from(await response.arrayBuffer()), replies[index])",
+          "sha256": "198df34b6991b93b8d5b71c534643b10f0fdcbede20c32a0036000fc17a19317",
+          "line": 626,
+          "executions": 2
+        },
+        {
+          "id": "server#17:assert-15",
+          "expression": "assert.equal(classifications, 1)",
+          "sha256": "b4b1a4d9e61f0f743cf39d711e3a24ea2214a8bb30ea2771bbe9e50f3e10e452",
+          "line": 628,
+          "executions": 1
+        },
+        {
+          "id": "server#17:assert-16",
+          "expression": "assert.equal(upstreamCalls, 2)",
+          "sha256": "a33dc9a86ed5b577255eb142dd4ae8c4994822e9fad83f9cf303e125737abc03",
+          "line": 629,
+          "executions": 1
+        },
+        {
+          "id": "server#17:assert-17",
+          "expression": "assert.deepEqual(requests, originals)",
+          "sha256": "3a1ea6d1182fb50d67d6e7580ccc8a36066061229e1adbdbef502f478369b1d4",
+          "line": 630,
+          "executions": 1
+        },
+        {
+          "id": "server#17:assert-18",
+          "expression": "assert.deepEqual(f.statuses.filter(entry => entry.event === 'route').map(({ model, source, reason, classified_tier }) =>\n    ({ model, source, reason, classified_tier })), [\n    { model: auxiliary.model, source: 'passthrough', reason: 'internal_request', classified_tier: undefined },\n    { model: config.models.opus, source: 'jev', reason: 'classified', classified_tier: 'opus' },\n  ])",
+          "sha256": "45e0d6986ea3a6793636d0e2d9c21bd8228db515833194d7460a46a48be9dadd",
+          "line": 631,
+          "executions": 1
+        },
+        {
+          "id": "server#17:assert-19",
+          "expression": "assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes(value))",
+          "sha256": "76b4f609065ce4f69f8289cd440b954f7219bbffa25ba0d877d352436fbeb0f8",
+          "line": 637,
+          "executions": 6
+        }
+      ],
+      "options": null,
+      "passed": true
+    }
+  ],
+  "static_assertions": 52,
+  "expanded_assertions": 82,
+  "assertion_execution_order_file": "assertion-executions.json",
+  "assertion_order_scope": "Raw successful assertion order retained separately. Per-site and per-callback counts are exact; no scheduling or chunk partition equivalence is inferred.",
+  "cases_sha256": "ac6c53b34fe8dbb551d5fa6ae135339e93fd45e61008f0407fb2f2e634f805fc",
+  "callbacks_executed": 3,
+  "network_scope": "Actual synthetic loopback HTTP only; original #16/#17 evaluator fetches remain supplied mocks.",
+  "capture_semantics": "Complete selected callbacks and five helper statements restored unchanged except successful assertion-result wrappers. Recording delegates actual HTTP and original return objects; no clone/drain, substituted verdict, timing threshold or source clock changes. Per-peer complete bodies preserve bytes; raw chunks and chronological reads remain in raw observations.",
+  "projection_kinds": [
+    "validated_latency",
+    "generated_request_id",
+    "automatic_http_date",
+    "loopback_authority"
+  ],
+  "typed_observations": [
+    "Headers inputs are enumerated into their complete normalized field map.",
+    "Route signal observation records actual AbortSignal type and aborted state; no serialized object identity is claimed. countTokens is recorded as a function capability only.",
+    "Individual response chunks remain base64, including intentionally split UTF-8. Only complete request bodies use UTF-8 after exact roundtrip validation."
+  ],
+  "raw_observations_file": "raw-observations.json",
+  "projection_ledger_file": "projections.json",
+  "cleanup": [
+    {
+      "id": "server-identity-safety-15",
+      "servers": 2,
+      "all_closed": true,
+      "remaining_sockets": 0
+    },
+    {
+      "id": "server-identity-safety-16",
+      "servers": 2,
+      "all_closed": true,
+      "remaining_sockets": 0
+    },
+    {
+      "id": "server-identity-safety-17",
+      "servers": 2,
+      "all_closed": true,
+      "remaining_sockets": 0
+    }
+  ]
+}

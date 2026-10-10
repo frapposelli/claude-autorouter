@@ -1,0 +1,775 @@
+{
+  "schema_version": 1,
+  "kind": "proposed_policy_command_original_contracts_assertion_mapping",
+  "status": "reviewed_original_contracts_focused_pass",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_head": "1a6eeef18db0854481c6fe182d730d3137b5d28d",
+  "candidate_checkout": "/private/tmp/autorouter-policy-command-1a6eeef",
+  "production_changes": "Private per-call dependency refactor only; fixed production policy loader and admission ordering retained. No behavior defect claimed.",
+  "counts": {
+    "definitions": 2,
+    "cases": 2,
+    "static_assertions": 12,
+    "executed_assertions": 11,
+    "static_untaken_guards": 1,
+    "operations": 9,
+    "native_focused_tests": 7,
+    "cli_unit_tests": 32
+  },
+  "current_sources": [
+    {
+      "path": "rust/Cargo.lock",
+      "bytes": 38350,
+      "sha256": "7abff1b608f0487c39941ee2a354f4f2d3978f2613243f8e88250e5f5e209992"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/Cargo.toml",
+      "bytes": 531,
+      "sha256": "e9969bf019d810b138acd85a4de4e1c11c9bbd38673f9188e8a5f454dd2ba041"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/user_config.rs",
+      "bytes": 56504,
+      "sha256": "f72ee8ae0ea0c44938fc5235864649ad644c733b039a81fdc2dde2edeb736939"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/configuration.rs",
+      "bytes": 16756,
+      "sha256": "a39e5e06d2d9531b3f836544d1a0aa507e5dfa382fb45e22f4252f38bf9ae34e"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/onboarding.rs",
+      "bytes": 19983,
+      "sha256": "0166cf662ab3423d009611170c269e9a7b37d71e7def52131984a1b17e065fcb"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/policy_command_contracts.rs",
+      "bytes": 22889,
+      "sha256": "084ed40a040fecff033521b04a6181225335fa48841262b20210939f4b6ab1db"
+    },
+    {
+      "path": "rust/parity/capture-policy-command-contracts.mjs",
+      "bytes": 12079,
+      "sha256": "14dd4a54386df42baf1f14c6e2235549f09649bcf274bd6b7e38a3a4848bcaa4"
+    },
+    {
+      "path": "rust/parity/cases/policy-command-contracts.jsonl",
+      "bytes": 14594,
+      "sha256": "583db6243796f84bb540036a6f7e1f62d64ce7a816114cabe936d6ca316c8307"
+    },
+    {
+      "path": "rust/parity/cases/policy-command-contracts.capture.json",
+      "bytes": 10134,
+      "sha256": "309b48464cff27408afe26e730b41e55687566b7ba45e54031fe0651e76a49f6"
+    }
+  ],
+  "candidate_sources": [
+    {
+      "path": "/private/tmp/autorouter-policy-command-1a6eeef/rust/Cargo.lock",
+      "bytes": 38350,
+      "sha256": "7abff1b608f0487c39941ee2a354f4f2d3978f2613243f8e88250e5f5e209992"
+    },
+    {
+      "path": "/private/tmp/autorouter-policy-command-1a6eeef/rust/crates/claude-autorouter/Cargo.toml",
+      "bytes": 531,
+      "sha256": "e9969bf019d810b138acd85a4de4e1c11c9bbd38673f9188e8a5f454dd2ba041"
+    },
+    {
+      "path": "/private/tmp/autorouter-policy-command-1a6eeef/rust/crates/autorouter-runtime/src/user_config.rs",
+      "bytes": 56504,
+      "sha256": "f72ee8ae0ea0c44938fc5235864649ad644c733b039a81fdc2dde2edeb736939"
+    },
+    {
+      "path": "/private/tmp/autorouter-policy-command-1a6eeef/rust/crates/claude-autorouter/src/configuration.rs",
+      "bytes": 16756,
+      "sha256": "a39e5e06d2d9531b3f836544d1a0aa507e5dfa382fb45e22f4252f38bf9ae34e"
+    },
+    {
+      "path": "/private/tmp/autorouter-policy-command-1a6eeef/rust/crates/claude-autorouter/src/onboarding.rs",
+      "bytes": 19983,
+      "sha256": "0166cf662ab3423d009611170c269e9a7b37d71e7def52131984a1b17e065fcb"
+    },
+    {
+      "path": "/private/tmp/autorouter-policy-command-1a6eeef/rust/crates/claude-autorouter/src/policy_command_contracts.rs",
+      "bytes": 22889,
+      "sha256": "084ed40a040fecff033521b04a6181225335fa48841262b20210939f4b6ab1db"
+    },
+    {
+      "path": "/private/tmp/autorouter-policy-command-1a6eeef/rust/parity/capture-policy-command-contracts.mjs",
+      "bytes": 12079,
+      "sha256": "14dd4a54386df42baf1f14c6e2235549f09649bcf274bd6b7e38a3a4848bcaa4"
+    },
+    {
+      "path": "/private/tmp/autorouter-policy-command-1a6eeef/rust/parity/cases/policy-command-contracts.jsonl",
+      "bytes": 14594,
+      "sha256": "583db6243796f84bb540036a6f7e1f62d64ce7a816114cabe936d6ca316c8307"
+    },
+    {
+      "path": "/private/tmp/autorouter-policy-command-1a6eeef/rust/parity/cases/policy-command-contracts.capture.json",
+      "bytes": 10134,
+      "sha256": "309b48464cff27408afe26e730b41e55687566b7ba45e54031fe0651e76a49f6"
+    }
+  ],
+  "retained_sources": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/7abff1b608f0487c39941ee2a354f4f2d3978f2613243f8e88250e5f5e209992.lock",
+      "bytes": 38350,
+      "sha256": "7abff1b608f0487c39941ee2a354f4f2d3978f2613243f8e88250e5f5e209992",
+      "original_path": "/private/tmp/autorouter-policy-command-1a6eeef/rust/Cargo.lock"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/e9969bf019d810b138acd85a4de4e1c11c9bbd38673f9188e8a5f454dd2ba041.toml",
+      "bytes": 531,
+      "sha256": "e9969bf019d810b138acd85a4de4e1c11c9bbd38673f9188e8a5f454dd2ba041",
+      "original_path": "/private/tmp/autorouter-policy-command-1a6eeef/rust/crates/claude-autorouter/Cargo.toml"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/f72ee8ae0ea0c44938fc5235864649ad644c733b039a81fdc2dde2edeb736939.rs",
+      "bytes": 56504,
+      "sha256": "f72ee8ae0ea0c44938fc5235864649ad644c733b039a81fdc2dde2edeb736939",
+      "original_path": "/private/tmp/autorouter-policy-command-1a6eeef/rust/crates/autorouter-runtime/src/user_config.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/a39e5e06d2d9531b3f836544d1a0aa507e5dfa382fb45e22f4252f38bf9ae34e.rs",
+      "bytes": 16756,
+      "sha256": "a39e5e06d2d9531b3f836544d1a0aa507e5dfa382fb45e22f4252f38bf9ae34e",
+      "original_path": "/private/tmp/autorouter-policy-command-1a6eeef/rust/crates/claude-autorouter/src/configuration.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/0166cf662ab3423d009611170c269e9a7b37d71e7def52131984a1b17e065fcb.rs",
+      "bytes": 19983,
+      "sha256": "0166cf662ab3423d009611170c269e9a7b37d71e7def52131984a1b17e065fcb",
+      "original_path": "/private/tmp/autorouter-policy-command-1a6eeef/rust/crates/claude-autorouter/src/onboarding.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/084ed40a040fecff033521b04a6181225335fa48841262b20210939f4b6ab1db.rs",
+      "bytes": 22889,
+      "sha256": "084ed40a040fecff033521b04a6181225335fa48841262b20210939f4b6ab1db",
+      "original_path": "/private/tmp/autorouter-policy-command-1a6eeef/rust/crates/claude-autorouter/src/policy_command_contracts.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/14dd4a54386df42baf1f14c6e2235549f09649bcf274bd6b7e38a3a4848bcaa4.mjs",
+      "bytes": 12079,
+      "sha256": "14dd4a54386df42baf1f14c6e2235549f09649bcf274bd6b7e38a3a4848bcaa4",
+      "original_path": "/private/tmp/autorouter-policy-command-1a6eeef/rust/parity/capture-policy-command-contracts.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/583db6243796f84bb540036a6f7e1f62d64ce7a816114cabe936d6ca316c8307.jsonl",
+      "bytes": 14594,
+      "sha256": "583db6243796f84bb540036a6f7e1f62d64ce7a816114cabe936d6ca316c8307",
+      "original_path": "/private/tmp/autorouter-policy-command-1a6eeef/rust/parity/cases/policy-command-contracts.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/309b48464cff27408afe26e730b41e55687566b7ba45e54031fe0651e76a49f6.json",
+      "bytes": 10134,
+      "sha256": "309b48464cff27408afe26e730b41e55687566b7ba45e54031fe0651e76a49f6",
+      "original_path": "/private/tmp/autorouter-policy-command-1a6eeef/rust/parity/cases/policy-command-contracts.capture.json"
+    }
+  ],
+  "source_inputs": {
+    "path": "artifacts/rust-rewrite/policy-command-native-2/inputs-before.json",
+    "bytes": 155198,
+    "sha256": "3a3f9e6f20b7d294eb014839f855fcadffc517413520becb01a963cb9bab8179"
+  },
+  "source_inputs_count": 924,
+  "rows": [
+    {
+      "id": "test/policy.test.mjs#6",
+      "file": "test/policy.test.mjs",
+      "name": "config show reports policy-locked settings and set refuses disallowed values",
+      "line": 92,
+      "definition_statement": "test('config show reports policy-locked settings and set refuses disallowed values', async t => {\n  const f = fixture(t, { allowed_evaluators: ['ollama'], session_log_mode: 'metadata' });\n  const env = { AUTOROUTER_CONFIG: join(f.root, 'config.json') };\n  saveUserConfig({ AUTOROUTER_EVALUATOR: 'ollama' }, { env });\n  const lines = [];\n  assert.equal(await configCommand(['show', '--json'], { env, write: line => lines.push(line), policy: f.options }), true);\n  const report = JSON.parse(lines.join('\\n'));\n  assert.equal(report.settings.AUTOROUTER_SESSION_LOG_MODE.source, 'policy');\n  assert.equal(report.settings.AUTOROUTER_SESSION_LOG_MODE.value, 'metadata');\n  assert.equal(report.policy_path, f.path);\n  const before = readFileSync(env.AUTOROUTER_CONFIG, 'utf8');\n  await assert.rejects(configCommand(['set', 'AUTOROUTER_EVALUATOR', 'jev'], { env, write() {}, policy: f.options }), /not permitted/);\n  assert.equal(readFileSync(env.AUTOROUTER_CONFIG, 'utf8'), before);\n  assert.equal(await configCommand(['set', 'AUTOROUTER_PORT', '9001'], { env, write() {}, policy: f.options }), true);\n});",
+      "definition_sha256": "36dfd46254255a2afb76888002d5f7011e54132553ebe08816f130ca800f2fc0",
+      "previous_status": "partial_assertion_mapping",
+      "previous_row": {
+        "id": "test/policy.test.mjs#6",
+        "file": "test/policy.test.mjs",
+        "name": "config show reports policy-locked settings and set refuses disallowed values",
+        "parameterized": false,
+        "status": "partial_assertion_mapping",
+        "rust_tests": [
+          "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::saved_and_environment_policy_locks_survive_allowlist_repair_mode"
+        ],
+        "shared_cases": [],
+        "evidence": {
+          "native_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+          "native_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+          "scope": "Only the exact mapped native assertions; no actual system policy/Keychain interaction, cross-platform or installed-artifact qualification is implied."
+        },
+        "related_components": [
+          "config_auth_policy"
+        ],
+        "assertion_mapping": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
+        "remaining_assertions": [
+          "No retained native CLI command test supplies a trusted policy to config show/set. The complete JSON source/value/policy_path output, refusal with unchanged file and unrelated allowed port edit are still untested as one CLI definition. Product policy paths must not be overridden by environment/test hooks."
+        ]
+      },
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/src/policy_command_contracts.rs#onboarding::policy_command_contracts::original_6_policy_report_and_rejected_edit_preserve_file"
+      ],
+      "shared_cases": [
+        {
+          "path": "rust/parity/cases/policy-command-contracts.jsonl",
+          "line": 1,
+          "source_test": "test/policy.test.mjs#6"
+        }
+      ],
+      "static_assertions": 7,
+      "executed_original_assertions": 7,
+      "assertions": [
+        {
+          "id": "test/policy.test.mjs#6:assert-1",
+          "line": 97,
+          "expression": "assert.equal(await configCommand(['show', '--json'], { env, write: line => lines.push(line), policy: f.options }), true)",
+          "sha256": "ba26c9cbf217b9e8e500488c317f5443992fd537b6677d412b91c8071e049617",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/policy_command_contracts.rs#onboarding::policy_command_contracts::original_6_policy_report_and_rejected_edit_preserve_file"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/claude-autorouter/src/policy_command_contracts.rs",
+              "function": "original_6_policy_report_and_rejected_edit_preserve_file",
+              "line": 366,
+              "fragment": "assert_eq!(actual[1][\"result\"], true, \"policy#6:assert-1\");",
+              "fragment_sha256": "d82c81d585ad8c41757ea24039578f12d03123d0b980b7ea17b983e81ca1ff62",
+              "file_sha256": "084ed40a040fecff033521b04a6181225335fa48841262b20210939f4b6ab1db"
+            }
+          ],
+          "case_pointer": {
+            "path": "rust/parity/cases/policy-command-contracts.jsonl",
+            "line": 1,
+            "source_test": "test/policy.test.mjs#6"
+          },
+          "scope": "Exact original predicate over actual native outputs, paired with full original operation/filesystem/result transcript comparison."
+        },
+        {
+          "id": "test/policy.test.mjs#6:assert-2",
+          "line": 99,
+          "expression": "assert.equal(report.settings.AUTOROUTER_SESSION_LOG_MODE.source, 'policy')",
+          "sha256": "7672c24d85e74f8be1c2a17c617e7ccbe5104aa6c04a7a33168185853be15037",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/policy_command_contracts.rs#onboarding::policy_command_contracts::original_6_policy_report_and_rejected_edit_preserve_file"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/claude-autorouter/src/policy_command_contracts.rs",
+              "function": "original_6_policy_report_and_rejected_edit_preserve_file",
+              "line": 368,
+              "fragment": "assert_eq!(\n        report[\"settings\"][\"AUTOROUTER_SESSION_LOG_MODE\"][\"source\"], \"policy\",\n        \"policy#6:assert-2\"\n    );",
+              "fragment_sha256": "bc589344dc2562ca6f02b91cd59702c162f0e153fcf906c47de7f748231fd179",
+              "file_sha256": "084ed40a040fecff033521b04a6181225335fa48841262b20210939f4b6ab1db"
+            }
+          ],
+          "case_pointer": {
+            "path": "rust/parity/cases/policy-command-contracts.jsonl",
+            "line": 1,
+            "source_test": "test/policy.test.mjs#6"
+          },
+          "scope": "Exact original predicate over actual native outputs, paired with full original operation/filesystem/result transcript comparison."
+        },
+        {
+          "id": "test/policy.test.mjs#6:assert-3",
+          "line": 100,
+          "expression": "assert.equal(report.settings.AUTOROUTER_SESSION_LOG_MODE.value, 'metadata')",
+          "sha256": "bdaa4c4ecefc7ea4c5d248387f9bc356747676c3ea35b4cb512f97399734d02f",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/policy_command_contracts.rs#onboarding::policy_command_contracts::original_6_policy_report_and_rejected_edit_preserve_file"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/claude-autorouter/src/policy_command_contracts.rs",
+              "function": "original_6_policy_report_and_rejected_edit_preserve_file",
+              "line": 372,
+              "fragment": "assert_eq!(\n        report[\"settings\"][\"AUTOROUTER_SESSION_LOG_MODE\"][\"value\"], \"metadata\",\n        \"policy#6:assert-3\"\n    );",
+              "fragment_sha256": "4047f7cc593547f8d7e7560d9956605cd35f90d3f4e7055d385a1e321f7b7d2d",
+              "file_sha256": "084ed40a040fecff033521b04a6181225335fa48841262b20210939f4b6ab1db"
+            }
+          ],
+          "case_pointer": {
+            "path": "rust/parity/cases/policy-command-contracts.jsonl",
+            "line": 1,
+            "source_test": "test/policy.test.mjs#6"
+          },
+          "scope": "Exact original predicate over actual native outputs, paired with full original operation/filesystem/result transcript comparison."
+        },
+        {
+          "id": "test/policy.test.mjs#6:assert-4",
+          "line": 101,
+          "expression": "assert.equal(report.policy_path, f.path)",
+          "sha256": "11e246ab881b154874ba993da02b315012e4e8f4a942676b7f67776eff3f6665",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/policy_command_contracts.rs#onboarding::policy_command_contracts::original_6_policy_report_and_rejected_edit_preserve_file"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/claude-autorouter/src/policy_command_contracts.rs",
+              "function": "original_6_policy_report_and_rejected_edit_preserve_file",
+              "line": 376,
+              "fragment": "assert_eq!(\n        report[\"policy_path\"],\n        format!(\"{TOKEN}/etc/policy.json\"),\n        \"policy#6:assert-4\"\n    );",
+              "fragment_sha256": "25f99b496515f7cf1556f80d1ef68bbed7a27063f93ef80f990feb883391da86",
+              "file_sha256": "084ed40a040fecff033521b04a6181225335fa48841262b20210939f4b6ab1db"
+            }
+          ],
+          "case_pointer": {
+            "path": "rust/parity/cases/policy-command-contracts.jsonl",
+            "line": 1,
+            "source_test": "test/policy.test.mjs#6"
+          },
+          "scope": "Exact original predicate over actual native outputs, paired with full original operation/filesystem/result transcript comparison."
+        },
+        {
+          "id": "test/policy.test.mjs#6:assert-5",
+          "line": 103,
+          "expression": "assert.rejects(configCommand(['set', 'AUTOROUTER_EVALUATOR', 'jev'], { env, write() {}, policy: f.options }), /not permitted/)",
+          "sha256": "17760bde13f16833f0d1a6d555a2e895cd6adcb4c876aa1524d72da9207a2892",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/policy_command_contracts.rs#onboarding::policy_command_contracts::original_6_policy_report_and_rejected_edit_preserve_file"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/claude-autorouter/src/policy_command_contracts.rs",
+              "function": "original_6_policy_report_and_rejected_edit_preserve_file",
+              "line": 381,
+              "fragment": "assert!(\n        actual[2][\"error\"][\"message\"]\n            .as_str()\n            .unwrap()\n            .contains(\"not permitted\"),\n        \"policy#6:assert-5\"\n    );",
+              "fragment_sha256": "c1ba040c457bf65cdde6590f8e48d8cd6f3e0d6c2982bb164a6cc79dee46d358",
+              "file_sha256": "084ed40a040fecff033521b04a6181225335fa48841262b20210939f4b6ab1db"
+            }
+          ],
+          "case_pointer": {
+            "path": "rust/parity/cases/policy-command-contracts.jsonl",
+            "line": 1,
+            "source_test": "test/policy.test.mjs#6"
+          },
+          "scope": "Exact original predicate over actual native outputs, paired with full original operation/filesystem/result transcript comparison."
+        },
+        {
+          "id": "test/policy.test.mjs#6:assert-6",
+          "line": 104,
+          "expression": "assert.equal(readFileSync(env.AUTOROUTER_CONFIG, 'utf8'), before)",
+          "sha256": "29d635d57d81522925775f14e7354603b1a3d50118311cc53f271dc5e1b30818",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/policy_command_contracts.rs#onboarding::policy_command_contracts::original_6_policy_report_and_rejected_edit_preserve_file"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/claude-autorouter/src/policy_command_contracts.rs",
+              "function": "original_6_policy_report_and_rejected_edit_preserve_file",
+              "line": 388,
+              "fragment": "assert_eq!(actual[2][\"before\"], actual[2][\"after\"], \"policy#6:assert-6\");",
+              "fragment_sha256": "5171c1cac8aa3919e801def782930402ebd0aba5270a2b98ad5a140d4cc3185a",
+              "file_sha256": "084ed40a040fecff033521b04a6181225335fa48841262b20210939f4b6ab1db"
+            }
+          ],
+          "case_pointer": {
+            "path": "rust/parity/cases/policy-command-contracts.jsonl",
+            "line": 1,
+            "source_test": "test/policy.test.mjs#6"
+          },
+          "scope": "Exact original predicate over actual native outputs, paired with full original operation/filesystem/result transcript comparison."
+        },
+        {
+          "id": "test/policy.test.mjs#6:assert-7",
+          "line": 105,
+          "expression": "assert.equal(await configCommand(['set', 'AUTOROUTER_PORT', '9001'], { env, write() {}, policy: f.options }), true)",
+          "sha256": "fb8fe71550536b3394ff74050a8cca46d740b53346651e8eac0327876c23a3ff",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/policy_command_contracts.rs#onboarding::policy_command_contracts::original_6_policy_report_and_rejected_edit_preserve_file"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/claude-autorouter/src/policy_command_contracts.rs",
+              "function": "original_6_policy_report_and_rejected_edit_preserve_file",
+              "line": 389,
+              "fragment": "assert_eq!(actual[3][\"result\"], true, \"policy#6:assert-7\");",
+              "fragment_sha256": "2e79db51fa08c50ca169843468fffd7a8e43fb6cad856c6dac14d9b25f5353d4",
+              "file_sha256": "084ed40a040fecff033521b04a6181225335fa48841262b20210939f4b6ab1db"
+            }
+          ],
+          "case_pointer": {
+            "path": "rust/parity/cases/policy-command-contracts.jsonl",
+            "line": 1,
+            "source_test": "test/policy.test.mjs#6"
+          },
+          "scope": "Exact original predicate over actual native outputs, paired with full original operation/filesystem/result transcript comparison."
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/policy.test.mjs#7",
+      "file": "test/policy.test.mjs",
+      "name": "a disallowed saved evaluator can still be repaired, and setup refuses to save one",
+      "line": 108,
+      "definition_statement": "test('a disallowed saved evaluator can still be repaired, and setup refuses to save one', async t => {\n  const f = fixture(t, { allowed_evaluators: ['ollama'] });\n  const env = { AUTOROUTER_CONFIG: join(f.root, 'config.json') };\n  saveUserConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'synthetic-jev-key' }, { env });\n  assert.throws(() => loadUserConfig(env, { policy: f.options }), /not permitted/, 'Launch refuses the disallowed setting');\n  assert.equal(await configCommand(['set', 'AUTOROUTER_EVALUATOR', 'ollama'], { env, write() {}, policy: f.options }), true);\n  assert.equal(loadUserConfig(env, { policy: f.options }).env.AUTOROUTER_EVALUATOR, 'ollama');\n  await assert.rejects(setup(['--evaluator', 'jev', '--force'], {\n    env: { ...env, TYPESAFE_API_KEY: 'synthetic-jev-key' }, write() {}, prompt: () => assert.fail('No prompt'), policy: f.options,\n  }), /not permitted/);\n});",
+      "definition_sha256": "82f08346f357b4df66be6bfaa4b90a1f892ce00ff6f7b93b06d571243ae97b78",
+      "previous_status": "partial_assertion_mapping",
+      "previous_row": {
+        "id": "test/policy.test.mjs#7",
+        "file": "test/policy.test.mjs",
+        "name": "a disallowed saved evaluator can still be repaired, and setup refuses to save one",
+        "parameterized": false,
+        "status": "partial_assertion_mapping",
+        "rust_tests": [
+          "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::saved_and_environment_policy_locks_survive_allowlist_repair_mode",
+          "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::organization_locks_override_values_and_environment_including_repair_mode"
+        ],
+        "shared_cases": [],
+        "evidence": {
+          "native_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+          "native_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+          "scope": "Only the exact mapped native assertions; no actual system policy/Keychain interaction, cross-platform or installed-artifact qualification is implied."
+        },
+        "related_components": [
+          "config_auth_policy"
+        ],
+        "assertion_mapping": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
+        "remaining_assertions": [
+          "Native config set repair from saved Jev to Ollama and setup rejection before any prompt under an injected policy remain untested. CLI commands currently use the fixed production policy loader; tests must not modify system policy."
+        ]
+      },
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/src/policy_command_contracts.rs#onboarding::policy_command_contracts::original_7_repair_and_setup_rejection_keep_original_choices"
+      ],
+      "shared_cases": [
+        {
+          "path": "rust/parity/cases/policy-command-contracts.jsonl",
+          "line": 2,
+          "source_test": "test/policy.test.mjs#7"
+        }
+      ],
+      "static_assertions": 5,
+      "executed_original_assertions": 4,
+      "assertions": [
+        {
+          "id": "test/policy.test.mjs#7:assert-1",
+          "line": 112,
+          "expression": "assert.throws(() => loadUserConfig(env, { policy: f.options }), /not permitted/, 'Launch refuses the disallowed setting')",
+          "sha256": "0c2a375f7849fc4d46ef8dff129bd98d66be47b1e2d33128e9eec121cb4a5b8f",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/policy_command_contracts.rs#onboarding::policy_command_contracts::original_7_repair_and_setup_rejection_keep_original_choices"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/claude-autorouter/src/policy_command_contracts.rs",
+              "function": "original_7_repair_and_setup_rejection_keep_original_choices",
+              "line": 399,
+              "fragment": "assert!(\n        actual[1][\"error\"][\"message\"]\n            .as_str()\n            .unwrap()\n            .contains(\"not permitted\"),\n        \"policy#7:assert-1\"\n    );",
+              "fragment_sha256": "42c20c97eb33a2d9b557299a918847c4f2fe6f79b19924f1ec6ad97ae2c8f210",
+              "file_sha256": "084ed40a040fecff033521b04a6181225335fa48841262b20210939f4b6ab1db"
+            }
+          ],
+          "case_pointer": {
+            "path": "rust/parity/cases/policy-command-contracts.jsonl",
+            "line": 2,
+            "source_test": "test/policy.test.mjs#7"
+          },
+          "scope": "Exact original predicate over actual native outputs, paired with full original operation/filesystem/result transcript comparison."
+        },
+        {
+          "id": "test/policy.test.mjs#7:assert-2",
+          "line": 113,
+          "expression": "assert.equal(await configCommand(['set', 'AUTOROUTER_EVALUATOR', 'ollama'], { env, write() {}, policy: f.options }), true)",
+          "sha256": "cec11539bd3916b4d9b8e3de80452bcdcea56afd7c91146668f4e8baa843a5e0",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/policy_command_contracts.rs#onboarding::policy_command_contracts::original_7_repair_and_setup_rejection_keep_original_choices"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/claude-autorouter/src/policy_command_contracts.rs",
+              "function": "original_7_repair_and_setup_rejection_keep_original_choices",
+              "line": 406,
+              "fragment": "assert_eq!(actual[2][\"result\"], true, \"policy#7:assert-2\");",
+              "fragment_sha256": "b5736b9b37abb88f7f65c2b3818a02c6c74c1cc2e2d7f35bdf9f776bd73ee76f",
+              "file_sha256": "084ed40a040fecff033521b04a6181225335fa48841262b20210939f4b6ab1db"
+            }
+          ],
+          "case_pointer": {
+            "path": "rust/parity/cases/policy-command-contracts.jsonl",
+            "line": 2,
+            "source_test": "test/policy.test.mjs#7"
+          },
+          "scope": "Exact original predicate over actual native outputs, paired with full original operation/filesystem/result transcript comparison."
+        },
+        {
+          "id": "test/policy.test.mjs#7:assert-3",
+          "line": 114,
+          "expression": "assert.equal(loadUserConfig(env, { policy: f.options }).env.AUTOROUTER_EVALUATOR, 'ollama')",
+          "sha256": "157a9f050c84144ed12286b35d964d63ee508f9a24ff9a2ecad5f9936a12a833",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/policy_command_contracts.rs#onboarding::policy_command_contracts::original_7_repair_and_setup_rejection_keep_original_choices"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/claude-autorouter/src/policy_command_contracts.rs",
+              "function": "original_7_repair_and_setup_rejection_keep_original_choices",
+              "line": 407,
+              "fragment": "assert_eq!(\n        actual[3][\"result\"][\"env\"][\"AUTOROUTER_EVALUATOR\"], \"ollama\",\n        \"policy#7:assert-3\"\n    );",
+              "fragment_sha256": "47286528c1768762d0c220d613f1e6e7aa2d03411724cd756aae96fe2dc25f60",
+              "file_sha256": "084ed40a040fecff033521b04a6181225335fa48841262b20210939f4b6ab1db"
+            }
+          ],
+          "case_pointer": {
+            "path": "rust/parity/cases/policy-command-contracts.jsonl",
+            "line": 2,
+            "source_test": "test/policy.test.mjs#7"
+          },
+          "scope": "Exact original predicate over actual native outputs, paired with full original operation/filesystem/result transcript comparison."
+        },
+        {
+          "id": "test/policy.test.mjs#7:assert-4",
+          "line": 115,
+          "expression": "assert.rejects(setup(['--evaluator', 'jev', '--force'], {\n    env: { ...env, TYPESAFE_API_KEY: 'synthetic-jev-key' }, write() {}, prompt: () => assert.fail('No prompt'), policy: f.options,\n  }), /not permitted/)",
+          "sha256": "2993d1755987b34d709857c8140239106c9ae31d63d239b505ccbeb6776dfda4",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/policy_command_contracts.rs#onboarding::policy_command_contracts::original_7_repair_and_setup_rejection_keep_original_choices"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/claude-autorouter/src/policy_command_contracts.rs",
+              "function": "original_7_repair_and_setup_rejection_keep_original_choices",
+              "line": 411,
+              "fragment": "assert!(\n        actual[4][\"error\"][\"message\"]\n            .as_str()\n            .unwrap()\n            .contains(\"not permitted\"),\n        \"policy#7:assert-4\"\n    );",
+              "fragment_sha256": "a7863fce6301d2265990f128fd589d5e53b50bf38b029ff0d4f4465ebcc9c31a",
+              "file_sha256": "084ed40a040fecff033521b04a6181225335fa48841262b20210939f4b6ab1db"
+            }
+          ],
+          "case_pointer": {
+            "path": "rust/parity/cases/policy-command-contracts.jsonl",
+            "line": 2,
+            "source_test": "test/policy.test.mjs#7"
+          },
+          "scope": "Exact original predicate over actual native outputs, paired with full original operation/filesystem/result transcript comparison."
+        },
+        {
+          "id": "test/policy.test.mjs#7:assert-5",
+          "line": 116,
+          "expression": "assert.fail('No prompt')",
+          "sha256": "f55c9a677e58510852df792c5e04a62d48ebcf10d17f2673c7e757bd9c6f5070",
+          "expanded_executions": 0,
+          "status": "untaken_original_guard_preserved",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/policy_command_contracts.rs#onboarding::policy_command_contracts::original_7_repair_and_setup_rejection_keep_original_choices"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/claude-autorouter/src/policy_command_contracts.rs",
+              "function": "original_7_repair_and_setup_rejection_keep_original_choices",
+              "line": 419,
+              "fragment": "assert_eq!(actual[4][\"prompts\"], json!([]));",
+              "fragment_sha256": "c2f27788a51cf4b940b258eec24f1dfecc9467e87cb37a7bbbd32f2928f35478",
+              "file_sha256": "084ed40a040fecff033521b04a6181225335fa48841262b20210939f4b6ab1db"
+            }
+          ],
+          "case_pointer": {
+            "path": "rust/parity/cases/policy-command-contracts.jsonl",
+            "line": 2,
+            "source_test": "test/policy.test.mjs#7"
+          },
+          "scope": "Original nested assert.fail guard executed zero times. Native no-prompt observation and forbidden prompt adapter preserve its guarded property; no assertion execution is invented."
+        }
+      ],
+      "remaining_assertions": []
+    }
+  ],
+  "capture_method": "Complete original callbacks and fixture/uid helpers remain. Only imports, public-call recording facades and insertion-only assertion result counters change. Original assertion arguments and Promise return values remain; awaited callback completion proves awaited assertions settled.",
+  "native_method": "Every captured operation is replayed against actual save/load/config/setup implementations in original order; fixture starts with only original policy helper state. Full before/after bytes, modes, results, load fields, output and exact errors compare. Labelled assertions repeat the original predicates over actual native values.",
+  "negative_controls": [
+    "Missing and reordered operations",
+    "Wrong returned config path",
+    "Forged saved file bytes",
+    "Wrong policy error",
+    "Forged command/setup output",
+    "Unequal Number or missing-vs-null field",
+    "Loader errors precede malformed config/Keychain/prompt",
+    "Cancelled setup bypasses loader",
+    "Invalid config arguments bypass loader",
+    "Missing Jev key still rejects policy before prompt"
+  ],
+  "retained_failed_checks": [
+    "Preparation harness: unavailable Python extractall(filter=...) argument, destination remained empty; path/type validated git extraction succeeded afterward.",
+    "First native run: seven tests and strict Clippy passed; wrong-cwd formatter had changed four unrelated child files and pinned fmt failed. Retained all sources/logs; restored all four child files to exact base and formatted owned files with pinned cwd/skip_children.",
+    "First source closure also detected Cargo adding the approved dev-only sha2 CLI lock edge. Only that edge changed; final --locked run retained924 unchanged inputs."
+  ],
+  "evidence": {
+    "final_native": {
+      "path": "artifacts/rust-rewrite/policy-command-native-2/report.json",
+      "bytes": 5644,
+      "sha256": "055af20598866117a4a4d62f9e94c58c00404781ecf0125fd5ee963c3a1f4d5d"
+    },
+    "native_binary": {
+      "path": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/policy-command-native-2/native-tests",
+      "bytes": 29429088,
+      "sha256": "7590844e06a03ab2876defdd4ef1d9e389b81f4c4e3e84f5a97d2428391485ab",
+      "compiled_path": "/private/tmp/autorouter-ci-9e695e4/rust/target/debug/deps/claude_autorouter-eaf741af58430ac2",
+      "fresh": false
+    },
+    "all_cli_regressions": {
+      "path": "artifacts/rust-rewrite/policy-command-cli-regressions-1/report.json",
+      "bytes": 4248,
+      "sha256": "25b603215db0a3aa4308d2f9822545358faaf8301f1d3495be24a36a50f0ad6b"
+    },
+    "capture_checks": {
+      "path": "artifacts/rust-rewrite/policy-command-capture-checks-1/report.json",
+      "bytes": 4214,
+      "sha256": "92868636f8f9f7aa6695c402605a2304dc27121615a267ef11a2a2eae84f53b6"
+    },
+    "first_native_run": {
+      "path": "artifacts/rust-rewrite/policy-command-native-1/report.json",
+      "bytes": 4862,
+      "sha256": "f6cd3062e63df3f692cb0bdb68e6179ae7c3924910259a0b92540a2668aece32"
+    },
+    "first_before_inputs": {
+      "path": "artifacts/rust-rewrite/policy-command-native-1/inputs-before.json",
+      "bytes": 155198,
+      "sha256": "fc5690d1f13405d0c98a9fc8b32b8de0ec230314b0f7e515274269608c51c0d1"
+    },
+    "first_after_inputs": {
+      "path": "artifacts/rust-rewrite/policy-command-native-1/inputs-after.json",
+      "bytes": 155198,
+      "sha256": "d4dfd7f130cf80b752c3ab65576039be041182bc2ecdbc4b5e1cc57643fec7e1"
+    },
+    "unrelated_format_restoration": {
+      "path": "artifacts/rust-rewrite/policy-command-native-1/unrelated-format-restoration.json",
+      "bytes": 375,
+      "sha256": "4836e9e7a4f5d628cc09a6fd38284a05aa865164482e6f9a8876335ebe1fcb26"
+    },
+    "current_patch": {
+      "path": "artifacts/rust-rewrite/policy-command-handoff-1/candidate.patch",
+      "bytes": 68202,
+      "sha256": "05d4482238978a5cc7cd4cd4a5996be596174641cf3c52a61a6f14553ba0ca4e"
+    },
+    "approved_proposal": {
+      "path": "artifacts/rust-rewrite/evidence/policy-command-proposal-8a8498420e4fb07b4ec328f553af04f1a48784c0cdf7b88a046280909b5d1a00.md",
+      "bytes": 10408,
+      "sha256": "8a8498420e4fb07b4ec328f553af04f1a48784c0cdf7b88a046280909b5d1a00",
+      "original_path": "/private/tmp/autorouter-policy-command-next-batch-proposal.md"
+    },
+    "approved_private_seam": {
+      "path": "artifacts/rust-rewrite/evidence/policy-command-seam-179f80b28be22000f34cc5cc058cf4e2bee1e40a24a13d80e6c030b7c27c924e.patch",
+      "bytes": 6322,
+      "sha256": "179f80b28be22000f34cc5cc058cf4e2bee1e40a24a13d80e6c030b7c27c924e",
+      "original_path": "/private/tmp/autorouter-policy-command-private-seam-draft.patch"
+    },
+    "preparation": {
+      "path": "artifacts/rust-rewrite/evidence/policy-command-preparation-2651694703c293708d0642fe3e21f9fdcf4647e9c3b4f235e477eb77593cf349.json",
+      "bytes": 609,
+      "sha256": "2651694703c293708d0642fe3e21f9fdcf4647e9c3b4f235e477eb77593cf349",
+      "original_path": "/private/tmp/autorouter-policy-command-preparation.json"
+    },
+    "capture_1": {
+      "policy-command-contracts.jsonl": {
+        "path": "artifacts/rust-rewrite/policy-command-capture-1/policy-command-contracts.jsonl",
+        "bytes": 14594,
+        "sha256": "583db6243796f84bb540036a6f7e1f62d64ce7a816114cabe936d6ca316c8307"
+      },
+      "policy-command-contracts.capture.json": {
+        "path": "artifacts/rust-rewrite/policy-command-capture-1/policy-command-contracts.capture.json",
+        "bytes": 10134,
+        "sha256": "309b48464cff27408afe26e730b41e55687566b7ba45e54031fe0651e76a49f6"
+      },
+      "raw.json": {
+        "path": "artifacts/rust-rewrite/policy-command-capture-1/raw.json",
+        "bytes": 24148,
+        "sha256": "0002ce801390354a220b9e8b3ac2a744bff71d2efef0a51620a9c7c341cff226"
+      }
+    },
+    "capture_2": {
+      "policy-command-contracts.jsonl": {
+        "path": "artifacts/rust-rewrite/policy-command-capture-2/policy-command-contracts.jsonl",
+        "bytes": 14594,
+        "sha256": "583db6243796f84bb540036a6f7e1f62d64ce7a816114cabe936d6ca316c8307"
+      },
+      "policy-command-contracts.capture.json": {
+        "path": "artifacts/rust-rewrite/policy-command-capture-2/policy-command-contracts.capture.json",
+        "bytes": 10134,
+        "sha256": "309b48464cff27408afe26e730b41e55687566b7ba45e54031fe0651e76a49f6"
+      },
+      "raw.json": {
+        "path": "artifacts/rust-rewrite/policy-command-capture-2/raw.json",
+        "bytes": 24148,
+        "sha256": "234b64fac1a3ae97e50a4ec0f1a5c561b3a6d15f47d98f96fda923d316686e60"
+      }
+    },
+    "capture_3": {
+      "policy-command-contracts.jsonl": {
+        "path": "artifacts/rust-rewrite/policy-command-capture-3/policy-command-contracts.jsonl",
+        "bytes": 14594,
+        "sha256": "583db6243796f84bb540036a6f7e1f62d64ce7a816114cabe936d6ca316c8307"
+      },
+      "policy-command-contracts.capture.json": {
+        "path": "artifacts/rust-rewrite/policy-command-capture-3/policy-command-contracts.capture.json",
+        "bytes": 10134,
+        "sha256": "309b48464cff27408afe26e730b41e55687566b7ba45e54031fe0651e76a49f6"
+      },
+      "raw.json": {
+        "path": "artifacts/rust-rewrite/policy-command-capture-3/raw.json",
+        "bytes": 24148,
+        "sha256": "ba824cf992b77e6a7c7fa853a269dfe036b73013bc01c8015acf39688c865f52"
+      }
+    }
+  },
+  "boundaries": [
+    "Production config/setup wrappers still call load_policy(), which retains the fixed platform path and trusted UID0. The configurable loader is private per-call; only the crate-private config test bridge is cfg(test). No environment/global override or system policy write is introduced.",
+    "The exact original helper uses a synthetic trusted owner, regular file0644 and directory0755. Native fixture loading delegates to actual load_policy_at with the owner of its newly created private fixture; it does not claim system policy ownership coverage.",
+    "JavaScript configCommand returns boolean and emits lines; native CommandOutput exposes success plus lines. Calls preserve their input/order and full output. JavaScript Promise identity, Error object/name/code and arbitrary exceptions are not Rust API claims; original selected error predicates only test message text.",
+    "Full show JSON is parsed only to ignore object insertion order/whitespace. JSON Number equality uses exact finite f64 comparison without tolerance, so integral/floating serialization spelling is immaterial. All object fields, array order, strings, null and missing properties stay distinct.",
+    "Actual config file contents are compared byte-for-byte, including final newline, at each operation boundary. File paths replace only the owned fixture root. Filesystem entry observations are sorted and bounded; inode/timestamp equivalence is not claimed.",
+    "All12 static source sites remain,11 executed; original#7 assert.fail prompt guard remains untaken. Supplemental missing-key, loader-failure, cancelled-setup and invalid-command controls are native-only and add no original execution counts.",
+    "Native setup is exercised only through the original policy-refused failure; no successful onboarding, evaluator/network, OS Keychain or live user configuration is qualified.",
+    "Local macOS synthetic CLI checks and normal/build dependency graph evidence are not an ordinary release build, installed archive, source-bundle or Linux qualification. Main source/coverage/evidence indexes remain untouched."
+  ],
+  "proposed_bundle_fixed_paths": [
+    "rust/parity/cases/policy-command-contracts.jsonl",
+    "rust/parity/cases/policy-command-contracts.capture.json"
+  ],
+  "central_ledger_edits": true,
+  "author_proposal": {
+    "path": "artifacts/rust-rewrite/evidence/b6c75ea01b6a80c256a36b38653b49ef34249245ca16ef5ae587ed75f08d05b8.json",
+    "sha256": "b6c75ea01b6a80c256a36b38653b49ef34249245ca16ef5ae587ed75f08d05b8",
+    "bytes": 43131,
+    "original_path": "/private/tmp/autorouter-policy-command-mapping-proposal.json"
+  },
+  "author_report": {
+    "path": "artifacts/rust-rewrite/evidence/0afdf678712116744816b55753ddfae08bd87aeb55c70b7caa61e04961aa5f39.json",
+    "sha256": "0afdf678712116744816b55753ddfae08bd87aeb55c70b7caa61e04961aa5f39",
+    "bytes": 16364,
+    "original_path": "/private/tmp/autorouter-policy-command-implementation-report.json"
+  },
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/evidence/4c12ae1f559cc003541ec34b9aead464f8a91bbe3a2d046fb744ce63bd23c0ec.json",
+    "sha256": "4c12ae1f559cc003541ec34b9aead464f8a91bbe3a2d046fb744ce63bd23c0ec",
+    "bytes": 2791,
+    "original_path": "/private/tmp/autorouter-policy-command-final-independent-review.json"
+  },
+  "root_API_review": {
+    "path": "artifacts/rust-rewrite/evidence/d802645527da5acfd704f53c5333476df55b0c9028279d2fbc30ec6bc196456b.json",
+    "sha256": "d802645527da5acfd704f53c5333476df55b0c9028279d2fbc30ec6bc196456b",
+    "bytes": 3468,
+    "original_path": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/eighteenth-integration-prep-1/policy-command-root-API-decision.json"
+  },
+  "integration_scope": "Exact nine source paths integrated; focused source/immutable execution review complete, combined main validation remains pending."
+}

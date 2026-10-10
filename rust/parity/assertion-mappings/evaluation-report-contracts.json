@@ -1,0 +1,1216 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "reviewed_checkpoint": "541f3be",
+  "scope": "Root-reviewed16-definition frozen evaluation-report assertion mapping. No production change;15 covered and1 explicitly partial definition.",
+  "counts": {
+    "definitions": 16,
+    "static_assertions": 71,
+    "executed_source_assertions": 147,
+    "captured_calls": 104,
+    "native_pure_replays": 44,
+    "tagged_nonfinite_policy_calls": 2,
+    "native_parser_replays": 52,
+    "native_runner_calls": 6,
+    "native_evaluator_requests": 45,
+    "new_native_tests": 5,
+    "covered": 15,
+    "partial": 1
+  },
+  "current_sources": [
+    {
+      "path": "rust/parity/capture-evaluation-report-contracts.mjs",
+      "sha256": "489fc59458040e61d655181f6ca231db98e6c40b2189a7142cba45cd71d7d9f7",
+      "bytes": 10370
+    },
+    {
+      "path": "rust/parity/cases/evaluation-report-contracts.jsonl",
+      "sha256": "2728c4cec322ae2ae49604b81d72e050a1d2840aaed6eea9701518c1b681269d",
+      "bytes": 184010
+    },
+    {
+      "path": "rust/parity/cases/evaluation-report-contracts.capture.json",
+      "sha256": "269be489ce550aa583bf39e7d7e3c75276721cfcafde148e2d7bcd694e8acce6",
+      "bytes": 9735
+    },
+    {
+      "path": "rust/crates/autorouter-core/tests/evaluation_report_contracts.rs",
+      "sha256": "c064375d12b0ab0f65420dd9a600b7160888946da27b00c3009ae9bbf1fe4243",
+      "bytes": 2043
+    },
+    {
+      "path": "rust/crates/autorouter-core/tests/support/evaluation_contract.rs",
+      "sha256": "3622888034a8c389eeebb96417b336828c051bb43058f9c1a074d6a850fb131f",
+      "bytes": 1437
+    },
+    {
+      "path": "rust/xtask/src/evaluation_contracts.rs",
+      "sha256": "c34eca26adbf982f39a0fa117ab6ae7b02f5829f8fd98103f833ca986ec9c302",
+      "bytes": 8732
+    },
+    {
+      "path": "rust/xtask/src/main.rs",
+      "sha256": "abc154063d6c2e69366ef32688931fed565948ccffba0512a1c2e4c6822ecf90",
+      "bytes": 3649
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/evaluation_report.rs",
+      "sha256": "9d22a8a210298eb2360a9a7189d45c7778696b4035c3e30dfd9a0ff9062bbef8",
+      "bytes": 16059
+    },
+    {
+      "path": "rust/xtask/src/evaluation.rs",
+      "sha256": "53d106f7163377ddf7b007d34db4662c2601536166ceb9b65092cf4cd3d8ce3b",
+      "bytes": 12414
+    },
+    {
+      "path": "rust/xtask/src/ollama_evaluation.rs",
+      "sha256": "9588039d99116016a18abe79088656235ba7e5b647921497c274f2861e35c7c6",
+      "bytes": 28472
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/fixture.rs",
+      "sha256": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+      "bytes": 18382
+    }
+  ],
+  "evidence": {
+    "capture": {
+      "path": "artifacts/rust-rewrite/evidence/269be489ce550aa583bf39e7d7e3c75276721cfcafde148e2d7bcd694e8acce6.json",
+      "sha256": "269be489ce550aa583bf39e7d7e3c75276721cfcafde148e2d7bcd694e8acce6",
+      "original_path": "rust/parity/cases/evaluation-report-contracts.capture.json"
+    },
+    "capture_run1": {
+      "path": "artifacts/rust-rewrite/evidence/30b6bba4ead3bbc767557b6c44756e3d9ca737ac7c439c5988c4be7004d35494.log",
+      "sha256": "30b6bba4ead3bbc767557b6c44756e3d9ca737ac7c439c5988c4be7004d35494",
+      "original_path": "artifacts/rust-rewrite/evaluation-report-capture-1.log"
+    },
+    "capture_run2": {
+      "path": "artifacts/rust-rewrite/evidence/30b6bba4ead3bbc767557b6c44756e3d9ca737ac7c439c5988c4be7004d35494.log",
+      "sha256": "30b6bba4ead3bbc767557b6c44756e3d9ca737ac7c439c5988c4be7004d35494",
+      "original_path": "artifacts/rust-rewrite/evaluation-report-capture-2.log"
+    },
+    "core": {
+      "path": "artifacts/rust-rewrite/evidence/8bccdf5e02221b3f701a47d97facd09cedee6d41c2bbedba72eb6fc3eab08853.log",
+      "sha256": "8bccdf5e02221b3f701a47d97facd09cedee6d41c2bbedba72eb6fc3eab08853",
+      "original_path": "artifacts/rust-rewrite/evaluation-report-core-1.log"
+    },
+    "native": {
+      "path": "artifacts/rust-rewrite/evidence/57da44c3b858b1b9fce097bafddfa08c49a97ad483a5068ee005fdb542a2f756.log",
+      "sha256": "57da44c3b858b1b9fce097bafddfa08c49a97ad483a5068ee005fdb542a2f756",
+      "original_path": "artifacts/rust-rewrite/evaluation-report-native-2.log"
+    },
+    "clippy": {
+      "path": "artifacts/rust-rewrite/evidence/faff7ea9929bacd568780de7f374f51f45e10a4174a9801a537ba7caa98a87c6.log",
+      "sha256": "faff7ea9929bacd568780de7f374f51f45e10a4174a9801a537ba7caa98a87c6",
+      "original_path": "artifacts/rust-rewrite/evaluation-report-clippy-1.log"
+    }
+  },
+  "reproducibility": {
+    "runs": [
+      1,
+      2
+    ],
+    "cases_and_capture_reports_byte_identical": true,
+    "cases_sha256": "2728c4cec322ae2ae49604b81d72e050a1d2840aaed6eea9701518c1b681269d",
+    "capture_sha256": "269be489ce550aa583bf39e7d7e3c75276721cfcafde148e2d7bcd694e8acce6",
+    "callback_preservation": "Only static imports are removed. Original callback source, original assertions and loops remain unchanged in a same-realm temporary module. Its sole import.meta.url relative input is a verified byte-identical copy of frozen test/fixtures/routing.json.",
+    "clock_exclusions": [
+      "rows[].ms",
+      "routing_p50_ms",
+      "routing_p95_ms"
+    ],
+    "no_clock_assertions_excluded": true
+  },
+  "comparison_guards": [
+    "JSON keys/arrays/strings/booleans/null/errors compare exactly; numbers compare exact JavaScript double values without epsilon.",
+    "Core negative controls reject unmeasured null->true, failed gate->true, overall false->true, changed agreement, missing gate and wrong error.",
+    "Native runtime uses actual run_evaluation/Router/HttpTransport. Every evaluator URL/method/header/complete parsed body and response/error schedule is compared; no source classifications are injected.",
+    "Corrupting expected auth in the original outage schedule still yields the same fallback report, but independent request verification demonstrably rejects it.",
+    "Actual source and native input before/after hashes verify request preservation. Captured constructor counts are not claimed as a native JS factory-identity proof."
+  ],
+  "serialization_boundaries": {
+    "nonfinite_inputs": [
+      {
+        "id": "baseline-evaluation-report-12-1",
+        "tags": [
+          {
+            "path": "$.minAgreement",
+            "kind": "nan"
+          }
+        ]
+      },
+      {
+        "id": "baseline-evaluation-report-12-4",
+        "tags": [
+          {
+            "path": "$.maxUnderRouteRate",
+            "kind": "positive_infinity"
+          }
+        ]
+      }
+    ],
+    "undefined_inputs": [
+      {
+        "id": "baseline-evaluation-report-9-1",
+        "tags": [
+          {
+            "path": "$.routes.0.classified_tier",
+            "kind": "undefined"
+          }
+        ],
+        "handling": "Production JSON serialization omits own-undefined object fields, with original tags retained. Baseline outage assertions do not inspect their property presence."
+      },
+      {
+        "id": "baseline-evaluation-report-9-3",
+        "tags": [
+          {
+            "path": "$.routes.0.classified_tier",
+            "kind": "undefined"
+          }
+        ],
+        "handling": "Production JSON serialization omits own-undefined object fields, with original tags retained. Baseline outage assertions do not inspect their property presence."
+      }
+    ],
+    "result_undefined_tags": "Original own-undefined report fields and undefined array entries remain listed per case; native equality targets complete production JSON report serialization, not unasserted JS object identity."
+  },
+  "rows": [
+    {
+      "id": "test/evaluation-report.test.mjs#1",
+      "file": "test/evaluation-report.test.mjs",
+      "name": "routing gates separate rubric, policy and tier coverage from unmeasured transport/task quality",
+      "line": 18,
+      "baseline_file_sha256": "586fdcae9ac2a3f6ce3db03168465561786b405cfa8754066d0879fbb2f4eb98",
+      "definition_sha256": "549c2ac902b3d7e697805f4d798e502248cb12ea87deb8d55e0dc94043b6a8e7",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/evaluation_report_contracts.rs#frozen_pure_report_calls_preserve_every_gate_and_exact_threshold"
+      ],
+      "shared_cases": [
+        "baseline-evaluation-report-1-1",
+        "baseline-evaluation-report-1-2"
+      ],
+      "executed_source_assertions": 8,
+      "assertions": [
+        {
+          "line": 20,
+          "expression": "assert.equal(report.passed, true)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/0/shared_cases",
+          "native_tests_ref": "#/rows/0/rust_tests"
+        },
+        {
+          "line": 21,
+          "expression": "assert.equal(report.gates[name].passed, true)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/0/shared_cases",
+          "native_tests_ref": "#/rows/0/rust_tests"
+        },
+        {
+          "line": 22,
+          "expression": "assert.equal(report.gates.transport.passed, null)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/0/shared_cases",
+          "native_tests_ref": "#/rows/0/rust_tests"
+        },
+        {
+          "line": 23,
+          "expression": "assert.equal(report.gates.task.passed, null)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/0/shared_cases",
+          "native_tests_ref": "#/rows/0/rust_tests"
+        },
+        {
+          "line": 24,
+          "expression": "assert.equal(evaluateRoutingReport([], { evaluator: 'jev' }).passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/0/shared_cases",
+          "native_tests_ref": "#/rows/0/rust_tests"
+        }
+      ],
+      "remaining_assertions": [],
+      "evidence_keys": [
+        "capture",
+        "capture_run1",
+        "capture_run2",
+        "core",
+        "clippy"
+      ]
+    },
+    {
+      "id": "test/evaluation-report.test.mjs#2",
+      "file": "test/evaluation-report.test.mjs",
+      "name": "all-fallback and cached-only results cannot masquerade as successful fresh evaluation",
+      "line": 27,
+      "baseline_file_sha256": "586fdcae9ac2a3f6ce3db03168465561786b405cfa8754066d0879fbb2f4eb98",
+      "definition_sha256": "cdeb5344401d9c43a0a641d560c56b81c72cd1cd56ecfa153cf69f1a989752d8",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/evaluation_report_contracts.rs#frozen_pure_report_calls_preserve_every_gate_and_exact_threshold"
+      ],
+      "shared_cases": [
+        "baseline-evaluation-report-2-1",
+        "baseline-evaluation-report-2-2",
+        "baseline-evaluation-report-2-3",
+        "baseline-evaluation-report-2-4"
+      ],
+      "executed_source_assertions": 7,
+      "assertions": [
+        {
+          "line": 30,
+          "expression": "assert.equal(report.gates.evaluator.passed, false, source)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/1/shared_cases",
+          "native_tests_ref": "#/rows/1/rust_tests"
+        },
+        {
+          "line": 31,
+          "expression": "assert.equal(report.passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/1/shared_cases",
+          "native_tests_ref": "#/rows/1/rust_tests"
+        },
+        {
+          "line": 35,
+          "expression": "assert.equal(evaluateRoutingReport(mixed, { evaluator: 'jev' }).gates.evaluator.passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/1/shared_cases",
+          "native_tests_ref": "#/rows/1/rust_tests"
+        }
+      ],
+      "remaining_assertions": [],
+      "evidence_keys": [
+        "capture",
+        "capture_run1",
+        "capture_run2",
+        "core",
+        "clippy"
+      ]
+    },
+    {
+      "id": "test/evaluation-report.test.mjs#3",
+      "file": "test/evaluation-report.test.mjs",
+      "name": "missing tier coverage fails even when permissive rubric thresholds permit every prediction",
+      "line": 38,
+      "baseline_file_sha256": "586fdcae9ac2a3f6ce3db03168465561786b405cfa8754066d0879fbb2f4eb98",
+      "definition_sha256": "1febf05522d2465aeb3dbe7e42f62367fe60cfa7a9444bf25f3c18326e7f6bba",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/evaluation_report_contracts.rs#frozen_pure_report_calls_preserve_every_gate_and_exact_threshold"
+      ],
+      "shared_cases": [
+        "baseline-evaluation-report-3-1",
+        "baseline-evaluation-report-3-2"
+      ],
+      "executed_source_assertions": 5,
+      "assertions": [
+        {
+          "line": 41,
+          "expression": "assert.equal(report.gates.evaluator.passed, true)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/2/shared_cases",
+          "native_tests_ref": "#/rows/2/rust_tests"
+        },
+        {
+          "line": 42,
+          "expression": "assert.equal(report.gates.rubric.passed, true)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/2/shared_cases",
+          "native_tests_ref": "#/rows/2/rust_tests"
+        },
+        {
+          "line": 43,
+          "expression": "assert.equal(report.gates.coverage.passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/2/shared_cases",
+          "native_tests_ref": "#/rows/2/rust_tests"
+        },
+        {
+          "line": 44,
+          "expression": "assert.deepEqual(report.gates.coverage.missing, ['haiku', 'opus'])",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/2/shared_cases",
+          "native_tests_ref": "#/rows/2/rust_tests"
+        },
+        {
+          "line": 45,
+          "expression": "assert.equal(report.passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/2/shared_cases",
+          "native_tests_ref": "#/rows/2/rust_tests"
+        }
+      ],
+      "remaining_assertions": [],
+      "evidence_keys": [
+        "capture",
+        "capture_run1",
+        "capture_run2",
+        "core",
+        "clippy"
+      ]
+    },
+    {
+      "id": "test/evaluation-report.test.mjs#4",
+      "file": "test/evaluation-report.test.mjs",
+      "name": "Auto policy permits a Haiku classifier verdict only with a Sonnet floor and requires Sonnet/Opus coverage",
+      "line": 48,
+      "baseline_file_sha256": "586fdcae9ac2a3f6ce3db03168465561786b405cfa8754066d0879fbb2f4eb98",
+      "definition_sha256": "575a5711301058e677038d7cdbd8e2a23755670db01d9b3c4a39122ef2075bc3",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/evaluation_report_contracts.rs#frozen_pure_report_calls_preserve_every_gate_and_exact_threshold"
+      ],
+      "shared_cases": [
+        "baseline-evaluation-report-4-1",
+        "baseline-evaluation-report-4-2",
+        "baseline-evaluation-report-4-3"
+      ],
+      "executed_source_assertions": 4,
+      "assertions": [
+        {
+          "line": 53,
+          "expression": "assert.equal(report.passed, true)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/3/shared_cases",
+          "native_tests_ref": "#/rows/3/rust_tests"
+        },
+        {
+          "line": 54,
+          "expression": "assert.deepEqual(report.gates.coverage.required, ['sonnet', 'opus'])",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/3/shared_cases",
+          "native_tests_ref": "#/rows/3/rust_tests"
+        },
+        {
+          "line": 55,
+          "expression": "assert.equal(report.gates.rubric.agreement, 1)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/3/shared_cases",
+          "native_tests_ref": "#/rows/3/rust_tests"
+        },
+        {
+          "line": 56,
+          "expression": "assert.equal(evaluateRoutingReport(rows(), { evaluator: 'jev', policy }).gates.policy.passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/3/shared_cases",
+          "native_tests_ref": "#/rows/3/rust_tests"
+        }
+      ],
+      "remaining_assertions": [],
+      "evidence_keys": [
+        "capture",
+        "capture_run1",
+        "capture_run2",
+        "core",
+        "clippy"
+      ]
+    },
+    {
+      "id": "test/evaluation-report.test.mjs#5",
+      "file": "test/evaluation-report.test.mjs",
+      "name": "a declared compatibility override is checked independently of the classifier rubric",
+      "line": 59,
+      "baseline_file_sha256": "586fdcae9ac2a3f6ce3db03168465561786b405cfa8754066d0879fbb2f4eb98",
+      "definition_sha256": "05129b06431a618e37444eb809c665795490619f212e4d47da7d3ff8ab6516a2",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/evaluation_report_contracts.rs#frozen_pure_report_calls_preserve_every_gate_and_exact_threshold"
+      ],
+      "shared_cases": [
+        "baseline-evaluation-report-5-1",
+        "baseline-evaluation-report-5-2",
+        "baseline-evaluation-report-5-3"
+      ],
+      "executed_source_assertions": 3,
+      "assertions": [
+        {
+          "line": 63,
+          "expression": "assert.equal(evaluateRoutingReport(constrained, { evaluator: 'jev', policy }).passed, true)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/4/shared_cases",
+          "native_tests_ref": "#/rows/4/rust_tests"
+        },
+        {
+          "line": 66,
+          "expression": "assert.equal(wrongReason.gates.rubric.passed, true)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/4/shared_cases",
+          "native_tests_ref": "#/rows/4/rust_tests"
+        },
+        {
+          "line": 67,
+          "expression": "assert.equal(wrongReason.gates.policy.passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/4/shared_cases",
+          "native_tests_ref": "#/rows/4/rust_tests"
+        }
+      ],
+      "remaining_assertions": [],
+      "evidence_keys": [
+        "capture",
+        "capture_run1",
+        "capture_run2",
+        "core",
+        "clippy"
+      ]
+    },
+    {
+      "id": "test/evaluation-report.test.mjs#6",
+      "file": "test/evaluation-report.test.mjs",
+      "name": "quality thresholds apply to predictions before selection floors and include every case in agreement",
+      "line": 70,
+      "baseline_file_sha256": "586fdcae9ac2a3f6ce3db03168465561786b405cfa8754066d0879fbb2f4eb98",
+      "definition_sha256": "14c3f7cff5159602ba5e3213139506ecc8660aef8b4a5627f0ba45029bc19cff",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/evaluation_report_contracts.rs#frozen_pure_report_calls_preserve_every_gate_and_exact_threshold"
+      ],
+      "shared_cases": [
+        "baseline-evaluation-report-6-1",
+        "baseline-evaluation-report-6-2",
+        "baseline-evaluation-report-6-3",
+        "baseline-evaluation-report-6-4",
+        "baseline-evaluation-report-6-5"
+      ],
+      "executed_source_assertions": 5,
+      "assertions": [
+        {
+          "line": 73,
+          "expression": "assert.equal(strict.gates.rubric.agreement, 0.75)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/5/shared_cases",
+          "native_tests_ref": "#/rows/5/rust_tests"
+        },
+        {
+          "line": 74,
+          "expression": "assert.equal(strict.gates.rubric.under_route_rate, 0.25)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/5/shared_cases",
+          "native_tests_ref": "#/rows/5/rust_tests"
+        },
+        {
+          "line": 75,
+          "expression": "assert.equal(strict.passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/5/shared_cases",
+          "native_tests_ref": "#/rows/5/rust_tests"
+        },
+        {
+          "line": 77,
+          "expression": "assert.equal(evaluateRoutingReport(incorrect, { evaluator: 'jev', policy: allowed }).passed, true)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/5/shared_cases",
+          "native_tests_ref": "#/rows/5/rust_tests"
+        },
+        {
+          "line": 78,
+          "expression": "assert.equal(evaluateRoutingReport(incorrect, { evaluator: 'jev', policy: createEvaluationPolicy({ minAgreement: 0.75 }) }).passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/5/shared_cases",
+          "native_tests_ref": "#/rows/5/rust_tests"
+        }
+      ],
+      "remaining_assertions": [],
+      "evidence_keys": [
+        "capture",
+        "capture_run1",
+        "capture_run2",
+        "core",
+        "clippy"
+      ]
+    },
+    {
+      "id": "test/evaluation-report.test.mjs#7",
+      "file": "test/evaluation-report.test.mjs",
+      "name": "classifier-only reports do not claim that a Claude model was selected or a task completed",
+      "line": 81,
+      "baseline_file_sha256": "586fdcae9ac2a3f6ce3db03168465561786b405cfa8754066d0879fbb2f4eb98",
+      "definition_sha256": "21c891e68d46dbb8e9b8d6ec90b1deba0d21bc70a4e2f56edc7130fea9cc968f",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/evaluation_report_contracts.rs#frozen_pure_report_calls_preserve_every_gate_and_exact_threshold"
+      ],
+      "shared_cases": [
+        "baseline-evaluation-report-7-1"
+      ],
+      "executed_source_assertions": 3,
+      "assertions": [
+        {
+          "line": 84,
+          "expression": "assert.equal(report.passed, true)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/6/shared_cases",
+          "native_tests_ref": "#/rows/6/rust_tests"
+        },
+        {
+          "line": 85,
+          "expression": "assert.equal(report.gates.policy.passed, null)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/6/shared_cases",
+          "native_tests_ref": "#/rows/6/rust_tests"
+        },
+        {
+          "line": 86,
+          "expression": "assert.equal(report.gates.task.passed, null)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/6/shared_cases",
+          "native_tests_ref": "#/rows/6/rust_tests"
+        }
+      ],
+      "remaining_assertions": [],
+      "evidence_keys": [
+        "capture",
+        "capture_run1",
+        "capture_run2",
+        "core",
+        "clippy"
+      ]
+    },
+    {
+      "id": "test/evaluation-report.test.mjs#8",
+      "file": "test/evaluation-report.test.mjs",
+      "name": "normal live transport/task success cannot pass on fallback, passthrough, or another evaluator",
+      "line": 89,
+      "baseline_file_sha256": "586fdcae9ac2a3f6ce3db03168465561786b405cfa8754066d0879fbb2f4eb98",
+      "definition_sha256": "34857fb5d056596076ad384c0d83d17bf75cbae05202efa6d265847dd13438ae",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/evaluation_report_contracts.rs#frozen_pure_report_calls_preserve_every_gate_and_exact_threshold"
+      ],
+      "shared_cases": [
+        "baseline-evaluation-report-8-1",
+        "baseline-evaluation-report-8-2",
+        "baseline-evaluation-report-8-3",
+        "baseline-evaluation-report-8-4"
+      ],
+      "executed_source_assertions": 13,
+      "assertions": [
+        {
+          "line": 92,
+          "expression": "assert.equal(report.gates.transport.passed, true)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/7/shared_cases",
+          "native_tests_ref": "#/rows/7/rust_tests"
+        },
+        {
+          "line": 93,
+          "expression": "assert.equal(report.gates.task.passed, true)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/7/shared_cases",
+          "native_tests_ref": "#/rows/7/rust_tests"
+        },
+        {
+          "line": 94,
+          "expression": "assert.equal(report.gates.evaluator.passed, false, source)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/7/shared_cases",
+          "native_tests_ref": "#/rows/7/rust_tests"
+        },
+        {
+          "line": 95,
+          "expression": "assert.equal(report.passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/7/shared_cases",
+          "native_tests_ref": "#/rows/7/rust_tests"
+        },
+        {
+          "line": 97,
+          "expression": "assert.equal(evaluateLiveCase({ checks: {}, routes: [], evaluator: 'jev' }).passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/7/shared_cases",
+          "native_tests_ref": "#/rows/7/rust_tests"
+        }
+      ],
+      "remaining_assertions": [],
+      "evidence_keys": [
+        "capture",
+        "capture_run1",
+        "capture_run2",
+        "core",
+        "clippy"
+      ]
+    },
+    {
+      "id": "test/evaluation-report.test.mjs#9",
+      "file": "test/evaluation-report.test.mjs",
+      "name": "explicit live outages require fallback while allowing auxiliary safety pass-through",
+      "line": 100,
+      "baseline_file_sha256": "586fdcae9ac2a3f6ce3db03168465561786b405cfa8754066d0879fbb2f4eb98",
+      "definition_sha256": "b17f72a509adfe129e20b493e41c76cf0e884236276631d6efbe9e8ac4b212e0",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/evaluation_report_contracts.rs#frozen_pure_report_calls_preserve_every_gate_and_exact_threshold"
+      ],
+      "shared_cases": [
+        "baseline-evaluation-report-9-1",
+        "baseline-evaluation-report-9-2",
+        "baseline-evaluation-report-9-3"
+      ],
+      "executed_source_assertions": 6,
+      "assertions": [
+        {
+          "line": 103,
+          "expression": "assert.equal(report.passed, true)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/8/shared_cases",
+          "native_tests_ref": "#/rows/8/rust_tests"
+        },
+        {
+          "line": 104,
+          "expression": "assert.equal(report.gates.rubric.passed, null)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/8/shared_cases",
+          "native_tests_ref": "#/rows/8/rust_tests"
+        },
+        {
+          "line": 105,
+          "expression": "assert.equal(evaluateLiveCase({ checks: checks(), routes: [liveRoute()], evaluator: 'jev', expectOutage: true }).passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/8/shared_cases",
+          "native_tests_ref": "#/rows/8/rust_tests"
+        },
+        {
+          "line": 107,
+          "expression": "assert.equal(failedTask.gates.evaluator.passed, true)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/8/shared_cases",
+          "native_tests_ref": "#/rows/8/rust_tests"
+        },
+        {
+          "line": 108,
+          "expression": "assert.equal(failedTask.gates.task.passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/8/shared_cases",
+          "native_tests_ref": "#/rows/8/rust_tests"
+        },
+        {
+          "line": 109,
+          "expression": "assert.equal(failedTask.passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/8/shared_cases",
+          "native_tests_ref": "#/rows/8/rust_tests"
+        }
+      ],
+      "remaining_assertions": [],
+      "evidence_keys": [
+        "capture",
+        "capture_run1",
+        "capture_run2",
+        "core",
+        "clippy"
+      ]
+    },
+    {
+      "id": "test/evaluation-report.test.mjs#10",
+      "file": "test/evaluation-report.test.mjs",
+      "name": "live rubric failures stay distinct from transport and independently verified task failures",
+      "line": 112,
+      "baseline_file_sha256": "586fdcae9ac2a3f6ce3db03168465561786b405cfa8754066d0879fbb2f4eb98",
+      "definition_sha256": "a5b2cea0d0f4910b391c71e1160e13a36f8040e74af05a6a55e263affbcaabc3",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/evaluation_report_contracts.rs#frozen_pure_report_calls_preserve_every_gate_and_exact_threshold"
+      ],
+      "shared_cases": [
+        "baseline-evaluation-report-10-1",
+        "baseline-evaluation-report-10-2"
+      ],
+      "executed_source_assertions": 5,
+      "assertions": [
+        {
+          "line": 114,
+          "expression": "assert.equal(report.gates.rubric.passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/9/shared_cases",
+          "native_tests_ref": "#/rows/9/rust_tests"
+        },
+        {
+          "line": 115,
+          "expression": "assert.equal(report.gates.transport.passed, true)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/9/shared_cases",
+          "native_tests_ref": "#/rows/9/rust_tests"
+        },
+        {
+          "line": 116,
+          "expression": "assert.equal(report.gates.task.passed, true)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/9/shared_cases",
+          "native_tests_ref": "#/rows/9/rust_tests"
+        },
+        {
+          "line": 118,
+          "expression": "assert.equal(failed.gates.evaluator.passed, true)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/9/shared_cases",
+          "native_tests_ref": "#/rows/9/rust_tests"
+        },
+        {
+          "line": 119,
+          "expression": "assert.equal(failed.gates.task.passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/9/shared_cases",
+          "native_tests_ref": "#/rows/9/rust_tests"
+        }
+      ],
+      "remaining_assertions": [],
+      "evidence_keys": [
+        "capture",
+        "capture_run1",
+        "capture_run2",
+        "core",
+        "clippy"
+      ]
+    },
+    {
+      "id": "test/evaluation-report.test.mjs#11",
+      "file": "test/evaluation-report.test.mjs",
+      "name": "live profile coverage uses main routes only and explicitly scoped subsets do not claim full coverage",
+      "line": 122,
+      "baseline_file_sha256": "586fdcae9ac2a3f6ce3db03168465561786b405cfa8754066d0879fbb2f4eb98",
+      "definition_sha256": "b7c6a02fbc4e65a50aa64a829c6fd37c31d003deb1b0a3b1dc66c0b281e700b6",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/evaluation_report_contracts.rs#frozen_pure_report_calls_preserve_every_gate_and_exact_threshold"
+      ],
+      "shared_cases": [
+        "baseline-evaluation-report-11-1",
+        "baseline-evaluation-report-11-2",
+        "baseline-evaluation-report-11-3",
+        "baseline-evaluation-report-11-4",
+        "baseline-evaluation-report-11-5",
+        "baseline-evaluation-report-11-6",
+        "baseline-evaluation-report-11-7"
+      ],
+      "executed_source_assertions": 6,
+      "assertions": [
+        {
+          "line": 125,
+          "expression": "assert.equal(compatible.passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/10/shared_cases",
+          "native_tests_ref": "#/rows/10/rust_tests"
+        },
+        {
+          "line": 126,
+          "expression": "assert.deepEqual(compatible.gates.coverage.missing, ['haiku'])",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/10/shared_cases",
+          "native_tests_ref": "#/rows/10/rust_tests"
+        },
+        {
+          "line": 127,
+          "expression": "assert.equal(evaluateLiveReport(cases, { policy: createEvaluationPolicy({ profile: 'auto' }) }).passed, true)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/10/shared_cases",
+          "native_tests_ref": "#/rows/10/rust_tests"
+        },
+        {
+          "line": 128,
+          "expression": "assert.equal(evaluateLiveReport(cases, { policy: createEvaluationPolicy({ requiredTiers: ['sonnet'] }) }).passed, true)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/10/shared_cases",
+          "native_tests_ref": "#/rows/10/rust_tests"
+        },
+        {
+          "line": 129,
+          "expression": "assert.equal(evaluateLiveReport(cases, { expectOutage: true }).gates.coverage.passed, null)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/10/shared_cases",
+          "native_tests_ref": "#/rows/10/rust_tests"
+        },
+        {
+          "line": 130,
+          "expression": "assert.equal(evaluateLiveReport([]).passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/10/shared_cases",
+          "native_tests_ref": "#/rows/10/rust_tests"
+        }
+      ],
+      "remaining_assertions": [],
+      "evidence_keys": [
+        "capture",
+        "capture_run1",
+        "capture_run2",
+        "core",
+        "clippy"
+      ]
+    },
+    {
+      "id": "test/evaluation-report.test.mjs#12",
+      "file": "test/evaluation-report.test.mjs",
+      "name": "invalid gate options are rejected before any evaluations and policy objects cannot mutate mid-run",
+      "line": 133,
+      "baseline_file_sha256": "586fdcae9ac2a3f6ce3db03168465561786b405cfa8754066d0879fbb2f4eb98",
+      "definition_sha256": "b28a51efdc0e9048e7dcdc6ad3097564fb4261b3c91b6e36ce3ba15e07c3559d",
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/evaluation_report_contracts.rs#frozen_pure_report_calls_preserve_every_gate_and_exact_threshold",
+        "rust/xtask/src/evaluation_contracts.rs#evaluation_contracts::both_parsers_replay_all_original_threshold_and_deadline_arguments",
+        "rust/xtask/src/evaluation_contracts.rs#evaluation_contracts::actual_native_runner_replays_both_profiles_override_outage_and_collapsed_quality"
+      ],
+      "shared_cases": [
+        "baseline-evaluation-report-12-1",
+        "baseline-evaluation-report-12-2",
+        "baseline-evaluation-report-12-3",
+        "baseline-evaluation-report-12-4",
+        "baseline-evaluation-report-12-5",
+        "baseline-evaluation-report-12-6",
+        "baseline-evaluation-report-12-7",
+        "baseline-evaluation-report-12-8",
+        "baseline-evaluation-report-12-9",
+        "baseline-evaluation-report-12-10",
+        "baseline-evaluation-report-12-11",
+        "baseline-evaluation-report-12-12",
+        "baseline-evaluation-report-12-13",
+        "baseline-evaluation-report-12-14",
+        "baseline-evaluation-report-12-15",
+        "baseline-evaluation-report-12-16",
+        "baseline-evaluation-report-12-17",
+        "baseline-evaluation-report-12-18",
+        "baseline-evaluation-report-12-19",
+        "baseline-evaluation-report-12-20",
+        "baseline-evaluation-report-12-21",
+        "baseline-evaluation-report-12-22",
+        "baseline-evaluation-report-12-23",
+        "baseline-evaluation-report-12-24",
+        "baseline-evaluation-report-12-25",
+        "baseline-evaluation-report-12-26",
+        "baseline-evaluation-report-12-27",
+        "baseline-evaluation-report-12-28",
+        "baseline-evaluation-report-12-29",
+        "baseline-evaluation-report-12-30",
+        "baseline-evaluation-report-12-31",
+        "baseline-evaluation-report-12-32",
+        "baseline-evaluation-report-12-33",
+        "baseline-evaluation-report-12-34",
+        "baseline-evaluation-report-12-35",
+        "baseline-evaluation-report-12-36",
+        "baseline-evaluation-report-12-37",
+        "baseline-evaluation-report-12-38",
+        "baseline-evaluation-report-12-39",
+        "baseline-evaluation-report-12-40"
+      ],
+      "executed_source_assertions": 42,
+      "assertions": [
+        {
+          "line": 136,
+          "expression": "assert.throws(() => createEvaluationPolicy(options))",
+          "status": "partial",
+          "shared_cases_ref": "#/rows/11/shared_cases",
+          "native_tests_ref": "#/rows/11/rust_tests",
+          "boundary": "Six finite options are replayed. Original NaN/Infinity inputs execute in frozen Node and remain tagged native API boundaries."
+        },
+        {
+          "line": 140,
+          "expression": "assert.throws(() => parse([flag, value]))",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/11/shared_cases",
+          "native_tests_ref": "#/rows/11/rust_tests"
+        },
+        {
+          "line": 142,
+          "expression": "assert.equal(parse(['--min-agreement', '0.9', '--max-under-route-rate', '0.1']).minAgreement, 0.9)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/11/shared_cases",
+          "native_tests_ref": "#/rows/11/rust_tests"
+        },
+        {
+          "line": 145,
+          "expression": "assert.throws(() => policy.requiredTiers.push('other'))",
+          "status": "partial",
+          "shared_cases_ref": "#/rows/11/shared_cases",
+          "native_tests_ref": "#/rows/11/rust_tests",
+          "boundary": "Frozen Node array mutation throws. Rust owns a copied Vec but does not provide literal JavaScript Object.freeze/push semantics."
+        },
+        {
+          "line": 146,
+          "expression": "assert.throws(() => { policy.minAgreement = 0; })",
+          "status": "partial",
+          "shared_cases_ref": "#/rows/11/shared_cases",
+          "native_tests_ref": "#/rows/11/rust_tests",
+          "boundary": "Frozen Node property assignment throws. Rust owned policy validation is an adaptation, not a literal JS frozen-object mutation API."
+        },
+        {
+          "line": 149,
+          "expression": "assert.rejects(runEvaluation({ config, cases: [], policy: { minAgreement: 2 }, routerFactory: () => { calls++; } }))",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/11/shared_cases",
+          "native_tests_ref": "#/rows/11/rust_tests"
+        },
+        {
+          "line": 150,
+          "expression": "assert.equal(calls, 0)",
+          "status": "partial",
+          "shared_cases_ref": "#/rows/11/shared_cases",
+          "native_tests_ref": "#/rows/11/rust_tests",
+          "boundary": "Real native runner rejects the invalid policy before any HttpTransport request; exact JS injected routerFactory callback count/identity has no native factory seam."
+        }
+      ],
+      "remaining_assertions": [
+        "Six finite options are replayed. Original NaN/Infinity inputs execute in frozen Node and remain tagged native API boundaries.",
+        "Frozen Node array mutation throws. Rust owns a copied Vec but does not provide literal JavaScript Object.freeze/push semantics.",
+        "Frozen Node property assignment throws. Rust owned policy validation is an adaptation, not a literal JS frozen-object mutation API.",
+        "Real native runner rejects the invalid policy before any HttpTransport request; exact JS injected routerFactory callback count/identity has no native factory seam."
+      ],
+      "evidence_keys": [
+        "capture",
+        "capture_run1",
+        "capture_run2",
+        "core",
+        "native",
+        "clippy"
+      ]
+    },
+    {
+      "id": "test/evaluation-report.test.mjs#13",
+      "file": "test/evaluation-report.test.mjs",
+      "name": "hardware benchmark accepts a disabled warm deadline with a bounded cold load",
+      "line": 153,
+      "baseline_file_sha256": "586fdcae9ac2a3f6ce3db03168465561786b405cfa8754066d0879fbb2f4eb98",
+      "definition_sha256": "8d1281b9ebea2b4e7cfb7d0703d6adc1de3be49eaba2a3bff2e018fa1f3ffd95",
+      "status": "covered",
+      "rust_tests": [
+        "rust/xtask/src/evaluation_contracts.rs#evaluation_contracts::both_parsers_replay_all_original_threshold_and_deadline_arguments"
+      ],
+      "shared_cases": [
+        "baseline-evaluation-report-13-1",
+        "baseline-evaluation-report-13-2",
+        "baseline-evaluation-report-13-3",
+        "baseline-evaluation-report-13-4",
+        "baseline-evaluation-report-13-5",
+        "baseline-evaluation-report-13-6",
+        "baseline-evaluation-report-13-7",
+        "baseline-evaluation-report-13-8",
+        "baseline-evaluation-report-13-9",
+        "baseline-evaluation-report-13-10",
+        "baseline-evaluation-report-13-11",
+        "baseline-evaluation-report-13-12",
+        "baseline-evaluation-report-13-13",
+        "baseline-evaluation-report-13-14",
+        "baseline-evaluation-report-13-15",
+        "baseline-evaluation-report-13-16",
+        "baseline-evaluation-report-13-17",
+        "baseline-evaluation-report-13-18",
+        "baseline-evaluation-report-13-19",
+        "baseline-evaluation-report-13-20",
+        "baseline-evaluation-report-13-21",
+        "baseline-evaluation-report-13-22"
+      ],
+      "executed_source_assertions": 23,
+      "assertions": [
+        {
+          "line": 155,
+          "expression": "assert.equal(options.timeoutMs, 0)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/12/shared_cases",
+          "native_tests_ref": "#/rows/12/rust_tests"
+        },
+        {
+          "line": 156,
+          "expression": "assert.equal(options.coldTimeoutMs, 60000)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/12/shared_cases",
+          "native_tests_ref": "#/rows/12/rust_tests"
+        },
+        {
+          "line": 158,
+          "expression": "assert.throws(() => parseOllamaEvaluationArgs([flag, value]))",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/12/shared_cases",
+          "native_tests_ref": "#/rows/12/rust_tests"
+        },
+        {
+          "line": 160,
+          "expression": "assert.throws(() => parseOllamaEvaluationArgs(['--cold-timeout-ms', '0']))",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/12/shared_cases",
+          "native_tests_ref": "#/rows/12/rust_tests"
+        }
+      ],
+      "remaining_assertions": [],
+      "evidence_keys": [
+        "capture",
+        "capture_run1",
+        "capture_run2",
+        "native",
+        "clippy"
+      ]
+    },
+    {
+      "id": "test/evaluation-report.test.mjs#14",
+      "file": "test/evaluation-report.test.mjs",
+      "name": "the existing synthetic corpus characterizes actual compatible and Auto policy with mocked evaluator answers",
+      "line": 163,
+      "baseline_file_sha256": "586fdcae9ac2a3f6ce3db03168465561786b405cfa8754066d0879fbb2f4eb98",
+      "definition_sha256": "eff84b2d016be77bedea2d42d98fc14d2a9aaebdafa07390e9c98fd8d471159d",
+      "status": "covered",
+      "rust_tests": [
+        "rust/xtask/src/evaluation_contracts.rs#evaluation_contracts::actual_native_runner_replays_both_profiles_override_outage_and_collapsed_quality"
+      ],
+      "shared_cases": [
+        "baseline-evaluation-report-14-1",
+        "baseline-evaluation-report-14-2"
+      ],
+      "executed_source_assertions": 7,
+      "assertions": [
+        {
+          "line": 172,
+          "expression": "assert.equal(report.passed, true, JSON.stringify(report.gates))",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/13/shared_cases",
+          "native_tests_ref": "#/rows/13/rust_tests"
+        },
+        {
+          "line": 173,
+          "expression": "assert.equal(calls, cases.length)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/13/shared_cases",
+          "native_tests_ref": "#/rows/13/rust_tests"
+        },
+        {
+          "line": 174,
+          "expression": "assert.ok(report.rows.every(row => row.confirmed_model === null))",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/13/shared_cases",
+          "native_tests_ref": "#/rows/13/rust_tests"
+        },
+        {
+          "line": 175,
+          "expression": "assert.ok(report.rows.filter(row => row.classified_tier === 'haiku').every(row => row.selected_tier === 'sonnet'))",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/13/shared_cases",
+          "native_tests_ref": "#/rows/13/rust_tests"
+        }
+      ],
+      "remaining_assertions": [],
+      "evidence_keys": [
+        "capture",
+        "capture_run1",
+        "capture_run2",
+        "native",
+        "clippy"
+      ]
+    },
+    {
+      "id": "test/evaluation-report.test.mjs#15",
+      "file": "test/evaluation-report.test.mjs",
+      "name": "actual router characterization verifies declared thinking override without changing its request",
+      "line": 179,
+      "baseline_file_sha256": "586fdcae9ac2a3f6ce3db03168465561786b405cfa8754066d0879fbb2f4eb98",
+      "definition_sha256": "2bf7ddb7b20fefd98c68612e7dabd8ad434beee3d79842567ab36621ba7479b1",
+      "status": "covered",
+      "rust_tests": [
+        "rust/xtask/src/evaluation_contracts.rs#evaluation_contracts::actual_native_runner_replays_both_profiles_override_outage_and_collapsed_quality"
+      ],
+      "shared_cases": [
+        "baseline-evaluation-report-15-1",
+        "baseline-evaluation-report-15-2"
+      ],
+      "executed_source_assertions": 2,
+      "assertions": [
+        {
+          "line": 188,
+          "expression": "assert.equal(report.passed, true)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/14/shared_cases",
+          "native_tests_ref": "#/rows/14/rust_tests"
+        },
+        {
+          "line": 189,
+          "expression": "assert.deepEqual(request, before)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/14/shared_cases",
+          "native_tests_ref": "#/rows/14/rust_tests"
+        }
+      ],
+      "remaining_assertions": [],
+      "evidence_keys": [
+        "capture",
+        "capture_run1",
+        "capture_run2",
+        "native",
+        "clippy"
+      ]
+    },
+    {
+      "id": "test/evaluation-report.test.mjs#16",
+      "file": "test/evaluation-report.test.mjs",
+      "name": "the executable evaluator harness rejects broken real-router runs instead of returning a green connectivity report",
+      "line": 192,
+      "baseline_file_sha256": "586fdcae9ac2a3f6ce3db03168465561786b405cfa8754066d0879fbb2f4eb98",
+      "definition_sha256": "1cdee32d7b70de9690745b4bc48a7ae7a00648e71780115be7a918ec83e71e79",
+      "status": "covered",
+      "rust_tests": [
+        "rust/xtask/src/evaluation_contracts.rs#evaluation_contracts::actual_native_runner_replays_both_profiles_override_outage_and_collapsed_quality"
+      ],
+      "shared_cases": [
+        "baseline-evaluation-report-16-1",
+        "baseline-evaluation-report-16-2"
+      ],
+      "executed_source_assertions": 8,
+      "assertions": [
+        {
+          "line": 200,
+          "expression": "assert.equal(report.passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/15/shared_cases",
+          "native_tests_ref": "#/rows/15/rust_tests"
+        },
+        {
+          "line": 201,
+          "expression": "assert.equal(report.gates.coverage.passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/15/shared_cases",
+          "native_tests_ref": "#/rows/15/rust_tests"
+        },
+        {
+          "line": 202,
+          "expression": "assert.equal(report.gates.evaluator.passed, mode !== 'outage')",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/15/shared_cases",
+          "native_tests_ref": "#/rows/15/rust_tests"
+        },
+        {
+          "line": 203,
+          "expression": "assert.equal(report.gates.rubric.passed, false)",
+          "status": "covered",
+          "shared_cases_ref": "#/rows/15/shared_cases",
+          "native_tests_ref": "#/rows/15/rust_tests"
+        }
+      ],
+      "remaining_assertions": [],
+      "evidence_keys": [
+        "capture",
+        "capture_run1",
+        "capture_run2",
+        "native",
+        "clippy"
+      ]
+    }
+  ],
+  "limits": [
+    "No evaluator/provider/model runs or model-quality claim. Existing failed/unmeasured statuses and declared thresholds are preserved.",
+    "Definition12 remains partial for explicit nonJSON/frozen-object/factory API boundaries.",
+    "No central promotion until root independently reviews sources, assertion coverage and evidence hashes."
+  ],
+  "status": "Reviewed; no live evaluator, task-quality or performance acceptance.",
+  "root_review": {
+    "proposal": {
+      "path": "artifacts/rust-rewrite/evidence/7aed28e2cf7aa7c523ef331afa17dbffcaada2c8c34e23ca7590f8e63047b5b4.json",
+      "sha256": "7aed28e2cf7aa7c523ef331afa17dbffcaada2c8c34e23ca7590f8e63047b5b4",
+      "original_path": "/private/tmp/evaluation-report-contracts-mapping-proposal.json"
+    },
+    "ast_audit": {
+      "path": "artifacts/rust-rewrite/evidence/5403d987b7fba5817e1362a6fe8b727cfc0b7e2a908307afae1e92488a409587.json",
+      "sha256": "5403d987b7fba5817e1362a6fe8b727cfc0b7e2a908307afae1e92488a409587",
+      "original_path": "/private/tmp/evaluation-report-root-review.json"
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/evidence/ed75b5762989c6636729b5698d217696287b572955e9ad1a7b2cecf098714f0f.json",
+      "sha256": "ed75b5762989c6636729b5698d217696287b572955e9ad1a7b2cecf098714f0f",
+      "original_path": "/private/tmp/evaluation-report-cli-review.json"
+    },
+    "conclusion": "All16 canonical definition statements and71 assertion expressions/lines verified; complete reports/requests and negative controls reviewed. Definition12 retains the typed/nonfinite/object/factory boundaries."
+  }
+}

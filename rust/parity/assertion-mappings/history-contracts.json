@@ -1,0 +1,2178 @@
+{
+  "schema_version": 1,
+  "kind": "history_contracts_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_head": "2166cdf4c845354cdd0e0a24079f8d6cc68b399a",
+  "status": "reviewed_complete_definitions_1_through_10",
+  "scope": "Complete frozen history definitions1 through10 using actual native private files and command APIs. Retains original operation order, all88 assertion sites/100 executions,21 direct reader calls and7 commands. No production implementation changes or broader memory/performance claim.",
+  "counts": {
+    "definitions": 10,
+    "static_assertions": 88,
+    "expanded_original_assertions": 100,
+    "direct_reader_calls": 21,
+    "actual_command_calls": 7,
+    "new_native_tests": 10,
+    "existing_command_regressions_passed": 1,
+    "frozen_original_tests_passed": 10
+  },
+  "current_sources": [
+    {
+      "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+      "sha256": "999ed6fda886c7f945447aaca95ce2d642a6e7acf28f5024691ff4605453f2ac",
+      "bytes": 15926
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+      "sha256": "36ac4b0875b2018b81484abe6e5b03b0937e16c0fbbfdad8513e9a2355ede8d6",
+      "bytes": 14493
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/session_history.rs",
+      "sha256": "3de8097711216f5f31a60ea6fcc8f327f95996bf87b5e84ccb56442f6d2521ae",
+      "bytes": 11110
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/sessions.rs",
+      "sha256": "f4ed364458698f38b91671561818952a06dcc7c27e65720c09d95acfcb2301da",
+      "bytes": 2962
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/session_history.rs",
+      "sha256": "68a9073a9aba43fc97ee19863035866fd13ed759bbc4c38df12602851abd445f",
+      "bytes": 27480
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/savings.rs",
+      "sha256": "412da2b6cc87f7b0bcf85f29be57948b2e097064c8128902666123392aa8492c",
+      "bytes": 34419
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/telemetry_event.rs",
+      "sha256": "9ecd66bb91b416a0a5435a134d307aaf8bb2488f02dfc04df3fca3f0bab92640",
+      "bytes": 30138
+    },
+    {
+      "path": "rust/parity/capture-history-contracts.mjs",
+      "sha256": "bc2b231fa22ac1d4eb1002eb77a5e8a963d05b256fc8f88f7279a2d225f59eff",
+      "bytes": 8444
+    },
+    {
+      "path": "rust/parity/cases/history-contracts.capture.json",
+      "sha256": "e44a0b20bad0e30b6576d2b7e33cc8a2ba48e350c30bf3ec87c8a80019923071",
+      "bytes": 56463
+    }
+  ],
+  "retained_sources": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/999ed6fda886c7f945447aaca95ce2d642a6e7acf28f5024691ff4605453f2ac.rs",
+      "sha256": "999ed6fda886c7f945447aaca95ce2d642a6e7acf28f5024691ff4605453f2ac",
+      "bytes": 15926,
+      "original_path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/36ac4b0875b2018b81484abe6e5b03b0937e16c0fbbfdad8513e9a2355ede8d6.rs",
+      "sha256": "36ac4b0875b2018b81484abe6e5b03b0937e16c0fbbfdad8513e9a2355ede8d6",
+      "bytes": 14493,
+      "original_path": "rust/crates/claude-autorouter/src/sessions_contracts.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/3de8097711216f5f31a60ea6fcc8f327f95996bf87b5e84ccb56442f6d2521ae.rs",
+      "sha256": "3de8097711216f5f31a60ea6fcc8f327f95996bf87b5e84ccb56442f6d2521ae",
+      "bytes": 11110,
+      "original_path": "rust/crates/autorouter-runtime/src/session_history.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/f4ed364458698f38b91671561818952a06dcc7c27e65720c09d95acfcb2301da.rs",
+      "sha256": "f4ed364458698f38b91671561818952a06dcc7c27e65720c09d95acfcb2301da",
+      "bytes": 2962,
+      "original_path": "rust/crates/claude-autorouter/src/sessions.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/68a9073a9aba43fc97ee19863035866fd13ed759bbc4c38df12602851abd445f.rs",
+      "sha256": "68a9073a9aba43fc97ee19863035866fd13ed759bbc4c38df12602851abd445f",
+      "bytes": 27480,
+      "original_path": "rust/crates/autorouter-core/src/session_history.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/412da2b6cc87f7b0bcf85f29be57948b2e097064c8128902666123392aa8492c.rs",
+      "sha256": "412da2b6cc87f7b0bcf85f29be57948b2e097064c8128902666123392aa8492c",
+      "bytes": 34419,
+      "original_path": "rust/crates/autorouter-core/src/savings.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/9ecd66bb91b416a0a5435a134d307aaf8bb2488f02dfc04df3fca3f0bab92640.rs",
+      "sha256": "9ecd66bb91b416a0a5435a134d307aaf8bb2488f02dfc04df3fca3f0bab92640",
+      "bytes": 30138,
+      "original_path": "rust/crates/autorouter-core/src/telemetry_event.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/bc2b231fa22ac1d4eb1002eb77a5e8a963d05b256fc8f88f7279a2d225f59eff.mjs",
+      "sha256": "bc2b231fa22ac1d4eb1002eb77a5e8a963d05b256fc8f88f7279a2d225f59eff",
+      "bytes": 8444,
+      "original_path": "rust/parity/capture-history-contracts.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/e44a0b20bad0e30b6576d2b7e33cc8a2ba48e350c30bf3ec87c8a80019923071.json",
+      "sha256": "e44a0b20bad0e30b6576d2b7e33cc8a2ba48e350c30bf3ec87c8a80019923071",
+      "bytes": 56463,
+      "original_path": "rust/parity/cases/history-contracts.capture.json"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/58f919033737bc0c324737e1ae9a04506dfd799f7f64cda8eff74b083557d7e0.json",
+      "sha256": "58f919033737bc0c324737e1ae9a04506dfd799f7f64cda8eff74b083557d7e0",
+      "bytes": 3225,
+      "original_path": "artifacts/rust-rewrite/history-reader-contracts-1/native-1.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/678ad7f0d123a0c2fbb5a830f913a344b689dabefc42d5059cf5a01c4cff8704.log",
+      "sha256": "678ad7f0d123a0c2fbb5a830f913a344b689dabefc42d5059cf5a01c4cff8704",
+      "bytes": 2260,
+      "original_path": "artifacts/rust-rewrite/history-reader-contracts-1/native-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/7cc7be859c649f7cb29af53241916bc987764e232fbac24110347751613130d9.json",
+      "sha256": "7cc7be859c649f7cb29af53241916bc987764e232fbac24110347751613130d9",
+      "bytes": 3377,
+      "original_path": "artifacts/rust-rewrite/history-reader-contracts-1/native-2.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/cff859451250572acb8c4c2d9ae7cab1772cd4432568f6d0a037cbe1c2c6725a.log",
+      "sha256": "cff859451250572acb8c4c2d9ae7cab1772cd4432568f6d0a037cbe1c2c6725a",
+      "bytes": 2086,
+      "original_path": "artifacts/rust-rewrite/history-reader-contracts-1/native-2.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/caa05a08aed0c1b73f05640823a7905819dae66fab400e4e00939a2e0d4c5d6f.json",
+      "sha256": "caa05a08aed0c1b73f05640823a7905819dae66fab400e4e00939a2e0d4c5d6f",
+      "bytes": 3497,
+      "original_path": "artifacts/rust-rewrite/history-reader-contracts-1/native-3.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/bb76a16bbabc8ba486f0249e91bb8ba51221cfafb4b970f6b0450ddc38d787d1.log",
+      "sha256": "bb76a16bbabc8ba486f0249e91bb8ba51221cfafb4b970f6b0450ddc38d787d1",
+      "bytes": 1486,
+      "original_path": "artifacts/rust-rewrite/history-reader-contracts-1/native-3.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/a8653d869b1519dde51906d7f69d1f0a3c66a7f07a7785c226d503ee92ac744f.json",
+      "sha256": "a8653d869b1519dde51906d7f69d1f0a3c66a7f07a7785c226d503ee92ac744f",
+      "bytes": 1744,
+      "original_path": "artifacts/rust-rewrite/history-reader-contracts-1/native-3-snapshot.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/a80f6a2be14fc063ec0db9e009cb9c1aa58c69f952f6e389760e7344a17a2f4e.json",
+      "sha256": "a80f6a2be14fc063ec0db9e009cb9c1aa58c69f952f6e389760e7344a17a2f4e",
+      "bytes": 807,
+      "original_path": "artifacts/rust-rewrite/history-reader-contracts-1/frozen-node-1.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/c7614b009f4cfe5d914b4a4fdeb6129a2299b6099c2b600d63331a4d14698872.log",
+      "sha256": "c7614b009f4cfe5d914b4a4fdeb6129a2299b6099c2b600d63331a4d14698872",
+      "bytes": 1831,
+      "original_path": "artifacts/rust-rewrite/history-reader-contracts-1/frozen-node-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/fdf17fb59bf85181588b1fede44bd63f97621dfcb1fe9614105001273843b161.json",
+      "sha256": "fdf17fb59bf85181588b1fede44bd63f97621dfcb1fe9614105001273843b161",
+      "bytes": 3952,
+      "original_path": "artifacts/rust-rewrite/history-command-contracts-1/native-1.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/f9b3fdc84cb108236666b4f1aa7513045a8bbc1e80598bd9e2bb017a1356781f.log",
+      "sha256": "f9b3fdc84cb108236666b4f1aa7513045a8bbc1e80598bd9e2bb017a1356781f",
+      "bytes": 2818,
+      "original_path": "artifacts/rust-rewrite/history-command-contracts-1/native-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/d76cbc02eb173cff71cf631b2d7a620ac12dd9ebdbe1eb00c04a6baf49187021.json",
+      "sha256": "d76cbc02eb173cff71cf631b2d7a620ac12dd9ebdbe1eb00c04a6baf49187021",
+      "bytes": 2134,
+      "original_path": "artifacts/rust-rewrite/history-command-contracts-1/native-1-snapshot.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/84c7d64024f67059d221e192b185aa1e2972cc9cca9837b6ff70f2b2bf075a8a.json",
+      "sha256": "84c7d64024f67059d221e192b185aa1e2972cc9cca9837b6ff70f2b2bf075a8a",
+      "bytes": 704,
+      "original_path": "artifacts/rust-rewrite/history-command-contracts-1/frozen-node-1.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/47fa6a614dbddcefad87382774563d8714ec46cbc19f79fdde0b0799c4c0ea4e.log",
+      "sha256": "47fa6a614dbddcefad87382774563d8714ec46cbc19f79fdde0b0799c4c0ea4e",
+      "bytes": 835,
+      "original_path": "artifacts/rust-rewrite/history-command-contracts-1/frozen-node-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/db5df1cc66045b1a4dc1d665e073c28dc768d1b0f0936ffae765249990971dc7.json",
+      "sha256": "db5df1cc66045b1a4dc1d665e073c28dc768d1b0f0936ffae765249990971dc7",
+      "bytes": 598,
+      "original_path": "artifacts/rust-rewrite/history-command-contracts-1/clippy.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/7ea2eee97fabc11d3cf66545c4593565badbbcd189a854e85b37f75fa31651dc.log",
+      "sha256": "7ea2eee97fabc11d3cf66545c4593565badbbcd189a854e85b37f75fa31651dc",
+      "bytes": 678,
+      "original_path": "artifacts/rust-rewrite/history-command-contracts-1/clippy-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/c3fa7505b420f9cb6d34672e6f94d04dc53db4af920bcb48e4a0bb5a12dd5ba0.log",
+      "sha256": "c3fa7505b420f9cb6d34672e6f94d04dc53db4af920bcb48e4a0bb5a12dd5ba0",
+      "bytes": 782,
+      "original_path": "artifacts/rust-rewrite/history-command-contracts-1/clippy-2.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/d721d133ab3adbdaa880a2a0dcf92e18df98be9c5f6fef8341dd5c2748ff1c26.json",
+      "sha256": "d721d133ab3adbdaa880a2a0dcf92e18df98be9c5f6fef8341dd5c2748ff1c26",
+      "bytes": 269,
+      "original_path": "artifacts/rust-rewrite/history-contract-capture-1/repeat.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/f44ce376e1dc079e9d99174628ce83825c5fae5b8f831a142c01f13be3893278.json",
+      "sha256": "f44ce376e1dc079e9d99174628ce83825c5fae5b8f831a142c01f13be3893278",
+      "bytes": 556,
+      "original_path": "artifacts/rust-rewrite/history-contract-capture-failed-1/failure.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/60e757c3c3cedde7904e0ce6662ff900b617677438b1a000666e778f9c522600.mjs",
+      "sha256": "60e757c3c3cedde7904e0ce6662ff900b617677438b1a000666e778f9c522600",
+      "bytes": 8275,
+      "original_path": "artifacts/rust-rewrite/history-contract-capture-failed-1/capture-source.mjs"
+    }
+  ],
+  "review": {
+    "reader": {
+      "path": "artifacts/rust-rewrite/evidence/d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3.json",
+      "sha256": "d971170ca4aacc026d9e9e7b462e829bd8b0c95663216523b54648b7d0cd4ca3",
+      "bytes": 5002,
+      "original_path": "/private/tmp/autorouter-history-reader-independent-review.json"
+    },
+    "command": {
+      "path": "artifacts/rust-rewrite/evidence/9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f.json",
+      "sha256": "9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f",
+      "bytes": 21384,
+      "original_path": "/private/tmp/autorouter-history-command-independent-review.json"
+    },
+    "capture": {
+      "path": "artifacts/rust-rewrite/evidence/9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f.json",
+      "sha256": "9f9063a6d42380d3fc7cc363d2a9ad58b63c1f0fa4369545c982a5b4c490035f",
+      "bytes": 21384,
+      "original_path": "/private/tmp/autorouter-history-command-independent-review.json"
+    },
+    "reviewed_draft": {
+      "path": "artifacts/rust-rewrite/evidence/bbde944c6fc2c877c83bef0386c8bbf342c677f3695fc392b1da0e5bee1f74c6.json",
+      "sha256": "bbde944c6fc2c877c83bef0386c8bbf342c677f3695fc392b1da0e5bee1f74c6",
+      "bytes": 129169,
+      "original_path": "rust/parity/assertion-mappings/history-contracts.json"
+    },
+    "finalization": "Only review pointers and assertion statuses changed after independent draft review; source rows and native fragments remain exact."
+  },
+  "native_binaries": [
+    {
+      "path": "artifacts/rust-rewrite/history-reader-contracts-1/native-tests",
+      "bytes": 14737272,
+      "sha256": "41f2ff253592981f4cfaa8721d1a82e77e5c09ae1dda57169ac3eba0e49a2f56",
+      "sources": [
+        {
+          "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+          "sha256": "999ed6fda886c7f945447aaca95ce2d642a6e7acf28f5024691ff4605453f2ac",
+          "bytes": 15926
+        },
+        {
+          "path": "rust/crates/autorouter-runtime/src/session_history.rs",
+          "sha256": "3de8097711216f5f31a60ea6fcc8f327f95996bf87b5e84ccb56442f6d2521ae",
+          "bytes": 11110
+        },
+        {
+          "path": "rust/crates/autorouter-core/src/session_history.rs",
+          "sha256": "68a9073a9aba43fc97ee19863035866fd13ed759bbc4c38df12602851abd445f",
+          "bytes": 27480
+        },
+        {
+          "path": "rust/crates/autorouter-core/src/savings.rs",
+          "sha256": "412da2b6cc87f7b0bcf85f29be57948b2e097064c8128902666123392aa8492c",
+          "bytes": 34419
+        },
+        {
+          "path": "rust/crates/autorouter-core/src/telemetry_event.rs",
+          "sha256": "9ecd66bb91b416a0a5435a134d307aaf8bb2488f02dfc04df3fca3f0bab92640",
+          "bytes": 30138
+        },
+        {
+          "path": "rust/Cargo.lock",
+          "sha256": "35b5acfe78c08826cdc247c91b61ef079eba0d4c6a020a600d491fbaffa80bc3",
+          "bytes": 38341
+        },
+        {
+          "path": "rust/Cargo.toml",
+          "sha256": "b6c2f0616a99a80ccb980b338bf42a0cf5210c2f16356c0231c8277db0fa33bb",
+          "bytes": 1942
+        },
+        {
+          "path": "rust/crates/autorouter-runtime/Cargo.toml",
+          "sha256": "16daefbcc533ac54dfc957b5907cbbc94e6751e291ab7d0714fdc09d6bced385",
+          "bytes": 926
+        }
+      ],
+      "source_scope": "Focused integration tests only; concurrent test-only transport edits are not a complete build-input freeze."
+    },
+    {
+      "path": "artifacts/rust-rewrite/history-command-contracts-1/native-tests",
+      "sha256": "ed7280242dadbe6a7a3f1f5e53cbeac8c1628ff4a3e1b07a50c80be65fc0e9be",
+      "bytes": 33995648,
+      "sources": [
+        {
+          "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+          "sha256": "36ac4b0875b2018b81484abe6e5b03b0937e16c0fbbfdad8513e9a2355ede8d6",
+          "bytes": 14493
+        },
+        {
+          "path": "rust/crates/claude-autorouter/src/sessions.rs",
+          "sha256": "f4ed364458698f38b91671561818952a06dcc7c27e65720c09d95acfcb2301da",
+          "bytes": 2962
+        },
+        {
+          "path": "rust/crates/autorouter-runtime/src/session_history.rs",
+          "sha256": "3de8097711216f5f31a60ea6fcc8f327f95996bf87b5e84ccb56442f6d2521ae",
+          "bytes": 11110
+        },
+        {
+          "path": "rust/crates/autorouter-runtime/src/user_config.rs",
+          "sha256": "33e3c12730d6075a9d8262d23d6bb332fd06cfba72c13370b5c791b678fa220f",
+          "bytes": 56424
+        },
+        {
+          "path": "rust/crates/autorouter-core/src/session_history.rs",
+          "sha256": "68a9073a9aba43fc97ee19863035866fd13ed759bbc4c38df12602851abd445f",
+          "bytes": 27480
+        },
+        {
+          "path": "rust/crates/autorouter-core/src/savings.rs",
+          "sha256": "412da2b6cc87f7b0bcf85f29be57948b2e097064c8128902666123392aa8492c",
+          "bytes": 34419
+        },
+        {
+          "path": "rust/crates/autorouter-core/src/telemetry_event.rs",
+          "sha256": "9ecd66bb91b416a0a5435a134d307aaf8bb2488f02dfc04df3fca3f0bab92640",
+          "bytes": 30138
+        },
+        {
+          "path": "rust/Cargo.lock",
+          "sha256": "35b5acfe78c08826cdc247c91b61ef079eba0d4c6a020a600d491fbaffa80bc3",
+          "bytes": 38341
+        },
+        {
+          "path": "rust/Cargo.toml",
+          "sha256": "b6c2f0616a99a80ccb980b338bf42a0cf5210c2f16356c0231c8277db0fa33bb",
+          "bytes": 1942
+        },
+        {
+          "path": "rust/crates/claude-autorouter/Cargo.toml",
+          "sha256": "a3e1bbdf9ad45b5955686390c0c2ed12384d5b46d96414db3851ac4906bc42dc",
+          "bytes": 509
+        }
+      ],
+      "scope": "Three new original command counterparts and unchanged disabled-history regression. Focused check; full workspace build-input freeze remains separate."
+    }
+  ],
+  "adaptations": [
+    "Private temporary roots are random and mode0700; native fixture files are0600. No original assertion depends on permission bits; contents, names, links and operation order match.",
+    "Original own undefined properties are omitted at JSON.stringify boundaries; native fixtures remove those exact fields instead of writing null.",
+    "JavaScript Number maps to exact native f64 comparisons where parsed legacy schema and percentile outputs use floating representation. No numeric tolerance, rounding or changed expected value. The first two author failures preserve the strict serde representation mismatch.",
+    "Source regexes for literal human output are checked as exact substring containment, preserving case, punctuation and whitespace; source string-includes and scalar-count assertions retain those meanings.",
+    "NoSecrets rejects any native Keychain access. All saved configuration is confined to each synthetic fixture; inactive invalid evaluator settings are preserved.",
+    "Native target preservation adds an exact byte equality check beyond the source substring assertion."
+  ],
+  "limits": [
+    "Target/fixture assertions cannot prove no operating-system read syscall; they prove rejected API behavior and unchanged target content, consistent with source scope.",
+    "The one-entry directory-scan test asserts truncation only, matching source; no unspecified directory iteration order is normalized into a stronger equivalence claim.",
+    "Capture counts source assertions; it does not fabricate native outputs or replace original assertion predicates.",
+    "Focused checks bind relevant inputs and copied test executables, not a complete workspace build-input/provenance freeze."
+  ],
+  "rows": [
+    {
+      "id": "test/session-history.test.mjs#1",
+      "file": "test/session-history.test.mjs",
+      "name": "history correlates selections and confirmed outcomes and prices only covered usage",
+      "line": 29,
+      "baseline_file_sha256": "1cc2c2ab57b15ace914f881658bf6e47a5e44dbceb8d2f0021c4c4b7f3e65f33",
+      "definition_statement": "test('history correlates selections and confirmed outcomes and prices only covered usage', async t => {\n  const f = await fixture(t);\n  await f.write([decision('success'), outcome('success'), decision('failed'), outcome('failed', { status: 'error', http_status: 429, completion_confirmed: false }),\n    decision('pending', { source: 'fallback', classifier_error: 'timeout', reason: 'classifier_error', selected_model: 'claude-sonnet-5-5', decision_latency_ms: 1500 }),\n    decision('legacy', { schema_version: 1 }), outcome('invalid', { status: 'error', http_status: 400, completion_confirmed: false, confirmed_model: undefined }),\n    decision('unfinished'), outcome('unfinished', { completion_confirmed: false }), outcome('cancelled', { status: 'cancelled', completion_confirmed: false })]);\n  const { summary, records } = await readSessionHistory(f.directory, { id });\n  assert.equal(summary.id, id);\n  assert.equal(summary.session_id, 'session-a');\n  assert.deepEqual([summary.requests, summary.decisions, summary.outcomes, summary.completed, summary.failed, summary.cancelled, summary.pending, summary.unconfirmed, summary.outcome_only], [7, 5, 5, 1, 2, 1, 2, 1, 2]);\n  assert.equal(summary.fallbacks, 1);\n  assert.equal(summary.fallback_rate, .2);\n  assert.deepEqual(summary.classifier_errors, { timeout: 1 });\n  assert.deepEqual(summary.decision_latency_ms, { samples: 5, p50: 12, p95: 1500, max: 1500 });\n  assert.equal(summary.savings.priced_requests, 1);\n  assert.equal(summary.savings.unpriced_requests, 6);\n  assert.equal(summary.savings.saved_usd, .0045);\n  assert.equal(summary.savings.unpriced_reasons.missing_outcome, 2);\n  assert.deepEqual(summary.pricing_versions, [PRICING_VERSION]);\n  assert.equal(summary.mixed_pricing_versions, false);\n  assert.equal(summary.unversioned_outcomes, 0);\n  assert.equal(summary.coverage.legacy_decisions, 1);\n  assert.equal(summary.coverage.partial, false);\n  assert.equal(records.find(row => row.request_id === 'legacy').schema_version, 1);\n});",
+      "definition_sha256": "6d6622770c4b272c448b839231ecd75beb4d6fedebf3a6686e7a3a2e3943bd68",
+      "definition_call_sha256": "e3c7a4d225c5667937832c4bea0680c92dbd646c7c19ece9b7868df263ad698d",
+      "static_assertions": 17,
+      "expanded_original_assertions": 17,
+      "native_tests": [
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_correlates_selections_outcomes_and_only_covered_usage"
+      ],
+      "assertions": [
+        {
+          "id": "test/session-history.test.mjs#1:assert-1",
+          "line": 36,
+          "expression": "assert.equal(summary.id, id)",
+          "sha256": "6f4764533f57598351534323d75e767e9bba867295e95ae72dc1b2c18081a70f",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_correlates_selections_outcomes_and_only_covered_usage",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 126,
+            "source_fragment": "assert_eq!(summary[\"id\"], ID);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-2",
+          "line": 37,
+          "expression": "assert.equal(summary.session_id, 'session-a')",
+          "sha256": "8db973c8a7327cd379aef893f0aae0036464fd1408d872691d3d0095feef7072",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_correlates_selections_outcomes_and_only_covered_usage",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 127,
+            "source_fragment": "assert_eq!(summary[\"session_id\"], \"session-a\");"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-3",
+          "line": 38,
+          "expression": "assert.deepEqual([summary.requests, summary.decisions, summary.outcomes, summary.completed, summary.failed, summary.cancelled, summary.pending, summary.unconfirmed, summary.outcome_only], [7, 5, 5, 1, 2, 1, 2, 1, 2])",
+          "sha256": "84349bd1887d50569abd3dcbac4154ddedd137857e94b8f68ba9a14721d78cc3",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_correlates_selections_outcomes_and_only_covered_usage",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 141,
+            "source_fragment": "assert_eq!(counts, [7, 5, 5, 1, 2, 1, 2, 1, 2]);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-4",
+          "line": 39,
+          "expression": "assert.equal(summary.fallbacks, 1)",
+          "sha256": "ef8961defa8b2c7022df2520ec06b280675ef94545e3a9d551fdecdad3e9bbee",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_correlates_selections_outcomes_and_only_covered_usage",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 142,
+            "source_fragment": "assert_eq!(summary[\"fallbacks\"], 1);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-5",
+          "line": 40,
+          "expression": "assert.equal(summary.fallback_rate, .2)",
+          "sha256": "b12dbb0af139f7c345f2c494aa2c029f458bfe75341b7071308d8758bce9e201",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_correlates_selections_outcomes_and_only_covered_usage",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 143,
+            "source_fragment": "assert_eq!(summary[\"fallback_rate\"].as_f64(), Some(0.2));"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-6",
+          "line": 41,
+          "expression": "assert.deepEqual(summary.classifier_errors, { timeout: 1 })",
+          "sha256": "8063c278cdf296a44173e96a4a71b93616c6750383827a34f712f34cf5ce547d",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_correlates_selections_outcomes_and_only_covered_usage",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 144,
+            "source_fragment": "assert_eq!(summary[\"classifier_errors\"], json!({\"timeout\":1}));"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-7",
+          "line": 42,
+          "expression": "assert.deepEqual(summary.decision_latency_ms, { samples: 5, p50: 12, p95: 1500, max: 1500 })",
+          "sha256": "11c79eadeac079e8848ff5ce2163aef1fd26bcae02971ca2511e6f74465168d0",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_correlates_selections_outcomes_and_only_covered_usage",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 145,
+            "source_fragment": "assert_eq!(\n        summary[\"decision_latency_ms\"],\n        // JavaScript has one Number type; native measured percentiles are f64.\n        // These exact values require no tolerance or rounding.\n        json!({\"samples\":5,\"p50\":12.0,\"p95\":1500.0,\"max\":1500.0})\n    );"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-8",
+          "line": 43,
+          "expression": "assert.equal(summary.savings.priced_requests, 1)",
+          "sha256": "2308ef446f7e1f13535558b118f93e68074b10c25013aad25f122e4fecb8074f",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_correlates_selections_outcomes_and_only_covered_usage",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 151,
+            "source_fragment": "assert_eq!(summary[\"savings\"][\"priced_requests\"], 1);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-9",
+          "line": 44,
+          "expression": "assert.equal(summary.savings.unpriced_requests, 6)",
+          "sha256": "a41840d0508135a0753db104eb899e1b2b58f4fa60901579521f6a85887ee40d",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_correlates_selections_outcomes_and_only_covered_usage",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 152,
+            "source_fragment": "assert_eq!(summary[\"savings\"][\"unpriced_requests\"], 6);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-10",
+          "line": 45,
+          "expression": "assert.equal(summary.savings.saved_usd, .0045)",
+          "sha256": "8f7ab20e403a725797a2d99f9463b0aeac814dcf196074c699b1ba6bab9c4d1e",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_correlates_selections_outcomes_and_only_covered_usage",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 153,
+            "source_fragment": "assert_eq!(summary[\"savings\"][\"saved_usd\"].as_f64(), Some(0.0045));"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-11",
+          "line": 46,
+          "expression": "assert.equal(summary.savings.unpriced_reasons.missing_outcome, 2)",
+          "sha256": "6ac45984a0fdf4352b5210933ec5c88a46e769be28ba83c66ea1ba16f22dea82",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_correlates_selections_outcomes_and_only_covered_usage",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 154,
+            "source_fragment": "assert_eq!(summary[\"savings\"][\"unpriced_reasons\"][\"missing_outcome\"], 2);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-12",
+          "line": 47,
+          "expression": "assert.deepEqual(summary.pricing_versions, [PRICING_VERSION])",
+          "sha256": "6b4ae02d2227c623fc97fce72b618ce7c47cdc461e4901e009c5396cdf847178",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_correlates_selections_outcomes_and_only_covered_usage",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 155,
+            "source_fragment": "assert_eq!(summary[\"pricing_versions\"], json!([PRICING_VERSION]));"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-13",
+          "line": 48,
+          "expression": "assert.equal(summary.mixed_pricing_versions, false)",
+          "sha256": "a42505382b61a2240e12f88747d6924c36594ce7e35bc5fa16352ea8c9aa6b0a",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_correlates_selections_outcomes_and_only_covered_usage",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 156,
+            "source_fragment": "assert_eq!(summary[\"mixed_pricing_versions\"], false);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-14",
+          "line": 49,
+          "expression": "assert.equal(summary.unversioned_outcomes, 0)",
+          "sha256": "5d1ab8130cad8aa56fc8a297adaef78ec75005d2e432fbcf795f84096e9e828f",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_correlates_selections_outcomes_and_only_covered_usage",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 157,
+            "source_fragment": "assert_eq!(summary[\"unversioned_outcomes\"], 0);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-15",
+          "line": 50,
+          "expression": "assert.equal(summary.coverage.legacy_decisions, 1)",
+          "sha256": "381f557967856173681f564c9d93b7edc22d41e7ca4396ba857c9ed41fb16b18",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_correlates_selections_outcomes_and_only_covered_usage",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 158,
+            "source_fragment": "assert_eq!(summary[\"coverage\"][\"legacy_decisions\"], 1);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-16",
+          "line": 51,
+          "expression": "assert.equal(summary.coverage.partial, false)",
+          "sha256": "e722fec4840408f7052c5d3c2f38b2706f3557f626b2097aecd97de0c621499d",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_correlates_selections_outcomes_and_only_covered_usage",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 159,
+            "source_fragment": "assert_eq!(summary[\"coverage\"][\"partial\"], false);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-17",
+          "line": 52,
+          "expression": "assert.equal(records.find(row => row.request_id === 'legacy').schema_version, 1)",
+          "sha256": "37b4221b7925494634b50cd0dba9d33e33beaeae565f4d4d6a930148b63fb835",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_correlates_selections_outcomes_and_only_covered_usage",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 160,
+            "source_fragment": "assert_eq!(\n        result[\"records\"]\n            .as_array()\n            .unwrap()\n            .iter()\n            .find(|row| row[\"request_id\"] == \"legacy\")\n            .unwrap()[\"schema_version\"]\n            .as_f64(),\n        Some(1.0)\n    );"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/session-history.test.mjs#2",
+      "file": "test/session-history.test.mjs",
+      "name": "unknown pricing versions and mixed recorded baselines stay explicit, duplicate rows do not double count",
+      "line": 55,
+      "baseline_file_sha256": "1cc2c2ab57b15ace914f881658bf6e47a5e44dbceb8d2f0021c4c4b7f3e65f33",
+      "definition_statement": "test('unknown pricing versions and mixed recorded baselines stay explicit, duplicate rows do not double count', async t => {\n  const f = await fixture(t);\n  const one = outcome('one');\n  await f.write([decision('one'), one, one, outcome('two', { baseline_model: 'claude-opus-5' }),\n    outcome('future', { pricing_version: 'future.9' }), outcome('missing-baseline', { baseline_model: undefined })]);\n  const { summary } = await readSessionHistory(f.directory, { id });\n  assert.equal(summary.requests, 4);\n  assert.equal(summary.savings.priced_requests, 2);\n  assert.equal(summary.savings.unpriced_reasons.unknown_pricing_version, 1);\n  assert.equal(summary.savings.unpriced_reasons.unknown_baseline, 1);\n  assert.deepEqual(summary.baseline_models, ['claude-opus-5', 'claude-opus-5-5']);\n  assert.equal(summary.mixed_baselines, true);\n  assert.deepEqual(summary.pricing_versions, [PRICING_VERSION, 'future.9']);\n  assert.equal(summary.mixed_pricing_versions, true);\n  assert.equal(summary.coverage.duplicate_records, 1);\n  assert.equal(summary.coverage.partial, true);\n});",
+      "definition_sha256": "bc3c2f6792bdd4cfba17c59134358b3b18945ed7a9f6969fb259356453f1b077",
+      "definition_call_sha256": "a67cd371be31ca877a08441086b4cfe8f3c719cecc3c4c7f31c31fe9145a768d",
+      "static_assertions": 10,
+      "expanded_original_assertions": 10,
+      "native_tests": [
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_keeps_mixed_provenance_and_deduplicates_recorded_outcomes"
+      ],
+      "assertions": [
+        {
+          "id": "test/session-history.test.mjs#2:assert-1",
+          "line": 61,
+          "expression": "assert.equal(summary.requests, 4)",
+          "sha256": "82502265a54fe7e8ace84dd14a229ce1fbd20a5e801f15ceaee3446832583378",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_keeps_mixed_provenance_and_deduplicates_recorded_outcomes",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 189,
+            "source_fragment": "assert_eq!(summary[\"requests\"], 4);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#2:assert-2",
+          "line": 62,
+          "expression": "assert.equal(summary.savings.priced_requests, 2)",
+          "sha256": "6a901ae015599116e424645c8c56f22e20960c409bbda505c2fa5b0a7dadb6fb",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_keeps_mixed_provenance_and_deduplicates_recorded_outcomes",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 190,
+            "source_fragment": "assert_eq!(summary[\"savings\"][\"priced_requests\"], 2);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#2:assert-3",
+          "line": 63,
+          "expression": "assert.equal(summary.savings.unpriced_reasons.unknown_pricing_version, 1)",
+          "sha256": "68813a4c3d8caa393db1f6356f0e1fb7e789c772e4abeee21a502cb6ceabe560",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_keeps_mixed_provenance_and_deduplicates_recorded_outcomes",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 191,
+            "source_fragment": "assert_eq!(\n        summary[\"savings\"][\"unpriced_reasons\"][\"unknown_pricing_version\"],\n        1\n    );"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#2:assert-4",
+          "line": 64,
+          "expression": "assert.equal(summary.savings.unpriced_reasons.unknown_baseline, 1)",
+          "sha256": "409212b3980adf66521ee45494b791139d94130cac2fd003b2445f8efc82e030",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_keeps_mixed_provenance_and_deduplicates_recorded_outcomes",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 195,
+            "source_fragment": "assert_eq!(\n        summary[\"savings\"][\"unpriced_reasons\"][\"unknown_baseline\"],\n        1\n    );"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#2:assert-5",
+          "line": 65,
+          "expression": "assert.deepEqual(summary.baseline_models, ['claude-opus-5', 'claude-opus-5-5'])",
+          "sha256": "5adeb762d89878a8af8ef90009c59d03aa05200a31911bae8da913358c7cc316",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_keeps_mixed_provenance_and_deduplicates_recorded_outcomes",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 199,
+            "source_fragment": "assert_eq!(\n        summary[\"baseline_models\"],\n        json!([\"claude-opus-5\", \"claude-opus-5-5\"])\n    );"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#2:assert-6",
+          "line": 66,
+          "expression": "assert.equal(summary.mixed_baselines, true)",
+          "sha256": "a25324a0c7cf14ca701c6f5fd6548b5339be80e1d27fe82d4eb9b672d8f011ec",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_keeps_mixed_provenance_and_deduplicates_recorded_outcomes",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 203,
+            "source_fragment": "assert_eq!(summary[\"mixed_baselines\"], true);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#2:assert-7",
+          "line": 67,
+          "expression": "assert.deepEqual(summary.pricing_versions, [PRICING_VERSION, 'future.9'])",
+          "sha256": "53488d95049cc6547adf3972aca0ee4e4d6bfda762bdc7803934244fa1496af6",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_keeps_mixed_provenance_and_deduplicates_recorded_outcomes",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 204,
+            "source_fragment": "assert_eq!(\n        summary[\"pricing_versions\"],\n        json!([PRICING_VERSION, \"future.9\"])\n    );"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#2:assert-8",
+          "line": 68,
+          "expression": "assert.equal(summary.mixed_pricing_versions, true)",
+          "sha256": "fbb7990bb295857657afc439d8b62230f00b90b1955f1a48cbe91b4635efadb4",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_keeps_mixed_provenance_and_deduplicates_recorded_outcomes",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 208,
+            "source_fragment": "assert_eq!(summary[\"mixed_pricing_versions\"], true);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#2:assert-9",
+          "line": 69,
+          "expression": "assert.equal(summary.coverage.duplicate_records, 1)",
+          "sha256": "9693a853209538ab6305d39463b8fc68fa18945fc3e815e7ee423998da1bd9fc",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_keeps_mixed_provenance_and_deduplicates_recorded_outcomes",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 209,
+            "source_fragment": "assert_eq!(summary[\"coverage\"][\"duplicate_records\"], 1);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#2:assert-10",
+          "line": 70,
+          "expression": "assert.equal(summary.coverage.partial, true)",
+          "sha256": "d209373d54d7a43772f7b608348f49d6437a63e5bafb6f97ba5744951cbe5eac",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_keeps_mixed_provenance_and_deduplicates_recorded_outcomes",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 210,
+            "source_fragment": "assert_eq!(summary[\"coverage\"][\"partial\"], true);"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/session-history.test.mjs#3",
+      "file": "test/session-history.test.mjs",
+      "name": "list and show report pricing versions and missing provenance in human and JSON summaries",
+      "line": 73,
+      "baseline_file_sha256": "1cc2c2ab57b15ace914f881658bf6e47a5e44dbceb8d2f0021c4c4b7f3e65f33",
+      "definition_statement": "test('list and show report pricing versions and missing provenance in human and JSON summaries', async t => {\n  const f = await fixture(t);\n  saveUserConfig({ AUTOROUTER_SESSION_LOG_DIR: f.directory }, { env: f.env });\n  await f.write([decision('current'), outcome('current'), outcome('future', { pricing_version: 'future.9' }),\n    outcome('unversioned', { pricing_version: undefined })]);\n  for (const operation of [['list'], ['show', id]]) {\n    const text = [];\n    await sessionsCommand(operation, { env: f.env, write: line => text.push(line) });\n    assert.ok(text.some(line => line.includes(`Recorded pricing versions (mixed): ${PRICING_VERSION}, future.9`)));\n    assert.match(text.join('\\n'), /1 outcomes without a recorded version/);\n    assert.match(text.join('\\n'), /unknown_pricing_version \\(2\\)/);\n    assert.ok(text.some(line => line.includes(`reviewed ${PRICING_DATE}: ${PRICING_SOURCE}`)));\n    const json = [];\n    await sessionsCommand([...operation, '--json'], { env: f.env, write: line => json.push(line) });\n    const report = JSON.parse(json[0]);\n    const summary = report.summary ?? report.sessions[0];\n    assert.deepEqual(summary.pricing_versions, [PRICING_VERSION, 'future.9']);\n    assert.equal(summary.mixed_pricing_versions, true);\n    assert.equal(summary.unversioned_outcomes, 1);\n    assert.deepEqual(summary.pricing_facts, [{ version: PRICING_VERSION, date: PRICING_DATE, source: PRICING_SOURCE }]);\n    assert.equal(summary.savings.priced_requests, 1);\n  }\n});",
+      "definition_sha256": "f443aaa56ff2a15523d4395f3b96633270a3c311ecafff6c97771643f650de44",
+      "definition_call_sha256": "df3b2c283295117ea6a6586efddc2481cd1fafafcb2f57bbfd97d451a230afb3",
+      "static_assertions": 9,
+      "expanded_original_assertions": 18,
+      "native_tests": [
+        "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_list_and_show_retain_pricing_provenance_in_text_and_json"
+      ],
+      "assertions": [
+        {
+          "id": "test/session-history.test.mjs#3:assert-1",
+          "line": 81,
+          "expression": "assert.ok(text.some(line => line.includes(`Recorded pricing versions (mixed): ${PRICING_VERSION}, future.9`)))",
+          "sha256": "91721588a97eca1780aab6d6af7bc105ac788fb03b3f735de57d436d9b44972e",
+          "expanded_executions": 2,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_list_and_show_retain_pricing_provenance_in_text_and_json",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 152,
+            "source_fragment": "assert!(text.lines.iter().any(|line| line.contains(&format!(\n            \"Recorded pricing versions (mixed): {PRICING_VERSION}, future.9\"\n        ))));"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#3:assert-2",
+          "line": 82,
+          "expression": "assert.match(text.join('\\n'), /1 outcomes without a recorded version/)",
+          "sha256": "5e44547bb29c8543a254cab9fe7aab1d979ff69a8f2523a5bd09ed1bad85e3f0",
+          "expanded_executions": 2,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_list_and_show_retain_pricing_provenance_in_text_and_json",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 155,
+            "source_fragment": "assert!(\n            text.lines\n                .join(\"\\n\")\n                .contains(\"1 outcomes without a recorded version\")\n        );"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#3:assert-3",
+          "line": 83,
+          "expression": "assert.match(text.join('\\n'), /unknown_pricing_version \\(2\\)/)",
+          "sha256": "61125228b8b0adfeb63d685fad9432b7b152a4e4dc43296c677f7e29214b2365",
+          "expanded_executions": 2,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_list_and_show_retain_pricing_provenance_in_text_and_json",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 160,
+            "source_fragment": "assert!(\n            text.lines\n                .join(\"\\n\")\n                .contains(\"unknown_pricing_version (2)\")\n        );"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#3:assert-4",
+          "line": 84,
+          "expression": "assert.ok(text.some(line => line.includes(`reviewed ${PRICING_DATE}: ${PRICING_SOURCE}`)))",
+          "sha256": "b29df70390a02f54cf47d445c6078167fd8f9c924f4f1a79cc8243fd5ab7abb8",
+          "expanded_executions": 2,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_list_and_show_retain_pricing_provenance_in_text_and_json",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 165,
+            "source_fragment": "assert!(\n            text.lines\n                .iter()\n                .any(|line| line.contains(&format!(\"reviewed {PRICING_DATE}: {PRICING_SOURCE}\")))\n        );"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#3:assert-5",
+          "line": 89,
+          "expression": "assert.deepEqual(summary.pricing_versions, [PRICING_VERSION, 'future.9'])",
+          "sha256": "53488d95049cc6547adf3972aca0ee4e4d6bfda762bdc7803934244fa1496af6",
+          "expanded_executions": 2,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_list_and_show_retain_pricing_provenance_in_text_and_json",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 177,
+            "source_fragment": "assert_eq!(\n            summary[\"pricing_versions\"],\n            json!([PRICING_VERSION, \"future.9\"])\n        );"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#3:assert-6",
+          "line": 90,
+          "expression": "assert.equal(summary.mixed_pricing_versions, true)",
+          "sha256": "fbb7990bb295857657afc439d8b62230f00b90b1955f1a48cbe91b4635efadb4",
+          "expanded_executions": 2,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_list_and_show_retain_pricing_provenance_in_text_and_json",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 181,
+            "source_fragment": "assert_eq!(summary[\"mixed_pricing_versions\"], true);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#3:assert-7",
+          "line": 91,
+          "expression": "assert.equal(summary.unversioned_outcomes, 1)",
+          "sha256": "e52f2f53bc421147e013662f085689e95289ee252be645ea8e07b3d46683f1e1",
+          "expanded_executions": 2,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_list_and_show_retain_pricing_provenance_in_text_and_json",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 182,
+            "source_fragment": "assert_eq!(summary[\"unversioned_outcomes\"], 1);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#3:assert-8",
+          "line": 92,
+          "expression": "assert.deepEqual(summary.pricing_facts, [{ version: PRICING_VERSION, date: PRICING_DATE, source: PRICING_SOURCE }])",
+          "sha256": "23332b49da0cc5b47eedaf80e26d649f62eba7b8f8741df6e1de57bda43c36ee",
+          "expanded_executions": 2,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_list_and_show_retain_pricing_provenance_in_text_and_json",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 183,
+            "source_fragment": "assert_eq!(\n            summary[\"pricing_facts\"],\n            json!([{\"version\":PRICING_VERSION,\"date\":PRICING_DATE,\"source\":PRICING_SOURCE}])\n        );"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#3:assert-9",
+          "line": 93,
+          "expression": "assert.equal(summary.savings.priced_requests, 1)",
+          "sha256": "2308ef446f7e1f13535558b118f93e68074b10c25013aad25f122e4fecb8074f",
+          "expanded_executions": 2,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_list_and_show_retain_pricing_provenance_in_text_and_json",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 187,
+            "source_fragment": "assert_eq!(summary[\"savings\"][\"priced_requests\"], 1);"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/session-history.test.mjs#4",
+      "file": "test/session-history.test.mjs",
+      "name": "fallback rates use observed selections including legacy/pending records, not HTTP failures or outcomes",
+      "line": 97,
+      "baseline_file_sha256": "1cc2c2ab57b15ace914f881658bf6e47a5e44dbceb8d2f0021c4c4b7f3e65f33",
+      "definition_statement": "test('fallback rates use observed selections including legacy/pending records, not HTTP failures or outcomes', async t => {\n  const f = await fixture(t);\n  saveUserConfig({ AUTOROUTER_SESSION_LOG_DIR: f.directory }, { env: f.env });\n  await f.write([decision('legacy-pending', { schema_version: 1, source: 'fallback' }),\n    decision('fallback-completed', { source: 'fallback' }), outcome('fallback-completed'),\n    decision('evaluator-success'), outcome('evaluator-success', { status: 'error', http_status: 429, completion_confirmed: false }),\n    outcome('unselected-http-error', { status: 'error', http_status: 500, completion_confirmed: false })]);\n  let report = await readSessionHistory(f.directory, { id });\n  assert.equal(report.summary.fallbacks, 2);\n  assert.equal(report.summary.decisions, 3);\n  assert.equal(report.summary.failed, 2);\n  assert.equal(report.summary.fallback_rate, 2 / 3);\n  const text = [];\n  await sessionsCommand(['show', id], { env: f.env, write: line => text.push(line) });\n  assert.match(text.join('\\n'), /Fallbacks: 2 of 3 selections \\(66\\.7%\\)/);\n  await f.write([outcome('only-outcome', { pricing_version: 'future.9', status: 'error', completion_confirmed: false })]);\n  report = await readSessionHistory(f.directory, { id });\n  assert.equal(report.summary.fallback_rate, 0);\n  assert.equal(report.summary.fallbacks, 0);\n  assert.deepEqual(report.summary.pricing_facts, []);\n});",
+      "definition_sha256": "0e345af235c5eda8227e2f6c2e76c7e9590d0b3f3d0b7b1b7cffa66e2caaf0d0",
+      "definition_call_sha256": "2a7fb3a67a9a7d1aea1585ca9c5454379fc765fffacf2e03af132028765a965c",
+      "static_assertions": 8,
+      "expanded_original_assertions": 8,
+      "native_tests": [
+        "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_fallback_denominator_uses_selections_then_outcome_only_zero"
+      ],
+      "assertions": [
+        {
+          "id": "test/session-history.test.mjs#4:assert-1",
+          "line": 105,
+          "expression": "assert.equal(report.summary.fallbacks, 2)",
+          "sha256": "76e6a006ffaa9c0d1aebe46c2353f9210d58a693d8aef248e56231502fb7c913",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_fallback_denominator_uses_selections_then_outcome_only_zero",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 215,
+            "source_fragment": "assert_eq!(report[\"summary\"][\"fallbacks\"], 2);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#4:assert-2",
+          "line": 106,
+          "expression": "assert.equal(report.summary.decisions, 3)",
+          "sha256": "101d90f1ec2e78efca8659a4deb4ff6ad1a1e6a591d5a192be600f139a4f9baf",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_fallback_denominator_uses_selections_then_outcome_only_zero",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 216,
+            "source_fragment": "assert_eq!(report[\"summary\"][\"decisions\"], 3);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#4:assert-3",
+          "line": 107,
+          "expression": "assert.equal(report.summary.failed, 2)",
+          "sha256": "6f22850be06a2960580069c4ee69ccff204e54827d7914d4d3af25e8cc93f010",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_fallback_denominator_uses_selections_then_outcome_only_zero",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 217,
+            "source_fragment": "assert_eq!(report[\"summary\"][\"failed\"], 2);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#4:assert-4",
+          "line": 108,
+          "expression": "assert.equal(report.summary.fallback_rate, 2 / 3)",
+          "sha256": "be9dfeea4a5554c3a7f0d19016d128d009e304e6c9cce1cfb4bf66401a04e77c",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_fallback_denominator_uses_selections_then_outcome_only_zero",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 218,
+            "source_fragment": "assert_eq!(report[\"summary\"][\"fallback_rate\"].as_f64(), Some(2.0 / 3.0));"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#4:assert-5",
+          "line": 111,
+          "expression": "assert.match(text.join('\\n'), /Fallbacks: 2 of 3 selections \\(66\\.7%\\)/)",
+          "sha256": "aca5d7c572d5e38afa0b3933e105cb1e4fbd19c0aa61de44768e364f744858a7",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_fallback_denominator_uses_selections_then_outcome_only_zero",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 221,
+            "source_fragment": "assert!(\n        text.lines\n            .join(\"\\n\")\n            .contains(\"Fallbacks: 2 of 3 selections (66.7%)\")\n    );"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#4:assert-6",
+          "line": 114,
+          "expression": "assert.equal(report.summary.fallback_rate, 0)",
+          "sha256": "e78dff8feb2343a72ded591c4656072f9252f9f48a575dda520a2f1e77a1d71e",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_fallback_denominator_uses_selections_then_outcome_only_zero",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 231,
+            "source_fragment": "assert_eq!(report[\"summary\"][\"fallback_rate\"].as_f64(), Some(0.0));"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#4:assert-7",
+          "line": 115,
+          "expression": "assert.equal(report.summary.fallbacks, 0)",
+          "sha256": "3e7cd19ae3cef0ed12217598539d751ef47c861fc380305d25e86c0f5b26323f",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_fallback_denominator_uses_selections_then_outcome_only_zero",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 232,
+            "source_fragment": "assert_eq!(report[\"summary\"][\"fallbacks\"], 0);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#4:assert-8",
+          "line": 116,
+          "expression": "assert.deepEqual(report.summary.pricing_facts, [])",
+          "sha256": "a94291c1f0cfaca6a42f0b7a52775630b5e17a061fecd91ba0781ad423fc7108",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_fallback_denominator_uses_selections_then_outcome_only_zero",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 233,
+            "source_fragment": "assert_eq!(report[\"summary\"][\"pricing_facts\"], json!([]));"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/session-history.test.mjs#5",
+      "file": "test/session-history.test.mjs",
+      "name": "legacy records and metadata-only sessions never invent successful responses or reveal private fields",
+      "line": 119,
+      "baseline_file_sha256": "1cc2c2ab57b15ace914f881658bf6e47a5e44dbceb8d2f0021c4c4b7f3e65f33",
+      "definition_statement": "test('legacy records and metadata-only sessions never invent successful responses or reveal private fields', async t => {\n  const f = await fixture(t);\n  await f.write([decision('legacy', { schema_version: 1, body: { private: 'PRIVATE_BODY' }, headers: { authorization: 'PRIVATE_AUTH' } }),\n    decision('metadata', { prompt_excerpt: undefined })]);\n  const result = await readSessionHistory(f.directory, { id });\n  assert.equal(result.summary.completed, 0);\n  assert.equal(result.summary.pending, 2);\n  assert.deepEqual(result.summary.confirmed_models, {});\n  assert.equal(result.summary.savings.priced_requests, 0);\n  assert.ok(!JSON.stringify(result).includes('PRIVATE_'));\n});",
+      "definition_sha256": "53f737d55d2795307b2fd76aa070225a519dd6b60963bc526fabc3a7a3db343b",
+      "definition_call_sha256": "2f33da133aa66981188de49f7825ed13b17302612487aa2ab2fbfed79010d495",
+      "static_assertions": 5,
+      "expanded_original_assertions": 5,
+      "native_tests": [
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_legacy_and_metadata_never_invent_success_or_private_fields"
+      ],
+      "assertions": [
+        {
+          "id": "test/session-history.test.mjs#5:assert-1",
+          "line": 124,
+          "expression": "assert.equal(result.summary.completed, 0)",
+          "sha256": "658fd22dfbe90d2c0b85d4c724de66cd92d8c37d8a7e4d78eea9f6b2e5cc064c",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_legacy_and_metadata_never_invent_success_or_private_fields",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 221,
+            "source_fragment": "assert_eq!(result[\"summary\"][\"completed\"], 0);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#5:assert-2",
+          "line": 125,
+          "expression": "assert.equal(result.summary.pending, 2)",
+          "sha256": "8761f57b4a84b51f056ef002071ecab0b9ef1f910f17c9aea749d88dbfa5846e",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_legacy_and_metadata_never_invent_success_or_private_fields",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 222,
+            "source_fragment": "assert_eq!(result[\"summary\"][\"pending\"], 2);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#5:assert-3",
+          "line": 126,
+          "expression": "assert.deepEqual(result.summary.confirmed_models, {})",
+          "sha256": "60058c7516727284f2bc74ea56dd58e0213964688403855dc28a48d6722dd9e7",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_legacy_and_metadata_never_invent_success_or_private_fields",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 223,
+            "source_fragment": "assert_eq!(result[\"summary\"][\"confirmed_models\"], json!({}));"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#5:assert-4",
+          "line": 127,
+          "expression": "assert.equal(result.summary.savings.priced_requests, 0)",
+          "sha256": "647f192a73ee577147dd6e687e53e4894f85daf998aa6b253ca86188d2636205",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_legacy_and_metadata_never_invent_success_or_private_fields",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 224,
+            "source_fragment": "assert_eq!(result[\"summary\"][\"savings\"][\"priced_requests\"], 0);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#5:assert-5",
+          "line": 128,
+          "expression": "assert.ok(!JSON.stringify(result).includes('PRIVATE_'))",
+          "sha256": "07c384ef395ef3739a2df0555b057833a2cac52c07e6a0e7dac679730508cffe",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_legacy_and_metadata_never_invent_success_or_private_fields",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 225,
+            "source_fragment": "assert!(!result.to_string().contains(\"PRIVATE_\"));"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/session-history.test.mjs#6",
+      "file": "test/session-history.test.mjs",
+      "name": "human show sanitizes terminal controls and JSON retains only bounded prompt excerpts",
+      "line": 131,
+      "baseline_file_sha256": "1cc2c2ab57b15ace914f881658bf6e47a5e44dbceb8d2f0021c4c4b7f3e65f33",
+      "definition_statement": "test('human show sanitizes terminal controls and JSON retains only bounded prompt excerpts', async t => {\n  const f = await fixture(t), lines = [];\n  saveUserConfig({ AUTOROUTER_SESSION_LOG_DIR: f.directory, AUTOROUTER_JEV_URL: 'invalid-inactive-settings', AUTOROUTER_EVALUATOR: 'ollama' }, { env: f.env });\n  await f.write([decision('prompt', { prompt_excerpt: '\\u001b[31m\\u202eSECRET\\n😀'.repeat(100), prompt_truncated: true })]);\n  assert.equal(await sessionsCommand(['show', id], { env: f.env, write: line => lines.push(line) }), true);\n  assert.ok(lines.some(line => line === `ID: ${id}`));\n  assert.ok(!lines.join('\\n').includes('\\u001b'));\n  assert.ok(!lines.join('\\n').includes('\\u202e'));\n  assert.match(lines.join('\\n'), /0 confirmed completed/);\n  lines.length = 0;\n  await sessionsCommand(['show', id, '--json'], { env: f.env, write: line => lines.push(line) });\n  assert.equal(lines.length, 1);\n  const report = JSON.parse(lines[0]);\n  assert.equal([...report.records[0].prompt_excerpt].length, 500);\n  assert.ok(report.records[0].prompt_excerpt.includes('\\u001b'));\n});",
+      "definition_sha256": "1fa73f0ca9045244130498a4bea28735c7137096983b46f8200b6e193d0f96db",
+      "definition_call_sha256": "d3001f32f054e9294ad1b3221771dc2e91f2e58c0fd1669545dc7565377c0b0f",
+      "static_assertions": 8,
+      "expanded_original_assertions": 8,
+      "native_tests": [
+        "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_command_sanitizes_controls_and_preserves_bounded_json_excerpts"
+      ],
+      "assertions": [
+        {
+          "id": "test/session-history.test.mjs#6:assert-1",
+          "line": 135,
+          "expression": "assert.equal(await sessionsCommand(['show', id], { env: f.env, write: line => lines.push(line) }), true)",
+          "sha256": "8576b972439f3e98db452d69163843155176aef81eb8ee0fe01e727898bb992f",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_command_sanitizes_controls_and_preserves_bounded_json_excerpts",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 247,
+            "source_fragment": "assert!(text.success);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#6:assert-2",
+          "line": 136,
+          "expression": "assert.ok(lines.some(line => line === `ID: ${id}`))",
+          "sha256": "7ebaadfaa7901902bc2816fbc77769b71876b23a0a5020d8fc1c46edb919d957",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_command_sanitizes_controls_and_preserves_bounded_json_excerpts",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 248,
+            "source_fragment": "assert!(text.lines.iter().any(|line| line == &format!(\"ID: {ID}\")));"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#6:assert-3",
+          "line": 137,
+          "expression": "assert.ok(!lines.join('\\n').includes('\\u001b'))",
+          "sha256": "82cecc560a03df9c36224de9a44e25bcea8dcae79cb3028790a94f727c731c5a",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_command_sanitizes_controls_and_preserves_bounded_json_excerpts",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 249,
+            "source_fragment": "assert!(!text.lines.join(\"\\n\").contains('\\u{1b}'));"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#6:assert-4",
+          "line": 138,
+          "expression": "assert.ok(!lines.join('\\n').includes('\\u202e'))",
+          "sha256": "5a84adc67e47102cc6acb94791de475f671c4f6528e6f9aa8e7a9790fa921102",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_command_sanitizes_controls_and_preserves_bounded_json_excerpts",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 250,
+            "source_fragment": "assert!(!text.lines.join(\"\\n\").contains('\\u{202e}'));"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#6:assert-5",
+          "line": 139,
+          "expression": "assert.match(lines.join('\\n'), /0 confirmed completed/)",
+          "sha256": "758bc33912499a287f2c577429b8e3aa298d1f20354aac6df8af7df3f936c9ec",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_command_sanitizes_controls_and_preserves_bounded_json_excerpts",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 251,
+            "source_fragment": "assert!(text.lines.join(\"\\n\").contains(\"0 confirmed completed\"));"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#6:assert-6",
+          "line": 142,
+          "expression": "assert.equal(lines.length, 1)",
+          "sha256": "f1ef7af707333bb16339938816792b85f38d41e2174e7b10b81b35e20808080a",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_command_sanitizes_controls_and_preserves_bounded_json_excerpts",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 254,
+            "source_fragment": "assert_eq!(output.lines.len(), 1);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#6:assert-7",
+          "line": 144,
+          "expression": "assert.equal([...report.records[0].prompt_excerpt].length, 500)",
+          "sha256": "b53bea8d4cfcee87f63bfe61703f92ad94d9d0af5341330c5e7a41549c5b6960",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_command_sanitizes_controls_and_preserves_bounded_json_excerpts",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 257,
+            "source_fragment": "assert_eq!(excerpt.chars().count(), 500);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#6:assert-8",
+          "line": 145,
+          "expression": "assert.ok(report.records[0].prompt_excerpt.includes('\\u001b'))",
+          "sha256": "d31eab991922c9ce816b7f1bf5ee4892ff74492961ed05443c4861859c3fa132",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/claude-autorouter/src/sessions_contracts.rs#sessions::contracts::original_history_command_sanitizes_controls_and_preserves_bounded_json_excerpts",
+          "native_reference": {
+            "path": "rust/crates/claude-autorouter/src/sessions_contracts.rs",
+            "line": 258,
+            "source_fragment": "assert!(excerpt.contains('\\u{1b}'));"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/session-history.test.mjs#7",
+      "file": "test/session-history.test.mjs",
+      "name": "bounded reads report partial coverage for bytes, records, lines, and incomplete tails",
+      "line": 148,
+      "baseline_file_sha256": "1cc2c2ab57b15ace914f881658bf6e47a5e44dbceb8d2f0021c4c4b7f3e65f33",
+      "definition_statement": "test('bounded reads report partial coverage for bytes, records, lines, and incomplete tails', async t => {\n  const f = await fixture(t);\n  await f.write([decision('one'), decision('two'), outcome('one')]);\n  let result = await readSessionHistory(f.directory, { id, limits: { maxRecords: 1 } });\n  assert.equal(result.records.length, 1);\n  assert.equal(result.summary.coverage.truncated, true);\n  result = await readSessionHistory(f.directory, { id, limits: { maxLines: 1 } });\n  assert.equal(result.summary.coverage.partial, true);\n  result = await readSessionHistory(f.directory, { id, limits: { maxFileBytes: 30 } });\n  assert.equal(result.summary.coverage.bytes_read, 30);\n  assert.equal(result.summary.coverage.truncated, true);\n  assert.equal(result.records.length, 0);\n  await fs.appendFile(join(f.directory, `${id}.jsonl`), '{\"unfinished\":');\n  result = await readSessionHistory(f.directory, { id });\n  assert.equal(result.records.length, 3);\n  assert.equal(result.summary.coverage.incomplete_tail, true);\n  assert.equal(result.summary.coverage.partial, true);\n});",
+      "definition_sha256": "d53f24396972de1e187a50ede290225c631ed83339b61e27af8162a19551e3ad",
+      "definition_call_sha256": "a689ae13de2f2d303949328fff253f0955b1122babd6b626c2d64a81e444520c",
+      "static_assertions": 9,
+      "expanded_original_assertions": 9,
+      "native_tests": [
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_exposes_record_line_byte_and_incomplete_tail_limits"
+      ],
+      "assertions": [
+        {
+          "id": "test/session-history.test.mjs#7:assert-1",
+          "line": 152,
+          "expression": "assert.equal(result.records.length, 1)",
+          "sha256": "0257b25c3d163037cd3a16e2d2f327aa10c42f89019205d4338868b44d24a80e",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_exposes_record_line_byte_and_incomplete_tail_limits",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 238,
+            "source_fragment": "assert_eq!(result[\"records\"].as_array().unwrap().len(), 1);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#7:assert-2",
+          "line": 153,
+          "expression": "assert.equal(result.summary.coverage.truncated, true)",
+          "sha256": "647e98b08384272a5d1a77bfaa4fc5b540280839a904aa4f8adb05d853266ba1",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_exposes_record_line_byte_and_incomplete_tail_limits",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 239,
+            "source_fragment": "assert_eq!(result[\"summary\"][\"coverage\"][\"truncated\"], true);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#7:assert-3",
+          "line": 155,
+          "expression": "assert.equal(result.summary.coverage.partial, true)",
+          "sha256": "6133d05a817e0608d40301ce0856794386b774e8d7ca8afe0c55046b0d236a1a",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_exposes_record_line_byte_and_incomplete_tail_limits",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 246,
+            "source_fragment": "assert_eq!(result[\"summary\"][\"coverage\"][\"partial\"], true);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#7:assert-4",
+          "line": 157,
+          "expression": "assert.equal(result.summary.coverage.bytes_read, 30)",
+          "sha256": "7c66374bb7b682d1beb087dce1f7b2acb8b76eef96710eabe875536ce9b096eb",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_exposes_record_line_byte_and_incomplete_tail_limits",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 253,
+            "source_fragment": "assert_eq!(result[\"summary\"][\"coverage\"][\"bytes_read\"], 30);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#7:assert-5",
+          "line": 158,
+          "expression": "assert.equal(result.summary.coverage.truncated, true)",
+          "sha256": "647e98b08384272a5d1a77bfaa4fc5b540280839a904aa4f8adb05d853266ba1",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_exposes_record_line_byte_and_incomplete_tail_limits",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 254,
+            "source_fragment": "assert_eq!(result[\"summary\"][\"coverage\"][\"truncated\"], true);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#7:assert-6",
+          "line": 159,
+          "expression": "assert.equal(result.records.length, 0)",
+          "sha256": "5e76d1f0c38a0c5944bb54b535ee1eb96beb7c2a2f495514f187efbdb66535e4",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_exposes_record_line_byte_and_incomplete_tail_limits",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 255,
+            "source_fragment": "assert_eq!(result[\"records\"].as_array().unwrap().len(), 0);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#7:assert-7",
+          "line": 162,
+          "expression": "assert.equal(result.records.length, 3)",
+          "sha256": "d8454e027b8f667f7aedf297f04df7608481324557b2f7fc0c23f3caa1875366",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_exposes_record_line_byte_and_incomplete_tail_limits",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 258,
+            "source_fragment": "assert_eq!(result[\"records\"].as_array().unwrap().len(), 3);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#7:assert-8",
+          "line": 163,
+          "expression": "assert.equal(result.summary.coverage.incomplete_tail, true)",
+          "sha256": "03f938a48aee50b3ef3f93806070c06c468369ba8c223b09478c7ded3e5d2f34",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_exposes_record_line_byte_and_incomplete_tail_limits",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 259,
+            "source_fragment": "assert_eq!(result[\"summary\"][\"coverage\"][\"incomplete_tail\"], true);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#7:assert-9",
+          "line": 164,
+          "expression": "assert.equal(result.summary.coverage.partial, true)",
+          "sha256": "6133d05a817e0608d40301ce0856794386b774e8d7ca8afe0c55046b0d236a1a",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_exposes_record_line_byte_and_incomplete_tail_limits",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 260,
+            "source_fragment": "assert_eq!(result[\"summary\"][\"coverage\"][\"partial\"], true);"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/session-history.test.mjs#8",
+      "file": "test/session-history.test.mjs",
+      "name": "oversized, malformed, foreign-session, and unknown-version records are skipped with coverage counts",
+      "line": 167,
+      "baseline_file_sha256": "1cc2c2ab57b15ace914f881658bf6e47a5e44dbceb8d2f0021c4c4b7f3e65f33",
+      "definition_statement": "test('oversized, malformed, foreign-session, and unknown-version records are skipped with coverage counts', async t => {\n  const f = await fixture(t);\n  await f.write([decision('good'), decision('foreign', { session_id: 'session-other' }), decision('future', { schema_version: 99 })]);\n  await fs.appendFile(join(f.directory, `${id}.jsonl`), `${'x'.repeat(17000)}\\nPRIVATE_MALFORMED_JSON\\n`);\n  const result = await readSessionHistory(f.directory, { id });\n  assert.equal(result.records.length, 1);\n  assert.equal(result.summary.coverage.mixed_session_records, 1);\n  assert.equal(result.summary.coverage.invalid_records, 2);\n  assert.equal(result.summary.coverage.oversized_lines, 1);\n  assert.equal(result.summary.coverage.partial, true);\n  assert.ok(!JSON.stringify(result).includes('PRIVATE_'));\n});",
+      "definition_sha256": "3f61895fdc10209a7064ba2a4f557e53257ea8d6fda279ee849167d502ac4b0f",
+      "definition_call_sha256": "42aec51ca7c8948da5cab4f3af8deeb48580b3cef7065fb478a6d763c2389fd1",
+      "static_assertions": 6,
+      "expanded_original_assertions": 6,
+      "native_tests": [
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_counts_skipped_oversized_malformed_foreign_and_future_rows"
+      ],
+      "assertions": [
+        {
+          "id": "test/session-history.test.mjs#8:assert-1",
+          "line": 172,
+          "expression": "assert.equal(result.records.length, 1)",
+          "sha256": "0257b25c3d163037cd3a16e2d2f327aa10c42f89019205d4338868b44d24a80e",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_counts_skipped_oversized_malformed_foreign_and_future_rows",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 276,
+            "source_fragment": "assert_eq!(result[\"records\"].as_array().unwrap().len(), 1);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#8:assert-2",
+          "line": 173,
+          "expression": "assert.equal(result.summary.coverage.mixed_session_records, 1)",
+          "sha256": "9e095314e7ca49ef9edc7a2996b4f1d6e2e949d1a42f260c77ba79e436b4aca0",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_counts_skipped_oversized_malformed_foreign_and_future_rows",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 277,
+            "source_fragment": "assert_eq!(result[\"summary\"][\"coverage\"][\"mixed_session_records\"], 1);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#8:assert-3",
+          "line": 174,
+          "expression": "assert.equal(result.summary.coverage.invalid_records, 2)",
+          "sha256": "dfd96bb37a0c786ce09f562f3c97c13d72aed54ee7a030d8a6725a1cad45739a",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_counts_skipped_oversized_malformed_foreign_and_future_rows",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 278,
+            "source_fragment": "assert_eq!(result[\"summary\"][\"coverage\"][\"invalid_records\"], 2);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#8:assert-4",
+          "line": 175,
+          "expression": "assert.equal(result.summary.coverage.oversized_lines, 1)",
+          "sha256": "59a8a92a185cf4e0d774edafcd4c0a013863f0aaccfcc6d3e1fc8df5e67632aa",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_counts_skipped_oversized_malformed_foreign_and_future_rows",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 279,
+            "source_fragment": "assert_eq!(result[\"summary\"][\"coverage\"][\"oversized_lines\"], 1);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#8:assert-5",
+          "line": 176,
+          "expression": "assert.equal(result.summary.coverage.partial, true)",
+          "sha256": "6133d05a817e0608d40301ce0856794386b774e8d7ca8afe0c55046b0d236a1a",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_counts_skipped_oversized_malformed_foreign_and_future_rows",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 280,
+            "source_fragment": "assert_eq!(result[\"summary\"][\"coverage\"][\"partial\"], true);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#8:assert-6",
+          "line": 177,
+          "expression": "assert.ok(!JSON.stringify(result).includes('PRIVATE_'))",
+          "sha256": "07c384ef395ef3739a2df0555b057833a2cac52c07e6a0e7dac679730508cffe",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_counts_skipped_oversized_malformed_foreign_and_future_rows",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 281,
+            "source_fragment": "assert!(!result.to_string().contains(\"PRIVATE_\"));"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/session-history.test.mjs#9",
+      "file": "test/session-history.test.mjs",
+      "name": "list chooses bounded newest IDs deterministically and limits total bytes without deleting files",
+      "line": 180,
+      "baseline_file_sha256": "1cc2c2ab57b15ace914f881658bf6e47a5e44dbceb8d2f0021c4c4b7f3e65f33",
+      "definition_statement": "test('list chooses bounded newest IDs deterministically and limits total bytes without deleting files', async t => {\n  const f = await fixture(t);\n  for (const suffix of ['a', 'b', 'c']) await f.write([decision(suffix)], `autorouter-session-${suffix}`);\n  let result = await readSessionHistory(f.directory, { limits: { maxFiles: 2 } });\n  assert.deepEqual(result.sessions.map(session => session.id), ['autorouter-session-c', 'autorouter-session-b']);\n  assert.equal(result.coverage.partial, true);\n  assert.equal(result.coverage.skipped_files, 1);\n  result = await readSessionHistory(f.directory, { limits: { maxTotalBytes: 100 } });\n  assert.equal(result.coverage.bytes_read, 100);\n  assert.equal(result.coverage.byte_limit_reached, true);\n  assert.equal(result.coverage.partial, true);\n  result = await readSessionHistory(f.directory, { limits: { maxDirectoryEntries: 1 } });\n  assert.equal(result.coverage.directory_scan_truncated, true);\n  assert.deepEqual((await fs.readdir(f.directory)).sort(), ['autorouter-session-a.jsonl', 'autorouter-session-b.jsonl', 'autorouter-session-c.jsonl']);\n});",
+      "definition_sha256": "10d95348c0fab27410d65ee6baacecd6fdf50a2f32abe2c69f3077465f93a2be",
+      "definition_call_sha256": "5a49ec666bce324d5fb381c54e4ef38e0ce373bab461451b2b3fd27188892a4b",
+      "static_assertions": 8,
+      "expanded_original_assertions": 8,
+      "native_tests": [
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_lists_newest_ids_with_aggregate_byte_and_directory_bounds"
+      ],
+      "assertions": [
+        {
+          "id": "test/session-history.test.mjs#9:assert-1",
+          "line": 184,
+          "expression": "assert.deepEqual(result.sessions.map(session => session.id), ['autorouter-session-c', 'autorouter-session-b'])",
+          "sha256": "9d897df4975700295d078200a972c926fa7b6163e0f4440a2defa00e29c49bcf",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_lists_newest_ids_with_aggregate_byte_and_directory_bounds",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 302,
+            "source_fragment": "assert_eq!(ids, [\"autorouter-session-c\", \"autorouter-session-b\"]);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#9:assert-2",
+          "line": 185,
+          "expression": "assert.equal(result.coverage.partial, true)",
+          "sha256": "6a29885083cc570b6a4eaaa2b4fa7acaacce933e1722309ec7162c0bb96a7414",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_lists_newest_ids_with_aggregate_byte_and_directory_bounds",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 303,
+            "source_fragment": "assert_eq!(result[\"coverage\"][\"partial\"], true);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#9:assert-3",
+          "line": 186,
+          "expression": "assert.equal(result.coverage.skipped_files, 1)",
+          "sha256": "55e1ea5e1233e092c74b4fed85587256dfc0d7f01219cbb8545a671e034738f6",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_lists_newest_ids_with_aggregate_byte_and_directory_bounds",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 304,
+            "source_fragment": "assert_eq!(result[\"coverage\"][\"skipped_files\"], 1);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#9:assert-4",
+          "line": 188,
+          "expression": "assert.equal(result.coverage.bytes_read, 100)",
+          "sha256": "a9f07a70755df683688fd26c8c5a488c2669b980b5dadd855187fd5ddcfe1a74",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_lists_newest_ids_with_aggregate_byte_and_directory_bounds",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 311,
+            "source_fragment": "assert_eq!(result[\"coverage\"][\"bytes_read\"], 100);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#9:assert-5",
+          "line": 189,
+          "expression": "assert.equal(result.coverage.byte_limit_reached, true)",
+          "sha256": "56d49869ec49d80b9586929dd707b62164638af9b2cc67cb916f6ffbfd1af656",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_lists_newest_ids_with_aggregate_byte_and_directory_bounds",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 312,
+            "source_fragment": "assert_eq!(result[\"coverage\"][\"byte_limit_reached\"], true);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#9:assert-6",
+          "line": 190,
+          "expression": "assert.equal(result.coverage.partial, true)",
+          "sha256": "6a29885083cc570b6a4eaaa2b4fa7acaacce933e1722309ec7162c0bb96a7414",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_lists_newest_ids_with_aggregate_byte_and_directory_bounds",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 313,
+            "source_fragment": "assert_eq!(result[\"coverage\"][\"partial\"], true);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#9:assert-7",
+          "line": 192,
+          "expression": "assert.equal(result.coverage.directory_scan_truncated, true)",
+          "sha256": "17cbf21fbbd32e8e4bf77d925abf70d60e31a379c31099c98511f173d012020c",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_lists_newest_ids_with_aggregate_byte_and_directory_bounds",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 320,
+            "source_fragment": "assert_eq!(result[\"coverage\"][\"directory_scan_truncated\"], true);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#9:assert-8",
+          "line": 193,
+          "expression": "assert.deepEqual((await fs.readdir(f.directory)).sort(), ['autorouter-session-a.jsonl', 'autorouter-session-b.jsonl', 'autorouter-session-c.jsonl'])",
+          "sha256": "99602bf93309a1f758d83c5c08cc8911d6be4532ae5d56c1f67318545743f8dc",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_lists_newest_ids_with_aggregate_byte_and_directory_bounds",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 326,
+            "source_fragment": "assert_eq!(\n        files,\n        [\n            \"autorouter-session-a.jsonl\",\n            \"autorouter-session-b.jsonl\",\n            \"autorouter-session-c.jsonl\"\n        ]\n    );"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/session-history.test.mjs#10",
+      "file": "test/session-history.test.mjs",
+      "name": "history rejects traversal, directory or file symlinks, and hardlinks without reading their targets",
+      "line": 196,
+      "baseline_file_sha256": "1cc2c2ab57b15ace914f881658bf6e47a5e44dbceb8d2f0021c4c4b7f3e65f33",
+      "definition_statement": "test('history rejects traversal, directory or file symlinks, and hardlinks without reading their targets', async t => {\n  const f = await fixture(t);\n  const target = join(f.root, 'PRIVATE_TARGET.jsonl');\n  await fs.writeFile(target, JSON.stringify(decision('private', { prompt_excerpt: 'PRIVATE_TARGET_CONTENT' })) + '\\n');\n  await fs.symlink(target, join(f.directory, `${id}.jsonl`));\n  await assert.rejects(readSessionHistory(f.directory, { id }), error => !error.message.includes('PRIVATE'));\n  let result = await readSessionHistory(f.directory);\n  assert.equal(result.sessions.length, 0);\n  assert.equal(result.coverage.skipped_files, 1);\n  const link = join(f.root, 'directory-link');\n  await fs.symlink(f.directory, link);\n  await assert.rejects(readSessionHistory(link), /symbolic link/);\n  for (const attempted of ['../PRIVATE_TARGET', '/PRIVATE_TARGET', `${id}.jsonl`, 'x\\nPRIVATE_TARGET']) {\n    await assert.rejects(readSessionHistory(f.directory, { id: attempted }), error => !error.message.includes('PRIVATE'));\n  }\n  await fs.unlink(join(f.directory, `${id}.jsonl`));\n  await fs.link(target, join(f.directory, `${id}.jsonl`));\n  result = await readSessionHistory(f.directory);\n  assert.equal(result.sessions.length, 0);\n  assert.equal(result.coverage.unreadable_files, 1);\n  assert.match(await fs.readFile(target, 'utf8'), /PRIVATE_TARGET_CONTENT/);\n});",
+      "definition_sha256": "c91fa9ba2947591889ec616029442f2d5499dc08b45472413372744321fb3dd3",
+      "definition_call_sha256": "af651d90f017effd31ba80bbb256f386479d0dc3f9dc437196e6f5c05e11fa4b",
+      "static_assertions": 8,
+      "expanded_original_assertions": 11,
+      "native_tests": [
+        "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_rejects_traversal_symlinks_and_hardlinks_without_target_changes"
+      ],
+      "assertions": [
+        {
+          "id": "test/session-history.test.mjs#10:assert-1",
+          "line": 201,
+          "expression": "assert.rejects(readSessionHistory(f.directory, { id }), error => !error.message.includes('PRIVATE'))",
+          "sha256": "39a0727f0b3edae0880b83d1a2e262f2614196ef61c5ebb9b71fba8f5153e1f6",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_rejects_traversal_symlinks_and_hardlinks_without_target_changes",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 353,
+            "source_fragment": "assert!(!error.contains(\"PRIVATE\"));"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#10:assert-2",
+          "line": 203,
+          "expression": "assert.equal(result.sessions.length, 0)",
+          "sha256": "18c59e60a9701e4df50d3dd0ab0f77f84eae2e6cd8c9cd1c866696195c72251f",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_rejects_traversal_symlinks_and_hardlinks_without_target_changes",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 355,
+            "source_fragment": "assert_eq!(result[\"sessions\"].as_array().unwrap().len(), 0);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#10:assert-3",
+          "line": 204,
+          "expression": "assert.equal(result.coverage.skipped_files, 1)",
+          "sha256": "55e1ea5e1233e092c74b4fed85587256dfc0d7f01219cbb8545a671e034738f6",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_rejects_traversal_symlinks_and_hardlinks_without_target_changes",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 356,
+            "source_fragment": "assert_eq!(result[\"coverage\"][\"skipped_files\"], 1);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#10:assert-4",
+          "line": 207,
+          "expression": "assert.rejects(readSessionHistory(link), /symbolic link/)",
+          "sha256": "3d416fc21adee751fc8fa7cbc9fa320d4a1258c80feaf9223ba4ba031b45a965",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_rejects_traversal_symlinks_and_hardlinks_without_target_changes",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 362,
+            "source_fragment": "assert!(error.contains(\"symbolic link\"));"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#10:assert-5",
+          "line": 209,
+          "expression": "assert.rejects(readSessionHistory(f.directory, { id: attempted }), error => !error.message.includes('PRIVATE'))",
+          "sha256": "e1327aa0f24c0f9119e43e094f95c92a2dc3878fcc92aabd1ecbf9fdb8e428d2",
+          "expanded_executions": 4,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_rejects_traversal_symlinks_and_hardlinks_without_target_changes",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 372,
+            "source_fragment": "assert!(!error.contains(\"PRIVATE\"));"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#10:assert-6",
+          "line": 214,
+          "expression": "assert.equal(result.sessions.length, 0)",
+          "sha256": "18c59e60a9701e4df50d3dd0ab0f77f84eae2e6cd8c9cd1c866696195c72251f",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_rejects_traversal_symlinks_and_hardlinks_without_target_changes",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 377,
+            "source_fragment": "assert_eq!(result[\"sessions\"].as_array().unwrap().len(), 0);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#10:assert-7",
+          "line": 215,
+          "expression": "assert.equal(result.coverage.unreadable_files, 1)",
+          "sha256": "7ba6341a7486770c54cd39fc1a42820d0b7231281a67482399a63000b2fd63c7",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_rejects_traversal_symlinks_and_hardlinks_without_target_changes",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 378,
+            "source_fragment": "assert_eq!(result[\"coverage\"][\"unreadable_files\"], 1);"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/session-history.test.mjs#10:assert-8",
+          "line": 216,
+          "expression": "assert.match(await fs.readFile(target, 'utf8'), /PRIVATE_TARGET_CONTENT/)",
+          "sha256": "af20e4df7d4795ded54043492d682a34ef169481747b2ba1cacfa6815b888be0",
+          "expanded_executions": 1,
+          "status": "covered",
+          "native_test": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs#original_history_rejects_traversal_symlinks_and_hardlinks_without_target_changes",
+          "native_reference": {
+            "path": "rust/crates/autorouter-runtime/tests/session_history_contracts.rs",
+            "line": 379,
+            "source_fragment": "assert!(\n        fs::read_to_string(&target)\n            .unwrap()\n            .contains(\"PRIVATE_TARGET_CONTENT\")\n    );"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining": []
+    }
+  ],
+  "previous_coverage_rows": [
+    {
+      "id": "test/session-history.test.mjs#1",
+      "file": "test/session-history.test.mjs",
+      "name": "history correlates selections and confirmed outcomes and prices only covered usage",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/session_history.rs#session_history::tests::conflicting_duplicates_and_legacy_selections_never_imply_completed_execution"
+      ],
+      "shared_cases": [
+        "history-19",
+        "history-25"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Random history sequences compare full summaries, but none is identified as the full seven-request/five-decision/five-outcome mixture with the exact fallback/latency/provenance/legacy counts from this definition."
+      ]
+    },
+    {
+      "id": "test/session-history.test.mjs#2",
+      "file": "test/session-history.test.mjs",
+      "name": "unknown pricing versions and mixed recorded baselines stay explicit, duplicate rows do not double count",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/session_history.rs#session_history::tests::conflicting_duplicates_and_legacy_selections_never_imply_completed_execution"
+      ],
+      "shared_cases": [
+        "history-6",
+        "history-7",
+        "history-8"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Corpus includes future/missing versions, duplicate/conflicting rows and Opus5 baseline. Missing the precise non-conflicting duplicate plus mixed-baseline/future/missing-baseline combined fixture and all resulting counters."
+      ]
+    },
+    {
+      "id": "test/session-history.test.mjs#3",
+      "file": "test/session-history.test.mjs",
+      "name": "list and show report pricing versions and missing provenance in human and JSON summaries",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [
+        "history-6",
+        "history-7"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Pure history text and JSON are compared, but native list/show CLI wiring with saved config, mixed versions, missing version, pricing facts and both output modes is not retained as this complete four-command matrix."
+      ]
+    },
+    {
+      "id": "test/session-history.test.mjs#4",
+      "file": "test/session-history.test.mjs",
+      "name": "fallback rates use observed selections including legacy/pending records, not HTTP failures or outcomes",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [
+        "history-2",
+        "history-3"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Fallback/legacy/error/outcome variants occur in generated histories. Exact denominator=three selections, 2/3 fallback rate, human 66.7% output and subsequent outcome-only zero rate are not mapped together."
+      ]
+    },
+    {
+      "id": "test/session-history.test.mjs#5",
+      "file": "test/session-history.test.mjs",
+      "name": "legacy records and metadata-only sessions never invent successful responses or reveal private fields",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/session_history.rs#session_history::tests::conflicting_duplicates_and_legacy_selections_never_imply_completed_execution"
+      ],
+      "shared_cases": [
+        "history-2",
+        "history-13",
+        "history-14"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Legacy and metadata fixtures are present, but this exact two-pending-record combination with private body/header removal and empty confirmed_models is not retained explicitly."
+      ]
+    },
+    {
+      "id": "test/session-history.test.mjs#6",
+      "file": "test/session-history.test.mjs",
+      "name": "human show sanitizes terminal controls and JSON retains only bounded prompt excerpts",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [
+        "history-14"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "history-14 compares control-bearing 500-code-point prompt JSON and sanitized human text. Missing native sessions command using invalid inactive evaluator settings and its explicit successful return value."
+      ]
+    },
+    {
+      "id": "test/session-history.test.mjs#7",
+      "file": "test/session-history.test.mjs",
+      "name": "bounded reads report partial coverage for bytes, records, lines, and incomplete tails",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/session_history.rs#session_history::tests::truncated_tail_bad_schema_and_mixed_identity_are_explicit",
+        "rust/crates/autorouter-runtime/src/session_history.rs#session_history::tests::file_record_directory_and_byte_bounds_are_visible_without_modifying_logs"
+      ],
+      "shared_cases": [
+        "history-19",
+        "history-20",
+        "history-21"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Generated limits cover maxRecords/maxLines/maxFileBytes and incomplete tails. The exact separate one-record, one-line,30-byte and appended-tail read matrix is not mapped, including native file reader bytes_read."
+      ]
+    },
+    {
+      "id": "test/session-history.test.mjs#8",
+      "file": "test/session-history.test.mjs",
+      "name": "oversized, malformed, foreign-session, and unknown-version records are skipped with coverage counts",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/session_history.rs#session_history::tests::truncated_tail_bad_schema_and_mixed_identity_are_explicit"
+      ],
+      "shared_cases": [
+        "history-10",
+        "history-11",
+        "history-280"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Oversize, malformed, foreign and unsupported schema cases exist separately and randomly. Add one fixture retaining exact combined invalid_records=2/oversized_lines=1/mixed=1 plus private marker exclusion."
+      ]
+    },
+    {
+      "id": "test/session-history.test.mjs#9",
+      "file": "test/session-history.test.mjs",
+      "name": "list chooses bounded newest IDs deterministically and limits total bytes without deleting files",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_history.rs#session_history::tests::file_record_directory_and_byte_bounds_are_visible_without_modifying_logs"
+      ],
+      "shared_cases": [],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Runtime test covers newest IDs, file cap, total byte cap and nonmutation; maxDirectoryEntries=1 flag and exact 100-byte total are not asserted."
+      ]
+    },
+    {
+      "id": "test/session-history.test.mjs#10",
+      "file": "test/session-history.test.mjs",
+      "name": "history rejects traversal, directory or file symlinks, and hardlinks without reading their targets",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_history.rs#session_history::tests::rejects_links_special_files_and_nonregular_directories"
+      ],
+      "shared_cases": [],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Native test covers file/directory symlink, hardlink, FIFO and target preservation. The four traversal/newline/extension ID rejection variants are not asserted in that test."
+      ]
+    }
+  ]
+}

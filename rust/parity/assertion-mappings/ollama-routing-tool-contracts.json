@@ -1,0 +1,2403 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_ollama_routing_tool_contracts_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_head": "19a66a919436e9678927f81d3d71f50d84e2abaf",
+  "production_changes": [
+    "xtask run_tests now returns typed RoutingTestError preserving safe code/message from SetupError; the CLI displays the safe message only as before.",
+    "xtask per-task progress now includes one classifier_error suffix when present, matching frozen tool output. Runtime routing, shipping JS, provider policy and transport are unchanged."
+  ],
+  "registration": "Five cfg(test) native finite-contract tests in xtask plus two existing local module tests; ordinary runtime does not compile the corpus or test module.",
+  "counts": {
+    "definitions": 4,
+    "source_callbacks_executed": 4,
+    "tool_calls": 6,
+    "requests": 58,
+    "metadata_requests": 39,
+    "systemone_requests": 19,
+    "warmups": 4,
+    "classifications": 15,
+    "direct_static_assertions": 25,
+    "shared_helper_static_assertions": 9,
+    "direct_executed_original_assertions": 30,
+    "helper_executed_original_assertions": 347,
+    "total_executed_original_assertions": 377,
+    "native_contract_tests": 5,
+    "focused_tests_including_existing": 7,
+    "existing_tool_regressions": 2,
+    "unchanged_frozen_controls": 4,
+    "covered": 4,
+    "partial": 0
+  },
+  "current_sources": [
+    {
+      "path": "rust/parity/capture-ollama-routing-tool-contracts.mjs",
+      "bytes": 12361,
+      "sha256": "e408420ca4986b838bf1bc0a941510242fece3fe0568145365afb70aed2283df"
+    },
+    {
+      "path": "rust/parity/cases/ollama-routing-tool-contracts.jsonl",
+      "bytes": 108024,
+      "sha256": "a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d"
+    },
+    {
+      "path": "rust/parity/cases/ollama-routing-tool-contracts.capture.json",
+      "bytes": 55512,
+      "sha256": "757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d"
+    },
+    {
+      "path": "rust/xtask/src/ollama_routing_contracts.rs",
+      "bytes": 14752,
+      "sha256": "4ee3401b3bc7978a4240490f3cc757ae12fe592f4dfa955f0f055bb98b3d36fc"
+    },
+    {
+      "path": "rust/xtask/src/ollama_routing.rs",
+      "bytes": 15128,
+      "sha256": "caea0e45e560cb9e86e270775ff01ce3e3cc668f84146e939139e7861d52753a"
+    }
+  ],
+  "retained_sources": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/e408420ca4986b838bf1bc0a941510242fece3fe0568145365afb70aed2283df.mjs",
+      "sha256": "e408420ca4986b838bf1bc0a941510242fece3fe0568145365afb70aed2283df",
+      "bytes": 12361,
+      "original_path": "rust/parity/capture-ollama-routing-tool-contracts.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d.jsonl",
+      "sha256": "a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d",
+      "bytes": 108024,
+      "original_path": "rust/parity/cases/ollama-routing-tool-contracts.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d.json",
+      "sha256": "757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d",
+      "bytes": 55512,
+      "original_path": "rust/parity/cases/ollama-routing-tool-contracts.capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/4ee3401b3bc7978a4240490f3cc757ae12fe592f4dfa955f0f055bb98b3d36fc.rs",
+      "sha256": "4ee3401b3bc7978a4240490f3cc757ae12fe592f4dfa955f0f055bb98b3d36fc",
+      "bytes": 14752,
+      "original_path": "rust/xtask/src/ollama_routing_contracts.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/caea0e45e560cb9e86e270775ff01ce3e3cc668f84146e939139e7861d52753a.rs",
+      "sha256": "caea0e45e560cb9e86e270775ff01ce3e3cc668f84146e939139e7861d52753a",
+      "bytes": 15128,
+      "original_path": "rust/xtask/src/ollama_routing.rs"
+    }
+  ],
+  "baseline_source": {
+    "path": "artifacts/rust-rewrite/reference/test/ollama-routing.test.mjs",
+    "bytes": 10544,
+    "sha256": "a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b"
+  },
+  "source_inputs": [
+    {
+      "path": "artifacts/rust-rewrite/reference/test/ollama-routing.test.mjs",
+      "bytes": 10544,
+      "sha256": "a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/scripts/test-ollama-routing.mjs",
+      "bytes": 10666,
+      "sha256": "5fa48431fcc953f2d84455e44f44a54fbde3fc3194a9e591267860b260e75507"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/test/fixtures/ollama-integration.json",
+      "bytes": 1884,
+      "sha256": "88e12f962fb42b36a00edd6b8c2560e54620d90c978b1ff13a1ddf31ee46b585"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/src/ollama-setup.mjs",
+      "bytes": 11024,
+      "sha256": "4b6ea01482b0480935d0a6541146c79403f1b0eb2652ee9a3edd7a7627d8e958"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/src/router.mjs",
+      "bytes": 27898,
+      "sha256": "aebf10268348f00b6c8cdc82ef9ced2d60c8e1cc0ddeee7c3498bcaf100b9d56"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/src/ollama-evaluator.mjs",
+      "bytes": 8406,
+      "sha256": "6c983ddab7e9d01a667d9f890deb7b40e85c1d7dee5373cf34642eb588cb7652"
+    }
+  ],
+  "retained_source_inputs": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b.mjs",
+      "bytes": 10544,
+      "sha256": "a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b",
+      "original_path": "artifacts/rust-rewrite/reference/test/ollama-routing.test.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/5fa48431fcc953f2d84455e44f44a54fbde3fc3194a9e591267860b260e75507.mjs",
+      "bytes": 10666,
+      "sha256": "5fa48431fcc953f2d84455e44f44a54fbde3fc3194a9e591267860b260e75507",
+      "original_path": "artifacts/rust-rewrite/reference/scripts/test-ollama-routing.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/88e12f962fb42b36a00edd6b8c2560e54620d90c978b1ff13a1ddf31ee46b585.json",
+      "bytes": 1884,
+      "sha256": "88e12f962fb42b36a00edd6b8c2560e54620d90c978b1ff13a1ddf31ee46b585",
+      "original_path": "artifacts/rust-rewrite/reference/test/fixtures/ollama-integration.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/4b6ea01482b0480935d0a6541146c79403f1b0eb2652ee9a3edd7a7627d8e958.mjs",
+      "bytes": 11024,
+      "sha256": "4b6ea01482b0480935d0a6541146c79403f1b0eb2652ee9a3edd7a7627d8e958",
+      "original_path": "artifacts/rust-rewrite/reference/src/ollama-setup.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/aebf10268348f00b6c8cdc82ef9ced2d60c8e1cc0ddeee7c3498bcaf100b9d56.mjs",
+      "bytes": 27898,
+      "sha256": "aebf10268348f00b6c8cdc82ef9ced2d60c8e1cc0ddeee7c3498bcaf100b9d56",
+      "original_path": "artifacts/rust-rewrite/reference/src/router.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/6c983ddab7e9d01a667d9f890deb7b40e85c1d7dee5373cf34642eb588cb7652.mjs",
+      "bytes": 8406,
+      "sha256": "6c983ddab7e9d01a667d9f890deb7b40e85c1d7dee5373cf34642eb588cb7652",
+      "original_path": "artifacts/rust-rewrite/reference/src/ollama-evaluator.mjs"
+    }
+  ],
+  "capture_method": [
+    "Verify complete 111-file frozen baseline; TypeScript AST retains exact statement/call/assertion hashes. Static import wiring is replaced and each original assertion call is wrapped only to count successful original assertion execution. All original callbacks, helper branches and arguments execute.",
+    "Delegating runRoutingTests wrapper calls unchanged frozen production tool with original config/cases/options. Only injected original finite mock fetch and write callbacks are observed; no configured service is accessed.",
+    "Built-in Response.json observer returns the same Response without body clone/read. Sticky capture failures survive catches; complete request/response/writes/outcome snapshots remain bounded.",
+    "Four original selected callbacks execute six tool calls, 58 requests and 377 expanded assertions. Final captures 3/4 are byte-identical. Captures 1/2 retain unprojected varying final progress duration and remain historical evidence, not current canonical inputs.",
+    "Only validated timestamp, warmup_ms, row latency_ms and final numeric progress duration are projected. Raw observed reports and writes remain in observations.json. Original source assertions contain no timing predicate in these selected definitions."
+  ],
+  "native_method": [
+    "Actual run_tests uses exact fixture bytes and reconstructed complete model-dependent RouterConfig; each finite expected response is served by private HttpTransport. Original production setup and per-case fresh Router perform all work.",
+    "Full URL/method/headers/raw-body request equality is independent of outcome matching; sticky invalid flag, queue exhaustion, count and zero owned response bodies are all required. Mismatched request still receives original safe fallback so outcome equality cannot hide bad I/O.",
+    "Compare complete projected reports and progress messages, exact error code/message and all privacy omissions. Rust report always computes exact fixture-byte digest; only that independently verified extra field is removed when original optional fixtureHash was omitted.",
+    "Original undefined fields have explicit tags and must map to absent wire fields at allowlisted paths; arbitrary tagged kinds/paths reject. Native error type is intentionally not JS Error object/prototype identity."
+  ],
+  "corpus": {
+    "bytes": 108024,
+    "sha256": "a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d",
+    "predeclared_cap_bytes": 2097152,
+    "existing_bundle_default_bytes": 1048576,
+    "within_existing_bundle_default": true
+  },
+  "limits": {
+    "cases": 6,
+    "requests_per_case": 20,
+    "requests": 64,
+    "field_bytes": 65536,
+    "report_bytes": 131072,
+    "corpus_bytes": 2097152,
+    "aggregate_bytes": 4194304,
+    "nodes": 4096,
+    "depth": 32,
+    "native_tool_deadline_ms": 2000,
+    "native_owner_cleanup_deadline_ms": 2000,
+    "native_response_bytes": 65536,
+    "native_request_bytes": 65536,
+    "native_outcome_bytes": 131072,
+    "native_response_owners_after_run": 0,
+    "timing_boundary": "Two-second cooperative bounds on finite nonblocking mocks and body-owner cleanup; no real provider, blocking task or adversarial JavaScript timing claim."
+  },
+  "exclusions": [
+    "Only timestamp,warmup_ms,row latency_ms and final progress duration are projected after validation; raw observations remain separately retained. No timing qualification.",
+    "Native accepts fixture bytes rather than cases plus optional fixtureHash. Preserve supplied/omitted hash tags; independently verify native digest of exact input bytes.",
+    "Fetch redirect:error/AbortSignal are Node API properties; native owned transport does not follow redirects. All actual request headers,URL,method and body remain compared.",
+    "Native typed error identity must preserve source code/message. Generic JS Error stack/prototype is outside Rust API.",
+    "No live evaluator, provider, model download, configuration write or numerical benchmark is executed."
+  ],
+  "negative_controls": [
+    "Changed expected inference body still gets matching fallback and progress but independent request verification rejects.",
+    "Queued extra request produces matching report but verification rejects unconsumed response.",
+    "Wrong error code fails outcome comparison even when message is unchanged. Missing or duplicate classifier_error suffix fails complete progress comparison.",
+    "Changed report.passed and illegal nonfinite tag fail full outcome comparison.",
+    "Changed corpus byte and 2 MiB+1 input fail independent fixed digest and byte bounds."
+  ],
+  "retained_failed_checks": [
+    {
+      "path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-1.log",
+      "classification": "Test adapter compile error: valid_timestamp already returns bool, erroneous is_some removed."
+    },
+    {
+      "path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-2.log",
+      "classification": "Same adapter compile error retained."
+    },
+    {
+      "path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-3.log",
+      "classification": "Three pass/two fail exposed actual lost error identity and missing progress suffix before authorized fixes; retained source snapshots and report bind both defects."
+    },
+    {
+      "path": "artifacts/rust-rewrite/eleventh-ollama-tool-clippy-1.log",
+      "classification": "Test-only nested if style fixed; no expectation changed."
+    }
+  ],
+  "validation": {
+    "final_checks": {
+      "path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-checks-1.json",
+      "bytes": 1028,
+      "sha256": "7c1cad86c0215d62ca8edeb6548c612bb81ee6f9fe9f7eec5f4dd6051df24f98"
+    },
+    "native": {
+      "path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-native-5.log",
+      "bytes": 1721,
+      "sha256": "2405a85db86bce976775dd6e38893428092fb80bdf77bf5cf16e1ae50faf2b0f"
+    },
+    "native_passed": 7,
+    "clippy": {
+      "path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-clippy-2.log",
+      "bytes": 645,
+      "sha256": "6cf477bff90e7cee5ba9463fe72a9cf852984a906abb7d5683e00f389a12f714"
+    },
+    "clippy_exit_code": 0,
+    "scoped_fmt": {
+      "path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-fmt-1.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "existing_tool_regressions": {
+      "path": "artifacts/rust-rewrite/eleventh-ollama-tool-existing-regression.log",
+      "bytes": 1125,
+      "sha256": "977edf31ddf14e60617a62c3eadf8928771d9d8bae5383ea134c4e95479947dc"
+    },
+    "existing_tool_regressions_passed": 2,
+    "frozen_controls": {
+      "path": "artifacts/rust-rewrite/eleventh-ollama-tool-frozen-control.log",
+      "bytes": 1047,
+      "sha256": "d747e41ed71faa001e468604470d0537f74aae3ea51bc85c862e10c54bf3cbf6"
+    },
+    "frozen_controls_passed": 4,
+    "captures_byte_identical": true,
+    "dependency_warning": "Existing narrow-graph vendored hyper-util unused timer warning remains; no batch error or warning."
+  },
+  "existing_actual_redirect_evidence": {
+    "rust_test": "rust/crates/autorouter-runtime/src/http_client.rs#http_client::tests::local_http_reuses_connections_preserves_credentials_and_never_decodes_or_redirects",
+    "source": {
+      "path": "rust/crates/autorouter-runtime/src/http_client.rs",
+      "bytes": 16711,
+      "sha256": "c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1"
+    },
+    "retained_source": {
+      "path": "artifacts/rust-rewrite/evidence/c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1.rs",
+      "bytes": 16711,
+      "sha256": "c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1",
+      "original_path": "rust/crates/autorouter-runtime/src/http_client.rs"
+    },
+    "passed_log": {
+      "path": "artifacts/rust-rewrite/tenth-final-2-workspace.log",
+      "bytes": 74503,
+      "sha256": "71ce460b33d6670beabf87a6fa5055d150c23e8a77a71b608e33f74ba2bcd33e"
+    },
+    "retained_log": {
+      "path": "artifacts/rust-rewrite/evidence/71ce460b33d6670beabf87a6fa5055d150c23e8a77a71b608e33f74ba2bcd33e.log",
+      "bytes": 74503,
+      "sha256": "71ce460b33d6670beabf87a6fa5055d150c23e8a77a71b608e33f74ba2bcd33e",
+      "original_path": "artifacts/rust-rewrite/tenth-final-2-workspace.log"
+    },
+    "log_line": 286,
+    "scope": "Actual mock HTTP307 response remains unchanged; exactly one request establishes no redirect follow. Literal source redirect:error is a native transport-policy adaptation, not JS option identity."
+  },
+  "evidence": {
+    "0-eleventh-ollama-tool-capture-1.log": {
+      "path": "artifacts/rust-rewrite/evidence/8daa5a957c896c4cbefa049c04b839afce43509e112ee35305e6db5c4cc25786.log",
+      "bytes": 135,
+      "sha256": "8daa5a957c896c4cbefa049c04b839afce43509e112ee35305e6db5c4cc25786",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-1.log"
+    },
+    "1-eleventh-ollama-tool-capture-2.log": {
+      "path": "artifacts/rust-rewrite/evidence/5bf262e5a00b828d25ac3c4667f8cb4d89dbf56730a56ee1ef3404c9e6796bc2.log",
+      "bytes": 135,
+      "sha256": "5bf262e5a00b828d25ac3c4667f8cb4d89dbf56730a56ee1ef3404c9e6796bc2",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-2.log"
+    },
+    "2-eleventh-ollama-tool-capture-3.log": {
+      "path": "artifacts/rust-rewrite/evidence/d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3.log",
+      "bytes": 135,
+      "sha256": "d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-3.log"
+    },
+    "3-eleventh-ollama-tool-capture-4.log": {
+      "path": "artifacts/rust-rewrite/evidence/d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3.log",
+      "bytes": 135,
+      "sha256": "d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-4.log"
+    },
+    "4-eleventh-ollama-tool-clippy-1.log": {
+      "path": "artifacts/rust-rewrite/evidence/2e086aa86e2b5de9fdf76a16001b300b148ce2eafe870d8f468b23862b109863.log",
+      "bytes": 1701,
+      "sha256": "2e086aa86e2b5de9fdf76a16001b300b148ce2eafe870d8f468b23862b109863",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-clippy-1.log"
+    },
+    "5-eleventh-ollama-tool-clippy-2.log": {
+      "path": "artifacts/rust-rewrite/evidence/74a66b8e0997dddd9afa0c67e5fb2ae508ebd65543417714b1336dcffd5463c2.log",
+      "bytes": 645,
+      "sha256": "74a66b8e0997dddd9afa0c67e5fb2ae508ebd65543417714b1336dcffd5463c2",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-clippy-2.log"
+    },
+    "6-eleventh-ollama-tool-clippy-3.log": {
+      "path": "artifacts/rust-rewrite/evidence/b72b894291a6736bbac1a55d7c1cf5422776ff7275ab27cff6008622586d95db.log",
+      "bytes": 645,
+      "sha256": "b72b894291a6736bbac1a55d7c1cf5422776ff7275ab27cff6008622586d95db",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-clippy-3.log"
+    },
+    "7-eleventh-ollama-tool-existing-regression.log": {
+      "path": "artifacts/rust-rewrite/evidence/977edf31ddf14e60617a62c3eadf8928771d9d8bae5383ea134c4e95479947dc.log",
+      "bytes": 1125,
+      "sha256": "977edf31ddf14e60617a62c3eadf8928771d9d8bae5383ea134c4e95479947dc",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-existing-regression.log"
+    },
+    "8-eleventh-ollama-tool-frozen-control.log": {
+      "path": "artifacts/rust-rewrite/evidence/d747e41ed71faa001e468604470d0537f74aae3ea51bc85c862e10c54bf3cbf6.log",
+      "bytes": 1047,
+      "sha256": "d747e41ed71faa001e468604470d0537f74aae3ea51bc85c862e10c54bf3cbf6",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-frozen-control.log"
+    },
+    "9-eleventh-ollama-tool-native-1.log": {
+      "path": "artifacts/rust-rewrite/evidence/77b86c8b6e8b88279dbeb5f725a2479cb84bfc498fbb1d3d5cf0ac0130e1d734.log",
+      "bytes": 1165,
+      "sha256": "77b86c8b6e8b88279dbeb5f725a2479cb84bfc498fbb1d3d5cf0ac0130e1d734",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-1.log"
+    },
+    "10-eleventh-ollama-tool-native-2.log": {
+      "path": "artifacts/rust-rewrite/evidence/a1d77c688c4cc94d5d57769ae1a34e9b7aba4a0ecae03e2af6976875e85a65ee.log",
+      "bytes": 1052,
+      "sha256": "a1d77c688c4cc94d5d57769ae1a34e9b7aba4a0ecae03e2af6976875e85a65ee",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-2.log"
+    },
+    "11-eleventh-ollama-tool-native-3.log": {
+      "path": "artifacts/rust-rewrite/evidence/7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1.log",
+      "bytes": 3551,
+      "sha256": "7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-3.log"
+    },
+    "12-eleventh-ollama-tool-native-4.log": {
+      "path": "artifacts/rust-rewrite/evidence/da07bff7246fad09826593cca5a40ad45cc3f651fcb598847bce0a4509a4661d.log",
+      "bytes": 2277,
+      "sha256": "da07bff7246fad09826593cca5a40ad45cc3f651fcb598847bce0a4509a4661d",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-4.log"
+    },
+    "13-eleventh-ollama-tool-native-5.log": {
+      "path": "artifacts/rust-rewrite/evidence/af00bfc6e02ca14aaa3317f9bbc177dddc662773d670f49d6046b43ceb2448e2.log",
+      "bytes": 1794,
+      "sha256": "af00bfc6e02ca14aaa3317f9bbc177dddc662773d670f49d6046b43ceb2448e2",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-5.log"
+    },
+    "14-eleventh-ollama-tool-native-6.log": {
+      "path": "artifacts/rust-rewrite/evidence/331860fb968a60b59213b29f5279565cd231ae40c90bf577d6223f8b3673b42d.log",
+      "bytes": 1794,
+      "sha256": "331860fb968a60b59213b29f5279565cd231ae40c90bf577d6223f8b3673b42d",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-6.log"
+    },
+    "15-eleventh-ollama-routing-tool-checks-1.json": {
+      "path": "artifacts/rust-rewrite/evidence/7c1cad86c0215d62ca8edeb6548c612bb81ee6f9fe9f7eec5f4dd6051df24f98.json",
+      "bytes": 1028,
+      "sha256": "7c1cad86c0215d62ca8edeb6548c612bb81ee6f9fe9f7eec5f4dd6051df24f98",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-checks-1.json"
+    },
+    "16-eleventh-ollama-routing-tool-clippy-2.log": {
+      "path": "artifacts/rust-rewrite/evidence/6cf477bff90e7cee5ba9463fe72a9cf852984a906abb7d5683e00f389a12f714.log",
+      "bytes": 645,
+      "sha256": "6cf477bff90e7cee5ba9463fe72a9cf852984a906abb7d5683e00f389a12f714",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-clippy-2.log"
+    },
+    "17-eleventh-ollama-routing-tool-fmt-1.log": {
+      "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-fmt-1.log"
+    },
+    "18-eleventh-ollama-routing-tool-native-5.log": {
+      "path": "artifacts/rust-rewrite/evidence/2405a85db86bce976775dd6e38893428092fb80bdf77bf5cf16e1ae50faf2b0f.log",
+      "bytes": 1721,
+      "sha256": "2405a85db86bce976775dd6e38893428092fb80bdf77bf5cf16e1ae50faf2b0f",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-native-5.log"
+    },
+    "19-report.json": {
+      "path": "artifacts/rust-rewrite/evidence/7990afeccdb75b4af7fae6036c21661167a464742729b108c3d6bc67ed445509.json",
+      "bytes": 1228,
+      "sha256": "7990afeccdb75b4af7fae6036c21661167a464742729b108c3d6bc67ed445509",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/report.json"
+    },
+    "20-ollama_routing_contracts.rs": {
+      "path": "artifacts/rust-rewrite/evidence/0937406b290899e64fa1eecb0ff843be3b3fb384cb3ca46040ffebff2d9f316f.rs",
+      "bytes": 12117,
+      "sha256": "0937406b290899e64fa1eecb0ff843be3b3fb384cb3ca46040ffebff2d9f316f",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/ollama_routing_contracts.rs"
+    },
+    "21-ollama_routing.rs": {
+      "path": "artifacts/rust-rewrite/evidence/606830442ee4b0b41e857e21262ecb57e9eecb8d8a6ab2cac4cc15b743fa9bc4.rs",
+      "bytes": 13895,
+      "sha256": "606830442ee4b0b41e857e21262ecb57e9eecb8d8a6ab2cac4cc15b743fa9bc4",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/ollama_routing.rs"
+    },
+    "22-eleventh-ollama-tool-native-3.log": {
+      "path": "artifacts/rust-rewrite/evidence/7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1.log",
+      "bytes": 3551,
+      "sha256": "7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/eleventh-ollama-tool-native-3.log"
+    },
+    "23-cases.jsonl": {
+      "path": "artifacts/rust-rewrite/evidence/566292a2fd4b2aa13f6eff77ae34f2963168080b8344faf28dba8e37db83ccac.jsonl",
+      "bytes": 107979,
+      "sha256": "566292a2fd4b2aa13f6eff77ae34f2963168080b8344faf28dba8e37db83ccac",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-1/cases.jsonl"
+    },
+    "24-capture.json": {
+      "path": "artifacts/rust-rewrite/evidence/03ea305be5d4f4c536ca92f5d26e99c08927af0028efbcf7c4b2ee0d84bf2430.json",
+      "bytes": 55512,
+      "sha256": "03ea305be5d4f4c536ca92f5d26e99c08927af0028efbcf7c4b2ee0d84bf2430",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-1/capture.json"
+    },
+    "25-observations.json": {
+      "path": "artifacts/rust-rewrite/evidence/715a72197f569fd76c9f5a8916e6b45e836cbd09567ea978563f45b8ee5c74d3.json",
+      "bytes": 14543,
+      "sha256": "715a72197f569fd76c9f5a8916e6b45e836cbd09567ea978563f45b8ee5c74d3",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-1/observations.json"
+    },
+    "26-cases.jsonl": {
+      "path": "artifacts/rust-rewrite/evidence/a35ad9ac249a53b061ee0bca913e7d105984894e3f3fa98296fa7163eaedbdb4.jsonl",
+      "bytes": 107976,
+      "sha256": "a35ad9ac249a53b061ee0bca913e7d105984894e3f3fa98296fa7163eaedbdb4",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-2/cases.jsonl"
+    },
+    "27-capture.json": {
+      "path": "artifacts/rust-rewrite/evidence/34ccbde3cb8fc0c86d77294122b470afdf768a78af5b8c40b0b572844d652e64.json",
+      "bytes": 55512,
+      "sha256": "34ccbde3cb8fc0c86d77294122b470afdf768a78af5b8c40b0b572844d652e64",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-2/capture.json"
+    },
+    "28-observations.json": {
+      "path": "artifacts/rust-rewrite/evidence/da730ee4cc3cc9a9eb1d842546deaaa9bf0ffb38e5bc3a55a57ccf7474fb8616.json",
+      "bytes": 14537,
+      "sha256": "da730ee4cc3cc9a9eb1d842546deaaa9bf0ffb38e5bc3a55a57ccf7474fb8616",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-2/observations.json"
+    },
+    "29-cases.jsonl": {
+      "path": "artifacts/rust-rewrite/evidence/a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d.jsonl",
+      "bytes": 108024,
+      "sha256": "a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-3/cases.jsonl"
+    },
+    "30-capture.json": {
+      "path": "artifacts/rust-rewrite/evidence/757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d.json",
+      "bytes": 55512,
+      "sha256": "757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-3/capture.json"
+    },
+    "31-observations.json": {
+      "path": "artifacts/rust-rewrite/evidence/7009ad543882e9bb5d1026ec2b14a2d582c9f0a063786711a342599c0351f9ba.json",
+      "bytes": 14533,
+      "sha256": "7009ad543882e9bb5d1026ec2b14a2d582c9f0a063786711a342599c0351f9ba",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-3/observations.json"
+    },
+    "32-cases.jsonl": {
+      "path": "artifacts/rust-rewrite/evidence/a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d.jsonl",
+      "bytes": 108024,
+      "sha256": "a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-4/cases.jsonl"
+    },
+    "33-capture.json": {
+      "path": "artifacts/rust-rewrite/evidence/757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d.json",
+      "bytes": 55512,
+      "sha256": "757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-4/capture.json"
+    },
+    "34-observations.json": {
+      "path": "artifacts/rust-rewrite/evidence/d0e37537c0b57e6ac9441d86bfaf349c799b6323c0c258fdf9de3bfb76c07516.json",
+      "bytes": 14539,
+      "sha256": "d0e37537c0b57e6ac9441d86bfaf349c799b6323c0c258fdf9de3bfb76c07516",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-4/observations.json"
+    }
+  },
+  "retained_evidence": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/8daa5a957c896c4cbefa049c04b839afce43509e112ee35305e6db5c4cc25786.log",
+      "bytes": 135,
+      "sha256": "8daa5a957c896c4cbefa049c04b839afce43509e112ee35305e6db5c4cc25786",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/5bf262e5a00b828d25ac3c4667f8cb4d89dbf56730a56ee1ef3404c9e6796bc2.log",
+      "bytes": 135,
+      "sha256": "5bf262e5a00b828d25ac3c4667f8cb4d89dbf56730a56ee1ef3404c9e6796bc2",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-2.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3.log",
+      "bytes": 135,
+      "sha256": "d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-3.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3.log",
+      "bytes": 135,
+      "sha256": "d222a13580fd66d6814b69e59235b18cba60d71c766743f1d7186dca3a2033d3",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-capture-4.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/2e086aa86e2b5de9fdf76a16001b300b148ce2eafe870d8f468b23862b109863.log",
+      "bytes": 1701,
+      "sha256": "2e086aa86e2b5de9fdf76a16001b300b148ce2eafe870d8f468b23862b109863",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-clippy-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/74a66b8e0997dddd9afa0c67e5fb2ae508ebd65543417714b1336dcffd5463c2.log",
+      "bytes": 645,
+      "sha256": "74a66b8e0997dddd9afa0c67e5fb2ae508ebd65543417714b1336dcffd5463c2",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-clippy-2.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/b72b894291a6736bbac1a55d7c1cf5422776ff7275ab27cff6008622586d95db.log",
+      "bytes": 645,
+      "sha256": "b72b894291a6736bbac1a55d7c1cf5422776ff7275ab27cff6008622586d95db",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-clippy-3.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/977edf31ddf14e60617a62c3eadf8928771d9d8bae5383ea134c4e95479947dc.log",
+      "bytes": 1125,
+      "sha256": "977edf31ddf14e60617a62c3eadf8928771d9d8bae5383ea134c4e95479947dc",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-existing-regression.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/d747e41ed71faa001e468604470d0537f74aae3ea51bc85c862e10c54bf3cbf6.log",
+      "bytes": 1047,
+      "sha256": "d747e41ed71faa001e468604470d0537f74aae3ea51bc85c862e10c54bf3cbf6",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-frozen-control.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/77b86c8b6e8b88279dbeb5f725a2479cb84bfc498fbb1d3d5cf0ac0130e1d734.log",
+      "bytes": 1165,
+      "sha256": "77b86c8b6e8b88279dbeb5f725a2479cb84bfc498fbb1d3d5cf0ac0130e1d734",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/a1d77c688c4cc94d5d57769ae1a34e9b7aba4a0ecae03e2af6976875e85a65ee.log",
+      "bytes": 1052,
+      "sha256": "a1d77c688c4cc94d5d57769ae1a34e9b7aba4a0ecae03e2af6976875e85a65ee",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-2.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1.log",
+      "bytes": 3551,
+      "sha256": "7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-3.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/da07bff7246fad09826593cca5a40ad45cc3f651fcb598847bce0a4509a4661d.log",
+      "bytes": 2277,
+      "sha256": "da07bff7246fad09826593cca5a40ad45cc3f651fcb598847bce0a4509a4661d",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-4.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/af00bfc6e02ca14aaa3317f9bbc177dddc662773d670f49d6046b43ceb2448e2.log",
+      "bytes": 1794,
+      "sha256": "af00bfc6e02ca14aaa3317f9bbc177dddc662773d670f49d6046b43ceb2448e2",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-5.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/331860fb968a60b59213b29f5279565cd231ae40c90bf577d6223f8b3673b42d.log",
+      "bytes": 1794,
+      "sha256": "331860fb968a60b59213b29f5279565cd231ae40c90bf577d6223f8b3673b42d",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-tool-native-6.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/7c1cad86c0215d62ca8edeb6548c612bb81ee6f9fe9f7eec5f4dd6051df24f98.json",
+      "bytes": 1028,
+      "sha256": "7c1cad86c0215d62ca8edeb6548c612bb81ee6f9fe9f7eec5f4dd6051df24f98",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-checks-1.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/6cf477bff90e7cee5ba9463fe72a9cf852984a906abb7d5683e00f389a12f714.log",
+      "bytes": 645,
+      "sha256": "6cf477bff90e7cee5ba9463fe72a9cf852984a906abb7d5683e00f389a12f714",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-clippy-2.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-fmt-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/2405a85db86bce976775dd6e38893428092fb80bdf77bf5cf16e1ae50faf2b0f.log",
+      "bytes": 1721,
+      "sha256": "2405a85db86bce976775dd6e38893428092fb80bdf77bf5cf16e1ae50faf2b0f",
+      "original_path": "artifacts/rust-rewrite/eleventh-ollama-routing-tool-native-5.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/7990afeccdb75b4af7fae6036c21661167a464742729b108c3d6bc67ed445509.json",
+      "bytes": 1228,
+      "sha256": "7990afeccdb75b4af7fae6036c21661167a464742729b108c3d6bc67ed445509",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/report.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/0937406b290899e64fa1eecb0ff843be3b3fb384cb3ca46040ffebff2d9f316f.rs",
+      "bytes": 12117,
+      "sha256": "0937406b290899e64fa1eecb0ff843be3b3fb384cb3ca46040ffebff2d9f316f",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/ollama_routing_contracts.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/606830442ee4b0b41e857e21262ecb57e9eecb8d8a6ab2cac4cc15b743fa9bc4.rs",
+      "bytes": 13895,
+      "sha256": "606830442ee4b0b41e857e21262ecb57e9eecb8d8a6ab2cac4cc15b743fa9bc4",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/ollama_routing.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1.log",
+      "bytes": 3551,
+      "sha256": "7b469c57be8dfd97ef81cfe3181f8a56456c50e82924366d9ea1fea22c3bebd1",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-pre-fix-1/eleventh-ollama-tool-native-3.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/566292a2fd4b2aa13f6eff77ae34f2963168080b8344faf28dba8e37db83ccac.jsonl",
+      "bytes": 107979,
+      "sha256": "566292a2fd4b2aa13f6eff77ae34f2963168080b8344faf28dba8e37db83ccac",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-1/cases.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/03ea305be5d4f4c536ca92f5d26e99c08927af0028efbcf7c4b2ee0d84bf2430.json",
+      "bytes": 55512,
+      "sha256": "03ea305be5d4f4c536ca92f5d26e99c08927af0028efbcf7c4b2ee0d84bf2430",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-1/capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/715a72197f569fd76c9f5a8916e6b45e836cbd09567ea978563f45b8ee5c74d3.json",
+      "bytes": 14543,
+      "sha256": "715a72197f569fd76c9f5a8916e6b45e836cbd09567ea978563f45b8ee5c74d3",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-1/observations.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/a35ad9ac249a53b061ee0bca913e7d105984894e3f3fa98296fa7163eaedbdb4.jsonl",
+      "bytes": 107976,
+      "sha256": "a35ad9ac249a53b061ee0bca913e7d105984894e3f3fa98296fa7163eaedbdb4",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-2/cases.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/34ccbde3cb8fc0c86d77294122b470afdf768a78af5b8c40b0b572844d652e64.json",
+      "bytes": 55512,
+      "sha256": "34ccbde3cb8fc0c86d77294122b470afdf768a78af5b8c40b0b572844d652e64",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-2/capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/da730ee4cc3cc9a9eb1d842546deaaa9bf0ffb38e5bc3a55a57ccf7474fb8616.json",
+      "bytes": 14537,
+      "sha256": "da730ee4cc3cc9a9eb1d842546deaaa9bf0ffb38e5bc3a55a57ccf7474fb8616",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-2/observations.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d.jsonl",
+      "bytes": 108024,
+      "sha256": "a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-3/cases.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d.json",
+      "bytes": 55512,
+      "sha256": "757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-3/capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/7009ad543882e9bb5d1026ec2b14a2d582c9f0a063786711a342599c0351f9ba.json",
+      "bytes": 14533,
+      "sha256": "7009ad543882e9bb5d1026ec2b14a2d582c9f0a063786711a342599c0351f9ba",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-3/observations.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d.jsonl",
+      "bytes": 108024,
+      "sha256": "a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-4/cases.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d.json",
+      "bytes": 55512,
+      "sha256": "757c375b4e2bd6229ac1ba513028ec56c663d89d7498b60fb2e90c8bdc40e09d",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-4/capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/d0e37537c0b57e6ac9441d86bfaf349c799b6323c0c258fdf9de3bfb76c07516.json",
+      "bytes": 14539,
+      "sha256": "d0e37537c0b57e6ac9441d86bfaf349c799b6323c0c258fdf9de3bfb76c07516",
+      "original_path": "artifacts/rust-rewrite/ollama-routing-tool-contracts-4/observations.json"
+    }
+  ],
+  "boundaries": [
+    "This is finite mock qualification of the opt-in live tool, not an execution of that tool against local Ollama or providers. No downloads, paid usage, configuration writes, external service, timing measurement or model-quality claim.",
+    "Only source definitions 5\u20138 are proposed; original timed routing definition 3 remains outside this batch.",
+    "Typed safe error metadata and one progress suffix restore source behavior without altering classifier decisions, continuity, permissions, bounds or cancellation.",
+    "All central coverage and evidence ledgers remain untouched by this proposal."
+  ],
+  "helper_assertions": {
+    "name": "localFixture",
+    "sha256": "7ad1ef0f734c8644fc8858816c4996f4bad165e4bc95a1d8d72a100d4125b21b",
+    "assertions": [
+      {
+        "line": 16,
+        "expression": "assert.equal(new URL(url).origin, config.ollamaEndpoint)",
+        "sha256": "932b3aec52d59f8ec98cae431c87f27b6df60d003a2ef59ba4cdadc7ee40a7ab",
+        "status": "covered_in_selected_callbacks_only",
+        "native_tests": [
+          "rust/xtask/src/ollama_routing_contracts.rs#full_report_warms_once_and_preserves_every_original_metadata_assertion",
+          "rust/xtask/src/ollama_routing_contracts.rs#collapsed_and_invalid_answers_remain_distinct_failed_reports",
+          "rust/xtask/src/ollama_routing_contracts.rs#duplicate_tasks_are_reclassified_without_fabricated_tier_coverage",
+          "rust/xtask/src/ollama_routing_contracts.rs#busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks"
+        ],
+        "shared_cases": [
+          "ollama-routing-tool-5-1",
+          "ollama-routing-tool-6-1",
+          "ollama-routing-tool-6-2",
+          "ollama-routing-tool-7-1",
+          "ollama-routing-tool-8-1",
+          "ollama-routing-tool-8-2"
+        ],
+        "native_check": "Every complete native URL equals original finite request URL; endpoint and path preserved.",
+        "native_anchors": [
+          {
+            "path": "rust/xtask/src/ollama_routing_contracts.rs",
+            "function": "request",
+            "line": 141
+          },
+          {
+            "path": "rust/xtask/src/ollama_routing_contracts.rs",
+            "function": "verified",
+            "line": 132
+          }
+        ]
+      },
+      {
+        "line": 17,
+        "expression": "assert.equal(options.redirect, 'error')",
+        "sha256": "8867547a8dffc17a3aa008e64a715fe5a4f24738ba0b79b5257a046a95a1b00a",
+        "status": "covered_in_selected_callbacks_only",
+        "native_tests": [
+          "rust/xtask/src/ollama_routing_contracts.rs#full_report_warms_once_and_preserves_every_original_metadata_assertion",
+          "rust/xtask/src/ollama_routing_contracts.rs#collapsed_and_invalid_answers_remain_distinct_failed_reports",
+          "rust/xtask/src/ollama_routing_contracts.rs#duplicate_tasks_are_reclassified_without_fabricated_tier_coverage",
+          "rust/xtask/src/ollama_routing_contracts.rs#busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks"
+        ],
+        "shared_cases": [
+          "ollama-routing-tool-5-1",
+          "ollama-routing-tool-6-1",
+          "ollama-routing-tool-6-2",
+          "ollama-routing-tool-7-1",
+          "ollama-routing-tool-8-1",
+          "ollama-routing-tool-8-2"
+        ],
+        "native_check": "Frozen helper executes redirect:error; native HttpTransport makes only exact required requests, while separately retained actual HTTP307 no-follow regression establishes native transport redirect policy.",
+        "native_anchors": [
+          {
+            "path": "rust/xtask/src/ollama_routing_contracts.rs",
+            "function": "request",
+            "line": 141
+          },
+          {
+            "path": "rust/xtask/src/ollama_routing_contracts.rs",
+            "function": "verified",
+            "line": 132
+          }
+        ]
+      },
+      {
+        "line": 18,
+        "expression": "assert.equal(options.headers?.authorization, undefined)",
+        "sha256": "335ef9966f146e39b68c63e5041e39e49bc3b45d105df36dfa34818524eb5253",
+        "status": "covered_in_selected_callbacks_only",
+        "native_tests": [
+          "rust/xtask/src/ollama_routing_contracts.rs#full_report_warms_once_and_preserves_every_original_metadata_assertion",
+          "rust/xtask/src/ollama_routing_contracts.rs#collapsed_and_invalid_answers_remain_distinct_failed_reports",
+          "rust/xtask/src/ollama_routing_contracts.rs#duplicate_tasks_are_reclassified_without_fabricated_tier_coverage",
+          "rust/xtask/src/ollama_routing_contracts.rs#busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks"
+        ],
+        "shared_cases": [
+          "ollama-routing-tool-5-1",
+          "ollama-routing-tool-6-1",
+          "ollama-routing-tool-6-2",
+          "ollama-routing-tool-7-1",
+          "ollama-routing-tool-8-1",
+          "ollama-routing-tool-8-2"
+        ],
+        "native_check": "Complete headers equality and explicit absent authorization check cover all requests.",
+        "native_anchors": [
+          {
+            "path": "rust/xtask/src/ollama_routing_contracts.rs",
+            "function": "request",
+            "line": 141
+          },
+          {
+            "path": "rust/xtask/src/ollama_routing_contracts.rs",
+            "function": "verified",
+            "line": 132
+          }
+        ]
+      },
+      {
+        "line": 19,
+        "expression": "assert.equal(options.headers?.['x-api-key'], undefined)",
+        "sha256": "50c1f55f687f7ab26a64692f6bd9f3c3108797a8a63a43d5b8bd6a809cade439",
+        "status": "covered_in_selected_callbacks_only",
+        "native_tests": [
+          "rust/xtask/src/ollama_routing_contracts.rs#full_report_warms_once_and_preserves_every_original_metadata_assertion",
+          "rust/xtask/src/ollama_routing_contracts.rs#collapsed_and_invalid_answers_remain_distinct_failed_reports",
+          "rust/xtask/src/ollama_routing_contracts.rs#duplicate_tasks_are_reclassified_without_fabricated_tier_coverage",
+          "rust/xtask/src/ollama_routing_contracts.rs#busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks"
+        ],
+        "shared_cases": [
+          "ollama-routing-tool-5-1",
+          "ollama-routing-tool-6-1",
+          "ollama-routing-tool-6-2",
+          "ollama-routing-tool-7-1",
+          "ollama-routing-tool-8-1",
+          "ollama-routing-tool-8-2"
+        ],
+        "native_check": "Complete headers equality and explicit absent x-api-key check cover all requests.",
+        "native_anchors": [
+          {
+            "path": "rust/xtask/src/ollama_routing_contracts.rs",
+            "function": "request",
+            "line": 141
+          },
+          {
+            "path": "rust/xtask/src/ollama_routing_contracts.rs",
+            "function": "verified",
+            "line": 132
+          }
+        ]
+      },
+      {
+        "line": 26,
+        "expression": "assert.equal(payload.model, config.ollamaModel)",
+        "sha256": "d0e971608d0223d1a26e5bb400050bcef1590314ee7784054ca11884bbc49747",
+        "status": "covered_in_selected_callbacks_only",
+        "native_tests": [
+          "rust/xtask/src/ollama_routing_contracts.rs#full_report_warms_once_and_preserves_every_original_metadata_assertion",
+          "rust/xtask/src/ollama_routing_contracts.rs#collapsed_and_invalid_answers_remain_distinct_failed_reports",
+          "rust/xtask/src/ollama_routing_contracts.rs#duplicate_tasks_are_reclassified_without_fabricated_tier_coverage",
+          "rust/xtask/src/ollama_routing_contracts.rs#busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks"
+        ],
+        "shared_cases": [
+          "ollama-routing-tool-5-1",
+          "ollama-routing-tool-6-1",
+          "ollama-routing-tool-6-2",
+          "ollama-routing-tool-7-1",
+          "ollama-routing-tool-8-1",
+          "ollama-routing-tool-8-2"
+        ],
+        "native_check": "Raw request bodies are exactly compared, preserving configured model in show and systemone payloads.",
+        "native_anchors": [
+          {
+            "path": "rust/xtask/src/ollama_routing_contracts.rs",
+            "function": "request",
+            "line": 141
+          },
+          {
+            "path": "rust/xtask/src/ollama_routing_contracts.rs",
+            "function": "verified",
+            "line": 132
+          }
+        ]
+      },
+      {
+        "line": 28,
+        "expression": "assert.equal(path, '/v1/systemone', 'No downloads, unloads, Jev, chat or Anthropic calls are allowed')",
+        "sha256": "68e72967d2bae1d37d4a98a9e82b69afe249f9b7111e27cf287ac9e9ed2c6365",
+        "status": "covered_in_selected_callbacks_only",
+        "native_tests": [
+          "rust/xtask/src/ollama_routing_contracts.rs#full_report_warms_once_and_preserves_every_original_metadata_assertion",
+          "rust/xtask/src/ollama_routing_contracts.rs#collapsed_and_invalid_answers_remain_distinct_failed_reports",
+          "rust/xtask/src/ollama_routing_contracts.rs#duplicate_tasks_are_reclassified_without_fabricated_tier_coverage",
+          "rust/xtask/src/ollama_routing_contracts.rs#busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks"
+        ],
+        "shared_cases": [
+          "ollama-routing-tool-5-1",
+          "ollama-routing-tool-6-1",
+          "ollama-routing-tool-6-2",
+          "ollama-routing-tool-7-1",
+          "ollama-routing-tool-8-1",
+          "ollama-routing-tool-8-2"
+        ],
+        "native_check": "Every non-metadata request has the original /v1/systemone path; full queue equality rejects other model-management or provider paths.",
+        "native_anchors": [
+          {
+            "path": "rust/xtask/src/ollama_routing_contracts.rs",
+            "function": "request",
+            "line": 141
+          },
+          {
+            "path": "rust/xtask/src/ollama_routing_contracts.rs",
+            "function": "verified",
+            "line": 132
+          }
+        ]
+      },
+      {
+        "line": 33,
+        "expression": "assert.ok(choice, 'The actual human task must survive Claude-shaped background')",
+        "sha256": "1657552a2b1f17268ed40cac801cbbb0efa73b9bcb3b50b97b0bfea58fc0c5ac",
+        "status": "covered_in_selected_callbacks_only",
+        "native_tests": [
+          "rust/xtask/src/ollama_routing_contracts.rs#full_report_warms_once_and_preserves_every_original_metadata_assertion",
+          "rust/xtask/src/ollama_routing_contracts.rs#collapsed_and_invalid_answers_remain_distinct_failed_reports",
+          "rust/xtask/src/ollama_routing_contracts.rs#duplicate_tasks_are_reclassified_without_fabricated_tier_coverage",
+          "rust/xtask/src/ollama_routing_contracts.rs#busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks"
+        ],
+        "shared_cases": [
+          "ollama-routing-tool-5-1",
+          "ollama-routing-tool-6-1",
+          "ollama-routing-tool-6-2",
+          "ollama-routing-tool-7-1",
+          "ollama-routing-tool-8-1",
+          "ollama-routing-tool-8-2"
+        ],
+        "native_check": "Original helper obtains tier only from the exact fixture current task; native state body must byte-match source including actual current task.",
+        "native_anchors": [
+          {
+            "path": "rust/xtask/src/ollama_routing_contracts.rs",
+            "function": "request",
+            "line": 141
+          },
+          {
+            "path": "rust/xtask/src/ollama_routing_contracts.rs",
+            "function": "verified",
+            "line": 132
+          }
+        ]
+      },
+      {
+        "line": 34,
+        "expression": "assert.ok(!JSON.stringify(payload.state).includes('SYNTHETIC_REMINDER_ONLY'))",
+        "sha256": "33d53058dc7f74d17b6c2b1fde857a32aaeb16cfb9a8d583e4ebc7444df39e27",
+        "status": "covered_in_selected_callbacks_only",
+        "native_tests": [
+          "rust/xtask/src/ollama_routing_contracts.rs#full_report_warms_once_and_preserves_every_original_metadata_assertion",
+          "rust/xtask/src/ollama_routing_contracts.rs#collapsed_and_invalid_answers_remain_distinct_failed_reports",
+          "rust/xtask/src/ollama_routing_contracts.rs#duplicate_tasks_are_reclassified_without_fabricated_tier_coverage",
+          "rust/xtask/src/ollama_routing_contracts.rs#busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks"
+        ],
+        "shared_cases": [
+          "ollama-routing-tool-5-1",
+          "ollama-routing-tool-6-1",
+          "ollama-routing-tool-6-2",
+          "ollama-routing-tool-7-1",
+          "ollama-routing-tool-8-1",
+          "ollama-routing-tool-8-2"
+        ],
+        "native_check": "Exact state body matches source helper-approved state without SYNTHETIC_REMINDER_ONLY.",
+        "native_anchors": [
+          {
+            "path": "rust/xtask/src/ollama_routing_contracts.rs",
+            "function": "request",
+            "line": 141
+          },
+          {
+            "path": "rust/xtask/src/ollama_routing_contracts.rs",
+            "function": "verified",
+            "line": 132
+          }
+        ]
+      },
+      {
+        "line": 35,
+        "expression": "assert.ok(!JSON.stringify(payload.state).includes('PRIVATE_THINKING'))",
+        "sha256": "44178e2de10d1dded802ab8e354825219addbec6eb4bbfbbd6a8c0c7def02466",
+        "status": "covered_in_selected_callbacks_only",
+        "native_tests": [
+          "rust/xtask/src/ollama_routing_contracts.rs#full_report_warms_once_and_preserves_every_original_metadata_assertion",
+          "rust/xtask/src/ollama_routing_contracts.rs#collapsed_and_invalid_answers_remain_distinct_failed_reports",
+          "rust/xtask/src/ollama_routing_contracts.rs#duplicate_tasks_are_reclassified_without_fabricated_tier_coverage",
+          "rust/xtask/src/ollama_routing_contracts.rs#busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks"
+        ],
+        "shared_cases": [
+          "ollama-routing-tool-5-1",
+          "ollama-routing-tool-6-1",
+          "ollama-routing-tool-6-2",
+          "ollama-routing-tool-7-1",
+          "ollama-routing-tool-8-1",
+          "ollama-routing-tool-8-2"
+        ],
+        "native_check": "Exact state body matches source helper-approved state without PRIVATE_THINKING.",
+        "native_anchors": [
+          {
+            "path": "rust/xtask/src/ollama_routing_contracts.rs",
+            "function": "request",
+            "line": 141
+          },
+          {
+            "path": "rust/xtask/src/ollama_routing_contracts.rs",
+            "function": "verified",
+            "line": 132
+          }
+        ]
+      }
+    ]
+  },
+  "native_anchors": {
+    "corpus": {
+      "path": "rust/xtask/src/ollama_routing_contracts.rs",
+      "function": "corpus",
+      "line": 20
+    },
+    "settings": {
+      "path": "rust/xtask/src/ollama_routing_contracts.rs",
+      "function": "settings",
+      "line": 65
+    },
+    "verified": {
+      "path": "rust/xtask/src/ollama_routing_contracts.rs",
+      "function": "verified",
+      "line": 132
+    },
+    "request": {
+      "path": "rust/xtask/src/ollama_routing_contracts.rs",
+      "function": "request",
+      "line": 141
+    },
+    "progress": {
+      "path": "rust/xtask/src/ollama_routing_contracts.rs",
+      "function": "progress",
+      "line": 188
+    },
+    "report": {
+      "path": "rust/xtask/src/ollama_routing_contracts.rs",
+      "function": "report",
+      "line": 198
+    },
+    "outcome_matches": {
+      "path": "rust/xtask/src/ollama_routing_contracts.rs",
+      "function": "outcome_matches",
+      "line": 227
+    },
+    "writes_match": {
+      "path": "rust/xtask/src/ollama_routing_contracts.rs",
+      "function": "writes_match",
+      "line": 255
+    },
+    "execute": {
+      "path": "rust/xtask/src/ollama_routing_contracts.rs",
+      "function": "execute",
+      "line": 258
+    },
+    "definition": {
+      "path": "rust/xtask/src/ollama_routing_contracts.rs",
+      "function": "definition",
+      "line": 300
+    },
+    "full_report_warms_once_and_preserves_every_original_metadata_assertion": {
+      "path": "rust/xtask/src/ollama_routing_contracts.rs",
+      "function": "full_report_warms_once_and_preserves_every_original_metadata_assertion",
+      "line": 338
+    },
+    "collapsed_and_invalid_answers_remain_distinct_failed_reports": {
+      "path": "rust/xtask/src/ollama_routing_contracts.rs",
+      "function": "collapsed_and_invalid_answers_remain_distinct_failed_reports",
+      "line": 342
+    },
+    "duplicate_tasks_are_reclassified_without_fabricated_tier_coverage": {
+      "path": "rust/xtask/src/ollama_routing_contracts.rs",
+      "function": "duplicate_tasks_are_reclassified_without_fabricated_tier_coverage",
+      "line": 346
+    },
+    "busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks": {
+      "path": "rust/xtask/src/ollama_routing_contracts.rs",
+      "function": "busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks",
+      "line": 350
+    },
+    "independent_io_and_complete_output_controls_reject_matching_fallbacks": {
+      "path": "rust/xtask/src/ollama_routing_contracts.rs",
+      "function": "independent_io_and_complete_output_controls_reject_matching_fallbacks",
+      "line": 354
+    }
+  },
+  "rows": [
+    {
+      "id": "test/ollama-routing.test.mjs#5",
+      "file": "test/ollama-routing.test.mjs",
+      "name": "the opt-in live harness warms once, routes every case, and reports only metadata",
+      "line": 119,
+      "baseline_file_sha256": "a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b",
+      "definition_statement": "test('the opt-in live harness warms once, routes every case, and reports only metadata', async () => {\n  const config = configFor(MODELS[3]);\n  const fixture = localFixture(config, { resident: [config.ollamaModel] });\n  const report = await runRoutingTests(config, { fetchImpl: fixture.fetchImpl, write: () => {}, cases, fixtureHash: sha256 });\n  assert.equal(report.passed, true);\n  assert.deepEqual(report.missing_tiers, []);\n  assert.equal(report.timeout_ms, config.ollamaTimeoutMs);\n  assert.equal(report.resident_before, true);\n  assert.equal(report.rows.length, cases.length);\n  assert.ok(report.rows.every(row => row.source === 'ollama' && row.current_task_matches));\n  assert.equal(fixture.calls.filter(call => call.path === '/v1/systemone').length, cases.length + 1);\n  for (const item of cases) assert.ok(!JSON.stringify(report).includes(item.prompt));\n  assert.ok(!JSON.stringify(report).includes('Synthetic coding assistant guidance'));\n});",
+      "definition_sha256": "f3015f21369b05914cbf7c55374ce4943ad3bfcc0cdcb7f69c0c7fa1a1e104f1",
+      "definition_call_sha256": "5398fa7eba0adeb7dcac244b8e45a11578fafd2dd433b304582e115f21925fa0",
+      "hash_boundary": "Canonical AST statement includes trailing semicolon; separate call excludes it.",
+      "previous_status": "pending_assertion_mapping",
+      "previous_row": {
+        "id": "test/ollama-routing.test.mjs#5",
+        "file": "test/ollama-routing.test.mjs",
+        "name": "the opt-in live harness warms once, routes every case, and reports only metadata",
+        "parameterized": false,
+        "status": "pending_assertion_mapping",
+        "rust_tests": [],
+        "shared_cases": [],
+        "evidence": null,
+        "related_components": [
+          "evaluators"
+        ]
+      },
+      "status": "covered",
+      "rust_tests": [
+        "rust/xtask/src/ollama_routing_contracts.rs#full_report_warms_once_and_preserves_every_original_metadata_assertion"
+      ],
+      "shared_cases": [
+        "ollama-routing-tool-5-1"
+      ],
+      "scenarios": 1,
+      "tool_calls": 1,
+      "requests": 18,
+      "static_assertions": 9,
+      "direct_executed_original_assertions": 14,
+      "helper_executed_original_assertions": 115,
+      "assertions": [
+        {
+          "id": "test/ollama-routing.test.mjs#5:assert-1",
+          "line": 123,
+          "expression": "assert.equal(report.passed, true)",
+          "sha256": "30095a40b0e4d8fd8ba33255448fc341c72ff18f8ed9205db71fb17401fb56a1",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#full_report_warms_once_and_preserves_every_original_metadata_assertion"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-5-1"
+          ],
+          "native_check": "Complete report equality requires passed=true after all six original fixture tasks and three passing tiers.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "full_report_warms_once_and_preserves_every_original_metadata_assertion",
+              "line": 338
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#5:assert-2",
+          "line": 124,
+          "expression": "assert.deepEqual(report.missing_tiers, [])",
+          "sha256": "4d42e55662d21d091a42404dbb796942873be9724f309b5dfd3ecc0ab63b6754",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#full_report_warms_once_and_preserves_every_original_metadata_assertion"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-5-1"
+          ],
+          "native_check": "Exact ordered missing_tiers array is empty.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "full_report_warms_once_and_preserves_every_original_metadata_assertion",
+              "line": 338
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#5:assert-3",
+          "line": 125,
+          "expression": "assert.equal(report.timeout_ms, config.ollamaTimeoutMs)",
+          "sha256": "78747225a15c972b634ed4022fb8b10698ab384d7602352e6d339fae07726879",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#full_report_warms_once_and_preserves_every_original_metadata_assertion"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-5-1"
+          ],
+          "native_check": "Full report equality preserves configured timeout_ms from complete model-dependent config reconstruction.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "full_report_warms_once_and_preserves_every_original_metadata_assertion",
+              "line": 338
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#5:assert-4",
+          "line": 126,
+          "expression": "assert.equal(report.resident_before, true)",
+          "sha256": "8e78cedf7cc13338f820587b9b07feaafe00edfd032441444d5e84cdae074978",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#full_report_warms_once_and_preserves_every_original_metadata_assertion"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-5-1"
+          ],
+          "native_check": "Actual initial resident-model response names only the selected model and complete report retains resident_before=true.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "full_report_warms_once_and_preserves_every_original_metadata_assertion",
+              "line": 338
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#5:assert-5",
+          "line": 127,
+          "expression": "assert.equal(report.rows.length, cases.length)",
+          "sha256": "dd43feba2786cbe1ffe0cec0c16b24b3d60c33552b64bdc404f18f69a8f17746",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#full_report_warms_once_and_preserves_every_original_metadata_assertion"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-5-1"
+          ],
+          "native_check": "Exactly six complete report rows, in original case order.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "full_report_warms_once_and_preserves_every_original_metadata_assertion",
+              "line": 338
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#5:assert-6",
+          "line": 128,
+          "expression": "assert.ok(report.rows.every(row => row.source === 'ollama' && row.current_task_matches))",
+          "sha256": "4920ec2bce89722b5560fc55c2f45432cd0e238052db011dd97aa24136eb037c",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#full_report_warms_once_and_preserves_every_original_metadata_assertion"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-5-1"
+          ],
+          "native_check": "Every full native row is compared including source=ollama and current_task_matches=true; production Router/evaluator executes each synthetic schedule.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "full_report_warms_once_and_preserves_every_original_metadata_assertion",
+              "line": 338
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#5:assert-7",
+          "line": 129,
+          "expression": "assert.equal(fixture.calls.filter(call => call.path === '/v1/systemone').length, cases.length + 1)",
+          "sha256": "9dd511daf0c541ae859a108f3e54a9374d3b6cded97784d66304541a779ed09e",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#full_report_warms_once_and_preserves_every_original_metadata_assertion"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-5-1"
+          ],
+          "native_check": "Independent full request sequence consumes seven /v1/systemone requests: one setup warmup plus six fresh classifications.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "full_report_warms_once_and_preserves_every_original_metadata_assertion",
+              "line": 338
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#5:assert-8",
+          "line": 130,
+          "expression": "assert.ok(!JSON.stringify(report).includes(item.prompt))",
+          "sha256": "4438ba84d5e60404c158758da2d0efcf2946841d7c4788dae67363b59be5b5fc",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#full_report_warms_once_and_preserves_every_original_metadata_assertion"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-5-1"
+          ],
+          "native_check": "Serialized full native outcome plus progress is searched for each original fixture task prompt; all six prompts must remain absent.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "full_report_warms_once_and_preserves_every_original_metadata_assertion",
+              "line": 338
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#5:assert-9",
+          "line": 131,
+          "expression": "assert.ok(!JSON.stringify(report).includes('Synthetic coding assistant guidance'))",
+          "sha256": "03a258627c9ebde519ab1624a0ddc42584e171ef98b6d4448cf5dd68cca536e6",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#full_report_warms_once_and_preserves_every_original_metadata_assertion"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-5-1"
+          ],
+          "native_check": "Full output privacy checks require absence of Synthetic coding assistant guidance.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "full_report_warms_once_and_preserves_every_original_metadata_assertion",
+              "line": 338
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        }
+      ],
+      "unmapped_assertions": [],
+      "scope": "Original finite tool callback with original fixture/mock responses; actual production run_tests/setup/Router/evaluator execute. No real evaluator, model, service, provider, timing or OS qualification."
+    },
+    {
+      "id": "test/ollama-routing.test.mjs#6",
+      "file": "test/ollama-routing.test.mjs",
+      "name": "the live harness fails honestly when native answers collapse to Sonnet or become fallbacks",
+      "line": 134,
+      "baseline_file_sha256": "a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b",
+      "definition_statement": "test('the live harness fails honestly when native answers collapse to Sonnet or become fallbacks', async () => {\n  const config = configFor(MODELS[1]);\n  const collapsed = localFixture(config, { answer: 'sonnet' });\n  const report = await runRoutingTests(config, { fetchImpl: collapsed.fetchImpl, write: () => {}, cases });\n  assert.equal(report.passed, false);\n  assert.deepEqual(report.missing_tiers, ['haiku', 'opus']);\n  assert.equal(report.rows.find(row => row.case === 'bounded-feature').result, 'pass');\n  assert.ok(report.rows.filter(row => row.expected !== 'sonnet').every(row => row.result === 'classification_mismatch' && row.source === 'ollama'));\n\n  const invalid = localFixture(config);\n  invalid.mode = 'invalid';\n  const fallback = await runRoutingTests(config, { fetchImpl: invalid.fetchImpl, write: () => {}, cases: [byId('array-length')] });\n  assert.equal(fallback.passed, false);\n  assert.equal(fallback.rows[0].result, 'fallback');\n  assert.equal(fallback.rows[0].classifier_error, 'invalid_response');\n  assert.deepEqual(fallback.missing_tiers, ['haiku', 'sonnet', 'opus']);\n  assert.ok(!JSON.stringify(fallback).includes('SYNTHETIC_PRIVATE_RESPONSE'));\n});",
+      "definition_sha256": "52d18bc3c1e1af11db46e3cf2005155f7754cb4cf8786b6ce20e0f0aa7d79b68",
+      "definition_call_sha256": "d71d9cc7d859499403da713f0444521507b57b8c0e7d9506be6ab459c99c1538",
+      "hash_boundary": "Canonical AST statement includes trailing semicolon; separate call excludes it.",
+      "previous_status": "pending_assertion_mapping",
+      "previous_row": {
+        "id": "test/ollama-routing.test.mjs#6",
+        "file": "test/ollama-routing.test.mjs",
+        "name": "the live harness fails honestly when native answers collapse to Sonnet or become fallbacks",
+        "parameterized": false,
+        "status": "pending_assertion_mapping",
+        "rust_tests": [],
+        "shared_cases": [],
+        "evidence": null,
+        "related_components": [
+          "evaluators"
+        ]
+      },
+      "status": "covered",
+      "rust_tests": [
+        "rust/xtask/src/ollama_routing_contracts.rs#collapsed_and_invalid_answers_remain_distinct_failed_reports"
+      ],
+      "shared_cases": [
+        "ollama-routing-tool-6-1",
+        "ollama-routing-tool-6-2"
+      ],
+      "scenarios": 2,
+      "tool_calls": 2,
+      "requests": 26,
+      "static_assertions": 9,
+      "direct_executed_original_assertions": 9,
+      "helper_executed_original_assertions": 157,
+      "assertions": [
+        {
+          "id": "test/ollama-routing.test.mjs#6:assert-1",
+          "line": 138,
+          "expression": "assert.equal(report.passed, false)",
+          "sha256": "a5cd1a59c13df045b8c6b34d3205aa168ecac43f8534c32e3cf87970c04aa98f",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#collapsed_and_invalid_answers_remain_distinct_failed_reports"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-6-1",
+            "ollama-routing-tool-6-2"
+          ],
+          "native_check": "Collapsed Sonnet report remains passed=false.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "collapsed_and_invalid_answers_remain_distinct_failed_reports",
+              "line": 342
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#6:assert-2",
+          "line": 139,
+          "expression": "assert.deepEqual(report.missing_tiers, ['haiku', 'opus'])",
+          "sha256": "d7cc58984fc52dd994883e45122a7b19564765fc24597f9e757fb242bb99a692",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#collapsed_and_invalid_answers_remain_distinct_failed_reports"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-6-1",
+            "ollama-routing-tool-6-2"
+          ],
+          "native_check": "Exact ordered missing_tiers=[haiku,opus] from actual result processing.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "collapsed_and_invalid_answers_remain_distinct_failed_reports",
+              "line": 342
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#6:assert-3",
+          "line": 140,
+          "expression": "assert.equal(report.rows.find(row => row.case === 'bounded-feature').result, 'pass')",
+          "sha256": "9ccec5acd7fcc077b6bb036d644f36471d38f2e3686fd1126c52e793bb9d8303",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#collapsed_and_invalid_answers_remain_distinct_failed_reports"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-6-1",
+            "ollama-routing-tool-6-2"
+          ],
+          "native_check": "Complete bounded-feature row retains result=pass for legitimate Sonnet.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "collapsed_and_invalid_answers_remain_distinct_failed_reports",
+              "line": 342
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#6:assert-4",
+          "line": 141,
+          "expression": "assert.ok(report.rows.filter(row => row.expected !== 'sonnet').every(row => row.result === 'classification_mismatch' && row.source === 'ollama'))",
+          "sha256": "399d6ad20a24a54b701e4247d6f98faf3aa8acab7cc44f619baed94f6504f981",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#collapsed_and_invalid_answers_remain_distinct_failed_reports"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-6-1",
+            "ollama-routing-tool-6-2"
+          ],
+          "native_check": "All original non-Sonnet rows retain classification_mismatch and source=ollama; complete row equality prevents fallback relabeling.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "collapsed_and_invalid_answers_remain_distinct_failed_reports",
+              "line": 342
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#6:assert-5",
+          "line": 146,
+          "expression": "assert.equal(fallback.passed, false)",
+          "sha256": "af9ef7ad2bfe41d0d487ee388d333035c1d485580f693273fe15472d0a217fe4",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#collapsed_and_invalid_answers_remain_distinct_failed_reports"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-6-1",
+            "ollama-routing-tool-6-2"
+          ],
+          "native_check": "Invalid-response report retains passed=false.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "collapsed_and_invalid_answers_remain_distinct_failed_reports",
+              "line": 342
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#6:assert-6",
+          "line": 147,
+          "expression": "assert.equal(fallback.rows[0].result, 'fallback')",
+          "sha256": "5d1b91cc43880db1899743d265b2f26c64a0986e0a9f421c22325fad2be25934",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#collapsed_and_invalid_answers_remain_distinct_failed_reports"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-6-1",
+            "ollama-routing-tool-6-2"
+          ],
+          "native_check": "Complete invalid array-length row retains result=fallback.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "collapsed_and_invalid_answers_remain_distinct_failed_reports",
+              "line": 342
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#6:assert-7",
+          "line": 148,
+          "expression": "assert.equal(fallback.rows[0].classifier_error, 'invalid_response')",
+          "sha256": "de1d4d70d89c5d76f1c501dca9ee3f0a79fe45b778c3ed05dfc820998210eaa7",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#collapsed_and_invalid_answers_remain_distinct_failed_reports"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-6-1",
+            "ollama-routing-tool-6-2"
+          ],
+          "native_check": "Exact classifier_error=invalid_response in actual evaluator fallback output.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "collapsed_and_invalid_answers_remain_distinct_failed_reports",
+              "line": 342
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#6:assert-8",
+          "line": 149,
+          "expression": "assert.deepEqual(fallback.missing_tiers, ['haiku', 'sonnet', 'opus'])",
+          "sha256": "7fb7bf3e4133a6a2fdba559be5f3a8791042e8abef9a3117417327b02dd3d7d8",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#collapsed_and_invalid_answers_remain_distinct_failed_reports"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-6-1",
+            "ollama-routing-tool-6-2"
+          ],
+          "native_check": "Exact ordered missing_tiers=[haiku,sonnet,opus]; fallback never establishes tier coverage.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "collapsed_and_invalid_answers_remain_distinct_failed_reports",
+              "line": 342
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#6:assert-9",
+          "line": 150,
+          "expression": "assert.ok(!JSON.stringify(fallback).includes('SYNTHETIC_PRIVATE_RESPONSE'))",
+          "sha256": "55709fe8b943bc1692089fd66110a94ff970cc16d5ef06f6822ec8a33a866840",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#collapsed_and_invalid_answers_remain_distinct_failed_reports"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-6-1",
+            "ollama-routing-tool-6-2"
+          ],
+          "native_check": "Entire native outcome and progress omit SYNTHETIC_PRIVATE_RESPONSE despite original invalid response body.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "collapsed_and_invalid_answers_remain_distinct_failed_reports",
+              "line": 342
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        }
+      ],
+      "unmapped_assertions": [],
+      "scope": "Original finite tool callback with original fixture/mock responses; actual production run_tests/setup/Router/evaluator execute. No real evaluator, model, service, provider, timing or OS qualification."
+    },
+    {
+      "id": "test/ollama-routing.test.mjs#7",
+      "file": "test/ollama-routing.test.mjs",
+      "name": "duplicate live cases still perform native evaluations instead of passing from the router cache",
+      "line": 153,
+      "baseline_file_sha256": "a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b",
+      "definition_statement": "test('duplicate live cases still perform native evaluations instead of passing from the router cache', async () => {\n  const config = configFor(MODELS[1]);\n  const fixture = localFixture(config);\n  const original = byId('literal');\n  const report = await runRoutingTests(config, { fetchImpl: fixture.fetchImpl, write: () => {}, cases: [original, { ...original, id: 'literal-repeat' }] });\n  assert.equal(fixture.calls.filter(call => call.path === '/v1/systemone').length, 3);\n  assert.ok(report.rows.every(row => row.source === 'ollama'));\n  assert.equal(report.passed, false, 'Two Haiku decisions alone do not establish all-tier coverage');\n});",
+      "definition_sha256": "d99a3d05518c6f4e4f6ac5a8e125525384bc0f28103f5c57369dde2c8d0d306b",
+      "definition_call_sha256": "d73ad33a0c13421c486d353f73c3edc428204beea9916b505042cb4e16b1db7b",
+      "hash_boundary": "Canonical AST statement includes trailing semicolon; separate call excludes it.",
+      "previous_status": "pending_assertion_mapping",
+      "previous_row": {
+        "id": "test/ollama-routing.test.mjs#7",
+        "file": "test/ollama-routing.test.mjs",
+        "name": "duplicate live cases still perform native evaluations instead of passing from the router cache",
+        "parameterized": false,
+        "status": "pending_assertion_mapping",
+        "rust_tests": [],
+        "shared_cases": [],
+        "evidence": null,
+        "related_components": [
+          "evaluators"
+        ]
+      },
+      "status": "covered",
+      "rust_tests": [
+        "rust/xtask/src/ollama_routing_contracts.rs#duplicate_tasks_are_reclassified_without_fabricated_tier_coverage"
+      ],
+      "shared_cases": [
+        "ollama-routing-tool-7-1"
+      ],
+      "scenarios": 1,
+      "tool_calls": 1,
+      "requests": 10,
+      "static_assertions": 3,
+      "direct_executed_original_assertions": 3,
+      "helper_executed_original_assertions": 59,
+      "assertions": [
+        {
+          "id": "test/ollama-routing.test.mjs#7:assert-1",
+          "line": 158,
+          "expression": "assert.equal(fixture.calls.filter(call => call.path === '/v1/systemone').length, 3)",
+          "sha256": "4a7dbe7f5fe24b16c16a7551bf5d09f7bab6683a1f07a703bea3560bb1393ea1",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#duplicate_tasks_are_reclassified_without_fabricated_tier_coverage"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-7-1"
+          ],
+          "native_check": "Duplicate literal tasks consume three exact /v1/systemone requests: warmup plus two classifications through actual fresh Routers.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "duplicate_tasks_are_reclassified_without_fabricated_tier_coverage",
+              "line": 346
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#7:assert-2",
+          "line": 159,
+          "expression": "assert.ok(report.rows.every(row => row.source === 'ollama'))",
+          "sha256": "0a0fef9d00fe51940445acee01b3845ffef643f17c3eef2d8519377a56f600da",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#duplicate_tasks_are_reclassified_without_fabricated_tier_coverage"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-7-1"
+          ],
+          "native_check": "Both full duplicate-task rows require source=ollama, including second duplicate prompt.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "duplicate_tasks_are_reclassified_without_fabricated_tier_coverage",
+              "line": 346
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#7:assert-3",
+          "line": 160,
+          "expression": "assert.equal(report.passed, false, 'Two Haiku decisions alone do not establish all-tier coverage')",
+          "sha256": "997e2b9d64e88d8e5911d2a75439a08d7a3d99911be8ae3ad9c44c016ca84db4",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#duplicate_tasks_are_reclassified_without_fabricated_tier_coverage"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-7-1"
+          ],
+          "native_check": "Native report remains passed=false with only Haiku results, regardless of duplicate success.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "duplicate_tasks_are_reclassified_without_fabricated_tier_coverage",
+              "line": 346
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        }
+      ],
+      "unmapped_assertions": [],
+      "scope": "Original finite tool callback with original fixture/mock responses; actual production run_tests/setup/Router/evaluator execute. No real evaluator, model, service, provider, timing or OS qualification."
+    },
+    {
+      "id": "test/ollama-routing.test.mjs#8",
+      "file": "test/ollama-routing.test.mjs",
+      "name": "live preflight never unloads another resident model or downloads a missing selected model",
+      "line": 163,
+      "baseline_file_sha256": "a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b",
+      "definition_statement": "test('live preflight never unloads another resident model or downloads a missing selected model', async () => {\n  const config = configFor(MODELS[0]);\n  const busy = localFixture(config, { resident: ['other-local-model:latest'] });\n  await assert.rejects(runRoutingTests(config, { fetchImpl: busy.fetchImpl, write: () => {}, cases }), /Other Ollama models are resident/);\n  assert.deepEqual(busy.calls.map(call => call.path), ['/api/ps']);\n  const missing = localFixture(config, { installed: false });\n  await assert.rejects(runRoutingTests(config, { fetchImpl: missing.fetchImpl, write: () => {}, cases }), error => error.code === 'OLLAMA_MODEL_MISSING');\n  assert.deepEqual(missing.calls.map(call => call.path), ['/api/ps', '/api/version', '/api/tags']);\n});",
+      "definition_sha256": "bfc3d07899d866d04c636c2a5c6cc08f9c2e062278abe662c8f2925bdc47887b",
+      "definition_call_sha256": "dfab4dcddaac7748a505b31a24d6547e9169ddbad69177dcd9264943e73f954f",
+      "hash_boundary": "Canonical AST statement includes trailing semicolon; separate call excludes it.",
+      "previous_status": "pending_assertion_mapping",
+      "previous_row": {
+        "id": "test/ollama-routing.test.mjs#8",
+        "file": "test/ollama-routing.test.mjs",
+        "name": "live preflight never unloads another resident model or downloads a missing selected model",
+        "parameterized": false,
+        "status": "pending_assertion_mapping",
+        "rust_tests": [],
+        "shared_cases": [],
+        "evidence": null,
+        "related_components": [
+          "evaluators"
+        ]
+      },
+      "status": "covered",
+      "rust_tests": [
+        "rust/xtask/src/ollama_routing_contracts.rs#busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks"
+      ],
+      "shared_cases": [
+        "ollama-routing-tool-8-1",
+        "ollama-routing-tool-8-2"
+      ],
+      "scenarios": 2,
+      "tool_calls": 2,
+      "requests": 4,
+      "static_assertions": 4,
+      "direct_executed_original_assertions": 4,
+      "helper_executed_original_assertions": 16,
+      "assertions": [
+        {
+          "id": "test/ollama-routing.test.mjs#8:assert-1",
+          "line": 166,
+          "expression": "assert.rejects(runRoutingTests(config, { fetchImpl: busy.fetchImpl, write: () => {}, cases }), /Other Ollama models are resident/)",
+          "sha256": "c18c7a1eef53b2e704b0a3f815ddc503e29019147a583f37a3831b03f7cc7791",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-8-1",
+            "ollama-routing-tool-8-2"
+          ],
+          "native_check": "Actual busy preflight emits exact safe error message and ROUTING_TEST_ERROR identity; original message contains Other Ollama models are resident.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks",
+              "line": 350
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#8:assert-2",
+          "line": 167,
+          "expression": "assert.deepEqual(busy.calls.map(call => call.path), ['/api/ps'])",
+          "sha256": "b3a39db4d6379fd417f09b0626ef2411c86b39fe0382843d04e8a5360646af23",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-8-1",
+            "ollama-routing-tool-8-2"
+          ],
+          "native_check": "Independent queue consumes only one exact /api/ps request; no setup or task transmission occurs.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks",
+              "line": 350
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#8:assert-3",
+          "line": 169,
+          "expression": "assert.rejects(runRoutingTests(config, { fetchImpl: missing.fetchImpl, write: () => {}, cases }), error => error.code === 'OLLAMA_MODEL_MISSING')",
+          "sha256": "82dc1307109c058390931c70d16b34a076bae4051e1bd802b1ecceafeef1eda8",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-8-1",
+            "ollama-routing-tool-8-2"
+          ],
+          "native_check": "Typed RoutingTestError preserves original OLLAMA_MODEL_MISSING identity and exact safe message from SetupError; wrong-code control fails even with matching message.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks",
+              "line": 350
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#8:assert-4",
+          "line": 170,
+          "expression": "assert.deepEqual(missing.calls.map(call => call.path), ['/api/ps', '/api/version', '/api/tags'])",
+          "sha256": "0b4adb340c5ef4d509055ed0369819fb727e960858f2a7a309fd4fac6941e681",
+          "status": "covered",
+          "native_tests": [
+            "rust/xtask/src/ollama_routing_contracts.rs#busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks"
+          ],
+          "shared_cases": [
+            "ollama-routing-tool-8-1",
+            "ollama-routing-tool-8-2"
+          ],
+          "native_check": "Exact request sequence is /api/ps,/api/version,/api/tags; missing model stops before show, warmup, inference, unload or download.",
+          "native_anchors": [
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "busy_and_missing_preflight_preserve_exact_errors_and_stop_before_tasks",
+              "line": 350
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "definition",
+              "line": 300
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "execute",
+              "line": 258
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "outcome_matches",
+              "line": 227
+            },
+            {
+              "path": "rust/xtask/src/ollama_routing_contracts.rs",
+              "function": "verified",
+              "line": 132
+            }
+          ]
+        }
+      ],
+      "unmapped_assertions": [],
+      "scope": "Original finite tool callback with original fixture/mock responses; actual production run_tests/setup/Router/evaluator execute. No real evaluator, model, service, provider, timing or OS qualification."
+    }
+  ],
+  "input_coverage": {
+    "path": "artifacts/rust-rewrite/evidence/e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d.json",
+    "sha256": "e4ffebf5c82196209eefeb4c7ca3d31632c99151677b3acaeb379b241a764e9d",
+    "bytes": 1434838,
+    "original_path": "rust/parity/coverage.json"
+  },
+  "scope": "Four complete finite tool definitions:6synthetic runs/58requests and377executed original assertions. Full reports/progress/error identity retain warmup, collapsed/fallback tiers, duplicate classifications and safe preflight; no live evaluator or numerical timing evidence.",
+  "status": "Reviewed finite assertion mapping; complete rewrite qualification remains open.",
+  "review": {
+    "proposal": {
+      "path": "artifacts/rust-rewrite/evidence/ab4c3a3fbde022cdcbd054aa6cc6e4482bcb53f4894abd4e040ab7fa916f2894.json",
+      "sha256": "ab4c3a3fbde022cdcbd054aa6cc6e4482bcb53f4894abd4e040ab7fa916f2894",
+      "bytes": 103497,
+      "original_path": "/private/tmp/autorouter-ollama-routing-tool-mapping-proposal.json"
+    },
+    "review": {
+      "path": "artifacts/rust-rewrite/evidence/b9ddb75ae55a996adc3d16f9ef9ea049edda2664627d189839ed4c1a66fd7621.json",
+      "sha256": "b9ddb75ae55a996adc3d16f9ef9ea049edda2664627d189839ed4c1a66fd7621",
+      "bytes": 26886,
+      "original_path": "/private/tmp/autorouter-ollama-routing-tool-root-review.json"
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/evidence/71f3009a8555be27228b73be7ee73e6a543814ce793b578476bdf36c4c8f33d7.json",
+      "sha256": "71f3009a8555be27228b73be7ee73e6a543814ce793b578476bdf36c4c8f33d7",
+      "bytes": 7435,
+      "original_path": "/private/tmp/autorouter-ollama-routing-tool-independent-review.json"
+    }
+  },
+  "previous_coverage_rows": [
+    {
+      "id": "test/ollama-routing.test.mjs#5",
+      "file": "test/ollama-routing.test.mjs",
+      "name": "the opt-in live harness warms once, routes every case, and reports only metadata",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/ollama-routing.test.mjs#6",
+      "file": "test/ollama-routing.test.mjs",
+      "name": "the live harness fails honestly when native answers collapse to Sonnet or become fallbacks",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/ollama-routing.test.mjs#7",
+      "file": "test/ollama-routing.test.mjs",
+      "name": "duplicate live cases still perform native evaluations instead of passing from the router cache",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/ollama-routing.test.mjs#8",
+      "file": "test/ollama-routing.test.mjs",
+      "name": "live preflight never unloads another resident model or downloads a missing selected model",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1689 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_ollama_evaluator_timed_contracts_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_head": "0e3ea4c28525f6bb290f8215077bf86b674c1eb7",
+  "status": "Five reviewed finite Rust counterparts covered under explicit library API migration; JavaScript signal and Error object identity are unclaimed.",
+  "production_changes": [
+    {
+      "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+      "bytes": 36705,
+      "sha256": "3430dca5204b3c635c152f72aea6390831b6445b5af98845fa9f63e131042c65"
+    }
+  ],
+  "source_behavior_bug_found": [
+    {
+      "problem": "Last cancelled classify could return before its evaluator request/body future was dropped.",
+      "fix": "Retain exact Arc<Entry> with a persistent completion witness; construct guard before spawn; evaluator future ends before completion; detach cancelled peers and await only exact old work when no live peer remains."
+    },
+    {
+      "problem": "Shutdown published Cancelled could be overwritten by worker late Ok before the waiter read the watch.",
+      "fix": "Check retained exact controller cancellation before returning any non-cancelled result; use the same cancellation/cleanup path and never act on replacement entry."
+    }
+  ],
+  "counts": {
+    "definitions": 5,
+    "static_assertions": 20,
+    "expanded_original_assertions": 36,
+    "zero_execution_guards": 1,
+    "operations": 16,
+    "requests": 26,
+    "routers": 6,
+    "streams": 7,
+    "route_latency_fields_projected": 6,
+    "identity_predicates_with_explicit_api_limitations": 3,
+    "covered": 5
+  },
+  "current_sources": [
+    {
+      "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+      "bytes": 36705,
+      "sha256": "3430dca5204b3c635c152f72aea6390831b6445b5af98845fa9f63e131042c65"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/classifier_cancellation_contracts.rs",
+      "bytes": 14009,
+      "sha256": "48b41a7ef74ee64fe5c97998d9ffd7620e8d6941ab88317210c96c87b538d368"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+      "bytes": 19631,
+      "sha256": "64369f261e5914c4debf9633afb8d32d6417b40737447d727eea1a42dfae0428"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_evaluator_timed.rs",
+      "bytes": 13787,
+      "sha256": "faf63927b34f5bb3d14e7521adfcb10ab6af3a98d4e760bfe1709106078e9425"
+    },
+    {
+      "path": "rust/parity/capture-ollama-evaluator-timed-contracts.mjs",
+      "bytes": 21594,
+      "sha256": "2a47678eece9540a9e0c9265ba8fee73e183836b643ca6610d514b2038627413"
+    },
+    {
+      "path": "rust/parity/cases/ollama-evaluator-timed-contracts.jsonl",
+      "bytes": 103786,
+      "sha256": "76ab47e2e96be3374be2c8d5e981f59d5fa01cd20765caec08bdafac1b7a4c3f"
+    },
+    {
+      "path": "rust/parity/cases/ollama-evaluator-timed-contracts.capture.json",
+      "bytes": 330183,
+      "sha256": "dd221a7bc3c57544a3c658ac84fb4e22fc710830d8697ba92219120c17e5dc58"
+    },
+    {
+      "path": "rust/docs/embedding.md",
+      "bytes": 7467,
+      "sha256": "e65febd975f711f2072393746eeb40bcaa2bad1fb43c9eec8ae171789c2b608c"
+    }
+  ],
+  "retained_sources": [
+    {
+      "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/sources/rust/crates/autorouter-runtime/src/classifier.rs",
+      "bytes": 36705,
+      "sha256": "3430dca5204b3c635c152f72aea6390831b6445b5af98845fa9f63e131042c65"
+    },
+    {
+      "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/sources/rust/crates/autorouter-runtime/src/classifier_cancellation_contracts.rs",
+      "bytes": 14009,
+      "sha256": "48b41a7ef74ee64fe5c97998d9ffd7620e8d6941ab88317210c96c87b538d368"
+    },
+    {
+      "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/sources/rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+      "bytes": 19631,
+      "sha256": "64369f261e5914c4debf9633afb8d32d6417b40737447d727eea1a42dfae0428"
+    },
+    {
+      "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/sources/rust/crates/autorouter-runtime/tests/support/ollama_evaluator_timed.rs",
+      "bytes": 13787,
+      "sha256": "faf63927b34f5bb3d14e7521adfcb10ab6af3a98d4e760bfe1709106078e9425"
+    },
+    {
+      "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/sources/rust/parity/capture-ollama-evaluator-timed-contracts.mjs",
+      "bytes": 21594,
+      "sha256": "2a47678eece9540a9e0c9265ba8fee73e183836b643ca6610d514b2038627413"
+    },
+    {
+      "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/sources/rust/parity/cases/ollama-evaluator-timed-contracts.jsonl",
+      "bytes": 103786,
+      "sha256": "76ab47e2e96be3374be2c8d5e981f59d5fa01cd20765caec08bdafac1b7a4c3f"
+    },
+    {
+      "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/sources/rust/parity/cases/ollama-evaluator-timed-contracts.capture.json",
+      "bytes": 330183,
+      "sha256": "dd221a7bc3c57544a3c658ac84fb4e22fc710830d8697ba92219120c17e5dc58"
+    }
+  ],
+  "baseline_source": {
+    "path": "artifacts/rust-rewrite/reference/test/ollama-evaluator.test.mjs",
+    "bytes": 17663,
+    "sha256": "5015a563933bc51ffcc8ab88214cb4d972f590548ae8e5c768aa46f24669a371"
+  },
+  "source_inputs": {
+    "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/inputs-before.json",
+    "bytes": 64332,
+    "sha256": "449fbe4ee227422d3ba75d5faf66fa5a8d45f6ecb048547391129435621ea0b4",
+    "retained_path": "artifacts/rust-rewrite/evidence/449fbe4ee227422d3ba75d5faf66fa5a8d45f6ecb048547391129435621ea0b4.json"
+  },
+  "capture_method": {
+    "capture": {
+      "path": "rust/parity/cases/ollama-evaluator-timed-contracts.capture.json",
+      "bytes": 330183,
+      "sha256": "dd221a7bc3c57544a3c658ac84fb4e22fc710830d8697ba92219120c17e5dc58"
+    },
+    "generator": {
+      "path": "rust/parity/capture-ollama-evaluator-timed-contracts.mjs",
+      "bytes": 21594,
+      "sha256": "2a47678eece9540a9e0c9265ba8fee73e183836b643ca6610d514b2038627413"
+    },
+    "baseline": {
+      "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+      "files_verified": 111
+    },
+    "node": {
+      "version": "v22.14.0",
+      "executable_sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0"
+    },
+    "typescript_version": "6.0.3",
+    "verifier_sha256": "5744dd82040445879174bb9c17a0ce8a1543985f0dc355b2493984748677e388",
+    "manifest_sha256": "6722bd7a0109efb4d48e743412fbcc21affb0ceda1058d06726d03375113f588",
+    "boundaries": [
+      "All five original callbacks and all original helpers execute completely. Only import wiring, unselected-definition removal and assertion-entry counters are transformed. Nested fail guard is retained with zero executions.",
+      "Original callback-local timers, delays, pending streams, injected fetch functions and assertions remain. Captured callbacks use real Node timers; no model or network call occurs.",
+      "Response and stream facades return actual built-in objects without reading, teeing or cloning. Stream callbacks retain the original source receiver; controller method observers forward through the identical controller, recording exact enqueued bytes and cancellation ordering.",
+      "Signal and Error ids represent exact object identity within this execution. Original arbitrary Error equality checks remain in Node. Rust typed cancellation is a documented library adaptation, not Error identity equivalence.",
+      "Complete raw decisions and monotonic event observations are retained. The secondary stable operation digest replaces exactly six validated nonnegative route latency fields with zero; raw corpus is unmodified. No wall-clock parity claim is made. Native paused-clock schedules must use real production timers and real body/request drop.",
+      "The Router facade records only original external route/classify invocations and delegates to one unchanged frozen Router instance per original constructor. Internal classify calls are not replaced."
+    ],
+    "original_helpers": [
+      {
+        "statement": "const config = overrides => ({ ...readConfig({ AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_AUTH_MODE: 'subscription' }), ...overrides });",
+        "sha256": "adbf888860f60b06873debed6563057999f244acceeffbb432fd05179b3bbe1e",
+        "line": 10
+      },
+      {
+        "statement": "const body = (text = 'Fix one typo') => ({ model: 'claude-haiku-4-5-20251001', max_tokens: 4096, messages: [{ role: 'user', content: text }] });",
+        "sha256": "2840726907e07bdccb84c82e040d77b1785357c79b9790bb7eb810b0fae12b0d",
+        "line": 11
+      },
+      {
+        "statement": "const metadata = () => Response.json({ details: { parameter_size: '9B' }, capabilities: ['completion'] });",
+        "sha256": "e1639ed5d266fffb6b63f9eaf003311bdfd299596da9748e6348da776b9db681",
+        "line": 12
+      },
+      {
+        "statement": "const response = tier => Response.json(decisionPayload(tier));",
+        "sha256": "c97f69d44bcdfb69a0cc8c546af9d24bd8a90e2ac1a9b393a6bfdcdb0549921b",
+        "line": 13
+      },
+      {
+        "statement": "const decisionPayload = (choice = 'haiku', model = DEFAULT_OLLAMA_MODEL) => ({\n  model, answers: { tier: { type: 'choice', choice, probabilities: { haiku: 0.1, sonnet: 0.1, opus: 0.1, [choice]: 0.8 }, confidence: 0.418 } },\n  usage: { input_tokens: 1234, output_tokens: 1 },\n});",
+        "sha256": "00ffe118ecf219d35448ae69aa8055a2debf41177187cb79ee231112a78b1486",
+        "line": 14
+      }
+    ]
+  },
+  "limits": {
+    "operations": 32,
+    "requests": 48,
+    "streams": 24,
+    "events": 512,
+    "assertions": 128,
+    "snapshot_nodes": 8192,
+    "field_bytes": 131072,
+    "aggregate_bytes": 8388608
+  },
+  "capture_repeatability": {
+    "stable_non_timing_cases_sha256": "c0d7285014bbe579af9c307591faf1c5988b16517a1bd5c776644baabe26ac13",
+    "raw_equal_claimed": false,
+    "captures": [
+      {
+        "path": "artifacts/rust-rewrite/ollama-evaluator-timed-capture-2/capture.json",
+        "bytes": 325304,
+        "sha256": "ef4fd9b97e90d2f89c784c447c274142c67a2a281ff4bd2a9166013036d8ffed",
+        "retained_path": "artifacts/rust-rewrite/evidence/ef4fd9b97e90d2f89c784c447c274142c67a2a281ff4bd2a9166013036d8ffed.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/ollama-evaluator-timed-capture-3/capture.json",
+        "bytes": 330185,
+        "sha256": "ab8b649dfa18aa096f2a0d12092aa9db1e32fa1eb4fb234fb02c8eb0b7e400ea",
+        "retained_path": "artifacts/rust-rewrite/evidence/ab8b649dfa18aa096f2a0d12092aa9db1e32fa1eb4fb234fb02c8eb0b7e400ea.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/ollama-evaluator-timed-capture-4/capture.json",
+        "bytes": 330183,
+        "sha256": "dd221a7bc3c57544a3c658ac84fb4e22fc710830d8697ba92219120c17e5dc58",
+        "retained_path": "artifacts/rust-rewrite/evidence/dd221a7bc3c57544a3c658ac84fb4e22fc710830d8697ba92219120c17e5dc58.json"
+      }
+    ],
+    "cases": [
+      {
+        "path": "artifacts/rust-rewrite/ollama-evaluator-timed-capture-3/cases.jsonl",
+        "bytes": 103787,
+        "sha256": "c98d7608e5dc20254fbd1dfd4e53004744d5a07dae18e1e617a1cbf3cbae5fa2",
+        "retained_path": "artifacts/rust-rewrite/evidence/c98d7608e5dc20254fbd1dfd4e53004744d5a07dae18e1e617a1cbf3cbae5fa2.jsonl"
+      },
+      {
+        "path": "artifacts/rust-rewrite/ollama-evaluator-timed-capture-4/cases.jsonl",
+        "bytes": 103786,
+        "sha256": "76ab47e2e96be3374be2c8d5e981f59d5fa01cd20765caec08bdafac1b7a4c3f",
+        "retained_path": "artifacts/rust-rewrite/evidence/76ab47e2e96be3374be2c8d5e981f59d5fa01cd20765caec08bdafac1b7a4c3f.jsonl"
+      }
+    ],
+    "final_repeated_captures": [
+      3,
+      4
+    ],
+    "excluded_timings": [
+      {
+        "operation": "operation-14",
+        "path": "$.output.evaluation_latency_ms",
+        "observed_ms": 0.54
+      },
+      {
+        "operation": "operation-14",
+        "path": "$.output.latency_ms",
+        "observed_ms": 1.89
+      },
+      {
+        "operation": "operation-15",
+        "path": "$.output.evaluation_latency_ms",
+        "observed_ms": 0.65
+      },
+      {
+        "operation": "operation-15",
+        "path": "$.output.latency_ms",
+        "observed_ms": 0.86
+      },
+      {
+        "operation": "operation-16",
+        "path": "$.output.evaluation_latency_ms",
+        "observed_ms": 0.3
+      },
+      {
+        "operation": "operation-16",
+        "path": "$.output.latency_ms",
+        "observed_ms": 0.41
+      }
+    ]
+  },
+  "native_method": {
+    "timed_tests": [
+      {
+        "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+        "function": "original_seven_one_forty_ms_deadline_cancels_bodies_and_rejects_65537_bytes",
+        "line": 246
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+        "function": "original_eight_zero_accepts_15_15_30_and_positive_twenty_expires_in_headers",
+        "line": 289
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+        "function": "original_nine_exact_cancel_return_and_same_classifier_retry_for_both_readers",
+        "line": 350
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+        "function": "original_ten_and_fifteen_precancelled_tokens_perform_zero_io",
+        "line": 403
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+        "function": "original_ten_and_fifteen_precancelled_tokens_perform_zero_io",
+        "line": 403
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+        "function": "original_fifteen_one_router_three_routes_keep_continuity_and_adaptive_guard",
+        "line": 422
+      }
+    ],
+    "support": [
+      {
+        "path": "rust/crates/autorouter-runtime/tests/support/ollama_evaluator_timed.rs",
+        "function": "cases",
+        "line": 29
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/tests/support/ollama_evaluator_timed.rs",
+        "function": "config",
+        "line": 68
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/tests/support/ollama_evaluator_timed.rs",
+        "function": "matches",
+        "line": 96
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/tests/support/ollama_evaluator_timed.rs",
+        "function": "projected",
+        "line": 82
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/tests/support/ollama_evaluator_timed.rs",
+        "function": "verified",
+        "line": 287
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/tests/support/ollama_evaluator_timed.rs",
+        "function": "idle",
+        "line": 283
+      }
+    ],
+    "ownership_controls": [
+      {
+        "test": "classifier::tests::cancelled_shared_or_distinct_tokens_prune_unpolled_peer_and_release_before_return",
+        "anchor": {
+          "path": "rust/crates/autorouter-runtime/src/classifier_cancellation_contracts.rs",
+          "function": "cancelled_shared_or_distinct_tokens_prune_unpolled_peer_and_release_before_return",
+          "line": 16
+        }
+      },
+      {
+        "test": "classifier::tests::one_cancelled_peer_returns_without_waiting_for_the_live_shared_request",
+        "anchor": {
+          "path": "rust/crates/autorouter-runtime/src/classifier_cancellation_contracts.rs",
+          "function": "one_cancelled_peer_returns_without_waiting_for_the_live_shared_request",
+          "line": 55
+        }
+      },
+      {
+        "test": "classifier::tests::shutdown_cancelled_result_waits_for_worker_with_uncancelled_caller",
+        "anchor": {
+          "path": "rust/crates/autorouter-runtime/src/classifier_cancellation_contracts.rs",
+          "function": "shutdown_cancelled_result_waits_for_worker_with_uncancelled_caller",
+          "line": 80
+        }
+      },
+      {
+        "test": "classifier::tests::dropping_cancel_cleanup_waiter_still_releases_the_exact_old_worker",
+        "anchor": {
+          "path": "rust/crates/autorouter-runtime/src/classifier_cancellation_contracts.rs",
+          "function": "dropping_cancel_cleanup_waiter_still_releases_the_exact_old_worker",
+          "line": 103
+        }
+      },
+      {
+        "test": "classifier::tests::old_cleanup_completion_cannot_cancel_or_remove_same_key_replacement",
+        "anchor": {
+          "path": "rust/crates/autorouter-runtime/src/classifier_cancellation_contracts.rs",
+          "function": "old_cleanup_completion_cannot_cancel_or_remove_same_key_replacement",
+          "line": 125
+        }
+      },
+      {
+        "test": "classifier::tests::worker_guard_dropped_before_first_poll_completes_multiple_and_late_waiters",
+        "anchor": {
+          "path": "rust/crates/autorouter-runtime/src/classifier_cancellation_contracts.rs",
+          "function": "worker_guard_dropped_before_first_poll_completes_multiple_and_late_waiters",
+          "line": 180
+        }
+      },
+      {
+        "test": "classifier::tests::finished_worker_without_result_retires_entry_and_returns_network_fallback",
+        "anchor": {
+          "path": "rust/crates/autorouter-runtime/src/classifier_cancellation_contracts.rs",
+          "function": "finished_worker_without_result_retires_entry_and_returns_network_fallback",
+          "line": 215
+        }
+      },
+      {
+        "test": "classifier::tests::evaluator_poll_panic_releases_request_before_fallback_and_retry",
+        "anchor": {
+          "path": "rust/crates/autorouter-runtime/src/classifier_cancellation_contracts.rs",
+          "function": "evaluator_poll_panic_releases_request_before_fallback_and_retry",
+          "line": 278
+        }
+      },
+      {
+        "test": "classifier::tests::shutdown_cancellation_wins_over_late_success_publication_and_waits_for_owner",
+        "anchor": {
+          "path": "rust/crates/autorouter-runtime/src/classifier_cancellation_contracts.rs",
+          "function": "shutdown_cancellation_wins_over_late_success_publication_and_waits_for_owner",
+          "line": 300
+        }
+      }
+    ],
+    "caller_contract": "Actual evaluator/router/classifier paths with bounded synthetic HttpTransport, full request replay, sticky mismatches, production deadline, and exact request/body owner counters."
+  },
+  "api_adaptation": [
+    {
+      "assertions": [
+        "test/ollama-evaluator.test.mjs#7:assert-5"
+      ],
+      "javascript": "Exact same AbortSignal object across metadata and inference.",
+      "rust": "One production controller and cumulative deadline across the two phases, with deterministic 39/40 ms boundary after 10 ms metadata.",
+      "identity_equivalence": false,
+      "limitation": "HttpTransport does not expose a JavaScript signal object; native signal-object identity is not representable."
+    },
+    {
+      "assertions": [
+        "test/ollama-evaluator.test.mjs#9:assert-1",
+        "test/ollama-evaluator.test.mjs#10:assert-1"
+      ],
+      "javascript": "Rejected value is the exact arbitrary caller Error object.",
+      "rust": "Caller-owned CancellationToken and EvaluationError::Cancelled, preserving cancellation/no-I/O/body-release/retry semantics.",
+      "identity_equivalence": false,
+      "limitation": "Arbitrary JavaScript Error reason and object identity are absent from the Rust API; embeddings retain their reason beside the token. This limitation remains explicit even if the finite port is marked covered."
+    },
+    {
+      "assertions": [
+        "test/ollama-evaluator.test.mjs#8:assert-1",
+        "test/ollama-evaluator.test.mjs#8:assert-2"
+      ],
+      "javascript": "Both absent signal and supplied live signal; same signal used for sequential zero/positive budget calls; AbortError or TimeoutError accepted.",
+      "rust": "Absent signal maps to a fresh owned uncancelled token; supplied signal maps to its owned token. Each pair reuses that same token; positive deadline returns typed Timeout.",
+      "identity_equivalence": false,
+      "limitation": "No global equivalence of JS exceptions or optional-signal identity is claimed."
+    }
+  ],
+  "negative_controls": {
+    "test": {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+      "function": "matching_timeout_cannot_hide_wrong_timed_request_or_response_category",
+      "line": 460
+    },
+    "rejected": [
+      "wrong inference URL despite same real timeout",
+      "wrong state body despite same real timeout",
+      "wrong network_error category instead of timeout"
+    ],
+    "source_integrity": "Native support pins both corpus SHA and complete metadata SHA; route output requires both latency fields before projection."
+  },
+  "retained_failed_checks": [
+    {
+      "evidence": {
+        "path": "artifacts/rust-rewrite/ollama-evaluator-timed-capture-1/failure.json",
+        "bytes": 310117,
+        "sha256": "2ccd390c02787e3547cfcdff5f85614504ab424df80d76da860cdb3cdc1c1043",
+        "retained_path": "artifacts/rust-rewrite/evidence/2ccd390c02787e3547cfcdff5f85614504ab424df80d76da860cdb3cdc1c1043.json"
+      },
+      "interpretation": "Initial final recorder count expected 24; all original assertions ran, actual transcript was 26. Expected count corrected without modifying original callbacks. Retained generator/transformed code and raw failure.",
+      "preserved": true
+    },
+    {
+      "evidence": {
+        "path": "artifacts/rust-rewrite/runtime-cancellation-pre-fix-1/report.json",
+        "bytes": 2091,
+        "sha256": "0155830e7bb9a4eb6f7b910208faf8d0e75fdbd5cd855cf3b24779bc14365432",
+        "retained_path": "artifacts/rust-rewrite/evidence/0155830e7bb9a4eb6f7b910208faf8d0e75fdbd5cd855cf3b24779bc14365432.json"
+      },
+      "interpretation": "Both real evaluator cancellation regressions compiled and failed at immediate body-release assertion: pending body drop count 0 instead of 1. A separate SessionLog regression in the same coordinated window also failed as intended; it is not evaluator coverage.",
+      "preserved": true
+    },
+    {
+      "evidence": {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-1/report.json",
+        "bytes": 2724,
+        "sha256": "1e0bf4c97ec713f93c5f39ab92d759554ecddb338624c33dbb66b14a51a0e74d",
+        "retained_path": "artifacts/rust-rewrite/evidence/1e0bf4c97ec713f93c5f39ab92d759554ecddb338624c33dbb66b14a51a0e74d.json"
+      },
+      "interpretation": "First fixed candidate passed timed8 and Clippy; classifier17/18 because the synthetic finished-without-result fixture had zero live subscribers and admission pruned it. Retained fixture failure, corrected with a counted live peer.",
+      "preserved": true
+    },
+    {
+      "evidence": {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-3-late-ok-pre-fix/report.json",
+        "bytes": 2126,
+        "sha256": "d59410b0250038bde8153f469e0da0d9169a300444ff744bc26e650939d11ee5",
+        "retained_path": "artifacts/rust-rewrite/evidence/d59410b0250038bde8153f469e0da0d9169a300444ff744bc26e650939d11ee5.json"
+      },
+      "interpretation": "New deterministic shutdown/late-Ok control compiled and failed after actual owned cleanup at late watch success bypassed shutdown cleanup. Watch overwrite is an explicit controlled interleaving, not a claim about naturally reproduced scheduling.",
+      "preserved": true
+    },
+    {
+      "evidence": {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-5/report.json",
+        "bytes": 2723,
+        "sha256": "69a1bd9a69a1a898546260344028a6a338e6000bf341f33ec5f9783fb9464de9",
+        "retained_path": "artifacts/rust-rewrite/evidence/69a1bd9a69a1a898546260344028a6a338e6000bf341f33ec5f9783fb9464de9.json"
+      },
+      "interpretation": "Native timed8/classifier19 passed; new Rust1.99 chunks_exact lint rejected the fixture. Replaced with as_chunks, no production behavior change.",
+      "preserved": true
+    }
+  ],
+  "retained_failure_logs": [
+    {
+      "path": "artifacts/rust-rewrite/runtime-cancellation-pre-fix-1/evaluator-pre-fix.stdout.log",
+      "bytes": 429,
+      "sha256": "25e202e29dc73d363d10dc3b163bb85f7d06e021a57c7c319e8acb239bed4119",
+      "retained_path": "artifacts/rust-rewrite/evidence/25e202e29dc73d363d10dc3b163bb85f7d06e021a57c7c319e8acb239bed4119.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-cancellation-pre-fix-1/evaluator-pre-fix.stderr.log",
+      "bytes": 671,
+      "sha256": "f6b2cf29d6dcb277cb15e41f67b9e50be5f4959cf2dc201c62f0e80e6cdffcee",
+      "retained_path": "artifacts/rust-rewrite/evidence/f6b2cf29d6dcb277cb15e41f67b9e50be5f4959cf2dc201c62f0e80e6cdffcee.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/classifier-cancellation-fix-1/classifier.stdout.log",
+      "bytes": 2049,
+      "sha256": "c93cef28f106ba8042fa855a9b74cb431406b46d46999084a00cf9360ed2b19f",
+      "retained_path": "artifacts/rust-rewrite/evidence/c93cef28f106ba8042fa855a9b74cb431406b46d46999084a00cf9360ed2b19f.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/classifier-cancellation-fix-1/classifier.stderr.log",
+      "bytes": 585,
+      "sha256": "4660b757e76a75c855b7e6af8b961094b3516d000e7a7ee7e5e5ac2c79056cca",
+      "retained_path": "artifacts/rust-rewrite/evidence/4660b757e76a75c855b7e6af8b961094b3516d000e7a7ee7e5e5ac2c79056cca.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/classifier-cancellation-fix-3-late-ok-pre-fix/classifier.stdout.log",
+      "bytes": 352,
+      "sha256": "a8664c124b728a5b12ef4f48f29462a837c8ba1eef1cd206074d0c79d794e795",
+      "retained_path": "artifacts/rust-rewrite/evidence/a8664c124b728a5b12ef4f48f29462a837c8ba1eef1cd206074d0c79d794e795.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/classifier-cancellation-fix-3-late-ok-pre-fix/classifier.stderr.log",
+      "bytes": 327,
+      "sha256": "9b476b8433ae6e50d46b4190ae1578d56f0915308f27b7dc8dd3418a56250555",
+      "retained_path": "artifacts/rust-rewrite/evidence/9b476b8433ae6e50d46b4190ae1578d56f0915308f27b7dc8dd3418a56250555.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/classifier-cancellation-fix-5/clippy.stderr.log",
+      "bytes": 1337,
+      "sha256": "daf6eef75499273afe29094b5eeedddee722559ff50111ca8383accb115f3fac",
+      "retained_path": "artifacts/rust-rewrite/evidence/daf6eef75499273afe29094b5eeedddee722559ff50111ca8383accb115f3fac.log"
+    }
+  ],
+  "validation": {
+    "final": {
+      "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/report.json",
+      "bytes": 2721,
+      "sha256": "34148163b270c1194eb6c5ce189c82b8cc8119792dae723bd5fcec8317fbf1cd",
+      "retained_path": "artifacts/rust-rewrite/evidence/34148163b270c1194eb6c5ce189c82b8cc8119792dae723bd5fcec8317fbf1cd.json"
+    },
+    "source_inputs": {
+      "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/inputs-before.json",
+      "bytes": 64332,
+      "sha256": "449fbe4ee227422d3ba75d5faf66fa5a8d45f6ecb048547391129435621ea0b4",
+      "retained_path": "artifacts/rust-rewrite/evidence/449fbe4ee227422d3ba75d5faf66fa5a8d45f6ecb048547391129435621ea0b4.json"
+    },
+    "source_inputs_after": {
+      "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/inputs-after.json",
+      "bytes": 64332,
+      "sha256": "449fbe4ee227422d3ba75d5faf66fa5a8d45f6ecb048547391129435621ea0b4",
+      "retained_path": "artifacts/rust-rewrite/evidence/449fbe4ee227422d3ba75d5faf66fa5a8d45f6ecb048547391129435621ea0b4.json"
+    },
+    "source_count": 379,
+    "inputs_unchanged": true,
+    "native": {
+      "timed": {
+        "passed": 8,
+        "failed": 0
+      },
+      "classifier": {
+        "passed": 19,
+        "failed": 0,
+        "new_ownership_controls": 9,
+        "existing_tests": 10
+      }
+    },
+    "strict_scoped_clippy": "passed; existing dependency hyper-util unused timer warning retained separately from owned-source warnings",
+    "binaries": {
+      "autorouter_runtime": {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/autorouter_runtime-native-tests",
+        "bytes": 83176768,
+        "sha256": "f2e94a334178318e946b284a31aac6bf1cc37b5aeb2a57cd486968707429f18b"
+      },
+      "ollama_evaluator_timed_contracts": {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/ollama_evaluator_timed_contracts-native-tests",
+        "bytes": 15143440,
+        "sha256": "2336b1cfbd1f126d9dede905bd3573cce7745316480447288b9aca16bf477ef0"
+      }
+    },
+    "frozen_controls": {
+      "path": "artifacts/rust-rewrite/ollama-evaluator-timed-frozen-controls/report.json",
+      "bytes": 767,
+      "sha256": "4c09444fc05cb272528b69c7d1a1c35f4ed3e49d975fdacba0011f1898e1e4e1",
+      "retained_path": "artifacts/rust-rewrite/evidence/4c09444fc05cb272528b69c7d1a1c35f4ed3e49d975fdacba0011f1898e1e4e1.json"
+    },
+    "frozen_control_passed": 5,
+    "all_final_artifacts": [
+      {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/report.json",
+        "bytes": 2721,
+        "sha256": "34148163b270c1194eb6c5ce189c82b8cc8119792dae723bd5fcec8317fbf1cd",
+        "retained_path": "artifacts/rust-rewrite/evidence/34148163b270c1194eb6c5ce189c82b8cc8119792dae723bd5fcec8317fbf1cd.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/inputs-before.json",
+        "bytes": 64332,
+        "sha256": "449fbe4ee227422d3ba75d5faf66fa5a8d45f6ecb048547391129435621ea0b4",
+        "retained_path": "artifacts/rust-rewrite/evidence/449fbe4ee227422d3ba75d5faf66fa5a8d45f6ecb048547391129435621ea0b4.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/inputs-after.json",
+        "bytes": 64332,
+        "sha256": "449fbe4ee227422d3ba75d5faf66fa5a8d45f6ecb048547391129435621ea0b4",
+        "retained_path": "artifacts/rust-rewrite/evidence/449fbe4ee227422d3ba75d5faf66fa5a8d45f6ecb048547391129435621ea0b4.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/binaries.json",
+        "bytes": 501,
+        "sha256": "8e74ea3a9d972adf099f209f3b75fea8618c59d6617eecabfce1270a0a2065a7",
+        "retained_path": "artifacts/rust-rewrite/evidence/8e74ea3a9d972adf099f209f3b75fea8618c59d6617eecabfce1270a0a2065a7.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/copyback.json",
+        "bytes": 1363,
+        "sha256": "d5d573e8e9649cb2f4f7df60a1fc6def54acf7d305316279d4899e12e0b5184d",
+        "retained_path": "artifacts/rust-rewrite/evidence/d5d573e8e9649cb2f4f7df60a1fc6def54acf7d305316279d4899e12e0b5184d.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/compile.stdout.log",
+        "bytes": 148859,
+        "sha256": "f4bc31ad9152111f6d1b682b92736687f04f69802e5a339f03314bd1d486e727",
+        "retained_path": "artifacts/rust-rewrite/evidence/f4bc31ad9152111f6d1b682b92736687f04f69802e5a339f03314bd1d486e727.log"
+      },
+      {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/compile.stderr.log",
+        "bytes": 176,
+        "sha256": "8ff4d23ea016c7c34a5f9c23b8878d8e9621dc9c604586466e88c7d326f1d372",
+        "retained_path": "artifacts/rust-rewrite/evidence/8ff4d23ea016c7c34a5f9c23b8878d8e9621dc9c604586466e88c7d326f1d372.log"
+      },
+      {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/timed.stdout.log",
+        "bytes": 770,
+        "sha256": "f8e067b01ce2863d3b4801204b8933850278abd590eb89750b1ebad4f93f468f",
+        "retained_path": "artifacts/rust-rewrite/evidence/f8e067b01ce2863d3b4801204b8933850278abd590eb89750b1ebad4f93f468f.log"
+      },
+      {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/timed.stderr.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "retained_path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log"
+      },
+      {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/classifier.stdout.log",
+        "bytes": 2027,
+        "sha256": "f6d248e326dc830fa8f6c43dc86f7222035fb07292dacf636ef3e407d1f2bb00",
+        "retained_path": "artifacts/rust-rewrite/evidence/f6d248e326dc830fa8f6c43dc86f7222035fb07292dacf636ef3e407d1f2bb00.log"
+      },
+      {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/classifier.stderr.log",
+        "bytes": 308,
+        "sha256": "3bd53aadd86af97815eb9e47dfc17d06073c4c1f3b724487b33ec43c664cb2d5",
+        "retained_path": "artifacts/rust-rewrite/evidence/3bd53aadd86af97815eb9e47dfc17d06073c4c1f3b724487b33ec43c664cb2d5.log"
+      },
+      {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/clippy.stdout.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "retained_path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log"
+      },
+      {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/clippy.stderr.log",
+        "bytes": 675,
+        "sha256": "118844dbba550d3f339930875b6eb5cdab7d28c3311368d91ed77e84f49c1c91",
+        "retained_path": "artifacts/rust-rewrite/evidence/118844dbba550d3f339930875b6eb5cdab7d28c3311368d91ed77e84f49c1c91.log"
+      },
+      {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/runner.py",
+        "bytes": 4546,
+        "sha256": "32b97b5f8bc0930daf6efea1e635f08169422db4434ba21223dd3395a93dc603",
+        "retained_path": "artifacts/rust-rewrite/evidence/32b97b5f8bc0930daf6efea1e635f08169422db4434ba21223dd3395a93dc603.py"
+      }
+    ],
+    "prior_runs_preserved": [
+      {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-2/report.json",
+        "bytes": 2719,
+        "sha256": "7cebc848c9fe0f6261b2aeb322a2e34e706e1d0f46a22115c268284b91f5c868",
+        "retained_path": "artifacts/rust-rewrite/evidence/7cebc848c9fe0f6261b2aeb322a2e34e706e1d0f46a22115c268284b91f5c868.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-4/report.json",
+        "bytes": 2719,
+        "sha256": "b86dd021ddfd92720ae90246a55e6c75695cc70da1d680ad7c5ab97bc01a2cb5",
+        "retained_path": "artifacts/rust-rewrite/evidence/b86dd021ddfd92720ae90246a55e6c75695cc70da1d680ad7c5ab97bc01a2cb5.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/classifier-cancellation-fix-6/report.json",
+        "bytes": 2721,
+        "sha256": "9d7ac698fb2f2b36ca17abff9a8e71c1e7df91cc20d0794cdcf008aa9fad45cc",
+        "retained_path": "artifacts/rust-rewrite/evidence/9d7ac698fb2f2b36ca17abff9a8e71c1e7df91cc20d0794cdcf008aa9fad45cc.json"
+      }
+    ]
+  },
+  "proposal_review": {
+    "path": "artifacts/rust-rewrite/evidence/d53ad05f0fa4f55a0c09fba4e41e150fc6054bea15e432a5bcdb6ed118eb5bc3.json",
+    "bytes": 12349,
+    "sha256": "d53ad05f0fa4f55a0c09fba4e41e150fc6054bea15e432a5bcdb6ed118eb5bc3",
+    "retained_path": "artifacts/rust-rewrite/evidence/d53ad05f0fa4f55a0c09fba4e41e150fc6054bea15e432a5bcdb6ed118eb5bc3.json",
+    "original_path": "/private/tmp/autorouter-classifier-cancellation-proposal-independent-review.json"
+  },
+  "final_native_independent_review": {
+    "path": "artifacts/rust-rewrite/evidence/e3b8d659739ff979ba1253bd90129975ba2d7d447ab9f1af720325aae38356c5.json",
+    "bytes": 14923,
+    "sha256": "e3b8d659739ff979ba1253bd90129975ba2d7d447ab9f1af720325aae38356c5",
+    "retained_path": "artifacts/rust-rewrite/evidence/e3b8d659739ff979ba1253bd90129975ba2d7d447ab9f1af720325aae38356c5.json",
+    "original_path": "/private/tmp/autorouter-classifier-cancellation-independent-review.json"
+  },
+  "native_anchors": [
+    {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+      "function": "original_seven_one_forty_ms_deadline_cancels_bodies_and_rejects_65537_bytes",
+      "line": 246
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+      "function": "original_eight_zero_accepts_15_15_30_and_positive_twenty_expires_in_headers",
+      "line": 289
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+      "function": "original_nine_exact_cancel_return_and_same_classifier_retry_for_both_readers",
+      "line": 350
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+      "function": "original_ten_and_fifteen_precancelled_tokens_perform_zero_io",
+      "line": 403
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+      "function": "original_ten_and_fifteen_precancelled_tokens_perform_zero_io",
+      "line": 403
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+      "function": "original_fifteen_one_router_three_routes_keep_continuity_and_adaptive_guard",
+      "line": 422
+    }
+  ],
+  "rows": [
+    {
+      "id": "test/ollama-evaluator.test.mjs#7",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "Ollama shares one deadline across metadata and native response, cancels bodies, and bounds output",
+      "line": 157,
+      "baseline_file_sha256": "5015a563933bc51ffcc8ab88214cb4d972f590548ae8e5c768aa46f24669a371",
+      "definition_statement": "test('Ollama shares one deadline across metadata and native response, cancels bodies, and bounds output', async () => {\n  for (const mode of ['metadata', 'native', 'oversize']) {\n    let cancelled = false;\n    const signals = [];\n    const paths = [];\n    const router = new Router(config({ ollamaTimeoutMs: 40 }), { fetchImpl: async (url, options) => {\n      paths.push(new URL(url).pathname);\n      signals.push(options.signal);\n      if (url.endsWith('/show') && mode !== 'metadata') {\n        await new Promise(resolve => setTimeout(resolve, 10));\n        return metadata();\n      }\n      return new Response(new ReadableStream({ start(controller) {\n        if (mode === 'oversize') controller.enqueue(new Uint8Array(65537));\n      }, cancel() { cancelled = true; } }));\n    } });\n    const keepAlive = setTimeout(() => {}, 1000);\n    try {\n      const decision = await router.classify(body());\n      assert.equal(decision.source, 'fallback');\n      assert.equal(decision.classifier_error, mode === 'oversize' ? 'invalid_response' : 'timeout');\n      assert.equal(cancelled, true);\n      assert.deepEqual(paths, mode === 'metadata' ? ['/api/show'] : ['/api/show', '/v1/systemone']);\n      assert.ok(signals.every(signal => signal === signals[0]));\n    } finally { clearTimeout(keepAlive); }\n  }\n});",
+      "definition_sha256": "0e704e8c7e8ffeb08352cf95734ef67d87d6a45d2f35b6955ddd2d8f6d1ffcf3",
+      "definition_call_sha256": "47d89406cb72b23b9f22b8577f8ac3bbeb601631a16ff802ef7729645b6d04b7",
+      "previous_status": "pending_assertion_mapping",
+      "previous_row": {
+        "id": "test/ollama-evaluator.test.mjs#7",
+        "file": "test/ollama-evaluator.test.mjs",
+        "name": "Ollama shares one deadline across metadata and native response, cancels bodies, and bounds output",
+        "parameterized": false,
+        "status": "pending_assertion_mapping",
+        "rust_tests": [],
+        "shared_cases": [],
+        "evidence": null,
+        "related_components": [
+          "evaluators"
+        ]
+      },
+      "status": "covered",
+      "status_scope": "covered finite Rust counterpart with explicit accepted library API migration; object identity equivalence is unclaimed",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_seven_one_forty_ms_deadline_cancels_bodies_and_rejects_65537_bytes"
+      ],
+      "shared_cases": [
+        "operation-1",
+        "operation-2",
+        "operation-3"
+      ],
+      "scenarios": 3,
+      "requests": 5,
+      "static_assertions": 5,
+      "direct_executed_original_assertions": 15,
+      "assertions": [
+        {
+          "id": "test/ollama-evaluator.test.mjs#7:assert-1",
+          "line": 176,
+          "expression": "assert.equal(decision.source, 'fallback')",
+          "sha256": "3ce7af3dbd0598a5f285f280db41fecdfd2239253bdb13ab161b4f803bd3f594",
+          "expanded_executions": 3,
+          "executed": 3,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_seven_one_forty_ms_deadline_cancels_bodies_and_rejects_65537_bytes"
+          ],
+          "shared_cases": [
+            "operation-1",
+            "operation-2",
+            "operation-3"
+          ],
+          "native_check": "All three complete fallback decisions match the captured output, including source=fallback.",
+          "native_equivalence": "finite_behavioral_counterpart",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+              "function": "original_seven_one_forty_ms_deadline_cancels_bodies_and_rejects_65537_bytes",
+              "line": 246
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-evaluator.test.mjs#7:assert-2",
+          "line": 177,
+          "expression": "assert.equal(decision.classifier_error, mode === 'oversize' ? 'invalid_response' : 'timeout')",
+          "sha256": "5e15aaa973170635f15ec8dc839e77a7aee57283fbb4f13922562533352ac6c6",
+          "expanded_executions": 3,
+          "executed": 3,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_seven_one_forty_ms_deadline_cancels_bodies_and_rejects_65537_bytes"
+          ],
+          "shared_cases": [
+            "operation-1",
+            "operation-2",
+            "operation-3"
+          ],
+          "native_check": "Actual production 40 ms timer returns timeout for both held body phases; 65537-byte input returns invalid_response at 10 ms. The timer is observed pending at 39 ms and completed at 40 ms, cumulatively across metadata and inference.",
+          "native_equivalence": "finite_behavioral_counterpart",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+              "function": "original_seven_one_forty_ms_deadline_cancels_bodies_and_rejects_65537_bytes",
+              "line": 246
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-evaluator.test.mjs#7:assert-3",
+          "line": 178,
+          "expression": "assert.equal(cancelled, true)",
+          "sha256": "9d31057f08f6678980db9b13aafdf0e260b7d4325f227b62d44b8bd566f219e3",
+          "expanded_executions": 3,
+          "executed": 3,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_seven_one_forty_ms_deadline_cancels_bodies_and_rejects_65537_bytes"
+          ],
+          "shared_cases": [
+            "operation-1",
+            "operation-2",
+            "operation-3"
+          ],
+          "native_check": "After the completed classify result, request/body owner counters are zero and exactly one metadata body or two phase bodies were dropped; no post-return cleanup yield satisfies the predicate.",
+          "native_equivalence": "finite_behavioral_counterpart",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+              "function": "original_seven_one_forty_ms_deadline_cancels_bodies_and_rejects_65537_bytes",
+              "line": 246
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-evaluator.test.mjs#7:assert-4",
+          "line": 179,
+          "expression": "assert.deepEqual(paths, mode === 'metadata' ? ['/api/show'] : ['/api/show', '/v1/systemone'])",
+          "sha256": "5b7b7e0de6a61d5a4e1e01b246261b31f59f54e8b77d34916108d9e4afbbb828",
+          "expanded_executions": 3,
+          "executed": 3,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_seven_one_forty_ms_deadline_cancels_bodies_and_rejects_65537_bytes"
+          ],
+          "shared_cases": [
+            "operation-1",
+            "operation-2",
+            "operation-3"
+          ],
+          "native_check": "The complete request URL, method, headers and parsed JSON body match all five captured requests in order; per-mode call counts remain 1/2/2.",
+          "native_equivalence": "finite_behavioral_counterpart",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+              "function": "original_seven_one_forty_ms_deadline_cancels_bodies_and_rejects_65537_bytes",
+              "line": 246
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-evaluator.test.mjs#7:assert-5",
+          "line": 180,
+          "expression": "assert.ok(signals.every(signal => signal === signals[0]))",
+          "sha256": "5922f5ff383d61fdbae9f5849f443fd5007003f2d92085241ed9c479d67b7fc6",
+          "expanded_executions": 3,
+          "executed": 3,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_seven_one_forty_ms_deadline_cancels_bodies_and_rejects_65537_bytes"
+          ],
+          "shared_cases": [
+            "operation-1",
+            "operation-2",
+            "operation-3"
+          ],
+          "native_check": "API adaptation: the original exact AbortSignal object equality is retained and passes in Node. Native HttpTransport exposes no signal object; production uses one shared cancellation controller and cumulative evaluation deadline across both phases. The 10+30 ms schedule prevents an independently restarted inference budget from passing. No native object-identity equivalence is claimed.",
+          "native_equivalence": "documented_api_adaptation_not_object_identity",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+              "function": "original_seven_one_forty_ms_deadline_cancels_bodies_and_rejects_65537_bytes",
+              "line": 246
+            }
+          ],
+          "identity_parity_claimed": false,
+          "coverage_requires_accepting_documented_rust_api_boundary": true,
+          "documented_api_boundary_accepted": true
+        }
+      ],
+      "remaining_assertions": [],
+      "unrepresented_native_identity_assertions": [
+        "test/ollama-evaluator.test.mjs#7:assert-5"
+      ],
+      "api_migration_accepted_by": {
+        "path": "artifacts/rust-rewrite/evidence/ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35.json",
+        "sha256": "ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35",
+        "bytes": 9422,
+        "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-root-review-1/report.json"
+      }
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#8",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "a disabled deadline accepts delayed metadata, inference, and body reads with or without a caller signal",
+      "line": 185,
+      "baseline_file_sha256": "5015a563933bc51ffcc8ab88214cb4d972f590548ae8e5c768aa46f24669a371",
+      "definition_statement": "test('a disabled deadline accepts delayed metadata, inference, and body reads with or without a caller signal', { timeout: 2000 }, async () => {\n  for (const signal of [undefined, new AbortController().signal]) {\n    const fetchImpl = async (url, options) => {\n      await delay(15, undefined, { signal: options.signal });\n      if (url.endsWith('/show')) return metadata();\n      let timer;\n      return new Response(new ReadableStream({\n        start(controller) {\n          timer = setTimeout(() => {\n            controller.enqueue(new TextEncoder().encode(JSON.stringify(decisionPayload('opus'))));\n            controller.close();\n          }, 30);\n        },\n        cancel() { clearTimeout(timer); },\n      }));\n    };\n    const result = await evaluateOllama(buildOllamaState(body()), config({ ollamaTimeoutMs: 0 }), { signal, fetchImpl });\n    assert.equal(result.choice, 'opus');\n    // The same response still exceeds an explicitly configured positive budget.\n    await assert.rejects(evaluateOllama(buildOllamaState(body()), config({ ollamaTimeoutMs: 20 }), { signal, fetchImpl }),\n      error => error.name === 'AbortError' || error.name === 'TimeoutError');\n  }\n});",
+      "definition_sha256": "d78582b356bdb7827eee0029721bc89d9c5df5d3a9224a3cdf3c84890f433e2e",
+      "definition_call_sha256": "83ed357183803a163eb9b9487ee078451207440ddb69b3f0c6f29131ab1fea32",
+      "previous_status": "pending_assertion_mapping",
+      "previous_row": {
+        "id": "test/ollama-evaluator.test.mjs#8",
+        "file": "test/ollama-evaluator.test.mjs",
+        "name": "a disabled deadline accepts delayed metadata, inference, and body reads with or without a caller signal",
+        "parameterized": false,
+        "status": "pending_assertion_mapping",
+        "rust_tests": [],
+        "shared_cases": [],
+        "evidence": null,
+        "related_components": [
+          "evaluators"
+        ]
+      },
+      "status": "covered",
+      "status_scope": "covered finite Rust counterpart with explicit accepted library API migration; object identity equivalence is unclaimed",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_eight_zero_accepts_15_15_30_and_positive_twenty_expires_in_headers"
+      ],
+      "shared_cases": [
+        "operation-4",
+        "operation-5",
+        "operation-6",
+        "operation-7"
+      ],
+      "scenarios": 4,
+      "requests": 8,
+      "static_assertions": 2,
+      "direct_executed_original_assertions": 4,
+      "assertions": [
+        {
+          "id": "test/ollama-evaluator.test.mjs#8:assert-1",
+          "line": 202,
+          "expression": "assert.equal(result.choice, 'opus')",
+          "sha256": "d0fc3aa421b9bf9f420841c49bf08e1233553899a19115a5e9003fad642d9056",
+          "expanded_executions": 2,
+          "executed": 2,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_eight_zero_accepts_15_15_30_and_positive_twenty_expires_in_headers"
+          ],
+          "shared_cases": [
+            "operation-4",
+            "operation-5",
+            "operation-6",
+            "operation-7"
+          ],
+          "native_check": "The exact complete Opus result succeeds at virtual 60 ms after metadata headers 15 ms, inference headers 15 ms and body 30 ms; it remains pending at 59 ms. Both original absent/live caller-signal cases run.",
+          "native_equivalence": "finite_behavioral_counterpart",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+              "function": "original_eight_zero_accepts_15_15_30_and_positive_twenty_expires_in_headers",
+              "line": 289
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-evaluator.test.mjs#8:assert-2",
+          "line": 204,
+          "expression": "assert.rejects(evaluateOllama(buildOllamaState(body()), config({ ollamaTimeoutMs: 20 }), { signal, fetchImpl }),\n      error => error.name === 'AbortError' || error.name === 'TimeoutError')",
+          "sha256": "0a1e4c0372f4013a42052361c3c0e8e4a86795cfee52e17b04e4006fcc9e4abe",
+          "expanded_executions": 2,
+          "executed": 2,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_eight_zero_accepts_15_15_30_and_positive_twenty_expires_in_headers"
+          ],
+          "shared_cases": [
+            "operation-4",
+            "operation-5",
+            "operation-6",
+            "operation-7"
+          ],
+          "native_check": "The same delayed valid response exceeds the actual production 20 ms budget, with pending at 19 ms and typed Timeout at 20 ms. The held inference request is released, caller token stays uncancelled, and the same token is reused for the zero/positive pair. Typed Timeout adapts the JS AbortError/TimeoutError predicate.",
+          "native_equivalence": "finite_behavioral_counterpart",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+              "function": "original_eight_zero_accepts_15_15_30_and_positive_twenty_expires_in_headers",
+              "line": 289
+            }
+          ]
+        }
+      ],
+      "remaining_assertions": [],
+      "unrepresented_native_identity_assertions": [],
+      "api_migration_accepted_by": {
+        "path": "artifacts/rust-rewrite/evidence/ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35.json",
+        "sha256": "ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35",
+        "bytes": 9422,
+        "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-root-review-1/report.json"
+      }
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#9",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "caller cancellation with no deadline stops metadata and inference body reads without caching a fallback",
+      "line": 209,
+      "baseline_file_sha256": "5015a563933bc51ffcc8ab88214cb4d972f590548ae8e5c768aa46f24669a371",
+      "definition_statement": "test('caller cancellation with no deadline stops metadata and inference body reads without caching a fallback', { timeout: 2000 }, async () => {\n  for (const phase of ['/api/show', '/v1/systemone']) {\n    const controller = new AbortController();\n    const reason = new Error('Caller cancelled local evaluation');\n    let started;\n    const reading = new Promise(resolve => { started = resolve; });\n    let cancelled = false;\n    let attempt = 1;\n    const paths = [];\n    const router = new Router(config({ ollamaTimeoutMs: 0 }), { fetchImpl: async url => {\n      const path = new URL(url).pathname;\n      paths.push(path);\n      if (attempt === 1 && path === phase) {\n        return new Response(new ReadableStream({ pull() { started(); }, cancel() { cancelled = true; } }));\n      }\n      return path === '/api/show' ? metadata() : response('haiku');\n    } });\n    const pending = router.classify(body(), controller.signal);\n    const rejected = assert.rejects(pending, error => error === reason);\n    await reading;\n    await delay(0);\n    controller.abort(reason);\n    await rejected;\n    assert.equal(cancelled, true);\n    assert.deepEqual(paths, phase === '/api/show' ? ['/api/show'] : ['/api/show', '/v1/systemone']);\n    attempt++;\n    const retried = await router.classify(body());\n    assert.equal(retried.source, 'ollama');\n    assert.equal(retried.tier, 'haiku');\n  }\n});",
+      "definition_sha256": "9d0f3d0e5304b58bd231e4e5ec3fa3fa06ed4cdb7c351160ce5d3c90fcbcf0b7",
+      "definition_call_sha256": "8698afc9305a7585c6977e3b6f7410e287c83c8121801bbb70f44fad0689ace5",
+      "previous_status": "pending_assertion_mapping",
+      "previous_row": {
+        "id": "test/ollama-evaluator.test.mjs#9",
+        "file": "test/ollama-evaluator.test.mjs",
+        "name": "caller cancellation with no deadline stops metadata and inference body reads without caching a fallback",
+        "parameterized": false,
+        "status": "pending_assertion_mapping",
+        "rust_tests": [],
+        "shared_cases": [],
+        "evidence": null,
+        "related_components": [
+          "evaluators"
+        ]
+      },
+      "status": "covered",
+      "status_scope": "covered finite Rust counterpart with explicit accepted library API migration; object identity equivalence is unclaimed",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_nine_exact_cancel_return_and_same_classifier_retry_for_both_readers"
+      ],
+      "shared_cases": [
+        "operation-8",
+        "operation-9",
+        "operation-10",
+        "operation-11"
+      ],
+      "scenarios": 4,
+      "requests": 7,
+      "static_assertions": 5,
+      "direct_executed_original_assertions": 10,
+      "assertions": [
+        {
+          "id": "test/ollama-evaluator.test.mjs#9:assert-1",
+          "line": 227,
+          "expression": "assert.rejects(pending, error => error === reason)",
+          "sha256": "c0065bee46960438cc173948a907f21ad99186544e72b6304b030d11497a5d0d",
+          "expanded_executions": 2,
+          "executed": 2,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_nine_exact_cancel_return_and_same_classifier_retry_for_both_readers"
+          ],
+          "shared_cases": [
+            "operation-8",
+            "operation-9",
+            "operation-10",
+            "operation-11"
+          ],
+          "native_check": "API adaptation: native returns EvaluationError::Cancelled for both metadata/inference cancellations. The original arbitrary Error reference equality is still executed and recorded in Node, but is not supported by the Rust CancellationToken/EvaluationError API and is not claimed equivalent.",
+          "native_equivalence": "documented_api_adaptation_not_object_identity",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+              "function": "original_nine_exact_cancel_return_and_same_classifier_retry_for_both_readers",
+              "line": 350
+            }
+          ],
+          "identity_parity_claimed": false,
+          "coverage_requires_accepting_documented_rust_api_boundary": true,
+          "documented_api_boundary_accepted": true
+        },
+        {
+          "id": "test/ollama-evaluator.test.mjs#9:assert-2",
+          "line": 232,
+          "expression": "assert.equal(cancelled, true)",
+          "sha256": "9d31057f08f6678980db9b13aafdf0e260b7d4325f227b62d44b8bd566f219e3",
+          "expanded_executions": 2,
+          "executed": 2,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_nine_exact_cancel_return_and_same_classifier_retry_for_both_readers"
+          ],
+          "shared_cases": [
+            "operation-8",
+            "operation-9",
+            "operation-10",
+            "operation-11"
+          ],
+          "native_check": "A positive held-reader barrier precedes cancellation; the classify future is manually polled immediately without a scheduler yield. Upon its eventual Cancelled return, the exact evaluator request/body is already released, with no delayed post-return cleanup.",
+          "native_equivalence": "finite_behavioral_counterpart",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+              "function": "original_nine_exact_cancel_return_and_same_classifier_retry_for_both_readers",
+              "line": 350
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-evaluator.test.mjs#9:assert-3",
+          "line": 233,
+          "expression": "assert.deepEqual(paths, phase === '/api/show' ? ['/api/show'] : ['/api/show', '/v1/systemone'])",
+          "sha256": "cd59f03accaffaae1db1147fd8c0f727e9f29545ffa1f5379f3076b4738b1924",
+          "expanded_executions": 2,
+          "executed": 2,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_nine_exact_cancel_return_and_same_classifier_retry_for_both_readers"
+          ],
+          "shared_cases": [
+            "operation-8",
+            "operation-9",
+            "operation-10",
+            "operation-11"
+          ],
+          "native_check": "Exact captured request sequences have 1 or 2 calls before cancellation; full URL/method/header/parsed-body comparison remains sticky through the complete replay.",
+          "native_equivalence": "finite_behavioral_counterpart",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+              "function": "original_nine_exact_cancel_return_and_same_classifier_retry_for_both_readers",
+              "line": 350
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-evaluator.test.mjs#9:assert-4",
+          "line": 236,
+          "expression": "assert.equal(retried.source, 'ollama')",
+          "sha256": "449b810d31f7af50a9b635966abd17858ef49cc9a0861b092da801e5d8e7a382",
+          "expanded_executions": 2,
+          "executed": 2,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_nine_exact_cancel_return_and_same_classifier_retry_for_both_readers"
+          ],
+          "shared_cases": [
+            "operation-8",
+            "operation-9",
+            "operation-10",
+            "operation-11"
+          ],
+          "native_check": "The same input and same classifier instance retry after cancellation, matching the complete captured source=ollama result; fallback was not cached.",
+          "native_equivalence": "finite_behavioral_counterpart",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+              "function": "original_nine_exact_cancel_return_and_same_classifier_retry_for_both_readers",
+              "line": 350
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-evaluator.test.mjs#9:assert-5",
+          "line": 237,
+          "expression": "assert.equal(retried.tier, 'haiku')",
+          "sha256": "c328ee50099d22e3639b486cf7723b04d4ed45b14ed66bfddcdbc14395f3e4af",
+          "expanded_executions": 2,
+          "executed": 2,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_nine_exact_cancel_return_and_same_classifier_retry_for_both_readers"
+          ],
+          "shared_cases": [
+            "operation-8",
+            "operation-9",
+            "operation-10",
+            "operation-11"
+          ],
+          "native_check": "The successful complete retry is Haiku and consumes both new metadata/inference requests; combined transcripts have 3/4 calls and no remaining owners.",
+          "native_equivalence": "finite_behavioral_counterpart",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+              "function": "original_nine_exact_cancel_return_and_same_classifier_retry_for_both_readers",
+              "line": 350
+            }
+          ]
+        }
+      ],
+      "remaining_assertions": [],
+      "unrepresented_native_identity_assertions": [
+        "test/ollama-evaluator.test.mjs#9:assert-1"
+      ],
+      "api_migration_accepted_by": {
+        "path": "artifacts/rust-rewrite/evidence/ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35.json",
+        "sha256": "ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35",
+        "bytes": 9422,
+        "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-root-review-1/report.json"
+      }
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#10",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "an already cancelled request with no deadline never contacts Ollama",
+      "line": 241,
+      "baseline_file_sha256": "5015a563933bc51ffcc8ab88214cb4d972f590548ae8e5c768aa46f24669a371",
+      "definition_statement": "test('an already cancelled request with no deadline never contacts Ollama', async () => {\n  const controller = new AbortController();\n  const reason = new Error('Already cancelled');\n  controller.abort(reason);\n  await assert.rejects(evaluateOllama(buildOllamaState(body()), config({ ollamaTimeoutMs: 0 }), {\n    signal: controller.signal, fetchImpl: () => assert.fail('Cancelled evaluation must not send metadata or prompt requests'),\n  }), error => error === reason);\n});",
+      "definition_sha256": "66bb4db22578e32f7cd9f328c371647c75c525d2b3fe97010b51b3485001b41a",
+      "definition_call_sha256": "587f4825678a9b162bcc62cad7f459866fbdd38775f8109459a870ebff960860",
+      "previous_status": "pending_assertion_mapping",
+      "previous_row": {
+        "id": "test/ollama-evaluator.test.mjs#10",
+        "file": "test/ollama-evaluator.test.mjs",
+        "name": "an already cancelled request with no deadline never contacts Ollama",
+        "parameterized": false,
+        "status": "pending_assertion_mapping",
+        "rust_tests": [],
+        "shared_cases": [],
+        "evidence": null,
+        "related_components": [
+          "evaluators"
+        ]
+      },
+      "status": "covered",
+      "status_scope": "covered finite Rust counterpart with explicit accepted library API migration; object identity equivalence is unclaimed",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_ten_and_fifteen_precancelled_tokens_perform_zero_io"
+      ],
+      "shared_cases": [
+        "operation-12"
+      ],
+      "scenarios": 1,
+      "requests": 0,
+      "static_assertions": 2,
+      "direct_executed_original_assertions": 1,
+      "assertions": [
+        {
+          "id": "test/ollama-evaluator.test.mjs#10:assert-1",
+          "line": 245,
+          "expression": "assert.rejects(evaluateOllama(buildOllamaState(body()), config({ ollamaTimeoutMs: 0 }), {\n    signal: controller.signal, fetchImpl: () => assert.fail('Cancelled evaluation must not send metadata or prompt requests'),\n  }), error => error === reason)",
+          "sha256": "45f61628bdb7f95118827f124b67ef2d898bf30687db4b282ac6f81bad03fd4b",
+          "expanded_executions": 1,
+          "executed": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_ten_and_fifteen_precancelled_tokens_perform_zero_io"
+          ],
+          "shared_cases": [
+            "operation-12"
+          ],
+          "native_check": "API adaptation: a pre-cancelled native token returns typed Cancelled before any request. Exact arbitrary Error identity remains an explicit unsupported Rust API boundary; the original Node predicate is unchanged and passes.",
+          "native_equivalence": "documented_api_adaptation_not_object_identity",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+              "function": "original_ten_and_fifteen_precancelled_tokens_perform_zero_io",
+              "line": 403
+            }
+          ],
+          "identity_parity_claimed": false,
+          "coverage_requires_accepting_documented_rust_api_boundary": true,
+          "documented_api_boundary_accepted": true
+        },
+        {
+          "id": "test/ollama-evaluator.test.mjs#10:assert-2",
+          "line": 246,
+          "expression": "assert.fail('Cancelled evaluation must not send metadata or prompt requests')",
+          "sha256": "b8db4cecd81aad2f7a05fd0cafc4a2c5ad23abe686f0041db15ed4ed74f226ad",
+          "expanded_executions": 0,
+          "executed": 0,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_ten_and_fifteen_precancelled_tokens_perform_zero_io"
+          ],
+          "shared_cases": [
+            "operation-12"
+          ],
+          "native_check": "The original nested assert.fail guard has zero executions. Its intended condition is verified by exact zero native I/O and an empty replay; this is not represented as an executed original failure branch.",
+          "native_equivalence": "finite_behavioral_counterpart",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+              "function": "original_ten_and_fifteen_precancelled_tokens_perform_zero_io",
+              "line": 403
+            }
+          ],
+          "zero_execution_guard": true
+        }
+      ],
+      "remaining_assertions": [],
+      "unrepresented_native_identity_assertions": [
+        "test/ollama-evaluator.test.mjs#10:assert-1"
+      ],
+      "api_migration_accepted_by": {
+        "path": "artifacts/rust-rewrite/evidence/ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35.json",
+        "sha256": "ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35",
+        "bytes": 9422,
+        "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-root-review-1/report.json"
+      }
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#15",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "caller cancellation propagates and local classifier keeps continuity and capability guards",
+      "line": 315,
+      "baseline_file_sha256": "5015a563933bc51ffcc8ab88214cb4d972f590548ae8e5c768aa46f24669a371",
+      "definition_statement": "test('caller cancellation propagates and local classifier keeps continuity and capability guards', async () => {\n  const controller = new AbortController();\n  controller.abort(new Error('cancelled'));\n  await assert.rejects(evaluateOllama(buildState(body()), config(), { signal: controller.signal, fetchImpl: async () => metadata() }), /cancelled/);\n  let tier = 'opus';\n  const router = new Router(config(), { fetchImpl: async url => url.endsWith('/show') ? metadata() : response(tier) });\n  assert.equal((await router.route(body('Investigate a difficult race'))).tier, 'opus');\n  tier = 'haiku';\n  const continuation = { ...body('Investigate a difficult race'), messages: [...body('Investigate a difficult race').messages,\n    { role: 'assistant', content: [{ type: 'tool_use', name: 'Read', id: 'a', input: {} }] },\n    { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'a', content: 'Evidence' }] }] };\n  const next = await router.route(continuation);\n  assert.equal(next.reason, 'tool_turn_pinned');\n  assert.equal(next.model, config().models.opus);\n  const guarded = await router.route({ ...body('Fix another typo'), thinking: { type: 'adaptive' } });\n  assert.equal(guarded.model, config().models.sonnet);\n  assert.equal(guarded.classified_tier, 'haiku');\n});",
+      "definition_sha256": "2b8b699d764c198fae0445fcd40e8ac9cfb7b7a7d85a86e05b662a1641dfed11",
+      "definition_call_sha256": "4276b3f15527d495c9bb53abf0c112d9124854289924d4a7961d3a4373041e86",
+      "previous_status": "pending_assertion_mapping",
+      "previous_row": {
+        "id": "test/ollama-evaluator.test.mjs#15",
+        "file": "test/ollama-evaluator.test.mjs",
+        "name": "caller cancellation propagates and local classifier keeps continuity and capability guards",
+        "parameterized": false,
+        "status": "pending_assertion_mapping",
+        "rust_tests": [],
+        "shared_cases": [],
+        "evidence": null,
+        "related_components": [
+          "evaluators"
+        ]
+      },
+      "status": "covered",
+      "status_scope": "covered finite Rust counterpart with explicit accepted library API migration; object identity equivalence is unclaimed",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_ten_and_fifteen_precancelled_tokens_perform_zero_io",
+        "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_fifteen_one_router_three_routes_keep_continuity_and_adaptive_guard"
+      ],
+      "shared_cases": [
+        "operation-13",
+        "operation-14",
+        "operation-15",
+        "operation-16"
+      ],
+      "scenarios": 4,
+      "requests": 6,
+      "static_assertions": 6,
+      "direct_executed_original_assertions": 6,
+      "assertions": [
+        {
+          "id": "test/ollama-evaluator.test.mjs#15:assert-1",
+          "line": 318,
+          "expression": "assert.rejects(evaluateOllama(buildState(body()), config(), { signal: controller.signal, fetchImpl: async () => metadata() }), /cancelled/)",
+          "sha256": "5b4b7ae3be29c24c133bde90e1cb051bc043cf89778e088eed2d23f0b5cd9187",
+          "expanded_executions": 1,
+          "executed": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_ten_and_fifteen_precancelled_tokens_perform_zero_io"
+          ],
+          "shared_cases": [
+            "operation-13",
+            "operation-14",
+            "operation-15",
+            "operation-16"
+          ],
+          "native_check": "The original buildState input is preserved for direct evaluation; pre-cancelled native token returns Cancelled whose Display contains cancelled, with zero I/O. No arbitrary JS Error identity is claimed for this regex assertion.",
+          "native_equivalence": "finite_behavioral_counterpart",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+              "function": "original_ten_and_fifteen_precancelled_tokens_perform_zero_io",
+              "line": 403
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-evaluator.test.mjs#15:assert-2",
+          "line": 321,
+          "expression": "assert.equal((await router.route(body('Investigate a difficult race'))).tier, 'opus')",
+          "sha256": "b50981be27839742d407202de1a7e2fbfb44e8e447a6e84bbc89392118e404dd",
+          "expanded_executions": 1,
+          "executed": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_fifteen_one_router_three_routes_keep_continuity_and_adaptive_guard"
+          ],
+          "shared_cases": [
+            "operation-13",
+            "operation-14",
+            "operation-15",
+            "operation-16"
+          ],
+          "native_check": "First complete Router output matches captured Opus decision, using one Router retained for all three routes.",
+          "native_equivalence": "finite_behavioral_counterpart",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+              "function": "original_fifteen_one_router_three_routes_keep_continuity_and_adaptive_guard",
+              "line": 422
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-evaluator.test.mjs#15:assert-3",
+          "line": 327,
+          "expression": "assert.equal(next.reason, 'tool_turn_pinned')",
+          "sha256": "0f4c64fa8a0ecd1d8b042163fb7ac2c92f3d7d7c2dec65cbda7dddcae3c992e9",
+          "expanded_executions": 1,
+          "executed": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_fifteen_one_router_three_routes_keep_continuity_and_adaptive_guard"
+          ],
+          "shared_cases": [
+            "operation-13",
+            "operation-14",
+            "operation-15",
+            "operation-16"
+          ],
+          "native_check": "Second complete output preserves tool_turn_pinned after evaluating the tool continuation; the new classifier answer is Haiku.",
+          "native_equivalence": "finite_behavioral_counterpart",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+              "function": "original_fifteen_one_router_three_routes_keep_continuity_and_adaptive_guard",
+              "line": 422
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-evaluator.test.mjs#15:assert-4",
+          "line": 328,
+          "expression": "assert.equal(next.model, config().models.opus)",
+          "sha256": "d6fe43f1c7eef8e1166bc63c883adc8d028410c24365e8a7126878c288dc0fb9",
+          "expanded_executions": 1,
+          "executed": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_fifteen_one_router_three_routes_keep_continuity_and_adaptive_guard"
+          ],
+          "shared_cases": [
+            "operation-13",
+            "operation-14",
+            "operation-15",
+            "operation-16"
+          ],
+          "native_check": "Second complete output selects the exact configured Opus model despite classified Haiku; cumulative request count is four, so policy pinning does not suppress evaluation.",
+          "native_equivalence": "finite_behavioral_counterpart",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+              "function": "original_fifteen_one_router_three_routes_keep_continuity_and_adaptive_guard",
+              "line": 422
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-evaluator.test.mjs#15:assert-5",
+          "line": 330,
+          "expression": "assert.equal(guarded.model, config().models.sonnet)",
+          "sha256": "4ccf8884fcb2a8d14631c7729f69dba6f0943b8ca2f7097e9e7d382429ddb257",
+          "expanded_executions": 1,
+          "executed": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_fifteen_one_router_three_routes_keep_continuity_and_adaptive_guard"
+          ],
+          "shared_cases": [
+            "operation-13",
+            "operation-14",
+            "operation-15",
+            "operation-16"
+          ],
+          "native_check": "Third complete output selects the exact configured Sonnet model for adaptive thinking on the new task; cumulative request count is six.",
+          "native_equivalence": "finite_behavioral_counterpart",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+              "function": "original_fifteen_one_router_three_routes_keep_continuity_and_adaptive_guard",
+              "line": 422
+            }
+          ]
+        },
+        {
+          "id": "test/ollama-evaluator.test.mjs#15:assert-6",
+          "line": 331,
+          "expression": "assert.equal(guarded.classified_tier, 'haiku')",
+          "sha256": "94bdb1c3fdffcb858c41fe19a6cf1a6a41e2f0124bb77103a78ca71fca80c215",
+          "expanded_executions": 1,
+          "executed": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_fifteen_one_router_three_routes_keep_continuity_and_adaptive_guard"
+          ],
+          "shared_cases": [
+            "operation-13",
+            "operation-14",
+            "operation-15",
+            "operation-16"
+          ],
+          "native_check": "Third complete output retains classified_tier=haiku while the capability guard selects Sonnet. Only the two present, finite, nonnegative latency fields per route are projected.",
+          "native_equivalence": "finite_behavioral_counterpart",
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs",
+              "function": "original_fifteen_one_router_three_routes_keep_continuity_and_adaptive_guard",
+              "line": 422
+            }
+          ]
+        }
+      ],
+      "remaining_assertions": [],
+      "unrepresented_native_identity_assertions": [],
+      "api_migration_accepted_by": {
+        "path": "artifacts/rust-rewrite/evidence/ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35.json",
+        "sha256": "ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35",
+        "bytes": 9422,
+        "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-root-review-1/report.json"
+      }
+    }
+  ],
+  "boundaries": [
+    "Root independent mapping/API review accepted these five finite Rust counterparts with explicit documented API migration. Exact JavaScript AbortSignal and arbitrary Error identity remain unsupported native API observations, not equality claims.",
+    "All original callback bodies/helpers/mocks/timers/assertions run unchanged apart from assertion-entry instrumentation; selected callback imports are recording facades over real APIs. Independent unchanged Node test-runner control also passes all five.",
+    "Native production timers use paused Tokio time for deterministic 40 ms and 20 ms budget boundaries; Node callbacks use their original real synthetic timers. No wall-clock timing or local-model performance equivalence is claimed.",
+    "Full native request values are compared, including URL/method/headers and parsed request JSON; raw original request strings remain in capture. JSON key order is not a wire-byte equivalence claim.",
+    "Only six validated finite nonnegative route latency fields are projected in complete result comparison. Raw values, complete outcomes, request/stream events, signal ids and Error identities remain retained.",
+    "The first cancellation regressions use positive pending-body observation and manually poll immediately after cancel. They do not satisfy body-release predicates by draining work after a returned error.",
+    "Awaited last-live cancellation waits only for the retained evaluator worker request/body lifetime; a live peer keeps shared work. Dropping the caller future is nonblocking cancellation, not an asynchronous join. Transport background ownership remains separate.",
+    "Final binaries compile only the clean 0e3ea4c base plus seven owned files with 379 unchanged scoped inputs. Concurrent SessionLog, StatusStore and Hyper/runtime ticket changes are not qualified by this isolated result.",
+    "No release CLI was built for this final classifier patch. Earlier cd399f5b shipping feature audit and checkpoint13 host/TLS/startup results are historical distinct identities; integration requires root whole-workspace validation.",
+    "No live evaluator, model, paid provider, download or numerical benchmark was used."
+  ],
+  "review": {
+    "root_mapping_and_api": {
+      "path": "artifacts/rust-rewrite/evidence/ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35.json",
+      "sha256": "ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35",
+      "bytes": 9422,
+      "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-root-review-1/report.json"
+    },
+    "independent_native": {
+      "path": "artifacts/rust-rewrite/evidence/e3b8d659739ff979ba1253bd90129975ba2d7d447ab9f1af720325aae38356c5.json",
+      "sha256": "e3b8d659739ff979ba1253bd90129975ba2d7d447ab9f1af720325aae38356c5",
+      "bytes": 14923,
+      "original_path": "/private/tmp/autorouter-classifier-cancellation-independent-review.json"
+    },
+    "separate_author_ast_and_recapture": {
+      "path": "artifacts/rust-rewrite/evidence/01487c1ccc960d62248abc6af9301ca45d103cc90b0268bd7640a7a1f151f822.json",
+      "sha256": "01487c1ccc960d62248abc6af9301ca45d103cc90b0268bd7640a7a1f151f822",
+      "bytes": 3143,
+      "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-author-audit/report.json"
+    }
+  },
+  "input_coverage": {
+    "path": "artifacts/rust-rewrite/evidence/04ce3058f3e1d9f6bff3a1b0f868fe49468465a5a66d7afc27b7244c37eac91f.json",
+    "sha256": "04ce3058f3e1d9f6bff3a1b0f868fe49468465a5a66d7afc27b7244c37eac91f",
+    "bytes": 1651223,
+    "original_path": "rust/parity/coverage.json"
+  },
+  "reviewed_proposal": {
+    "path": "artifacts/rust-rewrite/evidence/27de8f71604799c8abf3ed5d2e5e04b4b4eacb41b8a2d69163f71ac92d199e05.json",
+    "sha256": "27de8f71604799c8abf3ed5d2e5e04b4b4eacb41b8a2d69163f71ac92d199e05",
+    "bytes": 81472,
+    "original_path": "/private/tmp/autorouter-ollama-evaluator-timed-mapping-proposal.json"
+  },
+  "author_implementation_report": {
+    "path": "artifacts/rust-rewrite/evidence/4bcaa2f9a6baf11882125d64b0ba14967cbc34ec14e6cb703ffe78642a2dba5e.json",
+    "sha256": "4bcaa2f9a6baf11882125d64b0ba14967cbc34ec14e6cb703ffe78642a2dba5e",
+    "bytes": 22861,
+    "original_path": "/private/tmp/autorouter-ollama-evaluator-timed-implementation-report.json"
+  },
+  "additional_author_capture5": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/3c5a5655d58579b0f79d0c5bab45366866cf250cfc09bcc8a505bf5f0b17763a.json",
+      "sha256": "3c5a5655d58579b0f79d0c5bab45366866cf250cfc09bcc8a505bf5f0b17763a",
+      "bytes": 330183,
+      "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-capture-5/capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/df0b131366bfca8fa8b07f38cf96194d4a7d11f53970c220cc3829304b2d3a7b.jsonl",
+      "sha256": "df0b131366bfca8fa8b07f38cf96194d4a7d11f53970c220cc3829304b2d3a7b",
+      "bytes": 103786,
+      "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-capture-5/cases.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/2a47678eece9540a9e0c9265ba8fee73e183836b643ca6610d514b2038627413.mjs",
+      "sha256": "2a47678eece9540a9e0c9265ba8fee73e183836b643ca6610d514b2038627413",
+      "bytes": 21594,
+      "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-capture-5/capture-source.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/e168710815f6a34c0a9e6ddfe56615036d29418dfb337acd64cbb6d3896197f1.mjs",
+      "sha256": "e168710815f6a34c0a9e6ddfe56615036d29418dfb337acd64cbb6d3896197f1",
+      "bytes": 7592,
+      "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-capture-5/transformed-callbacks.mjs"
+    }
+  ],
+  "previous_coverage_rows": [
+    {
+      "id": "test/ollama-evaluator.test.mjs#7",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "Ollama shares one deadline across metadata and native response, cancels bodies, and bounds output",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#8",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "a disabled deadline accepts delayed metadata, inference, and body reads with or without a caller signal",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#9",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "caller cancellation with no deadline stops metadata and inference body reads without caching a fallback",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#10",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "an already cancelled request with no deadline never contacts Ollama",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#15",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "caller cancellation propagates and local classifier keeps continuity and capability guards",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    }
+  ],
+  "scope": "All five complete original callback definitions with20static assertion sites/36executions/26request transcript. Native production deadlines and exact body-release ownership are exercised; three identity predicates use explicitly accepted Rust API adaptation, not identity equivalence. No total rewrite or shipping qualification."
+}

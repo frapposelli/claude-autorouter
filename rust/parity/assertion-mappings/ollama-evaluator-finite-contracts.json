@@ -1,0 +1,870 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_ollama_evaluator_finite_contracts_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_head": "46587867cd0b4db89b273ba293555a5619009a4c",
+  "production_changes": false,
+  "counts": {
+    "definitions": 5,
+    "source_scenarios": 15,
+    "state_function_calls": 24,
+    "evaluator_invocations": 10,
+    "requests": 18,
+    "direct_static_assertions": 23,
+    "executed_original_assertions": 70,
+    "native_tests": 2,
+    "unchanged_frozen_tests_passed": 5,
+    "baseline_files_verified": 111,
+    "covered": 5,
+    "partial": 0
+  },
+  "current_sources": [
+    {
+      "path": "rust/parity/capture-ollama-evaluator-finite-contracts.mjs",
+      "bytes": 16253,
+      "sha256": "383adf70421160cc187389defe3c455e567ac771d2c93f37a570698cf73dee3d"
+    },
+    {
+      "path": "rust/parity/cases/ollama-evaluator-finite-contracts.jsonl",
+      "bytes": 362005,
+      "sha256": "d8706e0e48de75f116c70be550105ed6b607451af15eb61454ef62637dcf462e"
+    },
+    {
+      "path": "rust/parity/cases/ollama-evaluator-finite-contracts.capture.json",
+      "bytes": 45762,
+      "sha256": "e20dd6bb18549e7a48749696cec49cab329826555e3b39862befc69c0484fd31"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs",
+      "bytes": 3387,
+      "sha256": "6bcec86a1cc124b64ed6449a9698428f86a488f690d81547b461d3a3e22ceaa4"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/support/ollama_evaluator_finite.rs",
+      "bytes": 9257,
+      "sha256": "89671b0336574bc3ea47ee215d5b2f32dfbc5b5e758cae097fc1f0bbe2c190aa"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/evaluator.rs",
+      "bytes": 44305,
+      "sha256": "a44198f1c62c7b4d45d1427bf67b673f8b0b252f97244354a0cfc66eb9933527"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/prompt_state.rs",
+      "bytes": 27400,
+      "sha256": "56e138cec33a2523892f156bb73369b05827559c7071299d09ef08ea81805127"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/http_client.rs",
+      "bytes": 16711,
+      "sha256": "c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1"
+    }
+  ],
+  "retained_sources": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/383adf70421160cc187389defe3c455e567ac771d2c93f37a570698cf73dee3d.mjs",
+      "sha256": "383adf70421160cc187389defe3c455e567ac771d2c93f37a570698cf73dee3d",
+      "bytes": 16253,
+      "original_path": "rust/parity/capture-ollama-evaluator-finite-contracts.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/d8706e0e48de75f116c70be550105ed6b607451af15eb61454ef62637dcf462e.jsonl",
+      "sha256": "d8706e0e48de75f116c70be550105ed6b607451af15eb61454ef62637dcf462e",
+      "bytes": 362005,
+      "original_path": "rust/parity/cases/ollama-evaluator-finite-contracts.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/e20dd6bb18549e7a48749696cec49cab329826555e3b39862befc69c0484fd31.json",
+      "sha256": "e20dd6bb18549e7a48749696cec49cab329826555e3b39862befc69c0484fd31",
+      "bytes": 45762,
+      "original_path": "rust/parity/cases/ollama-evaluator-finite-contracts.capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/6bcec86a1cc124b64ed6449a9698428f86a488f690d81547b461d3a3e22ceaa4.rs",
+      "sha256": "6bcec86a1cc124b64ed6449a9698428f86a488f690d81547b461d3a3e22ceaa4",
+      "bytes": 3387,
+      "original_path": "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/89671b0336574bc3ea47ee215d5b2f32dfbc5b5e758cae097fc1f0bbe2c190aa.rs",
+      "sha256": "89671b0336574bc3ea47ee215d5b2f32dfbc5b5e758cae097fc1f0bbe2c190aa",
+      "bytes": 9257,
+      "original_path": "rust/crates/autorouter-runtime/tests/support/ollama_evaluator_finite.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/a44198f1c62c7b4d45d1427bf67b673f8b0b252f97244354a0cfc66eb9933527.rs",
+      "sha256": "a44198f1c62c7b4d45d1427bf67b673f8b0b252f97244354a0cfc66eb9933527",
+      "bytes": 44305,
+      "original_path": "rust/crates/autorouter-runtime/src/evaluator.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/56e138cec33a2523892f156bb73369b05827559c7071299d09ef08ea81805127.rs",
+      "sha256": "56e138cec33a2523892f156bb73369b05827559c7071299d09ef08ea81805127",
+      "bytes": 27400,
+      "original_path": "rust/crates/autorouter-core/src/prompt_state.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1.rs",
+      "sha256": "c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1",
+      "bytes": 16711,
+      "original_path": "rust/crates/autorouter-runtime/src/http_client.rs"
+    }
+  ],
+  "evidence": {
+    "0-3e82dee460757de0f8cd11a1cf5345345184b144069d1e66dc56bbeaa8a6fcd5.log": {
+      "path": "artifacts/rust-rewrite/evidence/3e82dee460757de0f8cd11a1cf5345345184b144069d1e66dc56bbeaa8a6fcd5.log",
+      "bytes": 1351,
+      "sha256": "3e82dee460757de0f8cd11a1cf5345345184b144069d1e66dc56bbeaa8a6fcd5",
+      "original_path": "artifacts/rust-rewrite/ollama-evaluator-finite-frozen-tests.log"
+    },
+    "1-86b3b9ec1b8e070aaaefce2a44730fb07d1d6ca2797a586faff8e7a837e2bf8c.log": {
+      "path": "artifacts/rust-rewrite/evidence/86b3b9ec1b8e070aaaefce2a44730fb07d1d6ca2797a586faff8e7a837e2bf8c.log",
+      "bytes": 158,
+      "sha256": "86b3b9ec1b8e070aaaefce2a44730fb07d1d6ca2797a586faff8e7a837e2bf8c",
+      "original_path": "artifacts/rust-rewrite/ollama-evaluator-finite-capture-1.log"
+    },
+    "2-86b3b9ec1b8e070aaaefce2a44730fb07d1d6ca2797a586faff8e7a837e2bf8c.log": {
+      "path": "artifacts/rust-rewrite/evidence/86b3b9ec1b8e070aaaefce2a44730fb07d1d6ca2797a586faff8e7a837e2bf8c.log",
+      "bytes": 158,
+      "sha256": "86b3b9ec1b8e070aaaefce2a44730fb07d1d6ca2797a586faff8e7a837e2bf8c",
+      "original_path": "artifacts/rust-rewrite/ollama-evaluator-finite-capture-2.log"
+    },
+    "3-61e79f1d91d8c960f26e0512fbfd27100fd4a3d2818dfe1947a1dfa36755ad84.log": {
+      "path": "artifacts/rust-rewrite/evidence/61e79f1d91d8c960f26e0512fbfd27100fd4a3d2818dfe1947a1dfa36755ad84.log",
+      "bytes": 3607,
+      "sha256": "61e79f1d91d8c960f26e0512fbfd27100fd4a3d2818dfe1947a1dfa36755ad84",
+      "original_path": "artifacts/rust-rewrite/ollama-evaluator-finite-native-tests-1.log"
+    },
+    "4-5f49510ad541ddf16e063a37b3cc32b497a387f110986bab504149c7c93a3c8f.log": {
+      "path": "artifacts/rust-rewrite/evidence/5f49510ad541ddf16e063a37b3cc32b497a387f110986bab504149c7c93a3c8f.log",
+      "bytes": 1066,
+      "sha256": "5f49510ad541ddf16e063a37b3cc32b497a387f110986bab504149c7c93a3c8f",
+      "original_path": "artifacts/rust-rewrite/ollama-evaluator-finite-native-tests-2.log"
+    },
+    "5-62be83b2466361440652c095681c120abe762c568986b81191c63a1e68892975.log": {
+      "path": "artifacts/rust-rewrite/evidence/62be83b2466361440652c095681c120abe762c568986b81191c63a1e68892975.log",
+      "bytes": 678,
+      "sha256": "62be83b2466361440652c095681c120abe762c568986b81191c63a1e68892975",
+      "original_path": "artifacts/rust-rewrite/ollama-evaluator-finite-clippy-1.log"
+    },
+    "6-d8706e0e48de75f116c70be550105ed6b607451af15eb61454ef62637dcf462e.jsonl": {
+      "path": "artifacts/rust-rewrite/evidence/d8706e0e48de75f116c70be550105ed6b607451af15eb61454ef62637dcf462e.jsonl",
+      "bytes": 362005,
+      "sha256": "d8706e0e48de75f116c70be550105ed6b607451af15eb61454ef62637dcf462e",
+      "original_path": "artifacts/rust-rewrite/ollama-evaluator-finite-capture-1/cases.jsonl"
+    },
+    "7-e20dd6bb18549e7a48749696cec49cab329826555e3b39862befc69c0484fd31.json": {
+      "path": "artifacts/rust-rewrite/evidence/e20dd6bb18549e7a48749696cec49cab329826555e3b39862befc69c0484fd31.json",
+      "bytes": 45762,
+      "sha256": "e20dd6bb18549e7a48749696cec49cab329826555e3b39862befc69c0484fd31",
+      "original_path": "artifacts/rust-rewrite/ollama-evaluator-finite-capture-1/capture.json"
+    },
+    "8-d8706e0e48de75f116c70be550105ed6b607451af15eb61454ef62637dcf462e.jsonl": {
+      "path": "artifacts/rust-rewrite/evidence/d8706e0e48de75f116c70be550105ed6b607451af15eb61454ef62637dcf462e.jsonl",
+      "bytes": 362005,
+      "sha256": "d8706e0e48de75f116c70be550105ed6b607451af15eb61454ef62637dcf462e",
+      "original_path": "artifacts/rust-rewrite/ollama-evaluator-finite-capture-2/cases.jsonl"
+    },
+    "9-e20dd6bb18549e7a48749696cec49cab329826555e3b39862befc69c0484fd31.json": {
+      "path": "artifacts/rust-rewrite/evidence/e20dd6bb18549e7a48749696cec49cab329826555e3b39862befc69c0484fd31.json",
+      "bytes": 45762,
+      "sha256": "e20dd6bb18549e7a48749696cec49cab329826555e3b39862befc69c0484fd31",
+      "original_path": "artifacts/rust-rewrite/ollama-evaluator-finite-capture-2/capture.json"
+    },
+    "10-34eafaf503e510eadafcde3c37f3c50530a9ae331b396c359ce4aa4c9b63e873.json": {
+      "path": "artifacts/rust-rewrite/evidence/34eafaf503e510eadafcde3c37f3c50530a9ae331b396c359ce4aa4c9b63e873.json",
+      "bytes": 1511,
+      "sha256": "34eafaf503e510eadafcde3c37f3c50530a9ae331b396c359ce4aa4c9b63e873",
+      "original_path": "artifacts/rust-rewrite/ollama-evaluator-finite-input-adapter-failure.json"
+    },
+    "11-4d0626042f36dbfc42e7109d4bb4ae33ecd95142cd33102286d7b6b788d4d126.json": {
+      "path": "artifacts/rust-rewrite/evidence/4d0626042f36dbfc42e7109d4bb4ae33ecd95142cd33102286d7b6b788d4d126.json",
+      "bytes": 2413,
+      "sha256": "4d0626042f36dbfc42e7109d4bb4ae33ecd95142cd33102286d7b6b788d4d126",
+      "original_path": "/private/tmp/autorouter-ollama-evaluator-finite-final-review.json"
+    },
+    "12-88bbe808876fe5803b821e0750bf021bbced0b5aebe0b628c3be6831c73c3917.log": {
+      "path": "artifacts/rust-rewrite/evidence/88bbe808876fe5803b821e0750bf021bbced0b5aebe0b628c3be6831c73c3917.log",
+      "bytes": 64807,
+      "sha256": "88bbe808876fe5803b821e0750bf021bbced0b5aebe0b628c3be6831c73c3917",
+      "original_path": "artifacts/rust-rewrite/eighth-final-3-workspace.log"
+    },
+    "13-4397e9e4aa6cbf2f3c5945f626dbd8d6477e2f1f1377fdd5e69bdd5e2010754d.json": {
+      "path": "artifacts/rust-rewrite/evidence/4397e9e4aa6cbf2f3c5945f626dbd8d6477e2f1f1377fdd5e69bdd5e2010754d.json",
+      "bytes": 78116,
+      "sha256": "4397e9e4aa6cbf2f3c5945f626dbd8d6477e2f1f1377fdd5e69bdd5e2010754d",
+      "original_path": "artifacts/rust-rewrite/eighth-final-3-source-inputs.json"
+    }
+  },
+  "capture_method": [
+    "Only static imports are removed. All five selected original callbacks, loops, data constructors, helper functions and assertions execute unchanged in the same realm.",
+    "Response observer forwards finite built-in constructors and returns the identical Response; no clone/tee/read or stream ownership changes.",
+    "All 24 state-function invocations preserve input/output JSON bytes, including twelve invocations across three background-equivalence loops. Ten evaluator operations consume their actual captured state objects.",
+    "Complete raw and parsed HTTP request bodies, headers, status and finite response text are retained. Error predicates receive the same original error; all diagnostic fields and own-property presence except stack are recorded.",
+    "Own undefined and injected function tags remain explicit. Native typed errors/Option omission are reviewed API adaptations, not JS Error/AbortSignal identity claims.",
+    "No classifier cache/routing, deadline/cancellation, response stream, provider/model/download, platform or performance qualification is performed."
+  ],
+  "limits": {
+    "cases": 16,
+    "requests_per_call": 2,
+    "state_calls": 24,
+    "field_bytes": 65536,
+    "response_bytes": 1048576,
+    "aggregate_bytes": 4194304,
+    "snapshot_nodes": 4096,
+    "snapshot_depth": 32,
+    "native_complete_evaluation_seconds": 2,
+    "native_input_json_bytes": 131072,
+    "native_requests_per_call": 2,
+    "native_request_bytes": 65536,
+    "native_response_bytes": 1048576,
+    "external_capture_process_timeout_seconds": 30
+  },
+  "exclusions": [
+    "Error.stack only; no state/request/result/status/code/message/timing fields are masked"
+  ],
+  "negative_controls": [
+    {
+      "test": "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#wrong_request_is_detected_even_when_scripted_success_or_safe_failure_matches",
+      "cases": [
+        "Wrong expected metadata URL still returns remote-host metadata, producing the identical safe error.",
+        "Wrong expected inference state in parsed and raw body still returns the original valid sonnet answer."
+      ],
+      "assertion": "Both full result tuples match while the independent replay invalid counter makes verified() false; successful/error outcomes cannot hide a wrong request."
+    }
+  ],
+  "failure_evidence": {
+    "path": "artifacts/rust-rewrite/ollama-evaluator-finite-input-adapter-failure.json",
+    "classification": "Test adapter initialized model-dependent config defaults differently from original post-readConfig object spread. First full-config equality failed before evaluator invocation; corrected test adapter only. Original failed log and exact old source bytes retained.",
+    "final_log": "artifacts/rust-rewrite/ollama-evaluator-finite-native-tests-2.log"
+  },
+  "existing_actual_redirect_evidence": {
+    "rust_test": "rust/crates/autorouter-runtime/src/http_client.rs#http_client::tests::local_http_reuses_connections_preserves_credentials_and_never_decodes_or_redirects",
+    "source_sha256": "c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1",
+    "source_line": 315,
+    "executed_log": "artifacts/rust-rewrite/eighth-final-3-workspace.log",
+    "executed_log_line": 255,
+    "assertions": "Native307 body is forwarded without redirect; expected request-path/call counts include no destination follow."
+  },
+  "boundaries": [
+    "No state/request/result/error-code/status/message observations are excluded; only unasserted Error.stack location is omitted. No elapsed fields occur in this batch.",
+    "Optional Error.code/classifierStatus are observed as absent/undefined, never coerced to null. Native typed enum projection preserves diagnostic primitives, but does not claim JS Error prototypes, own-property identity or AbortSignal object identity.",
+    "Config undefined tags describe original source; full native serde equality establishes corresponding omitted fields. The source post-readConfig model override order is retained, including its model-dependent defaults.",
+    "Pure-state calls all use exact original default limits. Complete original input/output JSON bytes are retained, including executor instructions, Unicode, synthetic private payloads and question schema.",
+    "All transport responses are finite synthetic Full bodies. No live service/provider/model/download, classifier caching/routing, deadline or cancellation, streaming/body ownership, performance or platform qualification is claimed.",
+    "Existing actual NativeHttpClient no-redirect evidence supports the captured source redirect:error primitive; finite injected transport alone does not prove native redirect policy.",
+    "All other ten original evaluator definitions remain unchanged and outside this proposal."
+  ],
+  "historical_preservation": [
+    "Existing setup/diagnostic corpora, mapping files and logs remain unchanged.",
+    "Capture1/2 are retained separately and byte-identical; failed adapter source/log remain content-addressed."
+  ],
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/evidence/4d0626042f36dbfc42e7109d4bb4ae33ecd95142cd33102286d7b6b788d4d126.json",
+    "bytes": 2413,
+    "sha256": "4d0626042f36dbfc42e7109d4bb4ae33ecd95142cd33102286d7b6b788d4d126",
+    "original_path": "/private/tmp/autorouter-ollama-evaluator-finite-final-review.json"
+  },
+  "rows": [
+    {
+      "id": "test/ollama-evaluator.test.mjs#1",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "local routing excludes Claude executor instructions without changing Jev task extraction",
+      "line": 19,
+      "baseline_file_sha256": "5015a563933bc51ffcc8ab88214cb4d972f590548ae8e5c768aa46f24669a371",
+      "definition_statement": "test('local routing excludes Claude executor instructions without changing Jev task extraction', () => {\n  for (const prompt of ['What does [].length return?', 'Implement paginated results with tests.',\n    'Prove a lease protocol prevents stale writes across a network partition.']) {\n    const request = body(prompt);\n    const withBackground = { ...request, system: [{ type: 'text',\n      text: 'You are a coding assistant. Inspect repositories, implement features, review code and run tests. '.repeat(200) }],\n    };\n    assert.deepEqual(buildOllamaState(withBackground), buildOllamaState(request));\n    assert.equal(buildOllamaState(withBackground).current_task, prompt);\n    assert.ok(buildState(withBackground).system.includes('coding assistant'));\n  }\n});",
+      "definition_sha256": "b2652a4ff860091e12146442555d646b23e8225df6a0dfadcb8cc8244a5fe61c",
+      "definition_call_sha256": "20061bae5c5f611d18f9cab8bd04bf746e703b92dc6538990848b51ef7860569",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+      ],
+      "shared_cases": [
+        "baseline-ollama-evaluator-finite-1-1",
+        "baseline-ollama-evaluator-finite-1-2",
+        "baseline-ollama-evaluator-finite-1-3"
+      ],
+      "scenarios": 3,
+      "state_calls": 12,
+      "requests": 0,
+      "executed_original_assertions": 9,
+      "assertions": [
+        {
+          "line": 26,
+          "expression": "assert.deepEqual(buildOllamaState(withBackground), buildOllamaState(request))",
+          "sha256": "51f6b9f99ce1e4fc094b34d9408dd0169d3222cc10eb7c1e5538a09a9d99bfa6",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-1-1",
+            "baseline-ollama-evaluator-finite-1-2",
+            "baseline-ollama-evaluator-finite-1-3"
+          ],
+          "native_check": "For each of three original prompts, both background/no-background native state results equal the complete captured identical JSON bytes; all repeated original calls are retained."
+        },
+        {
+          "line": 27,
+          "expression": "assert.equal(buildOllamaState(withBackground).current_task, prompt)",
+          "sha256": "42b3e9cc131f3984244b5490c01dfbbdceafa1339bbef2bf11f3578e7b0462b0",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-1-1",
+            "baseline-ollama-evaluator-finite-1-2",
+            "baseline-ollama-evaluator-finite-1-3"
+          ],
+          "native_check": "Third Ollama state invocation per prompt reproduces complete JSON with exact original current_task."
+        },
+        {
+          "line": 28,
+          "expression": "assert.ok(buildState(withBackground).system.includes('coding assistant'))",
+          "sha256": "26d143e8c13ea33ed57e833c2c6ee54d33dcb35c00e83f89c0de87315bba599e",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-1-1",
+            "baseline-ollama-evaluator-finite-1-2",
+            "baseline-ollama-evaluator-finite-1-3"
+          ],
+          "native_check": "Fourth call per prompt invokes native build_state_document with original executor background and reproduces exact complete Jev state JSON containing coding assistant."
+        }
+      ],
+      "review_notes": [
+        "Three original prompts retain four original state calls each, including Jev executor context comparison; no deduplication erases repeated calls."
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#2",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "excluding local executor instructions still retains follow-up evidence and bounded Unicode excerpts",
+      "line": 32,
+      "baseline_file_sha256": "5015a563933bc51ffcc8ab88214cb4d972f590548ae8e5c768aa46f24669a371",
+      "definition_statement": "test('excluding local executor instructions still retains follow-up evidence and bounded Unicode excerpts', () => {\n  const request = body('Worker A pauses with lease 41; B commits under 42. Storage accepts every issued token.');\n  request.system = 'IRRELEVANT_EXECUTOR_BACKGROUND '.repeat(1000);\n  request.messages.push({ role: 'assistant', content: 'The storage acceptance rule is suspect.' },\n    { role: 'user', content: 'Prove whether both can commit; specify the atomic repair.' },\n    { role: 'assistant', content: [{ type: 'tool_use', name: 'Read', id: 'evidence', input: { secret: 'PRIVATE_TOOL_INPUT' } }] },\n    { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'evidence', is_error: true,\n      content: 'EVIDENCE_START ' + '\u5e76\u53d1\ud83c\udf0d'.repeat(2000) + ' STALE_WRITE_ACCEPTED' }] });\n  const state = buildOllamaState(request);\n  assert.match(state.original_task, /lease 41/);\n  assert.equal(state.current_task, 'Prove whether both can commit; specify the atomic repair.');\n  assert.ok(state.recent_messages.some(message => message.content.includes('STALE_WRITE_ACCEPTED')));\n  assert.ok(Buffer.byteLength(JSON.stringify(state)) <= 3000);\n  assert.doesNotMatch(JSON.stringify(state), /IRRELEVANT_EXECUTOR_BACKGROUND|PRIVATE_TOOL_INPUT/);\n});",
+      "definition_sha256": "ae66647afb3b2cae226fc46abe76faf701fc5f7721cbe3620786befe0bd267bb",
+      "definition_call_sha256": "085f97ca80dc2ffb0126ebf01ca1e1072a35414ea8f4bf8832e07d4bd52d4637",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+      ],
+      "shared_cases": [
+        "baseline-ollama-evaluator-finite-2-1"
+      ],
+      "scenarios": 1,
+      "state_calls": 1,
+      "requests": 0,
+      "executed_original_assertions": 5,
+      "assertions": [
+        {
+          "line": 41,
+          "expression": "assert.match(state.original_task, /lease 41/)",
+          "sha256": "a7d39fc2308e45f51ba0daee66a60bda9c71d23ddf7ab276adde140fa166cff5",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-2-1"
+          ],
+          "native_check": "Exact entire follow-up state JSON preserves the original lease41 task."
+        },
+        {
+          "line": 42,
+          "expression": "assert.equal(state.current_task, 'Prove whether both can commit; specify the atomic repair.')",
+          "sha256": "662116b2a34e0a95c0dc460b465827627732765f91ad7d1940966ed2f2657269",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-2-1"
+          ],
+          "native_check": "Exact current_task and every other state byte equal the frozen follow-up output."
+        },
+        {
+          "line": 43,
+          "expression": "assert.ok(state.recent_messages.some(message => message.content.includes('STALE_WRITE_ACCEPTED')))",
+          "sha256": "830c4032013d5b8ca6e9e54e3e41089e7ba9ee45fb02a5bd8b988abb141d5df5",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-2-1"
+          ],
+          "native_check": "Exact recent_messages retain the original trailing STALE_WRITE_ACCEPTED evidence."
+        },
+        {
+          "line": 44,
+          "expression": "assert.ok(Buffer.byteLength(JSON.stringify(state)) <= 3000)",
+          "sha256": "0d767a54d430cf5e510100c2709e9c5bce8331695714e467ff059b26c6393721",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-2-1"
+          ],
+          "native_check": "Native complete serialized state equals the source output whose UTF8 byte-length assertion executed unchanged."
+        },
+        {
+          "line": 45,
+          "expression": "assert.doesNotMatch(JSON.stringify(state), /IRRELEVANT_EXECUTOR_BACKGROUND|PRIVATE_TOOL_INPUT/)",
+          "sha256": "f9524d965eb9b923277aeeb47153d64a33ee636951bb77d8a260ce56494f203e",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-2-1"
+          ],
+          "native_check": "Full state byte equality preserves the original exclusion of executor background and private tool input."
+        }
+      ],
+      "review_notes": [
+        "One exact Unicode continuation with private tool input and large trailing evidence; full input and output JSON retained."
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#3",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "Nimble, Tev1, and compatible custom aliases use the same native protocol without chat requests",
+      "line": 48,
+      "baseline_file_sha256": "5015a563933bc51ffcc8ab88214cb4d972f590548ae8e5c768aa46f24669a371",
+      "definition_statement": "test('Nimble, Tev1, and compatible custom aliases use the same native protocol without chat requests', async () => {\n  for (const model of ['nimble', 'library/nimble:9b-q4_K_M', 'registry.ollama.ai/library/nimble:9b-q4_K_M',\n    'tev1:0.8b', 'tev1:0.8b-q8_0', 'tev1:4b-q4_K_M', 'team/local-decider:v1']) {\n    const calls = [];\n    const result = await evaluateOllama(buildOllamaState(body()), config({ ollamaModel: model }), { fetchImpl: async (url, options) => {\n      calls.push(new URL(url).pathname);\n      const payload = JSON.parse(options.body);\n      assert.equal(payload.model, model);\n      if (url.endsWith('/api/show')) return metadata();\n      assert.equal(new URL(url).pathname, '/v1/systemone');\n      assert.deepEqual(Object.keys(payload).sort(), ['keep_alive', 'model', 'questions', 'state']);\n      return Response.json(decisionPayload('sonnet', model));\n    } });\n    assert.equal(result.choice, 'sonnet');\n    assert.deepEqual(calls, ['/api/show', '/v1/systemone']);\n  }\n});",
+      "definition_sha256": "b8c23eb6b54d3b7cf669bc3c492fbbe0ecc4df17d3d2e25799b9cdc1cb58c146",
+      "definition_call_sha256": "87017e3bad210fdb2562dd99238459b19d117e0184da7bfcf859829b979a1aa2",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+      ],
+      "shared_cases": [
+        "baseline-ollama-evaluator-finite-3-1",
+        "baseline-ollama-evaluator-finite-3-2",
+        "baseline-ollama-evaluator-finite-3-3",
+        "baseline-ollama-evaluator-finite-3-4",
+        "baseline-ollama-evaluator-finite-3-5",
+        "baseline-ollama-evaluator-finite-3-6",
+        "baseline-ollama-evaluator-finite-3-7"
+      ],
+      "scenarios": 7,
+      "state_calls": 7,
+      "requests": 14,
+      "executed_original_assertions": 42,
+      "assertions": [
+        {
+          "line": 55,
+          "expression": "assert.equal(payload.model, model)",
+          "sha256": "6864a56df3926f5d6d01703a2358ae669099c70fa2abc62b7f4945f805f1e55b",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-3-1",
+            "baseline-ollama-evaluator-finite-3-2",
+            "baseline-ollama-evaluator-finite-3-3",
+            "baseline-ollama-evaluator-finite-3-4",
+            "baseline-ollama-evaluator-finite-3-5",
+            "baseline-ollama-evaluator-finite-3-6",
+            "baseline-ollama-evaluator-finite-3-7"
+          ],
+          "native_check": "Every metadata and inference request for all seven exact original aliases compares model, complete body fields, raw body text, URL/method and headers independently of its result."
+        },
+        {
+          "line": 57,
+          "expression": "assert.equal(new URL(url).pathname, '/v1/systemone')",
+          "sha256": "b57aeb910ba8e6abab284102f939f7056087b2c5b92799fb4e16378b1c85850c",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-3-1",
+            "baseline-ollama-evaluator-finite-3-2",
+            "baseline-ollama-evaluator-finite-3-3",
+            "baseline-ollama-evaluator-finite-3-4",
+            "baseline-ollama-evaluator-finite-3-5",
+            "baseline-ollama-evaluator-finite-3-6",
+            "baseline-ollama-evaluator-finite-3-7"
+          ],
+          "native_check": "Every inference request URL is exact /v1/systemone; actual request transcript comparison catches any chat or alternate path."
+        },
+        {
+          "line": 58,
+          "expression": "assert.deepEqual(Object.keys(payload).sort(), ['keep_alive', 'model', 'questions', 'state'])",
+          "sha256": "154c818e253db604f049946e43deb79f13f9d6a8e35fb0fcd012267185f75b68",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-3-1",
+            "baseline-ollama-evaluator-finite-3-2",
+            "baseline-ollama-evaluator-finite-3-3",
+            "baseline-ollama-evaluator-finite-3-4",
+            "baseline-ollama-evaluator-finite-3-5",
+            "baseline-ollama-evaluator-finite-3-6",
+            "baseline-ollama-evaluator-finite-3-7"
+          ],
+          "native_check": "Complete parsed and raw request body comparison forbids missing/extra questions/state/model/keep_alive fields and preserves original full question text."
+        },
+        {
+          "line": 61,
+          "expression": "assert.equal(result.choice, 'sonnet')",
+          "sha256": "3e30084e78c889ee92b2ee3a55521402f82fa310b03a103fd0c2cab57e19bc77",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-3-1",
+            "baseline-ollama-evaluator-finite-3-2",
+            "baseline-ollama-evaluator-finite-3-3",
+            "baseline-ollama-evaluator-finite-3-4",
+            "baseline-ollama-evaluator-finite-3-5",
+            "baseline-ollama-evaluator-finite-3-6",
+            "baseline-ollama-evaluator-finite-3-7"
+          ],
+          "native_check": "The actual evaluate_serialized_answer result equals full captured choice+metrics for every alias, including sonnet choice and absent confidence."
+        },
+        {
+          "line": 62,
+          "expression": "assert.deepEqual(calls, ['/api/show', '/v1/systemone'])",
+          "sha256": "3e989a7a38bd28aeb9e27fb15132e64d2ebdf3d0bc0f6fd958cebc2fd0d13ed6",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-3-1",
+            "baseline-ollama-evaluator-finite-3-2",
+            "baseline-ollama-evaluator-finite-3-3",
+            "baseline-ollama-evaluator-finite-3-4",
+            "baseline-ollama-evaluator-finite-3-5",
+            "baseline-ollama-evaluator-finite-3-6",
+            "baseline-ollama-evaluator-finite-3-7"
+          ],
+          "native_check": "Independent replay queues and observed transcript equality require exactly /api/show then /v1/systemone for each alias."
+        }
+      ],
+      "review_notes": [
+        "Seven exact model aliases and14requests; source model override occurs after default readConfig, preserving30000ms model-dependent default. Typed Rust config is completely compared."
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#6",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "Ollama preserves the local metadata gate and gives safe version guidance only for its missing endpoint",
+      "line": 136,
+      "baseline_file_sha256": "5015a563933bc51ffcc8ab88214cb4d972f590548ae8e5c768aa46f24669a371",
+      "definition_statement": "test('Ollama preserves the local metadata gate and gives safe version guidance only for its missing endpoint', async () => {\n  const calls = [];\n  await assert.rejects(evaluateOllama(buildOllamaState(body()), config(), { fetchImpl: async url => {\n    calls.push(new URL(url).pathname);\n    return Response.json({ remote_host: 'PRIVATE_HOST', details: { parameter_size: '9B' } });\n  } }), /classifier_invalid_response/);\n  assert.deepEqual(calls, ['/api/show']);\n  for (const missing of ['/api/show', '/v1/systemone']) {\n    await assert.rejects(evaluateOllama(buildOllamaState(body()), config(), { fetchImpl: async url => {\n      if (new URL(url).pathname === missing) return new Response('PRIVATE_PROVIDER_ERROR', { status: 404 });\n      return metadata();\n    } }), error => {\n      assert.equal(error.classifierStatus, 404);\n      assert.equal(error.code, missing === '/v1/systemone' ? 'OLLAMA_VERSION' : undefined);\n      if (missing === '/v1/systemone') assert.match(error.message, /Ollama 0\\.35 or newer/);\n      assert.ok(!error.message.includes('PRIVATE_'));\n      return true;\n    });\n  }\n});",
+      "definition_sha256": "687add055e445a12639cd33214e9f87c2a4760b5f768c06b8ee31f74fcf8b320",
+      "definition_call_sha256": "1fa378e474c6c02eac1cadd1c2e161a7a975066f907ffcb87a154261a43cb9ab",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+      ],
+      "shared_cases": [
+        "baseline-ollama-evaluator-finite-6-1",
+        "baseline-ollama-evaluator-finite-6-2",
+        "baseline-ollama-evaluator-finite-6-3"
+      ],
+      "scenarios": 3,
+      "state_calls": 3,
+      "requests": 4,
+      "executed_original_assertions": 11,
+      "assertions": [
+        {
+          "line": 138,
+          "expression": "assert.rejects(evaluateOllama(buildOllamaState(body()), config(), { fetchImpl: async url => {\n    calls.push(new URL(url).pathname);\n    return Response.json({ remote_host: 'PRIVATE_HOST', details: { parameter_size: '9B' } });\n  } }), /classifier_invalid_response/)",
+          "sha256": "e46e44e40ba7c4121e16fb2fac9e987bfef1dd29b29c00e0d5df32c9f97786fc",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-6-1",
+            "baseline-ollama-evaluator-finite-6-2",
+            "baseline-ollama-evaluator-finite-6-3"
+          ],
+          "native_check": "Remote-host metadata returns actual native InvalidResponse diagnostic with exact message and no optional code/status; no second request is allowed."
+        },
+        {
+          "line": 142,
+          "expression": "assert.deepEqual(calls, ['/api/show'])",
+          "sha256": "60003d0f837bf46eae5934a930e8acae297c5ea7208160c484fb77b69b03a809",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-6-1",
+            "baseline-ollama-evaluator-finite-6-2",
+            "baseline-ollama-evaluator-finite-6-3"
+          ],
+          "native_check": "The metadata-rejection replay has exactly one completed /api/show request and an empty remaining queue."
+        },
+        {
+          "line": 144,
+          "expression": "assert.rejects(evaluateOllama(buildOllamaState(body()), config(), { fetchImpl: async url => {\n      if (new URL(url).pathname === missing) return new Response('PRIVATE_PROVIDER_ERROR', { status: 404 });\n      return metadata();\n    } }), error => {\n      assert.equal(error.classifierStatus, 404);\n      assert.equal(error.code, missing === '/v1/systemone' ? 'OLLAMA_VERSION' : undefined);\n      if (missing === '/v1/systemone') assert.match(error.message, /Ollama 0\\.35 or newer/);\n      assert.ok(!error.message.includes('PRIVATE_'));\n      return true;\n    })",
+          "sha256": "a6c0534acf31db641d82b71a1d087e54df54bf590f6361a269d9e0f0b2e963d3",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-6-1",
+            "baseline-ollama-evaluator-finite-6-2",
+            "baseline-ollama-evaluator-finite-6-3"
+          ],
+          "native_check": "Both original404 schedules produce the full native-derived error diagnostic projection and exact request counts rather than merely accepting any failure."
+        },
+        {
+          "line": 148,
+          "expression": "assert.equal(error.classifierStatus, 404)",
+          "sha256": "b3910f3463a6b5554fdb24b1f48df1db31c4ab637a1e93d751e88f178add5c83",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-6-1",
+            "baseline-ollama-evaluator-finite-6-2",
+            "baseline-ollama-evaluator-finite-6-3"
+          ],
+          "native_check": "Http status in actual EvaluationError maps exactly to classifierStatus404 for both endpoints."
+        },
+        {
+          "line": 149,
+          "expression": "assert.equal(error.code, missing === '/v1/systemone' ? 'OLLAMA_VERSION' : undefined)",
+          "sha256": "bad1e53f13874ab5b58d5557cfc7fd0fa9a447f1289be358ec2663e0eceddafa",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-6-1",
+            "baseline-ollama-evaluator-finite-6-2",
+            "baseline-ollama-evaluator-finite-6-3"
+          ],
+          "native_check": "Only the missing-systemone404 maps code to OLLAMA_VERSION; metadata404 retains absent code plus explicit source-undefined tag."
+        },
+        {
+          "line": 150,
+          "expression": "assert.match(error.message, /Ollama 0\\.35 or newer/)",
+          "sha256": "3e3b0dbdfdcdc3da9fcebd4a8f450f02d0833e66672cd4802622c9462d691a53",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-6-1",
+            "baseline-ollama-evaluator-finite-6-2",
+            "baseline-ollama-evaluator-finite-6-3"
+          ],
+          "native_check": "Actual native error Display equals the complete original Ollama version-guidance message."
+        },
+        {
+          "line": 151,
+          "expression": "assert.ok(!error.message.includes('PRIVATE_'))",
+          "sha256": "8b8f5ba6a28c2525bf5c9f73386c1e1c16ffa458a65089f8e4b0f669c371e1bd",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-6-1",
+            "baseline-ollama-evaluator-finite-6-2",
+            "baseline-ollama-evaluator-finite-6-3"
+          ],
+          "native_check": "Exact complete public error messages match private-free source strings; PRIVATE_PROVIDER_ERROR response bytes remain only in the synthetic scripted input."
+        }
+      ],
+      "review_notes": [
+        "Remote metadata rejection plus metadata404/systemone404. Actual source predicates execute unchanged; Rust Error diagnostic projection is explicit, with optional fields omitted rather than null."
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#11",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "multibyte local context stays inside the byte budget and excludes private thinking and images",
+      "line": 250,
+      "baseline_file_sha256": "5015a563933bc51ffcc8ab88214cb4d972f590548ae8e5c768aa46f24669a371",
+      "definition_statement": "test('multibyte local context stays inside the byte budget and excludes private thinking and images', () => {\n  const request = body('\u4f60\u597d\ud83c\udf0d'.repeat(2000));\n  request.system = '\u80cc\u666f'.repeat(5000);\n  request.messages.push({ role: 'assistant', content: [{ type: 'thinking', thinking: 'SECRET_THINKING' }, { type: 'image', source: { data: 'SECRET_BASE64' } }] });\n  const state = buildOllamaState(request);\n  const serialized = JSON.stringify(state);\n  assert.ok(Buffer.byteLength(serialized) <= 3000);\n  assert.ok(state.current_task.length > 0);\n  assert.ok(!serialized.includes('SECRET'));\n});",
+      "definition_sha256": "8210cdc37a8377317672a5d607efa791da1106bcb188cc4a18e17d4ff703f538",
+      "definition_call_sha256": "d5059b98547c5967c8ae78aedbed8a1d4733404dca5037326a22b4f6dd34ee2c",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+      ],
+      "shared_cases": [
+        "baseline-ollama-evaluator-finite-11-1"
+      ],
+      "scenarios": 1,
+      "state_calls": 1,
+      "requests": 0,
+      "executed_original_assertions": 3,
+      "assertions": [
+        {
+          "line": 256,
+          "expression": "assert.ok(Buffer.byteLength(serialized) <= 3000)",
+          "sha256": "41257f91be7b9145b6bd849929e2355642ebaacc0101a5e4af4ec007d6490dd7",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-11-1"
+          ],
+          "native_check": "Full multibyte state byte equality preserves the source-asserted3000-byte bound."
+        },
+        {
+          "line": 257,
+          "expression": "assert.ok(state.current_task.length > 0)",
+          "sha256": "5165834c55397004ea7aaccc16696cb9c814c2906a814373a5598525e519569b",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-11-1"
+          ],
+          "native_check": "Complete captured current_task is nonempty and matches native state serialization exactly."
+        },
+        {
+          "line": 258,
+          "expression": "assert.ok(!serialized.includes('SECRET'))",
+          "sha256": "f02c8f2b276e5a736c1b9d03feebd02d6ab5e0104001d462f939daa6ec517da8",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/ollama_evaluator_finite_contracts.rs#original_finite_ollama_state_alias_metadata_and_error_contracts_match"
+          ],
+          "shared_cases": [
+            "baseline-ollama-evaluator-finite-11-1"
+          ],
+          "native_check": "Full state equality preserves removal of original SECRET_THINKING and SECRET_BASE64 payloads."
+        }
+      ],
+      "review_notes": [
+        "One exact multibyte input with private thinking/image content; full state JSON and byte budget/privacy are established by source controls and exact native output."
+      ],
+      "remaining": []
+    }
+  ],
+  "input_coverage": {
+    "path": "artifacts/rust-rewrite/evidence/9c13d15d45378f169c3ffbeb5ec8e4aaea3d3ba928badb67bc4244e38c04c1e4.json",
+    "sha256": "9c13d15d45378f169c3ffbeb5ec8e4aaea3d3ba928badb67bc4244e38c04c1e4",
+    "bytes": 1275411,
+    "original_path": "rust/parity/coverage.json",
+    "source_commit": "46587867cd0b4db89b273ba293555a5619009a4c"
+  },
+  "scope": "Five covered finite evaluator definitions; fifteen source scenarios, complete state/request/result comparisons and independent mismatch controls. No deadline, cancellation, stream or cache equivalence is inferred.",
+  "status": "Reviewed assertion mapping; full rewrite qualification remains incomplete.",
+  "review": {
+    "proposal": {
+      "path": "artifacts/rust-rewrite/evidence/01611767410bc1e84dc56008a212b5e165856bbfd46b68cd23749ff865056ede.json",
+      "sha256": "01611767410bc1e84dc56008a212b5e165856bbfd46b68cd23749ff865056ede",
+      "bytes": 46325,
+      "original_path": "/private/tmp/autorouter-ollama-evaluator-finite-mapping-proposal.json"
+    },
+    "review": {
+      "path": "artifacts/rust-rewrite/evidence/381f466ea9db39aaef265b6973c657147250c2e5ea9f9b314f244c5ed4314708.json",
+      "sha256": "381f466ea9db39aaef265b6973c657147250c2e5ea9f9b314f244c5ed4314708",
+      "bytes": 3317,
+      "original_path": "/private/tmp/autorouter-ollama-evaluator-finite-root-review.json"
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/evidence/4d0626042f36dbfc42e7109d4bb4ae33ecd95142cd33102286d7b6b788d4d126.json",
+      "sha256": "4d0626042f36dbfc42e7109d4bb4ae33ecd95142cd33102286d7b6b788d4d126",
+      "bytes": 2413,
+      "original_path": "/private/tmp/autorouter-ollama-evaluator-finite-final-review.json"
+    }
+  },
+  "previous_coverage_rows": [
+    {
+      "id": "test/ollama-evaluator.test.mjs#1",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "local routing excludes Claude executor instructions without changing Jev task extraction",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#2",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "excluding local executor instructions still retains follow-up evidence and bounded Unicode excerpts",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#3",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "Nimble, Tev1, and compatible custom aliases use the same native protocol without chat requests",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#6",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "Ollama preserves the local metadata gate and gives safe version guidance only for its missing endpoint",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#11",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "multibyte local context stays inside the byte budget and excludes private thinking and images",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    }
+  ]
+}

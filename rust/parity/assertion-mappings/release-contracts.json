@@ -1,0 +1,1861 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_release_contracts_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "reviewed_checkpoint": "bf50b60",
+  "production_changes": false,
+  "scope": "Fifteen covered and four partial release-tool definitions. Only pure and synthetic registry/install tests qualify; publication, private JavaScript errors and independent injected-clock behavior are not inferred.",
+  "counts": {
+    "family_inventory_rows": 33,
+    "selected": 19,
+    "pending_untouched": 14,
+    "selected_static_assertions": 84,
+    "pure_static_assertions": 18,
+    "pure_executed_assertions": 66,
+    "pure_calls": 61,
+    "native_tests": 10,
+    "selected_frozen_controls": 19,
+    "covered": 15,
+    "partial": 4
+  },
+  "current_sources": [
+    {
+      "path": "rust/parity/capture-release-contracts.mjs",
+      "sha256": "2e94f814b1f76acb1b5b87b4c687363605a2074847996409537a6fb7a928747a",
+      "bytes": 7857
+    },
+    {
+      "path": "rust/parity/cases/release-contracts.jsonl",
+      "sha256": "f938b7b0bb4819fe9e918bed6356d8afb72536da92297c18378222bf47699392",
+      "bytes": 38843
+    },
+    {
+      "path": "rust/parity/cases/release-contracts.capture.json",
+      "sha256": "eaa61a5c26257918162e81dc77bf150423a9a4063b3cd35b83cb7fd5273366ed",
+      "bytes": 9164
+    },
+    {
+      "path": "rust/xtask/src/release_contracts.rs",
+      "sha256": "70211cde265bd81b047a14bdf3cf96e98022bc8d9beef8a228d980e0879210da",
+      "bytes": 28875
+    },
+    {
+      "path": "rust/xtask/src/main.rs",
+      "sha256": "8a602434a0fe5159518c91de2a110fe6273df759ff6776c8381db687e783b65d",
+      "bytes": 3685
+    },
+    {
+      "path": "rust/xtask/src/release.rs",
+      "sha256": "61acaf96a5a651cf62217ae07e8a6a8e63dd0386a0e679f658d36f4b9e81b37b",
+      "bytes": 41418
+    },
+    {
+      "path": "rust/xtask/src/release_verify.rs",
+      "sha256": "0be3eaf45711b9193e9c82ab371afc994cd2ac5e7c31d008a6ee4a9b4b6acfb2",
+      "bytes": 36683
+    },
+    {
+      "path": "rust/xtask/src/release_install.rs",
+      "sha256": "2de00512d5adf936fe8e0c6506193286b36add698e8072422f9fd6503e85efcc",
+      "bytes": 14386
+    }
+  ],
+  "evidence": {
+    "capture_manifest": {
+      "path": "artifacts/rust-rewrite/evidence/eaa61a5c26257918162e81dc77bf150423a9a4063b3cd35b83cb7fd5273366ed.json",
+      "sha256": "eaa61a5c26257918162e81dc77bf150423a9a4063b3cd35b83cb7fd5273366ed",
+      "bytes": 9164,
+      "original_path": "artifacts/rust-rewrite/evidence/eaa61a5c26257918162e81dc77bf150423a9a4063b3cd35b83cb7fd5273366ed.json"
+    },
+    "capture1": {
+      "path": "artifacts/rust-rewrite/evidence/eaa61a5c26257918162e81dc77bf150423a9a4063b3cd35b83cb7fd5273366ed.log",
+      "sha256": "eaa61a5c26257918162e81dc77bf150423a9a4063b3cd35b83cb7fd5273366ed",
+      "bytes": 9164,
+      "original_path": "artifacts/rust-rewrite/evidence/eaa61a5c26257918162e81dc77bf150423a9a4063b3cd35b83cb7fd5273366ed.log"
+    },
+    "capture2": {
+      "path": "artifacts/rust-rewrite/evidence/eaa61a5c26257918162e81dc77bf150423a9a4063b3cd35b83cb7fd5273366ed.log",
+      "sha256": "eaa61a5c26257918162e81dc77bf150423a9a4063b3cd35b83cb7fd5273366ed",
+      "bytes": 9164,
+      "original_path": "artifacts/rust-rewrite/evidence/eaa61a5c26257918162e81dc77bf150423a9a4063b3cd35b83cb7fd5273366ed.log"
+    },
+    "native": {
+      "path": "artifacts/rust-rewrite/evidence/277103ddf1cc906236eb48513b811ee45848132cf48e400e42acbcef09562008.log",
+      "sha256": "277103ddf1cc906236eb48513b811ee45848132cf48e400e42acbcef09562008",
+      "bytes": 2045,
+      "original_path": "artifacts/rust-rewrite/evidence/277103ddf1cc906236eb48513b811ee45848132cf48e400e42acbcef09562008.log"
+    },
+    "clippy": {
+      "path": "artifacts/rust-rewrite/evidence/5c2cc18e7947eefcf33e9cf9e3a04e6125bc45c4498c9f28153ff09324595958.log",
+      "sha256": "5c2cc18e7947eefcf33e9cf9e3a04e6125bc45c4498c9f28153ff09324595958",
+      "bytes": 877,
+      "original_path": "artifacts/rust-rewrite/evidence/5c2cc18e7947eefcf33e9cf9e3a04e6125bc45c4498c9f28153ff09324595958.log"
+    },
+    "frozen_check_pure": {
+      "path": "artifacts/rust-rewrite/evidence/835c3c503b530e24db3c31d1929ba170de3f03998b83b95f365685808740a8eb.log",
+      "sha256": "835c3c503b530e24db3c31d1929ba170de3f03998b83b95f365685808740a8eb",
+      "bytes": 746,
+      "original_path": "artifacts/rust-rewrite/evidence/835c3c503b530e24db3c31d1929ba170de3f03998b83b95f365685808740a8eb.log"
+    },
+    "frozen_verify_selected": {
+      "path": "artifacts/rust-rewrite/evidence/b29c9481c28734418e9d6d43f28bff891c61094a93d4508ca05f9f28478a01df.log",
+      "sha256": "b29c9481c28734418e9d6d43f28bff891c61094a93d4508ca05f9f28478a01df",
+      "bytes": 3821,
+      "original_path": "artifacts/rust-rewrite/evidence/b29c9481c28734418e9d6d43f28bff891c61094a93d4508ca05f9f28478a01df.log"
+    },
+    "broader_frozen_control": {
+      "path": "artifacts/rust-rewrite/evidence/a6be6e5c236a14e314893aaf43513cf5606425014bf21abc1653278c58cc9536.log",
+      "sha256": "a6be6e5c236a14e314893aaf43513cf5606425014bf21abc1653278c58cc9536",
+      "bytes": 4091,
+      "original_path": "artifacts/rust-rewrite/evidence/a6be6e5c236a14e314893aaf43513cf5606425014bf21abc1653278c58cc9536.log"
+    }
+  },
+  "rows": [
+    {
+      "id": "test/release-check.test.mjs#1",
+      "file": "test/release-check.test.mjs",
+      "name": "release tags enforce canonical SemVer and select stable/prerelease dist-tags",
+      "baseline_file_sha256": "55c3112868355e94aeb3240d1d06116145a50689a878e8cfbf4b236feab5eb30",
+      "definition_sha256": "e786b0a7bcbd02121b9043210e5532ebafd438cd0815e099cb606f8350c35ddf",
+      "definition_hash_scope": "Exact top-level ExpressionStatement.getText including trailing semicolon.",
+      "status": "covered",
+      "previous_status": "pending_assertion_mapping",
+      "parameter_review": "Every original selected pure callback/assertion/loop executes unchanged; all API arguments, full returned JSON and complete source errors captured. Native compares full successful output, exact metadata error text and rejection for source bare-throws assertions.",
+      "rust_tests": [
+        "rust/xtask/src/release_contracts.rs#release_contracts::all_frozen_pure_release_arguments_preserve_results_and_asserted_errors"
+      ],
+      "native_test_source": {
+        "path": "rust/xtask/src/release_contracts.rs",
+        "line": 80,
+        "end_line": 95
+      },
+      "shared_cases": [
+        "baseline-release-check-1-1",
+        "baseline-release-check-1-2",
+        "baseline-release-check-1-3",
+        "baseline-release-check-1-4",
+        "baseline-release-check-1-5",
+        "baseline-release-check-1-6",
+        "baseline-release-check-1-7",
+        "baseline-release-check-1-8",
+        "baseline-release-check-1-9",
+        "baseline-release-check-1-10",
+        "baseline-release-check-1-11",
+        "baseline-release-check-1-12",
+        "baseline-release-check-1-13",
+        "baseline-release-check-1-14",
+        "baseline-release-check-1-15",
+        "baseline-release-check-1-16",
+        "baseline-release-check-1-17",
+        "baseline-release-check-1-18",
+        "baseline-release-check-1-19",
+        "baseline-release-check-1-20",
+        "baseline-release-check-1-21",
+        "baseline-release-check-1-22"
+      ],
+      "static_assertions": [
+        {
+          "id": "test/release-check.test.mjs#1/assert-1",
+          "line": 90,
+          "expression": "assert.deepEqual(releaseMetadata(manifest(), TAG), metadata)",
+          "expression_sha256": "3fc5535ffc209b866cf4e670db1cba65400a4414168bff2268b9c476300c006d",
+          "status": "represented",
+          "native_test_ref": "#/rows/0/rust_tests/0",
+          "captured_cases_ref": "#/rows/0/shared_cases",
+          "remaining": []
+        },
+        {
+          "id": "test/release-check.test.mjs#1/assert-2",
+          "line": 93,
+          "expression": "assert.equal(result.version, version)",
+          "expression_sha256": "1ea636ab9e7ccef948dc4f22b9c4eedd0bb88457aa14aa41a30c8fde1f743a56",
+          "status": "represented",
+          "native_test_ref": "#/rows/0/rust_tests/0",
+          "captured_cases_ref": "#/rows/0/shared_cases",
+          "remaining": []
+        },
+        {
+          "id": "test/release-check.test.mjs#1/assert-3",
+          "line": 94,
+          "expression": "assert.equal(result.dist_tag, version.includes('-') ? 'next' : 'latest')",
+          "expression_sha256": "6bc1f059f692854b3f5f644154eee0ec9dd4e3a932256c46519ff1b1203ffad6",
+          "status": "represented",
+          "native_test_ref": "#/rows/0/rust_tests/0",
+          "captured_cases_ref": "#/rows/0/shared_cases",
+          "remaining": []
+        },
+        {
+          "id": "test/release-check.test.mjs#1/assert-4",
+          "line": 99,
+          "expression": "assert.throws(() => releaseMetadata({ ...manifest(), version: tag.slice(1) }, tag), /tag|SemVer/)",
+          "expression_sha256": "4443e281e6cf0544e452600fc209176b19b3e552676a0f89bb5d640837c92032",
+          "status": "represented",
+          "native_test_ref": "#/rows/0/rust_tests/0",
+          "captured_cases_ref": "#/rows/0/shared_cases",
+          "remaining": []
+        },
+        {
+          "id": "test/release-check.test.mjs#1/assert-5",
+          "line": 101,
+          "expression": "assert.throws(() => releaseMetadata(manifest(), 'v1.2.4'), /does not match/)",
+          "expression_sha256": "6e555bb2174d10367d37a0dbe6ea985524c5335779b1e3fc60705ca75fc0ba57",
+          "status": "represented",
+          "native_test_ref": "#/rows/0/rust_tests/0",
+          "captured_cases_ref": "#/rows/0/shared_cases",
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/release-check.test.mjs#2",
+      "file": "test/release-check.test.mjs",
+      "name": "release metadata rejects wrong identity, publication policy, and runtime dependencies",
+      "baseline_file_sha256": "55c3112868355e94aeb3240d1d06116145a50689a878e8cfbf4b236feab5eb30",
+      "definition_sha256": "902b0ff1a30a4b1e9e89f5ac7b1818f5449a94b6c3d645df18eb85d1ae8fe41b",
+      "definition_hash_scope": "Exact top-level ExpressionStatement.getText including trailing semicolon.",
+      "status": "covered",
+      "previous_status": "pending_assertion_mapping",
+      "parameter_review": "Every original selected pure callback/assertion/loop executes unchanged; all API arguments, full returned JSON and complete source errors captured. Native compares full successful output, exact metadata error text and rejection for source bare-throws assertions.",
+      "rust_tests": [
+        "rust/xtask/src/release_contracts.rs#release_contracts::all_frozen_pure_release_arguments_preserve_results_and_asserted_errors"
+      ],
+      "native_test_source": {
+        "path": "rust/xtask/src/release_contracts.rs",
+        "line": 80,
+        "end_line": 95
+      },
+      "shared_cases": [
+        "baseline-release-check-2-1",
+        "baseline-release-check-2-2",
+        "baseline-release-check-2-3",
+        "baseline-release-check-2-4",
+        "baseline-release-check-2-5",
+        "baseline-release-check-2-6",
+        "baseline-release-check-2-7",
+        "baseline-release-check-2-8",
+        "baseline-release-check-2-9",
+        "baseline-release-check-2-10",
+        "baseline-release-check-2-11"
+      ],
+      "static_assertions": [
+        {
+          "id": "test/release-check.test.mjs#2/assert-1",
+          "line": 112,
+          "expression": "assert.throws(() => releaseMetadata({ ...manifest(), ...change }, TAG))",
+          "expression_sha256": "cba96b952b1c620f742aea136133ce1aa5ac82df8d42c8d603d8aaf3dced5a5a",
+          "status": "represented",
+          "native_test_ref": "#/rows/1/rust_tests/0",
+          "captured_cases_ref": "#/rows/1/shared_cases",
+          "remaining": []
+        },
+        {
+          "id": "test/release-check.test.mjs#2/assert-2",
+          "line": 113,
+          "expression": "assert.deepEqual(releaseMetadata({ ...manifest(), private: false, dependencies: {}, optionalDependencies: {} }, TAG), metadata)",
+          "expression_sha256": "f9404931f07b8a7d14885b64a90f41a9e2f86d75b35b3da16e47d05cbaf85394",
+          "status": "represented",
+          "native_test_ref": "#/rows/1/rust_tests/0",
+          "captured_cases_ref": "#/rows/1/shared_cases",
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/release-check.test.mjs#3",
+      "file": "test/release-check.test.mjs",
+      "name": "GitHub identity must match the exact repository and tag when supplied",
+      "baseline_file_sha256": "55c3112868355e94aeb3240d1d06116145a50689a878e8cfbf4b236feab5eb30",
+      "definition_sha256": "022bdeb7bc7db46efda927e619075d6ff45d6f5bdbdea6adcdb2e54ec9ce5085",
+      "definition_hash_scope": "Exact top-level ExpressionStatement.getText including trailing semicolon.",
+      "status": "covered",
+      "previous_status": "pending_assertion_mapping",
+      "parameter_review": "Every original selected pure callback/assertion/loop executes unchanged; all API arguments, full returned JSON and complete source errors captured. Native compares full successful output, exact metadata error text and rejection for source bare-throws assertions.",
+      "rust_tests": [
+        "rust/xtask/src/release_contracts.rs#release_contracts::all_frozen_pure_release_arguments_preserve_results_and_asserted_errors"
+      ],
+      "native_test_source": {
+        "path": "rust/xtask/src/release_contracts.rs",
+        "line": 80,
+        "end_line": 95
+      },
+      "shared_cases": [
+        "baseline-release-check-3-1",
+        "baseline-release-check-3-2",
+        "baseline-release-check-3-3",
+        "baseline-release-check-3-4",
+        "baseline-release-check-3-5",
+        "baseline-release-check-3-6"
+      ],
+      "static_assertions": [
+        {
+          "id": "test/release-check.test.mjs#3/assert-1",
+          "line": 117,
+          "expression": "assert.deepEqual(releaseMetadata(manifest(), TAG, github), metadata)",
+          "expression_sha256": "79df2eddc96bd324af44842414f5c0357e6281cdc78e6d2f36681ade76cc6253",
+          "status": "represented",
+          "native_test_ref": "#/rows/2/rust_tests/0",
+          "captured_cases_ref": "#/rows/2/shared_cases",
+          "remaining": []
+        },
+        {
+          "id": "test/release-check.test.mjs#3/assert-2",
+          "line": 123,
+          "expression": "assert.throws(() => releaseMetadata(manifest(), TAG, env), /GitHub|GITHUB_REPOSITORY/)",
+          "expression_sha256": "4aed79072b5ea77f79f03e2ef0d498e4e766ba81c1ac05c6e0838b101087274d",
+          "status": "represented",
+          "native_test_ref": "#/rows/2/rust_tests/0",
+          "captured_cases_ref": "#/rows/2/shared_cases",
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/release-verification.test.mjs#1",
+      "file": "test/release-verification.test.mjs",
+      "name": "stable version ordering uses numeric SemVer and rejects ambiguous inputs",
+      "baseline_file_sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38",
+      "definition_sha256": "a117a760ce76e7dceeeb17994fb400519daf6af4e6bf81b39148d25ca60e8296",
+      "definition_hash_scope": "Exact top-level ExpressionStatement.getText including trailing semicolon.",
+      "status": "covered",
+      "previous_status": "pending_assertion_mapping",
+      "parameter_review": "Every original selected pure callback/assertion/loop executes unchanged; all API arguments, full returned JSON and complete source errors captured. Native compares full successful output, exact metadata error text and rejection for source bare-throws assertions.",
+      "rust_tests": [
+        "rust/xtask/src/release_contracts.rs#release_contracts::all_frozen_pure_release_arguments_preserve_results_and_asserted_errors"
+      ],
+      "native_test_source": {
+        "path": "rust/xtask/src/release_contracts.rs",
+        "line": 80,
+        "end_line": 95
+      },
+      "shared_cases": [
+        "baseline-release-verification-1-1",
+        "baseline-release-verification-1-2",
+        "baseline-release-verification-1-3",
+        "baseline-release-verification-1-4",
+        "baseline-release-verification-1-5",
+        "baseline-release-verification-1-6",
+        "baseline-release-verification-1-7",
+        "baseline-release-verification-1-8",
+        "baseline-release-verification-1-9",
+        "baseline-release-verification-1-10",
+        "baseline-release-verification-1-11",
+        "baseline-release-verification-1-12"
+      ],
+      "static_assertions": [
+        {
+          "id": "test/release-verification.test.mjs#1/assert-1",
+          "line": 46,
+          "expression": "assert.equal(compareVersions('0.10.0', '0.9.9'), 1)",
+          "expression_sha256": "1aab2bb031308113a8618cb22a9d7c209fd4c831a99ed33b101afeaa4dfb8aef",
+          "status": "represented",
+          "native_test_ref": "#/rows/3/rust_tests/0",
+          "captured_cases_ref": "#/rows/3/shared_cases",
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#1/assert-2",
+          "line": 47,
+          "expression": "assert.equal(compareVersions('1.0.0', '1.0.0-rc.2'), 1)",
+          "expression_sha256": "8f73c3cafcbded13ab31fc16d02f209cbb5bd818cf24d2b5ac620636bb96946b",
+          "status": "represented",
+          "native_test_ref": "#/rows/3/rust_tests/0",
+          "captured_cases_ref": "#/rows/3/shared_cases",
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#1/assert-3",
+          "line": 48,
+          "expression": "assert.equal(compareVersions('1.0.0-rc.10', '1.0.0-rc.2'), 1)",
+          "expression_sha256": "0827bbb1d8f320be1dab11aff53ed789595e9ff147c828214bf54cfb911882b8",
+          "status": "represented",
+          "native_test_ref": "#/rows/3/rust_tests/0",
+          "captured_cases_ref": "#/rows/3/shared_cases",
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#1/assert-4",
+          "line": 49,
+          "expression": "assert.equal(compareVersions('1.0.0-alpha', '1.0.0-beta'), -1)",
+          "expression_sha256": "b43649dd8ae1a62fdfdb5bc3ba09d24e983ef283a7ad00c3ae691075157b4a66",
+          "status": "represented",
+          "native_test_ref": "#/rows/3/rust_tests/0",
+          "captured_cases_ref": "#/rows/3/shared_cases",
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#1/assert-5",
+          "line": 50,
+          "expression": "assert.equal(compareVersions('1.0.0-alpha.1', '1.0.0-alpha'), 1)",
+          "expression_sha256": "c11c2f40c2fb9a4664d7cc8fb0ce80e7659a284e4c8a80b56680d151a3a80e9c",
+          "status": "represented",
+          "native_test_ref": "#/rows/3/rust_tests/0",
+          "captured_cases_ref": "#/rows/3/shared_cases",
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#1/assert-6",
+          "line": 51,
+          "expression": "assert.throws(() => parseVersion(invalid))",
+          "expression_sha256": "ea554c974434f67b19bd353c2fc19e7411f45a39b4394409b1c7d8da37583440",
+          "status": "represented",
+          "native_test_ref": "#/rows/3/rust_tests/0",
+          "captured_cases_ref": "#/rows/3/shared_cases",
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/release-verification.test.mjs#2",
+      "file": "test/release-verification.test.mjs",
+      "name": "preflight allows only a newer new stable version, and registry failures are not version absence",
+      "baseline_file_sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38",
+      "definition_sha256": "bbf398598e52d65777ec145d626f5869339d16444e9d8aba524d1a01af3d8133",
+      "definition_hash_scope": "Exact top-level ExpressionStatement.getText including trailing semicolon.",
+      "status": "partial_assertion_mapping",
+      "previous_status": "pending_assertion_mapping",
+      "parameter_review": "Absent version with latest0.3.7; equal0.4.0/newer0.5.0 latest rejection; all401/429/503 errors with exact status; typed network failure remains unavailable and safe.",
+      "rust_tests": [
+        "rust/xtask/src/release_contracts.rs#release_contracts::preflight_original_absence_order_failure_retry_and_cached_metadata_cases"
+      ],
+      "native_test_source": {
+        "path": "rust/xtask/src/release_contracts.rs",
+        "line": 348,
+        "end_line": 422
+      },
+      "shared_cases": [],
+      "static_assertions": [
+        {
+          "id": "test/release-verification.test.mjs#2/assert-1",
+          "line": 55,
+          "expression": "assert.equal((await preflightRelease(artifact, registry({ exists: false, latest: '0.3.7' }))).publish, true)",
+          "expression_sha256": "cf5530acdcd381329b1ce306bec76352ffeca2080231ffb9ea153ccc3a9ba2bc",
+          "status": "native_boundary_adaptation",
+          "native_test_ref": "#/rows/4/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": [
+            "Original PRIVATE_NETWORK_DETAIL arbitrary JavaScript Error cannot be injected through the closed native HttpError enum. Native network category and safe display are represented, not literal private-reason injection.",
+            "Native preflight admits publication readiness only for Artifact.native=true; the frozen synthetic artifact has no such native eligibility field. Tests explicitly set true; this does not prove or authorize legacy publication."
+          ]
+        },
+        {
+          "id": "test/release-verification.test.mjs#2/assert-2",
+          "line": 56,
+          "expression": "assert.rejects(preflightRelease(artifact, registry({ exists: false, latest })), { code: 'version_order' })",
+          "expression_sha256": "321404904c0b2be9eff823f4bbf96c442f9b3fbd85392f60f2eea335a4e3d40e",
+          "status": "represented",
+          "native_test_ref": "#/rows/4/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#2/assert-3",
+          "line": 57,
+          "expression": "assert.rejects(preflightRelease(artifact, registry({ status })), error =>\n    error.code === 'registry_unavailable' && error.detail.http_status === status)",
+          "expression_sha256": "90956db0a7a712a7cd8817d4a17fcf0036d0211a8edae3c34be9597c10f6afd9",
+          "status": "represented",
+          "native_test_ref": "#/rows/4/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#2/assert-4",
+          "line": 59,
+          "expression": "assert.rejects(preflightRelease(artifact, { fetchImpl: async () => { throw new Error('PRIVATE_NETWORK_DETAIL'); } }),\n    error => error.code === 'registry_unavailable' && !error.message.includes('PRIVATE'))",
+          "expression_sha256": "febed51a1b802b5fb0ab4ce694249533ccd38183ab967a7449f00da558d23fe7",
+          "status": "native_boundary_adaptation",
+          "native_test_ref": "#/rows/4/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": [
+            "Original PRIVATE_NETWORK_DETAIL arbitrary JavaScript Error cannot be injected through the closed native HttpError enum. Native network category and safe display are represented, not literal private-reason injection.",
+            "Native preflight admits publication readiness only for Artifact.native=true; the frozen synthetic artifact has no such native eligibility field. Tests explicitly set true; this does not prove or authorize legacy publication."
+          ]
+        }
+      ],
+      "remaining_assertions": [
+        "Original PRIVATE_NETWORK_DETAIL arbitrary JavaScript Error cannot be injected through the closed native HttpError enum. Native network category and safe display are represented, not literal private-reason injection.",
+        "Native preflight admits publication readiness only for Artifact.native=true; the frozen synthetic artifact has no such native eligibility field. Tests explicitly set true; this does not prove or authorize legacy publication."
+      ]
+    },
+    {
+      "id": "test/release-verification.test.mjs#3",
+      "file": "test/release-verification.test.mjs",
+      "name": "matching existing immutable versions skip publication even when the exact endpoint returns cached404",
+      "baseline_file_sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38",
+      "definition_sha256": "646dcea0d4b4572acc24611695e68f497372a0d5a9c14a8ad0d4d88872e78899",
+      "definition_hash_scope": "Exact top-level ExpressionStatement.getText including trailing semicolon.",
+      "status": "covered",
+      "previous_status": "pending_assertion_mapping",
+      "parameter_review": "Exact404 with matching packument and latest0.5.0; all five report fields; both requests enforce no-cache and a nonce.",
+      "rust_tests": [
+        "rust/xtask/src/release_contracts.rs#release_contracts::preflight_original_absence_order_failure_retry_and_cached_metadata_cases"
+      ],
+      "native_test_source": {
+        "path": "rust/xtask/src/release_contracts.rs",
+        "line": 348,
+        "end_line": 422
+      },
+      "shared_cases": [],
+      "static_assertions": [
+        {
+          "id": "test/release-verification.test.mjs#3/assert-1",
+          "line": 66,
+          "expression": "assert.equal(result.publish, false)",
+          "expression_sha256": "d73d8d746117b7ab6b62b339269d744ac7835028398c3d2fc14b9c7724c7370c",
+          "status": "represented",
+          "native_test_ref": "#/rows/5/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#3/assert-2",
+          "line": 67,
+          "expression": "assert.equal(result.state, 'submitted')",
+          "expression_sha256": "58e42f226a4d1b670baca8746e473d57664b3b314075f55d84ba8f08878071eb",
+          "status": "represented",
+          "native_test_ref": "#/rows/5/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#3/assert-3",
+          "line": 68,
+          "expression": "assert.equal(result.reason, 'identical_version_exists')",
+          "expression_sha256": "4deec189391e6edc33cae738568afd4b5748d06a3017c6689518a08421115c87",
+          "status": "represented",
+          "native_test_ref": "#/rows/5/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#3/assert-4",
+          "line": 69,
+          "expression": "assert.equal(result.metadata_source, 'packument')",
+          "expression_sha256": "35509c27b66b13d98e82bddadc635d1248f77581b726f617cb065091e3d863b9",
+          "status": "represented",
+          "native_test_ref": "#/rows/5/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#3/assert-5",
+          "line": 70,
+          "expression": "assert.equal(result.current_dist_tag, '0.5.0')",
+          "expression_sha256": "6aee3ae23e20941bac284af242e235bf8ed2bd2a0ecf4bd7214a8763bf8a12ae",
+          "status": "represented",
+          "native_test_ref": "#/rows/5/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#3/assert-6",
+          "line": 71,
+          "expression": "assert.ok(mock.calls.every(call => call.options.headers['cache-control'].includes('no-cache') && call.url.searchParams.has('autorouter_verify')))",
+          "expression_sha256": "c00cf0a03acf45101b9f7ab2a7f959e46917e2c600330bb11624d3885c9d18ca",
+          "status": "represented",
+          "native_test_ref": "#/rows/5/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/release-verification.test.mjs#4",
+      "file": "test/release-verification.test.mjs",
+      "name": "an unavailable retry never guesses that another submission is safe",
+      "baseline_file_sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38",
+      "definition_sha256": "4393818116c84f61af45136349954ff31434ca7fd635805877d6fbf7182141e8",
+      "definition_hash_scope": "Exact top-level ExpressionStatement.getText including trailing semicolon.",
+      "status": "covered",
+      "previous_status": "pending_assertion_mapping",
+      "parameter_review": "allow_publish=false while absent returns publishfalse/statevalidating_unavailable/reasonretry_submission_unknown.",
+      "rust_tests": [
+        "rust/xtask/src/release_contracts.rs#release_contracts::preflight_original_absence_order_failure_retry_and_cached_metadata_cases"
+      ],
+      "native_test_source": {
+        "path": "rust/xtask/src/release_contracts.rs",
+        "line": 348,
+        "end_line": 422
+      },
+      "shared_cases": [],
+      "static_assertions": [
+        {
+          "id": "test/release-verification.test.mjs#4/assert-1",
+          "line": 76,
+          "expression": "assert.equal(result.publish, false)",
+          "expression_sha256": "d73d8d746117b7ab6b62b339269d744ac7835028398c3d2fc14b9c7724c7370c",
+          "status": "represented",
+          "native_test_ref": "#/rows/6/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#4/assert-2",
+          "line": 77,
+          "expression": "assert.equal(result.state, 'validating_unavailable')",
+          "expression_sha256": "b39885808301e01183bb7f5d7dc00b665beb513e502144673bd21886afe520a3",
+          "status": "represented",
+          "native_test_ref": "#/rows/6/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#4/assert-3",
+          "line": 78,
+          "expression": "assert.equal(result.reason, 'retry_submission_unknown')",
+          "expression_sha256": "1d1c79cf6d77b5e89bb6ae01f81dd4aa458d17c385d98deedd3ebef0f910e33d",
+          "status": "represented",
+          "native_test_ref": "#/rows/6/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/release-verification.test.mjs#5",
+      "file": "test/release-verification.test.mjs",
+      "name": "existing metadata mismatches stop before publication, including conflicting cache views",
+      "baseline_file_sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38",
+      "definition_sha256": "250a1359ffdb4c21a47bc533f61fcc97611586b5df51b786d6338b3c9ff46909",
+      "definition_hash_scope": "Exact top-level ExpressionStatement.getText including trailing semicolon.",
+      "status": "covered",
+      "previous_status": "pending_assertion_mapping",
+      "parameter_review": "All four metadata mutations: wrong version, name, integrity, tarball location; then conflicting exact versus packument integrity.",
+      "rust_tests": [
+        "rust/xtask/src/release_contracts.rs#release_contracts::all_original_metadata_conflicts_reject_and_prerelease_targets_next"
+      ],
+      "native_test_source": {
+        "path": "rust/xtask/src/release_contracts.rs",
+        "line": 424,
+        "end_line": 493
+      },
+      "shared_cases": [],
+      "static_assertions": [
+        {
+          "id": "test/release-verification.test.mjs#5/assert-1",
+          "line": 85,
+          "expression": "assert.rejects(preflightRelease(artifact, registry({ version })), { code: 'release_mismatch' })",
+          "expression_sha256": "f81fc800f77c704437a92f4a4d8e6e26ed168599576ec3cd686e0185bb3dc114",
+          "status": "represented",
+          "native_test_ref": "#/rows/7/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#5/assert-2",
+          "line": 87,
+          "expression": "assert.rejects(preflightRelease(artifact, { fetchImpl: async url => new URL(url).pathname === '/claude-autorouter/0.4.0'\n    ? json(metadata()) : json(packument({ entry: metadata({ dist: { ...metadata().dist, integrity: 'sha512-conflicting' } }) })) }), { code: 'release_mismatch' })",
+          "expression_sha256": "a7e4c4734e4211d7bb17906781cf584a6b8bb2f3aea8fe46cfa1ef56d1427e76",
+          "status": "represented",
+          "native_test_ref": "#/rows/7/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/release-verification.test.mjs#6",
+      "file": "test/release-verification.test.mjs",
+      "name": "bounded polling tolerates delayed metadata and tarballs then verifies the tested bytes and install",
+      "baseline_file_sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38",
+      "definition_sha256": "80ea6f574dd1d6e5894433643513f0a0cfae9f2eafd8f32a983a46c037b01f9a",
+      "definition_hash_scope": "Exact top-level ExpressionStatement.getText including trailing semicolon.",
+      "status": "covered",
+      "previous_status": "pending_assertion_mapping",
+      "parameter_review": "Exact metadata attempt times0/1000/3000/7000ms, hence waits1000/2000/4000; two tarball reads; four state callbacks; exact admitted artifact pointer reaches one install; stateverified/currenttag.",
+      "rust_tests": [
+        "rust/xtask/src/release_contracts.rs#release_contracts::delayed_visibility_replays_all_waits_states_and_exact_single_install"
+      ],
+      "native_test_source": {
+        "path": "rust/xtask/src/release_contracts.rs",
+        "line": 495,
+        "end_line": 530
+      },
+      "shared_cases": [],
+      "static_assertions": [
+        {
+          "id": "test/release-verification.test.mjs#6/assert-1",
+          "line": 100,
+          "expression": "assert.equal(target, artifact)",
+          "expression_sha256": "c8a060da62f28dfe6a6f0e6cc630c445612af14c76f323c5d6961a84210e9fc3",
+          "status": "represented",
+          "native_test_ref": "#/rows/8/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#6/assert-2",
+          "line": 102,
+          "expression": "assert.equal(result.state, 'verified')",
+          "expression_sha256": "c42412f979bd12d3b38a9a8fd0652f3b9bb352bc8cc3593cacda9377b8778469",
+          "status": "represented",
+          "native_test_ref": "#/rows/8/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#6/assert-3",
+          "line": 103,
+          "expression": "assert.equal(result.dist_tag_status, 'current')",
+          "expression_sha256": "637001e7b652f6bb0175bc751d6d0ed6a9c6702556c476b02643d987f3fb722a",
+          "status": "represented",
+          "native_test_ref": "#/rows/8/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#6/assert-4",
+          "line": 104,
+          "expression": "assert.equal(installs, 1)",
+          "expression_sha256": "218199e73d863e1f950960759c13b9ddbe57f370beb2efb9ba2397a96cebd654",
+          "status": "represented",
+          "native_test_ref": "#/rows/8/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#6/assert-5",
+          "line": 105,
+          "expression": "assert.deepEqual(fakeClock.waits, [1000, 2000, 4000])",
+          "expression_sha256": "eb601405af839553fb494a55722675761118230c646b5e652f3c471a6a812db6",
+          "status": "represented",
+          "native_test_ref": "#/rows/8/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#6/assert-6",
+          "line": 106,
+          "expression": "assert.deepEqual(states, ['validating_unavailable', 'validating_unavailable', 'validating_unavailable', 'verified'])",
+          "expression_sha256": "5a01d493d950b6b0eb9e149644437f6091889e92533bd627b39e717144e8ada6",
+          "status": "represented",
+          "native_test_ref": "#/rows/8/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/release-verification.test.mjs#7",
+      "file": "test/release-verification.test.mjs",
+      "name": "verification timeout is pending and preserves distinct unavailable/error evidence",
+      "baseline_file_sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38",
+      "definition_sha256": "f6e5b689e10c7406a50a7d191dde0df423661b0f22fcfe1c1ba05f80c4f96e17",
+      "definition_hash_scope": "Exact top-level ExpressionStatement.getText including trailing semicolon.",
+      "status": "covered",
+      "previous_status": "pending_assertion_mapping",
+      "parameter_review": "Absent version and HTTP503 each exhaust5000ms; state/pending/reason/hash/safe retry message,503status and zero installs.",
+      "rust_tests": [
+        "rust/xtask/src/release_contracts.rs#release_contracts::unavailable_timeout_preserves_reason_hash_http_status_and_no_install"
+      ],
+      "native_test_source": {
+        "path": "rust/xtask/src/release_contracts.rs",
+        "line": 532,
+        "end_line": 571
+      },
+      "shared_cases": [],
+      "static_assertions": [
+        {
+          "id": "test/release-verification.test.mjs#7/assert-1",
+          "line": 111,
+          "expression": "assert.fail('Unavailable release cannot be installed')",
+          "expression_sha256": "d587fc1b843a4d1ba74fe3198f4d12d0784851d534ed51eea82e3e25e85c965d",
+          "status": "represented",
+          "native_test_ref": "#/rows/9/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#7/assert-2",
+          "line": 112,
+          "expression": "assert.equal(result.state, 'validating_unavailable')",
+          "expression_sha256": "b39885808301e01183bb7f5d7dc00b665beb513e502144673bd21886afe520a3",
+          "status": "represented",
+          "native_test_ref": "#/rows/9/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#7/assert-3",
+          "line": 113,
+          "expression": "assert.equal(result.pending, true)",
+          "expression_sha256": "c07ac266fcd36dcbcdb7dd102ca47b32df07afe8891161f8073af9c58ae4c074",
+          "status": "represented",
+          "native_test_ref": "#/rows/9/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#7/assert-4",
+          "line": 114,
+          "expression": "assert.equal(result.reason, reason)",
+          "expression_sha256": "fa96857ef9514048c691f517a2659b0340dcc1fd1c3b14f60f9c70e91631e4b1",
+          "status": "represented",
+          "native_test_ref": "#/rows/9/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#7/assert-5",
+          "line": 115,
+          "expression": "assert.equal(result.sha256, artifact.sha256)",
+          "expression_sha256": "c3b598ccaee572ddee3ff4b86f38a05efcb78a2e77aba532e52760e974830158",
+          "status": "represented",
+          "native_test_ref": "#/rows/9/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#7/assert-6",
+          "line": 116,
+          "expression": "assert.match(result.message, /do not submit a duplicate release/)",
+          "expression_sha256": "1217f16e3e3baaec1b61a584a8a3939a4f962180c2191afd9b6bc274b4a92310",
+          "status": "represented",
+          "native_test_ref": "#/rows/9/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#7/assert-7",
+          "line": 117,
+          "expression": "assert.equal(result.http_status, 503)",
+          "expression_sha256": "710fcfaa6a00436b1eafeda106bc4c2c40f77dbae1a22a73a2358db5b45d1c43",
+          "status": "represented",
+          "native_test_ref": "#/rows/9/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/release-verification.test.mjs#8",
+      "file": "test/release-verification.test.mjs",
+      "name": "tarball mismatch fails immediately and a newer latest is verified without any tag mutation",
+      "baseline_file_sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38",
+      "definition_sha256": "1198a5d986882b4ca3c8243bdde45032e8676e66a8a321db17c867b859c7ff0f",
+      "definition_hash_scope": "Exact top-level ExpressionStatement.getText including trailing semicolon.",
+      "status": "covered",
+      "previous_status": "pending_assertion_mapping",
+      "parameter_review": "Wrong tarball returns failed/tarball_bytes/attempt1 without install; newer latest0.5.0 returns verified/currenttag/superseded status and exactly three GETs.",
+      "rust_tests": [
+        "rust/xtask/src/release_contracts.rs#release_contracts::tarball_mismatch_superseded_tag_older_tag_and_install_failure_stay_distinct"
+      ],
+      "native_test_source": {
+        "path": "rust/xtask/src/release_contracts.rs",
+        "line": 573,
+        "end_line": 609
+      },
+      "shared_cases": [],
+      "static_assertions": [
+        {
+          "id": "test/release-verification.test.mjs#8/assert-1",
+          "line": 123,
+          "expression": "assert.fail('Different bytes cannot be installed')",
+          "expression_sha256": "85b195188019325053c86f06dda2c1cb92535205a96082fd19e059426e0b27ef",
+          "status": "represented",
+          "native_test_ref": "#/rows/10/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#8/assert-2",
+          "line": 124,
+          "expression": "assert.equal(failed.state, 'failed')",
+          "expression_sha256": "824858ff2153634059631d988d9c22add6488224085d6d0306f2cb8930053f27",
+          "status": "represented",
+          "native_test_ref": "#/rows/10/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#8/assert-3",
+          "line": 125,
+          "expression": "assert.equal(failed.reason, 'tarball_bytes')",
+          "expression_sha256": "2c58f78d18e46396760cc463cbc02ff1679b4f59d841b1ad56f461578d31ad63",
+          "status": "represented",
+          "native_test_ref": "#/rows/10/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#8/assert-4",
+          "line": 126,
+          "expression": "assert.equal(failed.attempts, 1)",
+          "expression_sha256": "429b3eece69352a822758168c562b250ae1ec5fedbb086d9fa50d074292268e9",
+          "status": "represented",
+          "native_test_ref": "#/rows/10/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#8/assert-5",
+          "line": 130,
+          "expression": "assert.equal(result.state, 'verified')",
+          "expression_sha256": "c42412f979bd12d3b38a9a8fd0652f3b9bb352bc8cc3593cacda9377b8778469",
+          "status": "represented",
+          "native_test_ref": "#/rows/10/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#8/assert-6",
+          "line": 131,
+          "expression": "assert.equal(result.current_dist_tag, '0.5.0')",
+          "expression_sha256": "6aee3ae23e20941bac284af242e235bf8ed2bd2a0ecf4bd7214a8763bf8a12ae",
+          "status": "represented",
+          "native_test_ref": "#/rows/10/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#8/assert-7",
+          "line": 132,
+          "expression": "assert.equal(result.dist_tag_status, 'superseded_by_newer_version')",
+          "expression_sha256": "923fa09b4039110447f3afe64b12d9f548a10fb8347d7ebff93d03d0eb7dca16",
+          "status": "represented",
+          "native_test_ref": "#/rows/10/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#8/assert-8",
+          "line": 133,
+          "expression": "assert.equal(newer.calls.length, 3)",
+          "expression_sha256": "20df57e0d60ae6c6db0ac039e4ab366517b99a9ce63a145584c49f48540084b5",
+          "status": "represented",
+          "native_test_ref": "#/rows/10/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/release-verification.test.mjs#9",
+      "file": "test/release-verification.test.mjs",
+      "name": "an older dist-tag remains pending and installation is required before verified",
+      "baseline_file_sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38",
+      "definition_sha256": "4cee6e0c245f7076ddd2b4e467dadfea5b884897ed821abf6c123f4569e891c1",
+      "definition_hash_scope": "Exact top-level ExpressionStatement.getText including trailing semicolon.",
+      "status": "partial_assertion_mapping",
+      "previous_status": "pending_assertion_mapping",
+      "parameter_review": "Older0.3.7 tag remains unavailable/dist_tag_not_updated with zero installs; separate typed installer failure becomes failed without private payload.",
+      "rust_tests": [
+        "rust/xtask/src/release_contracts.rs#release_contracts::tarball_mismatch_superseded_tag_older_tag_and_install_failure_stay_distinct"
+      ],
+      "native_test_source": {
+        "path": "rust/xtask/src/release_contracts.rs",
+        "line": 573,
+        "end_line": 609
+      },
+      "shared_cases": [],
+      "static_assertions": [
+        {
+          "id": "test/release-verification.test.mjs#9/assert-1",
+          "line": 140,
+          "expression": "assert.equal(pending.state, 'validating_unavailable')",
+          "expression_sha256": "32dee3be04b76ae4a050fac5d99eeb6aaae099b819d683e64b151066869f8af8",
+          "status": "represented",
+          "native_test_ref": "#/rows/11/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#9/assert-2",
+          "line": 141,
+          "expression": "assert.equal(pending.reason, 'dist_tag_not_updated')",
+          "expression_sha256": "c503950547f4b739b04bc04a4dedfdabc89623a91ecf689be86c801f4b1ed086",
+          "status": "represented",
+          "native_test_ref": "#/rows/11/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#9/assert-3",
+          "line": 142,
+          "expression": "assert.equal(installs, 0)",
+          "expression_sha256": "1bae664349f16462dac6762e5c9721a839868eb0559ef4b469f707083facdeb0",
+          "status": "represented",
+          "native_test_ref": "#/rows/11/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#9/assert-4",
+          "line": 145,
+          "expression": "assert.equal(failed.state, 'failed')",
+          "expression_sha256": "824858ff2153634059631d988d9c22add6488224085d6d0306f2cb8930053f27",
+          "status": "represented",
+          "native_test_ref": "#/rows/11/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#9/assert-5",
+          "line": 146,
+          "expression": "assert.ok(!JSON.stringify(failed).includes('PRIVATE'))",
+          "expression_sha256": "7895a0fea1520c3f3c53756d85fdf5f47f0dab87fd05896a870d08c5dd92ddb4",
+          "status": "native_boundary_adaptation",
+          "native_test_ref": "#/rows/11/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": [
+            "The original installer throws arbitrary Error(PRIVATE_INSTALL_ERROR); native Installer returns typed ReleaseError with a known safe reason. Failure state/privacy of native typed errors is tested; the arbitrary private-error injection is not reproduced."
+          ]
+        }
+      ],
+      "remaining_assertions": [
+        "The original installer throws arbitrary Error(PRIVATE_INSTALL_ERROR); native Installer returns typed ReleaseError with a known safe reason. Failure state/privacy of native typed errors is tested; the arbitrary private-error injection is not reproduced."
+      ]
+    },
+    {
+      "id": "test/release-verification.test.mjs#10",
+      "file": "test/release-verification.test.mjs",
+      "name": "registry install uses an isolated prefix/cache, exact version, no scripts and direct executable help/version checks",
+      "baseline_file_sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38",
+      "definition_sha256": "715b11a456242df3593974f88ea3c4c62890337f9808d1de1a5e5ab4588f7584",
+      "definition_hash_scope": "Exact top-level ExpressionStatement.getText including trailing semicolon.",
+      "status": "covered",
+      "previous_status": "pending_assertion_mapping",
+      "parameter_review": "Original synthetic packageJSON+CLIbytes; no API/config env keys; exact version/install flags; direct version/help invocations in unrelatedcwd; scratch directory removed with NotFound.",
+      "rust_tests": [
+        "rust/xtask/src/release_contracts.rs#release_contracts::original_install_flags_environment_bytes_cleanup_and_remaining_budget"
+      ],
+      "native_test_source": {
+        "path": "rust/xtask/src/release_contracts.rs",
+        "line": 699,
+        "end_line": 789
+      },
+      "shared_cases": [],
+      "static_assertions": [
+        {
+          "id": "test/release-verification.test.mjs#10/assert-1",
+          "line": 154,
+          "expression": "assert.equal(options.env.TYPESAFE_API_KEY, undefined)",
+          "expression_sha256": "eb96e49bd6bbc65f103b8648f859148668968194ddeaab6f0ceccc730f098cad",
+          "status": "represented",
+          "native_test_ref": "#/rows/12/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#10/assert-2",
+          "line": 155,
+          "expression": "assert.equal(options.env.ANTHROPIC_API_KEY, undefined)",
+          "expression_sha256": "4c6b01ced93ed6f32c8df4875ca15f9d6f377b997463e90f156597daeac13630",
+          "status": "represented",
+          "native_test_ref": "#/rows/12/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#10/assert-3",
+          "line": 156,
+          "expression": "assert.equal(options.env.AUTOROUTER_CONFIG, undefined)",
+          "expression_sha256": "9575aea1b8378789f8bd04aedb8e874124904998414070995ca131cc1f8da4a0",
+          "status": "represented",
+          "native_test_ref": "#/rows/12/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#10/assert-4",
+          "line": 166,
+          "expression": "assert.equal(installed.version, '0.4.0')",
+          "expression_sha256": "545503f66ce1f0bc80d4d472c54ff40c96f6aaa1ba81d667271353e20a0c5af5",
+          "status": "represented",
+          "native_test_ref": "#/rows/12/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#10/assert-5",
+          "line": 167,
+          "expression": "assert.ok(calls[0].args.includes('claude-autorouter@0.4.0'))",
+          "expression_sha256": "461a78389ab39074da84366b0fa81e006b9d0fa02fab22ec23d8b4e6d0e20fff",
+          "status": "represented",
+          "native_test_ref": "#/rows/12/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#10/assert-6",
+          "line": 168,
+          "expression": "assert.ok(calls[0].args.includes(flag))",
+          "expression_sha256": "760804c8872c9936411ce71585a8d7bcce65b32f3f41edc49d822f6388882ea2",
+          "status": "represented",
+          "native_test_ref": "#/rows/12/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#10/assert-7",
+          "line": 169,
+          "expression": "assert.match(calls[1].command, /install prefix\\/bin\\/claude-autorouter$/)",
+          "expression_sha256": "931f3fadc7f38a75f20b73179c08ee4c5a50e2c00f5eedc20becd30b67ced6c4",
+          "status": "represented",
+          "native_test_ref": "#/rows/12/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#10/assert-8",
+          "line": 170,
+          "expression": "assert.deepEqual(calls.slice(1).map(call => call.args), [['--version'], ['--help']])",
+          "expression_sha256": "46892c41547d42e99153ad8228bba39bfa0e07f2bb8a5bc75efd7452dbe80e17",
+          "status": "represented",
+          "native_test_ref": "#/rows/12/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#10/assert-9",
+          "line": 171,
+          "expression": "assert.match(calls[0].options.cwd, /unrelated cwd$/)",
+          "expression_sha256": "4e6dddfa1d7fef836b63d55757be4d4c2acd2e91b6eed4b261cbb535006caccf",
+          "status": "represented",
+          "native_test_ref": "#/rows/12/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#10/assert-10",
+          "line": 172,
+          "expression": "assert.rejects(stat(calls[0].options.cwd), { code: 'ENOENT' })",
+          "expression_sha256": "68249abbd69af3309bf478e1cb683654388cc7e4e65933a17b40302fe6de2929",
+          "status": "represented",
+          "native_test_ref": "#/rows/12/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/release-verification.test.mjs#11",
+      "file": "test/release-verification.test.mjs",
+      "name": "manual verification accepts only the original canonical artifact bound to the tag commit",
+      "baseline_file_sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38",
+      "definition_sha256": "5e9d679240cfeaf00aaf6a966c202576391670755ea0b110f07730f4598b198f",
+      "definition_hash_scope": "Exact top-level ExpressionStatement.getText including trailing semicolon.",
+      "status": "covered",
+      "previous_status": "pending_assertion_mapping",
+      "parameter_review": "Every original selected pure callback/assertion/loop executes unchanged; all API arguments, full returned JSON and complete source errors captured. Native compares full successful output, exact metadata error text and rejection for source bare-throws assertions.",
+      "rust_tests": [
+        "rust/xtask/src/release_contracts.rs#release_contracts::all_frozen_pure_release_arguments_preserve_results_and_asserted_errors"
+      ],
+      "native_test_source": {
+        "path": "rust/xtask/src/release_contracts.rs",
+        "line": 80,
+        "end_line": 95
+      },
+      "shared_cases": [
+        "baseline-release-verification-11-1",
+        "baseline-release-verification-11-2",
+        "baseline-release-verification-11-3",
+        "baseline-release-verification-11-4",
+        "baseline-release-verification-11-5",
+        "baseline-release-verification-11-6",
+        "baseline-release-verification-11-7",
+        "baseline-release-verification-11-8",
+        "baseline-release-verification-11-9",
+        "baseline-release-verification-11-10"
+      ],
+      "static_assertions": [
+        {
+          "id": "test/release-verification.test.mjs#11/assert-1",
+          "line": 180,
+          "expression": "assert.deepEqual(validateArtifactSource(run, archive, identity), { run_id: '123', artifact_id: '456', notes_artifact_name: 'release-notes-123-1' })",
+          "expression_sha256": "b059562e0d98c4a4ba1a1a6e84feb86fb427aacf6b09f6e5e12da3e5a5b3a4b5",
+          "status": "represented",
+          "native_test_ref": "#/rows/13/rust_tests/0",
+          "captured_cases_ref": "#/rows/13/shared_cases",
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#11/assert-2",
+          "line": 183,
+          "expression": "assert.throws(() => validateArtifactSource({ ...run, ...changed }, archive, identity))",
+          "expression_sha256": "ce68fca1f2c14009d6367548b58b8be8a409b528c095ecce453cb752230c59a1",
+          "status": "represented",
+          "native_test_ref": "#/rows/13/rust_tests/0",
+          "captured_cases_ref": "#/rows/13/shared_cases",
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#11/assert-3",
+          "line": 186,
+          "expression": "assert.throws(() => validateArtifactSource(run, { ...archive, ...changed }, identity))",
+          "expression_sha256": "ef06c72fc73d8268ee47408fe536827f35796853af5e59606de8bb15fcc25ff0",
+          "status": "represented",
+          "native_test_ref": "#/rows/13/rust_tests/0",
+          "captured_cases_ref": "#/rows/13/shared_cases",
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/release-verification.test.mjs#12",
+      "file": "test/release-verification.test.mjs",
+      "name": "polling caps backoff and retained timeline while preserving the full elapsed budget",
+      "baseline_file_sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38",
+      "definition_sha256": "41a77b4d3b93964fa712e6c762f2f40dff25c0a12618b35b94c71f93bd4c3019",
+      "definition_hash_scope": "Exact top-level ExpressionStatement.getText including trailing semicolon.",
+      "status": "covered",
+      "previous_status": "pending_assertion_mapping",
+      "parameter_review": "Full600000ms virtual budget, exact retained32events and max15000ms observed poll interval, no installs.",
+      "rust_tests": [
+        "rust/xtask/src/release_contracts.rs#release_contracts::ten_minute_polling_preserves_budget_fifteen_second_backoff_and_32_events"
+      ],
+      "native_test_source": {
+        "path": "rust/xtask/src/release_contracts.rs",
+        "line": 611,
+        "end_line": 697
+      },
+      "shared_cases": [],
+      "static_assertions": [
+        {
+          "id": "test/release-verification.test.mjs#12/assert-1",
+          "line": 193,
+          "expression": "assert.equal(result.state, 'validating_unavailable')",
+          "expression_sha256": "b39885808301e01183bb7f5d7dc00b665beb513e502144673bd21886afe520a3",
+          "status": "represented",
+          "native_test_ref": "#/rows/14/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#12/assert-2",
+          "line": 194,
+          "expression": "assert.equal(result.elapsed_ms, 600000)",
+          "expression_sha256": "774304481d29cadb17321103650c36bbcbe3b664d4d92813ca7d439f981794da",
+          "status": "represented",
+          "native_test_ref": "#/rows/14/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#12/assert-3",
+          "line": 195,
+          "expression": "assert.equal(Math.max(...fakeClock.waits), 15000)",
+          "expression_sha256": "644922b428920932e78dc4f0938d58ebd6fd361f3639520c2f09f0b31fc13620",
+          "status": "represented",
+          "native_test_ref": "#/rows/14/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#12/assert-4",
+          "line": 196,
+          "expression": "assert.equal(result.events.length, 32)",
+          "expression_sha256": "11ce1a0e8d76be670c62a14b62f06b98132ed226354020526daa6eda2b7f9e72",
+          "status": "represented",
+          "native_test_ref": "#/rows/14/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/release-verification.test.mjs#13",
+      "file": "test/release-verification.test.mjs",
+      "name": "prerelease preflight targets next without treating a newer latest as a publication target",
+      "baseline_file_sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38",
+      "definition_sha256": "4ac6b985b0b21f369e3bcdf47b8c0ac775093a8ba4720bd50edeefbd3dce7bca",
+      "definition_hash_scope": "Exact top-level ExpressionStatement.getText including trailing semicolon.",
+      "status": "partial_assertion_mapping",
+      "previous_status": "pending_assertion_mapping",
+      "parameter_review": "Original prerelease0.4.0-beta.1 with next0.4.0-beta.0 and latest0.5.0; readiness true/dist_tagnext for native candidate.",
+      "rust_tests": [
+        "rust/xtask/src/release_contracts.rs#release_contracts::all_original_metadata_conflicts_reject_and_prerelease_targets_next"
+      ],
+      "native_test_source": {
+        "path": "rust/xtask/src/release_contracts.rs",
+        "line": 424,
+        "end_line": 493
+      },
+      "shared_cases": [],
+      "static_assertions": [
+        {
+          "id": "test/release-verification.test.mjs#13/assert-1",
+          "line": 203,
+          "expression": "assert.equal(result.publish, true)",
+          "expression_sha256": "d00947420db796f290b0ae68a19968dbff3470a61d3ecd3c1c5099aac9b1c237",
+          "status": "native_boundary_adaptation",
+          "native_test_ref": "#/rows/15/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": [
+            "Native preflight requires Artifact.native=true before publication readiness. The original JS artifact has no native eligibility field; native-only readiness is an explicit migration restriction, not literal historical-artifact parity."
+          ]
+        },
+        {
+          "id": "test/release-verification.test.mjs#13/assert-2",
+          "line": 204,
+          "expression": "assert.equal(result.dist_tag, 'next')",
+          "expression_sha256": "3c3f1e1a00f1efd15e17c405f2f8a154f9710359e171fac57cbdcde6afc09bd5",
+          "status": "represented",
+          "native_test_ref": "#/rows/15/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": [
+        "Native preflight requires Artifact.native=true before publication readiness. The original JS artifact has no native eligibility field; native-only readiness is an explicit migration restriction, not literal historical-artifact parity."
+      ]
+    },
+    {
+      "id": "test/release-verification.test.mjs#15",
+      "file": "test/release-verification.test.mjs",
+      "name": "installed bytes are checked before any package executable is run",
+      "baseline_file_sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38",
+      "definition_sha256": "4d7786c4c01aade244302a815d4876a953815fe88ecf99631c1de839804583a3",
+      "definition_hash_scope": "Exact top-level ExpressionStatement.getText including trailing semicolon.",
+      "status": "covered",
+      "previous_status": "pending_assertion_mapping",
+      "parameter_review": "Original reviewed CLI versus unreviewed installed bytes; actual install_with returns release_mismatch/installed_archive_bytes and only mocknpm can be invoked.",
+      "rust_tests": [
+        "rust/xtask/src/release_contracts.rs#release_contracts::original_install_flags_environment_bytes_cleanup_and_remaining_budget"
+      ],
+      "native_test_source": {
+        "path": "rust/xtask/src/release_contracts.rs",
+        "line": 699,
+        "end_line": 789
+      },
+      "shared_cases": [],
+      "static_assertions": [
+        {
+          "id": "test/release-verification.test.mjs#15/assert-1",
+          "line": 252,
+          "expression": "assert.rejects(installPublishedRelease(artifact, { readArchive: async () => files,\n    runCommand: async (command, args) => {\n      assert.equal(command, 'npm', 'Mismatched installed code must never execute');\n      const prefix = args[args.indexOf('--prefix') + 1];\n      const path = join(prefix, 'lib', 'node_modules', 'claude-autorouter', 'bin', 'autorouter.mjs');\n      await mkdir(dirname(path), { recursive: true });\n      await writeFile(path, '// unreviewed content');\n      return { stdout: '', stderr: '' };\n    } }), error => error.code === 'release_mismatch' && error.detail.reason === 'installed_archive_bytes')",
+          "expression_sha256": "e1d7ded2914c112685adeb2e56769a3bc2b4c3cf765c30df615e85dfe025fda9",
+          "status": "represented",
+          "native_test_ref": "#/rows/16/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#15/assert-2",
+          "line": 254,
+          "expression": "assert.equal(command, 'npm', 'Mismatched installed code must never execute')",
+          "expression_sha256": "5c87f0bef303a65891869a9102cdf154afc05832fcb389eebf4eac2f58dd6699",
+          "status": "represented",
+          "native_test_ref": "#/rows/16/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/release-verification.test.mjs#16",
+      "file": "test/release-verification.test.mjs",
+      "name": "elapsed metadata checks cannot start a tarball download after the verification deadline",
+      "baseline_file_sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38",
+      "definition_sha256": "423e54f8394be53875fd9f9561b265230f5f9516ec15d0e393d71e4a4dfa0d9c",
+      "definition_hash_scope": "Exact top-level ExpressionStatement.getText including trailing semicolon.",
+      "status": "partial_assertion_mapping",
+      "previous_status": "pending_assertion_mapping",
+      "parameter_review": "Two stalled metadata requests exceed1000ms; zero tarball or install starts, unavailable/timeout. The original independently jumped now clock expects verification_deadline and is not reproduced.",
+      "rust_tests": [
+        "rust/xtask/src/release_contracts.rs#release_contracts::expired_metadata_deadline_never_starts_tarball_or_install"
+      ],
+      "native_test_source": {
+        "path": "rust/xtask/src/release_contracts.rs",
+        "line": 791,
+        "end_line": 810
+      },
+      "shared_cases": [],
+      "static_assertions": [
+        {
+          "id": "test/release-verification.test.mjs#16/assert-1",
+          "line": 270,
+          "expression": "assert.fail('Deadline prevents installation')",
+          "expression_sha256": "e01ece6fc9d067a98dc78b4a4e3c174408fd9935ae11148720188bff47c381e5",
+          "status": "represented",
+          "native_test_ref": "#/rows/17/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#16/assert-2",
+          "line": 271,
+          "expression": "assert.equal(requests, 2, 'Only the concurrent metadata requests should have started')",
+          "expression_sha256": "e2d7ec597c239aa2e3c71071234391cd8113c48830815158a7af6a112b3feea0",
+          "status": "represented",
+          "native_test_ref": "#/rows/17/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#16/assert-3",
+          "line": 272,
+          "expression": "assert.equal(result.state, 'validating_unavailable')",
+          "expression_sha256": "b39885808301e01183bb7f5d7dc00b665beb513e502144673bd21886afe520a3",
+          "status": "represented",
+          "native_test_ref": "#/rows/17/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#16/assert-4",
+          "line": 273,
+          "expression": "assert.equal(result.reason, 'verification_deadline')",
+          "expression_sha256": "5a7a614d30f23ad91deef806019a0ea508183da5ad9feb53c23f57d8b34a8683",
+          "status": "native_boundary_adaptation",
+          "native_test_ref": "#/rows/17/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": [
+            "Original now() injection jumps elapsed time1500ms while independent AbortSignal timers remain live and metadata returns. Native uses one Tokio clock for request timers and elapsed time; its stalled-metadata scenario returns timeout, not the original verification_deadline. No post-deadline tarball/install is proven; exact injected-clock outcome remains partial."
+          ]
+        }
+      ],
+      "remaining_assertions": [
+        "Original now() injection jumps elapsed time1500ms while independent AbortSignal timers remain live and metadata returns. Native uses one Tokio clock for request timers and elapsed time; its stalled-metadata scenario returns timeout, not the original verification_deadline. No post-deadline tarball/install is proven; exact injected-clock outcome remains partial."
+      ]
+    },
+    {
+      "id": "test/release-verification.test.mjs#17",
+      "file": "test/release-verification.test.mjs",
+      "name": "an install that consumes the remaining verification budget stays unavailable instead of becoming a mismatch",
+      "baseline_file_sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38",
+      "definition_sha256": "538f60c0965f00a927d9d6e125d4b84b6df7f5532b6dc4abb931041b0e1e5a76",
+      "definition_hash_scope": "Exact top-level ExpressionStatement.getText including trailing semicolon.",
+      "status": "covered",
+      "previous_status": "pending_assertion_mapping",
+      "parameter_review": "Original canonicalCLIbytes; mocknpm advances clock101ms against100ms total budget. Exact registry_unavailable/isolated_install_timeout and one command invocation; no executable starts.",
+      "rust_tests": [
+        "rust/xtask/src/release_contracts.rs#release_contracts::original_install_flags_environment_bytes_cleanup_and_remaining_budget"
+      ],
+      "native_test_source": {
+        "path": "rust/xtask/src/release_contracts.rs",
+        "line": 699,
+        "end_line": 789
+      },
+      "shared_cases": [],
+      "static_assertions": [
+        {
+          "id": "test/release-verification.test.mjs#17/assert-1",
+          "line": 279,
+          "expression": "assert.rejects(installPublishedRelease(artifact, { timeoutMs: 100, now: () => elapsed, readArchive: async () => files,\n    runCommand: async (command, args) => {\n      executions++;\n      assert.equal(command, 'npm', 'No executable may start after the overall budget expires');\n      const prefix = args[args.indexOf('--prefix') + 1], path = join(prefix, 'lib', 'node_modules', 'claude-autorouter', 'bin', 'autorouter.mjs');\n      await mkdir(dirname(path), { recursive: true });\n      await writeFile(path, files.get('bin/autorouter.mjs'));\n      await mkdir(join(prefix, 'bin'));\n      await symlink(path, join(prefix, 'bin', 'claude-autorouter'));\n      elapsed = 101;\n      return { stdout: '', stderr: '' };\n    } }), error => error.code === 'registry_unavailable' && error.detail.reason === 'isolated_install_timeout')",
+          "expression_sha256": "c9dbd6afd9d6a7620131bf3e29ad32e4627e785bf6da258f9699e5da6bd37fa1",
+          "status": "represented",
+          "native_test_ref": "#/rows/18/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#17/assert-2",
+          "line": 282,
+          "expression": "assert.equal(command, 'npm', 'No executable may start after the overall budget expires')",
+          "expression_sha256": "15a4dd2a37c008462a39388902b757d0fba38f8f78a2a46fafcead9b5a9c1c84",
+          "status": "represented",
+          "native_test_ref": "#/rows/18/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        },
+        {
+          "id": "test/release-verification.test.mjs#17/assert-3",
+          "line": 291,
+          "expression": "assert.equal(executions, 1)",
+          "expression_sha256": "3adf015bbed68cd1b65567067883ccdbb05505205c247061fbfebcada8e0dad4",
+          "status": "represented",
+          "native_test_ref": "#/rows/18/rust_tests/0",
+          "captured_cases_ref": null,
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    }
+  ],
+  "excluded_inventory_rows": [
+    {
+      "id": "test/release-check.test.mjs#4",
+      "name": "source check accepts annotated and lightweight tags but rejects dirty source",
+      "status": "pending_assertion_mapping",
+      "reason": "Source/tag/archive or actual installed-CLI equivalence is outside this finite batch. The nine nested archive subtests are independent baseline inventory rows; related package/release tests do not establish whole-row coverage."
+    },
+    {
+      "id": "test/release-check.test.mjs#5",
+      "name": "source check requires tag at HEAD and ancestry from origin/main, not merely a matching version",
+      "status": "pending_assertion_mapping",
+      "reason": "Source/tag/archive or actual installed-CLI equivalence is outside this finite batch. The nine nested archive subtests are independent baseline inventory rows; related package/release tests do not establish whole-row coverage."
+    },
+    {
+      "id": "test/release-check.test.mjs#6",
+      "name": "CLI writes only validated release metadata to GITHUB_OUTPUT",
+      "status": "pending_assertion_mapping",
+      "reason": "Source/tag/archive or actual installed-CLI equivalence is outside this finite batch. The nine nested archive subtests are independent baseline inventory rows; related package/release tests do not establish whole-row coverage."
+    },
+    {
+      "id": "test/release-check.test.mjs#7",
+      "name": "archive check validates actual packed files, checksums, manifest, and source bytes",
+      "status": "pending_assertion_mapping",
+      "reason": "Source/tag/archive or actual installed-CLI equivalence is outside this finite batch. The nine nested archive subtests are independent baseline inventory rows; related package/release tests do not establish whole-row coverage."
+    },
+    {
+      "id": "test/release-check.test.mjs#8",
+      "name": "checksum tampering is rejected",
+      "status": "pending_assertion_mapping",
+      "reason": "Source/tag/archive or actual installed-CLI equivalence is outside this finite batch. The nine nested archive subtests are independent baseline inventory rows; related package/release tests do not establish whole-row coverage."
+    },
+    {
+      "id": "test/release-check.test.mjs#9",
+      "name": "checksum filename cannot reference another path",
+      "status": "pending_assertion_mapping",
+      "reason": "Source/tag/archive or actual installed-CLI equivalence is outside this finite batch. The nine nested archive subtests are independent baseline inventory rows; related package/release tests do not establish whole-row coverage."
+    },
+    {
+      "id": "test/release-check.test.mjs#10",
+      "name": "stale or additional artifacts are rejected",
+      "status": "pending_assertion_mapping",
+      "reason": "Source/tag/archive or actual installed-CLI equivalence is outside this finite batch. The nine nested archive subtests are independent baseline inventory rows; related package/release tests do not establish whole-row coverage."
+    },
+    {
+      "id": "test/release-check.test.mjs#11",
+      "name": "changed manifest metadata is rejected even with a matching checksum",
+      "status": "pending_assertion_mapping",
+      "reason": "Source/tag/archive or actual installed-CLI equivalence is outside this finite batch. The nine nested archive subtests are independent baseline inventory rows; related package/release tests do not establish whole-row coverage."
+    },
+    {
+      "id": "test/release-check.test.mjs#12",
+      "name": "changed runtime code is rejected even with a matching checksum",
+      "status": "pending_assertion_mapping",
+      "reason": "Source/tag/archive or actual installed-CLI equivalence is outside this finite batch. The nine nested archive subtests are independent baseline inventory rows; related package/release tests do not establish whole-row coverage."
+    },
+    {
+      "id": "test/release-check.test.mjs#13",
+      "name": "additional otherwise-allowed source paths are rejected",
+      "status": "pending_assertion_mapping",
+      "reason": "Source/tag/archive or actual installed-CLI equivalence is outside this finite batch. The nine nested archive subtests are independent baseline inventory rows; related package/release tests do not establish whole-row coverage."
+    },
+    {
+      "id": "test/release-check.test.mjs#14",
+      "name": "missing optional package files are rejected by the exact file list",
+      "status": "pending_assertion_mapping",
+      "reason": "Source/tag/archive or actual installed-CLI equivalence is outside this finite batch. The nine nested archive subtests are independent baseline inventory rows; related package/release tests do not establish whole-row coverage."
+    },
+    {
+      "id": "test/release-check.test.mjs#15",
+      "name": "private files fail the shared package allowlist",
+      "status": "pending_assertion_mapping",
+      "reason": "Source/tag/archive or actual installed-CLI equivalence is outside this finite batch. The nine nested archive subtests are independent baseline inventory rows; related package/release tests do not establish whole-row coverage."
+    },
+    {
+      "id": "test/release-check.test.mjs#16",
+      "name": "symlinked artifacts are rejected before reading their targets",
+      "status": "pending_assertion_mapping",
+      "reason": "Source/tag/archive or actual installed-CLI equivalence is outside this finite batch. The nine nested archive subtests are independent baseline inventory rows; related package/release tests do not establish whole-row coverage."
+    },
+    {
+      "id": "test/release-verification.test.mjs#14",
+      "name": "real canonical archive inspection and submitted CLI reports preserve exact identity without registry calls",
+      "status": "pending_assertion_mapping",
+      "reason": "Source/tag/archive or actual installed-CLI equivalence is outside this finite batch. The nine nested archive subtests are independent baseline inventory rows; related package/release tests do not establish whole-row coverage."
+    }
+  ],
+  "common_registry_assertions": {
+    "source": "Frozen registry() helper asserts exact npm origin, redirect:error and method:undefined/defaultGET on every call.",
+    "native": "Mock asserts HTTPS/exact registry authority, GET with empty body, nonempty nonce, no-cache/no-store and no Authorization. Native HttpTransport uses concrete GET rather than the Fetch method:undefined surface.",
+    "redirect_boundary": "No redirect option is carried in HttpTransport; shipping NativeHttpClient forwards redirects without following, covered by existing runtime http_client::tests::local_http_reuses_connections_preserves_credentials_and_never_decodes_or_redirects. This batch does not rerun that separate loopback proof."
+  },
+  "comparison_scope": [
+    "All61 pure arguments/outputs/errors retained; successful JSON exact, metadata error messages exact. Original bare-throws assertions compare rejection only; extra captured Error class/message/detail is not claimed equivalent.",
+    "Native state tests execute real release_verify::preflight/verify and release_install::install_with against in-memory transport/command mocks. No captured reports or decisions are injected.",
+    "Exact admitted Artifact pointer reaches the installer; the original object-identity intent is represented by borrowed Rust reference identity.",
+    "Original installed-file fixtures and changed bytes are used. Commands only synthesize files inside owned Scratch paths, never execute npm or installed code in native tests.",
+    "All async native schedules have independent700second Tokio virtual watchdog because original maximum polling budget is600seconds. All tests start with paused Tokio time; no numerical timing claim.",
+    "Negative controls reject altered version order, altered provenance identity, success for invalid input, each original conflicting metadata field, changed tarball and installed bytes."
+  ],
+  "reproducibility": {
+    "capture_runs_byte_identical": true,
+    "corpus_sha256": "f938b7b0bb4819fe9e918bed6356d8afb72536da92297c18378222bf47699392",
+    "node_version": "v22.14.0",
+    "typescript_version": "6.0.3"
+  },
+  "validation_scope_correction": {
+    "broader_control": "Initial negative Node name filter matched test-file ancestry and ran all17 frozen verification definitions, including synthetic local npm pack/offline install/submitted CLI. This broader successful control is retained and does not supply native coverage for#14.",
+    "corrected_control": "Explicit positive16-name filter subsequently passed exactly16 selected verification definitions; release-check positive3-name filter passed exactly3. Pure source capture never runs non-pure definitions.",
+    "side_effect_limits": "No publication, repository tag/version change, provider/evaluator call, real credential use or user configuration edit. Broader Node fixture used private temporary local source/package/home paths and an offline npm install."
+  },
+  "dependency_warning": "Scoped Clippy exits0; log may retain an in-progress vendored hyper-util timer warning owned by the protocol agent. No owned-code Clippy diagnostic.",
+  "input_coverage": {
+    "path": "artifacts/rust-rewrite/evidence/d2fff1c0986516787e60403abdfb670b3cb7c38bb4e804560c6eeec9d306273b.json",
+    "sha256": "d2fff1c0986516787e60403abdfb670b3cb7c38bb4e804560c6eeec9d306273b",
+    "bytes": 984107,
+    "original_path": "rust/parity/coverage.json",
+    "source_commit": "bf50b60fb702699f0c1cac5e62b8fecf28cb2209"
+  },
+  "status": "Reviewed assertion mapping; full rewrite qualification remains incomplete.",
+  "review": {
+    "proposal": {
+      "path": "artifacts/rust-rewrite/evidence/50dccda0336fff67d02a3fae4af3fb139f9008640c6da752fc8350b447904048.json",
+      "sha256": "50dccda0336fff67d02a3fae4af3fb139f9008640c6da752fc8350b447904048",
+      "bytes": 82913,
+      "original_path": "/private/tmp/autorouter-release-contracts-coverage-proposal.json"
+    },
+    "review": {
+      "path": "artifacts/rust-rewrite/evidence/9c9391c3511ded9e2739a7c1d937de4980e319158a8cac2cf9f357cbc8d0abfa.json",
+      "sha256": "9c9391c3511ded9e2739a7c1d937de4980e319158a8cac2cf9f357cbc8d0abfa",
+      "bytes": 1101,
+      "original_path": "/private/tmp/autorouter-release-contracts-root-review.json"
+    }
+  },
+  "previous_coverage_rows": [
+    {
+      "id": "test/release-check.test.mjs#1",
+      "file": "test/release-check.test.mjs",
+      "name": "release tags enforce canonical SemVer and select stable/prerelease dist-tags",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    },
+    {
+      "id": "test/release-check.test.mjs#2",
+      "file": "test/release-check.test.mjs",
+      "name": "release metadata rejects wrong identity, publication policy, and runtime dependencies",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    },
+    {
+      "id": "test/release-check.test.mjs#3",
+      "file": "test/release-check.test.mjs",
+      "name": "GitHub identity must match the exact repository and tag when supplied",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    },
+    {
+      "id": "test/release-verification.test.mjs#1",
+      "file": "test/release-verification.test.mjs",
+      "name": "stable version ordering uses numeric SemVer and rejects ambiguous inputs",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    },
+    {
+      "id": "test/release-verification.test.mjs#2",
+      "file": "test/release-verification.test.mjs",
+      "name": "preflight allows only a newer new stable version, and registry failures are not version absence",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    },
+    {
+      "id": "test/release-verification.test.mjs#3",
+      "file": "test/release-verification.test.mjs",
+      "name": "matching existing immutable versions skip publication even when the exact endpoint returns cached404",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    },
+    {
+      "id": "test/release-verification.test.mjs#4",
+      "file": "test/release-verification.test.mjs",
+      "name": "an unavailable retry never guesses that another submission is safe",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    },
+    {
+      "id": "test/release-verification.test.mjs#5",
+      "file": "test/release-verification.test.mjs",
+      "name": "existing metadata mismatches stop before publication, including conflicting cache views",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    },
+    {
+      "id": "test/release-verification.test.mjs#6",
+      "file": "test/release-verification.test.mjs",
+      "name": "bounded polling tolerates delayed metadata and tarballs then verifies the tested bytes and install",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    },
+    {
+      "id": "test/release-verification.test.mjs#7",
+      "file": "test/release-verification.test.mjs",
+      "name": "verification timeout is pending and preserves distinct unavailable/error evidence",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    },
+    {
+      "id": "test/release-verification.test.mjs#8",
+      "file": "test/release-verification.test.mjs",
+      "name": "tarball mismatch fails immediately and a newer latest is verified without any tag mutation",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    },
+    {
+      "id": "test/release-verification.test.mjs#9",
+      "file": "test/release-verification.test.mjs",
+      "name": "an older dist-tag remains pending and installation is required before verified",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    },
+    {
+      "id": "test/release-verification.test.mjs#10",
+      "file": "test/release-verification.test.mjs",
+      "name": "registry install uses an isolated prefix/cache, exact version, no scripts and direct executable help/version checks",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    },
+    {
+      "id": "test/release-verification.test.mjs#11",
+      "file": "test/release-verification.test.mjs",
+      "name": "manual verification accepts only the original canonical artifact bound to the tag commit",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    },
+    {
+      "id": "test/release-verification.test.mjs#12",
+      "file": "test/release-verification.test.mjs",
+      "name": "polling caps backoff and retained timeline while preserving the full elapsed budget",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    },
+    {
+      "id": "test/release-verification.test.mjs#13",
+      "file": "test/release-verification.test.mjs",
+      "name": "prerelease preflight targets next without treating a newer latest as a publication target",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    },
+    {
+      "id": "test/release-verification.test.mjs#15",
+      "file": "test/release-verification.test.mjs",
+      "name": "installed bytes are checked before any package executable is run",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    },
+    {
+      "id": "test/release-verification.test.mjs#16",
+      "file": "test/release-verification.test.mjs",
+      "name": "elapsed metadata checks cannot start a tarball download after the verification deadline",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    },
+    {
+      "id": "test/release-verification.test.mjs#17",
+      "file": "test/release-verification.test.mjs",
+      "name": "an install that consumes the remaining verification budget stays unavailable instead of becoming a mismatch",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "developer_tools"
+      ]
+    }
+  ]
+}

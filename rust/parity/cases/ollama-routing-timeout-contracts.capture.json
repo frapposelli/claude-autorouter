@@ -1,0 +1,274 @@
+{
+  "schema_version": 1,
+  "kind": "frozen_ollama_routing_timeout_contract",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "baseline_file": "test/ollama-routing.test.mjs",
+  "baseline_file_sha256": "a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b",
+  "generator_sha256": "53f29ad0f99b48d5675e00a404c6231b37dd87f1c9ae3647e80d12a4eaaafc46",
+  "selected_definitions": [
+    3
+  ],
+  "definitions": [
+    {
+      "id": "test/ollama-routing.test.mjs#3",
+      "number": 3,
+      "name": "legitimate Sonnet, timeout fallback, recovery and a compatibility override remain distinguishable",
+      "selected": true,
+      "statement": "test('legitimate Sonnet, timeout fallback, recovery and a compatibility override remain distinguishable', async () => {\n  const config = configFor(MODELS[2]);\n  const fixture = localFixture(config);\n  const router = new Router({ ...config, ollamaTimeoutMs: 5 }, { fetchImpl: fixture.fetchImpl });\n  const sonnet = await router.route(buildRoutingRequest(byId('bounded-feature'), config));\n  assert.deepEqual([sonnet.source, sonnet.classified_tier, sonnet.model, sonnet.reason], ['ollama', 'sonnet', config.models.sonnet, 'classified']);\n\n  fixture.mode = 'timeout';\n  const body = buildRoutingRequest(byId('array-length'), config);\n  const fallback = await router.route(body);\n  assert.equal(fallback.model, config.models.sonnet);\n  assert.equal(fallback.source, 'fallback');\n  assert.equal(fallback.classified_tier, undefined);\n  assert.equal(fallback.classifier_error, 'timeout');\n  fixture.mode = 'normal';\n  const recovered = await router.route(body);\n  assert.equal(recovered.model, config.models.haiku);\n  assert.equal(recovered.source, 'ollama', 'Timeout fallbacks must not be cached');\n\n  const guarded = await router.route({ ...body, thinking: { type: 'adaptive' } });\n  assert.equal(guarded.source, 'ollama');\n  assert.equal(guarded.classified_tier, 'haiku');\n  assert.equal(guarded.model, config.models.sonnet);\n  assert.equal(guarded.reason, 'requires_sonnet_capabilities');\n  assert.equal(guarded.classifier_error, undefined);\n});",
+      "statement_sha256": "e7238bc662b5520c21a93925b1224a57fee69117d847ae997a59ca86d67bc9de",
+      "call_sha256": "d06d7bbef67cfc57c797c43ab52a34bb79f6d45c8e9a29863dd9e5fec126b1bc",
+      "line": 78,
+      "assertions": [
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-1",
+          "line": 83,
+          "expression": "assert.deepEqual([sonnet.source, sonnet.classified_tier, sonnet.model, sonnet.reason], ['ollama', 'sonnet', config.models.sonnet, 'classified'])",
+          "sha256": "80dcb9a3d9933f1755be64998b2338de5c3dc69d6ffc460fa84eb52fcbf9b8ff"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-2",
+          "line": 88,
+          "expression": "assert.equal(fallback.model, config.models.sonnet)",
+          "sha256": "3bac01a6fc1ffb1f0d71c48f3c0de73cf3d5b58cd500adb9d66f357bb53bb36e"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-3",
+          "line": 89,
+          "expression": "assert.equal(fallback.source, 'fallback')",
+          "sha256": "a5a0e8c3feff575f6bdba4c08692998b5144c798b79dcb2eeab57dd532f1339f"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-4",
+          "line": 90,
+          "expression": "assert.equal(fallback.classified_tier, undefined)",
+          "sha256": "8c0f53efdae82b5611750352b4712b89b500860a5d7f7735dc673c9e41674555"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-5",
+          "line": 91,
+          "expression": "assert.equal(fallback.classifier_error, 'timeout')",
+          "sha256": "28d39f68826ca4f7e2af1e5415129473549fac2c93c3839cea87d7b3724d42d0"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-6",
+          "line": 94,
+          "expression": "assert.equal(recovered.model, config.models.haiku)",
+          "sha256": "63cc62884d118dc48f45d46f474521291426b62c7288fa8a60a1939003f600c5"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-7",
+          "line": 95,
+          "expression": "assert.equal(recovered.source, 'ollama', 'Timeout fallbacks must not be cached')",
+          "sha256": "7644d7e1997aeb61795e70e7a502fcc4b8cd29601128f62c3025c295bead656f"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-8",
+          "line": 98,
+          "expression": "assert.equal(guarded.source, 'ollama')",
+          "sha256": "2fdb3b23c8566dbd3c82e5a6c4a9d47121214778c5ef9990ff8b50c0215a7768"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-9",
+          "line": 99,
+          "expression": "assert.equal(guarded.classified_tier, 'haiku')",
+          "sha256": "94bdb1c3fdffcb858c41fe19a6cf1a6a41e2f0124bb77103a78ca71fca80c215"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-10",
+          "line": 100,
+          "expression": "assert.equal(guarded.model, config.models.sonnet)",
+          "sha256": "b6589200f4016976e223b66a73c04e2d0cacc4cc14a0dbae472f96eba2ab7501"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-11",
+          "line": 101,
+          "expression": "assert.equal(guarded.reason, 'requires_sonnet_capabilities')",
+          "sha256": "57e199fcb6e7650ce920295f419fd93ac305dc75feec01649d6bd701e5ca73bd"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#3:assert-12",
+          "line": 102,
+          "expression": "assert.equal(guarded.classifier_error, undefined)",
+          "sha256": "4635191cabd7deace1bfebbaa429d364436e93d941f6d0f1e01558f6b4e135dd"
+        }
+      ]
+    }
+  ],
+  "helper": {
+    "name": "localFixture",
+    "sha256": "7ad1ef0f734c8644fc8858816c4996f4bad165e4bc95a1d8d72a100d4125b21b",
+    "assertions": [
+      {
+        "id": "localFixture:assert-1",
+        "line": 16,
+        "expression": "assert.equal(new URL(url).origin, config.ollamaEndpoint)",
+        "sha256": "932b3aec52d59f8ec98cae431c87f27b6df60d003a2ef59ba4cdadc7ee40a7ab"
+      },
+      {
+        "id": "localFixture:assert-2",
+        "line": 17,
+        "expression": "assert.equal(options.redirect, 'error')",
+        "sha256": "8867547a8dffc17a3aa008e64a715fe5a4f24738ba0b79b5257a046a95a1b00a"
+      },
+      {
+        "id": "localFixture:assert-3",
+        "line": 18,
+        "expression": "assert.equal(options.headers?.authorization, undefined)",
+        "sha256": "335ef9966f146e39b68c63e5041e39e49bc3b45d105df36dfa34818524eb5253"
+      },
+      {
+        "id": "localFixture:assert-4",
+        "line": 19,
+        "expression": "assert.equal(options.headers?.['x-api-key'], undefined)",
+        "sha256": "50c1f55f687f7ab26a64692f6bd9f3c3108797a8a63a43d5b8bd6a809cade439"
+      },
+      {
+        "id": "localFixture:assert-5",
+        "line": 26,
+        "expression": "assert.equal(payload.model, config.ollamaModel)",
+        "sha256": "d0e971608d0223d1a26e5bb400050bcef1590314ee7784054ca11884bbc49747"
+      },
+      {
+        "id": "localFixture:assert-6",
+        "line": 28,
+        "expression": "assert.equal(path, '/v1/systemone', 'No downloads, unloads, Jev, chat or Anthropic calls are allowed')",
+        "sha256": "68e72967d2bae1d37d4a98a9e82b69afe249f9b7111e27cf287ac9e9ed2c6365"
+      },
+      {
+        "id": "localFixture:assert-7",
+        "line": 33,
+        "expression": "assert.ok(choice, 'The actual human task must survive Claude-shaped background')",
+        "sha256": "1657552a2b1f17268ed40cac801cbbb0efa73b9bcb3b50b97b0bfea58fc0c5ac"
+      },
+      {
+        "id": "localFixture:assert-8",
+        "line": 34,
+        "expression": "assert.ok(!JSON.stringify(payload.state).includes('SYNTHETIC_REMINDER_ONLY'))",
+        "sha256": "33d53058dc7f74d17b6c2b1fde857a32aaeb16cfb9a8d583e4ebc7444df39e27"
+      },
+      {
+        "id": "localFixture:assert-9",
+        "line": 35,
+        "expression": "assert.ok(!JSON.stringify(payload.state).includes('PRIVATE_THINKING'))",
+        "sha256": "44178e2de10d1dded802ab8e354825219addbec6eb4bbfbbd6a8c0c7def02466"
+      }
+    ]
+  },
+  "cases": 1,
+  "routers": 1,
+  "routes": 4,
+  "requests": 8,
+  "response_outcomes": 7,
+  "timeout_outcomes": 1,
+  "static_assertions": 12,
+  "helper_static_assertions": 9,
+  "direct_executed_assertions": 12,
+  "helper_executed_assertions": 53,
+  "executed_assertions": [
+    "localFixture:assert-1",
+    "localFixture:assert-2",
+    "localFixture:assert-3",
+    "localFixture:assert-4",
+    "localFixture:assert-5",
+    "localFixture:assert-1",
+    "localFixture:assert-2",
+    "localFixture:assert-3",
+    "localFixture:assert-4",
+    "localFixture:assert-5",
+    "localFixture:assert-6",
+    "localFixture:assert-7",
+    "localFixture:assert-8",
+    "localFixture:assert-9",
+    "test/ollama-routing.test.mjs#3:assert-1",
+    "localFixture:assert-1",
+    "localFixture:assert-2",
+    "localFixture:assert-3",
+    "localFixture:assert-4",
+    "localFixture:assert-5",
+    "localFixture:assert-1",
+    "localFixture:assert-2",
+    "localFixture:assert-3",
+    "localFixture:assert-4",
+    "localFixture:assert-5",
+    "localFixture:assert-6",
+    "test/ollama-routing.test.mjs#3:assert-2",
+    "test/ollama-routing.test.mjs#3:assert-3",
+    "test/ollama-routing.test.mjs#3:assert-4",
+    "test/ollama-routing.test.mjs#3:assert-5",
+    "localFixture:assert-1",
+    "localFixture:assert-2",
+    "localFixture:assert-3",
+    "localFixture:assert-4",
+    "localFixture:assert-5",
+    "localFixture:assert-1",
+    "localFixture:assert-2",
+    "localFixture:assert-3",
+    "localFixture:assert-4",
+    "localFixture:assert-5",
+    "localFixture:assert-6",
+    "localFixture:assert-7",
+    "localFixture:assert-8",
+    "localFixture:assert-9",
+    "test/ollama-routing.test.mjs#3:assert-6",
+    "test/ollama-routing.test.mjs#3:assert-7",
+    "localFixture:assert-1",
+    "localFixture:assert-2",
+    "localFixture:assert-3",
+    "localFixture:assert-4",
+    "localFixture:assert-5",
+    "localFixture:assert-1",
+    "localFixture:assert-2",
+    "localFixture:assert-3",
+    "localFixture:assert-4",
+    "localFixture:assert-5",
+    "localFixture:assert-6",
+    "localFixture:assert-7",
+    "localFixture:assert-8",
+    "localFixture:assert-9",
+    "test/ollama-routing.test.mjs#3:assert-8",
+    "test/ollama-routing.test.mjs#3:assert-9",
+    "test/ollama-routing.test.mjs#3:assert-10",
+    "test/ollama-routing.test.mjs#3:assert-11",
+    "test/ollama-routing.test.mjs#3:assert-12"
+  ],
+  "cases_sha256": "fd5cdab37c2d559a1a3fe9242ddf161bc2c58cc4c4de7860c0cde056c26743c3",
+  "limits": {
+    "routers": 1,
+    "routes": 4,
+    "requests_per_route": 2,
+    "requests": 8,
+    "field_bytes": 65536,
+    "response_bytes": 65536,
+    "snapshot_nodes": 4096,
+    "snapshot_depth": 32,
+    "case_bytes": 524288,
+    "corpus_bytes": 1048576,
+    "aggregate_bytes": 4194304,
+    "external_capture_seconds": 30
+  },
+  "source_inputs": [
+    {
+      "path": "scripts/test-ollama-routing.mjs",
+      "sha256": "5fa48431fcc953f2d84455e44f44a54fbde3fc3194a9e591267860b260e75507"
+    },
+    {
+      "path": "test/fixtures/ollama-integration.json",
+      "sha256": "88e12f962fb42b36a00edd6b8c2560e54620d90c978b1ff13a1ddf31ee46b585"
+    },
+    {
+      "path": "src/router.mjs",
+      "sha256": "aebf10268348f00b6c8cdc82ef9ced2d60c8e1cc0ddeee7c3498bcaf100b9d56"
+    },
+    {
+      "path": "src/ollama-evaluator.mjs",
+      "sha256": "6c983ddab7e9d01a667d9f890deb7b40e85c1d7dee5373cf34642eb588cb7652"
+    }
+  ],
+  "boundaries": [
+    "One unchanged original callback and localFixture, with successful original assertion wrappers; real node:timers/promises delay(20) and production AbortSignal.timeout(5).",
+    "Timeout fetch rethrows the actual original signal reason. Only original source outputs become expected decisions; none are injected into native classification.",
+    "Full config with constructor timeout override, absent route arguments, one Router and four sequential calls are retained.",
+    "Only validated nonnegative route latency_ms/evaluation_latency_ms are projected; raw results are separately retained. No wall-clock or event-loop equivalence claim.",
+    "No network service, provider, live evaluator, model download, user config write or hardware performance measurement."
+  ]
+}

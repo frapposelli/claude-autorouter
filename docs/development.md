@@ -2,6 +2,8 @@
 
 Use Node.js 22+ from a source checkout on macOS or Linux (including WSL). The installed CLI has no runtime package dependencies. Source checks use pinned TypeScript and Node type definitions; install these contributor tools with `npm ci --ignore-scripts --no-audit --no-fund`. Development scripts and tests are separate from the installed CLI; user setup is covered in the [README](../README.md).
 
+The proposed [Rust rewrite plan](rust-rewrite-plan.md) covers full functionality parity, native architecture, performance gates and migration. It does not change the current development workflow.
+
 ## Local checks
 
 ```sh

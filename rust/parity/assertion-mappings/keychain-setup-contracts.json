@@ -1,0 +1,1090 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_keychain_setup_contracts_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_head": "46587867cd0b4db89b273ba293555a5619009a4c",
+  "production_changes": "Narrow existing-body private platform/prompt adapters and extracted same security command builder; tests are new; reviewed as above.",
+  "counts": {
+    "definitions": 4,
+    "static_assertion_nodes": 31,
+    "nonexecuted_prompt_guards": 6,
+    "other_static_assertion_nodes": 25,
+    "source_setup_invocations": 9,
+    "source_doctor_invocations": 1,
+    "source_security_invocations": 6,
+    "additional_native_wrapper_setup_invocations": 1,
+    "additional_native_wrapper_doctor_invocations": 1,
+    "native_tests": 5,
+    "unchanged_frozen_controls": 4,
+    "callback_capture_scenarios": 0,
+    "full_output_equivalence_claimed": false,
+    "executed_original_assertions_instrumented": false,
+    "covered": 4,
+    "partial": 0,
+    "pending": 0
+  },
+  "current_sources": [
+    {
+      "path": "rust/crates/claude-autorouter/src/onboarding.rs",
+      "bytes": 18810,
+      "sha256": "a1279207c4c33cb167198573853105fded1360a37d412cdb0d75118df4319294"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/doctor.rs",
+      "bytes": 14273,
+      "sha256": "c2464ea5130ebadcb4cafb312255c9285e7b6bdcac7079c7d624422aa75e2fde"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/keychain.rs",
+      "bytes": 15647,
+      "sha256": "f75034a30b0f4bb659e262a9a5ca137a94f8e798fea1e65612e3c4f7f506773e"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+      "bytes": 14822,
+      "sha256": "d093b537ff6fc06d60487b8f9f26cc6c37595a4cd9c6c2ae9e70dcdcd9bc39df"
+    }
+  ],
+  "retained_sources": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/a1279207c4c33cb167198573853105fded1360a37d412cdb0d75118df4319294.rs",
+      "sha256": "a1279207c4c33cb167198573853105fded1360a37d412cdb0d75118df4319294",
+      "bytes": 18810,
+      "original_path": "rust/crates/claude-autorouter/src/onboarding.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/c2464ea5130ebadcb4cafb312255c9285e7b6bdcac7079c7d624422aa75e2fde.rs",
+      "sha256": "c2464ea5130ebadcb4cafb312255c9285e7b6bdcac7079c7d624422aa75e2fde",
+      "bytes": 14273,
+      "original_path": "rust/crates/claude-autorouter/src/doctor.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/f75034a30b0f4bb659e262a9a5ca137a94f8e798fea1e65612e3c4f7f506773e.rs",
+      "sha256": "f75034a30b0f4bb659e262a9a5ca137a94f8e798fea1e65612e3c4f7f506773e",
+      "bytes": 15647,
+      "original_path": "rust/crates/autorouter-runtime/src/keychain.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/d093b537ff6fc06d60487b8f9f26cc6c37595a4cd9c6c2ae9e70dcdcd9bc39df.rs",
+      "sha256": "d093b537ff6fc06d60487b8f9f26cc6c37595a4cd9c6c2ae9e70dcdcd9bc39df",
+      "bytes": 14822,
+      "original_path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs"
+    }
+  ],
+  "baseline": {
+    "path": "artifacts/rust-rewrite/reference/test/keychain.test.mjs",
+    "bytes": 17067,
+    "sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87"
+  },
+  "evidence": {
+    "0-tenth-keychain-frozen-control.log": {
+      "path": "artifacts/rust-rewrite/evidence/beee22866cb5127a616f883e85c1a3c177fc37a158b2efbf47a97ea94e8d53ef.log",
+      "bytes": 1063,
+      "sha256": "beee22866cb5127a616f883e85c1a3c177fc37a158b2efbf47a97ea94e8d53ef",
+      "original_path": "artifacts/rust-rewrite/tenth-keychain-frozen-control.log"
+    },
+    "1-tenth-keychain-setup-native-2.log": {
+      "path": "artifacts/rust-rewrite/evidence/9f55cdec9aa2b094a54a2ccb5fdabfb4702def768a7090b06d7c93e29e787bdc.log",
+      "bytes": 1421,
+      "sha256": "9f55cdec9aa2b094a54a2ccb5fdabfb4702def768a7090b06d7c93e29e787bdc",
+      "original_path": "artifacts/rust-rewrite/tenth-keychain-setup-native-2.log"
+    },
+    "2-tenth-keychain-security-native-2.log": {
+      "path": "artifacts/rust-rewrite/evidence/d9733b41649d2a27192fbdc21d0ba3a05d29f90e95e18df1ef534cb6f32b6c1f.log",
+      "bytes": 1947,
+      "sha256": "d9733b41649d2a27192fbdc21d0ba3a05d29f90e95e18df1ef534cb6f32b6c1f",
+      "original_path": "artifacts/rust-rewrite/tenth-keychain-security-native-2.log"
+    },
+    "3-tenth-keychain-clippy-2.log": {
+      "path": "artifacts/rust-rewrite/evidence/ca592ed1d8653885ea2ac0768c1ccf90a98f145ce67766c672b96fb70eddcab9.log",
+      "bytes": 1843,
+      "sha256": "ca592ed1d8653885ea2ac0768c1ccf90a98f145ce67766c672b96fb70eddcab9",
+      "original_path": "artifacts/rust-rewrite/tenth-keychain-clippy-2.log"
+    }
+  },
+  "validation_limit": "Fresh focused setup4/security1 pass. Fresh scoped Clippy2 failed on two concurrently unfinished test-only gateway-intent methods in unrelated server/spike files; no Keychain lint was reported. Earlier Clippy1 passed before assertion strengthening. Current-source clean Clippy remains pending the shared seam completion, not claimed here.",
+  "retained_evidence": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/beee22866cb5127a616f883e85c1a3c177fc37a158b2efbf47a97ea94e8d53ef.log",
+      "bytes": 1063,
+      "sha256": "beee22866cb5127a616f883e85c1a3c177fc37a158b2efbf47a97ea94e8d53ef",
+      "original_path": "artifacts/rust-rewrite/tenth-keychain-frozen-control.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/9f55cdec9aa2b094a54a2ccb5fdabfb4702def768a7090b06d7c93e29e787bdc.log",
+      "bytes": 1421,
+      "sha256": "9f55cdec9aa2b094a54a2ccb5fdabfb4702def768a7090b06d7c93e29e787bdc",
+      "original_path": "artifacts/rust-rewrite/tenth-keychain-setup-native-2.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/d9733b41649d2a27192fbdc21d0ba3a05d29f90e95e18df1ef534cb6f32b6c1f.log",
+      "bytes": 1947,
+      "sha256": "d9733b41649d2a27192fbdc21d0ba3a05d29f90e95e18df1ef534cb6f32b6c1f",
+      "original_path": "artifacts/rust-rewrite/tenth-keychain-security-native-2.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/ca592ed1d8653885ea2ac0768c1ccf90a98f145ce67766c672b96fb70eddcab9.log",
+      "bytes": 1843,
+      "sha256": "ca592ed1d8653885ea2ac0768c1ccf90a98f145ce67766c672b96fb70eddcab9",
+      "original_path": "artifacts/rust-rewrite/tenth-keychain-clippy-2.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/9a8d5cbb09e7b32aff10c09a437a68124c1bede708672f3e7b2dd3bd8bcebd96.json",
+      "bytes": 15366,
+      "sha256": "9a8d5cbb09e7b32aff10c09a437a68124c1bede708672f3e7b2dd3bd8bcebd96",
+      "original_path": "/private/tmp/autorouter-keychain-setup-reviewed-ast.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/778cda85f547c7738e6869b68ca4038cb6359601de727445c13fab3300488eda.json",
+      "bytes": 1074,
+      "sha256": "778cda85f547c7738e6869b68ca4038cb6359601de727445c13fab3300488eda",
+      "original_path": "/private/tmp/autorouter-keychain-setup-independent-adapter-check.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/b1dc17322ded10ae97550dcbbab43837c1d7ec102ef36d858799ce384c73178a.json",
+      "bytes": 8664,
+      "sha256": "b1dc17322ded10ae97550dcbbab43837c1d7ec102ef36d858799ce384c73178a",
+      "original_path": "/private/tmp/autorouter-keychain-setup-independent-review.json"
+    }
+  ],
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/evidence/b1dc17322ded10ae97550dcbbab43837c1d7ec102ef36d858799ce384c73178a.json",
+    "bytes": 8664,
+    "sha256": "b1dc17322ded10ae97550dcbbab43837c1d7ec102ef36d858799ce384c73178a",
+    "original_path": "/private/tmp/autorouter-keychain-setup-independent-review.json"
+  },
+  "limits": {
+    "setup_and_doctor_call_deadline_ms": 2000,
+    "trace_entries_max": 128,
+    "trace_event_bytes_exclusive_max": 2048,
+    "mock_account_bytes_max": 512,
+    "mock_secret_bytes_max": 512,
+    "mock_label_bytes_max": 1024,
+    "saved_config_bytes_max": 4096,
+    "private_directory_mode": "0700",
+    "private_file_mode": "0600",
+    "random_directory_suffix_bits": 96,
+    "public_setup_output_lines_max": 16,
+    "doctor_output_lines_max": 32,
+    "mock_security_call_count": 6,
+    "mock_security_responses": 6,
+    "actual_security_spawn_count": 0,
+    "actual_provider_calls": 0,
+    "timing_boundary": "Tokio call timeout is cooperative; synchronous local filesystem operations and any non-yielding regression are not preempted by it. All supplied mock operations are finite. No adversarial filesystem/deadlock/resource-performance claim.",
+    "cleanup": "Fixture owns one random private directory, checks owner/mode/no symlink and expected entry count, removes only that directory on Drop. This schedule spawns no security process and unavailable Claude fails before child creation because PATH names only the private fixture directory. No process cleanup qualification is inferred from the mock-only security test."
+  },
+  "boundaries": [
+    "Platform boolean is a private adapter. Public setup and doctor wrappers always pass cfg!(target_os=\"macos\"); native secret prompting delegates unchanged to read_secret(key,false). Actual local wrapper evidence is macOS only; simulated Linux branches do not establish Linux OS/Keychain qualification.",
+    "MemoryKeychain is synthetic and available=true with explicit locked behavior. Native security test inspects the same command builder used at production spawn, but does not spawn /usr/bin/security or read/write any real Keychain.",
+    "Original injected JS prompt callbacks become a private typed SecretPrompt. ForbiddenPrompt records before erroring, so zero calls are independently asserted; six static assert.fail sites are nonexecution obligations, not six executed source assertions.",
+    "Original doctor injected run throwing no-claude becomes an actual ENOENT via private empty PATH. Only the original warning/privacy obligations and the additional unavailable diagnostic are qualified; no JS run-function identity is claimed.",
+    "Option::None and absent saved JSON fields represent original undefined; Rust Result is the observed success/rejection adaptation. No JS Error-object identity, own-property behavior or stack equivalence is claimed.",
+    "The unmodified four frozen callbacks passed separately. Native tests hand-port finite original tuples/predicates with independent expected request values; no callback capture, full output capture, whole-transcript equivalence or external service qualification is claimed.",
+    "No other Keychain, onboarding, cancellation, deadline, OS integration, platform approval or release gate is promoted by this proposal."
+  ],
+  "resolved_review_findings": [
+    {
+      "id": "independent-security-request-tuples",
+      "initial_source_sha256": "8f9a9f5c6bd5357d4cc741164f25ead6912fa6b95c6d1eed65fa1613203efa2b",
+      "finding": "Initial scripted responses could mask wrong read accounts because builder args were compared only to the same recorded args.",
+      "resolution": "All six argv arrays are now independently expected, including both KEY:abc finds, MISSING find and two deletes; input presence and entire write stdin are asserted.",
+      "status": "resolved"
+    },
+    {
+      "id": "plaintext-warning-order",
+      "initial_source_sha256": "e1ecf42ed6514dd07a5b836a6d1feb26d555940122c57ae1bd6e8a745fedea2e",
+      "finding": "Initial unordered contains conjunction was weaker than the original plaintext.*Keychain regex.",
+      "resolution": "The complete canonical plaintext warning is now independently equal, preserving required order.",
+      "status": "resolved"
+    }
+  ],
+  "historical_evidence": {
+    "earlier_weaker_test_logs": [
+      "artifacts/rust-rewrite/tenth-keychain-setup-native-1.log",
+      "artifacts/rust-rewrite/tenth-keychain-security-native-1.log",
+      "artifacts/rust-rewrite/tenth-keychain-cli-unit-1.log",
+      "artifacts/rust-rewrite/tenth-keychain-runtime-keychain-1.log",
+      "artifacts/rust-rewrite/tenth-keychain-clippy-1.log"
+    ],
+    "note": "Retained unchanged. These pre-strengthening logs do not qualify the revised exact assertion sources; only fresh version-2 focused logs are used above. Root retained the two earlier exact source files by their hashes."
+  },
+  "rows": [
+    {
+      "id": "test/keychain.test.mjs#1",
+      "file": "test/keychain.test.mjs",
+      "name": "the security tool receives secrets on stdin only and reads them back to confirm the save",
+      "line": 32,
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "definition_statement": "test('the security tool receives secrets on stdin only and reads them back to confirm the save', () => {\n  const calls = [];\n  const stored = new Map();\n  const run = (command, args, options) => {\n    calls.push({ command, args, input: options.input });\n    if (args[0] === '-i') {\n      const match = /-a \"([^\"]+)\" -l \"[^\"]*\" -w \"((?:[^\"\\\\]|\\\\.)*)\"/.exec(options.input);\n      stored.set(match[1], match[2].replace(/\\\\(.)/g, '$1'));\n      return { status: 0, stdout: '' };\n    }\n    if (args[0] === 'find-generic-password') {\n      const account = args[args.indexOf('-a') + 1];\n      return stored.has(account) ? { status: 0, stdout: `${stored.get(account)}\\n` } : { status: 44, stdout: '' };\n    }\n    stored.delete(args[args.indexOf('-a') + 1]);\n    return { status: 0, stdout: 'attributes' };\n  };\n  const keychain = createKeychain({ run, platform: 'darwin' });\n  const secret = `quote\" back\\\\slash $HOME 'single'`;\n  keychain.write('KEY:abc', secret, 'AutoRouter KEY');\n  assert.equal(keychain.read('KEY:abc'), secret);\n  assert.equal(keychain.read('MISSING'), undefined);\n  keychain.remove('KEY:abc');\n  keychain.remove('KEY:abc');\n  assert.ok(calls.every(call => call.command === '/usr/bin/security'));\n  assert.ok(calls.every(call => !call.args.join(' ').includes('back\\\\slash')), 'a secret must never be a process argument');\n  assert.match(calls[0].input, /-w \"quote\\\\\" back\\\\\\\\slash \\$HOME 'single'\"\\n$/);\n});",
+      "definition_sha256": "8bbf85c37c14fe14f66062dc2ab98fde86b52df8d8ea6bdd89058e66a3ee605a",
+      "definition_call_sha256": "3fa33bc43842aae11afa915a89946cb9b38eaa23e733116abc1a61c02d49428a",
+      "assertions": [
+        {
+          "line": 52,
+          "expression": "assert.equal(keychain.read('KEY:abc'), secret)",
+          "sha256": "9c143e5378f09a6828c5505fe9b7c05d2d1ccff9241e6e0cf10c0078bbdc949c",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/keychain.rs#keychain::tests::frozen_security_tuple_uses_exact_program_and_stdin_without_spawning"
+          ],
+          "native_check": "Actual explicit KEY:abc read returns exactly the original quoted/backslash/dollar/single-quote secret. All six expected argv arrays independently constrain scripted responses, including write readback and the explicit read.",
+          "native_references": [
+            {
+              "path": "rust/crates/autorouter-runtime/src/keychain.rs",
+              "line": 251,
+              "source_fragment": "keychain.read(\"KEY:abc\").await.unwrap().as_deref()"
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/src/keychain.rs",
+              "line": 257,
+              "source_fragment": "assert_eq!(keychain.runner.calls.len(), 6)"
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 53,
+          "expression": "assert.equal(keychain.read('MISSING'), undefined)",
+          "sha256": "06ea7932638389003b03bf221e20773e4ae2a687530a750b816ef492df205b16",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/keychain.rs#keychain::tests::frozen_security_tuple_uses_exact_program_and_stdin_without_spawning"
+          ],
+          "native_check": "Actual MISSING read returns None, the typed undefined adaptation; the independent third find tuple requires account MISSING and response status 44.",
+          "native_references": [
+            {
+              "path": "rust/crates/autorouter-runtime/src/keychain.rs",
+              "line": 254,
+              "source_fragment": "assert_eq!(keychain.read(\"MISSING\").await.unwrap(), None)"
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 56,
+          "expression": "assert.ok(calls.every(call => call.command === '/usr/bin/security'))",
+          "sha256": "2f814e1d2e5903de1968ddb0b9fa918f6754f7d602a3131a4639582bb5a6c161",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/keychain.rs#keychain::tests::frozen_security_tuple_uses_exact_program_and_stdin_without_spawning"
+          ],
+          "native_check": "Every recorded argv tuple is fed through the same unspawned security_command builder used by NativeSecurityRunner; each program is exactly /usr/bin/security and builder argv equals the independently pinned six tuples.",
+          "native_references": [
+            {
+              "path": "rust/crates/autorouter-runtime/src/keychain.rs",
+              "line": 313,
+              "source_fragment": "assert_eq!(command.as_std().get_program(), \"/usr/bin/security\")"
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/src/keychain.rs",
+              "line": 67,
+              "source_fragment": "let mut child = security_command(args).spawn()"
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 57,
+          "expression": "assert.ok(calls.every(call => !call.args.join(' ').includes('back\\\\slash')), 'a secret must never be a process argument')",
+          "sha256": "b0f7eeb26fc9c013fff91c275b87e99fe9683e22c1642c76beb901291e82064c",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/keychain.rs#keychain::tests::frozen_security_tuple_uses_exact_program_and_stdin_without_spawning"
+          ],
+          "native_check": "Every recorded argv is checked for absence of back\\slash. The complete independently expected six arrays contain no secret, and input is present only for the interactive -i call.",
+          "native_references": [
+            {
+              "path": "rust/crates/autorouter-runtime/src/keychain.rs",
+              "line": 318,
+              "source_fragment": "assert!(!args.join(\" \").contains(\"back\\\\slash\"))"
+            },
+            {
+              "path": "rust/crates/autorouter-runtime/src/keychain.rs",
+              "line": 319,
+              "source_fragment": "assert_eq!(input.is_some(), args == &[\"-i\"])"
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 58,
+          "expression": "assert.match(calls[0].input, /-w \"quote\\\\\" back\\\\\\\\slash \\$HOME 'single'\"\\n$/)",
+          "sha256": "89a063b5e7dfbab7b8e7c35483faf09b5f8eed8abd59144d3d3e4d8c454c1840",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/keychain.rs#keychain::tests::frozen_security_tuple_uses_exact_program_and_stdin_without_spawning"
+          ],
+          "native_check": "The entire interactive stdin string is independently equal to the expected command with exact service/account/label, escaped quote/backslash secret and final newline; this implies the original suffix regex.",
+          "native_references": [
+            {
+              "path": "rust/crates/autorouter-runtime/src/keychain.rs",
+              "line": 322,
+              "source_fragment": "keychain.runner.calls[0].1.as_deref()"
+            }
+          ],
+          "nonexecution_obligation": false
+        }
+      ],
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "partial_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/keychain.rs#keychain::tests::frozen_security_tuple_uses_exact_program_and_stdin_without_spawning"
+      ],
+      "shared_cases": [],
+      "method": "Exact finite original inputs and assertion predicates hand-ported; no shared capture corpus or full-output differential claim.",
+      "remaining": []
+    },
+    {
+      "id": "test/keychain.test.mjs#8",
+      "file": "test/keychain.test.mjs",
+      "name": "setup can store keys in the keychain and refuses that store off macOS before prompting",
+      "line": 156,
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "definition_statement": "test('setup can store keys in the keychain and refuses that store off macOS before prompting', async t => {\n  const env = { ...fixture(t), TYPESAFE_API_KEY: 'private-jev' }, keychain = memoryKeychain(), lines = [];\n  await setup(['--secret-store', 'keychain'], { env, keychain, platform: 'darwin', write: line => lines.push(line), prompt: () => assert.fail('Unexpected prompt') });\n  assert.equal(saved(env).AUTOROUTER_SECRET_STORE, 'keychain');\n  assert.ok(!readFileSync(env.AUTOROUTER_CONFIG, 'utf8').includes('private-'));\n  assert.deepEqual(valuesIn(keychain), ['private-jev']);\n  assert.ok(lines.some(line => line.startsWith('Keys are stored in the macOS Keychain')));\n\n  const linux = fixture(t);\n  await assert.rejects(setup(['--secret-store', 'keychain'], { env: linux, keychain, platform: 'linux', write: () => {},\n    prompt: () => assert.fail('Must not prompt for a secret that cannot be stored') }), /only on macOS/);\n  await assert.rejects(setup(['--secret-store', 'vault'], { env: linux, write: () => {} }), /file or keychain/);\n\n  // A forced update that changes the store moves the saved key back to the file.\n  await setup(['--force', '--secret-store', 'file'], { env, keychain, platform: 'darwin', write: () => {}, prompt: () => assert.fail('Unexpected prompt') });\n  assert.equal(saved(env).TYPESAFE_API_KEY, 'private-jev');\n  assert.equal(keychain.items.size, 0);\n});",
+      "definition_sha256": "649f190fcd0bfab83262f316d21363c9f475ba3205a88426405074ddaaa5e420",
+      "definition_call_sha256": "0b978f6c0fd006bf7cb5a703e079eff4faadfff243a34269b1f00eedda454073",
+      "assertions": [
+        {
+          "line": 158,
+          "expression": "assert.fail('Unexpected prompt')",
+          "sha256": "026bb1472160d586884f8fdcc37c25230039c14ccb0d9dcb5d3e359dc3cedad7",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::explicit_store_checks_precede_prompt_and_forced_file_update_removes_items"
+          ],
+          "native_check": "ForbiddenPrompt records a call before returning an error; the shared helper independently asserts no prompt event after this successful environment-supplied explicit-Keychain setup.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 80,
+              "source_fragment": "struct ForbiddenPrompt"
+            },
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 181,
+              "source_fragment": "trace.assert_no_prompt();"
+            },
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 200,
+              "source_fragment": ".run(&[\"--secret-store\", \"keychain\"], true, &mut keychain)"
+            }
+          ],
+          "nonexecution_obligation": true
+        },
+        {
+          "line": 159,
+          "expression": "assert.equal(saved(env).AUTOROUTER_SECRET_STORE, 'keychain')",
+          "sha256": "4528492d3fb61c1205e094dcbee44eb20ee2a862b760ca8c07c6db3aa841a7dc",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::explicit_store_checks_precede_prompt_and_forced_file_update_removes_items"
+          ],
+          "native_check": "Exact entire saved object includes AUTOROUTER_SECRET_STORE=keychain after explicit simulated-macOS setup.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 205,
+              "source_fragment": "json!({\"AUTOROUTER_AUTH_MODE\":\"subscription\", \"AUTOROUTER_CLIENT_PROFILE\":\"compatible\", \"AUTOROUTER_EVALUATOR\":\"jev\", \"AUTOROUTER_SECRET_STORE\":\"keychain\"})"
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 160,
+          "expression": "assert.ok(!readFileSync(env.AUTOROUTER_CONFIG, 'utf8').includes('private-'))",
+          "sha256": "5f2369c9a31cc9c2000be58cda6611cf31c00e98d58c74507d7e224a43b2c421",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::explicit_store_checks_precede_prompt_and_forced_file_update_removes_items"
+          ],
+          "native_check": "Saved configuration bytes contain no private- marker.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 208,
+              "source_fragment": "!fs::read_to_string(&fixture.path)"
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 161,
+          "expression": "assert.deepEqual(valuesIn(keychain), ['private-jev'])",
+          "sha256": "a9eda9f2b22906a6ecc521bacfe117f2753c1830d0ffbb901e8ed09235fffa9a",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::explicit_store_checks_precede_prompt_and_forced_file_update_removes_items"
+          ],
+          "native_check": "The fake store contains exactly the original one secret private-jev.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 212,
+              "source_fragment": "assert_eq!(keychain.values(), [\"private-jev\"]);"
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 162,
+          "expression": "assert.ok(lines.some(line => line.startsWith('Keys are stored in the macOS Keychain')))",
+          "sha256": "97c934e5e3a46a3c1ac77ab3f1f479618d8d5ec59137a9a7f2f6ccb88a4fdf9e",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::explicit_store_checks_precede_prompt_and_forced_file_update_removes_items"
+          ],
+          "native_check": "Captured output includes the exact original Keychain notice prefix.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 216,
+              "source_fragment": "line.starts_with(\"Keys are stored in the macOS Keychain\")"
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 165,
+          "expression": "assert.rejects(setup(['--secret-store', 'keychain'], { env: linux, keychain, platform: 'linux', write: () => {},\n    prompt: () => assert.fail('Must not prompt for a secret that cannot be stored') }), /only on macOS/)",
+          "sha256": "d52b1e6aaa25f558e014c1631316459c8a08bb06cf3a91c6de32deb46b63ea42",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::explicit_store_checks_precede_prompt_and_forced_file_update_removes_items"
+          ],
+          "native_check": "A new simulated-Linux fixture has no provided secret; explicit keychain setup returns only-on-macOS error. Prompt trace stays empty and no Keychain operation or config file is allowed.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 219,
+              "source_fragment": "let linux = Fixture::new(None);"
+            },
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 226,
+              "source_fragment": "assert!(error.contains(\"only on macOS\"));"
+            },
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 229,
+              "source_fragment": "keychain.trace.events()[before.len()..]"
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 166,
+          "expression": "assert.fail('Must not prompt for a secret that cannot be stored')",
+          "sha256": "d9fd35baaccea471ae74e07b7b6be5609a259910fc77a0b2088ad50a48981b04",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::explicit_store_checks_precede_prompt_and_forced_file_update_removes_items"
+          ],
+          "native_check": "Independent no-prompt trace check observes the off-macOS rejection path; any prompt call fails even if its returned error were caught elsewhere.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 80,
+              "source_fragment": "struct ForbiddenPrompt"
+            },
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 181,
+              "source_fragment": "trace.assert_no_prompt();"
+            }
+          ],
+          "nonexecution_obligation": true
+        },
+        {
+          "line": 167,
+          "expression": "assert.rejects(setup(['--secret-store', 'vault'], { env: linux, write: () => {} }), /file or keychain/)",
+          "sha256": "b4bb2c2be3f6eb1350c386fdc1d071bcb94163db20acb2df8e8206fe6a3b473c",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::explicit_store_checks_precede_prompt_and_forced_file_update_removes_items"
+          ],
+          "native_check": "Invalid vault store returns the original file-or-keychain error and creates no config.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 234,
+              "source_fragment": ".run(&[\"--secret-store\", \"vault\"], false, &mut keychain)"
+            },
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 238,
+              "source_fragment": "assert!(error.contains(\"file or keychain\"));"
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 170,
+          "expression": "assert.fail('Unexpected prompt')",
+          "sha256": "026bb1472160d586884f8fdcc37c25230039c14ccb0d9dcb5d3e359dc3cedad7",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::explicit_store_checks_precede_prompt_and_forced_file_update_removes_items"
+          ],
+          "native_check": "Forced change to file succeeds with the same supplied environment secret and zero observed ForbiddenPrompt calls.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 242,
+              "source_fragment": ".run(&[\"--force\", \"--secret-store\", \"file\"], true, &mut keychain)"
+            },
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 181,
+              "source_fragment": "trace.assert_no_prompt();"
+            }
+          ],
+          "nonexecution_obligation": true
+        },
+        {
+          "line": 171,
+          "expression": "assert.equal(saved(env).TYPESAFE_API_KEY, 'private-jev')",
+          "sha256": "714c2c24010931bae093e2b1c91c9ea227f7afcaa2c220550cfefee161fe2e66",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::explicit_store_checks_precede_prompt_and_forced_file_update_removes_items"
+          ],
+          "native_check": "Forced file-store update retains exact private-jev value; additional native assertion checks explicit file store.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 246,
+              "source_fragment": "assert_eq!(fixture.saved()[\"TYPESAFE_API_KEY\"], \"private-jev\");"
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 172,
+          "expression": "assert.equal(keychain.items.size, 0)",
+          "sha256": "0f57ff47ebb54054bd7f6f5f353f92a63b794a5dacb1f4dba688e48310a3c5a9",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::explicit_store_checks_precede_prompt_and_forced_file_update_removes_items"
+          ],
+          "native_check": "Fake store is empty after migration; additional trace assertion requires a remove operation.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 248,
+              "source_fragment": "assert!(keychain.items.is_empty());"
+            },
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 254,
+              "source_fragment": ".any(|event| event.starts_with(\"remove:\"))"
+            }
+          ],
+          "nonexecution_obligation": false
+        }
+      ],
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::explicit_store_checks_precede_prompt_and_forced_file_update_removes_items",
+        "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::public_setup_and_doctor_wrappers_use_actual_host_platform"
+      ],
+      "shared_cases": [],
+      "method": "Exact finite original inputs and assertion predicates hand-ported; no shared capture corpus or full-output differential claim.",
+      "remaining": []
+    },
+    {
+      "id": "test/keychain.test.mjs#11",
+      "file": "test/keychain.test.mjs",
+      "name": "new macOS setups default to the keychain; existing plaintext configurations are left alone and flagged",
+      "line": 196,
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "definition_statement": "test('new macOS setups default to the keychain; existing plaintext configurations are left alone and flagged', async t => {\n  const env = { ...fixture(t), TYPESAFE_API_KEY: 'private-jev' }, keychain = memoryKeychain(), lines = [];\n  const options = { env, keychain, platform: 'darwin', write: line => lines.push(line), prompt: () => assert.fail('Unexpected prompt') };\n  await setup([], options);\n  assert.equal(saved(env).AUTOROUTER_SECRET_STORE, 'keychain');\n  assert.ok(!readFileSync(env.AUTOROUTER_CONFIG, 'utf8').includes('private-'));\n  assert.deepEqual(valuesIn(keychain), ['private-jev']);\n\n  const legacy = { ...fixture(t), TYPESAFE_API_KEY: 'private-legacy' };\n  saveUserConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'private-legacy' }, { env: legacy });\n  const legacyLines = [];\n  await setup(['--force', '--auth-mode', 'subscription'], { ...options, env: legacy, write: line => legacyLines.push(line) });\n  assert.equal(saved(legacy).TYPESAFE_API_KEY, 'private-legacy', 'an update must not move keys implicitly');\n  assert.ok(legacyLines.some(line => /plaintext.*Keychain/.test(line)));\n  const checks = [];\n  await doctor({ env: legacy, keychain, platform: 'darwin', write: line => checks.push(line),\n    run: async () => { throw new Error('no claude'); } });\n  assert.ok(checks.some(line => line.startsWith('WARN  Saved keys are plaintext')));\n  assert.ok(!checks.join('\\n').includes('private-'));\n\n  // --replace rebuilds with the default; a key-free configuration is unaffected on Linux.\n  const linux = { ...fixture(t), TYPESAFE_API_KEY: 'private-jev' };\n  await setup([], { env: linux, keychain, platform: 'linux', write: () => {} });\n  assert.equal(saved(linux).AUTOROUTER_SECRET_STORE, undefined);\n});",
+      "definition_sha256": "77311f9398bda14237b7b9b754276b2bbcb227b7ee02d62278135356710a9c91",
+      "definition_call_sha256": "a12e468b322fd4a7bc41d9331ef942351b2a72da3c91e37402c993cd8d5422ce",
+      "assertions": [
+        {
+          "line": 198,
+          "expression": "assert.fail('Unexpected prompt')",
+          "sha256": "026bb1472160d586884f8fdcc37c25230039c14ccb0d9dcb5d3e359dc3cedad7",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::new_platform_defaults_preserve_legacy_plaintext_and_doctor_warns_privately"
+          ],
+          "native_check": "Shared ForbiddenPrompt covers both calls using the original shared options: initial macOS default and forced legacy update; trace remains prompt-free for every setup run.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 262,
+              "source_fragment": "fixture.run(&[], true, &mut keychain).await.0.unwrap();"
+            },
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 181,
+              "source_fragment": "trace.assert_no_prompt();"
+            }
+          ],
+          "nonexecution_obligation": true
+        },
+        {
+          "line": 200,
+          "expression": "assert.equal(saved(env).AUTOROUTER_SECRET_STORE, 'keychain')",
+          "sha256": "4528492d3fb61c1205e094dcbee44eb20ee2a862b760ca8c07c6db3aa841a7dc",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::new_platform_defaults_preserve_legacy_plaintext_and_doctor_warns_privately"
+          ],
+          "native_check": "New simulated-macOS setup selects exact keychain store; separate public-wrapper regression checks actual host cfg dispatch with a fake store.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 263,
+              "source_fragment": "assert_eq!(fixture.saved()[\"AUTOROUTER_SECRET_STORE\"], \"keychain\");"
+            },
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 377,
+              "source_fragment": "async fn public_setup_and_doctor_wrappers_use_actual_host_platform()"
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 201,
+          "expression": "assert.ok(!readFileSync(env.AUTOROUTER_CONFIG, 'utf8').includes('private-'))",
+          "sha256": "5f2369c9a31cc9c2000be58cda6611cf31c00e98d58c74507d7e224a43b2c421",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::new_platform_defaults_preserve_legacy_plaintext_and_doctor_warns_privately"
+          ],
+          "native_check": "New macOS default config bytes contain no private- marker.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 259,
+              "source_fragment": "async fn new_platform_defaults_preserve_legacy_plaintext_and_doctor_warns_privately()"
+            },
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 265,
+              "source_fragment": "!fs::read_to_string(&fixture.path)"
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 202,
+          "expression": "assert.deepEqual(valuesIn(keychain), ['private-jev'])",
+          "sha256": "a9eda9f2b22906a6ecc521bacfe117f2753c1830d0ffbb901e8ed09235fffa9a",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::new_platform_defaults_preserve_legacy_plaintext_and_doctor_warns_privately"
+          ],
+          "native_check": "New macOS default stores exactly private-jev in the fake Keychain.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 259,
+              "source_fragment": "async fn new_platform_defaults_preserve_legacy_plaintext_and_doctor_warns_privately()"
+            },
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 269,
+              "source_fragment": "assert_eq!(keychain.values(), [\"private-jev\"]);"
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 208,
+          "expression": "assert.equal(saved(legacy).TYPESAFE_API_KEY, 'private-legacy', 'an update must not move keys implicitly')",
+          "sha256": "baf3aa8423ae0688ffe9e371fea1eb35c6453ffa466a2c42abeee28efe2d4a4c",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::new_platform_defaults_preserve_legacy_plaintext_and_doctor_warns_privately"
+          ],
+          "native_check": "A distinct legacy plaintext file is seeded with private-legacy, forced subscription update retains that exact key and keeps store unspecified; original Keychain secret remains unchanged.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 288,
+              "source_fragment": "assert_eq!(legacy.saved()[\"TYPESAFE_API_KEY\"], \"private-legacy\");"
+            },
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 289,
+              "source_fragment": "assert!(legacy.saved().get(\"AUTOROUTER_SECRET_STORE\").is_none());"
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 209,
+          "expression": "assert.ok(legacyLines.some(line => /plaintext.*Keychain/.test(line)))",
+          "sha256": "7a462378d6cab226e0e21b79a646ae3294a9ccbffbb1d34ec63251cc8ccb4f0d",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::new_platform_defaults_preserve_legacy_plaintext_and_doctor_warns_privately"
+          ],
+          "native_check": "Captured setup warning must equal the full canonical sentence, stronger than the original plaintext.*Keychain regex and preserving its order.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 292,
+              "source_fragment": "lines.iter().any(|line| line == \"Keys are plaintext in this file."
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 213,
+          "expression": "assert.ok(checks.some(line => line.startsWith('WARN  Saved keys are plaintext')))",
+          "sha256": "1787a0c29429f39df8a62cf7076bfe517afef218356a9b69c5488f666f599507",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::new_platform_defaults_preserve_legacy_plaintext_and_doctor_warns_privately"
+          ],
+          "native_check": "Doctor emits the original plaintext warning prefix on simulated macOS while the real command runner follows unavailable-Claude via isolated empty PATH.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 316,
+              "source_fragment": "line.starts_with(\"WARN  Saved keys are plaintext\")"
+            },
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 320,
+              "source_fragment": "== \"FAIL  Claude Code unavailable. Install claude and ensure it is on PATH.\""
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 214,
+          "expression": "assert.ok(!checks.join('\\n').includes('private-'))",
+          "sha256": "3b776004f272c41d539cf5e44544e9ab2c4933d060d42f61ddf29ff13a8e24da",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::new_platform_defaults_preserve_legacy_plaintext_and_doctor_warns_privately"
+          ],
+          "native_check": "All doctor output joined with newline excludes private-; additional check preserves exact legacy file bytes.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 322,
+              "source_fragment": "assert!(!checks.join(\"\\n\").contains(\"private-\"));"
+            },
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 323,
+              "source_fragment": "assert_eq!(fs::read(&legacy.path).unwrap(), before);"
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 219,
+          "expression": "assert.equal(saved(linux).AUTOROUTER_SECRET_STORE, undefined)",
+          "sha256": "2181bddc784f7bc02a39f32bfa169e40798d6fe19506603cdbc7c715d8b3b99f",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::new_platform_defaults_preserve_legacy_plaintext_and_doctor_warns_privately"
+          ],
+          "native_check": "New simulated-Linux setup leaves secret-store field absent, the JSON undefined adaptation; additional assertion checks file contains private-jev.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 327,
+              "source_fragment": "assert!(linux.saved().get(\"AUTOROUTER_SECRET_STORE\").is_none());"
+            }
+          ],
+          "nonexecution_obligation": false
+        }
+      ],
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::new_platform_defaults_preserve_legacy_plaintext_and_doctor_warns_privately",
+        "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::public_setup_and_doctor_wrappers_use_actual_host_platform"
+      ],
+      "shared_cases": [],
+      "method": "Exact finite original inputs and assertion predicates hand-ported; no shared capture corpus or full-output differential claim.",
+      "remaining": []
+    },
+    {
+      "id": "test/keychain.test.mjs#12",
+      "file": "test/keychain.test.mjs",
+      "name": "an unavailable keychain falls back to the file only when it was the implicit default",
+      "line": 222,
+      "baseline_file_sha256": "29614b4d57d1b67d06442d5d12a7a0eda3004cf253655ac3942720335e61aa87",
+      "definition_statement": "test('an unavailable keychain falls back to the file only when it was the implicit default', async t => {\n  const broken = memoryKeychain({ locked: true });\n  const env = { ...fixture(t), TYPESAFE_API_KEY: 'private-jev' }, lines = [];\n  await setup([], { env, keychain: broken, platform: 'darwin', write: line => lines.push(line), prompt: () => assert.fail('Unexpected prompt') });\n  assert.equal(saved(env).TYPESAFE_API_KEY, 'private-jev');\n  assert.equal(saved(env).AUTOROUTER_SECRET_STORE, undefined);\n  assert.ok(lines.some(line => /Keychain is unavailable/.test(line)));\n  const explicit = fixture(t);\n  await assert.rejects(setup(['--secret-store', 'keychain'], { env: { ...explicit, TYPESAFE_API_KEY: 'private-jev' }, keychain: broken,\n    platform: 'darwin', write: () => {}, prompt: () => assert.fail('Unexpected prompt') }), /macOS Keychain|locked/);\n});",
+      "definition_sha256": "ee09969b42fe2164eddf41b4e89149dd44602eec147d9034f9944317cd82e960",
+      "definition_call_sha256": "350b6672ba0b9fbf1d0f22a48ffb9c86f0d28a0442b3f7419fc319cb0c17a4a9",
+      "assertions": [
+        {
+          "line": 225,
+          "expression": "assert.fail('Unexpected prompt')",
+          "sha256": "026bb1472160d586884f8fdcc37c25230039c14ccb0d9dcb5d3e359dc3cedad7",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::locked_keychain_falls_back_only_for_implicit_default_before_final_messages"
+          ],
+          "native_check": "Implicit macOS setup with a locked fake store uses supplied secret, falls back successfully, and shared independent prompt trace remains empty.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 338,
+              "source_fragment": "let (result, lines) = fixture.run(&[], true, &mut keychain).await;"
+            },
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 181,
+              "source_fragment": "trace.assert_no_prompt();"
+            }
+          ],
+          "nonexecution_obligation": true
+        },
+        {
+          "line": 226,
+          "expression": "assert.equal(saved(env).TYPESAFE_API_KEY, 'private-jev')",
+          "sha256": "714c2c24010931bae093e2b1c91c9ea227f7afcaa2c220550cfefee161fe2e66",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::locked_keychain_falls_back_only_for_implicit_default_before_final_messages"
+          ],
+          "native_check": "Implicit locked-Keychain fallback saves exact private-jev to private file.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 332,
+              "source_fragment": "async fn locked_keychain_falls_back_only_for_implicit_default_before_final_messages()"
+            },
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 340,
+              "source_fragment": "assert_eq!(fixture.saved()[\"TYPESAFE_API_KEY\"], \"private-jev\");"
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 227,
+          "expression": "assert.equal(saved(env).AUTOROUTER_SECRET_STORE, undefined)",
+          "sha256": "4262044530fb2fb3fcad86918f4508cd15766272a1092e6829a49531d00e7561",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::locked_keychain_falls_back_only_for_implicit_default_before_final_messages"
+          ],
+          "native_check": "Implicit fallback removes the store field, equivalent to source undefined.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 341,
+              "source_fragment": "assert!(fixture.saved().get(\"AUTOROUTER_SECRET_STORE\").is_none());"
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 228,
+          "expression": "assert.ok(lines.some(line => /Keychain is unavailable/.test(line)))",
+          "sha256": "c34b2d47178bfc3ce438732112ed927049d09ac8fd28a21fd52ea6784f276098",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::locked_keychain_falls_back_only_for_implicit_default_before_final_messages"
+          ],
+          "native_check": "Captured fallback output contains the original Keychain-unavailable message; additional trace check proves attempted write before warning before final saved notice.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 345,
+              "source_fragment": "line.contains(\"Keychain is unavailable\")"
+            },
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 360,
+              "source_fragment": "assert!(write < warning && warning < saved);"
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 230,
+          "expression": "assert.rejects(setup(['--secret-store', 'keychain'], { env: { ...explicit, TYPESAFE_API_KEY: 'private-jev' }, keychain: broken,\n    platform: 'darwin', write: () => {}, prompt: () => assert.fail('Unexpected prompt') }), /macOS Keychain|locked/)",
+          "sha256": "46941c83ca5a99543cc4f82c48562c13a5aa065287c4c2f3fb9368e9e1853e27",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::locked_keychain_falls_back_only_for_implicit_default_before_final_messages"
+          ],
+          "native_check": "Explicit Keychain on a separate fixture with the same locked store rejects with macOS Keychain or locked text; no fallback warning/saved notice/config file is allowed.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 367,
+              "source_fragment": "assert!(error.contains(\"macOS Keychain\") || error.contains(\"locked\"));"
+            },
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 373,
+              "source_fragment": "explicit.assert_absent();"
+            }
+          ],
+          "nonexecution_obligation": false
+        },
+        {
+          "line": 231,
+          "expression": "assert.fail('Unexpected prompt')",
+          "sha256": "026bb1472160d586884f8fdcc37c25230039c14ccb0d9dcb5d3e359dc3cedad7",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::locked_keychain_falls_back_only_for_implicit_default_before_final_messages"
+          ],
+          "native_check": "Explicit locked failure also passes the independent zero-prompt trace; the fake failure cannot hide an unexpected secret read.",
+          "native_references": [
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 80,
+              "source_fragment": "struct ForbiddenPrompt"
+            },
+            {
+              "path": "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs",
+              "line": 181,
+              "source_fragment": "trace.assert_no_prompt();"
+            }
+          ],
+          "nonexecution_obligation": true
+        }
+      ],
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::locked_keychain_falls_back_only_for_implicit_default_before_final_messages",
+        "rust/crates/claude-autorouter/src/onboarding_keychain_contracts.rs#onboarding::keychain_contracts::public_setup_and_doctor_wrappers_use_actual_host_platform"
+      ],
+      "shared_cases": [],
+      "method": "Exact finite original inputs and assertion predicates hand-ported; no shared capture corpus or full-output differential claim.",
+      "remaining": []
+    }
+  ],
+  "input_coverage": {
+    "path": "artifacts/rust-rewrite/evidence/9c13d15d45378f169c3ffbeb5ec8e4aaea3d3ba928badb67bc4244e38c04c1e4.json",
+    "sha256": "9c13d15d45378f169c3ffbeb5ec8e4aaea3d3ba928badb67bc4244e38c04c1e4",
+    "bytes": 1275411,
+    "original_path": "rust/parity/coverage.json",
+    "source_commit": "46587867cd0b4db89b273ba293555a5619009a4c"
+  },
+  "scope": "Four covered setup/security-command definitions; actual private onboarding/doctor paths plus exact unspawned native security-command construction. Platform selection is private injection, and no actual OS Keychain qualification is claimed.",
+  "status": "Reviewed assertion mapping; full rewrite qualification remains incomplete.",
+  "review": {
+    "proposal": {
+      "path": "artifacts/rust-rewrite/evidence/0d33f134e667751d041f78975480d6cea0678f3e5ba8f3949b2556b7333d7340.json",
+      "sha256": "0d33f134e667751d041f78975480d6cea0678f3e5ba8f3949b2556b7333d7340",
+      "bytes": 57683,
+      "original_path": "/private/tmp/autorouter-keychain-setup-mapping-proposal.json"
+    },
+    "review": {
+      "path": "artifacts/rust-rewrite/evidence/c743a8669b86541669302c8ef092e8a03b4f098c776bdcd7ad79d9a4442854b1.json",
+      "sha256": "c743a8669b86541669302c8ef092e8a03b4f098c776bdcd7ad79d9a4442854b1",
+      "bytes": 2385,
+      "original_path": "/private/tmp/autorouter-keychain-setup-root-review.json"
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/evidence/b1dc17322ded10ae97550dcbbab43837c1d7ec102ef36d858799ce384c73178a.json",
+      "sha256": "b1dc17322ded10ae97550dcbbab43837c1d7ec102ef36d858799ce384c73178a",
+      "bytes": 8664,
+      "original_path": "/private/tmp/autorouter-keychain-setup-independent-review.json"
+    }
+  },
+  "previous_coverage_rows": [
+    {
+      "id": "test/keychain.test.mjs#1",
+      "file": "test/keychain.test.mjs",
+      "name": "the security tool receives secrets on stdin only and reads them back to confirm the save",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/keychain.rs#keychain::tests::secrets_use_stdin_and_readback_checks_interactive_failures"
+      ],
+      "shared_cases": [],
+      "evidence": {
+        "native_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+        "native_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+        "scope": "Only the exact mapped native assertions; no actual system policy/Keychain interaction, cross-platform or installed-artifact qualification is implied."
+      },
+      "related_components": [
+        "config_auth_policy"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
+      "remaining_assertions": [
+        "The baseline observes executable /usr/bin/security through its subprocess mock. NativeSecurityRunner hardcodes that path, but the fake SecurityRunner boundary records arguments/input only; no retained executable-selection observation closes that assertion."
+      ]
+    },
+    {
+      "id": "test/keychain.test.mjs#8",
+      "file": "test/keychain.test.mjs",
+      "name": "setup can store keys in the keychain and refuses that store off macOS before prompting",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": {
+        "native_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+        "native_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+        "scope": "Only the exact mapped native assertions; no actual system policy/Keychain interaction, cross-platform or installed-artifact qualification is implied."
+      },
+      "related_components": [
+        "config_auth_policy"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
+      "remaining_assertions": [
+        "Explicit macOS Keychain setup, off-macOS rejection before prompting, invalid store rejection, forced return to file, key cleanup and exact message need a controlled internal setup test seam."
+      ]
+    },
+    {
+      "id": "test/keychain.test.mjs#11",
+      "file": "test/keychain.test.mjs",
+      "name": "new macOS setups default to the keychain; existing plaintext configurations are left alone and flagged",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": {
+        "native_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+        "native_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+        "scope": "Only the exact mapped native assertions; no actual system policy/Keychain interaction, cross-platform or installed-artifact qualification is implied."
+      },
+      "related_components": [
+        "config_auth_policy"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
+      "remaining_assertions": [
+        "New macOS implicit Keychain selection, existing plaintext update/warning, doctor plaintext warning/privacy and Linux implicit file behavior remain untested as this definition."
+      ]
+    },
+    {
+      "id": "test/keychain.test.mjs#12",
+      "file": "test/keychain.test.mjs",
+      "name": "an unavailable keychain falls back to the file only when it was the implicit default",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": {
+        "native_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+        "native_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+        "scope": "Only the exact mapped native assertions; no actual system policy/Keychain interaction, cross-platform or installed-artifact qualification is implied."
+      },
+      "related_components": [
+        "config_auth_policy"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
+      "remaining_assertions": [
+        "Implicit default fallback must save plaintext and warn, while explicit Keychain must fail without fallback or prompting; this needs an injected adapter/platform seam."
+      ]
+    }
+  ]
+}

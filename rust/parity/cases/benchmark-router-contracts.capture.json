@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "kind": "frozen_benchmark_router_comparator_capture",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "baseline_file": "test/benchmark-router.test.mjs",
+  "baseline_file_sha256": "8d6362920817014ae11d8d8a13835ae736b57828140d791c56eee383e6f0b014",
+  "sources": [
+    {
+      "path": "scripts/benchmark-router.mjs",
+      "sha256": "f07b1aa65386482490e6a1f8c2ddc9ebf8ee965f8df5fcf1bd0325903b0d375e"
+    }
+  ],
+  "capture_source_sha256": "35fa145aac8275b3eacd6de87da9a1bbdc9da8dec20129ab23fbae8d0f7eb3bc",
+  "definitions": [
+    {
+      "id": "test/benchmark-router.test.mjs#1",
+      "number": 1,
+      "name": "local benchmark gates derive limits from the recorded baseline and reject unshared work",
+      "definition_call_sha256": "09bd72435a079d6d5489bd55ec984fc319f9a0b11730db78902b3abc539a7b0b",
+      "definition_statement_sha256": "cc04e4041c032864a8b43b8e4756194e08f139a7590c71e27c77f48bf2ab0ebb",
+      "assertions": [
+        {
+          "id": "test/benchmark-router.test.mjs#1:assert-1",
+          "line": 13,
+          "expression": "assert.equal(result.passed, true)",
+          "sha256": "8169ba0acd2262223df1ecceab6c33d927815250b9b59cae2ef8468505931f05",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/benchmark-router.test.mjs#1:assert-2",
+          "line": 14,
+          "expression": "assert.equal(result.latency[0].limit_ms, 4)",
+          "sha256": "2cc4d737594159b5a281d2f4dc89010e257ba21d842d1882cd5349d9e8bc07f7",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/benchmark-router.test.mjs#1:assert-3",
+          "line": 15,
+          "expression": "assert.equal(result.resources[0].sampled_peak_heap_limit_bytes, 2000)",
+          "sha256": "6d122c66a8d31becfea59361808b700ec3a62cefc4d5ab5279b29991620c6d7b",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/benchmark-router.test.mjs#1:assert-4",
+          "line": 16,
+          "expression": "assert.equal(result.resources[0].event_loop_p95_limit_ms, 20)",
+          "sha256": "95075396e1f1e8dc1292865b48248815372e77eba62affb5159f024c946df82b",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/benchmark-router.test.mjs#1:assert-5",
+          "line": 17,
+          "expression": "assert.equal(compareRouterBenchmarks(baseline, report(8)).evaluator_calls.passed, false)",
+          "sha256": "b51cde87acff03e6057a0edab4a10370b3a6620b518e63da24690fa1c413af47",
+          "expanded_executions": 1
+        }
+      ],
+      "case_ids": [
+        "benchmark-router-contract-1-1",
+        "benchmark-router-contract-1-2"
+      ],
+      "calls": 2
+    },
+    {
+      "id": "test/benchmark-router.test.mjs#2",
+      "number": 2,
+      "name": "latency, heap, event-loop and incomparable-run regressions fail independently",
+      "definition_call_sha256": "0942a495ab24e588fa5462e42c64415a98133d3f9e8d917f7ad608a6e9f1b04f",
+      "definition_statement_sha256": "e023a52995ca73399424c2bc837a3f043346547e8eb7a30d658d9d38930486fa",
+      "assertions": [
+        {
+          "id": "test/benchmark-router.test.mjs#2:assert-1",
+          "line": 31,
+          "expression": "assert.equal(compareRouterBenchmarks(report(8), candidate).passed, false)",
+          "sha256": "d1e7da15b202f332f0571e652d239e6db0ad57fd9180c0bcf2749112702a9a23",
+          "expanded_executions": 6
+        }
+      ],
+      "case_ids": [
+        "benchmark-router-contract-2-1",
+        "benchmark-router-contract-2-2",
+        "benchmark-router-contract-2-3",
+        "benchmark-router-contract-2-4",
+        "benchmark-router-contract-2-5",
+        "benchmark-router-contract-2-6"
+      ],
+      "calls": 6
+    }
+  ],
+  "complete_callbacks": 2,
+  "static_assertions": 6,
+  "expanded_assertions": 11,
+  "calls": 8,
+  "corpus_sha256": "ef49a1758c74c0b27bf17f61d7dd71d032a1819a75908ec99d76f605f7d9b3cb",
+  "transformations": [
+    {
+      "start": 1701,
+      "end": 1774,
+      "original_sha256": "d1e7da15b202f332f0571e652d239e6db0ad57fd9180c0bcf2749112702a9a23",
+      "replacement_sha256": "5df78aad6b6acbc6dd02dcc95b205c46a8e5fd8ecb00ab5afb17899ae2e6f6ed"
+    },
+    {
+      "start": 1047,
+      "end": 1135,
+      "original_sha256": "b51cde87acff03e6057a0edab4a10370b3a6620b518e63da24690fa1c413af47",
+      "replacement_sha256": "4b6534872aa4af545493c16d86200683bddab5b61813db38cf7f505e3a1795ef"
+    },
+    {
+      "start": 982,
+      "end": 1043,
+      "original_sha256": "95075396e1f1e8dc1292865b48248815372e77eba62affb5159f024c946df82b",
+      "replacement_sha256": "a4fcc26c6afb8712b246b0aba0a1cdf5e547fba950ede43a48f41fd59e22d109"
+    },
+    {
+      "start": 909,
+      "end": 978,
+      "original_sha256": "6d122c66a8d31becfea59361808b700ec3a62cefc4d5ab5279b29991620c6d7b",
+      "replacement_sha256": "bbfa5d64fd88af2e01e734567d436aa6e971660137cd0521d44b2a2065c85bd2"
+    },
+    {
+      "start": 862,
+      "end": 905,
+      "original_sha256": "2cc4d737594159b5a281d2f4dc89010e257ba21d842d1882cd5349d9e8bc07f7",
+      "replacement_sha256": "2a46cd6bd8fc30c40ecde4652d6c9d0d27acaeb7efcf98abae833f3d3ea050f9"
+    },
+    {
+      "start": 825,
+      "end": 858,
+      "original_sha256": "8169ba0acd2262223df1ecceab6c33d927815250b9b59cae2ef8468505931f05",
+      "replacement_sha256": "e7ac0d95af3229217c3b2b51ced6adadb7e1466b90d9102a222c0ce05ba9c9e7"
+    },
+    {
+      "start": 71,
+      "end": 145,
+      "original_sha256": "8b62c85a53accad325def7a1e4c5f486219364d9c6b8a8c9a60a46f8f8bf509a",
+      "replacement_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "start": 30,
+      "end": 70,
+      "original_sha256": "3bd42e15e5427f946b98b898212af900ed0a4068cff03a37aa2ce1d3a081f2ec",
+      "replacement_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "start": 0,
+      "end": 29,
+      "original_sha256": "839cf2655267094fdbf41ad83d7b89fa202606d6b1235454745934a1c6f2529f",
+      "replacement_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "limits": [
+    "Only compareRouterBenchmarks is called; no workload, socket, evaluator or timing measurement.",
+    "Complete JSON-serialized outputs are retained; raw -Infinity maxima remain tagged separately and become null on the JSON wire.",
+    "Native admission accepts bounded finite historical JSON reports, not arbitrary JavaScript objects or coercible values."
+  ]
+}

@@ -1,0 +1,3549 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "scope": "42 frozen response-observer and token-counter definitions reviewed against retained Node captures and native contract tests; two async callback API boundaries remain partial.",
+  "definition_hash_rule": "SHA256 of the exact top-level test call expression captured by the TypeScript AST: source[start:end], UTF8; inherited helper assertions recorded separately.",
+  "counts": {
+    "covered": 40,
+    "partial": 2
+  },
+  "evidence": {
+    "native_observer": {
+      "path": "artifacts/rust-rewrite/evidence/7a01539d30e403b7a944f65a9a1b8239a09a2d54792471456972468b25d811fe.log",
+      "sha256": "7a01539d30e403b7a944f65a9a1b8239a09a2d54792471456972468b25d811fe",
+      "original_path": "artifacts/rust-rewrite/observer-contracts-2.log",
+      "passed": 21
+    },
+    "native_token_counter": {
+      "path": "artifacts/rust-rewrite/evidence/68d6151cd0dd179f758d178c0c08a0f4303669f8d42c5b05e1588e6bee9c34a5.log",
+      "sha256": "68d6151cd0dd179f758d178c0c08a0f4303669f8d42c5b05e1588e6bee9c34a5",
+      "original_path": "artifacts/rust-rewrite/token-counter-contracts-2.log",
+      "passed": 15
+    },
+    "scoped_clippy": {
+      "path": "artifacts/rust-rewrite/evidence/290529f765d4963ea0858d51a1292949424c6de90c12e627c06f104c405ac70d.log",
+      "sha256": "290529f765d4963ea0858d51a1292949424c6de90c12e627c06f104c405ac70d",
+      "original_path": "artifacts/rust-rewrite/observer-token-contracts-clippy-2.log"
+    },
+    "frozen_capture": {
+      "path": "artifacts/rust-rewrite/evidence/c527a3ab8e4511c4ca081c8078ee0ae9ca71974e1b2b02b5d9d81a3432037f59.json",
+      "sha256": "c527a3ab8e4511c4ca081c8078ee0ae9ca71974e1b2b02b5d9d81a3432037f59",
+      "original_path": "rust/parity/cases/response-observer-contracts.capture.json"
+    },
+    "initial_audit": {
+      "path": "artifacts/rust-rewrite/evidence/8fd36e09a06f5491dda1388a6b56df7294b88f2a8c146ace65558631432b2abc.json",
+      "sha256": "8fd36e09a06f5491dda1388a6b56df7294b88f2a8c146ace65558631432b2abc",
+      "original_path": "/private/tmp/response-observer-token-counter-assertion-audit.json"
+    },
+    "captured_cases": {
+      "path": "rust/parity/cases/response-observer-contracts.jsonl",
+      "sha256": "c9833a7f743165f201e0a7b5c314cc34c125c0ae5460a5a4e1c6913d5e88c2d3",
+      "cases": 98
+    },
+    "source_inputs": [
+      {
+        "path": "rust/crates/autorouter-runtime/src/response_observer.rs",
+        "sha256": "961b763909b816957b6cc292795e01afd8ab91e06f99f0c308ffedb6c53aa92d"
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/src/token_counter.rs",
+        "sha256": "f3ae153ed58f3c3f4db51642d5f9d86c94c8cb1c07db14e88009f35d9cb4ae39"
+      },
+      {
+        "path": "rust/parity/capture-observer-contracts.mjs",
+        "sha256": "1c144aca42f80b557c424bce8d0b98ea1913306ac9877f0286b376c8bf6a4742"
+      },
+      {
+        "path": "test/response-observer.test.mjs",
+        "sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561"
+      },
+      {
+        "path": "test/token-counter.test.mjs",
+        "sha256": "6c89790b13284f3207575fa1bcf8f50269d28b6a17d88533c68b6e0dc09e8255"
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/src/response_observer.rs",
+        "region": "before #[cfg(test)]",
+        "sha256": "015b2525fc9fef9165d63063d2cb28e3fbdfba78b00394a5cfe563bce7efc4ef",
+        "byte_identical_to_commit": "8e94a9b"
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/src/token_counter.rs",
+        "region": "before #[cfg(test)]",
+        "sha256": "df2037befafcbcfe6097cface2df8566827c43fb1204806e458d04d4e8455cc7",
+        "byte_identical_to_commit": "8e94a9b"
+      }
+    ]
+  },
+  "historical_audit": {
+    "path": "artifacts/rust-rewrite/evidence/8fd36e09a06f5491dda1388a6b56df7294b88f2a8c146ace65558631432b2abc.json",
+    "sha256": "8fd36e09a06f5491dda1388a6b56df7294b88f2a8c146ace65558631432b2abc",
+    "original_path": "/private/tmp/response-observer-token-counter-assertion-audit.json"
+  },
+  "semantics": "The old pure observer adapter echoes input in its forwarded field and is never used as forwarding evidence here. Actual ObservedBody allocation/byte checks replace that limitation. Async JavaScript callback API calls remain partial; no product behavior changed.",
+  "mappings": [
+    {
+      "baseline_test": "test/response-observer.test.mjs#1",
+      "name": "forwards an incomplete SSE frame immediately and reports the actual provider model once",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "9e9f76f9ecd5a448e84e64c47cc4ea8fc6cf3cb4e0f08c5b1b8a3dc3d21ba8d5",
+      "baseline_line": 28,
+      "status": "covered",
+      "reviewed_parameter_scope": "Partial first SSE frame, completion of that frame, then a second model frame; interleaved observations and object identity.",
+      "reviewed_assertion_calls": 6,
+      "inherited_helper_call_sites": 0,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 36,
+          "expression": "assert.equal(received.length, 1)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#incomplete_model_frame_is_forwarded_before_observation_and_repeated_model_is_ignored"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 2,
+          "line": 37,
+          "expression": "assert.equal(received[0], first)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#incomplete_model_frame_is_forwarded_before_observation_and_repeated_model_is_ignored"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 3,
+          "line": 38,
+          "expression": "assert.deepEqual(models, [])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#incomplete_model_frame_is_forwarded_before_observation_and_repeated_model_is_ignored"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 4,
+          "line": 40,
+          "expression": "assert.deepEqual(models, [{ model: 'claude-sonnet-5' }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#incomplete_model_frame_is_forwarded_before_observation_and_repeated_model_is_ignored"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 5,
+          "line": 45,
+          "expression": "assert.deepEqual(models, [{ model: 'claude-sonnet-5' }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#incomplete_model_frame_is_forwarded_before_observation_and_repeated_model_is_ignored"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 6,
+          "line": 46,
+          "expression": "assert.deepEqual(Buffer.concat(received), Buffer.concat([first, final, rest]))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#incomplete_model_frame_is_forwarded_before_observation_and_repeated_model_is_ignored"
+          ],
+          "captured_case_ids": []
+        }
+      ],
+      "inherited_helper_assertions": [],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#incomplete_model_frame_is_forwarded_before_observation_and_repeated_model_is_ignored"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "This definition directly creates a Node stream instead of calling observe(); the named native test checks its exact partial-frame/EOF/drop schedule with the actual ObservedBody. It is not inferred from the helper corpus."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#2",
+      "name": "handles ping, malformed frames, multiline data, split UTF-8 and CRLF without changing bytes",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "8cd3426a24716b6e79ed869148d5df9035c91148b8abd6de227b9f7a6156c6f0",
+      "baseline_line": 49,
+      "status": "covered",
+      "reviewed_parameter_scope": "One-byte chunks containing malformed frame, ping, multiline data and split Unicode model.",
+      "reviewed_assertion_calls": 1,
+      "inherited_helper_call_sites": 1,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 55,
+          "expression": "assert.deepEqual(models, [{ model: 'claude-\u6a21\u578b' }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-2-1"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 54,
+          "call_expression": "observe(chunks)",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-2-1"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-2-1"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#3",
+      "name": "skips an oversized frame while forwarding bytes and observing subsequent frames",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "da40916e9c5d0a23131404b88068285ee663650b86d8140f918a741f08e5a8ad",
+      "baseline_line": 58,
+      "status": "covered",
+      "reviewed_parameter_scope": "Oversized data followed by valid model; maxBufferBytes96 and two chunks.",
+      "reviewed_assertion_calls": 1,
+      "inherited_helper_call_sites": 1,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 61,
+          "expression": "assert.deepEqual(models, [{ model: 'observed' }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-3-1"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 60,
+          "call_expression": "observe(chunks, { maxBufferBytes: 96 })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-3-1"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-3-1"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#4",
+      "name": "many small ping frames do not consume the per-frame observation budget",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "979290bb8404c1707485f22403f663d1d4e9348baac2545f107702731c646b02",
+      "baseline_line": 64,
+      "status": "covered",
+      "reviewed_parameter_scope": "1000 small pings then message_start, per-frame limit128.",
+      "reviewed_assertion_calls": 1,
+      "inherited_helper_call_sites": 1,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 68,
+          "expression": "assert.deepEqual(models, [{ model: 'claude-opus-5-5' }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-4-1"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 67,
+          "call_expression": "observe([...Array(1000).fill(ping), start], { maxBufferBytes: 128 })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-4-1"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-4-1"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#5",
+      "name": "observes bounded nonstream JSON across chunks and ignores oversized or malformed JSON",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "fe8bc45f4d80f20819cbb90518355164d91b099331cf0629556802667de0660f",
+      "baseline_line": 71,
+      "status": "covered",
+      "reviewed_parameter_scope": "Two chunks for valid JSON; same bytes at cap16; malformed JSON.",
+      "reviewed_assertion_calls": 3,
+      "inherited_helper_call_sites": 3,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 75,
+          "expression": "assert.deepEqual(models, [{ model: 'claude-haiku-4-5-20251001' }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-5-1",
+            "baseline-observer-5-2",
+            "baseline-observer-5-3"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 76,
+          "expression": "assert.deepEqual((await observe([first, final], { contentType: 'application/json', maxBufferBytes: 16 })).models, [])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-5-1",
+            "baseline-observer-5-2",
+            "baseline-observer-5-3"
+          ]
+        },
+        {
+          "index": 3,
+          "line": 77,
+          "expression": "assert.deepEqual((await observe([Buffer.from('{bad JSON')], { contentType: 'application/json' })).models, [])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-5-1",
+            "baseline-observer-5-2",
+            "baseline-observer-5-3"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 74,
+          "call_expression": "observe([first, final], { contentType: 'application/json' })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-5-1",
+            "baseline-observer-5-2",
+            "baseline-observer-5-3"
+          ],
+          "remaining": []
+        },
+        {
+          "call_line": 76,
+          "call_expression": "observe([first, final], { contentType: 'application/json', maxBufferBytes: 16 })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-5-1",
+            "baseline-observer-5-2",
+            "baseline-observer-5-3"
+          ],
+          "remaining": []
+        },
+        {
+          "call_line": 77,
+          "call_expression": "observe([Buffer.from('{bad JSON')], { contentType: 'application/json' })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-5-1",
+            "baseline-observer-5-2",
+            "baseline-observer-5-3"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-5-1",
+        "baseline-observer-5-2",
+        "baseline-observer-5-3"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#6",
+      "name": "unrecognized content types and callback failures cannot interfere with response delivery",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "fa9b617cc627485d0696fe4503e4d184f7304afe6babaae11ef4ae257f730bd5",
+      "baseline_line": 80,
+      "status": "covered",
+      "reviewed_parameter_scope": "Unknown octet-stream and a throwing onModel callback.",
+      "reviewed_assertion_calls": 1,
+      "inherited_helper_call_sites": 2,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 82,
+          "expression": "assert.deepEqual((await observe([start], { contentType: 'application/octet-stream' })).models, [])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-6-1",
+            "baseline-observer-6-2"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 82,
+          "call_expression": "observe([start], { contentType: 'application/octet-stream' })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-6-1",
+            "baseline-observer-6-2"
+          ],
+          "remaining": []
+        },
+        {
+          "call_line": 83,
+          "call_expression": "observe([start], { onModel: () => { throw new Error('logging failed'); } })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-6-1",
+            "baseline-observer-6-2"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-6-1",
+        "baseline-observer-6-2"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#7",
+      "name": "reports an SSE error after model confirmation and an oversized content delta without exposing error messages",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "4e8baa51f568e65c8dcdf776f750045ff5722db3f7dfbec142032ce7627f2d5a",
+      "baseline_line": 86,
+      "status": "covered",
+      "reviewed_parameter_scope": "CRLF single-byte chunks, model then oversized content delta then overloaded_error, private message omitted.",
+      "reviewed_assertion_calls": 2,
+      "inherited_helper_call_sites": 1,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 91,
+          "expression": "assert.deepEqual(models, [{ model: 'claude-sonnet-5' }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-7-1"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 92,
+          "expression": "assert.deepEqual(errors, [{ error_type: 'overloaded_error' }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-7-1"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 90,
+          "call_expression": "observe([...bytes].map(byte => Buffer.from([byte])), { maxBufferBytes: 128 })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-7-1"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-7-1"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#8",
+      "name": "only allowlisted error categories escape observation, including bounded JSON errors",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "9f2cbb1e60860cf6a2fa27cae66c5423332383649dfaaa41b5e129575912c736",
+      "baseline_line": 95,
+      "status": "covered",
+      "reviewed_parameter_scope": "Unknown control-bearing SSE category, allowlisted JSON category, and throwing onError callback.",
+      "reviewed_assertion_calls": 2,
+      "inherited_helper_call_sites": 3,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 97,
+          "expression": "assert.deepEqual((await observe([Buffer.from(`event: error\\ndata: ${JSON.stringify(error)}\\n\\n`)])).errors, [{ error_type: 'unknown_error' }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-8-1",
+            "baseline-observer-8-2",
+            "baseline-observer-8-3"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 99,
+          "expression": "assert.deepEqual((await observe([Buffer.from(JSON.stringify({ ...error, error: { type: 'rate_limit_error', message: 'PRIVATE_REQUEST' } }))], { contentType: 'application/json' })).errors, [{ error_type: 'rate_limit_error' }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-8-1",
+            "baseline-observer-8-2",
+            "baseline-observer-8-3"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 97,
+          "call_expression": "observe([Buffer.from(`event: error\\ndata: ${JSON.stringify(error)}\\n\\n`)])",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-8-1",
+            "baseline-observer-8-2",
+            "baseline-observer-8-3"
+          ],
+          "remaining": []
+        },
+        {
+          "call_line": 99,
+          "call_expression": "observe([Buffer.from(JSON.stringify({ ...error, error: { type: 'rate_limit_error', message: 'PRIVATE_REQUEST' } }))], { contentType: 'application/json' })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-8-1",
+            "baseline-observer-8-2",
+            "baseline-observer-8-3"
+          ],
+          "remaining": []
+        },
+        {
+          "call_line": 101,
+          "call_expression": "observe([Buffer.from(`event: error\\ndata: ${JSON.stringify(error)}\\n\\n`)], { onError: () => { throw new Error('UI unavailable'); } })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-8-1",
+            "baseline-observer-8-2",
+            "baseline-observer-8-3"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-8-1",
+        "baseline-observer-8-2",
+        "baseline-observer-8-3"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#9",
+      "name": "reports final cumulative usage once with mixed cache TTLs and only allowed metadata",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "29592e0358b2aa62b7eb2164127b530afbbb42932c536d4db951d76da9c5bcea",
+      "baseline_line": 104,
+      "status": "covered",
+      "reviewed_parameter_scope": "Initial mixed5m/1h cache counts; cumulative updates; partial nested update; duplicate final delta and message_stop; private extra fields.",
+      "reviewed_assertion_calls": 2,
+      "inherited_helper_call_sites": 1,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 112,
+          "expression": "assert.deepEqual(usages, [{ usage: { input_tokens: 125, output_tokens: 30, cache_creation_input_tokens: 95, cache_read_input_tokens: 300, cache_creation: { ephemeral_5m_input_tokens: 55, ephemeral_1h_input_tokens: 40 }, speed: 'standard', inference_geo: 'us', service_tier: 'standard' } }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-9-1"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 114,
+          "expression": "assert.ok(!JSON.stringify(usages).includes('PRIVATE_CONTENT'))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-9-1"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 111,
+          "call_expression": "observe([...bytes].map(byte => Buffer.from([byte])))",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-9-1"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-9-1"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#10",
+      "name": "collects bounded JSON usage together with the provider model and isolates callback failures",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "07aeb81936f2cda44bb4bb883b41b8023d93a48169dc8cb57ca012c5ebf96132",
+      "baseline_line": 117,
+      "status": "partial",
+      "reviewed_parameter_scope": "Bounded JSON with zero counts, unknown speed/geo/tier, synchronous and async onUsage failures, cap16.",
+      "reviewed_assertion_calls": 3,
+      "inherited_helper_call_sites": 4,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 121,
+          "expression": "assert.deepEqual(result.models, [{ model: payload.model }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-10-1",
+            "baseline-observer-10-2",
+            "baseline-observer-10-4"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 122,
+          "expression": "assert.deepEqual(result.usages, [{ usage: { input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 99, speed: 'unknown', inference_geo: 'unknown', service_tier: 'unknown' } }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-10-1",
+            "baseline-observer-10-2",
+            "baseline-observer-10-4"
+          ]
+        },
+        {
+          "index": 3,
+          "line": 125,
+          "expression": "assert.deepEqual((await observe([bytes], { contentType: 'application/json', maxBufferBytes: 16 })).usages, [])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-10-1",
+            "baseline-observer-10-2",
+            "baseline-observer-10-4"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 120,
+          "call_expression": "observe([bytes.subarray(0, 10), bytes.subarray(10)], { contentType: 'application/json' })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-10-1",
+            "baseline-observer-10-2",
+            "baseline-observer-10-4"
+          ],
+          "remaining": []
+        },
+        {
+          "call_line": 123,
+          "call_expression": "observe([bytes], { contentType: 'application/json', onUsage: () => { throw new Error('Unavailable'); } })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-10-1",
+            "baseline-observer-10-2",
+            "baseline-observer-10-4"
+          ],
+          "remaining": []
+        },
+        {
+          "call_line": 124,
+          "call_expression": "observe([bytes], { contentType: 'application/json', onUsage: async () => { throw new Error('Unavailable'); } })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "partial",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-10-1",
+            "baseline-observer-10-2",
+            "baseline-observer-10-4"
+          ],
+          "remaining": [
+            "The frozen source also passes an async callback that returns a rejected Promise. Native callbacks are synchronous FnMut; the captured async call remains an explicit API migration boundary and is not claimed covered."
+          ]
+        },
+        {
+          "call_line": 125,
+          "call_expression": "observe([bytes], { contentType: 'application/json', maxBufferBytes: 16 })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-10-1",
+            "baseline-observer-10-2",
+            "baseline-observer-10-4"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-10-1",
+        "baseline-observer-10-2",
+        "baseline-observer-10-4"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": [
+        "The frozen source also passes an async callback that returns a rejected Promise. Native callbacks are synchronous FnMut; the captured async call remains an explicit API migration boundary and is not claimed covered."
+      ],
+      "migration_boundaries": [
+        {
+          "baseline_test": "test/response-observer.test.mjs#10",
+          "call": 3,
+          "callbacks": [
+            "onUsage"
+          ],
+          "reason": "Rust observation callbacks are synchronous; a rejected JavaScript Promise is an explicit API migration boundary."
+        }
+      ]
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#11",
+      "name": "clean EOF after a final stop reason supports gateways that omit message_stop",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "d7be7bc6279d46d428823979ba94acb5992c8047d1998d14b530e66b180c8896",
+      "baseline_line": 128,
+      "status": "covered",
+      "reviewed_parameter_scope": "Final tool_use stop reason with no message_stop; usage must survive absent client-tool evidence.",
+      "reviewed_assertion_calls": 1,
+      "inherited_helper_call_sites": 1,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 130,
+          "expression": "assert.deepEqual(result.usages, [{ usage: { input_tokens: 4, output_tokens: 12 } }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-11-1"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 129,
+          "call_expression": "observe([usageStart({ input_tokens: 4, output_tokens: 1 }), usageDelta({ output_tokens: 12 }, 'tool_use')])",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-11-1"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-11-1"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#12",
+      "name": "incomplete, errored, malformed and invalid usage streams never publish savings telemetry",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "ecc5c6b381a971aa3bd223fb61f8ad731dfc5046707159c157a6b297a25acf21",
+      "baseline_line": 133,
+      "status": "covered",
+      "reviewed_parameter_scope": "18 invalid/incomplete SSE schedules plus JSON error with otherwise valid usage.",
+      "reviewed_assertion_calls": 2,
+      "inherited_helper_call_sites": 2,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 154,
+          "expression": "assert.deepEqual((await observe(chunks)).usages, [])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-12-1",
+            "baseline-observer-12-2",
+            "baseline-observer-12-3",
+            "baseline-observer-12-4",
+            "baseline-observer-12-5",
+            "baseline-observer-12-6",
+            "baseline-observer-12-7",
+            "baseline-observer-12-8",
+            "baseline-observer-12-9",
+            "baseline-observer-12-10",
+            "baseline-observer-12-11",
+            "baseline-observer-12-12",
+            "baseline-observer-12-13",
+            "baseline-observer-12-14",
+            "baseline-observer-12-15",
+            "baseline-observer-12-16",
+            "baseline-observer-12-17",
+            "baseline-observer-12-18",
+            "baseline-observer-12-19"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 155,
+          "expression": "assert.deepEqual((await observe([Buffer.from(JSON.stringify({ type: 'error', usage: { input_tokens: 4, output_tokens: 12 } }))], { contentType: 'application/json' })).usages, [])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-12-1",
+            "baseline-observer-12-2",
+            "baseline-observer-12-3",
+            "baseline-observer-12-4",
+            "baseline-observer-12-5",
+            "baseline-observer-12-6",
+            "baseline-observer-12-7",
+            "baseline-observer-12-8",
+            "baseline-observer-12-9",
+            "baseline-observer-12-10",
+            "baseline-observer-12-11",
+            "baseline-observer-12-12",
+            "baseline-observer-12-13",
+            "baseline-observer-12-14",
+            "baseline-observer-12-15",
+            "baseline-observer-12-16",
+            "baseline-observer-12-17",
+            "baseline-observer-12-18",
+            "baseline-observer-12-19"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 154,
+          "call_expression": "observe(chunks)",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-12-1",
+            "baseline-observer-12-2",
+            "baseline-observer-12-3",
+            "baseline-observer-12-4",
+            "baseline-observer-12-5",
+            "baseline-observer-12-6",
+            "baseline-observer-12-7",
+            "baseline-observer-12-8",
+            "baseline-observer-12-9",
+            "baseline-observer-12-10",
+            "baseline-observer-12-11",
+            "baseline-observer-12-12",
+            "baseline-observer-12-13",
+            "baseline-observer-12-14",
+            "baseline-observer-12-15",
+            "baseline-observer-12-16",
+            "baseline-observer-12-17",
+            "baseline-observer-12-18",
+            "baseline-observer-12-19"
+          ],
+          "remaining": []
+        },
+        {
+          "call_line": 155,
+          "call_expression": "observe([Buffer.from(JSON.stringify({ type: 'error', usage: { input_tokens: 4, output_tokens: 12 } }))], { contentType: 'application/json' })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-12-1",
+            "baseline-observer-12-2",
+            "baseline-observer-12-3",
+            "baseline-observer-12-4",
+            "baseline-observer-12-5",
+            "baseline-observer-12-6",
+            "baseline-observer-12-7",
+            "baseline-observer-12-8",
+            "baseline-observer-12-9",
+            "baseline-observer-12-10",
+            "baseline-observer-12-11",
+            "baseline-observer-12-12",
+            "baseline-observer-12-13",
+            "baseline-observer-12-14",
+            "baseline-observer-12-15",
+            "baseline-observer-12-16",
+            "baseline-observer-12-17",
+            "baseline-observer-12-18",
+            "baseline-observer-12-19"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-12-1",
+        "baseline-observer-12-2",
+        "baseline-observer-12-3",
+        "baseline-observer-12-4",
+        "baseline-observer-12-5",
+        "baseline-observer-12-6",
+        "baseline-observer-12-7",
+        "baseline-observer-12-8",
+        "baseline-observer-12-9",
+        "baseline-observer-12-10",
+        "baseline-observer-12-11",
+        "baseline-observer-12-12",
+        "baseline-observer-12-13",
+        "baseline-observer-12-14",
+        "baseline-observer-12-15",
+        "baseline-observer-12-16",
+        "baseline-observer-12-17",
+        "baseline-observer-12-18",
+        "baseline-observer-12-19"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#13",
+      "name": "destroying a stream after its final delta does not report a completed response",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "3984f62275b47b248181805c748e63a598282120d8f947e76f2c63818ddc3a7b",
+      "baseline_line": 158,
+      "status": "covered",
+      "reviewed_parameter_scope": "Explicit destroy after final delta before EOF; no usage and no completion.",
+      "reviewed_assertion_calls": 2,
+      "inherited_helper_call_sites": 0,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 168,
+          "expression": "assert.deepEqual(usages, [])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#message_stop_does_not_confirm_until_actual_eof_and_drop_never_confirms"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 2,
+          "line": 169,
+          "expression": "assert.deepEqual(completions, [])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#message_stop_does_not_confirm_until_actual_eof_and_drop_never_confirms"
+          ],
+          "captured_case_ids": []
+        }
+      ],
+      "inherited_helper_assertions": [],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#message_stop_does_not_confirm_until_actual_eof_and_drop_never_confirms"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "This definition directly creates a Node stream instead of calling observe(); the named native test checks its exact partial-frame/EOF/drop schedule with the actual ObservedBody. It is not inferred from the helper corpus."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#14",
+      "name": "oversized content does not lose final usage while oversized metadata is excluded",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "680bcfe90d3d3deca66971483a6447aa54c390634b7c9e203f4227d05c09f2bf",
+      "baseline_line": 172,
+      "status": "covered",
+      "reviewed_parameter_scope": "Ordinary oversized content accepted; oversized message_delta and fallback metadata exclude usage.",
+      "reviewed_assertion_calls": 3,
+      "inherited_helper_call_sites": 3,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 176,
+          "expression": "assert.deepEqual((await observe(chunks, { maxBufferBytes: 256 })).usages, [{ usage: { input_tokens: 4, output_tokens: 12 } }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-14-1",
+            "baseline-observer-14-2",
+            "baseline-observer-14-3"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 178,
+          "expression": "assert.deepEqual((await observe(chunks, { maxBufferBytes: 256 })).usages, [])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-14-1",
+            "baseline-observer-14-2",
+            "baseline-observer-14-3"
+          ]
+        },
+        {
+          "index": 3,
+          "line": 180,
+          "expression": "assert.deepEqual((await observe(chunks, { maxBufferBytes: 256 })).usages, [])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-14-1",
+            "baseline-observer-14-2",
+            "baseline-observer-14-3"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 176,
+          "call_expression": "observe(chunks, { maxBufferBytes: 256 })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-14-1",
+            "baseline-observer-14-2",
+            "baseline-observer-14-3"
+          ],
+          "remaining": []
+        },
+        {
+          "call_line": 178,
+          "call_expression": "observe(chunks, { maxBufferBytes: 256 })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-14-1",
+            "baseline-observer-14-2",
+            "baseline-observer-14-3"
+          ],
+          "remaining": []
+        },
+        {
+          "call_line": 180,
+          "call_expression": "observe(chunks, { maxBufferBytes: 256 })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-14-1",
+            "baseline-observer-14-2",
+            "baseline-observer-14-3"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-14-1",
+        "baseline-observer-14-2",
+        "baseline-observer-14-3"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#15",
+      "name": "null cache details with zero writes are valid while model changes make accounting unsupported",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "3bbf6404eb5bd6ab10b2d42b99342538061389ace38afa73875b2b82441f4a21",
+      "baseline_line": 183,
+      "status": "covered",
+      "reviewed_parameter_scope": "Duplicate identical starts, changed model start, and equivalent JSON null cache creation.",
+      "reviewed_assertion_calls": 3,
+      "inherited_helper_call_sites": 3,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 187,
+          "expression": "assert.deepEqual((await observe([start, start, final, frame('message_stop')])).usages, [{ usage: expected }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-15-1",
+            "baseline-observer-15-2",
+            "baseline-observer-15-3"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 189,
+          "expression": "assert.deepEqual((await observe([start, changed, final, frame('message_stop')])).usages, [{ usage: { ...expected, pricing_unsupported: true } }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-15-1",
+            "baseline-observer-15-2",
+            "baseline-observer-15-3"
+          ]
+        },
+        {
+          "index": 3,
+          "line": 191,
+          "expression": "assert.deepEqual((await observe([Buffer.from(JSON.stringify(json))], { contentType: 'application/json' })).usages, [{ usage: expected }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-15-1",
+            "baseline-observer-15-2",
+            "baseline-observer-15-3"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 187,
+          "call_expression": "observe([start, start, final, frame('message_stop')])",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-15-1",
+            "baseline-observer-15-2",
+            "baseline-observer-15-3"
+          ],
+          "remaining": []
+        },
+        {
+          "call_line": 189,
+          "call_expression": "observe([start, changed, final, frame('message_stop')])",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-15-1",
+            "baseline-observer-15-2",
+            "baseline-observer-15-3"
+          ],
+          "remaining": []
+        },
+        {
+          "call_line": 191,
+          "call_expression": "observe([Buffer.from(JSON.stringify(json))], { contentType: 'application/json' })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-15-1",
+            "baseline-observer-15-2",
+            "baseline-observer-15-3"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-15-1",
+        "baseline-observer-15-2",
+        "baseline-observer-15-3"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#16",
+      "name": "unsupported compaction, advisor, fallback and refusal accounting is marked without storing response text",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "058af5e3c02ca4ae322636fba8a6b3dfa4246a44abd0f773d11e611d1fbb9270",
+      "baseline_line": 194,
+      "status": "covered",
+      "reviewed_parameter_scope": "Opaque iterations, malformed fallback block and refusal; corresponding JSON refusal.",
+      "reviewed_assertion_calls": 2,
+      "inherited_helper_call_sites": 2,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 201,
+          "expression": "assert.deepEqual(result.usages, [{ usage: { input_tokens: 4, output_tokens: 12, pricing_unsupported: true } }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-16-1",
+            "baseline-observer-16-2",
+            "baseline-observer-16-3",
+            "baseline-observer-16-4"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 204,
+          "expression": "assert.deepEqual((await observe([Buffer.from(JSON.stringify(json))], { contentType: 'application/json' })).usages, [{ usage: { input_tokens: 4, output_tokens: 12, pricing_unsupported: true } }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-16-1",
+            "baseline-observer-16-2",
+            "baseline-observer-16-3",
+            "baseline-observer-16-4"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 200,
+          "call_expression": "observe([usageStart({ input_tokens: 4, output_tokens: 1 }), ...additions, frame('message_stop')])",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-16-1",
+            "baseline-observer-16-2",
+            "baseline-observer-16-3",
+            "baseline-observer-16-4"
+          ],
+          "remaining": []
+        },
+        {
+          "call_line": 204,
+          "call_expression": "observe([Buffer.from(JSON.stringify(json))], { contentType: 'application/json' })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-16-1",
+            "baseline-observer-16-2",
+            "baseline-observer-16-3",
+            "baseline-observer-16-4"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-16-1",
+        "baseline-observer-16-2",
+        "baseline-observer-16-3",
+        "baseline-observer-16-4"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#17",
+      "name": "ordinary message iterations use cumulative top-level totals once, including metadata-only starts",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "305364111eee69b816d14d9d840d3da725cc8441e47580aade19193ac1be3326",
+      "baseline_line": 208,
+      "status": "covered",
+      "reviewed_parameter_scope": "Two normal iterations with metadata-only start, SSE and JSON; never sum iteration totals.",
+      "reviewed_assertion_calls": 2,
+      "inherited_helper_call_sites": 2,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 215,
+          "expression": "assert.deepEqual(usages, [{ usage: { input_tokens: 15, output_tokens: 30 } }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-17-1",
+            "baseline-observer-17-2"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 217,
+          "expression": "assert.deepEqual((await observe([Buffer.from(JSON.stringify(json))], { contentType: 'application/json' })).usages, usages)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-17-1",
+            "baseline-observer-17-2"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 214,
+          "call_expression": "observe([usageStart(initial), usageDelta(final, 'end_turn'), frame('message_stop')])",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-17-1",
+            "baseline-observer-17-2"
+          ],
+          "remaining": []
+        },
+        {
+          "call_line": 217,
+          "call_expression": "observe([Buffer.from(JSON.stringify(json))], { contentType: 'application/json' })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-17-1",
+            "baseline-observer-17-2"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-17-1",
+        "baseline-observer-17-2"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#18",
+      "name": "iteration type, shape and model mismatches remain unsupported",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "f747838c4db8aa2cf94ab501d14a2e80574c95e31537b915004cd6addf19caa6",
+      "baseline_line": 220,
+      "status": "covered",
+      "reviewed_parameter_scope": "11 iteration type, shape, model and count variants.",
+      "reviewed_assertion_calls": 1,
+      "inherited_helper_call_sites": 1,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 228,
+          "expression": "assert.deepEqual(result.usages, [{ usage: { input_tokens: 4, output_tokens: 12, pricing_unsupported: true } }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-18-1",
+            "baseline-observer-18-2",
+            "baseline-observer-18-3",
+            "baseline-observer-18-4",
+            "baseline-observer-18-5",
+            "baseline-observer-18-6",
+            "baseline-observer-18-7",
+            "baseline-observer-18-8",
+            "baseline-observer-18-9",
+            "baseline-observer-18-10",
+            "baseline-observer-18-11"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 227,
+          "call_expression": "observe([usageStart({ input_tokens: 4, output_tokens: 1 }), usageDelta({ output_tokens: 12, iterations }, 'end_turn'), frame('message_stop')])",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-18-1",
+            "baseline-observer-18-2",
+            "baseline-observer-18-3",
+            "baseline-observer-18-4",
+            "baseline-observer-18-5",
+            "baseline-observer-18-6",
+            "baseline-observer-18-7",
+            "baseline-observer-18-8",
+            "baseline-observer-18-9",
+            "baseline-observer-18-10",
+            "baseline-observer-18-11"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-18-1",
+        "baseline-observer-18-2",
+        "baseline-observer-18-3",
+        "baseline-observer-18-4",
+        "baseline-observer-18-5",
+        "baseline-observer-18-6",
+        "baseline-observer-18-7",
+        "baseline-observer-18-8",
+        "baseline-observer-18-9",
+        "baseline-observer-18-10",
+        "baseline-observer-18-11"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#19",
+      "name": "unavailable or nullable response geography is preserved without accepting unknown pricing values",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "2e8069a71bc582a01d088fc74161dde5505b7c442f6abc0a66c0617e9644f40e",
+      "baseline_line": 232,
+      "status": "covered",
+      "reviewed_parameter_scope": "Geography not_available and null; both paired with null speed and service tier.",
+      "reviewed_assertion_calls": 1,
+      "inherited_helper_call_sites": 1,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 235,
+          "expression": "assert.deepEqual((await observe([usageStart(initial), usageDelta({ output_tokens: 12 }, 'end_turn'), frame('message_stop')])).usages, [{ usage: { input_tokens: 4, output_tokens: 12, inference_geo: 'not_available', speed: 'unknown', service_tier: 'unknown' } }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-19-1",
+            "baseline-observer-19-2"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 235,
+          "call_expression": "observe([usageStart(initial), usageDelta({ output_tokens: 12 }, 'end_turn'), frame('message_stop')])",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-19-1",
+            "baseline-observer-19-2"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-19-1",
+        "baseline-observer-19-2"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#20",
+      "name": "execution observation is immediate but continuation evidence waits for clean EOF",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "93e8eda03965600acc33d5b5833a3d17f7cbda4503b5b983230fad4e0c24e11a",
+      "baseline_line": 248,
+      "status": "covered",
+      "reviewed_parameter_scope": "Interleaved start, final delta, message_stop and EOF, exact execution source and complete continuation object.",
+      "reviewed_assertion_calls": 4,
+      "inherited_helper_call_sites": 0,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 254,
+          "expression": "assert.deepEqual(executions, [{ model: opus, source: 'message_start' }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#message_stop_does_not_confirm_until_actual_eof_and_drop_never_confirms"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 2,
+          "line": 255,
+          "expression": "assert.deepEqual(completions, [])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#message_stop_does_not_confirm_until_actual_eof_and_drop_never_confirms"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 3,
+          "line": 258,
+          "expression": "assert.deepEqual(completions, [])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#message_stop_does_not_confirm_until_actual_eof_and_drop_never_confirms"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 4,
+          "line": 262,
+          "expression": "assert.deepEqual(completions, [{ model: opus, continuation_model: opus, stop_reason: 'end_turn', tool_uses: [] }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#message_stop_does_not_confirm_until_actual_eof_and_drop_never_confirms"
+          ],
+          "captured_case_ids": []
+        }
+      ],
+      "inherited_helper_assertions": [],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#message_stop_does_not_confirm_until_actual_eof_and_drop_never_confirms"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "This definition directly creates a Node stream instead of calling observe(); the named native test checks its exact partial-frame/EOF/drop schedule with the actual ObservedBody. It is not inferred from the helper corpus."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#21",
+      "name": "before-output and sticky fallbacks report the model actually serving the response",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "120985ea414b5a4e5ba7613339c68f5a626ccd42e231aa5c28ca8dae715ce054",
+      "baseline_line": 265,
+      "status": "covered",
+      "reviewed_parameter_scope": "Two schedules: with and without explicit same-model fallback before output.",
+      "reviewed_assertion_calls": 3,
+      "inherited_helper_call_sites": 1,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 269,
+          "expression": "assert.deepEqual(result.models, [{ model: sonnet }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-21-1",
+            "baseline-observer-21-2"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 270,
+          "expression": "assert.deepEqual(result.completions, [{ model: sonnet, continuation_model: sonnet, stop_reason: 'end_turn', tool_uses: [] }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-21-1",
+            "baseline-observer-21-2"
+          ]
+        },
+        {
+          "index": 3,
+          "line": 271,
+          "expression": "assert.equal(result.usages[0].usage.pricing_unsupported, true)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-21-1",
+            "baseline-observer-21-2"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 267,
+          "call_expression": "observe([startModel(sonnet), ...boundaries, usageDelta({ output_tokens: 12, iterations: [{ type: 'fallback_message', model: sonnet }] }, 'end_turn'), frame('message_stop')])",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-21-1",
+            "baseline-observer-21-2"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-21-1",
+        "baseline-observer-21-2"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#22",
+      "name": "midstream fallback preserves all bytes and assigns only post-boundary client tools to the new model",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "b100f9361d7471337e6afbd553a570aac2c30d6a2dafd7b8f694b082ca8af86c",
+      "baseline_line": 275,
+      "status": "covered",
+      "reviewed_parameter_scope": "One fallback after old completed tool; final new tool only, exact model/execution transitions and sanitized completion.",
+      "reviewed_assertion_calls": 5,
+      "inherited_helper_call_sites": 1,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 282,
+          "expression": "assert.deepEqual(result.models, [{ model: opus }, { model: sonnet }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-22-1"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 283,
+          "expression": "assert.deepEqual(result.executions, [{ model: opus, source: 'message_start' }, { model: sonnet, source: 'fallback' }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-22-1"
+          ]
+        },
+        {
+          "index": 3,
+          "line": 284,
+          "expression": "assert.deepEqual(result.completions, [{ model: sonnet, continuation_model: sonnet, stop_reason: 'tool_use', tool_uses: [{ id: 'toolu_after', model: sonnet }] }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-22-1"
+          ]
+        },
+        {
+          "index": 4,
+          "line": 285,
+          "expression": "assert.equal(result.usages[0].usage.pricing_unsupported, true)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-22-1"
+          ]
+        },
+        {
+          "index": 5,
+          "line": 286,
+          "expression": "assert.ok(!JSON.stringify(result.completions).includes('PRIVATE_TOOL'))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-22-1"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 281,
+          "call_expression": "observe([...bytes].map(byte => Buffer.from([byte])))",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-22-1"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-22-1"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#23",
+      "name": "multiple fallback boundaries retain only the last serving model and its actionable tools",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "1acb8e312b485fd598cb2dde8cae9764bcfba56f2ba120a04eaae88e471a2411",
+      "baseline_line": 289,
+      "status": "covered",
+      "reviewed_parameter_scope": "Two fallback boundaries with one client tool in each segment and three model callbacks.",
+      "reviewed_assertion_calls": 2,
+      "inherited_helper_call_sites": 1,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 293,
+          "expression": "assert.deepEqual(result.models, [{ model: opus }, { model: sonnet }, { model: final }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-23-1"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 294,
+          "expression": "assert.deepEqual(result.completions, [{ model: final, continuation_model: final, stop_reason: 'tool_use', tool_uses: [{ id: 'toolu_final', model: final }] }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-23-1"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 291,
+          "call_expression": "observe([startModel(opus), ...fallback(0, opus, sonnet), ...tool(1, 'toolu_old'), ...fallback(2, sonnet, final), ...tool(3, 'toolu_final'), usageDelta({ output_tokens: 12 }, 'tool_use')])",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-23-1"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-23-1"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#24",
+      "name": "final fallback iterations identify serving model without retroactively reassigning tools",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "b6b1b9c71667481d641b937e4b455875267975c4f2b160efbd0740f012c9f0e5",
+      "baseline_line": 297,
+      "status": "covered",
+      "reviewed_parameter_scope": "Fallback only in final iterations; both no-prior-tool continuation and prior-tool conflict.",
+      "reviewed_assertion_calls": 3,
+      "inherited_helper_call_sites": 2,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 300,
+          "expression": "assert.deepEqual(result.executions, [{ model: opus, source: 'message_start' }, { model: sonnet, source: 'usage_iterations' }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-24-1",
+            "baseline-observer-24-2"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 301,
+          "expression": "assert.equal(result.completions[0].continuation_model, sonnet)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-24-1",
+            "baseline-observer-24-2"
+          ]
+        },
+        {
+          "index": 3,
+          "line": 304,
+          "expression": "assert.deepEqual(conflicting.completions, [{ model: sonnet, stop_reason: 'tool_use', tool_uses: [] }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-24-1",
+            "baseline-observer-24-2"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 299,
+          "call_expression": "observe([startModel(opus), delta])",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-24-1",
+            "baseline-observer-24-2"
+          ],
+          "remaining": []
+        },
+        {
+          "call_line": 302,
+          "call_expression": "observe([startModel(opus), ...tool(0, 'toolu_unknown_boundary'), usageDelta({ output_tokens: 12, iterations: [{ type: 'fallback_message', model: sonnet }] }, 'tool_use')])",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-24-1",
+            "baseline-observer-24-2"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-24-1",
+        "baseline-observer-24-2"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#25",
+      "name": "JSON completion uses returned model and final-boundary tool ownership without changing content",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "2a6afbc2fce5f7b60b31d261eee97b2f179338cc7db8ccfcc31bd1f0e78af904",
+      "baseline_line": 307,
+      "status": "covered",
+      "reviewed_parameter_scope": "JSON fallback boundary, returned model, tool ownership, fallback iterations and private tool input/name.",
+      "reviewed_assertion_calls": 4,
+      "inherited_helper_call_sites": 1,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 313,
+          "expression": "assert.deepEqual(result.executions, [{ model: sonnet, source: 'message' }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-25-1"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 314,
+          "expression": "assert.deepEqual(result.completions, [{ model: sonnet, continuation_model: sonnet, stop_reason: 'tool_use', tool_uses: [{ id: 'toolu_json', model: sonnet }] }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-25-1"
+          ]
+        },
+        {
+          "index": 3,
+          "line": 315,
+          "expression": "assert.equal(result.usages[0].usage.pricing_unsupported, true)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-25-1"
+          ]
+        },
+        {
+          "index": 4,
+          "line": 316,
+          "expression": "assert.ok(!JSON.stringify(result.completions).includes('PRIVATE_'))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-25-1"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 312,
+          "call_expression": "observe([Buffer.from(JSON.stringify(payload))], { contentType: 'application/json' })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-25-1"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-25-1"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#26",
+      "name": "JSON multiple fallbacks retain only final-boundary tool ownership, while malformed history stays unknown",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "b6325cc744a797e5672df02c48868e40af6bd32a1e1bf7e94aa67f7a4fdccf3b",
+      "baseline_line": 319,
+      "status": "covered",
+      "reviewed_parameter_scope": "Two JSON boundaries with final model return; three independently malformed boundary variants.",
+      "reviewed_assertion_calls": 3,
+      "inherited_helper_call_sites": 2,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 328,
+          "expression": "assert.deepEqual(result.completions, [{ model: opus, continuation_model: opus, stop_reason: 'tool_use', tool_uses: [{ id: 'toolu_final', model: opus }] }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-26-1",
+            "baseline-observer-26-2",
+            "baseline-observer-26-3",
+            "baseline-observer-26-4"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 330,
+          "expression": "assert.equal(result.usages[0].usage.pricing_unsupported, true)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-26-1",
+            "baseline-observer-26-2",
+            "baseline-observer-26-3",
+            "baseline-observer-26-4"
+          ]
+        },
+        {
+          "index": 3,
+          "line": 335,
+          "expression": "assert.deepEqual(observed.completions, [{ model: opus, stop_reason: 'tool_use', tool_uses: [] }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-26-1",
+            "baseline-observer-26-2",
+            "baseline-observer-26-3",
+            "baseline-observer-26-4"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 327,
+          "call_expression": "observe([...bytes].map(byte => Buffer.from([byte])), { contentType: 'application/json' })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-26-1",
+            "baseline-observer-26-2",
+            "baseline-observer-26-3",
+            "baseline-observer-26-4"
+          ],
+          "remaining": []
+        },
+        {
+          "call_line": 334,
+          "call_expression": "observe([Buffer.from(JSON.stringify(uncertain))], { contentType: 'application/json' })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-26-1",
+            "baseline-observer-26-2",
+            "baseline-observer-26-3",
+            "baseline-observer-26-4"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-26-1",
+        "baseline-observer-26-2",
+        "baseline-observer-26-3",
+        "baseline-observer-26-4"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#27",
+      "name": "refusal and unknown terminal reasons never provide a successful continuation pin",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "f4c0db3cd1ecd450bac72e147e6b2136805579180b3a089cee116f58de9439ed",
+      "baseline_line": 339,
+      "status": "covered",
+      "reviewed_parameter_scope": "Refusal and private unknown reason after a completed client tool.",
+      "reviewed_assertion_calls": 1,
+      "inherited_helper_call_sites": 1,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 342,
+          "expression": "assert.deepEqual(result.completions, [{ model: opus, stop_reason: reason === 'refusal' ? reason : 'unknown', tool_uses: [] }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-27-1",
+            "baseline-observer-27-2"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 341,
+          "call_expression": "observe([startModel(opus), ...tool(0, 'toolu_denied'), usageDelta({ output_tokens: 12 }, reason), frame('message_stop')])",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-27-1",
+            "baseline-observer-27-2"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-27-1",
+        "baseline-observer-27-2"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#28",
+      "name": "errors, malformed or incomplete protocol and open tools never report completed execution",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "17b5c981de2d26141b5c8013d2794c5d8869c9903fed2e15676aa6f3c5433885",
+      "baseline_line": 346,
+      "status": "covered",
+      "reviewed_parameter_scope": "11 exact invalid SSE completion schedules plus5 JSON content-shape variants, captured in the retained98-case corpus and compared through actual ObservedBody.",
+      "reviewed_assertion_calls": 2,
+      "inherited_helper_call_sites": 2,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 360,
+          "expression": "assert.deepEqual((await observe(chunks)).completions, [])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-28-1",
+            "baseline-observer-28-2",
+            "baseline-observer-28-3",
+            "baseline-observer-28-4",
+            "baseline-observer-28-5",
+            "baseline-observer-28-6",
+            "baseline-observer-28-7",
+            "baseline-observer-28-8",
+            "baseline-observer-28-9",
+            "baseline-observer-28-10",
+            "baseline-observer-28-11",
+            "baseline-observer-28-12",
+            "baseline-observer-28-13",
+            "baseline-observer-28-14",
+            "baseline-observer-28-15",
+            "baseline-observer-28-16"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 363,
+          "expression": "assert.deepEqual((await observe([Buffer.from(JSON.stringify(payload))], { contentType: 'application/json' })).completions, [])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-28-1",
+            "baseline-observer-28-2",
+            "baseline-observer-28-3",
+            "baseline-observer-28-4",
+            "baseline-observer-28-5",
+            "baseline-observer-28-6",
+            "baseline-observer-28-7",
+            "baseline-observer-28-8",
+            "baseline-observer-28-9",
+            "baseline-observer-28-10",
+            "baseline-observer-28-11",
+            "baseline-observer-28-12",
+            "baseline-observer-28-13",
+            "baseline-observer-28-14",
+            "baseline-observer-28-15",
+            "baseline-observer-28-16"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 360,
+          "call_expression": "observe(chunks)",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-28-1",
+            "baseline-observer-28-2",
+            "baseline-observer-28-3",
+            "baseline-observer-28-4",
+            "baseline-observer-28-5",
+            "baseline-observer-28-6",
+            "baseline-observer-28-7",
+            "baseline-observer-28-8",
+            "baseline-observer-28-9",
+            "baseline-observer-28-10",
+            "baseline-observer-28-11",
+            "baseline-observer-28-12",
+            "baseline-observer-28-13",
+            "baseline-observer-28-14",
+            "baseline-observer-28-15",
+            "baseline-observer-28-16"
+          ],
+          "remaining": []
+        },
+        {
+          "call_line": 363,
+          "call_expression": "observe([Buffer.from(JSON.stringify(payload))], { contentType: 'application/json' })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-28-1",
+            "baseline-observer-28-2",
+            "baseline-observer-28-3",
+            "baseline-observer-28-4",
+            "baseline-observer-28-5",
+            "baseline-observer-28-6",
+            "baseline-observer-28-7",
+            "baseline-observer-28-8",
+            "baseline-observer-28-9",
+            "baseline-observer-28-10",
+            "baseline-observer-28-11",
+            "baseline-observer-28-12",
+            "baseline-observer-28-13",
+            "baseline-observer-28-14",
+            "baseline-observer-28-15",
+            "baseline-observer-28-16"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-28-1",
+        "baseline-observer-28-2",
+        "baseline-observer-28-3",
+        "baseline-observer-28-4",
+        "baseline-observer-28-5",
+        "baseline-observer-28-6",
+        "baseline-observer-28-7",
+        "baseline-observer-28-8",
+        "baseline-observer-28-9",
+        "baseline-observer-28-10",
+        "baseline-observer-28-11",
+        "baseline-observer-28-12",
+        "baseline-observer-28-13",
+        "baseline-observer-28-14",
+        "baseline-observer-28-15",
+        "baseline-observer-28-16"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#29",
+      "name": "server tools are not client continuation work and missing tool evidence is never invented",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "60ef42f06709a7b4d95418ffd6af9c29c426c582ef4aef8bb181fb7b2e54a9c5",
+      "baseline_line": 367,
+      "status": "covered",
+      "reviewed_parameter_scope": "Server-only tool with end_turn and missing client tool with tool_use; exact complete outputs compared in the retained98-case corpus through actual ObservedBody.",
+      "reviewed_assertion_calls": 2,
+      "inherited_helper_call_sites": 2,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 370,
+          "expression": "assert.deepEqual(result.completions, [{ model: opus, continuation_model: opus, stop_reason: 'end_turn', tool_uses: [] }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-29-1",
+            "baseline-observer-29-2"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 372,
+          "expression": "assert.deepEqual(missing.completions, [{ model: opus, stop_reason: 'tool_use', tool_uses: [] }])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-29-1",
+            "baseline-observer-29-2"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 368,
+          "call_expression": "observe([startModel(opus), blockStart(0, { type: 'server_tool_use', id: 'srvtoolu_123' }), blockStop(0), usageDelta({ output_tokens: 12 }, 'end_turn')])",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-29-1",
+            "baseline-observer-29-2"
+          ],
+          "remaining": []
+        },
+        {
+          "call_line": 371,
+          "call_expression": "observe([startModel(opus), usageDelta({ output_tokens: 12 }, 'tool_use')])",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-29-1",
+            "baseline-observer-29-2"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-29-1",
+        "baseline-observer-29-2"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#30",
+      "name": "bounded execution metadata rejects duplicate, malformed and excessive actionable tools",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "e9a5d94f2b0e98fa3ef996ad399d408e3d123f5252df3d4fc10b5e32f0523e47",
+      "baseline_line": 375,
+      "status": "covered",
+      "reviewed_parameter_scope": "Duplicate ID, escape-bearing ID,257 actionable tools; exact empty completion arrays compared in the retained98-case corpus through actual ObservedBody.",
+      "reviewed_assertion_calls": 1,
+      "inherited_helper_call_sites": 1,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 379,
+          "expression": "assert.deepEqual(result.completions, [])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-30-1",
+            "baseline-observer-30-2",
+            "baseline-observer-30-3"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 378,
+          "call_expression": "observe([startModel(opus), ...tools, usageDelta({ output_tokens: 12 }, 'tool_use')])",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-30-1",
+            "baseline-observer-30-2",
+            "baseline-observer-30-3"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-30-1",
+        "baseline-observer-30-2",
+        "baseline-observer-30-3"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#31",
+      "name": "oversized ordinary output is forwardable but skipped ownership metadata cannot confirm a turn",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "90501211a48c4bc7345c55d128afa110cbde46e3e0ea843587212e47e4ba29e8",
+      "baseline_line": 383,
+      "status": "covered",
+      "reviewed_parameter_scope": "Oversized text in a properly open/closed block; oversized tool metadata followed by close and tool_use final.",
+      "reviewed_assertion_calls": 2,
+      "inherited_helper_call_sites": 2,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 387,
+          "expression": "assert.equal(result.completions[0].continuation_model, opus)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-31-1",
+            "baseline-observer-31-2"
+          ]
+        },
+        {
+          "index": 2,
+          "line": 390,
+          "expression": "assert.deepEqual(unknown.completions, [])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-31-1",
+            "baseline-observer-31-2"
+          ]
+        }
+      ],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 385,
+          "call_expression": "observe([startModel(opus), blockStart(0, { type: 'text', text: '' }), output, blockStop(0), usageDelta({ output_tokens: 12 }, 'end_turn')], { maxBufferBytes: 256 })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-31-1",
+            "baseline-observer-31-2"
+          ],
+          "remaining": []
+        },
+        {
+          "call_line": 389,
+          "call_expression": "observe([startModel(opus), oversizedTool, blockStop(0), usageDelta({ output_tokens: 12 }, 'tool_use')], { maxBufferBytes: 256 })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-31-1",
+            "baseline-observer-31-2"
+          ],
+          "remaining": []
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-31-1",
+        "baseline-observer-31-2"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#32",
+      "name": "execution callback throws and rejections cannot interfere with original response bytes",
+      "baseline_file_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "baseline_definition_sha256": "81afe220711f145576c0bcb5203fb3952a7d5277027d99c5ca1a9c5390bc2248",
+      "baseline_line": 393,
+      "status": "partial",
+      "reviewed_parameter_scope": "Two callback variants, synchronous throw and async rejection, assigned simultaneously to execution, completion and model callbacks.",
+      "reviewed_assertion_calls": 0,
+      "inherited_helper_call_sites": 1,
+      "direct_assertions": [],
+      "inherited_helper_assertions": [
+        {
+          "call_line": 396,
+          "call_expression": "observe(chunks, { onExecution: callback, onComplete: callback, onModel: callback })",
+          "helper": "test/response-observer.test.mjs:20",
+          "assertion": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+          "status": "partial",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+          ],
+          "captured_case_ids": [
+            "baseline-observer-32-1"
+          ],
+          "remaining": [
+            "The frozen source also passes an async callback that returns a rejected Promise. Native callbacks are synchronous FnMut; the captured async call remains an explicit API migration boundary and is not claimed covered."
+          ]
+        }
+      ],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+      ],
+      "shared_cases": [
+        "baseline-observer-32-1"
+      ],
+      "review_notes": [
+        "All unchanged frozen Node assertions execute in the capture. Native tests poll the actual ObservedBody for every original chunk, compare allocation identity and bytes, then compare all callback arrays and actual forwarded bytes after EOF."
+      ],
+      "remaining": [
+        "The frozen source also passes an async callback that returns a rejected Promise. Native callbacks are synchronous FnMut; the captured async call remains an explicit API migration boundary and is not claimed covered."
+      ],
+      "migration_boundaries": [
+        {
+          "baseline_test": "test/response-observer.test.mjs#32",
+          "call": 2,
+          "callbacks": [
+            "onModel",
+            "onExecution",
+            "onComplete"
+          ],
+          "reason": "Rust observation callbacks are synchronous; a rejected JavaScript Promise is an explicit API migration boundary."
+        }
+      ]
+    },
+    {
+      "baseline_test": "test/token-counter.test.mjs#1",
+      "name": "counts the complete input for the selected model with request-owned authentication",
+      "baseline_file_sha256": "6c89790b13284f3207575fa1bcf8f50269d28b6a17d88533c68b6e0dc09e8255",
+      "baseline_definition_sha256": "299de43c207a5360795b818f90c062e0a7879f81eeb4f18a797a056b1f6de577",
+      "baseline_line": 14,
+      "status": "covered",
+      "reviewed_parameter_scope": "Complete input projection, POST/no redirects, auth/API headers, query, removed generation fields, result, call count and source nonmutation.",
+      "reviewed_assertion_calls": 11,
+      "inherited_helper_call_sites": 0,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 22,
+          "expression": "assert.equal(url, 'https://api.anthropic.com/v1/messages/count_tokens?beta=true')",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#full_context_projection_shares_adaptation_and_keeps_request_credentials",
+            "rust/crates/autorouter-runtime/src/token_counter.rs#native_count_transport_rejects_redirect_without_following_location"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 2,
+          "line": 23,
+          "expression": "assert.equal(options.method, 'POST')",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#full_context_projection_shares_adaptation_and_keeps_request_credentials",
+            "rust/crates/autorouter-runtime/src/token_counter.rs#native_count_transport_rejects_redirect_without_following_location"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 3,
+          "line": 24,
+          "expression": "assert.equal(options.redirect, 'error')",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#full_context_projection_shares_adaptation_and_keeps_request_credentials",
+            "rust/crates/autorouter-runtime/src/token_counter.rs#native_count_transport_rejects_redirect_without_following_location"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 4,
+          "line": 25,
+          "expression": "assert.equal(options.headers.get('authorization'), headers.authorization)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#full_context_projection_shares_adaptation_and_keeps_request_credentials",
+            "rust/crates/autorouter-runtime/src/token_counter.rs#native_count_transport_rejects_redirect_without_following_location"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 5,
+          "line": 26,
+          "expression": "assert.equal(options.headers.get('anthropic-beta'), headers['anthropic-beta'])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#full_context_projection_shares_adaptation_and_keeps_request_credentials",
+            "rust/crates/autorouter-runtime/src/token_counter.rs#native_count_transport_rejects_redirect_without_following_location"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 6,
+          "line": 27,
+          "expression": "assert.equal(options.headers.get('content-type'), 'application/json')",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#full_context_projection_shares_adaptation_and_keeps_request_credentials",
+            "rust/crates/autorouter-runtime/src/token_counter.rs#native_count_transport_rejects_redirect_without_following_location"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 7,
+          "line": 28,
+          "expression": "assert.equal(options.headers.get('content-length'), null)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#full_context_projection_shares_adaptation_and_keeps_request_credentials",
+            "rust/crates/autorouter-runtime/src/token_counter.rs#native_count_transport_rejects_redirect_without_following_location"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 8,
+          "line": 30,
+          "expression": "assert.deepEqual(JSON.parse(options.body), { ...expected, model: target, thinking: { type: 'adaptive' } })",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#full_context_projection_shares_adaptation_and_keeps_request_credentials",
+            "rust/crates/autorouter-runtime/src/token_counter.rs#native_count_transport_rejects_redirect_without_following_location"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 9,
+          "line": 33,
+          "expression": "assert.equal(await count(body, target, { headers: { ...headers, 'content-length': '99999' }, search: '?beta=true' }), 87654)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#full_context_projection_shares_adaptation_and_keeps_request_credentials",
+            "rust/crates/autorouter-runtime/src/token_counter.rs#native_count_transport_rejects_redirect_without_following_location"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 10,
+          "line": 34,
+          "expression": "assert.equal(calls, 1)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#full_context_projection_shares_adaptation_and_keeps_request_credentials",
+            "rust/crates/autorouter-runtime/src/token_counter.rs#native_count_transport_rejects_redirect_without_following_location"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 11,
+          "line": 35,
+          "expression": "assert.deepEqual(body, before)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#full_context_projection_shares_adaptation_and_keeps_request_credentials",
+            "rust/crates/autorouter-runtime/src/token_counter.rs#native_count_transport_rejects_redirect_without_following_location"
+          ],
+          "captured_case_ids": []
+        }
+      ],
+      "inherited_helper_assertions": [],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/token_counter.rs#full_context_projection_shares_adaptation_and_keeps_request_credentials",
+        "rust/crates/autorouter-runtime/src/token_counter.rs#native_count_transport_rejects_redirect_without_following_location"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "All direct assertions and every local parameter row reviewed. Expected complete payload fields are independent of production allowlist constants."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/token-counter.test.mjs#2",
+      "name": "counting uses target-model thinking requirements without changing other input or explicit native requests",
+      "baseline_file_sha256": "6c89790b13284f3207575fa1bcf8f50269d28b6a17d88533c68b6e0dc09e8255",
+      "baseline_definition_sha256": "ae51660d4c5e8311478d7338603964dc26fa0002f28dd19a82372d8450aafc9e",
+      "baseline_line": 38,
+      "status": "covered",
+      "reviewed_parameter_scope": "Four parameter rows with complete payload and unchanged input.",
+      "reviewed_assertion_calls": 3,
+      "inherited_helper_call_sites": 0,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 49,
+          "expression": "assert.deepEqual(JSON.parse(options.body), { ...context, model: target, thinking: { type: expectedThinking } })",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#every_baseline_thinking_target_preserves_complete_context_and_source"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 2,
+          "line": 52,
+          "expression": "assert.equal(await count(body, target, { headers }), 12000)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#every_baseline_thinking_target_preserves_complete_context_and_source"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 3,
+          "line": 53,
+          "expression": "assert.deepEqual(body, before)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#every_baseline_thinking_target_preserves_complete_context_and_source"
+          ],
+          "captured_case_ids": []
+        }
+      ],
+      "inherited_helper_assertions": [],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/token_counter.rs#every_baseline_thinking_target_preserves_complete_context_and_source"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "All direct assertions and every local parameter row reviewed. Expected complete payload fields are independent of production allowlist constants."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/token-counter.test.mjs#3",
+      "name": "count cache keys reflect the adapted thinking mode and preserve high-effort settings",
+      "baseline_file_sha256": "6c89790b13284f3207575fa1bcf8f50269d28b6a17d88533c68b6e0dc09e8255",
+      "baseline_definition_sha256": "9740973176f7b5a93c10360e1e1fbc8508a9ec117728fa1aebad19558dabce23",
+      "baseline_line": 57,
+      "status": "covered",
+      "reviewed_parameter_scope": "Ten assertions across equivalent adapted inputs and high-effort variants.",
+      "reviewed_assertion_calls": 10,
+      "inherited_helper_call_sites": 0,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 65,
+          "expression": "assert.equal(await count(body, target, { headers }), 1)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#adapted_thinking_and_high_effort_have_exact_cache_equivalence"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 2,
+          "line": 66,
+          "expression": "assert.deepEqual(payloads[0].thinking, { type: 'between_tools' })",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#adapted_thinking_and_high_effort_have_exact_cache_equivalence"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 3,
+          "line": 67,
+          "expression": "assert.equal(await count({ ...body, max_tokens: 20 }, target, { headers }), 1)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#adapted_thinking_and_high_effort_have_exact_cache_equivalence"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 4,
+          "line": 68,
+          "expression": "assert.equal(await count({ ...body, model: target, thinking: { type: 'between_tools' } }, target, { headers }), 1)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#adapted_thinking_and_high_effort_have_exact_cache_equivalence"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 5,
+          "line": 71,
+          "expression": "assert.equal(await count(highEffort, target, { headers }), 2)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#adapted_thinking_and_high_effort_have_exact_cache_equivalence"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 6,
+          "line": 72,
+          "expression": "assert.deepEqual(payloads[1].thinking, { type: 'adaptive' })",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#adapted_thinking_and_high_effort_have_exact_cache_equivalence"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 7,
+          "line": 73,
+          "expression": "assert.deepEqual(payloads[1].output_config, highEffort.output_config)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#adapted_thinking_and_high_effort_have_exact_cache_equivalence"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 8,
+          "line": 74,
+          "expression": "assert.equal(await count({ ...highEffort, thinking: { type: 'adaptive' } }, target, { headers }), 2)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#adapted_thinking_and_high_effort_have_exact_cache_equivalence"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 9,
+          "line": 75,
+          "expression": "assert.equal(await count(body, target, { headers }), 1)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#adapted_thinking_and_high_effort_have_exact_cache_equivalence"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 10,
+          "line": 76,
+          "expression": "assert.equal(payloads.length, 2)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#adapted_thinking_and_high_effort_have_exact_cache_equivalence"
+          ],
+          "captured_case_ids": []
+        }
+      ],
+      "inherited_helper_assertions": [],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/token_counter.rs#adapted_thinking_and_high_effort_have_exact_cache_equivalence"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "All direct assertions and every local parameter row reviewed. Expected complete payload fields are independent of production allowlist constants."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/token-counter.test.mjs#4",
+      "name": "cache separates tokenizer, context modifiers, API features, and request credentials",
+      "baseline_file_sha256": "6c89790b13284f3207575fa1bcf8f50269d28b6a17d88533c68b6e0dc09e8255",
+      "baseline_definition_sha256": "4f31e3c8e63caf946e53b16c5bddb4159c5ce3839a8db0d6c7d3c0001dee7f02",
+      "baseline_line": 79,
+      "status": "covered",
+      "reviewed_parameter_scope": "Generation-only hit; model/thinking/effort/auth/beta/workspace misses; original hit.",
+      "reviewed_assertion_calls": 9,
+      "inherited_helper_call_sites": 0,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 83,
+          "expression": "assert.equal(await count(body, model, { headers }), 1)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#tokenizer_context_modifiers_credentials_and_features_each_separate_cache_entries"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 2,
+          "line": 84,
+          "expression": "assert.equal(await count({ ...body, max_tokens: 128, stream: false }, model, { headers }), 1)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#tokenizer_context_modifiers_credentials_and_features_each_separate_cache_entries"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 3,
+          "line": 85,
+          "expression": "assert.equal(await count(body, 'claude-sonnet-5', { headers }), 2)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#tokenizer_context_modifiers_credentials_and_features_each_separate_cache_entries"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 4,
+          "line": 86,
+          "expression": "assert.equal(await count({ ...body, thinking: { type: 'adaptive' } }, body.model, { headers }), 3)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#tokenizer_context_modifiers_credentials_and_features_each_separate_cache_entries"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 5,
+          "line": 87,
+          "expression": "assert.equal(await count({ ...body, output_config: { effort: 'low' } }, body.model, { headers }), 4)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#tokenizer_context_modifiers_credentials_and_features_each_separate_cache_entries"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 6,
+          "line": 88,
+          "expression": "assert.equal(await count(body, model, { headers: { ...headers, authorization: 'Bearer refreshed-test-credential' } }), 5)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#tokenizer_context_modifiers_credentials_and_features_each_separate_cache_entries"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 7,
+          "line": 89,
+          "expression": "assert.equal(await count(body, model, { headers: { ...headers, 'anthropic-beta': 'different-feature' } }), 6)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#tokenizer_context_modifiers_credentials_and_features_each_separate_cache_entries"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 8,
+          "line": 90,
+          "expression": "assert.equal(await count(body, model, { headers: { ...headers, 'anthropic-workspace-id': 'workspace-2' } }), 7)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#tokenizer_context_modifiers_credentials_and_features_each_separate_cache_entries"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 9,
+          "line": 91,
+          "expression": "assert.equal(await count(body, model, { headers }), 1)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#tokenizer_context_modifiers_credentials_and_features_each_separate_cache_entries"
+          ],
+          "captured_case_ids": []
+        }
+      ],
+      "inherited_helper_assertions": [],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/token_counter.rs#tokenizer_context_modifiers_credentials_and_features_each_separate_cache_entries"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "All direct assertions and every local parameter row reviewed. Expected complete payload fields are independent of production allowlist constants."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/token-counter.test.mjs#5",
+      "name": "cache is bounded and expires successful counts",
+      "baseline_file_sha256": "6c89790b13284f3207575fa1bcf8f50269d28b6a17d88533c68b6e0dc09e8255",
+      "baseline_definition_sha256": "929535a436780d823591d2c1e0fd9172c2117f1cb7aa1e2e0f91d73a21bf3bab",
+      "baseline_line": 94,
+      "status": "covered",
+      "reviewed_parameter_scope": "Same bounded two-entry LRU hit/eviction sequence; deterministic paused-time expiry after11ms for TTL10ms replaces the Node wall-clock20ms wait.",
+      "reviewed_assertion_calls": 6,
+      "inherited_helper_call_sites": 0,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 100,
+          "expression": "assert.equal(await count(body, 'claude-haiku-4-5-20251001'), 1)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#bounded_lru_refreshes_hits_and_expires_successful_counts"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 2,
+          "line": 101,
+          "expression": "assert.equal(await count(body, 'claude-sonnet-5'), 2)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#bounded_lru_refreshes_hits_and_expires_successful_counts"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 3,
+          "line": 102,
+          "expression": "assert.equal(await count(body, 'claude-haiku-4-5-20251001'), 1)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#bounded_lru_refreshes_hits_and_expires_successful_counts"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 4,
+          "line": 103,
+          "expression": "assert.equal(await count(body, 'claude-opus-5'), 3)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#bounded_lru_refreshes_hits_and_expires_successful_counts"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 5,
+          "line": 104,
+          "expression": "assert.equal(await count(body, 'claude-sonnet-5'), 4)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#bounded_lru_refreshes_hits_and_expires_successful_counts"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 6,
+          "line": 106,
+          "expression": "assert.equal(await count(body, 'claude-sonnet-5'), 5)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#bounded_lru_refreshes_hits_and_expires_successful_counts"
+          ],
+          "captured_case_ids": []
+        }
+      ],
+      "inherited_helper_assertions": [],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/token_counter.rs#bounded_lru_refreshes_hits_and_expires_successful_counts"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "All direct assertions and every local parameter row reviewed. Expected complete payload fields are independent of production allowlist constants."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/token-counter.test.mjs#6",
+      "name": "unsupported server tools, MCP, remote attachments, and unknown input fields skip the API",
+      "baseline_file_sha256": "6c89790b13284f3207575fa1bcf8f50269d28b6a17d88533c68b6e0dc09e8255",
+      "baseline_definition_sha256": "78f2a38beac3b4ac4ade250e6a11332c61a153e488cc8a2225e5441e5f572735",
+      "baseline_line": 109,
+      "status": "covered",
+      "reviewed_parameter_scope": "Eight unsupported extra-input variants must never invoke transport.",
+      "reviewed_assertion_calls": 2,
+      "inherited_helper_call_sites": 0,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 110,
+          "expression": "assert.fail('Unsupported input reached count API')",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#unsupported_fields_tools_and_deep_remote_attachments_make_no_request"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 2,
+          "line": 120,
+          "expression": "assert.equal(await count({ ...request(), ...extra }, model, { headers }), undefined)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#unsupported_fields_tools_and_deep_remote_attachments_make_no_request"
+          ],
+          "captured_case_ids": []
+        }
+      ],
+      "inherited_helper_assertions": [],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/token_counter.rs#unsupported_fields_tools_and_deep_remote_attachments_make_no_request"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "All direct assertions and every local parameter row reviewed. Expected complete payload fields are independent of production allowlist constants."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/token-counter.test.mjs#7",
+      "name": "base64 attachments, client tools, advisor tools and beta count modifiers are preserved",
+      "baseline_file_sha256": "6c89790b13284f3207575fa1bcf8f50269d28b6a17d88533c68b6e0dc09e8255",
+      "baseline_definition_sha256": "72c9d2205ccbbb9fcc55d2318afac24f7b11bb2a74d7ad2e53768215f12a2328",
+      "baseline_line": 123,
+      "status": "covered",
+      "reviewed_parameter_scope": "One full allowed-context combination, exact request JSON and successful1000 count.",
+      "reviewed_assertion_calls": 2,
+      "inherited_helper_call_sites": 0,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 130,
+          "expression": "assert.deepEqual(JSON.parse(options.body), { ...expected, model })",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#allowed_base64_client_advisor_and_beta_context_reaches_count_api_unchanged"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 2,
+          "line": 133,
+          "expression": "assert.equal(await count(body, model, { headers }), 1000)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#allowed_base64_client_advisor_and_beta_context_reaches_count_api_unchanged"
+          ],
+          "captured_case_ids": []
+        }
+      ],
+      "inherited_helper_assertions": [],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/token_counter.rs#allowed_base64_client_advisor_and_beta_context_reaches_count_api_unchanged"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "All direct assertions and every local parameter row reviewed. Expected complete payload fields are independent of production allowlist constants."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/token-counter.test.mjs#8",
+      "name": "invalid counts and upstream failures return unknown and are never cached",
+      "baseline_file_sha256": "6c89790b13284f3207575fa1bcf8f50269d28b6a17d88533c68b6e0dc09e8255",
+      "baseline_definition_sha256": "999b1550b88b519494535f2b93436a0248815d0c89c2fb9aeda8e504aa5a7a43",
+      "baseline_line": 136,
+      "status": "covered",
+      "reviewed_parameter_scope": "Invalid safe-integer/JSON/oversize/status responses and thrown transport error; every case retries and caches successful0.",
+      "reviewed_assertion_calls": 4,
+      "inherited_helper_call_sites": 0,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 148,
+          "expression": "assert.equal(await count(request(), model, { headers }), undefined)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#failures_invalid_counts_and_oversized_responses_never_cache"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 2,
+          "line": 149,
+          "expression": "assert.equal(await count(request(), model, { headers }), 0)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#failures_invalid_counts_and_oversized_responses_never_cache"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 3,
+          "line": 150,
+          "expression": "assert.equal(await count(request(), model, { headers }), 0)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#failures_invalid_counts_and_oversized_responses_never_cache"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 4,
+          "line": 151,
+          "expression": "assert.equal(calls, 2)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#failures_invalid_counts_and_oversized_responses_never_cache"
+          ],
+          "captured_case_ids": []
+        }
+      ],
+      "inherited_helper_assertions": [],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/token_counter.rs#failures_invalid_counts_and_oversized_responses_never_cache"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "All direct assertions and every local parameter row reviewed. Expected complete payload fields are independent of production allowlist constants."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/token-counter.test.mjs#9",
+      "name": "timeouts include fetch and response body consumption without caching the failure",
+      "baseline_file_sha256": "6c89790b13284f3207575fa1bcf8f50269d28b6a17d88533c68b6e0dc09e8255",
+      "baseline_definition_sha256": "5ed63867da6b28a8f159d24549baebd43f1c881b08cffa18f125c2831a5e45f3",
+      "baseline_line": 155,
+      "status": "covered",
+      "reviewed_parameter_scope": "Separate fetch and body hangs; timeout15ms, abort/drop, bounded completion and retry success.",
+      "reviewed_assertion_calls": 4,
+      "inherited_helper_call_sites": 0,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 166,
+          "expression": "assert.equal(await count(request(), model, { headers }), undefined)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#configured_deadline_is_exact_for_fetch_and_body_and_failed_work_is_retriable"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 2,
+          "line": 167,
+          "expression": "assert.ok(performance.now() - start < 500)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#configured_deadline_is_exact_for_fetch_and_body_and_failed_work_is_retriable"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 3,
+          "line": 168,
+          "expression": "assert.equal(observedSignal.aborted, true)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#configured_deadline_is_exact_for_fetch_and_body_and_failed_work_is_retriable"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 4,
+          "line": 169,
+          "expression": "assert.equal(await count(request(), model, { headers }), 123)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#configured_deadline_is_exact_for_fetch_and_body_and_failed_work_is_retriable"
+          ],
+          "captured_case_ids": []
+        }
+      ],
+      "inherited_helper_assertions": [],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/token_counter.rs#configured_deadline_is_exact_for_fetch_and_body_and_failed_work_is_retriable"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "All direct assertions and every local parameter row reviewed. Expected complete payload fields are independent of production allowlist constants.",
+        "The baseline wall-clock500ms watchdog is represented by a deterministic virtual-time contract: pending at14ms, cancelled at the configured15ms, owned fetch/body dropped, retry succeeds. This is deadline/resource evidence, not a wall-latency claim."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/token-counter.test.mjs#10",
+      "name": "client cancellation aborts counting promptly and already-cancelled calls skip even cached counts",
+      "baseline_file_sha256": "6c89790b13284f3207575fa1bcf8f50269d28b6a17d88533c68b6e0dc09e8255",
+      "baseline_definition_sha256": "94f7acd5439a3fcbe7b9e6b16975aea5ff6d1d243a7b6fbcaa6121b0ef302783",
+      "baseline_line": 173,
+      "status": "covered",
+      "reviewed_parameter_scope": "Active cancellation drops the owned request future; a separately primed cache is still skipped for an already-cancelled token. Future drop is the native cancellation contract corresponding to AbortSignal cancellation.",
+      "reviewed_assertion_calls": 4,
+      "inherited_helper_call_sites": 0,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "line": 186,
+          "expression": "assert.equal(await pending, undefined)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#caller_cancellation_drops_inflight_fetch_and_does_not_affect_other_counts",
+            "rust/crates/autorouter-runtime/src/token_counter.rs#deadline_covers_fetch_and_body_and_cancellation_precedes_cache_hits"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 2,
+          "line": 187,
+          "expression": "assert.equal(observedSignal.aborted, true)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#caller_cancellation_drops_inflight_fetch_and_does_not_affect_other_counts",
+            "rust/crates/autorouter-runtime/src/token_counter.rs#deadline_covers_fetch_and_body_and_cancellation_precedes_cache_hits"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 3,
+          "line": 189,
+          "expression": "assert.equal(await cached(request(), model, { headers }), 123)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#caller_cancellation_drops_inflight_fetch_and_does_not_affect_other_counts",
+            "rust/crates/autorouter-runtime/src/token_counter.rs#deadline_covers_fetch_and_body_and_cancellation_precedes_cache_hits"
+          ],
+          "captured_case_ids": []
+        },
+        {
+          "index": 4,
+          "line": 190,
+          "expression": "assert.equal(await cached(request(), model, { headers, signal: controller.signal }), undefined)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-runtime/src/token_counter.rs#caller_cancellation_drops_inflight_fetch_and_does_not_affect_other_counts",
+            "rust/crates/autorouter-runtime/src/token_counter.rs#deadline_covers_fetch_and_body_and_cancellation_precedes_cache_hits"
+          ],
+          "captured_case_ids": []
+        }
+      ],
+      "inherited_helper_assertions": [],
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/token_counter.rs#caller_cancellation_drops_inflight_fetch_and_does_not_affect_other_counts",
+        "rust/crates/autorouter-runtime/src/token_counter.rs#deadline_covers_fetch_and_body_and_cancellation_precedes_cache_hits"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "All direct assertions and every local parameter row reviewed. Expected complete payload fields are independent of production allowlist constants.",
+        "Dropping the owned native request future/body is the cancellation operation corresponding to JavaScript AbortSignal; an already-cancelled token is checked before a cached count is returned."
+      ],
+      "remaining": []
+    }
+  ]
+}

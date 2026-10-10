@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "kind": "local_native_archive_qualification",
+  "platform": {
+    "os": "macos",
+    "arch": "aarch64"
+  },
+  "passed": true,
+  "native_verification": {
+    "schema_version": 1,
+    "kind": "native_npm_feasibility",
+    "verified": true,
+    "release_approved": false,
+    "sha256": "b76b5dfb25c171382221e44d40dba069f8adf1381e06abdb37bbef5bdc64e7af",
+    "integrity": "sha512-O89TicuSf4dB26zg16QmXuy1FOPNU0PSGpISa5n86UJB6c0hvro1FyKd77Qi7gCtTaAdSHu11kV+HALhaY32Ow==",
+    "compressed_bytes": 5954022,
+    "expanded_tar_bytes": 14446592,
+    "files": 8,
+    "artifacts": [
+      {
+        "target": "aarch64-apple-darwin",
+        "path": "native/aarch64-apple-darwin/claude-autorouter",
+        "sha256": "a6a8514c87dbfc48bf4a92b582f49b5324bbecb863763d33545536ae4a5f2df1",
+        "bytes": 12822688,
+        "inspection": {
+          "format": "Mach-O",
+          "target": "aarch64-apple-darwin",
+          "minimum_macos": "11.0.0",
+          "dynamic_libraries": [
+            "/usr/lib/libiconv.2.dylib",
+            "/usr/lib/libSystem.B.dylib"
+          ],
+          "execution_qualification": "pending"
+        }
+      }
+    ],
+    "archive_caps_bytes": 33554432,
+    "platform_qualification": "pending",
+    "full_supported_matrix": "pending",
+    "source_to_binary_provenance": "unverified",
+    "license_files_missing": [],
+    "license_review": "pending"
+  },
+  "installed_cli_tests": 60,
+  "installed_smoke": {
+    "passed": true,
+    "offline_install": true,
+    "ignore_scripts": true,
+    "npm_symlink": true,
+    "paths_with_spaces_quotes_and_dollar": true,
+    "unrelated_cwd": true,
+    "node_absent_from_execution_path": true,
+    "help_version": true,
+    "complete_launcher_lifecycle": {
+      "passed": true,
+      "test_suites": [
+        "crates/claude-autorouter/tests/commands.rs",
+        "crates/claude-autorouter/tests/edge_cases.rs",
+        "crates/claude-autorouter/tests/launcher_logging.rs",
+        "crates/claude-autorouter/tests/onboarding_local.rs",
+        "crates/claude-autorouter/tests/launcher_contracts.rs",
+        "crates/claude-autorouter/tests/startup_options.rs",
+        "crates/claude-autorouter/tests/config_contracts.rs"
+      ],
+      "summaries": [
+        "test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s",
+        "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s",
+        "test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s",
+        "test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s",
+        "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.35s",
+        "test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.91s",
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.99s"
+      ]
+    }
+  },
+  "upgrade_rollback_stages": [
+    "baseline",
+    "native",
+    "rollback",
+    "native_after_rollback"
+  ],
+  "upgrade_rollback_verified": [
+    "exact_installed_archive_bytes",
+    "npm_command_symlink",
+    "offline_ignore_scripts",
+    "native_without_node_on_path",
+    "same_config_path_without_migration",
+    "existing_file_credentials_retained",
+    "private_atomic_edit",
+    "history_schema_1_and_2",
+    "recorded_pricing",
+    "history_bytes_unchanged",
+    "isolated_cleanup"
+  ],
+  "reports": [
+    {
+      "path": "artifacts/rust-rewrite/native-package-host-4/installed-smoke-final.json",
+      "sha256": "9aff90f68cdd6835a62638669bff3b74acaf22f0a26505828c26b6cc6459e6a1",
+      "bytes": 1478
+    },
+    {
+      "path": "artifacts/rust-rewrite/upgrade-rollback-host-3/report.json",
+      "sha256": "3398d0a3fcef96d7bfd724c79f3512b40cc4ca4c81fbdd2f04ffb7f47ceb865b",
+      "bytes": 2275
+    },
+    {
+      "path": "artifacts/rust-rewrite/host4-real-install-reproduction/report.json",
+      "sha256": "69273a08e00a4d9945408d62319d1dc96436fba61c2a078fef644c74468acded",
+      "bytes": 2471
+    },
+    {
+      "path": "artifacts/rust-rewrite/native-package-host-4/installed-smoke-group-cleanup.json",
+      "sha256": "99f7751a8e441ccdc0e0f8cee72a4947300523d69a2559ff0244600e0cb51b7f",
+      "bytes": 1478
+    }
+  ],
+  "limits": [
+    "local_host_only",
+    "synthetic_file_credentials_only",
+    "no_real_keychain_or_provider",
+    "no_publication_or_cutover_approval",
+    "dirty_tree_feasibility_build_not_release_provenance",
+    "archive_bytes_unchanged_after_two_installed_test_path_assumptions_were_corrected",
+    "completed_bounded_lifecycle_failures_retained_in_private_reports;timeout_and_output_overflow_discard_partial_output",
+    "host_selection_uses_test_tool_architecture;translated_or_emulated_launchers_need_separate_qualification"
+  ]
+}
