@@ -99,6 +99,9 @@ pub trait GatewayRouter: Send + Sync + 'static {
         }
     }
     fn shutdown(&self);
+    /// Stop admitting work and await all internally spawned task destructors.
+    /// Dropping this waiter must preserve the adapter's cleanup ownership.
+    fn close(&self) -> impl Future<Output = ()> + Send;
 }
 impl<T: HttpTransport + 'static> GatewayRouter for Router<T>
 where
@@ -134,6 +137,9 @@ where
     }
     fn shutdown(&self) {
         self.shutdown();
+    }
+    async fn close(&self) {
+        self.close().await;
     }
 }
 type GatewayBody = UnsyncBoxBody<Bytes, io::Error>;
@@ -666,7 +672,7 @@ where
             }
             drop(listener);
             stopping.cancel();
-            gateway.router.shutdown();
+            gateway.router.close().await;
             while connections.join_next().await.is_some() {}
         });
         Ok(GatewayHandle {

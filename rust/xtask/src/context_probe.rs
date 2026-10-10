@@ -350,6 +350,11 @@ impl GatewayRouter for ProbeRouter {
             router.shutdown();
         }
     }
+    async fn close(&self) {
+        if let Some(router) = &self.inner {
+            router.close().await;
+        }
+    }
 }
 fn response(status: u16, content_type: &str, bytes: impl Into<Bytes>) -> Response<Full<Bytes>> {
     Response::builder()

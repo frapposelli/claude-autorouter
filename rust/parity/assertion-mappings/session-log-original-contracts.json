@@ -1,0 +1,3131 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_session_log_original_contracts_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_head": "26926a8a980b5097d517f5114d3b075bd0f4414d",
+  "status": "Twelve original definitions covered with explicit close Future migration; three remain partial. Complete area/platform qualification remains open.",
+  "scope": "Fifteen remaining original session-log callback definitions1-8,11-17 through the actual SessionLog and delegated NativeSessionSink; native API limitations are explicit. Existing9/10 coverage is unchanged.",
+  "counts": {
+    "selected_definitions": 15,
+    "source_static_sites": 88,
+    "source_expanded_assertions": 1168,
+    "original_writers": 17,
+    "original_record_calls": 1399,
+    "original_session_files": 143,
+    "original_durable_rows": 1375,
+    "native_writers": 17,
+    "native_record_calls": 1398,
+    "native_skipped_getter_record_calls": 1,
+    "native_labelled_static_predicates": 86,
+    "native_labelled_expanded_predicates": 1166,
+    "unrepresented_getter_assertion_sites": 2,
+    "labelled_async_warning_site_without_async_failure_capability": 1,
+    "native_real_descriptor_ownership_records": 143,
+    "focused_native_tests": 27,
+    "new_original_callback_tests": 15,
+    "new_integrity_comparison_descriptor_controls": 3,
+    "existing_session_log_tests": 9,
+    "frozen_uninstrumented_tests": 17,
+    "covered_definitions": 12,
+    "partial_definitions": 3,
+    "reviewed_future_identity_migrations": 2
+  },
+  "count_limits": [
+    "86/1166 count executed labelled predicates, not86 fully language-equivalent assertions: native#12:3 is explicitly a normal-returning callback adaptation.",
+    "Getter non-invocation in#3, throwing getter handling in#6, nonfinite Number input in#6 and async rejection in#12 remain explicit native capability gaps.",
+    "Shared Promise identity in#2/#14 is separately reviewed as first-polled future admission to a single owned worker; never exact object identity."
+  ],
+  "current_sources": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/280eb5ff370087249ff723d19392f976790e295604cb50aea1c7406fd226dffd.rs",
+      "sha256": "280eb5ff370087249ff723d19392f976790e295604cb50aea1c7406fd226dffd",
+      "bytes": 7233,
+      "original_path": "rust/crates/autorouter-runtime/src/session_log_contracts.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98.rs",
+      "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98",
+      "bytes": 44000,
+      "original_path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/a04307797f0459566c32cf7c77d885ffad5ec64fb2597f895c9db1c21ea18f17.mjs",
+      "sha256": "a04307797f0459566c32cf7c77d885ffad5ec64fb2597f895c9db1c21ea18f17",
+      "bytes": 17039,
+      "original_path": "rust/parity/capture-session-log-contracts.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/6a20c5285202fbd496d67f500a5b76405873d070aac5e0eba81f76f2132a4115.jsonl",
+      "sha256": "6a20c5285202fbd496d67f500a5b76405873d070aac5e0eba81f76f2132a4115",
+      "bytes": 334098,
+      "original_path": "rust/parity/cases/session-log-contracts.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/dfca8e29eded9f51e4c22bce05369738b204b3f916bccdb53af53cc416a79218.capture.json",
+      "sha256": "dfca8e29eded9f51e4c22bce05369738b204b3f916bccdb53af53cc416a79218",
+      "bytes": 105352,
+      "original_path": "rust/parity/cases/session-log-contracts.capture.json"
+    }
+  ],
+  "native_validation": {
+    "path": "artifacts/rust-rewrite/session-log-original-native-2/report.json",
+    "bytes": 6358,
+    "sha256": "ac4f3105dd52fe79c95c6c36b5a2f5b1ed9f9cbca801e2f6502202c967ccdd42"
+  },
+  "native_binary": {
+    "path": "artifacts/rust-rewrite/session-log-original-native-2/native-tests",
+    "bytes": 86076656,
+    "sha256": "2c77cd505743bcab1e6d1e9d5db405c240f771f79e396a9b01fb3b6b8226b4e6"
+  },
+  "native_observations": {
+    "path": "artifacts/rust-rewrite/session-log-original-handoff-1/native-observations.json",
+    "bytes": 42411,
+    "sha256": "7d932607e3d3e670ed6b64eb1580238735610799bd881bd221719ca12266533e"
+  },
+  "reference_capture_evidence": [
+    {
+      "path": "artifacts/rust-rewrite/session-log-contracts-capture-3/report.json",
+      "bytes": 1565,
+      "sha256": "233cb48ea29b3522696ab2ae4c7f84bf34797eab2b330edefd6ae2b935c2401f"
+    },
+    {
+      "path": "artifacts/rust-rewrite/session-log-contracts-capture-3/capture/session-log-contracts.jsonl",
+      "bytes": 334098,
+      "sha256": "6a20c5285202fbd496d67f500a5b76405873d070aac5e0eba81f76f2132a4115"
+    },
+    {
+      "path": "artifacts/rust-rewrite/session-log-contracts-capture-3/capture/session-log-contracts.capture.json",
+      "bytes": 105352,
+      "sha256": "dfca8e29eded9f51e4c22bce05369738b204b3f916bccdb53af53cc416a79218"
+    },
+    {
+      "path": "artifacts/rust-rewrite/session-log-contracts-capture-3/capture/raw-observations.json",
+      "bytes": 4809362,
+      "sha256": "30b079cec3c5817ecc47ac231ce25a8ebaf9d0dc4c02a936460f523ffd6b76f9"
+    },
+    {
+      "path": "artifacts/rust-rewrite/session-log-contracts-capture-4/report.json",
+      "bytes": 1565,
+      "sha256": "19fdfc5874f97ea24659d01746a286193346a9d0ce8a7a4871e92067a02805cf"
+    },
+    {
+      "path": "artifacts/rust-rewrite/session-log-contracts-capture-4/capture/session-log-contracts.jsonl",
+      "bytes": 334098,
+      "sha256": "6a20c5285202fbd496d67f500a5b76405873d070aac5e0eba81f76f2132a4115"
+    },
+    {
+      "path": "artifacts/rust-rewrite/session-log-contracts-capture-4/capture/session-log-contracts.capture.json",
+      "bytes": 105352,
+      "sha256": "dfca8e29eded9f51e4c22bce05369738b204b3f916bccdb53af53cc416a79218"
+    },
+    {
+      "path": "artifacts/rust-rewrite/session-log-contracts-capture-4/capture/raw-observations.json",
+      "bytes": 4809362,
+      "sha256": "8ab601ab9ecb148be99bd06c788debfc6f4a4545ebdeb30779670e8ba50fa19b"
+    },
+    {
+      "path": "artifacts/rust-rewrite/session-log-contracts-capture-5/report.json",
+      "bytes": 1565,
+      "sha256": "4724bf768e9ea6218b026abcf8a5ffecda97dfd6429ca5977cc04b1278e1ede1"
+    },
+    {
+      "path": "artifacts/rust-rewrite/session-log-contracts-capture-5/capture/session-log-contracts.jsonl",
+      "bytes": 334098,
+      "sha256": "6a20c5285202fbd496d67f500a5b76405873d070aac5e0eba81f76f2132a4115"
+    },
+    {
+      "path": "artifacts/rust-rewrite/session-log-contracts-capture-5/capture/session-log-contracts.capture.json",
+      "bytes": 105352,
+      "sha256": "dfca8e29eded9f51e4c22bce05369738b204b3f916bccdb53af53cc416a79218"
+    },
+    {
+      "path": "artifacts/rust-rewrite/session-log-contracts-capture-5/capture/raw-observations.json",
+      "bytes": 4809362,
+      "sha256": "58355b4667b192b7ded13b17c31da40569dea625d1bdb721b0e110f1a1da5a51"
+    }
+  ],
+  "frozen_original_evidence": [
+    {
+      "path": "artifacts/rust-rewrite/session-log-original-frozen-1/report.json",
+      "bytes": 248,
+      "sha256": "14037831bb097b1fea6a9aca8b6380faab565fe83e8e580529eaa6715ce1ccf2"
+    },
+    {
+      "path": "artifacts/rust-rewrite/session-log-original-frozen-1/stdout.log",
+      "bytes": 4000,
+      "sha256": "7dda5bb6c0ee948526e995f422ace79e1debda3a0ea814cb69745b1e87428f9a"
+    },
+    {
+      "path": "artifacts/rust-rewrite/session-log-original-frozen-1/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "reference_original": {
+    "path": "artifacts/rust-rewrite/reference/test/session-log.test.mjs",
+    "bytes": 19428,
+    "sha256": "1c423cf1729cb5fc8bc0f15f7cc71e76f1992cfe5eb4aade5e66fea2f9fca795"
+  },
+  "exact_source_snapshot": {
+    "path": "artifacts/rust-rewrite/session-log-original-native-2/source-inputs-after.json",
+    "bytes": 151818,
+    "sha256": "da1f75822f6ce22dd82d014d6b24c72070cf33827631f0c437d9782d40f86631"
+  },
+  "production_change": false,
+  "adaptations": {
+    "file_identity": "Native random launch portions and validated generated timestamps are projected exactly as declared in the capture; actual raw fixtures and native fd observations remain retained. Object key presence and full row content remain strict.",
+    "numeric_identity": "serde JSON integer/float spellings compare by exact as_f64 with no epsilon; one-ULP mutation is rejected.",
+    "descriptor_observer": "Read-only descriptor-filesystem metadata, positively inode-bound to actual append-only files, retains its own dev/inode separate from real file dev/inode. Safe dup2 positive/reused/closed controls pass locally. This finite fixture observer is not a general platform FD API.",
+    "warning_callback": "Synchronous warning panic is real and caught; asynchronous rejected Promise cannot be represented by Fn(&str).",
+    "post_open_failure": "Delegate empty append opens and validates a real private native descriptor; the wrapper then returns the original synthetic payload-write error. This is a mocked post-open error, not a kernel write fault. File stays empty; real close drains handles and observation proves release."
+  },
+  "negative_controls": [
+    "missing durable row",
+    "reordered durable rows",
+    "forged selected model",
+    "merged anonymous/named session identity",
+    "unexpected null field",
+    "one-f64-ULP changed latency",
+    "missing request_id",
+    "wrong file mode",
+    "positive real O_APPEND|O_WRONLY descriptor",
+    "same numeric descriptor safely reused for a different private file",
+    "closed observed descriptor"
+  ],
+  "retained_native_failure": {
+    "path": "artifacts/rust-rewrite/session-log-original-native-1/report.json",
+    "bytes": 5139,
+    "sha256": "d4c3499cc91acc9cf41a8d26949d27bdda304d174d846ae3a4be8a29a93369f9"
+  },
+  "retained_draft_snapshots": [
+    {
+      "path": "artifacts/rust-rewrite/session-log-original-draft-1/sources.json",
+      "bytes": 1045,
+      "sha256": "52f7a186c153cdbf7b1ad683dcb636a45fad1dc99a3bfbb45c3f1c759d94100e"
+    },
+    {
+      "path": "artifacts/rust-rewrite/session-log-original-draft-2/sources.json",
+      "bytes": 2373,
+      "sha256": "82e50a29f908e3bb45bf7212c2e2e4b52e2f36adcc6db6081ba8490a3d2e188f"
+    },
+    {
+      "path": "artifacts/rust-rewrite/session-log-original-draft-3/sources.json",
+      "bytes": 2507,
+      "sha256": "437df36793d8b676e7b5b69d3d1fd16a25ccfc84d66f6b0e1a0bb23494616e77"
+    },
+    {
+      "path": "artifacts/rust-rewrite/session-log-original-draft-4/sources.json",
+      "bytes": 4341,
+      "sha256": "8b7e622cade64a67948810dc10ef81ed20bfe9901d5c12b316670e8a8691b94f"
+    }
+  ],
+  "preliminary_reviews": [
+    {
+      "original": {
+        "path": "/private/tmp/autorouter-session-log-original-preliminary-review.json",
+        "bytes": 3219,
+        "sha256": "c058cf6fe3e3060ab1a060cc8aea3dc3450ed67c1e626303a2c5f8a1ae259601"
+      },
+      "retained": {
+        "path": "artifacts/rust-rewrite/session-log-original-handoff-1/c058cf6fe3e3060ab1a060cc8aea3dc3450ed67c1e626303a2c5f8a1ae259601.json",
+        "bytes": 3219,
+        "sha256": "c058cf6fe3e3060ab1a060cc8aea3dc3450ed67c1e626303a2c5f8a1ae259601"
+      }
+    },
+    {
+      "original": {
+        "path": "/private/tmp/autorouter-session-log-safe-descriptor-independent-review.json",
+        "bytes": 2442,
+        "sha256": "c9c3797802a9a4b0906daa0adf960138911c1faff49b234d3195c4c734466388"
+      },
+      "retained": {
+        "path": "artifacts/rust-rewrite/session-log-original-handoff-1/c9c3797802a9a4b0906daa0adf960138911c1faff49b234d3195c4c734466388.json",
+        "bytes": 2442,
+        "sha256": "c9c3797802a9a4b0906daa0adf960138911c1faff49b234d3195c4c734466388"
+      }
+    }
+  ],
+  "limits": [
+    "Final native result is synthetic macOS ARM64 only. Linux descriptor-filesystem control remains for CI.",
+    "First native run failed because the old read-only reopen probe could not inspect append-only handles. Production source was unchanged; corrected observer source and old failed binary are both retained.",
+    "All15 source callbacks are captured unchanged; native scope is reduced explicitly where its type system cannot express JS getter/Promise/async-warning behaviors.",
+    "This mapping does not qualify the whole storage area or Linux descriptor behavior. Main compile/CI/platform evidence remains separate."
+  ],
+  "rows": [
+    {
+      "id": "test/session-log.test.mjs#1",
+      "source_file": "test/session-log.test.mjs",
+      "name": "concurrent decisions stay ordered in one private file per session, including an anonymous session",
+      "source_line": 35,
+      "source_statement_sha256": "b0319b93546409cf92acbf6371e7f150773d762a7c7bc515cf30d45883a509c3",
+      "previous_coverage_status": "partial_assertion_mapping",
+      "mapping_status": "root_reviewed_native_behavior_with_named_API_boundaries",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_01_concurrent_named_and_anonymous_sessions"
+      ],
+      "shared_cases": [
+        "session-log-contracts.jsonl:1"
+      ],
+      "case": {
+        "path": "rust/parity/cases/session-log-contracts.jsonl",
+        "line": 1,
+        "source_test": "test/session-log.test.mjs#1",
+        "line_sha256": "53909cb122eb5f6caddfca887f597e16fbf386aab94b7033e17282ea734a2c2d"
+      },
+      "native_static_labelled_sites": 11,
+      "native_expanded_labelled_predicates": 144,
+      "assertions": [
+        {
+          "id": "test/session-log.test.mjs#1:assert-1",
+          "source_line": 40,
+          "source_expression": "assert.equal(writer.record(decision({ request_id: `request-${index}`, session_id: index % 3 === 2 ? undefined : `session-${index % 3}`,\n      agent_id: `agent-${index % 5}` })), true)",
+          "source_expression_sha256": "204d4daf43affdc4c7c0b6217072e5a0a20ea3184e2df9e009f2845fcb102063",
+          "expanded_original_executions": 120,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 599,
+            "fragment": "original!(1, 1, writer.record(value.as_ref().unwrap()))",
+            "fragment_sha256": "2b4fb403c4eefcc14da7ce55e5509a50f76941eb8526123b9978c5da17471683"
+          },
+          "expanded_native_labelled_executions": 120,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#1:assert-2",
+          "source_line": 45,
+          "source_expression": "assert.equal(logs.length, 3)",
+          "source_expression_sha256": "830d63bb04a3bd4100abc1919d44b85dec28729af01c9838dafdf48c999d25b9",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 619,
+            "fragment": "original!(1, 2, actual.len() == 3)",
+            "fragment_sha256": "ae4ddc13cbdfbc2ac62938a7b050c112ca38172c61511a87d4ad5750fe3e67dd"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#1:assert-3",
+          "source_line": 46,
+          "source_expression": "assert.equal((await fs.stat(f.directory)).mode & 0o777, 0o700)",
+          "source_expression_sha256": "5c840d70777e6470885acbfd06f9249e9d80696f532cb4a749feb3f47c09ffef",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 620,
+            "fragment": "original!(\n        1,\n        3,\n        std::fs::metadata(root.0.join(\"logs\")).unwrap().mode() & 0o777 == 0o700\n    )",
+            "fragment_sha256": "29fdf1622729980da5720cbfe532123e885bd12564be5a763e7494411c45fc53"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#1:assert-4",
+          "source_line": 48,
+          "source_expression": "assert.match(file.name, /^autorouter-session-[A-Za-z0-9-]+\\.jsonl$/)",
+          "source_expression_sha256": "87cce9eeac20d353623270bb5bfbb0e44c174ef89c4d378786e83682df74d58e",
+          "expanded_original_executions": 3,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 626,
+            "fragment": "original!(\n            1,\n            4,\n            file.name.starts_with(\"autorouter-session-\")\n                && file.name.ends_with(\".jsonl\")\n                && file\n                    .name\n                    .trim_end_matches(\".jsonl\")\n                    .bytes()\n                    .all(|c| c.is_ascii_alphanumeric() || c == b'-')\n        )",
+            "fragment_sha256": "828041dfeb6793b6a8f9a994f832cf5f30dd1b3a46e8780c56989ee4112b18ef"
+          },
+          "expanded_native_labelled_executions": 3,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#1:assert-5",
+          "source_line": 49,
+          "source_expression": "assert.ok(!file.name.includes('session-0') && !file.name.includes('session-1'))",
+          "source_expression_sha256": "b7155a1fa893e1e9b84a10a266c1dc8fc4d3e77e6d2ad9fadfe9898d1fc44d6c",
+          "expanded_original_executions": 3,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 637,
+            "fragment": "original!(\n            1,\n            5,\n            !file.name.contains(\"session-0\") && !file.name.contains(\"session-1\")\n        )",
+            "fragment_sha256": "f89611e5853c33b8d1fa780b9895d9794ce9dd97d8bd9a9faf373b1d491556ba"
+          },
+          "expanded_native_labelled_executions": 3,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#1:assert-6",
+          "source_line": 50,
+          "source_expression": "assert.equal((await fs.stat(join(f.directory, file.name))).mode & 0o777, 0o600)",
+          "source_expression_sha256": "cc1bf054f799c957c647e79a0ec7531be944050a25dce03c7be314d70f990e05",
+          "expanded_original_executions": 3,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 642,
+            "fragment": "original!(1, 6, file.mode == 0o600)",
+            "fragment_sha256": "c8f3cc5f51948ae517736c47bfd0b547cf3999d8f0c23f626f183641f36f2cde"
+          },
+          "expanded_native_labelled_executions": 3,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#1:assert-7",
+          "source_line": 51,
+          "source_expression": "assert.equal(new Set(file.rows.map(row => row.session_id)).size, 1)",
+          "source_expression_sha256": "5193f9bdbe522d4d96e32d17a96b3c924c181364b55e8bdd03a8efa8ddc0e380",
+          "expanded_original_executions": 3,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 643,
+            "fragment": "original!(\n            1,\n            7,\n            file.rows\n                .iter()\n                .all(|r| r.get(\"session_id\") == file.rows[0].get(\"session_id\"))\n        )",
+            "fragment_sha256": "11f16a6c7e13191189c7da7bd483e92455755861ee3f53702b4b7d98aa963819"
+          },
+          "expanded_native_labelled_executions": 3,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#1:assert-8",
+          "source_line": 52,
+          "source_expression": "assert.equal(file.rows.length, 40)",
+          "source_expression_sha256": "e8300b2b030e31deffe24bca0b246ad055416f6adc46ad231a5dc2719b7d6280",
+          "expanded_original_executions": 3,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 650,
+            "fragment": "original!(1, 8, file.rows.len() == 40)",
+            "fragment_sha256": "bf6d751b71fcfa975407f55565d608ec7c009536581cb17c84a6f8102c6f3071"
+          },
+          "expanded_native_labelled_executions": 3,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#1:assert-9",
+          "source_line": 54,
+          "source_expression": "assert.deepEqual(indexes, [...indexes].sort((a, b) => a - b))",
+          "source_expression_sha256": "529429b364751afed4361393df3448a8998ea1fbb062d1df8f8aa4ac6865d35f",
+          "expanded_original_executions": 3,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 665,
+            "fragment": "original!(1, 9, indexes == sorted)",
+            "fragment_sha256": "af0914fc8485aacf3289350c2edb519452fa1999adf5656ffcb7b97f62e9e62f"
+          },
+          "expanded_native_labelled_executions": 3,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#1:assert-10",
+          "source_line": 55,
+          "source_expression": "assert.ok(file.rows.every(row => row.schema_version === 2))",
+          "source_expression_sha256": "fb028db83bcc9578b9f1228e1f2dc0b99e527c09c444809c97026a2d4380c4a1",
+          "expanded_original_executions": 3,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 666,
+            "fragment": "original!(1, 10, file.rows.iter().all(|r| r[\"schema_version\"] == 2))",
+            "fragment_sha256": "712660b8bde85eb923396b2230a535621dd9bd3f8e9aa0a095f17f87d689bb21"
+          },
+          "expanded_native_labelled_executions": 3,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#1:assert-11",
+          "source_line": 57,
+          "source_expression": "assert.deepEqual(warnings, [])",
+          "source_expression_sha256": "0183ed2fb5cacc5132417ca3c677dfeb8af656660b9f2a1bd859b6230b9abbd1",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 668,
+            "fragment": "original!(1, 11, seen.warnings.lock().unwrap().is_empty())",
+            "fragment_sha256": "04a2ec616cf4f73a631961c0207afdafc8f48808ae3f6072c616551b6f0a837a"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        }
+      ],
+      "api_boundaries": [],
+      "scope": "Exact selected original input order and actual native admission transcript, real durable file rows/modes/identities and cleanup. Full file row comparisons use exact f64 Number equality with no tolerance. Explicit capability limits override a superficially matching labelled predicate.",
+      "status": "covered",
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/session-log.test.mjs#2",
+      "source_file": "test/session-log.test.mjs",
+      "name": "separate launches never append to each other and existing directory modes are unchanged",
+      "source_line": 60,
+      "source_statement_sha256": "0430b059d184666c3150651d6b44c932bf65c36279c4290b819b9dde1a23e0d2",
+      "previous_coverage_status": "partial_assertion_mapping",
+      "mapping_status": "root_reviewed_native_behavior_with_named_API_boundaries",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_02_distinct_launches_and_shared_completion"
+      ],
+      "shared_cases": [
+        "session-log-contracts.jsonl:2"
+      ],
+      "case": {
+        "path": "rust/parity/cases/session-log-contracts.jsonl",
+        "line": 2,
+        "source_test": "test/session-log.test.mjs#2",
+        "line_sha256": "f1f76635d0bff3ce6cda9192082925548385cde195928173feb1e3794930ee11"
+      },
+      "native_static_labelled_sites": 6,
+      "native_expanded_labelled_predicates": 6,
+      "assertions": [
+        {
+          "id": "test/session-log.test.mjs#2:assert-1",
+          "source_line": 68,
+          "source_expression": "assert.equal(first.close(), closing)",
+          "source_expression_sha256": "19f087e84dd5800f9b6d91dc111ba2cd6ee76f8660ad7fa162c4d81fc69e4814",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 703,
+            "fragment": "original!(2, 1, a.closes.load(Ordering::SeqCst) == 1)",
+            "fragment_sha256": "4ac8fe2a1637612e0413482fd765410552710575a8c1fe9f8ce574a1d056ebc3"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [
+            {
+              "site": 1,
+              "kind": "shared_promise_identity",
+              "status": "explicit_native_future_ownership_adaptation",
+              "detail": "Original close() calls share the identical Promise. Rust close creates distinct futures; both are first-polled to admit closure and join exactly one real worker/sink close. Object identity is not claimed."
+            }
+          ],
+          "semantic_status": "reviewed_native_first_poll_future_ownership_migration",
+          "migration_review": {
+            "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+            "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+            "bytes": 2919,
+            "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+          }
+        },
+        {
+          "id": "test/session-log.test.mjs#2:assert-2",
+          "source_line": 69,
+          "source_expression": "assert.equal(first.record(decision()), false)",
+          "source_expression_sha256": "8cc60d346f49cf22b3280902152c3bfcea50bbfb7cbcb0f0ad988e003ffcb801",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 697,
+            "fragment": "original!(2, 2, !first.record(inputs(&row, 0)[1].as_ref().unwrap()))",
+            "fragment_sha256": "e9127e5a77b26af9cff421e3e42143df29a1aaf5e8950b4999537ac4473a08e8"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#2:assert-3",
+          "source_line": 71,
+          "source_expression": "assert.equal((await fs.stat(f.directory)).mode & 0o777, 0o755)",
+          "source_expression_sha256": "2d8e7409c7bf77f9f890eb80f0a8244c3d51f2347cc7539e8da151c6df119ab0",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 704,
+            "fragment": "original!(\n        2,\n        3,\n        std::fs::metadata(&directory).unwrap().mode() & 0o777 == 0o755\n    )",
+            "fragment_sha256": "c32bac11720d31987f4c30863713fa8a2ecc5bc4afa43d810895626f19f36a1d"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#2:assert-4",
+          "source_line": 73,
+          "source_expression": "assert.equal(logs.length, 2)",
+          "source_expression_sha256": "112382ae256f7e1552dd387754f8d1ba69445c97ce51b049a314ee460044fa6e",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 710,
+            "fragment": "original!(2, 4, actual.len() == 2)",
+            "fragment_sha256": "44066a64d48c2b6bb40ea77926b548a84d24f2d611e7f6d5656c68cc30834c13"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#2:assert-5",
+          "source_line": 74,
+          "source_expression": "assert.deepEqual(logs.map(file => file.rows[0].prompt_excerpt).sort(), ['First launch', 'Second launch'])",
+          "source_expression_sha256": "af6af67956f6aec77e16b9d16f0d6e31e645c0f19f3cc90c7cef47ec7a311d03",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 716,
+            "fragment": "original!(2, 5, prompts == [\"First launch\", \"Second launch\"])",
+            "fragment_sha256": "34a9a8ece4479e2e682ac8ada39917c56ae9820daa5b429187ff7b4792930dd7"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#2:assert-6",
+          "source_line": 75,
+          "source_expression": "assert.ok(logs.every(file => file.rows.length === 1))",
+          "source_expression_sha256": "bd92c87b720748c8110bdbbac441920838051284d370368f924fbebd26d8c512",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 717,
+            "fragment": "original!(2, 6, actual.iter().all(|f| f.rows.len() == 1))",
+            "fragment_sha256": "691002c27119daedefe442fb4ccbdcd3ccd5827a2c37d151d9e3f6b905c6313d"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        }
+      ],
+      "api_boundaries": [
+        {
+          "site": 1,
+          "kind": "shared_promise_identity",
+          "status": "explicit_native_future_ownership_adaptation",
+          "detail": "Original close() calls share the identical Promise. Rust close creates distinct futures; both are first-polled to admit closure and join exactly one real worker/sink close. Object identity is not claimed."
+        }
+      ],
+      "scope": "Exact selected original input order and actual native admission transcript, real durable file rows/modes/identities and cleanup. Full file row comparisons use exact f64 Number equality with no tolerance. Explicit capability limits override a superficially matching labelled predicate.",
+      "status": "covered",
+      "remaining_assertions": [],
+      "explicit_reviewed_difference": {
+        "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+        "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+        "bytes": 2919,
+        "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+      }
+    },
+    {
+      "id": "test/session-log.test.mjs#3",
+      "source_file": "test/session-log.test.mjs",
+      "name": "rows copy only bounded metadata, retain Auto safety reasons, and never serialize bodies or errors",
+      "source_line": 78,
+      "source_statement_sha256": "f28168e0b48a77d08705596b3b7dfc9efe9b60699a3ba20f7d3a68c810ff458a",
+      "previous_coverage_status": "partial_assertion_mapping",
+      "mapping_status": "root_reviewed_partial_language_capability",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_03_detached_private_metadata"
+      ],
+      "shared_cases": [
+        "session-log-contracts.jsonl:3"
+      ],
+      "case": {
+        "path": "rust/parity/cases/session-log-contracts.jsonl",
+        "line": 3,
+        "source_test": "test/session-log.test.mjs#3",
+        "line_sha256": "c72daddf49d026748ad6e2fa3e1b9a79ab9051b6ef64b04f58a78e41f96bf9be"
+      },
+      "native_static_labelled_sites": 3,
+      "native_expanded_labelled_predicates": 3,
+      "assertions": [
+        {
+          "id": "test/session-log.test.mjs#3:assert-1",
+          "source_line": 84,
+          "source_expression": "assert.equal(writer.record(entry), true)",
+          "source_expression_sha256": "c835cea32f593f8c7a5da63815c0b753bed589b8cd022fa77366604f7fdb156e",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 735,
+            "fragment": "original!(3, 1, writer.record(&entry))",
+            "fragment_sha256": "3a8a4e35d76b7676e0840aa99b4040c0274ab3112f1a2bc456a3dc88e9e03b3a"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [
+            {
+              "site": 1,
+              "kind": "unknown_throwing_getter",
+              "status": "unrepresented_getter_capability",
+              "detail": "serde_json::Value has no getters. Capture retains the untouched JS getter non-invocation behavior; native input omits that unknown accessor and proves detached bounded metadata/privacy only."
+            }
+          ],
+          "semantic_status": "native_predicate_with_explicit_boundary"
+        },
+        {
+          "id": "test/session-log.test.mjs#3:assert-2",
+          "source_line": 89,
+          "source_expression": "assert.equal(file.text.includes(secret), false)",
+          "source_expression_sha256": "cc65ba85edd46acdf924349679d7564972ad89e0903b8f544d62800bfe764690",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 740,
+            "fragment": "original!(3, 2, !actual[0].text.contains(\"PRIVATE_HEADER_BODY_ERROR\"))",
+            "fragment_sha256": "e69899a55f8cbc5a00571567fb0e29ec707611f67c3734e3f85f18f80d634f35"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#3:assert-3",
+          "source_line": 90,
+          "source_expression": "assert.deepEqual(row, { schema_version: 2, event: 'decision', timestamp: '2026-10-01T12:00:00.000Z', request_id: 'request-1',\n    session_id: 'session-a', prompt_excerpt: 'Fix a typo', prompt_truncated: false,\n    requested_model: 'claude-haiku-4-5-20251001', selected_model: 'claude-sonnet-5-5', request_class: 'main',\n    decision_latency_ms: 12.5, source: 'passthrough', reason: 'auto_mode_safeguards', evaluator: 'jev', classified_tier: 'haiku', classifier_error: 'timeout' })",
+          "source_expression_sha256": "b5103b68def6f4d4141331c3d3d42af9931a6d4e27d2a1c1b4f20e9342a13609",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 741,
+            "fragment": "original!(3, 3, outputs_match(&actual, &row, 3))",
+            "fragment_sha256": "b91e267c298607f1ab73936c3bfac995fbcc3c0ce34d593054384ed2443ce799"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        }
+      ],
+      "api_boundaries": [
+        {
+          "site": 1,
+          "kind": "unknown_throwing_getter",
+          "status": "unrepresented_getter_capability",
+          "detail": "serde_json::Value has no getters. Capture retains the untouched JS getter non-invocation behavior; native input omits that unknown accessor and proves detached bounded metadata/privacy only."
+        }
+      ],
+      "scope": "Exact selected original input order and actual native admission transcript, real durable file rows/modes/identities and cleanup. Full file row comparisons use exact f64 Number equality with no tolerance. Explicit capability limits override a superficially matching labelled predicate.",
+      "status": "partial_assertion_mapping",
+      "remaining_assertions": [
+        "Unknown throwing raw_response getter is absent from serde_json::Value; native verifies detached metadata and privacy, not getter non-invocation."
+      ]
+    },
+    {
+      "id": "test/session-log.test.mjs#4",
+      "source_file": "test/session-log.test.mjs",
+      "name": "prompt excerpts use at most 500 Unicode characters and auxiliary classes never retain prompt text",
+      "source_line": 96,
+      "source_statement_sha256": "865a5ca6dbe0d53466b52a9ed6ff6ae69f3879cba265e35d2e4834b3bd350b1e",
+      "previous_coverage_status": "partial_assertion_mapping",
+      "mapping_status": "root_reviewed_native_behavior_with_named_API_boundaries",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_04_unicode_and_auxiliary_prompt_bounds"
+      ],
+      "shared_cases": [
+        "session-log-contracts.jsonl:4"
+      ],
+      "case": {
+        "path": "rust/parity/cases/session-log-contracts.jsonl",
+        "line": 4,
+        "source_test": "test/session-log.test.mjs#4",
+        "line_sha256": "e3d85cc01231ddde3945314bc82a76e8f435597ad6684565227bf263a06bffd6"
+      },
+      "native_static_labelled_sites": 8,
+      "native_expanded_labelled_predicates": 10,
+      "assertions": [
+        {
+          "id": "test/session-log.test.mjs#4:assert-1",
+          "source_line": 107,
+          "source_expression": "assert.equal(file.text.includes('PRIVATE_'), false)",
+          "source_expression_sha256": "c2e12fcf00767c2b9a546674c920a85e75c706fd059b9be4b6a6ff844b442cda",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 749,
+            "fragment": "original!(4, 1, !file.text.contains(\"PRIVATE_\"))",
+            "fragment_sha256": "56460283d8cb3bad296fbe6f058debf0bc99d543b3759fb598090b38a93fc9db"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#4:assert-2",
+          "source_line": 108,
+          "source_expression": "assert.equal([...file.rows[0].prompt_excerpt].length, 500)",
+          "source_expression_sha256": "9bd79754aa0c3780cb7c5af32f32507f80e8b3b8885f61fd3dec423ea78759dc",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 750,
+            "fragment": "original!(\n        4,\n        2,\n        file.rows[0][\"prompt_excerpt\"]\n            .as_str()\n            .unwrap()\n            .chars()\n            .count()\n            == 500\n    )",
+            "fragment_sha256": "4e8a78e992c1ca45e6d570ce0011900b9893d0f39f901913117dc45bca3026b3"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#4:assert-3",
+          "source_line": 109,
+          "source_expression": "assert.equal(file.rows[0].prompt_excerpt, '\ud83d\ude00'.repeat(500))",
+          "source_expression_sha256": "043e39b99dd997cede62bca4811339d6410434383356a972d458e5320034a1e3",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 760,
+            "fragment": "original!(4, 3, file.rows[0][\"prompt_excerpt\"] == \"\ud83d\ude00\".repeat(500))",
+            "fragment_sha256": "701a3adf8478d20c12b9bd4f84007e48db17c9c4abcada89a9f2d902d9b6088c"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#4:assert-4",
+          "source_line": 110,
+          "source_expression": "assert.equal(file.rows[0].prompt_truncated, true)",
+          "source_expression_sha256": "edbbbac5a5a5b2129571aef47caa72ff78e6a1366bfa7dc65ae9c79350bb6d18",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 761,
+            "fragment": "original!(4, 4, file.rows[0][\"prompt_truncated\"] == true)",
+            "fragment_sha256": "232c2297c78a8a5e1d1ae8af70eb8377ddd325f6c966885674095b290a2d40e0"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#4:assert-5",
+          "source_line": 111,
+          "source_expression": "assert.equal(file.rows[1].prompt_truncated, true)",
+          "source_expression_sha256": "2904adc3b3881770292471e55537b3818f5b65222a6e9ccb3fd9079d5728fdef",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 762,
+            "fragment": "original!(4, 5, file.rows[1][\"prompt_truncated\"] == true)",
+            "fragment_sha256": "0732d39426232c603941ad6d6397b2a3fc9375950375398c5f30cc75aa4b59d9"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#4:assert-6",
+          "source_line": 112,
+          "source_expression": "assert.equal(file.rows[2].prompt_truncated, false)",
+          "source_expression_sha256": "e097ea896729b30bce0a0754fcfc93083425bd1444d533ac45f16214ac817589",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 763,
+            "fragment": "original!(4, 6, file.rows[2][\"prompt_truncated\"] == false)",
+            "fragment_sha256": "95e2344b86510a733ad95fc805d7e808bd88b613c8d4e8c77d7b9bd135b41595"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#4:assert-7",
+          "source_line": 113,
+          "source_expression": "assert.equal(file.rows[3].prompt_excerpt, 'Included foreground text')",
+          "source_expression_sha256": "fa8c88543133815296dc9e4a199e415ced7fc94eee01838e04f2ae1120fbd7d1",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 764,
+            "fragment": "original!(\n        4,\n        7,\n        file.rows[3][\"prompt_excerpt\"] == \"Included foreground text\"\n    )",
+            "fragment_sha256": "04c86a7613bc5fdeda9abfd7bb92347f38403f8576fbf9e939db36dd6fa2198a"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#4:assert-8",
+          "source_line": 114,
+          "source_expression": "assert.deepEqual([row.prompt_excerpt, row.prompt_truncated], ['', false])",
+          "source_expression_sha256": "27941d8b31d16d004539841882ac9a96004c410b36bebafd6e54146277ed6b1b",
+          "expanded_original_executions": 3,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 770,
+            "fragment": "original!(\n            4,\n            8,\n            row[\"prompt_excerpt\"] == \"\" && row[\"prompt_truncated\"] == false\n        )",
+            "fragment_sha256": "74e5137c37bc83d1e7222e8b53e75a20ec110d5f024ec29869a0c1309d2d9bc3"
+          },
+          "expanded_native_labelled_executions": 3,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        }
+      ],
+      "api_boundaries": [],
+      "scope": "Exact selected original input order and actual native admission transcript, real durable file rows/modes/identities and cleanup. Full file row comparisons use exact f64 Number equality with no tolerance. Explicit capability limits override a superficially matching labelled predicate.",
+      "status": "covered",
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/session-log.test.mjs#5",
+      "source_file": "test/session-log.test.mjs",
+      "name": "unlimited evaluator runtimes can retain finite decision latency beyond one hour",
+      "source_line": 117,
+      "source_statement_sha256": "92f750e193ff38c10a88a174b5c1c35e3005996d1bbe86c93e76e33d9660344a",
+      "previous_coverage_status": "partial_assertion_mapping",
+      "mapping_status": "root_reviewed_native_behavior_with_named_API_boundaries",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_05_unlimited_finite_latency"
+      ],
+      "shared_cases": [
+        "session-log-contracts.jsonl:5"
+      ],
+      "case": {
+        "path": "rust/parity/cases/session-log-contracts.jsonl",
+        "line": 5,
+        "source_test": "test/session-log.test.mjs#5",
+        "line_sha256": "079d3acbaf3d44cd6b2fb3b86560d0fb9e932371907fb7cdf7fe4f6974c0a6cf"
+      },
+      "native_static_labelled_sites": 2,
+      "native_expanded_labelled_predicates": 2,
+      "assertions": [
+        {
+          "id": "test/session-log.test.mjs#5:assert-1",
+          "source_line": 119,
+          "source_expression": "assert.equal(writer.record(decision({ decision_latency_ms: 7200000.125 })), true)",
+          "source_expression_sha256": "c153c1cb0f32dad62fcfce89576c6f9807d51a833e4a35049b8b4b449e4a1794",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 784,
+            "fragment": "original!(5, 1, writer.record(inputs(&row, 0)[0].as_ref().unwrap()))",
+            "fragment_sha256": "87d89bb1c3abc4948865784c64e11efc9a04b2bb9783ca983ca036ac02873bfc"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#5:assert-2",
+          "source_line": 121,
+          "source_expression": "assert.equal((await files(f.directory))[0].rows[0].decision_latency_ms, 7200000.125)",
+          "source_expression_sha256": "46b025d8652f08cbafc9857c26a20de6264a871aa0de40c6a3300d13d142cb6b",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 787,
+            "fragment": "original!(\n        5,\n        2,\n        actual[0].rows[0][\"decision_latency_ms\"].as_f64() == Some(7200000.125)\n    )",
+            "fragment_sha256": "ea9b6bc33c055a1f10137e2654bd98ebe26da06b92eb4c23ce17789286cf9964"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        }
+      ],
+      "api_boundaries": [],
+      "scope": "Exact selected original input order and actual native admission transcript, real durable file rows/modes/identities and cleanup. Full file row comparisons use exact f64 Number equality with no tolerance. Explicit capability limits override a superficially matching labelled predicate.",
+      "status": "covered",
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/session-log.test.mjs#6",
+      "source_file": "test/session-log.test.mjs",
+      "name": "invalid IDs cannot traverse paths or merge into anonymous logs; malformed fields are omitted",
+      "source_line": 124,
+      "source_statement_sha256": "9956483f72bf3071b346785a254f2d7b2ca47ca5c19e24acc2b0a55318caa747",
+      "previous_coverage_status": "partial_assertion_mapping",
+      "mapping_status": "root_reviewed_partial_language_capability",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_06_invalid_ids_and_malformed_fields"
+      ],
+      "shared_cases": [
+        "session-log-contracts.jsonl:6"
+      ],
+      "case": {
+        "path": "rust/parity/cases/session-log-contracts.jsonl",
+        "line": 6,
+        "source_test": "test/session-log.test.mjs#6",
+        "line_sha256": "dd0f324821dbeb133c3dfea5924df6c131529d78e901ce79874bbf9fae31305e"
+      },
+      "native_static_labelled_sites": 8,
+      "native_expanded_labelled_predicates": 26,
+      "assertions": [
+        {
+          "id": "test/session-log.test.mjs#6:assert-1",
+          "source_line": 127,
+          "source_expression": "assert.equal(writer.record(decision({ session_id })), false)",
+          "source_expression_sha256": "22e04caf0e9d1eed161c6968a667dd906468af755f99377948df4513ec945ebe",
+          "expanded_original_executions": 5,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 804,
+            "fragment": "original!(6, 1, !writer.record(value.as_ref().unwrap()))",
+            "fragment_sha256": "b00c05d2c4f258ac46fd60ffca360c25884a120fadb64a637271ac7b6aff5ace"
+          },
+          "expanded_native_labelled_executions": 5,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#6:assert-2",
+          "source_line": 130,
+          "source_expression": "assert.equal(writer.record(entry), false)",
+          "source_expression_sha256": "c7beb2be55e6632e52545d7c87e1e8673bc1442c0452cf46e7795548a47b7b72",
+          "expanded_original_executions": 7,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 807,
+            "fragment": "original!(6, 2, !writer.record(value.as_ref().unwrap()))",
+            "fragment_sha256": "ed5ea1db44df87d5015409180929d7a43de22cca9b7d3b82ff0c3e1652dddf6f"
+          },
+          "expanded_native_labelled_executions": 7,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#6:assert-3",
+          "source_line": 134,
+          "source_expression": "assert.doesNotThrow(() => assert.equal(writer.record(getter), false))",
+          "source_expression_sha256": "fdcfb88b341ec426483cf8350df89af82472f64d2ea14ff1ba69bb84f11e35c5",
+          "expanded_original_executions": 1,
+          "native": null,
+          "expanded_native_labelled_executions": 0,
+          "api_boundaries": [
+            {
+              "site": 3,
+              "kind": "throwing_selected_model_getter",
+              "status": "unrepresented_native_site",
+              "detail": "Original outer doesNotThrow around nested record(getter) has no serde_json::Value counterpart. Exact callback remains captured; no native getter invocation is fabricated."
+            }
+          ],
+          "semantic_status": "unrepresented_native_site"
+        },
+        {
+          "id": "test/session-log.test.mjs#6:assert-4",
+          "source_line": 134,
+          "source_expression": "assert.equal(writer.record(getter), false)",
+          "source_expression_sha256": "92f117aa5ca3ef367253f6ab2530f0c8ab69c8d2803363612482561dc493c31d",
+          "expanded_original_executions": 1,
+          "native": null,
+          "expanded_native_labelled_executions": 0,
+          "api_boundaries": [
+            {
+              "site": 4,
+              "kind": "throwing_selected_model_getter",
+              "status": "unrepresented_native_site",
+              "detail": "The nested record(getter) input is skipped exactly once; no native call or predicate is counted for this site."
+            }
+          ],
+          "semantic_status": "unrepresented_native_site"
+        },
+        {
+          "id": "test/session-log.test.mjs#6:assert-5",
+          "source_line": 135,
+          "source_expression": "assert.equal(writer.record(decision({ session_id: null, decision_latency_ms: Infinity,\n    timestamp: 'PRIVATE_TIMESTAMP', source: 'PRIVATE SOURCE', reason: 'PRIVATE ERROR', classifier_error: 'PRIVATE ERROR', evaluator: 'other', classified_tier: 'other' })), true)",
+          "source_expression_sha256": "cffad4d29fb5912daa6d0e974b348e7be0e34a8e5fed25522dbf715fa778c9b0",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 812,
+            "fragment": "original!(6, 5, writer.record(values[13].as_ref().unwrap()))",
+            "fragment_sha256": "90c2f3fa8060d7feb01dff209a3a5afa9046d1c7f606f8fbd85754e5c769b094"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [
+            {
+              "site": 5,
+              "kind": "nonfinite_Number",
+              "status": "explicit_finite_Value_projection",
+              "detail": "Original Infinity is projected to JSON null at this declared input boundary. Both produce absent finite latency metadata, but native acceptance of an Infinity input is not claimed."
+            }
+          ],
+          "semantic_status": "native_predicate_with_explicit_boundary"
+        },
+        {
+          "id": "test/session-log.test.mjs#6:assert-6",
+          "source_line": 139,
+          "source_expression": "assert.equal((await fs.readdir(f.root)).length, 1)",
+          "source_expression_sha256": "e3669de58742488bc85dcf13682b87f7d4f653c00c27a514eb22071942ee52fd",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 815,
+            "fragment": "original!(6, 6, std::fs::read_dir(&root.0).unwrap().count() == 1)",
+            "fragment_sha256": "c74f8e0f0d08dac37378a25f7fc458019a03551bb6e8c9b2673b0cc7350dda94"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#6:assert-7",
+          "source_line": 140,
+          "source_expression": "assert.equal(file.rows.length, 1)",
+          "source_expression_sha256": "3a47995dd5c90240ee5d8938f28edc7b61b5f826ff26ad3483804f206e4a3470",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 816,
+            "fragment": "original!(6, 7, actual[0].rows.len() == 1)",
+            "fragment_sha256": "93dae0fc0c3a085bc4472af4f8bfb82aaa6eee9f51cd75071def8788b0047670"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#6:assert-8",
+          "source_line": 142,
+          "source_expression": "assert.equal(Object.hasOwn(row, key), false)",
+          "source_expression_sha256": "6bbdde44190822d739bd7ad88e8ca9c7a843fc35eabc79d34226cd12a51fcc0e",
+          "expanded_original_executions": 9,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 828,
+            "fragment": "original!(6, 8, actual[0].rows[0].get(key).is_none())",
+            "fragment_sha256": "23d2d9003b20a5e8ad9d65c9be64162c9ea2791968788d422830a2c61527dabf"
+          },
+          "expanded_native_labelled_executions": 9,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#6:assert-9",
+          "source_line": 143,
+          "source_expression": "assert.equal(file.text.includes('PRIVATE'), false)",
+          "source_expression_sha256": "da3ac2385316507aadf86eae26c49b0939b4347d6427696c6d65130e21eb3277",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 830,
+            "fragment": "original!(6, 9, !actual[0].text.contains(\"PRIVATE\"))",
+            "fragment_sha256": "692e8bdc4e4e7606cc027e5db642461612af28280cf1c028b7114f57d7104545"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#6:assert-10",
+          "source_line": 144,
+          "source_expression": "assert.match(row.timestamp, /^\\d{4}-\\d\\d-\\d\\dT/)",
+          "source_expression_sha256": "b454278a4e6c5f4caa74e7e4531643db0337a902cef926f9a727351057a031e7",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 831,
+            "fragment": "original!(6, 10, actual[0].rows[0][\"timestamp\"] == GENERATED)",
+            "fragment_sha256": "fc6c48a96ed70f8d4aa2f223d22b455fe45ab4a331cf87e0562d6bca5b491b05"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        }
+      ],
+      "api_boundaries": [
+        {
+          "site": 3,
+          "kind": "throwing_selected_model_getter",
+          "status": "unrepresented_native_site",
+          "detail": "Original outer doesNotThrow around nested record(getter) has no serde_json::Value counterpart. Exact callback remains captured; no native getter invocation is fabricated."
+        },
+        {
+          "site": 4,
+          "kind": "throwing_selected_model_getter",
+          "status": "unrepresented_native_site",
+          "detail": "The nested record(getter) input is skipped exactly once; no native call or predicate is counted for this site."
+        },
+        {
+          "site": 5,
+          "kind": "nonfinite_Number",
+          "status": "explicit_finite_Value_projection",
+          "detail": "Original Infinity is projected to JSON null at this declared input boundary. Both produce absent finite latency metadata, but native acceptance of an Infinity input is not claimed."
+        }
+      ],
+      "scope": "Exact selected original input order and actual native admission transcript, real durable file rows/modes/identities and cleanup. Full file row comparisons use exact f64 Number equality with no tolerance. Explicit capability limits override a superficially matching labelled predicate.",
+      "status": "partial_assertion_mapping",
+      "remaining_assertions": [
+        "Selected-model getter operation and its two source assertion sites have no native Value counterpart and are skipped explicitly.",
+        "Original Infinity is projected to JSON null for the malformed finite-value case; native acceptance of nonfinite input is not claimed."
+      ]
+    },
+    {
+      "id": "test/session-log.test.mjs#7",
+      "source_file": "test/session-log.test.mjs",
+      "name": "queue backpressure is bounded in UTF-8 bytes and shutdown drains every accepted line",
+      "source_line": 147,
+      "source_statement_sha256": "a38587fb0f4a6a68916350da2effdbfcd8f90d4d8852fde8a993142ebf3ce8c6",
+      "previous_coverage_status": "partial_assertion_mapping",
+      "mapping_status": "root_reviewed_native_behavior_with_named_API_boundaries",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_07_escaped_utf8_queue_bound_and_sticky_overflow"
+      ],
+      "shared_cases": [
+        "session-log-contracts.jsonl:7"
+      ],
+      "case": {
+        "path": "rust/parity/cases/session-log-contracts.jsonl",
+        "line": 7,
+        "source_test": "test/session-log.test.mjs#7",
+        "line_sha256": "6993630b0d577c4c38a42ea36891a97a8d58b48dfa36187ba73bf386cd3fcabe"
+      },
+      "native_static_labelled_sites": 6,
+      "native_expanded_labelled_predicates": 6,
+      "assertions": [
+        {
+          "id": "test/session-log.test.mjs#7:assert-1",
+          "source_line": 157,
+          "source_expression": "assert.ok(accepted > 100 && accepted < 1000)",
+          "source_expression_sha256": "2d847e23c493d7acbfcbfa4d20de46e8e2acbd119c6de18f1df993d7b6991256",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 852,
+            "fragment": "original!(7, 1, accepted > 100 && accepted < 1000)",
+            "fragment_sha256": "fcc091fa40d635371653e5cd7d2fae93d74ac2b6b132f4cb57e1307ff79b8f15"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#7:assert-2",
+          "source_line": 158,
+          "source_expression": "assert.equal(writer.record(decision()), false)",
+          "source_expression_sha256": "d314e118ce150682c2dbdc415de741e3061346d27d690fd51824147bd0afb693",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 853,
+            "fragment": "original!(\n        7,\n        2,\n        !writer.record(values.last().unwrap().as_ref().unwrap())\n    )",
+            "fragment_sha256": "487bdb0554b74fef068e5a0b5dcd5764f6db5910d2d267434cb2ff66207868b9"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#7:assert-3",
+          "source_line": 159,
+          "source_expression": "assert.deepEqual(warnings, ['AutoRouter session logging disabled.'])",
+          "source_expression_sha256": "1389dfea19cdc1a65bc40923fcf2492f188db38c601651d09138fa36ee97d4db",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 858,
+            "fragment": "original!(7, 3, *seen.warnings.lock().unwrap() == [WARNING])",
+            "fragment_sha256": "ef31e39a09b4cc65a915cbe2d5f6f30ccd9d07f537e912356e917fe01c04f7c1"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#7:assert-4",
+          "source_line": 162,
+          "source_expression": "assert.ok(Buffer.byteLength(file.text) <= 1024 * 1024)",
+          "source_expression_sha256": "cbad7ac939571a04a754b35f4cc15e0342818461844cc31dbbc831e79243408f",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 861,
+            "fragment": "original!(7, 4, actual[0].bytes <= MAX_PENDING_BYTES)",
+            "fragment_sha256": "ce68f99400f76d00773c2162bebee9b84452aaa3783fe8d4d7289bd18459fdd7"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#7:assert-5",
+          "source_line": 163,
+          "source_expression": "assert.equal(file.rows.length, accepted)",
+          "source_expression_sha256": "be566a026b11c1f090551c85c7f9e8945ee7b2a6dcfd7640c71be0ffc83ddb43",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 862,
+            "fragment": "original!(7, 5, actual[0].rows.len() == accepted)",
+            "fragment_sha256": "dda7ef23c28e62faf072bd8225e3bd804d3196a5e1085d02c7a068d9a7ebf62d"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#7:assert-6",
+          "source_line": 164,
+          "source_expression": "assert.deepEqual(file.rows.map(row => row.request_id), Array.from({ length: accepted }, (_, index) => `request-${index}`))",
+          "source_expression_sha256": "da2fb191bc576c5193a91a3b5c394f30ae12f7ad3024d91e9b14d1addefe1064",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 863,
+            "fragment": "original!(\n        7,\n        6,\n        actual[0]\n            .rows\n            .iter()\n            .enumerate()\n            .all(|(i, r)| r[\"request_id\"] == format!(\"request-{i}\"))\n    )",
+            "fragment_sha256": "fe97ac202daceb9c8c26c5c70a3c8fa666cd418b423da38e64da19e4eeb0fd0e"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        }
+      ],
+      "api_boundaries": [],
+      "scope": "Exact selected original input order and actual native admission transcript, real durable file rows/modes/identities and cleanup. Full file row comparisons use exact f64 Number equality with no tolerance. Explicit capability limits override a superficially matching labelled predicate.",
+      "status": "covered",
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/session-log.test.mjs#8",
+      "source_file": "test/session-log.test.mjs",
+      "name": "at most 128 sessions and descriptors are retained, and accepted sessions drain on overflow",
+      "source_line": 167,
+      "source_statement_sha256": "a8a04d5647534975e35495deeda56d4d5b0b65c0f135821726408eb43ad24c74",
+      "previous_coverage_status": "partial_assertion_mapping",
+      "mapping_status": "root_reviewed_native_behavior_with_named_API_boundaries",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_08_session_capacity_and_every_descriptor"
+      ],
+      "shared_cases": [
+        "session-log-contracts.jsonl:8"
+      ],
+      "case": {
+        "path": "rust/parity/cases/session-log-contracts.jsonl",
+        "line": 8,
+        "source_test": "test/session-log.test.mjs#8",
+        "line_sha256": "1ea51ceeb1a1ff860840772e854d111d0e405a331bdc3a664773b25a51f2bbfb"
+      },
+      "native_static_labelled_sites": 7,
+      "native_expanded_labelled_predicates": 134,
+      "assertions": [
+        {
+          "id": "test/session-log.test.mjs#8:assert-1",
+          "source_line": 172,
+          "source_expression": "assert.equal(writer.record(decision({ session_id: `session-${index}` })), true)",
+          "source_expression_sha256": "1036f7a7be04e12b957a1bf37e7b78f95f97ad30fc7ed9b57f2875347cec80ec",
+          "expanded_original_executions": 128,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 885,
+            "fragment": "original!(8, 1, writer.record(value.as_ref().unwrap()))",
+            "fragment_sha256": "9a0ffde5c094859b4936aa55b3b8b6df861fe2daee61780e3b8aefec13a46603"
+          },
+          "expanded_native_labelled_executions": 128,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#8:assert-2",
+          "source_line": 173,
+          "source_expression": "assert.equal(writer.record(decision({ session_id: 'session-overflow' })), false)",
+          "source_expression_sha256": "77781ef2be159a3a1b1fe3b2a25dda0b1076bf897b543ebad28d6f9d7ea0f42a",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 887,
+            "fragment": "original!(8, 2, !writer.record(values[128].as_ref().unwrap()))",
+            "fragment_sha256": "34753bea1bbd94dea67b452a6547d1403097836d9c0f9212baf7fe5834d98cba"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#8:assert-3",
+          "source_line": 174,
+          "source_expression": "assert.equal(writer.record(decision({ session_id: 'session-0' })), false)",
+          "source_expression_sha256": "bb61b3ab7c97b299df9a5415c670f3968a0c63fe86bc9d21707564d4b0f8086e",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 888,
+            "fragment": "original!(8, 3, !writer.record(values[129].as_ref().unwrap()))",
+            "fragment_sha256": "f2a2c297222477054edd784ae5fa3023b666a9d53cecc35f5579b5efcf4da04b"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#8:assert-4",
+          "source_line": 176,
+          "source_expression": "assert.equal(handles.length, 128)",
+          "source_expression_sha256": "d69dc35ee5e48016210a650e6790bfc890dca553115cf98e6d243e93699f27cd",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 890,
+            "fragment": "original!(8, 4, seen.opened.lock().unwrap().len() == 128)",
+            "fragment_sha256": "8ca1c02307b272777c19609c2d54310a274eab3cfde549e8e4bf697c57cb593f"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#8:assert-5",
+          "source_line": 177,
+          "source_expression": "assert.ok(handles.every(handle => handle.fd === -1))",
+          "source_expression_sha256": "a846ceb45200d66ebb9f128373c4a742dc4c657886b3da6fc614c0d886332376",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 891,
+            "fragment": "original!(\n        8,\n        5,\n        seen.released.lock().unwrap().iter().all(|closed| *closed)\n    )",
+            "fragment_sha256": "4f5bd73ff479e1b2be1bc19683da281c586bdb57752bd202e9ae7d2d66db9813"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#8:assert-6",
+          "source_line": 178,
+          "source_expression": "assert.equal((await files(f.directory)).length, 128)",
+          "source_expression_sha256": "c7dc661626cc690070e3a302a22c894fb071003b307da21f792e26f58e69d423",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 897,
+            "fragment": "original!(8, 6, actual.len() == 128)",
+            "fragment_sha256": "7c61994bcb79fb2d0d6cc44699e92834c7cb1b616faa57e465c2b3cdc69c3fc8"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#8:assert-7",
+          "source_line": 179,
+          "source_expression": "assert.deepEqual(warnings, ['AutoRouter session logging disabled.'])",
+          "source_expression_sha256": "1389dfea19cdc1a65bc40923fcf2492f188db38c601651d09138fa36ee97d4db",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 898,
+            "fragment": "original!(8, 7, *seen.warnings.lock().unwrap() == [WARNING])",
+            "fragment_sha256": "78b345da646436de81bfafed36dbe41d3741a2201fa482df1aac332031d5def4"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        }
+      ],
+      "api_boundaries": [],
+      "scope": "Exact selected original input order and actual native admission transcript, real durable file rows/modes/identities and cleanup. Full file row comparisons use exact f64 Number equality with no tolerance. Explicit capability limits override a superficially matching labelled predicate.",
+      "status": "covered",
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/session-log.test.mjs#11",
+      "source_file": "test/session-log.test.mjs",
+      "name": "a replaced directory is rejected before any session file is created",
+      "source_line": 220,
+      "source_statement_sha256": "74b25bb12d67b9fdf40be5f81a44b11888291400f57ee902c62dd42c537871df",
+      "previous_coverage_status": "partial_assertion_mapping",
+      "mapping_status": "root_reviewed_native_behavior_with_named_API_boundaries",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_11_replaced_directory_fails_before_open"
+      ],
+      "shared_cases": [
+        "session-log-contracts.jsonl:9"
+      ],
+      "case": {
+        "path": "rust/parity/cases/session-log-contracts.jsonl",
+        "line": 9,
+        "source_test": "test/session-log.test.mjs#11",
+        "line_sha256": "66760c6710d0625a8dc6ce60ad374caf69f3b48e3b7bb0e06f651006820cd497"
+      },
+      "native_static_labelled_sites": 3,
+      "native_expanded_labelled_predicates": 3,
+      "assertions": [
+        {
+          "id": "test/session-log.test.mjs#11:assert-1",
+          "source_line": 227,
+          "source_expression": "assert.equal(writer.record(decision()), true)",
+          "source_expression_sha256": "9ac429981b0049703954d798584385fdefc570c5045c4013389dff24cf9c5155",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 915,
+            "fragment": "original!(11, 1, writer.record(inputs(&row, 0)[0].as_ref().unwrap()))",
+            "fragment_sha256": "934d86a4d1e0f4808a541acaa93927d8e629a8d3f0e03c1eeac55a2dc1fe0ff5"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#11:assert-2",
+          "source_line": 229,
+          "source_expression": "assert.deepEqual(await fs.readdir(target), [])",
+          "source_expression_sha256": "ac8c8ead2326021b19b5d9f1935cfa9c1946e059b2741f8988f15c825984eb8f",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 917,
+            "fragment": "original!(11, 2, std::fs::read_dir(target).unwrap().count() == 0)",
+            "fragment_sha256": "15baa95469c23f7faa8deef7341c531b8e08f690e4c57b109a046c9060117716"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#11:assert-3",
+          "source_line": 230,
+          "source_expression": "assert.deepEqual(warnings, ['AutoRouter session logging disabled.'])",
+          "source_expression_sha256": "1389dfea19cdc1a65bc40923fcf2492f188db38c601651d09138fa36ee97d4db",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 918,
+            "fragment": "original!(11, 3, *seen.warnings.lock().unwrap() == [WARNING])",
+            "fragment_sha256": "836d0c672155fde8ae780f13fef01d07f14cf33964354fbb159d456789320c98"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        }
+      ],
+      "api_boundaries": [],
+      "scope": "Exact selected original input order and actual native admission transcript, real durable file rows/modes/identities and cleanup. Full file row comparisons use exact f64 Number equality with no tolerance. Explicit capability limits override a superficially matching labelled predicate.",
+      "status": "covered",
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/session-log.test.mjs#12",
+      "source_file": "test/session-log.test.mjs",
+      "name": "filesystem and warning failures never reject the factory, record, or close",
+      "source_line": 233,
+      "source_statement_sha256": "dcd8cfe47b4f7cdd426ba7ec3189b96c486fda0faf4936a7ddc91863811acfd6",
+      "previous_coverage_status": "partial_assertion_mapping",
+      "mapping_status": "root_reviewed_partial_language_capability",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_12_factory_and_sync_warning_failure_are_nonrejecting"
+      ],
+      "shared_cases": [
+        "session-log-contracts.jsonl:10"
+      ],
+      "case": {
+        "path": "rust/parity/cases/session-log-contracts.jsonl",
+        "line": 10,
+        "source_test": "test/session-log.test.mjs#12",
+        "line_sha256": "d1d611480185e81ae1afab65f97043383c6d9700216ee762e62dc2d02b5d652b"
+      },
+      "native_static_labelled_sites": 3,
+      "native_expanded_labelled_predicates": 3,
+      "assertions": [
+        {
+          "id": "test/session-log.test.mjs#12:assert-1",
+          "source_line": 238,
+          "source_expression": "assert.equal(writer.record(decision({ prompt_excerpt: 'PRIVATE_PROMPT' })), false)",
+          "source_expression_sha256": "61c3e3e5cd787a8df936718bc663aa5896ffcadbe8d19de4a2b15d5a45426b54",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 936,
+            "fragment": "original!(12, 1, !writer.record(inputs(&row, 0)[0].as_ref().unwrap()))",
+            "fragment_sha256": "0452fc2e8fb08cbfddd79ecf450a737b9244b9ed43dd55919f12627691a99451"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#12:assert-2",
+          "source_line": 241,
+          "source_expression": "assert.deepEqual(warnings, ['AutoRouter session logging disabled.'])",
+          "source_expression_sha256": "1389dfea19cdc1a65bc40923fcf2492f188db38c601651d09138fa36ee97d4db",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 939,
+            "fragment": "original!(12, 2, *seen.warnings.lock().unwrap() == [WARNING])",
+            "fragment_sha256": "865fafd351d35067ed7496d691d1bfeaea8491a5f29f537c50e712acb64afde5"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#12:assert-3",
+          "source_line": 243,
+          "source_expression": "assert.equal(rejectedWarning.record(decision()), false)",
+          "source_expression_sha256": "47eed00bb55e5188f12cea5b81d3c2777afb42028edb11718104c1e0b6ac7bf3",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 944,
+            "fragment": "original!(12, 3, !second.record(inputs(&row, 1)[0].as_ref().unwrap()))",
+            "fragment_sha256": "92c2048a83a7556a477aa1a02fa60c0adabc43c7c97d133fbd26c40933c9a030"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [
+            {
+              "site": 3,
+              "kind": "asynchronous_warning_rejection",
+              "status": "unrepresented_async_failure_capability",
+              "detail": "The second native warning callback returns normally because Fn(&str) cannot return a rejected Promise. Its labelled record=false predicate and warning/cleanup pass do not prove rejected asynchronous callback handling. The first callback really panics and is caught by production."
+            }
+          ],
+          "semantic_status": "native_predicate_with_explicit_boundary"
+        }
+      ],
+      "api_boundaries": [
+        {
+          "site": 3,
+          "kind": "asynchronous_warning_rejection",
+          "status": "unrepresented_async_failure_capability",
+          "detail": "The second native warning callback returns normally because Fn(&str) cannot return a rejected Promise. Its labelled record=false predicate and warning/cleanup pass do not prove rejected asynchronous callback handling. The first callback really panics and is caught by production."
+        }
+      ],
+      "scope": "Exact selected original input order and actual native admission transcript, real durable file rows/modes/identities and cleanup. Full file row comparisons use exact f64 Number equality with no tolerance. Explicit capability limits override a superficially matching labelled predicate.",
+      "status": "partial_assertion_mapping",
+      "remaining_assertions": [
+        "The second source warning callback returns a rejected Promise. Native Fn(&str) returns normally; that labelled predicate does not qualify asynchronous callback failure handling."
+      ]
+    },
+    {
+      "id": "test/session-log.test.mjs#13",
+      "source_file": "test/session-log.test.mjs",
+      "name": "a write failure disables logging once and shutdown still closes its descriptor",
+      "source_line": 247,
+      "source_statement_sha256": "e46af678c9c77a29658e7265db38d2594c4c20563c4f96c64395f7f5ae211c94",
+      "previous_coverage_status": "partial_assertion_mapping",
+      "mapping_status": "root_reviewed_native_behavior_with_named_API_boundaries",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_13_mocked_post_open_failure_closes_real_descriptor"
+      ],
+      "shared_cases": [
+        "session-log-contracts.jsonl:11"
+      ],
+      "case": {
+        "path": "rust/parity/cases/session-log-contracts.jsonl",
+        "line": 11,
+        "source_test": "test/session-log.test.mjs#13",
+        "line_sha256": "aec4c7be925c051af21d15c73fdcb472721266e5be6e60f369ff4c45260d1ffc"
+      },
+      "native_static_labelled_sites": 5,
+      "native_expanded_labelled_predicates": 5,
+      "assertions": [
+        {
+          "id": "test/session-log.test.mjs#13:assert-1",
+          "source_line": 259,
+          "source_expression": "assert.equal(writer.record(decision({ prompt_excerpt: 'PRIVATE_PROMPT' })), true)",
+          "source_expression_sha256": "ed4561db1bd9e516cceddf5f369f7c88e54257e8d84939e551a0ea079fc2eab7",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 959,
+            "fragment": "original!(13, 1, writer.record(values[0].as_ref().unwrap()))",
+            "fragment_sha256": "456b412559621afad50f2428aea9fef682e96fc249de053af03b82db6060ffa8"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#13:assert-2",
+          "source_line": 261,
+          "source_expression": "assert.equal(writer.record(decision()), false)",
+          "source_expression_sha256": "d314e118ce150682c2dbdc415de741e3061346d27d690fd51824147bd0afb693",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 962,
+            "fragment": "original!(13, 2, !writer.record(values[1].as_ref().unwrap()))",
+            "fragment_sha256": "c099d7da5e254ec7dcb0d83cca8d6a40125241a18ee844ae5f2acf0347e2119d"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#13:assert-3",
+          "source_line": 263,
+          "source_expression": "assert.equal(handles.length, 1)",
+          "source_expression_sha256": "ded6bd119e58d1888792f57f8b8ee2957d5295817db5eaf294cc43f39b56388d",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 964,
+            "fragment": "original!(13, 3, seen.opened.lock().unwrap().len() == 1)",
+            "fragment_sha256": "f08040cac6a555752f12db57731f9313c8cbd4de8bb768d676b0844f27845989"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [
+            {
+              "site": 3,
+              "kind": "mocked_post_open_write_failure",
+              "status": "approved_test_only_real_descriptor_seam",
+              "detail": "Delegate empty append opens and validates a real private native descriptor; the wrapper then returns the original synthetic payload-write error. This is a mocked post-open error, not a kernel write fault. File stays empty; real close drains handles and observation proves release."
+            }
+          ],
+          "semantic_status": "native_predicate_with_explicit_boundary"
+        },
+        {
+          "id": "test/session-log.test.mjs#13:assert-4",
+          "source_line": 264,
+          "source_expression": "assert.equal(handles[0].fd, -1)",
+          "source_expression_sha256": "f52435322e062ff279610df5b342d5f210ade81ab69b3e2585fc1d99b3f9731c",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 965,
+            "fragment": "original!(13, 4, *seen.released.lock().unwrap() == [true])",
+            "fragment_sha256": "31489f5d7a36cc16b194c0fd6a89cee030c2ab556b26f0f83dfb55fcd1785d41"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#13:assert-5",
+          "source_line": 265,
+          "source_expression": "assert.deepEqual(warnings, ['AutoRouter session logging disabled.'])",
+          "source_expression_sha256": "1389dfea19cdc1a65bc40923fcf2492f188db38c601651d09138fa36ee97d4db",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 966,
+            "fragment": "original!(13, 5, *seen.warnings.lock().unwrap() == [WARNING])",
+            "fragment_sha256": "cbd0ecf7531e97b0d3ac069e39cc3709c9bb31d0c24d5f4279f1e1ce472efb18"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        }
+      ],
+      "api_boundaries": [
+        {
+          "site": 3,
+          "kind": "mocked_post_open_write_failure",
+          "status": "approved_test_only_real_descriptor_seam",
+          "detail": "Delegate empty append opens and validates a real private native descriptor; the wrapper then returns the original synthetic payload-write error. This is a mocked post-open error, not a kernel write fault. File stays empty; real close drains handles and observation proves release."
+        }
+      ],
+      "scope": "Exact selected original input order and actual native admission transcript, real durable file rows/modes/identities and cleanup. Full file row comparisons use exact f64 Number equality with no tolerance. Explicit capability limits override a superficially matching labelled predicate.",
+      "status": "covered",
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/session-log.test.mjs#14",
+      "source_file": "test/session-log.test.mjs",
+      "name": "close waits for accepted in-flight writes, closes once, and rejects later records",
+      "source_line": 268,
+      "source_statement_sha256": "7e37825704960db86f8f6979102ac36ec5a76ae40f73f076c8c5099f3894fe10",
+      "previous_coverage_status": "partial_assertion_mapping",
+      "mapping_status": "root_reviewed_native_behavior_with_named_API_boundaries",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_14_two_close_waiters_hold_owned_writes"
+      ],
+      "shared_cases": [
+        "session-log-contracts.jsonl:12"
+      ],
+      "case": {
+        "path": "rust/parity/cases/session-log-contracts.jsonl",
+        "line": 12,
+        "source_test": "test/session-log.test.mjs#14",
+        "line_sha256": "188f820d2808477148020d5bdc9c87e308d197e1d11d7ecbb14dde1e40082ea4"
+      },
+      "native_static_labelled_sites": 5,
+      "native_expanded_labelled_predicates": 7,
+      "assertions": [
+        {
+          "id": "test/session-log.test.mjs#14:assert-1",
+          "source_line": 281,
+          "source_expression": "assert.equal(writer.record(decision({ request_id: `request-${index}` })), true)",
+          "source_expression_sha256": "b688fe622b1355a8953101e3468888fbfbc76146356f3d0523c70f9c46518946",
+          "expanded_original_executions": 3,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 985,
+            "fragment": "original!(14, 1, writer.record(value.as_ref().unwrap()))",
+            "fragment_sha256": "ece49d228c7bd307242634bb3d91e60a2d42d0c22ae141da279fea1275473ef6"
+          },
+          "expanded_native_labelled_executions": 3,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#14:assert-2",
+          "source_line": 284,
+          "source_expression": "assert.equal(writer.close(), closing)",
+          "source_expression_sha256": "6981536771bf1d902a6049bab392349a796f9a1ecdc66aa729714b094a96b3bd",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1001,
+            "fragment": "original!(14, 2, seen.closes.load(Ordering::SeqCst) == 1)",
+            "fragment_sha256": "e0aefdb9e0ff5cf2b857b7d3c796b0339f01508441847c145ce96549962ab28a"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [
+            {
+              "site": 2,
+              "kind": "shared_promise_identity",
+              "status": "explicit_native_future_ownership_adaptation",
+              "detail": "Two first-polled Rust close futures wait for one worker and exactly one sink close. This preserves admitted closure ownership and held-write ordering, not JS Promise identity."
+            }
+          ],
+          "semantic_status": "reviewed_native_first_poll_future_ownership_migration",
+          "migration_review": {
+            "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+            "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+            "bytes": 2919,
+            "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+          }
+        },
+        {
+          "id": "test/session-log.test.mjs#14:assert-3",
+          "source_line": 285,
+          "source_expression": "assert.equal(writer.record(decision({ request_id: 'too-late' })), false)",
+          "source_expression_sha256": "96aee750d7dd4e4fb0df59e4a0ce2fec40ae61186ffd1d65d8d6fff22758454a",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1002,
+            "fragment": "original!(14, 3, late_rejected)",
+            "fragment_sha256": "57dd5a265aab5710a93166f8c9c2ecf93acfc1febf1e2eff0c6dc757a7b102d1"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#14:assert-4",
+          "source_line": 289,
+          "source_expression": "assert.equal(closed, false)",
+          "source_expression_sha256": "7b31a88ae47ae3a73942ad3b569052b1a1207ee6cdeceaf6379fdac1fa48b6bf",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1003,
+            "fragment": "original!(14, 4, a_pending && b_pending && not_closed)",
+            "fragment_sha256": "7bbe47f1e1c191815e7821c184f2d41fe315441394046623583fa3ef4fcc6dd4"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#14:assert-5",
+          "source_line": 293,
+          "source_expression": "assert.deepEqual(file.rows.map(row => row.request_id), ['request-0', 'request-1', 'request-2'])",
+          "source_expression_sha256": "5abe3c6360e704ebc9d478a48f0050e13b90d34633274eb5fbf2de645353bd02",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1005,
+            "fragment": "original!(\n        14,\n        5,\n        actual[0]\n            .rows\n            .iter()\n            .map(|r| r[\"request_id\"].as_str().unwrap())\n            .collect::<Vec<_>>()\n            == [\"request-0\", \"request-1\", \"request-2\"]\n    )",
+            "fragment_sha256": "a7f0ddcde47c0a2231d63cc7c4cbcfc3940896c4e83e7899ba9219c895cbc826"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        }
+      ],
+      "api_boundaries": [
+        {
+          "site": 2,
+          "kind": "shared_promise_identity",
+          "status": "explicit_native_future_ownership_adaptation",
+          "detail": "Two first-polled Rust close futures wait for one worker and exactly one sink close. This preserves admitted closure ownership and held-write ordering, not JS Promise identity."
+        }
+      ],
+      "scope": "Exact selected original input order and actual native admission transcript, real durable file rows/modes/identities and cleanup. Full file row comparisons use exact f64 Number equality with no tolerance. Explicit capability limits override a superficially matching labelled predicate.",
+      "status": "covered",
+      "remaining_assertions": [],
+      "explicit_reviewed_difference": {
+        "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+        "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+        "bytes": 2919,
+        "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+      }
+    },
+    {
+      "id": "test/session-log.test.mjs#15",
+      "source_file": "test/session-log.test.mjs",
+      "name": "continuous arrivals during writes drain in order without dropping accepted records",
+      "source_line": 296,
+      "source_statement_sha256": "2b93a426721087a0fa4133f7404d9aca7eb1593e06ce7b697ffa5ef51d946024",
+      "previous_coverage_status": "pending_assertion_mapping",
+      "mapping_status": "root_reviewed_native_behavior_with_named_API_boundaries",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_15_continuous_arrival_at_each_real_write"
+      ],
+      "shared_cases": [
+        "session-log-contracts.jsonl:13"
+      ],
+      "case": {
+        "path": "rust/parity/cases/session-log-contracts.jsonl",
+        "line": 13,
+        "source_test": "test/session-log.test.mjs#15",
+        "line_sha256": "8b726c4afecfb568385dad545f91d9ccbb4f75136f1cfe221e97c81faa441143"
+      },
+      "native_static_labelled_sites": 4,
+      "native_expanded_labelled_predicates": 802,
+      "assertions": [
+        {
+          "id": "test/session-log.test.mjs#15:assert-1",
+          "source_line": 306,
+          "source_expression": "assert.equal(writer.record(decision({ request_id: `request-${written + 1}` })), true)",
+          "source_expression_sha256": "32ca88c5a11300cf6499b0d0caa24e0874f1977139676fb876b166c681398567",
+          "expanded_original_executions": 799,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 402,
+            "fragment": "original!(15, 1, accepted)",
+            "fragment_sha256": "7aae1c79c98daa6f624aece6f9c5527df16085fc2b0d98ab3fabdd19064dcdff"
+          },
+          "expanded_native_labelled_executions": 799,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#15:assert-2",
+          "source_line": 313,
+          "source_expression": "assert.equal(writer.record(decision({ request_id: 'request-0' })), true)",
+          "source_expression_sha256": "af232afaf620b0dfe3fa7862f1bcffdb81bc5917e30fde83432291e6cf8d9ce2",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1030,
+            "fragment": "original!(15, 2, writer.record(&values[0]))",
+            "fragment_sha256": "c22e985a5f0cc72cb33ffb1b5218221167e95bfd3939b023f64ec7b32dc2d89b"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#15:assert-3",
+          "source_line": 317,
+          "source_expression": "assert.deepEqual(file.rows.map(row => row.request_id), Array.from({ length: 800 }, (_, index) => `request-${index}`))",
+          "source_expression_sha256": "c3f4a81419e4c646cfd1571c4203391617bdbdbb123f1294c5720d83f66cc278",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1038,
+            "fragment": "original!(\n        15,\n        3,\n        actual[0]\n            .rows\n            .iter()\n            .enumerate()\n            .all(|(i, r)| r[\"request_id\"] == format!(\"request-{i}\"))\n            && actual[0].rows.len() == 800\n    )",
+            "fragment_sha256": "9ce0516d8d1783d1d178a4d2ee36b17e4e0fd3117b7605b426db426ebdb3d164"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#15:assert-4",
+          "source_line": 318,
+          "source_expression": "assert.deepEqual(warnings, [])",
+          "source_expression_sha256": "0183ed2fb5cacc5132417ca3c677dfeb8af656660b9f2a1bd859b6230b9abbd1",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1048,
+            "fragment": "original!(15, 4, seen.warnings.lock().unwrap().is_empty())",
+            "fragment_sha256": "84a9ae1eca1184add515ec317e7dbf1013f91bca5eeb1971775c78962e4b203a"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        }
+      ],
+      "api_boundaries": [],
+      "scope": "Exact selected original input order and actual native admission transcript, real durable file rows/modes/identities and cleanup. Full file row comparisons use exact f64 Number equality with no tolerance. Explicit capability limits override a superficially matching labelled predicate.",
+      "status": "covered",
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/session-log.test.mjs#16",
+      "source_file": "test/session-log.test.mjs",
+      "name": "metadata mode omits prompt fields and retains correlated safe outcomes",
+      "source_line": 321,
+      "source_statement_sha256": "4063d5e21220fe5aea8439f94f759ab2900ea8437cd736091a145a0665b00608",
+      "previous_coverage_status": "partial_assertion_mapping",
+      "mapping_status": "root_reviewed_native_behavior_with_named_API_boundaries",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_16_metadata_mode_correlated_safe_outcome"
+      ],
+      "shared_cases": [
+        "session-log-contracts.jsonl:14"
+      ],
+      "case": {
+        "path": "rust/parity/cases/session-log-contracts.jsonl",
+        "line": 14,
+        "source_test": "test/session-log.test.mjs#16",
+        "line_sha256": "890021711fe1ee7697a142c5b98edd5386d62ce39dce67a83620bd0c0b6859c9"
+      },
+      "native_static_labelled_sites": 9,
+      "native_expanded_labelled_predicates": 9,
+      "assertions": [
+        {
+          "id": "test/session-log.test.mjs#16:assert-1",
+          "source_line": 323,
+          "source_expression": "assert.equal(writer.record(decision({ prompt_excerpt: 'PRIVATE_PROMPT' })), true)",
+          "source_expression_sha256": "ed4561db1bd9e516cceddf5f369f7c88e54257e8d84939e551a0ea079fc2eab7",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1060,
+            "fragment": "original!(16, 1, writer.record(values[0].as_ref().unwrap()))",
+            "fragment_sha256": "c6be909b30d3152b0649af93465627a463ae6e82b330af0c0ff1c8b97e476a58"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#16:assert-2",
+          "source_line": 324,
+          "source_expression": "assert.equal(writer.record({ schema_version: 2, event: 'outcome', timestamp: '2026-10-01T12:00:01.000Z',\n    request_id: 'request-1', session_id: 'session-a', status: 'completed', http_status: 200,\n    requested_model: 'claude-haiku-4-5-20251001', selected_model: 'claude-sonnet-5-5', confirmed_model: 'claude-sonnet-5-5',\n    completion_confirmed: true, usage_complete: true, usage: { input_tokens: 100, output_tokens: 20, private: 'PRIVATE_USAGE' },\n    baseline_model: 'claude-opus-5-5', pricing_version: '2026-09-29.1', total_latency_ms: 650,\n    body: { text: 'PRIVATE_BODY' }, prompt_excerpt: 'PRIVATE_PROMPT', headers: { authorization: 'PRIVATE_AUTH' },\n  }), true)",
+          "source_expression_sha256": "62fd274cf80f29568726821d86374b3f1d410a4f602607e7967b164d94ddd50a",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1061,
+            "fragment": "original!(16, 2, writer.record(values[1].as_ref().unwrap()))",
+            "fragment_sha256": "1a8818db8daeda2d946d7d37dea5983a7787c6bf27635ffa8e81b352362086a1"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#16:assert-3",
+          "source_line": 333,
+          "source_expression": "assert.equal(file.rows.length, 2)",
+          "source_expression_sha256": "4ff5fde1cb934beabda95a23b7ddd2068d3de86cbe0736eca6cc348e2bb061bb",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1065,
+            "fragment": "original!(16, 3, file.rows.len() == 2)",
+            "fragment_sha256": "8b4d1d158836627d4b3f758a7ef438b3d4e35f3329f78e1d0b814cdff9fad298"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#16:assert-4",
+          "source_line": 334,
+          "source_expression": "assert.ok(file.rows.every(row => row.schema_version === 2 && !Object.hasOwn(row, 'prompt_excerpt') && !Object.hasOwn(row, 'prompt_truncated')))",
+          "source_expression_sha256": "e277ff8c4ea9843f2a9f2623a239ed85b38aea7c2f76e52a2fd2f255f8fe3668",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1066,
+            "fragment": "original!(\n        16,\n        4,\n        file.rows.iter().all(|r| r[\"schema_version\"] == 2\n            && r.get(\"prompt_excerpt\").is_none()\n            && r.get(\"prompt_truncated\").is_none())\n    )",
+            "fragment_sha256": "ac47c73b4b7fb4d061a8a61344585865040d9a86d5abc0573e0c2af796c698d3"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#16:assert-5",
+          "source_line": 335,
+          "source_expression": "assert.equal(file.rows[0].request_id, file.rows[1].request_id)",
+          "source_expression_sha256": "baec05f18688075f35ac22815a65b5c904c888aa600434ece33a8ee2084c3d02",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1073,
+            "fragment": "original!(\n        16,\n        5,\n        file.rows[0][\"request_id\"] == file.rows[1][\"request_id\"]\n    )",
+            "fragment_sha256": "8303739ed5dbf5f27c28bc39f150c32b5b749ed24d75f84050ce97d6fec49f5b"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#16:assert-6",
+          "source_line": 336,
+          "source_expression": "assert.equal(file.rows[1].confirmed_model, 'claude-sonnet-5-5')",
+          "source_expression_sha256": "697c6b4b09933fa2ba12ab389baaecd5c18529fcf2f4828f34c62c35ed781c2f",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1078,
+            "fragment": "original!(\n        16,\n        6,\n        file.rows[1][\"confirmed_model\"] == \"claude-sonnet-5-5\"\n    )",
+            "fragment_sha256": "30d2b9257dda5358f577f59b85f2b6514e2e6a56d33617268fb171eb10c30655"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#16:assert-7",
+          "source_line": 337,
+          "source_expression": "assert.equal(file.rows[1].completion_confirmed, true)",
+          "source_expression_sha256": "930a0a60fb53cc52227502cdb02f157699e5443aceb1af3e81cd6b2b9e7cb0a6",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1083,
+            "fragment": "original!(16, 7, file.rows[1][\"completion_confirmed\"] == true)",
+            "fragment_sha256": "286252612a7fb6b85c6e42045a566f36f10316bef039b1dbfa94408910df176c"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#16:assert-8",
+          "source_line": 338,
+          "source_expression": "assert.deepEqual(file.rows[1].usage, { input_tokens: 100, output_tokens: 20 })",
+          "source_expression_sha256": "7943e95c6e525d7bf1f05fca769a44339d123730e7d653273b470cc260407716",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1084,
+            "fragment": "original!(\n        16,\n        8,\n        number_equal(\n            &file.rows[1][\"usage\"],\n            &json!({\"input_tokens\":100,\"output_tokens\":20})\n        )\n    )",
+            "fragment_sha256": "37d91204ef08c611480ed35813b249c6b6910fa197bdd7ce936af8994c6801e0"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#16:assert-9",
+          "source_line": 339,
+          "source_expression": "assert.ok(!file.text.includes('PRIVATE_'))",
+          "source_expression_sha256": "e6e6b9a063af4983e6e300b6533ad5ff12d1ed9dc97765e3abd6d33ca3f180c4",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1092,
+            "fragment": "original!(16, 9, !file.text.contains(\"PRIVATE_\"))",
+            "fragment_sha256": "b36cb410318b1f9aa0c73b867d3ba85bce2d2c82cbdb6298157dfaf0b9a01820"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        }
+      ],
+      "api_boundaries": [],
+      "scope": "Exact selected original input order and actual native admission transcript, real durable file rows/modes/identities and cleanup. Full file row comparisons use exact f64 Number equality with no tolerance. Explicit capability limits override a superficially matching labelled predicate.",
+      "status": "covered",
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/session-log.test.mjs#17",
+      "source_file": "test/session-log.test.mjs",
+      "name": "pre-routing failures can be recorded without selected models and auxiliary records never retain excerpts",
+      "source_line": 342,
+      "source_statement_sha256": "482f2f0f3d5b54ab4c8ca02be7f88f6f3abad7248007f08ddcd21566a8e90522",
+      "previous_coverage_status": "partial_assertion_mapping",
+      "mapping_status": "root_reviewed_native_behavior_with_named_API_boundaries",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_17_prerouting_absence_and_auxiliary_privacy"
+      ],
+      "shared_cases": [
+        "session-log-contracts.jsonl:15"
+      ],
+      "case": {
+        "path": "rust/parity/cases/session-log-contracts.jsonl",
+        "line": 15,
+        "source_test": "test/session-log.test.mjs#17",
+        "line_sha256": "2d3d96f33d9fd37a9c13ff57017f4198b89994b8ae91771bfeea0dd078aeb6ee"
+      },
+      "native_static_labelled_sites": 6,
+      "native_expanded_labelled_predicates": 6,
+      "assertions": [
+        {
+          "id": "test/session-log.test.mjs#17:assert-1",
+          "source_line": 344,
+          "source_expression": "assert.equal(writer.record({ schema_version: 2, event: 'outcome', request_id: 'bad-request', status: 'error', http_status: 400,\n    session_id: 'session-a', error_type: 'invalid_request_error', error: 'PRIVATE_RAW_ERROR' }), true)",
+          "source_expression_sha256": "e0555da667c9009202e17906ce37e3cb099ef1793409d74d60fdbecff6349c5c",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1104,
+            "fragment": "original!(17, 1, writer.record(values[0].as_ref().unwrap()))",
+            "fragment_sha256": "387bb7ccce4cf9943f2d42920e566e85e8ce6ea616b0ccae3f33c35236c6cfb5"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#17:assert-2",
+          "source_line": 346,
+          "source_expression": "assert.equal(writer.record(decision({ agent_id: 'agent-a', request_class: 'subagent', prompt_excerpt: 'PRIVATE_AGENT_TEXT' })), true)",
+          "source_expression_sha256": "6fd67cee36cb073d841642f8062afca998a84e17fd77c0060c32374468a3dfa9",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1105,
+            "fragment": "original!(17, 2, writer.record(values[1].as_ref().unwrap()))",
+            "fragment_sha256": "dd518d417dd5cbdffa5ce4aca71741282aaaa63ae0657386e20a5649b7454f36"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#17:assert-3",
+          "source_line": 349,
+          "source_expression": "assert.equal(file.rows[0].selected_model, undefined)",
+          "source_expression_sha256": "490637115a1ccfef6d91d3da377bf0e1fd93b16cdda6dd229af193d8a23bcdd2",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1109,
+            "fragment": "original!(17, 3, file.rows[0].get(\"selected_model\").is_none())",
+            "fragment_sha256": "693acfa760e539b7fb3139fe8e55f698d7b0f49b14558a259ecada274674a1c0"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#17:assert-4",
+          "source_line": 350,
+          "source_expression": "assert.equal(file.rows[0].status, 'error')",
+          "source_expression_sha256": "f4a50c310aa33e7e7cbc0bc230d440583626e1ab8826d32695638aa275597944",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1110,
+            "fragment": "original!(17, 4, file.rows[0][\"status\"] == \"error\")",
+            "fragment_sha256": "9c7e6efbe39fc9fe7990a042109b4fb15ff6db9aaa6328717fd1adf316a7f616"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#17:assert-5",
+          "source_line": 351,
+          "source_expression": "assert.equal(file.rows[1].prompt_excerpt, '')",
+          "source_expression_sha256": "7fd12e2848e5b0b1eee15c6c0a5df4a0bcc6f67119a2a34111125eeeeef76410",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1111,
+            "fragment": "original!(17, 5, file.rows[1][\"prompt_excerpt\"] == \"\")",
+            "fragment_sha256": "bd30627fec31b3b40df80eef8b99d0dde65ef45ddaee447be64545e6dee58a32"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        },
+        {
+          "id": "test/session-log.test.mjs#17:assert-6",
+          "source_line": 352,
+          "source_expression": "assert.ok(!file.text.includes('PRIVATE_'))",
+          "source_expression_sha256": "e6e6b9a063af4983e6e300b6533ad5ff12d1ed9dc97765e3abd6d33ca3f180c4",
+          "expanded_original_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+            "retained_source": {
+              "path": "artifacts/rust-rewrite/session-log-original-native-2/sources/rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+              "bytes": 44000,
+              "sha256": "9b40362a1f43404734ee66bf19aacd70f73e1ce6fee4f87116ea822ffd287d98"
+            },
+            "line": 1112,
+            "fragment": "original!(17, 6, !file.text.contains(\"PRIVATE_\"))",
+            "fragment_sha256": "b6ccb26c176f1395898e54abb5408a996d02a892a47d8c513ae1ac514c11bfdc"
+          },
+          "expanded_native_labelled_executions": 1,
+          "api_boundaries": [],
+          "semantic_status": "native_counterpart"
+        }
+      ],
+      "api_boundaries": [],
+      "scope": "Exact selected original input order and actual native admission transcript, real durable file rows/modes/identities and cleanup. Full file row comparisons use exact f64 Number equality with no tolerance. Explicit capability limits override a superficially matching labelled predicate.",
+      "status": "covered",
+      "remaining_assertions": []
+    }
+  ],
+  "previous_coverage_rows": [
+    {
+      "id": "test/session-log.test.mjs#1",
+      "file": "test/session-log.test.mjs",
+      "name": "concurrent decisions stay ordered in one private file per session, including an anonymous session",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::native_files_are_exclusive_private_and_metadata_only"
+      ],
+      "shared_cases": [
+        "accounting-1",
+        "accounting-2",
+        "accounting-3"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Native filesystem test writes120 rows to three sessions and checks permissions/counts. It omits anonymous-session grouping, concurrent producers, exact per-file ordering, opaque filename format, schema per row and zero warnings."
+      ]
+    },
+    {
+      "id": "test/session-log.test.mjs#2",
+      "file": "test/session-log.test.mjs",
+      "name": "separate launches never append to each other and existing directory modes are unchanged",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::close_owns_stalled_writes_and_later_records_are_rejected",
+        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::separate_launches_never_append_to_each_other_or_change_existing_directory_mode"
+      ],
+      "shared_cases": [],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "scope": "Exact per-symbol execution logs and source hashes are in the mapping catalog; no broader fixture-family equivalence is claimed."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Native tests now cover simultaneous launches, separate one-row files, preserved0755 directory mode, rejected late records and concurrent close completion. The baseline assertion of JavaScript Promise object identity has no direct Rust Future identity counterpart; retain partial status pending an explicit API contract mapping."
+      ]
+    },
+    {
+      "id": "test/session-log.test.mjs#3",
+      "file": "test/session-log.test.mjs",
+      "name": "rows copy only bounded metadata, retain Auto safety reasons, and never serialize bodies or errors",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::close_owns_stalled_writes_and_later_records_are_rejected"
+      ],
+      "shared_cases": [
+        "accounting-1",
+        "accounting-2",
+        "accounting-3"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Normalizer drops private fields, but no writer test verifies copied input after caller mutation, exact Auto safety row and a throwing unknown-field getter. Rust ownership/API difference needs explicit mapping."
+      ]
+    },
+    {
+      "id": "test/session-log.test.mjs#4",
+      "file": "test/session-log.test.mjs",
+      "name": "prompt excerpts use at most 500 Unicode characters and auxiliary classes never retain prompt text",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::native_files_are_exclusive_private_and_metadata_only"
+      ],
+      "shared_cases": [
+        "accounting-1",
+        "accounting-2",
+        "accounting-3"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Normalizer covers Unicode limit and one background class. Writer-level already-truncated, exact500, absent request class and auxiliary/compaction/safety_review matrix is absent."
+      ]
+    },
+    {
+      "id": "test/session-log.test.mjs#5",
+      "file": "test/session-log.test.mjs",
+      "name": "unlimited evaluator runtimes can retain finite decision latency beyond one hour",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::native_files_are_exclusive_private_and_metadata_only"
+      ],
+      "shared_cases": [
+        "accounting-1",
+        "accounting-2",
+        "accounting-3"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Finite long latency is allowed and normalizer cases probe large numbers, but no actual accepted file-row test retains7200000.125 decision latency."
+      ]
+    },
+    {
+      "id": "test/session-log.test.mjs#6",
+      "file": "test/session-log.test.mjs",
+      "name": "invalid IDs cannot traverse paths or merge into anonymous logs; malformed fields are omitted",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::native_writer_rejects_links_replaced_directory_and_existing_file"
+      ],
+      "shared_cases": [
+        "accounting-1",
+        "accounting-2",
+        "accounting-3"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Normalizer corpus rejects numerous malformed identities. Missing writer-return/file-count assertions for all traversal/newline/201-unit/array identities, selected model failures, getters and anonymous invalid-field omission."
+      ]
+    },
+    {
+      "id": "test/session-log.test.mjs#7",
+      "file": "test/session-log.test.mjs",
+      "name": "queue backpressure is bounded in UTF-8 bytes and shutdown drains every accepted line",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::pending_bytes_and_sessions_are_bounded_without_losing_accepted_rows"
+      ],
+      "shared_cases": [
+        "accounting-1",
+        "accounting-2",
+        "accounting-3"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Controlled sink covers bounded acceptance/drain, but does not test JSON escaping expansion of500 NUL characters, accepted100..1000 threshold, <=1MiB actual file bytes and full retained request ordering."
+      ]
+    },
+    {
+      "id": "test/session-log.test.mjs#8",
+      "file": "test/session-log.test.mjs",
+      "name": "at most 128 sessions and descriptors are retained, and accepted sessions drain on overflow",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::pending_bytes_and_sessions_are_bounded_without_losing_accepted_rows"
+      ],
+      "shared_cases": [
+        "accounting-1",
+        "accounting-2",
+        "accounting-3"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Controlled sink enforces128 sessions and drains accepted rows. Missing native descriptor count128, every descriptor closed, and128 actual files after overflow."
+      ]
+    },
+    {
+      "id": "test/session-log.test.mjs#11",
+      "file": "test/session-log.test.mjs",
+      "name": "a replaced directory is rejected before any session file is created",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::native_writer_rejects_links_replaced_directory_and_existing_file"
+      ],
+      "shared_cases": [
+        "accounting-1",
+        "accounting-2",
+        "accounting-3"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Native test rejects replaced directory and asserts both target and original empty. Exactly one warning and record/close fail-open behavior are not all captured by an explicit warning assertion."
+      ]
+    },
+    {
+      "id": "test/session-log.test.mjs#12",
+      "file": "test/session-log.test.mjs",
+      "name": "filesystem and warning failures never reject the factory, record, or close",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::storage_failure_warns_once_closes_and_does_not_echo_error"
+      ],
+      "shared_cases": [
+        "accounting-1",
+        "accounting-2",
+        "accounting-3"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "No native test injects initialization failure together with a panicking warning callback, repeated close and asynchronous warning failure semantics; Rust callback API differences require explicit treatment."
+      ]
+    },
+    {
+      "id": "test/session-log.test.mjs#13",
+      "file": "test/session-log.test.mjs",
+      "name": "a write failure disables logging once and shutdown still closes its descriptor",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::storage_failure_warns_once_closes_and_does_not_echo_error"
+      ],
+      "shared_cases": [
+        "accounting-1",
+        "accounting-2",
+        "accounting-3"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Controlled sink tests one failed write, one warning, close and later rejection. It does not prove native descriptor closure after an actual file handle write failure."
+      ]
+    },
+    {
+      "id": "test/session-log.test.mjs#14",
+      "file": "test/session-log.test.mjs",
+      "name": "close waits for accepted in-flight writes, closes once, and rejects later records",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::close_owns_stalled_writes_and_later_records_are_rejected"
+      ],
+      "shared_cases": [
+        "accounting-1",
+        "accounting-2",
+        "accounting-3"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Controlled sink proves stalled accepted writes drain in order and later records reject. Concurrent close callers sharing one completion and exactly-once close count are not explicitly asserted."
+      ]
+    },
+    {
+      "id": "test/session-log.test.mjs#15",
+      "file": "test/session-log.test.mjs",
+      "name": "continuous arrivals during writes drain in order without dropping accepted records",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "No native test feeds another accepted row from each write completion for800 iterations and proves no lost wakeup, ordered rows and zero warnings."
+      ]
+    },
+    {
+      "id": "test/session-log.test.mjs#16",
+      "file": "test/session-log.test.mjs",
+      "name": "metadata mode omits prompt fields and retains correlated safe outcomes",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::native_files_are_exclusive_private_and_metadata_only"
+      ],
+      "shared_cases": [
+        "accounting-1",
+        "accounting-2",
+        "accounting-3"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Actual metadata-mode files and normalized outcome allowlist are tested independently. Missing the exact correlated decision+outcome pair with schema, request_id, confirmed usage and no prompt fields in one file."
+      ]
+    },
+    {
+      "id": "test/session-log.test.mjs#17",
+      "file": "test/session-log.test.mjs",
+      "name": "pre-routing failures can be recorded without selected models and auxiliary records never retain excerpts",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::native_files_are_exclusive_private_and_metadata_only"
+      ],
+      "shared_cases": [
+        "accounting-1",
+        "accounting-2",
+        "accounting-3"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Pre-routing outcome and background prompt normalization exist, but no native log test persists both rows together and asserts absence of selected model, empty background excerpt and private marker exclusion."
+      ]
+    }
+  ],
+  "isolated_source_head": "22faae107dbafcfabed31f4894e18fe5b4104c2e",
+  "input_coverage": {
+    "path": "artifacts/rust-rewrite/evidence/74cc76a16195e7114410f6f203989448b110b0e888e4aa43b574c8f0dbd972e9.json",
+    "sha256": "74cc76a16195e7114410f6f203989448b110b0e888e4aa43b574c8f0dbd972e9",
+    "bytes": 1670240,
+    "original_path": "rust/parity/coverage.json"
+  },
+  "author_proposal": {
+    "path": "artifacts/rust-rewrite/evidence/a8a6c3d78b8273efd5d4fa12a4fb007e577b6bafe87139b3a9ffadf4117138c8.json",
+    "sha256": "a8a6c3d78b8273efd5d4fa12a4fb007e577b6bafe87139b3a9ffadf4117138c8",
+    "bytes": 215585,
+    "original_path": "/private/tmp/autorouter-session-log-original-mapping-proposal.json"
+  },
+  "root_API_review": {
+    "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+    "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+    "bytes": 2919,
+    "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+  },
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/evidence/0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4.json",
+    "sha256": "0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4",
+    "bytes": 11637,
+    "original_path": "/private/tmp/autorouter-session-log-original-independent-review.json"
+  },
+  "embedding_documentation": {
+    "path": "artifacts/rust-rewrite/evidence/3d459a1241ffeaa174a55373bbcdf0c5ab2e0c0e3e17ef5ada698274635c357f.md",
+    "sha256": "3d459a1241ffeaa174a55373bbcdf0c5ab2e0c0e3e17ef5ada698274635c357f",
+    "bytes": 9637,
+    "original_path": "rust/docs/embedding.md"
+  },
+  "integration_scope": "Integrated sources match isolated exact retained source bytes. Native27-pass and independent immutable replay belong to that isolated22faae1 candidate; current full main integration validation is separate. No production SessionLog change."
+}

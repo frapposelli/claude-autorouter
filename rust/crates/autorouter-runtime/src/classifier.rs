@@ -18,7 +18,7 @@ use serde_json::json;
 use sha2::{Digest, Sha256};
 use tokio::sync::{Notify, watch};
 use tokio::time::Instant;
-use tokio_util::sync::CancellationToken;
+use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
 use crate::evaluator::{
     ClassifierDecision, EvaluationError, evaluate_serialized_state, unavailable,
@@ -85,6 +85,7 @@ struct Cached {
 }
 #[derive(Default)]
 struct State {
+    closing: bool,
     pending: HashMap<Key, Pending>,
     subscribers: usize,
     next_id: u64,
@@ -146,14 +147,18 @@ struct Shared<T> {
     limits: Limits,
     cache_entries: usize,
     cache_ttl: Duration,
+    workers: TaskTracker,
+    stopping: CancellationToken,
+    #[cfg(test)]
+    test_worker_gate: Mutex<Option<Arc<shutdown_gate::WorkerPollGate>>>,
+    #[cfg(test)]
+    test_spawn_gate: Mutex<Option<Arc<shutdown_gate::WorkerSpawnGate>>>,
 }
 impl<T> Drop for Shared<T> {
     fn drop(&mut self) {
-        if let Ok(state) = self.state.get_mut() {
-            for pending in state.pending.values() {
-                pending.entry.controller.cancel();
-            }
-        }
+        // Drop initiates cleanup without blocking; explicit close awaits it.
+        self.stopping.cancel();
+        self.workers.close();
     }
 }
 
@@ -285,6 +290,11 @@ impl<T: HttpTransport + 'static> Classifier<T> {
         (state.pending.len(), state.subscribers)
     }
 
+    #[cfg(test)]
+    pub(crate) fn test_worker_poll_gate(&self, gate: Arc<shutdown_gate::WorkerPollGate>) {
+        *self.shared.test_worker_gate.lock().unwrap() = Some(gate);
+    }
+
     pub fn new(transport: Arc<T>, config: &RouterConfig) -> Self {
         Self::with_limits(transport, config, Limits::default())
     }
@@ -296,6 +306,12 @@ impl<T: HttpTransport + 'static> Classifier<T> {
                 limits,
                 cache_entries: config.cache_entries,
                 cache_ttl: Duration::from_millis(config.cache_ttl_ms),
+                workers: TaskTracker::new(),
+                stopping: CancellationToken::new(),
+                #[cfg(test)]
+                test_worker_gate: Mutex::new(None),
+                #[cfg(test)]
+                test_spawn_gate: Mutex::new(None),
             }),
         }
     }
@@ -322,6 +338,9 @@ impl<T: HttpTransport + 'static> Classifier<T> {
         let mut receiver;
         {
             let mut state = self.shared.state.lock().unwrap();
+            if state.closing {
+                return Err(EvaluationError::Cancelled);
+            }
             retired = state.prune_cancelled();
             // Cancellations are propagated outside the mutex, even on an early
             // cache/capacity return, through this small scope-owned guard.
@@ -339,7 +358,8 @@ impl<T: HttpTransport + 'static> Classifier<T> {
                 Some(Ok(value))
             } else if state.subscribers >= self.shared.limits.subscribers
                 || (!state.pending.contains_key(&key)
-                    && state.pending.len() >= self.shared.limits.pending)
+                    && (state.pending.len() >= self.shared.limits.pending
+                        || self.shared.workers.len() >= self.shared.limits.pending))
             {
                 Some(Ok(unavailable(
                     &requested,
@@ -374,7 +394,7 @@ impl<T: HttpTransport + 'static> Classifier<T> {
                 };
                 let (result, _) = watch::channel(None);
                 let entry = Arc::new(Entry {
-                    controller: CancellationToken::new(),
+                    controller: self.shared.stopping.child_token(),
                     result,
                     completed: Arc::new(WorkerCompletion::default()),
                 });
@@ -390,7 +410,16 @@ impl<T: HttpTransport + 'static> Classifier<T> {
                 settings.anthropic_key = None;
                 settings.local_token = None;
                 settings.session_log_dir = None;
-                work = Some((entry, excerpt, settings, completion));
+                // Register the whole unpolled future before admission unlocks.
+                // A concurrent close must also own work not yet spawned.
+                work = Some(self.shared.workers.track_future(self.worker(
+                    key,
+                    entry,
+                    excerpt,
+                    settings,
+                    requested.clone(),
+                    completion,
+                )));
             }
             let subscriber = state.next_id();
             let pending = state.pending.get_mut(&key).expect("admitted entry");
@@ -408,62 +437,17 @@ impl<T: HttpTransport + 'static> Classifier<T> {
             drop(cancelled);
         }
         let mut subscription = subscription;
-        if let Some((entry, excerpt, settings, completion)) = work {
-            let weak = Arc::downgrade(&self.shared);
-            let transport = self.shared.transport.clone();
-            tokio::spawn(async move {
-                let _completion = completion;
-                let result = {
-                    let future = evaluate_serialized_state(
-                        transport.as_ref(),
-                        &settings,
-                        &excerpt,
-                        &requested,
-                        &entry.controller,
-                    );
-                    tokio::pin!(future);
-                    poll_fn(|cx| {
-                        match catch_unwind(AssertUnwindSafe(|| future.as_mut().poll(cx))) {
-                            Ok(result) => result,
-                            Err(_) => std::task::Poll::Ready(Ok(unavailable(
-                                &requested,
-                                settings.evaluator,
-                                "network_error",
-                            ))),
-                        }
-                    })
-                    .await
-                }; // Drop evaluator-owned request/body before result publication.
-                if let Some(shared) = weak.upgrade() {
-                    let mut state = shared.state.lock().unwrap();
-                    if state
-                        .pending
-                        .get(&key)
-                        .is_some_and(|pending| Arc::ptr_eq(&pending.entry, &entry))
-                    {
-                        let pending = state.pending.remove(&key).expect("matching pending entry");
-                        state.subscribers -= pending.subscribers.len();
-                        let active = pending
-                            .subscribers
-                            .values()
-                            .any(|token| !token.is_cancelled());
-                        if active
-                            && !entry.controller.is_cancelled()
-                            && let Ok(value) = &result
-                            && value.source != "fallback"
-                        {
-                            state.cache_set(
-                                key,
-                                value.clone(),
-                                shared.cache_entries,
-                                shared.cache_ttl,
-                            );
-                        }
-                    }
+        if let Some(worker) = work {
+            #[cfg(test)]
+            {
+                let gate = self.shared.test_spawn_gate.lock().unwrap().clone();
+                if let Some(gate) = gate {
+                    gate.before_spawn().await;
                 }
-                let _ = entry.result.send(Some(result));
-            });
+            }
+            tokio::spawn(worker);
         }
+
         loop {
             if cancellation.is_cancelled() || subscription.entry.controller.is_cancelled() {
                 return subscription.cancel().await;
@@ -508,6 +492,96 @@ impl<T: HttpTransport + 'static> Classifier<T> {
                 }
             }
         }
+    }
+
+    fn worker(
+        &self,
+        key: Key,
+        entry: Arc<Entry>,
+        excerpt: String,
+        settings: RouterConfig,
+        requested: String,
+        completion: FinishWorker,
+    ) -> impl std::future::Future<Output = ()> + Send + 'static {
+        let weak = Arc::downgrade(&self.shared);
+        let transport = self.shared.transport.clone();
+        let worker = async move {
+            let _completion = completion;
+            let result = {
+                let future = evaluate_serialized_state(
+                    transport.as_ref(),
+                    &settings,
+                    &excerpt,
+                    &requested,
+                    &entry.controller,
+                );
+                tokio::pin!(future);
+                poll_fn(
+                    |cx| match catch_unwind(AssertUnwindSafe(|| future.as_mut().poll(cx))) {
+                        Ok(result) => result,
+                        Err(_) => std::task::Poll::Ready(Ok(unavailable(
+                            &requested,
+                            settings.evaluator,
+                            "network_error",
+                        ))),
+                    },
+                )
+                .await
+            }; // Drop evaluator-owned request/body before result publication.
+            if let Some(shared) = weak.upgrade() {
+                let mut state = shared.state.lock().unwrap();
+                if state
+                    .pending
+                    .get(&key)
+                    .is_some_and(|pending| Arc::ptr_eq(&pending.entry, &entry))
+                {
+                    let pending = state.pending.remove(&key).expect("matching pending entry");
+                    state.subscribers -= pending.subscribers.len();
+                    let active = pending
+                        .subscribers
+                        .values()
+                        .any(|token| !token.is_cancelled());
+                    if active
+                        && !entry.controller.is_cancelled()
+                        && let Ok(value) = &result
+                        && value.source != "fallback"
+                    {
+                        state.cache_set(key, value.clone(), shared.cache_entries, shared.cache_ttl);
+                    }
+                }
+            }
+            let _ = entry.result.send(Some(result));
+        };
+        #[cfg(test)]
+        let worker =
+            shutdown_gate::schedule(worker, self.shared.test_worker_gate.lock().unwrap().clone());
+        worker
+    }
+
+    pub(crate) fn begin_close(&self) {
+        let pending = {
+            let mut state = self.shared.state.lock().unwrap();
+            state.closing = true;
+            state.subscribers = 0;
+            std::mem::take(&mut state.pending)
+        };
+        // Cancellation, watch notification and tracker wakes are outside locks.
+        self.shared.stopping.cancel();
+        for pending in pending.into_values() {
+            pending.entry.controller.cancel();
+            let _ = pending
+                .entry
+                .result
+                .send(Some(Err(EvaluationError::Cancelled)));
+        }
+        self.shared.workers.close();
+    }
+
+    /// Permanently stops admission and waits for all owned worker destructors.
+    /// Cancelling this waiter does not cancel or consume the shared drain.
+    pub async fn close(&self) {
+        self.begin_close();
+        self.shared.workers.wait().await;
     }
 
     /// Shutdown abandons pending shared work; it does not mutate turn state.
@@ -570,6 +644,7 @@ mod tests {
 
     struct Mock {
         calls: AtomicUsize,
+        waiting: Arc<AtomicUsize>,
         active: Arc<AtomicUsize>,
         blocked: AtomicBool,
         permits: Semaphore,
@@ -580,6 +655,7 @@ mod tests {
         fn new(blocked: bool) -> Self {
             Self {
                 calls: AtomicUsize::new(0),
+                waiting: Arc::new(AtomicUsize::new(0)),
                 active: Arc::new(AtomicUsize::new(0)),
                 blocked: AtomicBool::new(blocked),
                 permits: Semaphore::new(0),
@@ -618,6 +694,8 @@ mod tests {
                 .to_vec();
             self.payloads.lock().unwrap().push(payload);
             if self.blocked.load(Ordering::SeqCst) {
+                self.waiting.fetch_add(1, Ordering::SeqCst);
+                let _waiting = Active(self.waiting.clone());
                 self.permits.acquire().await.unwrap().forget();
             }
             Ok(Response::builder()
@@ -992,4 +1070,9 @@ mod tests {
         assert_eq!(classifier.shared.state.lock().unwrap().subscribers, 0);
     }
     include!("classifier_cancellation_contracts.rs");
+    include!("classifier_shutdown_contracts.rs");
 }
+
+#[cfg(test)]
+#[path = "classifier_shutdown_gate.rs"]
+pub(crate) mod shutdown_gate;

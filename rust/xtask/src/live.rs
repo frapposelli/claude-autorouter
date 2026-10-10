@@ -336,6 +336,9 @@ impl GatewayRouter for LiveRouter {
     fn shutdown(&self) {
         self.inner.shutdown();
     }
+    async fn close(&self) {
+        self.inner.close().await;
+    }
 }
 struct Evidence {
     state: StatusState,

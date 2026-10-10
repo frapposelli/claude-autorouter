@@ -120,6 +120,9 @@ impl GatewayRouter for Router {
     fn shutdown(&self) {
         self.shutdown.store(true, Ordering::SeqCst);
     }
+    async fn close(&self) {
+        self.shutdown();
+    }
 }
 struct Fixture {
     handle: Option<GatewayHandle>,

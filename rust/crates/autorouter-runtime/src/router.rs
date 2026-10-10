@@ -11,9 +11,9 @@ use autorouter_core::router::{RouteDecision, RouteOptions, Router as PolicyRoute
 use hyper::HeaderMap;
 use serde_json::{Value, json};
 use tokio::time::Instant;
-use tokio_util::sync::CancellationToken;
+use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
-use crate::classifier::Classifier;
+use crate::classifier::{Classifier, Limits};
 use crate::evaluator::EvaluationError;
 use crate::http_client::HttpTransport;
 use crate::token_counter::TokenCounter;
@@ -24,6 +24,19 @@ pub struct Router<T> {
     classifier: Classifier<T>,
     counter: Arc<TokenCounter<T>>,
     now: Arc<dyn Fn() -> u64 + Send + Sync>,
+    advisory_closing: Mutex<bool>,
+    advisory_tasks: TaskTracker,
+    advisory_stopping: CancellationToken,
+    advisory_limit: usize,
+    #[cfg(test)]
+    advisory_gate: Mutex<Option<Arc<crate::classifier::shutdown_gate::WorkerPollGate>>>,
+}
+
+impl<T> Drop for Router<T> {
+    fn drop(&mut self) {
+        self.advisory_stopping.cancel();
+        self.advisory_tasks.close();
+    }
 }
 
 struct EarlyCount {
@@ -72,12 +85,28 @@ impl<T: HttpTransport + 'static> Router<T> {
         config: RouterConfig,
         now: Arc<dyn Fn() -> u64 + Send + Sync>,
     ) -> Self {
+        Self::with_clock_and_limits(transport, config, now, Limits::default())
+    }
+    fn with_clock_and_limits(
+        transport: Arc<T>,
+        config: RouterConfig,
+        now: Arc<dyn Fn() -> u64 + Send + Sync>,
+        limits: Limits,
+    ) -> Self {
         Self {
             policy: Mutex::new(PolicyRouter::new(config.clone())),
-            classifier: Classifier::new(transport.clone(), &config),
+            classifier: Classifier::with_limits(transport.clone(), &config, limits),
             counter: Arc::new(TokenCounter::new(transport, &config)),
             config,
             now,
+            advisory_closing: Mutex::new(false),
+            advisory_tasks: TaskTracker::new(),
+            advisory_stopping: CancellationToken::new(),
+            // At most one speculative count per eligible classifier caller.
+            // Retiring tasks retain this slot until their future is destroyed.
+            advisory_limit: limits.subscribers,
+            #[cfg(test)]
+            advisory_gate: Mutex::new(None),
         }
     }
     pub fn complete(&self, request_id: &str, evidence: &Value) -> bool {
@@ -113,6 +142,74 @@ impl<T: HttpTransport + 'static> Router<T> {
         self.classifier.shutdown();
     }
 
+    /// Permanently stops admission and drains internally spawned classifier
+    /// and advisory-count work. Concurrent or cancelled waiters retain the same
+    /// underlying ownership. Caller-owned route futures remain caller-owned.
+    pub async fn close(&self) {
+        {
+            let mut closing = self.advisory_closing.lock().unwrap();
+            *closing = true;
+        }
+        self.classifier.begin_close();
+        self.advisory_stopping.cancel();
+        self.advisory_tasks.close();
+        tokio::join!(self.classifier.close(), self.advisory_tasks.wait());
+    }
+
+    fn start_early_count(
+        &self,
+        document: Arc<JsDocument>,
+        model: &str,
+        headers: &HeaderMap,
+        cancellation: &CancellationToken,
+        search: &str,
+    ) -> Result<Option<tokio::task::JoinHandle<Option<u64>>>, EvaluationError> {
+        let counter = self.counter.clone();
+        let model = model.to_owned();
+        let headers = headers.clone();
+        let cancellation = cancellation.clone();
+        let stopping = self.advisory_stopping.clone();
+        let search = search.to_owned();
+        let worker = {
+            let closing = self.advisory_closing.lock().unwrap();
+            if *closing {
+                return Err(EvaluationError::Cancelled);
+            }
+            if self.advisory_tasks.len() >= self.advisory_limit {
+                return Ok(None);
+            }
+            let worker = async move {
+                tokio::select! {
+                    biased;
+                    _ = stopping.cancelled() => None,
+                    count = counter.count(&document, &model, &headers, &cancellation, &search) => count,
+                }
+            };
+            #[cfg(test)]
+            let worker = crate::classifier::shutdown_gate::schedule(
+                worker,
+                self.advisory_gate.lock().unwrap().clone(),
+            );
+            self.advisory_tasks.track_future(worker)
+        };
+        Ok(Some(tokio::spawn(worker)))
+    }
+
+    async fn required_count(
+        &self,
+        document: &JsDocument,
+        model: &str,
+        headers: &HeaderMap,
+        cancellation: &CancellationToken,
+        search: &str,
+    ) -> Option<u64> {
+        tokio::select! {
+            biased;
+            _ = self.advisory_stopping.cancelled() => None,
+            count = self.counter.count(document, model, headers, cancellation, search) => count,
+        }
+    }
+
     pub async fn route(
         &self,
         document: Arc<JsDocument>,
@@ -133,6 +230,9 @@ impl<T: HttpTransport + 'static> Router<T> {
         cancellation: &CancellationToken,
         search: &str,
     ) -> Result<RouteDecision, EvaluationError> {
+        if *self.advisory_closing.lock().unwrap() {
+            return Err(EvaluationError::Cancelled);
+        }
         let started = Instant::now();
         let count_tokens = options.count_tokens;
         let mut attempt = AttemptGuard {
@@ -161,19 +261,12 @@ impl<T: HttpTransport + 'static> Router<T> {
         let early_model = start.early_count_model.clone();
         let mut early = EarlyCount {
             preserve_background: false,
-            task: early_model.as_ref().map(|model| {
-                let counter = self.counter.clone();
-                let document = document.clone();
-                let model = model.clone();
-                let headers = headers.clone();
-                let cancellation = cancellation.clone();
-                let search = search.to_owned();
-                tokio::spawn(async move {
-                    counter
-                        .count(&document, &model, &headers, &cancellation, &search)
-                        .await
-                })
-            }),
+            task: match early_model.as_ref() {
+                Some(model) => {
+                    self.start_early_count(document.clone(), model, headers, cancellation, search)?
+                }
+                None => None,
+            },
         };
         let evaluation_started = Instant::now();
         let decision = self
@@ -195,11 +288,12 @@ impl<T: HttpTransport + 'static> Router<T> {
                 if let Some(early) = early.task.as_mut() {
                     early.await.ok().flatten()
                 } else {
-                    None
+                    // Capacity can omit speculation, never a required count.
+                    self.required_count(&document, model, headers, cancellation, search)
+                        .await
                 }
             } else {
-                self.counter
-                    .count(&document, model, headers, cancellation, search)
+                self.required_count(&document, model, headers, cancellation, search)
                     .await
             }
         } else {
@@ -207,7 +301,7 @@ impl<T: HttpTransport + 'static> Router<T> {
         };
         // A cancelled request must not install a new continuity selection even
         // if an advisory count independently resolves to unknown on abort.
-        if cancellation.is_cancelled() {
+        if cancellation.is_cancelled() || self.advisory_stopping.is_cancelled() {
             return Err(EvaluationError::Cancelled);
         }
         let mut decision =
@@ -530,3 +624,7 @@ mod tests {
         assert!(!router.complete("synthetic-request", &Value::Null));
     }
 }
+
+#[cfg(test)]
+#[path = "router_shutdown_contracts.rs"]
+mod shutdown_contracts;

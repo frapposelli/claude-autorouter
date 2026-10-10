@@ -213,3 +213,6 @@ async fn cancelled_first_close_retains_worker_until_real_writes_and_second_close
         "the worker JoinHandle remains owned after waiter cancellation"
     );
 }
+
+#[path = "session_log_original_contracts.rs"]
+mod original;

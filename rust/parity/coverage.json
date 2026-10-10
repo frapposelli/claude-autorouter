@@ -23296,53 +23296,70 @@
       "file": "test/session-log.test.mjs",
       "name": "concurrent decisions stay ordered in one private file per session, including an anonymous session",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::native_files_are_exclusive_private_and_metadata_only"
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_01_concurrent_named_and_anonymous_sessions"
       ],
       "shared_cases": [
-        "accounting-1",
-        "accounting-2",
-        "accounting-3"
+        "session-log-contracts.jsonl:1"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+        "assertion_mapping_sha256": "abd4a412910b313e2dcda8069d3274d250e33c0e011089f456d69133d817c0ad",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4.json",
+          "sha256": "0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4",
+          "bytes": 11637,
+          "original_path": "/private/tmp/autorouter-session-log-original-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+          "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+          "bytes": 2919,
+          "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+        },
+        "scope": "Twelve reviewed original definitions; three explicit getter/nonfinite/async-warning partials. Scope includes real native files and mocked post-open write failure, not kernel fault injection or complete platform qualification."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Native filesystem test writes120 rows to three sessions and checks permissions/counts. It omits anonymous-session grouping, concurrent producers, exact per-file ordering, opaque filename format, schema per row and zero warnings."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-log.test.mjs#2",
       "file": "test/session-log.test.mjs",
       "name": "separate launches never append to each other and existing directory modes are unchanged",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::close_owns_stalled_writes_and_later_records_are_rejected",
-        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::separate_launches_never_append_to_each_other_or_change_existing_directory_mode"
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_02_distinct_launches_and_shared_completion"
       ],
-      "shared_cases": [],
+      "shared_cases": [
+        "session-log-contracts.jsonl:2"
+      ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "scope": "Exact per-symbol execution logs and source hashes are in the mapping catalog; no broader fixture-family equivalence is claimed."
+        "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+        "assertion_mapping_sha256": "abd4a412910b313e2dcda8069d3274d250e33c0e011089f456d69133d817c0ad",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4.json",
+          "sha256": "0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4",
+          "bytes": 11637,
+          "original_path": "/private/tmp/autorouter-session-log-original-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+          "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+          "bytes": 2919,
+          "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+        },
+        "scope": "Twelve reviewed original definitions; three explicit getter/nonfinite/async-warning partials. Scope includes real native files and mocked post-open write failure, not kernel fault injection or complete platform qualification."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Native tests now cover simultaneous launches, separate one-row files, preserved0755 directory mode, rejected late records and concurrent close completion. The baseline assertion of JavaScript Promise object identity has no direct Rust Future identity counterpart; retain partial status pending an explicit API contract mapping."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-log.test.mjs#3",
@@ -23351,27 +23368,34 @@
       "parameterized": false,
       "status": "partial_assertion_mapping",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::close_owns_stalled_writes_and_later_records_are_rejected"
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_03_detached_private_metadata"
       ],
       "shared_cases": [
-        "accounting-1",
-        "accounting-2",
-        "accounting-3"
+        "session-log-contracts.jsonl:3"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+        "assertion_mapping_sha256": "abd4a412910b313e2dcda8069d3274d250e33c0e011089f456d69133d817c0ad",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4.json",
+          "sha256": "0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4",
+          "bytes": 11637,
+          "original_path": "/private/tmp/autorouter-session-log-original-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+          "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+          "bytes": 2919,
+          "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+        },
+        "scope": "Twelve reviewed original definitions; three explicit getter/nonfinite/async-warning partials. Scope includes real native files and mocked post-open write failure, not kernel fault injection or complete platform qualification."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
       "remaining_assertions": [
-        "Normalizer drops private fields, but no writer test verifies copied input after caller mutation, exact Auto safety row and a throwing unknown-field getter. Rust ownership/API difference needs explicit mapping."
+        "Unknown throwing raw_response getter is absent from serde_json::Value; native verifies detached metadata and privacy, not getter non-invocation."
       ]
     },
     {
@@ -23379,60 +23403,70 @@
       "file": "test/session-log.test.mjs",
       "name": "prompt excerpts use at most 500 Unicode characters and auxiliary classes never retain prompt text",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::native_files_are_exclusive_private_and_metadata_only"
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_04_unicode_and_auxiliary_prompt_bounds"
       ],
       "shared_cases": [
-        "accounting-1",
-        "accounting-2",
-        "accounting-3"
+        "session-log-contracts.jsonl:4"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+        "assertion_mapping_sha256": "abd4a412910b313e2dcda8069d3274d250e33c0e011089f456d69133d817c0ad",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4.json",
+          "sha256": "0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4",
+          "bytes": 11637,
+          "original_path": "/private/tmp/autorouter-session-log-original-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+          "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+          "bytes": 2919,
+          "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+        },
+        "scope": "Twelve reviewed original definitions; three explicit getter/nonfinite/async-warning partials. Scope includes real native files and mocked post-open write failure, not kernel fault injection or complete platform qualification."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Normalizer covers Unicode limit and one background class. Writer-level already-truncated, exact500, absent request class and auxiliary/compaction/safety_review matrix is absent."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-log.test.mjs#5",
       "file": "test/session-log.test.mjs",
       "name": "unlimited evaluator runtimes can retain finite decision latency beyond one hour",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::native_files_are_exclusive_private_and_metadata_only"
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_05_unlimited_finite_latency"
       ],
       "shared_cases": [
-        "accounting-1",
-        "accounting-2",
-        "accounting-3"
+        "session-log-contracts.jsonl:5"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+        "assertion_mapping_sha256": "abd4a412910b313e2dcda8069d3274d250e33c0e011089f456d69133d817c0ad",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4.json",
+          "sha256": "0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4",
+          "bytes": 11637,
+          "original_path": "/private/tmp/autorouter-session-log-original-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+          "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+          "bytes": 2919,
+          "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+        },
+        "scope": "Twelve reviewed original definitions; three explicit getter/nonfinite/async-warning partials. Scope includes real native files and mocked post-open write failure, not kernel fault injection or complete platform qualification."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Finite long latency is allowed and normalizer cases probe large numbers, but no actual accepted file-row test retains7200000.125 decision latency."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-log.test.mjs#6",
@@ -23441,27 +23475,35 @@
       "parameterized": false,
       "status": "partial_assertion_mapping",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::native_writer_rejects_links_replaced_directory_and_existing_file"
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_06_invalid_ids_and_malformed_fields"
       ],
       "shared_cases": [
-        "accounting-1",
-        "accounting-2",
-        "accounting-3"
+        "session-log-contracts.jsonl:6"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+        "assertion_mapping_sha256": "abd4a412910b313e2dcda8069d3274d250e33c0e011089f456d69133d817c0ad",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4.json",
+          "sha256": "0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4",
+          "bytes": 11637,
+          "original_path": "/private/tmp/autorouter-session-log-original-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+          "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+          "bytes": 2919,
+          "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+        },
+        "scope": "Twelve reviewed original definitions; three explicit getter/nonfinite/async-warning partials. Scope includes real native files and mocked post-open write failure, not kernel fault injection or complete platform qualification."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
       "remaining_assertions": [
-        "Normalizer corpus rejects numerous malformed identities. Missing writer-return/file-count assertions for all traversal/newline/201-unit/array identities, selected model failures, getters and anonymous invalid-field omission."
+        "Selected-model getter operation and its two source assertion sites have no native Value counterpart and are skipped explicitly.",
+        "Original Infinity is projected to JSON null for the malformed finite-value case; native acceptance of nonfinite input is not claimed."
       ]
     },
     {
@@ -23469,60 +23511,70 @@
       "file": "test/session-log.test.mjs",
       "name": "queue backpressure is bounded in UTF-8 bytes and shutdown drains every accepted line",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::pending_bytes_and_sessions_are_bounded_without_losing_accepted_rows"
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_07_escaped_utf8_queue_bound_and_sticky_overflow"
       ],
       "shared_cases": [
-        "accounting-1",
-        "accounting-2",
-        "accounting-3"
+        "session-log-contracts.jsonl:7"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+        "assertion_mapping_sha256": "abd4a412910b313e2dcda8069d3274d250e33c0e011089f456d69133d817c0ad",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4.json",
+          "sha256": "0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4",
+          "bytes": 11637,
+          "original_path": "/private/tmp/autorouter-session-log-original-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+          "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+          "bytes": 2919,
+          "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+        },
+        "scope": "Twelve reviewed original definitions; three explicit getter/nonfinite/async-warning partials. Scope includes real native files and mocked post-open write failure, not kernel fault injection or complete platform qualification."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Controlled sink covers bounded acceptance/drain, but does not test JSON escaping expansion of500 NUL characters, accepted100..1000 threshold, <=1MiB actual file bytes and full retained request ordering."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-log.test.mjs#8",
       "file": "test/session-log.test.mjs",
       "name": "at most 128 sessions and descriptors are retained, and accepted sessions drain on overflow",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::pending_bytes_and_sessions_are_bounded_without_losing_accepted_rows"
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_08_session_capacity_and_every_descriptor"
       ],
       "shared_cases": [
-        "accounting-1",
-        "accounting-2",
-        "accounting-3"
+        "session-log-contracts.jsonl:8"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+        "assertion_mapping_sha256": "abd4a412910b313e2dcda8069d3274d250e33c0e011089f456d69133d817c0ad",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4.json",
+          "sha256": "0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4",
+          "bytes": 11637,
+          "original_path": "/private/tmp/autorouter-session-log-original-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+          "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+          "bytes": 2919,
+          "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+        },
+        "scope": "Twelve reviewed original definitions; three explicit getter/nonfinite/async-warning partials. Scope includes real native files and mocked post-open write failure, not kernel fault injection or complete platform qualification."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Controlled sink enforces128 sessions and drains accepted rows. Missing native descriptor count128, every descriptor closed, and128 actual files after overflow."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-log.test.mjs#9",
@@ -23569,30 +23621,35 @@
       "file": "test/session-log.test.mjs",
       "name": "a replaced directory is rejected before any session file is created",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::native_writer_rejects_links_replaced_directory_and_existing_file"
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_11_replaced_directory_fails_before_open"
       ],
       "shared_cases": [
-        "accounting-1",
-        "accounting-2",
-        "accounting-3"
+        "session-log-contracts.jsonl:9"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+        "assertion_mapping_sha256": "abd4a412910b313e2dcda8069d3274d250e33c0e011089f456d69133d817c0ad",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4.json",
+          "sha256": "0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4",
+          "bytes": 11637,
+          "original_path": "/private/tmp/autorouter-session-log-original-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+          "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+          "bytes": 2919,
+          "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+        },
+        "scope": "Twelve reviewed original definitions; three explicit getter/nonfinite/async-warning partials. Scope includes real native files and mocked post-open write failure, not kernel fault injection or complete platform qualification."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Native test rejects replaced directory and asserts both target and original empty. Exactly one warning and record/close fail-open behavior are not all captured by an explicit warning assertion."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-log.test.mjs#12",
@@ -23601,27 +23658,34 @@
       "parameterized": false,
       "status": "partial_assertion_mapping",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::storage_failure_warns_once_closes_and_does_not_echo_error"
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_12_factory_and_sync_warning_failure_are_nonrejecting"
       ],
       "shared_cases": [
-        "accounting-1",
-        "accounting-2",
-        "accounting-3"
+        "session-log-contracts.jsonl:10"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+        "assertion_mapping_sha256": "abd4a412910b313e2dcda8069d3274d250e33c0e011089f456d69133d817c0ad",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4.json",
+          "sha256": "0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4",
+          "bytes": 11637,
+          "original_path": "/private/tmp/autorouter-session-log-original-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+          "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+          "bytes": 2919,
+          "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+        },
+        "scope": "Twelve reviewed original definitions; three explicit getter/nonfinite/async-warning partials. Scope includes real native files and mocked post-open write failure, not kernel fault injection or complete platform qualification."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
       "remaining_assertions": [
-        "No native test injects initialization failure together with a panicking warning callback, repeated close and asynchronous warning failure semantics; Rust callback API differences require explicit treatment."
+        "The second source warning callback returns a rejected Promise. Native Fn(&str) returns normally; that labelled predicate does not qualify asynchronous callback failure handling."
       ]
     },
     {
@@ -23629,144 +23693,175 @@
       "file": "test/session-log.test.mjs",
       "name": "a write failure disables logging once and shutdown still closes its descriptor",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::storage_failure_warns_once_closes_and_does_not_echo_error"
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_13_mocked_post_open_failure_closes_real_descriptor"
       ],
       "shared_cases": [
-        "accounting-1",
-        "accounting-2",
-        "accounting-3"
+        "session-log-contracts.jsonl:11"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+        "assertion_mapping_sha256": "abd4a412910b313e2dcda8069d3274d250e33c0e011089f456d69133d817c0ad",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4.json",
+          "sha256": "0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4",
+          "bytes": 11637,
+          "original_path": "/private/tmp/autorouter-session-log-original-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+          "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+          "bytes": 2919,
+          "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+        },
+        "scope": "Twelve reviewed original definitions; three explicit getter/nonfinite/async-warning partials. Scope includes real native files and mocked post-open write failure, not kernel fault injection or complete platform qualification."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Controlled sink tests one failed write, one warning, close and later rejection. It does not prove native descriptor closure after an actual file handle write failure."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-log.test.mjs#14",
       "file": "test/session-log.test.mjs",
       "name": "close waits for accepted in-flight writes, closes once, and rejects later records",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::close_owns_stalled_writes_and_later_records_are_rejected"
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_14_two_close_waiters_hold_owned_writes"
       ],
       "shared_cases": [
-        "accounting-1",
-        "accounting-2",
-        "accounting-3"
+        "session-log-contracts.jsonl:12"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+        "assertion_mapping_sha256": "abd4a412910b313e2dcda8069d3274d250e33c0e011089f456d69133d817c0ad",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4.json",
+          "sha256": "0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4",
+          "bytes": 11637,
+          "original_path": "/private/tmp/autorouter-session-log-original-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+          "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+          "bytes": 2919,
+          "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+        },
+        "scope": "Twelve reviewed original definitions; three explicit getter/nonfinite/async-warning partials. Scope includes real native files and mocked post-open write failure, not kernel fault injection or complete platform qualification."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Controlled sink proves stalled accepted writes drain in order and later records reject. Concurrent close callers sharing one completion and exactly-once close count are not explicitly asserted."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-log.test.mjs#15",
       "file": "test/session-log.test.mjs",
       "name": "continuous arrivals during writes drain in order without dropping accepted records",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_15_continuous_arrival_at_each_real_write"
+      ],
+      "shared_cases": [
+        "session-log-contracts.jsonl:13"
+      ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+        "assertion_mapping_sha256": "abd4a412910b313e2dcda8069d3274d250e33c0e011089f456d69133d817c0ad",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4.json",
+          "sha256": "0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4",
+          "bytes": 11637,
+          "original_path": "/private/tmp/autorouter-session-log-original-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+          "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+          "bytes": 2919,
+          "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+        },
+        "scope": "Twelve reviewed original definitions; three explicit getter/nonfinite/async-warning partials. Scope includes real native files and mocked post-open write failure, not kernel fault injection or complete platform qualification."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "No native test feeds another accepted row from each write completion for800 iterations and proves no lost wakeup, ordered rows and zero warnings."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-log.test.mjs#16",
       "file": "test/session-log.test.mjs",
       "name": "metadata mode omits prompt fields and retains correlated safe outcomes",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::native_files_are_exclusive_private_and_metadata_only"
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_16_metadata_mode_correlated_safe_outcome"
       ],
       "shared_cases": [
-        "accounting-1",
-        "accounting-2",
-        "accounting-3"
+        "session-log-contracts.jsonl:14"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+        "assertion_mapping_sha256": "abd4a412910b313e2dcda8069d3274d250e33c0e011089f456d69133d817c0ad",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4.json",
+          "sha256": "0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4",
+          "bytes": 11637,
+          "original_path": "/private/tmp/autorouter-session-log-original-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+          "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+          "bytes": 2919,
+          "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+        },
+        "scope": "Twelve reviewed original definitions; three explicit getter/nonfinite/async-warning partials. Scope includes real native files and mocked post-open write failure, not kernel fault injection or complete platform qualification."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Actual metadata-mode files and normalized outcome allowlist are tested independently. Missing the exact correlated decision+outcome pair with schema, request_id, confirmed usage and no prompt fields in one file."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/session-log.test.mjs#17",
       "file": "test/session-log.test.mjs",
       "name": "pre-routing failures can be recorded without selected models and auxiliary records never retain excerpts",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/session_log.rs#session_log::tests::native_files_are_exclusive_private_and_metadata_only"
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_17_prerouting_absence_and_auxiliary_privacy"
       ],
       "shared_cases": [
-        "accounting-1",
-        "accounting-2",
-        "accounting-3"
+        "session-log-contracts.jsonl:15"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+        "assertion_mapping_sha256": "abd4a412910b313e2dcda8069d3274d250e33c0e011089f456d69133d817c0ad",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4.json",
+          "sha256": "0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4",
+          "bytes": 11637,
+          "original_path": "/private/tmp/autorouter-session-log-original-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+          "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+          "bytes": 2919,
+          "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+        },
+        "scope": "Twelve reviewed original definitions; three explicit getter/nonfinite/async-warning partials. Scope includes real native files and mocked post-open write failure, not kernel fault injection or complete platform qualification."
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Pre-routing outcome and background prompt normalization exist, but no native log test persists both rows together and asserts absence of selected model, empty background excerpt and private marker exclusion."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/static-checks.test.mjs#1",

@@ -76,6 +76,9 @@ impl GatewayRouter for Router {
     fn shutdown(&self) {
         self.shutdown.store(true, Ordering::SeqCst);
     }
+    async fn close(&self) {
+        self.shutdown();
+    }
 }
 struct PeerLease(Arc<AtomicUsize>);
 impl Drop for PeerLease {

@@ -1,0 +1,643 @@
+{
+  "schema_version": 1,
+  "kind": "sixteenth_local_integration_summary",
+  "date": "2026-10-10",
+  "base_commit": "26926a8a980b5097d517f5114d3b075bd0f4414d",
+  "status": "local_integration_passed_broader_rewrite_gates_open",
+  "scope": "Add persistent terminal router/classifier drains, include retired work in admission bounds, make gateway close await owned work, and port original SessionLog contracts with explicit Rust API boundaries. JavaScript remains shipping default; ordinary native TLS remains Rustls.",
+  "source_identity": {
+    "snapshot": {
+      "path": "artifacts/rust-rewrite/evidence/362a8c580508ca82e6550470cd527ecd92ea0bf764e819183bf145291c7fa132.json",
+      "sha256": "362a8c580508ca82e6550470cd527ecd92ea0bf764e819183bf145291c7fa132",
+      "bytes": 133516,
+      "original_path": "artifacts/rust-rewrite/sixteenth-native-validation-1/source-inputs.json"
+    },
+    "files": 806,
+    "unchanged": true,
+    "inventory_rule": "All git tracked and untracked nonignored regular files except parity measurement/assertion indexes and coverage/evidence ledgers; those reports are not compilation inputs and are under separate review."
+  },
+  "checks": [
+    {
+      "name": "verify-hyper",
+      "command": [
+        "node",
+        "vendor/verify-hyper.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 0.14401470900000002,
+      "log": {
+        "path": "artifacts/rust-rewrite/evidence/308569b87d1b3ff7be2f206a20a7789dc83479f6fdd5d82465b2e3418d0d0649.log",
+        "sha256": "308569b87d1b3ff7be2f206a20a7789dc83479f6fdd5d82465b2e3418d0d0649",
+        "bytes": 74,
+        "original_path": "artifacts/rust-rewrite/sixteenth-node-validation-1/verify-hyper.log"
+      },
+      "sha256": "308569b87d1b3ff7be2f206a20a7789dc83479f6fdd5d82465b2e3418d0d0649"
+    },
+    {
+      "name": "verify-hyper-util",
+      "command": [
+        "node",
+        "vendor/verify-hyper-util.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 0.136514958,
+      "log": {
+        "path": "artifacts/rust-rewrite/evidence/fb648aeb66793a84de0e25c880fdb19d73251ad12060ec0923078c798c7d14fd.log",
+        "sha256": "fb648aeb66793a84de0e25c880fdb19d73251ad12060ec0923078c798c7d14fd",
+        "bytes": 178,
+        "original_path": "artifacts/rust-rewrite/sixteenth-node-validation-1/verify-hyper-util.log"
+      },
+      "sha256": "fb648aeb66793a84de0e25c880fdb19d73251ad12060ec0923078c798c7d14fd"
+    },
+    {
+      "name": "verify-openssl",
+      "command": [
+        "node",
+        "vendor/verify-openssl.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 0.14404674999999995,
+      "log": {
+        "path": "artifacts/rust-rewrite/evidence/48b1eac4538fecd1908df10b85bfedc79be07c4006e4124ebf3550cabc7a08c3.log",
+        "sha256": "48b1eac4538fecd1908df10b85bfedc79be07c4006e4124ebf3550cabc7a08c3",
+        "bytes": 86,
+        "original_path": "artifacts/rust-rewrite/sixteenth-node-validation-1/verify-openssl.log"
+      },
+      "sha256": "48b1eac4538fecd1908df10b85bfedc79be07c4006e4124ebf3550cabc7a08c3"
+    },
+    {
+      "name": "verify-node-ca",
+      "command": [
+        "node",
+        "vendor/verify-node-ca.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 0.07296349999999996,
+      "log": {
+        "path": "artifacts/rust-rewrite/evidence/dc2e78eb62c01d3185dc60633881d39ff9e6c08ace0b8e148de12241f10de1ff.log",
+        "sha256": "dc2e78eb62c01d3185dc60633881d39ff9e6c08ace0b8e148de12241f10de1ff",
+        "bytes": 41,
+        "original_path": "artifacts/rust-rewrite/sixteenth-node-validation-1/verify-node-ca.log"
+      },
+      "sha256": "dc2e78eb62c01d3185dc60633881d39ff9e6c08ace0b8e148de12241f10de1ff"
+    },
+    {
+      "name": "feature-auditor-controls",
+      "command": [
+        "node",
+        "vendor/verify-production-features.mjs",
+        "--self-test"
+      ],
+      "exit_code": 0,
+      "seconds": 0.078805083,
+      "log": {
+        "path": "artifacts/rust-rewrite/evidence/38ec08934f2bd924240112aaa41ad0a3e83f7494a135009a51aa6941d8fef3b7.log",
+        "sha256": "38ec08934f2bd924240112aaa41ad0a3e83f7494a135009a51aa6941d8fef3b7",
+        "bytes": 127,
+        "original_path": "artifacts/rust-rewrite/sixteenth-node-validation-1/feature-auditor-controls.log"
+      },
+      "sha256": "38ec08934f2bd924240112aaa41ad0a3e83f7494a135009a51aa6941d8fef3b7"
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exit_code": 0,
+      "seconds": 0.8931734169999999,
+      "log": {
+        "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "original_path": "artifacts/rust-rewrite/sixteenth-node-validation-1/fmt.log"
+      },
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "node-check",
+      "command": [
+        "npm",
+        "run",
+        "check"
+      ],
+      "exit_code": 0,
+      "seconds": 3.9457496659999993,
+      "log": {
+        "path": "artifacts/rust-rewrite/evidence/4882654ddbf9853bf4f185dc398c36b83eaa63b59fbb76d525b746ce417b768f.log",
+        "sha256": "4882654ddbf9853bf4f185dc398c36b83eaa63b59fbb76d525b746ce417b768f",
+        "bytes": 153,
+        "original_path": "artifacts/rust-rewrite/sixteenth-node-validation-1/node-check.log"
+      },
+      "sha256": "4882654ddbf9853bf4f185dc398c36b83eaa63b59fbb76d525b746ce417b768f"
+    },
+    {
+      "name": "node-test",
+      "command": [
+        "npm",
+        "test"
+      ],
+      "exit_code": 0,
+      "seconds": 3.3385950409999996,
+      "log": {
+        "path": "artifacts/rust-rewrite/evidence/0941521a2b588c1714a6397c5922fe03c8c0627ac0e361d1d0a62301a27cbaf6.log",
+        "sha256": "0941521a2b588c1714a6397c5922fe03c8c0627ac0e361d1d0a62301a27cbaf6",
+        "bytes": 135715,
+        "original_path": "artifacts/rust-rewrite/sixteenth-node-validation-1/node-test.log"
+      },
+      "sha256": "0941521a2b588c1714a6397c5922fe03c8c0627ac0e361d1d0a62301a27cbaf6"
+    },
+    {
+      "name": "node-package",
+      "command": [
+        "npm",
+        "run",
+        "test:package"
+      ],
+      "exit_code": 0,
+      "seconds": 6.795005,
+      "log": {
+        "path": "artifacts/rust-rewrite/evidence/de727cae12b22a0d530ddee8abf004485d7931cbab5d285a6273a14e1175e144.log",
+        "sha256": "de727cae12b22a0d530ddee8abf004485d7931cbab5d285a6273a14e1175e144",
+        "bytes": 885,
+        "original_path": "artifacts/rust-rewrite/sixteenth-node-validation-1/node-package.log"
+      },
+      "sha256": "de727cae12b22a0d530ddee8abf004485d7931cbab5d285a6273a14e1175e144"
+    },
+    {
+      "name": "clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--workspace",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 10.715392084,
+      "log": {
+        "path": "artifacts/rust-rewrite/evidence/793bceeeaaa567970c88adb3e78beb59bcc7c9f88431637d5f8ec70cafeba740.log",
+        "sha256": "793bceeeaaa567970c88adb3e78beb59bcc7c9f88431637d5f8ec70cafeba740",
+        "bytes": 965,
+        "original_path": "artifacts/rust-rewrite/sixteenth-native-validation-1/clippy.log"
+      },
+      "sha256": "793bceeeaaa567970c88adb3e78beb59bcc7c9f88431637d5f8ec70cafeba740"
+    },
+    {
+      "name": "workspace",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--workspace",
+        "--message-format=json"
+      ],
+      "exit_code": 0,
+      "seconds": 67.343160583,
+      "log": {
+        "path": "artifacts/rust-rewrite/evidence/7501dbebc071b8015fdd38117f69784891f91f8d4486dfcc5a926c78e4c826ea.log",
+        "sha256": "7501dbebc071b8015fdd38117f69784891f91f8d4486dfcc5a926c78e4c826ea",
+        "bytes": 284849,
+        "original_path": "artifacts/rust-rewrite/sixteenth-native-validation-1/workspace.log"
+      },
+      "sha256": "7501dbebc071b8015fdd38117f69784891f91f8d4486dfcc5a926c78e4c826ea"
+    },
+    {
+      "name": "release",
+      "command": [
+        "cargo",
+        "build",
+        "--locked",
+        "--offline",
+        "--release",
+        "--target-dir",
+        "/Users/fabio/AI/claude-autorouter/rust/target",
+        "--package",
+        "claude-autorouter",
+        "--message-format=json"
+      ],
+      "exit_code": 0,
+      "seconds": 29.930044999999993,
+      "log": {
+        "path": "artifacts/rust-rewrite/evidence/4834fcb22e55918451e5b333d22dda15a34f64f090d686047753ab80ed3112e9.log",
+        "sha256": "4834fcb22e55918451e5b333d22dda15a34f64f090d686047753ab80ed3112e9",
+        "bytes": 273,
+        "original_path": "artifacts/rust-rewrite/sixteenth-native-validation-1/release.log"
+      },
+      "sha256": "4834fcb22e55918451e5b333d22dda15a34f64f090d686047753ab80ed3112e9"
+    },
+    {
+      "name": "production-features",
+      "command": [
+        "node",
+        "vendor/verify-production-features.mjs",
+        "--build-report",
+        "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/sixteenth-native-validation-1/production-build.jsonl"
+      ],
+      "exit_code": 0,
+      "seconds": 0.04754958300000567,
+      "log": {
+        "path": "artifacts/rust-rewrite/evidence/cc5707e6d6eea78256babd3d8ac37f89a52331cdb59443a344c7b965efb8817a.log",
+        "sha256": "cc5707e6d6eea78256babd3d8ac37f89a52331cdb59443a344c7b965efb8817a",
+        "bytes": 945,
+        "original_path": "artifacts/rust-rewrite/sixteenth-native-validation-1/production-features.log"
+      },
+      "sha256": "cc5707e6d6eea78256babd3d8ac37f89a52331cdb59443a344c7b965efb8817a"
+    },
+    {
+      "name": "native-package",
+      "command": [
+        "cargo",
+        "xtask",
+        "package",
+        "--binary",
+        "aarch64-apple-darwin=/Users/fabio/AI/claude-autorouter/rust/target/release/claude-autorouter",
+        "--output",
+        "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/native-sixteenth-host-1",
+        "--smoke"
+      ],
+      "exit_code": 0,
+      "seconds": 29.01156166599999,
+      "log": {
+        "path": "artifacts/rust-rewrite/evidence/baab94ad3b63721d9633cab0afed18d816e8c0891870ba64120cedb2d8bb7fb4.log",
+        "sha256": "baab94ad3b63721d9633cab0afed18d816e8c0891870ba64120cedb2d8bb7fb4",
+        "bytes": 3966,
+        "original_path": "artifacts/rust-rewrite/sixteenth-native-validation-1/native-package.log"
+      },
+      "sha256": "baab94ad3b63721d9633cab0afed18d816e8c0891870ba64120cedb2d8bb7fb4"
+    }
+  ],
+  "node_report": {
+    "path": "artifacts/rust-rewrite/evidence/cac2d53ffeb93ac51c82c80d20d07426304a542b6e9c045c315b3176b183e30d.json",
+    "sha256": "cac2d53ffeb93ac51c82c80d20d07426304a542b6e9c045c315b3176b183e30d",
+    "bytes": 4095,
+    "original_path": "artifacts/rust-rewrite/sixteenth-node-validation-1/report.json"
+  },
+  "native_report": {
+    "path": "artifacts/rust-rewrite/evidence/abe4a2a39b76c0e6089ee1958f7b8f73cdb91e2689c333b35c9c7e5e5d5e24a8.json",
+    "sha256": "abe4a2a39b76c0e6089ee1958f7b8f73cdb91e2689c333b35c9c7e5e5d5e24a8",
+    "bytes": 3629,
+    "original_path": "artifacts/rust-rewrite/sixteenth-native-validation-1/report.json"
+  },
+  "environment": {
+    "CARGO_TARGET_DIR": "/private/tmp/autorouter-ci-9e695e4/rust/target",
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "OPENSSL_NO_VENDOR": "0",
+    "MACOSX_DEPLOYMENT_TARGET": "11.0"
+  },
+  "rust_tests": {
+    "passed": 962,
+    "failed": 0,
+    "ignored": 3,
+    "suites": 40
+  },
+  "node_tests": 596,
+  "node_package_files": 58,
+  "node_package_lifecycle_scenarios": 17,
+  "binaries": [
+    {
+      "path": "artifacts/rust-rewrite/sixteenth-immutable-binaries/a2a53ad531b79858edc9ea3f2f49647fa57761a68f83906a22abd1936402f134",
+      "sha256": "a2a53ad531b79858edc9ea3f2f49647fa57761a68f83906a22abd1936402f134",
+      "bytes": 40846208,
+      "original_path": "/private/tmp/autorouter-ci-9e695e4/rust/target/debug/deps/xtask-db6dd3ba3734430c",
+      "compiler_emission": {
+        "package_id": "path+file:///Users/fabio/AI/claude-autorouter/rust/xtask#0.5.2",
+        "target": {
+          "kind": [
+            "bin"
+          ],
+          "crate_types": [
+            "bin"
+          ],
+          "name": "xtask",
+          "src_path": "/Users/fabio/AI/claude-autorouter/rust/xtask/src/main.rs",
+          "edition": "2024",
+          "doc": true,
+          "doctest": false,
+          "test": true
+        },
+        "fresh": false,
+        "executable": "/private/tmp/autorouter-ci-9e695e4/rust/target/debug/deps/xtask-db6dd3ba3734430c"
+      }
+    },
+    {
+      "path": "artifacts/rust-rewrite/sixteenth-immutable-binaries/7a064d2bbd962d684fa7b03d61af670cc0f326bcf91dc3da3a442707bb419f5b",
+      "sha256": "7a064d2bbd962d684fa7b03d61af670cc0f326bcf91dc3da3a442707bb419f5b",
+      "bytes": 89614752,
+      "original_path": "/private/tmp/autorouter-ci-9e695e4/rust/target/debug/deps/autorouter_runtime-9cfa03c03058ff99",
+      "compiler_emission": {
+        "package_id": "path+file:///Users/fabio/AI/claude-autorouter/rust/crates/autorouter-runtime#0.5.2",
+        "target": {
+          "kind": [
+            "lib"
+          ],
+          "crate_types": [
+            "lib"
+          ],
+          "name": "autorouter_runtime",
+          "src_path": "/Users/fabio/AI/claude-autorouter/rust/crates/autorouter-runtime/src/lib.rs",
+          "edition": "2024",
+          "doc": true,
+          "doctest": true,
+          "test": true
+        },
+        "fresh": false,
+        "executable": "/private/tmp/autorouter-ci-9e695e4/rust/target/debug/deps/autorouter_runtime-9cfa03c03058ff99"
+      }
+    },
+    {
+      "path": "artifacts/rust-rewrite/sixteenth-immutable-binaries/65eaf4aeaf798dd8751b4b5b51982cb0f69ee6018db29f37a5392e8d1820bea1",
+      "sha256": "65eaf4aeaf798dd8751b4b5b51982cb0f69ee6018db29f37a5392e8d1820bea1",
+      "bytes": 43391472,
+      "original_path": "/private/tmp/autorouter-ci-9e695e4/rust/target/debug/xtask",
+      "compiler_emission": {
+        "package_id": "path+file:///Users/fabio/AI/claude-autorouter/rust/xtask#0.5.2",
+        "target": {
+          "kind": [
+            "bin"
+          ],
+          "crate_types": [
+            "bin"
+          ],
+          "name": "xtask",
+          "src_path": "/Users/fabio/AI/claude-autorouter/rust/xtask/src/main.rs",
+          "edition": "2024",
+          "doc": true,
+          "doctest": false,
+          "test": true
+        },
+        "fresh": false,
+        "executable": "/private/tmp/autorouter-ci-9e695e4/rust/target/debug/xtask"
+      }
+    },
+    {
+      "path": "artifacts/rust-rewrite/sixteenth-immutable-binaries/15472babbf534d078e5e9b14dbe1dae6947f831157c4fbdccf3ec666d917fb19",
+      "sha256": "15472babbf534d078e5e9b14dbe1dae6947f831157c4fbdccf3ec666d917fb19",
+      "bytes": 12852912,
+      "original_path": "/Users/fabio/AI/claude-autorouter/rust/target/release/claude-autorouter"
+    }
+  ],
+  "binary_retention_manifest": {
+    "path": "artifacts/rust-rewrite/evidence/8e1fdccb081d0a893354dfa30a9f563ede5165d8f98cf286ff11690170ed1967.json",
+    "sha256": "8e1fdccb081d0a893354dfa30a9f563ede5165d8f98cf286ff11690170ed1967",
+    "bytes": 3134,
+    "original_path": "artifacts/rust-rewrite/sixteenth-immutable-binaries/manifest.json"
+  },
+  "production_build": {
+    "path": "artifacts/rust-rewrite/evidence/5724a3f28049eaff452a4c9264bdd7aaa0b4f6faf2867e738445c2f64d7b1a5a.jsonl",
+    "sha256": "5724a3f28049eaff452a4c9264bdd7aaa0b4f6faf2867e738445c2f64d7b1a5a",
+    "bytes": 146406,
+    "original_path": "artifacts/rust-rewrite/sixteenth-native-validation-1/production-build.jsonl"
+  },
+  "production_features": {
+    "path": "artifacts/rust-rewrite/evidence/cc5707e6d6eea78256babd3d8ac37f89a52331cdb59443a344c7b965efb8817a.log",
+    "sha256": "cc5707e6d6eea78256babd3d8ac37f89a52331cdb59443a344c7b965efb8817a",
+    "bytes": 945,
+    "original_path": "artifacts/rust-rewrite/sixteenth-native-validation-1/production-features.log"
+  },
+  "native_package": {
+    "archive": {
+      "path": "artifacts/rust-rewrite/evidence/6295895eef12d8abda589a8a08956719fa56ebb01ef2af62ff7dbf46f1ee055f.tgz",
+      "sha256": "6295895eef12d8abda589a8a08956719fa56ebb01ef2af62ff7dbf46f1ee055f",
+      "bytes": 5969585,
+      "original_path": "artifacts/rust-rewrite/native-sixteenth-host-1/claude-autorouter-0.5.2.tgz"
+    },
+    "report": {
+      "path": "artifacts/rust-rewrite/evidence/ba292092117189221be375a12d535cc19915411c3d91ca4ea0d628104e5ae235.json",
+      "sha256": "ba292092117189221be375a12d535cc19915411c3d91ca4ea0d628104e5ae235",
+      "bytes": 2933,
+      "original_path": "artifacts/rust-rewrite/native-sixteenth-host-1/package-report.json"
+    },
+    "target": "aarch64-apple-darwin",
+    "installed_tests": 74,
+    "suites": 7,
+    "offline_ignore_scripts": true,
+    "node_absent_from_execution_path": true,
+    "scope": "Exact local-host archive only. Platform, TLS, rollback and full distribution qualification remain separate."
+  },
+  "session_log": {
+    "author": {
+      "path": "artifacts/rust-rewrite/evidence/41419995bb0dbf458c68c8374d85ad66cd3d51b521586e93015b02c351183556.json",
+      "sha256": "41419995bb0dbf458c68c8374d85ad66cd3d51b521586e93015b02c351183556",
+      "bytes": 11341,
+      "original_path": "/private/tmp/autorouter-session-log-original-implementation-report.json"
+    },
+    "source_capture_native_review": {
+      "path": "artifacts/rust-rewrite/evidence/0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4.json",
+      "sha256": "0b0aee68abbb4534235a7f79d14c727804cc67361286e6999fcefb31d1bc3ea4",
+      "bytes": 11637,
+      "original_path": "/private/tmp/autorouter-session-log-original-independent-review.json"
+    },
+    "root_mapping_review": {
+      "path": "artifacts/rust-rewrite/evidence/c7c9a69e4a5546bb25f2cee138ef0e64b2a38907133e07c31571df208462fb6f.json",
+      "sha256": "c7c9a69e4a5546bb25f2cee138ef0e64b2a38907133e07c31571df208462fb6f",
+      "bytes": 4653,
+      "original_path": "/private/tmp/autorouter-session-log-mapping-independent-review.json"
+    },
+    "mapping": {
+      "path": "artifacts/rust-rewrite/evidence/abd4a412910b313e2dcda8069d3274d250e33c0e011089f456d69133d817c0ad.json",
+      "sha256": "abd4a412910b313e2dcda8069d3274d250e33c0e011089f456d69133d817c0ad",
+      "bytes": 170837,
+      "original_path": "rust/parity/assertion-mappings/session-log-original-contracts.json"
+    },
+    "api_decision": {
+      "path": "artifacts/rust-rewrite/evidence/804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59.json",
+      "sha256": "804557711d71d560a180bd7d520b2aac8a67a6304496e21444c70332ddb34a59",
+      "bytes": 2919,
+      "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
+    },
+    "copyback": {
+      "path": "artifacts/rust-rewrite/evidence/ec4a7af2775736bada17c8794537f6f9a2909892e81276529987ff87b2071243.json",
+      "sha256": "ec4a7af2775736bada17c8794537f6f9a2909892e81276529987ff87b2071243",
+      "bytes": 1178,
+      "original_path": "artifacts/rust-rewrite/session-log-original-copyback.json"
+    },
+    "coverage": {
+      "path": "artifacts/rust-rewrite/evidence/5476bcfed0bf7351d9f6cdbf37bfcc4491e6a6a508ab5ebda0d8d0f9a9e62c85.json",
+      "sha256": "5476bcfed0bf7351d9f6cdbf37bfcc4491e6a6a508ab5ebda0d8d0f9a9e62c85",
+      "bytes": 1677079,
+      "original_path": "rust/parity/coverage.json"
+    },
+    "counts": {
+      "covered": 459,
+      "partial_assertion_mapping": 86,
+      "pending_assertion_mapping": 43
+    },
+    "changed_ids": [
+      "test/session-log.test.mjs#1",
+      "test/session-log.test.mjs#2",
+      "test/session-log.test.mjs#3",
+      "test/session-log.test.mjs#4",
+      "test/session-log.test.mjs#5",
+      "test/session-log.test.mjs#6",
+      "test/session-log.test.mjs#7",
+      "test/session-log.test.mjs#8",
+      "test/session-log.test.mjs#11",
+      "test/session-log.test.mjs#12",
+      "test/session-log.test.mjs#13",
+      "test/session-log.test.mjs#14",
+      "test/session-log.test.mjs#15",
+      "test/session-log.test.mjs#16",
+      "test/session-log.test.mjs#17"
+    ],
+    "other_rows_unchanged": 573,
+    "covered_promotions": 12,
+    "partial_definitions": [
+      3,
+      6,
+      12
+    ],
+    "source_assertion_sites": 88,
+    "source_assertion_executions": 1168,
+    "native_labelled_sites": 86,
+    "native_labelled_executions": 1166,
+    "scope": "Original15 definitions mapped; old9/10 unchanged. Distinct first-poll close futures share one writer owner under reviewed API migration. Getters/nonfinite inputs/async warning rejection remain partial. No production SessionLog change."
+  },
+  "shutdown": {
+    "author": {
+      "path": "artifacts/rust-rewrite/evidence/2dce5fe09c90510e83666cb05724586c054a0c0ea5d5b17960e9f4ff72fd1351.json",
+      "sha256": "2dce5fe09c90510e83666cb05724586c054a0c0ea5d5b17960e9f4ff72fd1351",
+      "bytes": 21530,
+      "original_path": "/private/tmp/autorouter-shutdown-drain-implementation-report.json"
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/evidence/3847ca1ce12ede4adcddc4ececdadab1b1e062d7acde05cfc4616ac982b773d6.json",
+      "sha256": "3847ca1ce12ede4adcddc4ececdadab1b1e062d7acde05cfc4616ac982b773d6",
+      "bytes": 16560,
+      "original_path": "/private/tmp/autorouter-shutdown-drain-final-independent-review.json"
+    },
+    "static_review": {
+      "path": "artifacts/rust-rewrite/evidence/1bd3f9faa6304dd06c4ff690c6657f41926a7a59047d486ec7118b3f711efd45.json",
+      "sha256": "1bd3f9faa6304dd06c4ff690c6657f41926a7a59047d486ec7118b3f711efd45",
+      "bytes": 12043,
+      "original_path": "/private/tmp/autorouter-shutdown-drain-static-independent-review.json"
+    },
+    "pre_fix": {
+      "path": "artifacts/rust-rewrite/evidence/02d0282ba85c46d0370eae52eb717d72ed354f5015ed871fb9fa421ff5eebca9.json",
+      "sha256": "02d0282ba85c46d0370eae52eb717d72ed354f5015ed871fb9fa421ff5eebca9",
+      "bytes": 5910,
+      "original_path": "/private/tmp/autorouter-shutdown-drain-pre-fix-report.json"
+    },
+    "copyback": {
+      "path": "artifacts/rust-rewrite/evidence/d30c082f26bb86c5efe9e9b640fac62feb8356589844c1620c5b5b8c6b1bf6dd.json",
+      "sha256": "d30c082f26bb86c5efe9e9b640fac62feb8356589844c1620c5b5b8c6b1bf6dd",
+      "bytes": 5997,
+      "original_path": "artifacts/rust-rewrite/shutdown-drain-copyback.json"
+    },
+    "embedding": {
+      "path": "artifacts/rust-rewrite/evidence/01fc57b89c5fcc159114d9c0b69b1dc51d27efe61d06f58e299e8b90360e1fa9.md",
+      "sha256": "01fc57b89c5fcc159114d9c0b69b1dc51d27efe61d06f58e299e8b90360e1fa9",
+      "bytes": 12054,
+      "original_path": "rust/docs/embedding.md"
+    },
+    "new_tests": 11,
+    "focused_passed": 63,
+    "scope": "Synchronous shutdown remains reusable. Terminal close starts when polled, seals admission and drains whole owned classifier/advisory futures. Gateway also joins connections. Caller-owned route futures and independent custom transport tasks remain separately owned. GatewayRouter adapters now require async close. No original-definition coverage promotions attributed to these supplemental tests.",
+    "remaining_tooling_followup": "Context-probe classify stub listener currently joins connection tasks then uses cancellation-only shutdown; its persistent router drain needs a follow-up. Live and context-probe GatewayRouter adapters already delegate actual close."
+  },
+  "source_bundle": {
+    "path": "artifacts/rust-rewrite/evidence/f0b5a5f22309bc5399fe059783740231a8b21387a3f4cfd8f87262874c82e688.json",
+    "sha256": "f0b5a5f22309bc5399fe059783740231a8b21387a3f4cfd8f87262874c82e688",
+    "bytes": 4170,
+    "original_path": "rust/parity/measurements/native-source-bundle-14-summary.json"
+  },
+  "prior_commit_ci_observations": [
+    {
+      "observation": {
+        "path": "artifacts/rust-rewrite/evidence/f062c70b2ebfb685f81972e48de47ab6d9226420ed739abe23c5b0a1c0f50593.json",
+        "sha256": "f062c70b2ebfb685f81972e48de47ab6d9226420ed739abe23c5b0a1c0f50593",
+        "bytes": 53610,
+        "original_path": "artifacts/rust-rewrite/ci-22faae1/run-38010360434-observation-50.json"
+      },
+      "commit": "22faae107dbafcfabed31f4894e18fe5b4104c2e",
+      "status": "completed",
+      "conclusion": "failure",
+      "jobs": {
+        "Rust / ubuntu-24.04": "failure",
+        "Node 22 / macos-latest": "success",
+        "Rust / macos-15": "success",
+        "Rust / macos-15-intel": "success",
+        "Node 22 / ubuntu-latest": "success",
+        "Rust / ubuntu-24.04-arm": "success",
+        "Node 24 / macos-latest": "success",
+        "Node 24 / ubuntu-latest": "success"
+      },
+      "scope": "Exact prior committed head only; no current uncommitted-source CI qualification."
+    },
+    {
+      "observation": {
+        "path": "artifacts/rust-rewrite/evidence/43fafdf8eb800e8a1a9374384307742acb996ff7ef2aa9a9a60b76a02a3ef6b7.json",
+        "sha256": "43fafdf8eb800e8a1a9374384307742acb996ff7ef2aa9a9a60b76a02a3ef6b7",
+        "bytes": 24457,
+        "original_path": "artifacts/rust-rewrite/ci-22faae1/run-38010360459-observation-50.json"
+      },
+      "commit": "22faae107dbafcfabed31f4894e18fe5b4104c2e",
+      "status": "completed",
+      "conclusion": "failure",
+      "jobs": {
+        "GNU glibc 2.28 / aarch64-unknown-linux-gnu": "success",
+        "GNU glibc 2.28 / x86_64-unknown-linux-gnu": "failure"
+      },
+      "scope": "Exact prior committed head only; no current uncommitted-source CI qualification."
+    },
+    {
+      "observation": {
+        "path": "artifacts/rust-rewrite/evidence/af1726cfd0d2355688658bf91f933e88786c45aaf2a1a6182126a031dc442675.json",
+        "sha256": "af1726cfd0d2355688658bf91f933e88786c45aaf2a1a6182126a031dc442675",
+        "bytes": 53326,
+        "original_path": "artifacts/rust-rewrite/ci-26926a8/run-38011901706-observation-35.json"
+      },
+      "commit": "26926a8a980b5097d517f5114d3b075bd0f4414d",
+      "status": "in_progress",
+      "conclusion": "",
+      "jobs": {
+        "Node 24 / ubuntu-latest": "success",
+        "Rust / macos-15-intel": "in_progress",
+        "Node 24 / macos-latest": "success",
+        "Rust / ubuntu-24.04": "success",
+        "Rust / ubuntu-24.04-arm": "success",
+        "Node 22 / ubuntu-latest": "success",
+        "Rust / macos-15": "success",
+        "Node 22 / macos-latest": "success"
+      },
+      "scope": "Exact prior committed head only; no current uncommitted-source CI qualification."
+    },
+    {
+      "observation": {
+        "path": "artifacts/rust-rewrite/evidence/2c5a261b62d8e619c42564ed6ad0ce6af0e2b4dbebd3a2e85f2259eaa053346b.json",
+        "sha256": "2c5a261b62d8e619c42564ed6ad0ce6af0e2b4dbebd3a2e85f2259eaa053346b",
+        "bytes": 24457,
+        "original_path": "artifacts/rust-rewrite/ci-26926a8/run-38011901711-observation-35.json"
+      },
+      "commit": "26926a8a980b5097d517f5114d3b075bd0f4414d",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": {
+        "GNU glibc 2.28 / x86_64-unknown-linux-gnu": "success",
+        "GNU glibc 2.28 / aarch64-unknown-linux-gnu": "success"
+      },
+      "scope": "Exact prior committed head only; no current uncommitted-source CI qualification."
+    }
+  ],
+  "remaining_gates": [
+    "Complete original assertion and product/tool behavior parity.",
+    "Context-probe classify stub listener must await owned router drain.",
+    "HTTP/1 session, idle-close, hostname, final-flush and pipelining transport differences.",
+    "Supported platform, exact-artifact distribution, measured performance and explicitly invoked live qualification.",
+    "Default cutover, release and JavaScript retirement remain gated."
+  ],
+  "provider_calls": 0,
+  "model_downloads": 0,
+  "numerical_performance_evidence": false,
+  "release_approved": false
+}
