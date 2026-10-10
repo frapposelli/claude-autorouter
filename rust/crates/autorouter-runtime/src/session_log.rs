@@ -279,9 +279,12 @@ impl SessionLog {
         }
         self.inner.wake.notify_one();
         let mut worker = self.worker.lock().await;
-        if let Some(worker) = worker.take() {
+        // A cancelled close waiter must leave the worker owned for the next
+        // caller, rather than detach it while accepted I/O is still running.
+        if let Some(worker) = worker.as_mut() {
             let _ = worker.await;
         }
+        let _ = worker.take();
     }
 }
 impl Drop for SessionLog {
@@ -325,6 +328,9 @@ async fn run(inner: Arc<Inner>, mut sink: Box<dyn SessionSink>) {
         inner.warn();
     }
 }
+#[cfg(test)]
+#[path = "session_log_contracts.rs"]
+mod contracts;
 #[cfg(test)]
 mod tests {
     use super::*;

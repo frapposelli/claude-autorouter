@@ -1,0 +1,795 @@
+{
+  "schema_version": 1,
+  "kind": "native_storage_close_ownership_and_bounded_ci_diagnostics",
+  "status": "scoped_checks_and_exact_archive_replay_passed_initial_failure_retained",
+  "base_commit": "0e3ea4c28525f6bb290f8215077bf86b674c1eb7",
+  "problem": "SessionLog and StatusStore close callers removed their worker JoinHandle before awaiting completion. Cancellation dropped that handle; a later close could return while accepted writes, private directory removal, or readiness ownership still ran.",
+  "change": "Both close implementations await each retained JoinHandle through as_mut under its existing mutex and remove it only after completion. The SIGINT integration test retains bounded synthetic stderr, early-exit status and executable/preflight-stage diagnostics while keeping the original five-second startup deadline.",
+  "sources": [
+    {
+      "source_path": "rust/crates/autorouter-runtime/src/session_log.rs",
+      "candidate": {
+        "path": "artifacts/rust-rewrite/evidence/b523fb15515c61ab8027f10c1f2d6fbed2f6621c7ec3c6880a787327ac6cded8.rs",
+        "sha256": "b523fb15515c61ab8027f10c1f2d6fbed2f6621c7ec3c6880a787327ac6cded8",
+        "bytes": 25494,
+        "original_path": "rust/crates/autorouter-runtime/src/session_log.rs"
+      }
+    },
+    {
+      "source_path": "rust/crates/autorouter-runtime/src/session_log_contracts.rs",
+      "candidate": {
+        "path": "artifacts/rust-rewrite/evidence/bf5776a706b3f20289c3e261475608d9337a75a609126024be6094b2ae9a3abd.rs",
+        "sha256": "bf5776a706b3f20289c3e261475608d9337a75a609126024be6094b2ae9a3abd",
+        "bytes": 7172,
+        "original_path": "rust/crates/autorouter-runtime/src/session_log_contracts.rs"
+      }
+    },
+    {
+      "source_path": "rust/crates/autorouter-runtime/src/status_store.rs",
+      "candidate": {
+        "path": "artifacts/rust-rewrite/evidence/45b8930c2f325779b4d12d11a1965df6e65b4e591d4b4b860bd6af59d8c2f316.rs",
+        "sha256": "45b8930c2f325779b4d12d11a1965df6e65b4e591d4b4b860bd6af59d8c2f316",
+        "bytes": 46415,
+        "original_path": "/private/tmp/autorouter-status-close-0e3ea4c/rust/crates/autorouter-runtime/src/status_store.rs"
+      }
+    },
+    {
+      "source_path": "rust/crates/autorouter-runtime/src/status_store_close_contracts.rs",
+      "candidate": {
+        "path": "artifacts/rust-rewrite/evidence/38713ad60a7bca086e09abd2025b839f8f502a0af1cdcf0cee5395847a9447f6.rs",
+        "sha256": "38713ad60a7bca086e09abd2025b839f8f502a0af1cdcf0cee5395847a9447f6",
+        "bytes": 8295,
+        "original_path": "/private/tmp/autorouter-status-close-0e3ea4c/rust/crates/autorouter-runtime/src/status_store_close_contracts.rs"
+      }
+    },
+    {
+      "source_path": "rust/xtask/tests/benchmark_storage.rs",
+      "candidate": {
+        "path": "artifacts/rust-rewrite/evidence/d191b6953e456a5b2dec7fbeff83dccde665d95e17df232822f977fb52fddd18.rs",
+        "sha256": "d191b6953e456a5b2dec7fbeff83dccde665d95e17df232822f977fb52fddd18",
+        "bytes": 12602,
+        "original_path": "/private/tmp/autorouter-status-close-0e3ea4c/rust/xtask/tests/benchmark_storage.rs"
+      }
+    }
+  ],
+  "session_log": {
+    "pre_fix_combined_report": {
+      "path": "artifacts/rust-rewrite/evidence/0155830e7bb9a4eb6f7b910208faf8d0e75fdbd5cd855cf3b24779bc14365432.json",
+      "sha256": "0155830e7bb9a4eb6f7b910208faf8d0e75fdbd5cd855cf3b24779bc14365432",
+      "bytes": 2091,
+      "original_path": "artifacts/rust-rewrite/runtime-cancellation-pre-fix-1/report.json"
+    },
+    "pre_fix_binary": {
+      "path": "artifacts/rust-rewrite/runtime-cancellation-pre-fix-1/session-log-native-tests",
+      "sha256": "a1bff3f72e809f0afe854634c23042348b2903b5b9d998a654248c3b59997d50",
+      "bytes": 95888064
+    },
+    "pre_fix_stderr": {
+      "path": "artifacts/rust-rewrite/evidence/ef8a9db4ec29aa56ee6eae52920eb53420f7f10add0502324ff383096636ddbd.log",
+      "sha256": "ef8a9db4ec29aa56ee6eae52920eb53420f7f10add0502324ff383096636ddbd",
+      "bytes": 370,
+      "original_path": "artifacts/rust-rewrite/runtime-cancellation-pre-fix-1/session-log-pre-fix.stderr.log"
+    },
+    "fixed_report": {
+      "path": "artifacts/rust-rewrite/evidence/db128eee8d61fe036a7a44d82298177fd985164b04becf50945dae7cde17dffb.json",
+      "sha256": "db128eee8d61fe036a7a44d82298177fd985164b04becf50945dae7cde17dffb",
+      "bytes": 4163,
+      "original_path": "artifacts/rust-rewrite/session-log-close-fix-1/report.json"
+    },
+    "fixed_binary": {
+      "path": "artifacts/rust-rewrite/session-log-close-fix-1/native-tests",
+      "bytes": 95888080,
+      "sha256": "fac8359e9cb7b639f62efc0fbc0f6ef96b0f4014d14f35f3b80e40517e5567e2"
+    },
+    "fixed_test_count": 9,
+    "new_regression_count": 1,
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/evidence/573af181c8cc65d37a37ed655d13bd234c89b5a90b0b73fb888d0a633fa3fe35.json",
+      "sha256": "573af181c8cc65d37a37ed655d13bd234c89b5a90b0b73fb888d0a633fa3fe35",
+      "bytes": 2525,
+      "original_path": "/private/tmp/autorouter-session-log-close-independent-review.json"
+    },
+    "witness": "Three exact full accepted rows are held by the owned sink. Dropping the actual first close future must leave the worker available; a second close remains pending until release, rejects late admission, joins one sink close and verifies full durable order. Expected old failure occurs only after releasing and draining the held work.",
+    "pre_fix_scope": "The linked combined pre-fix report also contains classifier failures. Only its SessionLog regression and exact SessionLog binary are claimed here; classifier work is excluded from this candidate."
+  },
+  "status_store": {
+    "pre_fix_report": {
+      "path": "artifacts/rust-rewrite/evidence/839a90a4cd931b45408238c83635f27abdbead7f389143bb528f8ac56f44f02a.json",
+      "sha256": "839a90a4cd931b45408238c83635f27abdbead7f389143bb528f8ac56f44f02a",
+      "bytes": 1617,
+      "original_path": "artifacts/rust-rewrite/status-store-close-pre-fix-1/report.json"
+    },
+    "pre_fix_binary": {
+      "path": "artifacts/rust-rewrite/status-store-close-pre-fix-1/native-tests",
+      "sha256": "550dd785a8a82238801de8f7b8f9e56df9192ebe821a097b94127c1b724f2bd2",
+      "bytes": 82785792
+    },
+    "pre_fix_stdout": {
+      "path": "artifacts/rust-rewrite/evidence/bd914fe6f2fb7736b26075a16d1b8714a8f65acde2267be24ec58f6fccd4289d.log",
+      "sha256": "bd914fe6f2fb7736b26075a16d1b8714a8f65acde2267be24ec58f6fccd4289d",
+      "bytes": 593,
+      "original_path": "artifacts/rust-rewrite/status-store-close-pre-fix-1/native.stdout.log"
+    },
+    "pre_fix_stderr": {
+      "path": "artifacts/rust-rewrite/evidence/79fc9c1daeff736fea935643e2d57ace36813abd5581d380a5412aeb8c79eb99.log",
+      "sha256": "79fc9c1daeff736fea935643e2d57ace36813abd5581d380a5412aeb8c79eb99",
+      "bytes": 609,
+      "original_path": "artifacts/rust-rewrite/status-store-close-pre-fix-1/native.stderr.log"
+    },
+    "fixed_report": {
+      "path": "artifacts/rust-rewrite/evidence/1ffbf259ba1c90044028fc6efa59a69d77041b8568c6640d3b614baa0633aebc.json",
+      "sha256": "1ffbf259ba1c90044028fc6efa59a69d77041b8568c6640d3b614baa0633aebc",
+      "bytes": 2271,
+      "original_path": "artifacts/rust-rewrite/status-store-close-fixed-1/report.json"
+    },
+    "fixed_binary": {
+      "path": "artifacts/rust-rewrite/status-store-close-fixed-1/native-tests",
+      "sha256": "68a0f255245f3c9d44de74315b33aa9e843e984f4b38104598b9fc6a93af87d4",
+      "bytes": 82785840
+    },
+    "fixed_stdout": {
+      "path": "artifacts/rust-rewrite/evidence/22cdf413c67ada7c6a213d816c66e170f4f4bfec52dea62321fa027bf21bc6aa.log",
+      "sha256": "22cdf413c67ada7c6a213d816c66e170f4f4bfec52dea62321fa027bf21bc6aa",
+      "bytes": 345,
+      "original_path": "artifacts/rust-rewrite/status-store-close-fixed-1/native.stdout.log"
+    },
+    "all_status_stdout": {
+      "path": "artifacts/rust-rewrite/evidence/dc0dc2a7f606d17c9c19d5ddc7dd09ca9c1274f671ae55c71eeca401e1f16437.log",
+      "sha256": "dc0dc2a7f606d17c9c19d5ddc7dd09ca9c1274f671ae55c71eeca401e1f16437",
+      "bytes": 1755,
+      "original_path": "artifacts/rust-rewrite/status-store-close-fixed-1/all-status.stdout.log"
+    },
+    "clippy_stdout": {
+      "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "original_path": "artifacts/rust-rewrite/status-store-close-fixed-1/clippy.stdout.log"
+    },
+    "clippy_stderr": {
+      "path": "artifacts/rust-rewrite/evidence/c72373a85699014d93e83546088aa6ef616f1519ea767788d3d24bb6453fb81b.log",
+      "sha256": "c72373a85699014d93e83546088aa6ef616f1519ea767788d3d24bb6453fb81b",
+      "bytes": 809,
+      "original_path": "artifacts/rust-rewrite/status-store-close-fixed-1/clippy.stderr.log"
+    },
+    "fixed_test_count": 16,
+    "new_regression_count": 2,
+    "selected_inputs_before": {
+      "path": "artifacts/rust-rewrite/evidence/d6307d2d657da62fbb264ae7ed9d680f1203b98a19e1909ffa868dafaf5e1da2.json",
+      "sha256": "d6307d2d657da62fbb264ae7ed9d680f1203b98a19e1909ffa868dafaf5e1da2",
+      "bytes": 63449,
+      "original_path": "artifacts/rust-rewrite/status-store-close-fixed-1/inputs-before.json"
+    },
+    "selected_inputs_after": {
+      "path": "artifacts/rust-rewrite/evidence/d6307d2d657da62fbb264ae7ed9d680f1203b98a19e1909ffa868dafaf5e1da2.json",
+      "sha256": "d6307d2d657da62fbb264ae7ed9d680f1203b98a19e1909ffa868dafaf5e1da2",
+      "bytes": 63449,
+      "original_path": "artifacts/rust-rewrite/status-store-close-fixed-1/inputs-after.json"
+    },
+    "selected_input_count": 373,
+    "selected_input_scope": "Rust sources, Cargo manifests/configuration and lockfiles; the focused 373-input snapshot is not a complete inventory of embedded JSON corpora or reproducible-build proof. The separate combined validation and exact-archive replay bind all 885 tracked/untracked candidate source files, including embedded inputs, unchanged.",
+    "environment_overrides": {
+      "CARGO_INCREMENTAL": "0",
+      "CARGO_BUILD_JOBS": "4",
+      "CARGO_PROFILE_DEV_DEBUG": "0",
+      "CARGO_PROFILE_TEST_DEBUG": "0",
+      "OPENSSL_NO_VENDOR": "0",
+      "MACOSX_DEPLOYMENT_TARGET": "11.0",
+      "CARGO_TARGET_DIR": "/private/tmp/autorouter-ci-9e695e4/rust/target"
+    },
+    "commands_results": [
+      {
+        "name": "fmt",
+        "command": [
+          "rustfmt",
+          "+1.99.0",
+          "--edition",
+          "2024",
+          "--check",
+          "crates/autorouter-runtime/src/status_store_close_contracts.rs"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.04165387153625488
+      },
+      {
+        "name": "compile",
+        "command": [
+          "cargo",
+          "+1.99.0",
+          "test",
+          "--locked",
+          "--offline",
+          "-p",
+          "autorouter-runtime",
+          "--lib",
+          "--no-run",
+          "--message-format=json"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 9.59852385520935
+      },
+      {
+        "name": "native",
+        "command": [
+          "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/status-store-close-fixed-1/native-tests",
+          "status_store::close_contracts",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.8173313140869141
+      },
+      {
+        "name": "all-status",
+        "command": [
+          "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/status-store-close-fixed-1/native-tests",
+          "status_store::",
+          "--nocapture",
+          "--test-threads=1"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.19223594665527344
+      },
+      {
+        "name": "clippy",
+        "command": [
+          "cargo",
+          "+1.99.0",
+          "clippy",
+          "--locked",
+          "--offline",
+          "-p",
+          "autorouter-runtime",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 5.182712078094482
+      }
+    ],
+    "witnesses": [
+      "A positive held-removal barrier keeps a real private status directory alive. After dropping first close, second close must remain pending until actual NativeStatusIo.remove completes. Both old/fixed paths release and drain before final early-return assertions.",
+      "After real store and original readiness task shutdown, a test-only held readiness JoinHandle isolates the second ownership slot. This is an ownership test, not modification or proof of the production one-second readiness deadline."
+    ],
+    "harness_initial_failure": {
+      "path": "artifacts/rust-rewrite/evidence/c7cd28eb88bca57345e53d584224fbdce3e775e861cd0963064c8a2b403093e1.json",
+      "sha256": "c7cd28eb88bca57345e53d584224fbdce3e775e861cd0963064c8a2b403093e1",
+      "bytes": 497,
+      "original_path": "artifacts/rust-rewrite/status-store-close-initial-checkout-failure/report.json"
+    }
+  },
+  "ci_observations": {
+    "failed_repaired_head": "0e3ea4c",
+    "failed_ubuntu_log": {
+      "path": "artifacts/rust-rewrite/evidence/10ba9d79b8e2ad65c9c3f3fdb5857a47894ff66532cc84aa2039c65311d2df61.log",
+      "sha256": "10ba9d79b8e2ad65c9c3f3fdb5857a47894ff66532cc84aa2039c65311d2df61",
+      "bytes": 184615,
+      "original_path": "artifacts/rust-rewrite/ci-0e3ea4c/job-114075971598-completed-job-raw.log"
+    },
+    "observed": "The copied-hardlink complete native validation passes. Owner-loss exits with active_io zero but scratch_empty false; a separate SIGINT test times out waiting five seconds for preflight.",
+    "causality_limits": "Deterministic controls establish both retained-handle defects. The historical owner-loss log does not retain the remaining scratch entry or exact interleaving. No cause is yet established for the separate SIGINT preflight timeout: initial logs discard child stderr and do not check early exit. Startup hashing delay remains a hypothesis, not a finding.",
+    "local_intermittent_replay": {
+      "path": "artifacts/rust-rewrite/evidence/0c3471d366e741678c0442d76c22de42f8126f7482842dc614cd6d4fc8653fc5.json",
+      "sha256": "0c3471d366e741678c0442d76c22de42f8126f7482842dc614cd6d4fc8653fc5",
+      "bytes": 1935,
+      "original_path": "artifacts/rust-rewrite/storage-owner-loss-replay-1/report.json"
+    },
+    "diagnostics_scope": "Diagnostics only change the test harness. Stderr is capped at 65536 bytes, with at most a 4096-byte prefix in failure output; final size is checked after child exit. Executable metadata and fixed preflight stages are synthetic ownership observations. The five-second preflight and twelve-second stop deadlines remain unchanged.",
+    "completed_base_ci": {
+      "path": "artifacts/rust-rewrite/evidence/4834a2101c9b4faf8cf5c74bf95d74495ea7f6050bc6301877d966dd4a3b5239.json",
+      "sha256": "4834a2101c9b4faf8cf5c74bf95d74495ea7f6050bc6301877d966dd4a3b5239",
+      "bytes": 91727,
+      "original_path": "artifacts/rust-rewrite/ci-0e3ea4c/completed.json"
+    },
+    "completed_base_ci_jobs": {
+      "passed": 8,
+      "failed": 2,
+      "failed_names": [
+        "Rust / ubuntu-24.04",
+        "GNU glibc 2.28 / x86_64-unknown-linux-gnu"
+      ],
+      "scope": "Historical base 0e3ea4c, not the uncommitted close candidate."
+    }
+  },
+  "independent_status_store_review": {
+    "path": "artifacts/rust-rewrite/evidence/bc30f4fab0a447bc8dcbfe8fdc8685b8cd8159c0773ae8e45b041c9c7bc1aa95.json",
+    "sha256": "bc30f4fab0a447bc8dcbfe8fdc8685b8cd8159c0773ae8e45b041c9c7bc1aa95",
+    "bytes": 6255,
+    "original_path": "/private/tmp/autorouter-status-store-close-independent-review.json"
+  },
+  "combined_validation": {
+    "report": {
+      "path": "artifacts/rust-rewrite/evidence/603e3bbeef1473c2b1bc2dd0f8f06808049ef538982b2ba33b8d558b13d6a9dc.json",
+      "sha256": "603e3bbeef1473c2b1bc2dd0f8f06808049ef538982b2ba33b8d558b13d6a9dc",
+      "bytes": 7425,
+      "original_path": "artifacts/rust-rewrite/close-ownership-validation-1/report.json"
+    },
+    "source_inputs": {
+      "path": "artifacts/rust-rewrite/evidence/84c9eac08e953d8c3e609449f9e2c3cc31a674a02ad9fef39d458b08f2894dd4.json",
+      "sha256": "84c9eac08e953d8c3e609449f9e2c3cc31a674a02ad9fef39d458b08f2894dd4",
+      "bytes": 147813,
+      "original_path": "artifacts/rust-rewrite/close-ownership-validation-1/source-inputs.json"
+    },
+    "source_file_count": 885,
+    "source_inputs_unchanged": true,
+    "passed_checks": 13,
+    "failed_checks": 1,
+    "all_required_passed": false,
+    "rust_test_counts": {
+      "passed": 885,
+      "failed": 0,
+      "ignored": 3,
+      "suites": 38
+    },
+    "node_tests_passed": 596,
+    "javascript_package_archive_files": 58,
+    "javascript_package_lifecycle_scenarios": 17,
+    "environment_overrides": {
+      "CARGO_TARGET_DIR": "/private/tmp/autorouter-ci-9e695e4/rust/target",
+      "CARGO_INCREMENTAL": "0",
+      "CARGO_BUILD_JOBS": "4",
+      "CARGO_PROFILE_DEV_DEBUG": "0",
+      "CARGO_PROFILE_TEST_DEBUG": "0",
+      "OPENSSL_NO_VENDOR": "0",
+      "MACOSX_DEPLOYMENT_TARGET": "11.0"
+    },
+    "checks": [
+      {
+        "name": "hyper-vendor",
+        "command": [
+          "node",
+          "vendor/verify-hyper.mjs"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.13196897506713867,
+        "log": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/close-ownership-validation-1/hyper-vendor.log",
+        "sha256": "5e10b572ac528eddaa3d19d4b1a17c944eb129d4156697b65d359d14c0985cb0",
+        "log_descriptor": {
+          "path": "artifacts/rust-rewrite/evidence/5e10b572ac528eddaa3d19d4b1a17c944eb129d4156697b65d359d14c0985cb0.log",
+          "sha256": "5e10b572ac528eddaa3d19d4b1a17c944eb129d4156697b65d359d14c0985cb0",
+          "bytes": 73,
+          "original_path": "artifacts/rust-rewrite/close-ownership-validation-1/hyper-vendor.log"
+        }
+      },
+      {
+        "name": "hyper-util-vendor",
+        "command": [
+          "node",
+          "vendor/verify-hyper-util.mjs"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.13666200637817383,
+        "log": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/close-ownership-validation-1/hyper-util-vendor.log",
+        "sha256": "fb648aeb66793a84de0e25c880fdb19d73251ad12060ec0923078c798c7d14fd",
+        "log_descriptor": {
+          "path": "artifacts/rust-rewrite/evidence/fb648aeb66793a84de0e25c880fdb19d73251ad12060ec0923078c798c7d14fd.log",
+          "sha256": "fb648aeb66793a84de0e25c880fdb19d73251ad12060ec0923078c798c7d14fd",
+          "bytes": 178,
+          "original_path": "artifacts/rust-rewrite/close-ownership-validation-1/hyper-util-vendor.log"
+        }
+      },
+      {
+        "name": "openssl-vendor",
+        "command": [
+          "node",
+          "vendor/verify-openssl.mjs"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.13422012329101562,
+        "log": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/close-ownership-validation-1/openssl-vendor.log",
+        "sha256": "48b1eac4538fecd1908df10b85bfedc79be07c4006e4124ebf3550cabc7a08c3",
+        "log_descriptor": {
+          "path": "artifacts/rust-rewrite/evidence/48b1eac4538fecd1908df10b85bfedc79be07c4006e4124ebf3550cabc7a08c3.log",
+          "sha256": "48b1eac4538fecd1908df10b85bfedc79be07c4006e4124ebf3550cabc7a08c3",
+          "bytes": 86,
+          "original_path": "artifacts/rust-rewrite/close-ownership-validation-1/openssl-vendor.log"
+        }
+      },
+      {
+        "name": "node-ca-vendor",
+        "command": [
+          "node",
+          "vendor/verify-node-ca.mjs"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.07773804664611816,
+        "log": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/close-ownership-validation-1/node-ca-vendor.log",
+        "sha256": "dc2e78eb62c01d3185dc60633881d39ff9e6c08ace0b8e148de12241f10de1ff",
+        "log_descriptor": {
+          "path": "artifacts/rust-rewrite/evidence/dc2e78eb62c01d3185dc60633881d39ff9e6c08ace0b8e148de12241f10de1ff.log",
+          "sha256": "dc2e78eb62c01d3185dc60633881d39ff9e6c08ace0b8e148de12241f10de1ff",
+          "bytes": 41,
+          "original_path": "artifacts/rust-rewrite/close-ownership-validation-1/node-ca-vendor.log"
+        }
+      },
+      {
+        "name": "feature-auditor-controls",
+        "command": [
+          "node",
+          "vendor/verify-production-features.mjs",
+          "--self-test"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.07322216033935547,
+        "log": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/close-ownership-validation-1/feature-auditor-controls.log",
+        "sha256": "c44240cdcd860599d6d531a6484c2d93424da9e7d6e6117d778b7877ff2e7ed2",
+        "log_descriptor": {
+          "path": "artifacts/rust-rewrite/evidence/c44240cdcd860599d6d531a6484c2d93424da9e7d6e6117d778b7877ff2e7ed2.log",
+          "sha256": "c44240cdcd860599d6d531a6484c2d93424da9e7d6e6117d778b7877ff2e7ed2",
+          "bytes": 127,
+          "original_path": "artifacts/rust-rewrite/close-ownership-validation-1/feature-auditor-controls.log"
+        }
+      },
+      {
+        "name": "fmt",
+        "command": [
+          "cargo",
+          "fmt",
+          "--all",
+          "--check"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.82315993309021,
+        "log": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/close-ownership-validation-1/fmt.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "log_descriptor": {
+          "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0,
+          "original_path": "artifacts/rust-rewrite/close-ownership-validation-1/fmt.log"
+        }
+      },
+      {
+        "name": "clippy",
+        "command": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "--offline",
+          "--workspace",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 5.490370750427246,
+        "log": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/close-ownership-validation-1/clippy.log",
+        "sha256": "d8c339626f8a45c3491cd6830121f6e0f7faf163b9dcae9c4006ae01018613b4",
+        "log_descriptor": {
+          "path": "artifacts/rust-rewrite/evidence/d8c339626f8a45c3491cd6830121f6e0f7faf163b9dcae9c4006ae01018613b4.log",
+          "sha256": "d8c339626f8a45c3491cd6830121f6e0f7faf163b9dcae9c4006ae01018613b4",
+          "bytes": 1299,
+          "original_path": "artifacts/rust-rewrite/close-ownership-validation-1/clippy.log"
+        }
+      },
+      {
+        "name": "workspace",
+        "command": [
+          "cargo",
+          "test",
+          "--locked",
+          "--offline",
+          "--workspace"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 54.44754910469055,
+        "log": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/close-ownership-validation-1/workspace.log",
+        "sha256": "c186de78a748018b887a6fb4f576669a9a1dfeaf9df5d6ae4d1b9a4c28f05402",
+        "log_descriptor": {
+          "path": "artifacts/rust-rewrite/evidence/c186de78a748018b887a6fb4f576669a9a1dfeaf9df5d6ae4d1b9a4c28f05402.log",
+          "sha256": "c186de78a748018b887a6fb4f576669a9a1dfeaf9df5d6ae4d1b9a4c28f05402",
+          "bytes": 97247,
+          "original_path": "artifacts/rust-rewrite/close-ownership-validation-1/workspace.log"
+        }
+      },
+      {
+        "name": "node-check",
+        "command": [
+          "npm",
+          "run",
+          "check"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 3.5373167991638184,
+        "log": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/close-ownership-validation-1/node-check.log",
+        "sha256": "4882654ddbf9853bf4f185dc398c36b83eaa63b59fbb76d525b746ce417b768f",
+        "log_descriptor": {
+          "path": "artifacts/rust-rewrite/evidence/4882654ddbf9853bf4f185dc398c36b83eaa63b59fbb76d525b746ce417b768f.log",
+          "sha256": "4882654ddbf9853bf4f185dc398c36b83eaa63b59fbb76d525b746ce417b768f",
+          "bytes": 153,
+          "original_path": "artifacts/rust-rewrite/close-ownership-validation-1/node-check.log"
+        }
+      },
+      {
+        "name": "node-test",
+        "command": [
+          "npm",
+          "test"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 2.993217945098877,
+        "log": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/close-ownership-validation-1/node-test.log",
+        "sha256": "0a1e3398604d674ff913e3ab38e3f36836f42a05b81545d26faa4283df84c88d",
+        "log_descriptor": {
+          "path": "artifacts/rust-rewrite/evidence/0a1e3398604d674ff913e3ab38e3f36836f42a05b81545d26faa4283df84c88d.log",
+          "sha256": "0a1e3398604d674ff913e3ab38e3f36836f42a05b81545d26faa4283df84c88d",
+          "bytes": 135745,
+          "original_path": "artifacts/rust-rewrite/close-ownership-validation-1/node-test.log"
+        }
+      },
+      {
+        "name": "node-package",
+        "command": [
+          "npm",
+          "run",
+          "test:package"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 6.288970947265625,
+        "log": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/close-ownership-validation-1/node-package.log",
+        "sha256": "216f4b7d957a10d8465bf025d60f67fe88ad3512acc55db1829fd95e02161f33",
+        "log_descriptor": {
+          "path": "artifacts/rust-rewrite/evidence/216f4b7d957a10d8465bf025d60f67fe88ad3512acc55db1829fd95e02161f33.log",
+          "sha256": "216f4b7d957a10d8465bf025d60f67fe88ad3512acc55db1829fd95e02161f33",
+          "bytes": 885,
+          "original_path": "artifacts/rust-rewrite/close-ownership-validation-1/node-package.log"
+        }
+      },
+      {
+        "name": "release",
+        "command": [
+          "cargo",
+          "build",
+          "--locked",
+          "--offline",
+          "--release",
+          "--package",
+          "claude-autorouter",
+          "--message-format=json"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 75.21853804588318,
+        "log": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/close-ownership-validation-1/release.log",
+        "sha256": "e2d8c16f8f303b9943bfb3d5270faee780f244d64ab4458dd493302d2bfc316d",
+        "log_descriptor": {
+          "path": "artifacts/rust-rewrite/evidence/e2d8c16f8f303b9943bfb3d5270faee780f244d64ab4458dd493302d2bfc316d.log",
+          "sha256": "e2d8c16f8f303b9943bfb3d5270faee780f244d64ab4458dd493302d2bfc316d",
+          "bytes": 5027,
+          "original_path": "artifacts/rust-rewrite/close-ownership-validation-1/release.log"
+        }
+      },
+      {
+        "name": "production-features",
+        "command": [
+          "node",
+          "vendor/verify-production-features.mjs",
+          "--build-report",
+          "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/close-ownership-validation-1/production-build.jsonl"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 0.04712986946105957,
+        "log": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/close-ownership-validation-1/production-features.log",
+        "sha256": "c772d5985e60f9328e43052e62af46feff69f9a7fcafd38fb4cbe2424f505213",
+        "log_descriptor": {
+          "path": "artifacts/rust-rewrite/evidence/c772d5985e60f9328e43052e62af46feff69f9a7fcafd38fb4cbe2424f505213.log",
+          "sha256": "c772d5985e60f9328e43052e62af46feff69f9a7fcafd38fb4cbe2424f505213",
+          "bytes": 627,
+          "original_path": "artifacts/rust-rewrite/close-ownership-validation-1/production-features.log"
+        }
+      },
+      {
+        "name": "native-package",
+        "command": [
+          "cargo",
+          "xtask",
+          "package",
+          "--binary",
+          "aarch64-apple-darwin=/private/tmp/autorouter-ci-9e695e4/rust/target/release/claude-autorouter",
+          "--output",
+          "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/native-close-host-1",
+          "--smoke"
+        ],
+        "exit_code": 1,
+        "elapsed_seconds": 20.499353885650635,
+        "log": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/close-ownership-validation-1/native-package.log",
+        "sha256": "57e92c30bc46b6edda507e1994ce061f5a7f24965b77c9839b70f7788d253bf7",
+        "log_descriptor": {
+          "path": "artifacts/rust-rewrite/evidence/57e92c30bc46b6edda507e1994ce061f5a7f24965b77c9839b70f7788d253bf7.log",
+          "sha256": "57e92c30bc46b6edda507e1994ce061f5a7f24965b77c9839b70f7788d253bf7",
+          "bytes": 1355,
+          "original_path": "artifacts/rust-rewrite/close-ownership-validation-1/native-package.log"
+        }
+      }
+    ]
+  },
+  "shipping_artifact_validation": {
+    "status": "exact_archive_host_replay_passed_original_failure_retained",
+    "host": "aarch64-apple-darwin",
+    "archive": {
+      "path": "artifacts/rust-rewrite/native-close-host-1/claude-autorouter-0.5.2.tgz",
+      "sha256": "64e349ba15169a534e49e36d24ae72430680bebc58744258435466111b24d81d",
+      "bytes": 5958906
+    },
+    "native_binary": {
+      "path": "artifacts/rust-rewrite/close-ownership-binaries-1/claude-autorouter",
+      "sha256": "52076de7ba02bc1064183c841b8be42345dc31da300cc9f13bdeb1af1b4d323f",
+      "bytes": 12826064
+    },
+    "package_tool": {
+      "path": "artifacts/rust-rewrite/close-ownership-binaries-1/xtask",
+      "sha256": "e58eab9c38508a487f9cf98234b42b28a99c705309547a62a5ce3523ae44a89d",
+      "bytes": 43206224
+    },
+    "binary_manifest": {
+      "path": "artifacts/rust-rewrite/evidence/2d24beaa1f24037db4b101ff724d56d684dc044802deb32eb8779cbfe808a06e.json",
+      "sha256": "2d24beaa1f24037db4b101ff724d56d684dc044802deb32eb8779cbfe808a06e",
+      "bytes": 605,
+      "original_path": "artifacts/rust-rewrite/close-ownership-binaries-1/manifest.json"
+    },
+    "production_build_report": {
+      "path": "artifacts/rust-rewrite/evidence/4806bf0924bd354a695d8d5f125365a4c656db5cbc801f06a4f1660438b68591.jsonl",
+      "sha256": "4806bf0924bd354a695d8d5f125365a4c656db5cbc801f06a4f1660438b68591",
+      "bytes": 146997,
+      "original_path": "artifacts/rust-rewrite/close-ownership-validation-1/production-build.jsonl"
+    },
+    "production_feature_audit": {
+      "path": "artifacts/rust-rewrite/evidence/c772d5985e60f9328e43052e62af46feff69f9a7fcafd38fb4cbe2424f505213.log",
+      "sha256": "c772d5985e60f9328e43052e62af46feff69f9a7fcafd38fb4cbe2424f505213",
+      "bytes": 627,
+      "original_path": "artifacts/rust-rewrite/close-ownership-validation-1/production-features.log"
+    },
+    "experimental_production_features": {
+      "hyper_util_request_lease": false,
+      "hyper_util_raw_pool": false
+    },
+    "initial_attempt": {
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/603e3bbeef1473c2b1bc2dd0f8f06808049ef538982b2ba33b8d558b13d6a9dc.json",
+        "sha256": "603e3bbeef1473c2b1bc2dd0f8f06808049ef538982b2ba33b8d558b13d6a9dc",
+        "bytes": 7425,
+        "original_path": "artifacts/rust-rewrite/close-ownership-validation-1/report.json"
+      },
+      "failure": {
+        "path": "artifacts/rust-rewrite/evidence/cd83734cf343022f2e9a9a30b90a6756569c28fdc21e83e6f6883d0a5ec882c6.json",
+        "sha256": "cd83734cf343022f2e9a9a30b90a6756569c28fdc21e83e6f6883d0a5ec882c6",
+        "bytes": 5197,
+        "original_path": "artifacts/rust-rewrite/native-close-host-1/installed-lifecycle-failure-1791590834487320000.json"
+      },
+      "command_exit_code": 1,
+      "lifecycle_exit_code": 101,
+      "first_suite": {
+        "passed": 14,
+        "failed": 3,
+        "ignored": 0
+      },
+      "remaining_installed_suites_executed": 0,
+      "all_required_passed": false
+    },
+    "diagnosis": {
+      "path": "artifacts/rust-rewrite/evidence/f8c8fa2bca1f9e818d249e9d5bd1f15585cbe6b25163af54f05445de3dccc4fc.json",
+      "sha256": "f8c8fa2bca1f9e818d249e9d5bd1f15585cbe6b25163af54f05445de3dccc4fc",
+      "bytes": 10977,
+      "original_path": "artifacts/rust-rewrite/close-installed-diagnosis-report.json"
+    },
+    "exact_archive_replay": {
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/34f63275f48f4274f52cf0788ddb63ddd8070d6f6d4d20320548da0e9d932b5d.json",
+        "sha256": "34f63275f48f4274f52cf0788ddb63ddd8070d6f6d4d20320548da0e9d932b5d",
+        "bytes": 3822,
+        "original_path": "artifacts/rust-rewrite/close-package-replay-1/report.json"
+      },
+      "source_inputs": {
+        "path": "artifacts/rust-rewrite/evidence/603eb4e9c52cbb3a3608014f3073439ca4e0fb64547f98e0e916cdfa8f06b0b7.json",
+        "sha256": "603eb4e9c52cbb3a3608014f3073439ca4e0fb64547f98e0e916cdfa8f06b0b7",
+        "bytes": 181443,
+        "original_path": "artifacts/rust-rewrite/close-package-replay-1/source-inputs.json"
+      },
+      "source_count": 885,
+      "same_source_inputs_as_combined_validation": true,
+      "source_path_normalization": "Replay descriptors use absolute isolated-checkout paths; comparison removes only that exact prefix. All relative names, sizes and SHA-256 values equal the original validation inventory.",
+      "archive_unchanged": true,
+      "package_tool_unchanged": true,
+      "command": [
+        "/private/tmp/autorouter-ci-9e695e4/rust/target/debug/xtask",
+        "package-smoke",
+        "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/native-close-host-1/claude-autorouter-0.5.2.tgz"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 19.461443875,
+      "environment": {
+        "TMPDIR": "/var/folders/ns/gqws29qx6nl_28zc3gmwz2zc0000gn/T/",
+        "TMP": null,
+        "TEMP": null,
+        "RUST_TEST_THREADS": null,
+        "CARGO_TARGET_DIR": "/private/tmp/autorouter-ci-9e695e4/rust/target",
+        "CARGO_BUILD_JOBS": "4",
+        "CARGO_INCREMENTAL": "0",
+        "CARGO_PROFILE_DEV_DEBUG": "0",
+        "CARGO_PROFILE_TEST_DEBUG": "0",
+        "OPENSSL_NO_VENDOR": "0",
+        "MACOSX_DEPLOYMENT_TARGET": "11.0"
+      },
+      "test_concurrency": "Unchanged libtest default; RUST_TEST_THREADS presence/value recorded. No serializing or deadline changes.",
+      "stdout": {
+        "path": "artifacts/rust-rewrite/evidence/724256aeee0557b691f8a70d2d0c8932bdbc5b125cefd5838469cef93655023b.log",
+        "sha256": "724256aeee0557b691f8a70d2d0c8932bdbc5b125cefd5838469cef93655023b",
+        "bytes": 1479,
+        "original_path": "artifacts/rust-rewrite/close-package-replay-1/stdout.log"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0,
+        "original_path": "artifacts/rust-rewrite/close-package-replay-1/stderr.log"
+      },
+      "installed_tests_passed": 74,
+      "installed_tests_failed": 0,
+      "installed_suites": 7,
+      "smoke": {
+        "passed": true,
+        "offline_install": true,
+        "ignore_scripts": true,
+        "npm_symlink": true,
+        "paths_with_spaces_quotes_and_dollar": true,
+        "unrelated_cwd": true,
+        "node_absent_from_execution_path": true,
+        "help_version": true,
+        "complete_launcher_lifecycle": {
+          "passed": true,
+          "test_suites": [
+            "crates/claude-autorouter/tests/commands.rs",
+            "crates/claude-autorouter/tests/edge_cases.rs",
+            "crates/claude-autorouter/tests/launcher_logging.rs",
+            "crates/claude-autorouter/tests/onboarding_local.rs",
+            "crates/claude-autorouter/tests/launcher_contracts.rs",
+            "crates/claude-autorouter/tests/startup_options.rs",
+            "crates/claude-autorouter/tests/config_contracts.rs"
+          ],
+          "summaries": [
+            "test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s",
+            "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s",
+            "test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.41s",
+            "test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.59s",
+            "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.51s",
+            "test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.22s",
+            "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.02s"
+          ]
+        }
+      }
+    },
+    "archive_installation_qualified_scope": "This exact macOS ARM64 archive passed offline install and all 74 installed lifecycle tests in seven suites on replay with default concurrency, unchanged source inputs, executable bytes and deadlines.",
+    "cause": "The original unavailable-status failure is unresolved. The old output does not identify a create/write failure or readiness deadline branch; eight synthetic immutable-binary probes and the exact-archive replay passed. Success does not erase the initial failure or prove its cause.",
+    "no_transfer_of_previous_qualification": "The ordinary release CLI changed from checkpoint 13. Earlier checkpoint TLS, startup, full transport, upgrade/rollback and source-bundle results are not transferred to these new bytes by this summary."
+  },
+  "source_bundle_validation": {
+    "status": "not_run_for_this_focused_candidate",
+    "scope": "No fresh source bundle was required for this narrow fix; checkpoint 13 source-bundle qualification is not transferred to the changed candidate."
+  },
+  "coverage_promotions": 0,
+  "numerical_measurements": false,
+  "provider_calls": 0,
+  "release_approved": false,
+  "limitations": [
+    "The record excludes unfinished classifier/transport work, remaining original session-log callback mappings, and coverage promotions.",
+    "Native close begins when its Future is first polled. These regressions prove ownership survives cancellation of that polled waiter; synchronous Future::drop does not await cleanup.",
+    "The readiness-slot regression substitutes a held task after the real readiness task was joined. It proves JoinHandle ownership, not an extended production readiness deadline.",
+    "The original combined run remains 13/14 checks passed: its native package attempt failed. A later unchanged-archive replay passed 74/74 installed tests across seven suites without serializing tests or changing deadlines; original failure causality remains unresolved.",
+    "Historical base CI is 8/10 successful jobs. No new-candidate Linux CI result, all-platform acceptance, numerical performance result, live provider result, release approval, or default-engine cutover is claimed.",
+    "No fresh source bundle, TLS/startup matrix, or upgrade/rollback run is included. Checkpoint 13 qualification is not transferred to the new release binary."
+  ],
+  "scope": "Five-file close-ownership and bounded CI-diagnostics candidate over 0e3ea4c. Qualification is synthetic/local on macOS ARM64; historical base CI remains 8 successful jobs and 2 Linux x64 failures. No release, default-engine cutover, or all-platform acceptance.",
+  "summary_harness_observation": {
+    "path": "artifacts/rust-rewrite/evidence/ce7c264dd4052d919f312c615a6f4ac736c53de9017a6a3c4522bb801659e7ad.json",
+    "sha256": "ce7c264dd4052d919f312c615a6f4ac736c53de9017a6a3c4522bb801659e7ad",
+    "bytes": 564,
+    "original_path": "artifacts/rust-rewrite/close-summary-finalization-failure-1/report.json"
+  },
+  "summary_builder": {
+    "path": "artifacts/rust-rewrite/evidence/a868d16e6d27d030915497414f969d84b08adde7b0eb27f4251dd31ba06a9578.py",
+    "sha256": "a868d16e6d27d030915497414f969d84b08adde7b0eb27f4251dd31ba06a9578",
+    "bytes": 8103,
+    "original_path": "/private/tmp/autorouter-storage-close-summary-final.py"
+  }
+}

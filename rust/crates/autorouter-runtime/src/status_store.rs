@@ -263,12 +263,17 @@ impl StatusStore {
             self.inner.schedule();
         }
         let mut task = self.worker.lock().await;
-        if let Some(task) = task.take() {
+        // Cancellation of a close waiter must retain each owned task for the
+        // next close, including a worker still removing its private directory.
+        if let Some(task) = task.as_mut() {
             let _ = task.await;
         }
-        if let Some(timer) = self.readiness.lock().await.take() {
+        let _ = task.take();
+        let mut readiness = self.readiness.lock().await;
+        if let Some(timer) = readiness.as_mut() {
             let _ = timer.await;
         }
+        let _ = readiness.take();
     }
 }
 impl Drop for StatusStore {
@@ -1178,3 +1183,7 @@ mod tests {
         std::fs::remove_dir(parent).unwrap();
     }
 }
+
+#[cfg(test)]
+#[path = "status_store_close_contracts.rs"]
+mod close_contracts;

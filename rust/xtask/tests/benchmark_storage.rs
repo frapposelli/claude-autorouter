@@ -2,7 +2,7 @@
 use serde_json::Value;
 use std::fs;
 use std::io::Read;
-use std::os::unix::fs::{DirBuilderExt, MetadataExt};
+use std::os::unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt};
 use std::path::PathBuf;
 use std::process::{Child, Command, Output, Stdio};
 use std::time::{Duration, Instant};
@@ -255,23 +255,82 @@ fn native_child_owner_loss_releases_held_initial_io() {
     assert_eq!(fs::read_dir(&scratch.0).unwrap().count(), 0);
 }
 
+fn preflight_diagnostic(
+    destination: &std::path::Path,
+    stderr: &std::path::Path,
+    child: &mut Child,
+) -> String {
+    let executable = std::path::Path::new(env!("CARGO_BIN_EXE_xtask"));
+    let metadata = fs::metadata(executable).ok();
+    #[cfg(target_os = "linux")]
+    let observed_executable = fs::read_link(format!("/proc/{}/exe", child.id())).ok();
+    #[cfg(not(target_os = "linux"))]
+    let observed_executable: Option<PathBuf> = None;
+    let observed_metadata = observed_executable
+        .as_ref()
+        .and_then(|path| fs::metadata(path).ok());
+    let stderr_length = fs::metadata(stderr).ok().map(|value| value.len());
+    let mut stderr_bytes = Vec::new();
+    if let Ok(file) = fs::File::open(stderr) {
+        let _ = file.take(4096).read_to_end(&mut stderr_bytes);
+    }
+    let identity = |value: Option<&std::fs::Metadata>| {
+        value.map(|value| {
+            serde_json::json!({"bytes":value.len(),"links":value.nlink(),
+            "device":value.dev(),"inode":value.ino(),"regular":value.is_file()})
+        })
+    };
+    serde_json::json!({
+        "stage":"waiting_for_storage_preflight",
+        "child_exit":child.try_wait().ok().flatten().map(|status| status.to_string()),
+        "requested_executable":identity(metadata.as_ref()),
+        "observed_linux_executable":identity(observed_metadata.as_ref()),
+        "output_directory_exists":destination.is_dir(),
+        "input_snapshot_exists":destination.join("input-snapshot").is_dir(),
+        "preflight_exists":destination.join("preflight.json").is_file(),
+        "stderr_bytes":stderr_length,
+        "stderr_prefix":String::from_utf8_lossy(&stderr_bytes),
+        "stderr_prefix_limit":4096
+    })
+    .to_string()
+}
 #[test]
 fn driver_sigint_retains_partial_failure_and_removes_owned_scratch() {
     let scratch = Scratch::new();
     let destination = scratch.0.join("interrupted");
+    let stderr = scratch.0.join("driver-stderr.log");
+    let error_file = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .mode(0o600)
+        .open(&stderr)
+        .unwrap();
     let child = Command::new(env!("CARGO_BIN_EXE_xtask"))
         .args(["benchmark-storage", "--validate", "--output"])
         .arg(&destination)
         .env_clear()
         .env("PATH", "")
         .stdout(Stdio::null())
-        .stderr(Stdio::null())
+        .stderr(error_file)
         .spawn()
         .unwrap();
     let mut child = OwnedChild(child);
     let started = Instant::now();
     while !destination.join("preflight.json").exists() {
-        assert!(started.elapsed() < Duration::from_secs(5));
+        assert!(
+            fs::metadata(&stderr).unwrap().len() <= 65536,
+            "Storage driver stderr bound"
+        );
+        assert!(
+            child.try_wait().unwrap().is_none(),
+            "Storage driver exited before preflight: {}",
+            preflight_diagnostic(&destination, &stderr, &mut child)
+        );
+        assert!(
+            started.elapsed() < Duration::from_secs(5),
+            "Storage driver preflight deadline: {}",
+            preflight_diagnostic(&destination, &stderr, &mut child)
+        );
         std::thread::sleep(Duration::from_millis(5));
     }
     nix::sys::signal::kill(
@@ -290,6 +349,10 @@ fn driver_sigint_retains_partial_failure_and_removes_owned_scratch() {
         }
         std::thread::sleep(Duration::from_millis(5));
     };
+    assert!(
+        fs::metadata(&stderr).unwrap().len() <= 65536,
+        "Storage final driver stderr bound"
+    );
     assert!(!status.success());
     let report: Value =
         serde_json::from_slice(&fs::read(destination.join("report.json")).unwrap()).unwrap();
