@@ -114,9 +114,10 @@ async function childCase(spec, tlsEnvironment, mode) {
   return row;
 }
 const comparisonContract = {
+  handoff_adaptation: 'Node Incoming data/ServerResponse.write and native encoder admission/write attempt are different observed boundaries. Flow cases preserve their existing reference relations plus explicitly declared native relations. Physical blocked-writer order, zero wire bytes, first failure, delivery and cleanup remain exact gates.',
   declared_before_execution: true,
   exact_fields: ['upstream_status', 'first_failure_cause', 'delivery_completed', 'wire_status', 'body_bytes', 'body_sha256', 'complete_framing', 'trailer_bytes', 'consumer_released'],
-  prerequisite: 'Both executions pass the identical declared case relations and owned cleanup.',
+  prerequisite: 'Each execution passes its separately declared side-specific relations and owned cleanup; the nine shared comparison fields remain exact.',
   exclusions: ['wire header formatting and chunk boundaries', 'raw timestamps and packet/frame segmentation', 'Node object flags and native implementation IDs', 'TLS session policy beyond the separate retained pool matrix', 'total process heap/RSS and allocator overhead'],
   pending_families: declaration.pending_families,
 };

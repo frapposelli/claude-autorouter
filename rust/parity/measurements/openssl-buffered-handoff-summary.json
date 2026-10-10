@@ -1,0 +1,311 @@
+{
+  "schema_version": 1,
+  "kind": "openssl_buffered_handoff_test_only_qualification",
+  "status": "declared_finite_scope_passed_with_broader_transport_gates_open",
+  "production_transport_promoted": false,
+  "full_node_transport_equivalence": false,
+  "shipping_default": "Rustls; no constructor promotion",
+  "scope": [
+    "Default-off Hyper per-response encoder and flush-attempt observation seam, enabled only by the runtime library test dependency.",
+    "Generation-owned bounded tickets serialize producer read admission with the exact paused phase or cumulative byte handoff. A released or replaced pause cannot authorize a later source poll.",
+    "One ticket remains owned across a Pending source poll; stale pause evidence rearms the same sequence and target without counting or copying bytes twice.",
+    "Physical writer fixture returns Pending before calling the underlying writer. It retains no payload and grants no producer permission itself; only actual Hyper observations feed the existing ticket policy.",
+    "Request failure, downstream physical first cause and delivery callback claim remain distinct. Encoder admission, write attempts, producer EOF and prefetch never authorize pool return or continuity. CompletionRegistry internals remain unchanged."
+  ],
+  "implementation_ownership": {
+    "vendor_hyper": "Only approved default-off public observation API, dispatcher hooks, focused tests, manifests and provenance patch.",
+    "runtime": "Existing cfg(test) OpenSSL spike plus cfg(test) server plumbing and dev-only Hyper feature.",
+    "new_rust_paths": [
+      "rust/vendor/hyper/src/proto/h1/handoff_tests.rs",
+      "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/gateway_terminal_handoff.rs",
+      "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/gateway_terminal_handoff_tests.rs",
+      "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/gateway_terminal_writer.rs"
+    ],
+    "separate_root_work": "Classifier, SessionLog and StatusStore changes are separate. Runtime 7 includes the then-frozen classifier fix and minimal SessionLog fix, and predates the later StatusStore fix."
+  },
+  "seam": {
+    "author": {
+      "path": "artifacts/rust-rewrite/body-handoff-seam-1/summary.json",
+      "sha256": "7c2f0e8411c2bec5ac23e663939ef1bbd98643ab5d4e6161be3a134a9f98ddda",
+      "bytes": 11740,
+      "retained_path": "artifacts/rust-rewrite/evidence/7c2f0e8411c2bec5ac23e663939ef1bbd98643ab5d4e6161be3a134a9f98ddda.json"
+    },
+    "independent": {
+      "path": "/private/tmp/autorouter-body-handoff-seam-independent-review.json",
+      "sha256": "5cb7606c6d1818df04b1500b99d776d84fc478f6c207659a06b622e731c56ca3",
+      "bytes": 7975,
+      "retained_path": "artifacts/rust-rewrite/evidence/5cb7606c6d1818df04b1500b99d776d84fc478f6c207659a06b622e731c56ca3.json"
+    },
+    "tests": "13 new dispatcher controls plus three existing dispatcher tests pass. One accepted feature fixture and 36 rejected controls pass. Default-off build checks pass.",
+    "private_test_harness_limit": "The retained seam report documents the private offline manifest adjustments and failed initial dependency/feature attempts; no clean full-feature vendored test claim.",
+    "stored_patch_context": {
+      "path": "artifacts/rust-rewrite/body-handoff-seam-1/patch-context-whitespace.json",
+      "sha256": "de1a342609f542b16dc4d26f6f5450aa27946cfd77834f0e795c1f1b91189d20",
+      "bytes": 1270,
+      "retained_path": "artifacts/rust-rewrite/evidence/de1a342609f542b16dc4d26f6f5450aa27946cfd77834f0e795c1f1b91189d20.json"
+    }
+  },
+  "runtime6": {
+    "summary": {
+      "path": "artifacts/rust-rewrite/body-handoff-runtime-6/summary.json",
+      "sha256": "5a1ef7709229dfe7985b8c04f35e3fde5072528e633f1cca99e1fc75cbbfdee0",
+      "bytes": 9639,
+      "retained_path": "artifacts/rust-rewrite/evidence/5a1ef7709229dfe7985b8c04f35e3fde5072528e633f1cca99e1fc75cbbfdee0.json"
+    },
+    "independent": {
+      "path": "/private/tmp/autorouter-buffered-handoff-ticket-independent-review.json",
+      "sha256": "6cdd26fb899f3b9fd06329090aeb180a9db916d5f88a7f2a58877cc7279cd6d0",
+      "bytes": 10687,
+      "retained_path": "artifacts/rust-rewrite/evidence/6cdd26fb899f3b9fd06329090aeb180a9db916d5f88a7f2a58877cc7279cd6d0.json"
+    },
+    "result": "150/150 exact comparisons, 300 executions, preserving original stimuli and all fields; prior four final-byte losses match.",
+    "binary": {
+      "path": "artifacts/rust-rewrite/body-handoff-runtime-6/runtime-tests",
+      "sha256": "778b121dd0e35d9114a683f5dc66b773db22bb8e4f755f54de9bc6b6bbd44c2e",
+      "bytes": 97744288
+    }
+  },
+  "runtime7": {
+    "build": {
+      "path": "artifacts/rust-rewrite/body-handoff-runtime-7/report.json",
+      "sha256": "47f975d43791b85e069a8e3ed010924e7eacf5d9be68702bf647f6155e96bc1a",
+      "bytes": 925,
+      "retained_path": "artifacts/rust-rewrite/evidence/47f975d43791b85e069a8e3ed010924e7eacf5d9be68702bf647f6155e96bc1a.json"
+    },
+    "inputs_before": {
+      "path": "artifacts/rust-rewrite/body-handoff-runtime-7/sources-before.json",
+      "sha256": "27d73aa58f574fec37e241208734c8c7707e2f066238b1774e8e4453fc7792b5",
+      "bytes": 143508,
+      "retained_path": "artifacts/rust-rewrite/evidence/27d73aa58f574fec37e241208734c8c7707e2f066238b1774e8e4453fc7792b5.json"
+    },
+    "inputs_after": {
+      "path": "artifacts/rust-rewrite/body-handoff-runtime-7/sources-after.json",
+      "sha256": "fc49c5bacf55e04ab7d01c2880e6f6637ed61be277486e97aaf517e2ad7a21b4",
+      "bytes": 84570,
+      "retained_path": "artifacts/rust-rewrite/evidence/fc49c5bacf55e04ab7d01c2880e6f6637ed61be277486e97aaf517e2ad7a21b4.json"
+    },
+    "compiled_input_count": 466,
+    "inputs_unchanged_during_build": true,
+    "binary": {
+      "path": "artifacts/rust-rewrite/body-handoff-runtime-7/runtime-tests",
+      "sha256": "255d85ccff7ec0d670066e8a761e5c5ed755944d5c206e43a85303646b45c66d",
+      "bytes": 97750864
+    },
+    "strict_clippy": {
+      "path": "artifacts/rust-rewrite/body-handoff-clippy-3/report.json",
+      "sha256": "0a6df3848ce6f392f90f94b91159443cae8921e56039e3af55ac0bfa8aa60131",
+      "bytes": 910,
+      "retained_path": "artifacts/rust-rewrite/evidence/0a6df3848ce6f392f90f94b91159443cae8921e56039e3af55ac0bfa8aa60131.json"
+    },
+    "provenance_limit": "Pinned Rust 1.99.0, locked/offline, incremental disabled, explicit before/after retained source identities. Cached build reuse is not a reproducible clean-build claim. Later main StatusStore changes are not attributed to this binary."
+  },
+  "final_differential": {
+    "report": {
+      "path": "artifacts/rust-rewrite/evidence/buffered-response-differential-7d44eb4b0faaffa7a3ad514721fe286fa8ba0b468247ecb2f1176fcf89ee2894.json",
+      "sha256": "7d44eb4b0faaffa7a3ad514721fe286fa8ba0b468247ecb2f1176fcf89ee2894",
+      "bytes": 5479866,
+      "retained_path": "artifacts/rust-rewrite/evidence/7d44eb4b0faaffa7a3ad514721fe286fa8ba0b468247ecb2f1176fcf89ee2894.json"
+    },
+    "matched": 162,
+    "selected": 162,
+    "executions": 324,
+    "standalone_flow12": {
+      "path": "artifacts/rust-rewrite/evidence/buffered-response-differential-0b7136c3e4f2311cbfd218236e723a4bdee8f37f237cca07bc2ed945098dfafa.json",
+      "sha256": "0b7136c3e4f2311cbfd218236e723a4bdee8f37f237cca07bc2ed945098dfafa",
+      "bytes": 532734,
+      "retained_path": "artifacts/rust-rewrite/evidence/0b7136c3e4f2311cbfd218236e723a4bdee8f37f237cca07bc2ed945098dfafa.json"
+    },
+    "comparison": "Each execution passes its separately declared side-specific relations and owned cleanup; all nine shared fields remain exact.",
+    "shared_fields": [
+      "upstream_status",
+      "first_failure_cause",
+      "delivery_completed",
+      "wire_status",
+      "body_bytes",
+      "body_sha256",
+      "complete_framing",
+      "trailer_bytes",
+      "consumer_released"
+    ],
+    "native_flow_adaptation": "Node Incoming data/ServerResponse.write and native encoder admission/write-attempt counters are different API boundaries. Ready cases require all 65,537 bytes admitted and attempted before source failure and exact wire bytes/digest. Blocked cases require actual physical Pending before source failure, writer gate still held through close, zero wire bytes and all owners released without opening that gate.",
+    "reference_preservation": "Frozen Node helper, original 150 stimuli and existing 12 reference relations remain unchanged. Only explicit native eligibility/relations and native physical observation support were added.",
+    "source_pinning": "Reports retain pre-execution native/Node executables, all six driver/baseline inputs, nine builtins and 111 frozen baseline files; child cleanup and final hashes are checked.",
+    "post_run_description_only_change": {
+      "path": "artifacts/rust-rewrite/body-handoff-runtime-7/prerequisite-wording.json",
+      "sha256": "4c4541c8ceba45f343eb89d0e60cb9c8f6270619bbdf6b9448be0160d524e0ee",
+      "bytes": 719,
+      "retained_path": "artifacts/rust-rewrite/evidence/4c4541c8ceba45f343eb89d0e60cb9c8f6270619bbdf6b9448be0160d524e0ee.json"
+    },
+    "independent_review": {
+      "path": "/private/tmp/autorouter-buffered-writer-flow-independent-review.json",
+      "sha256": "7d6e0bc1c3f166f1528d220a08b3b6a478a6dd546ef467da1658abc3612a1f18",
+      "bytes": 8947,
+      "retained_path": "artifacts/rust-rewrite/evidence/7d6e0bc1c3f166f1528d220a08b3b6a478a6dd546ef467da1658abc3612a1f18.json"
+    }
+  },
+  "final_native_controls": {
+    "terminal_and_handoff": {
+      "passed": 38,
+      "breakdown": {
+        "tickets": 22,
+        "existing_terminal": 14,
+        "physical_writer": 2
+      },
+      "log": {
+        "path": "artifacts/rust-rewrite/body-handoff-runtime-7/tests.log",
+        "sha256": "7f389925e334a6e77afdae860568605f3dd5245bd6f620498f45ca2c0866acfd",
+        "bytes": 8399,
+        "retained_path": "artifacts/rust-rewrite/evidence/7f389925e334a6e77afdae860568605f3dd5245bd6f620498f45ca2c0866acfd.log"
+      }
+    },
+    "buffer_core": {
+      "passed": 17,
+      "log": {
+        "path": "artifacts/rust-rewrite/body-handoff-runtime-7/buffered_body-tests.log",
+        "sha256": "08b0dad878a12bca64cf87462bc7c4c6e3b0e78f70cb6ffb6256d7e228fc33d9",
+        "bytes": 2784,
+        "retained_path": "artifacts/rust-rewrite/evidence/08b0dad878a12bca64cf87462bc7c4c6e3b0e78f70cb6ffb6256d7e228fc33d9.log"
+      }
+    },
+    "actual_buffered_constructor": {
+      "passed": 18,
+      "log": {
+        "path": "artifacts/rust-rewrite/body-handoff-runtime-7/raw_pool-buffered-tests.log",
+        "sha256": "23864f09c00b796bf2785756f260d2e760994f730d4228aabac3f5d1906d36c4",
+        "bytes": 14733,
+        "retained_path": "artifacts/rust-rewrite/evidence/23864f09c00b796bf2785756f260d2e760994f730d4228aabac3f5d1906d36c4.log"
+      }
+    },
+    "forwarding": {
+      "passed": 4,
+      "log": {
+        "path": "artifacts/rust-rewrite/body-handoff-runtime-7/server-forwarding_tests.log",
+        "sha256": "3f2d843cc7f4e4f8a1c3977806a757b790d521820a0594525321e97934c30711",
+        "bytes": 530,
+        "retained_path": "artifacts/rust-rewrite/evidence/3f2d843cc7f4e4f8a1c3977806a757b790d521820a0594525321e97934c30711.log"
+      }
+    },
+    "original_spike": {
+      "passed": 90,
+      "log": {
+        "path": "artifacts/rust-rewrite/body-handoff-regressions-1/original-90.log",
+        "sha256": "5e71fd58cd325b4f2e8242783a87a39d0ad173242ea25701e5569b5ec5fc7023",
+        "bytes": 20465,
+        "retained_path": "artifacts/rust-rewrite/evidence/5e71fd58cd325b4f2e8242783a87a39d0ad173242ea25701e5569b5ec5fc7023.log"
+      }
+    },
+    "raw_pool": {
+      "passed": 31,
+      "log": {
+        "path": "artifacts/rust-rewrite/body-handoff-regressions-1/raw-pool-31.log",
+        "sha256": "d9c998537fd7a54960c3a323150f447d6de995c94618e4074ee99d598b3afb4b",
+        "bytes": 8282,
+        "retained_path": "artifacts/rust-rewrite/evidence/d9c998537fd7a54960c3a323150f447d6de995c94618e4074ee99d598b3afb4b.log"
+      },
+      "limit": "Includes two environment-gated child entrypoints returning immediately without fixture environment. The controlled drivers separately execute real child processes."
+    }
+  },
+  "older_regressions": {
+    "batch": {
+      "path": "artifacts/rust-rewrite/body-handoff-regressions-1/report.json",
+      "sha256": "9b05ac65b04a36be8df8a3a7b5309c7a0fb85df0fdab47504aca023d11bf64bc",
+      "bytes": 13951,
+      "retained_path": "artifacts/rust-rewrite/evidence/9b05ac65b04a36be8df8a3a7b5309c7a0fb85df0fdab47504aca023d11bf64bc.json"
+    },
+    "handshake223": {
+      "path": "artifacts/rust-rewrite/parity-openssl-transport-spike.json",
+      "sha256": "f4a7764629684ef10e48a8c300640aab0dd65c996b827dcafcf2f04fdf489e62",
+      "bytes": 105676,
+      "retained_path": "artifacts/rust-rewrite/evidence/f4a7764629684ef10e48a8c300640aab0dd65c996b827dcafcf2f04fdf489e62.json"
+    },
+    "pool63": {
+      "path": "artifacts/rust-rewrite/evidence/openssl-raw-pool-e0c699b254033b97ed8fd747386421f28d6759e12f8abf8f0eb5445c0cfe0461.json",
+      "sha256": "e0c699b254033b97ed8fd747386421f28d6759e12f8abf8f0eb5445c0cfe0461",
+      "bytes": 10648425,
+      "retained_path": "artifacts/rust-rewrite/evidence/e0c699b254033b97ed8fd747386421f28d6759e12f8abf8f0eb5445c0cfe0461.json"
+    },
+    "preserved_mismatch_sets": {
+      "path": "artifacts/rust-rewrite/body-handoff-regressions-1/mismatch-preservation.json",
+      "sha256": "f78650770530c755a8066fe1807f5d79bcf4ccfd44c33b4e5cd19ac16e88652f",
+      "bytes": 2205,
+      "retained_path": "artifacts/rust-rewrite/evidence/f78650770530c755a8066fe1807f5d79bcf4ccfd44c33b4e5cd19ac16e88652f.json"
+    },
+    "results": {
+      "fresh_handshake": "223/223; three unqualified policy characterizations remain separate",
+      "pool_policy": "63/63",
+      "original_sessions": "13/18",
+      "intent_sessions": "15/18",
+      "idle_close": "4/10",
+      "raw_pool_original_sessions": "15/18"
+    },
+    "meaning": "Exact prior mismatch sets remain; matching the new buffered matrix does not qualify or excuse these remaining transport differences. Original constructors and driver oracles remain unchanged."
+  },
+  "memory_and_ownership": {
+    "application_payload_bytes_per_live_pool": 196608,
+    "blocks": 12,
+    "block_bytes": 16384,
+    "logical_threshold_bytes": 65536,
+    "inherited_allocation_audits": {
+      "path": "rust/parity/measurements/openssl-buffered-response-summary.json",
+      "sha256": "010b8cf636d9b5d25ea0b2e7d6e481f5a91c2d990ad2a115307f7fef05a28692",
+      "bytes": 28193,
+      "retained_path": "artifacts/rust-rewrite/evidence/010b8cf636d9b5d25ea0b2e7d6e481f5a91c2d990ad2a115307f7fef05a28692.json"
+    },
+    "new_metadata_terms": [
+      "One producer owner and one active ticket per response; two pinned cancellation futures per ticket.",
+      "One pending oneshot slot per producer; acknowledgment extraction/cached receiver and rearming have bounded transient overlap. poll_permission may create one additional temporary channel before validating a cached acknowledgment. These metadata bytes are not included in the payload count.",
+      "Body/response pause gates retain at most 128 weak registrations each; per-connection terminal admission remains 16 records.",
+      "Physical fixture gate retains at most 128 per-connection wakers and no body bytes; it removes each waker when its IO owner drops.",
+      "The inherited probe event ring retains a 1024-event suffix. The new handoff-failure observer retains at most 128 snapshots; its overflow and physical-writer observer errors are sticky and cannot silently pass a controlled child."
+    ],
+    "total_transport_memory_qualified": false,
+    "limits": "Inherited conditional Hyper backing and detached pool/header alias accounting still applies. TLS/crypto objects, downstream encoder buffers, all metadata allocation sizes, allocator overhead and aggregate live-owner limits require separate justification. The per-pool payload bound is not a total process bound."
+  },
+  "shipping_exclusion": {
+    "author": {
+      "path": "artifacts/rust-rewrite/body-handoff-production-1/report.json",
+      "sha256": "0b72019ac444d3272801abcf19b7712f2c22fdd17a691e7e650e25cb0798e09c",
+      "bytes": 2966,
+      "retained_path": "artifacts/rust-rewrite/evidence/0b72019ac444d3272801abcf19b7712f2c22fdd17a691e7e650e25cb0798e09c.json"
+    },
+    "independent": {
+      "path": "/private/tmp/autorouter-body-handoff-production-independent-review.json",
+      "sha256": "c5adbdc04c102cf645ab20a672b2f835cdf099d82a752d93679263435a4eb86a",
+      "bytes": 1456,
+      "retained_path": "artifacts/rust-rewrite/evidence/c5adbdc04c102cf645ab20a672b2f835cdf099d82a752d93679263435a4eb86a.json"
+    },
+    "binary_sha256": "cd399f5b55b0a5d134418f83cdebe83d2fbd0af931c9cce0bb3131e3fbd774f2",
+    "meaning": "Actual ordinary release artifacts exclude Hyper body-handoff and hyper-util lease/raw-pool independently. This historical shipping binary is separate from runtime7 and does not inherit host or TLS qualification."
+  },
+  "retained_failures": {
+    "runtime6_history": {
+      "path": "artifacts/rust-rewrite/body-handoff-runtime-6/summary.json",
+      "sha256": "5a1ef7709229dfe7985b8c04f35e3fde5072528e633f1cca99e1fc75cbbfdee0",
+      "bytes": 9639,
+      "retained_path": "artifacts/rust-rewrite/evidence/5a1ef7709229dfe7985b8c04f35e3fde5072528e633f1cca99e1fc75cbbfdee0.json"
+    },
+    "prior_buffered_history": {
+      "path": "rust/parity/measurements/openssl-buffered-response-summary.json",
+      "sha256": "010b8cf636d9b5d25ea0b2e7d6e481f5a91c2d990ad2a115307f7fef05a28692",
+      "bytes": 28193,
+      "retained_path": "artifacts/rust-rewrite/evidence/010b8cf636d9b5d25ea0b2e7d6e481f5a91c2d990ad2a115307f7fef05a28692.json"
+    },
+    "key_records": [
+      "Original buffered 1/3, 98/144 and 146/150 reports remain intact.",
+      "Initial handoff draft compile errors, 16/20 stale bool-ack failure run with immutable binary, corrected test import and strict Clippy failure are retained.",
+      "All three extracted-ack regression failures were captured before typed phase evidence was added.",
+      "Sandbox EPERM loopback setup failures are retained separately from the successful authorized execution.",
+      "All four retained old session/idle comparisons still fail their exact historical rows; no barrier is claimed to resolve unbarriered races."
+    ]
+  },
+  "remaining_families": [
+    "Complete HEAD/no-body/final-data lifecycle coverage beyond current raw constructor and 204/304 controls.",
+    "Blocked final flush and successful forwarding/continuity authority; the new blocked physical-writer subset is covered.",
+    "Complete request attachment/failure races beyond the current acquired-header held callback controls.",
+    "Actual pipelined A/B queue/active ownership beyond primitive dispatcher and terminal controls.",
+    "Buffered same-origin sibling and raw/fetch separation beyond the separately retained raw-pool controls.",
+    "Eight real simultaneous saturated responses and repeated cancellation beyond isolated buffer aggregate ownership tests.",
+    "Long legal gateway streaming with aggregate allocation accounting beyond isolated oversized input tests."
+  ],
+  "next_step": "Source-grounded plan must resolve remaining session/cache/idle-close differences and map these seven families to production-required contracts before transport promotion. Current shipping Rustls remains selected."
+}

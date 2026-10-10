@@ -4,6 +4,7 @@ use super::*;
 use crate::server::Gateway;
 use crate::server_events::EventSinks;
 use std::io;
+use std::sync::atomic::AtomicBool;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 
@@ -53,8 +54,10 @@ fn snapshot(
         Event::Retired(id) => serde_json::json!({"event":"retired","connection":id.connection,"request":id.request}),
         Event::ConnectionClaimed(id) => serde_json::json!({"event":"connection_claimed","connection":id.connection,"request":id.request}),
         Event::Closed(id) => serde_json::json!({"event":"closed","connection":id}),
+        Event::WriteHeld(id) => serde_json::json!({"event":"write_held","connection":id}),
     }).collect();
-    serde_json::json!({"buffers":client.probe.snapshot(),"body_held":intents.rows().iter().any(|row| row.event == gateway_intent::Event::BodyHeld),"terminal":events,"logs":*logs.lock().unwrap(),"raw":client.inner.snapshot()})
+    let failures: Vec<_> = terminal.handoff_failures().into_iter().map(|(id, handoff)| serde_json::json!({"connection":id.connection,"request":id.request,"handoff":handoff})).collect();
+    serde_json::json!({"writer":terminal.writer_snapshot(),"handoff_failures":failures,"buffers":client.probe.snapshot(),"body_held":intents.rows().iter().any(|row| row.event == gateway_intent::Event::BodyHeld),"terminal":events,"logs":*logs.lock().unwrap(),"raw":client.inner.snapshot()})
 }
 #[tokio::test]
 async fn controlled_gateway_child() {
@@ -148,6 +151,7 @@ async fn controlled_gateway_child() {
             };
             match command["op"].as_str() {
                 Some("snapshot") => {}
+                Some("hold_writes") => terminal.hold_writes(),
                 Some("hold_response") => buffers.hold_responses(),
                 Some("release_response") => buffers.release_responses(),
                 Some("release_body") => intents.release_bodies(),
@@ -181,13 +185,18 @@ async fn controlled_gateway_child() {
     })
     .await
     .expect("buffered child cleanup deadline");
-    let cleanup = serde_json::json!({"cleanup":true,"observer_failed":observer_failed.load(Ordering::SeqCst),"live":raw.active.load(Ordering::SeqCst),"tasks":raw.tasks.load(Ordering::SeqCst),"fetch_live":fetch.active.load(Ordering::SeqCst),"fetch_tasks":fetch.tasks.load(Ordering::SeqCst),"shutdown_handles":raw.shutdown_handles.load(Ordering::SeqCst),"fetch_shutdown_handles":fetch.shutdown_handles.load(Ordering::SeqCst),"terminal_tasks":terminal.tasks(),"intents":intents.live(),"cache_released":cache.upgrade().is_none(),"buffers":buffers.snapshot(),"final_state":final_state});
+    let cleanup = serde_json::json!({"cleanup":true,"writer":terminal.writer_snapshot(),"terminal_observer_failed":terminal.observer_failed(),"observer_failed":observer_failed.load(Ordering::SeqCst),"live":raw.active.load(Ordering::SeqCst),"tasks":raw.tasks.load(Ordering::SeqCst),"fetch_live":fetch.active.load(Ordering::SeqCst),"fetch_tasks":fetch.tasks.load(Ordering::SeqCst),"shutdown_handles":raw.shutdown_handles.load(Ordering::SeqCst),"fetch_shutdown_handles":fetch.shutdown_handles.load(Ordering::SeqCst),"terminal_tasks":terminal.tasks(),"intents":intents.live(),"cache_released":cache.upgrade().is_none(),"buffers":buffers.snapshot(),"final_state":final_state});
     let _ = reply(&mut control, cleanup.clone()).await;
     assert_eq!(raw.shutdown_handles.load(Ordering::SeqCst), 0);
     assert_eq!(fetch.shutdown_handles.load(Ordering::SeqCst), 0);
     assert_eq!(intents.live(), 0);
     assert!(cache.upgrade().is_none());
     eprintln!("buffered child cleanup: {cleanup}");
+    assert_eq!(terminal.writer_snapshot().live_io, 0);
+    assert_eq!(terminal.writer_snapshot().waiters, 0);
+    assert!(!terminal.observer_failed());
+    // Only cleanup may open the physical writer gate; its IO owners are gone.
+    terminal.release_writes();
     assert!(
         !observer_failed.load(Ordering::SeqCst),
         "bounded log observer failed after cleanup"

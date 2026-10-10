@@ -14,6 +14,22 @@ use tokio::task::JoinHandle;
 use tokio::time::Instant;
 use tokio_util::sync::CancellationToken;
 
+#[path = "gateway_terminal_handoff.rs"]
+pub(super) mod handoff;
+#[path = "gateway_terminal_writer.rs"]
+mod writer;
+pub(crate) use handoff::{DataProducerOwner, PauseGate, PauseKind, PauseRegistration};
+
+pub(super) fn safe_cancel(token: &CancellationToken) {
+    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| token.cancel()));
+}
+fn notify_one(notify: &Notify) {
+    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| notify.notify_one()));
+}
+fn notify_all(notify: &Notify) {
+    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| notify.notify_waiters()));
+}
+
 static CONNECTION: AtomicU64 = AtomicU64::new(1);
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum FailureCause {
@@ -38,17 +54,44 @@ pub(crate) enum Event {
     Retired(Identity),
     ConnectionClaimed(Identity),
     Closed(u64),
+    WriteHeld(u64),
 }
 #[derive(Default)]
 struct ProbeState {
     events: Vec<Event>,
+    handoff_failures: Vec<(Identity, handoff::HandoffSnapshot)>,
+    observer_failed: bool,
 }
 #[derive(Clone, Default)]
 pub(crate) struct Probe {
     state: Arc<Mutex<ProbeState>>,
     tasks: Arc<AtomicUsize>,
+    writer: writer::WriterProbe,
 }
 impl Probe {
+    pub(crate) fn hold_writes(&self) {
+        self.writer.hold();
+    }
+    pub(crate) fn release_writes(&self) {
+        self.writer.release();
+    }
+    pub(crate) fn writer_snapshot(&self) -> writer::WriterSnapshot {
+        self.writer.snapshot()
+    }
+    pub(crate) fn handoff_failures(&self) -> Vec<(Identity, handoff::HandoffSnapshot)> {
+        self.state.lock().unwrap().handoff_failures.clone()
+    }
+    pub(crate) fn observer_failed(&self) -> bool {
+        self.state.lock().unwrap().observer_failed || self.writer.snapshot().observer_failed
+    }
+    fn handoff_failure(&self, identity: Identity, snapshot: handoff::HandoffSnapshot) {
+        let mut state = self.state.lock().unwrap();
+        if state.handoff_failures.len() == 128 {
+            state.observer_failed = true;
+        } else {
+            state.handoff_failures.push((identity, snapshot));
+        }
+    }
     fn record(&self, event: Event) {
         let mut state = self.state.lock().unwrap_or_else(|error| error.into_inner());
         // Test fixtures inspect a bounded suffix; this observer never controls
@@ -67,6 +110,7 @@ impl Probe {
 }
 type CauseCallback = Box<dyn FnOnce(FailureCause) + Send>;
 struct Record {
+    handoff: handoff::HandoffState,
     attached: bool,
     failure: Option<FailureCause>,
     deadline: Option<Instant>,
@@ -91,6 +135,8 @@ struct Shared {
     probe: Probe,
 }
 struct Callouts {
+    sender: Option<handoff::Sender>,
+    producer_stop: Option<CancellationToken>,
     cause: FailureCause,
     callback: Option<CauseCallback>,
     report: Option<CauseCallback>,
@@ -101,17 +147,26 @@ impl Callouts {
         for callback in [self.callback, self.report].into_iter().flatten() {
             let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| callback(self.cause)));
         }
+        // Cause callbacks must run while upstream abort ownership still exists.
+        // Only then release producer/ticket/request cancellation wakes.
+        if let Some(stop) = self.producer_stop {
+            safe_cancel(&stop);
+        }
+        handoff::complete_sender(self.sender, Err(()), None);
         if let Some(token) = self.token {
-            let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| token.cancel()));
+            safe_cancel(&token);
         }
     }
 }
 impl Shared {
     fn fail(&self, identity: Identity, cause: FailureCause) -> bool {
+        self.fail_owned(identity, cause, None)
+    }
+    fn fail_owned(&self, identity: Identity, cause: FailureCause, producer: Option<u64>) -> bool {
         if identity.connection != self.generation {
             return false;
         }
-        let callouts = {
+        let (callouts, handoff) = {
             let mut state = self.state.lock().unwrap();
             if state.closed {
                 return false;
@@ -119,12 +174,17 @@ impl Shared {
             let Some(record) = state.records.get_mut(&identity.request) else {
                 return false;
             };
-            if record.failure.is_some() {
+            if record.failure.is_some()
+                || producer.is_some_and(|epoch| !record.handoff.live_producer(epoch))
+            {
                 return false;
             }
             record.failure = Some(cause);
             let attached = record.attached;
+            let handoff = record.handoff.snapshot();
             let callouts = Callouts {
+                sender: record.handoff.take_sender(),
+                producer_stop: record.handoff.stop(),
                 cause,
                 callback: record.cause.take(),
                 report: if attached { record.report.take() } else { None },
@@ -139,14 +199,15 @@ impl Shared {
             if attached && state.close_latch.is_none() {
                 state.close_latch = Some(identity);
             }
-            callouts
+            (callouts, handoff)
         };
+        self.probe.handoff_failure(identity, handoff);
         self.probe.record(Event::Failed(identity, cause));
         // Panic-contained callbacks complete before wake/drop can destroy a
         // still-owned upstream lease needed by an explicit deadline abort.
         callouts.run();
-        self.failed.notify_one();
-        self.changed.notify_one();
+        notify_one(&self.failed);
+        notify_one(&self.changed);
         true
     }
     fn retire(&self, identity: Identity) {
@@ -160,8 +221,10 @@ impl Shared {
         if record.is_some() {
             self.probe.record(Event::Retired(identity));
         }
-        drop(record);
-        self.changed.notify_one();
+        if let Some(record) = record {
+            handoff::retire_record(record);
+        }
+        notify_one(&self.changed);
     }
     fn disconnect(&self, cause: Disconnect) {
         let identities = {
@@ -195,6 +258,7 @@ impl ConnectionHandle {
             state.records.insert(
                 request,
                 Record {
+                    handoff: handoff::HandoffState::default(),
                     attached: false,
                     failure: None,
                     deadline: None,
@@ -273,6 +337,8 @@ impl RequestOwner {
             if let Some(failure) = record.failure {
                 record.report = Some(report);
                 Some(Callouts {
+                    sender: None,
+                    producer_stop: None,
                     cause: failure,
                     callback: Some(cause),
                     report: None,
@@ -291,7 +357,7 @@ impl RequestOwner {
         if let Some(callouts) = callouts {
             callouts.run();
         }
-        self.shared.changed.notify_one();
+        notify_one(&self.shared.changed);
     }
     pub(crate) fn attach(&self) {
         let callouts = {
@@ -303,6 +369,8 @@ impl RequestOwner {
             assert!(!record.attached, "response attached twice");
             record.attached = true;
             let callouts = record.failure.map(|cause| Callouts {
+                sender: None,
+                producer_stop: None,
                 cause,
                 callback: None,
                 report: record.report.take(),
@@ -316,7 +384,7 @@ impl RequestOwner {
         self.shared.probe.record(Event::Attached(self.identity));
         if let Some(callouts) = callouts {
             callouts.run();
-            self.shared.failed.notify_one();
+            notify_one(&self.shared.failed);
         }
     }
     pub(crate) fn claim_delivery(mut self, delivery: Delivery) -> DeliveryClaim {
@@ -336,8 +404,10 @@ impl RequestOwner {
             (record, claimed)
         };
         self.retired = true;
-        drop(record);
-        self.shared.changed.notify_one();
+        if let Some(record) = record {
+            handoff::retire_record(record);
+        }
+        notify_one(&self.shared.changed);
         self.shared
             .probe
             .record(Event::DeliveryClaimed(self.identity, claimed));
@@ -521,20 +591,8 @@ impl ConnectionTerminal {
         }
     }
     pub(crate) async fn close(mut self) {
-        let records = {
-            let mut state = self.shared.state.lock().unwrap();
-            state.closed = true;
-            std::mem::take(&mut state.records)
-        };
-        for (_, record) in records {
-            if let Some(token) = record.token {
-                let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| token.cancel()));
-            }
-        }
-        self.shared.stop.cancel();
-        self.shared.changed.notify_waiters();
-        self.shared.failed.notify_waiters();
-        // Cancellation of close itself must retain the monitor's abort owner.
+        self.shared.close_records();
+        // Retain abort ownership while the monitor join is Pending.
         let _ = self.task.as_mut().unwrap().await;
         self.task.take();
         self.shared
@@ -542,21 +600,64 @@ impl ConnectionTerminal {
             .record(Event::Closed(self.shared.generation));
     }
 }
+impl Shared {
+    fn close_records(&self) {
+        let records = {
+            let mut state = self.state.lock().unwrap();
+            state.closed = true;
+            std::mem::take(&mut state.records)
+        };
+        for (_, record) in records {
+            if let Some(token) = &record.token {
+                safe_cancel(token);
+            }
+            handoff::retire_record(record);
+        }
+        safe_cancel(&self.stop);
+        notify_all(&self.changed);
+        notify_all(&self.failed);
+    }
+}
 impl Drop for ConnectionTerminal {
     fn drop(&mut self) {
-        self.shared.stop.cancel();
+        self.shared.close_records();
         if let Some(task) = &self.task {
             task.abort();
         }
     }
 }
+
 pub(crate) struct TerminalIo<I> {
     inner: I,
     owner: Option<ConnectionHandle>,
+    writer: Option<writer::WriterLease>,
 }
 impl<I> TerminalIo<I> {
     pub(crate) fn new(inner: I, owner: Option<ConnectionHandle>) -> Self {
-        Self { inner, owner }
+        let writer = owner
+            .as_ref()
+            .and_then(|owner| owner.0.upgrade())
+            .map(|shared| shared.probe.writer.register(shared.generation));
+        Self {
+            inner,
+            owner,
+            writer,
+        }
+    }
+    fn blocked(&self, cx: &Context<'_>, bytes: usize) -> bool {
+        let Some(writer) = &self.writer else {
+            return false;
+        };
+        let (blocked, first) = writer.blocked(cx, bytes);
+        if first && let Some(shared) = self.owner.as_ref().and_then(|owner| owner.0.upgrade()) {
+            shared.probe.record(Event::WriteHeld(shared.generation));
+        }
+        blocked
+    }
+    fn wrote(&self, result: &Poll<io::Result<usize>>) {
+        if let (Some(writer), Poll::Ready(Ok(bytes))) = (&self.writer, result) {
+            writer.wrote(*bytes);
+        }
     }
     fn observe(&self, cause: Disconnect) {
         if let Some(shared) = self.owner.as_ref().and_then(|owner| owner.0.upgrade()) {
@@ -591,7 +692,11 @@ impl<I: AsyncWrite + Unpin> AsyncWrite for TerminalIo<I> {
         bytes: &[u8],
     ) -> Poll<io::Result<usize>> {
         let this = self.get_mut();
+        if this.blocked(cx, bytes.len()) {
+            return Poll::Pending;
+        }
         let result = Pin::new(&mut this.inner).poll_write(cx, bytes);
+        this.wrote(&result);
         if matches!(result, Poll::Ready(Err(_)))
             || (!bytes.is_empty() && matches!(result, Poll::Ready(Ok(0))))
         {
@@ -605,7 +710,11 @@ impl<I: AsyncWrite + Unpin> AsyncWrite for TerminalIo<I> {
         bytes: &[IoSlice<'_>],
     ) -> Poll<io::Result<usize>> {
         let this = self.get_mut();
+        if this.blocked(cx, bytes.iter().map(|bytes| bytes.len()).sum()) {
+            return Poll::Pending;
+        }
         let result = Pin::new(&mut this.inner).poll_write_vectored(cx, bytes);
+        this.wrote(&result);
         if matches!(result, Poll::Ready(Err(_)))
             || (bytes.iter().any(|slice| !slice.is_empty()) && matches!(result, Poll::Ready(Ok(0))))
         {

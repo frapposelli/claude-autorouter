@@ -988,6 +988,9 @@ where
         #[cfg(test)]
         if let Some(terminal) = &terminal {
             request.extensions_mut().insert(terminal.clone());
+            if let Some(intent) = &intent {
+                intent.bind_terminal(terminal);
+            }
             let terminal_events = events.clone();
             let terminal_log = self.sinks.log.clone();
             let terminal_intent = intent.clone();
@@ -1082,6 +1085,11 @@ where
             String::new()
         };
         parts.headers = clean_headers(&parts.headers);
+        #[cfg(test)]
+        if let Some(terminal) = &terminal {
+            debug_assert!(!parts.headers.contains_key(hyper::header::CONTENT_LENGTH));
+            parts.extensions.insert(terminal.handoff_observer());
+        }
         let evidence = Arc::new(Mutex::new(None));
         let evidence_sink = evidence.clone();
         let events_sink = events.clone();

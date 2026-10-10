@@ -1,5 +1,6 @@
 //! Test-only bounded application storage. Hyper/TLS/input-frame backing is
 //! separately charged; this module never reports delivery or returns a pool lease.
+use super::gateway_terminal::{DataProducerOwner, RequestTerminal, safe_cancel};
 use bytes::{Buf, Bytes};
 use hyper::HeaderMap;
 use hyper::body::{Body, Frame, SizeHint};
@@ -302,7 +303,7 @@ impl Producer {
         result
     }
     pub(super) async fn shutdown(mut self) -> Result<(), tokio::task::JoinError> {
-        self.stop.cancel();
+        safe_cancel(&self.stop);
         // Keep the join handle owned while awaiting: cancellation of this join
         // future must still run Producer::drop and abort the underlying task.
         let result = self.task.as_mut().unwrap().await;
@@ -312,19 +313,23 @@ impl Producer {
 }
 impl Drop for Producer {
     fn drop(&mut self) {
-        self.stop.cancel();
+        safe_cancel(&self.stop);
         if let Some(task) = &self.task {
             task.abort();
         }
     }
 }
 struct TaskGuard {
+    handoff: Option<DataProducerOwner>,
     shared: Arc<Shared>,
     terminal: Option<Box<dyn FnOnce(End) + Send>>,
     end: End,
 }
 impl Drop for TaskGuard {
     fn drop(&mut self) {
+        if let Some(owner) = &mut self.handoff {
+            owner.seal();
+        }
         let (end, waker) = self.shared.finish(self.end);
         // The guard owns publication before spawn, including abort-before-poll.
         // Publish independently before waking a potentially panicking consumer.
@@ -414,7 +419,7 @@ impl Body for BufferedBody {
 }
 impl Drop for BufferedBody {
     fn drop(&mut self) {
-        self.shared.stop.cancel();
+        safe_cancel(&self.shared.stop);
         let (queue, trailers, waker) = {
             let mut state = self.shared.state.lock().unwrap();
             state.consumer_gone = true;
@@ -433,6 +438,17 @@ impl Drop for BufferedBody {
 pub(super) fn start<B>(
     body: B,
     terminal: impl FnOnce(End) + Send + 'static,
+) -> (BufferedBody, Producer, Probe)
+where
+    B: Body<Data = Bytes> + Send + 'static,
+    B::Error: Send,
+{
+    start_with_handoff(body, terminal, None)
+}
+pub(super) fn start_with_handoff<B>(
+    body: B,
+    terminal: impl FnOnce(End) + Send + 'static,
+    publisher: Option<RequestTerminal>,
 ) -> (BufferedBody, Producer, Probe)
 where
     B: Body<Data = Bytes> + Send + 'static,
@@ -470,9 +486,23 @@ where
         shared: Arc::downgrade(&shared),
         metrics: metrics.clone(),
     };
+    let mut handoff = publisher.and_then(|publisher| match publisher.producer(stop.clone()) {
+        Ok(owner) => Some(owner),
+        Err(()) => {
+            safe_cancel(&stop);
+            None
+        }
+    });
+    if already_ended && let Some(owner) = &mut handoff {
+        owner.seal();
+    }
+    if stop.is_cancelled() {
+        shared.state.lock().unwrap().end = None;
+    }
     let producer = shared.clone();
     metrics.producer_tasks.fetch_add(1, Ordering::SeqCst);
     let guard = TaskGuard {
+        handoff,
         shared: producer.clone(),
         terminal: Some(Box::new(terminal)),
         end: End::Cancelled,
@@ -480,25 +510,53 @@ where
     let task = tokio::spawn(async move {
         let mut guard = guard;
         let mut body = Box::pin(body);
-        let end = if body.is_end_stream() {
+        let mut previous: Option<super::gateway_terminal::handoff::HandoffTicket> = None;
+        let end = if producer.stop.is_cancelled() {
+            End::Cancelled
+        } else if body.is_end_stream() {
             End::Clean
         } else {
             loop {
                 if !producer.room().await {
                     break End::Cancelled;
                 }
-                let frame = tokio::select! { biased; _ = producer.stop.cancelled() => break End::Cancelled, frame = poll_fn(|cx| body.as_mut().poll_frame(cx)) => frame };
+                if guard.handoff.as_ref().is_some_and(|owner| !owner.valid()) {
+                    break End::Cancelled;
+                }
+                let frame = tokio::select! { biased; _ = producer.stop.cancelled() => break End::Cancelled, frame = poll_fn(|cx| {
+                    if let Some(ticket) = &mut previous {
+                        match ticket.poll_permission(cx) {
+                            Poll::Pending => return Poll::Pending,
+                            Poll::Ready(Err(())) => return Poll::Ready(Err(())),
+                            Poll::Ready(Ok(())) => {}
+                        }
+                    }
+                    body.as_mut().poll_frame(cx).map(Ok)
+                }) => frame };
+                let Ok(frame) = frame else {
+                    break End::Cancelled;
+                };
+                drop(previous.take());
                 match frame {
                     None => break End::Clean,
                     Some(Err(_)) => break End::SourceError,
                     Some(Ok(frame)) => match frame.into_data() {
                         Ok(mut data) => {
+                            let input_bytes = data.len();
                             let last = body.is_end_stream();
                             if !producer.copy(&mut data, last).await {
                                 break End::Cancelled;
                             }
                             if last {
                                 break End::Clean;
+                            }
+                            if input_bytes != 0
+                                && let Some(owner) = &guard.handoff
+                            {
+                                let Ok(ticket) = owner.ticket(input_bytes) else {
+                                    break End::Cancelled;
+                                };
+                                previous = Some(ticket);
                             }
                         }
                         Err(frame) => {

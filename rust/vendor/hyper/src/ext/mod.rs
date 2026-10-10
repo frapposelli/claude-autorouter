@@ -293,3 +293,75 @@ impl std::fmt::Debug for NodeHttpResponseSubmission {
 #[cfg(all(feature = "node-http1-compat", feature = "client", feature = "http1"))]
 #[derive(Clone, Copy, Debug)]
 pub struct NodeFetchResponsePolicy;
+
+
+/// Result of polling the HTTP/1 connection's existing flush future.
+///
+/// These observations are not delivery or application-completion authority.
+/// `Pending` can mean a write or the underlying flush is pending. `Ready`
+/// describes this poll only; with pipeline flush enabled it can be an optimized
+/// return without a physical write. Callers must retain that distinction.
+#[cfg(feature = "node-http1-body-handoff")]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum NodeHttpFlushPoll {
+    /// The existing flush poll returned successfully.
+    Ready,
+    /// A write or flush poll is pending.
+    Pending,
+    /// The existing flush poll returned an error.
+    Failed,
+}
+
+/// Per-response observations for an experimental producer handoff.
+#[cfg(feature = "node-http1-body-handoff")]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum NodeHttpBodyHandoffEvent {
+    /// The completed response is waiting behind earlier response work.
+    /// This can repeat; it does not mean this response's body was polled.
+    Queued,
+    /// Ordered dispatch selected this response, immediately before its head.
+    Active,
+    /// A nonempty Data frame was passed through the existing body encoder.
+    /// These are input bytes; a fixed Content-Length encoder may clip them.
+    /// No physical write or successful delivery is implied.
+    DataSubmitted {
+        /// Nonempty input bytes supplied to this encoder call.
+        input_bytes: usize,
+        /// Checked cumulative input bytes supplied for this response.
+        total_input_bytes: u64,
+    },
+    /// A flush poll after the recorded input bytes were submitted returned.
+    /// The count belongs only to this response, including across Pending polls.
+    FlushPolled {
+        /// Input boundary captured before polling the connection flush.
+        total_input_bytes: u64,
+        /// Result of that poll, distinct from delivery completion.
+        outcome: NodeHttpFlushPoll,
+    },
+}
+
+/// Optional server-response extension for bounded, request-owned handoff
+/// observation. No callback is created or installed by Hyper itself.
+///
+/// Callers must construct a distinct observer for each response, retain their
+/// own request/generation ownership, and never equate an event with successful
+/// forwarding. The callback is synchronous and must not block or panic.
+#[cfg(feature = "node-http1-body-handoff")]
+#[derive(Clone)]
+pub struct NodeHttpBodyHandoff(
+    std::sync::Arc<dyn Fn(NodeHttpBodyHandoffEvent) + Send + Sync>,
+);
+#[cfg(feature = "node-http1-body-handoff")]
+impl NodeHttpBodyHandoff {
+    /// Construct a synchronous observation callback. It must not panic or block.
+    pub fn new(callback: impl Fn(NodeHttpBodyHandoffEvent) + Send + Sync + 'static) -> Self {
+        Self(std::sync::Arc::new(callback))
+    }
+    pub(crate) fn call(&self, event: NodeHttpBodyHandoffEvent) { (self.0)(event); }
+}
+#[cfg(feature = "node-http1-body-handoff")]
+impl std::fmt::Debug for NodeHttpBodyHandoff {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str("NodeHttpBodyHandoff")
+    }
+}

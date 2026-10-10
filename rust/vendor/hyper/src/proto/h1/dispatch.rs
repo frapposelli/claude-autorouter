@@ -25,6 +25,8 @@ pub(crate) struct Dispatcher<D, Bs: Body, I, T> {
     body_tx: SenderDropGuard,
     body_rx: Pin<Box<Option<Bs>>>,
     is_closing: bool,
+    #[cfg(feature = "node-http1-body-handoff")]
+    body_handoff: Option<(crate::ext::NodeHttpBodyHandoff, u64)>,
 }
 
 pub(crate) trait Dispatch {
@@ -41,6 +43,8 @@ pub(crate) trait Dispatch {
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), ()>>;
     fn should_poll(&self) -> bool;
     fn poll_pending(&mut self, _cx: &mut Context<'_>) -> crate::Result<()> { Ok(()) }
+    #[cfg(feature = "node-http1-body-handoff")]
+    fn observe_pending(&self, _front_can_activate: bool) {}
 }
 
 cfg_server! {
@@ -88,6 +92,8 @@ where
             body_tx: SenderDropGuard::none(),
             body_rx: Box::pin(None),
             is_closing: false,
+            #[cfg(feature = "node-http1-body-handoff")]
+            body_handoff: None,
         }
     }
 
@@ -176,6 +182,8 @@ where
         for _ in 0..16 {
             let _ = self.poll_read(cx)?;
             self.dispatch.poll_pending(cx)?;
+            #[cfg(feature = "node-http1-body-handoff")]
+            self.dispatch.observe_pending(self.body_rx.is_none() && self.conn.can_write_head());
             let write_ready = self.poll_write(cx)?.is_ready();
             let flush_ready = self.poll_flush(cx)?.is_ready();
 
@@ -380,6 +388,19 @@ where
             {
                 if let Some(msg) = ready!(Pin::new(&mut self.dispatch).poll_msg(cx)) {
                     let (head, body) = msg.map_err(crate::Error::new_user_service)?;
+                    #[cfg(feature = "node-http1-body-handoff")]
+                    let head = {
+                        let mut head = head;
+                        if T::is_server() {
+                            self.body_handoff = head.extensions
+                                .remove::<crate::ext::NodeHttpBodyHandoff>()
+                                .map(|observer| (observer, 0));
+                            if let Some((observer, _)) = &self.body_handoff {
+                                observer.call(crate::ext::NodeHttpBodyHandoffEvent::Active);
+                            }
+                        }
+                        head
+                    };
 
                     let body_type = if body.is_end_stream() {
                         self.body_rx.set(None);
@@ -424,6 +445,8 @@ where
 
                         if frame.is_data() {
                             let chunk = frame.into_data().unwrap_or_else(|_| unreachable!());
+                            #[cfg(feature = "node-http1-body-handoff")]
+                            let input_bytes = chunk.remaining();
                             let eos = body.is_end_stream();
                             if eos {
                                 *clear_body = true;
@@ -439,6 +462,17 @@ where
                                     continue;
                                 }
                                 self.conn.write_body(chunk);
+                            }
+                            #[cfg(feature = "node-http1-body-handoff")]
+                            if input_bytes != 0 {
+                                if let Some((observer, total)) = &mut self.body_handoff {
+                                    *total = total.checked_add(input_bytes as u64)
+                                        .ok_or_else(|| crate::Error::new_user_body("handoff input count overflow"))?;
+                                    observer.call(crate::ext::NodeHttpBodyHandoffEvent::DataSubmitted {
+                                        input_bytes,
+                                        total_input_bytes: *total,
+                                    });
+                                }
                             }
                         } else if frame.is_trailers() {
                             *clear_body = true;
@@ -465,10 +499,25 @@ where
     }
 
     fn poll_flush(&mut self, cx: &mut Context<'_>) -> Poll<crate::Result<()>> {
-        self.conn.poll_flush(cx).map_err(|err| {
+        #[cfg(feature = "node-http1-body-handoff")]
+        let handoff = self.body_handoff.clone();
+        let result = self.conn.poll_flush(cx).map_err(|err| {
             debug!("error writing: {}", err);
             crate::Error::new_body_write(err)
-        })
+        });
+        #[cfg(feature = "node-http1-body-handoff")]
+        if let Some((observer, total)) = handoff {
+            let outcome = match &result {
+                Poll::Pending => crate::ext::NodeHttpFlushPoll::Pending,
+                Poll::Ready(Ok(())) => crate::ext::NodeHttpFlushPoll::Ready,
+                Poll::Ready(Err(_)) => crate::ext::NodeHttpFlushPoll::Failed,
+            };
+            observer.call(crate::ext::NodeHttpBodyHandoffEvent::FlushPolled {
+                total_input_bytes: total,
+                outcome,
+            });
+        }
+        result
     }
 
     fn close(&mut self) {
@@ -681,6 +730,18 @@ cfg_server! {
             { !self.in_flight.is_empty() }
             #[cfg(not(feature = "node-http1-compat"))]
             { self.in_flight.is_some() }
+        }
+
+        #[cfg(feature = "node-http1-body-handoff")]
+        fn observe_pending(&self, front_can_activate: bool) {
+            for (index, (_, result)) in self.in_flight.iter().enumerate() {
+                if index == 0 && front_can_activate { continue; }
+                if let Some(Ok(response)) = result {
+                    if let Some(observer) = response.extensions().get::<crate::ext::NodeHttpBodyHandoff>() {
+                        observer.call(crate::ext::NodeHttpBodyHandoffEvent::Queued);
+                    }
+                }
+            }
         }
 
         #[cfg(feature = "node-http1-compat")]
@@ -925,3 +986,7 @@ mod tests {
         assert!(dispatcher.poll().is_pending());
     }
 }
+
+#[cfg(all(test, feature = "node-http1-body-handoff"))]
+#[path = "handoff_tests.rs"]
+mod handoff_tests;

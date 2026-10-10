@@ -1,15 +1,14 @@
 //! Separate constructor: the producer owns Incoming, while the consumer owns
 //! the exact pool reservation. Prefetch EOF therefore cannot return the sender.
 use super::super::buffered_body::{self, BufferedBody, End};
-use super::super::gateway_terminal::{FailureCause, RequestTerminal};
+use super::super::gateway_terminal::{FailureCause, PauseGate, PauseKind, RequestTerminal};
 use super::*;
-use std::sync::atomic::AtomicBool;
 use tokio::sync::Notify;
 
 #[derive(Clone, Default)]
 pub(in super::super) struct BufferProbe {
     pools: Arc<Mutex<Vec<buffered_body::Probe>>>,
-    hold_response: Arc<AtomicBool>,
+    hold_response: PauseGate,
     response_ready: Arc<AtomicUsize>,
     response_changed: Arc<Notify>,
     clean_sources: Arc<AtomicUsize>,
@@ -62,10 +61,10 @@ impl BufferProbe {
         result
     }
     pub(in super::super) fn hold_responses(&self) {
-        self.hold_response.store(true, Ordering::SeqCst);
+        self.hold_response.hold();
     }
     pub(in super::super) fn release_responses(&self) {
-        self.hold_response.store(false, Ordering::SeqCst);
+        self.hold_response.release();
         self.response_changed.notify_waiters();
     }
     async fn response_gate(&self) {
@@ -74,7 +73,7 @@ impl BufferProbe {
             let changed = self.response_changed.notified();
             tokio::pin!(changed);
             changed.as_mut().enable();
-            if !self.hold_response.load(Ordering::SeqCst) {
+            if !self.hold_response.held() {
                 return;
             }
             changed.await;
@@ -137,30 +136,44 @@ impl HttpTransport for BufferedRawPoolClient {
         request: Request<Full<Bytes>>,
     ) -> Result<Response<ResponseBody>, HttpError> {
         let terminal = request.extensions().get::<RequestTerminal>().cloned();
+        let _response_pause = terminal
+            .as_ref()
+            .map(|terminal| {
+                self.probe
+                    .hold_response
+                    .bind(terminal.clone(), PauseKind::Response)
+                    .map_err(|_| HttpError::Network)
+            })
+            .transpose()?;
         let (response, completion, gate) = self.inner.request_parts(request).await?;
         let (parts, incoming) = response.into_parts();
         // Headers are acquired before this producer can publish a body failure.
         // The server owns attachment and preserves that acquired response.
+        let publisher = terminal.clone();
         let observations = self.probe.clone();
-        let (body, producer, probe) = buffered_body::start(incoming, move |end| {
-            match end {
-                End::Clean => &observations.clean_sources,
-                End::SourceError | End::InvalidMetadata => &observations.failed_sources,
-                End::Cancelled => &observations.cancelled_sources,
-            }
-            .fetch_add(1, Ordering::SeqCst);
-            if let Some(terminal) = terminal {
+        let (body, producer, probe) = buffered_body::start_with_handoff(
+            incoming,
+            move |end| {
                 match end {
-                    End::SourceError | End::InvalidMetadata => {
-                        terminal.fail(FailureCause::Upstream);
-                    }
-                    End::Cancelled => {
-                        terminal.fail(FailureCause::Cancelled);
-                    }
-                    End::Clean => {}
+                    End::Clean => &observations.clean_sources,
+                    End::SourceError | End::InvalidMetadata => &observations.failed_sources,
+                    End::Cancelled => &observations.cancelled_sources,
                 }
-            }
-        });
+                .fetch_add(1, Ordering::SeqCst);
+                if let Some(terminal) = terminal {
+                    match end {
+                        End::SourceError | End::InvalidMetadata => {
+                            terminal.fail(FailureCause::Upstream);
+                        }
+                        End::Cancelled => {
+                            terminal.fail(FailureCause::Cancelled);
+                        }
+                        End::Clean => {}
+                    }
+                }
+            },
+            publisher,
+        );
         self.probe.insert(probe);
         // Registry cancellation drops this future and its Producer owner, which
         // aborts the child even while Producer::join is pending.

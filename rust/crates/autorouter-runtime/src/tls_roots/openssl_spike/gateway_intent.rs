@@ -1,6 +1,7 @@
 //! Opt-in gateway cause observation. This entire module is library-test-only.
 //! IO observation precedes Hyper teardown; ordinary Drop grants no authority.
 use super::abort::{self, Cause as AbortCause, Handle, Outcome, Terminal};
+use super::gateway_terminal::{PauseGate, PauseKind, PauseRegistration, RequestTerminal};
 use hyper::http::Extensions;
 use hyper_util::client::legacy::connect::CaptureAssignment;
 use std::{
@@ -75,7 +76,7 @@ struct Trace {
     changed: Notify,
     reads_held: AtomicBool,
     read_waker: Mutex<Option<std::task::Waker>>,
-    bodies_held: AtomicBool,
+    bodies_held: PauseGate,
     body_wakers: Mutex<Vec<std::task::Waker>>,
     intents: Mutex<Vec<Weak<Intent>>>,
 }
@@ -91,10 +92,10 @@ impl Probe {
         self.0.changed.notify_waiters();
     }
     pub(crate) fn hold_bodies(&self) {
-        self.0.bodies_held.store(true, Ordering::SeqCst);
+        self.0.bodies_held.hold();
     }
     pub(crate) fn release_bodies(&self) {
-        self.0.bodies_held.store(false, Ordering::SeqCst);
+        self.0.bodies_held.release();
         let wakers = std::mem::take(&mut *self.0.body_wakers.lock().unwrap());
         for waker in wakers {
             waker.wake();
@@ -135,18 +136,34 @@ impl Probe {
 }
 
 pub(crate) struct Intent {
+    body_pause: Mutex<Option<PauseRegistration>>,
     id: usize,
     probe: Probe,
     terminal: Mutex<Option<Cause>>,
     capture: OnceLock<CaptureAssignment>,
 }
 impl Intent {
+    pub(crate) fn bind_terminal(&self, terminal: &RequestTerminal) {
+        match self
+            .probe
+            .0
+            .bodies_held
+            .bind(terminal.clone(), PauseKind::Body)
+        {
+            Ok(registration) => {
+                *self.body_pause.lock().unwrap() = Some(registration);
+            }
+            Err(()) => {
+                terminal.fail(super::gateway_terminal::FailureCause::Cancelled);
+            }
+        }
+    }
     pub(crate) fn install(&self, capture: CaptureAssignment) {
         assert!(self.capture.set(capture).is_ok(), "intent submitted twice");
         self.probe.record(self.id, Event::CaptureInstalled);
     }
     pub(crate) fn body_ready(&self, cx: &mut Context<'_>) -> bool {
-        if !self.probe.0.bodies_held.load(Ordering::SeqCst) {
+        if !self.probe.0.bodies_held.held() {
             return true;
         }
         let waker = cx.waker().clone();
@@ -155,7 +172,7 @@ impl Intent {
             assert!(wakers.len() < 128, "body gate wake bound");
             wakers.push(waker);
         }
-        if !self.probe.0.bodies_held.load(Ordering::SeqCst) {
+        if !self.probe.0.bodies_held.held() {
             return true;
         }
         self.observe(Event::BodyHeld);
@@ -270,6 +287,7 @@ impl Registry {
             return Err(());
         }
         let intent = Arc::new(Intent {
+            body_pause: Mutex::new(None),
             id: self.probe.0.next.fetch_add(1, Ordering::SeqCst),
             probe: self.probe.clone(),
             terminal: Mutex::new(None),

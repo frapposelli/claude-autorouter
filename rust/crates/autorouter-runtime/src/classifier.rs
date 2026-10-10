@@ -5,7 +5,10 @@
 use std::collections::{HashMap, VecDeque};
 use std::future::poll_fn;
 use std::panic::{AssertUnwindSafe, catch_unwind};
-use std::sync::{Arc, Mutex, Weak};
+use std::sync::{
+    Arc, Mutex, Weak,
+    atomic::{AtomicBool, Ordering},
+};
 use std::time::Duration;
 
 use autorouter_core::config::{Evaluator, RouterConfig};
@@ -13,7 +16,7 @@ use autorouter_core::js_json::JsDocument;
 use autorouter_core::prompt_state::{build_ollama_state_document, build_state_document};
 use serde_json::json;
 use sha2::{Digest, Sha256};
-use tokio::sync::watch;
+use tokio::sync::{Notify, watch};
 use tokio::time::Instant;
 use tokio_util::sync::CancellationToken;
 
@@ -38,10 +41,39 @@ impl Default for Limits {
     }
 }
 
+#[derive(Default)]
+struct WorkerCompletion {
+    finished: AtomicBool,
+    changed: Notify,
+}
+impl WorkerCompletion {
+    async fn wait(&self) {
+        loop {
+            let changed = self.changed.notified();
+            tokio::pin!(changed);
+            changed.as_mut().enable();
+            if self.finished.load(Ordering::Acquire) {
+                return;
+            }
+            changed.await;
+        }
+    }
+}
+// Constructed before spawning, so an unpolled/dropped task also terminates its
+// completion witness. In the worker this outlives the evaluator future scope.
+struct FinishWorker(Arc<WorkerCompletion>);
+impl Drop for FinishWorker {
+    fn drop(&mut self) {
+        self.0.finished.store(true, Ordering::Release);
+        // Persistent state is published first; arbitrary wake functions run
+        // outside the registry and cannot erase the completion observation.
+        let _ = catch_unwind(AssertUnwindSafe(|| self.0.changed.notify_waiters()));
+    }
+}
 struct Entry {
-    id: u64,
     controller: CancellationToken,
     result: watch::Sender<Option<ResultValue>>,
+    completed: Arc<WorkerCompletion>,
 }
 struct Pending {
     entry: Arc<Entry>,
@@ -135,42 +167,80 @@ impl<T> Clone for Classifier<T> {
         }
     }
 }
+#[derive(Eq, PartialEq)]
+enum Detached {
+    Shared,
+    Last,
+    Retired,
+}
 struct Subscription<T> {
     shared: Weak<Shared<T>>,
     key: Key,
-    entry: u64,
+    entry: Arc<Entry>,
     subscriber: u64,
+    attached: bool,
+}
+impl<T> Subscription<T> {
+    fn detach(&mut self) -> Detached {
+        if !std::mem::replace(&mut self.attached, false) {
+            return Detached::Retired;
+        }
+        let Some(shared) = self.shared.upgrade() else {
+            return Detached::Retired;
+        };
+        let mut state = shared.state.lock().unwrap();
+        let Some(pending) = state
+            .pending
+            .get_mut(&self.key)
+            .filter(|pending| Arc::ptr_eq(&pending.entry, &self.entry))
+        else {
+            return Detached::Retired;
+        };
+        let before = pending.subscribers.len();
+        pending.subscribers.remove(&self.subscriber);
+        // An unpolled subscriber whose token is cancelled is not live work.
+        pending.subscribers.retain(|_, token| !token.is_cancelled());
+        let remaining = pending.subscribers.len();
+        state.subscribers -= before - remaining;
+        if remaining == 0 {
+            state.pending.remove(&self.key);
+            Detached::Last
+        } else {
+            Detached::Shared
+        }
+    }
+    async fn cancel(mut self) -> ResultValue {
+        if self.detach() != Detached::Shared {
+            // The exact retained generation may already have been pruned or
+            // replaced. Never cancel or await a replacement for the same key.
+            self.entry.controller.cancel();
+            self.entry.completed.wait().await;
+        }
+        Err(EvaluationError::Cancelled)
+    }
+    fn retire_finished(&mut self) {
+        debug_assert!(self.entry.completed.finished.load(Ordering::Acquire));
+        self.attached = false;
+        if let Some(shared) = self.shared.upgrade() {
+            let mut state = shared.state.lock().unwrap();
+            if state
+                .pending
+                .get(&self.key)
+                .is_some_and(|pending| Arc::ptr_eq(&pending.entry, &self.entry))
+            {
+                let pending = state
+                    .pending
+                    .remove(&self.key)
+                    .expect("matching finished entry");
+                state.subscribers -= pending.subscribers.len();
+            }
+        }
+    }
 }
 impl<T> Drop for Subscription<T> {
     fn drop(&mut self) {
-        let Some(shared) = self.shared.upgrade() else {
-            return;
-        };
-        let controller = {
-            let mut state = shared.state.lock().unwrap();
-            let Some(pending) = state
-                .pending
-                .get_mut(&self.key)
-                .filter(|pending| pending.entry.id == self.entry)
-            else {
-                return;
-            };
-            if pending.subscribers.remove(&self.subscriber).is_none() {
-                return;
-            }
-            let empty = pending.subscribers.is_empty();
-            state.subscribers -= 1;
-            if empty {
-                state
-                    .pending
-                    .remove(&self.key)
-                    .map(|pending| pending.entry.controller.clone())
-            } else {
-                None
-            }
-        };
-        if let Some(controller) = controller {
-            controller.cancel();
+        if self.detach() == Detached::Last {
+            self.entry.controller.cancel();
         }
     }
 }
@@ -304,10 +374,11 @@ impl<T: HttpTransport + 'static> Classifier<T> {
                 };
                 let (result, _) = watch::channel(None);
                 let entry = Arc::new(Entry {
-                    id: state.next_id(),
                     controller: CancellationToken::new(),
                     result,
+                    completed: Arc::new(WorkerCompletion::default()),
                 });
+                let completion = FinishWorker(entry.completed.clone());
                 state.pending.insert(
                     key,
                     Pending {
@@ -319,7 +390,7 @@ impl<T: HttpTransport + 'static> Classifier<T> {
                 settings.anthropic_key = None;
                 settings.local_token = None;
                 settings.session_log_dir = None;
-                work = Some((entry, excerpt, settings));
+                work = Some((entry, excerpt, settings, completion));
             }
             let subscriber = state.next_id();
             let pending = state.pending.get_mut(&key).expect("admitted entry");
@@ -328,48 +399,47 @@ impl<T: HttpTransport + 'static> Classifier<T> {
             subscription = Subscription {
                 shared: Arc::downgrade(&self.shared),
                 key,
-                entry: pending.entry.id,
+                entry: pending.entry.clone(),
                 subscriber,
+                attached: true,
             };
             state.subscribers += 1;
             drop(state);
             drop(cancelled);
         }
-        let subscription = if cancellation.is_cancelled() {
-            drop(subscription);
-            None
-        } else {
-            Some(subscription)
-        };
-        if let Some((entry, excerpt, settings)) = work {
+        let mut subscription = subscription;
+        if let Some((entry, excerpt, settings, completion)) = work {
             let weak = Arc::downgrade(&self.shared);
             let transport = self.shared.transport.clone();
             tokio::spawn(async move {
-                let future = evaluate_serialized_state(
-                    transport.as_ref(),
-                    &settings,
-                    &excerpt,
-                    &requested,
-                    &entry.controller,
-                );
-                tokio::pin!(future);
-                let result = poll_fn(|cx| {
-                    match catch_unwind(AssertUnwindSafe(|| future.as_mut().poll(cx))) {
-                        Ok(result) => result,
-                        Err(_) => std::task::Poll::Ready(Ok(unavailable(
-                            &requested,
-                            settings.evaluator,
-                            "network_error",
-                        ))),
-                    }
-                })
-                .await;
+                let _completion = completion;
+                let result = {
+                    let future = evaluate_serialized_state(
+                        transport.as_ref(),
+                        &settings,
+                        &excerpt,
+                        &requested,
+                        &entry.controller,
+                    );
+                    tokio::pin!(future);
+                    poll_fn(|cx| {
+                        match catch_unwind(AssertUnwindSafe(|| future.as_mut().poll(cx))) {
+                            Ok(result) => result,
+                            Err(_) => std::task::Poll::Ready(Ok(unavailable(
+                                &requested,
+                                settings.evaluator,
+                                "network_error",
+                            ))),
+                        }
+                    })
+                    .await
+                }; // Drop evaluator-owned request/body before result publication.
                 if let Some(shared) = weak.upgrade() {
                     let mut state = shared.state.lock().unwrap();
                     if state
                         .pending
                         .get(&key)
-                        .is_some_and(|pending| pending.entry.id == entry.id)
+                        .is_some_and(|pending| Arc::ptr_eq(&pending.entry, &entry))
                     {
                         let pending = state.pending.remove(&key).expect("matching pending entry");
                         state.subscribers -= pending.subscribers.len();
@@ -394,21 +464,48 @@ impl<T: HttpTransport + 'static> Classifier<T> {
                 let _ = entry.result.send(Some(result));
             });
         }
-        if subscription.is_none() {
-            return Err(EvaluationError::Cancelled);
-        }
         loop {
-            if cancellation.is_cancelled() {
-                return Err(EvaluationError::Cancelled);
+            if cancellation.is_cancelled() || subscription.entry.controller.is_cancelled() {
+                return subscription.cancel().await;
             }
-            if let Some(result) = receiver.borrow().clone() {
+            // Acquire completion before reading the result: publication may
+            // race this loop, and a finished worker has already sent its value.
+            let finished = subscription
+                .entry
+                .completed
+                .finished
+                .load(Ordering::Acquire);
+            // Release the watch borrow before any cancellation cleanup awaits.
+            let result = receiver.borrow().clone();
+            if let Some(result) = result {
+                if cancellation.is_cancelled()
+                    || subscription.entry.controller.is_cancelled()
+                    || matches!(result, Err(EvaluationError::Cancelled))
+                {
+                    return subscription.cancel().await;
+                }
                 drop(subscription);
                 return result;
             }
+            if finished {
+                // Retaining Entry also retains its Sender. Worker abort/panic
+                // without a result must not wait forever for a closed channel.
+                subscription.retire_finished();
+                return Ok(unavailable(
+                    &requested_model(document),
+                    config.evaluator,
+                    "network_error",
+                ));
+            }
             tokio::select! {
                 biased;
-                _=cancellation.cancelled()=>return Err(EvaluationError::Cancelled),
-                changed=receiver.changed()=>{if changed.is_err(){return Ok(unavailable(&requested_model(document),config.evaluator,"network_error"));}}
+                _ = cancellation.cancelled() => return subscription.cancel().await,
+                _ = subscription.entry.completed.wait() => {},
+                changed = receiver.changed() => {
+                    if changed.is_err() {
+                        return Ok(unavailable(&requested_model(document), config.evaluator, "network_error"));
+                    }
+                }
             }
         }
     }
@@ -894,4 +991,5 @@ mod tests {
         assert!(classifier.shared.state.lock().unwrap().pending.is_empty());
         assert_eq!(classifier.shared.state.lock().unwrap().subscribers, 0);
     }
+    include!("classifier_cancellation_contracts.rs");
 }

@@ -140,6 +140,7 @@ async function work() {
   for(const stream of [nativeChild.stdout,nativeChild.stderr])stream.on('data',guard(bytes=>{diagnosticBytes+=bytes.length;if(diagnosticBytes>limits.diagnostic_bytes){nativeChild.kill('SIGTERM');throw Error('Native diagnostic bound');}diagnostic+=bytes.toString('utf8');}));
   const port=await bounded(ready,limits.barrier_ms,'Native gateway ready');
   if(spec.schedule==='error-before-gateway-callback')await command('hold_response');
+  if(spec.hold_socket_writes)await command('hold_writes');
   client=track(net.createConnection({host:'127.0.0.1',port,allowHalfOpen:true}),'client');
   let prefixSeen=false;client.on('data',guard(chunk=>{wire.push(chunk);if(!prefixSeen&&wire.bytes()){prefixSeen=true;emit('client.body-prefix',{bytes:wire.bytes()});}}));
   await bounded(once(client,'connect'),limits.barrier_ms,'Client connect');
@@ -172,6 +173,23 @@ async function work() {
   if(spec.schedule==='held-error'){assert.equal(consumerReleased,false);assert.equal(state.buffers.consumer_polls,0);}
   assert.ok(state.logs.some(row=>row.event==='upstream_response'&&row.status===(spec.response_status??200)));
   assert.ok(wire.snapshot().status===null||wire.snapshot().status===(spec.response_status??200));
+  if(spec.observe_handoff){
+    const failure=state.handoff_failures.find(row=>row.handoff.producer_epoch!==null);
+    assert.ok(failure,'Request-specific producer failure snapshot');
+    const failed=state.terminal.find(row=>row.event==='failed');
+    assert.equal(failure.connection,failed.connection);assert.equal(failure.request,failed.request);
+    if(spec.hold_socket_writes){
+      const held=state.terminal.findIndex(row=>row.event==='write_held');
+      assert.ok(held>=0&&held<state.terminal.findIndex(row=>row.event==='failed'),'Physical writer Pending before failure');
+      assert.equal(state.writer.held,true);assert.ok(state.writer.blocked_calls>0);assert.equal(state.writer.written_bytes,0);
+      assert.equal(failure.handoff.phase,'writer_pending');assert.equal(wire.bytes(),0);
+    }else{
+      assert.equal(state.writer.held,false);assert.equal(state.writer.blocked_calls,0);
+      assert.equal(failure.handoff.submitted,spec.bytes,'All provider bytes admitted to encoder before error');
+      assert.equal(failure.handoff.attempted,spec.bytes,'Writer attempt covers exact byte target before error');
+      assert.equal(wire.bytes(),spec.bytes);
+    }
+  }
   snapshot('finished');scheduleDone=true;
 }
 try{workPromise=work();workPromise.catch(()=>{});await bounded(Promise.race([workPromise,observedFailure]),limits.scenario_ms,'Native scenario deadline');}catch(error){failure=sanitize(error);}
@@ -189,6 +207,6 @@ finally{
   process.off('SIGINT',interrupt);process.off('SIGTERM',terminate);
 }
 const cleanup={sockets:sockets.size,servers:servers.filter(server=>server.listening).length,native_reaped:!!nativeExit,native_exit:nativeExit,native:nativeCleanup,failures:cleanupFailures};
-try{assert.ok(nativeCleanup?.cleanup);for(const key of ['live','tasks','fetch_live','fetch_tasks','shutdown_handles','fetch_shutdown_handles','terminal_tasks','intents'])assert.equal(nativeCleanup[key],0,key);assert.equal(nativeCleanup.cache_released,true);for(const key of ['live_pools','allocated_blocks','outstanding_blocks','queued_bytes','producer_tasks'])assert.equal(nativeCleanup.buffers[key],0,key);}catch(error){cleanupFailures.push(sanitize(error));}
+try{assert.ok(nativeCleanup?.cleanup);for(const key of ['live','tasks','fetch_live','fetch_tasks','shutdown_handles','fetch_shutdown_handles','terminal_tasks','intents'])assert.equal(nativeCleanup[key],0,key);assert.equal(nativeCleanup.cache_released,true);assert.equal(nativeCleanup.terminal_observer_failed,false);assert.equal(nativeCleanup.writer.observer_failed,false);assert.equal(nativeCleanup.writer.live_io,0);assert.equal(nativeCleanup.writer.waiters,0);if(spec.hold_socket_writes){assert.equal(nativeCleanup.writer.held,true);assert.equal(nativeCleanup.writer.written_bytes,0);}for(const key of ['live_pools','allocated_blocks','outstanding_blocks','queued_bytes','producer_tasks'])assert.equal(nativeCleanup.buffers[key],0,key);}catch(error){cleanupFailures.push(sanitize(error));}
 const report={schema_version:1,kind:'buffered_response_native_case',identity,case:spec,schedule_done:scheduleDone,passed:scheduleDone&&!failure&&!cleanupFailures.length&&sockets.size===0&&nativeExit?.code===0,failure,interrupted,observations,wire:wire.snapshot(),provider_ended:providerEnded,cleanup,trace,native_state:state,native_diagnostic:diagnostic};
 const reportBytes=JSON.stringify(report,null,2)+'\n';assert.ok(Buffer.byteLength(reportBytes)<=limits.control_bytes,'Native report bound');await writeFile(output,reportBytes,{mode:0o600});if(!report.passed)process.exitCode=interrupted==='SIGINT'?130:interrupted==='SIGTERM'?143:1;

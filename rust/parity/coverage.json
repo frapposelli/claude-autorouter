@@ -7961,52 +7961,238 @@
       "file": "test/ollama-evaluator.test.mjs",
       "name": "Ollama shares one deadline across metadata and native response, cancels bodies, and bounds output",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_seven_one_forty_ms_deadline_cancels_bodies_and_rejects_65537_bytes"
+      ],
+      "shared_cases": [
+        "operation-1",
+        "operation-2",
+        "operation-3"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/ollama-evaluator-timed-contracts.json",
+        "assertion_mapping_sha256": "eeb9c8a63884dc1e90c2010fc838337bd1859288d4fee9a8d5f55ed220528cea",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/04ce3058f3e1d9f6bff3a1b0f868fe49468465a5a66d7afc27b7244c37eac91f.json",
+          "sha256": "04ce3058f3e1d9f6bff3a1b0f868fe49468465a5a66d7afc27b7244c37eac91f",
+          "bytes": 1651223,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "root_mapping_and_api": {
+            "path": "artifacts/rust-rewrite/evidence/ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35.json",
+            "sha256": "ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35",
+            "bytes": 9422,
+            "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-root-review-1/report.json"
+          },
+          "independent_native": {
+            "path": "artifacts/rust-rewrite/evidence/e3b8d659739ff979ba1253bd90129975ba2d7d447ab9f1af720325aae38356c5.json",
+            "sha256": "e3b8d659739ff979ba1253bd90129975ba2d7d447ab9f1af720325aae38356c5",
+            "bytes": 14923,
+            "original_path": "/private/tmp/autorouter-classifier-cancellation-independent-review.json"
+          },
+          "separate_author_ast_and_recapture": {
+            "path": "artifacts/rust-rewrite/evidence/01487c1ccc960d62248abc6af9301ca45d103cc90b0268bd7640a7a1f151f822.json",
+            "sha256": "01487c1ccc960d62248abc6af9301ca45d103cc90b0268bd7640a7a1f151f822",
+            "bytes": 3143,
+            "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-author-audit/report.json"
+          }
+        },
+        "execution": {
+          "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/report.json",
+          "bytes": 2721,
+          "sha256": "34148163b270c1194eb6c5ce189c82b8cc8119792dae723bd5fcec8317fbf1cd",
+          "retained_path": "artifacts/rust-rewrite/evidence/34148163b270c1194eb6c5ce189c82b8cc8119792dae723bd5fcec8317fbf1cd.json"
+        },
+        "scope": "All five complete original callback definitions with20static assertion sites/36executions/26request transcript. Native production deadlines and exact body-release ownership are exercised; three identity predicates use explicitly accepted Rust API adaptation, not identity equivalence. No total rewrite or shipping qualification.",
+        "unrepresented_native_identity_assertions": [
+          "test/ollama-evaluator.test.mjs#7:assert-5"
+        ]
+      },
       "related_components": [
         "evaluators"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/ollama-evaluator-timed-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/ollama-evaluator.test.mjs#8",
       "file": "test/ollama-evaluator.test.mjs",
       "name": "a disabled deadline accepts delayed metadata, inference, and body reads with or without a caller signal",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_eight_zero_accepts_15_15_30_and_positive_twenty_expires_in_headers"
+      ],
+      "shared_cases": [
+        "operation-4",
+        "operation-5",
+        "operation-6",
+        "operation-7"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/ollama-evaluator-timed-contracts.json",
+        "assertion_mapping_sha256": "eeb9c8a63884dc1e90c2010fc838337bd1859288d4fee9a8d5f55ed220528cea",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/04ce3058f3e1d9f6bff3a1b0f868fe49468465a5a66d7afc27b7244c37eac91f.json",
+          "sha256": "04ce3058f3e1d9f6bff3a1b0f868fe49468465a5a66d7afc27b7244c37eac91f",
+          "bytes": 1651223,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "root_mapping_and_api": {
+            "path": "artifacts/rust-rewrite/evidence/ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35.json",
+            "sha256": "ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35",
+            "bytes": 9422,
+            "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-root-review-1/report.json"
+          },
+          "independent_native": {
+            "path": "artifacts/rust-rewrite/evidence/e3b8d659739ff979ba1253bd90129975ba2d7d447ab9f1af720325aae38356c5.json",
+            "sha256": "e3b8d659739ff979ba1253bd90129975ba2d7d447ab9f1af720325aae38356c5",
+            "bytes": 14923,
+            "original_path": "/private/tmp/autorouter-classifier-cancellation-independent-review.json"
+          },
+          "separate_author_ast_and_recapture": {
+            "path": "artifacts/rust-rewrite/evidence/01487c1ccc960d62248abc6af9301ca45d103cc90b0268bd7640a7a1f151f822.json",
+            "sha256": "01487c1ccc960d62248abc6af9301ca45d103cc90b0268bd7640a7a1f151f822",
+            "bytes": 3143,
+            "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-author-audit/report.json"
+          }
+        },
+        "execution": {
+          "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/report.json",
+          "bytes": 2721,
+          "sha256": "34148163b270c1194eb6c5ce189c82b8cc8119792dae723bd5fcec8317fbf1cd",
+          "retained_path": "artifacts/rust-rewrite/evidence/34148163b270c1194eb6c5ce189c82b8cc8119792dae723bd5fcec8317fbf1cd.json"
+        },
+        "scope": "All five complete original callback definitions with20static assertion sites/36executions/26request transcript. Native production deadlines and exact body-release ownership are exercised; three identity predicates use explicitly accepted Rust API adaptation, not identity equivalence. No total rewrite or shipping qualification.",
+        "unrepresented_native_identity_assertions": []
+      },
       "related_components": [
         "evaluators"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/ollama-evaluator-timed-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/ollama-evaluator.test.mjs#9",
       "file": "test/ollama-evaluator.test.mjs",
       "name": "caller cancellation with no deadline stops metadata and inference body reads without caching a fallback",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_nine_exact_cancel_return_and_same_classifier_retry_for_both_readers"
+      ],
+      "shared_cases": [
+        "operation-8",
+        "operation-9",
+        "operation-10",
+        "operation-11"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/ollama-evaluator-timed-contracts.json",
+        "assertion_mapping_sha256": "eeb9c8a63884dc1e90c2010fc838337bd1859288d4fee9a8d5f55ed220528cea",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/04ce3058f3e1d9f6bff3a1b0f868fe49468465a5a66d7afc27b7244c37eac91f.json",
+          "sha256": "04ce3058f3e1d9f6bff3a1b0f868fe49468465a5a66d7afc27b7244c37eac91f",
+          "bytes": 1651223,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "root_mapping_and_api": {
+            "path": "artifacts/rust-rewrite/evidence/ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35.json",
+            "sha256": "ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35",
+            "bytes": 9422,
+            "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-root-review-1/report.json"
+          },
+          "independent_native": {
+            "path": "artifacts/rust-rewrite/evidence/e3b8d659739ff979ba1253bd90129975ba2d7d447ab9f1af720325aae38356c5.json",
+            "sha256": "e3b8d659739ff979ba1253bd90129975ba2d7d447ab9f1af720325aae38356c5",
+            "bytes": 14923,
+            "original_path": "/private/tmp/autorouter-classifier-cancellation-independent-review.json"
+          },
+          "separate_author_ast_and_recapture": {
+            "path": "artifacts/rust-rewrite/evidence/01487c1ccc960d62248abc6af9301ca45d103cc90b0268bd7640a7a1f151f822.json",
+            "sha256": "01487c1ccc960d62248abc6af9301ca45d103cc90b0268bd7640a7a1f151f822",
+            "bytes": 3143,
+            "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-author-audit/report.json"
+          }
+        },
+        "execution": {
+          "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/report.json",
+          "bytes": 2721,
+          "sha256": "34148163b270c1194eb6c5ce189c82b8cc8119792dae723bd5fcec8317fbf1cd",
+          "retained_path": "artifacts/rust-rewrite/evidence/34148163b270c1194eb6c5ce189c82b8cc8119792dae723bd5fcec8317fbf1cd.json"
+        },
+        "scope": "All five complete original callback definitions with20static assertion sites/36executions/26request transcript. Native production deadlines and exact body-release ownership are exercised; three identity predicates use explicitly accepted Rust API adaptation, not identity equivalence. No total rewrite or shipping qualification.",
+        "unrepresented_native_identity_assertions": [
+          "test/ollama-evaluator.test.mjs#9:assert-1"
+        ]
+      },
       "related_components": [
         "evaluators"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/ollama-evaluator-timed-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/ollama-evaluator.test.mjs#10",
       "file": "test/ollama-evaluator.test.mjs",
       "name": "an already cancelled request with no deadline never contacts Ollama",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_ten_and_fifteen_precancelled_tokens_perform_zero_io"
+      ],
+      "shared_cases": [
+        "operation-12"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/ollama-evaluator-timed-contracts.json",
+        "assertion_mapping_sha256": "eeb9c8a63884dc1e90c2010fc838337bd1859288d4fee9a8d5f55ed220528cea",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/04ce3058f3e1d9f6bff3a1b0f868fe49468465a5a66d7afc27b7244c37eac91f.json",
+          "sha256": "04ce3058f3e1d9f6bff3a1b0f868fe49468465a5a66d7afc27b7244c37eac91f",
+          "bytes": 1651223,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "root_mapping_and_api": {
+            "path": "artifacts/rust-rewrite/evidence/ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35.json",
+            "sha256": "ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35",
+            "bytes": 9422,
+            "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-root-review-1/report.json"
+          },
+          "independent_native": {
+            "path": "artifacts/rust-rewrite/evidence/e3b8d659739ff979ba1253bd90129975ba2d7d447ab9f1af720325aae38356c5.json",
+            "sha256": "e3b8d659739ff979ba1253bd90129975ba2d7d447ab9f1af720325aae38356c5",
+            "bytes": 14923,
+            "original_path": "/private/tmp/autorouter-classifier-cancellation-independent-review.json"
+          },
+          "separate_author_ast_and_recapture": {
+            "path": "artifacts/rust-rewrite/evidence/01487c1ccc960d62248abc6af9301ca45d103cc90b0268bd7640a7a1f151f822.json",
+            "sha256": "01487c1ccc960d62248abc6af9301ca45d103cc90b0268bd7640a7a1f151f822",
+            "bytes": 3143,
+            "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-author-audit/report.json"
+          }
+        },
+        "execution": {
+          "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/report.json",
+          "bytes": 2721,
+          "sha256": "34148163b270c1194eb6c5ce189c82b8cc8119792dae723bd5fcec8317fbf1cd",
+          "retained_path": "artifacts/rust-rewrite/evidence/34148163b270c1194eb6c5ce189c82b8cc8119792dae723bd5fcec8317fbf1cd.json"
+        },
+        "scope": "All five complete original callback definitions with20static assertion sites/36executions/26request transcript. Native production deadlines and exact body-release ownership are exercised; three identity predicates use explicitly accepted Rust API adaptation, not identity equivalence. No total rewrite or shipping qualification.",
+        "unrepresented_native_identity_assertions": [
+          "test/ollama-evaluator.test.mjs#10:assert-1"
+        ]
+      },
       "related_components": [
         "evaluators"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/ollama-evaluator-timed-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/ollama-evaluator.test.mjs#11",
@@ -8370,13 +8556,60 @@
       "file": "test/ollama-evaluator.test.mjs",
       "name": "caller cancellation propagates and local classifier keeps continuity and capability guards",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_ten_and_fifteen_precancelled_tokens_perform_zero_io",
+        "rust/crates/autorouter-runtime/tests/ollama_evaluator_timed_contracts.rs#original_fifteen_one_router_three_routes_keep_continuity_and_adaptive_guard"
+      ],
+      "shared_cases": [
+        "operation-13",
+        "operation-14",
+        "operation-15",
+        "operation-16"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/ollama-evaluator-timed-contracts.json",
+        "assertion_mapping_sha256": "eeb9c8a63884dc1e90c2010fc838337bd1859288d4fee9a8d5f55ed220528cea",
+        "input_coverage": {
+          "path": "artifacts/rust-rewrite/evidence/04ce3058f3e1d9f6bff3a1b0f868fe49468465a5a66d7afc27b7244c37eac91f.json",
+          "sha256": "04ce3058f3e1d9f6bff3a1b0f868fe49468465a5a66d7afc27b7244c37eac91f",
+          "bytes": 1651223,
+          "original_path": "rust/parity/coverage.json"
+        },
+        "review": {
+          "root_mapping_and_api": {
+            "path": "artifacts/rust-rewrite/evidence/ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35.json",
+            "sha256": "ffd69fac26749e75773587cd8e581a655ae07bc7b984a74f65043218c9addf35",
+            "bytes": 9422,
+            "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-root-review-1/report.json"
+          },
+          "independent_native": {
+            "path": "artifacts/rust-rewrite/evidence/e3b8d659739ff979ba1253bd90129975ba2d7d447ab9f1af720325aae38356c5.json",
+            "sha256": "e3b8d659739ff979ba1253bd90129975ba2d7d447ab9f1af720325aae38356c5",
+            "bytes": 14923,
+            "original_path": "/private/tmp/autorouter-classifier-cancellation-independent-review.json"
+          },
+          "separate_author_ast_and_recapture": {
+            "path": "artifacts/rust-rewrite/evidence/01487c1ccc960d62248abc6af9301ca45d103cc90b0268bd7640a7a1f151f822.json",
+            "sha256": "01487c1ccc960d62248abc6af9301ca45d103cc90b0268bd7640a7a1f151f822",
+            "bytes": 3143,
+            "original_path": "artifacts/rust-rewrite/ollama-evaluator-timed-author-audit/report.json"
+          }
+        },
+        "execution": {
+          "path": "artifacts/rust-rewrite/classifier-cancellation-fix-7/report.json",
+          "bytes": 2721,
+          "sha256": "34148163b270c1194eb6c5ce189c82b8cc8119792dae723bd5fcec8317fbf1cd",
+          "retained_path": "artifacts/rust-rewrite/evidence/34148163b270c1194eb6c5ce189c82b8cc8119792dae723bd5fcec8317fbf1cd.json"
+        },
+        "scope": "All five complete original callback definitions with20static assertion sites/36executions/26request transcript. Native production deadlines and exact body-release ownership are exercised; three identity predicates use explicitly accepted Rust API adaptation, not identity equivalence. No total rewrite or shipping qualification.",
+        "unrepresented_native_identity_assertions": []
+      },
       "related_components": [
         "evaluators"
-      ]
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/ollama-evaluator-timed-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/ollama-routing.test.mjs#1",

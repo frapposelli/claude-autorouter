@@ -62,9 +62,14 @@ npm run test:package
 
 The four existing Node/OS CI jobs remain required. Native CI adds compiler, contract, integration, and executable comparison checks; it does not invoke live tools or impose workstation timing thresholds.
 
-The experimental connection lease in vendored hyper-util is enabled only by a
-runtime test dependency. CI records the ordinary release build's Cargo JSON
-messages and rejects an artifact compiled with `node-http1-request-lease`.
+The experimental hyper-util connection lease and raw pool, and Hyper body
+handoff observer, are enabled only by runtime test dependencies. CI records the
+ordinary release build's Cargo JSON messages and independently rejects
+`node-http1-request-lease`, `node-http1-raw-pool`, and
+`node-http1-body-handoff` on their respective compiled artifacts. The retained
+`body-handoff-production-1` audit verifies these exclusions in the actual
+`cd399f5b` release binary; it does not transfer prior host-package or TLS
+qualification to that binary.
 To repeat that check locally:
 
 ```sh
