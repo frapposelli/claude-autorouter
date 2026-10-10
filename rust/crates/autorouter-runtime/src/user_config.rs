@@ -286,7 +286,8 @@ pub async fn load_user_config(
 }
 
 /// Injected policy is an adapter boundary for isolated tests and embeddings.
-/// Product commands always call load_user_config with the fixed system path.
+/// Product commands load policy from the fixed system path before calling this
+/// adapter, either via load_user_config or their private dependency wrapper.
 pub async fn load_with_policy(
     context: &ConfigContext<'_>,
     options: &LoadOptions,

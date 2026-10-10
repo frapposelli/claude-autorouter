@@ -11868,47 +11868,78 @@
       "file": "test/policy.test.mjs",
       "name": "config show reports policy-locked settings and set refuses disallowed values",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::saved_and_environment_policy_locks_survive_allowlist_repair_mode"
+        "rust/crates/claude-autorouter/src/policy_command_contracts.rs#onboarding::policy_command_contracts::original_6_policy_report_and_rejected_edit_preserve_file"
       ],
-      "shared_cases": [],
+      "shared_cases": [
+        {
+          "path": "rust/parity/cases/policy-command-contracts.jsonl",
+          "line": 1,
+          "source_test": "test/policy.test.mjs#6"
+        }
+      ],
       "evidence": {
-        "native_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
-        "native_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
-        "scope": "Only the exact mapped native assertions; no actual system policy/Keychain interaction, cross-platform or installed-artifact qualification is implied."
+        "assertion_mapping": "rust/parity/assertion-mappings/policy-command-contracts.json",
+        "assertion_mapping_sha256": "a33a5ea53d8a4710f742dbef78dd85b53ef8779de7bf0a5f2464700b0a360d7c",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/4c12ae1f559cc003541ec34b9aead464f8a91bbe3a2d046fb744ce63bd23c0ec.json",
+          "sha256": "4c12ae1f559cc003541ec34b9aead464f8a91bbe3a2d046fb744ce63bd23c0ec",
+          "bytes": 2791,
+          "original_path": "/private/tmp/autorouter-policy-command-final-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/d802645527da5acfd704f53c5333476df55b0c9028279d2fbc30ec6bc196456b.json",
+          "sha256": "d802645527da5acfd704f53c5333476df55b0c9028279d2fbc30ec6bc196456b",
+          "bytes": 3468,
+          "original_path": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/eighteenth-integration-prep-1/policy-command-root-API-decision.json"
+        },
+        "scope": "Two complete original callbacks with12static sites/11executions/9operations; untaken prompt guard remains explicit. Independent7-test native replay and exact recapture pass; combined/platform qualification is separate."
       },
       "related_components": [
         "config_auth_policy"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
-      "remaining_assertions": [
-        "No retained native CLI command test supplies a trusted policy to config show/set. The complete JSON source/value/policy_path output, refusal with unchanged file and unrelated allowed port edit are still untested as one CLI definition. Product policy paths must not be overridden by environment/test hooks."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/policy-command-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/policy.test.mjs#7",
       "file": "test/policy.test.mjs",
       "name": "a disallowed saved evaluator can still be repaired, and setup refuses to save one",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::saved_and_environment_policy_locks_survive_allowlist_repair_mode",
-        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::organization_locks_override_values_and_environment_including_repair_mode"
+        "rust/crates/claude-autorouter/src/policy_command_contracts.rs#onboarding::policy_command_contracts::original_7_repair_and_setup_rejection_keep_original_choices"
       ],
-      "shared_cases": [],
+      "shared_cases": [
+        {
+          "path": "rust/parity/cases/policy-command-contracts.jsonl",
+          "line": 2,
+          "source_test": "test/policy.test.mjs#7"
+        }
+      ],
       "evidence": {
-        "native_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
-        "native_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
-        "scope": "Only the exact mapped native assertions; no actual system policy/Keychain interaction, cross-platform or installed-artifact qualification is implied."
+        "assertion_mapping": "rust/parity/assertion-mappings/policy-command-contracts.json",
+        "assertion_mapping_sha256": "a33a5ea53d8a4710f742dbef78dd85b53ef8779de7bf0a5f2464700b0a360d7c",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/4c12ae1f559cc003541ec34b9aead464f8a91bbe3a2d046fb744ce63bd23c0ec.json",
+          "sha256": "4c12ae1f559cc003541ec34b9aead464f8a91bbe3a2d046fb744ce63bd23c0ec",
+          "bytes": 2791,
+          "original_path": "/private/tmp/autorouter-policy-command-final-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/d802645527da5acfd704f53c5333476df55b0c9028279d2fbc30ec6bc196456b.json",
+          "sha256": "d802645527da5acfd704f53c5333476df55b0c9028279d2fbc30ec6bc196456b",
+          "bytes": 3468,
+          "original_path": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/eighteenth-integration-prep-1/policy-command-root-API-decision.json"
+        },
+        "scope": "Two complete original callbacks with12static sites/11executions/9operations; untaken prompt guard remains explicit. Independent7-test native replay and exact recapture pass; combined/platform qualification is separate."
       },
       "related_components": [
         "config_auth_policy"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
-      "remaining_assertions": [
-        "Native config set repair from saved Jev to Ollama and setup rejection before any prompt under an injected policy remain untested. CLI commands currently use the fixed production policy loader; tests must not modify system policy."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/policy-command-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/prompt-state.test.mjs#1",
@@ -21808,13 +21839,35 @@
       "file": "test/server.test.mjs",
       "name": "streams before completion, preserves SSE, payloads, headers and query; isolates credentials",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_streaming_routing_contracts.rs#original_streams_before_completion_preserving_payload_headers_query_and_privacy"
+      ],
+      "shared_cases": [
+        "server-streaming-routing-1"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/server-streaming-routing-contracts.json",
+        "assertion_mapping_sha256": "5d5c805016543e503c5762516f2fe21ed0b46598d98fc900ec341e6420d9f8a8",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/b694f734f5bc08879dbc5e3d1d96159dc7beb5a83f40907990062d5095586bd5.json",
+          "sha256": "b694f734f5bc08879dbc5e3d1d96159dc7beb5a83f40907990062d5095586bd5",
+          "bytes": 11546,
+          "original_path": "/private/tmp/autorouter-server-streaming-routing-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/681b5376388b3fe53133dea6e6298c90c07d42e5a2ec904ab10364eee4091da4.json",
+          "sha256": "681b5376388b3fe53133dea6e6298c90c07d42e5a2ec904ab10364eee4091da4",
+          "bytes": 5196,
+          "original_path": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/eighteenth-integration-prep-1/server-root-API-decision.json"
+        },
+        "scope": "Four complete original callbacks with 57 static sites and 99 executions; actual native HTTP and eight-test independent replay pass. Finite streaming/count-injection API boundaries are reviewed; combined/platform qualification is separate."
+      },
       "related_components": [
         "gateway"
-      ]
+      ],
+      "remaining_assertions": [],
+      "assertion_mapping": "rust/parity/assertion-mappings/server-streaming-routing-contracts.json"
     },
     {
       "id": "test/server.test.mjs#2",
@@ -22105,39 +22158,105 @@
       "file": "test/server.test.mjs",
       "name": "complete proxy flow calls the real classifier client against a local Jev API mock",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_streaming_routing_contracts.rs#original_real_jev_three_requests_two_counts_and_capacity_outcomes"
+      ],
+      "shared_cases": [
+        "server-streaming-routing-8"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/server-streaming-routing-contracts.json",
+        "assertion_mapping_sha256": "5d5c805016543e503c5762516f2fe21ed0b46598d98fc900ec341e6420d9f8a8",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/b694f734f5bc08879dbc5e3d1d96159dc7beb5a83f40907990062d5095586bd5.json",
+          "sha256": "b694f734f5bc08879dbc5e3d1d96159dc7beb5a83f40907990062d5095586bd5",
+          "bytes": 11546,
+          "original_path": "/private/tmp/autorouter-server-streaming-routing-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/681b5376388b3fe53133dea6e6298c90c07d42e5a2ec904ab10364eee4091da4.json",
+          "sha256": "681b5376388b3fe53133dea6e6298c90c07d42e5a2ec904ab10364eee4091da4",
+          "bytes": 5196,
+          "original_path": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/eighteenth-integration-prep-1/server-root-API-decision.json"
+        },
+        "scope": "Four complete original callbacks with 57 static sites and 99 executions; actual native HTTP and eight-test independent replay pass. Finite streaming/count-injection API boundaries are reviewed; combined/platform qualification is separate."
+      },
       "related_components": [
         "gateway"
-      ]
+      ],
+      "remaining_assertions": [],
+      "assertion_mapping": "rust/parity/assertion-mappings/server-streaming-routing-contracts.json"
     },
     {
       "id": "test/server.test.mjs#9",
       "file": "test/server.test.mjs",
       "name": "large subscription requests count with the current OAuth headers and keep Haiku when they fit",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_streaming_routing_contracts.rs#original_subscription_automatic_count_uses_current_oauth_and_complete_system"
+      ],
+      "shared_cases": [
+        "server-streaming-routing-9"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/server-streaming-routing-contracts.json",
+        "assertion_mapping_sha256": "5d5c805016543e503c5762516f2fe21ed0b46598d98fc900ec341e6420d9f8a8",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/b694f734f5bc08879dbc5e3d1d96159dc7beb5a83f40907990062d5095586bd5.json",
+          "sha256": "b694f734f5bc08879dbc5e3d1d96159dc7beb5a83f40907990062d5095586bd5",
+          "bytes": 11546,
+          "original_path": "/private/tmp/autorouter-server-streaming-routing-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/681b5376388b3fe53133dea6e6298c90c07d42e5a2ec904ab10364eee4091da4.json",
+          "sha256": "681b5376388b3fe53133dea6e6298c90c07d42e5a2ec904ab10364eee4091da4",
+          "bytes": 5196,
+          "original_path": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/eighteenth-integration-prep-1/server-root-API-decision.json"
+        },
+        "scope": "Four complete original callbacks with 57 static sites and 99 executions; actual native HTTP and eight-test independent replay pass. Finite streaming/count-injection API boundaries are reviewed; combined/platform qualification is separate."
+      },
       "related_components": [
         "gateway"
-      ]
+      ],
+      "remaining_assertions": [],
+      "assertion_mapping": "rust/parity/assertion-mappings/server-streaming-routing-contracts.json"
     },
     {
       "id": "test/server.test.mjs#10",
       "file": "test/server.test.mjs",
       "name": "subscription preserves OAuth headers, token refresh, SSE and usage limits, while stripping the local credential",
       "parameterized": false,
-      "status": "pending_assertion_mapping",
-      "rust_tests": [],
-      "shared_cases": [],
-      "evidence": null,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_streaming_routing_contracts.rs#original_subscription_refresh_preserves_sse_usage_header_and_credential_isolation"
+      ],
+      "shared_cases": [
+        "server-streaming-routing-10"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/server-streaming-routing-contracts.json",
+        "assertion_mapping_sha256": "5d5c805016543e503c5762516f2fe21ed0b46598d98fc900ec341e6420d9f8a8",
+        "independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/b694f734f5bc08879dbc5e3d1d96159dc7beb5a83f40907990062d5095586bd5.json",
+          "sha256": "b694f734f5bc08879dbc5e3d1d96159dc7beb5a83f40907990062d5095586bd5",
+          "bytes": 11546,
+          "original_path": "/private/tmp/autorouter-server-streaming-routing-independent-review.json"
+        },
+        "root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/681b5376388b3fe53133dea6e6298c90c07d42e5a2ec904ab10364eee4091da4.json",
+          "sha256": "681b5376388b3fe53133dea6e6298c90c07d42e5a2ec904ab10364eee4091da4",
+          "bytes": 5196,
+          "original_path": "/Users/fabio/AI/claude-autorouter/artifacts/rust-rewrite/eighteenth-integration-prep-1/server-root-API-decision.json"
+        },
+        "scope": "Four complete original callbacks with 57 static sites and 99 executions; actual native HTTP and eight-test independent replay pass. Finite streaming/count-injection API boundaries are reviewed; combined/platform qualification is separate."
+      },
       "related_components": [
         "gateway"
-      ]
+      ],
+      "remaining_assertions": [],
+      "assertion_mapping": "rust/parity/assertion-mappings/server-streaming-routing-contracts.json"
     },
     {
       "id": "test/server.test.mjs#11",

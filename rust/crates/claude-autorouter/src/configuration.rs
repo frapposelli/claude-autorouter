@@ -6,9 +6,10 @@ use autorouter_core::config::{
 use autorouter_core::model_catalog::model_capabilities;
 use autorouter_core::policy::apply_policy;
 use autorouter_runtime::keychain::Keychain;
+use autorouter_runtime::policy::{LoadedPolicy, load_policy};
 use autorouter_runtime::user_config::{
     CONFIG_KEYS, ConfigContext, LoadOptions, LoadedConfig, SECRET_CONFIG_KEYS, SaveOptions,
-    environment_json, keychain_removals, load_user_config, pretty_document,
+    environment_json, keychain_removals, load_with_policy, pretty_document,
     save_user_config_document, scalar_document,
 };
 use serde_json::{Map, Value, json};
@@ -129,6 +130,17 @@ pub async fn command(
     context: &ConfigContext<'_>,
     keychain: &mut impl Keychain,
 ) -> Result<CommandOutput, String> {
+    command_with_policy_loader(args, context, keychain, load_policy).await
+}
+
+// Keep the production policy location and trusted owner in load_policy. The
+// dependency is private and per call; there is no CLI or environment override.
+async fn command_with_policy_loader(
+    args: &[OsString],
+    context: &ConfigContext<'_>,
+    keychain: &mut impl Keychain,
+    mut policy_loader: impl FnMut() -> Result<Option<LoadedPolicy>, String>,
+) -> Result<CommandOutput, String> {
     let operation = args.first().and_then(|v| v.to_str()).unwrap_or_default();
     let rest = args.get(1..).unwrap_or_default();
     if operation == "show" {
@@ -136,14 +148,19 @@ pub async fn command(
             return Err("Usage: claude-autorouter config show [--json] [--check-all]".into());
         }
         let check_all = rest.iter().any(|v| v == "--check-all");
-        let loaded = load_user_config(
-            context,
-            &LoadOptions {
-                allow_missing: true,
-                ..Default::default()
-            },
-            keychain,
-        )
+        let loaded = async {
+            let policy = policy_loader()?;
+            load_with_policy(
+                context,
+                &LoadOptions {
+                    allow_missing: true,
+                    ..Default::default()
+                },
+                keychain,
+                policy.as_ref(),
+            )
+            .await
+        }
         .await;
         let report = match &loaded {
             Ok(loaded) => config_report(loaded,context.env,context.cwd,check_all).unwrap_or_else(|error| json!({"schema_version":1,"config_path":loaded.path,"config_exists":loaded.exists,"valid":false,"error":error})),
@@ -255,7 +272,8 @@ pub async fn command(
     {
         return Err("Nonsecret settings require a value argument.".into());
     }
-    let loaded = load_user_config(
+    let policy = policy_loader()?;
+    let loaded = load_with_policy(
         context,
         &LoadOptions {
             allow_missing: true,
@@ -263,6 +281,7 @@ pub async fn command(
             ..Default::default()
         },
         keychain,
+        policy.as_ref(),
     )
     .await?;
     let mut next = loaded.values.clone();
@@ -392,3 +411,13 @@ fn normalized_value(key: &str, value: &str, cwd: &Path) -> Result<String, String
 #[cfg(test)]
 #[path = "configuration_keychain_contracts.rs"]
 mod configuration_keychain_contracts;
+
+#[cfg(test)]
+pub(crate) async fn command_with_policy_for_test(
+    args: &[OsString],
+    context: &ConfigContext<'_>,
+    keychain: &mut impl Keychain,
+    policy_loader: impl FnMut() -> Result<Option<LoadedPolicy>, String>,
+) -> Result<CommandOutput, String> {
+    command_with_policy_loader(args, context, keychain, policy_loader).await
+}

@@ -7,9 +7,10 @@ use autorouter_core::policy::apply_policy;
 use autorouter_runtime::http_client::NativeHttpClient;
 use autorouter_runtime::keychain::Keychain;
 use autorouter_runtime::ollama_setup::{SetupOptions, setup_ollama};
+use autorouter_runtime::policy::{LoadedPolicy, load_policy};
 use autorouter_runtime::user_config::{
     CONFIG_KEYS, ConfigContext, LoadOptions, SECRET_CONFIG_KEYS, SaveOptions, environment_json,
-    keychain_removals, load_user_config, save_user_config_document, scalar_document,
+    keychain_removals, load_with_policy, save_user_config_document, scalar_document,
 };
 use serde_json::{Value, json};
 use std::ffi::OsString;
@@ -23,6 +24,9 @@ mod contract_tests;
 #[cfg(test)]
 #[path = "onboarding_keychain_contracts.rs"]
 mod keychain_contracts;
+#[cfg(test)]
+#[path = "policy_command_contracts.rs"]
+mod policy_command_contracts;
 fn value(env: &Value, key: &str, fallback: &str) -> String {
     env.get(key)
         .and_then(Value::as_str)
@@ -97,8 +101,48 @@ async fn setup_with_prompt(
     macos: bool,
     prompt: &mut impl SecretPrompt,
 ) -> Result<(), String> {
+    setup_with_dependencies(
+        args,
+        context,
+        keychain,
+        cancellation,
+        write,
+        macos,
+        SetupDependencies {
+            prompt,
+            policy_loader: load_policy,
+        },
+    )
+    .await
+}
+
+struct SetupDependencies<'a, P, L> {
+    prompt: &'a mut P,
+    policy_loader: L,
+}
+
+// Both production entrypoints above always use the fixed-path policy loader.
+// A child test module can supply a fixture loader without a global override.
+async fn setup_with_dependencies(
+    args: &[OsString],
+    context: &ConfigContext<'_>,
+    keychain: &mut impl Keychain,
+    cancellation: &CancellationToken,
+    write: &mut impl FnMut(String),
+    macos: bool,
+    dependencies: SetupDependencies<
+        '_,
+        impl SecretPrompt,
+        impl FnMut() -> Result<Option<LoadedPolicy>, String>,
+    >,
+) -> Result<(), String> {
     check_cancel(cancellation)?;
-    let loaded = load_user_config(
+    let SetupDependencies {
+        prompt,
+        mut policy_loader,
+    } = dependencies;
+    let policy = policy_loader()?;
+    let loaded = load_with_policy(
         context,
         &LoadOptions {
             allow_missing: true,
@@ -106,6 +150,7 @@ async fn setup_with_prompt(
             ..Default::default()
         },
         keychain,
+        policy.as_ref(),
     )
     .await?;
     let replace = args.iter().any(|a| a == "--replace");

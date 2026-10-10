@@ -1,0 +1,524 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "kind": "complete_frozen_server_streaming_routing_callbacks",
+  "baseline": {
+    "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+    "files_verified": 111
+  },
+  "node": {
+    "version": "v22.14.0",
+    "sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0"
+  },
+  "generator_sha256": "3cb80e8ea673539cd94b62ba432a515ce4546d44280a1c7f0bfb80ae3e47a29c",
+  "baseline_file_sha256": "b82681e2383f3466d66f9801745d4e62fb45d20065f136804f677089f2d41809",
+  "helpers": [
+    {
+      "statement": "const token = 'local-test-token-123456789';",
+      "sha256": "5dda796ceeca0fea036443e6719fae79167ac2c6f02c7ece2059bf907bc150cd"
+    },
+    {
+      "statement": "const body = { model: 'claude-sonnet-5', stream: true, max_tokens: 1024, system: [{ type: 'text', text: 'system', cache_control: { type: 'ephemeral' } }], messages: [{ role: 'user', content: 'Fix a typo' }], tools: [{ name: 'Read', input_schema: { type: 'object' } }] };",
+      "sha256": "610c8e3e707dfd5cfc92d007659e4abd400be1c8ff9b4e561d97bea553cd8bd8"
+    },
+    {
+      "statement": "async function fixture(t, handler, overrides = {}, routeImpl, onStatus, onDecision, onRecord) {\n  const upstream = http.createServer(handler);\n  const address = await listen(upstream, 0);\n  let evaluations = 0;\n  const logs = [];\n  const statuses = [];\n  const config = { ...readConfig({ AUTOROUTER_EVALUATOR: 'jev', ANTHROPIC_API_KEY: 'upstream-secret', TYPESAFE_API_KEY: 'classifier-secret' }), localToken: token, upstream: `http://127.0.0.1:${address.port}`, ...overrides };\n  const server = createRouterServer(config, {\n    router: {\n      route: async (...args) => { evaluations++; return routeImpl?.route ? routeImpl.route(...args)\n        : routeImpl ? routeImpl(...args) : { model: config.models.haiku, source: 'test' }; },\n      complete: (...args) => routeImpl?.complete?.(...args),\n    },\n    log: entry => logs.push(entry), onStatus: entry => { statuses.push(entry); return onStatus?.(entry); },\n    onDecision, onRecord,\n  });\n  const local = await listen(server, 0);\n  t.after(() => { server.closeAllConnections(); server.close(); upstream.closeAllConnections(); upstream.close(); });\n  const localAuth = config.authMode === 'subscription' ? { 'x-autorouter-token': token } : { 'x-api-key': token };\n  const baseUrl = `http://127.0.0.1:${local.port}`;\n  const call = (path, options = {}) => fetch(`${baseUrl}${path}`, { ...options, headers: { ...localAuth, ...options.headers } });\n  return { call, baseUrl, logs, statuses, evaluations: () => evaluations };\n}",
+      "sha256": "7c78ac5d771adb4044bdb12dad87f158232592e41d5493a1ce8eb2ce730f8026"
+    },
+    {
+      "statement": "async function waitForStatus(f, event) {\n  for (let i = 0; i < 100; i++) {\n    if (f.statuses.some(entry => entry.event === event)) return;\n    await new Promise(resolve => setTimeout(resolve, 5));\n  }\n  assert.fail(`Missing status event: ${event}`);\n}",
+      "sha256": "f9600fd02bfdb90b814db6ccf0b988ae38555e7c1bcb5dc89e61ad122329d93d"
+    },
+    {
+      "statement": "const oauthHeaders = { authorization: 'Bearer fake-subscription-token', 'anthropic-beta': 'oauth-2025-04-20,future-capability', 'anthropic-version': '2023-06-01' };",
+      "sha256": "92aea0530edfe378aeb32dcf9e99196b8ccfa68fea2e0664cef1b25b93da3a17"
+    }
+  ],
+  "definitions": [
+    {
+      "number": 1,
+      "id": "test/server.test.mjs#1",
+      "name": "streams before completion, preserves SSE, payloads, headers and query; isolates credentials",
+      "statement": "test('streams before completion, preserves SSE, payloads, headers and query; isolates credentials', async t => {\n  let finish;\n  const first = 'event: message_start\\ndata: {\"type\":\"message_start\"}\\n\\n';\n  const last = 'event: message_stop\\ndata: {\"type\":\"message_stop\"}\\n\\n';\n  const f = await fixture(t, async (req, res) => {\n    let text = ''; for await (const chunk of req) text += chunk;\n    assert.equal(req.url, '/v1/messages?beta=true');\n    assert.equal(req.headers['x-api-key'], 'upstream-secret');\n    assert.equal(req.headers.authorization, undefined);\n    assert.equal(req.headers['anthropic-beta'], 'test-beta');\n    assert.equal(req.headers['anthropic-version'], '2023-06-01');\n    assert.deepEqual(JSON.parse(text), { ...body, model: 'claude-haiku-4-5-20251001' });\n    res.writeHead(200, { 'content-type': 'text/event-stream', 'request-id': 'test-id' });\n    res.write(first);\n    finish = () => res.end(last);\n  });\n  const response = await f.call('/v1/messages?beta=true', { method: 'POST', headers: { authorization: `Bearer ${token}`, 'anthropic-beta': 'test-beta', 'anthropic-version': '2023-06-01' }, body: JSON.stringify(body) });\n  assert.equal(response.headers.get('request-id'), 'test-id');\n  const reader = response.body.getReader();\n  const chunk = await reader.read();\n  assert.equal(new TextDecoder().decode(chunk.value), first);\n  finish();\n  let rest = ''; for (;;) { const chunk = await reader.read(); if (chunk.done) break; rest += new TextDecoder().decode(chunk.value); }\n  assert.equal(rest, last);\n  assert.equal(f.evaluations(), 1);\n  assert.ok(!JSON.stringify(f.logs).includes('Fix a typo'));\n  assert.ok(!JSON.stringify(f.logs).includes('secret'));\n});",
+      "sha256": "cbcfed13b1ba0cc8277ccb131dab8be5cdffcf7477b781e0a6a92a2360fc4160",
+      "assertions": [
+        {
+          "id": "server#1:assert-1",
+          "expression": "assert.equal(req.url, '/v1/messages?beta=true')",
+          "sha256": "04f4434dac9189e462941da5cba054c97bceae86a8196f16542fdb59d70382a0",
+          "line": 49,
+          "executions": 1
+        },
+        {
+          "id": "server#1:assert-2",
+          "expression": "assert.equal(req.headers['x-api-key'], 'upstream-secret')",
+          "sha256": "a01d5737e0bde659d40bc97cf65c2d5b1bd434cb2773933de67762801aca1c0f",
+          "line": 50,
+          "executions": 1
+        },
+        {
+          "id": "server#1:assert-3",
+          "expression": "assert.equal(req.headers.authorization, undefined)",
+          "sha256": "53d4c6921f0b2011d7a17430f12d313a988dad526054cd4843eafea11d406173",
+          "line": 51,
+          "executions": 1
+        },
+        {
+          "id": "server#1:assert-4",
+          "expression": "assert.equal(req.headers['anthropic-beta'], 'test-beta')",
+          "sha256": "53192d9b8df84f239a0e8f9871aa0a538e80c294cb0104fdf1a739e920645159",
+          "line": 52,
+          "executions": 1
+        },
+        {
+          "id": "server#1:assert-5",
+          "expression": "assert.equal(req.headers['anthropic-version'], '2023-06-01')",
+          "sha256": "41188e128d5897a67f5a954e29b68e48e042bea2808986c4c8310c7fbafffebf",
+          "line": 53,
+          "executions": 1
+        },
+        {
+          "id": "server#1:assert-6",
+          "expression": "assert.deepEqual(JSON.parse(text), { ...body, model: 'claude-haiku-4-5-20251001' })",
+          "sha256": "d68bd57ffaaf67e7809b5c94fa6da03bca57e282c277538e3f5e86df333ad062",
+          "line": 54,
+          "executions": 1
+        },
+        {
+          "id": "server#1:assert-7",
+          "expression": "assert.equal(response.headers.get('request-id'), 'test-id')",
+          "sha256": "047e106ab4a5bf075593aca9ace4946b3958deade74e9d1f8a42520832b4d3d7",
+          "line": 60,
+          "executions": 1
+        },
+        {
+          "id": "server#1:assert-8",
+          "expression": "assert.equal(new TextDecoder().decode(chunk.value), first)",
+          "sha256": "85dceb595b93ac6f5e05e12f001224390933f511d9a44f585c7f220e8242a921",
+          "line": 63,
+          "executions": 1
+        },
+        {
+          "id": "server#1:assert-9",
+          "expression": "assert.equal(rest, last)",
+          "sha256": "b3488d3b0e69b619749d770b36b4b9b9ff91bfb63d007f3dba59c466f53733de",
+          "line": 66,
+          "executions": 1
+        },
+        {
+          "id": "server#1:assert-10",
+          "expression": "assert.equal(f.evaluations(), 1)",
+          "sha256": "88921c6c6c505d4ccbf95e0985d6f2895f90272e41fbd81649eecbb4e55c38d3",
+          "line": 67,
+          "executions": 1
+        },
+        {
+          "id": "server#1:assert-11",
+          "expression": "assert.ok(!JSON.stringify(f.logs).includes('Fix a typo'))",
+          "sha256": "dc0c65ab8cae18499007758e9c913dd890cc37e66fc3de5565de9a6515c2e7ee",
+          "line": 68,
+          "executions": 1
+        },
+        {
+          "id": "server#1:assert-12",
+          "expression": "assert.ok(!JSON.stringify(f.logs).includes('secret'))",
+          "sha256": "370481768e3a95936ab54e052ab005b7b3ed5aec19672a4e9545c9a5283cd2d1",
+          "line": 69,
+          "executions": 1
+        }
+      ],
+      "passed": true
+    },
+    {
+      "number": 8,
+      "id": "test/server.test.mjs#8",
+      "name": "complete proxy flow calls the real classifier client against a local Jev API mock",
+      "statement": "test('complete proxy flow calls the real classifier client against a local Jev API mock', async t => {\n  let classifications = 0;\n  const logs = [];\n  const statuses = [];\n  const smallRequest = { ...body, model: 'claude-haiku-4-5-20251001', stream: false };\n  const fitsHaikuRequest = { ...smallRequest, tools: [{ name: 'Read', description: 'Small-token-count catalog. '.repeat(7000), input_schema: { type: 'object' } }] };\n  const largeRequest = { ...smallRequest, tools: [{ name: 'Read', description: 'Synthetic tool schema context. '.repeat(30000), input_schema: { type: 'object' } }] };\n  let tokenCounts = 0;\n  const jev = http.createServer(async (req, res) => {\n    let text = ''; for await (const chunk of req) text += chunk;\n    assert.equal(req.url, '/v1/systemone');\n    assert.equal(req.headers.authorization, 'Bearer classifier-secret');\n    const payload = JSON.parse(text);\n    assert.ok(JSON.stringify(payload.state).length <= 12000);\n    assert.equal(payload.state.original_task, 'Fix a typo');\n    assert.deepEqual(Object.keys(payload.questions.tier.criteria), ['haiku', 'sonnet', 'opus']);\n    classifications++;\n    res.writeHead(200, { 'content-type': 'application/json' });\n    res.end(JSON.stringify({ answers: { tier: { choice: 'haiku', confidence: 0.99, probabilities: { haiku: 0.99, sonnet: 0.01, opus: 0 } } } }));\n  });\n  const jevAddress = await listen(jev, 0);\n  const upstream = http.createServer(async (req, res) => {\n    let text = ''; for await (const chunk of req) text += chunk;\n    const parsed = JSON.parse(text);\n    const large = parsed.tools[0].description?.startsWith('Synthetic');\n    const fits = parsed.tools[0].description?.startsWith('Small-token-count');\n    if (req.url === '/v1/messages/count_tokens') {\n      tokenCounts++;\n      assert.equal(req.headers['x-api-key'], 'upstream-secret');\n      assert.equal(req.headers['x-autorouter-token'], undefined);\n      assert.equal(parsed.model, 'claude-haiku-4-5-20251001');\n      assert.deepEqual(parsed.tools, (large ? largeRequest : fitsHaikuRequest).tools);\n      assert.equal(parsed.max_tokens, undefined);\n      res.writeHead(200, { 'content-type': 'application/json' });\n      res.end(JSON.stringify({ input_tokens: large ? 227338 : 54481 }));\n      return;\n    }\n    const model = large ? 'claude-sonnet-5' : 'claude-haiku-4-5-20251001';\n    // A short user prompt with a large tool catalog must leave the proxy on\n    // Sonnet, without dropping any of that catalog to make Haiku fit.\n    assert.deepEqual(parsed, { ...(large ? largeRequest : fits ? fitsHaikuRequest : smallRequest), model });\n    res.writeHead(200, { 'content-type': 'application/json' });\n    res.end(JSON.stringify({ id: 'msg_mock', model, content: [{ type: 'text', text: 'Done' }] }));\n  });\n  const upstreamAddress = await listen(upstream, 0);\n  const server = createRouterServer({ ...readConfig({ AUTOROUTER_EVALUATOR: 'jev', ANTHROPIC_API_KEY: 'upstream-secret', TYPESAFE_API_KEY: 'classifier-secret' }), localToken: token, upstream: `http://127.0.0.1:${upstreamAddress.port}`, jevEndpoint: `http://127.0.0.1:${jevAddress.port}/v1/systemone` }, { log: entry => logs.push(entry), onStatus: entry => statuses.push(entry) });\n  const address = await listen(server, 0);\n  t.after(() => { for (const service of [server, upstream, jev]) { service.closeAllConnections(); service.close(); } });\n  for (const [request, expectedModel] of [[smallRequest, 'claude-haiku-4-5-20251001'], [fitsHaikuRequest, 'claude-haiku-4-5-20251001'], [largeRequest, 'claude-sonnet-5']]) {\n    const response = await fetch(`http://127.0.0.1:${address.port}/v1/messages`, { method: 'POST', headers: { 'x-api-key': token, 'content-type': 'application/json' }, body: JSON.stringify(request) });\n    assert.equal(response.status, 200);\n    assert.equal((await response.json()).model, expectedModel);\n  }\n  assert.equal(classifications, 3);\n  assert.equal(tokenCounts, 2);\n  const fittingRoute = statuses.filter(entry => entry.event === 'route')[1];\n  assert.equal(fittingRoute.model, 'claude-haiku-4-5-20251001');\n  assert.equal(fittingRoute.context_check, 'within_budget');\n  assert.equal(fittingRoute.counted_input_tokens, 54481);\n  assert.equal(statuses.findLast(entry => entry.event === 'route').reason, 'context_capacity');\n  assert.equal(statuses.findLast(entry => entry.event === 'upstream_model').model, 'claude-sonnet-5');\n  assert.ok(!JSON.stringify({ logs, statuses }).includes('Synthetic tool schema context'));\n});",
+      "sha256": "94a535094ca4bde68cc5d08c4ad378fc79e6beb0a2d81f0eb5c6a2060e5858d4",
+      "assertions": [
+        {
+          "id": "server#8:assert-1",
+          "expression": "assert.equal(req.url, '/v1/systemone')",
+          "sha256": "d0db5d8d514fd9dadff9c6c03d026ed24024fe543cb942a5687cdc47514d9ac0",
+          "line": 248,
+          "executions": 3
+        },
+        {
+          "id": "server#8:assert-2",
+          "expression": "assert.equal(req.headers.authorization, 'Bearer classifier-secret')",
+          "sha256": "bb6ef5eddb00cade9e4f3e60df5716c539a4789421422b3cac5b68526ff63b9f",
+          "line": 249,
+          "executions": 3
+        },
+        {
+          "id": "server#8:assert-3",
+          "expression": "assert.ok(JSON.stringify(payload.state).length <= 12000)",
+          "sha256": "e61875e6712983c0631367487b88e3fc287b9b813f0f34005352b5646c96df78",
+          "line": 251,
+          "executions": 3
+        },
+        {
+          "id": "server#8:assert-4",
+          "expression": "assert.equal(payload.state.original_task, 'Fix a typo')",
+          "sha256": "65cc71d92d22762be3a7bbcc3e70140548dc4e71d60ae4f30a799f6f2af99a02",
+          "line": 252,
+          "executions": 3
+        },
+        {
+          "id": "server#8:assert-5",
+          "expression": "assert.deepEqual(Object.keys(payload.questions.tier.criteria), ['haiku', 'sonnet', 'opus'])",
+          "sha256": "23e1eaae0ee4fab976a44c63c37caef4a5a3bc67e83773b9cc5714c701906b0d",
+          "line": 253,
+          "executions": 3
+        },
+        {
+          "id": "server#8:assert-6",
+          "expression": "assert.equal(req.headers['x-api-key'], 'upstream-secret')",
+          "sha256": "a01d5737e0bde659d40bc97cf65c2d5b1bd434cb2773933de67762801aca1c0f",
+          "line": 266,
+          "executions": 2
+        },
+        {
+          "id": "server#8:assert-7",
+          "expression": "assert.equal(req.headers['x-autorouter-token'], undefined)",
+          "sha256": "0cd9ed0e32b31cec139db3b3d2368936faa1d892c452e24b5e562c3403862e78",
+          "line": 267,
+          "executions": 2
+        },
+        {
+          "id": "server#8:assert-8",
+          "expression": "assert.equal(parsed.model, 'claude-haiku-4-5-20251001')",
+          "sha256": "98b373f78011ec41a86974032adcfb97cc46671d3f53f9e7562cc57da5279373",
+          "line": 268,
+          "executions": 2
+        },
+        {
+          "id": "server#8:assert-9",
+          "expression": "assert.deepEqual(parsed.tools, (large ? largeRequest : fitsHaikuRequest).tools)",
+          "sha256": "63f59b970126efaabf69a094c494bbb955be1250b7f5aaa19d34df6d4dea2f11",
+          "line": 269,
+          "executions": 2
+        },
+        {
+          "id": "server#8:assert-10",
+          "expression": "assert.equal(parsed.max_tokens, undefined)",
+          "sha256": "bf6321324946128c9580694cc63ddae82575288b4a79cfd78576b6a823f29750",
+          "line": 270,
+          "executions": 2
+        },
+        {
+          "id": "server#8:assert-11",
+          "expression": "assert.deepEqual(parsed, { ...(large ? largeRequest : fits ? fitsHaikuRequest : smallRequest), model })",
+          "sha256": "4ca20bd16110dc76e9d5949ee15e66f24749c89031153581f5b0ba3b38459b7a",
+          "line": 278,
+          "executions": 3
+        },
+        {
+          "id": "server#8:assert-12",
+          "expression": "assert.equal(response.status, 200)",
+          "sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "line": 288,
+          "executions": 3
+        },
+        {
+          "id": "server#8:assert-13",
+          "expression": "assert.equal((await response.json()).model, expectedModel)",
+          "sha256": "244f09eb7de18eee6053816d3c4d5eb8d636306d37bda70d4f1b29c088fc22b1",
+          "line": 289,
+          "executions": 3
+        },
+        {
+          "id": "server#8:assert-14",
+          "expression": "assert.equal(classifications, 3)",
+          "sha256": "6eb9e7a72f852dad21ab8acd48b5fa6204b8eb60cf806d681d3e837975579d61",
+          "line": 291,
+          "executions": 1
+        },
+        {
+          "id": "server#8:assert-15",
+          "expression": "assert.equal(tokenCounts, 2)",
+          "sha256": "c810f3e06c9c470229cfbbf8f22a0cbc5ada4cd196abaee9f2105b91ebc740ee",
+          "line": 292,
+          "executions": 1
+        },
+        {
+          "id": "server#8:assert-16",
+          "expression": "assert.equal(fittingRoute.model, 'claude-haiku-4-5-20251001')",
+          "sha256": "86123717171e174562940a9ca7aa8ea08e7aea6943cea1c5e421d1acef29736d",
+          "line": 294,
+          "executions": 1
+        },
+        {
+          "id": "server#8:assert-17",
+          "expression": "assert.equal(fittingRoute.context_check, 'within_budget')",
+          "sha256": "17f9602de469d2fe7e9791b95bd70b95a00518de03692fa12da46cb96535381a",
+          "line": 295,
+          "executions": 1
+        },
+        {
+          "id": "server#8:assert-18",
+          "expression": "assert.equal(fittingRoute.counted_input_tokens, 54481)",
+          "sha256": "19112363b4a64f45e1832fd70a00e66d64eea44c79bcb6d191ec1b5bf9c900a7",
+          "line": 296,
+          "executions": 1
+        },
+        {
+          "id": "server#8:assert-19",
+          "expression": "assert.equal(statuses.findLast(entry => entry.event === 'route').reason, 'context_capacity')",
+          "sha256": "f81a50ef39e71d28710b7b279d33fd216e7048496b1a45aa7412c6c0205f432b",
+          "line": 297,
+          "executions": 1
+        },
+        {
+          "id": "server#8:assert-20",
+          "expression": "assert.equal(statuses.findLast(entry => entry.event === 'upstream_model').model, 'claude-sonnet-5')",
+          "sha256": "f392e5c01b9ef36407b6ffca67d95cf33ba38d47e47c85520f0fe15a4b915aa2",
+          "line": 298,
+          "executions": 1
+        },
+        {
+          "id": "server#8:assert-21",
+          "expression": "assert.ok(!JSON.stringify({ logs, statuses }).includes('Synthetic tool schema context'))",
+          "sha256": "641bba197cd24f9fc1670f478ec37f278cdea10bb4acc7a39450cd428827a54a",
+          "line": 299,
+          "executions": 1
+        }
+      ],
+      "passed": true
+    },
+    {
+      "number": 9,
+      "id": "test/server.test.mjs#9",
+      "name": "large subscription requests count with the current OAuth headers and keep Haiku when they fit",
+      "statement": "test('large subscription requests count with the current OAuth headers and keep Haiku when they fit', async t => {\n  const paths = [];\n  const router = new Router(readConfig({ AUTOROUTER_EVALUATOR: 'jev' }), { fetchImpl: async () => Response.json({ answers: { tier: { choice: 'haiku', confidence: 1 } } }) });\n  const requested = { ...body, model: 'claude-haiku-4-5-20251001', stream: false, system: 'Synthetic context. '.repeat(10000) };\n  const f = await fixture(t, async (req, res) => {\n    paths.push(req.url);\n    assert.equal(req.headers.authorization, oauthHeaders.authorization);\n    assert.equal(req.headers['anthropic-beta'], oauthHeaders['anthropic-beta']);\n    assert.equal(req.headers['x-api-key'], undefined);\n    assert.equal(req.headers['x-autorouter-token'], undefined);\n    assert.equal(req.headers.cookie, undefined);\n    let raw = ''; for await (const chunk of req) raw += chunk;\n    const payload = JSON.parse(raw);\n    assert.equal(payload.model, requested.model);\n    assert.equal(payload.system, requested.system);\n    res.writeHead(200, { 'content-type': 'application/json' });\n    res.end(JSON.stringify(req.url.includes('count_tokens') ? { input_tokens: 54000 }\n      : { id: 'msg_counted', model: payload.model, content: [{ type: 'text', text: 'Done' }] }));\n  }, { authMode: 'subscription' }, router);\n  const response = await f.call('/v1/messages?beta=true', { method: 'POST', headers: { ...oauthHeaders, cookie: 'PRIVATE_COOKIE' }, body: JSON.stringify(requested) });\n  assert.equal(response.status, 200);\n  assert.equal((await response.json()).model, requested.model);\n  assert.deepEqual(paths, ['/v1/messages/count_tokens?beta=true', '/v1/messages?beta=true']);\n  assert.equal(f.statuses.find(entry => entry.event === 'route').counted_input_tokens, 54000);\n  for (const secret of ['fake-subscription-token', 'PRIVATE_COOKIE', token]) assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes(secret));\n});",
+      "sha256": "c0ea987c8785d5987908d31edbe8ac7e52cde3bfb12a54f910aca97c33655181",
+      "assertions": [
+        {
+          "id": "server#9:assert-1",
+          "expression": "assert.equal(req.headers.authorization, oauthHeaders.authorization)",
+          "sha256": "eef89dd65a86aa771879b9ddd8d8f1b5c29b07b68f9c316c45574f2436ac645e",
+          "line": 310,
+          "executions": 2
+        },
+        {
+          "id": "server#9:assert-2",
+          "expression": "assert.equal(req.headers['anthropic-beta'], oauthHeaders['anthropic-beta'])",
+          "sha256": "0a84668b34b057e1b217ebeb847cf3c7a860e9229e3ea327d50afbdd4f264b95",
+          "line": 311,
+          "executions": 2
+        },
+        {
+          "id": "server#9:assert-3",
+          "expression": "assert.equal(req.headers['x-api-key'], undefined)",
+          "sha256": "5504d8ffe0ed02a9300430e2c4ac9bfdd6cb9a7dc773e00a6f0d53bdc8432e95",
+          "line": 312,
+          "executions": 2
+        },
+        {
+          "id": "server#9:assert-4",
+          "expression": "assert.equal(req.headers['x-autorouter-token'], undefined)",
+          "sha256": "0cd9ed0e32b31cec139db3b3d2368936faa1d892c452e24b5e562c3403862e78",
+          "line": 313,
+          "executions": 2
+        },
+        {
+          "id": "server#9:assert-5",
+          "expression": "assert.equal(req.headers.cookie, undefined)",
+          "sha256": "6f84fe74bc21cb53fe396867e9683b24122a71eb5032618fab223f9a5f4c12ba",
+          "line": 314,
+          "executions": 2
+        },
+        {
+          "id": "server#9:assert-6",
+          "expression": "assert.equal(payload.model, requested.model)",
+          "sha256": "f2e600f57074c875626f75a36b6a936fd44efc1d1fcf0e6494acaa1518a8c6e3",
+          "line": 317,
+          "executions": 2
+        },
+        {
+          "id": "server#9:assert-7",
+          "expression": "assert.equal(payload.system, requested.system)",
+          "sha256": "617ae844913166e292550d7b103fe49d80b6f92771d4783f1498808404dcc0f6",
+          "line": 318,
+          "executions": 2
+        },
+        {
+          "id": "server#9:assert-8",
+          "expression": "assert.equal(response.status, 200)",
+          "sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "line": 324,
+          "executions": 1
+        },
+        {
+          "id": "server#9:assert-9",
+          "expression": "assert.equal((await response.json()).model, requested.model)",
+          "sha256": "e7a0616de263a688f375c71178c6d0059e1ceed0b39d499009b2d401bfee9e4b",
+          "line": 325,
+          "executions": 1
+        },
+        {
+          "id": "server#9:assert-10",
+          "expression": "assert.deepEqual(paths, ['/v1/messages/count_tokens?beta=true', '/v1/messages?beta=true'])",
+          "sha256": "14843d78c63e15562f3d9daa08e777140b48b0d33f7a447949a6936ab6b10024",
+          "line": 326,
+          "executions": 1
+        },
+        {
+          "id": "server#9:assert-11",
+          "expression": "assert.equal(f.statuses.find(entry => entry.event === 'route').counted_input_tokens, 54000)",
+          "sha256": "eae2ca9b8a4812bf10726525642cd4599839808458388dabd347ba3579f249f1",
+          "line": 327,
+          "executions": 1
+        },
+        {
+          "id": "server#9:assert-12",
+          "expression": "assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes(secret))",
+          "sha256": "b1c3415ef076264108c361d7372aabbb90efd71334431450848dd5cd58e79175",
+          "line": 328,
+          "executions": 3
+        }
+      ],
+      "passed": true
+    },
+    {
+      "number": 10,
+      "id": "test/server.test.mjs#10",
+      "name": "subscription preserves OAuth headers, token refresh, SSE and usage limits, while stripping the local credential",
+      "statement": "test('subscription preserves OAuth headers, token refresh, SSE and usage limits, while stripping the local credential', async t => {\n  const credentials = [];\n  const sse = 'event: message_start\\ndata: {\"type\":\"message_start\"}\\n\\nevent: message_stop\\ndata: {\"type\":\"message_stop\"}\\n\\n';\n  const f = await fixture(t, async (req, res) => {\n    credentials.push(req.headers.authorization);\n    assert.equal(req.headers['anthropic-beta'], oauthHeaders['anthropic-beta']);\n    assert.equal(req.headers['anthropic-version'], oauthHeaders['anthropic-version']);\n    assert.equal(req.headers['x-api-key'], undefined);\n    assert.equal(req.headers['x-autorouter-token'], undefined);\n    assert.equal(req.headers.cookie, undefined);\n    let text = ''; for await (const chunk of req) text += chunk;\n    assert.deepEqual(JSON.parse(text), { ...body, model: 'claude-haiku-4-5-20251001' });\n    res.writeHead(200, { 'content-type': 'text/event-stream', 'anthropic-ratelimit-unified-5h-utilization': '0.3' });\n    res.end(sse);\n  }, { authMode: 'subscription' });\n  for (const authorization of [oauthHeaders.authorization, 'Bearer fake-refreshed-token']) {\n    const response = await f.call('/v1/messages?beta=true', { method: 'POST', headers: { ...oauthHeaders, authorization, cookie: 'should-not-be-forwarded' }, body: JSON.stringify(body) });\n    assert.equal(response.status, 200);\n    assert.equal(response.headers.get('anthropic-ratelimit-unified-5h-utilization'), '0.3');\n    assert.equal(await response.text(), sse);\n  }\n  assert.deepEqual(credentials, [oauthHeaders.authorization, 'Bearer fake-refreshed-token']);\n  assert.equal(f.evaluations(), 2);\n  for (const secret of ['fake-subscription-token', 'fake-refreshed-token', token, 'upstream-secret']) assert.ok(!JSON.stringify(f.logs).includes(secret));\n});",
+      "sha256": "097c2e167b30e0f03995069b70bad912347d397e57f54574c7be3bc22689b625",
+      "assertions": [
+        {
+          "id": "server#10:assert-1",
+          "expression": "assert.equal(req.headers['anthropic-beta'], oauthHeaders['anthropic-beta'])",
+          "sha256": "0a84668b34b057e1b217ebeb847cf3c7a860e9229e3ea327d50afbdd4f264b95",
+          "line": 336,
+          "executions": 2
+        },
+        {
+          "id": "server#10:assert-2",
+          "expression": "assert.equal(req.headers['anthropic-version'], oauthHeaders['anthropic-version'])",
+          "sha256": "b4fb97aff23405e1cd6bb05e7684454f5e4020e9c589be36e1d9ff6636009ec7",
+          "line": 337,
+          "executions": 2
+        },
+        {
+          "id": "server#10:assert-3",
+          "expression": "assert.equal(req.headers['x-api-key'], undefined)",
+          "sha256": "5504d8ffe0ed02a9300430e2c4ac9bfdd6cb9a7dc773e00a6f0d53bdc8432e95",
+          "line": 338,
+          "executions": 2
+        },
+        {
+          "id": "server#10:assert-4",
+          "expression": "assert.equal(req.headers['x-autorouter-token'], undefined)",
+          "sha256": "0cd9ed0e32b31cec139db3b3d2368936faa1d892c452e24b5e562c3403862e78",
+          "line": 339,
+          "executions": 2
+        },
+        {
+          "id": "server#10:assert-5",
+          "expression": "assert.equal(req.headers.cookie, undefined)",
+          "sha256": "6f84fe74bc21cb53fe396867e9683b24122a71eb5032618fab223f9a5f4c12ba",
+          "line": 340,
+          "executions": 2
+        },
+        {
+          "id": "server#10:assert-6",
+          "expression": "assert.deepEqual(JSON.parse(text), { ...body, model: 'claude-haiku-4-5-20251001' })",
+          "sha256": "d68bd57ffaaf67e7809b5c94fa6da03bca57e282c277538e3f5e86df333ad062",
+          "line": 342,
+          "executions": 2
+        },
+        {
+          "id": "server#10:assert-7",
+          "expression": "assert.equal(response.status, 200)",
+          "sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "line": 348,
+          "executions": 2
+        },
+        {
+          "id": "server#10:assert-8",
+          "expression": "assert.equal(response.headers.get('anthropic-ratelimit-unified-5h-utilization'), '0.3')",
+          "sha256": "9b7cd94028e97b568341343f96b505f466a736f5cbcdb4d7d31db58f44fd5770",
+          "line": 349,
+          "executions": 2
+        },
+        {
+          "id": "server#10:assert-9",
+          "expression": "assert.equal(await response.text(), sse)",
+          "sha256": "2ea7182638dc4138320b589385d5e5e693c947f0075cb1e4009ce7e213ec6fa6",
+          "line": 350,
+          "executions": 2
+        },
+        {
+          "id": "server#10:assert-10",
+          "expression": "assert.deepEqual(credentials, [oauthHeaders.authorization, 'Bearer fake-refreshed-token'])",
+          "sha256": "404630c1b2b6a8adf8d05af6fe9df8ce085a5c25a64942362f0c35e770ab43a7",
+          "line": 352,
+          "executions": 1
+        },
+        {
+          "id": "server#10:assert-11",
+          "expression": "assert.equal(f.evaluations(), 2)",
+          "sha256": "546ff22a61690dd9c81196382e2b44553d2104881fd036cd2696c10defb2bfcf",
+          "line": 353,
+          "executions": 1
+        },
+        {
+          "id": "server#10:assert-12",
+          "expression": "assert.ok(!JSON.stringify(f.logs).includes(secret))",
+          "sha256": "f0b2f43b4cb88142cf8ab5f38c07c60580d54013f88608ea3700f18586810e99",
+          "line": 354,
+          "executions": 4
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "static_assertions": 57,
+  "expanded_assertions": 99,
+  "assertion_execution_order_file": "assertion-executions.json",
+  "assertion_order_scope": "Raw execution order retained separately; independent Jev/count requests may race. Per-site and per-callback counts are exact, and no global cross-peer order is projected as equivalent.",
+  "cases_sha256": "3f92130625b6e04789fd802e5322fbaba64098f6318bbd2e2b4e0d6a18151e33",
+  "callbacks_executed": 4,
+  "network_scope": "Actual synthetic loopback HTTP only; original #9 evaluator remains supplied mock fetch.",
+  "capture_semantics": "Complete selected callbacks and five helper statements restored unchanged except successful assertion-result wrappers. Recording delegates actual HTTP and original return objects; no clone/drain, substituted verdict, timing threshold or source clock changes. Per-peer complete bodies preserve bytes; raw chunks and chronological reads remain in raw observations.",
+  "projection_kinds": [
+    "validated_latency",
+    "generated_request_id",
+    "automatic_http_date",
+    "loopback_authority"
+  ],
+  "typed_observations": [
+    "Headers inputs are enumerated into their complete normalized field map.",
+    "Stable UTF-8 views replace duplicate base64 only after byte-for-byte roundtrip validation; original base64 bytes remain in raw observations."
+  ],
+  "raw_observations_file": "raw-observations.json",
+  "projection_ledger_file": "projections.json",
+  "cleanup": [
+    {
+      "id": "server-streaming-routing-1",
+      "servers": 2,
+      "all_closed": true,
+      "remaining_sockets": 0
+    },
+    {
+      "id": "server-streaming-routing-8",
+      "servers": 3,
+      "all_closed": true,
+      "remaining_sockets": 0
+    },
+    {
+      "id": "server-streaming-routing-9",
+      "servers": 2,
+      "all_closed": true,
+      "remaining_sockets": 0
+    },
+    {
+      "id": "server-streaming-routing-10",
+      "servers": 2,
+      "all_closed": true,
+      "remaining_sockets": 0
+    }
+  ]
+}
