@@ -20,9 +20,15 @@ const MAX_EVIDENCE_TOTAL: usize = 512 * 1024 * 1024;
 mod authorization;
 #[path = "release_direct.rs"]
 mod direct;
+#[path = "release_direct_smoke.rs"]
+pub(crate) mod direct_smoke;
 #[cfg(test)]
 pub use authorization::verify as verify_authorization;
 pub use authorization::verify_decoded as verify_authorization_decoded;
+#[cfg(test)]
+pub(crate) fn verify_direct_fixture(name: &str, bytes: &[u8]) -> Result<Value, String> {
+    direct::verify_bytes(name, bytes)
+}
 
 fn json_bytes(value: &Value) -> Vec<u8> {
     let mut bytes = serde_json::to_vec_pretty(value).expect("serializable release metadata");
@@ -549,7 +555,7 @@ fn write_output(path: &Path, files: &BTreeMap<String, Vec<u8>>) -> Result<(), St
 pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
     if args.is_empty() || args == ["--help"] {
         println!(
-            "Usage: cargo xtask release-pack vVERSION --inputs FILE --output FRESH_DIRECTORY\n       cargo xtask release-pack verify-direct ARCHIVE\n       cargo xtask release-pack materials\n       cargo xtask release-pack authorize DIRECTORY --inputs FILE\n\nOffline production candidate assembly only: clean exact source tag, reviewed full platform matrix, hash-bound CI binaries, five retained qualification reports and separate approval required. No publishing, builds, downloads, version edits or qualification measurements. See rust/distribution/release-schema.md."
+            "Usage: cargo xtask release-pack vVERSION --inputs FILE --output FRESH_DIRECTORY\n       cargo xtask release-pack verify-direct ARCHIVE\n       cargo xtask release-pack smoke-direct ARCHIVE\n       cargo xtask release-pack materials\n       cargo xtask release-pack authorize DIRECTORY --inputs FILE\n\nOffline production candidate assembly requires clean exact source tag, reviewed full platform matrix, hash-bound CI binaries, five retained qualification reports and separate approval. smoke-direct verifies and installs one exact host archive in a temporary home, then runs its mock launcher lifecycle suites; it needs the pinned Cargo tooling but does not call providers. No publishing, downloads or version edits. See rust/distribution/release-schema.md."
         );
         return Ok(true);
     }
@@ -571,6 +577,13 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
         println!(
             "{}",
             serde_json::to_string_pretty(&direct::verify_path(Path::new(&args[1]))?).unwrap()
+        );
+        return Ok(true);
+    }
+    if args.first().map(String::as_str) == Some("smoke-direct") && args.len() == 2 {
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&direct_smoke::run(Path::new(&args[1]), root)?).unwrap()
         );
         return Ok(true);
     }

@@ -2,6 +2,7 @@
 //! the frozen JavaScript suite. No provider, model, or user state is contacted.
 use autorouter_core::config::read_config;
 use autorouter_runtime::http_client::{HttpTransport, NativeHttpClient};
+use autorouter_runtime::router::Router;
 use autorouter_runtime::server::Gateway;
 use autorouter_runtime::server_events::EventSinks;
 use bytes::Bytes;
@@ -11,7 +12,7 @@ use hyper::service::service_fn;
 use hyper::{Request, Response};
 use hyper_util::rt::TokioIo;
 use serde_json::{Value, json};
-use std::collections::VecDeque;
+use std::collections::{HashSet, VecDeque};
 use std::convert::Infallible;
 use std::pin::Pin;
 use std::sync::{
@@ -77,6 +78,8 @@ async fn protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuit
     ))
     .unwrap();
     for scenario in corpus["cases"].as_array().unwrap() {
+        tokio::time::timeout(std::time::Duration::from_secs(10), async {
+        let original_scenario = scenario.clone();
         let active = Arc::new(Mutex::new(Value::Null));
         let received = Arc::new(Mutex::new(Vec::new()));
         let evaluations = Arc::new(AtomicUsize::new(0));
@@ -85,13 +88,24 @@ async fn protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuit
         let active_server = active.clone();
         let received_server = received.clone();
         let evaluations_server = evaluations.clone();
+        let failures = Arc::new(Mutex::new(Vec::<&'static str>::new()));
+        let failures_server = failures.clone();
         let mock = tokio::spawn(async move {
             let mut children = tokio::task::JoinSet::new();
             loop {
-                let (socket, _) = listener.accept().await.unwrap();
+                let incoming = tokio::select! {
+                    biased;
+                    completed = children.join_next(), if !children.is_empty() => {
+                        if completed.is_some_and(|result| result.is_err()) { failures_server.lock().unwrap().push("synthetic provider task failed"); }
+                        continue;
+                    }
+                    incoming = listener.accept() => incoming,
+                };
+                let (socket, _) = incoming.unwrap();
                 let active = active_server.clone();
                 let received = received_server.clone();
                 let evaluations = evaluations_server.clone();
+                let failures = failures_server.clone();
                 children.spawn(async move{
                     let service=service_fn(move |request:Request<Incoming>|{
                         let active=active.clone();let received=received.clone();let evaluations=evaluations.clone();
@@ -107,7 +121,7 @@ async fn protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuit
                             };
                             Ok::<_,Infallible>(response)
                         }
-                    });let _=hyper::server::conn::http1::Builder::new().serve_connection(TokioIo::new(socket),service).await;
+                    });if hyper::server::conn::http1::Builder::new().serve_connection(TokioIo::new(socket),service).await.is_err() { failures.lock().unwrap().push("synthetic provider connection failed"); }
                 });
             }
         });
@@ -118,9 +132,11 @@ async fn protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuit
         let records = Arc::new(Mutex::new(Vec::<Value>::new()));
         let sink = records.clone();
         let client = Arc::new(NativeHttpClient::new().unwrap());
-        let gateway = Gateway::new(
+        let router = Arc::new(Router::new(client.clone(), config.clone()));
+        let gateway = Gateway::with_router(
             config,
             client.clone(),
+            router.clone(),
             EventSinks {
                 record: Some(Arc::new(move |record| sink.lock().unwrap().push(record))),
                 ..Default::default()
@@ -174,6 +190,10 @@ async fn protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuit
                 }
                 tokio::task::yield_now().await;
             }
+            assert!(
+                failures.lock().unwrap().is_empty(),
+                "Provider fixture failures remain empty"
+            );
             assert_eq!(
                 evaluations.load(Ordering::SeqCst) - before,
                 usize::from(!step["evaluator_tier"].is_null()),
@@ -194,6 +214,12 @@ async fn protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuit
             assert_eq!(headers["x-api-key"], "synthetic-upstream-key");
             assert_eq!(headers["anthropic-beta"], "synthetic-protocol-contract");
             assert_eq!(headers["anthropic-version"], "2023-06-01");
+            for (name, value) in step["identity"].as_object().unwrap() {
+                assert_eq!(
+                    headers[format!("x-claude-code-{}", name.replace('_', "-"))],
+                    value.as_str().unwrap()
+                );
+            }
             let records = records.lock().unwrap();
             assert_eq!(
                 records.len(),
@@ -203,6 +229,7 @@ async fn protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuit
             );
             let decision = &records[index * 2];
             let outcome = &records[index * 2 + 1];
+            assert_eq!(decision["schema_version"], 2);
             assert_eq!(decision["event"], "decision");
             assert_eq!(outcome["event"], "outcome");
             assert_eq!(outcome["request_id"], decision["request_id"]);
@@ -212,12 +239,22 @@ async fn protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuit
             }
             for field in ["selected_model", "source", "reason", "compatibility_reason"] {
                 assert_eq!(
-                    decision[field], step["expected"][field],
+                    decision.get(field),
+                    step["expected"].get(field),
                     "{} {field}",
                     step["id"]
                 );
             }
-            assert_eq!(decision["classified_tier"], step["evaluator_tier"]);
+            if step["evaluator_tier"].is_null() {
+                assert!(
+                    !decision
+                        .as_object()
+                        .unwrap()
+                        .contains_key("classified_tier")
+                );
+            } else {
+                assert_eq!(decision["classified_tier"], step["evaluator_tier"]);
+            }
             assert_eq!(outcome["status"], "completed");
             for field in [
                 "confirmed_model",
@@ -228,21 +265,51 @@ async fn protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuit
                 "continuity_state",
             ] {
                 assert_eq!(
-                    outcome[field], step["expected"][field],
+                    outcome.get(field),
+                    step["expected"].get(field),
                     "{} {field}",
                     step["id"]
                 );
             }
             let transitions = step["expected"]
                 .get("model_transitions")
+                .filter(|value| !value.is_null())
                 .cloned()
                 .unwrap_or_else(|| json!([step["expected"]["confirmed_model"]]));
             assert_eq!(outcome["model_transitions"], transitions);
+            if step["expected"]["usage_complete"] == true {
+                assert_eq!(outcome["usage"]["input_tokens"].as_f64(), Some(100.0));
+                assert_eq!(outcome["usage"]["output_tokens"].as_f64(), Some(12.0));
+                assert_eq!(
+                    outcome["usage"]["cache_read_input_tokens"].as_f64(),
+                    Some(20.0)
+                );
+            }
+            assert_eq!(
+                router.continuity_snapshot().attempts,
+                0,
+                "{} pending attempts",
+                step["id"]
+            );
             assert!(!decision.as_object().unwrap().contains_key("prompt_excerpt"));
             assert!(!format!("{decision}{outcome}").contains("synthetic-evaluator-key"));
+        }
+        assert_eq!(
+            *scenario, original_scenario,
+            "Fixture and requests remain immutable"
+        );
+        {
+            let records = records.lock().unwrap();
+            let ids: HashSet<_> = records
+                .iter()
+                .filter(|row| row["event"] == "decision")
+                .map(|row| row["request_id"].as_str().unwrap())
+                .collect();
+            assert_eq!(ids.len(), scenario["steps"].as_array().unwrap().len());
         }
         handle.close().await;
         mock.abort();
         let _ = mock.await;
+        }).await.expect("Synthetic protocol scenario exceeded the original ten-second bound");
     }
 }

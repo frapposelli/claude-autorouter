@@ -6,7 +6,11 @@ every ordered DER fingerprint was compared with the official
 [`src/node_root_certs.h`](https://github.com/nodejs/node/blob/v22.14.0/src/node_root_certs.h).
 The source SHA-256, bundle hash, certificate subjects/fingerprints and original
 Node license hash are retained in `provenance.json`. Run
-`node rust/vendor/verify-node-ca.mjs` to verify the retained files offline.
+`node rust/vendor/verify-node-ca.mjs` for the temporary reference check, or use
+the independent native auditor's `vendor --only node-ca` command from
+[the audit guide](../AUDITING.md). Native inspection validates the pinned
+provenance, PEM/license hashes and every ordered DER fingerprint without linking
+the inspected OpenSSL dependency.
 
 This root set is an explicit native-build dependency, not a claim that all Node
 22/24 releases or operating-system stores contain the same certificates. Audit

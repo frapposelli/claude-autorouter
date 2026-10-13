@@ -192,10 +192,11 @@ fn finish(mut report: Value) -> Value {
 }
 
 /// Progress is best effort. With unwinding enabled, ordinary callback panics
-/// are contained after the caller's panic hook runs; callback errors are ignored.
+/// are contained; callback errors are ignored. Explicit host initialization of
+/// observer privacy also suppresses panic-hook output for these calls.
 /// This synchronous callback API does not await JavaScript-style promises.
 fn emit_progress<F: FnMut(&Value) -> Result<(), ()>>(progress: &mut F, event: &Value) {
-    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| progress(event)));
+    let _ = crate::callback_privacy::contain_callback(|| progress(event));
 }
 
 pub async fn run_local_diagnostic<T: HttpTransport + 'static>(

@@ -35,9 +35,14 @@ The [library integration guide](docs/embedding.md) documents the Rust API, the s
 cargo fetch --locked
 cargo metadata --format-version 1 --locked --offline > /dev/null
 cargo fmt --check
-node vendor/verify-hyper.mjs
-node vendor/verify-hyper-util.mjs
-node vendor/verify-production-features.mjs --self-test
+mkdir -p ../artifacts/rust-rewrite
+cargo build --package xtask --no-default-features --bin autorouter-audit --locked --offline --message-format=json > ../artifacts/rust-rewrite/auditor-bootstrap-build.jsonl
+cp target/debug/autorouter-audit ../artifacts/rust-rewrite/autorouter-audit-bootstrap
+../artifacts/rust-rewrite/autorouter-audit-bootstrap bootstrap --build-report ../artifacts/rust-rewrite/auditor-bootstrap-build.jsonl
+../artifacts/rust-rewrite/autorouter-audit-bootstrap vendor
+../artifacts/rust-rewrite/autorouter-audit-bootstrap production-features --self-test
+cargo clippy --package xtask --no-default-features --all-targets --locked --offline -- -D warnings
+cargo test --package xtask --no-default-features --bin autorouter-audit --locked --offline
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
 cargo xtask freeze-reference
@@ -64,6 +69,13 @@ npm run test:package
 
 The four existing Node/OS CI jobs remain required. Native CI adds compiler, contract, integration, and executable comparison checks; it does not invoke live tools or impose workstation timing thresholds.
 
+The [native audit guide](vendor/AUDITING.md) describes the separate contributor
+auditor, supported feature combinations and bootstrap proof. Build it without
+default features before inspected dependencies, then preserve its executable
+copy before full workspace builds can replace it. The old Node auditors remain
+temporary independent reference controls; native CI uses Rust for all five
+vendor/release-feature checks.
+
 Ordinary native builds retain Rustls for TLS. The OpenSSL transport and Node
 connection-close experiments remain test-only and have not been promoted.
 The experimental hyper-util connection lease and raw pool, and Hyper body
@@ -79,7 +91,7 @@ To repeat that check locally:
 ```sh
 mkdir -p ../artifacts/rust-rewrite
 cargo build --release --locked --package claude-autorouter --message-format=json > ../artifacts/rust-rewrite/production-build.jsonl
-node vendor/verify-production-features.mjs --build-report ../artifacts/rust-rewrite/production-build.jsonl
+../artifacts/rust-rewrite/autorouter-audit-bootstrap production-features --build-report ../artifacts/rust-rewrite/production-build.jsonl
 ```
 
 The separate [sanitizer fuzz workspace](fuzz/README.md) exercises JSON edits,

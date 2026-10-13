@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "kind": "native_history_limit_admission_resume_checkpoint",
+  "date": "2026-10-13",
+  "head_commit": "da51574ec1a895286c0379db1623d715e986be7e",
+  "source_uncommitted": true,
+  "release_approved": false,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "correction": "Validate all seven HistoryLimits fields at public filesystem-reader admission, before worker spawn, ID validation, directory checks or file access. Defaults and individually lowered limits remain unchanged.",
+  "source_ceilings": {
+    "maxFiles": 100,
+    "maxDirectoryEntries": 10000,
+    "maxFileBytes": 4194304,
+    "maxTotalBytes": 16777216,
+    "maxLineBytes": 16384,
+    "maxRecords": 5000,
+    "maxLines": 10000
+  },
+  "tests": {
+    "native_new_regressions": 4,
+    "native_retained_history_contracts": 7,
+    "native_existing_core_history_units": 4,
+    "native_existing_runtime_history_units": 2,
+    "native_total_passed": 17,
+    "direct_invalid_admission_controls": 63,
+    "decoded_invalid_value_controls": 43,
+    "direct_vs_decoded_accepted_limit_pairs": 14,
+    "frozen_reference_limit_rejection_controls": 63,
+    "frozen_reference_other_invalid_value_controls": 43,
+    "frozen_reference_history_filesystem_calls": 0,
+    "invalid_options_reject_without_tokio_runtime": true,
+    "unpolled_reader_does_not_start_work": true,
+    "valid_logs_unchanged": true,
+    "private_synthetic_input_fields_omitted": true,
+    "source_error_precedence_retained": true,
+    "focused_strict_clippy_passed": true
+  },
+  "validation_environment": {
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0"
+  },
+  "observed_tool_commands": [
+    {
+      "argv": [
+        "artifacts/dev-environment/run",
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--package",
+        "autorouter-runtime",
+        "--test",
+        "session_history_limits",
+        "--test",
+        "session_history_contracts",
+        "--",
+        "--test-threads=2"
+      ],
+      "cwd": "rust",
+      "exit_code": 0,
+      "tests_passed": 11
+    },
+    {
+      "argv": [
+        "artifacts/dev-environment/run",
+        "cargo",
+        "test",
+        "--locked",
+        "--offline",
+        "--package",
+        "autorouter-core",
+        "--package",
+        "autorouter-runtime",
+        "--lib",
+        "session_history::tests",
+        "--",
+        "--test-threads=2"
+      ],
+      "cwd": "rust",
+      "exit_code": 0,
+      "tests_passed": 6
+    },
+    {
+      "argv": [
+        "artifacts/dev-environment/run",
+        "cargo",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--package",
+        "autorouter-core",
+        "--lib",
+        "--package",
+        "autorouter-runtime",
+        "--test",
+        "session_history_limits",
+        "--test",
+        "session_history_contracts",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "rust",
+      "exit_code": 0
+    }
+  ],
+  "evidence": {
+    "frozen_original_controls": {
+      "path": "artifacts/dev-environment/history-limit-original-controls-20261013.json",
+      "sha256": "a89dd47db530522b0455b751eeb582d16d3fc33e6ffaaa980490dac83d2d9aaf",
+      "source_sha256": "c9493652b93da345028c2f4a28a83d4ba30f35f40aedcd201712c7319161399a",
+      "files_verified": 111,
+      "type_boundary_adaptation": "The native usize::MAX controls and the reference above-safe-integer Number controls share the rejection category; they do not claim identical numeric input representation."
+    }
+  },
+  "source_inputs": [
+    {
+      "path": "rust/crates/autorouter-core/src/session_history.rs",
+      "sha256": "f5493657d52dd309b915ba469331ea835cb614f9e940511ddcbf6251b8041495",
+      "snapshot": "artifacts/rust-rewrite/history-limit-admission-20261013/sources/rust/crates/autorouter-core/src/session_history.rs"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/session_history.rs",
+      "sha256": "e22a79d5a5e023604ba181d6ee2ee3270eddfa5abd2d3520e12f30f097e506d6",
+      "snapshot": "artifacts/rust-rewrite/history-limit-admission-20261013/sources/rust/crates/autorouter-runtime/src/session_history.rs"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/session_history_limits.rs",
+      "sha256": "f71b0cc3ede47f3ef5d1daf908bad6f56eef63ab1819f0ab4a468c9623a9bc65",
+      "snapshot": "artifacts/rust-rewrite/history-limit-admission-20261013/sources/rust/crates/autorouter-runtime/tests/session_history_limits.rs"
+    }
+  ],
+  "scope_limits": [
+    "This validates the public filesystem reader; the existing pure parse_session/parse_session_with_locale Value APIs and their caller-owned byte inputs are unchanged.",
+    "Existing reader cancellation behavior is preserved; no cancellation-token API or blocking-read preemption promise was added.",
+    "No provider,evaluator,Keychain,user-configuration,publication,platform-matrix or numerical-performance operation/qualification.",
+    "Observed command results are retained as structured checkpoint metadata and exact source snapshots, not a claim of final immutable release/CI provenance. Root owns final combined checks and ledger admission."
+  ]
+}

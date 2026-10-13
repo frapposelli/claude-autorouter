@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "kind": "native_auditor_bootstrap_and_reference_validation",
+  "reviewed_at": "2026-10-13",
+  "release_approved": false,
+  "base_commit": "da51574ec1a895286c0379db1623d715e986be7e",
+  "working_tree_changes": true,
+  "bootstrap": {
+    "binary_sha256": "06fe9ec57df080f58384ea11943bcd7e7abcff505a1a0fd3f9c77943771cf4f3",
+    "build_report_sha256": "e1cb773126fd5b2b577846348f55a83c9e0329f1be90c37b536eba6db7bfeb69",
+    "excluded_packages": [
+      "autorouter-core",
+      "autorouter-runtime",
+      "hyper",
+      "hyper-util",
+      "openssl",
+      "openssl-sys",
+      "openssl-src",
+      "tokio"
+    ],
+    "dependency_graph_sha256": "ef3196a368b0e4f650ed66df3bf4af3ebc4d473834075f05879bef9162401d71",
+    "scope": "Compiled independent bootstrap auditor only; no release source provenance claim"
+  },
+  "production_reference": {
+    "reports_identical": true,
+    "accepted_controls": 1,
+    "rejected_controls": 36,
+    "actual_release_binary_sha256": "34c4d7e8585fe67abe8813609c17dbd89c621594ea44238cca3e0ab6fdfce125",
+    "actual_release_build_report_sha256": "2083144df112cef2804e958ae7ba9d8b871a66ac0699a7c85bfe7e9e3c1413cd"
+  },
+  "vendor_reference": {
+    "node_and_native_passed": true,
+    "components": [
+      {
+        "name": "hyper",
+        "version": "1.12.0",
+        "upstream_files": 68,
+        "patched_files": 70,
+        "changed_file_count": 11,
+        "root_count": null,
+        "provenance_sha256": "ef24aeb5ede29d80d97b3bea3312b8138685feb55bd6a46882a548bd82818f9a"
+      },
+      {
+        "name": "hyper-util",
+        "version": "0.1.21",
+        "upstream_files": 62,
+        "patched_files": 63,
+        "changed_file_count": 5,
+        "root_count": null,
+        "provenance_sha256": "0195bc375d47a28ec4474dd964041e5be25cbc25284bc03b1f3e2777adcb49ec"
+      },
+      {
+        "name": "openssl",
+        "version": "0.10.81",
+        "upstream_files": 112,
+        "patched_files": 112,
+        "changed_file_count": 5,
+        "root_count": null,
+        "provenance_sha256": "bca206aab567dc6f3307a0b35f8b8a0a8a7b2eda2b6879f618a891d72f7a47a4"
+      },
+      {
+        "name": "node-ca",
+        "version": "v22.14.0",
+        "upstream_files": null,
+        "patched_files": null,
+        "changed_file_count": 0,
+        "root_count": 149,
+        "provenance_sha256": "75eabcc62e010020332c92caa57c9463c2a1bc920a5be1ac368b7d26de2bcac9"
+      }
+    ]
+  },
+  "checks": {
+    "bootstrap_clippy_passed": true,
+    "bootstrap_tests_before_final_privacy_addition": 22,
+    "default_workspace_union_checks": "root-owned; pending at this checkpoint",
+    "old_node_auditors_retained_as_reference": true,
+    "native_ci_uses_independent_prebuild_auditor": true,
+    "no_new_crate_versions_or_downloads": true
+  },
+  "evidence": {
+    "bootstrap_build": "artifacts/dev-environment/audit-bootstrap-build-v2.jsonl",
+    "initial_compile_failure_retained": "artifacts/dev-environment/audit-bootstrap-build.jsonl",
+    "bootstrap_proof": "artifacts/dev-environment/audit-bootstrap-proof.json",
+    "dependency_graph": "artifacts/dev-environment/audit-bootstrap-dependency-tree.txt",
+    "native_vendor": "artifacts/dev-environment/native-vendor-audit.json",
+    "native_production": "artifacts/dev-environment/native-production-audit.json",
+    "node_production": "artifacts/dev-environment/node-production-audit.json",
+    "independent_controls": "artifacts/dev-environment/production-auditor-differential.json"
+  },
+  "limits": [
+    "local_macOS_ARM64",
+    "uncommitted_tooling_source",
+    "copied_auditor_precedes_final_metadata_privacy_refinement; final union validation must rebuild current source",
+    "CI changes not remotely executed at this checkpoint",
+    "no_production_cutover_or_release_qualification",
+    "no_provider_or_evaluator_calls_in_this_slice"
+  ]
+}

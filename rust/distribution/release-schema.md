@@ -7,6 +7,7 @@ cargo xtask release-check source vVERSION
 cargo xtask release-pack materials
 cargo xtask release-pack vVERSION --inputs ../release-evidence/inputs.json --output ../dist
 # Exercise these unchanged candidate archives on every qualified target.
+cargo xtask release-pack smoke-direct ../dist/claude-autorouter-VERSION-TARGET.tar.gz
 cargo xtask release-pack authorize ../dist --inputs ../release-evidence/final-inputs.json
 cargo xtask release-check archive vVERSION
 cargo xtask release-verify preflight vVERSION --archive ../dist/claude-autorouter-VERSION.tgz --report ../release-evidence/preflight.json
@@ -14,11 +15,20 @@ cargo xtask release-verify submitted vVERSION --archive ../dist/claude-autoroute
 cargo xtask release-verify verify vVERSION --archive ../dist/claude-autorouter-VERSION.tgz --report ../release-evidence/verified.json
 ```
 
-Assembly and authorization are offline and never run builds, installers, measurements or provider calls. These commands never publish, move a dist-tag, create a version/tag, or edit user configuration. `preflight`, `verify`, and `artifact-source` make read-only registry/GitHub calls when explicitly invoked; `verify` also runs an isolated npm installation and the installed CLI's help/version. No such calls are part of the unit tests.
+Assembly and authorization are offline and never run builds, installers, measurements or provider calls. `smoke-direct` is the separate local installed-archive check: it verifies the archive and sidecar, stages its exact bytes and permissions in a private temporary installation, runs help/version with Node absent from `PATH`, then executes all seven existing installed CLI/lifecycle suites against that executable. It needs the pinned Cargo test tooling, uses synthetic homes/services and removes temporary installations on every exit. Its report binds the actual archive hash; it does not qualify other platforms, corporate TLS or live-provider behavior. These commands never publish, move a dist-tag, create a version/tag, or edit user configuration. `preflight`, `verify`, and `artifact-source` make read-only registry/GitHub calls when explicitly invoked; `verify` also runs an isolated npm installation and the installed CLI's help/version. No such calls are part of the unit tests.
 
 The source check requires an exact version-tag/HEAD match, ancestry from `origin/main`, and a clean checkout. The native archive check enforces 32 MiB compressed, 64 MiB expanded, 32 MiB per file and 256 tar entries, rejects links, traversal, duplicate paths, altered checksums and undeclared files, and verifies the runtime documentation baseline. Package identity, repository and public-registry settings must match the established package.
 
 `package` currently produces **private feasibility artifacts**, with build schema 1 and `release_approved: false`. Those artifacts deliberately fail the production release checks. Creating a public manifest or recomputing an archive checksum does not turn schema 1 into a qualified release. `release-pack` is the separate production candidate assembler. It fails closed until the rewrite's required platform, compatibility, performance, license and lifecycle evidence is available. Current pending matrices and host-only reports cannot satisfy it. Distribution cutover remains separate work.
+
+`package --direct-from NPM_ARCHIVE --target TARGET --output NEW_DIRECTORY`
+similarly produces a private schema-1 `native_direct_feasibility` archive from
+an already-verified npm feasibility candidate. The converter preserves the
+parent's source metadata, pending qualification and executable bytes.
+`smoke-direct` accepts this explicitly private format as well as production
+candidates. `verify-direct`, production assembly, final authorization and release
+verification remain schema-2-only; passing a private smoke cannot authorize
+publication or provide trusted CI provenance.
 
 ## Production build manifest
 

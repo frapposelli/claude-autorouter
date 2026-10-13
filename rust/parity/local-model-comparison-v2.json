@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "kind": "declared_real_local_evaluator_zero_deadline_language_port_comparison",
+  "declared_before_inference": "2026-10-13",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "fixture": "test/fixtures/ollama-routing.json",
+  "small_host_model": {
+    "tag": "tev1:0.8b",
+    "digest": "d6e7bb9bfe0feda2548249c5fe9dde6113cf62d4a7eb0f95f5612573c2f2146e",
+    "ollama_version": "0.40.0",
+    "download_bytes": 796578566
+  },
+  "reason": "The immutable v1 five-pair experiment has identical decisions for all450 held-out requests per engine, inherited rubric failures, and10 bidirectional availability differences at the1500ms full-budget stress deadline. This separate experiment exercises the existing zero-runtime-deadline option with unchanged inputs to investigate classification/transport behavior independently of that cutoff. It does not replace or qualify the original failed finite-deadline runs.",
+  "engines": ["frozen Node evaluate-ollama", "same immutable native xtask evaluate-ollama as v1"],
+  "matched_pairs": 5,
+  "order": "Alternate engine order between pairs; verify complete candidate unload before each engine.",
+  "arguments": {
+    "split": "heldout",
+    "rounds": 3,
+    "stress_rounds": 8,
+    "warm_timeout_ms": 0,
+    "cold_timeout_ms": 60000,
+    "min_agreement": 1,
+    "max_under_route_rate": 0
+  },
+  "preconditions": [
+    "Same exact v1 executable, frozen111-file reference, model digest, fixture and rubric; retain all identities.",
+    "No resident model before each engine; leave unrelated model state unchanged and abort on conflicting use.",
+    "Pause agent builds/tests; usual user applications remain open under the requested normal-use conditions.",
+    "Keep caller cancellation, response bounds, cold preparation deadline and a separately recorded900-second process ownership bound. Zero disables only the warm evaluator timer."
+  ],
+  "comparison": {
+    "policy": "Retain the unchanged strict100% agreement/zero under-routing policy and all inherited failures. No fixture/rubric/label/confidence tuning.",
+    "language_port": "Compare every cold/warm/stress case identity, complete categorical result, error, state byte count and provider input-token metrics. Any unexplained difference remains unresolved; matching labels alone do not qualify downstream task completion.",
+    "timing": "Retain all normal-use measurements; collect no claim that the default1500ms deadline passes, that a larger model becomes suitable, or that Rust accelerates model inference.",
+    "cleanup": "Unload only the explicitly admitted candidate and verify no test-owned model remains resident. Retain all interruptions and failed outcomes."
+  },
+  "separate_gates": [
+    "v1 remains the finite-deadline evidence; v2 is a separate feature/transport investigation.",
+    "Normal-use16GiB data cannot approve controlled gateway performance or the larger-host trial.",
+    "No routing-policy, Claude task, platform, archive, cutover or publication approval follows."
+  ]
+}

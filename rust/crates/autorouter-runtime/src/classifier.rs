@@ -2,9 +2,9 @@
 //! Active turns live elsewhere. Successful cache entries contain only SHA-256
 //! digests and decisions; pending tasks retain just evaluator settings/excerpts.
 
+use crate::callback_privacy::contain_callback;
 use std::collections::{HashMap, VecDeque};
 use std::future::poll_fn;
-use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::{
     Arc, Mutex, Weak,
     atomic::{AtomicBool, Ordering},
@@ -12,6 +12,7 @@ use std::sync::{
 use std::time::Duration;
 
 use autorouter_core::config::{Evaluator, RouterConfig};
+use autorouter_core::contracts::{ClassifierError, DecisionSource};
 use autorouter_core::js_json::JsDocument;
 use autorouter_core::prompt_state::{build_ollama_state_document, build_state_document};
 use serde_json::json;
@@ -21,7 +22,7 @@ use tokio::time::Instant;
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
 use crate::evaluator::{
-    ClassifierDecision, EvaluationError, evaluate_serialized_state, unavailable,
+    ClassifierDecision, EvaluationError, evaluate_serialized_state, unavailable_error,
 };
 use crate::http_client::HttpTransport;
 
@@ -67,7 +68,7 @@ impl Drop for FinishWorker {
         self.0.finished.store(true, Ordering::Release);
         // Persistent state is published first; arbitrary wake functions run
         // outside the registry and cannot erase the completion observation.
-        let _ = catch_unwind(AssertUnwindSafe(|| self.0.changed.notify_waiters()));
+        let _ = contain_callback(|| self.0.changed.notify_waiters());
     }
 }
 struct Entry {
@@ -104,7 +105,7 @@ impl State {
             return None;
         }
         let mut value = cached.value.clone();
-        value.source = "cache";
+        value.source = DecisionSource::Cache;
         self.cache.insert(*key, cached);
         self.order.push_back(*key);
         Some(value)
@@ -361,10 +362,10 @@ impl<T: HttpTransport + 'static> Classifier<T> {
                     && (state.pending.len() >= self.shared.limits.pending
                         || self.shared.workers.len() >= self.shared.limits.pending))
             {
-                Some(Ok(unavailable(
+                Some(Ok(unavailable_error(
                     &requested,
                     config.evaluator,
-                    "capacity_exhausted",
+                    ClassifierError::CapacityExhausted,
                 )))
             } else {
                 None
@@ -375,21 +376,21 @@ impl<T: HttpTransport + 'static> Classifier<T> {
                 return result;
             }
             if !state.pending.contains_key(&key) {
-                let excerpt = catch_unwind(AssertUnwindSafe(|| match config.evaluator {
+                let excerpt = contain_callback(|| match config.evaluator {
                     Evaluator::Ollama => {
                         build_ollama_state_document(document, config.ollama_state_chars).stringify()
                     }
                     Evaluator::Jev => {
                         build_state_document(document, config.state_chars).stringify()
                     }
-                }));
+                });
                 let Ok(excerpt) = excerpt else {
                     drop(state);
                     drop(cancelled);
-                    return Ok(unavailable(
+                    return Ok(unavailable_error(
                         &requested,
                         config.evaluator,
-                        "invalid_response",
+                        ClassifierError::InvalidResponse,
                     ));
                 };
                 let (result, _) = watch::channel(None);
@@ -475,10 +476,10 @@ impl<T: HttpTransport + 'static> Classifier<T> {
                 // Retaining Entry also retains its Sender. Worker abort/panic
                 // without a result must not wait forever for a closed channel.
                 subscription.retire_finished();
-                return Ok(unavailable(
+                return Ok(unavailable_error(
                     &requested_model(document),
                     config.evaluator,
-                    "network_error",
+                    ClassifierError::NetworkError,
                 ));
             }
             tokio::select! {
@@ -487,7 +488,7 @@ impl<T: HttpTransport + 'static> Classifier<T> {
                 _ = subscription.entry.completed.wait() => {},
                 changed = receiver.changed() => {
                     if changed.is_err() {
-                        return Ok(unavailable(&requested_model(document), config.evaluator, "network_error"));
+                        return Ok(unavailable_error(&requested_model(document), config.evaluator, ClassifierError::NetworkError));
                     }
                 }
             }
@@ -516,16 +517,14 @@ impl<T: HttpTransport + 'static> Classifier<T> {
                     &entry.controller,
                 );
                 tokio::pin!(future);
-                poll_fn(
-                    |cx| match catch_unwind(AssertUnwindSafe(|| future.as_mut().poll(cx))) {
-                        Ok(result) => result,
-                        Err(_) => std::task::Poll::Ready(Ok(unavailable(
-                            &requested,
-                            settings.evaluator,
-                            "network_error",
-                        ))),
-                    },
-                )
+                poll_fn(|cx| match contain_callback(|| future.as_mut().poll(cx)) {
+                    Ok(result) => result,
+                    Err(_) => std::task::Poll::Ready(Ok(unavailable_error(
+                        &requested,
+                        settings.evaluator,
+                        ClassifierError::NetworkError,
+                    ))),
+                })
                 .await
             }; // Drop evaluator-owned request/body before result publication.
             if let Some(shared) = weak.upgrade() {
@@ -544,7 +543,7 @@ impl<T: HttpTransport + 'static> Classifier<T> {
                     if active
                         && !entry.controller.is_cancelled()
                         && let Ok(value) = &result
-                        && value.source != "fallback"
+                        && value.source != DecisionSource::Fallback
                     {
                         state.cache_set(key, value.clone(), shared.cache_entries, shared.cache_ttl);
                     }
@@ -888,7 +887,10 @@ mod tests {
                 .classify(&doc, &config, &CancellationToken::new())
                 .await
                 .unwrap();
-            assert_eq!(result.classifier_error, Some("capacity_exhausted"));
+            assert_eq!(
+                result.classifier_error.map(ClassifierError::as_str),
+                Some("capacity_exhausted")
+            );
             assert_eq!(result.source, "fallback");
         }
         cancel.cancel();
@@ -901,7 +903,10 @@ mod tests {
             )
             .await
             .unwrap();
-        assert_eq!(blocked.classifier_error, Some("capacity_exhausted"));
+        assert_eq!(
+            blocked.classifier_error.map(ClassifierError::as_str),
+            Some("capacity_exhausted")
+        );
         let d = start(&classifier, body, &config, CancellationToken::new());
         wait_subscribers(&classifier, 3).await;
         mock.release(2);

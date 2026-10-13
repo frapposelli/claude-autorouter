@@ -103,6 +103,39 @@ Choose the actual target of the supplied executable; filenames do not override a
 
 Local package assembly records binary and Cargo lock hashes, source revision/dirty state, license material and target inspection. These are artifact-integrity facts; a dirty-tree feasibility build is not release provenance. A complete release still requires every supported target, exact installed launcher lifecycle, license review, an immutable archive tested once, registry integrity verification, rollout and rollback qualification.
 
+An exact verified npm feasibility archive can also supply a private direct
+archive for one of its bundled targets:
+
+```sh
+cargo xtask package --direct-from artifacts/rust-rewrite/package-NEW/claude-autorouter-0.5.2.tgz --target aarch64-apple-darwin --output artifacts/rust-rewrite/direct-NEW --smoke
+```
+
+Choose the actual bundled target and a fresh output directory with an existing
+parent. The converter checks the npm checksum sidecar, copies the same binary,
+documentation and licenses, and records the parent archive's exact hash. The
+direct candidate has schema 1, `kind: "native_direct_feasibility"`,
+`private: true` and `release_approved: false`. It retains the original source
+identity and pending qualification; production release checks reject it.
+
+`--smoke` extracts that exact bounded archive into a private temporary directory,
+verifies installed bytes and permissions, runs help/version without Node on
+`PATH`, and runs the same seven installed launcher/configuration suites used by
+npm smoke. No npm installation, provider request or real user configuration is
+involved. Installation paths include spaces, quotes and dollar signs; execution
+uses an unrelated working directory. An incompatible CPU/OS is rejected before
+execution. Cargo and contributor test dependencies are needed by this validation
+tool, not by the installed native executable. Temporary installations are
+removed on success and failure. Assembled archives stay unchanged for diagnosis
+if a completed smoke fails.
+
+Repeat the test of an unchanged direct archive with
+`cargo xtask release-pack smoke-direct ../artifacts/rust-rewrite/direct-NEW/claude-autorouter-0.5.2-aarch64-apple-darwin.tar.gz`.
+This command can test private feasibility or qualified production candidates;
+its report never supplies final release authorization. Oldest OS/libc, CPU
+fleet, corporate CA environments, real Keychain entries and live providers need
+their own evidence. The [platform audit](platform-audit.md) records why the
+larger baseline matrix remains unresolved.
+
 A source-only transfer bundle is also available:
 
 ```sh
@@ -120,7 +153,7 @@ or an offline dependency vendor. Building it and requesting tool help does
 not invoke an evaluator. Actual evaluator and Claude-startup commands retain
 their explicit opt-in requirements.
 
-Source files retain a 1 MiB limit except the three explicitly named router,
-response-observer and telemetry/statusline synthetic corpora (4 MiB each).
+Source files retain a 1 MiB limit except the seven synthetic corpora explicitly
+named in the bundle allowlist (4 MiB each).
 The source archive retains its 32 MiB expanded bound. Package tests check that
 all literal `include_str!`/`include_bytes!` inputs are present in the actual archive.

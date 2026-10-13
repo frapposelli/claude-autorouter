@@ -164,9 +164,7 @@ impl Inner {
             }
         };
         if warn {
-            let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                (self.options.warn)(WARNING)
-            }));
+            let _ = crate::callback_privacy::contain_callback(|| (self.options.warn)(WARNING));
         }
     }
     fn fail(&self) {

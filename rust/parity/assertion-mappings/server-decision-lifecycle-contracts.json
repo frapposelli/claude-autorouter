@@ -1,0 +1,1291 @@
+{
+  "schema_version": 1,
+  "kind": "complete_original_server_decision_lifecycle_assertion_mapping",
+  "status": "focused_pass_all_original_privacy_and_sink_cancellation_variants",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "worktree_base_commit": "da51574ec1a895286c0379db1623d715e986be7e",
+  "production_changes_by_this_agent": false,
+  "shared_support_changes": false,
+  "central_ledger_edits": false,
+  "counts": {
+    "baseline_definitions": 4,
+    "static_assertion_sites": 48,
+    "expanded_original_assertions": 103,
+    "expanded_native_assertions": 103,
+    "native_tests": 4,
+    "native_fixture_variants": 4,
+    "downstream_http_operations": 12,
+    "actual_provider_requests": 12,
+    "route_calls": 12,
+    "source_complete_callbacks": 23,
+    "native_complete_callbacks": 12,
+    "source_emitted_status_events": 56,
+    "native_emitted_status_events": 56,
+    "source_decision_callbacks": 11,
+    "native_decision_callbacks": 11,
+    "source_records": 0,
+    "native_records": 0,
+    "prompt_privacy_variants": 7,
+    "decision_factory_panics": 1,
+    "decision_returned_rejections": 1,
+    "decision_never_ready_futures": 1,
+    "manufactured_provider_disconnects": 0
+  },
+  "capture": {
+    "path": "rust/parity/cases/server-decision-lifecycle-contracts.capture.json",
+    "bytes": 28778,
+    "sha256": "9073d61fae36dc240d416f1dc1a7c46c669232aab3acd4d92ceba92c4317f2fc"
+  },
+  "corpus": {
+    "path": "rust/parity/cases/server-decision-lifecycle-contracts.jsonl",
+    "bytes": 113590,
+    "sha256": "83672378eb92cc0e9f883cc609a90b6f1fe146e111b81243a14a06a3440808c9"
+  },
+  "native_validation": {
+    "path": "artifacts/rust-rewrite/server-decision-lifecycle-native-20261013-2/report.json",
+    "bytes": 16798,
+    "sha256": "b7bdfe16e03371cf7d0ee41edff5ac35f220b4b023d1a990d8520c9260519675"
+  },
+  "rows": [
+    {
+      "id": "test/server.test.mjs#4",
+      "name": "opt-in decision callbacks receive bounded current task text without leaking it into status or ordinary diagnostics",
+      "statement": "test('opt-in decision callbacks receive bounded current task text without leaking it into status or ordinary diagnostics', async t => {\n  const decisions = [];\n  const prompt = 'DECISION_ONLY_TASK: inspect this fixture.\\nKeep the supplied emoji \ud83d\ude00.';\n  const privateValues = ['PRIVATE_SYSTEM', 'PRIVATE_SCHEMA', 'PRIVATE_THINKING', 'PRIVATE_IMAGE', 'PRIVATE_TOOL_RESULT', 'PRIVATE_REMINDER'];\n  const payload = { ...body, system: privateValues[0], tools: [{ name: 'Read', description: privateValues[1], input_schema: { type: 'object' } }], messages: [\n    { role: 'user', content: 'Earlier task' },\n    { role: 'assistant', content: 'Earlier answer' },\n    { role: 'user', content: [\n      { type: 'text', text: '<system-reminder>PRIVATE_REMINDER</system-reminder>' },\n      { type: 'text', text: prompt },\n      { type: 'thinking', thinking: privateValues[2], signature: 'PRIVATE_SIGNATURE' },\n      { type: 'image', source: { type: 'base64', media_type: 'image/png', data: privateValues[3] } },\n    ] },\n    { role: 'assistant', content: [{ type: 'tool_use', id: 'read-fixture', name: 'Read', input: { path: 'PRIVATE_PATH' } }] },\n    { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'read-fixture', content: privateValues[4] }] },\n  ] };\n  const original = structuredClone(payload);\n  let route = { model: 'claude-haiku-4-5-20251001', latency_ms: 12.25, source: 'jev', evaluator: 'jev', reason: 'classified', classified_tier: 'haiku' };\n  const reply = 'event: message_start\\ndata: {\"type\":\"message_start\",\"message\":{\"model\":\"provider-confirmed-model\"}}\\n\\n'\n    + 'event: message_stop\\ndata: {\"type\":\"message_stop\"}\\n\\n';\n  const f = await fixture(t, (_req, res) => {\n    res.writeHead(200, { 'content-type': 'text/event-stream' }); res.end(reply);\n  }, { sessionLogMode: 'prompts' }, () => route, undefined, entry => decisions.push(entry));\n  const send = async (value, requestClass) => {\n    const response = await f.call('/v1/messages', { method: 'POST', headers: {\n      'x-claude-code-session-id': 'decision-session', 'x-claude-code-agent-id': 'decision-agent', 'x-claude-code-prompt-id': 'decision-prompt',\n      ...(requestClass === undefined ? {} : { 'x-claude-code-request-class': requestClass }),\n    }, body: JSON.stringify(value) });\n    assert.equal(response.status, 200);\n    assert.equal(await response.text(), reply);\n    return decisions.at(-1);\n  };\n  const first = await send(payload, 'main');\n  assert.equal(first.schema_version, 2);\n  assert.equal(first.event, 'decision');\n  assert.ok(Number.isFinite(Date.parse(first.timestamp)));\n  assert.match(first.request_id, /^[a-f0-9-]{36}$/);\n  assert.equal(first.session_id, 'decision-session');\n  assert.equal(first.agent_id, 'decision-agent');\n  assert.equal(first.prompt_id, 'decision-prompt');\n  assert.equal(first.request_class, 'main');\n  assert.equal(first.prompt_excerpt, prompt);\n  assert.equal(first.prompt_truncated, false);\n  assert.equal(first.requested_model, payload.model);\n  assert.equal(first.selected_model, route.model);\n  assert.equal(first.decision_latency_ms, 12.25);\n  assert.equal(first.source, 'jev');\n  assert.equal(first.evaluator, 'jev');\n  assert.equal(first.classified_tier, 'haiku');\n  assert.equal(first.reason, 'classified');\n  for (const value of [...privateValues, 'PRIVATE_SIGNATURE', 'PRIVATE_PATH']) assert.ok(!JSON.stringify(first).includes(value));\n  assert.deepEqual(payload, original);\n\n  const multibyte = { ...body, messages: [{ role: 'user', content: '\ud83d\ude00'.repeat(501) + 'OMITTED_TAIL' }] };\n  route = { ...route, source: 'cache' };\n  const bounded = await send(multibyte);\n  assert.equal(bounded.prompt_excerpt, '\ud83d\ude00'.repeat(500));\n  assert.equal([...bounded.prompt_excerpt].length, 500);\n  assert.equal(bounded.prompt_truncated, true);\n  assert.equal(bounded.source, 'cache');\n  const exact = await send({ ...body, messages: [{ role: 'user', content: '\ud83d\ude00'.repeat(500) }] }, 'main');\n  assert.equal(exact.prompt_truncated, false);\n\n  route = { model: payload.model, source: 'passthrough', reason: 'internal_request', latency_ms: 0.5 };\n  for (const requestClass of ['auxiliary', 'compaction', 'subagent', 'workflow']) {\n    const internal = await send(payload, requestClass);\n    assert.equal(internal.prompt_excerpt, '');\n    assert.equal(internal.prompt_truncated, false);\n    assert.equal(internal.source, 'passthrough');\n    assert.equal(internal.request_class, requestClass);\n  }\n  assert.equal(decisions.length, 7);\n  assert.equal(new Set(decisions.map(entry => entry.request_id)).size, 7);\n  for (const channel of [f.logs, f.statuses]) {\n    const serialized = JSON.stringify(channel);\n    for (const value of [prompt, ...privateValues, '\ud83d\ude00', 'OMITTED_TAIL']) assert.ok(!serialized.includes(value));\n    assert.ok(!serialized.includes('prompt_excerpt'));\n  }\n});",
+      "sha256": "962ecc9e7d35fc7185fa337ca6e3a526fb2b4fe79b09beb8633f518a2fa49454",
+      "previous_status": "pending_assertion_mapping",
+      "proposed_status": "covered",
+      "static_assertions": 34,
+      "expanded_assertions": 83,
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+      ],
+      "shared_cases": [
+        "server-decision-lifecycle-4"
+      ],
+      "assertions": [
+        {
+          "id": "test/server.test.mjs#4:assert-1",
+          "expression": "assert.equal(response.status, 200)",
+          "sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "line": 133,
+          "expanded_executions": 7,
+          "native_executions": 7,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 916,
+              "fragment": "a.check(1, reply.status == 200);",
+              "fragment_sha256": "28ad50dd3d7ca9c6d1da9f4efb89f2e8d4258e58028fc8d2cc488c1bb69e7608",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-2",
+          "expression": "assert.equal(await response.text(), reply)",
+          "sha256": "23887c5bd0eb4af35b01dcc0b53c47b1046545a52294e7ff4f041643b6b65441",
+          "line": 134,
+          "expanded_executions": 7,
+          "native_executions": 7,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 917,
+              "fragment": "a.check(\n                2,\n                reply.bytes == response_bytes(&upstream_rows(&row)[index]),\n            );",
+              "fragment_sha256": "74b129268c69fd3a12301fd8b3eb46677f616f2930339325c802a55047683a36",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-3",
+          "expression": "assert.equal(first.schema_version, 2)",
+          "sha256": "3b5a5a130c97808d3b31634fa66ddb8e9b9a3ef9bfe2babc549b153ffab61a20",
+          "line": 138,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 938,
+              "fragment": "a.check(3, first[\"schema_version\"].as_f64() == Some(2.));",
+              "fragment_sha256": "75f73fcdac9b863d1501f9faaf0446a3ce5d3887fbe00485bb9fbe306f334c42",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-4",
+          "expression": "assert.equal(first.event, 'decision')",
+          "sha256": "d15147d464a74cba2904fb6396bc25f95961f96089fa0de4ce757c794e7cb658",
+          "line": 139,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 939,
+              "fragment": "a.check(4, first[\"event\"] == \"decision\");",
+              "fragment_sha256": "e32694a22c15c8a750bb4a4f377e9aafb6f878b8d442790b7bcecb3bde92f059",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-5",
+          "expression": "assert.ok(Number.isFinite(Date.parse(first.timestamp)))",
+          "sha256": "29a0a8df34a1ae89eb8886499a1c3dc10ee47dbdd518dde691c0d86488e63124",
+          "line": 140,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 940,
+              "fragment": "a.check(5, valid_utc_timestamp(first[\"timestamp\"].as_str().unwrap()));",
+              "fragment_sha256": "aa8dfec24dcc76810ba30d53e6031f9a48c82fce72b266e862d463be4ac57c68",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-6",
+          "expression": "assert.match(first.request_id, /^[a-f0-9-]{36}$/)",
+          "sha256": "3d51b8baea573f1f70fedddbdc8b59fe58f9c0ec9243744123cf4302b8736944",
+          "line": 141,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 941,
+              "fragment": "a.check(\n        6,\n        regex::Regex::new(\"^[a-f0-9-]{36}$\")\n            .unwrap()\n            .is_match(first[\"request_id\"].as_str().unwrap()),\n    );",
+              "fragment_sha256": "2e1e161913c012c27a1aaf2e18c43b85b19b781dc8be476f7b33a795f98c450d",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-7",
+          "expression": "assert.equal(first.session_id, 'decision-session')",
+          "sha256": "7dfd01bf5836f0d093afff7b089bb6448a264006da4bc48514f40bfdd605f5fc",
+          "line": 142,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 947,
+              "fragment": "a.check(7, first[\"session_id\"] == \"decision-session\");",
+              "fragment_sha256": "bc4946873a955e9438d56ff4d26c2ce47ca1b3ff5309dab0075d5733fa845bc8",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-8",
+          "expression": "assert.equal(first.agent_id, 'decision-agent')",
+          "sha256": "451abaef08143d578df94d01ed1cab85fec7c6a3f463088bb3e12c03eb52ed47",
+          "line": 143,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 948,
+              "fragment": "a.check(8, first[\"agent_id\"] == \"decision-agent\");",
+              "fragment_sha256": "dc4e227661df1fc2a17588e12049f8791166238431a6498517073c851cbf300c",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-9",
+          "expression": "assert.equal(first.prompt_id, 'decision-prompt')",
+          "sha256": "6cee33a51b9af211ed64974f23ef80a07dedb8210965932441798b20f8cbb251",
+          "line": 144,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 949,
+              "fragment": "a.check(9, first[\"prompt_id\"] == \"decision-prompt\");",
+              "fragment_sha256": "206912b63ae73f7bcf794d4815002c7eb8cd7df2813fea383f938ef24a4cd77f",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-10",
+          "expression": "assert.equal(first.request_class, 'main')",
+          "sha256": "2a291c2224c0efa11702a5647179431b506ecac6aa4190680d134ec0330033e3",
+          "line": 145,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 950,
+              "fragment": "a.check(10, first[\"request_class\"] == \"main\");",
+              "fragment_sha256": "0ba4276d72c9b9b1d68c3bf0a15be1d9cabe594716b87afadcab3ebcdd5271c3",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-11",
+          "expression": "assert.equal(first.prompt_excerpt, prompt)",
+          "sha256": "b13d0e0f28464ee1336aa1ddd772b3a226024500466a712f4016ae9b780a9861",
+          "line": 146,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 951,
+              "fragment": "a.check(11, first[\"prompt_excerpt\"] == prompt);",
+              "fragment_sha256": "b0b8abf38f96c2d4053fa4c5b2c9a02975f465914083dba4f94d9a4060280e8f",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-12",
+          "expression": "assert.equal(first.prompt_truncated, false)",
+          "sha256": "8d8061a2fb00a284f3cf9c7b1549dc946851a75bcebfcc6389855997303bedf4",
+          "line": 147,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 952,
+              "fragment": "a.check(12, first[\"prompt_truncated\"] == false);",
+              "fragment_sha256": "d9ed8c7ead288d61c3fbc3a3c0b5f5c74625ae9365ea2918537e219d65b9bb16",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-13",
+          "expression": "assert.equal(first.requested_model, payload.model)",
+          "sha256": "544f8d3f732e562a543cba72fcf50a617127dc1db57cee68cff61e0e854eb77c",
+          "line": 148,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 953,
+              "fragment": "a.check(\n        13,\n        first[\"requested_model\"] == row[\"route_calls\"][0][\"document\"][\"model\"],\n    );",
+              "fragment_sha256": "f0dca5ee6c8b5a772cabda2e690765ef3304ddaafebbf6aae10f4f3e50026141",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-14",
+          "expression": "assert.equal(first.selected_model, route.model)",
+          "sha256": "52a424eeb38d3f0061e601d12927e6070c504c11e99ff10f61b0f115953ca080",
+          "line": 149,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 957,
+              "fragment": "a.check(\n        14,\n        first[\"selected_model\"] == row[\"route_calls\"][0][\"decision\"][\"model\"],\n    );",
+              "fragment_sha256": "634be3e0c16ba2ac39b0363dff47fc74640fb5dfc71776dd22679d781c6a3f04",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-15",
+          "expression": "assert.equal(first.decision_latency_ms, 12.25)",
+          "sha256": "fcc84a03cdfbf5eb5b16f227db627fc4867a1398c8bb0594a5a246886693bfab",
+          "line": 150,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 961,
+              "fragment": "a.check(15, first[\"decision_latency_ms\"].as_f64() == Some(12.25));",
+              "fragment_sha256": "a055e56565f582df02bcb35cb757b1ad01676c570147645c9dd64c3b1ef8fc57",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-16",
+          "expression": "assert.equal(first.source, 'jev')",
+          "sha256": "1fafe95e87ad1a50ee4455b5feda29e01a31404b73b417f4fdf80e4a86b876e3",
+          "line": 151,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 962,
+              "fragment": "a.check(16, first[\"source\"] == \"jev\");",
+              "fragment_sha256": "789828fd7d051f7521eade7f5417c94a4b53d567e44e47b97fac54d3d5e68c6a",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-17",
+          "expression": "assert.equal(first.evaluator, 'jev')",
+          "sha256": "7b2a44901d2a3efc393d2cc4387feda43d6e93ffe3a16e2e11182944a01fe0c4",
+          "line": 152,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 963,
+              "fragment": "a.check(17, first[\"evaluator\"] == \"jev\");",
+              "fragment_sha256": "2d34aa0322548c212bafa7f3905fb77183100c10d9de22ee5efe675de3d27d0a",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-18",
+          "expression": "assert.equal(first.classified_tier, 'haiku')",
+          "sha256": "77a6d89f823175a44471a4d1a930f12dd99f593aec6957f6129122088a5be3fe",
+          "line": 153,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 964,
+              "fragment": "a.check(18, first[\"classified_tier\"] == \"haiku\");",
+              "fragment_sha256": "f32d8524a8ddc6378d6bb24bd370e2e70845f024bc785aacd3a5a8546f7d0627",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-19",
+          "expression": "assert.equal(first.reason, 'classified')",
+          "sha256": "d90c9e62eaf372f9bbb3b5e9e25eeed455cf6fe4971c80294b92fc733b5877c6",
+          "line": 154,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 965,
+              "fragment": "a.check(19, first[\"reason\"] == \"classified\");",
+              "fragment_sha256": "c411719285bfaef5247ab9dae6958a4fc062ced67b89acd933df04a0cde86cb3",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-20",
+          "expression": "assert.ok(!JSON.stringify(first).includes(value))",
+          "sha256": "7547cf92cdd573d38a25eb35584e73cf730e914ab70154f9b4bfb7b6dc662ce9",
+          "line": 155,
+          "expanded_executions": 8,
+          "native_executions": 8,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 970,
+              "fragment": "a.check(20, !first.to_string().contains(value));",
+              "fragment_sha256": "bdf0ec7473ffd03e693ee700b1d38cff5722d7a106ddef2bc75905aaa7a6a448",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-21",
+          "expression": "assert.deepEqual(payload, original)",
+          "sha256": "c347ad1993099306b75debcad973949a0936e23a14a2da9408609eec9b96e6fc",
+          "line": 156,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 972,
+              "fragment": "a.check(\n        21,\n        seen.input_documents_unchanged[0]\n            && seen.routes[0][\"document\"]\n                == parsed(row[\"downstream\"][0][\"body\"].as_str().unwrap().as_bytes()),\n    );",
+              "fragment_sha256": "9b82aee1be30805f0cf41d7beac076bffb45b6ac774551f704f117d59b689b5d",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": "Original #4 caller payload immutability is ported to the actual authoritative native Arc<JsDocument> supplied to the Router: each input document is retained with its original stringify bytes and verified unchanged after model preparation/forwarding. The native first document also equals the complete original caller payload. This stronger library input-boundary witness is explicit; no JavaScript caller-heap identity is claimed."
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-22",
+          "expression": "assert.equal(bounded.prompt_excerpt, '\ud83d\ude00'.repeat(500))",
+          "sha256": "e203d3dcd488b2cf5fe2830cf8e1468d732f3ee1ebe764f600793b769fd2a8fe",
+          "line": 161,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 979,
+              "fragment": "a.check(22, bounded[\"prompt_excerpt\"] == \"\ud83d\ude00\".repeat(500));",
+              "fragment_sha256": "aa6130d99aa48908f95ea418a3c04e6f87e5fffff07957b31b409493ad2e78a9",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-23",
+          "expression": "assert.equal([...bounded.prompt_excerpt].length, 500)",
+          "sha256": "74f920e9c9118e3715babc71a8a24c469642d4e4fbaf2e5ebf9bdaae9a163f03",
+          "line": 162,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 980,
+              "fragment": "a.check(\n        23,\n        bounded[\"prompt_excerpt\"].as_str().unwrap().chars().count() == 500,\n    );",
+              "fragment_sha256": "f0627ac97144b578cc19c3d411996b400e265b1b2d547b62556d7ef9bf6a5790",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": "Source #4 UTF-16 strings contain valid emoji. The native code compares exact 500-emoji text, counts 500 Unicode scalar values corresponding to JavaScript spread code points and retains original excerpt truncation semantics. It checks every original private value and both ordinary log/status channels, preserving signed-looking private thinking/signature blocks, images, schemas and tool-result bodies in complete forwarded requests without exposing them in excerpts."
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-24",
+          "expression": "assert.equal(bounded.prompt_truncated, true)",
+          "sha256": "00fce26cf3a7d10107df6923166de60657771211d939bec205140ba329685bc3",
+          "line": 163,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 984,
+              "fragment": "a.check(24, bounded[\"prompt_truncated\"] == true);",
+              "fragment_sha256": "9c73c4b1a3259902b606182c65bb01c77f5663573e8f46d1c2f2f36cd9ebf638",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-25",
+          "expression": "assert.equal(bounded.source, 'cache')",
+          "sha256": "8263ee9128f3f880f0113fc82a447ea3ef9c96d2036fe3367e1918a72a640c05",
+          "line": 164,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 985,
+              "fragment": "a.check(25, bounded[\"source\"] == \"cache\");",
+              "fragment_sha256": "19f7402ed2f8c9c404e24260b3889d75db42a1db817348e1f89c353ea645f831",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-26",
+          "expression": "assert.equal(exact.prompt_truncated, false)",
+          "sha256": "6e64dbcc0272cfffaa4444507789f8ffbcc816ae636fb62ce6740aec4858a4ff",
+          "line": 166,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 986,
+              "fragment": "a.check(26, seen.decisions[2][\"prompt_truncated\"] == false);",
+              "fragment_sha256": "9198753686939b7027b6fab518a6b45eea021c8d606055a342f6b145ff652c01",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-27",
+          "expression": "assert.equal(internal.prompt_excerpt, '')",
+          "sha256": "7803550ca7d801dd41a49f0cb6a7f24f3260291afd317c47acdc6144b23c2e01",
+          "line": 171,
+          "expanded_executions": 4,
+          "native_executions": 4,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 992,
+              "fragment": "a.check(27, internal[\"prompt_excerpt\"] == \"\");",
+              "fragment_sha256": "8d19ed8541bc4f47d763894628e3ec20226fd56acabe3f23f75fd54066c6287a",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-28",
+          "expression": "assert.equal(internal.prompt_truncated, false)",
+          "sha256": "905f754fd4214ae7de8a4a3b2d1d1651ee520f5ac01b46a1df1114f636292e56",
+          "line": 172,
+          "expanded_executions": 4,
+          "native_executions": 4,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 993,
+              "fragment": "a.check(28, internal[\"prompt_truncated\"] == false);",
+              "fragment_sha256": "69ac97c291afb7268badbd2a5e6065c7b8c3d19271866ed0e524308245866a3e",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-29",
+          "expression": "assert.equal(internal.source, 'passthrough')",
+          "sha256": "ca96d8ac2611374819dcf3d5fcf0aa5a2574c114db214848702a75b5fa27edd3",
+          "line": 173,
+          "expanded_executions": 4,
+          "native_executions": 4,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 994,
+              "fragment": "a.check(29, internal[\"source\"] == \"passthrough\");",
+              "fragment_sha256": "73074263a9efa94d3a5f5c62dc6248b657763727db2d85ca64a6fc91b3f6816a",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-30",
+          "expression": "assert.equal(internal.request_class, requestClass)",
+          "sha256": "598f9a6abba38071c77ab9b627f4296bb054bc1a8a6e4361760580b20f002ed1",
+          "line": 174,
+          "expanded_executions": 4,
+          "native_executions": 4,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 995,
+              "fragment": "a.check(30, internal[\"request_class\"] == *class);",
+              "fragment_sha256": "baec21b4349a073ca3dd5fbad0ac75737dc47a3083e2937843ca9fca0e1c97c3",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-31",
+          "expression": "assert.equal(decisions.length, 7)",
+          "sha256": "c966ee78b597b9820708adce538142ea40b193cead17a31b61d7a04d98ec07af",
+          "line": 176,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 997,
+              "fragment": "a.check(31, seen.decisions.len() == 7);",
+              "fragment_sha256": "297777241c93f90dabcf3ecb75223f473033a17611fa3ef97488e341d2aa7846",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-32",
+          "expression": "assert.equal(new Set(decisions.map(entry => entry.request_id)).size, 7)",
+          "sha256": "236a6d6a81f3d80a63756247e64abcb86c8d5bf32fb4468cb4f80787a673b27c",
+          "line": 177,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 998,
+              "fragment": "a.check(\n        32,\n        seen.decisions\n            .iter()\n            .map(|r| r[\"request_id\"].as_str().unwrap())\n            .collect::<BTreeSet<_>>()\n            .len()\n            == 7,\n    );",
+              "fragment_sha256": "7fbda1ea8860c33f407c5388c07465bb21a36691afa8fcb42adfb7d26e4b0653",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-33",
+          "expression": "assert.ok(!serialized.includes(value))",
+          "sha256": "a5206dcf8c6a00d1e6b8ff1e9701e54f7899023a68e104ffceb9f4739ebaa181",
+          "line": 180,
+          "expanded_executions": 18,
+          "native_executions": 18,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 1013,
+              "fragment": "a.check(33, !serialized.contains(value));",
+              "fragment_sha256": "3f81333a061984fe255a168ead4f686b10cb5f313e99d7b0deed507f1fd872a0",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#4:assert-34",
+          "expression": "assert.ok(!serialized.includes('prompt_excerpt'))",
+          "sha256": "402cb0085c4cbc12b232add8d99f30a47538fcc36662108a7e6f17d1fa656b21",
+          "line": 181,
+          "expanded_executions": 2,
+          "native_executions": 2,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_4_all_bounded_prompt_privacy_and_internal_request_variants"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_4_all_bounded_prompt_privacy_and_internal_request_variants",
+              "line": 1015,
+              "fragment": "a.check(34, !serialized.contains(\"prompt_excerpt\"));",
+              "fragment_sha256": "afa871ef0fff38457b1a4ec0050d53b675567bd517c27646a335e0e957387e53",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        }
+      ],
+      "comparison_boundary": "Original #4 caller payload immutability is ported to the actual authoritative native Arc<JsDocument> supplied to the Router: each input document is retained with its original stringify bytes and verified unchanged after model preparation/forwarding. The native first document also equals the complete original caller payload. This stronger library input-boundary witness is explicit; no JavaScript caller-heap identity is claimed."
+    },
+    {
+      "id": "test/server.test.mjs#5",
+      "name": "decision sink failures and pending writes never delay or change the upstream stream",
+      "statement": "test('decision sink failures and pending writes never delay or change the upstream stream', { timeout: 5000 }, async t => {\n  let calls = 0;\n  const reply = 'event: message_delta\\ndata: {\"delta\":{\"stop_reason\":\"end_turn\"}}\\n\\n';\n  const f = await fixture(t, (_req, res) => {\n    res.writeHead(200, { 'content-type': 'text/event-stream', 'request-id': 'decision-sink-fixture' }); res.end(reply);\n  }, {}, () => ({ model: body.model, latency_ms: 1, source: 'jev', reason: 'classified' }), undefined, () => {\n    calls++;\n    if (calls === 1) throw new Error('PRIVATE_SYNC_LOG_FAILURE');\n    if (calls === 2) return Promise.reject(new Error('PRIVATE_ASYNC_LOG_FAILURE'));\n    return new Promise(() => {});\n  });\n  for (let index = 0; index < 3; index++) {\n    const response = await f.call('/v1/messages', { method: 'POST', body: JSON.stringify(body), signal: AbortSignal.timeout(1000) });\n    assert.equal(response.status, 200);\n    assert.equal(response.headers.get('request-id'), 'decision-sink-fixture');\n    assert.equal(await response.text(), reply);\n  }\n  assert.equal(calls, 3);\n  assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes('PRIVATE_'));\n});",
+      "sha256": "a6aec1dd6f140b7926032070489ce3ef61e2f1b5be78e8196901cfaff201338c",
+      "previous_status": "pending_assertion_mapping",
+      "proposed_status": "covered",
+      "static_assertions": 5,
+      "expanded_assertions": 11,
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_5_actual_decision_failure_returns_never_delay_or_change_stream"
+      ],
+      "shared_cases": [
+        "server-decision-lifecycle-5"
+      ],
+      "assertions": [
+        {
+          "id": "test/server.test.mjs#5:assert-1",
+          "expression": "assert.equal(response.status, 200)",
+          "sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "line": 198,
+          "expanded_executions": 3,
+          "native_executions": 3,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_5_actual_decision_failure_returns_never_delay_or_change_stream"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_5_actual_decision_failure_returns_never_delay_or_change_stream",
+              "line": 1038,
+              "fragment": "a.check(1, reply.status == 200);",
+              "fragment_sha256": "28ad50dd3d7ca9c6d1da9f4efb89f2e8d4258e58028fc8d2cc488c1bb69e7608",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": "Original #5 returns a rejected JavaScript Error Promise and a never-ready Promise. The real native EventSink wrapper starts the admitted factory synchronously, contains the actual PRIVATE_SYNC_LOG_FAILURE factory panic and polls the actual returned Err(ObserverRejected) future and genuine never-ready future on one bounded owned worker. Rejection payload strings are intentionally absent from the native typed ObserverRejected API; no detached failing task is substituted for a returned rejection. All #5 inference operations retain a real 1000 ms client deadline and exact SSE/status/request-id bytes. After inference, the raw before-close owner snapshot proves factory_panicked=1, rejected=1, pending=1, cancelled=0 and one real pending-future poll. The pending future is not dropped until explicit owner close; after close it is cancelled/dropped, pending/charged bytes are zero and the worker is joined. Default pending timeout stays disabled."
+        },
+        {
+          "id": "test/server.test.mjs#5:assert-2",
+          "expression": "assert.equal(response.headers.get('request-id'), 'decision-sink-fixture')",
+          "sha256": "8af255118502e7342e24b8099a11d3f0ece882d991b9712a12ffc29f9c9875a2",
+          "line": 199,
+          "expanded_executions": 3,
+          "native_executions": 3,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_5_actual_decision_failure_returns_never_delay_or_change_stream"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_5_actual_decision_failure_returns_never_delay_or_change_stream",
+              "line": 1039,
+              "fragment": "a.check(\n                2,\n                reply\n                    .headers\n                    .get(\"request-id\")\n                    .and_then(|v| v.to_str().ok())\n                    == Some(\"decision-sink-fixture\"),\n            );",
+              "fragment_sha256": "4bc1fb2c1cbac33fc24f186ec2bfb2fe084cadf8bb64bf351a8a4c4184026e5a",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": "Original #5 returns a rejected JavaScript Error Promise and a never-ready Promise. The real native EventSink wrapper starts the admitted factory synchronously, contains the actual PRIVATE_SYNC_LOG_FAILURE factory panic and polls the actual returned Err(ObserverRejected) future and genuine never-ready future on one bounded owned worker. Rejection payload strings are intentionally absent from the native typed ObserverRejected API; no detached failing task is substituted for a returned rejection. All #5 inference operations retain a real 1000 ms client deadline and exact SSE/status/request-id bytes. After inference, the raw before-close owner snapshot proves factory_panicked=1, rejected=1, pending=1, cancelled=0 and one real pending-future poll. The pending future is not dropped until explicit owner close; after close it is cancelled/dropped, pending/charged bytes are zero and the worker is joined. Default pending timeout stays disabled."
+        },
+        {
+          "id": "test/server.test.mjs#5:assert-3",
+          "expression": "assert.equal(await response.text(), reply)",
+          "sha256": "23887c5bd0eb4af35b01dcc0b53c47b1046545a52294e7ff4f041643b6b65441",
+          "line": 200,
+          "expanded_executions": 3,
+          "native_executions": 3,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_5_actual_decision_failure_returns_never_delay_or_change_stream"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_5_actual_decision_failure_returns_never_delay_or_change_stream",
+              "line": 1047,
+              "fragment": "a.check(\n                3,\n                reply.bytes == response_bytes(&upstream_rows(&row)[index]),\n            );",
+              "fragment_sha256": "6df8e4571216eb9e8a8ee5c4efceba12525b682166ede9500e06772a6223ce7c",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": "Original #5 returns a rejected JavaScript Error Promise and a never-ready Promise. The real native EventSink wrapper starts the admitted factory synchronously, contains the actual PRIVATE_SYNC_LOG_FAILURE factory panic and polls the actual returned Err(ObserverRejected) future and genuine never-ready future on one bounded owned worker. Rejection payload strings are intentionally absent from the native typed ObserverRejected API; no detached failing task is substituted for a returned rejection. All #5 inference operations retain a real 1000 ms client deadline and exact SSE/status/request-id bytes. After inference, the raw before-close owner snapshot proves factory_panicked=1, rejected=1, pending=1, cancelled=0 and one real pending-future poll. The pending future is not dropped until explicit owner close; after close it is cancelled/dropped, pending/charged bytes are zero and the worker is joined. Default pending timeout stays disabled."
+        },
+        {
+          "id": "test/server.test.mjs#5:assert-4",
+          "expression": "assert.equal(calls, 3)",
+          "sha256": "94d5c0febd9c696bf6a8b5fe5604c2b573bec1734aebefe1d1ce38c210ed583c",
+          "line": 202,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_5_actual_decision_failure_returns_never_delay_or_change_stream"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_5_actual_decision_failure_returns_never_delay_or_change_stream",
+              "line": 1078,
+              "fragment": "a.check(4, seen.callback_outcomes.len() == 3);",
+              "fragment_sha256": "dadba2a6a4d918581292deca482d8d36b7eba5734027554b47316825f0203e7c",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": "Original #5 returns a rejected JavaScript Error Promise and a never-ready Promise. The real native EventSink wrapper starts the admitted factory synchronously, contains the actual PRIVATE_SYNC_LOG_FAILURE factory panic and polls the actual returned Err(ObserverRejected) future and genuine never-ready future on one bounded owned worker. Rejection payload strings are intentionally absent from the native typed ObserverRejected API; no detached failing task is substituted for a returned rejection. All #5 inference operations retain a real 1000 ms client deadline and exact SSE/status/request-id bytes. After inference, the raw before-close owner snapshot proves factory_panicked=1, rejected=1, pending=1, cancelled=0 and one real pending-future poll. The pending future is not dropped until explicit owner close; after close it is cancelled/dropped, pending/charged bytes are zero and the worker is joined. Default pending timeout stays disabled."
+        },
+        {
+          "id": "test/server.test.mjs#5:assert-5",
+          "expression": "assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes('PRIVATE_'))",
+          "sha256": "2e1c0c8af8ab14312254cc591fb0d146e2fef44bc3d0900a56863e87daa6727a",
+          "line": 203,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_5_actual_decision_failure_returns_never_delay_or_change_stream"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_5_actual_decision_failure_returns_never_delay_or_change_stream",
+              "line": 1079,
+              "fragment": "a.check(\n        5,\n        !json!({\"logs\":seen.logs,\"statuses\":seen.statuses})\n            .to_string()\n            .contains(\"PRIVATE_\"),\n    );",
+              "fragment_sha256": "a058a50a600b0c36ccb3c1a5986bd75c44846c4bef7107549b015e2b17a127f3",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": "Original #5 returns a rejected JavaScript Error Promise and a never-ready Promise. The real native EventSink wrapper starts the admitted factory synchronously, contains the actual PRIVATE_SYNC_LOG_FAILURE factory panic and polls the actual returned Err(ObserverRejected) future and genuine never-ready future on one bounded owned worker. Rejection payload strings are intentionally absent from the native typed ObserverRejected API; no detached failing task is substituted for a returned rejection. All #5 inference operations retain a real 1000 ms client deadline and exact SSE/status/request-id bytes. After inference, the raw before-close owner snapshot proves factory_panicked=1, rejected=1, pending=1, cancelled=0 and one real pending-future poll. The pending future is not dropped until explicit owner close; after close it is cancelled/dropped, pending/charged bytes are zero and the worker is joined. Default pending timeout stays disabled."
+        }
+      ],
+      "comparison_boundary": "Original #5 returns a rejected JavaScript Error Promise and a never-ready Promise. The real native EventSink wrapper starts the admitted factory synchronously, contains the actual PRIVATE_SYNC_LOG_FAILURE factory panic and polls the actual returned Err(ObserverRejected) future and genuine never-ready future on one bounded owned worker. Rejection payload strings are intentionally absent from the native typed ObserverRejected API; no detached failing task is substituted for a returned rejection."
+    },
+    {
+      "id": "test/server.test.mjs#6",
+      "name": "a fallback decision is logged even when its upstream request fails",
+      "statement": "test('a fallback decision is logged even when its upstream request fails', async t => {\n  const decisions = [];\n  const errorBody = JSON.stringify({ type: 'error', error: { type: 'rate_limit_error', message: 'Synthetic rate limit' } });\n  const f = await fixture(t, (_req, res) => {\n    res.writeHead(429, { 'content-type': 'application/json' }); res.end(errorBody);\n  }, { sessionLogMode: 'prompts' }, () => ({ model: body.model, latency_ms: 1501, source: 'fallback', evaluator: 'jev', reason: 'classifier_unavailable', classifier_error: 'timeout' }),\n  undefined, entry => decisions.push(entry));\n  const response = await f.call('/v1/messages', { method: 'POST', body: JSON.stringify(body) });\n  assert.equal(response.status, 429);\n  assert.equal(await response.text(), errorBody);\n  assert.equal(decisions.length, 1);\n  assert.equal(decisions[0].source, 'fallback');\n  assert.equal(decisions[0].classifier_error, 'timeout');\n  assert.equal(decisions[0].selected_model, body.model);\n  assert.equal(decisions[0].decision_latency_ms, 1501);\n  assert.equal(decisions[0].prompt_excerpt, 'Fix a typo');\n});",
+      "sha256": "d13b882d4858a0890f2db918ad3f81daf633c1a4f99223ad663e8c29d24a188e",
+      "previous_status": "pending_assertion_mapping",
+      "proposed_status": "covered",
+      "static_assertions": 8,
+      "expanded_assertions": 8,
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_6_fallback_decision_remains_logged_when_provider_returns_429"
+      ],
+      "shared_cases": [
+        "server-decision-lifecycle-6"
+      ],
+      "assertions": [
+        {
+          "id": "test/server.test.mjs#6:assert-1",
+          "expression": "assert.equal(response.status, 429)",
+          "sha256": "2cde139a350256177b81ce7b0a36d01bf156edeb95bba8dc88c2ebc36976be68",
+          "line": 214,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_6_fallback_decision_remains_logged_when_provider_returns_429"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_6_fallback_decision_remains_logged_when_provider_returns_429",
+              "line": 1108,
+              "fragment": "a.check(1, reply.status == 429);",
+              "fragment_sha256": "6d27818221a1edd89c50e3405d0b4269616c8dcfc603be7f071ccf7453288157",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#6:assert-2",
+          "expression": "assert.equal(await response.text(), errorBody)",
+          "sha256": "035d194b521b6fa793fa934686cac61e8e54b16881dd006b462f08373b006c1e",
+          "line": 215,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_6_fallback_decision_remains_logged_when_provider_returns_429"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_6_fallback_decision_remains_logged_when_provider_returns_429",
+              "line": 1109,
+              "fragment": "a.check(2, reply.bytes == response_bytes(&upstream_rows(&row)[0]));",
+              "fragment_sha256": "67242342cff2fe2549bcb93eec531c426ca049b9b9e7791a083bdf24ddc41521",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#6:assert-3",
+          "expression": "assert.equal(decisions.length, 1)",
+          "sha256": "1d32736b0f451f22bda0f97b4aaacf877c934cdf9f8631eef869b82ab98bd43b",
+          "line": 216,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_6_fallback_decision_remains_logged_when_provider_returns_429"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_6_fallback_decision_remains_logged_when_provider_returns_429",
+              "line": 1110,
+              "fragment": "a.check(3, seen.decisions.len() == 1);",
+              "fragment_sha256": "dbe725eb16ef622cab333c03372c01df8ecb5456164044f7835c765611661541",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#6:assert-4",
+          "expression": "assert.equal(decisions[0].source, 'fallback')",
+          "sha256": "8beaa77b78fda39f37f10cfad2acf4a02e0ae10cb984beec66f3cf51e444e594",
+          "line": 217,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_6_fallback_decision_remains_logged_when_provider_returns_429"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_6_fallback_decision_remains_logged_when_provider_returns_429",
+              "line": 1112,
+              "fragment": "a.check(4, decision[\"source\"] == \"fallback\");",
+              "fragment_sha256": "c32d7bfb7751e7ac509610371cafc15e2bfdb8481647f7d919e533dd3305217a",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#6:assert-5",
+          "expression": "assert.equal(decisions[0].classifier_error, 'timeout')",
+          "sha256": "0c0293601bfaabd8574e0ac2c86483c1f1488d6183c8e66b8324aab29f307687",
+          "line": 218,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_6_fallback_decision_remains_logged_when_provider_returns_429"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_6_fallback_decision_remains_logged_when_provider_returns_429",
+              "line": 1113,
+              "fragment": "a.check(5, decision[\"classifier_error\"] == \"timeout\");",
+              "fragment_sha256": "0f8ee916df0fde4e1f9ea74dfb727637c7c086eb94a322b03e3e9766a35cecbc",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#6:assert-6",
+          "expression": "assert.equal(decisions[0].selected_model, body.model)",
+          "sha256": "339345325b363709a6da65e0410605af6d530d9caa0aba7f36cdb710d137db9b",
+          "line": 219,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_6_fallback_decision_remains_logged_when_provider_returns_429"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_6_fallback_decision_remains_logged_when_provider_returns_429",
+              "line": 1114,
+              "fragment": "a.check(\n        6,\n        decision[\"selected_model\"] == row[\"route_calls\"][0][\"document\"][\"model\"],\n    );",
+              "fragment_sha256": "10232040e86d5acfd93820ee35b369b175b38d6127c5d1e7416d1f968aa5733a",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#6:assert-7",
+          "expression": "assert.equal(decisions[0].decision_latency_ms, 1501)",
+          "sha256": "49ca2467f18491d9cbe73977fd36f3d77d6b02d1976637231998c4376353da8b",
+          "line": 220,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_6_fallback_decision_remains_logged_when_provider_returns_429"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_6_fallback_decision_remains_logged_when_provider_returns_429",
+              "line": 1118,
+              "fragment": "a.check(7, decision[\"decision_latency_ms\"].as_f64() == Some(1501.));",
+              "fragment_sha256": "a4549b90aee8e4ff2d2db9a24a4f6766e23bed92bc979cc4e8f02e2e3ca32a98",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#6:assert-8",
+          "expression": "assert.equal(decisions[0].prompt_excerpt, 'Fix a typo')",
+          "sha256": "074c417029a75a01de99513ab924ed14c301ac8e2e86a2a4167c04384636b3d5",
+          "line": 221,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_6_fallback_decision_remains_logged_when_provider_returns_429"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_6_fallback_decision_remains_logged_when_provider_returns_429",
+              "line": 1119,
+              "fragment": "a.check(8, decision[\"prompt_excerpt\"] == \"Fix a typo\");",
+              "fragment_sha256": "57e37e7fdc9c92f1ef7731cfeae6ded361abdd732da7631535ead1accd03875b",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": null
+        }
+      ],
+      "comparison_boundary": "Source decision callbacks receive generated ISO timestamps and UUIDs. Native #4 validates real UTC calendar/time parsing and the original UUID syntax, exact seven unique identities and all request/session/agent/prompt/class correlations. Full callback keys/values are compared; raw generated IDs/timestamps stay unchanged. Only actual measured transport timings lack equal-value comparison. All injected routing times 12.25, 0.5, 1 and 1501 remain exact."
+    },
+    {
+      "id": "test/server.test.mjs#7",
+      "name": "client cancellation closes the upstream stream",
+      "statement": "test('client cancellation closes the upstream stream', async t => {\n  let upstreamClosed;\n  const closed = new Promise(resolve => { upstreamClosed = resolve; });\n  const f = await fixture(t, (req, res) => {\n    res.on('close', upstreamClosed);\n    res.writeHead(200, { 'content-type': 'text/event-stream' }); res.write(': ping\\n\\n');\n  });\n  const response = await f.call('/v1/messages', { method: 'POST', body: JSON.stringify(body) });\n  await response.body.cancel();\n  await Promise.race([closed, new Promise((_, reject) => { const timer = setTimeout(() => reject(new Error('Upstream not cancelled')), 2000); timer.unref(); })]);\n  await waitForStatus(f, 'request_cancelled');\n  assert.equal(f.statuses.some(entry => entry.event === 'request_error'), false);\n});",
+      "sha256": "78a8b29f3064ef946e3e98ddf3bb581318e6861659725fa934f684cf03e48e66",
+      "previous_status": "pending_assertion_mapping",
+      "proposed_status": "covered",
+      "static_assertions": 1,
+      "expanded_assertions": 1,
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_7_actual_downstream_body_drop_closes_provider_before_owner_shutdown"
+      ],
+      "shared_cases": [
+        "server-decision-lifecycle-7"
+      ],
+      "assertions": [
+        {
+          "id": "test/server.test.mjs#7:assert-1",
+          "expression": "assert.equal(f.statuses.some(entry => entry.event === 'request_error'), false)",
+          "sha256": "d009a186d5f6e9655540ad43a0666dc29f7509ce3f92e467dc294e08586ef074",
+          "line": 235,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs#original_7_actual_downstream_body_drop_closes_provider_before_owner_shutdown"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+              "function": "original_7_actual_downstream_body_drop_closes_provider_before_owner_shutdown",
+              "line": 1248,
+              "fragment": "a.check(1, events(&seen.statuses, \"request_error\").is_empty());",
+              "fragment_sha256": "8431036aa3ef4d50c2a030c69b08c7dc60a8aeefbd7c421df1637a7a2866ccde",
+              "file_sha256": "ed7853d81e0a6cbb30bc6bb338975ecbd186a4b5c8a1e7716663596f52e36205"
+            }
+          ],
+          "native_check": "Exact original predicate through actual bounded gateway/client/provider HTTP, all original dynamic variants/counts, complete callback metadata and source body/header privacy controls. Native typed input/future/body-cancel boundaries are explicit.",
+          "api_adaptation": "Original #7 response.body.cancel discards its owned unread stream. The native equivalent drops the actual unread Incoming body after the real response headers, causing the real gateway to close its actual provider socket. A separate raw provider EOF/read-error witness becomes true before any Gateway.close or Peer.close; the fixture never calls its deliberate disconnect function. Actual prefix bytes are sent unchanged, and no downstream payload is falsely claimed as consumed."
+        }
+      ],
+      "comparison_boundary": "Original #7 response.body.cancel discards its owned unread stream. The native equivalent drops the actual unread Incoming body after the real response headers, causing the real gateway to close its actual provider socket. A separate raw provider EOF/read-error witness becomes true before any Gateway.close or Peer.close; the fixture never calls its deliberate disconnect function. Actual prefix bytes are sent unchanged, and no downstream payload is falsely claimed as consumed."
+    }
+  ],
+  "comparison_boundaries": [
+    "Complete original frozen #4\u2013#7 callbacks and five helper statements execute unchanged except counted successful assertion-result wrappers. All seven #4 privacy variants, all three #5 failure returns, the #6 HTTP429 fallback and real #7 body cancellation remain represented. No live evaluator/provider calls or model downloads.",
+    "Original #4 caller payload immutability is ported to the actual authoritative native Arc<JsDocument> supplied to the Router: each input document is retained with its original stringify bytes and verified unchanged after model preparation/forwarding. The native first document also equals the complete original caller payload. This stronger library input-boundary witness is explicit; no JavaScript caller-heap identity is claimed.",
+    "Source #4 UTF-16 strings contain valid emoji. The native code compares exact 500-emoji text, counts 500 Unicode scalar values corresponding to JavaScript spread code points and retains original excerpt truncation semantics. It checks every original private value and both ordinary log/status channels, preserving signed-looking private thinking/signature blocks, images, schemas and tool-result bodies in complete forwarded requests without exposing them in excerpts.",
+    "Source decision callbacks receive generated ISO timestamps and UUIDs. Native #4 validates real UTC calendar/time parsing and the original UUID syntax, exact seven unique identities and all request/session/agent/prompt/class correlations. Full callback keys/values are compared; raw generated IDs/timestamps stay unchanged. Only actual measured transport timings lack equal-value comparison. All injected routing times 12.25, 0.5, 1 and 1501 remain exact.",
+    "Original #5 returns a rejected JavaScript Error Promise and a never-ready Promise. The real native EventSink wrapper starts the admitted factory synchronously, contains the actual PRIVATE_SYNC_LOG_FAILURE factory panic and polls the actual returned Err(ObserverRejected) future and genuine never-ready future on one bounded owned worker. Rejection payload strings are intentionally absent from the native typed ObserverRejected API; no detached failing task is substituted for a returned rejection.",
+    "All #5 inference operations retain a real 1000 ms client deadline and exact SSE/status/request-id bytes. After inference, the raw before-close owner snapshot proves factory_panicked=1, rejected=1, pending=1, cancelled=0 and one real pending-future poll. The pending future is not dropped until explicit owner close; after close it is cancelled/dropped, pending/charged bytes are zero and the worker is joined. Default pending timeout stays disabled.",
+    "Original #7 response.body.cancel discards its owned unread stream. The native equivalent drops the actual unread Incoming body after the real response headers, causing the real gateway to close its actual provider socket. A separate raw provider EOF/read-error witness becomes true before any Gateway.close or Peer.close; the fixture never calls its deliberate disconnect function. Actual prefix bytes are sent unchanged, and no downstream payload is falsely claimed as consumed.",
+    "Source JavaScript undefined metadata must become absent native fields, not null; optional typed RouteOptions identifiers use empty strings. Numeric metadata compares actual values corresponding to JavaScript Number equality without changing raw representations. All semantic forwarding headers, full provider request objects, safe event fields and every source-delivered response byte are checked.",
+    "Source mocked complete performs redundant successful cleanup calls and returns undefined; native Gateway consumes each request lease once and the mock returns false. All 23 source/12 native calls remain retained. These responses have no clean execution evidence and cannot establish production continuation state.",
+    "Safe log/status privacy and ordinary unwind isolation are qualified here. No global panic hook is installed or changed in parallel tests; root-owned host/subprocess privacy evidence separately qualifies stderr suppression. Shared peer and observer helper source is reused without edits; only the two required small FIXED corpus paths were added to bundle.rs, with no large-file cap change."
+  ]
+}

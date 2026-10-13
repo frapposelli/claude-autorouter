@@ -28,6 +28,10 @@ Use `JsDocument` as the authoritative request representation and `JsString` for 
 
 The convenience `route()`/`complete()` adapters use `serde_json::Value` and serve scalar-string embeddings and historical fixtures. The product gateway uses the exact APIs. A displayed replacement character cannot stand in for an escaped lone surrogate when deciding which request or model owns a continuation.
 
+First-party classification, policy and gateway producers use the closed contracts in `autorouter-core::contracts`. `ClassifierDecision::source` and `classifier_error` are enums; the runtime evaluator module re-exports `ClassifierDecision` and `Tier` for existing import paths. Native consumers constructing these fields must use `DecisionSource` and `ClassifierError` variants. `route_typed_exact()` returns `TypedRouteDecision` with typed display metadata and a separate exact `JsString` model. The existing `route()` and `route_exact()` operations retain their JSON observation facades.
+
+`GatewayRouter::route_contract_exact()` defaults to `GatewayDecision::Legacy` for existing custom JSON adapters; the production router overrides it with `GatewayDecision::Typed`. A request using custom raw decision metadata keeps legacy observation bookkeeping throughout its lifecycle. Typed requests use `RequestContext`, `TelemetryFields`, closed lifecycle names and exact model overrides. Both paths retain the same durable normalization boundary, metadata-mode prompt omissions and JavaScript number projection. The native compile controls reject unknown fields/events, unsupported enum values and string timings before execution; arbitrary provider envelopes remain `JsDocument` values at explicit boundaries.
+
 An observer seeing a terminal frame is insufficient evidence that the client received the response. The gateway uses one bounded `CompletionRegistry` per connection and the pinned `serve_http1` transport adapter. Body EOF arms a record; the actual response-head submission and a successful downstream writer flush are separate obligations. Errors, disconnects, abandoned bodies, and ambiguous completion fail the obligation. The caller then combines this transport result with clean protocol evidence. A local flush establishes transport acceptance, not an application-level acknowledgement from Claude.
 
 Do not layer another buffered writer around this completion adapter or enable a transport mode whose flush ordering has not been qualified. Custom HTTP or HTTP/2 embeddings must supply equivalent forwarding evidence before using `complete_exact`; calling it at upstream EOF would violate the continuity contract.
@@ -54,8 +58,34 @@ The local diagnostic library operations, `run_local_diagnostic` and `run_local_d
 
 The Rust local diagnostic accepts a typed `RouterConfig`: its `u64` runtime deadline cannot contain JavaScript `NaN` or infinity. The configuration reader rejects the text `NaN` before a diagnostic can run. This differs from passing a nonfinite field to the JavaScript diagnostic and receiving its `invalid_configuration` report.
 
-`run_local_diagnostic_with_progress` calls a synchronous `FnMut(&Value) -> Result<(), ()>` in event order. Returned errors and ordinary unwinding callback panics do not prevent the remaining diagnostic work. A caught panic still invokes the caller's existing panic hook, which may log its payload and location; the diagnostic does not change that hook. Panic-abort behavior, aborting hooks and a panic payload whose destructor itself panics are outside this containment guarantee. JavaScript callbacks returning promises have no direct equivalent in this synchronous Rust interface, and synchronous `Err(())` coverage does not establish async-callback rejection equivalence.
+Before starting workers, an embedding host can explicitly call `autorouter_runtime::callback_privacy::initialize_observer_privacy()` after configuring its own panic hook. This installs one delegating process hook: ordinary observer panics are caught without printing their private payload or backtrace, while unrelated panics use the previous host hook. The CLI initializes this guard automatically. Initialization must precede concurrent work because stable Rust cannot atomically replace a hook; replacing the hook afterward revokes the guard. The library does not silently replace a host hook when emitting an event. Thread-local scopes cover each synchronous callback or future poll and are restored after nesting/unwinding; they never span an await. Panic-abort behavior, a subsequently replaced or aborting hook, and panic payloads with panicking destructors remain outside containment.
+
+`run_local_diagnostic_with_progress` calls a synchronous `FnMut(&Value) -> Result<(), ()>` in event order. Returned errors and ordinary unwinding callback panics do not prevent the remaining diagnostic work. Without the explicit privacy initialization, the host's existing hook may still print a caught panic. JavaScript callbacks returning promises have no direct equivalent in this synchronous Rust interface, and synchronous `Err(())` coverage does not establish async-callback rejection equivalence.
+
+For callbacks that return futures, create an `ObserverTasks` owner in the active
+Tokio runtime and use `owner.handle().event_sink(factory)` or
+`owner.handle().record_sink(factory)`. An admitted factory starts synchronously;
+its `Future<Output = Result<(), ObserverRejected>>` runs independently of
+forwarding. Retain the owner and explicitly call `owner.close().await` during
+shutdown. Close cancels accepted observer work and joins its one worker; it does
+not promise to finish arbitrary pending observers or make them durable. Dropping
+the owner requests cancellation without observing joined cleanup.
+
+Default limits are 256 pending factories/futures, 64 KiB per serialized payload
+and 1 MiB of charged payload/inline factory/future storage. Callers may lower
+these bounds. Exact payload counting preserves UTF-16 event identities and uses
+bounded iterative traversal. Charges exclude hidden user allocations and work
+spawned by the callback; factories, polls and destructors must not block. Closed,
+oversized and saturated admissions decline before invoking a factory. Rejected
+futures and ordinary factory/poll/drop panics cannot fail inference. A pending
+timeout is optional and disabled by default, so never-ready callbacks remain
+bounded until cancellation or close. Each observer can have its own cancellation
+token. Snapshots contain numeric counters and lifecycle flags, never payloads.
 
 `SessionLog::close().await` stops record admission and waits for the writer to finish and close its files. Healthy writers drain accepted records; write failures disable logging. Rust close futures begin this operation when first polled; constructing an unpolled future does not stop admission. Separate close futures wait for the same writer-owned worker, which closes the sink once. Cancelling a close waiter leaves that worker owned by the logger so another close call can await it. This is an explicit migration from JavaScript's shared close Promise; Rust futures do not preserve its object identity.
 
-Session logging accepts `serde_json::Value`, which has no property getters, `undefined`, or nonfinite numbers. Native tests retain complete durable metadata and privacy checks for representable values; omitted JavaScript getters and nonfinite-input projections are not equivalent input operations. `SessionLogOptions::warn` is a synchronous callback. Ordinary unwinding warning panics are contained after the existing panic hook runs; rejected asynchronous warning promises have no counterpart in that interface and remain outside its qualified coverage.
+Session logging accepts `serde_json::Value`, which has no property getters, `undefined`, or nonfinite numbers. Native tests retain complete durable metadata and privacy checks for representable values; omitted JavaScript getters and nonfinite-input projections are not equivalent input operations. `SessionLogOptions::warn` is a synchronous callback. Ordinary unwinding warning panics are contained, with hook output suppressed only after the explicit privacy initialization; rejected asynchronous warning promises have no counterpart in that interface and remain outside its qualified coverage.
+
+`read_session_history()` validates every `HistoryLimits` field before starting its filesystem worker, including fields constructed directly by Rust callers. Zero values and values above the original reader ceilings return `Invalid session-history read limit.` before ID or path errors. Defaults and smaller positive limits retain their existing behavior. The pure parser APIs accept caller-owned data separately; they do not perform filesystem admission.
+
+`CleanupOptions::alive` receives a `u64` so it can observe every positive JavaScript safe-integer PID through `9_007_199_254_740_991`. Embeddings with an explicitly typed `u32` callback must update that argument type. The default callback checks the positive signed operating-system PID range before querying liveness; larger values return false without narrowing, wrapping or signalling a process group.

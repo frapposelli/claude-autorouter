@@ -123,7 +123,10 @@ async fn retired_workers_keep_capacity_until_actual_teardown_then_admission_reco
         .classify(&body, &settings, &caller)
         .await
         .unwrap();
-    assert_eq!(refused.classifier_error, Some("capacity_exhausted"));
+    assert_eq!(
+        refused.classifier_error.map(ClassifierError::as_str),
+        Some("capacity_exhausted")
+    );
     assert_eq!(mock.calls(), 2);
     drop(releases.remove(0));
     bounded_owned_close(gates[0].wait_finished()).await;

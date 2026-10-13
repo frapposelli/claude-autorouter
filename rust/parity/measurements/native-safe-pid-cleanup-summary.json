@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "kind": "native_safe_integer_pid_cleanup_resume_checkpoint",
+  "date": "2026-10-13",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "head_commit": "da51574ec1a895286c0379db1623d715e986be7e",
+  "source_uncommitted": true,
+  "release_approved": false,
+  "correction": "Preserve positive safe-integer PID admission and pass the exact value to injected liveness callbacks. Default operating-system liveness rejects values outside the positive signed PID range before any signal query.",
+  "results": {
+    "source_rows": 34,
+    "native_rows": 34,
+    "complete_rows_match": true,
+    "runtime_tests_passed": 7,
+    "runtime_tests_failed_final": 0,
+    "original_cleanup_tests_preserved": 4,
+    "new_tests": 3,
+    "new_source_matrix_cases": 30,
+    "default_out_of_signed_os_range_cases": 4
+  },
+  "api_migration": {
+    "before": "CleanupOptions.alive: Box<dyn Fn(u32)->bool+Send+Sync>",
+    "after": "CleanupOptions.alive: Box<dyn Fn(u64)->bool+Send+Sync>",
+    "maximum_safe_pid": 9007199254740991,
+    "out_of_os_range_default_alive": false,
+    "checked_os_conversion": true
+  },
+  "evidence": {
+    "original_comparison": {
+      "path": "artifacts/rust-rewrite/status-cleanup-safe-pid-comparison-20261013.json",
+      "sha256": "93e29a0cbf8b7d1ea7eb5e0d67ce0d28fda45a760c3eee34f4a5ed62c1805ab4"
+    },
+    "native_source": {
+      "path": "rust/crates/autorouter-runtime/src/status_cleanup.rs",
+      "sha256": "f9fd79858bb6de4ebbc04a5fce8cb2611d80a81ab0edcc4d572c961379f2093a",
+      "bytes": 16062
+    },
+    "frozen_source": {
+      "path": "artifacts/rust-rewrite/reference/src/status-cleanup.mjs",
+      "sha256": "2f0c08c4b6aef4070c0105c3a87b68a412f448ca90be4ce8859e1b74662f3aea",
+      "bytes": 2806
+    },
+    "source_report": {
+      "path": "artifacts/rust-rewrite/status-cleanup-safe-pid-source-20261013.json",
+      "sha256": "2281b399ee81a6cc36d1e2b080c8e13297fe9f4e73fbe7bbe712c22b86bda56c",
+      "bytes": 5952
+    },
+    "native_report": {
+      "path": "artifacts/rust-rewrite/status-cleanup-safe-pid-native-20261013.json",
+      "sha256": "42492635bf6ec2727ea438eddbe86aa12a86f9dfabd31bc021d54fe5950d63a9",
+      "bytes": 5515
+    },
+    "focused_tests_log": {
+      "path": "artifacts/rust-rewrite/status-cleanup-safe-pid-after-fix-20261013-2.log",
+      "sha256": "4ff5a2fbac1461cebae25fe448206b5d4032eaeeb4a715aff42bef5701b214cf",
+      "bytes": 1433
+    },
+    "strict_clippy_log": {
+      "path": "artifacts/rust-rewrite/status-cleanup-safe-pid-clippy-20261013.log",
+      "sha256": "67f57eeaf49ddba10eefd607b7c8ed214b732926256bd76afa2acb9c855dbd98",
+      "bytes": 1126
+    }
+  },
+  "retained_failures": [
+    {
+      "artifact": {
+        "path": "artifacts/rust-rewrite/status-cleanup-safe-pid-before-fix-20261013.log",
+        "sha256": "ef8e67ec7e076909e366cff4e51791a88d97a90559ecb927a637ca12ab7a853e",
+        "bytes": 1622
+      },
+      "classification": "Expected pre-fix regression",
+      "details": "FreshPID4294967296/false omittedcallback; sourceexactcallback[4294967296], nativebeforefix[]."
+    },
+    {
+      "artifact": {
+        "path": "artifacts/rust-rewrite/status-cleanup-safe-pid-after-fix-20261013.log",
+        "sha256": "7eb28f729fedaf7b952b6cb62dad9c184266eb5d5babc181ad65d06aff2bafa8",
+        "bytes": 2226
+      },
+      "classification": "Harness artifact path error after all routing/cleanup assertions passed",
+      "details": "Relative AUTOROUTER_PID_PARITY_REPORT resolved under crate testcwd after all matrix liveness/cleanup assertions passed, so reportwrite returned ENOENT; rerun used absolute output path with no source change."
+    }
+  ],
+  "scope_limits": [
+    "All 34 actual-file source/native cases match; JSON object ordering is observational while complete field values and row ordering are retained.",
+    "The native callback argument changes from u32 to u64; this is documented migration, not an unchanged Rust embedding API.",
+    "Exact grace/stale timestamp boundaries, platform matrix and fresh final artifact qualification remain separate requirements.",
+    "No provider, evaluator, Keychain, user-configuration, release or numerical performance operation is qualified."
+  ]
+}

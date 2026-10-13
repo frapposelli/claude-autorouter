@@ -361,7 +361,7 @@ impl CompletionRegistry {
 
 fn emit(callback: Callback, outcome: Delivery) {
     // Observer/embedding callbacks must not interrupt response transport.
-    let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| callback(outcome)));
+    let _ = crate::callback_privacy::contain_callback(|| callback(outcome));
 }
 
 /// Clean body EOF transfers completion responsibility to the connection.

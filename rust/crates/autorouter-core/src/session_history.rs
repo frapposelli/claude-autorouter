@@ -34,6 +34,26 @@ impl Default for HistoryLimits {
     }
 }
 impl HistoryLimits {
+    /// Public fields may be constructed directly. Readers must check these
+    /// source ceilings before admitting filesystem work, not only at decoding.
+    pub fn validate(&self) -> Result<(), String> {
+        let ceilings = Self::default();
+        if [
+            (self.max_files, ceilings.max_files),
+            (self.max_directory_entries, ceilings.max_directory_entries),
+            (self.max_file_bytes, ceilings.max_file_bytes),
+            (self.max_total_bytes, ceilings.max_total_bytes),
+            (self.max_line_bytes, ceilings.max_line_bytes),
+            (self.max_records, ceilings.max_records),
+            (self.max_lines, ceilings.max_lines),
+        ]
+        .iter()
+        .any(|(value, maximum)| *value == 0 || value > maximum)
+        {
+            return Err("Invalid session-history read limit.".into());
+        }
+        Ok(())
+    }
     pub fn from_overrides(value: &Value) -> Result<Self, String> {
         let mut limits = serde_json::to_value(Self::default()).unwrap();
         if let Some(values) = value.as_object() {
@@ -52,7 +72,10 @@ impl HistoryLimits {
         } else if !value.is_null() {
             return Err("Invalid session-history read limit.".into());
         }
-        serde_json::from_value(limits).map_err(|_| "Invalid session-history read limit.".into())
+        let limits: Self = serde_json::from_value(limits)
+            .map_err(|_| "Invalid session-history read limit.".to_owned())?;
+        limits.validate()?;
+        Ok(limits)
     }
 }
 pub fn valid_id(id: &str) -> bool {

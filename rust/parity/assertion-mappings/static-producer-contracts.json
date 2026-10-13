@@ -1,0 +1,305 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "scope": "Native compile-time counterparts for the two original static producer checks, with full closed-type production wiring and separately tested observation adapters.",
+  "definition_hash_rule": "SHA256 of exact TypeScript-AST top-level test call source[start:end], UTF8, excluding the statement semicolon.",
+  "counts": {
+    "covered": 2,
+    "partial": 0,
+    "original_assertion_evaluations": 7,
+    "native_negative_controls": 14,
+    "native_positive_consumers": 1
+  },
+  "evidence": {
+    "compiler_diagnostics": {
+      "path": "artifacts/dev-environment/typed-contract-compile-controls-20261013.json",
+      "sha256": "9374826f01853d556492326fdcbc6910128eb48283d289a8d266ea7a85d2d854",
+      "passed": true,
+      "controls": 14
+    },
+    "frozen_capture": {
+      "path": "rust/parity/cases/static-contracts.capture.json",
+      "sha256": "67d76393ec707e72853f99c72eb97b17ed809303f4f13616d3fbd4e28122c875"
+    },
+    "source_inputs": [
+      {
+        "path": "rust/crates/autorouter-core/src/contracts.rs",
+        "sha256": "4e92772071e5a3084c1b0b0cc00466d7f9413aac0cf0f075813e6c5f3f19aa5d"
+      },
+      {
+        "path": "rust/crates/autorouter-core/src/router.rs",
+        "sha256": "214b79d2ae347c1fd0aa29eef484bd0a68889f4561a1320ae172e04f2a8807a7"
+      },
+      {
+        "path": "rust/crates/autorouter-core/tests/typed_contracts.rs",
+        "sha256": "1781bfd2f7cc37586bf048e3d9bf3658f848a6f3b797593b6f09c120308c29d5"
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/src/evaluator.rs",
+        "sha256": "61fde01fc4e29420d96369424f8979c8af7025dffcde629fc1925c0f506a18ce"
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+        "sha256": "eecb8b2d02909c0ca5dd347d8eafe7a7918fd7f776150faedc40fd813640269c"
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/src/router.rs",
+        "sha256": "70b7a95f566fd6ea320340b44d687f544effe18cafe48a4f8ddafc123fb57f7e"
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/src/server.rs",
+        "sha256": "97afd223b66a581d08a36e291fb2d2ed375f6b093b89a344be5392c836f56d7b"
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/src/server_events.rs",
+        "sha256": "c825a745a3bd5cb86e24730ee981bf2322c10a9d17a7d74f24f4318777ce00ed"
+      },
+      {
+        "path": "rust/docs/embedding.md",
+        "sha256": "7ed3d6b0a7cd3f7775dfdb3bdf61dc447583242e84f16e0cafaad9e65c696161"
+      },
+      {
+        "path": "rust/parity/cases/static-contracts.capture.json",
+        "sha256": "67d76393ec707e72853f99c72eb97b17ed809303f4f13616d3fbd4e28122c875"
+      }
+    ]
+  },
+  "semantics": {
+    "review_date": "2026-10-13",
+    "language_adaptation": "Closed Rust enums/structs replace erased JSDoc/string-union producer contracts. Rustc codes/messages differ from the retained TypeScript AST checker.",
+    "legacy_limitations": [
+      "Public route()/route_exact() JSON observation facades remain.",
+      "Custom GatewayRouter Value results and raw RequestEvents status/decision/context APIs intentionally accept open legacy JSON; they are not first-party producer contracts.",
+      "A request selecting a custom raw gateway decision stays on legacy outcome bookkeeping.",
+      "Exact JsString identity remains separate from lossy scalar display metadata.",
+      "Serde-only types cannot represent arbitrary JavaScript getters/undefined; those broader input/API migrations are not qualified by these static checks."
+    ],
+    "scope_limits": [
+      "No native publication, cutover, platform qualification, provider/model quality or timing claims.",
+      "The optional synthetic compile report is a local dirty-source checkpoint; final fixed-source union/CI validation remains required."
+    ]
+  },
+  "mappings": [
+    {
+      "baseline_test": "test/static-checks.test.mjs#1",
+      "name": "static producer checks catch misspelled fields, invalid enum literals and timing types before execution",
+      "baseline_file_sha256": "7338e1f0582bfd557c553de875d251d2334c40aec547874a647afef509393b6e",
+      "baseline_definition_sha256": "32c4fd141cc0700c93943ae4e864e6c13330fa8c359e7385767b321b072551c2",
+      "baseline_line": 5,
+      "status": "covered",
+      "reviewed_parameter_scope": "Six original invalid-source categories and one complete valid-source check, with explicit native language/API adaptation.",
+      "reviewed_assertion_calls": 6,
+      "inherited_helper_call_sites": 0,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "parameter": "Unknown lifecycle event",
+          "expression": "assert.ok(errors.some(error => error.includes(phrase)), phrase)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-core/tests/typed_contracts.rs#documented_producers_compile_and_each_invalid_contract_has_its_own_diagnostic"
+          ],
+          "native_counterpart": {
+            "field_or_variant": "Answered",
+            "diagnostics": [
+              {
+                "source": "let _ = LifecycleName::Answered;",
+                "expected_code": "E0599",
+                "actual_code": "E0599",
+                "actual_message": "no variant, associated function, or constant named `Answered` found for enum `autorouter_core::contracts::LifecycleName` in the current scope"
+              }
+            ]
+          },
+          "adaptation": "Compiler diagnostics name the native snake_case field/closed enum counterpart; the native checker does not parse JavaScript source or reproduce TypeScript checker wording.",
+          "line": 13
+        },
+        {
+          "index": 2,
+          "parameter": "selected_modle",
+          "expression": "assert.ok(errors.some(error => error.includes(phrase)), phrase)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-core/tests/typed_contracts.rs#documented_producers_compile_and_each_invalid_contract_has_its_own_diagnostic"
+          ],
+          "native_counterpart": {
+            "field_or_variant": "selected_modle",
+            "diagnostics": [
+              {
+                "source": "let _ = TelemetryFields { selected_modle: Some(\"opus\".into()), ..TelemetryFields::default() };",
+                "expected_code": "E0560",
+                "actual_code": "E0560",
+                "actual_message": "struct `autorouter_core::contracts::TelemetryFields` has no field named `selected_modle`"
+              },
+              {
+                "source": "let _ = DecisionSource::Jev; let _ = RoutingDecision { selected_modle: \"opus\".into(), ..route };",
+                "expected_code": "E0560",
+                "actual_code": "E0560",
+                "actual_message": "struct `autorouter_core::contracts::RoutingDecision` has no field named `selected_modle`"
+              }
+            ]
+          },
+          "adaptation": "Compiler diagnostics name the native snake_case field/closed enum counterpart; the native checker does not parse JavaScript source or reproduce TypeScript checker wording.",
+          "line": 13
+        },
+        {
+          "index": 3,
+          "parameter": "first_response_ms",
+          "expression": "assert.ok(errors.some(error => error.includes(phrase)), phrase)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-core/tests/typed_contracts.rs#documented_producers_compile_and_each_invalid_contract_has_its_own_diagnostic"
+          ],
+          "native_counterpart": {
+            "field_or_variant": "f64",
+            "diagnostics": [
+              {
+                "source": "let _ = TelemetryFields { first_response_ms: Some(\"1ms\"), ..TelemetryFields::default() };",
+                "expected_code": "E0308",
+                "actual_code": "E0308",
+                "actual_message": "mismatched types"
+              },
+              {
+                "source": "route.latency_ms = \"1ms\";",
+                "expected_code": "E0308",
+                "actual_code": "E0308",
+                "actual_message": "mismatched types"
+              }
+            ]
+          },
+          "adaptation": "Compiler diagnostics name the native snake_case field/closed enum counterpart; the native checker does not parse JavaScript source or reproduce TypeScript checker wording.",
+          "line": 13
+        },
+        {
+          "index": 4,
+          "parameter": "source",
+          "expression": "assert.ok(errors.some(error => error.includes(phrase)), phrase)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-core/tests/typed_contracts.rs#documented_producers_compile_and_each_invalid_contract_has_its_own_diagnostic"
+          ],
+          "native_counterpart": {
+            "field_or_variant": "DecisionSource",
+            "diagnostics": [
+              {
+                "source": "let _ = ClassifierDecision { source: \"random\", ..classification };",
+                "expected_code": "E0308",
+                "actual_code": "E0308",
+                "actual_message": "mismatched types"
+              }
+            ]
+          },
+          "adaptation": "Compiler diagnostics name the native snake_case field/closed enum counterpart; the native checker does not parse JavaScript source or reproduce TypeScript checker wording.",
+          "line": 13
+        },
+        {
+          "index": 5,
+          "parameter": "body",
+          "expression": "assert.ok(errors.some(error => error.includes(phrase)), phrase)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-core/tests/typed_contracts.rs#documented_producers_compile_and_each_invalid_contract_has_its_own_diagnostic"
+          ],
+          "native_counterpart": {
+            "field_or_variant": "body",
+            "diagnostics": [
+              {
+                "source": "let _ = TelemetryFields { body: (), ..TelemetryFields::default() };",
+                "expected_code": "E0560",
+                "actual_code": "E0560",
+                "actual_message": "struct `autorouter_core::contracts::TelemetryFields` has no field named `body`"
+              },
+              {
+                "source": "let _ = RequestContext { body: \"payload\".into(), ..context };",
+                "expected_code": "E0560",
+                "actual_code": "E0560",
+                "actual_message": "struct `autorouter_core::contracts::RequestContext` has no field named `body`"
+              }
+            ]
+          },
+          "adaptation": "Compiler diagnostics name the native snake_case field/closed enum counterpart; the native checker does not parse JavaScript source or reproduce TypeScript checker wording.",
+          "line": 13
+        },
+        {
+          "index": 6,
+          "parameter": "timoutMs",
+          "expression": "assert.ok(errors.some(error => error.includes(phrase)), phrase)",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-core/tests/typed_contracts.rs#documented_producers_compile_and_each_invalid_contract_has_its_own_diagnostic"
+          ],
+          "native_counterpart": {
+            "field_or_variant": "timout_ms",
+            "diagnostics": [
+              {
+                "source": "let _ = config.timout_ms;",
+                "expected_code": "E0609",
+                "actual_code": "E0609",
+                "actual_message": "no field `timout_ms` on type `&RouterConfig`"
+              }
+            ]
+          },
+          "adaptation": "Compiler diagnostics name the native snake_case field/closed enum counterpart; the native checker does not parse JavaScript source or reproduce TypeScript checker wording.",
+          "line": 13
+        }
+      ],
+      "inherited_helper_assertions": [],
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/typed_contracts.rs#documented_producers_compile_and_each_invalid_contract_has_its_own_diagnostic",
+        "rust/crates/autorouter-core/tests/typed_contracts.rs#frozen_original_static_sources_match_reviewed_compile_controls",
+        "rust/crates/autorouter-core/tests/typed_contracts.rs#typed_policy_preserves_every_frozen_route_metadata_shape_and_omission",
+        "rust/crates/autorouter-runtime/src/server_events.rs#tests::typed_lifecycle_matches_legacy_shapes_records_and_exact_model_transitions"
+      ],
+      "shared_cases": [
+        "rust/parity/cases/static-contracts.capture.json",
+        "rust/parity/cases/router-contracts.jsonl"
+      ],
+      "review_notes": [
+        "The original two JavaScript checks independently still pass against unchanged frozen sources.",
+        "These are compile-time contract counterparts, not a claim that Rust evaluates the original JavaScript AST checker or preserves its exact error-message strings.",
+        "First-party runtime classifiers/policy/gateway/lifecycle/record producers use closed types; open custom Value adapters are explicitly legacy APIs."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/static-checks.test.mjs#2",
+      "name": "static producer checks accept the bounded documented contract with opaque runtime fields",
+      "baseline_file_sha256": "7338e1f0582bfd557c553de875d251d2334c40aec547874a647afef509393b6e",
+      "baseline_definition_sha256": "e58dc6ef3382f14ae004f3844f7aaf1e59f4fd8c6a80a7c3750cd7fb5ecf105c",
+      "baseline_line": 17,
+      "status": "covered",
+      "reviewed_parameter_scope": "Six original invalid-source categories and one complete valid-source check, with explicit native language/API adaptation.",
+      "reviewed_assertion_calls": 1,
+      "inherited_helper_call_sites": 0,
+      "direct_assertions": [
+        {
+          "index": 1,
+          "expression": "assert.deepEqual(checkContractSources(new Map([\n    ['server.mjs', `status('route', { model: selected, source:'jev', latency_ms:1 });\n      onStatus({ ...context, event:'request_complete', completion_confirmed:true });`],\n    ['router.mjs', `class Router { route() { return { ...decision, model:chosen,reason:'classified',\n      latency_ms:1,evaluation_latency_ms:1 }; } } const x = config.jevTimeoutMs;`],\n  ])), [])",
+          "status": "covered",
+          "rust_tests": [
+            "rust/crates/autorouter-core/tests/typed_contracts.rs#documented_producers_compile_and_each_invalid_contract_has_its_own_diagnostic",
+            "rust/crates/autorouter-core/tests/typed_contracts.rs#frozen_original_static_sources_match_reviewed_compile_controls"
+          ],
+          "native_counterpart": "Complete positive external Rust consumer constructs documented classification, routing, context and lifecycle fields and reads the real typed timeout setting; successful compilation is required before any negative control.",
+          "line": 18
+        }
+      ],
+      "inherited_helper_assertions": [],
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/typed_contracts.rs#documented_producers_compile_and_each_invalid_contract_has_its_own_diagnostic",
+        "rust/crates/autorouter-core/tests/typed_contracts.rs#frozen_original_static_sources_match_reviewed_compile_controls",
+        "rust/crates/autorouter-core/tests/typed_contracts.rs#typed_policy_preserves_every_frozen_route_metadata_shape_and_omission",
+        "rust/crates/autorouter-runtime/src/server_events.rs#tests::typed_lifecycle_matches_legacy_shapes_records_and_exact_model_transitions"
+      ],
+      "shared_cases": [
+        "rust/parity/cases/static-contracts.capture.json",
+        "rust/parity/cases/router-contracts.jsonl"
+      ],
+      "review_notes": [
+        "The original two JavaScript checks independently still pass against unchanged frozen sources.",
+        "These are compile-time contract counterparts, not a claim that Rust evaluates the original JavaScript AST checker or preserves its exact error-message strings.",
+        "First-party runtime classifiers/policy/gateway/lifecycle/record producers use closed types; open custom Value adapters are explicitly legacy APIs."
+      ],
+      "remaining": []
+    }
+  ]
+}

@@ -349,7 +349,7 @@ impl ResponseObserver {
     }
 
     fn emit(&mut self, event: Observation) {
-        let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| (self.sink)(event)));
+        let _ = crate::callback_privacy::contain_callback(|| (self.sink)(event));
     }
 
     fn stop(&mut self) {

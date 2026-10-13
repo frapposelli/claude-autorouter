@@ -3,6 +3,7 @@
 pub mod auth;
 pub mod auto_routing;
 pub mod config;
+pub mod contracts;
 pub mod evaluation_report;
 pub mod fixture;
 pub mod js_json;

@@ -68,11 +68,16 @@ jobs:
       # License inventory covers the complete lockfile, including other targets.
       - run: cargo fetch --locked
       - run: cargo metadata --format-version 1 --locked --offline > /dev/null
-      - run: node vendor/verify-hyper.mjs
-      - run: node vendor/verify-hyper-util.mjs
-      - run: node vendor/verify-production-features.mjs --self-test
-      - run: node vendor/verify-node-ca.mjs
-      - run: node vendor/verify-openssl.mjs
+      - name: Build independent native auditor before inspected dependencies
+        run: |
+          mkdir -p ../artifacts/rust-rewrite
+          cargo build --package xtask --no-default-features --bin autorouter-audit --offline --locked --message-format=json > ../artifacts/rust-rewrite/auditor-bootstrap-build.jsonl
+          cp target/debug/autorouter-audit ../artifacts/rust-rewrite/autorouter-audit-bootstrap
+          ../artifacts/rust-rewrite/autorouter-audit-bootstrap bootstrap --build-report ../artifacts/rust-rewrite/auditor-bootstrap-build.jsonl > ../artifacts/rust-rewrite/auditor-bootstrap-proof.json
+          ../artifacts/rust-rewrite/autorouter-audit-bootstrap vendor > ../artifacts/rust-rewrite/vendor-audit.json
+          ../artifacts/rust-rewrite/autorouter-audit-bootstrap production-features --self-test
+      - run: cargo clippy --package xtask --no-default-features --all-targets --offline --locked -- -D warnings
+      - run: cargo test --package xtask --no-default-features --bin autorouter-audit --offline --locked
       - run: cargo fmt --check
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - run: cargo test --workspace --locked
@@ -83,7 +88,7 @@ jobs:
         run: |
           mkdir -p ../artifacts/rust-rewrite
           cargo build --release --locked --package claude-autorouter --message-format=json > ../artifacts/rust-rewrite/production-build.jsonl
-          node vendor/verify-production-features.mjs --build-report ../artifacts/rust-rewrite/production-build.jsonl > ../artifacts/rust-rewrite/production-features.json
+          ../artifacts/rust-rewrite/autorouter-audit-bootstrap production-features --build-report ../artifacts/rust-rewrite/production-build.jsonl > ../artifacts/rust-rewrite/production-features.json
       - run: ./target/release/claude-autorouter --version
       - run: node parity/check-config-commands.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
       - run: node parity/check-node-options-startup.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
@@ -98,6 +103,12 @@ jobs:
         run: |
           autorouter_host_target=$(rustc -vV | awk '/^host:/ { print $2 }')
           cargo xtask package --binary "$autorouter_host_target=rust/target/release/claude-autorouter" --output artifacts/rust-rewrite/native-package-ci --smoke
+      - name: Verify exact direct archive and installed lifecycle
+        run: |
+          autorouter_host_target=$(rustc -vV | awk '/^host:/ { print $2 }')
+          autorouter_native_version=$(./target/release/claude-autorouter --version)
+          cargo xtask package --direct-from "artifacts/rust-rewrite/native-package-ci/claude-autorouter-$autorouter_native_version.tgz" \
+            --target "$autorouter_host_target" --output artifacts/rust-rewrite/native-direct-ci --smoke
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
@@ -109,6 +120,10 @@ jobs:
             artifacts/rust-rewrite/auto-routing-contracts/*
             artifacts/rust-rewrite/evidence/*.json
             artifacts/rust-rewrite/native-package-ci/*
+            artifacts/rust-rewrite/native-direct-ci/*
             artifacts/rust-rewrite/production-build.jsonl
             artifacts/rust-rewrite/production-features.json
+            artifacts/rust-rewrite/auditor-bootstrap-build.jsonl
+            artifacts/rust-rewrite/auditor-bootstrap-proof.json
+            artifacts/rust-rewrite/vendor-audit.json
           if-no-files-found: ignore

@@ -317,7 +317,7 @@ pub fn arguments(
         "stream-json",
         "--verbose",
         "--permission-mode",
-        "dontAsk",
+        options["permissionMode"].as_str().unwrap_or("dontAsk"),
         "--no-chrome",
         "--tools",
         if scenario["tools"] == true {
@@ -422,5 +422,32 @@ mod tests {
         assert!(args.contains(&format!("Edit(./{SOURCE})")));
         assert!(args.contains(&format!("Bash({TEST_COMMAND})")));
         assert!(!args.iter().any(|s| s.contains("node ")));
+    }
+    #[test]
+    fn explicit_auto_permission_canary_preserves_restricted_tools_and_isolation() {
+        for mode in ["auto", "dontAsk"] {
+            let args = arguments(
+                &json!({"permissionMode":mode}),
+                &json!({"tools":true}),
+                None,
+                true,
+            );
+            let index = args
+                .iter()
+                .position(|arg| arg == "--permission-mode")
+                .unwrap();
+            assert_eq!(args[index + 1], mode);
+            assert_eq!(
+                args.iter()
+                    .filter(|arg| *arg == "--permission-mode")
+                    .count(),
+                1
+            );
+            assert!(args.contains(&"--safe-mode".into()));
+            assert!(args.contains(&"--restricted".into()));
+            assert!(args.contains(&format!("Edit(./{SOURCE})")));
+            assert!(args.contains(&format!("Bash({TEST_COMMAND})")));
+            assert!(!args.iter().any(|arg| arg.contains("bypassPermissions")));
+        }
     }
 }

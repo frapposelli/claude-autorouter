@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
-  "updated": "2026-10-10",
+  "updated": "2026-10-13",
   "status": "partial_evidence_no_cutover_approval",
   "rules": [
     "Reports are copied to content-addressed local artifact paths; source index retains their SHA256 and observed results.",
@@ -97,11 +97,38 @@
             "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
             "kind": "rust_pure_function_differential"
           }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/588d2e6a3ac4fe2ab252d16294748f7792fac5b63638c5b37b6c54bb4b9d7556.json",
+          "report_sha256": "588d2e6a3ac4fe2ab252d16294748f7792fac5b63638c5b37b6c54bb4b9d7556",
+          "original_report": "artifacts/rust-rewrite/keychain-comparison-reproducible-20261013/report.json",
+          "observed": {
+            "passed": true,
+            "assertions": 25,
+            "synthetic_accounts_initially_absent": 3,
+            "synthetic_accounts_absent_after_cleanup": 3,
+            "node_and_native_same_account_verified": true,
+            "both_migration_directions_verified": true,
+            "credential_values_in_report": false
+          },
+          "scope": "Real macOS security adapter with synthetic credentials and isolated temporary settings. Uses the unchanged initial native release binary, not later uncommitted tooling. No real user credential is modified. Does not approve minimum macOS versions, GUI consent flows, all error/rollback cases, the full platform matrix or release/cutover."
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/003f9712cf436178ee3d8f11ecb1c71c0bfd7d9fa0ec0ae98283c17ac7d04cbf.json",
+          "report_sha256": "003f9712cf436178ee3d8f11ecb1c71c0bfd7d9fa0ec0ae98283c17ac7d04cbf",
+          "original_report": "rust/parity/measurements/native-keychain-process-bounds-summary.json",
+          "observed": {
+            "native_tests_passed": 8,
+            "owned_synthetic_children": 11,
+            "frozen_source_controls_passed": 6,
+            "security_account_operations": 0
+          },
+          "scope": "Correct shared64KiB stdout/stderr ceiling with actual subprocess boundary, paused15s production-clock and direct-child cleanup controls; generic failures and fixed system executable retained. Drop remains nonblocking. No actual Keychain items or platform/release qualification."
         }
       ],
       "status": "implemented_with_partial_evidence",
       "remaining": [
-        "Audit every baseline filesystem/policy/Keychain assertion; native Keychain testing uses synthetic process adapters, not a real user credential store.",
+        "Audit every baseline filesystem/policy/Keychain assertion. Isolated real macOS migration now passes, while minimum-OS, GUI consent and full failure/rollback qualification remain open.",
         "Qualify actual system policy ownership and TLS/OS behavior on every supported platform."
       ],
       "rust_test_definitions": [
@@ -2748,6 +2775,192 @@
             "remaining_byte_loss_cases": 4,
             "production_transport_promoted": false
           }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/780d093608725042cf6881e6fa52648ef3fa4c32183e16324ca2895f052118ae.json",
+          "report_sha256": "780d093608725042cf6881e6fa52648ef3fa4c32183e16324ca2895f052118ae",
+          "original_report": "artifacts/rust-rewrite/server-auto-goal-native-20261013-3/report.json",
+          "observed": {
+            "passed": true,
+            "original_definitions": 2,
+            "callbacks": 4,
+            "static_assertions": 38,
+            "original_assertion_executions": 290,
+            "provider_requests": 18,
+            "evaluator_requests": 16,
+            "token_count_requests": 0
+          },
+          "scope": "Exact original server#18/#19 Auto and goal schedules, both prompt-ID variants; explicit native callback/API adaptations retained."
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/c21405e116052fecd53d40793628ecb18dce8c2c03aff5bbdcd5662dd4544b62.json",
+          "report_sha256": "c21405e116052fecd53d40793628ecb18dce8c2c03aff5bbdcd5662dd4544b62",
+          "original_report": "artifacts/rust-rewrite/server-status-lifecycle-native-20261013-4/report.json",
+          "observed": {
+            "status": "four_original_callbacks_passed",
+            "baseline_definitions": 4,
+            "source_assertion_sites": 34,
+            "source_assertion_executions": 64,
+            "native_assertion_executions": 64,
+            "emitted_safe_status_events": 26,
+            "per_request_groups": 6,
+            "actual_provider_requests": 7,
+            "genuine_overlap_required": true
+          },
+          "scope": "Original server #21–#24 only; no whole-area, live quality, transport performance or release approval."
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/9d39d58f499b47c8988b88d0550b960d9f69350ee9f92e92e961417c22ef8c1e.json",
+          "report_sha256": "9d39d58f499b47c8988b88d0550b960d9f69350ee9f92e92e961417c22ef8c1e",
+          "original_report": "artifacts/rust-rewrite/server-stream-failure-native-20261013-3/report.json",
+          "observed": {
+            "baseline_definitions": 4,
+            "static_assertion_sites": 13,
+            "expanded_original_assertions": 12,
+            "expanded_native_predicate_assertions": 12,
+            "fully_represented_original_definitions": 3,
+            "partial_original_definitions": 1,
+            "native_tests": 4,
+            "counterfactual_guard_sites": 1,
+            "counterfactual_guard_executions": 0,
+            "downstream_http_operations": 4,
+            "actual_provider_requests": 3,
+            "route_calls": 4,
+            "source_complete_callbacks": 5,
+            "native_complete_callbacks": 4,
+            "source_emitted_status_events": 15,
+            "native_emitted_status_events": 15,
+            "source_synchronous_status_failures": 3,
+            "source_returned_promise_rejections": 2,
+            "native_synchronous_status_unwinds": 3,
+            "native_returned_async_failures_represented": 0
+          },
+          "scope": "Focused original callbacks only; no whole-area, live model, numerical performance or release approval."
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/7ff646b5e93a07734e852e0fec88c209ba91dac101affcdeba8c6e668d468f95.json",
+          "report_sha256": "7ff646b5e93a07734e852e0fec88c209ba91dac101affcdeba8c6e668d468f95",
+          "original_report": "artifacts/rust-rewrite/server-ollama-usage-native-20261013-1/report.json",
+          "observed": {
+            "baseline_definitions": 4,
+            "static_assertion_sites": 26,
+            "expanded_original_assertions": 36,
+            "expanded_native_assertions": 36,
+            "native_tests": 4,
+            "downstream_http_operations": 7,
+            "actual_provider_requests": 6,
+            "route_calls": 7,
+            "source_complete_callbacks": 13,
+            "native_complete_callbacks": 7,
+            "source_emitted_status_events": 37,
+            "native_emitted_status_events": 37,
+            "source_mocked_evaluator_requests": 2,
+            "native_mocked_evaluator_requests": 2,
+            "json_pricing_variants": 4
+          },
+          "scope": "Focused original callbacks only; no whole-area, live model, numerical performance or release approval."
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/7d2c4d73023db9be8cda800217f2c97faf69dba1ac79ead30a526681cf743f2a.json",
+          "report_sha256": "7d2c4d73023db9be8cda800217f2c97faf69dba1ac79ead30a526681cf743f2a",
+          "original_report": "artifacts/rust-rewrite/server-outcome-history-native-20261013-4/report.json",
+          "observed": {
+            "passed": true,
+            "baseline_definitions": 5,
+            "static_assertion_sites": 33,
+            "expanded_original_assertions": 55,
+            "expanded_native_assertions": 55,
+            "native_tests": 5,
+            "native_fixture_variants": 9,
+            "downstream_http_operations": 11,
+            "actual_provider_requests": 11,
+            "route_calls": 11,
+            "source_complete_callbacks": 22,
+            "native_complete_callbacks": 11,
+            "source_emitted_status_events": 60,
+            "native_emitted_status_events": 60,
+            "source_records": 16,
+            "native_records": 16,
+            "source_decision_callbacks": 1,
+            "native_decision_callbacks": 1,
+            "mocked_evaluator_requests": 2,
+            "record_sink_sync_failures": 2,
+            "record_sink_returned_rejections": 2,
+            "record_sink_never_ready_futures": 2
+          },
+          "scope": "Complete original server #33–#37 with reviewed native async return ownership and read-only continuity inspection; does not approve platform, all gateway assertions, performance or release."
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/51df3b6116fe9e4a70512df33ac7c84acac1145e5a269436852f3d5e9f87b4d3.json",
+          "report_sha256": "51df3b6116fe9e4a70512df33ac7c84acac1145e5a269436852f3d5e9f87b4d3",
+          "original_report": "artifacts/rust-rewrite/server-telemetry-async-native-20261013-1/report.json",
+          "observed": {
+            "passed": true,
+            "baseline_definitions": 1,
+            "static_assertion_sites": 3,
+            "expanded_original_assertions": 3,
+            "expanded_native_assertions": 3,
+            "native_tests": 1,
+            "downstream_http_operations": 1,
+            "actual_provider_requests": 1,
+            "route_calls": 1,
+            "source_complete_callbacks": 2,
+            "native_complete_callbacks": 1,
+            "source_emitted_status_events": 5,
+            "native_emitted_status_events": 5,
+            "source_synchronous_failures": 3,
+            "source_returned_promise_rejections": 2,
+            "native_synchronous_factory_unwinds": 3,
+            "native_actual_returned_future_rejections": 2
+          },
+          "scope": "Reviewed original server #26 asynchronous returned-failure schedule, inference isolation and explicit joined observer ownership; full-area and platform approval remain separate."
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/b7bdfe16e03371cf7d0ee41edff5ac35f220b4b023d1a990d8520c9260519675.json",
+          "report_sha256": "b7bdfe16e03371cf7d0ee41edff5ac35f220b4b023d1a990d8520c9260519675",
+          "original_report": "artifacts/rust-rewrite/server-decision-lifecycle-native-20261013-2/report.json",
+          "observed": {
+            "passed": true,
+            "baseline_definitions": 4,
+            "static_assertion_sites": 48,
+            "expanded_original_assertions": 103,
+            "expanded_native_assertions": 103,
+            "native_tests": 4,
+            "native_fixture_variants": 4,
+            "downstream_http_operations": 12,
+            "actual_provider_requests": 12,
+            "route_calls": 12,
+            "source_complete_callbacks": 23,
+            "native_complete_callbacks": 12,
+            "source_emitted_status_events": 56,
+            "native_emitted_status_events": 56,
+            "source_decision_callbacks": 11,
+            "native_decision_callbacks": 11,
+            "source_records": 0,
+            "native_records": 0,
+            "prompt_privacy_variants": 7,
+            "decision_factory_panics": 1,
+            "decision_returned_rejections": 1,
+            "decision_never_ready_futures": 1,
+            "manufactured_provider_disconnects": 0
+          },
+          "scope": "Reviewed complete original server #4–#7 schedules and all103 predicates, real returned async observer work and physical client/provider cancellation. Full source/CI/platform/performance/cutover qualification remains separate."
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/d43862667e75572a449fcb7559e732d1e29fb657354eb43f18a880e375ab9c68.json",
+          "report_sha256": "d43862667e75572a449fcb7559e732d1e29fb657354eb43f18a880e375ab9c68",
+          "original_report": "artifacts/rust-rewrite/routing-compatibility-comparison-20261013.json",
+          "observed": {
+            "definitions": 4,
+            "static_assertions": 22,
+            "expanded_original_assertions": 73,
+            "actual_gateway_requests": 18,
+            "provider_requests": 8,
+            "mocked_fetch_calls": 9,
+            "direct_counter_calls": 3
+          },
+          "scope": "Complete original routing compatibility #2–#5. No whole-area or central-ledger completion claim.",
+          "review": "Root original-predicate review; all native API/format differences remain explicit."
         }
       ],
       "status": "implemented_with_partial_evidence",
@@ -2839,7 +3052,29 @@
         "rust/crates/autorouter-runtime/src/classifier.rs",
         "rust/crates/autorouter-runtime/src/bounded_json.rs"
       ],
-      "reports": [],
+      "reports": [
+        {
+          "report": "artifacts/rust-rewrite/evidence/df501540e4ec7296303402d36797168e92f5ec81a2207a44802640e9241b9f3c.json",
+          "report_sha256": "df501540e4ec7296303402d36797168e92f5ec81a2207a44802640e9241b9f3c",
+          "original_report": "rust/parity/measurements/resume-local-model-tev1-summary.json",
+          "observed": {
+            "experiments": 2,
+            "matched_pairs_per_experiment": 5,
+            "real_local_model_decision_calls": 1980,
+            "warm_requests_per_engine_per_experiment": 450,
+            "stress_requests_per_engine_per_experiment": 40,
+            "cold_requests_per_engine_per_experiment": 5,
+            "strict_model_quality_passed": false,
+            "rubric_agreement": 0.7333333333333333,
+            "under_route_rate": 0.2,
+            "finite_deadline_stress_difference_rows": 10,
+            "zero_deadline_all_categorical_and_provider_token_metrics_matched": true,
+            "tested_model_cleanup_verified": true,
+            "hosted_or_claude_calls": 0
+          },
+          "scope": "Recorded normal-use16GiB Mac with exact tev1:0.8b digest/Ollama0.40.0 and immutable dirty-source debug helper. Preserves inherited rubric failures and finite-deadline stress differences. Zero-deadline matches are separate feature/transport evidence, not controlled performance, downstream task, larger-host, platform, release or cutover acceptance."
+        }
+      ],
       "status": "implemented_with_partial_evidence",
       "remaining": [
         "Native injected-transport tests exercise synthetic requests, parsing, deadlines, independent cancellation and setup. No real model downloads or current evaluator availability/quality is claimed.",
@@ -3156,6 +3391,42 @@
             "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
             "kind": "rust_pure_function_differential"
           }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/6dbe835019c7b37606dab21dd670dcd1e943027f2aadc2f48204a459788e922b.json",
+          "report_sha256": "6dbe835019c7b37606dab21dd670dcd1e943027f2aadc2f48204a459788e922b",
+          "original_report": "rust/parity/measurements/native-safe-pid-cleanup-summary.json",
+          "observed": {
+            "source_rows": 34,
+            "native_rows": 34,
+            "complete_rows_match": true,
+            "native_tests_passed": 7
+          },
+          "scope": "Safe-integer callback admission and checked OS liveness correction; u32 to u64 embedding migration is explicit. Timestamp boundary and final artifact qualification remain open."
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/db8e8aab7136b82685b5163ef3248d9bfe10878603d673ef3758749bdff8fc87.json",
+          "report_sha256": "db8e8aab7136b82685b5163ef3248d9bfe10878603d673ef3758749bdff8fc87",
+          "original_report": "rust/parity/measurements/native-cleanup-probe-summary.json",
+          "observed": {
+            "cleanup_library_tests_passed": 7,
+            "isolated_probe_regression_passed": true,
+            "source_native_removed": 1,
+            "safe_pid_rows_unchanged": 34
+          },
+          "scope": "Actual failed liveness probe is contained per directory; explicit initialization suppresses private panic output and preserves unrelated host hook. Ordinary panic contracts, API migration and final qualification remain explicit."
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/73f9d9501ee9ef9972aa68747d700ee2beb60960cf66677cc3b888e535489eb9.json",
+          "report_sha256": "73f9d9501ee9ef9972aa68747d700ee2beb60960cf66677cc3b888e535489eb9",
+          "original_report": "artifacts/rust-rewrite/completion-20261013-status-settings-native-1/report.json",
+          "observed": {
+            "definitions": 2,
+            "static_assertions": 4,
+            "expanded_assertions": 4,
+            "native_tests_passed": 3
+          },
+          "scope": "Exact original #4 and #6 callbacks/assertions, actual source and overlay files, relative settings filename, all allow/ask/deny rules and defaultMode, literal glob escaping, unchanged original bytes. Native renderer command uses its own executable and is checked in full; synthetic absolute root and mkdtemp suffix normalization are declared, with no production edits."
         }
       ],
       "status": "implemented_with_partial_evidence",
@@ -3369,6 +3640,18 @@
             "expanded_original_assertions": 100,
             "scope": "Focused history reader/command counterparts; no complete storage or performance gate claim."
           }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/a500c07c11a81b44af0d03130aa2417aa2808963ce520efb4951f9eb73cf301f.json",
+          "report_sha256": "a500c07c11a81b44af0d03130aa2417aa2808963ce520efb4951f9eb73cf301f",
+          "original_report": "rust/parity/measurements/native-history-limit-admission-summary.json",
+          "observed": {
+            "native_tests_passed": 17,
+            "invalid_direct_controls": 63,
+            "decoded_invalid_controls": 43,
+            "frozen_reference_filesystem_calls": 0
+          },
+          "scope": "Public reader admission correction with unchanged ceilings, defaults, error precedence and privacy. Pure parser inputs, platform matrix and final artifact qualification remain separate."
         }
       ],
       "status": "implemented_with_partial_evidence",
@@ -3829,7 +4112,7 @@
       ],
       "status": "implemented_with_partial_evidence",
       "remaining": [
-        "Historical four-host CI installed each exact archive offline without lifecycle scripts or Node, running27 CLI tests per target. Later macOS ARM64 host4 passed60 installed tests; host5 release snapshot abc2f11b\u2026 passes66 installed tests and offline Node/native/rollback/native rehearsal. Other current targets and fresh Linux secret-input cancellation validation remain pending.",
+        "Historical four-host CI installed each exact archive offline without lifecycle scripts or Node, running27 CLI tests per target. Later macOS ARM64 host4 passed60 installed tests; host5 release snapshot abc2f11b… passes66 installed tests and offline Node/native/rollback/native rehearsal. Other current targets and fresh Linux secret-input cancellation validation remain pending.",
         "Four historical targets already require at least39,386,112 expanded bytes, exceeding the unchanged33,554,432-byte cap. The aggregate archive was rejected; no release artifact was produced.",
         "Full target/libc/oldest-OS/WSL matrix, post-OpenSSL aggregate sizes, native crypto compatibility, legal review, reproducible source provenance and production release gates remain pending."
       ],
@@ -4203,6 +4486,79 @@
             "performance_acceptance": false,
             "baseline_rows_promoted": 0
           }
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/bfeb6ded88101f58c4463cab0385fe7debda47e715ad2d5ef21159fd4b93f696.json",
+          "report_sha256": "bfeb6ded88101f58c4463cab0385fe7debda47e715ad2d5ef21159fd4b93f696",
+          "original_report": "rust/parity/measurements/native-typed-contract-resume-summary.json",
+          "observed": {
+            "passed": true,
+            "core_integration_passed": 5,
+            "compiler_positive": 1,
+            "compiler_negative": 14,
+            "frozen_policy_routes": 263,
+            "frozen_classified_routes": 236,
+            "typed_vs_legacy_lifecycle_mode_ending_combinations": 6,
+            "typed_exact_passthrough_no_io_test_passed": true,
+            "focused_gateway_integration_passed": 9,
+            "original_node_static_checks_passed": 2,
+            "bootstrap_auditor_clippy_passed": true,
+            "production_feature_selftest_accepted": 1,
+            "production_feature_selftest_rejected": 46,
+            "historical_node_native_control_comparison_cases": 37,
+            "new_development_runtime_controls_native_rejected": 11,
+            "new_development_runtime_controls_historical_node_accepted": 11
+          },
+          "scope": "Reviewed native first-party compile-time contracts and typed/legacy observation comparisons. Production feature gate is stronger for development runtime artifacts; its historical binary evidence does not qualify a new release."
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/146453ff3023e3757a7b2b4c3c3e97cff234f13d54777c6472291c72d3707734.json",
+          "report_sha256": "146453ff3023e3757a7b2b4c3c3e97cff234f13d54777c6472291c72d3707734",
+          "original_report": "rust/parity/measurements/native-tooling-protocol-resume-summary.json",
+          "observed": {
+            "reviewed_original_definitions": 5,
+            "covered_original_definitions": 4,
+            "partial_original_definitions": 1,
+            "original_assertion_call_sites": 63,
+            "helper_sites": 3,
+            "native_tests_passed": 7,
+            "original_expanded_node_tests_passed": 11,
+            "strict_clippy_passed": true
+          },
+          "scope": "Reviewed source-only bundle archive metadata and synthetic protocol/rubric counterparts. Bundle dependency-free execution and source-format migrations remain partial; no full-area, runtime/hardware/provider/platform or cutover approval."
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/fc66830a55665a4dcb650693684bfad0f9c7631c6d9a9e81aca6d57f681a97f8.json",
+          "report_sha256": "fc66830a55665a4dcb650693684bfad0f9c7631c6d9a9e81aca6d57f681a97f8",
+          "original_report": "rust/parity/measurements/resume-union-checkpoint-summary.json",
+          "observed": {
+            "rust_workspace_passed": 1120,
+            "rust_workspace_failed": 0,
+            "rust_workspace_ignored": 4,
+            "format_passed": true,
+            "strict_clippy_passed": true
+          },
+          "scope": "Frozen pre-correction checkpoint only. Later history, PID and descriptor changes require new validation. No final artifact, platform or cutover approval."
+        },
+        {
+          "report": "artifacts/rust-rewrite/evidence/130ba64e0023ed98220fda84d733aae65fb92fecf1e01540defc965f8145212d.json",
+          "report_sha256": "130ba64e0023ed98220fda84d733aae65fb92fecf1e01540defc965f8145212d",
+          "original_report": "rust/parity/measurements/resume-corrections-checkpoint-summary.json",
+          "observed": {
+            "rust_workspace_passed": 1144,
+            "rust_workspace_failed": 0,
+            "rust_workspace_ignored": 5,
+            "rust_test_groups": 59,
+            "ordinary_ci_test_parallelism": true,
+            "format_passed": true,
+            "strict_workspace_all_target_clippy_passed": true,
+            "node_syntax_files": 97,
+            "node_tests_passed": 596,
+            "shipping_package_archive_files": 58,
+            "installed_shipping_package_lifecycle_passed": true,
+            "post_guide_bundle_tests_passed": 7
+          },
+          "scope": "The source is still uncommitted and final ordinary binary/archive/source ancestry qualification is pending. The retained first ordinary build predates the Keychain correction and is historical. Five default-ignored entries are retained; two isolated child tests are executed by their passing parents, while other opt-in entries remain outside ordinary execution. Current original compatibility and permission schedules are reviewed individually;79 partial definitions and the27-key/53-limit audit retain broader gates. Real Tev1 strict quality failures and finite-cutoff availability differences remain unchanged; representative controlled/larger-host, full task/platform, allocation/long-soak, release and cutover gates remain open. New portable-model orchestration and cache-boundary drafts stayed outside Rust source during this checkpoint."
         }
       ],
       "status": "implemented_with_partial_evidence",
@@ -4499,8 +4855,14 @@
         },
         {
           "file": "rust/xtask/src/tool_process.rs",
-          "function": "output_and_deadline_are_bounded_and_metadata_never_contains_output",
-          "line": 264,
+          "function": "completed_child_output_is_captured_and_omitted_from_metadata",
+          "line": 362,
+          "execution_status": "definition_inventory_only; consult retained run evidence"
+        },
+        {
+          "file": "rust/xtask/src/tool_process.rs",
+          "function": "deadline_terminates_child_without_assuming_output_readiness",
+          "line": 384,
           "execution_status": "definition_inventory_only; consult retained run evidence"
         },
         {
@@ -10041,5 +10403,31 @@
     "bytes": 26711,
     "sha256": "f4a5a9d25e031af26fc5af4aa44d91d9ad5a35db74062051ad3860bd7c464319",
     "original_path": "rust/parity/measurements/nineteenth-integration-summary.json"
-  }
+  },
+  "server_auto_goal_original_contracts_summary": {
+    "path": "artifacts/rust-rewrite/evidence/780d093608725042cf6881e6fa52648ef3fa4c32183e16324ca2895f052118ae.json",
+    "bytes": 9748,
+    "sha256": "780d093608725042cf6881e6fa52648ef3fa4c32183e16324ca2895f052118ae",
+    "original_path": "artifacts/rust-rewrite/server-auto-goal-native-20261013-3/report.json"
+  },
+  "real_keychain_host_preflight_summary": "rust/parity/measurements/resume-keychain-preflight-summary.json",
+  "matched_live_preflight_summary": "rust/parity/measurements/resume-live-preflight-summary.json",
+  "server_status_lifecycle_original_contracts_summary": "rust/parity/assertion-mappings/server-status-lifecycle-contracts.json",
+  "actual_auto_live_preflight_summary": "rust/parity/measurements/resume-live-auto-preflight-summary.json",
+  "server_stream_failure_contracts_summary": "rust/parity/assertion-mappings/server-stream-failure-contracts.json",
+  "server_ollama_usage_contracts_summary": "rust/parity/assertion-mappings/server-ollama-usage-contracts.json",
+  "server_outcome_history_original_contracts_summary": "rust/parity/assertion-mappings/server-outcome-history-contracts.json",
+  "server_telemetry_async_original_contracts_summary": "rust/parity/assertion-mappings/server-telemetry-async-contract.json",
+  "native_typed_contracts_summary": "rust/parity/measurements/native-typed-contract-resume-summary.json",
+  "real_local_tev1_language_comparison_summary": "rust/parity/measurements/resume-local-model-tev1-summary.json",
+  "server_decision_lifecycle_original_contracts_summary": "rust/parity/assertion-mappings/server-decision-lifecycle-contracts.json",
+  "original_tooling_rubric_protocol_summary": "rust/parity/measurements/native-tooling-protocol-resume-summary.json",
+  "frozen_union_resume_checkpoint_summary": "rust/parity/measurements/resume-union-checkpoint-summary.json",
+  "native_history_limit_admission_summary": "rust/parity/measurements/native-history-limit-admission-summary.json",
+  "native_safe_pid_cleanup_summary": "rust/parity/measurements/native-safe-pid-cleanup-summary.json",
+  "native_cleanup_probe_containment_summary": "rust/parity/measurements/native-cleanup-probe-summary.json",
+  "status_settings_actual_file_summary": "rust/parity/assertion-mappings/status-settings-file-contracts.json",
+  "routing_compatibility_original_contracts_summary": "rust/parity/assertion-mappings/routing-compatibility-contracts.json",
+  "native_keychain_actual_subprocess_bounds_summary": "rust/parity/measurements/native-keychain-process-bounds-summary.json",
+  "corrected_ci_parallel_checkpoint_summary": "rust/parity/measurements/resume-corrections-checkpoint-summary.json"
 }

@@ -1,12 +1,18 @@
 //! Explicit synthetic measurements of complete executables, never a CI timer gate.
+#[path = "benchmark_descriptors.rs"]
+mod descriptors;
 #[path = "benchmark_legacy.rs"]
 mod legacy;
 #[path = "benchmark_measure.rs"]
 mod measure;
+#[path = "benchmark_processing.rs"]
+mod processing;
 #[path = "benchmark_service.rs"]
 mod service;
 #[path = "benchmark_stream.rs"]
 mod stream;
+#[path = "benchmark_whole.rs"]
+mod whole;
 use crate::process::read_bounded;
 use crate::process::resource::ResourceChild;
 use crate::tool_process::Scratch;
@@ -33,6 +39,7 @@ const SELECTED: &str = "claude-sonnet-5";
 const PROTOCOL: &str = include_str!("../../parity/local-benchmark-v1.json");
 const PROTOCOL_V2: &str = include_str!("../../parity/local-benchmark-v2.json");
 const PROTOCOL_V3: &str = include_str!("../../parity/local-benchmark-v3.json");
+const PROTOCOL_V4: &str = include_str!("../../parity/local-benchmark-v4.json");
 const GATES: &str = include_str!("../../parity/performance-gates.json");
 fn digest(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
@@ -97,8 +104,25 @@ struct Workload {
     delay_ms: u64,
     concurrency: usize,
     stream: Option<stream::Kind>,
+    payload: Payload,
 }
-fn workloads(v2: bool) -> Vec<Workload> {
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Payload {
+    Standard,
+    NearLimit,
+    TinyStrings,
+}
+const NEAR_LIMIT_BYTES: usize = 32 * 1024 * 1024 - 4096;
+const TINY_STRINGS: usize = 65536;
+fn capacity_preflight(memory: Option<u64>, selected: Option<&str>) -> Value {
+    let required = selected.is_none_or(|id| id == "near_limit_body_miss");
+    let minimum = 32 * 1024 * 1024 * 1024u64;
+    json!({"required":required,"physical_memory_bytes":memory,"minimum_physical_memory_bytes":minimum,
+        "adequate":!required || memory.is_some_and(|bytes|bytes>=minimum),
+        "maximum_concurrency":128,"raw_driver_request_bytes_lower_bound":NEAR_LIMIT_BYTES as u64 *128,
+        "basis":"32GiB safety heuristic for concurrent near-limit inputs, not a proven copy factor, peak-memory bound or available-headroom guarantee; do not reduce load or claim acceptance on refusal"})
+}
+fn workloads(v2: bool, v4: bool) -> Vec<Workload> {
     let mut result = Vec::new();
     for (id, tools, cached, delay, concurrency) in [
         ("small_miss", false, false, 0, &[1, 8, 32, 128][..]),
@@ -114,6 +138,7 @@ fn workloads(v2: bool) -> Vec<Workload> {
                 delay_ms: delay,
                 concurrency,
                 stream: None,
+                payload: Payload::Standard,
             });
         }
     }
@@ -130,6 +155,25 @@ fn workloads(v2: bool) -> Vec<Workload> {
                     delay_ms: 0,
                     concurrency,
                     stream: Some(kind),
+                    payload: Payload::Standard,
+                });
+            }
+        }
+    }
+    if v4 {
+        for (id, payload) in [
+            ("near_limit_body_miss", Payload::NearLimit),
+            ("tiny_strings_miss", Payload::TinyStrings),
+        ] {
+            for concurrency in [1, 8, 32, 128] {
+                result.push(Workload {
+                    id,
+                    tools: false,
+                    cached: false,
+                    delay_ms: 0,
+                    concurrency,
+                    stream: None,
+                    payload,
                 });
             }
         }
@@ -149,6 +193,17 @@ impl Fixture {
         }
         if workload.stream.is_some() {
             value["stream"] = json!(true);
+        }
+        match workload.payload {
+            Payload::Standard => {}
+            Payload::NearLimit => {
+                value["synthetic_opaque_padding"] = json!("");
+                let overhead = serde_json::to_vec(&value).unwrap().len();
+                value["synthetic_opaque_padding"] = json!("x".repeat(NEAR_LIMIT_BYTES - overhead));
+            }
+            Payload::TinyStrings => {
+                value["synthetic_opaque_strings"] = json!(vec!["s"; TINY_STRINGS]);
+            }
         }
         let bytes = serde_json::to_vec(&value).unwrap();
         let index_offset = bytes
@@ -479,14 +534,17 @@ async fn http(
     validate: bool,
     v2: bool,
     resources: bool,
+    descriptor_collector: Option<&descriptors::Collector>,
 ) -> Result<Value, String> {
+    let v4 = descriptor_collector.is_some();
     let fixture = Arc::new(Fixture::new(workload, round));
     let stream_fixture = workload.stream.map(stream::Fixture::new);
     let expected = stream_fixture
         .as_ref()
         .map(|v| v.expected.clone())
         .unwrap_or_else(|| Bytes::from_static(service::RESPONSE));
-    let expected_model = if executable.is_some() && !workload.tools {
+    let large = workload.tools || workload.payload != Payload::Standard;
+    let expected_model = if executable.is_some() && !large {
         SELECTED
     } else {
         MODEL
@@ -513,6 +571,19 @@ async fn http(
     let idle = match &gateway {
         Some(gateway) => measure::process(gateway.child.id()).await,
         None => Value::Null,
+    };
+    let idle_descriptors = if v4 {
+        match &gateway {
+            Some(gateway) => {
+                descriptor_collector
+                    .unwrap()
+                    .snapshot(gateway.child.id())
+                    .await
+            }
+            None => Value::Null,
+        }
+    } else {
+        Value::Null
     };
     let warmup = if validate {
         if v2 { 8.max(workload.concurrency) } else { 8 }
@@ -546,6 +617,19 @@ async fn http(
             mock.streams.snapshot()
         )
     })?;
+    let warm_descriptors = if v4 {
+        match &gateway {
+            Some(gateway) => {
+                descriptor_collector
+                    .unwrap()
+                    .snapshot(gateway.child.id())
+                    .await
+            }
+            None => Value::Null,
+        }
+    } else {
+        Value::Null
+    };
     let before = mock.counts.snapshot();
     let streams_before = mock.streams.snapshot();
     let cpu_before = match &gateway {
@@ -652,6 +736,21 @@ async fn http(
     let cpu_ms = cpu_delta_ms
         .filter(|v| *v >= resolution_ms * 10.0)
         .map(|v| v / measured as f64);
+    let (recovery, recovery_descriptors) = if v4 {
+        tokio::time::sleep(Duration::from_millis(200)).await;
+        match &gateway {
+            Some(gateway) => (
+                measure::process(gateway.child.id()).await,
+                descriptor_collector
+                    .unwrap()
+                    .snapshot(gateway.child.id())
+                    .await,
+            ),
+            None => (Value::Null, Value::Null),
+        }
+    } else {
+        (Value::Null, Value::Null)
+    };
     let ready = gateway.as_ref().map(|v| v.ready_ms);
     let stderr_bytes = gateway
         .as_ref()
@@ -674,6 +773,20 @@ async fn http(
         row["true_peak_rss_bytes"] = lifetime
             .map(|value| value["peak_rss_bytes"].clone())
             .unwrap_or(Value::Null);
+    }
+    if v4 {
+        row["open_file_descriptors"] = json!({
+            "idle": idle_descriptors,
+            "after_warmup": warm_descriptors,
+            "postload": recovery_descriptors,
+            "postload_minus_warmup": descriptors::delta(&warm_descriptors, &recovery_descriptors),
+            "acceptance_qualified": false
+        });
+        row["postload_rss_bytes"] = recovery["rss_bytes"].clone();
+        row["postload_quiescence_ms"] = json!(200);
+        row["resource_recovery_scope"] = json!(
+            "single fixed-load batch with HTTP pools retained; descriptive snapshots, no long-term retention qualification"
+        );
     }
     if v2 {
         row["driver_peak_in_flight_requests"] = json!(batch.peak_in_flight);
@@ -944,27 +1057,85 @@ fn source_files(directory: &Path, root: &Path, rows: &mut Vec<Value>) -> Result<
     }
     Ok(())
 }
+struct BenchmarkOptions<'a> {
+    validate: bool,
+    v2: bool,
+    resources: bool,
+    v4: bool,
+    libproc: bool,
+    selected_workload: Option<&'a str>,
+}
 async fn execute(
     root: &Path,
     destination: &Path,
     binary: &Path,
-    validate: bool,
-    v2: bool,
-    resources: bool,
+    options: BenchmarkOptions<'_>,
 ) -> Result<bool, String> {
-    let protocol = if resources {
+    let BenchmarkOptions {
+        validate,
+        v2,
+        resources,
+        v4,
+        libproc,
+        selected_workload,
+    } = options;
+    let protocol = if v4 {
+        PROTOCOL_V4
+    } else if resources {
         PROTOCOL_V3
     } else if v2 {
         PROTOCOL_V2
     } else {
         PROTOCOL
     };
-    let schema_version = if resources {
+    let schema_version = if v4 {
+        4
+    } else if resources {
         3
     } else if v2 {
         2
     } else {
         1
+    };
+    let descriptor_limit = if v4 {
+        let (soft, hard) =
+            nix::sys::resource::getrlimit(nix::sys::resource::Resource::RLIMIT_NOFILE)
+                .map_err(|_| "Cannot inspect benchmark descriptor limit")?;
+        let limit = json!({"soft":soft,"hard":hard,"required_soft_minimum":1024,"adequate":soft>=1024,"scope":"driver and both inherited engine environments; control sockets require more than256 descriptors at128 clients"});
+        write(&destination.join("file-descriptor-preflight.json"), &limit)?;
+        if soft < 1024 {
+            return Err("Protocol v4 requires a soft file-descriptor limit of at least1024; raise it for this command before running, without reducing declared concurrency".into());
+        }
+        Some(limit)
+    } else {
+        None
+    };
+    let capacity = if v4 {
+        let capacity = capacity_preflight(measure::memory_bytes(), selected_workload);
+        write(&destination.join("capacity-preflight.json"), &capacity)?;
+        if capacity["adequate"] != true {
+            return Err("Protocol v4 near-limit128-client work requires at least32GiB known physical RAM by its declared safety heuristic; transfer the full workload to a larger host. This refusal is unmeasured, never a passing or reduced-load run".into());
+        }
+        Some(capacity)
+    } else {
+        None
+    };
+    if libproc {
+        write(
+            &destination.join("descriptor-collector-declaration.json"),
+            &json!({
+                "selector":"libproc-v1","design":serde_json::from_str::<Value>(descriptors::LIBPROC_DESIGN).unwrap(),
+                "design_sha256":digest(descriptors::LIBPROC_DESIGN.as_bytes()),
+                "implementation_companion":serde_json::from_str::<Value>(descriptors::LIBPROC_IMPLEMENTATION).unwrap(),
+                "implementation_companion_sha256":digest(descriptors::LIBPROC_IMPLEMENTATION.as_bytes()),
+                "numerical_or_hardware_acceptance":false
+            }),
+        )?;
+    }
+    let descriptor_collector = if v4 {
+        Some(descriptors::Collector::prepare(libproc).await?)
+    } else {
+        None
     };
     let reference = root.join("artifacts/rust-rewrite/reference");
     crate::reference::freeze(root, &reference)?;
@@ -1006,7 +1177,20 @@ async fn execute(
         source.push(json!({"path":path,"sha256":digest(&bytes),"bytes":bytes.len()}));
     }
     let before = measure::environment(root);
-    let preflight = json!({"schema_version":schema_version,"kind":"synthetic_native_benchmark_preflight","mode":if validate{"deterministic_validation"}else{"exploratory_measurement"},"baseline_commit":"ea930c247626ce2af5ccdad721b5121417bf4ad8","protocol":serde_json::from_str::<Value>(protocol).unwrap(),"protocol_sha256":digest(protocol.as_bytes()),"gates":serde_json::from_str::<Value>(GATES).unwrap(),"gates_sha256":digest(GATES.as_bytes()),"candidate_sha256":digest(&read_bounded(&native.program,32*1024*1024)?),"node_binary_sha256":digest(&read_bounded(&node.program,256*1024*1024)?),"source_manifest":source,"environment":before,"provider_calls":0,"reference_integrity_verified":true});
+    let mut preflight = json!({"schema_version":schema_version,"kind":"synthetic_native_benchmark_preflight","mode":if validate{"deterministic_validation"}else{"exploratory_measurement"},"baseline_commit":"ea930c247626ce2af5ccdad721b5121417bf4ad8","protocol":serde_json::from_str::<Value>(protocol).unwrap(),"protocol_sha256":digest(protocol.as_bytes()),"gates":serde_json::from_str::<Value>(GATES).unwrap(),"gates_sha256":digest(GATES.as_bytes()),"candidate_sha256":digest(&read_bounded(&native.program,32*1024*1024)?),"node_binary_sha256":digest(&read_bounded(&node.program,256*1024*1024)?),"source_manifest":source,"environment":before,"provider_calls":0,"reference_integrity_verified":true});
+    if v4 {
+        preflight["inherited_protocol"] = serde_json::from_str(PROTOCOL_V3).unwrap();
+        preflight["inherited_protocol_sha256"] = json!(digest(PROTOCOL_V3.as_bytes()));
+        preflight["selected_workload"] = json!(selected_workload);
+        preflight["complete_protocol_workload_selection"] = json!(selected_workload.is_none());
+        preflight["file_descriptor_limit"] = json!(descriptor_limit);
+        preflight["capacity"] = json!(capacity);
+        if libproc {
+            preflight["descriptor_collector"] = json!({"selector":"libproc-v1","identity":descriptor_collector.as_ref().unwrap().identity,
+                "design_protocol_sha256":digest(descriptors::LIBPROC_DESIGN.as_bytes()),
+                "implementation_protocol_sha256":digest(descriptors::LIBPROC_IMPLEMENTATION.as_bytes())});
+        }
+    }
     write(&destination.join("preflight.json"), &preflight)?;
     let mut rows = Vec::new();
     let mut sequence = 0;
@@ -1041,6 +1225,9 @@ async fn execute(
             if resources {
                 row.as_object_mut().unwrap().remove("true_peak_rss_bytes");
             }
+            if v4 {
+                descriptors::validation_only(&mut row);
+            }
         }
         sequence += 1;
         write(&destination.join(format!("row-{sequence:04}.json")), &row)?;
@@ -1058,7 +1245,10 @@ async fn execute(
         } else {
             [&native, &node]
         };
-        for argument in ["--help", "--version", "statusline"] {
+        for argument in ["--help", "--version", "statusline"]
+            .into_iter()
+            .filter(|_| selected_workload.is_none())
+        {
             let mut expected = None;
             for executable in order {
                 let row = startup(executable, argument, round, validate).await?;
@@ -1072,10 +1262,35 @@ async fn execute(
                 save(row)?;
             }
         }
-        for workload in workloads(v2) {
-            save(http(None, &workload, round, validate, v2, resources).await?)?;
+        for workload in workloads(v2, v4)
+            .into_iter()
+            .filter(|workload| selected_workload.is_none_or(|selected| selected == workload.id))
+        {
+            save(
+                http(
+                    None,
+                    &workload,
+                    round,
+                    validate,
+                    v2,
+                    resources,
+                    descriptor_collector.as_ref(),
+                )
+                .await?,
+            )?;
             for executable in order {
-                save(http(Some(executable), &workload, round, validate, v2, resources).await?)?;
+                save(
+                    http(
+                        Some(executable),
+                        &workload,
+                        round,
+                        validate,
+                        v2,
+                        resources,
+                        descriptor_collector.as_ref(),
+                    )
+                    .await?,
+                )?;
             }
         }
         write(
@@ -1114,6 +1329,29 @@ async fn execute(
     if v2 {
         unmeasured.push("stream_backpressure_failure_cancellation_performance");
     }
+    if v4 && !validate {
+        if rows
+            .iter()
+            .any(|row| row["workload"] == "near_limit_body_miss")
+        {
+            unmeasured.retain(|metric| *metric != "near_limit_body");
+        }
+        let descriptors_missing = rows.iter().any(|row| {
+            row["implementation"] != "direct_upstream"
+                && row["concurrency"].is_number()
+                && ["idle", "after_warmup", "postload"]
+                    .iter()
+                    .any(|stage| row["open_file_descriptors"][stage]["verified"] != true)
+        });
+        if descriptors_missing {
+            unmeasured.push("verified_open_file_descriptors");
+        } else {
+            unmeasured.retain(|metric| *metric != "open_file_descriptors");
+        }
+    }
+    if selected_workload.is_some() {
+        unmeasured.push("excluded_protocol_workloads");
+    }
     let mut report = json!({"schema_version":schema_version,"kind":if validate{"synthetic_runtime_neutral_validation"}else{"synthetic_runtime_neutral_benchmark"},"completed":true,"deterministic_parity":true,"representative_hardware_acceptance":false,"overall_plan_performance_gate":"incomplete","rounds":rounds,"protocol_sha256":digest(protocol.as_bytes()),"comparisons":if validate{Vec::new()}else{comparisons(&rows,v2)},"rows":rows,"environment_after":measure::environment(root),"unmeasured":unmeasured,"limits":"Uncontrolled developer workstation; complete HTTP latency includes driver/network/mocks. Sampled peak RSS cannot certify the peak-memory target. No live-provider or model-quality evidence."});
     if resources {
         report["limits"] = json!(
@@ -1125,6 +1363,18 @@ async fn execute(
             "Complete inference/count fixture fields, target models, expected stage call counts, exact response bytes through EOF, mock fully-yielded/abandoned bodies and clean gateway exit/listener closure. Evaluator inputs have object-shape/count checks only; rubric/state, cancellation and transport acknowledgement parity require their separate suites."
         );
     }
+    if v4 {
+        report["selected_workload"] = json!(selected_workload);
+        report["complete_protocol_workload_selection"] = json!(selected_workload.is_none());
+        report["excluded_workloads"] = json!(workloads(v2, v4).into_iter()
+            .filter(|workload| selected_workload.is_some_and(|selected| selected != workload.id))
+            .map(|workload| workload.id).collect::<std::collections::BTreeSet<_>>());
+        report["descriptor_recovery_qualified"] = json!(false);
+        if libproc {
+            report["descriptor_collector"] = json!({"selector":"libproc-v1","design_protocol_sha256":digest(descriptors::LIBPROC_DESIGN.as_bytes()),
+                "implementation_protocol_sha256":digest(descriptors::LIBPROC_IMPLEMENTATION.as_bytes())});
+        }
+    }
     write(&destination.join("report.json"), &report)?;
     println!(
         "{}",
@@ -1133,6 +1383,18 @@ async fn execute(
     Ok(true)
 }
 pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
+    if args == ["__whole-connection-child"] {
+        return whole::child();
+    }
+    if args.first().is_some_and(|arg| arg == "--whole-connection") {
+        return whole::run(&args[1..], root);
+    }
+    if args == ["__processing-child"] {
+        return processing::child();
+    }
+    if args.first().is_some_and(|arg| arg == "--processing") {
+        return processing::run(&args[1..], root);
+    }
     if args.iter().any(|arg| arg == "--compare-legacy") {
         if args.len() != 2 || args[0] != "--compare-legacy" || args[1].starts_with("--") {
             return Err("Usage: cargo xtask benchmark --compare-legacy REPORT.json".into());
@@ -1144,12 +1406,18 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
     let mut validate = false;
     let mut v2 = false;
     let mut resources = false;
+    let mut v4 = false;
+    let mut libproc = false;
+    let mut selected_workload = None;
     let mut index = 0;
     while index < args.len() {
         match args[index].as_str() {
             "--help" => {
                 println!(
-                    "cargo xtask benchmark --output NEW_DIRECTORY [--rust EXECUTABLE] [--protocol v1|v2|v3] [--validate]\ncargo xtask benchmark --compare-legacy REPORT.json\nSynthetic loopback services only; --validate checks counts/bytes without retaining timing results. Default v1 retains the original workload; v2 adds first-body observations and exact streamed responses; v3 adds isolated lifetime resource collection. Full measurements remain local opt-in evidence; never pool protocol versions.\n--compare-legacy only reads a combined historical baseline/candidate report (at most 16 MiB, 4096 rows each), recomputes the original JS heap/event-loop/latency/coalescing gates and prints JSON. Both reports must be unmarked historical shapes or schema_version 1/type synthetic_router_benchmark; finite nonnegative metrics and safe integer counts are required. Missing candidate maxima serialize as null. No measurements or files are written; these gates do not qualify native paired protocols."
+                    "cargo xtask benchmark --processing --output NEW_DIRECTORY [--validate]\nUse --processing --help for the matched body-processing component and its explicit whole-gateway limits."
+                );
+                println!(
+                    "cargo xtask benchmark --output NEW_DIRECTORY [--rust EXECUTABLE] [--protocol v1|v2|v3|v4] [--workload ID] [--descriptor-collector libproc-v1] [--validate]\ncargo xtask benchmark --compare-legacy REPORT.json\nSynthetic loopback services only; --validate checks counts/bytes without retaining timing results. Default v1 retains the original workload; v2 adds first-body observations and exact streamed responses; v3 adds isolated lifetime resource collection; v4 adds near-limit/tiny-string requests and descriptor/recovery snapshots. --workload requires v4 and selects one HTTP workload at all declared concurrency groups, recording excluded coverage. Explicit --descriptor-collector libproc-v1 requires v4, compiles an identity-checked macOS SDK helper before services, and leaves Linux enumeration unchanged; ordinary v4 retains lsof. Full measurements remain local opt-in evidence; never pool protocol/collector versions.\n--compare-legacy only reads a combined historical baseline/candidate report (at most 16 MiB, 4096 rows each), recomputes the original JS heap/event-loop/latency/coalescing gates and prints JSON. Both reports must be unmarked historical shapes or schema_version 1/type synthetic_router_benchmark; finite nonnegative metrics and safe integer counts are required. Missing candidate maxima serialize as null. No measurements or files are written; these gates do not qualify native paired protocols."
                 );
                 return Ok(true);
             }
@@ -1164,16 +1432,45 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
             "--validate" => validate = true,
             "--protocol" => {
                 index += 1;
-                (v2, resources) = match args.get(index).map(String::as_str) {
-                    Some("v1") => (false, false),
-                    Some("v2") => (true, false),
-                    Some("v3") => (true, true),
-                    _ => return Err("--protocol requires v1, v2 or v3".into()),
+                (v2, resources, v4) = match args.get(index).map(String::as_str) {
+                    Some("v1") => (false, false, false),
+                    Some("v2") => (true, false, false),
+                    Some("v3") => (true, true, false),
+                    Some("v4") => (true, true, true),
+                    _ => return Err("--protocol requires v1, v2, v3 or v4".into()),
                 };
+            }
+            "--workload" => {
+                index += 1;
+                selected_workload =
+                    Some(args.get(index).ok_or("--workload requires an ID")?.as_str());
+            }
+            "--descriptor-collector" => {
+                index += 1;
+                if args.get(index).map(String::as_str) != Some("libproc-v1") {
+                    return Err("--descriptor-collector requires libproc-v1".into());
+                }
+                libproc = true;
             }
             _ => return Err("Unknown benchmark option; use --help".into()),
         }
         index += 1;
+    }
+    if libproc && !v4 {
+        return Err("--descriptor-collector libproc-v1 requires --protocol v4; earlier frozen protocols remain unchanged".into());
+    }
+    if let Some(selected) = selected_workload {
+        if !v4 {
+            return Err(
+                "--workload requires --protocol v4; earlier frozen protocols are unfiltered".into(),
+            );
+        }
+        if !workloads(v2, v4)
+            .iter()
+            .any(|workload| workload.id == selected)
+        {
+            return Err("Unknown benchmark workload; use a declared v4 HTTP workload ID".into());
+        }
     }
     let destination = destination.ok_or("--output requires a new directory")?;
     if !validate && cfg!(debug_assertions) {
@@ -1193,9 +1490,14 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
         root,
         &destination,
         &binary,
-        validate,
-        v2,
-        resources,
+        BenchmarkOptions {
+            validate,
+            v2,
+            resources,
+            v4,
+            libproc,
+            selected_workload,
+        },
     )) {
         Ok(result) => Ok(result),
         Err(error) => {
@@ -1211,6 +1513,31 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
 mod tests {
     use super::*;
     #[test]
+    fn descriptor_selection_cannot_mutate_earlier_protocols_or_admit_other_tools() {
+        let root = Path::new("/synthetic");
+        for arguments in [
+            vec!["--protocol", "v3", "--descriptor-collector", "libproc-v1"],
+            vec!["--protocol", "v4", "--descriptor-collector", "unreviewed"],
+        ] {
+            let arguments = arguments.into_iter().map(str::to_owned).collect::<Vec<_>>();
+            assert!(run(&arguments, root).is_err());
+        }
+        let design: Value = serde_json::from_str(descriptors::LIBPROC_DESIGN).unwrap();
+        let companion: Value = serde_json::from_str(descriptors::LIBPROC_IMPLEMENTATION).unwrap();
+        assert_eq!(
+            companion["design_protocol_sha256"],
+            digest(descriptors::LIBPROC_DESIGN.as_bytes())
+        );
+        assert_eq!(
+            companion["inherited_protocol_sha256"],
+            digest(PROTOCOL_V4.as_bytes())
+        );
+        assert_eq!(
+            design["inherited_protocol_sha256"],
+            digest(PROTOCOL_V4.as_bytes())
+        );
+    }
+    #[test]
     fn body_identity_changes_misses_and_retains_cache_input() {
         let workload = Workload {
             id: "fixture",
@@ -1219,6 +1546,7 @@ mod tests {
             delay_ms: 0,
             concurrency: 1,
             stream: None,
+            payload: Payload::Standard,
         };
         let fixture = Fixture::new(&workload, 1);
         assert_ne!(fixture.body(1), fixture.body(2));
@@ -1233,6 +1561,142 @@ mod tests {
             1,
         );
         assert_eq!(cached.body(1), cached.body(2));
+    }
+    #[test]
+    fn v4_large_inputs_keep_exact_limits_opaque_data_and_request_identity() {
+        for payload in [Payload::NearLimit, Payload::TinyStrings] {
+            let workload = Workload {
+                id: "synthetic-v4",
+                tools: false,
+                cached: false,
+                delay_ms: 0,
+                concurrency: 1,
+                stream: None,
+                payload,
+            };
+            let fixture = Fixture::new(&workload, 1);
+            assert!(fixture.bytes.len() > 150000);
+            assert!(fixture.bytes.len() < 32 * 1024 * 1024);
+            let body = fixture.body(21);
+            let parsed: Value = serde_json::from_slice(&body).unwrap();
+            assert_eq!(parsed["model"], MODEL);
+            assert!(
+                parsed["messages"][0]["content"]
+                    .as_str()
+                    .unwrap()
+                    .ends_with("000000000021")
+            );
+            match payload {
+                Payload::NearLimit => {
+                    assert_eq!(body.len(), NEAR_LIMIT_BYTES);
+                    assert!(
+                        parsed["synthetic_opaque_padding"]
+                            .as_str()
+                            .unwrap()
+                            .bytes()
+                            .all(|byte| byte == b'x')
+                    );
+                }
+                Payload::TinyStrings => {
+                    let strings = parsed["synthetic_opaque_strings"].as_array().unwrap();
+                    assert_eq!(strings.len(), TINY_STRINGS);
+                    assert!(strings.iter().all(|value| value == "s"));
+                }
+                Payload::Standard => unreachable!(),
+            }
+            assert_eq!(body.len(), fixture.bytes.len());
+            assert_ne!(body, fixture.body(22));
+            assert_eq!(
+                &body[..fixture.index_offset],
+                &fixture.bytes[..fixture.index_offset]
+            );
+            assert_eq!(
+                &body[fixture.index_offset + 12..],
+                &fixture.bytes[fixture.index_offset + 12..]
+            );
+        }
+    }
+    #[test]
+    fn v4_adds_full_concurrency_groups_without_changing_frozen_workloads() {
+        let v1 = workloads(false, false);
+        let v2 = workloads(true, false);
+        let v4 = workloads(true, true);
+        assert_eq!(v1.len(), 13);
+        assert_eq!(v2.len(), 21);
+        assert_eq!(v4.len(), 29);
+        for (old, new) in v2.iter().zip(&v4) {
+            assert_eq!(old.id, new.id);
+            assert_eq!(old.concurrency, new.concurrency);
+            assert_eq!(old.tools, new.tools);
+            assert_eq!(old.cached, new.cached);
+            assert_eq!(old.delay_ms, new.delay_ms);
+            assert!(new.payload == Payload::Standard);
+            assert_eq!(Fixture::new(old, 1).bytes, Fixture::new(new, 1).bytes);
+        }
+        for id in ["near_limit_body_miss", "tiny_strings_miss"] {
+            assert_eq!(
+                v4.iter()
+                    .filter(|workload| workload.id == id)
+                    .map(|workload| workload.concurrency)
+                    .collect::<Vec<_>>(),
+                [1, 8, 32, 128]
+            );
+        }
+        let protocol: Value = serde_json::from_str(PROTOCOL_V4).unwrap();
+        assert_eq!(
+            protocol["predecessor_protocol_sha256"],
+            digest(PROTOCOL_V3.as_bytes())
+        );
+    }
+    #[test]
+    fn workload_selection_rejects_frozen_or_unknown_protocol_inputs_before_writes() {
+        let scratch = Scratch::new("benchmark-selection").unwrap();
+        for (protocol, workload) in [
+            ("v3", "tiny_strings_miss"),
+            ("v4", "not-a-declared-workload"),
+        ] {
+            let args = [
+                "--protocol",
+                protocol,
+                "--workload",
+                workload,
+                "--output",
+                "new-evidence",
+                "--validate",
+            ]
+            .map(str::to_owned);
+            assert!(run(&args, &scratch.0).is_err());
+            assert!(!scratch.0.join("new-evidence").exists());
+        }
+    }
+    #[test]
+    fn capacity_refusal_never_reduces_workloads_or_excludes_small_hosts_silently() {
+        for memory in [
+            None,
+            Some(16 * 1024 * 1024 * 1024),
+            Some(31 * 1024 * 1024 * 1024),
+        ] {
+            assert_eq!(capacity_preflight(memory, None)["adequate"], false);
+            assert_eq!(
+                capacity_preflight(memory, Some("near_limit_body_miss"))["adequate"],
+                false
+            );
+            assert_eq!(
+                capacity_preflight(memory, Some("tiny_strings_miss"))["adequate"],
+                true
+            );
+            assert_eq!(
+                capacity_preflight(memory, Some("small_miss"))["adequate"],
+                true
+            );
+        }
+        let enough = capacity_preflight(Some(32 * 1024 * 1024 * 1024), None);
+        assert_eq!(enough["adequate"], true);
+        assert_eq!(
+            enough["raw_driver_request_bytes_lower_bound"],
+            4294443008u64
+        );
+        assert_eq!(enough["maximum_concurrency"], 128);
     }
     #[test]
     fn regression_comparison_does_not_pass_missing_rounds() {

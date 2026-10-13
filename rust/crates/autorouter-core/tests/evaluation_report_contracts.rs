@@ -60,3 +60,32 @@ fn report_comparison_rejects_unmeasured_or_failed_quality_laundering() {
         &json!({"ok":false,"error":"expected"})
     ));
 }
+
+#[test]
+fn original_live_tier_permutation_fails_each_rubric_despite_complete_coverage() {
+    use autorouter_core::evaluation_report::{evaluate_live_case, evaluate_live_report};
+    let tiers = ["haiku", "sonnet", "opus"];
+    let mut cases = Vec::new();
+    for (index, expected) in tiers.iter().enumerate() {
+        let actual = tiers[(index + 1) % tiers.len()];
+        let routes = json!([{"request_class":"main","source":"jev","evaluator":"jev",
+            "classified_tier":actual,"expected_classified_tier":expected,"model":format!("claude-{actual}-5")}]);
+        let mut accepted = evaluate_live_case(
+            &json!({"checks":{"claude_success":true,"expected_result":true},
+            "routes":routes,"evaluator":"jev"}),
+        )
+        .unwrap();
+        assert_eq!(accepted["gates"]["rubric"]["passed"], false);
+        accepted["routes"] = routes;
+        cases.push(accepted);
+    }
+    let report = evaluate_live_report(&json!(cases), &json!({})).unwrap();
+    assert_eq!(report["gates"]["coverage"]["passed"], true);
+    assert_eq!(report["passed"], false);
+    let missing = evaluate_live_case(
+        &json!({"checks":{"claude_success":true,"expected_result":true},"evaluator":"jev",
+        "routes":[{"source":"jev","classified_tier":"haiku"}]}),
+    )
+    .unwrap();
+    assert_eq!(missing["gates"]["rubric"]["passed"], false);
+}

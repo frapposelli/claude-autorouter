@@ -196,3 +196,66 @@ compiler. A separate deadline-under-backpressure fix was drafted during this
 run without builds or tests; it is absent from the measured immutable binary.
 These results support the checkpoint19 candidate's local opt-in performance
 case and do not qualify that later fix, publication or default cutover.
+
+## Completion audit and protocol 4
+
+The [performance completion audit](performance-completion.md) maps the original
+plan requirements to retained evidence and distinguishes implemented collectors
+from measurements and acceptance. The existing four numerical comparisons are
+protocol 1 exploratory runs. Protocols 2 and 3 have functional validation; their
+stream and kernel lifetime-resource collectors still need fresh paired numerical
+runs on the final candidate and representative hardware.
+
+The [v4 declaration](../parity/local-benchmark-v4.json) adds exact near-limit
+requests and many tiny opaque strings at concurrency 1/8/32/128. It records
+gateway-only descriptor snapshots and sampled memory after load. Descriptor
+targets and raw diagnostics are never retained; failed or ambiguous collection
+cannot establish recovery. A single short postload snapshot is descriptive,
+and does not replace a long soak or allocation/retained-state measurements.
+
+Select it with `cargo xtask benchmark --protocol v4 --output NEW_DIRECTORY
+--validate`. The optional `--workload near_limit_body_miss` or
+`--workload tiny_strings_miss` runs one family at all four concurrency levels
+and records excluded coverage. Validation strips numerical resource/timing
+values. Numerical runs require an optimized driver, five new matched rounds
+and a quiet machine; near-limit concurrency can consume several GiB and the
+full measurement moves several TiB over loopback. Versions 1–3, their failures
+and acceptance thresholds are unchanged. No numerical v4 result is claimed by
+the declaration or its deterministic tests.
+
+Protocol 4 checks that the command's soft file-descriptor limit is at least
+1,024 before starting services; the direct 128-client control alone needs more
+than 256 handles. In bash/zsh, use `ulimit -n 1024` in the dedicated benchmark
+shell before the command. Both engines inherit and record the same limit. The
+initial tiny-string validation's incorrect count-call expectation and later
+256-handle control failure remain retained in separate evidence directories.
+
+Full v4 and the near-limit family also require at least 32 GiB known physical
+RAM before services start. This safety heuristic reflects the roughly 4 GiB
+raw-input floor at 128 clients; it does not prove available headroom or peak
+memory. Refused runs remain unmeasured. Small and tiny-string families can
+still run on 16 GiB using `--workload`, and their hardware qualification is
+still required. Run the complete near-limit family on the larger Mac without
+reducing its declared concurrency.
+
+The [processing component protocol](../parity/processing-benchmark-v1.json)
+provides a separate matched parse/validate/real-router/prepare/serialize boundary
+in fresh Node and native development helpers. It uses the full classifier and
+token-counter implementations with immediate in-memory response transports,
+checks exact evaluator/count payloads and decision metadata, and includes
+speculative count work before ending a sample. Run `cargo xtask benchmark
+--processing --output NEW_DIRECTORY --validate` for deterministic validation.
+Its declared numerical comparison retains the original 0.5 p95 target, five
+alternating rounds and 2,000 samples per round. HTTP receive/authentication,
+response observation, storage and downstream delivery are excluded. The
+component result therefore cannot independently approve the whole gateway
+processing gate or the shipping executable; its report keeps those limits.
+
+For the larger Mac, `cargo xtask benchmark-bundle --transfer NEW_DIRECTORY`
+creates an allowlisted Rust source archive, a separately verified frozen Node
+reference archive, checksums and a resume guide. Their combined expansion
+retains the existing 32 MiB source budget. The default bundle stays Rust-only.
+The transfer contains no executables, Cargo cache, credentials or private
+reports; the destination builds the pinned release tools and uses Node only
+for the temporary reference comparison. Regenerate it from the final source
+checkpoint before collecting qualification evidence.

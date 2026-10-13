@@ -41,6 +41,7 @@ fn main() -> ExitCode {
     std::panic::set_hook(Box::new(|_| {
         eprintln!("AutoRouter encountered an internal error.")
     }));
+    autorouter_runtime::callback_privacy::initialize_observer_privacy();
     let mut arguments = std::env::args_os().skip(1);
     let command = arguments.next().unwrap_or_else(|| OsString::from("help"));
     let args: Vec<_> = arguments.collect();

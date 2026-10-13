@@ -1,0 +1,47 @@
+{
+  "schema_version": 4,
+  "protocol_id": "native-http-process-body-resources-v4",
+  "declared_before_first_measurement": "2026-10-13",
+  "predecessor": "native-http-process-stream-resources-v3",
+  "predecessor_protocol_sha256": "7c347d155a17575b65e13c57cf0c11e7e68c193dfa93fd252dc600257dee6c5e",
+  "predecessor_policy": "Retain v1-v3 declarations and all reports unchanged. Never pool versions or substitute historical samples. Every numerical v4 comparison requires five fresh paired alternating Node/native rounds.",
+  "inherited_settings": "The startup, small/delayed/cache/300-tool/stream fixtures, sample counts, ordering, pooling, 15s per-request deadline, two driver workers, one native executor, response bounds, byte/count verification, isolated lifetime collector and bootstrap method are exactly local-benchmark-v3.json at the recorded SHA256. This declaration adds only the workloads and observations below; all inherited workloads remain part of an unfiltered run.",
+  "new_workloads": [
+    {
+      "id": "near_limit_body_miss",
+      "kind": "http",
+      "payload": "An otherwise ordinary synthetic request with an opaque synthetic_opaque_padding string of ASCII x bytes; exact serialized input length is 32MiB minus4096bytes. Task text retains the existing twelve decimal request-index bytes.",
+      "fixture_bytes": 33550336,
+      "tools": false,
+      "cache": false,
+      "evaluator_delay_ms": 0,
+      "concurrency": [1, 8, 32, 128],
+      "http_warmup_requests": 200,
+      "http_measured_requests": 2000
+    },
+    {
+      "id": "tiny_strings_miss",
+      "kind": "http",
+      "payload": "An otherwise ordinary synthetic request with synthetic_opaque_strings containing65536 independent one-character ASCII s JSON strings. This specifically exercises per-string parser/storage metadata without changing tool/task/evaluator content.",
+      "strings": 65536,
+      "tools": false,
+      "cache": false,
+      "evaluator_delay_ms": 0,
+      "concurrency": [1, 8, 32, 128],
+      "http_warmup_requests": 200,
+      "http_measured_requests": 2000
+    }
+  ],
+  "new_workload_controls": "Each new inference reaches upstream once, evaluates once, sends no external count request, and conservatively retains claude-opus-5-5. The frozen token counter rejects preparation for unfamiliar root extensions, independently of the large-context router's speculative count attempt; do not remove the extension or bypass that compatibility guard to force a call. Complete parsed inference fields, arbitrary opaque payload, expected response bytes and all stage counts must match before retaining a comparison. Direct upstream uses identical bytes. No count estimates or request/body limits are changed.",
+  "premeasurement_characterization": "Initial deterministic validation completion-20261013-v4-tiny-validation-1 retained its original preflight/protocol hash and failed because the harness expected an external count call for an unknown root extension; the frozen Node counter correctly sent zero. This declaration corrects only that fixture expectation before any numerical v4 measurement. Original failures and unchanged thresholds remain retained; no product behavior or assertion about expected policy is relaxed.",
+  "descriptor_observations": "Record gateway-only open numeric descriptor counts at initial idle, after warmup with the HTTP pools established, and after measured load plus200ms quiescence while pools remain open. Linux enumerates numeric entries in /proc/PID/fd without resolving targets; macOS runs /usr/sbin/lsof with only PID/f fields. Owned unreaped process handles anchor identity. Bound enumeration to131072 entries and lsof output to1MiB with a2s deadline. Never record file names, descriptors' targets, process names or raw tool diagnostics. Failed/truncated/ambiguous collection is unverified and cannot establish recovery; macOS warnings make its count descriptive and unverified rather than silently ignored.",
+  "descriptor_scope": "Snapshots are not atomic, not peak FD counts and not a long resource soak. Retain all three collection outcomes, numerical counts only in measurement mode, and warm/postload deltas only when both are verified. No new descriptor count or recovery acceptance threshold is ratified; measurements are descriptive. Collection happens outside the measured HTTP interval, identically for both engines.",
+  "descriptor_limit_preflight": "Before starting services, require and record driver RLIMIT_NOFILE soft>=1024 and its hard limit; both gateway implementations inherit the same limit. A direct128-client control needs at least256 client/accepted socket descriptors plus the driver's other handles. Initial validation2 retained its C1/C8/C32 successes and C128 direct-control failure under the host's256 soft limit. This condition is declared before any numerical run; raise the limit for the one benchmark command, never reduce concurrency or claim the host failure was a passing run.",
+  "recovery_observations": "After the measured batch and interval CPU observation, wait200ms and record sampled whole-process RSS and descriptors. Keep warmup baseline distinct from pre-pool idle; neither a200ms recovery point nor a stable count proves bounded long-term retention. Lifetime peaks remain the v3 kernel metric. Missing allocation/retained-state measurements stay unmeasured.",
+  "selection": "Optional --workload ID selects exactly one declared HTTP workload and all of its declared concurrency groups. Startup invocations are omitted in a filtered run. Record selection in preflight/report and mark excluded workload families unmeasured; never treat filtered output as the full protocol or plan gate. No sample counts or concurrency groups are reduced for measurements.",
+  "cost_and_hardware": "Near-limit bodies at128 clients can consume several GiB in each gateway and driver, and a full five-round measurement moves several TiB through loopback. Record memory pressure, load and power conditions; stop and retain an unsuccessful run rather than reduce concurrency, remove outliers or increase deadlines after observing failure. A normal-use16GiB machine and a larger-memory Mac are distinct representative conditions; this workstation cannot substitute for both. Coordinate exclusive benchmark execution, without simultaneous agent builds/tests.",
+  "capacity_preflight": "Before starting a full-v4 or selected near_limit_body_miss run, require known physicalRAM>=32GiB. This is an explicit operator-safety heuristic for the128-client near-limit load, not a demonstrated peak/copy factor or available-headroom guarantee. Raw driver input alone requires4294443008bytes at that concurrency. Record physical RAM, heuristic minimum and refusal in a create-only report; refusal remains unmeasured, never acceptance. Preserve all128 clients for an adequate larger host. Selected small/cache/stream/tiny-string families remain available on16GiB and retain their own representative-hardware requirements; this condition does not narrow the declared workload matrix or waive16GiB evaluator/other workload evidence.",
+  "validation": "--validate uses the unchanged v3 validation request counts, checks fixtures/counts/bytes/cleanup and descriptor parser/collection outcomes, and strips numerical timing/resource observations. It does not certify numerical performance, large-load recovery or representative hardware. Fixture properties and selection are retained.",
+  "acceptance": "Original performance-gates.json thresholds remain unchanged: startup0.5, idle RSS0.6, large-catalog lifetime peak0.7, CPU/request0.7, throughput minimum0.9, and p95/p99 nonregression with10% allowance and0.5ms absolute floor. The new workloads use existing CPU/throughput/latency checks; their additional peak memory and descriptor observations are descriptive. Full acceptance remains false on uncontrolled hardware. Large-catalog processing-only0.5 is still unmeasured, never replaced by end-to-end HTTP or independent-percentile subtraction.",
+  "remaining": ["processing_only_latency", "allocations", "identical_shared_evaluation", "continuity", "cancellation", "upstream_failures", "token_count_workloads", "storage_slow_failed", "status_polling", "history_at_read_limits", "long_resource_soak_and_retained_state", "representative_hardware", "real_evaluator_and_task_quality"]
+}

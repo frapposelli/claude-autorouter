@@ -4,6 +4,8 @@ Use Node.js 22+ from a source checkout on macOS or Linux (including WSL). The in
 
 The proposed [Rust rewrite plan](rust-rewrite-plan.md) covers full functionality parity, native architecture, performance gates and migration. It does not change the current development workflow.
 
+The [completion audit](rust-rewrite-status.md) tracks the full remaining scope, current evidence and acceptance gates while the experimental native implementation is developed.
+
 ## Local checks
 
 ```sh

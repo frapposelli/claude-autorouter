@@ -5,6 +5,11 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 
+[features]
+default = []
+# Synthetic processing probes only; ordinary shipping builds must exclude this.
+development-probes = []
+
 [dependencies]
 autorouter-core = { path = "../autorouter-core" }
 serde.workspace = true

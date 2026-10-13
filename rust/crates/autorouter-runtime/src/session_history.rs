@@ -82,6 +82,9 @@ pub async fn read_session_history(
     directory: PathBuf,
     options: HistoryOptions,
 ) -> Result<Value, String> {
+    // Match source admission order even for directly constructed public fields:
+    // invalid limits win over ID/path errors and never start a blocking reader.
+    options.limits.validate()?;
     tokio::task::spawn_blocking(move || read_history(&directory, &options))
         .await
         .map_err(|_| "Could not read the session log directory.".to_owned())?

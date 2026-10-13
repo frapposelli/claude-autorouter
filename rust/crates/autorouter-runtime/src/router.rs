@@ -6,10 +6,13 @@ use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use autorouter_core::config::RouterConfig;
+use autorouter_core::contracts::TypedRouteDecision;
 use autorouter_core::js_json::JsDocument;
 use autorouter_core::router::{RouteDecision, RouteOptions, Router as PolicyRouter};
 use hyper::HeaderMap;
-use serde_json::{Value, json};
+use serde_json::Value;
+#[cfg(test)]
+use serde_json::json;
 use tokio::time::Instant;
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
@@ -28,8 +31,17 @@ pub struct Router<T> {
     advisory_tasks: TaskTracker,
     advisory_stopping: CancellationToken,
     advisory_limit: usize,
+    #[cfg(feature = "development-probes")]
+    development_count_observer: Option<Arc<dyn Fn(Option<u64>) + Send + Sync>>,
     #[cfg(test)]
     advisory_gate: Mutex<Option<Arc<crate::classifier::shutdown_gate::WorkerPollGate>>>,
+}
+/// Read-only accounting; never exposes task keys, models or retained payloads.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ContinuitySnapshot {
+    pub records: usize,
+    pub attempts: usize,
+    pub aliases: usize,
 }
 
 impl<T> Drop for Router<T> {
@@ -67,6 +79,14 @@ impl<T: HttpTransport + 'static> Drop for AttemptGuard<'_, T> {
     }
 }
 impl<T: HttpTransport + 'static> Router<T> {
+    pub fn continuity_snapshot(&self) -> ContinuitySnapshot {
+        let policy = self.policy.lock().unwrap();
+        ContinuitySnapshot {
+            records: policy.turns.record_count(),
+            attempts: policy.turns.attempt_count(),
+            aliases: policy.turns.alias_count(),
+        }
+    }
     pub fn new(transport: Arc<T>, config: RouterConfig) -> Self {
         Self::with_clock(
             transport,
@@ -105,9 +125,23 @@ impl<T: HttpTransport + 'static> Router<T> {
             // At most one speculative count per eligible classifier caller.
             // Retiring tasks retain this slot until their future is destroyed.
             advisory_limit: limits.subscribers,
+            #[cfg(feature = "development-probes")]
+            development_count_observer: None,
             #[cfg(test)]
             advisory_gate: Mutex::new(None),
         }
+    }
+    /// Development measurement observation after the real counter future
+    /// resolves, including its parser/cache/finally work. This optional hook is
+    /// absent from ordinary shipping builds and cannot change the count value.
+    /// The probe owns its bounded collector and synchronous callback workload.
+    #[cfg(feature = "development-probes")]
+    pub fn with_development_count_observer(
+        mut self,
+        observer: Arc<dyn Fn(Option<u64>) + Send + Sync>,
+    ) -> Self {
+        self.development_count_observer = Some(observer);
+        self
     }
     pub fn complete(&self, request_id: &str, evidence: &Value) -> bool {
         self.policy
@@ -170,6 +204,8 @@ impl<T: HttpTransport + 'static> Router<T> {
         let cancellation = cancellation.clone();
         let stopping = self.advisory_stopping.clone();
         let search = search.to_owned();
+        #[cfg(feature = "development-probes")]
+        let observer = self.development_count_observer.clone();
         let worker = {
             let closing = self.advisory_closing.lock().unwrap();
             if *closing {
@@ -179,11 +215,16 @@ impl<T: HttpTransport + 'static> Router<T> {
                 return Ok(None);
             }
             let worker = async move {
-                tokio::select! {
+                let count = tokio::select! {
                     biased;
                     _ = stopping.cancelled() => None,
                     count = counter.count(&document, &model, &headers, &cancellation, &search) => count,
+                };
+                #[cfg(feature = "development-probes")]
+                if let Some(observer) = observer {
+                    let _ = crate::callback_privacy::contain_callback(|| observer(count));
                 }
+                count
             };
             #[cfg(test)]
             let worker = crate::classifier::shutdown_gate::schedule(
@@ -203,11 +244,16 @@ impl<T: HttpTransport + 'static> Router<T> {
         cancellation: &CancellationToken,
         search: &str,
     ) -> Option<u64> {
-        tokio::select! {
+        let count = tokio::select! {
             biased;
             _ = self.advisory_stopping.cancelled() => None,
             count = self.counter.count(document, model, headers, cancellation, search) => count,
+        };
+        #[cfg(feature = "development-probes")]
+        if let Some(observer) = &self.development_count_observer {
+            let _ = crate::callback_privacy::contain_callback(|| observer(count));
         }
+        count
     }
 
     pub async fn route(
@@ -222,6 +268,8 @@ impl<T: HttpTransport + 'static> Router<T> {
             .await
             .map(|result| result.decision)
     }
+    /// Legacy JSON observation facade. Production policy and gateway use the
+    /// typed operation below, without erasing classifier metadata into Value.
     pub async fn route_exact(
         &self,
         document: Arc<JsDocument>,
@@ -230,6 +278,21 @@ impl<T: HttpTransport + 'static> Router<T> {
         cancellation: &CancellationToken,
         search: &str,
     ) -> Result<RouteDecision, EvaluationError> {
+        self.route_typed_exact(document, options, headers, cancellation, search)
+            .await
+            .map(|result| RouteDecision {
+                decision: result.metadata.observation(),
+                model: result.model,
+            })
+    }
+    pub async fn route_typed_exact(
+        &self,
+        document: Arc<JsDocument>,
+        options: RouteOptions,
+        headers: &HeaderMap,
+        cancellation: &CancellationToken,
+        search: &str,
+    ) -> Result<TypedRouteDecision, EvaluationError> {
         if *self.advisory_closing.lock().unwrap() {
             return Err(EvaluationError::Cancelled);
         }
@@ -245,16 +308,17 @@ impl<T: HttpTransport + 'static> Router<T> {
             .lock()
             .unwrap()
             .begin_route(&document, options, (self.now)());
-        if let Some(mut passthrough) = start.passthrough {
-            set_latency(&mut passthrough, 0.0, started);
+        if let Some(mut passthrough) = start.passthrough_contract {
+            passthrough.evaluation_latency_ms = 0.0;
+            passthrough.latency_ms = rounded_ms(started);
             attempt.transferred = true;
             let model = document
                 .get(document.root(), "model")
                 .and_then(|node| document.string(node))
                 .cloned()
                 .unwrap_or_else(|| "".into());
-            return Ok(RouteDecision {
-                decision: passthrough,
+            return Ok(TypedRouteDecision {
+                metadata: passthrough,
                 model,
             });
         }
@@ -274,13 +338,11 @@ impl<T: HttpTransport + 'static> Router<T> {
             .classify(&document, &self.config, cancellation)
             .await?;
         let evaluation_latency = rounded_ms(evaluation_started);
-        let decision =
-            serde_json::to_value(decision).map_err(|_| EvaluationError::InvalidResponse)?;
         let pending =
             self.policy
                 .lock()
                 .unwrap()
-                .classified(&document, start, decision, (self.now)());
+                .classified_typed(&document, start, decision, (self.now)());
         let count = if !count_tokens {
             None
         } else if let Some(model) = pending.count_model.as_ref() {
@@ -304,12 +366,14 @@ impl<T: HttpTransport + 'static> Router<T> {
         if cancellation.is_cancelled() || self.advisory_stopping.is_cancelled() {
             return Err(EvaluationError::Cancelled);
         }
-        let mut decision =
-            self.policy
-                .lock()
-                .unwrap()
-                .finish_route_exact(&document, pending, count, (self.now)());
-        set_latency(&mut decision.decision, evaluation_latency, started);
+        let mut decision = self.policy.lock().unwrap().finish_route_typed_exact(
+            &document,
+            pending,
+            count,
+            (self.now)(),
+        );
+        decision.metadata.evaluation_latency_ms = evaluation_latency;
+        decision.metadata.latency_ms = rounded_ms(started);
         // An unused advisory count has the source promise's bounded lifetime:
         // it may complete/cache until its deadline or request cancellation.
         // Dropping/aborting route before success instead aborts that task.
@@ -320,10 +384,6 @@ impl<T: HttpTransport + 'static> Router<T> {
 }
 fn rounded_ms(start: Instant) -> f64 {
     (start.elapsed().as_secs_f64() * 100_000.0).round() / 100.0
-}
-fn set_latency(value: &mut Value, evaluation: f64, start: Instant) {
-    value["evaluation_latency_ms"] = json!(evaluation);
-    value["latency_ms"] = json!(rounded_ms(start));
 }
 
 #[cfg(test)]
@@ -430,6 +490,48 @@ mod tests {
             ..RouteOptions::default()
         }
     }
+    #[tokio::test]
+    async fn typed_passthrough_keeps_exact_identities_without_evaluator_or_count_calls() {
+        let transport = Arc::new(Mock::new(false));
+        let router = Router::new(transport.clone(), config());
+        let cancellation = CancellationToken::new();
+        let mut decisions = Vec::new();
+        for bytes in [
+            br#"{"model":"synthetic-\ud800","messages":[{"role":"user","content":"Synthetic"}]}"#
+                .as_slice(),
+            br#"{"model":"synthetic-\ud801","messages":[{"role":"user","content":"Synthetic"}]}"#
+                .as_slice(),
+        ] {
+            let document = Arc::new(JsDocument::parse(bytes).unwrap());
+            let result = router
+                .route_typed_exact(
+                    document,
+                    RouteOptions {
+                        request_class: "auxiliary".into(),
+                        ..RouteOptions::default()
+                    },
+                    &HeaderMap::new(),
+                    &cancellation,
+                    "",
+                )
+                .await
+                .unwrap();
+            assert_eq!(
+                result.metadata.source,
+                autorouter_core::contracts::DecisionSource::Passthrough
+            );
+            assert_eq!(result.metadata.reason, "internal_request");
+            assert!(result.metadata.tier.is_none() && result.metadata.evaluator.is_none());
+            assert!(result.metadata.latency_ms.is_finite() && result.metadata.latency_ms >= 0.0);
+            assert_eq!(result.metadata.evaluation_latency_ms, 0.0);
+            decisions.push(result);
+        }
+        assert_eq!(decisions[0].metadata.model, decisions[1].metadata.model);
+        assert_ne!(decisions[0].model, decisions[1].model);
+        assert_eq!(transport.evaluations.load(Ordering::SeqCst), 0);
+        assert_eq!(transport.counts.load(Ordering::SeqCst), 0);
+        router.close().await;
+    }
     async fn wait_requests(mock: &Mock) {
         tokio::time::timeout(std::time::Duration::from_secs(2), async {
             while mock.counts.load(Ordering::SeqCst) != 1
@@ -449,6 +551,54 @@ mod tests {
         })
         .await
         .unwrap();
+    }
+
+    #[cfg(feature = "development-probes")]
+    #[tokio::test]
+    async fn development_count_observer_reports_actual_finished_value_not_admission() {
+        let mock = Arc::new(Mock::new(true));
+        let observed = Arc::new(Mutex::new(Vec::new()));
+        let sink = observed.clone();
+        let router = Router::new(mock.clone(), config()).with_development_count_observer(Arc::new(
+            move |count| sink.lock().unwrap().push(count),
+        ));
+        let task = router
+            .start_early_count(
+                document(true),
+                "claude-haiku-4-5-20251001",
+                &HeaderMap::new(),
+                &CancellationToken::new(),
+                "",
+            )
+            .unwrap()
+            .unwrap();
+        tokio::time::timeout(std::time::Duration::from_secs(2), async {
+            while mock.counts.load(Ordering::SeqCst) == 0 {
+                tokio::task::yield_now().await;
+            }
+        })
+        .await
+        .unwrap();
+        assert!(observed.lock().unwrap().is_empty());
+        mock.count_permits.add_permits(1);
+        assert_eq!(task.await.unwrap(), Some(1000));
+        assert_eq!(*observed.lock().unwrap(), [Some(1000)]);
+        let unsupported = JsDocument::parse(br#"{"model":"claude-haiku-4-5-20251001","messages":[{"role":"user","content":"Synthetic"}],"synthetic_unknown":true}"#).unwrap();
+        assert_eq!(
+            router
+                .required_count(
+                    &unsupported,
+                    "claude-haiku-4-5-20251001",
+                    &HeaderMap::new(),
+                    &CancellationToken::new(),
+                    ""
+                )
+                .await,
+            None
+        );
+        assert_eq!(*observed.lock().unwrap(), [Some(1000), None]);
+        assert_eq!(mock.counts.load(Ordering::SeqCst), 1);
+        router.close().await;
     }
 
     #[tokio::test]

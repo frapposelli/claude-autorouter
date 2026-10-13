@@ -28,6 +28,21 @@ pub fn load() -> Value {
         )
     }
 }
+pub fn memory_bytes() -> Option<u64> {
+    if cfg!(target_os = "macos") {
+        output("/usr/sbin/sysctl", &["-n", "hw.memsize"]).and_then(|value| value.parse().ok())
+    } else {
+        std::fs::read_to_string("/proc/meminfo")
+            .ok()
+            .and_then(|text| {
+                text.lines()
+                    .find(|line| line.starts_with("MemTotal:"))
+                    .and_then(|line| line.split_whitespace().nth(1))
+                    .and_then(|value| value.parse::<u64>().ok())
+                    .and_then(|value| value.checked_mul(1024))
+            })
+    }
+}
 pub fn environment(root: &Path) -> Value {
     let (cpu, memory, power) = if cfg!(target_os = "macos") {
         (

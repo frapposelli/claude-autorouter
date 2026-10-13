@@ -359,19 +359,50 @@ mod tests {
         }
     }
     #[tokio::test]
-    async fn output_and_deadline_are_bounded_and_metadata_never_contains_output() {
+    async fn completed_child_output_is_captured_and_omitted_from_metadata() {
         let token = CancellationToken::new();
         let (result, output) = capture(
             "/bin/sh",
-            &["-c", "printf private-canary; exec sleep 5"],
+            &[
+                "-c",
+                "printf private-canary; printf private-error-canary >&2",
+            ],
             Path::new("/tmp"),
-            Duration::from_millis(30),
+            Duration::from_secs(3),
             &token,
         )
         .await;
         assert_eq!(output, "private-canary");
-        assert_eq!(result["timed_out"], true);
+        assert_eq!(result["exit_code"], 0);
+        assert_eq!(result["timed_out"], false);
+        assert_eq!(result["stdout_bytes"], "private-canary".len());
+        assert_eq!(result["stderr_bytes"], "private-error-canary".len());
         assert!(!result.to_string().contains("private-canary"));
+        assert!(!result.to_string().contains("private-error-canary"));
+    }
+    #[tokio::test]
+    async fn deadline_terminates_child_without_assuming_output_readiness() {
+        let token = CancellationToken::new();
+        // A deadline includes subprocess startup. Waiting for a shell to print
+        // within that deadline would make this assertion depend on host load.
+        // Output capture/privacy is verified separately above; retain the short
+        // runtime deadline and the bounded termination/reaping behavior here.
+        let (result, output) = tokio::time::timeout(
+            Duration::from_secs(3),
+            capture(
+                "/bin/sh",
+                &["-c", "exec sleep 5"],
+                Path::new("/tmp"),
+                Duration::from_millis(30),
+                &token,
+            ),
+        )
+        .await
+        .expect("deadline must terminate and reap the owned subprocess");
+        assert_eq!(output, "");
+        assert_eq!(result["timed_out"], true);
+        assert_eq!(result["cancelled"], false);
+        assert_eq!(result["exit_code"], Value::Null);
         assert_eq!(result["exit_signal"], "SIGTERM");
     }
     #[tokio::test]

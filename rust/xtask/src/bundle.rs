@@ -1,4 +1,6 @@
 //! Explicit public-source transfer allowlist; never copies a checkout wholesale.
+#[path = "bundle_transfer.rs"]
+mod transfer;
 use crate::package::archive::{Entry, SOURCE, decode_root, encode_root};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -14,6 +16,8 @@ const LARGE_SYNTHETIC_CORPORA: &[&str] = &[
     "rust/parity/cases/response-observer-contracts.jsonl",
     "rust/parity/cases/telemetry-statusline-contracts.jsonl",
     "rust/parity/cases/server-streaming-routing-contracts.jsonl",
+    "rust/parity/cases/server-auto-goal-prompt-ids-contracts.jsonl",
+    "rust/parity/cases/server-auto-goal-headerless-contracts.jsonl",
 ];
 const FIXED: &[&str] = &[
     "LICENSE",
@@ -25,12 +29,27 @@ const FIXED: &[&str] = &[
     "rust/parity/local-benchmark-v1.json",
     "rust/parity/local-benchmark-v2.json",
     "rust/parity/local-benchmark-v3.json",
+    "rust/parity/local-benchmark-v4.json",
+    "rust/parity/local-model-comparison-v1.json",
+    "rust/parity/local-model-comparison-v2.json",
+    "rust/parity/descriptor-benchmark-v1.json",
+    "rust/parity/descriptor-implementation-v1.json",
+    "rust/parity/processing-benchmark-v1.json",
+    "rust/parity/processing-reference.mjs",
+    "rust/parity/whole-connection-benchmark-v1.json",
+    "rust/parity/whole-connection-benchmark-review-v1.json",
+    "rust/parity/whole-connection-policy-v1.json",
+    "rust/parity/whole-connection-reference.mjs",
+    "rust/parity/whole-connection-reference-sockets.mjs",
     "rust/parity/storage-benchmark-v1.json",
     "rust/parity/storage-contracts.capture.json",
     "rust/parity/storage-reference.mjs",
     "scripts/rust-reference.mjs",
     "rust/xtask/tests/benchmark_storage.rs",
     "rust/docs/storage-benchmark.md",
+    "rust/docs/performance-completion.md",
+    "rust/docs/whole-connection-benchmark.md",
+    "rust/docs/descriptor-collector-design.md",
     "rust/xtask/tests/benchmark_resources.rs",
     "rust/parity/live-gateway.mjs",
     "rust/parity/cases/router-contracts.jsonl",
@@ -57,6 +76,27 @@ const FIXED: &[&str] = &[
     "rust/parity/cases/server-streaming-routing-contracts.capture.json",
     "rust/parity/cases/server-identity-safety-contracts.jsonl",
     "rust/parity/cases/server-identity-safety-contracts.capture.json",
+    "rust/parity/cases/server-auto-goal-prompt-ids-contracts.jsonl",
+    "rust/parity/cases/server-auto-goal-headerless-contracts.jsonl",
+    "rust/parity/cases/server-auto-goal-contracts.capture.json",
+    "rust/parity/cases/server-status-lifecycle-contracts.capture.json",
+    "rust/parity/cases/server-status-lifecycle-contracts.jsonl",
+    "rust/parity/cases/server-stream-failure-contracts.capture.json",
+    "rust/parity/cases/server-stream-failure-contracts.jsonl",
+    "rust/parity/cases/server-ollama-usage-contracts.capture.json",
+    "rust/parity/cases/server-ollama-usage-contracts.jsonl",
+    "rust/parity/cases/server-outcome-history-contracts.capture.json",
+    "rust/parity/cases/server-outcome-history-contracts.jsonl",
+    "rust/parity/cases/server-decision-lifecycle-contracts.capture.json",
+    "rust/parity/cases/server-decision-lifecycle-contracts.jsonl",
+    "rust/parity/cases/routing-compatibility-contracts.jsonl",
+    "rust/parity/cases/routing-compatibility-contracts.capture.json",
+    "rust/parity/cases/status-settings-file-contracts.jsonl",
+    "rust/parity/cases/status-settings-file-contracts.capture.json",
+    "rust/parity/capture-status-settings-file-contracts.mjs",
+    "rust/parity/cases/static-contracts.capture.json",
+    "rust/parity/cases/tooling-rubric-protocol.capture.json",
+    "rust/parity/capture-tooling-protocol-contracts.mjs",
     "rust/parity/cases/ollama-evaluator-finite-contracts.jsonl",
     "rust/parity/cases/ollama-evaluator-finite-contracts.capture.json",
     "rust/parity/cases/ollama-evaluator-timed-contracts.jsonl",
@@ -96,16 +136,19 @@ const FIXED: &[&str] = &[
     "rust/parity/cases/session-log-contracts.jsonl",
     "rust/parity/cases/session-log-contracts.capture.json",
     "rust/parity/performance-gates.json",
+    "rust/parity/measurements/native-safe-pid-cleanup-summary.json",
     "rust/parity/benchmark-protocol.json",
     "rust/parity/baseline.json",
     "rust/distribution/autorouter.sh",
     "rust/distribution/platforms.json",
     "rust/distribution/README.md",
+    "rust/distribution/platform-audit.md",
     "rust/xtask/Cargo.toml",
     "rust/xtask/fixtures/live-cases-v2.json",
     "rust/xtask/fixtures/merge-intervals.rs",
     "rust/xtask/fixtures/merge-intervals.test.rs",
     "rust/xtask/fixtures/repair-cargo.toml",
+    "rust/xtask/fixtures/descriptor-collector.c",
     "test/fixtures/ollama-routing.json",
     "test/fixtures/claude-protocol-v1.json",
     "docs/hardware-benchmark.md",
@@ -118,6 +161,7 @@ const FIXED: &[&str] = &[
     "rust/vendor/hyper/LICENSE",
     "rust/vendor/hyper/README.md",
     "rust/vendor/README.md",
+    "rust/vendor/AUDITING.md",
     "rust/vendor/hyper-provenance.json",
     "rust/vendor/hyper-node-http1-compat.patch",
     "rust/vendor/verify-hyper.mjs",
@@ -487,9 +531,20 @@ pub fn create(root: &Path, destination: &Path) -> Result<Value, String> {
     if fs::symlink_metadata(destination).is_ok() || fs::symlink_metadata(&sidecar).is_ok() {
         return Err("Refusing to overwrite an existing bundle or checksum".into());
     }
-    let files = collect(root)?;
-    let bytes = encode_root(ROOT, &files, SOURCE)?;
-    let (verified, expanded) = decode_root(&bytes, ROOT, SOURCE)?.into_parts();
+    write_archive(ROOT, &collect(root)?, destination, SOURCE)
+}
+fn write_archive(
+    archive_root: &str,
+    files: &BTreeMap<String, Entry>,
+    destination: &Path,
+    policy: crate::package::archive::ArchivePolicy,
+) -> Result<Value, String> {
+    let sidecar = PathBuf::from(format!("{}.sha256", destination.display()));
+    if fs::symlink_metadata(destination).is_ok() || fs::symlink_metadata(&sidecar).is_ok() {
+        return Err("Refusing to overwrite an existing bundle or checksum".into());
+    }
+    let bytes = encode_root(archive_root, files, policy)?;
+    let (verified, expanded) = decode_root(&bytes, archive_root, policy)?.into_parts();
     if verified.len() != files.len()
         || files.iter().any(|(path, file)| {
             verified
@@ -532,7 +587,18 @@ pub fn create(root: &Path, destination: &Path) -> Result<Value, String> {
 pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
     if args == ["--help"] {
         println!(
-            "cargo xtask benchmark-bundle [NEW_DESTINATION.tar.gz]\nCreate an allowlisted public Rust source and synthetic-fixture bundle; no credentials, private reports, binaries or frozen Node product sources. Requires pinned Rust and Cargo dependencies on destination host; performs no evaluator calls."
+            "cargo xtask benchmark-bundle [NEW_DESTINATION.tar.gz]\ncargo xtask benchmark-bundle --transfer NEW_DIRECTORY\nDefault creates an allowlisted public Rust source and synthetic-fixture bundle, without frozen Node product sources. --transfer also creates a separately verified frozen Node reference archive and checksum/resume files for matched larger-host benchmarks, without a Git checkout. Both modes exclude credentials, private reports, binaries and Cargo caches and perform no evaluator calls. The transfer's combined source/reference expansion retains32MiB cap. Requires pinned Rust/locked dependencies; matched reference runs need Node22.14.0."
+        );
+        return Ok(true);
+    }
+    if args.first().is_some_and(|arg| arg == "--transfer") {
+        if args.len() != 2 || args[1].starts_with("--") {
+            return Err("Usage: cargo xtask benchmark-bundle --transfer NEW_DIRECTORY".into());
+        }
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&transfer::create(root, &root.join(&args[1]))?)
+                .map_err(|_| "Cannot serialize transfer result")?
         );
         return Ok(true);
     }
@@ -551,6 +617,9 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
     );
     Ok(true)
 }
+#[cfg(test)]
+#[path = "bundle_original_contracts.rs"]
+mod original_contracts;
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -577,6 +646,35 @@ mod tests {
             assert!(!allowed(path), "{path}");
         }
         assert!(allowed("rust/xtask/src/bundle.rs"));
+        assert!(allowed("rust/xtask/src/benchmark_descriptors.rs"));
+        assert!(allowed("rust/xtask/src/package_direct.rs"));
+        assert!(allowed("rust/xtask/src/package_lifecycle.rs"));
+        assert!(allowed("rust/xtask/src/release_direct_smoke.rs"));
+        assert!(allowed("rust/parity/local-benchmark-v4.json"));
+        assert!(allowed("rust/parity/local-model-comparison-v1.json"));
+        assert!(allowed("rust/parity/local-model-comparison-v2.json"));
+        assert!(allowed("rust/parity/descriptor-benchmark-v1.json"));
+        assert!(allowed("rust/parity/descriptor-implementation-v1.json"));
+        assert!(allowed("rust/xtask/fixtures/descriptor-collector.c"));
+        assert!(allowed("rust/parity/whole-connection-benchmark-v1.json"));
+        assert!(allowed(
+            "rust/parity/whole-connection-benchmark-review-v1.json"
+        ));
+        assert!(allowed("rust/parity/whole-connection-policy-v1.json"));
+        assert!(allowed("rust/parity/whole-connection-reference.mjs"));
+        assert!(allowed(
+            "rust/parity/whole-connection-reference-sockets.mjs"
+        ));
+        assert!(allowed("rust/docs/whole-connection-benchmark.md"));
+        assert!(allowed("rust/docs/descriptor-collector-design.md"));
+        assert!(allowed(
+            "rust/parity/cases/tooling-rubric-protocol.capture.json"
+        ));
+        assert!(allowed(
+            "rust/parity/capture-tooling-protocol-contracts.mjs"
+        ));
+        assert!(allowed("rust/docs/performance-completion.md"));
+        assert!(allowed("rust/distribution/platform-audit.md"));
         assert!(allowed("rust/vendor/hyper/src/lib.rs"));
         assert!(allowed("rust/vendor/hyper-util/LICENSE"));
         assert!(allowed(

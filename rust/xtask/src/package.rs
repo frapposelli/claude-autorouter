@@ -4,7 +4,11 @@
 pub(crate) mod archive;
 #[path = "package_binary.rs"]
 pub(crate) mod binary;
-use crate::process::{capture, capture_result, read_bounded};
+#[path = "package_direct.rs"]
+pub(crate) mod direct;
+#[path = "package_lifecycle.rs"]
+pub(crate) mod lifecycle;
+use crate::process::{capture, read_bounded};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256, Sha512};
 use std::collections::{BTreeMap, HashSet};
@@ -617,18 +621,7 @@ fn smoke(archive: &Path, root: &Path) -> Result<Value, String> {
     let package_root = prefix.join("lib/node_modules/claude-autorouter");
     let host_arch = std::env::consts::ARCH;
     let host_os = std::env::consts::OS;
-    let base_target = match (host_os, host_arch) {
-        ("macos", "aarch64") => "aarch64-apple-darwin",
-        ("macos", "x86_64") => "x86_64-apple-darwin",
-        ("linux", "aarch64") => "aarch64-unknown-linux-gnu",
-        ("linux", "x86_64") => "x86_64-unknown-linux-gnu",
-        ("linux", "arm") => "armv7-unknown-linux-gnueabihf",
-        ("linux", "powerpc64") if cfg!(target_endian = "little") => "powerpc64le-unknown-linux-gnu",
-        ("linux", "s390x") => "s390x-unknown-linux-gnu",
-        ("linux", "loongarch64") => "loongarch64-unknown-linux-gnu",
-        ("linux", "riscv64") => "riscv64gc-unknown-linux-gnu",
-        _ => return Err("Installed smoke has no qualified host architecture mapping".into()),
-    };
+    let base_target = lifecycle::host_target()?;
     let artifacts = verified["artifacts"]
         .as_array()
         .ok_or("Missing verified artifact list")?;
@@ -683,86 +676,24 @@ fn smoke(archive: &Path, root: &Path) -> Result<Value, String> {
     {
         return Err("Installed native CLI help/version failed".into());
     }
-    let mut lifecycle = Command::new("cargo");
-    lifecycle
-        .args([
-            "test",
-            "--offline",
-            "--locked",
-            "-p",
-            "claude-autorouter",
-            "--test",
-            "commands",
-            "--test",
-            "edge_cases",
-            "--test",
-            "launcher_logging",
-            "--test",
-            "onboarding_local",
-            "--test",
-            "launcher_contracts",
-            "--test",
-            "startup_options",
-            "--test",
-            "config_contracts",
-        ])
-        .current_dir(root.join("rust"))
-        .env("AUTOROUTER_TEST_EXECUTABLE", &launcher)
-        .env("AUTOROUTER_TEST_NATIVE_EXECUTABLE", &native_executable);
-    let result = capture_result(&mut lifecycle, b"", Duration::from_secs(180))
-        .map_err(|error| format!("Installed archive CLI lifecycle check failed: {error}"))?;
-    if !result.status.success() {
-        // Only completed, bounded captures are retained. Timeout/overflow
-        // failures above keep their sanitized error and discard partial output.
-        let persist = || -> Result<PathBuf, String> {
-            let nonce = SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .map_err(|_| "Invalid fixture report clock")?
-                .as_nanos();
-            let path = archive
-                .parent()
-                .ok_or("Missing archive parent")?
-                .join(format!("installed-lifecycle-failure-{nonce}.json"));
-            let report = json!({"kind":"synthetic_installed_lifecycle_failure","archive_sha256":verified["sha256"],"exit":result.status.to_string(),"stdout":String::from_utf8_lossy(&result.stdout),"stderr":String::from_utf8_lossy(&result.stderr)});
-            put(
-                &path,
-                &serde_json::to_vec_pretty(&report)
-                    .map_err(|_| "Cannot serialize synthetic lifecycle diagnostics")?,
-                0o600,
-            )?;
-            Ok(path)
-        };
-        let diagnostic = match persist() {
-            Ok(path) => format!("synthetic diagnostics retained at {}", path.display()),
-            Err(error) => format!("cannot retain synthetic diagnostics: {error}"),
-        };
-        return Err(format!(
-            "Installed archive CLI lifecycle failed ({}); {diagnostic}",
-            result.status
-        ));
-    }
-    let output = String::from_utf8(result.stdout).map_err(|_| "Invalid lifecycle test output")?;
-    let summaries = output
-        .lines()
-        .filter(|line| line.starts_with("test result: ok."))
-        .collect::<Vec<_>>();
-    if summaries.len() != 7
-        || summaries.iter().any(|line| {
-            line.strip_prefix("test result: ok. ")
-                .and_then(|value| value.split_whitespace().next())
-                .and_then(|value| value.parse::<usize>().ok())
-                .is_none_or(|count| count == 0)
-        })
-    {
-        return Err(
-            "Installed archive lifecycle did not run all seven nonempty test suites".into(),
-        );
-    }
+    let lifecycle = lifecycle::run(
+        root,
+        &launcher,
+        &native_executable,
+        &archive,
+        &verified["sha256"],
+    )?;
     Ok(
-        json!({"passed":true,"offline_install":true,"ignore_scripts":true,"npm_symlink":true,"paths_with_spaces_quotes_and_dollar":true,"unrelated_cwd":true,"node_absent_from_execution_path":true,"help_version":true,"complete_launcher_lifecycle":{"passed":true,"test_suites":["crates/claude-autorouter/tests/commands.rs","crates/claude-autorouter/tests/edge_cases.rs","crates/claude-autorouter/tests/launcher_logging.rs","crates/claude-autorouter/tests/onboarding_local.rs","crates/claude-autorouter/tests/launcher_contracts.rs","crates/claude-autorouter/tests/startup_options.rs","crates/claude-autorouter/tests/config_contracts.rs"],"summaries":summaries}}),
+        json!({"passed":true,"offline_install":true,"ignore_scripts":true,"npm_symlink":true,"paths_with_spaces_quotes_and_dollar":true,"unrelated_cwd":true,"node_absent_from_execution_path":true,"help_version":true,"complete_launcher_lifecycle":lifecycle}),
     )
 }
 pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
+    if args == ["package", "--help"] {
+        println!(
+            "Usage: cargo xtask package --binary TARGET=PATH [--binary ...] --output NEW_DIRECTORY [--smoke]\n       cargo xtask package --direct-from NPM_ARCHIVE --target TARGET --output NEW_DIRECTORY [--smoke]\n\nPrivate native feasibility artifacts only; original binary/source identity and pending qualification remain visible. Direct conversion requires an exact verified native npm archive and checksum sidecar. Optional smoke uses synthetic local services and installed CLI tests; no provider calls or publication."
+        );
+        return Ok(true);
+    }
     let command = args.first().map(String::as_str).unwrap_or("");
     let report = match command {
         "package-inspect" => {
@@ -779,6 +710,11 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
             json!({"sha256":sha(&bytes),"bytes":bytes.len(),"inspection":inspection,"glibc_symbol_baseline":args.get(4).map(|maximum|json!({"maximum":maximum,"passed":true,"runtime_qualification":"pending"}))})
         }
         "package" => {
+            if args.get(1).map(String::as_str) == Some("--direct-from") {
+                let report = direct::run(args, root)?;
+                println!("{}", serde_json::to_string_pretty(&report).unwrap());
+                return Ok(true);
+            }
             let mut destination = None;
             let mut artifacts = Vec::new();
             let mut smoke_requested = false;

@@ -1,11 +1,14 @@
 //! Native transport, process and storage adapters for AutoRouter.
 
+pub mod async_observers;
 pub mod bounded_json;
+pub mod callback_privacy;
 pub mod classifier;
 pub mod evaluator;
 pub mod http_client;
 pub mod keychain;
 pub mod local_diagnostic;
+pub mod observer_tasks;
 pub mod ollama_setup;
 pub mod policy;
 

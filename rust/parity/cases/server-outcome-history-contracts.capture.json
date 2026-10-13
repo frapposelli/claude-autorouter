@@ -1,0 +1,378 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "kind": "complete_frozen_server_outcome_history_callbacks",
+  "baseline": {
+    "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+    "files_verified": 111
+  },
+  "node": {
+    "version": "v22.14.0",
+    "sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0"
+  },
+  "generator_sha256": "718a0a1bdec2f375d9e158beef13e0ffc15898835722935d54b5c729fbc2361d",
+  "baseline_file_sha256": "b82681e2383f3466d66f9801745d4e62fb45d20065f136804f677089f2d41809",
+  "helpers": [
+    {
+      "statement": "const token = 'local-test-token-123456789';",
+      "sha256": "5dda796ceeca0fea036443e6719fae79167ac2c6f02c7ece2059bf907bc150cd"
+    },
+    {
+      "statement": "const body = { model: 'claude-sonnet-5', stream: true, max_tokens: 1024, system: [{ type: 'text', text: 'system', cache_control: { type: 'ephemeral' } }], messages: [{ role: 'user', content: 'Fix a typo' }], tools: [{ name: 'Read', input_schema: { type: 'object' } }] };",
+      "sha256": "610c8e3e707dfd5cfc92d007659e4abd400be1c8ff9b4e561d97bea553cd8bd8"
+    },
+    {
+      "statement": "async function fixture(t, handler, overrides = {}, routeImpl, onStatus, onDecision, onRecord) {\n  const upstream = http.createServer(handler);\n  const address = await listen(upstream, 0);\n  let evaluations = 0;\n  const logs = [];\n  const statuses = [];\n  const config = { ...readConfig({ AUTOROUTER_EVALUATOR: 'jev', ANTHROPIC_API_KEY: 'upstream-secret', TYPESAFE_API_KEY: 'classifier-secret' }), localToken: token, upstream: `http://127.0.0.1:${address.port}`, ...overrides };\n  const server = createRouterServer(config, {\n    router: {\n      route: async (...args) => { evaluations++; return routeImpl?.route ? routeImpl.route(...args)\n        : routeImpl ? routeImpl(...args) : { model: config.models.haiku, source: 'test' }; },\n      complete: (...args) => routeImpl?.complete?.(...args),\n    },\n    log: entry => logs.push(entry), onStatus: entry => { statuses.push(entry); return onStatus?.(entry); },\n    onDecision, onRecord,\n  });\n  const local = await listen(server, 0);\n  t.after(() => { server.closeAllConnections(); server.close(); upstream.closeAllConnections(); upstream.close(); });\n  const localAuth = config.authMode === 'subscription' ? { 'x-autorouter-token': token } : { 'x-api-key': token };\n  const baseUrl = `http://127.0.0.1:${local.port}`;\n  const call = (path, options = {}) => fetch(`${baseUrl}${path}`, { ...options, headers: { ...localAuth, ...options.headers } });\n  return { call, baseUrl, logs, statuses, evaluations: () => evaluations };\n}",
+      "sha256": "7c78ac5d771adb4044bdb12dad87f158232592e41d5493a1ce8eb2ce730f8026"
+    },
+    {
+      "statement": "async function waitForStatus(f, event) {\n  for (let i = 0; i < 100; i++) {\n    if (f.statuses.some(entry => entry.event === event)) return;\n    await new Promise(resolve => setTimeout(resolve, 5));\n  }\n  assert.fail(`Missing status event: ${event}`);\n}",
+      "sha256": "f9600fd02bfdb90b814db6ccf0b988ae38555e7c1bcb5dc89e61ad122329d93d"
+    },
+    {
+      "statement": "const oauthHeaders = { authorization: 'Bearer fake-subscription-token', 'anthropic-beta': 'oauth-2025-04-20,future-capability', 'anthropic-version': '2023-06-01' };",
+      "sha256": "92aea0530edfe378aeb32dcf9e99196b8ccfa68fea2e0664cef1b25b93da3a17"
+    }
+  ],
+  "definitions": [
+    {
+      "number": 33,
+      "id": "test/server.test.mjs#33",
+      "name": "provider fallback commits tool ownership only after successful forwarding, and failed attempts retain the prior execution",
+      "statement": "test('provider fallback commits tool ownership only after successful forwarding, and failed attempts retain the prior execution', async t => {\n  const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'test-only' });\n  const router = new Router(config, { fetchImpl: async () => Response.json({ answers: { tier: { choice: 'haiku', confidence: 0.99 } } }) });\n  const event = payload => `event: ${payload.type}\\ndata: ${JSON.stringify(payload)}\\n\\n`;\n  const fallback = [\n    { type: 'message_start', message: { model: config.models.haiku } },\n    { type: 'content_block_start', index: 0, content_block: { type: 'fallback', from: { model: config.models.haiku }, to: { model: config.models.opus } } },\n    { type: 'content_block_stop', index: 0 },\n    { type: 'content_block_start', index: 1, content_block: { type: 'tool_use', id: 'file', name: 'Read', input: {} } },\n    { type: 'content_block_stop', index: 1 },\n    { type: 'message_delta', delta: { stop_reason: 'tool_use' }, usage: { output_tokens: 5 } },\n    { type: 'message_stop' },\n  ].map(event).join('');\n  const failure = [\n    { type: 'message_start', message: { model: config.models.sonnet } },\n    { type: 'error', error: { type: 'overloaded_error', message: 'Synthetic failure' } },\n  ].map(event).join('');\n  let calls = 0;\n  const received = [];\n  const f = await fixture(t, async (req, res) => {\n    let raw = ''; for await (const chunk of req) raw += chunk;\n    received.push(JSON.parse(raw));\n    res.writeHead(200, { 'content-type': 'text/event-stream' });\n    res.end(++calls === 1 ? fallback : failure);\n  }, {}, router);\n  const initial = { ...body, model: config.models.haiku };\n  const continuation = { ...initial, messages: [...initial.messages,\n    { role: 'assistant', content: [{ type: 'tool_use', id: 'file', name: 'Read', input: {} }] },\n    { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'file', content: 'Fixture' }] },\n  ] };\n  for (const [index, payload] of [initial, continuation, continuation].entries()) {\n    const response = await f.call('/v1/messages', { method: 'POST', headers: {\n      'x-claude-code-session-id': 'fallback-session', 'x-claude-code-prompt-id': 'fallback-task',\n    }, body: JSON.stringify(payload) });\n    assert.equal(await response.text(), index === 0 ? fallback : failure);\n  }\n  assert.deepEqual(received.map(value => value.model), [config.models.haiku, config.models.opus, config.models.opus]);\n  assert.deepEqual(f.statuses.filter(value => value.event === 'upstream_model').map(value => value.model),\n    [config.models.haiku, config.models.opus, config.models.sonnet, config.models.sonnet]);\n  assert.equal(router.turns.attempts.size, 0);\n});",
+      "sha256": "ba0219a30f52d7c34294225aa1c7b8523bd0ab351357be761fa2cd4e9daa9d42",
+      "assertions": [
+        {
+          "id": "server#33:assert-1",
+          "expression": "assert.equal(await response.text(), index === 0 ? fallback : failure)",
+          "sha256": "365bfe09510a581d5adec60df327142c806c72c30bc4d2cc0b89aed2fa00bcd6",
+          "line": 1165,
+          "executions": 3
+        },
+        {
+          "id": "server#33:assert-2",
+          "expression": "assert.deepEqual(received.map(value => value.model), [config.models.haiku, config.models.opus, config.models.opus])",
+          "sha256": "e94ed9e3c784efa9fbf80425d2f3e2869ec73b5f5a24fe03c40a00e78343f61d",
+          "line": 1167,
+          "executions": 1
+        },
+        {
+          "id": "server#33:assert-3",
+          "expression": "assert.deepEqual(f.statuses.filter(value => value.event === 'upstream_model').map(value => value.model),\n    [config.models.haiku, config.models.opus, config.models.sonnet, config.models.sonnet])",
+          "sha256": "06ae9f4445bd9cf8e0f4ccfc817accabeceab2f50a66163476063d7a8494f451",
+          "line": 1168,
+          "executions": 1
+        },
+        {
+          "id": "server#33:assert-4",
+          "expression": "assert.equal(router.turns.attempts.size, 0)",
+          "sha256": "d60b4277f4871f05bed6e5fb8b0f81e6da9cb53a38e364ac2c680d34fb1be7b4",
+          "line": 1170,
+          "executions": 1
+        }
+      ],
+      "options": null,
+      "passed": true
+    },
+    {
+      "number": 34,
+      "id": "test/server.test.mjs#34",
+      "name": "optional outcome history correlates decisions with confirmed responses and pricing provenance",
+      "statement": "test('optional outcome history correlates decisions with confirmed responses and pricing provenance', async t => {\n  const records = [];\n  const f = await fixture(t, (_req, res) => {\n    res.writeHead(200, { 'content-type': 'application/json' });\n    res.end(JSON.stringify({ type: 'message', model: 'claude-sonnet-5', stop_reason: 'end_turn',\n      content: [{ type: 'text', text: 'PRIVATE_RESPONSE_TEXT' }], usage: { input_tokens: 10, output_tokens: 4 } }));\n  }, {}, () => ({ model: 'claude-sonnet-5', source: 'jev', evaluator: 'jev', reason: 'classified',\n    latency_ms: 7, evaluation_latency_ms: 5, classified_tier: 'sonnet' }), undefined, undefined, entry => records.push(entry));\n  const response = await f.call('/v1/messages', { method: 'POST', headers: { 'x-claude-code-session-id': 'history-session' }, body: JSON.stringify(body) });\n  await response.text();\n  await waitForStatus(f, 'request_complete');\n  assert.deepEqual(records.map(row => row.event), ['decision', 'outcome']);\n  const [decision, outcome] = records;\n  assert.equal(decision.schema_version, 2);\n  assert.equal(outcome.request_id, decision.request_id);\n  assert.equal(outcome.status, 'completed');\n  assert.equal(outcome.completion_confirmed, true);\n  assert.equal(outcome.usage_complete, true);\n  assert.equal(outcome.pricing_eligible, true);\n  assert.equal(outcome.selected_model, 'claude-sonnet-5');\n  assert.equal(outcome.confirmed_model, 'claude-sonnet-5');\n  assert.equal(outcome.baseline_model, 'claude-opus-5-5');\n  assert.equal(typeof outcome.pricing_version, 'string');\n  assert.equal(outcome.evaluation_latency_ms, 5);\n  assert.equal(outcome.routing_latency_ms, 7);\n  assert.ok(outcome.first_response_ms >= 0);\n  assert.ok(outcome.total_latency_ms >= outcome.first_response_ms);\n  assert.deepEqual(outcome.usage, { input_tokens: 10, output_tokens: 4 });\n  assert.ok(!JSON.stringify(records).includes('PRIVATE_RESPONSE_TEXT'));\n});",
+      "sha256": "f3b6426821c6295f0a8448314e3ae80dcd051f657aafc82a871d544d1641541e",
+      "assertions": [
+        {
+          "id": "server#34:assert-1",
+          "expression": "assert.deepEqual(records.map(row => row.event), ['decision', 'outcome'])",
+          "sha256": "3034f9806562e0dc866e17bb83c1c98a7130d4bdb43e0f63e47778c430659ef1",
+          "line": 1184,
+          "executions": 1
+        },
+        {
+          "id": "server#34:assert-2",
+          "expression": "assert.equal(decision.schema_version, 2)",
+          "sha256": "e465018a46dbd29f37291308c23519e714ca638787ee3ae005195b7b9aaccc99",
+          "line": 1186,
+          "executions": 1
+        },
+        {
+          "id": "server#34:assert-3",
+          "expression": "assert.equal(outcome.request_id, decision.request_id)",
+          "sha256": "7a18d5c311d2997668cc352c9d714e68af64405270334b5c4a44be158a329754",
+          "line": 1187,
+          "executions": 1
+        },
+        {
+          "id": "server#34:assert-4",
+          "expression": "assert.equal(outcome.status, 'completed')",
+          "sha256": "83e2f1ff7767bb45b4c1da68bb9566c3905983592d44d8df623ff69d1fe41441",
+          "line": 1188,
+          "executions": 1
+        },
+        {
+          "id": "server#34:assert-5",
+          "expression": "assert.equal(outcome.completion_confirmed, true)",
+          "sha256": "cd052141f93c1d7fc334dc5a6e582072400fc7e327b213ea97032713e3bcd5be",
+          "line": 1189,
+          "executions": 1
+        },
+        {
+          "id": "server#34:assert-6",
+          "expression": "assert.equal(outcome.usage_complete, true)",
+          "sha256": "8945949010b0f0f39ef4d9927e9884bbd6263c5053ab2b1b490749c41baeb681",
+          "line": 1190,
+          "executions": 1
+        },
+        {
+          "id": "server#34:assert-7",
+          "expression": "assert.equal(outcome.pricing_eligible, true)",
+          "sha256": "17a277ddf254de0852756a002f3acb21ffbe3f37f9ce836dd637ef501f85dbbd",
+          "line": 1191,
+          "executions": 1
+        },
+        {
+          "id": "server#34:assert-8",
+          "expression": "assert.equal(outcome.selected_model, 'claude-sonnet-5')",
+          "sha256": "b7adfe0584ddcce620674bf21de3a6c78f38b0ec3c9728825a1cec5c8bf84cad",
+          "line": 1192,
+          "executions": 1
+        },
+        {
+          "id": "server#34:assert-9",
+          "expression": "assert.equal(outcome.confirmed_model, 'claude-sonnet-5')",
+          "sha256": "1b57c3b2a8607ade7618eecde872246d7388b9916681ca98d7e506e6ef60fae5",
+          "line": 1193,
+          "executions": 1
+        },
+        {
+          "id": "server#34:assert-10",
+          "expression": "assert.equal(outcome.baseline_model, 'claude-opus-5-5')",
+          "sha256": "7d4d3d029b7e97ede37455164a7b0e3fb21eebca8ee22f2394b95dcd1c45ea7e",
+          "line": 1194,
+          "executions": 1
+        },
+        {
+          "id": "server#34:assert-11",
+          "expression": "assert.equal(typeof outcome.pricing_version, 'string')",
+          "sha256": "ce82103607a2306e1a0cbdd3e5c6768afb60387992fcbd91c1e8bddf3a616dbd",
+          "line": 1195,
+          "executions": 1
+        },
+        {
+          "id": "server#34:assert-12",
+          "expression": "assert.equal(outcome.evaluation_latency_ms, 5)",
+          "sha256": "46ac8c7ad3d6acf3a01dbfe6a20e7befd3eb0df7bc1c7fd44c8664ecc4d61064",
+          "line": 1196,
+          "executions": 1
+        },
+        {
+          "id": "server#34:assert-13",
+          "expression": "assert.equal(outcome.routing_latency_ms, 7)",
+          "sha256": "a0b99dd0d8e1cf0c2dc70c41a1e211fb6ad6c28da4ea663d9edc598d6b23412f",
+          "line": 1197,
+          "executions": 1
+        },
+        {
+          "id": "server#34:assert-14",
+          "expression": "assert.ok(outcome.first_response_ms >= 0)",
+          "sha256": "4c6eda46cdb1a02dc8c33d78de05677bb03c66bab89d57173312f55a1bab92a2",
+          "line": 1198,
+          "executions": 1
+        },
+        {
+          "id": "server#34:assert-15",
+          "expression": "assert.ok(outcome.total_latency_ms >= outcome.first_response_ms)",
+          "sha256": "a25fa9db6bea9efd4069b90a694160188b95282472180810286772b2361ac189",
+          "line": 1199,
+          "executions": 1
+        },
+        {
+          "id": "server#34:assert-16",
+          "expression": "assert.deepEqual(outcome.usage, { input_tokens: 10, output_tokens: 4 })",
+          "sha256": "901903abba342eb805b807fcc7762e18d5e4af80abdf66df76d3bc17c7f2d6b9",
+          "line": 1200,
+          "executions": 1
+        },
+        {
+          "id": "server#34:assert-17",
+          "expression": "assert.ok(!JSON.stringify(records).includes('PRIVATE_RESPONSE_TEXT'))",
+          "sha256": "be41f9c7751e967de36d28146759639015210ae4ec3bca703dfa6396ffa7980b",
+          "line": 1201,
+          "executions": 1
+        }
+      ],
+      "options": null,
+      "passed": true
+    },
+    {
+      "number": 35,
+      "id": "test/server.test.mjs#35",
+      "name": "metadata-only history never extracts or emits prompt excerpts, including decision callbacks",
+      "statement": "test('metadata-only history never extracts or emits prompt excerpts, including decision callbacks', async t => {\n  const records = [], decisions = [];\n  const f = await fixture(t, (_req, res) => { res.writeHead(200, { 'content-type': 'application/json' });\n    res.end(JSON.stringify({ type: 'message', model: 'claude-haiku-4-5-20251001', content: [], stop_reason: 'end_turn' }));\n  }, { sessionLogMode: 'metadata' }, undefined, undefined, entry => decisions.push(entry), entry => records.push(entry));\n  const response = await f.call('/v1/messages', { method: 'POST', body: JSON.stringify({ ...body,\n    messages: [{ role: 'user', content: 'PRIVATE_PROMPT_METADATA_MODE' }] }) });\n  await response.text();\n  await waitForStatus(f, 'request_complete');\n  assert.equal(records.length, 2);\n  for (const row of [...records, ...decisions]) {\n    assert.equal(row.prompt_excerpt, undefined);\n    assert.equal(row.prompt_truncated, undefined);\n  }\n  assert.ok(!JSON.stringify({ records, decisions, logs: f.logs, statuses: f.statuses }).includes('PRIVATE_PROMPT_METADATA_MODE'));\n});",
+      "sha256": "aedff121259993eca5e8cc313793689873ef4841bd1df66cddce62a85b5c658f",
+      "assertions": [
+        {
+          "id": "server#35:assert-1",
+          "expression": "assert.equal(records.length, 2)",
+          "sha256": "5fd1e3e44ee1a41f94b600dfb303ab6136a2e7d3927285d8044f7735a78922be",
+          "line": 1213,
+          "executions": 1
+        },
+        {
+          "id": "server#35:assert-2",
+          "expression": "assert.equal(row.prompt_excerpt, undefined)",
+          "sha256": "37aa14d97d02a309a54f3dc324b548cf28720c8487ed1fed33c3da80383a941d",
+          "line": 1215,
+          "executions": 3
+        },
+        {
+          "id": "server#35:assert-3",
+          "expression": "assert.equal(row.prompt_truncated, undefined)",
+          "sha256": "98dacf6a703c0aad3d099a5fdc1c53bfddeeef42efe68c196119cbdfddeb3dea",
+          "line": 1216,
+          "executions": 3
+        },
+        {
+          "id": "server#35:assert-4",
+          "expression": "assert.ok(!JSON.stringify({ records, decisions, logs: f.logs, statuses: f.statuses }).includes('PRIVATE_PROMPT_METADATA_MODE'))",
+          "sha256": "085c09898d31a6095ace44eae763c1a1674a03532300d023939ecb8d294b9de6",
+          "line": 1218,
+          "executions": 1
+        }
+      ],
+      "options": null,
+      "passed": true
+    },
+    {
+      "number": 36,
+      "id": "test/server.test.mjs#36",
+      "name": "history never turns HTTP/model observation into proof of completed inference",
+      "statement": "test('history never turns HTTP/model observation into proof of completed inference', async t => {\n  for (const scenario of ['incomplete', 'stream_error', 'http_error']) {\n    const records = [];\n    const f = await fixture(t, (_req, res) => {\n      if (scenario === 'http_error') {\n        res.writeHead(429, { 'content-type': 'application/json' });\n        res.end('{\"type\":\"error\",\"error\":{\"type\":\"rate_limit_error\",\"message\":\"PRIVATE_ERROR\"}}');\n      } else {\n        res.writeHead(200, { 'content-type': 'text/event-stream' });\n        res.end('event: message_start\\ndata: {\"type\":\"message_start\",\"message\":{\"model\":\"claude-opus-5-5\"}}\\n\\n'\n          + (scenario === 'stream_error' ? 'event: error\\ndata: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"PRIVATE_ERROR\"}}\\n\\n' : ''));\n      }\n    }, {}, undefined, undefined, undefined, entry => records.push(entry));\n    await (await f.call('/v1/messages', { method: 'POST', body: JSON.stringify(body) })).text();\n    await waitForStatus(f, 'request_complete');\n    const outcome = records.find(row => row.event === 'outcome');\n    assert.equal(outcome.completion_confirmed, false);\n    assert.equal(outcome.usage_complete, false);\n    assert.equal(outcome.pricing_eligible, false);\n    assert.equal(outcome.unpriced_reason, scenario === 'incomplete' ? 'unconfirmed_completion' : 'request_failed');\n    assert.equal(outcome.status, scenario === 'incomplete' ? 'completed' : 'error');\n    assert.ok(!JSON.stringify(records).includes('PRIVATE_ERROR'));\n  }\n});",
+      "sha256": "bff32f1ecff36bfd4149f9fd52971ad0e400794ac860bd2140fb023790a40589",
+      "assertions": [
+        {
+          "id": "server#36:assert-1",
+          "expression": "assert.equal(outcome.completion_confirmed, false)",
+          "sha256": "1da8154a12e5ecc9dae3a87bedb9484f5d46a9f9cf93f291e73753159c70e824",
+          "line": 1237,
+          "executions": 3
+        },
+        {
+          "id": "server#36:assert-2",
+          "expression": "assert.equal(outcome.usage_complete, false)",
+          "sha256": "110b82705da7e6c6b371fab3fa2d6a04c13e1aafa6550921291f2f4640c335bf",
+          "line": 1238,
+          "executions": 3
+        },
+        {
+          "id": "server#36:assert-3",
+          "expression": "assert.equal(outcome.pricing_eligible, false)",
+          "sha256": "fa953cebf826c4f049d96d0762a95650361848111f87431cae7c7be104650857",
+          "line": 1239,
+          "executions": 3
+        },
+        {
+          "id": "server#36:assert-4",
+          "expression": "assert.equal(outcome.unpriced_reason, scenario === 'incomplete' ? 'unconfirmed_completion' : 'request_failed')",
+          "sha256": "f5a126f0b565088b62af793e55fd89f765048b3356e917bf31baeb554c6f3341",
+          "line": 1240,
+          "executions": 3
+        },
+        {
+          "id": "server#36:assert-5",
+          "expression": "assert.equal(outcome.status, scenario === 'incomplete' ? 'completed' : 'error')",
+          "sha256": "433d33b707daaea5279ee1b8837a3b4764bee3f4fe9eb712e242073ba8ca3f4b",
+          "line": 1241,
+          "executions": 3
+        },
+        {
+          "id": "server#36:assert-6",
+          "expression": "assert.ok(!JSON.stringify(records).includes('PRIVATE_ERROR'))",
+          "sha256": "899a878a3cc465990a7e2ab3e702282f6a3aa61e25cee346e327f36f469b21da",
+          "line": 1242,
+          "executions": 3
+        }
+      ],
+      "options": null,
+      "passed": true
+    },
+    {
+      "number": 37,
+      "id": "test/server.test.mjs#37",
+      "name": "optional outcome sink failures cannot delay or fail inference",
+      "statement": "test('optional outcome sink failures cannot delay or fail inference', async t => {\n  for (const onRecord of [() => { throw new Error('private sink failure'); }, () => Promise.reject(new Error('private failure')), () => new Promise(() => {})]) {\n    const f = await fixture(t, (_req, res) => { res.writeHead(200, { 'content-type': 'application/json' }); res.end('{\"model\":\"claude-sonnet-5\",\"content\":[],\"stop_reason\":\"end_turn\"}'); },\n      {}, undefined, undefined, undefined, onRecord);\n    const response = await f.call('/v1/messages', { method: 'POST', body: JSON.stringify(body), signal: AbortSignal.timeout(1000) });\n    assert.equal(response.status, 200);\n    assert.equal((await response.json()).model, 'claude-sonnet-5');\n  }\n});",
+      "sha256": "dfb07b96d8417d755535bc1dd858d7603e58cf099b8a784ff9d849b16a4e0ade",
+      "assertions": [
+        {
+          "id": "server#37:assert-1",
+          "expression": "assert.equal(response.status, 200)",
+          "sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "line": 1251,
+          "executions": 3
+        },
+        {
+          "id": "server#37:assert-2",
+          "expression": "assert.equal((await response.json()).model, 'claude-sonnet-5')",
+          "sha256": "e99c4777a1fc2bcb889a02837b4a7389e7e200a872f854e7ba43e5f1a873e055",
+          "line": 1252,
+          "executions": 3
+        }
+      ],
+      "options": null,
+      "passed": true
+    }
+  ],
+  "static_assertions": 33,
+  "expanded_assertions": 55,
+  "assertion_execution_order_file": "assertion-executions.json",
+  "assertion_order_scope": "Raw successful assertion order retained separately. Per-site and per-callback counts are exact; no scheduling or chunk partition equivalence is inferred.",
+  "cases_sha256": "17c1ea2763c1477c69dfebc49f7613e8e691931f228b43b83ab34464f49d4223",
+  "callbacks_executed": 5,
+  "network_scope": "Actual synthetic gateway/provider loopback HTTP; original #33 uses the real frozen Router and original injected evaluator fetchImpl, while #34–#37 use supplied route callbacks. No real evaluator calls.",
+  "capture_semantics": "Complete selected callbacks and five helper statements restored unchanged except successful assertion-result wrappers. Recording delegates actual HTTP and original return objects; no clone/drain, substituted verdict, timing threshold or source clock changes. Per-peer complete bodies preserve actual parser-delivered bytes; raw push chunks and chronological reads remain in raw observations. Provider request bodies remain unread by the original callbacks. Original #33 fallback/tool continuation and all complete outcome/privacy assertions remain intact. Distinct repeated fixtures in #36/#37 keep their actual fixture indexes and authorities. Original sink throws, returned rejections and never-ready Promises keep their actual return objects and emitter-installed handlers. Deterministic #34 latencies 7/5 remain exact; only actual measured #33 routing/classification latency is projected with retained raw values. The status callback Promise catch method is observed only when the original safe emitter installs and executes its own handler; the recorder never adds a detached rejection handler. Asynchronous assertions are counted only after their original Promise resolves successfully.",
+  "projection_kinds": [
+    "validated_observation_timing",
+    "generated_request_id",
+    "automatic_http_date",
+    "loopback_authority"
+  ],
+  "typed_observations": [
+    "Headers inputs are enumerated into their complete normalized field map.",
+    "Route signal observation records actual AbortSignal type and aborted state; no serialized object identity is claimed. countTokens is recorded as a function capability only.",
+    "Individual response chunks remain base64, including intentionally split UTF-8. Only complete request bodies use UTF-8 after exact roundtrip validation."
+  ],
+  "raw_observations_file": "raw-observations.json",
+  "projection_ledger_file": "projections.json",
+  "cleanup": [
+    {
+      "id": "server-outcome-history-33",
+      "servers": 2,
+      "all_closed": true,
+      "remaining_sockets": 0
+    },
+    {
+      "id": "server-outcome-history-34",
+      "servers": 2,
+      "all_closed": true,
+      "remaining_sockets": 0
+    },
+    {
+      "id": "server-outcome-history-35",
+      "servers": 2,
+      "all_closed": true,
+      "remaining_sockets": 0
+    },
+    {
+      "id": "server-outcome-history-36",
+      "servers": 6,
+      "all_closed": true,
+      "remaining_sockets": 0
+    },
+    {
+      "id": "server-outcome-history-37",
+      "servers": 6,
+      "all_closed": true,
+      "remaining_sockets": 0
+    }
+  ]
+}

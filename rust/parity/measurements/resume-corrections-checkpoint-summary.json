@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "kind": "corrected_source_ci_parallel_checkpoint",
+  "date": "2026-10-13",
+  "head_commit": "da51574ec1a895286c0379db1623d715e986be7e",
+  "source_uncommitted": true,
+  "shipping_default": "JavaScript0.5.2",
+  "release_approved": false,
+  "checks": {
+    "rust_workspace_passed": 1144,
+    "rust_workspace_failed": 0,
+    "rust_workspace_ignored": 5,
+    "rust_test_groups": 59,
+    "ordinary_ci_test_parallelism": true,
+    "format_passed": true,
+    "strict_workspace_all_target_clippy_passed": true,
+    "node_syntax_files": 97,
+    "node_tests_passed": 596,
+    "shipping_package_archive_files": 58,
+    "installed_shipping_package_lifecycle_passed": true,
+    "post_guide_bundle_tests_passed": 7
+  },
+  "pure_replay": {
+    "path": "artifacts/rust-rewrite/completion-corrections-20261013-1/pure/suite.json",
+    "sha256": "e7f494d2c4db04191c7457d308a513c1931e72d4f6afbcd17806c4622ce1793e",
+    "families": 17,
+    "cases": 206625,
+    "matched": 206625,
+    "helper_identity": "artifacts/rust-rewrite/completion-corrections-20261013-1/helper-identity.json"
+  },
+  "logs": [
+    {
+      "path": "artifacts/dev-environment/logs/completion-corrections-fmt-20261013.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/dev-environment/logs/completion-corrections-clippy-20261013.log",
+      "sha256": "17ebcfecbfac4a460c761ee12753141c6cf99e0bdb0cec50cd37e48515190b47"
+    },
+    {
+      "path": "artifacts/dev-environment/logs/completion-corrections-rust-tests-20261013.log",
+      "sha256": "0fcf1d83558d28b0df66fae5b73db7a560e19563369251a8e6f116ff26e2b98e"
+    },
+    {
+      "path": "artifacts/dev-environment/logs/completion-corrections-node-check-20261013.log",
+      "sha256": "4882654ddbf9853bf4f185dc398c36b83eaa63b59fbb76d525b746ce417b768f"
+    },
+    {
+      "path": "artifacts/dev-environment/logs/completion-corrections-node-tests-20261013.log",
+      "sha256": "ede74c72b0c18f4c7cd647c72a95b292ed6db627da9eb0d44790780a5af98cf6"
+    },
+    {
+      "path": "artifacts/dev-environment/logs/completion-corrections-node-package-20261013.log",
+      "sha256": "d0c556a986548d4014339f7de628dd4d8902ff24862d6370b2481bebbdd125ad"
+    },
+    {
+      "path": "artifacts/dev-environment/logs/completion-corrections-bundle-guide-20261013.log",
+      "sha256": "f1efa0ce7528be7105ec9f8b6b855b01dfe1e911c79ace21d0ac7df6440a6bc2"
+    }
+  ],
+  "corrections": [
+    "Public HistoryLimits admission before filesystem work",
+    "Safe-integer cleanup PID callback and checked OS query",
+    "Failed liveness probe skips its directory, with explicit private-panic containment",
+    "Shared64KiB Keychain stdout/stderr budget and actual owned child deadline/reap regressions"
+  ],
+  "coverage": {
+    "covered": 509,
+    "partial": 79,
+    "pending": 0
+  },
+  "source_inputs": [
+    {
+      "path": "rust/crates/autorouter-core/src/js_json.rs",
+      "sha256": "b46db5e17ffc9e32378a65d1f45d7afc6f63c877ac2e2e878446708f245394b4"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/contracts.rs",
+      "sha256": "4e92772071e5a3084c1b0b0cc00466d7f9413aac0cf0f075813e6c5f3f19aa5d"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/session_history.rs",
+      "sha256": "f5493657d52dd309b915ba469331ea835cb614f9e940511ddcbf6251b8041495"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/session_history.rs",
+      "sha256": "e22a79d5a5e023604ba181d6ee2ee3270eddfa5abd2d3520e12f30f097e506d6"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/status_cleanup.rs",
+      "sha256": "ba083c4840241585de721778d082b904d315327c00b7fefbdc118aa142a0d94c"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/keychain.rs",
+      "sha256": "0ed061cbe63315ae67131a2d30012f2dd509c1c43e1206accfaa35f2f068570b"
+    }
+  ],
+  "guide_change_after_full_suite": {
+    "files": [
+      "rust/xtask/src/bundle_transfer.rs",
+      "rust/distribution/README.md"
+    ],
+    "description": "Separate benchmark helper and ordinary CLI builds to prevent development-feature unification; correct count of existing explicit corpus exceptions.",
+    "focused_bundle_checks_passed": 7,
+    "scope": "Full workspace and Clippy logs precede this guide-only correction; post-correction bundle tests execute archive/include-input/transfer contracts. Product source has not changed after full checks."
+  },
+  "scope_limits": [
+    "The source is still uncommitted and final ordinary binary/archive/source ancestry qualification is pending. The retained first ordinary build predates the Keychain correction and is historical.",
+    "Five default-ignored entries are retained; two isolated child tests are executed by their passing parents, while other opt-in entries remain outside ordinary execution.",
+    "Current original compatibility and permission schedules are reviewed individually;79 partial definitions and the27-key/53-limit audit retain broader gates.",
+    "Real Tev1 strict quality failures and finite-cutoff availability differences remain unchanged; representative controlled/larger-host, full task/platform, allocation/long-soak, release and cutover gates remain open.",
+    "New portable-model orchestration and cache-boundary drafts stayed outside Rust source during this checkpoint."
+  ]
+}

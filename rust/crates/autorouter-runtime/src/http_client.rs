@@ -9,7 +9,10 @@ use http_body_util::Full;
 use hyper::body::{Body, Incoming};
 use hyper::{Request, Response};
 use hyper_rustls::{HttpsConnector, HttpsConnectorBuilder};
-use hyper_util::client::legacy::{Client, connect::HttpConnector};
+use hyper_util::client::legacy::{
+    Client,
+    connect::{Connect, HttpConnector},
+};
 use hyper_util::rt::TokioExecutor;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -95,6 +98,78 @@ pub struct NativeHttpClient {
     client: Client<HttpsConnector<HttpConnector>, Full<Bytes>>,
 }
 
+fn client_builder() -> hyper_util::client::legacy::Builder {
+    let mut builder = Client::builder(TokioExecutor::new());
+    // Evaluator/inference requests must never be silently replayed.
+    builder.retry_canceled_requests(false);
+    builder
+}
+async fn client_request<C>(
+    client: &Client<C, Full<Bytes>>,
+    mut request: Request<Full<Bytes>>,
+) -> Result<Response<Incoming>, HttpError>
+where
+    C: Connect + Clone + Send + Sync + 'static,
+{
+    if request
+        .extensions()
+        .get::<hyper::ext::NodeHttpResponsePolicy>()
+        .is_none()
+    {
+        request
+            .extensions_mut()
+            .insert(hyper::ext::NodeFetchResponsePolicy);
+    }
+    if !matches!(request.uri().scheme_str(), Some("http" | "https")) {
+        return Err(HttpError::InvalidRequest);
+    }
+    client
+        .request(request)
+        .await
+        .map_err(|_| HttpError::Network)
+}
+
+/// Developer-only injected connector with the exact ordinary client builder,
+/// parser/serializer and request policy. The probe owns/limits its connector;
+/// normal executable artifacts do not expose this type or enable its feature.
+#[cfg(feature = "development-probes")]
+pub struct DevelopmentHttpClient<C> {
+    client: Client<C, Full<Bytes>>,
+}
+#[cfg(feature = "development-probes")]
+impl<C> DevelopmentHttpClient<C>
+where
+    C: Connect + Clone + Send + Sync + 'static,
+{
+    pub fn new(connector: C) -> Self {
+        Self {
+            client: client_builder().build(connector),
+        }
+    }
+}
+#[cfg(feature = "development-probes")]
+impl<C> HttpTransport for DevelopmentHttpClient<C>
+where
+    C: Connect + Clone + Send + Sync + 'static,
+{
+    type ResponseBody = Incoming;
+    async fn request(
+        &self,
+        request: Request<Full<Bytes>>,
+    ) -> Result<Response<Incoming>, HttpError> {
+        client_request(&self.client, request).await
+    }
+    async fn request_raw(
+        &self,
+        mut request: Request<Full<Bytes>>,
+    ) -> Result<Response<Incoming>, HttpError> {
+        request
+            .extensions_mut()
+            .insert(hyper::ext::NodeHttpResponsePolicy);
+        self.request(request).await
+    }
+}
+
 impl NativeHttpClient {
     pub fn new() -> Result<Self, HttpError> {
         let policy = crate::tls_policy::process_policy()?;
@@ -109,12 +184,8 @@ impl NativeHttpClient {
             .https_or_http()
             .enable_http1()
             .build();
-        let mut builder = Client::builder(TokioExecutor::new());
-        // Hyper-util retries cancelled requests on reused connections by
-        // default. An inference/evaluator request must never be replayed here.
-        builder.retry_canceled_requests(false);
         Ok(Self {
-            client: builder.build(connector),
+            client: client_builder().build(connector),
         })
     }
 }
@@ -134,24 +205,9 @@ impl HttpTransport for NativeHttpClient {
 
     async fn request(
         &self,
-        mut request: Request<Full<Bytes>>,
+        request: Request<Full<Bytes>>,
     ) -> Result<Response<Incoming>, HttpError> {
-        if request
-            .extensions()
-            .get::<hyper::ext::NodeHttpResponsePolicy>()
-            .is_none()
-        {
-            request
-                .extensions_mut()
-                .insert(hyper::ext::NodeFetchResponsePolicy);
-        }
-        if !matches!(request.uri().scheme_str(), Some("http" | "https")) {
-            return Err(HttpError::InvalidRequest);
-        }
-        self.client
-            .request(request)
-            .await
-            .map_err(|_| HttpError::Network)
+        client_request(&self.client, request).await
     }
 }
 

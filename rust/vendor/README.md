@@ -5,7 +5,10 @@ source, Cargo manifests, license and README. The original license is retained.
 `hyper-provenance.json` records the archive SHA-256, every retained upstream file,
 every candidate file, and the exact patch SHA-256. `hyper-node-http1-compat.patch`
 is the complete modification. Run `node rust/vendor/verify-hyper.mjs` from any
-working directory to reconstruct and verify the upstream tree offline.
+working directory as a temporary reference check. Native pre-build inspection
+uses the independent `autorouter-audit` binary described in [AUDITING.md](AUDITING.md),
+which reconstructs and verifies the upstream tree offline before inspected
+dependencies are compiled.
 
 The explicit `node-http1-compat` feature changes server HTTP/1 request-header
 handling and permits bounded concurrent service futures with ordered response writes. Hyper still owns HTTP parsing, message framing, body decoding and

@@ -1,3 +1,4 @@
+mod audit_support;
 mod benchmark;
 mod benchmark_storage;
 mod bundle;
@@ -14,6 +15,7 @@ mod ollama_routing;
 mod package;
 mod parity;
 mod process;
+mod production_features;
 mod reference;
 mod release;
 #[cfg(test)]
@@ -25,6 +27,7 @@ mod tool_process;
 #[cfg(test)]
 mod tool_tests;
 mod upgrade_rollback;
+mod vendor_audit;
 
 use std::path::PathBuf;
 
@@ -82,11 +85,13 @@ fn main() {
     let result = match args.first().map(String::as_str) {
         None | Some("--help" | "help") => {
             println!(
-                "Usage: cargo xtask [--env-file PATH] COMMAND [OPTIONS]\n\nChecks: parity, fixture, freeze-reference\nNative artifacts: package, package-inspect, package-verify, package-smoke, upgrade-rollback\nRelease: release-pack, release-check, release-verify\nSynthetic tools: benchmark, benchmark-storage, benchmark-bundle\nExplicit evaluator calls: evaluate, evaluate-ollama, test-ollama-routing\nExplicit Claude startup/live calls: context-probe, live-validation\n\nEach opt-in tool provides --help. Environment files load only when explicitly supplied before COMMAND. Jev/Anthropic calls, model benchmarks and Claude/MCP startup are never ordinary contribution checks."
+                "Usage: cargo xtask [--env-file PATH] COMMAND [OPTIONS]\n\nChecks: parity, fixture, freeze-reference, verify-vendor, verify-production-features\nNative artifacts: package, package-inspect, package-verify, package-smoke, upgrade-rollback\nRelease: release-pack, release-check, release-verify\nSynthetic tools: benchmark, benchmark-storage, benchmark-bundle\nExplicit evaluator calls: evaluate, evaluate-ollama, test-ollama-routing\nExplicit Claude startup/live calls: context-probe, live-validation\n\nEach opt-in tool provides --help. Environment files load only when explicitly supplied before COMMAND. Jev/Anthropic calls, model benchmarks and Claude/MCP startup are never ordinary contribution checks."
             );
             Ok(true)
         }
         Some("release-pack") => release_pack::run(&args[1..], &root),
+        Some("verify-vendor") => vendor_audit::run(&args[1..], &root),
+        Some("verify-production-features") => production_features::run(&args[1..], &root),
         Some("release-check") => release::run(&args[1..], &root),
         Some("release-verify") => release_verify::run(&args[1..], &root),
         Some("upgrade-rollback") => upgrade_rollback::run(&args[1..], &root),

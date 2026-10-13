@@ -243,7 +243,12 @@ async fn finished_worker_without_result_retires_entry_and_returns_network_fallba
     let result = bounded_classification(classifier.classify(&body, &config, &token))
         .await
         .unwrap();
-    assert_eq!(result.classifier_error, Some("network_error"));
+    assert_eq!(
+        result
+            .classifier_error
+            .map(autorouter_core::contracts::ClassifierError::as_str),
+        Some("network_error")
+    );
     assert_eq!(result.source, "fallback");
     assert_eq!(mock.calls(), 0);
     assert_eq!(classifier.pending_counts(), (0, 0));
@@ -287,7 +292,12 @@ async fn evaluator_poll_panic_releases_request_before_fallback_and_retry() {
     let first = bounded_classification(classifier.classify(&body, &config, &token))
         .await
         .unwrap();
-    assert_eq!(first.classifier_error, Some("network_error"));
+    assert_eq!(
+        first
+            .classifier_error
+            .map(autorouter_core::contracts::ClassifierError::as_str),
+        Some("network_error")
+    );
     assert_eq!(transport.active.load(Ordering::SeqCst), 0);
     let retry = bounded_classification(classifier.classify(&body, &config, &token))
         .await
@@ -318,8 +328,12 @@ async fn shutdown_cancellation_wins_over_late_success_publication_and_waits_for_
     // Deliberately overwrite the shutdown watch value, modeling late result
     // publication. Keep a real owned request alive to test that neither this
     // success value nor shutdown's earlier Cancelled is cleanup evidence.
-    let mut late = unavailable("claude-sonnet-5", config.evaluator, "network_error");
-    late.source = "jev";
+    let mut late = unavailable_error(
+        "claude-sonnet-5",
+        config.evaluator,
+        ClassifierError::NetworkError,
+    );
+    late.source = autorouter_core::contracts::DecisionSource::Jev;
     late.reason = "classified";
     late.classifier_error = None;
     assert!(entry.result.send(Some(Ok(late))).is_ok());

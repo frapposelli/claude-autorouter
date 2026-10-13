@@ -25,6 +25,11 @@ use crate::transport_completion::{
 };
 use autorouter_core::auth::{LOCAL_AUTH_HEADER, is_subscription_request};
 use autorouter_core::config::{AuthMode, RouterConfig, js_trim};
+use autorouter_core::contracts::{
+    BlockShape, DiagnosticEvent, DiagnosticName, ExactModelFields, InvalidRequestShape,
+    LifecycleName, MessageShape, PricingContext, RequestContext, RouteLog, TelemetryFields,
+    TypedRouteDecision, UsageTelemetry,
+};
 use autorouter_core::js_json::{JsDocument, JsNode, JsString, NodeId};
 use autorouter_core::model_request::prepare_request_document_exact;
 use autorouter_core::request_validation::validate_request_document;
@@ -48,6 +53,20 @@ use subtle::ConstantTimeEq;
 use tokio::time::{Instant, Sleep};
 use tokio_util::sync::CancellationToken;
 
+/// Custom JSON adapters retain their historical raw observation boundary.
+/// The production implementation supplies a closed typed contract instead.
+pub enum GatewayDecision {
+    Typed(TypedRouteDecision),
+    Legacy(RouteDecision),
+}
+impl GatewayDecision {
+    fn model(&self) -> &JsString {
+        match self {
+            Self::Typed(value) => &value.model,
+            Self::Legacy(value) => &value.model,
+        }
+    }
+}
 pub trait GatewayRouter: Send + Sync + 'static {
     /// Development adapters may make an explicit request transformation before
     /// routing. The product router keeps the original document unchanged.
@@ -87,6 +106,20 @@ pub trait GatewayRouter: Send + Sync + 'static {
                     .ok_or(EvaluationError::InvalidResponse)?,
             );
             Ok(RouteDecision { decision, model })
+        }
+    }
+    fn route_contract_exact(
+        &self,
+        document: Arc<JsDocument>,
+        options: RouteOptions,
+        headers: &HeaderMap,
+        cancellation: &CancellationToken,
+        search: &str,
+    ) -> impl Future<Output = Result<GatewayDecision, EvaluationError>> + Send {
+        async move {
+            self.route_exact(document, options, headers, cancellation, search)
+                .await
+                .map(GatewayDecision::Legacy)
         }
     }
     fn complete(&self, id: &str, evidence: &Value) -> bool;
@@ -134,6 +167,18 @@ where
     ) -> Result<RouteDecision, EvaluationError> {
         self.route_exact(document, options, headers, cancellation, search)
             .await
+    }
+    async fn route_contract_exact(
+        &self,
+        document: Arc<JsDocument>,
+        options: RouteOptions,
+        headers: &HeaderMap,
+        cancellation: &CancellationToken,
+        search: &str,
+    ) -> Result<GatewayDecision, EvaluationError> {
+        self.route_typed_exact(document, options, headers, cancellation, search)
+            .await
+            .map(GatewayDecision::Typed)
     }
     fn shutdown(&self) {
         self.shutdown();
@@ -337,13 +382,13 @@ impl<R: GatewayRouter> RequestLease<R> {
         } else {
             self.router.complete(&self.id, &Value::Null);
         }
-        self.events.status(
+        self.events.lifecycle(
             if delivered {
-                "request_complete"
+                LifecycleName::RequestComplete
             } else {
-                "request_cancelled"
+                LifecycleName::RequestCancelled
             },
-            json!({}),
+            TelemetryFields::default(),
         );
         self.finished = true;
     }
@@ -353,7 +398,8 @@ impl<R: GatewayRouter> Drop for RequestLease<R> {
         if !self.finished {
             self.cancellation.cancel();
             self.router.complete(&self.id, &Value::Null);
-            self.events.status("request_cancelled", json!({}));
+            self.events
+                .lifecycle(LifecycleName::RequestCancelled, TelemetryFields::default());
         }
     }
 }
@@ -454,7 +500,7 @@ impl<B: Body<Data = Bytes>> Body for ForwardBody<B> {
             }
             this.finished = true;
             if let Some(events) = &this.events {
-                events.status("request_cancelled", json!({}));
+                events.lifecycle(LifecycleName::RequestCancelled, TelemetryFields::default());
             }
             return Poll::Ready(Some(Err(io::Error::other("Request cancelled"))));
         }
@@ -470,9 +516,18 @@ impl<B: Body<Data = Bytes>> Body for ForwardBody<B> {
                 intent.finish(IntentCause::Deadline);
             }
             this.finished = true;
-            emit(&this.log, json!({"event":"proxy_error","status":502}));
+            emit(
+                &this.log,
+                DiagnosticEvent::status(DiagnosticName::ProxyError, 502).observation(),
+            );
             if let Some(events) = &this.events {
-                events.status("request_error", json!({"status":502}));
+                events.lifecycle(
+                    LifecycleName::RequestError,
+                    TelemetryFields {
+                        status: Some(502),
+                        ..TelemetryFields::default()
+                    },
+                );
             }
             return Poll::Ready(Some(Err(io::Error::other("Upstream deadline exceeded"))));
         }
@@ -510,9 +565,18 @@ impl<B: Body<Data = Bytes>> Body for ForwardBody<B> {
                     intent.finish(IntentCause::UpstreamFailure);
                 }
                 this.finished = true;
-                emit(&this.log, json!({"event":"proxy_error","status":502}));
+                emit(
+                    &this.log,
+                    DiagnosticEvent::status(DiagnosticName::ProxyError, 502).observation(),
+                );
                 if let Some(events) = &this.events {
-                    events.status("request_error", json!({"status":502}));
+                    events.lifecycle(
+                        LifecycleName::RequestError,
+                        TelemetryFields {
+                            status: Some(502),
+                            ..TelemetryFields::default()
+                        },
+                    );
                 }
                 Poll::Ready(Some(Err(io::Error::other("Upstream body failed"))))
             }
@@ -636,6 +700,20 @@ where
             cancellation,
             task: Some(task),
         })
+    }
+    /// Synthetic developer probes reuse the ordinary connection owner, HTTP
+    /// parser, authentication, body bounds and delivery acknowledgements. This
+    /// entry is absent from ordinary shipping builds; it exposes no endpoint.
+    #[cfg(feature = "development-probes")]
+    pub async fn serve_development_connection<I>(
+        self: Arc<Self>,
+        stream: I,
+        registry: CompletionRegistry,
+        cancellation: CancellationToken,
+    ) where
+        I: tokio::io::AsyncRead + tokio::io::AsyncWrite + Unpin + Send + 'static,
+    {
+        self.serve_connection(stream, registry, cancellation).await;
     }
     // The listener and deterministic writer regression use this same connection
     // owner. It creates no tasks beyond the listener-owned connection task.
@@ -800,24 +878,20 @@ where
                     return json_error(502, "Router could not complete the upstream request");
                 }
             };
-            let mut context = json!({"request_id":id});
-            for (to, from) in [
-                ("session_id", "x-claude-code-session-id"),
-                ("agent_id", "x-claude-code-agent-id"),
-                ("prompt_id", "x-claude-code-prompt-id"),
-                ("request_class", "x-claude-code-request-class"),
-            ] {
-                if let Some(value) = header_text(&headers, from) {
-                    context[to] = json!(value);
-                }
-            }
-            let state = Arc::new(RequestEvents::new(
+            let context = RequestContext {
+                request_id: id.clone(),
+                session_id: header_text(&headers, "x-claude-code-session-id"),
+                agent_id: header_text(&headers, "x-claude-code-agent-id"),
+                prompt_id: header_text(&headers, "x-claude-code-prompt-id"),
+                request_class: header_text(&headers, "x-claude-code-request-class"),
+            };
+            let state = Arc::new(RequestEvents::new_typed(
                 context,
                 &self.config.models.opus,
                 self.config.session_log_mode,
                 self.sinks.clone(),
             ));
-            state.status("request_start", json!({}));
+            state.lifecycle(LifecycleName::RequestStart, TelemetryFields::default());
             lease = Some(RequestLease {
                 router: self.router.clone(),
                 id,
@@ -829,7 +903,13 @@ where
         }
         let reject = |status, message| {
             if let Some(events) = &events {
-                events.status("request_error", json!({"status":status}));
+                events.lifecycle(
+                    LifecycleName::RequestError,
+                    TelemetryFields {
+                        status: Some(status),
+                        ..TelemetryFields::default()
+                    },
+                );
             }
             json_error(status, message)
         };
@@ -883,13 +963,16 @@ where
                     return json_error(502, "Router could not complete the upstream request");
                 }
                 Err(413) => {
-                    emit(&self.sinks.log, json!({"event":"proxy_error","status":413}));
+                    emit(
+                        &self.sinks.log,
+                        DiagnosticEvent::status(DiagnosticName::ProxyError, 413).observation(),
+                    );
                     return reject(413, "Request body too large");
                 }
                 Err(code) => {
                     emit(
                         &self.sinks.log,
-                        json!({"event":"proxy_error","status":code}),
+                        DiagnosticEvent::status(DiagnosticName::ProxyError, code).observation(),
                     );
                     return reject(code, "Router could not complete the upstream request");
                 }
@@ -926,7 +1009,7 @@ where
                 };
                 let decision = match self
                     .router
-                    .route_exact(
+                    .route_contract_exact(
                         document.clone(),
                         options,
                         &upstream_headers,
@@ -940,7 +1023,10 @@ where
                         return json_error(502, "Router could not complete the upstream request");
                     }
                     Err(_) => {
-                        emit(&self.sinks.log, json!({"event":"proxy_error","status":502}));
+                        emit(
+                            &self.sinks.log,
+                            DiagnosticEvent::status(DiagnosticName::ProxyError, 502).observation(),
+                        );
                         return reject(502, "Router could not complete the upstream request");
                     }
                 };
@@ -948,57 +1034,97 @@ where
                     return json_error(502, "Router could not complete the upstream request");
                 }
                 let (prepared, adjustments) =
-                    prepare_request_document_exact(&document, &decision.model);
-                let exact_model = decision.model;
-                let decision = decision.decision;
+                    prepare_request_document_exact(&document, decision.model());
+                let exact_model = decision.model().clone();
                 body = Bytes::from(prepared.stringify());
                 let state = events.as_ref().unwrap();
-                state.decision_exact(&document, &decision, &exact_model);
                 let requested = document
                     .get(document.root(), "model")
                     .and_then(|n| document.string(n))
                     .cloned()
                     .expect("validated request model");
-                let mut log = decision.clone();
-                log["event"] = json!("route");
-                log["requested_model"] = json!(requested.to_well_formed());
-                log["request_adjustments"] = json!(adjustments);
-                state.log_document(event_document(
-                    log,
-                    &[("model", &exact_model), ("requested_model", &requested)],
-                ));
-                let mut fields = json!({});
-                for name in [
-                    "model",
-                    "source",
-                    "evaluator",
-                    "reason",
-                    "latency_ms",
-                    "evaluation_latency_ms",
-                    "classifier_error",
-                    "classifier_status",
-                    "classified_tier",
-                    "context_check",
-                    "counted_input_tokens",
-                    "continuity_state",
-                    "compatibility_reason",
-                ] {
-                    if let Some(value) = decision.get(name) {
-                        fields[name] = value.clone();
+                match decision {
+                    GatewayDecision::Typed(decision) => {
+                        state.decision_typed(&document, &decision);
+                        let requested_display = requested.to_well_formed();
+                        let log = serde_json::to_value(RouteLog {
+                            decision: &decision.metadata,
+                            event: LifecycleName::Route,
+                            requested_model: &requested_display,
+                            request_adjustments: &adjustments,
+                        })
+                        .expect("bounded route log contract");
+                        state.log_document(event_document(
+                            log,
+                            &ExactModelFields {
+                                model: Some(&exact_model),
+                                requested_model: Some(&requested),
+                                selected_model: None,
+                            }
+                            .overrides(),
+                        ));
+                        state.lifecycle_exact(
+                            LifecycleName::Route,
+                            TelemetryFields::route(
+                                &decision.metadata,
+                                &requested,
+                                pricing_context(&prepared),
+                            ),
+                            ExactModelFields {
+                                model: Some(&exact_model),
+                                requested_model: Some(&requested),
+                                selected_model: None,
+                            },
+                        );
+                    }
+                    GatewayDecision::Legacy(decision) => {
+                        state.use_legacy_observations();
+                        let decision = decision.decision;
+                        state.decision_exact(&document, &decision, &exact_model);
+                        let mut log = decision.clone();
+                        log["event"] = json!("route");
+                        log["requested_model"] = json!(requested.to_well_formed());
+                        log["request_adjustments"] = json!(adjustments);
+                        state.log_document(event_document(
+                            log,
+                            &[("model", &exact_model), ("requested_model", &requested)],
+                        ));
+                        let mut fields = json!({});
+                        for name in [
+                            "model",
+                            "source",
+                            "evaluator",
+                            "reason",
+                            "latency_ms",
+                            "evaluation_latency_ms",
+                            "classifier_error",
+                            "classifier_status",
+                            "classified_tier",
+                            "context_check",
+                            "counted_input_tokens",
+                            "continuity_state",
+                            "compatibility_reason",
+                        ] {
+                            if let Some(value) = decision.get(name) {
+                                fields[name] = value.clone();
+                            }
+                        }
+                        fields["requested_model"] = json!(requested.to_well_formed());
+                        fields["pricing_context"] =
+                            serde_json::to_value(pricing_context(&prepared))
+                                .expect("pricing contract");
+                        if let Some(latency) = fields.get("latency_ms").cloned() {
+                            fields["routing_latency_ms"] = latency;
+                        }
+                        state.status_document(
+                            "route",
+                            event_document(
+                                fields,
+                                &[("model", &exact_model), ("requested_model", &requested)],
+                            ),
+                        );
                     }
                 }
-                fields["requested_model"] = json!(requested.to_well_formed());
-                fields["pricing_context"] = pricing_context(&prepared);
-                if let Some(latency) = fields.get("latency_ms").cloned() {
-                    fields["routing_latency_ms"] = latency;
-                }
-                state.status_document(
-                    "route",
-                    event_document(
-                        fields,
-                        &[("model", &exact_model), ("requested_model", &requested)],
-                    ),
-                );
             }
         }
         if cancellation.is_cancelled() {
@@ -1075,13 +1201,26 @@ where
                             // Node outer catch suppresses proxy_error after that
                             // downstream close. It is not a new pre-header 502.
                             if cause == FailureCause::Deadline {
-                                emit(&terminal_log, json!({"event":"proxy_error","status":502}));
+                                emit(
+                                    &terminal_log,
+                                    DiagnosticEvent::status(DiagnosticName::ProxyError, 502)
+                                        .observation(),
+                                );
                             }
                             if let Some(events) = &terminal_events {
-                                events.status("request_error", json!({"status":502}));
+                                events.lifecycle(
+                                    LifecycleName::RequestError,
+                                    TelemetryFields {
+                                        status: Some(502),
+                                        ..TelemetryFields::default()
+                                    },
+                                );
                             }
                         } else if let Some(events) = &terminal_events {
-                            events.status("request_cancelled", json!({}));
+                            events.lifecycle(
+                                LifecycleName::RequestCancelled,
+                                TelemetryFields::default(),
+                            );
                         }
                     },
                 );
@@ -1111,17 +1250,27 @@ where
         } {
             Ok(response) => response,
             Err(()) => {
-                emit(&self.sinks.log, json!({"event":"proxy_error","status":502}));
+                emit(
+                    &self.sinks.log,
+                    DiagnosticEvent::status(DiagnosticName::ProxyError, 502).observation(),
+                );
                 return reject(502, "Router could not complete the upstream request");
             }
         };
         let status = response.status();
         emit(
             &self.sinks.log,
-            json!({"event":"upstream_response","status":status.as_u16()}),
+            DiagnosticEvent::status(DiagnosticName::UpstreamResponse, status.as_u16())
+                .observation(),
         );
         if let Some(events) = &events {
-            events.status("upstream_response", json!({"status":status.as_u16()}));
+            events.lifecycle(
+                LifecycleName::UpstreamResponse,
+                TelemetryFields {
+                    status: Some(status.as_u16()),
+                    ..TelemetryFields::default()
+                },
+            );
         }
         #[cfg(test)]
         if let Some(owner) = &terminal_owner {
@@ -1153,29 +1302,69 @@ where
                     Observation::Model { model } => {
                         emit_document(
                             &sinks.log,
-                            event_document(json!({"event":"upstream_model"}), &[("model", &model)]),
+                            event_document(
+                                DiagnosticEvent {
+                                    event: DiagnosticName::UpstreamModel,
+                                    status: None,
+                                    model: Some(model.to_well_formed()),
+                                    error_type: None,
+                                }
+                                .observation(),
+                                &ExactModelFields {
+                                    model: Some(&model),
+                                    ..ExactModelFields::default()
+                                }
+                                .overrides(),
+                            ),
                         );
                         if let Some(events) = &events_sink {
-                            events.status_document(
-                                "upstream_model",
-                                event_document(json!({}), &[("model", &model)]),
+                            events.lifecycle_exact(
+                                LifecycleName::UpstreamModel,
+                                TelemetryFields {
+                                    model: Some(model.to_well_formed()),
+                                    ..TelemetryFields::default()
+                                },
+                                ExactModelFields {
+                                    model: Some(&model),
+                                    ..ExactModelFields::default()
+                                },
                             );
                         }
                     }
                     Observation::Error { error_type } => {
                         emit(
                             &sinks.log,
-                            json!({"event":"upstream_error","error_type":error_type}),
+                            DiagnosticEvent {
+                                event: DiagnosticName::UpstreamError,
+                                status: None,
+                                model: None,
+                                error_type: Some(error_type.into()),
+                            }
+                            .observation(),
                         );
                         if let Some(events) = &events_sink {
-                            events.status("upstream_error", json!({"error_type":error_type}));
+                            events.lifecycle(
+                                LifecycleName::UpstreamError,
+                                TelemetryFields {
+                                    error_type: Some(error_type.into()),
+                                    ..TelemetryFields::default()
+                                },
+                            );
                         }
                     }
                     Observation::Usage { usage } => {
                         if status.is_success()
                             && let Some(events) = &events_sink
                         {
-                            events.status("upstream_usage", json!({"usage":usage}));
+                            events.lifecycle(
+                                LifecycleName::UpstreamUsage,
+                                TelemetryFields {
+                                    usage: Some(UsageTelemetry::from_observation(Value::Object(
+                                        usage,
+                                    ))),
+                                    ..TelemetryFields::default()
+                                },
+                            );
                         }
                     }
                     Observation::Complete(value) => {
@@ -1230,8 +1419,17 @@ where
                     }
                 }
                 if delivery == Delivery::Failed(Failure::Deadline) {
-                    emit(&deadline_log, json!({"event":"proxy_error","status":502}));
-                    lease.events.status("request_error", json!({"status":502}));
+                    emit(
+                        &deadline_log,
+                        DiagnosticEvent::status(DiagnosticName::ProxyError, 502).observation(),
+                    );
+                    lease.events.lifecycle(
+                        LifecycleName::RequestError,
+                        TelemetryFields {
+                            status: Some(502),
+                            ..TelemetryFields::default()
+                        },
+                    );
                 }
                 let evidence = evidence.lock().unwrap().take();
                 lease.finish(delivery, evidence, status.is_success());
@@ -1277,7 +1475,10 @@ where
             }
             match registry.track_with_deadline(response, delivery_deadline, move |delivery| {
                 if delivery == Delivery::Failed(Failure::Deadline) {
-                    emit(&deadline_log, json!({"event":"proxy_error","status":502}));
+                    emit(
+                        &deadline_log,
+                        DiagnosticEvent::status(DiagnosticName::ProxyError, 502).observation(),
+                    );
                 }
             }) {
                 Ok(response) => response.map(boxed),
@@ -1321,34 +1522,83 @@ fn kind(document: &JsDocument, node: Option<NodeId>) -> &'static str {
 fn invalid_shape_log(document: &JsDocument) -> Value {
     let root = document.root();
     let messages = document.get(root, "messages");
-    let array = messages.and_then(|n| document.node(n));
-    let mut log = json!({"event":"invalid_request_shape","model_type":kind(document,document.get(root,"model")),"messages_type":if matches!(array,Some(JsNode::Array(_))){"array"}else{kind(document,messages)}});
-    if let Some(JsNode::Array(messages)) = array {
-        log["messages"]=json!(messages.iter().take(10).map(|node|{
-        let role=document.get(*node,"role");let role_text=role.and_then(|n|document.string(n)).and_then(|s|s.to_scalar());let content=document.get(*node,"content");let blocks=content.and_then(|n|document.node(n));
-        let mut row=json!({"role":role_text.filter(|s|["user","assistant","system"].contains(&s.as_str())).unwrap_or_else(||kind(document,role).into()),"content_type":if matches!(blocks,Some(JsNode::Array(_))){"array"}else{kind(document,content)}});
-        if let Some(JsNode::Array(blocks))=blocks{row["blocks"]=json!(blocks.iter().take(10).map(|node|json!({"value_type":if matches!(document.node(*node),Some(JsNode::Null)){"null"}else{kind(document,Some(*node))},"type_type":kind(document,document.get(*node,"type"))})).collect::<Vec<_>>());}row
-    }).collect::<Vec<_>>());
-    }
-    log
+    let array = messages.and_then(|node| document.node(node));
+    let rows = match array {
+        Some(JsNode::Array(messages)) => Some(
+            messages
+                .iter()
+                .take(10)
+                .map(|node| {
+                    let role = document.get(*node, "role");
+                    let role_text = role
+                        .and_then(|node| document.string(node))
+                        .and_then(|s| s.to_scalar());
+                    let content = document.get(*node, "content");
+                    let blocks = content.and_then(|node| document.node(node));
+                    MessageShape {
+                        role: role_text
+                            .filter(|s| ["user", "assistant", "system"].contains(&s.as_str()))
+                            .unwrap_or_else(|| kind(document, role).into()),
+                        content_type: if matches!(blocks, Some(JsNode::Array(_))) {
+                            "array"
+                        } else {
+                            kind(document, content)
+                        },
+                        blocks: match blocks {
+                            Some(JsNode::Array(blocks)) => Some(
+                                blocks
+                                    .iter()
+                                    .take(10)
+                                    .map(|node| BlockShape {
+                                        value_type: if matches!(
+                                            document.node(*node),
+                                            Some(JsNode::Null)
+                                        ) {
+                                            "null"
+                                        } else {
+                                            kind(document, Some(*node))
+                                        },
+                                        type_type: kind(document, document.get(*node, "type")),
+                                    })
+                                    .collect(),
+                            ),
+                            _ => None,
+                        },
+                    }
+                })
+                .collect(),
+        ),
+        _ => None,
+    };
+    serde_json::to_value(InvalidRequestShape {
+        event: DiagnosticName::InvalidRequestShape,
+        model_type: kind(document, document.get(root, "model")),
+        messages_type: if matches!(array, Some(JsNode::Array(_))) {
+            "array"
+        } else {
+            kind(document, messages)
+        },
+        messages: rows,
+    })
+    .expect("bounded shape contract")
 }
-fn pricing_context(document: &JsDocument) -> Value {
+
+fn pricing_context(document: &JsDocument) -> PricingContext {
     let root = document.root();
-    let mut context = json!({});
-    for (field, allowed, fallback) in [
-        ("speed", ["standard", "fast"], "standard"),
-        ("inference_geo", ["global", "us"], "global"),
-        ("service_tier", ["auto", "standard_only"], "auto"),
-    ] {
-        context[field] = match document.get(root, field) {
-            None => json!(fallback),
-            Some(node) => document
-                .string(node)
-                .and_then(|s| s.to_scalar())
-                .filter(|s| allowed.contains(&s.as_str()))
-                .map_or_else(|| json!("unknown"), |s| json!(s)),
-        };
-    }
+    let field = |name, allowed: &[&str], fallback: &str| match document.get(root, name) {
+        None => fallback.to_owned(),
+        Some(node) => document
+            .string(node)
+            .and_then(|s| s.to_scalar())
+            .filter(|s| allowed.contains(&s.as_str()))
+            .unwrap_or_else(|| "unknown".into()),
+    };
+    let mut context = PricingContext {
+        speed: field("speed", &["standard", "fast"], "standard"),
+        inference_geo: field("inference_geo", &["global", "us"], "global"),
+        service_tier: field("service_tier", &["auto", "standard_only"], "auto"),
+        pricing_unsupported: None,
+    };
     let nonnull = |field| {
         document
             .get(root, field)
@@ -1373,7 +1623,7 @@ fn pricing_context(document: &JsDocument) -> Value {
             _ => false,
         });
     if nonnull("fallbacks") || nonnull("fallback_credit_token") || advisor {
-        context["pricing_unsupported"] = json!(true)
+        context.pricing_unsupported = Some(true)
     }
     context
 }

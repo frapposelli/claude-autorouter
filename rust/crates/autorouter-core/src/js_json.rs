@@ -71,6 +71,61 @@ impl JsString {
         output
     }
 
+    /// Exact JSON byte charge without allocating output or a lazy UTF-16 cache.
+    /// Stops when the caller's byte limit cannot admit the complete string.
+    pub fn serialized_len_up_to(&self, limit: usize) -> Option<usize> {
+        let mut length = 2usize;
+        if length > limit {
+            return None;
+        }
+        let mut add = |bytes: usize| {
+            length = length.checked_add(bytes)?;
+            (length <= limit).then_some(())
+        };
+        if let Some(scalar) = self.0.scalar.as_deref() {
+            // Escaping can only increase the byte count, so large scalar input
+            // is rejected without scanning or materializing its code units.
+            if scalar.len() > limit - 2 {
+                return None;
+            }
+            if !self.0.needs_escape {
+                return scalar.len().checked_add(2);
+            }
+            for byte in scalar.bytes() {
+                add(match byte {
+                    8 | 9 | 10 | 12 | 13 | 34 | 92 => 2,
+                    0..=31 => 6,
+                    _ => 1,
+                })?;
+            }
+        } else {
+            let units = self.0.units.get().expect("UTF-16 storage already exists");
+            let mut index = 0;
+            while index < units.len() {
+                let unit = units[index];
+                index += 1;
+                let bytes = match unit {
+                    8 | 9 | 10 | 12 | 13 | 34 | 92 => 2,
+                    0..=31 => 6,
+                    0xd800..=0xdbff
+                        if units
+                            .get(index)
+                            .is_some_and(|next| (0xdc00..=0xdfff).contains(next)) =>
+                    {
+                        index += 1;
+                        4
+                    }
+                    0xd800..=0xdfff => 6,
+                    _ => char::from_u32(u32::from(unit))
+                        .expect("non-surrogate unit")
+                        .len_utf8(),
+                };
+                add(bytes)?;
+            }
+        }
+        Some(length)
+    }
+
     fn array_index(&self) -> Option<u32> {
         // Every array-index key is ASCII, so scalar storage needs no UTF-16
         // allocation merely to establish property enumeration order.
@@ -608,6 +663,77 @@ impl JsDocument {
         self.stringify_node(self.root)
     }
 
+    /// Exact serialized byte charge with early limit rejection. Traversal uses
+    /// one cursor per nesting level, never a stack of every opaque child, and
+    /// does not allocate output, object-order indexes or UTF-16 string caches.
+    pub fn serialized_len_up_to(&self, limit: usize) -> Option<usize> {
+        enum Cursor<'a> {
+            Node(NodeId),
+            Array(&'a [NodeId], usize),
+            Object(&'a [(JsString, NodeId)], usize),
+        }
+        let mut stack = vec![Cursor::Node(self.root)];
+        let mut length = 0usize;
+        let mut number = ryu_js::Buffer::new();
+        while let Some(cursor) = stack.pop() {
+            let remaining = limit.checked_sub(length)?;
+            let bytes = match cursor {
+                Cursor::Node(node) => match self.nodes.get(node)? {
+                    JsNode::Null => 4,
+                    JsNode::Bool(value) => {
+                        if *value {
+                            4
+                        } else {
+                            5
+                        }
+                    }
+                    JsNode::Number(value) => {
+                        if !value.is_finite() {
+                            4
+                        } else if *value == 0.0 {
+                            1
+                        } else {
+                            number.format_finite(*value).len()
+                        }
+                    }
+                    JsNode::String(value) => value.serialized_len_up_to(remaining)?,
+                    JsNode::Array(children) => {
+                        stack.push(Cursor::Array(children, 0));
+                        2
+                    }
+                    JsNode::Object(object) => {
+                        stack.push(Cursor::Object(object.entries(), 0));
+                        2
+                    }
+                },
+                Cursor::Array(children, index) => {
+                    if let Some(child) = children.get(index) {
+                        stack.push(Cursor::Array(children, index + 1));
+                        stack.push(Cursor::Node(*child));
+                        usize::from(index != 0)
+                    } else {
+                        0
+                    }
+                }
+                Cursor::Object(entries, index) => {
+                    if let Some((key, child)) = entries.get(index) {
+                        stack.push(Cursor::Object(entries, index + 1));
+                        stack.push(Cursor::Node(*child));
+                        key.serialized_len_up_to(remaining)?
+                            .checked_add(1 + usize::from(index != 0))?
+                    } else {
+                        0
+                    }
+                }
+            };
+            length = length.checked_add(bytes)?;
+            if length > limit {
+                return None;
+            }
+        }
+        Some(length)
+    }
+
     /// Replace one explicitly approved top-level field, preserving all other
     /// UTF-16 strings, numeric semantics, unknown fields and key positions.
     pub fn set_root_field_json(&mut self, key: &str, bytes: &[u8]) -> Result<(), JsonError> {
@@ -775,6 +901,49 @@ impl JsDocument {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn observer_byte_charge_matches_exact_unicode_numbers_and_duplicate_keys() {
+        for input in [
+            r#"null"#,
+            r#"[true,false,-0,1e400,1e-300,123456789012345678901]"#,
+            r#"{"2":"二","1":"😀","b":"é","b":"\ud800","q\"":"\u0000\b\t\n\f\r\\"}"#,
+            r#"["\ud800\ud83d\ude00\udc00","\u2028\u2029"]"#,
+        ] {
+            let document = JsDocument::parse(input.as_bytes()).unwrap();
+            let expected = document.stringify().len();
+            assert_eq!(document.serialized_len_up_to(expected), Some(expected));
+            assert_eq!(document.serialized_len_up_to(expected + 1), Some(expected));
+            assert_eq!(document.serialized_len_up_to(expected - 1), None);
+        }
+    }
+
+    #[test]
+    fn observer_byte_charge_rejects_large_scalars_without_utf16_materialization() {
+        let input = format!("\"{}\"", "a".repeat(128 * 1024));
+        let document = JsDocument::parse(input.as_bytes()).unwrap();
+        let string = document.string(document.root()).unwrap();
+        assert!(string.0.units.get().is_none());
+        assert_eq!(document.serialized_len_up_to(64 * 1024), None);
+        assert!(string.0.units.get().is_none());
+        assert_eq!(
+            document.serialized_len_up_to(input.len()),
+            Some(input.len())
+        );
+        assert!(string.0.units.get().is_none());
+    }
+
+    #[test]
+    fn observer_byte_charge_walks_deep_and_wide_data_with_bounded_cursors() {
+        let deep = format!("{}null{}", "[".repeat(10_000), "]".repeat(10_000));
+        let document = JsDocument::parse(deep.as_bytes()).unwrap();
+        assert_eq!(document.serialized_len_up_to(deep.len()), Some(deep.len()));
+        assert_eq!(document.serialized_len_up_to(1024), None);
+        let wide = format!("[{}]", vec!["true"; 10_000].join(","));
+        let document = JsDocument::parse(wide.as_bytes()).unwrap();
+        assert_eq!(document.serialized_len_up_to(wide.len()), Some(wide.len()));
+        assert_eq!(document.serialized_len_up_to(1024), None);
+    }
 
     fn normalized(input: &str) -> String {
         JsDocument::parse(input.as_bytes()).unwrap().stringify()

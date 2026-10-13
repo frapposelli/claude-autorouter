@@ -2,11 +2,13 @@
 //! travel only over stdin/stdout; tool output never enters error messages.
 use std::future::Future;
 use std::process::Stdio;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWriteExt};
 
 const SERVICE: &str = "claude-autorouter";
 const TOOL_ERROR: &str = "Could not run the macOS Keychain tool.";
+const OUTPUT_BYTE_LIMIT: usize = 64 * 1024;
 pub const UNAVAILABLE: &str = "The macOS Keychain secret store is available only on macOS.";
 
 pub trait Keychain {
@@ -37,10 +39,14 @@ pub trait SecurityRunner: Send {
     ) -> impl Future<Output = Result<SecurityOutput, String>> + Send;
 }
 
+/// Uses the fixed system executable, a shared 64 KiB output budget and a
+/// 15-second deadline. An awaited failure kills and reaps the direct child.
+/// Dropping the future requests kill-on-drop; cleanup is eventual while the
+/// Tokio runtime remains active, rather than synchronously joined by Drop.
 pub struct NativeSecurityRunner;
 
-fn security_command(args: &[&str]) -> tokio::process::Command {
-    let mut command = tokio::process::Command::new("/usr/bin/security");
+fn child_command(program: &std::ffi::OsStr, args: &[&str]) -> tokio::process::Command {
+    let mut command = tokio::process::Command::new(program);
     command
         .args(args)
         .stdin(Stdio::piped())
@@ -50,56 +56,83 @@ fn security_command(args: &[&str]) -> tokio::process::Command {
     command
 }
 
-async fn limited_read(reader: impl AsyncRead + Unpin) -> Result<Vec<u8>, String> {
-    let mut bytes = Vec::new();
-    reader
-        .take(64 * 1024 + 1)
-        .read_to_end(&mut bytes)
-        .await
-        .map_err(|_| TOOL_ERROR)?;
-    if bytes.len() > 64 * 1024 {
-        return Err(TOOL_ERROR.into());
-    }
-    Ok(bytes)
+fn security_command(args: &[&str]) -> tokio::process::Command {
+    child_command(std::ffi::OsStr::new("/usr/bin/security"), args)
 }
+
+async fn limited_read(
+    mut reader: impl AsyncRead + Unpin,
+    output_bytes: &AtomicUsize,
+) -> Result<Vec<u8>, String> {
+    let mut bytes = Vec::new();
+    let mut chunk = [0; 8192];
+    loop {
+        let read = reader.read(&mut chunk).await.map_err(|_| TOOL_ERROR)?;
+        if read == 0 {
+            return Ok(bytes);
+        }
+        // spawnSync maxBuffer is one shared stdout/stderr budget. Charge the
+        // bytes before retaining them; independent pipe ceilings permit twice
+        // the source bound. Only the counter is shared, with no lock or
+        // mutable borrow held across either reader's await.
+        output_bytes
+            .try_update(Ordering::Relaxed, Ordering::Relaxed, |previous| {
+                previous
+                    .checked_add(read)
+                    .filter(|total| *total <= OUTPUT_BYTE_LIMIT)
+            })
+            .map_err(|_| TOOL_ERROR)?;
+        bytes.extend_from_slice(&chunk[..read]);
+    }
+}
+async fn run_child(
+    mut child: tokio::process::Child,
+    input: Option<&str>,
+) -> Result<SecurityOutput, String> {
+    let mut stdin = child.stdin.take().ok_or(TOOL_ERROR)?;
+    let stdout = child.stdout.take().ok_or(TOOL_ERROR)?;
+    let stderr = child.stderr.take().ok_or(TOOL_ERROR)?;
+    let output_bytes = AtomicUsize::new(0);
+    let result = tokio::time::timeout(Duration::from_secs(15), async {
+        let write = async {
+            if let Some(input) = input {
+                stdin
+                    .write_all(input.as_bytes())
+                    .await
+                    .map_err(|_| TOOL_ERROR)?;
+            }
+            stdin.shutdown().await.map_err(|_| TOOL_ERROR)?;
+            // Closing the pipe is essential for the interactive parser.
+            drop(stdin);
+            Ok::<_, String>(())
+        };
+        let ((), stdout, _, status) = tokio::try_join!(
+            write,
+            limited_read(stdout, &output_bytes),
+            limited_read(stderr, &output_bytes),
+            async { child.wait().await.map_err(|_| TOOL_ERROR.to_string()) }
+        )?;
+        Ok::<SecurityOutput, String>(SecurityOutput {
+            status: status.code(),
+            stdout,
+        })
+    })
+    .await;
+    match result {
+        Ok(Ok(output)) => Ok(output),
+        _ => {
+            // Kill and reap on timeout, pipe failure or output overflow.
+            let _ = child.kill().await;
+            let _ = child.wait().await;
+            Err(TOOL_ERROR.into())
+        }
+    }
+}
+
 impl SecurityRunner for NativeSecurityRunner {
     async fn run(&mut self, args: &[&str], input: Option<&str>) -> Result<SecurityOutput, String> {
-        let mut child = security_command(args).spawn().map_err(|_| TOOL_ERROR)?;
-        let mut stdin = child.stdin.take().ok_or(TOOL_ERROR)?;
-        let stdout = child.stdout.take().ok_or(TOOL_ERROR)?;
-        let stderr = child.stderr.take().ok_or(TOOL_ERROR)?;
-        let result = tokio::time::timeout(Duration::from_secs(15), async {
-            let write = async {
-                if let Some(input) = input {
-                    stdin
-                        .write_all(input.as_bytes())
-                        .await
-                        .map_err(|_| TOOL_ERROR)?;
-                }
-                stdin.shutdown().await.map_err(|_| TOOL_ERROR)?;
-                // Closing the pipe is essential for the interactive parser.
-                drop(stdin);
-                Ok::<_, String>(())
-            };
-            let ((), stdout, _, status) =
-                tokio::try_join!(write, limited_read(stdout), limited_read(stderr), async {
-                    child.wait().await.map_err(|_| TOOL_ERROR.to_string())
-                })?;
-            Ok::<SecurityOutput, String>(SecurityOutput {
-                status: status.code(),
-                stdout,
-            })
-        })
-        .await;
-        match result {
-            Ok(Ok(output)) => Ok(output),
-            _ => {
-                // Kill and reap on timeout, pipe failure or output overflow.
-                let _ = child.kill().await;
-                let _ = child.wait().await;
-                Err(TOOL_ERROR.into())
-            }
-        }
+        let child = security_command(args).spawn().map_err(|_| TOOL_ERROR)?;
+        run_child(child, input).await
     }
 }
 
@@ -454,3 +487,7 @@ mod tests {
         assert!(input.contains("Müller \\\"a\\\" \\\\ b/config.json"));
     }
 }
+
+#[cfg(test)]
+#[path = "keychain_process_contracts.rs"]
+mod process_contracts;

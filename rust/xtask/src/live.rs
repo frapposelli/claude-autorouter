@@ -8,7 +8,7 @@ use autorouter_core::config::{Evaluator, RouterConfig, read_config, require_keys
 use autorouter_core::evaluation_report::{
     create_evaluation_policy, evaluate_live_case, evaluate_live_report, model_tier, profile_tier,
 };
-use autorouter_core::js_json::{JsDocument, JsNode};
+use autorouter_core::js_json::{JsDocument, JsNode, JsString};
 use autorouter_core::prompt_state::build_state_document;
 use autorouter_core::router::{RouteDecision, RouteOptions, context_size_bytes};
 use autorouter_core::status_state::StatusState;
@@ -33,8 +33,27 @@ const TEST_SOURCE: &str = include_str!("../fixtures/merge-intervals.test.rs");
 const MANIFEST: &str = include_str!("../fixtures/repair-cargo.toml");
 #[path = "live_reference.rs"]
 mod reference_gateway;
+#[cfg(test)]
+#[path = "live_rubric_contracts.rs"]
+mod rubric_contracts;
 pub fn cases() -> Value {
     serde_json::from_str::<Value>(CASES_JSON).expect("packaged live fixtures")["cases"].clone()
+}
+fn expected_tier(scenario: &Value, current_task: &JsString) -> Option<Value> {
+    if let Some(tiers) = scenario["expectedClassifiedTiers"].as_array() {
+        scenario["prompts"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .position(|prompt| prompt.as_str() == Some(&current_task.to_well_formed()))
+            .and_then(|index| tiers.get(index))
+            .cloned()
+    } else {
+        scenario
+            .get("expectedClassifiedTier")
+            .or_else(|| scenario.get("expectedTier"))
+            .cloned()
+    }
 }
 fn expected(scenario: &Value) -> Value {
     scenario
@@ -82,12 +101,19 @@ pub fn parse_args(args: &[String]) -> Result<Value, String> {
             "--simulate-evaluator-outage" | "--simulate-jev-outage" => {
                 options["simulateJevOutage"] = json!(true)
             }
-            "--case" | "--timeout-ms" | "--model" | "--client-model" | "--engine" => {
+            "--case" | "--timeout-ms" | "--model" | "--client-model" | "--engine"
+            | "--permission-mode" => {
                 let value = args
                     .get(i + 1)
                     .filter(|v| !v.is_empty())
                     .ok_or("Use --help for supported options")?;
                 match flag.as_str() {
+                    "--permission-mode" => {
+                        if !["dontAsk", "auto"].contains(&value.as_str()) {
+                            return Err("--permission-mode must be dontAsk or auto".into());
+                        }
+                        options["permissionMode"] = json!(value);
+                    }
                     "--engine" => {
                         if !["native", "node-reference"].contains(&value.as_str()) {
                             return Err("--engine must be native or node-reference".into());
@@ -265,20 +291,7 @@ impl LiveRouter {
     ) -> Result<RouteDecision, EvaluationError> {
         let mut evidence = metadata(&doc, &options);
         let state = build_state_document(&doc, 12000);
-        let expected = if let Some(tiers) = self.scenario["expectedClassifiedTiers"].as_array() {
-            self.scenario["prompts"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .position(|p| p.as_str() == Some(&state.current_task.to_well_formed()))
-                .and_then(|i| tiers.get(i))
-                .cloned()
-        } else {
-            self.scenario
-                .get("expectedClassifiedTier")
-                .or_else(|| self.scenario.get("expectedTier"))
-                .cloned()
-        };
+        let expected = expected_tier(&self.scenario, &state.current_task);
         if let Some(expected) = expected {
             evidence["expected_classified_tier"] = expected;
         }
@@ -568,7 +581,7 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
     let options = parse_args(args)?;
     if options["help"] == true {
         println!(
-            "Usage: cargo xtask [--env-file .env] live-validation [--engine native|node-reference] [--case simple,medium,difficult,coding,continuation,thinking_continuation,large_context,example_haiku,example_sonnet,example_opus] [--client-model MODEL] [--no-thinking] [--simulate-evaluator-outage] [--timeout-ms 120000]\nExplicit real Claude subscription and evaluator calls. Requires --safe-mode and --restricted support. Reports independent transport, evaluator, rubric, policy and task gates; private fixtures are removed. Both engines use the same version 2 Rust/cargo fixture, prompts, isolated Claude command and independent verifier. node-reference explicitly requires Node 22+ and verified frozen baseline source as a temporary oracle. Record matched environment/model conditions when comparing separate runs. large_context deliberately sends over 200K input tokens. Outage alias --simulate-jev-outage is retained. Costs are list-price estimates, not subscription charges."
+            "Usage: cargo xtask [--env-file .env] live-validation [--engine native|node-reference] [--case simple,medium,difficult,coding,continuation,thinking_continuation,large_context,example_haiku,example_sonnet,example_opus] [--client-model MODEL] [--permission-mode dontAsk|auto] [--no-thinking] [--simulate-evaluator-outage] [--timeout-ms 120000]\nExplicit real Claude subscription and evaluator calls. Requires --safe-mode and --restricted support. Reports independent transport, evaluator, rubric, policy and task gates; private fixtures are removed. Both engines use the same version 2 Rust/cargo fixture, prompts, isolated Claude command and independent verifier. node-reference explicitly requires Node 22+ and verified frozen baseline source as a temporary oracle. Record matched environment/model conditions when comparing separate runs. Explicit --permission-mode auto requires the auto routing profile; Claude retains availability and permission decisions. The default dontAsk mode tests routing without claiming actual Auto permission-mode coverage. large_context deliberately sends over 200K input tokens. Outage alias --simulate-jev-outage is retained. Costs are list-price estimates, not subscription charges."
         );
         return Ok(true);
     }
@@ -590,6 +603,13 @@ async fn execute(
     env["AUTOROUTER_TOKEN"] = json!(tool_process::token()?);
     let cwd = std::env::current_dir().map_err(|_| "Cannot resolve working directory")?;
     let config = read_config(&env, false, &cwd)?;
+    if options["permissionMode"] == "auto"
+        && config.client_profile != autorouter_core::config::ClientProfile::Auto
+    {
+        return Err(
+            "A live --permission-mode auto canary requires AUTOROUTER_CLIENT_PROFILE=auto".into(),
+        );
+    }
     let mut policy_options = json!({"profile":profile(&config)});
     if options["selectedCases"] == true {
         let mut tiers = Vec::new();
@@ -635,6 +655,10 @@ async fn execute(
     let provenance: Value = serde_json::from_str(CASES_JSON).unwrap();
     let mut report = json!({"type":"live_validation","cli_version":version.trim().chars().take(100).collect::<String>(),"auth_mode":"subscription","fixture_version":2,"fixture_sha256":fingerprint(&fixtures),"historical_fixture_version":provenance["historical_fixture_version"],"historical_fixture_sha256":provenance["historical_fixture_sha256"],"fixture_adaptation":provenance["adaptation"],"native_repair_source_sha256":digest(IMPLEMENTATION.as_bytes()),"native_repair_test_sha256":digest(TEST_SOURCE.as_bytes()),"native_repair_manifest_sha256":digest(MANIFEST.as_bytes()),"evaluator":if config.evaluator==Evaluator::Ollama{"ollama"}else{"jev"},"classifier_timeout_ms":if config.evaluator==Evaluator::Ollama{config.ollama_timeout_ms}else{config.jev_timeout_ms},"client_profile":profile(&config),"client_model":options.get("model").cloned().unwrap_or_else(||if profile(&config)=="compatible"{json!(config.models.haiku)}else{env.get("ANTHROPIC_MODEL").cloned().unwrap_or(json!("default"))}),"thinking_disabled":options["noThinking"]==true||profile(&config)=="compatible"||env["MAX_THINKING_TOKENS"]=="0","simulated_classifier_outage":options["simulateJevOutage"]==true,"quality_policy":policy,"coverage_scope":if options["selectedCases"]==true{"selected_cases"}else{"full_profile"},"cost_basis":"CLI list-price estimate, not subscription charges","max_turns_supported":max_turns,"cases":[]});
     report["engine"] = options["engine"].clone();
+    report["client_permission_mode"] = options
+        .get("permissionMode")
+        .cloned()
+        .unwrap_or(json!("dontAsk"));
     if let Some(reference) = &reference {
         report["reference"] = reference.provenance.clone();
     }
@@ -866,6 +890,14 @@ mod tests {
         );
         assert!(parse_args(&["--timeout-ms".into(), "999".into()]).is_err());
         assert!(parse_args(&["--case".into(), "nope".into()]).is_err());
+        for mode in ["auto", "dontAsk"] {
+            assert_eq!(
+                parse_args(&["--permission-mode".into(), mode.into()]).unwrap()["permissionMode"],
+                mode
+            );
+        }
+        assert!(parse_args(&["--permission-mode".into(), "bypassPermissions".into()]).is_err());
+        assert!(parse_args(&["--permission-mode".into()]).is_err());
     }
     #[test]
     fn native_fixture_records_version_and_distinct_provenance() {

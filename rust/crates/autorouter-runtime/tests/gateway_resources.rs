@@ -562,7 +562,12 @@ async fn production_classifier_capacity_recovers_after_1024_independent_cancella
             .classify(document, &config, &CancellationToken::new())
             .await
             .unwrap();
-        assert_eq!(decision.classifier_error, Some("capacity_exhausted"));
+        assert_eq!(
+            decision
+                .classifier_error
+                .map(autorouter_core::contracts::ClassifierError::as_str),
+            Some("capacity_exhausted")
+        );
     }
     tokens[0].cancel();
     let first = tasks.remove(0).await.unwrap();

@@ -2,7 +2,11 @@
 //! No request body is retained across phases. Authoritative JSON provides exact
 //! hash/context identity and direct field reads avoid copying opaque catalogs.
 use crate::auto_routing::{can_route_auto_request_document, has_routable_safeguards_document};
-use crate::config::{ClientProfile, RouterConfig};
+use crate::config::{ClientProfile, Evaluator, RouterConfig};
+use crate::contracts::{
+    ClassifierDecision, ClassifierError, ContextCheck, ContinuityState, DecisionSource,
+    RoutingDecision, Tier, TypedRouteDecision,
+};
 use crate::js_json::{JsDocument, JsNode, JsString, NodeId};
 use crate::model_catalog::{
     can_upgrade_context, has_native_million_context, supports_tool_references,
@@ -397,7 +401,9 @@ pub struct RouteOptions {
     pub count_tokens: bool,
 }
 pub struct RouteStart {
+    /// Legacy observation adapter; first-party routing uses passthrough_contract.
     pub passthrough: Option<Value>,
+    pub passthrough_contract: Option<RoutingDecision>,
     pub early_count_model: Option<String>,
     options: RouteOptions,
     sequence: u64,
@@ -413,7 +419,9 @@ pub struct RouteStart {
 pub struct RoutePending {
     pub count_model: Option<String>,
     start: RouteStart,
-    decision: Value,
+    metadata: RoutingDecision,
+    /// Preserves arbitrary custom metadata only for the explicit Value adapter.
+    legacy_decision: Option<Value>,
     model: String,
     model_exact: JsString,
     reason: String,
@@ -527,6 +535,7 @@ impl Router {
             || has_routable_safeguards_document(doc);
         let mut start = RouteStart {
             passthrough: None,
+            passthrough_contract: None,
             early_count_model: None,
             options,
             sequence: self.sequence,
@@ -544,7 +553,14 @@ impl Router {
                 && (!has_routable_safeguards_document(doc)
                     || start.options.request_class == "compaction"))
         {
-            let mut decision = json!({"model":requested,"source":"passthrough","reason":if start.options.request_class == "auxiliary" { "internal_request" } else { "auto_mode_safeguards" }, "evaluation_latency_ms":0});
+            let mut decision = RoutingDecision::passthrough(
+                requested.into(),
+                if start.options.request_class == "auxiliary" {
+                    "internal_request"
+                } else {
+                    "auto_mode_safeguards"
+                },
+            );
             if !["auxiliary", "compaction"].contains(&start.options.request_class.as_str()) {
                 let turn = turn_info(doc, &start.options.scope, &start.options.prompt_id);
                 if (turn.index.is_some() || !start.options.prompt_id.is_empty())
@@ -556,10 +572,13 @@ impl Router {
                         now_ms,
                     )
                 {
-                    decision["continuity_state"] = json!("capacity_exhausted");
+                    decision.continuity_state = Some(ContinuityState::CapacityExhausted);
                 }
             }
-            start.passthrough = Some(decision);
+            let mut legacy = decision.policy_observation();
+            legacy["evaluation_latency_ms"] = json!(0);
+            start.passthrough = Some(legacy);
+            start.passthrough_contract = Some(decision);
             return start;
         }
         start.has_system_message =
@@ -610,6 +629,8 @@ impl Router {
         start
     }
 
+    /// Legacy fixture/custom adapter. Unknown fields and their original JSON
+    /// values remain observable; production classifiers use classified_typed.
     pub fn classified(
         &mut self,
         doc: &JsDocument,
@@ -617,13 +638,56 @@ impl Router {
         decision: Value,
         now_ms: u64,
     ) -> RoutePending {
+        let mut metadata = RoutingDecision::passthrough(String::new(), text(&decision, "reason"));
+        metadata.tier = Some(Tier::from_value(decision.get("tier")).unwrap_or(Tier::Sonnet));
+        metadata.source =
+            DecisionSource::parse(text(&decision, "source")).unwrap_or(DecisionSource::Passthrough);
+        // These are observation-only in the legacy facade. The raw original is
+        // retained separately rather than flattened into first-party contracts.
+        metadata.classified_tier = Tier::from_value(decision.get("classified_tier"));
+        metadata.confidence = decision.get("confidence").and_then(Value::as_f64);
+        metadata.evaluator = match text(&decision, "evaluator") {
+            "jev" => Some(Evaluator::Jev),
+            "ollama" => Some(Evaluator::Ollama),
+            _ => None,
+        };
+        metadata.classifier_error = ClassifierError::parse(text(&decision, "classifier_error"));
+        metadata.classifier_status = decision
+            .get("classifier_status")
+            .and_then(Value::as_u64)
+            .and_then(|n| u16::try_from(n).ok());
+        self.classified_metadata(doc, start, metadata, Some(decision), now_ms)
+    }
+    pub fn classified_typed(
+        &mut self,
+        doc: &JsDocument,
+        start: RouteStart,
+        decision: ClassifierDecision,
+        now_ms: u64,
+    ) -> RoutePending {
+        self.classified_metadata(
+            doc,
+            start,
+            RoutingDecision::classified(&decision),
+            None,
+            now_ms,
+        )
+    }
+    fn classified_metadata(
+        &mut self,
+        doc: &JsDocument,
+        start: RouteStart,
+        metadata: RoutingDecision,
+        legacy_decision: Option<Value>,
+        now_ms: u64,
+    ) -> RoutePending {
         let requested_exact = requested_identity(doc);
         let requested_display = requested_exact.to_well_formed();
         let requested = requested_display.as_str();
-        let mut model_exact = self.tier_model_exact(text(&decision, "tier"));
+        let mut model_exact = self.tier_model_exact(metadata.tier.unwrap_or(Tier::Sonnet).as_str());
         let mut model = model_exact.to_well_formed();
-        let mut reason = text(&decision, "reason").to_owned();
-        if start.auto_mode && text(&decision, "tier") == "haiku" {
+        let mut reason = metadata.reason.clone();
+        if start.auto_mode && metadata.tier == Some(Tier::Haiku) {
             model_exact = self.tier_model_exact("sonnet");
             model = model_exact.to_well_formed();
             reason = "auto_mode_floor".into();
@@ -753,7 +817,7 @@ impl Router {
                     "unknown_continuation"
                 },
             ));
-        } else if text(&decision, "source") == "fallback" && rank(requested) >= 1 {
+        } else if metadata.source == DecisionSource::Fallback && rank(requested) >= 1 {
             chosen = Some((
                 previous.clone().unwrap_or_else(|| requested_exact.clone()),
                 "classifier_unavailable",
@@ -768,7 +832,7 @@ impl Router {
                 previous.clone().unwrap_or_else(|| requested_exact.clone()),
                 "thinking_history",
             ));
-        } else if needs_sonnet_document(doc) && text(&decision, "tier") == "haiku" {
+        } else if needs_sonnet_document(doc) && metadata.tier == Some(Tier::Haiku) {
             model_exact = self.tier_model_exact("sonnet");
             model = model_exact.to_well_formed();
             if !start.auto_mode {
@@ -787,7 +851,8 @@ impl Router {
         RoutePending {
             count_model,
             start,
-            decision,
+            metadata,
+            legacy_decision,
             model,
             model_exact,
             reason,
@@ -818,24 +883,53 @@ impl Router {
     pub fn finish_route_exact(
         &mut self,
         doc: &JsDocument,
-        mut pending: RoutePending,
+        pending: RoutePending,
         count: Option<u64>,
         now_ms: u64,
     ) -> RouteDecision {
+        let (typed, legacy) = self.finish_policy(doc, pending, count, now_ms);
+        RouteDecision {
+            decision: legacy.unwrap_or_else(|| typed.metadata.policy_observation()),
+            model: typed.model,
+        }
+    }
+    pub fn finish_route_typed_exact(
+        &mut self,
+        doc: &JsDocument,
+        pending: RoutePending,
+        count: Option<u64>,
+        now_ms: u64,
+    ) -> TypedRouteDecision {
+        self.finish_policy(doc, pending, count, now_ms).0
+    }
+    fn finish_policy(
+        &mut self,
+        doc: &JsDocument,
+        mut pending: RoutePending,
+        count: Option<u64>,
+        now_ms: u64,
+    ) -> (TypedRouteDecision, Option<Value>) {
         let requested_exact = requested_identity(doc);
         let requested_display = requested_exact.to_well_formed();
         let requested = requested_display.as_str();
         if pending.count_model.is_some() {
             if let Some(count) = count.filter(|n| *n <= crate::config::MAX_SAFE_INTEGER) {
                 pending.large_context = count > 190000;
-                pending.decision["context_check"] = json!(if pending.large_context {
-                    "over_budget"
+                pending.metadata.context_check = Some(if pending.large_context {
+                    ContextCheck::OverBudget
                 } else {
-                    "within_budget"
+                    ContextCheck::WithinBudget
                 });
-                pending.decision["counted_input_tokens"] = json!(count);
+                pending.metadata.counted_input_tokens = Some(count);
+                if let Some(legacy) = &mut pending.legacy_decision {
+                    legacy["context_check"] = json!(pending.metadata.context_check);
+                    legacy["counted_input_tokens"] = json!(count);
+                }
             } else {
-                pending.decision["context_check"] = json!("count_unavailable");
+                pending.metadata.context_check = Some(ContextCheck::CountUnavailable);
+                if let Some(legacy) = &mut pending.legacy_decision {
+                    legacy["context_check"] = json!(ContextCheck::CountUnavailable);
+                }
             }
         }
         if !pending.preserved && pending.large_context && !pending.shared_auto_request {
@@ -887,12 +981,17 @@ impl Router {
             .as_ref()
             .map(|pin| {
                 if pin.value["confirmed"] == true {
-                    "confirmed"
+                    ContinuityState::Confirmed
                 } else {
-                    "selected"
+                    ContinuityState::Selected
                 }
             })
-            .or_else(|| pending.turn.continuation.then_some("unknown"));
+            .or_else(|| {
+                pending
+                    .turn
+                    .continuation
+                    .then_some(ContinuityState::Unknown)
+            });
         if (!pending.turn.continuation
             || pending.previous.is_some()
             || identifiable_upgrade
@@ -920,20 +1019,32 @@ impl Router {
                 now_ms,
             )
         {
-            continuity = Some("capacity_exhausted");
+            continuity = Some(ContinuityState::CapacityExhausted);
         }
-        pending.decision["model"] = json!(pending.model);
-        pending.decision["reason"] = json!(pending.reason);
+        pending.metadata.model = pending.model;
+        pending.metadata.reason = pending.reason;
         if compatibility["compatible"] != true {
-            pending.decision["compatibility_reason"] = compatibility["reason"].clone();
+            pending.metadata.compatibility_reason =
+                compatibility["reason"].as_str().map(str::to_owned);
         }
-        if let Some(continuity) = continuity {
-            pending.decision["continuity_state"] = json!(continuity);
+        pending.metadata.continuity_state = continuity;
+        if let Some(legacy) = &mut pending.legacy_decision {
+            legacy["model"] = json!(pending.metadata.model);
+            legacy["reason"] = json!(pending.metadata.reason);
+            if compatibility["compatible"] != true {
+                legacy["compatibility_reason"] = compatibility["reason"].clone();
+            }
+            if let Some(continuity) = continuity {
+                legacy["continuity_state"] = json!(continuity);
+            }
         }
-        RouteDecision {
-            decision: pending.decision,
-            model: pending.model_exact,
-        }
+        (
+            TypedRouteDecision {
+                metadata: pending.metadata,
+                model: pending.model_exact,
+            },
+            pending.legacy_decision,
+        )
     }
 }
 /// Synthetic deterministic scenarios used by the retained source oracle.

@@ -5,24 +5,51 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 publish = false
+default-run = "xtask"
+
+[[bin]]
+name = "xtask"
+path = "src/main.rs"
+required-features = ["runtime-tools"]
+
+[[bin]]
+name = "autorouter-audit"
+path = "src/audit_main.rs"
+
+[[test]]
+name = "benchmark_resources"
+path = "tests/benchmark_resources.rs"
+required-features = ["runtime-tools"]
+
+[[test]]
+name = "benchmark_storage"
+path = "tests/benchmark_storage.rs"
+required-features = ["runtime-tools"]
+
+[features]
+default = ["runtime-tools"]
+runtime-tools = ["dep:autorouter-core", "dep:autorouter-runtime", "autorouter-runtime/development-probes", "dep:serde", "dep:tokio", "dep:tokio-util", "dep:hyper", "dep:hyper-util", "dep:subtle", "dep:http-body-util", "dep:bytes", "dep:flate2", "dep:tower-service"]
 
 [dependencies]
-autorouter-core = { path = "../crates/autorouter-core" }
-autorouter-runtime = { path = "../crates/autorouter-runtime" }
-serde.workspace = true
+autorouter-core = { path = "../crates/autorouter-core", optional = true }
+autorouter-runtime = { path = "../crates/autorouter-runtime", optional = true }
+serde = { workspace = true, optional = true }
 serde_json.workspace = true
 sha2.workspace = true
-tokio.workspace = true
-tokio-util.workspace = true
-hyper.workspace = true
-hyper-util.workspace = true
-subtle.workspace = true
-http-body-util.workspace = true
-bytes.workspace = true
+tokio = { workspace = true, optional = true }
+tokio-util = { workspace = true, optional = true }
+hyper = { workspace = true, optional = true }
+hyper-util = { workspace = true, optional = true }
+subtle = { workspace = true, optional = true }
+http-body-util = { workspace = true, optional = true }
+bytes = { workspace = true, optional = true }
 regex.workspace = true
 getrandom.workspace = true
 nix = { workspace = true, features = ["event", "resource"] }
-flate2.workspace = true
+flate2 = { workspace = true, optional = true }
+tower-service = { version = "=0.3.3", optional = true }
+url.workspace = true
+rustls-pki-types = "=1.15.1"
 
 [lints]
 workspace = true
