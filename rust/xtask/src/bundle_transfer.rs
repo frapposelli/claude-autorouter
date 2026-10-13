@@ -98,6 +98,26 @@ snapshot is not a long resource soak or an allocation/retained-state result.
 Real evaluator and completed-task trials are separate. Read the recorded
 protocol and call --help first. No command above calls Claude, Jev or Ollama;
 no API key is needed. Do not infer current-provider/model quality from mocks.
+
+Portable paired local-model trials are separately opt-in and need no Git or
+private wrapper. Use an already-installed local decision model and pinned
+Node22.14 executable. Pause builds/tests and other Ollama requests; ordinary
+apps may remain open. Read rust/docs/local-model-comparison.md and the immutable
+local-model-orchestration-v1 protocol, then explicitly prepare without inference:
+
+    ./target/release/xtask compare-local-evaluators prepare --model INSTALLED_TAG --node /absolute/path/to/node22.14 --warm-timeout-ms 1500 --conditions normal-use-exclusive-ollama-builds-paused --output results/model-finite-declaration
+
+Choose1500, or0 for a new separate zero-warm-deadline declaration.
+Prepare freezes exact source/reference/
+fixture/model/runtime/binary identities and downloads/loads/unloads nothing.
+Run explicitly performs990 local synthetic model calls if every cold call
+succeeds, preserving five alternating Node/native pairs and all original gates:
+
+    ./target/release/xtask compare-local-evaluators run --declaration results/model-finite-declaration --conditions normal-use-exclusive-ollama-builds-paused --output results/model-finite-run-1
+
+Every original report, failure and finite-deadline availability mismatch stays
+visible. Conditions are separately declared/observed; these model trials do not
+qualify controlled gateway performance, completed Claude tasks or release.
 "#;
 
 fn write(path: &Path, bytes: &[u8]) -> Result<(), String> {

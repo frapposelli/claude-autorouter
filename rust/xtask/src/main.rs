@@ -2,6 +2,7 @@ mod audit_support;
 mod benchmark;
 mod benchmark_storage;
 mod bundle;
+mod compare_local_evaluators;
 mod context_probe;
 mod env_file;
 mod evaluation;
@@ -85,7 +86,7 @@ fn main() {
     let result = match args.first().map(String::as_str) {
         None | Some("--help" | "help") => {
             println!(
-                "Usage: cargo xtask [--env-file PATH] COMMAND [OPTIONS]\n\nChecks: parity, fixture, freeze-reference, verify-vendor, verify-production-features\nNative artifacts: package, package-inspect, package-verify, package-smoke, upgrade-rollback\nRelease: release-pack, release-check, release-verify\nSynthetic tools: benchmark, benchmark-storage, benchmark-bundle\nExplicit evaluator calls: evaluate, evaluate-ollama, test-ollama-routing\nExplicit Claude startup/live calls: context-probe, live-validation\n\nEach opt-in tool provides --help. Environment files load only when explicitly supplied before COMMAND. Jev/Anthropic calls, model benchmarks and Claude/MCP startup are never ordinary contribution checks."
+                "Usage: cargo xtask [--env-file PATH] COMMAND [OPTIONS]\n\nChecks: parity, fixture, freeze-reference, verify-vendor, verify-production-features\nNative artifacts: package, package-inspect, package-verify, package-smoke, upgrade-rollback\nRelease: release-pack, release-check, release-verify\nSynthetic tools: benchmark, benchmark-storage, benchmark-bundle\nExplicit evaluator calls: evaluate, evaluate-ollama, test-ollama-routing, compare-local-evaluators\nExplicit Claude startup/live calls: context-probe, live-validation\n\nEach opt-in tool provides --help. Environment files load only when explicitly supplied before COMMAND. Jev/Anthropic calls, model benchmarks and Claude/MCP startup are never ordinary contribution checks."
             );
             Ok(true)
         }
@@ -102,6 +103,7 @@ fn main() {
         Some("live-validation") => live::run(&args[1..], &root),
         Some("evaluate") => evaluation::run(&args[1..], &root),
         Some("evaluate-ollama") => ollama_evaluation::run(&args[1..], &root),
+        Some("compare-local-evaluators") => compare_local_evaluators::run(&args[1..], &root),
         Some("test-ollama-routing") => ollama_routing::run(&args[1..], &root),
         Some("package" | "package-inspect" | "package-verify" | "package-smoke") => {
             package::run(&args, &root)

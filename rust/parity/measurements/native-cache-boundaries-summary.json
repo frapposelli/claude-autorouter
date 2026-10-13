@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_supplemental_cache_boundaries",
+  "date": "2026-10-13",
+  "checkpoint_base": "bdf6af19ae99a66dd0cd4d83f5343fec3e8e551d",
+  "source_uncommitted": true,
+  "production_changes": false,
+  "passed": true,
+  "release_approved": false,
+  "default_cutover_approved": false,
+  "mapping": {
+    "path": "rust/parity/assertion-mappings/cache-boundary-contracts.json",
+    "sha256": "bcc648981a4e0c4652dd86278cccb332ab039e6e1172f006bda5bfceaaf11c7b",
+    "bytes": 41616
+  },
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/cache-boundary-independent-review-20261013.json",
+    "sha256": "15eab192e9c3586b51fc644fda8d319fc51f813ccae4aba5658f4dc875a7c366",
+    "bytes": 983
+  },
+  "source_controls": {
+    "fixtures": 9,
+    "assertions": 24050,
+    "raw": {
+      "path": "artifacts/rust-rewrite/cache-boundary-source-20261013-4/raw-observations.json",
+      "sha256": "b747d346573e2350ed4cfe50796d41c9968a2a17d79fe1ebf3908b93ac2f60d4",
+      "bytes": 5849934
+    },
+    "capture": {
+      "path": "artifacts/rust-rewrite/cache-boundary-source-20261013-4/cache-boundary-contracts.capture.json",
+      "sha256": "56cffa6b45599be71f44cbf75219388f0b06123718191800a4a013a8af3f3278",
+      "bytes": 3618
+    }
+  },
+  "native_checks": {
+    "focused_native": {
+      "path": "artifacts/rust-rewrite/cache-boundary-native-20261013-1.log",
+      "sha256": "780e3a37d30c27313cd93f588de0059c2f6f0e23039e9af61ffc167a6b3f5827",
+      "bytes": 1222
+    },
+    "strict_focused_clippy": {
+      "path": "artifacts/rust-rewrite/cache-boundary-clippy-20261013-1.log",
+      "sha256": "3fefe5e42c7ca0bbf34b302077fb9ceb0ace02c400dabbf376feb9db06093d6e",
+      "bytes": 670
+    },
+    "fresh_source": {
+      "path": "artifacts/rust-rewrite/cache-boundary-source-20261013-4.log",
+      "sha256": "25675da1f9f7bf9a832ce64242a7d01ec5e54bb6b634983a788cc7b3e50f1b24",
+      "bytes": 1331
+    }
+  },
+  "comparison": {
+    "path": "artifacts/rust-rewrite/cache-boundary-comparison-20261013.json",
+    "sha256": "f20eefc5fe35eefe9679bec1897141423314a208b7e48acbe13e2544f2453d0e",
+    "bytes": 312523
+  },
+  "counts": {
+    "expanded_public_calls": 3239,
+    "full_wire_calls": 2126,
+    "ordered_steps_including_advances": 3248,
+    "advance_steps": 9,
+    "actual_route_completion_calls": 1007
+  },
+  "default_limits": [
+    {
+      "limit_id": "decision_cache_entries",
+      "default": 1000,
+      "cases": [
+        "classifier-default-capacity",
+        "classifier-zero-capacity"
+      ],
+      "native_tests": [
+        "classifier_default_1000_1001_and_touched_lru_eviction",
+        "classifier_default_300000_expiry_and_zero_embedding_options"
+      ],
+      "status": "reviewed_default_and_zero_boundary_evidence"
+    },
+    {
+      "limit_id": "decision_cache_ttl_ms",
+      "default": 300000,
+      "cases": [
+        "classifier-default-ttl",
+        "classifier-zero-ttl"
+      ],
+      "native_tests": [
+        "classifier_default_300000_expiry_and_zero_embedding_options"
+      ],
+      "status": "reviewed_default_and_zero_boundary_evidence"
+    },
+    {
+      "limit_id": "count_cache_entries",
+      "default": 100,
+      "cases": [
+        "count-default-capacity",
+        "count-zero-capacity"
+      ],
+      "native_tests": [
+        "count_default_100_101_and_touched_lru_eviction",
+        "count_default_300000_expiry_and_zero_embedding_options"
+      ],
+      "status": "reviewed_default_and_zero_boundary_evidence"
+    },
+    {
+      "limit_id": "count_cache_ttl_ms",
+      "default": 300000,
+      "cases": [
+        "count-default-ttl",
+        "count-zero-ttl"
+      ],
+      "native_tests": [
+        "count_default_300000_expiry_and_zero_embedding_options"
+      ],
+      "status": "reviewed_default_and_zero_boundary_evidence"
+    }
+  ],
+  "scope_limits": [
+    "Full workspace/default-parallel/remote CI and source archive gate qualification remain root-owned; do not mark shared coverage merely from this mapping.",
+    "Private native cache storage counts are not exposed and are not fabricated; source literal counts and native exact observable hit/miss/eviction/expiry semantics remain distinct evidence.",
+    "Extreme unchecked Instant+Duration addition remains outside the safe default/zero cases; no overflow qualification or production change is claimed."
+  ],
+  "notes": [
+    "All32 file bindings and35 enforcement/test fragments were independently verified against actual files and line contents.",
+    "All2126 full synthetic wire requests/responses and3248 ordered steps compare, including1007 actual route/completion ownership records. Only named finite nonnegative route timing values are excluded; literal native private-cache storage size is not fabricated.",
+    "This adds boundary evidence; it does not relabel any of the79 partial original definitions."
+  ]
+}

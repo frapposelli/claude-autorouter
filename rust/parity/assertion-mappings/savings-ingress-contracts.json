@@ -1,0 +1,439 @@
+{
+  "schema_version": 1,
+  "kind": "exact_original_savings_ingress_immutability_assertion_mapping",
+  "status": "reviewed_original_contracts_with_explicit_native_api_migrations",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "scope": "Original savings#8/#17/#18 complete unchanged source callbacks, every18 usage example, malformed unknown-terminal/no-op/clear/reuse, full frozen dated six-model price table. No pricing production/source updates.",
+  "counts": {
+    "definitions": 3,
+    "static_original_assertions": 12,
+    "expanded_original_assertions": 46,
+    "cases": 20,
+    "trackers": 19,
+    "ordered_tracker_steps": 163
+  },
+  "sources": {
+    "baseline_test": {
+      "path": "artifacts/rust-rewrite/reference/test/savings.test.mjs",
+      "sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd",
+      "bytes": 19483
+    },
+    "baseline_savings": {
+      "path": "artifacts/rust-rewrite/reference/src/savings.mjs",
+      "sha256": "7902aa9656a3aa22ff69f60711b4a047895a63b6c9c824a9a009f7975b6f7d9e",
+      "bytes": 14067
+    },
+    "native_savings": {
+      "path": "rust/crates/autorouter-core/src/savings.rs",
+      "sha256": "412da2b6cc87f7b0bcf85f29be57948b2e097064c8128902666123392aa8492c",
+      "bytes": 34419
+    },
+    "native_normalization": {
+      "path": "rust/crates/autorouter-core/src/telemetry_event.rs",
+      "sha256": "9ecd66bb91b416a0a5435a134d307aaf8bb2488f02dfc04df3fca3f0bab92640",
+      "bytes": 30138
+    },
+    "native_document": {
+      "path": "rust/crates/autorouter-core/src/js_json.rs",
+      "sha256": "b46db5e17ffc9e32378a65d1f45d7afc6f63c877ac2e2e878446708f245394b4",
+      "bytes": 39185
+    },
+    "driver": {
+      "path": "rust/parity/capture-savings-ingress-contracts.mjs",
+      "sha256": "c90036cb910e7a05688704c8907aeb6bd3c13722bae4b5052abcbfaef0e39f01",
+      "bytes": 9638
+    },
+    "corpus": {
+      "path": "rust/parity/cases/savings-ingress-contracts.jsonl",
+      "sha256": "3cc2f2ba9351a046d5ae65e7ecb9355bf31b737c049af2a98fdd057336f1c682",
+      "bytes": 80268
+    },
+    "capture": {
+      "path": "rust/parity/cases/savings-ingress-contracts.capture.json",
+      "sha256": "9d8b6ae71aa4dec98560a50b81cff73b5d3d5e873a7aa7621629ef133bf4216b",
+      "bytes": 8929
+    },
+    "native_test": {
+      "path": "rust/crates/autorouter-core/tests/savings_ingress_contracts.rs",
+      "sha256": "f624ab29503df1193d84f0f76f7a4251233ec151b1cebd8935aa354a0a799b41",
+      "bytes": 21263
+    }
+  },
+  "source_evidence": {
+    "capture": {
+      "path": "artifacts/rust-rewrite/savings-ingress-source-20261014-1/savings-ingress-contracts.capture.json",
+      "sha256": "9d8b6ae71aa4dec98560a50b81cff73b5d3d5e873a7aa7621629ef133bf4216b",
+      "bytes": 8929
+    },
+    "exact_tagged_event_and_full_intermediate_snapshot_records": {
+      "path": "artifacts/rust-rewrite/savings-ingress-source-20261014-1/savings-ingress-contracts.jsonl",
+      "sha256": "3cc2f2ba9351a046d5ae65e7ecb9355bf31b737c049af2a98fdd057336f1c682",
+      "bytes": 80268
+    },
+    "assertion_order": {
+      "path": "artifacts/rust-rewrite/savings-ingress-source-20261014-1/assertion-executions.json",
+      "sha256": "4085fd5abe4550e4f54f2ef4354c3cec5806356402da221f0fff55b1ff46b16c",
+      "bytes": 1761
+    },
+    "log": {
+      "path": "artifacts/rust-rewrite/savings-ingress-source-20261014-1.log",
+      "sha256": "b25bfc46da3a54f127a6c649183079dc9852f4d275ea6472ad0720ad05bb0369",
+      "bytes": 186
+    },
+    "prior_successful_capture_log": {
+      "path": "artifacts/rust-rewrite/savings-ingress-source-20261013-1.log",
+      "sha256": "b25bfc46da3a54f127a6c649183079dc9852f4d275ea6472ad0720ad05bb0369",
+      "bytes": 186
+    }
+  },
+  "comparison_contract": [
+    "Retain source own undefined markers and native omitted paths explicitly; never replace absent usage with invented null.",
+    "Retain source nonfinite Number marker exactly. Ordinary serde parser/Number constructor reject Infinity, JsDocument retains its infinite Number from1e400, existing schema normalizer uses a demonstrably invalid string sentinel rather than null, and actual SavingsTracker must remain unpriced with complete snapshots matching. This is a reviewed ingress adaptation candidate, not native direct Value Infinity support.",
+    "Accessor descriptors are observed without invoking them; original tracker receives actual getter and catches its private error. Native replay records excluded accessor admission and has no fake update. Positive plain-Value compiler control and negative E0308 host-getter object control must pass.",
+    "All163 intermediate tracker snapshots and source original order/execution counts must compare. Numeric spelling uses exact xtask guarded numeric_equal semantics, not tolerance or lossy large integer equality.",
+    "Compare full source pricing table before/after, every entry/field, date/version/source/currency/unit. Mutate detached native tables and verify entire fresh table and actual unchanged dated estimates; compile control rejects external access to private pricing storage. Source TypeError versus allowed owned mutations is explicit."
+  ],
+  "native_api_migrations": [
+    {
+      "id": "undefined",
+      "scope": "Source object own undefined properties correspond to native absent optional JSON fields, with explicit paths and both raw inputs retained."
+    },
+    {
+      "id": "nonfinite",
+      "scope": "Source original index6 Infinity is not a Value. New typed ingress guards must prove rejection and existing documented normalization invalidity; no lossy observation projection or Infinity-to-null serialization."
+    },
+    {
+      "id": "getter",
+      "scope": "Source#17 executable event getter is unrepresentable at &Value API. Runtime nonpanic plus actual native consumer E0308 diagnostic excludes it; exact JavaScript throwing/catching semantics are not claimed."
+    },
+    {
+      "id": "facts",
+      "scope": "Source#18 frozen exported object rejects writes. Native pricing_facts returns owned values with successful detached mutations; immutable private constants, fresh facts and estimation behavior remain intact. Literal TypeError behavior remains an explicit API difference."
+    }
+  ],
+  "remaining": [
+    "Full workspace/default-parallel/remote CI/source archive gates and source-to-shipping-binary provenance remain root-owned; local selected-rlib compiler control does not itself establish them."
+  ],
+  "rows": [
+    {
+      "baseline_test": "test/savings.test.mjs#8",
+      "baseline_name": "missing, invalid or contradictory usage never becomes a guessed estimate",
+      "baseline_statement": "test('missing, invalid or contradictory usage never becomes a guessed estimate', () => {\n  const examples = [undefined, {}, { input_tokens: 1 }, { output_tokens: 1 },\n    { ...usage, input_tokens: -1 }, { ...usage, output_tokens: 1.5 }, { ...usage, output_tokens: Infinity },\n    { ...usage, input_tokens: Number.MAX_SAFE_INTEGER + 1 }, { ...usage, input_tokens: '100' },\n    { ...usage, cache_read_input_tokens: -1 }, { ...usage, cache_read_input_tokens: null },\n    { ...usage, cache_creation_input_tokens: 100 },\n    { ...usage, cache_creation_input_tokens: 100, cache_creation: { ephemeral_5m_input_tokens: 99 } },\n    { ...usage, cache_creation_input_tokens: 0, cache_creation: { ephemeral_1h_input_tokens: 1 } },\n    { ...usage, cache_creation_input_tokens: null }, { ...usage, cache_creation: null },\n    { ...usage, cache_creation: { ephemeral_5m_input_tokens: null } },\n    { ...usage, cache_creation: { ephemeral_1h_input_tokens: '1' } },\n  ];\n  for (let index = 0; index < examples.length; index++) {\n    const tracker = createSavingsTracker();\n    complete(tracker, { tokens: examples[index] });\n    assert.equal(current(tracker).unpriced_requests, 1, `invalid usage ${index}`);\n    assert.equal(current(tracker).actual_usd, 0);\n  }\n});",
+      "baseline_statement_sha256": "1709830f549fab6b0eb012763dc1eaaeabbfcaeac6b55d96016a5f3f00b541eb",
+      "native_test": "rust/crates/autorouter-core/tests/savings_ingress_contracts.rs#original_08_all_eighteen_absent_malformed_counter_and_contradictory_ttl_variants",
+      "static_assertions": 2,
+      "expanded_assertions": 36,
+      "assertions": [
+        {
+          "id": "test/savings.test.mjs#8:assert-1",
+          "baseline_expression": "assert.equal(current(tracker).unpriced_requests, 1, `invalid usage ${index}`)",
+          "baseline_expression_sha256": "de4b935b4592d8810a613a1ebc2236d0bcb1a80cc55915e323af2f90143c7940",
+          "baseline_line": 156,
+          "source_executions": 18,
+          "native": {
+            "site": 1,
+            "path": "rust/crates/autorouter-core/tests/savings_ingress_contracts.rs",
+            "file_sha256": "f624ab29503df1193d84f0f76f7a4251233ec151b1cebd8935aa354a0a799b41",
+            "line": 275,
+            "predicate": "assertions.check(1, current[\"session-a\"][\"unpriced_requests\"] == 1)",
+            "predicate_sha256": "e2c7bd3d8b711d8e59e5696403f57df5606867eabd8f92db15c1d929a5b14485"
+          },
+          "boundary": "All18 source variants execute; finite17 replay directly, Infinity index6 uses explicitly guarded authoritative-document normalization ingress because a native Value cannot contain Infinity.",
+          "status": "reviewed_covered_with_declared_native_api_migration"
+        },
+        {
+          "id": "test/savings.test.mjs#8:assert-2",
+          "baseline_expression": "assert.equal(current(tracker).actual_usd, 0)",
+          "baseline_expression_sha256": "a456d9979218d108db989fffb17f66257b85348e2dda2bfe106a3ccfcaa9a6dd",
+          "baseline_line": 157,
+          "source_executions": 18,
+          "native": {
+            "site": 2,
+            "path": "rust/crates/autorouter-core/tests/savings_ingress_contracts.rs",
+            "file_sha256": "f624ab29503df1193d84f0f76f7a4251233ec151b1cebd8935aa354a0a799b41",
+            "line": 276,
+            "predicate": "assertions.check(2, current[\"session-a\"][\"actual_usd\"].as_f64() == Some(0.0))",
+            "predicate_sha256": "4d07e8331942d74e2ec25a189ad2651b83a5d30150ea9c447e8f82472b2ad433"
+          },
+          "boundary": "All18 source variants execute; finite17 replay directly, Infinity index6 uses explicitly guarded authoritative-document normalization ingress because a native Value cannot contain Infinity.",
+          "status": "reviewed_covered_with_declared_native_api_migration"
+        }
+      ],
+      "status": "covered_with_explicit_native_api_migrations"
+    },
+    {
+      "baseline_test": "test/savings.test.mjs#17",
+      "baseline_name": "malformed telemetry never throws, and clearing removes totals and request history",
+      "baseline_statement": "test('malformed telemetry never throws, and clearing removes totals and request history', () => {\n  const tracker = createSavingsTracker();\n  assert.doesNotThrow(() => {\n    tracker.update(null);\n    tracker.update({ get event() { throw new Error('private error'); } });\n    tracker.update(event('request_complete'));\n  });\n  assert.deepEqual(tracker.snapshot(), {});\n  complete(tracker);\n  tracker.clear();\n  assert.deepEqual(tracker.snapshot(), {});\n  complete(tracker);\n  assert.equal(current(tracker).requests, 1);\n});",
+      "baseline_statement_sha256": "db59f79f3cd63c7e45721abb1f8d388b7a6dcd1fbb94434c779cb01e55a8bffb",
+      "native_test": "rust/crates/autorouter-core/tests/savings_ingress_contracts.rs#original_17_null_unknown_terminal_clear_and_same_request_reuse_with_explicit_getter_boundary",
+      "static_assertions": 4,
+      "expanded_assertions": 4,
+      "assertions": [
+        {
+          "id": "test/savings.test.mjs#17:assert-1",
+          "baseline_expression": "assert.doesNotThrow(() => {\n    tracker.update(null);\n    tracker.update({ get event() { throw new Error('private error'); } });\n    tracker.update(event('request_complete'));\n  })",
+          "baseline_expression_sha256": "da62ceda55e44dbd9abf42c577f85c446bc7f5fac1672fa80f3b28bc92fa2ae3",
+          "baseline_line": 274,
+          "source_executions": 1,
+          "native": {
+            "site": 1,
+            "path": "rust/crates/autorouter-core/tests/savings_ingress_contracts.rs",
+            "file_sha256": "f624ab29503df1193d84f0f76f7a4251233ec151b1cebd8935aa354a0a799b41",
+            "line": 290,
+            "predicate": "assertions.check(1, result.is_ok())",
+            "predicate_sha256": "5d024137f5002d1ef61d376ca322522f7474cef51dd8d533353712ab42b14dc4"
+          },
+          "boundary": "Source doesNotThrow includes a throwing getter. Native representable null/unknown-terminal calls do not panic; actual positive/negative compiler control must separately prove host getter cannot be passed to &Value update. No invented getter call.",
+          "status": "reviewed_covered_with_declared_native_api_migration"
+        },
+        {
+          "id": "test/savings.test.mjs#17:assert-2",
+          "baseline_expression": "assert.deepEqual(tracker.snapshot(), {})",
+          "baseline_expression_sha256": "8168dde3e23887bc13453f56305485651580e807630c6efffa8dc84cd5fc14be",
+          "baseline_line": 279,
+          "source_executions": 1,
+          "native": {
+            "site": 2,
+            "path": "rust/crates/autorouter-core/tests/savings_ingress_contracts.rs",
+            "file_sha256": "f624ab29503df1193d84f0f76f7a4251233ec151b1cebd8935aa354a0a799b41",
+            "line": 292,
+            "predicate": "assertions.check(2, records[3][\"actual_snapshot\"] == json!({}))",
+            "predicate_sha256": "1f3d21f05d49265600b61314098af269d9188826e76ba648d0f7b2e04d54bae0"
+          },
+          "boundary": null,
+          "status": "reviewed_covered_with_declared_native_api_migration"
+        },
+        {
+          "id": "test/savings.test.mjs#17:assert-3",
+          "baseline_expression": "assert.deepEqual(tracker.snapshot(), {})",
+          "baseline_expression_sha256": "8168dde3e23887bc13453f56305485651580e807630c6efffa8dc84cd5fc14be",
+          "baseline_line": 282,
+          "source_executions": 1,
+          "native": {
+            "site": 3,
+            "path": "rust/crates/autorouter-core/tests/savings_ingress_contracts.rs",
+            "file_sha256": "f624ab29503df1193d84f0f76f7a4251233ec151b1cebd8935aa354a0a799b41",
+            "line": 293,
+            "predicate": "assertions.check(3, records[11][\"actual_snapshot\"] == json!({}))",
+            "predicate_sha256": "d88621e13e67efca0c611805820ef732837d5b7d438ba5e07af847e60472f751"
+          },
+          "boundary": null,
+          "status": "reviewed_covered_with_declared_native_api_migration"
+        },
+        {
+          "id": "test/savings.test.mjs#17:assert-4",
+          "baseline_expression": "assert.equal(current(tracker).requests, 1)",
+          "baseline_expression_sha256": "03d97051c43cc537e57433f73b710a49c7be27d93f2406e9cc14eb2f753f8d33",
+          "baseline_line": 284,
+          "source_executions": 1,
+          "native": {
+            "site": 4,
+            "path": "rust/crates/autorouter-core/tests/savings_ingress_contracts.rs",
+            "file_sha256": "f624ab29503df1193d84f0f76f7a4251233ec151b1cebd8935aa354a0a799b41",
+            "line": 294,
+            "predicate": "assertions.check(4, tracker.snapshot()[\"session-a\"][\"requests\"] == 1)",
+            "predicate_sha256": "5cfc2aa22270728a4134d2a4093053ed68cf3a0dfdeff7a16601dd2124b011fa"
+          },
+          "boundary": null,
+          "status": "reviewed_covered_with_declared_native_api_migration"
+        }
+      ],
+      "status": "covered_with_explicit_native_api_migrations"
+    },
+    {
+      "baseline_test": "test/savings.test.mjs#18",
+      "baseline_name": "pricing facts are immutable, dated and attached to each estimate",
+      "baseline_statement": "test('pricing facts are immutable, dated and attached to each estimate', () => {\n  assert.equal(PRICING_FACTS.version, PRICING_VERSION);\n  assert.equal(PRICING_FACTS.date, PRICING_DATE);\n  assert.equal(PRICING_FACTS.source, PRICING_SOURCE);\n  assert.equal(PRICING_FACTS.unit, 'cents_per_million_tokens');\n  assert.throws(() => { PRICING_FACTS.models[HAIKU].input = 0; }, TypeError);\n  assert.throws(() => { PRICING_FACTS.models.private = {}; }, TypeError);\n});",
+      "baseline_statement_sha256": "d11313490cfdec6b02b24a124f6739acf3dd9240ed9bd138124474d0383bfbfb",
+      "native_test": "rust/crates/autorouter-core/tests/savings_ingress_contracts.rs#original_18_complete_dated_table_and_detached_mutations_preserve_internal_price_constants",
+      "static_assertions": 6,
+      "expanded_assertions": 6,
+      "assertions": [
+        {
+          "id": "test/savings.test.mjs#18:assert-1",
+          "baseline_expression": "assert.equal(PRICING_FACTS.version, PRICING_VERSION)",
+          "baseline_expression_sha256": "d035fa1f79189fe4952cfe2cf6a9b7a6b1af9e99892a0e7745245165d2fb9dd5",
+          "baseline_line": 288,
+          "source_executions": 1,
+          "native": {
+            "site": 1,
+            "path": "rust/crates/autorouter-core/tests/savings_ingress_contracts.rs",
+            "file_sha256": "f624ab29503df1193d84f0f76f7a4251233ec151b1cebd8935aa354a0a799b41",
+            "line": 311,
+            "predicate": "assertions.check(1, original[\"version\"] == PRICING_VERSION)",
+            "predicate_sha256": "6e26bbc35d72235026742d24b8f280a13468924a1ed73ef8316cd76b59c42988"
+          },
+          "boundary": null,
+          "status": "reviewed_covered_with_declared_native_api_migration"
+        },
+        {
+          "id": "test/savings.test.mjs#18:assert-2",
+          "baseline_expression": "assert.equal(PRICING_FACTS.date, PRICING_DATE)",
+          "baseline_expression_sha256": "a5c3d8c99ca0bbc879d2336a7a9a9a3d90a8865409597adfa4da05508c7980b1",
+          "baseline_line": 289,
+          "source_executions": 1,
+          "native": {
+            "site": 2,
+            "path": "rust/crates/autorouter-core/tests/savings_ingress_contracts.rs",
+            "file_sha256": "f624ab29503df1193d84f0f76f7a4251233ec151b1cebd8935aa354a0a799b41",
+            "line": 312,
+            "predicate": "assertions.check(2, original[\"date\"] == PRICING_DATE)",
+            "predicate_sha256": "4f062c0ca8c84db27069eb4cfffc1e8c91373c1d9fd826c74b88a1d97680a842"
+          },
+          "boundary": null,
+          "status": "reviewed_covered_with_declared_native_api_migration"
+        },
+        {
+          "id": "test/savings.test.mjs#18:assert-3",
+          "baseline_expression": "assert.equal(PRICING_FACTS.source, PRICING_SOURCE)",
+          "baseline_expression_sha256": "0cc8ac1782583c3ccb6db1cadf86ea416cc886eddd05b65eff09ccb855eefea1",
+          "baseline_line": 290,
+          "source_executions": 1,
+          "native": {
+            "site": 3,
+            "path": "rust/crates/autorouter-core/tests/savings_ingress_contracts.rs",
+            "file_sha256": "f624ab29503df1193d84f0f76f7a4251233ec151b1cebd8935aa354a0a799b41",
+            "line": 313,
+            "predicate": "assertions.check(3, original[\"source\"] == PRICING_SOURCE)",
+            "predicate_sha256": "a688c2014666b01af2709acd41c12b1980bd116ac39dbbd4952e0a82270499ca"
+          },
+          "boundary": null,
+          "status": "reviewed_covered_with_declared_native_api_migration"
+        },
+        {
+          "id": "test/savings.test.mjs#18:assert-4",
+          "baseline_expression": "assert.equal(PRICING_FACTS.unit, 'cents_per_million_tokens')",
+          "baseline_expression_sha256": "2ca8d6070f884978224ff9acec2458d8608e42ddce2c9e732cbbe5c7b9823468",
+          "baseline_line": 291,
+          "source_executions": 1,
+          "native": {
+            "site": 4,
+            "path": "rust/crates/autorouter-core/tests/savings_ingress_contracts.rs",
+            "file_sha256": "f624ab29503df1193d84f0f76f7a4251233ec151b1cebd8935aa354a0a799b41",
+            "line": 314,
+            "predicate": "assertions.check(4, original[\"unit\"] == \"cents_per_million_tokens\")",
+            "predicate_sha256": "70179b7752435db7172ca410f796e99172b1bdfd8bb8351e110ccbb645b51773"
+          },
+          "boundary": null,
+          "status": "reviewed_covered_with_declared_native_api_migration"
+        },
+        {
+          "id": "test/savings.test.mjs#18:assert-5",
+          "baseline_expression": "assert.throws(() => { PRICING_FACTS.models[HAIKU].input = 0; }, TypeError)",
+          "baseline_expression_sha256": "04b500104ef72e4e66501bcacfd1d6dd6763666bb9fdfffcfd5f61f57a1666b0",
+          "baseline_line": 292,
+          "source_executions": 1,
+          "native": {
+            "site": 5,
+            "path": "rust/crates/autorouter-core/tests/savings_ingress_contracts.rs",
+            "file_sha256": "f624ab29503df1193d84f0f76f7a4251233ec151b1cebd8935aa354a0a799b41",
+            "line": 320,
+            "predicate": "assertions.check(5, equal(&pricing_facts(), &row[\"pricing_after\"]))",
+            "predicate_sha256": "7e156de6ea1bb31fa5bdae253b9c9a5280e61c11a3bce910fe0bf3f74d6b1a0c"
+          },
+          "boundary": "Source frozen-object writes throw TypeError. Native owned facts writes succeed locally; fresh entire table and actual estimate remain unchanged. Public API difference requires independent migration review, not literal exception equality.",
+          "status": "reviewed_covered_with_declared_native_api_migration"
+        },
+        {
+          "id": "test/savings.test.mjs#18:assert-6",
+          "baseline_expression": "assert.throws(() => { PRICING_FACTS.models.private = {}; }, TypeError)",
+          "baseline_expression_sha256": "7a7dd994ab953ac3fa6f04754f50b9b7b449191fa113ec4da76a2f4009e1ea07",
+          "baseline_line": 293,
+          "source_executions": 1,
+          "native": {
+            "site": 6,
+            "path": "rust/crates/autorouter-core/tests/savings_ingress_contracts.rs",
+            "file_sha256": "f624ab29503df1193d84f0f76f7a4251233ec151b1cebd8935aa354a0a799b41",
+            "line": 323,
+            "predicate": "assertions.check(6, equal(&pricing_facts(), &row[\"pricing_after\"]))",
+            "predicate_sha256": "503e893f2657fec2d0fab1fda42e8ad60bcc24b9e35c8348d37f803b38280410"
+          },
+          "boundary": "Source frozen-object writes throw TypeError. Native owned facts writes succeed locally; fresh entire table and actual estimate remain unchanged. Public API difference requires independent migration review, not literal exception equality.",
+          "status": "reviewed_covered_with_declared_native_api_migration"
+        }
+      ],
+      "status": "covered_with_explicit_native_api_migrations"
+    }
+  ],
+  "native_evidence": {
+    "comparison": {
+      "path": "artifacts/rust-rewrite/savings-ingress-comparison-20261014.json",
+      "sha256": "23f9bd3f862cce1b8255523af224d10f9576dd0531c25b48bf2725ab97368069",
+      "bytes": 26498
+    },
+    "checks": {
+      "source_fresh": {
+        "path": "artifacts/rust-rewrite/savings-ingress-source-20261014-1.log",
+        "sha256": "b25bfc46da3a54f127a6c649183079dc9852f4d275ea6472ad0720ad05bb0369",
+        "bytes": 186
+      },
+      "native_focused": {
+        "path": "artifacts/rust-rewrite/savings-ingress-native-20261014-1.log",
+        "sha256": "272792709e41321f5a5b3990a7bc4a3c50d5af6159210414355638a74f00e6f7",
+        "bytes": 1473
+      },
+      "strict_focused_clippy": {
+        "path": "artifacts/rust-rewrite/savings-ingress-clippy-20261014-1.log",
+        "sha256": "fc1ee5d329798544999e4a3694454bd9bb9ebb73ce5235efbcfc2b7e74529bc0",
+        "bytes": 938
+      }
+    },
+    "native_tests_passed": 4,
+    "native_consumer_controls": 3,
+    "source_original_assertion_executions": 46,
+    "native_mapped_predicate_executions": 46,
+    "all_original_order_entries_match": true,
+    "totals": {
+      "tracker_cases": 19,
+      "ordered_tracker_records": 163,
+      "direct_finite_value_updates": 121,
+      "guarded_nonfinite_projection_updates": 1,
+      "getter_calls_excluded_at_typed_boundary": 1,
+      "clears": 1,
+      "snapshots": 39
+    },
+    "raw_native_artifacts": [
+      {
+        "path": "artifacts/rust-rewrite/savings-ingress-native-20261014-1/native-17-assertion-order.json",
+        "sha256": "74e440ce798686c61d3178ef15cf23bd3f0b37f1aff34fd62f4afd9d0cb0d31b",
+        "bytes": 47
+      },
+      {
+        "path": "artifacts/rust-rewrite/savings-ingress-native-20261014-1/native-17.json",
+        "sha256": "9c561923c040ab1b7be4bb511334660e2a7c76af27ffa26d4fc3192c7b61bec3",
+        "bytes": 11983
+      },
+      {
+        "path": "artifacts/rust-rewrite/savings-ingress-native-20261014-1/native-18-assertion-order.json",
+        "sha256": "132ca5411373611ad21c91b1421b7b9f984325228ecdbee3695b3919bcf92034",
+        "bytes": 61
+      },
+      {
+        "path": "artifacts/rust-rewrite/savings-ingress-native-20261014-1/native-18.json",
+        "sha256": "c46bf0bf2fec0cef5e60e2f53b00d8b89bbb749dc8f0541935b976b8a3dcb70d",
+        "bytes": 4164
+      },
+      {
+        "path": "artifacts/rust-rewrite/savings-ingress-native-20261014-1/native-8-assertion-order.json",
+        "sha256": "2591f8f0638594ef4120056795bf1b8087fa799b7f6d3ce59c35a00fa9ed998c",
+        "bytes": 271
+      },
+      {
+        "path": "artifacts/rust-rewrite/savings-ingress-native-20261014-1/native-8.json",
+        "sha256": "2b926e521285ccd0f35db6686a95827d901f95a2397c780c3e146436f5629a96",
+        "bytes": 128492
+      },
+      {
+        "path": "artifacts/rust-rewrite/savings-ingress-native-20261014-1/native-consumer-controls.json",
+        "sha256": "399a4a1f636ba8a721387b1910d6c1857504e90f24060c55d479573d9294a938",
+        "bytes": 10537
+      }
+    ]
+  },
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/accounting-and-setup-independent-review-20261014.json",
+    "sha256": "5240c0e92c02e74dabfde259b44c41240a548f2aa1adb2dde7af0a6ad8979c9c",
+    "bytes": 1508
+  }
+}

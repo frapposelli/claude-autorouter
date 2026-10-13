@@ -1,5 +1,8 @@
 //! Bounded subprocess protocol without pipe deadlocks or inherited Node hooks.
 #[cfg(feature = "runtime-tools")]
+#[path = "process_owned.rs"]
+pub(crate) mod owned;
+#[cfg(feature = "runtime-tools")]
 #[path = "process_resource.rs"]
 pub(crate) mod resource;
 use std::fs::{self, File, OpenOptions};

@@ -469,24 +469,44 @@
       "baseline_test": "test/onboarding.test.mjs#1",
       "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
       "name": "hidden key prompt disables terminal echo before inviting input and restores it afterward",
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/claude-autorouter/tests/edge_cases.rs#hidden_secret_uses_raw_editing_and_restores_terminal_before_exit"
+        "rust/crates/claude-autorouter/tests/edge_cases.rs#hidden_secret_uses_raw_editing_and_restores_terminal_before_exit",
+        "rust/crates/claude-autorouter/src/secret_input.rs#prompt_writer_observes_hidden_terminal_before_inviting_secret_input",
+        "rust/crates/claude-autorouter/src/secret_input.rs#invitation_panic_restores_terminal_and_descriptor_flags"
       ],
       "shared_cases": [],
       "assertions_with_evidence": [
-        "PTY checks ECHO/ECHONL/ICANON off after receiving hidden prompt; exact saved secret, noecho and restored terminal modes are asserted."
+        "PTY checks ECHO/ECHONL/ICANON off after receiving hidden prompt; exact saved secret, noecho and restored terminal modes are asserted.",
+        "Actual PTY attributes are asserted inside the invitation callback before display; exact secret return, restored terminal/public file flags and actual master output match all four original predicates. Invitation panic separately restores every termios field and descriptor flags."
       ],
-      "remaining": [
-        "Baseline asserts raw mode inside the prompt writer, before any prompt can be displayed. Native PTY test observes modes after receiving prompt; a prompt-then-disable ordering mutation could pass. Current implementation ordering is correct by inspection, but this exact assertion is not locked by a test."
-      ],
+      "remaining": [],
       "evidence": {
         "log": "artifacts/rust-rewrite/evidence/3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3.log",
         "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
         "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate.",
         "log_source": "artifacts/rust-rewrite/rust-workspace-checkpoint.log"
       },
-      "review_notes": []
+      "review_notes": [],
+      "evidence_history": [
+        {
+          "status": "partial_assertion_mapping",
+          "evidence": {
+            "log": "artifacts/rust-rewrite/evidence/3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3.log",
+            "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+            "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate.",
+            "log_source": "artifacts/rust-rewrite/rust-workspace-checkpoint.log"
+          },
+          "remaining": [
+            "Baseline asserts raw mode inside the prompt writer, before any prompt can be displayed. Native PTY test observes modes after receiving prompt; a prompt-then-disable ordering mutation could pass. Current implementation ordering is correct by inspection, but this exact assertion is not locked by a test."
+          ]
+        }
+      ],
+      "supplemental_original_mapping": {
+        "path": "rust/parity/assertion-mappings/hidden-prompt-order-contracts.json",
+        "sha256": "61db20740a0ff836836dfc344f4c1ebb2b9ec27dcd43b2e91fa1683e1097ac61",
+        "bytes": 11559
+      }
     },
     {
       "baseline_test": "test/onboarding.test.mjs#2",
@@ -897,7 +917,7 @@
       "baseline_test": "test/onboarding.test.mjs#15",
       "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
       "name": "native Stop-hook block cap setup rejects invalid CLI and environment values before prompts, persistence or providers",
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
         "rust/crates/claude-autorouter/tests/onboarding_local.rs#invalid_stop_cap_admission_matrix_rejects_before_prompts_network_or_persistence"
       ],
@@ -907,9 +927,7 @@
         "Both evaluators: all six OS-representable inherited values (empty, space, -1, 1.5, 1e2, 9007199254740992) exit1 with the exact CLAUDE_CODE_STOP_HOOK_BLOCK_CAP diagnostic and the same absence of side effects.",
         "A successful Jev setup creates a real synthetic saved config. A forced switch to Ollama with both empty CLI and inherited caps rejects with the CLI-specific error, leaves the original file byte-for-byte unchanged, emits no stdout and makes no provider or Claude call. All35 runtime scenarios are asserted through the actual CLI executable."
       ],
-      "remaining": [
-        "Four parameterized source cases inject JavaScript null/false as environment values (two values for each evaluator). Rust process environments contain OS strings and cannot represent these values. They remain explicit embedding-boundary adaptations, not claimed covered by stringification or by pure scalar-parser tests."
-      ],
+      "remaining": [],
       "evidence": {
         "log": "artifacts/rust-rewrite/evidence/20ede64ced8ef7a6f115f989d0bf9c437fed5ee39b013b38f29eacf1f77ee301.log",
         "log_sha256": "20ede64ced8ef7a6f115f989d0bf9c437fed5ee39b013b38f29eacf1f77ee301",
@@ -918,8 +936,28 @@
       },
       "review_notes": [
         "The complete source definition remains partial until the four injected non-string environment cases are explicitly reviewed as a Rust embedding adaptation. No production seam, secret store change, external service or real Keychain access was introduced.",
-        "The test supplies no keys in the34 initial admission failures and asserts empty stdout plus exact stderr, so reaching a hidden prompt or setup disclosure is observable as a failure. The forced-update scenario starts from a successful synthetic Jev setup."
-      ]
+        "The test supplies no keys in the34 initial admission failures and asserts empty stdout plus exact stderr, so reaching a hidden prompt or setup disclosure is observable as a failure. The forced-update scenario starts from a successful synthetic Jev setup.",
+        "Reviewed OS-environment domain excludes raw null/false; four pure JSON rejection controls and exact positive/negative external consumer diagnostics supplement the freshly passing35-scenario native CLI matrix. Original historical log identities remain preserved and explicitly unavailable locally. No raw native setup call is fabricated."
+      ],
+      "evidence_history": [
+        {
+          "status": "partial_assertion_mapping",
+          "remaining": [
+            "Four parameterized source cases inject JavaScript null/false as environment values (two values for each evaluator). Rust process environments contain OS strings and cannot represent these values. They remain explicit embedding-boundary adaptations, not claimed covered by stringification or by pure scalar-parser tests."
+          ],
+          "evidence": {
+            "log": "artifacts/rust-rewrite/evidence/20ede64ced8ef7a6f115f989d0bf9c437fed5ee39b013b38f29eacf1f77ee301.log",
+            "log_sha256": "20ede64ced8ef7a6f115f989d0bf9c437fed5ee39b013b38f29eacf1f77ee301",
+            "scope": "One focused native executable test asserts35 scenarios on macOS arm64 using isolated fixture homes, null stdin, file secret storage, Node-free child PATH and loopback-only provider mocks. Installed and cross-platform execution remain separate qualification.",
+            "log_source": "artifacts/rust-rewrite/cli-invalid-stop-cap-admission-tests.log"
+          }
+        }
+      ],
+      "supplemental_native_input_domain_mapping": {
+        "path": "rust/parity/assertion-mappings/onboarding-environment-contracts.json",
+        "sha256": "6769dfd7e23ef3f347c8911d4891265da705efb2babd17a1da88ff73e99b5284",
+        "bytes": 14485
+      }
     },
     {
       "baseline_test": "test/onboarding.test.mjs#16",

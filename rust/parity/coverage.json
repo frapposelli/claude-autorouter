@@ -11037,23 +11037,37 @@
       "file": "test/onboarding.test.mjs",
       "name": "hidden key prompt disables terminal echo before inviting input and restores it afterward",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/claude-autorouter/tests/edge_cases.rs#hidden_secret_uses_raw_editing_and_restores_terminal_before_exit"
+        "rust/crates/claude-autorouter/tests/edge_cases.rs#hidden_secret_uses_raw_editing_and_restores_terminal_before_exit",
+        "rust/crates/claude-autorouter/src/secret_input.rs#prompt_writer_observes_hidden_terminal_before_inviting_secret_input",
+        "rust/crates/claude-autorouter/src/secret_input.rs#invitation_panic_restores_terminal_and_descriptor_flags"
       ],
       "shared_cases": [],
       "evidence": {
-        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+        "path": "rust/parity/assertion-mappings/hidden-prompt-order-contracts.json",
+        "sha256": "61db20740a0ff836836dfc344f4c1ebb2b9ec27dcd43b2e91fa1683e1097ac61",
+        "bytes": 11559
       },
       "related_components": [
         "config_auth_policy",
         "native_cli_package"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/cli-tooling.json",
-      "remaining_assertions": [
-        "Baseline asserts raw mode inside the prompt writer, before any prompt can be displayed. Native PTY test observes modes after receiving prompt; a prompt-then-disable ordering mutation could pass. Current implementation ordering is correct by inspection, but this exact assertion is not locked by a test."
+      "assertion_mapping": "rust/parity/assertion-mappings/hidden-prompt-order-contracts.json",
+      "remaining_assertions": [],
+      "evidence_history": [
+        {
+          "status": "partial_assertion_mapping",
+          "evidence": {
+            "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+            "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+            "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+          },
+          "assertion_mapping": "rust/parity/assertion-mappings/cli-tooling.json",
+          "remaining_assertions": [
+            "Baseline asserts raw mode inside the prompt writer, before any prompt can be displayed. Native PTY test observes modes after receiving prompt; a prompt-then-disable ordering mutation could pass. Current implementation ordering is correct by inspection, but this exact assertion is not locked by a test."
+          ]
+        }
       ]
     },
     {
@@ -11349,24 +11363,41 @@
       "file": "test/onboarding.test.mjs",
       "name": "native Stop-hook block cap setup rejects invalid CLI and environment values before prompts, persistence or providers",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/claude-autorouter/tests/commands.rs#invalid_setup_arguments_fail_before_prompting_network_or_writes"
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#invalid_stop_cap_admission_matrix_rejects_before_prompts_network_or_persistence",
+        "rust/crates/claude-autorouter/tests/commands.rs#invalid_setup_arguments_fail_before_prompting_network_or_writes",
+        "rust/crates/autorouter-runtime/tests/onboarding_environment_contracts.rs#public_json_configuration_rejects_four_original_raw_null_false_values",
+        "rust/crates/autorouter-runtime/tests/onboarding_environment_contracts.rs#legal_os_strings_and_absence_remain_distinct_from_raw_null_false",
+        "rust/crates/autorouter-runtime/tests/onboarding_environment_contracts.rs#external_os_environment_consumers_accept_strings_and_reject_value_bool_option"
       ],
       "shared_cases": [],
       "evidence": {
-        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+        "path": "rust/parity/assertion-mappings/onboarding-environment-contracts.json",
+        "sha256": "6769dfd7e23ef3f347c8911d4891265da705efb2babd17a1da88ff73e99b5284",
+        "bytes": 14485
       },
       "related_components": [
         "config_auth_policy",
         "native_cli_package"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/cli-tooling.json",
-      "remaining_assertions": [
-        "Full two-evaluator matrix: 11 CLI values and8 inherited values, plus invalid forced update preserving old file, not exercised through setup. Core scalar rejection is not proof of setup admission/persistence order."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/onboarding-environment-contracts.json",
+      "remaining_assertions": [],
+      "evidence_history": [
+        {
+          "status": "partial_assertion_mapping",
+          "evidence": {
+            "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+            "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+            "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+          },
+          "assertion_mapping": "rust/parity/assertion-mappings/cli-tooling.json",
+          "remaining_assertions": [
+            "Full two-evaluator matrix: 11 CLI values and8 inherited values, plus invalid forced update preserving old file, not exercised through setup. Core scalar rejection is not proof of setup admission/persistence order."
+          ]
+        }
+      ],
+      "review_note": "Coverage includes explicit reviewed native API/input-domain adaptations, with source predicates and actual native/consumer evidence; no impossible dynamic call or exact error identity is fabricated."
     },
     {
       "id": "test/onboarding.test.mjs#16",
@@ -14814,7 +14845,7 @@
       ],
       "remaining_assertions": [
         "Historical JavaScript archive release-check acceptance and exact npm packed-file/source comparisons are intentionally not admitted by native publication gates. Synthetic native baseline has real temporary HEAD/lock identity and all admission checks; approval declarations are test fixtures, not qualification evidence.",
-        "Nested nine original diagnostic/format assertions remain partial; see definitions #8–16."
+        "Nested nine original diagnostic/format assertions remain partial; see definitions #8\u201316."
       ],
       "assertion_mapping": "rust/parity/assertion-mappings/release-remaining-contracts.json"
     },
@@ -20204,7 +20235,7 @@
         "assertion_mapping_sha256": "c0b90b3a4488f40efa797c4492f106cea9a82d8cee1d044eabdaac9c7df4b51a",
         "report": "artifacts/rust-rewrite/evidence/d43862667e75572a449fcb7559e732d1e29fb657354eb43f18a880e375ab9c68.json",
         "report_sha256": "d43862667e75572a449fcb7559e732d1e29fb657354eb43f18a880e375ab9c68",
-        "review": "Root reviewed all22 original predicates/73 executions, real HTTP/provider/count/evaluator paths, exact provider bytes, malformed zero-work/privacy, complete diagnostics and actual attempts retired before close. Explicit optional/number/local error/cleanup callback ownership differences retained. This approves only original2–5, not overall protocol/API equivalence or release."
+        "review": "Root reviewed all22 original predicates/73 executions, real HTTP/provider/count/evaluator paths, exact provider bytes, malformed zero-work/privacy, complete diagnostics and actual attempts retired before close. Explicit optional/number/local error/cleanup callback ownership differences retained. This approves only original2\u20135, not overall protocol/API equivalence or release."
       },
       "related_components": [
         "model_guards",
@@ -20268,7 +20299,7 @@
         "assertion_mapping_sha256": "c0b90b3a4488f40efa797c4492f106cea9a82d8cee1d044eabdaac9c7df4b51a",
         "report": "artifacts/rust-rewrite/evidence/d43862667e75572a449fcb7559e732d1e29fb657354eb43f18a880e375ab9c68.json",
         "report_sha256": "d43862667e75572a449fcb7559e732d1e29fb657354eb43f18a880e375ab9c68",
-        "review": "Root reviewed all22 original predicates/73 executions, real HTTP/provider/count/evaluator paths, exact provider bytes, malformed zero-work/privacy, complete diagnostics and actual attempts retired before close. Explicit optional/number/local error/cleanup callback ownership differences retained. This approves only original2–5, not overall protocol/API equivalence or release."
+        "review": "Root reviewed all22 original predicates/73 executions, real HTTP/provider/count/evaluator paths, exact provider bytes, malformed zero-work/privacy, complete diagnostics and actual attempts retired before close. Explicit optional/number/local error/cleanup callback ownership differences retained. This approves only original2\u20135, not overall protocol/API equivalence or release."
       },
       "related_components": [
         "model_guards",
@@ -20332,7 +20363,7 @@
         "assertion_mapping_sha256": "c0b90b3a4488f40efa797c4492f106cea9a82d8cee1d044eabdaac9c7df4b51a",
         "report": "artifacts/rust-rewrite/evidence/d43862667e75572a449fcb7559e732d1e29fb657354eb43f18a880e375ab9c68.json",
         "report_sha256": "d43862667e75572a449fcb7559e732d1e29fb657354eb43f18a880e375ab9c68",
-        "review": "Root reviewed all22 original predicates/73 executions, real HTTP/provider/count/evaluator paths, exact provider bytes, malformed zero-work/privacy, complete diagnostics and actual attempts retired before close. Explicit optional/number/local error/cleanup callback ownership differences retained. This approves only original2–5, not overall protocol/API equivalence or release."
+        "review": "Root reviewed all22 original predicates/73 executions, real HTTP/provider/count/evaluator paths, exact provider bytes, malformed zero-work/privacy, complete diagnostics and actual attempts retired before close. Explicit optional/number/local error/cleanup callback ownership differences retained. This approves only original2\u20135, not overall protocol/API equivalence or release."
       },
       "related_components": [
         "model_guards",
@@ -20397,7 +20428,7 @@
         "assertion_mapping_sha256": "c0b90b3a4488f40efa797c4492f106cea9a82d8cee1d044eabdaac9c7df4b51a",
         "report": "artifacts/rust-rewrite/evidence/d43862667e75572a449fcb7559e732d1e29fb657354eb43f18a880e375ab9c68.json",
         "report_sha256": "d43862667e75572a449fcb7559e732d1e29fb657354eb43f18a880e375ab9c68",
-        "review": "Root reviewed all22 original predicates/73 executions, real HTTP/provider/count/evaluator paths, exact provider bytes, malformed zero-work/privacy, complete diagnostics and actual attempts retired before close. Explicit optional/number/local error/cleanup callback ownership differences retained. This approves only original2–5, not overall protocol/API equivalence or release."
+        "review": "Root reviewed all22 original predicates/73 executions, real HTTP/provider/count/evaluator paths, exact provider bytes, malformed zero-work/privacy, complete diagnostics and actual attempts retired before close. Explicit optional/number/local error/cleanup callback ownership differences retained. This approves only original2\u20135, not overall protocol/API equivalence or release."
       },
       "related_components": [
         "model_guards",
@@ -21014,9 +21045,10 @@
       "file": "test/savings.test.mjs",
       "name": "missing, invalid or contradictory usage never becomes a guessed estimate",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/savings.rs#savings::tests::malformed_usage_and_unsupported_modifiers_never_gain_a_guessed_price"
+        "rust/crates/autorouter-core/src/savings.rs#savings::tests::malformed_usage_and_unsupported_modifiers_never_gain_a_guessed_price",
+        "rust/crates/autorouter-core/tests/savings_ingress_contracts.rs#original_08_all_eighteen_absent_malformed_counter_and_contradictory_ttl_variants"
       ],
       "shared_cases": [
         "accounting-3993",
@@ -21024,20 +21056,33 @@
         "accounting-3997"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "path": "rust/parity/assertion-mappings/savings-ingress-contracts.json",
+        "sha256": "aa6242eca1791eb2ae72a81b3229c4ea201617113aa75031786f1a86c5674287",
+        "bytes": 25839
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Usage mutation corpus and native malformed-TTL tests cover many branches; absent exact combinations include every one-counter-missing case, overflowing counters at tracker ingress, and all nested contradictory/null TTL variants in the baseline loop."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/savings-ingress-contracts.json",
+      "remaining_assertions": [],
+      "evidence_history": [
+        {
+          "status": "partial_assertion_mapping",
+          "evidence": {
+            "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+            "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+            "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+            "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+            "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+            "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+          },
+          "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+          "remaining_assertions": [
+            "Usage mutation corpus and native malformed-TTL tests cover many branches; absent exact combinations include every one-counter-missing case, overflowing counters at tracker ingress, and all nested contradictory/null TTL variants in the baseline loop."
+          ]
+        }
+      ],
+      "review_note": "Coverage includes explicit reviewed native API/input-domain adaptations, with source predicates and actual native/consumer evidence; no impossible dynamic call or exact error identity is fabricated."
     },
     {
       "id": "test/savings.test.mjs#9",
@@ -21668,37 +21713,52 @@
       "file": "test/savings.test.mjs",
       "name": "malformed telemetry never throws, and clearing removes totals and request history",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/savings.rs#savings::tests::bounded_inflight_and_duplicate_history_report_partial_coverage"
+        "rust/crates/autorouter-core/src/savings.rs#savings::tests::bounded_inflight_and_duplicate_history_report_partial_coverage",
+        "rust/crates/autorouter-core/tests/savings_ingress_contracts.rs#original_17_null_unknown_terminal_clear_and_same_request_reuse_with_explicit_getter_boundary"
       ],
       "shared_cases": [
         "accounting-7725"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "path": "rust/parity/assertion-mappings/savings-ingress-contracts.json",
+        "sha256": "aa6242eca1791eb2ae72a81b3229c4ea201617113aa75031786f1a86c5674287",
+        "bytes": 25839
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Clear/reset/reuse is in accounting-7725. Arbitrary throwing JavaScript getters and exact unknown-terminal/no-op behavior are outside the JSON corpus and need an explicit Rust API boundary rationale or counterpart."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/savings-ingress-contracts.json",
+      "remaining_assertions": [],
+      "evidence_history": [
+        {
+          "status": "partial_assertion_mapping",
+          "evidence": {
+            "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+            "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+            "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+            "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+            "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+            "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+          },
+          "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+          "remaining_assertions": [
+            "Clear/reset/reuse is in accounting-7725. Arbitrary throwing JavaScript getters and exact unknown-terminal/no-op behavior are outside the JSON corpus and need an explicit Rust API boundary rationale or counterpart."
+          ]
+        }
+      ],
+      "review_note": "Coverage includes explicit reviewed native API/input-domain adaptations, with source predicates and actual native/consumer evidence; no impossible dynamic call or exact error identity is fabricated."
     },
     {
       "id": "test/savings.test.mjs#18",
       "file": "test/savings.test.mjs",
       "name": "pricing facts are immutable, dated and attached to each estimate",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/src/savings.rs#savings::tests::exact_rates_cache_ttls_and_negative_savings_are_retained"
+        "rust/crates/autorouter-core/src/savings.rs#savings::tests::exact_rates_cache_ttls_and_negative_savings_are_retained",
+        "rust/crates/autorouter-core/tests/savings_ingress_contracts.rs#original_18_complete_dated_table_and_detached_mutations_preserve_internal_price_constants"
       ],
       "shared_cases": [
         "accounting-3993",
@@ -21706,20 +21766,33 @@
         "accounting-3997"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "path": "rust/parity/assertion-mappings/savings-ingress-contracts.json",
+        "sha256": "aa6242eca1791eb2ae72a81b3229c4ea201617113aa75031786f1a86c5674287",
+        "bytes": 25839
       },
       "related_components": [
         "telemetry_savings_history"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Attached pricing facts are compared in every full tracker snapshot. No native regression asserts the entire dated source/unit table and its immutability contract; compile-time constants need an explicit invariant test or justified contract mapping."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/savings-ingress-contracts.json",
+      "remaining_assertions": [],
+      "evidence_history": [
+        {
+          "status": "partial_assertion_mapping",
+          "evidence": {
+            "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+            "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+            "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+            "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+            "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+            "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+          },
+          "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+          "remaining_assertions": [
+            "Attached pricing facts are compared in every full tracker snapshot. No native regression asserts the entire dated source/unit table and its immutability contract; compile-time constants need an explicit invariant test or justified contract mapping."
+          ]
+        }
+      ],
+      "review_note": "Coverage includes explicit reviewed native API/input-domain adaptations, with source predicates and actual native/consumer evidence; no impossible dynamic call or exact error identity is fabricated."
     },
     {
       "id": "test/savings.test.mjs#19",
@@ -30197,7 +30270,12 @@
         "test/config.test.mjs"
       ],
       "status": "pending",
-      "evidence": null
+      "evidence": {
+        "path": "rust/parity/measurements/native-cache-boundaries-summary.json",
+        "sha256": "3da6569247b0304375c23506c12aebb076891f01166cd119a448b82f7dfc47e6",
+        "bytes": 4838
+      },
+      "review_note": "Reviewed exact default capacity/expiry and direct zero-option behavioral boundaries; broader configuration/public API and complete limit audit approval remains pending."
     },
     {
       "id": "decision_cache_ttl_ms",
@@ -30207,7 +30285,12 @@
         "test/config.test.mjs"
       ],
       "status": "pending",
-      "evidence": null
+      "evidence": {
+        "path": "rust/parity/measurements/native-cache-boundaries-summary.json",
+        "sha256": "3da6569247b0304375c23506c12aebb076891f01166cd119a448b82f7dfc47e6",
+        "bytes": 4838
+      },
+      "review_note": "Reviewed exact default capacity/expiry and direct zero-option behavioral boundaries; broader configuration/public API and complete limit audit approval remains pending."
     },
     {
       "id": "retired_turn_ttl_ms",
@@ -30347,7 +30430,12 @@
         "test/token-counter.test.mjs"
       ],
       "status": "pending",
-      "evidence": null
+      "evidence": {
+        "path": "rust/parity/measurements/native-cache-boundaries-summary.json",
+        "sha256": "3da6569247b0304375c23506c12aebb076891f01166cd119a448b82f7dfc47e6",
+        "bytes": 4838
+      },
+      "review_note": "Reviewed exact default capacity/expiry and direct zero-option behavioral boundaries; broader configuration/public API and complete limit audit approval remains pending."
     },
     {
       "id": "count_cache_ttl_ms",
@@ -30357,7 +30445,12 @@
         "test/token-counter.test.mjs"
       ],
       "status": "pending",
-      "evidence": null
+      "evidence": {
+        "path": "rust/parity/measurements/native-cache-boundaries-summary.json",
+        "sha256": "3da6569247b0304375c23506c12aebb076891f01166cd119a448b82f7dfc47e6",
+        "bytes": 4838
+      },
+      "review_note": "Reviewed exact default capacity/expiry and direct zero-option behavioral boundaries; broader configuration/public API and complete limit audit approval remains pending."
     },
     {
       "id": "observer_bytes",
@@ -30697,5 +30790,14 @@
     "Full aggregate native/npm archive, licenses, direct artifacts, upgrade/rollback and protected CI",
     "Stabilization and cutover after every required gate"
   ],
-  "evidence_index": "rust/parity/evidence.json"
+  "evidence_index": "rust/parity/evidence.json",
+  "user_deferred_validation": {
+    "larger_mac_local_evaluator_trial": {
+      "status": "deferred_by_user",
+      "date": "2026-10-14",
+      "reason": "Larger Mac is unavailable; user requested skipping this test for now.",
+      "measurement_result": null,
+      "qualification_approved": false
+    }
+  }
 }

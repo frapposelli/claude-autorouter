@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_original_savings_ingress_contracts",
+  "date": "2026-10-14",
+  "source_uncommitted": true,
+  "production_changes": false,
+  "passed": true,
+  "release_approved": false,
+  "mapping": {
+    "path": "rust/parity/assertion-mappings/savings-ingress-contracts.json",
+    "sha256": "aa6242eca1791eb2ae72a81b3229c4ea201617113aa75031786f1a86c5674287",
+    "bytes": 25839
+  },
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/accounting-and-setup-independent-review-20261014.json",
+    "sha256": "5240c0e92c02e74dabfde259b44c41240a548f2aa1adb2dde7af0a6ad8979c9c",
+    "bytes": 1508
+  },
+  "counts": {
+    "definitions": 3,
+    "static_original_assertions": 12,
+    "expanded_original_assertions": 46,
+    "cases": 20,
+    "trackers": 19,
+    "ordered_tracker_steps": 163
+  },
+  "native_evidence": {
+    "comparison": {
+      "path": "artifacts/rust-rewrite/savings-ingress-comparison-20261014.json",
+      "sha256": "23f9bd3f862cce1b8255523af224d10f9576dd0531c25b48bf2725ab97368069",
+      "bytes": 26498
+    },
+    "checks": {
+      "source_fresh": {
+        "path": "artifacts/rust-rewrite/savings-ingress-source-20261014-1.log",
+        "sha256": "b25bfc46da3a54f127a6c649183079dc9852f4d275ea6472ad0720ad05bb0369",
+        "bytes": 186
+      },
+      "native_focused": {
+        "path": "artifacts/rust-rewrite/savings-ingress-native-20261014-1.log",
+        "sha256": "272792709e41321f5a5b3990a7bc4a3c50d5af6159210414355638a74f00e6f7",
+        "bytes": 1473
+      },
+      "strict_focused_clippy": {
+        "path": "artifacts/rust-rewrite/savings-ingress-clippy-20261014-1.log",
+        "sha256": "fc1ee5d329798544999e4a3694454bd9bb9ebb73ce5235efbcfc2b7e74529bc0",
+        "bytes": 938
+      }
+    },
+    "native_tests_passed": 4,
+    "native_consumer_controls": 3,
+    "source_original_assertion_executions": 46,
+    "native_mapped_predicate_executions": 46,
+    "all_original_order_entries_match": true,
+    "totals": {
+      "tracker_cases": 19,
+      "ordered_tracker_records": 163,
+      "direct_finite_value_updates": 121,
+      "guarded_nonfinite_projection_updates": 1,
+      "getter_calls_excluded_at_typed_boundary": 1,
+      "clears": 1,
+      "snapshots": 39
+    },
+    "raw_native_artifacts": [
+      {
+        "path": "artifacts/rust-rewrite/savings-ingress-native-20261014-1/native-17-assertion-order.json",
+        "sha256": "74e440ce798686c61d3178ef15cf23bd3f0b37f1aff34fd62f4afd9d0cb0d31b",
+        "bytes": 47
+      },
+      {
+        "path": "artifacts/rust-rewrite/savings-ingress-native-20261014-1/native-17.json",
+        "sha256": "9c561923c040ab1b7be4bb511334660e2a7c76af27ffa26d4fc3192c7b61bec3",
+        "bytes": 11983
+      },
+      {
+        "path": "artifacts/rust-rewrite/savings-ingress-native-20261014-1/native-18-assertion-order.json",
+        "sha256": "132ca5411373611ad21c91b1421b7b9f984325228ecdbee3695b3919bcf92034",
+        "bytes": 61
+      },
+      {
+        "path": "artifacts/rust-rewrite/savings-ingress-native-20261014-1/native-18.json",
+        "sha256": "c46bf0bf2fec0cef5e60e2f53b00d8b89bbb749dc8f0541935b976b8a3dcb70d",
+        "bytes": 4164
+      },
+      {
+        "path": "artifacts/rust-rewrite/savings-ingress-native-20261014-1/native-8-assertion-order.json",
+        "sha256": "2591f8f0638594ef4120056795bf1b8087fa799b7f6d3ce59c35a00fa9ed998c",
+        "bytes": 271
+      },
+      {
+        "path": "artifacts/rust-rewrite/savings-ingress-native-20261014-1/native-8.json",
+        "sha256": "2b926e521285ccd0f35db6686a95827d901f95a2397c780c3e146436f5629a96",
+        "bytes": 128492
+      },
+      {
+        "path": "artifacts/rust-rewrite/savings-ingress-native-20261014-1/native-consumer-controls.json",
+        "sha256": "399a4a1f636ba8a721387b1910d6c1857504e90f24060c55d479573d9294a938",
+        "bytes": 10537
+      }
+    ]
+  },
+  "native_api_migrations": [
+    {
+      "id": "undefined",
+      "scope": "Source object own undefined properties correspond to native absent optional JSON fields, with explicit paths and both raw inputs retained."
+    },
+    {
+      "id": "nonfinite",
+      "scope": "Source original index6 Infinity is not a Value. New typed ingress guards must prove rejection and existing documented normalization invalidity; no lossy observation projection or Infinity-to-null serialization."
+    },
+    {
+      "id": "getter",
+      "scope": "Source#17 executable event getter is unrepresentable at &Value API. Runtime nonpanic plus actual native consumer E0308 diagnostic excludes it; exact JavaScript throwing/catching semantics are not claimed."
+    },
+    {
+      "id": "facts",
+      "scope": "Source#18 frozen exported object rejects writes. Native pricing_facts returns owned values with successful detached mutations; immutable private constants, fresh facts and estimation behavior remain intact. Literal TypeError behavior remains an explicit API difference."
+    }
+  ],
+  "scope_limits": [
+    "Full workspace/default-parallel/remote CI/source archive gates and source-to-shipping-binary provenance remain root-owned; local selected-rlib compiler control does not itself establish them.",
+    "Accepted per-assertion language/domain adaptations are explicit; no direct native Infinity Value call, executable getter call or literal TypeError equivalence is claimed."
+  ]
+}

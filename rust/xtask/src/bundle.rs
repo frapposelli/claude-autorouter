@@ -32,6 +32,7 @@ const FIXED: &[&str] = &[
     "rust/parity/local-benchmark-v4.json",
     "rust/parity/local-model-comparison-v1.json",
     "rust/parity/local-model-comparison-v2.json",
+    "rust/parity/local-model-orchestration-v1.json",
     "rust/parity/descriptor-benchmark-v1.json",
     "rust/parity/descriptor-implementation-v1.json",
     "rust/parity/processing-benchmark-v1.json",
@@ -50,6 +51,7 @@ const FIXED: &[&str] = &[
     "rust/docs/performance-completion.md",
     "rust/docs/whole-connection-benchmark.md",
     "rust/docs/descriptor-collector-design.md",
+    "rust/docs/local-model-comparison.md",
     "rust/xtask/tests/benchmark_resources.rs",
     "rust/parity/live-gateway.mjs",
     "rust/parity/cases/router-contracts.jsonl",
@@ -93,6 +95,10 @@ const FIXED: &[&str] = &[
     "rust/parity/cases/routing-compatibility-contracts.capture.json",
     "rust/parity/cases/status-settings-file-contracts.jsonl",
     "rust/parity/cases/status-settings-file-contracts.capture.json",
+    "rust/parity/cases/cache-boundary-contracts.jsonl",
+    "rust/parity/cases/cache-boundary-contracts.capture.json",
+    "rust/parity/cases/savings-ingress-contracts.jsonl",
+    "rust/parity/cases/savings-ingress-contracts.capture.json",
     "rust/parity/capture-status-settings-file-contracts.mjs",
     "rust/parity/cases/static-contracts.capture.json",
     "rust/parity/cases/tooling-rubric-protocol.capture.json",
@@ -525,6 +531,10 @@ fn collect(root: &Path) -> Result<BTreeMap<String, Entry>, String> {
         },
     );
     Ok(files)
+}
+/// Exact public allowlist identity; never includes checkout-private material.
+pub(crate) fn source_identity(root: &Path) -> Result<Value, String> {
+    Ok(json!(collect(root)?.iter().map(|(path, entry)|json!({"path":path,"bytes":entry.bytes.len(),"sha256":sha(&entry.bytes),"mode":entry.mode})).collect::<Vec<_>>()))
 }
 pub fn create(root: &Path, destination: &Path) -> Result<Value, String> {
     let sidecar = PathBuf::from(format!("{}.sha256", destination.display()));

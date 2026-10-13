@@ -89,3 +89,23 @@ Session logging accepts `serde_json::Value`, which has no property getters, `und
 `read_session_history()` validates every `HistoryLimits` field before starting its filesystem worker, including fields constructed directly by Rust callers. Zero values and values above the original reader ceilings return `Invalid session-history read limit.` before ID or path errors. Defaults and smaller positive limits retain their existing behavior. The pure parser APIs accept caller-owned data separately; they do not perform filesystem admission.
 
 `CleanupOptions::alive` receives a `u64` so it can observe every positive JavaScript safe-integer PID through `9_007_199_254_740_991`. Embeddings with an explicitly typed `u32` callback must update that argument type. The default callback checks the positive signed operating-system PID range before querying liveness; larger values return false without narrowing, wrapping or signalling a process group.
+
+`SavingsTracker::update(&Value)` accepts owned JSON data, without executable
+getters or nonfinite scalar numbers. JavaScript own properties with `undefined`
+map to absent optional JSON fields. When starting from an authoritative
+`JsDocument`, use its existing normalization projection so a nonfinite counter
+remains invalid; do not serialize Infinity into null and call that the original
+input. Host-object conversion happens outside the tracker. `pricing_facts()`
+returns a fresh owned value that callers can change locally; those changes
+cannot alter the private constant rates, later facts or estimates. This replaces
+the JavaScript frozen-object write errors with detached-value ownership. The
+[per-assertion review](../parity/assertion-mappings/savings-ingress-contracts.json)
+records these distinctions and actual consumer controls.
+
+Setup's `ConfigContext` receives `Environment`, a map of `OsString` keys and
+values. `environment_json()` converts present entries to strings and preserves
+absence. Raw JSON null, boolean or optional values cannot be inserted into that
+map; caller code must supply real OS strings or omit the key. The separate
+`read_config(&Value, ...)` JSON interface rejects malformed raw values rather
+than coercing them. [Setup migration evidence](../parity/assertion-mappings/onboarding-environment-contracts.json)
+keeps these input domains separate from historical executable CLI checks.

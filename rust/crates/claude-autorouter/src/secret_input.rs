@@ -65,6 +65,23 @@ fn hidden_mode(terminal: &Termios) -> Termios {
     hidden
 }
 
+// Keep terminal preparation and invitation in one operation. The invitation
+// writer may display a prompt immediately, so echo must already be disabled.
+fn prepare_input(input: Input, invite: impl FnOnce()) -> Result<AsyncFd<Input>, String> {
+    if let Some(terminal) = &input.terminal {
+        tcsetattr(&input.file, SetArg::TCSANOW, &hidden_mode(terminal))
+            .map_err(|_| "Could not read a hidden secret.")?;
+    }
+    fcntl(
+        &input.file,
+        FcntlArg::F_SETFL(input.flags | OFlag::O_NONBLOCK),
+    )
+    .map_err(|_| READ_ERROR)?;
+    let input = AsyncFd::new(input).map_err(|_| READ_ERROR)?;
+    invite();
+    Ok(input)
+}
+
 pub async fn read_secret(label: &str, from_stdin: bool) -> Result<String, String> {
     let stdin = std::io::stdin();
     if from_stdin && stdin.is_terminal() {
@@ -98,16 +115,12 @@ pub async fn read_secret(label: &str, from_stdin: bool) -> Result<String, String
         flags,
         terminal,
     };
-    if let Some(terminal) = &input.terminal {
-        tcsetattr(&input.file, SetArg::TCSANOW, &hidden_mode(terminal))
-            .map_err(|_| "Could not read a hidden secret.")?;
-    }
-    fcntl(&input.file, FcntlArg::F_SETFL(flags | OFlag::O_NONBLOCK)).map_err(|_| READ_ERROR)?;
-    let input = AsyncFd::new(input).map_err(|_| READ_ERROR)?;
-    if !from_stdin {
-        eprint!("{label} (hidden): ");
-        let _ = std::io::stderr().flush();
-    }
+    let input = prepare_input(input, || {
+        if !from_stdin {
+            eprint!("{label} (hidden): ");
+            let _ = std::io::stderr().flush();
+        }
+    })?;
     let result = tokio::select! {
         result = async {
             if from_stdin { collect(&input).await } else { collect_hidden(&input).await }
@@ -219,6 +232,108 @@ mod tests {
     use nix::sys::termios::{FlowArg, tcflow};
     use std::process::{Command, Stdio};
     use std::time::{Duration, Instant};
+
+    #[tokio::test]
+    async fn prompt_writer_observes_hidden_terminal_before_inviting_secret_input() {
+        let pair = openpty(None, None).unwrap();
+        let mut master = File::from(pair.master);
+        let slave = File::from(pair.slave);
+        let terminal = tcgetattr(&slave).unwrap();
+        let flags = OFlag::from_bits_truncate(fcntl(&slave, FcntlArg::F_GETFL).unwrap());
+        assert!(terminal.local_flags.contains(LocalFlags::ECHO));
+        let input = prepare_input(
+            Input {
+                file: slave.try_clone().unwrap(),
+                flags,
+                terminal: Some(terminal.clone()),
+            },
+            || {
+                let actual = tcgetattr(&slave).unwrap();
+                assert!(
+                    !actual
+                        .local_flags
+                        .intersects(LocalFlags::ECHO | LocalFlags::ECHONL | LocalFlags::ICANON)
+                );
+                assert!(
+                    OFlag::from_bits_truncate(fcntl(&slave, FcntlArg::F_GETFL).unwrap())
+                        .contains(OFlag::O_NONBLOCK)
+                );
+                let mut output = &slave;
+                output.write_all(b"TYPESAFE_API_KEY (hidden): ").unwrap();
+                output.flush().unwrap();
+                master.write_all(b"hidden-key-sentinel\r").unwrap();
+            },
+        )
+        .unwrap();
+        let secret = tokio::time::timeout(Duration::from_secs(2), collect_hidden(&input))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(secret, "hidden-key-sentinel");
+        let mut input = input.into_inner();
+        input.restore_terminal().unwrap();
+        drop(input);
+        let restored = tcgetattr(&slave).unwrap();
+        assert_eq!(
+            restored.local_flags.difference(LocalFlags::PENDIN),
+            terminal.local_flags.difference(LocalFlags::PENDIN)
+        );
+        // Darwin adds its kernel-only FWASWRITTEN marker after the prompt
+        // write; F_SETFL cannot clear it. Compare all public status flags,
+        // including the restored O_NONBLOCK bit, rather than that write fact.
+        assert_eq!(
+            OFlag::from_bits_truncate(fcntl(&slave, FcntlArg::F_GETFL).unwrap()),
+            flags
+        );
+        let master_flags = OFlag::from_bits_truncate(fcntl(&master, FcntlArg::F_GETFL).unwrap());
+        fcntl(&master, FcntlArg::F_SETFL(master_flags | OFlag::O_NONBLOCK)).unwrap();
+        let mut visible = Vec::new();
+        let mut bytes = [0; 1024];
+        loop {
+            match master.read(&mut bytes) {
+                Ok(0) => break,
+                Ok(count) => {
+                    visible.extend_from_slice(&bytes[..count]);
+                    assert!(visible.len() <= 1024);
+                }
+                Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => break,
+                Err(error) => panic!("Cannot inspect synthetic terminal output: {error}"),
+            }
+        }
+        let visible = String::from_utf8(visible).unwrap();
+        assert_eq!(visible, "TYPESAFE_API_KEY (hidden): ");
+        assert!(!visible.contains("hidden-key-sentinel"));
+    }
+
+    #[tokio::test]
+    async fn invitation_panic_restores_terminal_and_descriptor_flags() {
+        let pair = openpty(None, None).unwrap();
+        let _master = File::from(pair.master);
+        let slave = File::from(pair.slave);
+        let terminal = tcgetattr(&slave).unwrap();
+        let flags = OFlag::from_bits_truncate(fcntl(&slave, FcntlArg::F_GETFL).unwrap());
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            prepare_input(
+                Input {
+                    file: slave.try_clone().unwrap(),
+                    flags,
+                    terminal: Some(terminal.clone()),
+                },
+                || panic!("synthetic invitation failed"),
+            )
+        }));
+        assert!(result.is_err());
+        let restored = tcgetattr(&slave).unwrap();
+        assert_eq!(
+            restored.local_flags.difference(LocalFlags::PENDIN),
+            terminal.local_flags.difference(LocalFlags::PENDIN)
+        );
+        assert_eq!(restored.input_flags, terminal.input_flags);
+        assert_eq!(restored.output_flags, terminal.output_flags);
+        assert_eq!(restored.control_flags, terminal.control_flags);
+        assert_eq!(restored.control_chars, terminal.control_chars);
+        assert_eq!(fcntl(&slave, FcntlArg::F_GETFL).unwrap(), flags.bits());
+    }
 
     #[test]
     fn restoration_does_not_wait_for_stopped_terminal_output() {
