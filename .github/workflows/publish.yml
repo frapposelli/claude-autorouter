@@ -69,7 +69,7 @@ jobs:
         env:
           ARCHIVE: ${{ steps.release.outputs.archive }}
         run: node scripts/release-verify.mjs notes "$GITHUB_REF_NAME" --archive "$ARCHIVE" --report release-evidence/release-notes.md
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         id: upload
         with:
           name: npm-package-${{ github.run_id }}-${{ github.run_attempt }}
@@ -79,7 +79,7 @@ jobs:
           if-no-files-found: error
           retention-days: 90
           compression-level: 0
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-notes-${{ github.run_id }}-${{ github.run_attempt }}
           path: release-evidence/release-notes.md
@@ -133,7 +133,7 @@ jobs:
         run: |
           npm publish "./$ARCHIVE" --access public --tag "$DIST_TAG" --registry=https://registry.npmjs.org/ --ignore-scripts --provenance="$NPM_CONFIG_PROVENANCE"
           node scripts/release-verify.mjs submitted "$GITHUB_REF_NAME" --archive "$ARCHIVE" --report release-evidence/submitted.json
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: release-submission-${{ github.run_id }}-${{ github.run_attempt }}
@@ -195,7 +195,7 @@ jobs:
           if test -f release-evidence/verification.json; then
             node --input-type=module -e 'import {readFileSync,appendFileSync} from "node:fs"; const r=JSON.parse(readFileSync("release-evidence/verification.json","utf8")); appendFileSync(process.env.GITHUB_STEP_SUMMARY, `Release ${r.version}: **${r.state}**\n\n${r.message ?? r.reason ?? ""}\n\nCanonical SHA256: ${r.sha256 ?? "unavailable"}\n`);'
           fi
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: release-verification-${{ github.run_id }}-${{ github.run_attempt }}
