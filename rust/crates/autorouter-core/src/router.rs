@@ -282,8 +282,13 @@ fn known_deferred_tool(doc: &JsDocument, tool: NodeId) -> bool {
     })
 }
 pub fn context_size_bytes(doc: &JsDocument, model: &str) -> usize {
-    let full = doc.stringify().len();
-    let Some(tools) = array(doc, property(doc, doc.root(), "tools")) else {
+    // Count the exact JSON byte charge without materializing the full body.
+    // Overflow cannot establish a small context, even with deferred schemas.
+    let Some(full) = doc.serialized_len_up_to(usize::MAX) else {
+        return usize::MAX;
+    };
+    let tools_node = property(doc, doc.root(), "tools");
+    let Some(tools) = array(doc, tools_node) else {
         return full;
     };
     if !supports_tool_references(model)
@@ -347,23 +352,12 @@ pub fn context_size_bytes(doc: &JsDocument, model: &str) -> usize {
         }
         visible.push(doc.stringify_node(tool));
     }
-    // Only a top-level member changes; the original member position and all
-    // other opaque values remain authoritative, including integer-key order.
-    let Some(JsNode::Object(root)) = doc.node(doc.root()) else {
-        return full;
-    };
-    let members = root
-        .ordered_entries()
-        .map(|(key, value)| {
-            let value = if key.units().iter().copied().eq("tools".encode_utf16()) {
-                format!("[{}]", visible.join(","))
-            } else {
-                doc.stringify_node(*value)
-            };
-            format!("{}:{value}", key.stringify())
-        })
-        .collect::<Vec<_>>();
-    format!("{{{}}}", members.join(",")).len() + repeated
+    // Only the existing tools value changes. Keys and member punctuation keep
+    // their byte charge, independently of property order or duplicate inputs.
+    let original_tools = doc
+        .stringify_node(tools_node.expect("checked tools array"))
+        .len();
+    full - original_tools + format!("[{}]", visible.join(",")).len() + repeated
 }
 fn has_content_block(doc: &JsDocument, types: &[&str]) -> bool {
     let mut pending: Vec<_> = array(doc, property(doc, doc.root(), "messages"))
@@ -1253,6 +1247,42 @@ mod tests {
             turn.content_key,
             "9f5c78101dccdd43ffc17fa6468d193e0afbb5732b35e4fee15c1a3a7fde46dd"
         );
+    }
+    #[test]
+    fn context_byte_charge_preserves_frozen_representation_and_guard_boundaries() {
+        // Actual frozen Node contextSizeBytes results, including overwritten keys.
+        for (raw, bytes) in [
+            (
+                r#"{"messages":[{"role":"user","content":"A😀é二\u0000\"\\\n"}]}"#,
+                65,
+            ),
+            (r#"{"2":true,"1":null,"2":-0,"messages":[]}"#, 30),
+            (
+                r#"{"a":1e400,"b":-1e400,"c":-0,"d":1e21,"e":1e20,"f":1e-6,"g":1e-7,"h":9007199254740993,"i":1e-400}"#,
+                110,
+            ),
+            (r#"{"messages":[],"\ud800":"\udc00","\ud800":"last"}"#, 31),
+            (r#"{"messages":[],"tools":false,"opaque":{"q":2.1}}"#, 48),
+            (
+                r#"{"messages":[],"tools":[],"a":"\u2028\u2029\ud800\udc00\ud800"}"#,
+                49,
+            ),
+        ] {
+            let doc = JsDocument::parse(raw.as_bytes()).unwrap();
+            for model in [
+                "claude-haiku-4-5-20251001",
+                "claude-sonnet-5",
+                "claude-opus-5-5",
+                "unknown",
+            ] {
+                assert_eq!(context_size_bytes(&doc, model), bytes);
+            }
+        }
+        for bytes in [149999, 150000, 150001] {
+            let doc =
+                document(json!({"messages":[{"role":"user","content":"x".repeat(bytes - 43)}]}));
+            assert_eq!(context_size_bytes(&doc, "claude-haiku-4-5-20251001"), bytes);
+        }
     }
     #[test]
     fn deferred_schemas_count_only_when_referenced_and_count_repeated_expansion() {
