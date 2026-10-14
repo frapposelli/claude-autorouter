@@ -14,12 +14,16 @@ RUN set -eux; \
     printf '%s  %s\n' "$APK_INDEX_SHA256" "$1" | sha256sum -c -; \
     cp "$1" /opt/autorouter-build-inputs/APKINDEX.tar.gz; \
     apk --timeout 60 --cache-dir /tmp/ci-apk --repositories-file /tmp/ci-repositories fetch --recursive --output /tmp/ci-packages \
-      bash=5.2.37-r0 build-base=0.5-r3 ca-certificates=20260909-r0 curl=8.14.1-r2 git=2.47.3-r0 \
-      openssl=3.3.7-r2 perl=5.40.4-r0 perl-dev=5.40.4-r0 perl-utils=5.40.4-r0 procps-ng=4.0.4-r2 xz=5.8.4-r0; \
+      bash build-base ca-certificates curl git openssl perl perl-dev perl-utils procps-ng xz; \
     printf '%s  %s\n' "$APK_INDEX_SHA256" "$1" | sha256sum -c -; \
     sha256sum /tmp/ci-packages/*.apk > /opt/autorouter-build-inputs/apk-package-bytes.sha256; \
     apk --no-network --repositories-file /dev/null add /tmp/ci-packages/*.apk; \
     apk info -v | sort > /opt/autorouter-build-inputs/installed-packages.txt; \
+    for package in \
+      bash-5.2.37-r0 build-base-0.5-r3 ca-certificates-20260909-r0 curl-8.14.1-r2 git-2.47.3-r0 \
+      openssl-3.3.7-r2 perl-5.40.4-r0 perl-dev-5.40.4-r0 perl-utils-5.40.4-r0 procps-ng-4.0.4-r2 xz-5.8.4-r0; do \
+      grep -Fxq "$package" /opt/autorouter-build-inputs/installed-packages.txt; \
+    done; \
     perl -MIPC::Cmd -MData::Dumper -MFile::Compare -MFile::Copy -e 'exit 0'; \
     mkdir /tmp/rust-bootstrap; \
     archive="rust-1.99.0-$APK_ARCH-unknown-linux-musl.tar.xz"; \
