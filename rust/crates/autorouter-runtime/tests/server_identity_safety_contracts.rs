@@ -1,4 +1,11 @@
 //! Complete frozen server #15/#16/#17 callbacks; synthetic subscription peers.
+#[allow(dead_code)] // Shared helpers retain separate policies used by sibling targets.
+#[path = "support/server_contract.rs"]
+mod contract;
+use contract::{
+    chunks as writes, decode, events, header_is, identity_headers as headers, parsed,
+    single_sink as sink,
+};
 #[path = "support/server_streaming_routing.rs"]
 mod peer;
 use autorouter_core::{config::read_config, js_json::JsDocument, router::RouteOptions};
@@ -8,7 +15,7 @@ use autorouter_runtime::{
     response_observer::CompletionEvidence,
     router::Router,
     server::{Gateway, GatewayHandle, GatewayRouter},
-    server_events::{EventSink, EventSinks},
+    server_events::EventSinks,
 };
 use bytes::Bytes;
 use http_body_util::{BodyExt, Full, Limited, combinators::UnsyncBoxBody};
@@ -52,19 +59,6 @@ fn case(number: usize) -> Value {
         .find(|row| row["source_test"] == format!("test/server.test.mjs#{number}"))
         .unwrap()
 }
-fn decode(value: &Value) -> Vec<u8> {
-    let value = value.as_str().unwrap();
-    assert!(value.len() < LIMIT * 2);
-    openssl::base64::decode_block(value).unwrap()
-}
-fn writes(row: &Value) -> Vec<Bytes> {
-    row["response_writes"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .map(|row| Bytes::from(decode(&row["base64"])))
-        .collect()
-}
 fn response_bytes(row: &Value) -> Vec<u8> {
     writes(row)
         .iter()
@@ -82,28 +76,6 @@ fn upstream_rows(row: &Value) -> Vec<Value> {
         .unwrap()
         .clone()
 }
-fn headers(value: &Value) -> HeaderMap {
-    let mut result = HeaderMap::new();
-    for (key, value) in value.as_object().unwrap() {
-        result.insert(
-            hyper::header::HeaderName::from_bytes(key.as_bytes()).unwrap(),
-            value.as_str().unwrap().parse().unwrap(),
-        );
-    }
-    result
-}
-fn header_is(map: &HeaderMap, name: &str, value: Option<&str>) -> bool {
-    map.get(name).and_then(|value| value.to_str().ok()) == value
-}
-fn parsed(bytes: &[u8]) -> Value {
-    serde_json::from_slice(bytes).unwrap()
-}
-fn events(rows: &[Value], name: &str) -> Vec<Value> {
-    rows.iter()
-        .filter(|row| row["event"] == name)
-        .cloned()
-        .collect()
-}
 fn route_tuple(row: &Value) -> Value {
     let mut out = serde_json::Map::new();
     for key in ["model", "source", "reason", "classified_tier"] {
@@ -112,19 +84,6 @@ fn route_tuple(row: &Value) -> Value {
         }
     }
     Value::Object(out)
-}
-fn sink(rows: &Events) -> EventSink {
-    let rows = rows.clone();
-    Arc::new(move |event| {
-        let mut rows = rows.lock().unwrap();
-        if rows.len() >= 128 {
-            if rows.len() == 128 {
-                rows.push(json!({"event":"fixture_observer_overflow"}));
-            }
-            return;
-        }
-        rows.push(event.to_serde_observation_lossy());
-    })
 }
 fn compare(observed: &Observation, expected: &Value, exact_text: bool) -> Result<(), String> {
     if observed.method != expected["method"].as_str().unwrap()

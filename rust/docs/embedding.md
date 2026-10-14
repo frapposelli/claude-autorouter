@@ -28,6 +28,34 @@ Use `JsDocument` as the authoritative request representation and `JsString` for 
 
 The convenience `route()`/`complete()` adapters use `serde_json::Value` and serve scalar-string embeddings and historical fixtures. The product gateway uses the exact APIs. A displayed replacement character cannot stand in for an escaped lone surrogate when deciding which request or model owns a continuation.
 
+The pure `autorouter_core::router::context_size_bytes()` API now returns
+`Result<ContextByteCharge, ContextByteChargeUnavailable>`, replacing the native
+`usize` return. Deferred schemas can be expanded repeatedly while the original
+HTTP body stays small; the resulting context charge can exceed the 32-bit
+pointer range. This migration preserves the original JavaScript Number
+arithmetic rather than wrapping or saturating an exact metric.
+
+`ContextByteCharge::as_source_number()` exposes the observed `f64` Number.
+`exact_safe_bytes()` returns `Some(u64)` only for a finite nonnegative integer
+through `9_007_199_254_740_991`; larger Numbers are not exact integer telemetry.
+`exceeds(150000)` retains the existing capacity predicate. Multiplication and
+addition follow the original tools order, including IEEE-754 rounding; do not
+replace them with reassociated or exact-integer sums. `to_json_value()` preserves
+the existing numeric JSON shape through `ryu_js` formatting and a JSON Number;
+negative zero becomes zero and nonfinite Numbers become null.
+
+An unavailable complete serialized length returns the typed error, with code
+`serialized_length_unavailable` and display text `Context byte charge unavailable`.
+Handle it explicitly: inability to calculate a charge cannot establish a small
+context. The router conservatively retains the capacity check. Development
+live/context-probe metadata records null plus `context_guard_error`; it does not
+invent `usize::MAX` or a capped byte count. Successful observations keep their
+existing number field. No request limit, model eligibility, token threshold,
+provider bytes, permission or cancellation behavior changes. The private bounded
+rejection control exercises the error path without claiming an enormous request
+was allocated. The original JavaScript function can throw while serializing an
+unrepresentable body; native callers handle the typed unavailable result instead.
+
 Both diagnostic excerpt functions, `prompt_excerpt_document()` and
 `prompt_excerpt()`, return `Result<String, PromptExcerptError>`. Their `usize`
 bound must fit JavaScript's safe-integer range through

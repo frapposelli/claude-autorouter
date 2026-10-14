@@ -278,6 +278,12 @@ pub enum JsNode {
 pub struct JsDocument {
     nodes: Vec<JsNode>,
     root: NodeId,
+    serialized_len: OnceLock<usize>,
+}
+
+#[cfg(test)]
+thread_local! {
+    static LENGTH_TRAVERSALS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -529,6 +535,7 @@ impl<'a> Parser<'a> {
         Ok(JsDocument {
             nodes: self.nodes,
             root,
+            serialized_len: OnceLock::new(),
         })
     }
 }
@@ -666,7 +673,14 @@ impl JsDocument {
     /// Exact serialized byte charge with early limit rejection. Traversal uses
     /// one cursor per nesting level, never a stack of every opaque child, and
     /// does not allocate output, object-order indexes or UTF-16 string caches.
+    /// Only successful complete lengths are memoized; every call checks its
+    /// own limit. Clones own independent cells, and setters invalidate first.
     pub fn serialized_len_up_to(&self, limit: usize) -> Option<usize> {
+        if let Some(&length) = self.serialized_len.get() {
+            return (length <= limit).then_some(length);
+        }
+        #[cfg(test)]
+        LENGTH_TRAVERSALS.with(|count| count.set(count.get() + 1));
         enum Cursor<'a> {
             Node(NodeId),
             Array(&'a [NodeId], usize),
@@ -731,6 +745,9 @@ impl JsDocument {
                 return None;
             }
         }
+        // Computing before set avoids a full traversal inside get_or_init.
+        // Concurrent cold readers may compute independently; only success is stored.
+        let _ = self.serialized_len.set(length);
         Some(length)
     }
 
@@ -754,6 +771,9 @@ impl JsDocument {
         let value = Self::parse(bytes)?;
         let offset = self.nodes.len();
         let replacement = offset.checked_add(value.root).ok_or(JsonError)?;
+        // Exclusive mutation owns invalidation before any arena push, including
+        // a failed remap that might leave unreachable appended nodes.
+        self.serialized_len.take();
         for mut node in value.nodes {
             match &mut node {
                 JsNode::Array(children) => {
@@ -943,6 +963,171 @@ mod tests {
         let document = JsDocument::parse(wide.as_bytes()).unwrap();
         assert_eq!(document.serialized_len_up_to(wide.len()), Some(wide.len()));
         assert_eq!(document.serialized_len_up_to(1024), None);
+    }
+
+    fn exact_memo_limits(document: &JsDocument) {
+        let exact = document.stringify().len();
+        assert_eq!(document.serialized_len_up_to(usize::MAX), Some(exact));
+        assert_eq!(document.serialized_len.get(), Some(&exact));
+        for limit in [0, exact - 1, exact, exact + 1, usize::MAX] {
+            assert_eq!(
+                document.serialized_len_up_to(limit),
+                (exact <= limit).then_some(exact)
+            );
+        }
+    }
+
+    #[test]
+    fn length_memo_keeps_failures_out_and_checks_every_current_limit() {
+        LENGTH_TRAVERSALS.with(|count| count.set(0));
+        let input = format!("\"{}\"", "x".repeat(1024));
+        let document = JsDocument::parse(input.as_bytes()).unwrap();
+        assert_eq!(document.serialized_len_up_to(32), None);
+        assert!(document.serialized_len.get().is_none());
+        assert_eq!(LENGTH_TRAVERSALS.with(std::cell::Cell::get), 1);
+        exact_memo_limits(&document);
+        assert_eq!(LENGTH_TRAVERSALS.with(std::cell::Cell::get), 2);
+        assert_eq!(document.stringify(), input);
+        assert!(
+            document
+                .string(document.root())
+                .unwrap()
+                .0
+                .units
+                .get()
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn length_memo_clones_and_public_mutations_have_independent_identity() {
+        let mut original = JsDocument::parse(br#"{"model":"claude-haiku-4-5","nested":{"text":"\ud800","flag":false},"2":-0,"1":1e400,"2":"last"}"#).unwrap();
+        let mut cold_clone = original.clone();
+        assert!(cold_clone.serialized_len.get().is_none());
+        exact_memo_limits(&original);
+        assert!(cold_clone.serialized_len.get().is_none());
+        let wire = original.stringify();
+        let original_memo = original.serialized_len.get().copied();
+        let mut warm_clone = original.clone();
+        assert_eq!(
+            warm_clone.serialized_len.get(),
+            original.serialized_len.get()
+        );
+        let model = original.get(original.root(), "model").unwrap();
+        for (parent, value) in [
+            (model, b"true".as_slice()),
+            (usize::MAX, b"true".as_slice()),
+            (original.root(), b"[".as_slice()),
+        ] {
+            let memo = original.serialized_len.get().copied();
+            assert_eq!(
+                original.set_field_json(parent, "new", value),
+                Err(JsonError)
+            );
+            assert_eq!(original.serialized_len.get().copied(), memo);
+            assert_eq!(original.stringify(), wire);
+        }
+        cold_clone
+            .set_root_field_json("model", br#""claude-sonnet-5-5""#)
+            .unwrap();
+        assert!(cold_clone.serialized_len.get().is_none());
+        exact_memo_limits(&cold_clone);
+        assert_eq!(original.serialized_len.get().copied(), original_memo);
+        warm_clone
+            .set_root_field_json("opaque", br#"{"extra":"\u00e9\u0000"}"#)
+            .unwrap();
+        assert!(warm_clone.serialized_len.get().is_none());
+        exact_memo_limits(&warm_clone);
+        assert_eq!(original.serialized_len.get().copied(), original_memo);
+        let warm_memo = warm_clone.serialized_len.get().copied();
+        let warm_wire = warm_clone.stringify();
+        let nested = original.get(original.root(), "nested").unwrap();
+        original
+            .set_field_json(nested, "text", br#""longer\udc00""#)
+            .unwrap();
+        assert!(original.serialized_len.get().is_none());
+        exact_memo_limits(&original);
+        original.set_root_field_json("2", b"false").unwrap();
+        assert!(original.serialized_len.get().is_none());
+        exact_memo_limits(&original);
+        assert_eq!(warm_clone.stringify(), warm_wire);
+        assert_eq!(warm_clone.serialized_len.get().copied(), warm_memo);
+        assert_ne!(original.stringify(), wire);
+        assert_ne!(cold_clone.stringify(), wire);
+        exact_memo_limits(&cold_clone);
+        exact_memo_limits(&warm_clone);
+    }
+
+    #[test]
+    fn length_memo_never_reuses_a_model_sensitive_context_charge() {
+        LENGTH_TRAVERSALS.with(|count| count.set(0));
+        let mut document = JsDocument::parse(br#"{"model":"claude-haiku-4-5","tools":[{"name":"L","input_schema":{"type":"object"}},{"name":"D","defer_loading":true,"description":"unused synthetic schema","input_schema":{"type":"object"}}],"messages":[{"role":"user","content":"synthetic"}]}"#).unwrap();
+        let full = document.stringify().len() as u64;
+        let mut visible = None;
+        for model in ["claude-haiku-4-5", "claude-sonnet-5-5", "claude-opus-5-5"] {
+            let charge = crate::router::context_size_bytes(&document, model)
+                .unwrap()
+                .exact_safe_bytes()
+                .unwrap();
+            assert!(charge < full);
+            assert_eq!(*visible.get_or_insert(charge), charge);
+        }
+        assert_eq!(
+            crate::router::context_size_bytes(&document, "unknown-custom-model")
+                .unwrap()
+                .exact_safe_bytes(),
+            Some(full)
+        );
+        assert_eq!(LENGTH_TRAVERSALS.with(std::cell::Cell::get), 1);
+        let tools = document.get(document.root(), "tools").unwrap();
+        let Some(JsNode::Array(items)) = document.node(tools) else {
+            panic!("synthetic tools");
+        };
+        let deferred = items[1];
+        document
+            .set_field_json(deferred, "defer_loading", b"false")
+            .unwrap();
+        assert!(document.serialized_len.get().is_none());
+        let changed = document.stringify().len() as u64;
+        assert_eq!(
+            crate::router::context_size_bytes(&document, "claude-haiku-4-5")
+                .unwrap()
+                .exact_safe_bytes(),
+            Some(changed)
+        );
+        assert_eq!(LENGTH_TRAVERSALS.with(std::cell::Cell::get), 2);
+    }
+
+    #[test]
+    fn length_memo_shared_cold_readers_remain_send_sync_and_limit_correct() {
+        fn require_send_sync<T: Send + Sync>() {}
+        require_send_sync::<JsDocument>();
+        let input = format!("\"{}\"", "x".repeat(128 * 1024));
+        let document = Arc::new(JsDocument::parse(input.as_bytes()).unwrap());
+        let exact = input.len();
+        let limits = [0, 32, exact - 1, exact, exact + 1, usize::MAX];
+        let barrier = Arc::new(std::sync::Barrier::new(limits.len()));
+        let workers: Vec<_> = limits
+            .into_iter()
+            .map(|limit| {
+                let document = document.clone();
+                let barrier = barrier.clone();
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    assert_eq!(
+                        document.serialized_len_up_to(limit),
+                        (exact <= limit).then_some(exact)
+                    );
+                })
+            })
+            .collect();
+        for worker in workers {
+            worker.join().unwrap();
+        }
+        assert_eq!(document.serialized_len.get(), Some(&exact));
+        assert_eq!(document.stringify(), input);
+        exact_memo_limits(&document);
+        // Concurrent misses may each traverse; there is no single-flight claim.
     }
 
     fn normalized(input: &str) -> String {

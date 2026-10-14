@@ -281,15 +281,101 @@ fn known_deferred_tool(doc: &JsDocument, tool: NodeId) -> bool {
             .any(|allowed| key.units().iter().copied().eq(allowed.encode_utf16()))
     })
 }
-pub fn context_size_bytes(doc: &JsDocument, model: &str) -> usize {
+/// JavaScript Number byte charge, independent of the host pointer width.
+/// A non-safe Number is not an exact integer byte metric.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct ContextByteCharge(f64);
+impl ContextByteCharge {
+    pub fn as_source_number(self) -> f64 {
+        self.0
+    }
+    pub fn exact_safe_bytes(self) -> Option<u64> {
+        (self.0.is_finite()
+            && self.0 >= 0.0
+            && self.0 <= 9_007_199_254_740_991.0
+            && self.0.fract() == 0.0)
+            .then_some(self.0 as u64)
+    }
+    pub fn exceeds(self, threshold: u64) -> bool {
+        self.0 > threshold as f64
+    }
+    /// Preserve the Source JSON number shape, including -0 and nonfinite null.
+    pub fn to_json_value(self) -> Value {
+        if !self.0.is_finite() {
+            return Value::Null;
+        }
+        let mut buffer = ryu_js::Buffer::new();
+        let text = if self.0 == 0.0 {
+            "0"
+        } else {
+            buffer.format_finite(self.0)
+        };
+        Value::Number(serde_json::from_str(text).expect("finite JavaScript JSON number"))
+    }
+}
+
+/// The complete serialized length could not be represented. No byte count is
+/// available; callers must not substitute a maximum integer as telemetry.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ContextByteChargeUnavailable;
+impl ContextByteChargeUnavailable {
+    pub fn code(self) -> &'static str {
+        "serialized_length_unavailable"
+    }
+}
+impl std::fmt::Display for ContextByteChargeUnavailable {
+    fn fmt(&self, output: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        output.write_str("Context byte charge unavailable")
+    }
+}
+impl std::error::Error for ContextByteChargeUnavailable {}
+
+fn increment_context_reference(count: &mut f64) {
+    *count += 1.0;
+}
+fn repeated_context_bytes(repeated: f64, occurrences: f64, definition_bytes: usize) -> f64 {
+    repeated + (occurrences - 1.0) * definition_bytes as f64
+}
+fn visible_context_charge(
+    full: usize,
+    original_tools: usize,
+    visible_tools: usize,
+    repeated: f64,
+) -> Result<ContextByteCharge, ContextByteChargeUnavailable> {
+    let visible = full
+        .checked_sub(original_tools)
+        .and_then(|rest| rest.checked_add(visible_tools))
+        .ok_or(ContextByteChargeUnavailable)?;
+    // Match Source's final visible JSON bytes + repeatedBytes operation.
+    Ok(ContextByteCharge(visible as f64 + repeated))
+}
+fn requires_context_capacity_check(
+    charge: Result<ContextByteCharge, ContextByteChargeUnavailable>,
+) -> bool {
+    charge.map_or(true, |charge| charge.exceeds(150000))
+}
+
+/// Replaces the unchecked native usize result with a checked Source Number.
+/// Does not mutate the authoritative request or impose another request limit.
+pub fn context_size_bytes(
+    doc: &JsDocument,
+    model: &str,
+) -> Result<ContextByteCharge, ContextByteChargeUnavailable> {
+    context_size_bytes_up_to(doc, model, usize::MAX)
+}
+fn context_size_bytes_up_to(
+    doc: &JsDocument,
+    model: &str,
+    serialized_limit: usize,
+) -> Result<ContextByteCharge, ContextByteChargeUnavailable> {
     // Count the exact JSON byte charge without materializing the full body.
-    // Overflow cannot establish a small context, even with deferred schemas.
-    let Some(full) = doc.serialized_len_up_to(usize::MAX) else {
-        return usize::MAX;
+    // Unavailable length cannot establish a small context, even with deferred schemas.
+    let Some(full) = doc.serialized_len_up_to(serialized_limit) else {
+        return Err(ContextByteChargeUnavailable);
     };
     let tools_node = property(doc, doc.root(), "tools");
     let Some(tools) = array(doc, tools_node) else {
-        return full;
+        return Ok(ContextByteCharge(full as f64));
     };
     if !supports_tool_references(model)
         || !tools.iter().any(|n| known_deferred_tool(doc, *n))
@@ -301,13 +387,13 @@ pub fn context_size_bytes(doc: &JsDocument, model: &str) -> usize {
                 )
         })
     {
-        return full;
+        return Ok(ContextByteCharge(full as f64));
     }
     #[allow(
         clippy::mutable_key_type,
         reason = "JsString only caches immutable code units"
     )]
-    let mut references: HashMap<JsString, usize> = HashMap::new();
+    let mut references: HashMap<JsString, f64> = HashMap::new();
     let mut pending = array(doc, property(doc, doc.root(), "messages"))
         .unwrap_or_default()
         .to_vec();
@@ -326,16 +412,16 @@ pub fn context_size_bytes(doc: &JsDocument, model: &str) -> usize {
                         .and_then(|n| doc.string(n))
                         .filter(|s| !s.units().is_empty())
                     else {
-                        return full;
+                        return Ok(ContextByteCharge(full as f64));
                     };
-                    *references.entry(name.clone()).or_default() += 1;
+                    increment_context_reference(references.entry(name.clone()).or_default());
                 }
                 pending.extend(object.entries().iter().map(|(_, n)| *n));
             }
             _ => {}
         }
     }
-    let mut repeated = 0;
+    let mut repeated = 0.0;
     let mut visible = Vec::new();
     for &tool in tools {
         if known_deferred_tool(doc, tool) {
@@ -343,10 +429,11 @@ pub fn context_size_bytes(doc: &JsDocument, model: &str) -> usize {
                 .and_then(|n| doc.string(n))
                 .expect("validated name");
             let occurrences = references.get(name).copied().unwrap_or_default();
-            if occurrences > 1 {
-                repeated += (occurrences - 1) * doc.stringify_node(tool).len();
+            if occurrences > 1.0 {
+                repeated =
+                    repeated_context_bytes(repeated, occurrences, doc.stringify_node(tool).len());
             }
-            if occurrences == 0 {
+            if occurrences == 0.0 {
                 continue;
             }
         }
@@ -357,7 +444,12 @@ pub fn context_size_bytes(doc: &JsDocument, model: &str) -> usize {
     let original_tools = doc
         .stringify_node(tools_node.expect("checked tools array"))
         .len();
-    full - original_tools + format!("[{}]", visible.join(",")).len() + repeated
+    visible_context_charge(
+        full,
+        original_tools,
+        format!("[{}]", visible.join(",")).len(),
+        repeated,
+    )
 }
 fn has_content_block(doc: &JsDocument, types: &[&str]) -> bool {
     let mut pending: Vec<_> = array(doc, property(doc, doc.root(), "messages"))
@@ -615,7 +707,7 @@ impl Router {
             && !start.capacity_locked
             && start.options.count_tokens
             && can_upgrade_context(&self.config.models.haiku)
-            && (context_size_bytes(doc, &self.config.models.haiku) > 150000
+            && (requires_context_capacity_check(context_size_bytes(doc, &self.config.models.haiku))
                 || start.has_attachments)
         {
             start.early_count_model = Some(self.config.models.haiku.clone());
@@ -839,7 +931,8 @@ impl Router {
             reason = why.to_owned();
             preserved = true;
         }
-        let large_context = context_size_bytes(doc, &model) > 150000 || start.has_attachments;
+        let large_context = requires_context_capacity_check(context_size_bytes(doc, &model))
+            || start.has_attachments;
         let count_model = (large_context && !start.capacity_locked && can_upgrade_context(&model))
             .then(|| model.clone());
         RoutePending {
@@ -1275,24 +1368,246 @@ mod tests {
                 "claude-opus-5-5",
                 "unknown",
             ] {
-                assert_eq!(context_size_bytes(&doc, model), bytes);
+                assert_eq!(
+                    context_size_bytes(&doc, model).unwrap().to_json_value(),
+                    json!(bytes)
+                );
             }
         }
         for bytes in [149999, 150000, 150001] {
             let doc =
                 document(json!({"messages":[{"role":"user","content":"x".repeat(bytes - 43)}]}));
-            assert_eq!(context_size_bytes(&doc, "claude-haiku-4-5-20251001"), bytes);
+            assert_eq!(
+                context_size_bytes(&doc, "claude-haiku-4-5-20251001")
+                    .unwrap()
+                    .to_json_value(),
+                json!(bytes)
+            );
         }
     }
     #[test]
     fn deferred_schemas_count_only_when_referenced_and_count_repeated_expansion() {
         let mut body = json!({"model":"claude-haiku-4-5","tools":[{"name":"Loaded","input_schema":{"type":"object"}},{"name":"Deferred","defer_loading":true,"input_schema":{"type":"object"},"description":"schema ".repeat(30000)}],"messages":[{"role":"user","content":"Hi"}]});
         let original = document(body.clone());
-        assert!(context_size_bytes(&original, "claude-haiku-4-5") < 1000);
+        assert!(
+            context_size_bytes(&original, "claude-haiku-4-5")
+                .unwrap()
+                .as_source_number()
+                < 1000.0
+        );
         body["messages"][0]["content"] = json!([{"type":"tool_reference","tool_name":"Deferred"},{"type":"tool_reference","tool_name":"Deferred"}]);
         let referenced = document(body);
-        assert!(context_size_bytes(&referenced, "claude-haiku-4-5") > referenced.stringify().len());
+        assert!(
+            context_size_bytes(&referenced, "claude-haiku-4-5")
+                .unwrap()
+                .as_source_number()
+                > referenced.stringify().len() as f64
+        );
     }
+    #[test]
+    fn deferred_context_charge_matches_actual_source_above_u32_without_mutation() {
+        const CONTROL: &str =
+            include_str!("../../../parity/cases/context-byte-charge-width-controls.json");
+        assert!(CONTROL.len() <= 4096);
+        assert_eq!(
+            format!("{:x}", Sha256::digest(CONTROL.as_bytes())),
+            "7390f47cc144b742e1de4ef29541e828c5ef67fe3bc65178d3e788115d07a9c6"
+        );
+        let control: Value = serde_json::from_str(CONTROL).unwrap();
+        assert_eq!(
+            control["frozen_source"]["router_sha256"],
+            "aebf10268348f00b6c8cdc82ef9ced2d60c8e1cc0ddeee7c3498bcaf100b9d56"
+        );
+        assert_eq!(control["frozen_source"]["reference_files"], 111);
+        assert_eq!(control["frozen_source"]["pure_calls"], 13);
+        let make = |occurrences: usize| {
+            let mut wire = String::from(
+                r#"{"model":"claude-haiku-4-5","tools":[{"name":"L","input_schema":{"type":"object"}},{"name":"D","defer_loading":true,"input_schema":{"type":"object"},"description":""#,
+            );
+            wire.push_str(&"x".repeat(999907));
+            wire.push_str(r#""}],"messages":[{"role":"user","content":["#);
+            for index in 0..occurrences {
+                if index != 0 {
+                    wire.push(',');
+                }
+                wire.push_str(r#"{"type":"tool_use","name":"D"}"#);
+            }
+            wire.push_str("]}]}");
+            wire
+        };
+        for row in control["cases"].as_array().unwrap() {
+            let occurrences = usize::try_from(row["occurrences"].as_u64().unwrap()).unwrap();
+            let wire = make(occurrences);
+            assert!(wire.len() <= 2 * 1024 * 1024);
+            assert!(wire.len() <= control["default_max_request_bytes"].as_u64().unwrap() as usize);
+            assert_eq!(wire.len() as u64, row["wire_bytes"].as_u64().unwrap());
+            assert_eq!(
+                format!("{:x}", Sha256::digest(wire.as_bytes())),
+                row["wire_sha256"].as_str().unwrap()
+            );
+            let doc = JsDocument::parse(wire.as_bytes()).unwrap();
+            for model in control["models"].as_array().unwrap() {
+                let charge = context_size_bytes(&doc, model.as_str().unwrap()).unwrap();
+                assert_eq!(charge.exact_safe_bytes(), row["source_bytes"].as_u64());
+                assert_eq!(charge.to_json_value(), row["source_bytes"]);
+                assert!(charge.exceeds(150000));
+                assert_eq!(doc.stringify(), wire);
+            }
+            // These are pure/core-policy controls, not gateway validation or
+            // successful token counts/inference from the deliberately minimal wire.
+            let mut router = Router::new(config());
+            let count_model = router.config.models.haiku.clone();
+            let start = router.begin_route(
+                &doc,
+                RouteOptions {
+                    count_tokens: true,
+                    ..Default::default()
+                },
+                0,
+            );
+            assert!(start.passthrough.is_none());
+            assert_eq!(start.early_count_model.as_ref(), Some(&count_model));
+            assert_eq!(
+                context_size_bytes(&doc, "unknown-custom-model")
+                    .unwrap()
+                    .to_json_value(),
+                json!(wire.len())
+            );
+            let mut malformed = doc.clone();
+            let message = array(
+                &malformed,
+                property(&malformed, malformed.root(), "messages"),
+            )
+            .unwrap()[0];
+            let block = array(&malformed, property(&malformed, message, "content")).unwrap()[0];
+            malformed.set_field_json(block, "name", br#""""#).unwrap();
+            assert_eq!(
+                context_size_bytes(&malformed, "claude-haiku-4-5")
+                    .unwrap()
+                    .to_json_value(),
+                json!(wire.len() - 1)
+            );
+            let mut all_deferred = doc.clone();
+            let loaded = array(
+                &all_deferred,
+                property(&all_deferred, all_deferred.root(), "tools"),
+            )
+            .unwrap()[0];
+            all_deferred
+                .set_field_json(loaded, "defer_loading", b"true")
+                .unwrap();
+            assert_eq!(
+                context_size_bytes(&all_deferred, "claude-haiku-4-5")
+                    .unwrap()
+                    .to_json_value(),
+                json!(wire.len() + 21)
+            );
+            assert_eq!(doc.stringify(), wire);
+        }
+        let wire = make(4294);
+        let doc = JsDocument::parse(wire.as_bytes()).unwrap();
+        assert_eq!(
+            context_size_bytes(&doc, "claude-haiku-4-5")
+                .unwrap()
+                .to_json_value(),
+            control["adjacent"]["source_bytes"]
+        );
+    }
+
+    #[test]
+    fn context_charge_preserves_source_number_operation_order_and_json_shape() {
+        for (number, expected) in [
+            (0.0, json!(0)),
+            (-0.0, json!(0)),
+            (150000.0, json!(150000)),
+            (150001.0, json!(150001)),
+            (4295090321.0, json!(4295090321u64)),
+            (5000105126.0, json!(5000105126u64)),
+            (9007199254740991.0, json!(9007199254740991u64)),
+        ] {
+            let charge = ContextByteCharge(number);
+            assert_eq!(charge.to_json_value(), expected);
+            assert_eq!(charge.exact_safe_bytes(), expected.as_u64());
+            assert_eq!(charge.exceeds(150000), number > 150000.0);
+        }
+        // IEEE-754-only operands; no enormous reference list or request was
+        // allocated. Reassociation or a mathematical u64 sum changes this result.
+        let mut reference_count = 9007199254740992.0;
+        increment_context_reference(&mut reference_count);
+        assert_eq!(reference_count, 9007199254740992.0);
+        let big_occurrences = 140737488355329.0;
+        let big_first = repeated_context_bytes(0.0, big_occurrences, 64);
+        assert_eq!(big_first, 9007199254740992.0);
+        let big_first = repeated_context_bytes(big_first, 2.0, 83);
+        let big_first = repeated_context_bytes(big_first, 2.0, 83);
+        let small_first = repeated_context_bytes(0.0, 2.0, 83);
+        let small_first = repeated_context_bytes(small_first, 2.0, 83);
+        let small_first = repeated_context_bytes(small_first, big_occurrences, 64);
+        assert_eq!(big_first, 9007199254741160.0);
+        assert_eq!(small_first, 9007199254741158.0);
+        assert_ne!(big_first, small_first);
+        for number in [big_first, small_first] {
+            assert_eq!(ContextByteCharge(number).exact_safe_bytes(), None);
+            assert!(ContextByteCharge(number).exceeds(150000));
+            assert_eq!(
+                ContextByteCharge(number).to_json_value().as_f64(),
+                Some(number)
+            );
+        }
+        assert_eq!(
+            visible_context_charge(83, 0, 0, 9007199254740992.0)
+                .unwrap()
+                .as_source_number(),
+            9007199254741076.0
+        );
+        assert_eq!(
+            ContextByteCharge(f64::MAX).to_json_value().as_f64(),
+            Some(f64::MAX)
+        );
+        for number in [f64::INFINITY, f64::NEG_INFINITY, f64::NAN] {
+            assert_eq!(ContextByteCharge(number).to_json_value(), Value::Null);
+            assert_eq!(ContextByteCharge(number).exact_safe_bytes(), None);
+        }
+    }
+
+    #[test]
+    fn unavailable_context_length_requires_capacity_check_without_fake_bytes() {
+        let doc = JsDocument::parse(br#"{"messages":[]}"#).unwrap();
+        // Exercise the actual serialized-length rejection with a bounded
+        // private test limit, not a fabricated arena or an enormous allocation.
+        let unavailable = context_size_bytes_up_to(&doc, "claude-haiku-4-5", 0);
+        assert_eq!(unavailable, Err(ContextByteChargeUnavailable));
+        assert!(requires_context_capacity_check(unavailable));
+        assert_eq!(
+            ContextByteChargeUnavailable.code(),
+            "serialized_length_unavailable"
+        );
+        assert_eq!(
+            ContextByteChargeUnavailable.to_string(),
+            "Context byte charge unavailable"
+        );
+        assert_eq!(
+            visible_context_charge(0, 1, 0, 0.0),
+            Err(ContextByteChargeUnavailable)
+        );
+        assert_eq!(
+            visible_context_charge(usize::MAX, 0, 1, 0.0),
+            Err(ContextByteChargeUnavailable)
+        );
+        assert!(!requires_context_capacity_check(Ok(ContextByteCharge(
+            150000.0
+        ))));
+        assert!(requires_context_capacity_check(Ok(ContextByteCharge(
+            150001.0
+        ))));
+        assert_eq!(
+            context_size_bytes(&doc, "claude-haiku-4-5")
+                .unwrap()
+                .to_json_value(),
+            json!(15)
+        );
+    }
+
     #[test]
     fn counted_haiku_capacity_and_auto_floor_follow_policy() {
         let mut router = Router::new(config());

@@ -235,7 +235,15 @@ pub fn summarize(
     .collect();
     let truncated = typed.len() > 20;
     typed.truncate(20);
-    json!({"request_class":if ["main","compaction","auxiliary"].contains(&class){class}else{"unspecified"},"model":if safe_model(&model){model.as_str()}else{"custom"},"body_bytes":length,"context_guard_bytes":context_size_bytes(doc,&model),"system_bytes":field_raw(doc,"system").len(),"messages_bytes":field_raw(doc,"messages").len(),"tools_bytes":field_raw(doc,"tools").len(),"tools":tools.len(),"deferred_tools":deferred,"tool_search_present":search,"message_roles":roles,"thinking_type":if ["enabled","adaptive","disabled"].contains(&thinking.as_str()){thinking.as_str()}else{"unspecified"},"model_specific_fields":specific,"typed_tool_types":typed,"typed_tool_types_truncated":truncated,"evaluator_state_chars":serialized.encode_utf16().count(),"evaluator_contains_entered_prompt":serialized.contains(escaped),"request_contains_entered_prompt":field_raw(doc,"messages").contains(escaped),"evaluator_current_task_chars":state.current_task.units().len(),"entered_prompt_message_index":prompt_message.map(|n|n as i64).unwrap_or(-1),"entered_prompt_text_block_index":prompt_block.map(|n|n as i64).unwrap_or(-1),"entered_prompt_text_offset":offset.map(|n|n as i64).unwrap_or(-1),"first_user_text_block_chars":messages.iter().find(|&&m|field_string(doc,m,"role")=="user").and_then(|&m|blocks(doc,m).first().cloned()).map(|s|s.encode_utf16().count()).unwrap_or(0),"groups":groups})
+    let mut metadata = json!({"request_class":if ["main","compaction","auxiliary"].contains(&class){class}else{"unspecified"},"model":if safe_model(&model){model.as_str()}else{"custom"},"body_bytes":length,"context_guard_bytes":Value::Null,"system_bytes":field_raw(doc,"system").len(),"messages_bytes":field_raw(doc,"messages").len(),"tools_bytes":field_raw(doc,"tools").len(),"tools":tools.len(),"deferred_tools":deferred,"tool_search_present":search,"message_roles":roles,"thinking_type":if ["enabled","adaptive","disabled"].contains(&thinking.as_str()){thinking.as_str()}else{"unspecified"},"model_specific_fields":specific,"typed_tool_types":typed,"typed_tool_types_truncated":truncated,"evaluator_state_chars":serialized.encode_utf16().count(),"evaluator_contains_entered_prompt":serialized.contains(escaped),"request_contains_entered_prompt":field_raw(doc,"messages").contains(escaped),"evaluator_current_task_chars":state.current_task.units().len(),"entered_prompt_message_index":prompt_message.map(|n|n as i64).unwrap_or(-1),"entered_prompt_text_block_index":prompt_block.map(|n|n as i64).unwrap_or(-1),"entered_prompt_text_offset":offset.map(|n|n as i64).unwrap_or(-1),"first_user_text_block_chars":messages.iter().find(|&&m|field_string(doc,m,"role")=="user").and_then(|&m|blocks(doc,m).first().cloned()).map(|s|s.encode_utf16().count()).unwrap_or(0),"groups":groups});
+    match context_size_bytes(doc, &model) {
+        Ok(charge) => metadata["context_guard_bytes"] = charge.to_json_value(),
+        Err(error) => {
+            metadata["context_guard_bytes"] = Value::Null;
+            metadata["context_guard_error"] = json!(error.code());
+        }
+    }
+    metadata
 }
 fn decision_metadata(entry: &mut Value, decision: &Value) {
     for (out, input) in [

@@ -161,7 +161,9 @@ fn frozen_router_instances_match_complete_policy_schedules_and_pure_calls() {
                 pure[0] += 1;
                 let document = document(input, &dictionary);
                 assert_eq!(
-                    json!(context_size_bytes(&document, text(input, "model"))),
+                    context_size_bytes(&document, text(input, "model"))
+                        .expect("bounded frozen context fixture")
+                        .to_json_value(),
                     row["node_expected"],
                     "{}",
                     row["id"]

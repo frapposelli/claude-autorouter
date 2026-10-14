@@ -1,5 +1,9 @@
 //! Explicit JSON-config versus OS-environment setup input migration.
 //! These are real public admissions/compiler controls, not null/false CLI calls.
+#[path = "../../autorouter-core/tests/support/consumer_compiler.rs"]
+mod consumer_compiler;
+use consumer_compiler::CompileContext;
+
 use autorouter_core::{auth::Environment, config::read_config};
 use autorouter_runtime::user_config::environment_json;
 use serde_json::{Value, json};
@@ -95,7 +99,7 @@ fn external_os_environment_consumers_accept_strings_and_reject_value_bool_option
     use std::fs;
     use std::io::Read;
     use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt};
-    use std::process::{Command, Stdio};
+    use std::process::Stdio;
     use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
     struct Scratch(std::path::PathBuf);
     impl Drop for Scratch {
@@ -112,24 +116,9 @@ fn external_os_environment_consumers_accept_strings_and_reject_value_bool_option
             }
         }
     }
-    let deps = std::env::current_exe()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf();
-    let mut libraries: Vec<_> = fs::read_dir(&deps)
-        .unwrap()
-        .map(Result::unwrap)
-        .filter(|e| {
-            e.file_type().unwrap().is_file()
-                && e.file_name()
-                    .to_str()
-                    .is_some_and(|n| n.starts_with("libautorouter_core-") && n.ends_with(".rlib"))
-        })
-        .collect();
-    assert!(!libraries.is_empty() && libraries.len() <= 32);
-    libraries.sort_by_key(|e| e.metadata().unwrap().modified().unwrap());
-    let library = libraries.last().unwrap().path();
+    let context =
+        CompileContext::for_test(env!("CARGO_PKG_NAME"), "onboarding_environment_contracts");
+    let library = context.library();
     let scratch = Scratch(std::env::temp_dir().join(format!(
             "autorouter-environment-consumer-{}-{}",
             std::process::id(),
@@ -181,17 +170,8 @@ fn external_os_environment_consumers_accept_strings_and_reject_value_bool_option
                 .open(&output)
                 .unwrap();
             let mut child = Owner(
-                Command::new(std::env::var_os("RUSTC").unwrap_or_else(|| "rustc".into()))
-                    .args([
-                        "--crate-type=lib",
-                        "--edition=2024",
-                        "--emit=metadata",
-                        "--error-format=json",
-                    ])
-                    .arg("--extern")
-                    .arg(format!("autorouter_core={}", library.display()))
-                    .arg("-L")
-                    .arg(format!("dependency={}", deps.display()))
+                context
+                    .command()
                     .arg("--out-dir")
                     .arg(&scratch.0)
                     .arg(&input)
@@ -256,6 +236,6 @@ fn external_os_environment_consumers_accept_strings_and_reject_value_bool_option
     assert_eq!(reports.len(), 12);
     save(
         "compile-controls",
-        &json!({"controls":reports,"core_rlib_sha256":format!("{:x}",Sha256::digest(fs::read(&library).unwrap())),"core_rlib_path":library,"provenance":"Local hash-bound consumer API evidence; newest matching library selection is not source-to-binary release attestation."}),
+        &json!({"controls":reports,"core_rlib_sha256":format!("{:x}",Sha256::digest(fs::read(library).unwrap())),"core_rlib_path":library,"provenance":"Local hash-bound consumer API evidence; exact executed-test Cargo dependency context, target, host search path and tokenized rustflags are replayed. This is not source-to-binary release attestation."}),
     );
 }

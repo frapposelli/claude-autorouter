@@ -3,17 +3,8 @@ use autorouter_core::config::{RouterConfig, read_config};
 use autorouter_core::js_json::JsDocument;
 use autorouter_core::prompt_state::{build_ollama_state_document, build_state_document};
 use autorouter_runtime::evaluator::{EvaluationError, evaluate_serialized_answer};
-use autorouter_runtime::http_client::{HttpError, HttpTransport};
-use bytes::Bytes;
-use http_body_util::{BodyExt, Full};
-use hyper::{Request, Response};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
-use std::collections::VecDeque;
-use std::sync::{
-    Arc, Mutex,
-    atomic::{AtomicUsize, Ordering},
-};
 use std::time::Duration;
 use tokio_util::sync::CancellationToken;
 
@@ -21,8 +12,6 @@ const CORPUS: &str =
     include_str!("../../../../parity/cases/ollama-evaluator-finite-contracts.jsonl");
 const CAPTURE: &str =
     include_str!("../../../../parity/cases/ollama-evaluator-finite-contracts.capture.json");
-const MAX_REQUEST_BYTES: usize = 64 * 1024;
-const MAX_RESPONSE_BYTES: usize = 1024 * 1024;
 
 pub fn cases() -> Vec<Value> {
     let digest = format!("{:x}", Sha256::digest(CORPUS.as_bytes()));
@@ -44,78 +33,11 @@ pub fn cases() -> Vec<Value> {
     rows
 }
 
-pub struct Replay {
-    remaining: Mutex<VecDeque<Value>>,
-    observed: Mutex<Vec<Value>>,
-    invalid: AtomicUsize,
-    expected_count: usize,
-}
-impl Replay {
-    pub fn new(requests: Vec<Value>) -> Arc<Self> {
-        assert!(requests.len() <= 2);
-        for request in &requests {
-            assert!(
-                request["response"]["body"]["text"].as_str().unwrap().len() <= MAX_RESPONSE_BYTES
-            );
-        }
-        Arc::new(Self {
-            expected_count: requests.len(),
-            remaining: Mutex::new(requests.into()),
-            observed: Mutex::new(Vec::new()),
-            invalid: AtomicUsize::new(0),
-        })
-    }
-    pub fn observed(&self) -> Vec<Value> {
-        self.observed.lock().unwrap().clone()
-    }
-    pub fn verified(&self) -> bool {
-        self.invalid.load(Ordering::SeqCst) == 0
-            && self.remaining.lock().unwrap().is_empty()
-            && self.observed.lock().unwrap().len() == self.expected_count
-    }
-}
+#[path = "finite_http.rs"]
+mod finite_http;
+pub type Replay = finite_http::Replay<2, true>;
 pub fn request_observation(request: &Value) -> Value {
-    json!({"url":request["url"],"method":request["method"],"headers":request["headers"],"body":request["body"],"body_text":request["body_text"]})
-}
-impl HttpTransport for Replay {
-    type ResponseBody = Full<Bytes>;
-    async fn request(
-        &self,
-        request: Request<Full<Bytes>>,
-    ) -> Result<Response<Self::ResponseBody>, HttpError> {
-        let expected = self.remaining.lock().unwrap().pop_front();
-        let Some(expected) = expected else {
-            self.invalid.fetch_add(1, Ordering::SeqCst);
-            return Err(HttpError::Network);
-        };
-        let (parts, body) = request.into_parts();
-        let bytes = body.collect().await.unwrap().to_bytes();
-        assert!(bytes.len() <= MAX_REQUEST_BYTES, "synthetic request bound");
-        let headers: serde_json::Map<String, Value> = parts
-            .headers
-            .iter()
-            .map(|(key, value)| (key.to_string(), json!(value.to_str().unwrap())))
-            .collect();
-        let observed = json!({"url":parts.uri.to_string(),"method":parts.method.as_str(),"headers":headers,
-            "body":if bytes.is_empty(){Value::Null}else{serde_json::from_slice::<Value>(&bytes).unwrap()},
-            "body_text":std::str::from_utf8(&bytes).unwrap()});
-        if observed != request_observation(&expected) {
-            self.invalid.fetch_add(1, Ordering::SeqCst);
-        }
-        self.observed.lock().unwrap().push(observed);
-        // Return the scripted response even for a mismatched request: the
-        // independent invalid counter must reject otherwise matching errors.
-        let response = &expected["response"];
-        let mut builder = Response::builder().status(response["status"].as_u64().unwrap() as u16);
-        for (key, value) in response["headers"].as_object().unwrap() {
-            builder = builder.header(key.as_str(), value.as_str().unwrap());
-        }
-        Ok(builder
-            .body(Full::new(Bytes::from(
-                response["body"]["text"].as_str().unwrap().to_owned(),
-            )))
-            .unwrap())
-    }
+    finite_http::request_observation::<true>(request)
 }
 
 // JS JSON Number equality: normalize the representational1 versus1.0

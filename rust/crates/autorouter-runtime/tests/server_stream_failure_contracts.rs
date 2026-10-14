@@ -1,4 +1,11 @@
 //! Complete frozen server #25–#28 stream failure and cancellation schedules; #26 async-return remains partial.
+#[allow(dead_code)] // Shared helpers retain separate policies used by sibling targets.
+#[path = "support/server_contract.rs"]
+mod contract;
+use contract::{
+    compare_metadata, compare_request, decode, event_names, events, headers, parsed, same_request,
+    sink, upstream_rows,
+};
 #[path = "support/server_stream_failure.rs"]
 mod peer;
 use autorouter_core::{config::read_config, js_json::JsDocument, router::RouteOptions};
@@ -17,7 +24,7 @@ use peer::{Observation, Peer};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::BTreeMap,
     path::Path,
     sync::{
         Arc, Mutex,
@@ -52,109 +59,6 @@ fn case(number: usize) -> Value {
         .map(|line| serde_json::from_str::<Value>(line).unwrap())
         .find(|row| row["source_test"] == format!("test/server.test.mjs#{number}"))
         .unwrap()
-}
-fn parsed(bytes: &[u8]) -> Value {
-    serde_json::from_slice(bytes).unwrap()
-}
-fn headers(value: &Value) -> HeaderMap {
-    let mut out = HeaderMap::new();
-    for (key, value) in value.as_object().unwrap() {
-        out.insert(
-            hyper::header::HeaderName::from_bytes(key.as_bytes()).unwrap(),
-            value.as_str().unwrap().parse().unwrap(),
-        );
-    }
-    out
-}
-fn header_is(map: &HeaderMap, name: &str, value: Option<&str>) -> bool {
-    map.get(name).and_then(|value| value.to_str().ok()) == value
-}
-fn decode(value: &Value) -> Vec<u8> {
-    let value = value.as_str().unwrap();
-    assert!(value.len() < LIMIT * 2);
-    openssl::base64::decode_block(value).unwrap()
-}
-fn upstream_rows(row: &Value) -> Vec<Value> {
-    row["peers"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .find(|row| row["role"] == "upstream")
-        .unwrap()["requests"]
-        .as_array()
-        .unwrap()
-        .clone()
-}
-fn events(rows: &[Value], name: &str) -> Vec<Value> {
-    rows.iter()
-        .filter(|row| row["event"] == name)
-        .cloned()
-        .collect()
-}
-fn event_names(rows: &[Value]) -> Vec<String> {
-    rows.iter()
-        .map(|row| row["event"].as_str().unwrap().to_owned())
-        .collect()
-}
-fn sink(active: &Events, history: &Events) -> EventSink {
-    let (active, history) = (active.clone(), history.clone());
-    Arc::new(move |event| {
-        let value = event.to_serde_observation_lossy();
-        for rows in [&active, &history] {
-            let mut rows = rows.lock().unwrap();
-            if rows.len() >= 128 {
-                if rows.len() == 128 {
-                    rows.push(json!({"event":"fixture_observer_overflow"}));
-                }
-                continue;
-            }
-            rows.push(value.clone());
-        }
-    })
-}
-fn same_request(observed: &Observation, wanted: &Value) -> bool {
-    observed.method == wanted["method"].as_str().unwrap()
-        && observed.path == wanted["path"].as_str().unwrap()
-        && header_is(
-            &observed.headers,
-            "x-claude-code-session-id",
-            wanted["headers"]["x-claude-code-session-id"].as_str(),
-        )
-}
-fn compare_request(observed: &Observation, wanted: &Value) -> Result<(), String> {
-    if !same_request(observed, wanted) {
-        return Err("unexpected peer method/path/session".into());
-    }
-    for name in [
-        "authorization",
-        "x-api-key",
-        "x-autorouter-token",
-        "cookie",
-        "anthropic-beta",
-        "anthropic-version",
-        "accept-encoding",
-        "x-claude-code-session-id",
-        "x-claude-code-agent-id",
-        "x-claude-code-prompt-id",
-        "x-claude-code-request-class",
-    ] {
-        if !header_is(
-            &observed.headers,
-            name,
-            wanted["headers"].get(name).and_then(Value::as_str),
-        ) {
-            return Err(format!("semantic header mismatch: {name}"));
-        }
-    }
-    let expected = wanted["request_body_utf8"].as_str().unwrap().as_bytes();
-    if expected.is_empty() {
-        if !observed.body.is_empty() {
-            return Err("unexpected discovery body".into());
-        }
-    } else if parsed(&observed.body) != parsed(expected) {
-        return Err("complete forwarded request differs".into());
-    }
-    Ok(())
 }
 struct MockRouter {
     decisions: Vec<Value>,
@@ -356,19 +260,7 @@ impl Fixture {
             .map_err(|error| error.to_string())
     }
     async fn wait_for_status(&self, event: &str) -> Result<(), String> {
-        for _ in 0..100 {
-            if self
-                .statuses
-                .lock()
-                .unwrap()
-                .iter()
-                .any(|row| row["event"] == event)
-            {
-                return Ok(());
-            }
-            tokio::time::sleep(Duration::from_millis(5)).await;
-        }
-        Err(format!("missing status event: {event}"))
+        contract::wait_for_status(&self.statuses, event).await
     }
     async fn finish(mut self) -> Result<Seen, String> {
         // Preserve the actual pre-close observation boundary. Shutdown itself
@@ -462,74 +354,6 @@ impl Assertions {
         );
     }
 }
-fn javascript_number_equality(wanted: &Value, got: &Value) -> bool {
-    match (wanted, got) {
-        (Value::Number(left), Value::Number(right)) => left.as_f64() == right.as_f64(),
-        (Value::Array(left), Value::Array(right)) => {
-            left.len() == right.len()
-                && left
-                    .iter()
-                    .zip(right)
-                    .all(|(a, b)| javascript_number_equality(a, b))
-        }
-        (Value::Object(left), Value::Object(right)) => {
-            left.len() == right.len()
-                && left.iter().all(|(key, value)| {
-                    right
-                        .get(key)
-                        .is_some_and(|got| javascript_number_equality(value, got))
-                })
-        }
-        _ => wanted == got,
-    }
-}
-fn compare_metadata(wanted: &Value, got: &Value) {
-    // This is a semantic comparison, not a rewritten observation. Undefined
-    // source fields must be absent in the Rust Value interface. Number values
-    // use JavaScript equality; only actual measured timings have no equality
-    // oracle. Deterministic injected routing times remain exact.
-    let expected = wanted.as_object().unwrap();
-    let actual = got.as_object().unwrap();
-    let excluded = ["request_id", "first_response_ms", "total_latency_ms"];
-    let keys = expected
-        .iter()
-        .filter(|(key, value)| {
-            !excluded.contains(&key.as_str()) && value["$js_type"] != "undefined"
-        })
-        .map(|(key, _)| key)
-        .collect::<BTreeSet<_>>();
-    let actual_keys = actual
-        .keys()
-        .filter(|key| !excluded.contains(&key.as_str()))
-        .collect::<BTreeSet<_>>();
-    assert_eq!(keys, actual_keys, "complete safe event field set");
-    for key in keys {
-        assert!(
-            javascript_number_equality(&expected[key], &actual[key]),
-            "safe event field {key}: expected {:?}, observed {:?}",
-            expected[key],
-            actual[key]
-        );
-    }
-    for key in ["first_response_ms", "total_latency_ms"] {
-        if expected
-            .get(key)
-            .is_some_and(|value| value["$js_type"] != "undefined")
-        {
-            assert!(
-                actual[key]
-                    .as_f64()
-                    .is_some_and(|value| value.is_finite() && value >= 0.0),
-                "validated actual measured timing {key}"
-            );
-        } else {
-            assert!(
-                !actual.contains_key(key),
-                "source timing absence stays absent: {key}"
-            );
-        }
-    }
-}
 fn supplemental_transcripts(row: &Value, reply: &Reply, seen: &Seen) {
     let expected = upstream_rows(row);
     assert_eq!(seen.requests.len(), expected.len());
@@ -615,23 +439,7 @@ fn supplemental_transcripts(row: &Value, reply: &Reply, seen: &Seen) {
     if let Some(directory) = std::env::var_os("AUTOROUTER_NATIVE_PARITY_CAPTURE_DIR") {
         let request = |r: &Observation| json!({"method":r.method,"path":r.path,"headers":r.headers.iter().map(|(k,v)|(k.as_str().to_owned(),v.to_str().unwrap().to_owned())).collect::<BTreeMap<_,_>>(),"body_utf8":std::str::from_utf8(&r.body).unwrap()});
         let raw = json!({"schema_version":1,"source_test":row["source_test"],"status":if row["source_test"]=="test/server.test.mjs#26"{"partial_async_callback_API"}else{"passed"},"upstream_requests":seen.requests.iter().map(request).collect::<Vec<_>>(),"route_calls":seen.routes,"complete_calls":seen.completions,"statuses":seen.statuses,"all_emitted_statuses":seen.history,"logs":seen.logs,"decisions":seen.decisions,"callback_outcomes":seen.callback_outcomes,"route_token_cancelled":seen.router_cancelled,"route_cancellation_branch_resumed":seen.cancellation_branch_resumed,"route_future_destroyed":seen.router_dropped,"provider_destroyed_after_first_read":seen.provider_destroyed,"provider_connection_closed_by_gateway":seen.provider_peer_closed,"downstream":{"status":reply.status,"headers":reply.headers.iter().map(|(k,v)|(k.as_str().to_owned(),v.to_str().unwrap().to_owned())).collect::<BTreeMap<_,_>>(),"body_base64":openssl::base64::encode_block(&reply.bytes),"body_rejected":reply.body_rejected,"request_cancelled":reply.request_cancelled},"projection":"None. Native raw IDs, numbers, timing values, callback kinds, headers and complete delivered bytes remain unchanged."});
-        let bytes = serde_json::to_vec_pretty(&raw).unwrap();
-        assert!(bytes.len() < LIMIT);
-        use std::io::Write;
-        let mut options = std::fs::OpenOptions::new();
-        options.write(true).create_new(true);
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::OpenOptionsExt;
-            options.mode(0o600);
-        }
-        let mut file = options
-            .open(
-                Path::new(&directory).join(format!("{}.native.json", row["id"].as_str().unwrap())),
-            )
-            .unwrap();
-        file.write_all(&bytes).unwrap();
-        file.write_all(b"\n").unwrap();
+        contract::write_row_capture(&directory, &row["id"], &raw, LIMIT, false);
     }
 }
 #[tokio::test]

@@ -7,9 +7,13 @@ use serde_json::{Value, json};
 use std::fs;
 use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt};
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
+
+#[path = "support/consumer_compiler.rs"]
+mod consumer_compiler;
+use consumer_compiler::CompileContext;
 
 #[path = "support/router_contract.rs"]
 mod support;
@@ -33,7 +37,7 @@ impl Drop for Scratch {
         let _ = fs::remove_dir_all(&self.0);
     }
 }
-fn compile(directory: &Path, library: &Path, scratch: &Path, source: &str) -> (bool, Vec<Value>) {
+fn compile(context: &CompileContext, scratch: &Path, source: &str) -> (bool, Vec<Value>) {
     let input = scratch.join("consumer.rs");
     fs::write(&input, source).unwrap();
     let errors = scratch.join("errors.jsonl");
@@ -44,15 +48,8 @@ fn compile(directory: &Path, library: &Path, scratch: &Path, source: &str) -> (b
         .mode(0o600)
         .open(&errors)
         .unwrap();
-    let mut child = Command::new(std::env::var_os("RUSTC").unwrap_or_else(|| "rustc".into()))
-        .arg("--crate-type=lib")
-        .arg("--edition=2024")
-        .arg("--emit=metadata")
-        .arg("--error-format=json")
-        .arg("--extern")
-        .arg(format!("autorouter_core={}", library.display()))
-        .arg("-L")
-        .arg(format!("dependency={}", directory.display()))
+    let mut child = context
+        .command()
         .arg("--out-dir")
         .arg(scratch)
         .arg(&input)
@@ -87,24 +84,7 @@ fn compile(directory: &Path, library: &Path, scratch: &Path, source: &str) -> (b
 
 #[test]
 fn documented_producers_compile_and_each_invalid_contract_has_its_own_diagnostic() {
-    let directory = std::env::current_exe()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf();
-    let mut libraries: Vec<_> = fs::read_dir(&directory)
-        .unwrap()
-        .map(Result::unwrap)
-        .filter(|entry| {
-            entry.file_name().to_str().is_some_and(|name| {
-                name.starts_with("libautorouter_core-") && name.ends_with(".rlib")
-            })
-        })
-        .filter(|entry| entry.file_type().unwrap().is_file())
-        .collect();
-    assert!(!libraries.is_empty() && libraries.len() <= 32);
-    libraries.sort_by_key(|entry| entry.metadata().unwrap().modified().unwrap());
-    let library = libraries.last().unwrap().path();
+    let context = CompileContext::for_test(env!("CARGO_PKG_NAME"), "typed_contracts");
     let scratch = Scratch::new();
     let prefix = r#"use autorouter_core::contracts::*;
 use autorouter_core::config::{Evaluator, RouterConfig};
@@ -119,7 +99,7 @@ latency_ms: Some(1.0), completion_confirmed: Some(true), ..TelemetryFields::defa
 let event = LifecycleEvent { context: &context, event: LifecycleName::Route, fields: &fields };
 let _ = (&event, config.jev_timeout_ms);
 "#;
-    let (accepted, diagnostics) = compile(&directory, &library, &scratch.0, &format!("{prefix}}}"));
+    let (accepted, diagnostics) = compile(&context, &scratch.0, &format!("{prefix}}}"));
     assert!(
         accepted,
         "Positive typed consumer must compile: {diagnostics:?}"
@@ -175,12 +155,7 @@ let _ = (&event, config.jev_timeout_ms);
             "timeout",
         ),
     ] {
-        let (accepted, diagnostics) = compile(
-            &directory,
-            &library,
-            &scratch.0,
-            &format!("{prefix}{fault}}}"),
-        );
+        let (accepted, diagnostics) = compile(&context, &scratch.0, &format!("{prefix}{fault}}}"));
         assert!(!accepted, "Invalid producer unexpectedly compiled: {field}");
         assert!(
             diagnostics

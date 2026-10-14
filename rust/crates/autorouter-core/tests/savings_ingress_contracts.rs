@@ -1,4 +1,8 @@
 //! Exact savings #8/#17/#18; explicit nonfinite/getter/owned-facts boundaries.
+#[path = "support/consumer_compiler.rs"]
+mod consumer_compiler;
+use consumer_compiler::CompileContext;
+
 use autorouter_core::{
     js_json::{JsDocument, JsNode},
     savings::{PRICING_DATE, PRICING_SOURCE, PRICING_VERSION, SavingsTracker, pricing_facts},
@@ -378,7 +382,7 @@ fn original_18_complete_dated_table_and_detached_mutations_preserve_internal_pri
 fn native_consumer_controls_accept_plain_value_and_reject_host_getters_and_private_rates() {
     use std::fs;
     use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt};
-    use std::process::{Command, Stdio};
+    use std::process::Stdio;
     use std::time::{Duration, Instant};
     struct Scratch(std::path::PathBuf);
     impl Drop for Scratch {
@@ -386,24 +390,8 @@ fn native_consumer_controls_accept_plain_value_and_reject_host_getters_and_priva
             let _ = fs::remove_dir_all(&self.0);
         }
     }
-    let directory = std::env::current_exe()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf();
-    let mut libraries: Vec<_> = fs::read_dir(&directory)
-        .unwrap()
-        .map(Result::unwrap)
-        .filter(|e| {
-            e.file_name()
-                .to_str()
-                .is_some_and(|n| n.starts_with("libautorouter_core-") && n.ends_with(".rlib"))
-        })
-        .filter(|e| e.file_type().unwrap().is_file())
-        .collect();
-    assert!(!libraries.is_empty() && libraries.len() <= 32);
-    libraries.sort_by_key(|e| e.metadata().unwrap().modified().unwrap());
-    let library = libraries.last().unwrap().path();
+    let context = CompileContext::for_test(env!("CARGO_PKG_NAME"), "savings_ingress_contracts");
+    let library = context.library();
     let scratch = Scratch(std::env::temp_dir().join(format!(
         "autorouter-savings-consumer-{}",
         std::process::id()
@@ -449,17 +437,8 @@ fn native_consumer_controls_accept_plain_value_and_reject_host_getters_and_priva
             .open(&errors)
             .unwrap();
         let mut child = OwnedChild(
-            Command::new(std::env::var_os("RUSTC").unwrap_or_else(|| "rustc".into()))
-                .args([
-                    "--crate-type=lib",
-                    "--edition=2024",
-                    "--emit=metadata",
-                    "--error-format=json",
-                ])
-                .arg("--extern")
-                .arg(format!("autorouter_core={}", library.display()))
-                .arg("-L")
-                .arg(format!("dependency={}", directory.display()))
+            context
+                .command()
                 .arg("--out-dir")
                 .arg(&scratch.0)
                 .arg(&input)

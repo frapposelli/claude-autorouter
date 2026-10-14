@@ -59,6 +59,7 @@ const FIXED: &[&str] = &[
     "rust/docs/compare-live.md",
     "rust/parity/cases/router-contracts.jsonl",
     "rust/parity/cases/router-contracts.capture.json",
+    "rust/parity/cases/context-byte-charge-width-controls.json",
     "rust/parity/cases/router-concurrency-contracts.jsonl",
     "rust/parity/cases/router-concurrency-contracts.capture.json",
     "rust/parity/cases/evaluation-report-contracts.jsonl",

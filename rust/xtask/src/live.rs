@@ -306,8 +306,13 @@ where
             evidence["expected_classified_tier"] = expected;
         }
         if self.scenario["syntheticReminder"] == true {
-            evidence["context_guard_bytes"] =
-                json!(context_size_bytes(&doc, &field(&doc, doc.root(), "model")));
+            match context_size_bytes(&doc, &field(&doc, doc.root(), "model")) {
+                Ok(charge) => evidence["context_guard_bytes"] = charge.to_json_value(),
+                Err(error) => {
+                    evidence["context_guard_bytes"] = Value::Null;
+                    evidence["context_guard_error"] = json!(error.code());
+                }
+            }
             let escaped = self.scenario["prompts"][0].to_string();
             evidence["classifier_contains_example"] =
                 json!(state.stringify().contains(&escaped[1..escaped.len() - 1]));

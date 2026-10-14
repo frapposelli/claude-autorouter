@@ -155,7 +155,9 @@ pub fn execute(fixture: &Value, cwd: &Path) -> Result<Value, String> {
                         .and_then(|s| s.to_scalar())
                 })
                 .unwrap_or_default();
-            Ok(json!(crate::router::context_size_bytes(&document, &model)))
+            crate::router::context_size_bytes(&document, &model)
+                .map(|charge| charge.to_json_value())
+                .map_err(|error| error.to_string())
         }
         "build_state" => Ok(crate::prompt_state::build_state(
             field(input, "body")?,
