@@ -214,14 +214,15 @@ pub fn execute(fixture: &Value, cwd: &Path) -> Result<Value, String> {
                     .collect::<Result<Vec<_>, _>>()?;
                 let document = crate::js_json::JsDocument::parse(&bytes)
                     .map_err(|_| "Invalid JSON fixture")?;
-                Ok(json!(crate::prompt_state::prompt_excerpt_document(
-                    &document, maximum
-                )))
+                Ok(json!(
+                    crate::prompt_state::prompt_excerpt_document(&document, maximum)
+                        .map_err(|_| "maxChars must be a nonnegative safe integer")?
+                ))
             } else {
-                Ok(json!(crate::prompt_state::prompt_excerpt(
-                    field(input, "body")?,
-                    maximum
-                )))
+                Ok(json!(
+                    crate::prompt_state::prompt_excerpt(field(input, "body")?, maximum)
+                        .map_err(|_| "maxChars must be a nonnegative safe integer")?
+                ))
             }
         }
         "status_state" => crate::status_state::run_fixture(input),

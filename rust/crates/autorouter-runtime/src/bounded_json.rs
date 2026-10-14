@@ -94,11 +94,13 @@ fn check_limit(
     limit: usize,
     cancellation: &CancellationToken,
 ) -> Result<(), ReadError> {
-    if cancellation.is_cancelled() {
-        return Err(ReadError::Cancelled);
-    }
+    // Source admits the limit before observing caller cancellation. A valid
+    // cancellation still wins before the Content-Length early rejection.
     if limit == 0 || limit as u128 > 9_007_199_254_740_991 {
         return Err(ReadError::InvalidResponse);
+    }
+    if cancellation.is_cancelled() {
+        return Err(ReadError::Cancelled);
     }
     if let Some(length) = headers
         .get(hyper::header::CONTENT_LENGTH)

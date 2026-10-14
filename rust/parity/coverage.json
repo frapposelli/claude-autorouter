@@ -11736,23 +11736,36 @@
       "file": "test/onboarding.test.mjs",
       "name": "explicit local diagnosis bypasses cloud credentials and Claude authentication and keeps JSON output singular",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/local_diagnostic.rs#synthetic_diagnostic_separates_labels_from_transport_and_task_claims"
+        "rust/crates/autorouter-runtime/src/local_diagnostic.rs#synthetic_diagnostic_separates_labels_from_transport_and_task_claims",
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#doctor_dispatch_contracts::original31_actual_cli_without_claude_and_json_progress_isolation"
       ],
       "shared_cases": [],
       "evidence": {
-        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+        "path": "rust/parity/assertion-mappings/doctor-dispatch-contracts.json",
+        "bytes": 35249,
+        "sha256": "cfd35d7f09698889248ef6ca47d100a9c13670c35de025e1a5388f2d95882c28"
       },
       "related_components": [
         "config_auth_policy",
         "native_cli_package"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/cli-tooling.json",
-      "remaining_assertions": [
-        "doctor --evaluate-local --json dispatch with saved API mode but absent credentials, zero Claude subprocesses, custom model and exactly one JSON record despite progress is not tested at CLI boundary."
+      "assertion_mapping": "rust/parity/assertion-mappings/doctor-dispatch-contracts.json",
+      "remaining_assertions": [],
+      "evidence_history": [
+        {
+          "status": "partial_assertion_mapping",
+          "evidence": {
+            "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+            "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+            "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+          },
+          "assertion_mapping": "rust/parity/assertion-mappings/cli-tooling.json",
+          "remaining_assertions": [
+            "doctor --evaluate-local --json dispatch with saved API mode but absent credentials, zero Claude subprocesses, custom model and exactly one JSON record despite progress is not tested at CLI boundary."
+          ]
+        }
       ]
     },
     {
@@ -11760,23 +11773,37 @@
       "file": "test/onboarding.test.mjs",
       "name": "local diagnosis rejects the cloud backend without requests and caller cancellation propagates",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/local_diagnostic.rs#invalid_settings_and_early_cancellation_do_not_perform_io"
+        "rust/crates/autorouter-runtime/src/local_diagnostic.rs#invalid_settings_and_early_cancellation_do_not_perform_io",
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#doctor_dispatch_contracts::original32_cloud_backend_rejection_performs_zero_requests_and_claude_work",
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#doctor_dispatch_contracts::original32_actual_dispatch_cancels_stalled_headers_and_response_body"
       ],
       "shared_cases": [],
       "evidence": {
-        "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+        "path": "rust/parity/assertion-mappings/doctor-dispatch-contracts.json",
+        "bytes": 35249,
+        "sha256": "cfd35d7f09698889248ef6ca47d100a9c13670c35de025e1a5388f2d95882c28"
       },
       "related_components": [
         "config_auth_policy",
         "native_cli_package"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/cli-tooling.json",
-      "remaining_assertions": [
-        "Doctor wrapper cloud-backend JSON configuration_error/no subprocess/inference and later cancellation propagation are not mapped; component tests do not prove dispatcher behavior."
+      "assertion_mapping": "rust/parity/assertion-mappings/doctor-dispatch-contracts.json",
+      "remaining_assertions": [],
+      "evidence_history": [
+        {
+          "status": "partial_assertion_mapping",
+          "evidence": {
+            "log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+            "log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+            "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate."
+          },
+          "assertion_mapping": "rust/parity/assertion-mappings/cli-tooling.json",
+          "remaining_assertions": [
+            "Doctor wrapper cloud-backend JSON configuration_error/no subprocess/inference and later cancellation propagation are not mapped; component tests do not prove dispatcher behavior."
+          ]
+        }
       ]
     },
     {
@@ -11784,23 +11811,37 @@
       "file": "test/onboarding.test.mjs",
       "name": "setup cancellation stops before prompts, local requests, and saving",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#pre_cancelled_setup_performs_no_keychain_input_output_or_file_access"
+        "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#pre_cancelled_setup_performs_no_keychain_input_output_or_file_access",
+        "onboarding::contract_tests::pre_cancelled_setup_performs_no_keychain_input_output_or_file_access",
+        "onboarding::contract_tests::cancellation_after_api_key_prompt_stops_local_setup_and_save_before_key_validation"
       ],
       "shared_cases": [],
       "evidence": {
-        "log": "artifacts/rust-rewrite/cli-onboarding-admission-tests.log",
-        "log_sha256": "2917fd26ec9744d3d98446de0df4eccfe14fb86dade823c334d64cfe42c51413",
-        "scope": "Private native onboarding API contracts on macOS arm64 using synthetic configuration, a fake Keychain that rejects every operation and a loopback spy that rejects every connection; no public interfaces changed."
+        "assertion_mapping": "rust/parity/assertion-mappings/onboarding-after-prompt-contracts.json",
+        "review": "Five original sites, original successful callback schedule and two separately declared key-validation precedence supplements; actual native8/8module and strictCLIchecks passed."
       },
       "related_components": [
         "config_auth_policy",
         "native_cli_package"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/cli-tooling.json",
-      "remaining_assertions": [
-        "Cancellation triggered immediately after the API-key prompt but before local setup/save remains untested at the onboarding boundary."
+      "assertion_mapping": "rust/parity/assertion-mappings/onboarding-after-prompt-contracts.json",
+      "remaining_assertions": [],
+      "evidence_history": [
+        {
+          "reason": "Exact missing post-prompt cancellation schedule now executes through existing native dependency, with original predicate/message scope reviewed separately.",
+          "status": "partial_assertion_mapping",
+          "assertion_mapping": "rust/parity/assertion-mappings/cli-tooling.json",
+          "evidence": {
+            "log": "artifacts/rust-rewrite/cli-onboarding-admission-tests.log",
+            "log_sha256": "2917fd26ec9744d3d98446de0df4eccfe14fb86dade823c334d64cfe42c51413",
+            "scope": "Private native onboarding API contracts on macOS arm64 using synthetic configuration, a fake Keychain that rejects every operation and a loopback spy that rejects every connection; no public interfaces changed."
+          },
+          "remaining_assertions": [
+            "Cancellation triggered immediately after the API-key prompt but before local setup/save remains untested at the onboarding boundary."
+          ]
+        }
       ]
     },
     {
@@ -12091,26 +12132,41 @@
       "file": "test/prompt-state.test.mjs",
       "name": "prompt excerpts contain only the latest direct human text, never tool or multimodal payloads",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#excerpts_select_latest_direct_text_and_omit_all_opaque_payloads"
+        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#excerpts_select_latest_direct_text_and_omit_all_opaque_payloads",
+        "prompt_state_contracts::excerpts_select_latest_direct_text_and_omit_all_opaque_payloads"
       ],
       "shared_cases": [],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/prompt-state.json",
-        "native_evidence": {
-          "log": "artifacts/rust-rewrite/prompt-state-contracts-2.log",
-          "sha256": "664730c6ce84a651b090ab325ff2cf94c051c07942444bbd1061bf5e07da8180",
-          "passed": 16
-        },
-        "remaining": [
-          "The baseline uses throwing JavaScript getters to prove that opaque fields are never accessed. Rust accepts already parsed immutable JSON and does not expose JavaScript accessor execution; value/privacy assertions pass, accessor API migration remains explicit."
-        ]
+        "assertion_mapping": "rust/parity/assertion-mappings/prompt-excerpt-admission-contracts.json",
+        "review": "Per-site Source controls, actual native regressions/compiler consumers and explicit parsed-input/parameter/error-channel migrations. Value facade conversion limitation retained."
       },
       "related_components": [
         "js_document",
         "prompt_redaction"
-      ]
+      ],
+      "evidence_history": [
+        {
+          "reason": "Original prompt excerpt sites reviewed separately after actual public-bound/lazy-lookup correction and explicit native API migrations; earlier evidence remains historical.",
+          "status": "partial_assertion_mapping",
+          "assertion_mapping": null,
+          "evidence": {
+            "assertion_mapping": "rust/parity/assertion-mappings/prompt-state.json",
+            "native_evidence": {
+              "log": "artifacts/rust-rewrite/prompt-state-contracts-2.log",
+              "sha256": "664730c6ce84a651b090ab325ff2cf94c051c07942444bbd1061bf5e07da8180",
+              "passed": 16
+            },
+            "remaining": [
+              "The baseline uses throwing JavaScript getters to prove that opaque fields are never accessed. Rust accepts already parsed immutable JSON and does not expose JavaScript accessor execution; value/privacy assertions pass, accessor API migration remains explicit."
+            ]
+          },
+          "remaining_assertions": null
+        }
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/prompt-excerpt-admission-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/prompt-state.test.mjs#2",
@@ -12165,52 +12221,85 @@
       "file": "test/prompt-state.test.mjs",
       "name": "prompt excerpt limits count Unicode code points and never leave invalid surrogate pairs",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#excerpt_limits_count_scalars_and_repair_lone_surrogates"
+        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#excerpt_limits_count_scalars_and_repair_lone_surrogates",
+        "prompt_state_contracts::excerpt_limits_count_scalars_and_repair_lone_surrogates",
+        "prompt_state::tests::excerpt_public_bounds_reject_unsafe_before_body_work_and_keep_safe_values"
       ],
       "shared_cases": [],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/prompt-state.json",
-        "native_evidence": {
-          "log": "artifacts/rust-rewrite/prompt-state-contracts-2.log",
-          "sha256": "664730c6ce84a651b090ab325ff2cf94c051c07942444bbd1061bf5e07da8180",
-          "passed": 16
-        },
-        "remaining": [
-          "Rust exposes a usize limit. Rejection of JavaScript NaN/Infinity, fractional, string and unsafe-integer inputs belongs to the fixture/embedding boundary and is not covered by this native test."
-        ]
+        "assertion_mapping": "rust/parity/assertion-mappings/prompt-excerpt-admission-contracts.json",
+        "review": "Per-site Source controls, actual native regressions/compiler consumers and explicit parsed-input/parameter/error-channel migrations. Value facade conversion limitation retained."
       },
       "related_components": [
         "js_document",
         "prompt_redaction"
-      ]
+      ],
+      "evidence_history": [
+        {
+          "reason": "Original prompt excerpt sites reviewed separately after actual public-bound/lazy-lookup correction and explicit native API migrations; earlier evidence remains historical.",
+          "status": "partial_assertion_mapping",
+          "assertion_mapping": null,
+          "evidence": {
+            "assertion_mapping": "rust/parity/assertion-mappings/prompt-state.json",
+            "native_evidence": {
+              "log": "artifacts/rust-rewrite/prompt-state-contracts-2.log",
+              "sha256": "664730c6ce84a651b090ab325ff2cf94c051c07942444bbd1061bf5e07da8180",
+              "passed": 16
+            },
+            "remaining": [
+              "Rust exposes a usize limit. Rejection of JavaScript NaN/Infinity, fractional, string and unsafe-integer inputs belongs to the fixture/embedding boundary and is not covered by this native test."
+            ]
+          },
+          "remaining_assertions": null
+        }
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/prompt-excerpt-admission-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/prompt-state.test.mjs#5",
       "file": "test/prompt-state.test.mjs",
       "name": "bounded excerpts avoid building evaluator history or reading text after the limit",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#bounded_excerpts_preserve_literal_and_malformed_wrapper_text"
+        "rust/crates/autorouter-core/tests/prompt_state_contracts.rs#bounded_excerpts_preserve_literal_and_malformed_wrapper_text",
+        "prompt_state_contracts::bounded_excerpts_preserve_literal_and_malformed_wrapper_text",
+        "prompt_state::tests::excerpt_production_iterator_stops_text_lookup_after_redaction_window",
+        "prompt_state::tests::excerpt_keeps_full_type_scan_through_late_tool_result_before_text_iteration"
       ],
       "shared_cases": [],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/prompt-state.json",
-        "native_evidence": {
-          "log": "artifacts/rust-rewrite/prompt-state-contracts-2.log",
-          "sha256": "664730c6ce84a651b090ab325ff2cf94c051c07942444bbd1061bf5e07da8180",
-          "passed": 16
-        },
-        "remaining": [
-          "The baseline uses throwing getters to prove lazy text access after the bound and no earlier-history access. Native value and budget assertions pass; JavaScript accessor execution is not part of the parsed Rust document API."
-        ]
+        "assertion_mapping": "rust/parity/assertion-mappings/prompt-excerpt-admission-contracts.json",
+        "review": "Per-site Source controls, actual native regressions/compiler consumers and explicit parsed-input/parameter/error-channel migrations. Value facade conversion limitation retained."
       },
       "related_components": [
         "js_document",
         "prompt_redaction"
-      ]
+      ],
+      "evidence_history": [
+        {
+          "reason": "Original prompt excerpt sites reviewed separately after actual public-bound/lazy-lookup correction and explicit native API migrations; earlier evidence remains historical.",
+          "status": "partial_assertion_mapping",
+          "assertion_mapping": null,
+          "evidence": {
+            "assertion_mapping": "rust/parity/assertion-mappings/prompt-state.json",
+            "native_evidence": {
+              "log": "artifacts/rust-rewrite/prompt-state-contracts-2.log",
+              "sha256": "664730c6ce84a651b090ab325ff2cf94c051c07942444bbd1061bf5e07da8180",
+              "passed": 16
+            },
+            "remaining": [
+              "The baseline uses throwing getters to prove lazy text access after the bound and no earlier-history access. Native value and budget assertions pass; JavaScript accessor execution is not part of the parsed Rust document API."
+            ]
+          },
+          "remaining_assertions": null
+        }
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/prompt-excerpt-admission-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/prompt-state.test.mjs#6",
@@ -28847,29 +28936,42 @@
       "file": "test/statusline.test.mjs",
       "name": "executable CLI reads only its status file, respects color settings, and keeps unrelated secrets out",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
         "rust/crates/autorouter-core/src/statusline.rs#statusline::tests::selection_and_incomplete_completion_are_not_reported_as_confirmed",
         "rust/crates/autorouter-core/src/statusline.rs#statusline::tests::narrow_fallback_keeps_failure_cause",
         "rust/crates/claude-autorouter/tests/edge_cases.rs#hidden_status_renderer_selects_exact_utf16_identity_before_display_projection",
         "rust/crates/claude-autorouter/tests/edge_cases.rs#hidden_status_renderer_handles_invalid_and_bounded_input_without_leaks",
-        "rust/crates/claude-autorouter/tests/commands.rs#internal_status_renderer_is_native_bounded_and_ignores_configuration"
+        "rust/crates/claude-autorouter/tests/commands.rs#internal_status_renderer_is_native_bounded_and_ignores_configuration",
+        "rust/crates/claude-autorouter/tests/edge_cases.rs#statusline_cli_color_privacy_and_missing_file_matrix_matches_original"
       ],
       "shared_cases": [],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
-        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
-        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
-        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "path": "rust/parity/assertion-mappings/statusline-cli-contracts.json",
+        "bytes": 6608,
+        "sha256": "9807f8ab0c0c8a3a528d34a2a69d0d85370766d6cfde3ca63584564f2493909a"
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Native CLI tests cover bounded input/file, NO_COLOR and TERM=dumb, exact session/privacy. Missing positive ANSI-color-enabled assertion and complete missing-file/secret env matrix from baseline."
+      "assertion_mapping": "rust/parity/assertion-mappings/statusline-cli-contracts.json",
+      "remaining_assertions": [],
+      "evidence_history": [
+        {
+          "status": "partial_assertion_mapping",
+          "evidence": {
+            "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+            "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+            "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+            "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+            "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+            "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+          },
+          "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+          "remaining_assertions": [
+            "Native CLI tests cover bounded input/file, NO_COLOR and TERM=dumb, exact session/privacy. Missing positive ANSI-color-enabled assertion and complete missing-file/secret env matrix from baseline."
+          ]
+        }
       ]
     },
     {

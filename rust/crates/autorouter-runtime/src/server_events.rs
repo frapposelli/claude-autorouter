@@ -536,6 +536,7 @@ impl RequestEvents {
                 .is_none_or(|c| c == "main" || c.is_empty());
             let excerpt = if include {
                 prompt_excerpt_document(document, 501)
+                    .expect("Fixed diagnostic excerpt limit501 is safe")
             } else {
                 String::new()
             };
@@ -605,6 +606,7 @@ impl RequestEvents {
                 .is_none_or(|c| c == "main" || c == "");
             let excerpt = if include {
                 prompt_excerpt_document(document, 501)
+                    .expect("Fixed diagnostic excerpt limit501 is safe")
             } else {
                 String::new()
             };

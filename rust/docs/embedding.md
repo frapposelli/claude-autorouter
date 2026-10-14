@@ -28,6 +28,28 @@ Use `JsDocument` as the authoritative request representation and `JsString` for 
 
 The convenience `route()`/`complete()` adapters use `serde_json::Value` and serve scalar-string embeddings and historical fixtures. The product gateway uses the exact APIs. A displayed replacement character cannot stand in for an escaped lone surrogate when deciding which request or model owns a continuation.
 
+Both diagnostic excerpt functions, `prompt_excerpt_document()` and
+`prompt_excerpt()`, return `Result<String, PromptExcerptError>`. Their `usize`
+bound must fit JavaScript's safe-integer range through
+`9_007_199_254_740_991`. An invalid bound returns the singleton error before
+document access or JSON-value serialization; its display text is
+`maxChars must be a nonnegative safe integer`. Handle the result, or unwrap a
+known valid constant. This replaces the unchecked native `String` return.
+
+Rust's parameter type excludes negative, fractional, nonfinite and string
+arguments. Parsed `JsDocument` and `serde_json::Value` inputs cannot represent
+live JavaScript property accessors. These are explicit input-domain migrations;
+compiler rejection does not execute the original getter or TypeError operation.
+Valid zero bounds, Unicode scalar limits, lone-surrogate repair and redaction
+retain their behavior. Excerpt collection reads text lazily through its
+redaction window, while the required tool-result type scan still checks the
+whole candidate turn before selecting it.
+The `serde_json::Value` convenience function serializes its complete input into
+the exact document representation after validating the limit. The lazy lookup
+guarantee applies to excerpt collection from that parsed document; it does not
+exclude the facade's conversion work on older or opaque input fields. Use the
+document API when the request is already parsed.
+
 First-party classification, policy and gateway producers use the closed contracts in `autorouter-core::contracts`. `ClassifierDecision::source` and `classifier_error` are enums; the runtime evaluator module re-exports `ClassifierDecision` and `Tier` for existing import paths. Native consumers constructing these fields must use `DecisionSource` and `ClassifierError` variants. `route_typed_exact()` returns `TypedRouteDecision` with typed display metadata and a separate exact `JsString` model. The existing `route()` and `route_exact()` operations retain their JSON observation facades.
 
 `GatewayRouter::route_contract_exact()` defaults to `GatewayDecision::Legacy` for existing custom JSON adapters; the production router overrides it with `GatewayDecision::Typed`. A request using custom raw decision metadata keeps legacy observation bookkeeping throughout its lifecycle. Typed requests use `RequestContext`, `TelemetryFields`, closed lifecycle names and exact model overrides. Both paths retain the same durable normalization boundary, metadata-mode prompt omissions and JavaScript number projection. The native compile controls reject unknown fields/events, unsupported enum values and string timings before execution; arbitrary provider envelopes remain `JsDocument` values at explicit boundaries.
@@ -57,6 +79,17 @@ An Ollama timeout of zero disables only the evaluator timer. Cancellation and re
 The local diagnostic library operations, `run_local_diagnostic` and `run_local_diagnostic_with_progress`, also accept a caller-owned `CancellationToken`. Setting the Ollama runtime timeout to zero disables the measured evaluator deadline; the initial preparation call retains its separate 60-second deadline. Cancellation still interrupts either phase and releases its owned request. Cancellation returns `EvaluationError::Cancelled`; JavaScript `AbortSignal` object identity and arbitrary JavaScript error reasons are not part of this Rust API. A runtime timeout produces fallback rows and a failed diagnostic gate, without counting the fallback tier as a successful classifier result.
 
 The Rust local diagnostic accepts a typed `RouterConfig`: its `u64` runtime deadline cannot contain JavaScript `NaN` or infinity. The configuration reader rejects the text `NaN` before a diagnostic can run. This differs from passing a nonfinite field to the JavaScript diagnostic and receiving its `invalid_configuration` report.
+
+The private native `doctor` dispatcher has no JavaScript `diagnosticRunner`
+override. It emits the complete actual diagnostic report and maps its `passed`
+result to the CLI exit status. Rust integrations use the public diagnostic
+operation with an injected `HttpTransport`. This replaces the original
+JavaScript wrapper's arbitrary injected-report passthrough; the original
+four-field test object is retained in the [per-assertion review](../parity/assertion-mappings/doctor-dispatch-contracts.json).
+Cancellation remains an error, with no final configuration-error report.
+Native tokens and OS signals carry cancellation state; retain an application
+reason alongside the token if needed, since they cannot preserve a caller's
+JavaScript `Error` identity.
 
 Before starting workers, an embedding host can explicitly call `autorouter_runtime::callback_privacy::initialize_observer_privacy()` after configuring its own panic hook. This installs one delegating process hook: ordinary observer panics are caught without printing their private payload or backtrace, while unrelated panics use the previous host hook. The CLI initializes this guard automatically. Initialization must precede concurrent work because stable Rust cannot atomically replace a hook; replacing the hook afterward revokes the guard. The library does not silently replace a host hook when emitting an event. Thread-local scopes cover each synchronous callback or future poll and are restored after nesting/unwinding; they never span an await. Panic-abort behavior, a subsequently replaced or aborting hook, and panic payloads with panicking destructors remain outside containment.
 

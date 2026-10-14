@@ -1,4 +1,6 @@
 #![cfg(unix)]
+#[path = "support/doctor_dispatch_contracts.rs"]
+mod doctor_dispatch_contracts;
 mod support;
 use autorouter_core::config::{DEFAULT_OLLAMA_MODEL, read_config};
 use serde_json::{Value, json};

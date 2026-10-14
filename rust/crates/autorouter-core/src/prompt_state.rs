@@ -548,7 +548,51 @@ fn build_state_inner(doc: &JsDocument, limit: usize, include_system: bool) -> Pr
     state
 }
 
-pub fn prompt_excerpt_document(doc: &JsDocument, max_chars: usize) -> String {
+/// Invalid diagnostic excerpt bound. The source API accepts only nonnegative
+/// JavaScript safe integers; `usize` excludes negative/fractional values but can
+/// still represent an unsafe integer on 64-bit hosts.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct PromptExcerptError;
+
+impl std::fmt::Display for PromptExcerptError {
+    fn fmt(&self, output: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        output.write_str("maxChars must be a nonnegative safe integer")
+    }
+}
+impl std::error::Error for PromptExcerptError {}
+
+fn with_excerpt_limit<T>(
+    maximum: usize,
+    work: impl FnOnce() -> T,
+) -> Result<T, PromptExcerptError> {
+    if !u64::try_from(maximum).is_ok_and(|n| n <= crate::config::MAX_SAFE_INTEGER) {
+        return Err(PromptExcerptError);
+    }
+    Ok(work())
+}
+
+/// Collect a diagnostic excerpt using a checked source-compatible bound.
+/// Validation happens before inspecting the document.
+pub fn prompt_excerpt_document(
+    doc: &JsDocument,
+    max_chars: usize,
+) -> Result<String, PromptExcerptError> {
+    with_excerpt_limit(max_chars, || excerpt_document(doc, max_chars))
+}
+
+fn excerpt_document(doc: &JsDocument, max_chars: usize) -> String {
+    excerpt_document_with(doc, max_chars, |block| {
+        property(doc, block, "text").and_then(|n| doc.string(n))
+    })
+}
+
+// The production iterator is lazy. The private lookup seam permits unit tests
+// to observe the actual lookup boundary without adding public instrumentation.
+fn excerpt_document_with<'doc>(
+    doc: &'doc JsDocument,
+    max_chars: usize,
+    mut text: impl FnMut(NodeId) -> Option<&'doc JsString>,
+) -> String {
     if max_chars == 0 {
         return String::new();
     }
@@ -581,22 +625,18 @@ pub fn prompt_excerpt_document(doc: &JsDocument, max_chars: usize) -> String {
         let mut characters = Vec::new();
         let mut non_text = false;
         let window = max_chars.saturating_add(MARGIN);
-        let blocks: Vec<Option<&JsString>> = if let Some(text) = content.and_then(|n| doc.string(n))
-        {
-            vec![Some(text)]
-        } else {
-            array(doc, content)
-                .unwrap_or_default()
-                .iter()
-                .map(|b| {
-                    if is(doc, property(doc, *b, "type"), "text") {
-                        property(doc, *b, "text").and_then(|n| doc.string(n))
+        let scalar = content.and_then(|n| doc.string(n));
+        let blocks =
+            scalar
+                .map(Some)
+                .into_iter()
+                .chain(array(doc, content).unwrap_or_default().iter().map(|block| {
+                    if is(doc, property(doc, *block, "type"), "text") {
+                        text(*block)
                     } else {
                         None
                     }
-                })
-                .collect()
-        };
+                }));
         for block in blocks {
             let Some(value) = block else {
                 non_text = true;
@@ -637,8 +677,9 @@ fn document(value: &Value) -> JsDocument {
 pub fn build_state(body: &Value, limit: usize) -> Value {
     build_state_document(&document(body), limit).observation()
 }
-pub fn prompt_excerpt(body: &Value, max_chars: usize) -> String {
-    prompt_excerpt_document(&document(body), max_chars)
+/// Convenience JSON-value API. Validate before serializing the supplied value.
+pub fn prompt_excerpt(body: &Value, max_chars: usize) -> Result<String, PromptExcerptError> {
+    with_excerpt_limit(max_chars, || excerpt_document(&document(body), max_chars))
 }
 pub fn goal_feedback_indexes(messages: &Value) -> BTreeSet<usize> {
     let doc = document(messages);
@@ -670,12 +711,12 @@ mod tests {
     #[test]
     fn diagnostics_omit_payloads_and_stop_on_new_attachment_task() {
         let mut body = json!({"messages":[{"role":"user","content":[{"type":"text","text":"<system-reminder>Private setup</system-reminder>"},{"type":"text","text":"Explain 😀diagram"},{"type":"thinking","thinking":"CANARY"}]}]});
-        assert_eq!(prompt_excerpt(&body, 9), "Explain 😀");
+        assert_eq!(prompt_excerpt(&body, 9).unwrap(), "Explain 😀");
         body["messages"]
             .as_array_mut()
             .unwrap()
             .push(json!({"role":"user","content":[{"type":"image","source":{"data":"CANARY"}}]}));
-        assert_eq!(prompt_excerpt(&body, 500), "");
+        assert_eq!(prompt_excerpt(&body, 500).unwrap(), "");
         assert!(!build_state(&body, 12000).to_string().contains("CANARY"));
     }
     #[test]
@@ -698,7 +739,10 @@ mod tests {
     fn utf16_is_retained_for_classifier_and_repaired_for_logs() {
         let doc = JsDocument::parse(br#"{"messages":[{"role":"user","content":"\ud800A\udc00"}]}"#)
             .unwrap();
-        assert_eq!(prompt_excerpt_document(&doc, 500), "\u{fffd}A\u{fffd}");
+        assert_eq!(
+            prompt_excerpt_document(&doc, 500).unwrap(),
+            "\u{fffd}A\u{fffd}"
+        );
         assert!(
             build_state_document(&doc, 12000)
                 .stringify()
@@ -708,11 +752,111 @@ mod tests {
     #[test]
     fn redaction_precedes_excerpt_boundary() {
         let body = json!({"messages":[{"role":"user","content":"Explain api_key=synthetic-secret-token-123456 and continue"}]});
-        assert_eq!(prompt_excerpt(&body, 25), "Explain api_key=[REDACTED");
+        assert_eq!(
+            prompt_excerpt(&body, 25).unwrap(),
+            "Explain api_key=[REDACTED"
+        );
         assert!(
             !build_state(&body, 12000)
                 .to_string()
                 .contains("synthetic-secret")
         );
+    }
+    #[test]
+    fn excerpt_public_bounds_reject_unsafe_before_body_work_and_keep_safe_values() {
+        let body = json!({"messages":[{"role":"user","content":"Short benign task"}]});
+        let doc = document(&body);
+        for limit in [0, 1, 500] {
+            let expected = "Short benign task".chars().take(limit).collect::<String>();
+            assert_eq!(prompt_excerpt_document(&doc, limit).unwrap(), expected);
+            assert_eq!(prompt_excerpt(&body, limit).unwrap(), expected);
+        }
+        for value in [
+            crate::config::MAX_SAFE_INTEGER - 1,
+            crate::config::MAX_SAFE_INTEGER,
+        ] {
+            if let Ok(limit) = usize::try_from(value) {
+                assert_eq!(
+                    prompt_excerpt_document(&doc, limit).unwrap(),
+                    "Short benign task"
+                );
+                assert_eq!(prompt_excerpt(&body, limit).unwrap(), "Short benign task");
+            }
+        }
+        for limit in [
+            usize::try_from(crate::config::MAX_SAFE_INTEGER + 1).ok(),
+            Some(usize::MAX),
+        ]
+        .into_iter()
+        .flatten()
+        {
+            if u64::try_from(limit).is_ok_and(|n| n <= crate::config::MAX_SAFE_INTEGER) {
+                continue; // All usize values are safe on a 32-bit host.
+            }
+            assert_eq!(
+                prompt_excerpt_document(&doc, limit),
+                Err(PromptExcerptError)
+            );
+            assert_eq!(prompt_excerpt(&body, limit), Err(PromptExcerptError));
+            let mut visited = false;
+            assert_eq!(
+                with_excerpt_limit(limit, || {
+                    visited = true;
+                }),
+                Err(PromptExcerptError)
+            );
+            assert!(!visited, "Invalid maximum must precede document/body work");
+            assert_eq!(
+                PromptExcerptError.to_string(),
+                "maxChars must be a nonnegative safe integer"
+            );
+        }
+    }
+
+    #[test]
+    fn excerpt_production_iterator_stops_text_lookup_after_redaction_window() {
+        let mut blocks = vec![json!({"type":"text","text":"Current task ".repeat(10000)})];
+        for _ in 0..10000 {
+            blocks.push(json!({"type":"text","text":"PRIVATE_AFTER_LIMIT"}));
+        }
+        let body = json!({"messages":[{"role":"user","content":"Earlier unrelated task"},{"role":"user","content":blocks}]});
+        let doc = document(&body);
+        let before = doc.stringify();
+        let messages = array(&doc, property(&doc, doc.root(), "messages")).unwrap();
+        let content = array(&doc, property(&doc, messages[1], "content")).unwrap();
+        let mut looked_up = Vec::new();
+        let excerpt = excerpt_document_with(&doc, 12, |block| {
+            looked_up.push(block);
+            assert_eq!(
+                block, content[0],
+                "Later text must not be looked up/materialized"
+            );
+            property(&doc, block, "text").and_then(|node| doc.string(node))
+        });
+        assert_eq!(excerpt, "Current task");
+        assert_eq!(looked_up, [content[0]]);
+        assert_eq!(doc.stringify(), before);
+        let zero = excerpt_document_with(&doc, 0, |_| panic!("Zero excerpt looked up text"));
+        assert_eq!(zero, "");
+    }
+
+    #[test]
+    fn excerpt_keeps_full_type_scan_through_late_tool_result_before_text_iteration() {
+        let mut blocks = vec![json!({"type":"text","text":"Current task ".repeat(10000)})];
+        for _ in 0..10000 {
+            blocks.push(json!({"type":"text","text":"PRIVATE_AFTER_LIMIT"}));
+        }
+        blocks.push(json!({"type":"tool_result","content":"PRIVATE_LATE_TOOL_RESULT"}));
+        let body = json!({"messages":[{"role":"user","content":"Earlier safe human task"},{"role":"user","content":blocks}]});
+        let doc = document(&body);
+        let before = doc.stringify();
+        assert_eq!(
+            excerpt_document_with(&doc, 12, |_| panic!(
+                "Tool-result turn must be excluded before any text lookup"
+            )),
+            "Earlier safe"
+        );
+        assert_eq!(prompt_excerpt_document(&doc, 12).unwrap(), "Earlier safe");
+        assert_eq!(doc.stringify(), before);
     }
 }

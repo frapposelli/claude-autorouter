@@ -450,6 +450,65 @@ fn status(home: &Home, snapshot: &Path, input: &[u8]) -> Output {
         input,
     )
 }
+
+#[test]
+fn statusline_cli_color_privacy_and_missing_file_matrix_matches_original() {
+    let home = Home::new();
+    let config_before = b"PRIVATE_UNRELATED_MALFORMED_CONFIG";
+    fs::write(home.config(), config_before).unwrap();
+    let path = snapshot(
+        &home,
+        r#"{"session-a":{"phase":"ready","last_model":"claude-sonnet-5"}}"#,
+    );
+    let mut saved: Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    saved["secret"] = json!("PRIVATE_FILE_VALUE");
+    let status_before = serde_json::to_vec(&saved).unwrap();
+    fs::write(&path, &status_before).unwrap();
+
+    let run = |input: &[u8], file: &Path, no_color: bool, dumb: bool| {
+        let mut command = home.command();
+        command
+            .arg("statusline")
+            .env("AUTOROUTER_STATUS_FILE", file)
+            .env("TYPESAFE_API_KEY", "PRIVATE_ENV_VALUE")
+            .env("ANTHROPIC_API_KEY", "PRIVATE_PROVIDER_ENV_VALUE")
+            .env("TERM", if dumb { "dumb" } else { "xterm" })
+            .env("COLUMNS", "160");
+        if no_color {
+            command.env("NO_COLOR", "");
+        }
+        let output = input_output(&mut command, input);
+        assert_eq!(output.status.code(), Some(0));
+        assert!(output.stderr.is_empty());
+        assert!(output.stdout.len() <= 4096);
+        let text = String::from_utf8(output.stdout).unwrap();
+        assert!(!text.contains("PRIVATE"));
+        assert_eq!(text.lines().count(), 1);
+        assert!(text.ends_with('\n'));
+        assert_eq!(fs::read(home.config()).unwrap(), config_before);
+        text
+    };
+    let input = br#"{"session_id":"session-a"}"#;
+    let plain = run(input, &path, true, false);
+    assert!(plain.contains("last Sonnet 5 · ready"));
+    assert!(!plain.contains('\x1b'));
+    let colored = run(input, &path, false, false);
+    assert!(colored.contains("\x1b["));
+    let dumb = run(b"{}", &path, false, true);
+    assert!(!dumb.contains('\x1b'));
+    assert!(run(b"{bad", &path, true, false).contains("awaiting request"));
+    assert!(run(&vec![b'x'; 1024 * 1024 + 1], &path, true, false).contains("awaiting request"));
+    assert_eq!(fs::read(&path).unwrap(), status_before);
+
+    let oversized_status = vec![b'x'; 1024 * 1024 + 1];
+    fs::write(&path, &oversized_status).unwrap();
+    assert!(run(b"{}", &path, true, false).contains("offline"));
+    assert_eq!(fs::read(&path).unwrap(), oversized_status);
+    let missing = home.0.join("missing-status.json");
+    assert!(run(b"{}", &missing, true, false).contains("offline"));
+    assert!(!missing.exists());
+}
+
 #[test]
 fn hidden_status_renderer_selects_exact_utf16_identity_before_display_projection() {
     let home = Home::new();

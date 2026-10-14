@@ -232,7 +232,9 @@ impl Default for CacheOptions {
 }
 struct Entry {
     count: u64,
-    expires: Instant,
+    // None denotes an expiry beyond the representable monotonic clock domain.
+    // It preserves successful-value caching without clamping the requested TTL.
+    expires: Option<Instant>,
 }
 #[derive(Default)]
 struct Cache {
@@ -243,7 +245,10 @@ impl Cache {
     fn get(&mut self, key: &[u8; 32]) -> Option<u64> {
         let entry = self.values.remove(key)?;
         self.order.retain(|candidate| candidate != key);
-        if entry.expires <= Instant::now() {
+        if entry
+            .expires
+            .is_some_and(|expires| expires <= Instant::now())
+        {
             return None;
         }
         let count = entry.count;
@@ -257,7 +262,7 @@ impl Cache {
             key,
             Entry {
                 count,
-                expires: Instant::now() + options.ttl,
+                expires: Instant::now().checked_add(options.ttl),
             },
         );
         self.order.push_back(key);

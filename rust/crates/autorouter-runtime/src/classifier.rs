@@ -82,7 +82,9 @@ struct Pending {
 }
 struct Cached {
     value: ClassifierDecision,
-    expires: Instant,
+    // None denotes an expiry beyond the representable monotonic clock domain.
+    // It preserves successful-value caching without clamping the requested TTL.
+    expires: Option<Instant>,
 }
 #[derive(Default)]
 struct State {
@@ -101,7 +103,10 @@ impl State {
     fn cache_get(&mut self, key: &Key) -> Option<ClassifierDecision> {
         let cached = self.cache.remove(key)?;
         self.order.retain(|candidate| candidate != key);
-        if cached.expires <= Instant::now() {
+        if cached
+            .expires
+            .is_some_and(|expires| expires <= Instant::now())
+        {
             return None;
         }
         let mut value = cached.value.clone();
@@ -117,7 +122,7 @@ impl State {
             key,
             Cached {
                 value,
-                expires: Instant::now() + ttl,
+                expires: Instant::now().checked_add(ttl),
             },
         );
         while self.cache.len() > limit {

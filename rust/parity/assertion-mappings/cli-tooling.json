@@ -5,8 +5,8 @@
   "scope": "CLI, onboarding, launcher and lifecycle assertion audit. Whole definitions are covered only where every baseline assertion and parameter scenario has direct native evidence; related component coverage does not imply wrapper or integration coverage.",
   "summary": {
     "definitions": 54,
-    "covered": 46,
-    "partial_assertion_mapping": 8
+    "covered": 51,
+    "partial_assertion_mapping": 3
   },
   "mappings": [
     {
@@ -1376,10 +1376,11 @@
       "baseline_test": "test/onboarding.test.mjs#31",
       "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
       "name": "explicit local diagnosis bypasses cloud credentials and Claude authentication and keeps JSON output singular",
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
         "rust/crates/autorouter-runtime/src/local_diagnostic.rs#synthetic_diagnostic_separates_labels_from_transport_and_task_claims",
-        "rust/crates/claude-autorouter/tests/onboarding_local.rs#local_diagnostic_cli_bypasses_cloud_keys_and_claude_auth_and_emits_one_json_record"
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#local_diagnostic_cli_bypasses_cloud_keys_and_claude_auth_and_emits_one_json_record",
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#doctor_dispatch_contracts::original31_actual_cli_without_claude_and_json_progress_isolation"
       ],
       "shared_cases": [],
       "assertions_with_evidence": [
@@ -1387,17 +1388,15 @@
         "Both exact-label and collapsed-label fixtures perform startup plus all six packaged synthetic cases; stdout is exactly one newline-terminated JSON record despite startup/case progress. Process exit0/1 matches report.passed true/false; model identity, rubric/cases/startup/evaluator gates, case IDs and task matching are asserted.",
         "Report asserts zero paid-provider calls, downloads, model unloads and configuration changes. Every mock endpoint is allowlisted and saved config bytes remain unchanged."
       ],
-      "remaining": [
-        "The JavaScript definition injects an arbitrary diagnosticRunner result and asserts exact passthrough of that particular four-field object. Native CLI tests execute the real diagnostic and assert its observable report/exit contract; Rust exposes no equivalent injected runner API. Literal injected-object parity remains a deliberate embedding-boundary adaptation to review."
-      ],
+      "remaining": [],
       "evidence": {
-        "log": "artifacts/rust-rewrite/evidence/97372eab57c84f23f00d350af2fe358f61ebff10ffa02654e734c49c14bd2305.log",
-        "log_sha256": "97372eab57c84f23f00d350af2fe358f61ebff10ffa02654e734c49c14bd2305",
-        "log_source": "artifacts/rust-rewrite/cli-local-diagnostic-default-launch-tests.log",
-        "scope": "Native macOS arm64 CLI tests: 10 launcher and23 onboarding tests pass. Synthetic loopback services, isolated homes and fake Claude only; no real providers, Keychain or downloads. New installed-archive/Linux runs are separate qualification."
+        "path": "rust/parity/assertion-mappings/doctor-dispatch-contracts.json",
+        "bytes": 35249,
+        "sha256": "cfd35d7f09698889248ef6ca47d100a9c13670c35de025e1a5388f2d95882c28"
       },
       "review_notes": [
-        "Reviewed executable observable obligations independently of the JavaScript injected dependency contract. Status remains partial_assertion_mapping; no central coverage promotion is requested until embedding-boundary adaptations are reviewed."
+        "Root accepts the executable/library-surface migration for this exact predicate. Source doctor(options) permits an arbitrary injected diagnosticRunner result; native private CLI has no such injection interface and emits the complete actual diagnostic report. Original injected four-field bytes remain recorded as Source behavior, not fabricated native equality. Actual native CLI tests prove singular full JSON despite progress, exact model/credential absence and exit derived from passed. Rust embedders use the public diagnostic operation and injected HttpTransport.",
+        "Per-assertion language migrations are accepted; no literal arbitrary Source report/Error object equality, installed archive, full platform or release approval is inferred."
       ],
       "earlier_evidence": [
         {
@@ -1406,17 +1405,41 @@
           "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate.",
           "log_source": "artifacts/rust-rewrite/rust-workspace-checkpoint.log"
         }
-      ]
+      ],
+      "evidence_history": [
+        {
+          "status": "partial_assertion_mapping",
+          "remaining": [
+            "The JavaScript definition injects an arbitrary diagnosticRunner result and asserts exact passthrough of that particular four-field object. Native CLI tests execute the real diagnostic and assert its observable report/exit contract; Rust exposes no equivalent injected runner API. Literal injected-object parity remains a deliberate embedding-boundary adaptation to review."
+          ],
+          "evidence": {
+            "log": "artifacts/rust-rewrite/evidence/97372eab57c84f23f00d350af2fe358f61ebff10ffa02654e734c49c14bd2305.log",
+            "log_sha256": "97372eab57c84f23f00d350af2fe358f61ebff10ffa02654e734c49c14bd2305",
+            "log_source": "artifacts/rust-rewrite/cli-local-diagnostic-default-launch-tests.log",
+            "scope": "Native macOS arm64 CLI tests: 10 launcher and23 onboarding tests pass. Synthetic loopback services, isolated homes and fake Claude only; no real providers, Keychain or downloads. New installed-archive/Linux runs are separate qualification."
+          },
+          "review_notes": [
+            "Reviewed executable observable obligations independently of the JavaScript injected dependency contract. Status remains partial_assertion_mapping; no central coverage promotion is requested until embedding-boundary adaptations are reviewed."
+          ]
+        }
+      ],
+      "supplemental_doctor_dispatch_mapping": {
+        "path": "rust/parity/assertion-mappings/doctor-dispatch-contracts.json",
+        "bytes": 35249,
+        "sha256": "cfd35d7f09698889248ef6ca47d100a9c13670c35de025e1a5388f2d95882c28"
+      }
     },
     {
       "baseline_test": "test/onboarding.test.mjs#32",
       "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
       "name": "local diagnosis rejects the cloud backend without requests and caller cancellation propagates",
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
         "rust/crates/autorouter-runtime/src/local_diagnostic.rs#invalid_settings_and_early_cancellation_do_not_perform_io",
         "rust/crates/claude-autorouter/tests/onboarding_local.rs#local_diagnostic_cli_rejects_jev_without_io_or_claude_authentication",
-        "rust/crates/claude-autorouter/tests/onboarding_local.rs#local_diagnostic_cli_cancellation_after_request_closes_transport_without_a_report"
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#local_diagnostic_cli_cancellation_after_request_closes_transport_without_a_report",
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#doctor_dispatch_contracts::original32_cloud_backend_rejection_performs_zero_requests_and_claude_work",
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#doctor_dispatch_contracts::original32_actual_dispatch_cancels_stalled_headers_and_response_body"
       ],
       "shared_cases": [],
       "assertions_with_evidence": [
@@ -1424,17 +1447,15 @@
         "For SIGINT and SIGTERM, in text and JSON modes, cancellation is sent only after the mock has accepted the complete startup inference request. CLI returns exit1 with exact Evaluation cancelled stderr; JSON stdout is empty, while text stdout contains only the two preflight/startup progress lines and no final report.",
         "The accepted request connection closes promptly. Request paths stop at version/tags/show/ps/show/systemone; no later inference, Claude subprocess or config write occurs. Process-group cleanup observes an unreaped leader and output/exit waits are bounded."
       ],
-      "remaining": [
-        "The JavaScript definition asserts rejection with the identical Error object supplied by its injected diagnosticRunner (error === reason). Rust uses Result<bool,String> and executable exit/diagnostic output; the tests preserve cancellation as an error instead of converting it to a configuration_error report, but literal JavaScript object identity is not a supported native boundary and remains an explicit adaptation to review."
-      ],
+      "remaining": [],
       "evidence": {
-        "log": "artifacts/rust-rewrite/evidence/97372eab57c84f23f00d350af2fe358f61ebff10ffa02654e734c49c14bd2305.log",
-        "log_sha256": "97372eab57c84f23f00d350af2fe358f61ebff10ffa02654e734c49c14bd2305",
-        "log_source": "artifacts/rust-rewrite/cli-local-diagnostic-default-launch-tests.log",
-        "scope": "Native macOS arm64 CLI tests: 10 launcher and23 onboarding tests pass. Synthetic loopback services, isolated homes and fake Claude only; no real providers, Keychain or downloads. New installed-archive/Linux runs are separate qualification."
+        "path": "rust/parity/assertion-mappings/doctor-dispatch-contracts.json",
+        "bytes": 35249,
+        "sha256": "cfd35d7f09698889248ef6ca47d100a9c13670c35de025e1a5388f2d95882c28"
       },
       "review_notes": [
-        "Reviewed executable observable obligations independently of the JavaScript injected dependency contract. Status remains partial_assertion_mapping; no central coverage promotion is requested until embedding-boundary adaptations are reviewed."
+        "Root accepts the cancellation-interface migration for this exact predicate. Source preserves the caller Error object through AbortSignal.reason and rejection; native CancellationToken/OS signal carries cancellation state without a caller Error object. Actual native CLI tests prove error propagation, exit1 and safe cancellation diagnostic, no final configuration_error/report, observed connection release and no subsequent work. Source identity/message remain recorded distinctly; hosts retain their own reason alongside the token.",
+        "Per-assertion language migrations are accepted; no literal arbitrary Source report/Error object equality, installed archive, full platform or release approval is inferred."
       ],
       "earlier_evidence": [
         {
@@ -1443,30 +1464,65 @@
           "scope": "Existing local native test execution; this read-only assertion audit did not rerun tests. Platform qualification remains separate.",
           "log_source": "artifacts/rust-rewrite/rust-workspace-checkpoint.log"
         }
-      ]
+      ],
+      "evidence_history": [
+        {
+          "status": "partial_assertion_mapping",
+          "remaining": [
+            "The JavaScript definition asserts rejection with the identical Error object supplied by its injected diagnosticRunner (error === reason). Rust uses Result<bool,String> and executable exit/diagnostic output; the tests preserve cancellation as an error instead of converting it to a configuration_error report, but literal JavaScript object identity is not a supported native boundary and remains an explicit adaptation to review."
+          ],
+          "evidence": {
+            "log": "artifacts/rust-rewrite/evidence/97372eab57c84f23f00d350af2fe358f61ebff10ffa02654e734c49c14bd2305.log",
+            "log_sha256": "97372eab57c84f23f00d350af2fe358f61ebff10ffa02654e734c49c14bd2305",
+            "log_source": "artifacts/rust-rewrite/cli-local-diagnostic-default-launch-tests.log",
+            "scope": "Native macOS arm64 CLI tests: 10 launcher and23 onboarding tests pass. Synthetic loopback services, isolated homes and fake Claude only; no real providers, Keychain or downloads. New installed-archive/Linux runs are separate qualification."
+          },
+          "review_notes": [
+            "Reviewed executable observable obligations independently of the JavaScript injected dependency contract. Status remains partial_assertion_mapping; no central coverage promotion is requested until embedding-boundary adaptations are reviewed."
+          ]
+        }
+      ],
+      "supplemental_doctor_dispatch_mapping": {
+        "path": "rust/parity/assertion-mappings/doctor-dispatch-contracts.json",
+        "bytes": 35249,
+        "sha256": "cfd35d7f09698889248ef6ca47d100a9c13670c35de025e1a5388f2d95882c28"
+      }
     },
     {
       "baseline_test": "test/onboarding.test.mjs#33",
       "baseline_file_sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
       "name": "setup cancellation stops before prompts, local requests, and saving",
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#pre_cancelled_setup_performs_no_keychain_input_output_or_file_access"
+        "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#pre_cancelled_setup_performs_no_keychain_input_output_or_file_access",
+        "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#cancellation_after_api_key_prompt_stops_local_setup_and_save_before_key_validation"
       ],
       "shared_cases": [],
       "assertions_with_evidence": [
-        "Pre-cancelled setup returns exactly Setup cancelled before output, input, HTTP, Keychain or persistence. A malformed existing file is not parsed or modified; absent configuration remains absent."
+        "Pre-cancelled setup returns exactly Setup cancelled before output, input, HTTP, Keychain or persistence. A malformed existing file is not parsed or modified; absent configuration remains absent.",
+        "Exact cancellation-after-successful-prompt schedule now executes through the real private dependency and full setup operation; valid/blank/multiline returned keys all stop before key validation, local I/O, Keychain or saving. Complete module8/8 and strictCLIchecks pass."
       ],
-      "remaining": [
-        "Cancellation triggered immediately after the API-key prompt but before local setup/save remains untested at the onboarding boundary."
-      ],
+      "remaining": [],
       "evidence": {
-        "log": "artifacts/rust-rewrite/evidence/2917fd26ec9744d3d98446de0df4eccfe14fb86dade823c334d64cfe42c51413.log",
-        "log_sha256": "2917fd26ec9744d3d98446de0df4eccfe14fb86dade823c334d64cfe42c51413",
-        "scope": "Private native onboarding API contracts on macOS arm64 using synthetic configuration, a fake Keychain that rejects every operation and a loopback spy that rejects every connection; no public interfaces changed.",
-        "log_source": "artifacts/rust-rewrite/cli-onboarding-admission-tests.log"
+        "assertion_mapping": "rust/parity/assertion-mappings/onboarding-after-prompt-contracts.json",
+        "scope": "Focused native test and actual Source schedules with explicit private prompt and cancellation-result API migration. Installed/platform/release qualification remains separate."
       },
-      "review_notes": []
+      "review_notes": [],
+      "evidence_history": [
+        {
+          "reason": "Historical pre-cancellation proof retained. New separate per-site review covers successful prompt return followed by cancellation.",
+          "status": "partial_assertion_mapping",
+          "remaining": [
+            "Cancellation triggered immediately after the API-key prompt but before local setup/save remains untested at the onboarding boundary."
+          ],
+          "evidence": {
+            "log": "artifacts/rust-rewrite/evidence/2917fd26ec9744d3d98446de0df4eccfe14fb86dade823c334d64cfe42c51413.log",
+            "log_sha256": "2917fd26ec9744d3d98446de0df4eccfe14fb86dade823c334d64cfe42c51413",
+            "scope": "Private native onboarding API contracts on macOS arm64 using synthetic configuration, a fake Keychain that rejects every operation and a loopback spy that rejects every connection; no public interfaces changed.",
+            "log_source": "artifacts/rust-rewrite/cli-onboarding-admission-tests.log"
+          }
+        }
+      ]
     },
     {
       "baseline_test": "test/onboarding.test.mjs#34",

@@ -69,13 +69,13 @@ fn write_new(path: &Path, bytes: &[u8], mode: u32) -> Result<(), String> {
     file.write_all(bytes)
         .map_err(|_| "Cannot write private local comparison evidence".into())
 }
-fn write_json(path: &Path, value: &Value) -> Result<(), String> {
+pub(crate) fn write_json(path: &Path, value: &Value) -> Result<(), String> {
     let mut bytes =
         serde_json::to_vec_pretty(value).map_err(|_| "Cannot encode local comparison evidence")?;
     bytes.push(b'\n');
     write_new(path, &bytes, 0o600)
 }
-fn private_directory(path: &Path) -> Result<PathBuf, String> {
+pub(crate) fn private_directory(path: &Path) -> Result<PathBuf, String> {
     fs::DirBuilder::new()
         .mode(0o700)
         .create(path)
@@ -83,7 +83,7 @@ fn private_directory(path: &Path) -> Result<PathBuf, String> {
     path.canonicalize()
         .map_err(|_| "Cannot resolve private local comparison output".into())
 }
-fn check_private_directory(path: &Path) -> Result<(), String> {
+pub(crate) fn check_private_directory(path: &Path) -> Result<(), String> {
     let info = fs::symlink_metadata(path)
         .map_err(|_| "Cannot inspect private local comparison directory")?;
     if !info.is_dir() || info.permissions().mode() & 0o777 != 0o700 {
@@ -100,7 +100,7 @@ fn fixture(root: &Path, reference: &Path) -> Result<Vec<u8>, String> {
     schema::fixture(&actual)?;
     Ok(actual)
 }
-fn copy_executable(source: &Path, destination: &Path) -> Result<Value, String> {
+pub(crate) fn copy_executable(source: &Path, destination: &Path) -> Result<Value, String> {
     let bytes = regular(source, MAX_BINARY)?;
     let before =
         fs::symlink_metadata(source).map_err(|_| "Cannot inspect evaluator executable identity")?;
@@ -130,7 +130,10 @@ fn child_env(command: &mut Command, temporary: &Path) {
         .env("PATH", "/usr/bin:/bin:/usr/sbin:/sbin")
         .env("TMPDIR", temporary);
 }
-async fn metadata_command(command: Command, cancel: &CancellationToken) -> Result<Vec<u8>, String> {
+pub(crate) async fn metadata_command(
+    command: Command,
+    cancel: &CancellationToken,
+) -> Result<Vec<u8>, String> {
     let mut owner = Owner::metadata(command, cancel);
     let output = if cancel.is_cancelled() {
         owner.close().await?
@@ -341,7 +344,7 @@ async fn inspect<T: HttpTransport>(
         .ok_or("Invalid resident model metadata")?;
     Ok((identity, residency))
 }
-async fn conditions(cancel: &CancellationToken, temporary: &Path) -> Value {
+pub(crate) async fn conditions(cancel: &CancellationToken, temporary: &Path) -> Value {
     let mut out = json!({"observed_at":autorouter_runtime::server_events::timestamp(),"architecture":std::env::consts::ARCH,"platform":std::env::consts::OS,"controlled_hardware_qualification":false});
     let commands: Vec<(&str, &str, Vec<&str>)> = if cfg!(target_os = "macos") {
         vec![

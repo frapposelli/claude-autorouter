@@ -374,3 +374,70 @@ async fn pre_cancelled_setup_performs_no_keychain_input_output_or_file_access() 
     assert!(lines.is_empty());
     fixture.absent();
 }
+
+#[tokio::test]
+async fn cancellation_after_api_key_prompt_stops_local_setup_and_save_before_key_validation() {
+    struct CancelAfterPrompt {
+        cancellation: CancellationToken,
+        returned: String,
+        keys: Vec<String>,
+    }
+    impl super::SecretPrompt for CancelAfterPrompt {
+        async fn read(&mut self, key: &str) -> Result<String, String> {
+            self.keys.push(key.to_owned());
+            self.cancellation.cancel();
+            Ok(self.returned.clone())
+        }
+    }
+    // Source original returns a successful key; the two additional returns
+    // prove cancellation takes precedence over validating a returned key.
+    for returned in ["synthetic-key", "", "synthetic-key\ntrailing"] {
+        assert_eq!(
+            fs::symlink_metadata(autorouter_runtime::policy::default_policy_path())
+                .err()
+                .map(|error| error.kind()),
+            Some(std::io::ErrorKind::NotFound),
+            "Synthetic setup cancellation requires no installed policy input"
+        );
+        let fixture = Fixture::new();
+        let context = ConfigContext {
+            env: &fixture.env,
+            cwd: &fixture.path,
+            home: &fixture.path,
+        };
+        let cancellation = CancellationToken::new();
+        let mut prompt = CancelAfterPrompt {
+            cancellation: cancellation.clone(),
+            returned: returned.to_owned(),
+            keys: Vec::new(),
+        };
+        let args: Vec<OsString> = ["--auth-mode", "api-key", "--evaluator", "ollama"]
+            .into_iter()
+            .map(OsString::from)
+            .collect();
+        let mut lines = Vec::new();
+        let result = super::setup_with_prompt(
+            &args,
+            &context,
+            &mut NoKeychain,
+            &cancellation,
+            &mut |line| lines.push(line),
+            false,
+            &mut prompt,
+        )
+        .await;
+        assert_eq!(result, Err("Setup cancelled".into()));
+        assert!(cancellation.is_cancelled());
+        assert_eq!(prompt.keys, ["ANTHROPIC_API_KEY"]);
+        assert_eq!(
+            lines,
+            [
+                "AutoRouter evaluates bounded prompt excerpts locally with Ollama. Complete requests still go to Anthropic."
+            ]
+        );
+        assert!(!fixture.http.unexpected.load(Ordering::SeqCst));
+        fixture.absent();
+        // Fixture Drop joins/drains the loopback spy and repeats zero-request
+        // proof, preventing an asynchronously accepted connection being missed.
+    }
+}

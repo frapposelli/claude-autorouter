@@ -71,7 +71,7 @@ fn excerpts_select_latest_direct_text_and_omit_all_opaque_payloads() {
     body["tools"] = json!([{"name":"PRIVATE_CANARY"}]);
     let before = body.clone();
     assert_eq!(
-        prompt_excerpt(&body, 500),
+        prompt_excerpt(&body, 500).unwrap(),
         "Describe the attached diagram.\nKeep the answer brief."
     );
     assert_eq!(body, before);
@@ -94,11 +94,15 @@ fn excerpts_follow_goal_then_human_steering_and_keep_unrecognized_feedback() {
     let body = request(messages.clone());
     let before = body.clone();
     assert_eq!(
-        prompt_excerpt(&body, 500),
+        prompt_excerpt(&body, 500).unwrap(),
         build_state(&body, 12000)["current_task"]
     );
-    assert!(prompt_excerpt(&body, 500).contains(condition));
-    assert!(!prompt_excerpt(&body, 500).contains("Stop hook feedback:"));
+    assert!(prompt_excerpt(&body, 500).unwrap().contains(condition));
+    assert!(
+        !prompt_excerpt(&body, 500)
+            .unwrap()
+            .contains("Stop hook feedback:")
+    );
     assert_eq!(body, before);
     messages.extend([
         user(json!("Use the alternate fixture directory.")),
@@ -106,12 +110,12 @@ fn excerpts_follow_goal_then_human_steering_and_keep_unrecognized_feedback() {
         feedback(condition),
     ]);
     assert_eq!(
-        prompt_excerpt(&request(messages.clone()), 500),
+        prompt_excerpt(&request(messages.clone()), 500).unwrap(),
         "Use the alternate fixture directory."
     );
     messages.extend([assistant(), feedback("An unmatched condition")]);
     assert_eq!(
-        prompt_excerpt(&request(messages.clone()), 500),
+        prompt_excerpt(&request(messages.clone()), 500).unwrap(),
         messages.last().unwrap()["content"][0]["text"]
     );
 }
@@ -137,7 +141,8 @@ fn new_non_text_tasks_and_empty_inputs_never_reuse_earlier_excerpts() {
                     ]))
                 ]),
                 500
-            ),
+            )
+            .unwrap(),
             ""
         );
     }
@@ -151,22 +156,22 @@ fn new_non_text_tasks_and_empty_inputs_never_reuse_earlier_excerpts() {
             "<available-deferred-tools>Names only</available-deferred-tools>"
         )]))]),
     ] {
-        assert_eq!(prompt_excerpt(&body, 500), "");
+        assert_eq!(prompt_excerpt(&body, 500).unwrap(), "");
     }
 }
 
 #[test]
 fn excerpt_limits_count_scalars_and_repair_lone_surrogates() {
     let body = request(vec![user(json!("😀".repeat(600)))]);
-    assert_eq!(prompt_excerpt(&body, 500), "😀".repeat(500));
+    assert_eq!(prompt_excerpt(&body, 500).unwrap(), "😀".repeat(500));
     for limit in [0, 1, 2, 3, 500, 501] {
-        assert_eq!(prompt_excerpt(&body, limit), "😀".repeat(limit));
+        assert_eq!(prompt_excerpt(&body, limit).unwrap(), "😀".repeat(limit));
     }
     let mixed = request(vec![user(json!([text("A😀"), text("𐐷B")]))]);
-    assert_eq!(prompt_excerpt(&mixed, 4), "A😀\n𐐷");
+    assert_eq!(prompt_excerpt(&mixed, 4).unwrap(), "A😀\n𐐷");
     let lone =
         JsDocument::parse(br#"{"messages":[{"role":"user","content":"\ud800A\udc00"}]}"#).unwrap();
-    assert_eq!(prompt_excerpt_document(&lone, 500), "�A�");
+    assert_eq!(prompt_excerpt_document(&lone, 500).unwrap(), "�A�");
 }
 
 #[test]
@@ -178,15 +183,15 @@ fn bounded_excerpts_preserve_literal_and_malformed_wrapper_text() {
             text("PRIVATE_AFTER_LIMIT")
         ])),
     ]);
-    assert_eq!(prompt_excerpt(&body, 12), "Current task");
-    assert_eq!(prompt_excerpt(&body, 0), "");
+    assert_eq!(prompt_excerpt(&body, 12).unwrap(), "Current task");
+    assert_eq!(prompt_excerpt(&body, 0).unwrap(), "");
     for task in [
         "Explain <system-reminder> in this syntax.",
         "<system-reminder>Context</system-reminder> Implement the parser.",
         "<available-deferred-tools>Explain the missing closing tag.",
     ] {
         assert_eq!(
-            prompt_excerpt(&request(vec![user(json!([text(task)]))]), 500),
+            prompt_excerpt(&request(vec![user(json!([text(task)]))]), 500).unwrap(),
             task
         );
     }

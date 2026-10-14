@@ -104,7 +104,10 @@ fn actual(row: &Value) -> Result<Value, &'static str> {
             &build_ollama_state_document(&document()?, limit(3000)?).stringify(),
         )
         .map_err(|_| "invalid native Ollama state JSON")?,
-        "prompt_excerpt" => Value::String(prompt_excerpt_document(&document()?, limit(500)?)),
+        "prompt_excerpt" => Value::String(
+            prompt_excerpt_document(&document()?, limit(500)?)
+                .map_err(|_| "maxChars must be a nonnegative safe integer")?,
+        ),
         "normalize_session" => {
             if args.len() != 1 {
                 return Err("session normalization arity");

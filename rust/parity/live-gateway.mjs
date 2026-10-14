@@ -71,6 +71,8 @@ input.on('line', line => {
         }
         const evidence = metadata(body, context);
         const state = buildState(body);
+        const scenarioPromptIndex = scenario.prompts.indexOf(state.current_task);
+        evidence.scenario_prompt_index = scenarioPromptIndex >= 0 ? scenarioPromptIndex : null;
         evidence.expected_classified_tier = scenario.expectedClassifiedTiers
           ? scenario.expectedClassifiedTiers[scenario.prompts.indexOf(state.current_task)]
           : scenario.expectedClassifiedTier ?? scenario.expectedTier;

@@ -2,7 +2,8 @@
 //! JavaScript reader locks, arbitrary abort reasons and asynchronous cancel
 //! callbacks are separate embedding boundaries, not emulated by Body::drop.
 use autorouter_runtime::bounded_json::{
-    DECISION_RESPONSE_LIMIT, MODEL_METADATA_LIMIT, ReadError, read_bounded_json,
+    DECISION_RESPONSE_LIMIT, MODEL_METADATA_LIMIT, ReadError, read_bounded_document,
+    read_bounded_json, read_response_document,
 };
 use bytes::Bytes;
 use hyper::HeaderMap;
@@ -198,6 +199,73 @@ async fn already_cancelled_overflow_is_not_polled_and_ordinary_overflow_is_relea
             );
             released(&lifetime);
         }
+    })
+    .await;
+}
+
+#[tokio::test]
+async fn public_reader_invalid_limits_precede_cancellation_and_valid_cancel_precedes_headers() {
+    bounded(async {
+        let limits = [
+            0_u64,
+            1,
+            65_536,
+            9_007_199_254_740_991,
+            9_007_199_254_740_992,
+            u64::MAX,
+        ];
+        let mut cases = 0;
+        for raw_limit in limits {
+            let Ok(limit) = usize::try_from(raw_limit) else {
+                continue; // Explicit native usize input domain on 32-bit targets.
+            };
+            for cancelled in [false, true] {
+                for oversized_header in [false, true] {
+                    for api in 0..3 {
+                        let (response, lifetime) = body(b"0", 1, false);
+                        let mut headers = HeaderMap::new();
+                        if oversized_header {
+                            headers.insert("content-length", "9007199254740992".parse().unwrap());
+                        }
+                        let cancellation = CancellationToken::new();
+                        if cancelled {
+                            cancellation.cancel();
+                        }
+                        let result = match api {
+                            0 => read_bounded_json(response, &headers, limit, &cancellation).await,
+                            1 => read_bounded_document(response, &headers, limit, &cancellation)
+                                .await
+                                .map(|document| document.to_serde_observation_lossy()),
+                            _ => read_response_document(response, &headers, limit, &cancellation)
+                                .await
+                                .map(|document| document.to_serde_observation_lossy()),
+                        };
+                        let expected = if limit == 0 || raw_limit > 9_007_199_254_740_991 {
+                            Some(ReadError::InvalidResponse)
+                        } else if cancelled {
+                            Some(ReadError::Cancelled)
+                        } else if oversized_header {
+                            Some(ReadError::Oversized)
+                        } else {
+                            None
+                        };
+                        if let Some(error) = expected {
+                            assert_eq!(result, Err(error));
+                            assert_eq!(lifetime.polls.load(Ordering::SeqCst), 0);
+                        } else {
+                            assert_eq!(
+                                result.unwrap().as_f64().unwrap().to_bits(),
+                                0_f64.to_bits()
+                            );
+                            assert_eq!(lifetime.polls.load(Ordering::SeqCst), 2);
+                        }
+                        released(&lifetime);
+                        cases += 1;
+                    }
+                }
+            }
+        }
+        assert_eq!(cases, if usize::BITS == 64 { 72 } else { 36 });
     })
     .await;
 }

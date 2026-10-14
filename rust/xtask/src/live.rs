@@ -228,12 +228,12 @@ pub fn metadata(doc: &JsDocument, options: &RouteOptions) -> Value {
     }
     report
 }
-struct ClassifierTransport {
-    native: Arc<NativeHttpClient>,
+struct ClassifierTransport<T: HttpTransport = NativeHttpClient> {
+    native: Arc<T>,
     outage: bool,
 }
-impl HttpTransport for ClassifierTransport {
-    type ResponseBody = hyper::body::Incoming;
+impl<T: HttpTransport> HttpTransport for ClassifierTransport<T> {
+    type ResponseBody = T::ResponseBody;
     async fn request(
         &self,
         request: Request<Full<Bytes>>,
@@ -245,12 +245,15 @@ impl HttpTransport for ClassifierTransport {
         }
     }
 }
-struct LiveRouter {
-    inner: Router<ClassifierTransport>,
+struct LiveRouter<T: HttpTransport + 'static = NativeHttpClient> {
+    inner: Router<ClassifierTransport<T>>,
     scenario: Value,
     routes: Arc<Mutex<Vec<Value>>>,
 }
-impl LiveRouter {
+impl<T: HttpTransport + 'static> LiveRouter<T>
+where
+    <T::ResponseBody as hyper::body::Body>::Error: Send + Sync + 'static,
+{
     fn transform(&self, document: Arc<JsDocument>, class: &str) -> Arc<JsDocument> {
         if self.scenario["syntheticReminder"] != true
             || ["compaction", "auxiliary"].contains(&class)
@@ -291,6 +294,13 @@ impl LiveRouter {
     ) -> Result<RouteDecision, EvaluationError> {
         let mut evidence = metadata(&doc, &options);
         let state = build_state_document(&doc, 12000);
+        evidence["scenario_prompt_index"] = json!(
+            self.scenario["prompts"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .position(|prompt| prompt.as_str() == Some(&state.current_task.to_well_formed()))
+        );
         let expected = expected_tier(&self.scenario, &state.current_task);
         if let Some(expected) = expected {
             evidence["expected_classified_tier"] = expected;
@@ -314,7 +324,10 @@ impl LiveRouter {
         Ok(result)
     }
 }
-impl GatewayRouter for LiveRouter {
+impl<T: HttpTransport + 'static> GatewayRouter for LiveRouter<T>
+where
+    <T::ResponseBody as hyper::body::Body>::Error: Send + Sync + 'static,
+{
     fn transform_document_for_request(&self, doc: Arc<JsDocument>, class: &str) -> Arc<JsDocument> {
         self.transform(doc, class)
     }
@@ -757,13 +770,29 @@ async fn execute(
             &signals.token,
         )
         .await;
+        let mut gateway_cleanup = json!({});
         if let Some((gateway, router)) = native {
             gateway.close().await;
             router.shutdown();
+            router.inner.close().await;
+            gateway_cleanup = json!({"awaited":true,"router_close_returned":true,"native_join_result_available":false});
         }
         if let Some(gateway) = oracle {
-            gateway.close().await?;
+            let closed = gateway.close().await?;
+            gateway_cleanup = json!({"awaited":true,"reference_closed":closed["closed"],"reference_protocol_valid":closed["protocol_valid"],"reference_process_exit_code":closed["process"]["exit_code"],"reference_process_timed_out":closed["process"]["timed_out"],"reference_process_output_limit_exceeded":closed["process"]["output_limit_exceeded"]});
         }
+        gateway_cleanup["listener_observation"] = json!(match tokio::time::timeout(
+            Duration::from_millis(500),
+            tokio::net::TcpStream::connect(address),
+        )
+        .await
+        {
+            Ok(Err(error)) if error.kind() == std::io::ErrorKind::ConnectionRefused =>
+                "connection_refused",
+            Ok(Ok(_)) => "reachable",
+            Ok(Err(_)) => "unverified_error",
+            Err(_) => "unverified_timeout",
+        });
         let native_tests = if scenario["tools"] == true {
             Some(independent_tests(&dir, &signals.token).await)
         } else {
@@ -829,6 +858,12 @@ async fn execute(
         item.as_object_mut()
             .unwrap()
             .extend(run.as_object().unwrap().clone());
+        item["gateway_cleanup"] = gateway_cleanup;
+        drop(routes);
+        drop(evidence);
+        let fixture_path = dir.0.clone();
+        drop(dir);
+        item["fixture_removed"] = json!(!fixture_path.exists());
         let mut progress = json!({"type":"case_result"});
         progress
             .as_object_mut()
@@ -931,3 +966,7 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+#[path = "live_producer_contracts.rs"]
+mod producer_contracts;
