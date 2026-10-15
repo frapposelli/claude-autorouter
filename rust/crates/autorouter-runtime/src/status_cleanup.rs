@@ -125,7 +125,7 @@ mod tests {
     use super::*;
     use serde_json::json;
     use std::fs;
-    use std::os::unix::fs::{DirBuilderExt, symlink};
+    use std::os::unix::fs::{DirBuilderExt, PermissionsExt, symlink};
 
     struct OwnedRoot(PathBuf);
     impl Drop for OwnedRoot {
@@ -281,6 +281,8 @@ mod tests {
     ) -> PathBuf {
         let path = root.join(name);
         fs::DirBuilder::new().mode(mode).create(&path).unwrap();
+        // Exercise the requested trust state independently of the test umask.
+        fs::set_permissions(&path, fs::Permissions::from_mode(mode)).unwrap();
         fs::write(
             path.join("claude-settings.json"),
             r#"{"env":{"PRIVATE":"synthetic"}}"#,
