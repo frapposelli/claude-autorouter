@@ -11952,23 +11952,23 @@
       "file": "test/policy.test.mjs",
       "name": "the policy path is fixed per platform and a missing file means no policy",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
         "rust/crates/autorouter-runtime/src/policy.rs#policy::tests::only_trusted_regular_files_and_directories_are_loaded"
       ],
       "shared_cases": [],
       "evidence": {
-        "native_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
-        "native_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
-        "scope": "Only the exact mapped native assertions; no actual system policy/Keychain interaction, cross-platform or installed-artifact qualification is implied."
+        "supplement": "rust/parity/measurements/native-original-policy-fixed-path-summary.json",
+        "supplement_sha256": "7467a664a358fbcad0afe3ca7f06d3378ecea9b315e26edb3217941477d7c843",
+        "macos_linux_named_test_readback": "artifacts/rust-rewrite/policy-fixed-path-ci-20261015-1/named-policy-platform-passes-1.json",
+        "macos_linux_named_test_readback_sha256": "942b1de78441d9f41fe80313bb028be0a535fc0bcfe23bb7b91e3cb2348fc927",
+        "scope": "All three frozen assertions under explicit compiled-target Path and Option::None API migration; no real system policy access or whole-platform qualification."
       },
       "related_components": [
         "config_auth_policy"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
-      "remaining_assertions": [
-        "The fixed Linux path is present behind native platform selection but has not yet been executed in the retained evidence for this definition; both platform branches are required."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/policy-fixed-path-platform-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/policy.test.mjs#2",
@@ -20260,34 +20260,27 @@
       "file": "test/router.test.mjs",
       "name": "token checking overlaps classification, while small requests and hard locks need no count call",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
         "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
-        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::small_and_large_hard_locked_requests_never_start_count_transport"
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::small_and_large_hard_locked_requests_never_start_count_transport",
+        "rust/crates/autorouter-runtime/src/router.rs#router::tests::count_starts_before_evaluator_and_keeps_both_responses_concurrent",
+        "rust/crates/autorouter-runtime/src/router.rs#router::tests::cancellation_before_count_first_poll_never_starts_evaluator_and_releases_slot"
       ],
       "shared_cases": [
         "baseline-router-instance-120",
         "baseline-router-instance-121"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/router-contracts.json",
-        "assertion_mapping_sha256": "6e1c2f8bd229c02fafe382ae618e20a89b6d2a43e49671401d06d50164eff2ab",
-        "capture": "artifacts/rust-rewrite/evidence/a2b40b92412bfe643f7cb2f256b2c995c103207211b7ec29fcc48991c3d2df7b.json",
-        "capture_sha256": "a2b40b92412bfe643f7cb2f256b2c995c103207211b7ec29fcc48991c3d2df7b",
-        "cases_sha256": "296f68fc81b50e6e24d277c43adb50d9613b4816a1b9d6a1e610299faa6126e3",
-        "native_core_log": "artifacts/rust-rewrite/evidence/360d690c0cfbee0d4d9a8b81b140b52631eecf07319ea7a0b8137966cad4dc7d.log",
-        "native_core_log_sha256": "360d690c0cfbee0d4d9a8b81b140b52631eecf07319ea7a0b8137966cad4dc7d",
-        "native_runtime_log": "artifacts/rust-rewrite/evidence/d6edbb3f5051e75431ebb14bd9e0bd2fcfce1de2f38a61fa8e31c3fa0dd6e5f4.log",
-        "native_runtime_log_sha256": "d6edbb3f5051e75431ebb14bd9e0bd2fcfce1de2f38a61fa8e31c3fa0dd6e5f4",
-        "scope": "All121 Router instances/263 routes and29 pure calls. Complete native policy decisions, actual classifier/cache/count execution and full captured synthetic transport requests. Four literal JavaScript API/clock boundaries remain partial."
+        "supplement": "rust/parity/measurements/native-original-router-count-start-summary.json",
+        "supplement_sha256": "bf1b2cf55dd61a317ffa4bf707d3ca8524df9687d3b54ff4694e4431c37730b9",
+        "scope": "Only original router#51 under explicit native async API migration. Prior full router replay remains historical; advisory-capacity saturation and numerical latency are separate open gates."
       },
       "related_components": [
         "router_continuity"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/router-contracts.json",
-      "remaining_assertions": [
-        "Original source synchronously enters countTokens before fetchImpl. Native replay verifies both endpoint counts, full payloads and no-count small/locked paths; existing semaphore regression proves overlap/reuse. Neither proves the same JavaScript callback-start ordering across asynchronous native transport scheduling."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/router-count-start-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/routing-compatibility.test.mjs#1",

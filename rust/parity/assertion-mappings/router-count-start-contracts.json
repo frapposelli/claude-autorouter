@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "kind": "original_router51_count_start_per_assertion_migration",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "only_definition": "test/router.test.mjs#51",
+  "original_definition": {
+    "name": "token checking overlaps classification, while small requests and hard locks need no count call",
+    "statement": "test('token checking overlaps classification, while small requests and hard locks need no count call', async () => {\n  let counted = false;\n  const router = new Router(config(), { fetchImpl: async () => {\n    assert.equal(counted, true);\n    return result('haiku');\n  } });\n  const body = { ...request('Simple task'), model: config().models.haiku, system: 'x'.repeat(160000) };\n  const decision = await router.route(body, { countTokens: async () => { counted = true; return 40000; } });\n  assert.equal(decision.model, config().models.haiku);\n  const noCount = new Router(config(), { fetchImpl: async () => result('haiku') });\n  const countTokens = async () => assert.fail('Must not add a counting request');\n  await noCount.route(request('Tiny task'), { countTokens });\n  await noCount.route({ ...body, thinking: { type: 'enabled', budget_tokens: 1024 } }, { countTokens });\n});",
+    "statement_sha256": "e52253318d002cbc744cba5d9adfd64cac54ae5a667bc88cfba61500cac328c0",
+    "source": {
+      "path": "artifacts/rust-rewrite/reference/test/router.test.mjs",
+      "bytes": 54848,
+      "sha256": "a820786bbbdcf71ce81eaa6be57fcdfc7ac26e373343f2b3635de254d56df516"
+    },
+    "source_equal_to_baseline_git_blob": true,
+    "assertion_sites": 3,
+    "local_no_count_variants": 2
+  },
+  "previous_coverage_row": {
+    "id": "test/router.test.mjs#51",
+    "file": "test/router.test.mjs",
+    "name": "token checking overlaps classification, while small requests and hard locks need no count call",
+    "parameterized": false,
+    "status": "partial_assertion_mapping",
+    "rust_tests": [
+      "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
+      "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::small_and_large_hard_locked_requests_never_start_count_transport"
+    ],
+    "shared_cases": [
+      "baseline-router-instance-120",
+      "baseline-router-instance-121"
+    ],
+    "evidence": {
+      "assertion_mapping": "rust/parity/assertion-mappings/router-contracts.json",
+      "assertion_mapping_sha256": "6e1c2f8bd229c02fafe382ae618e20a89b6d2a43e49671401d06d50164eff2ab",
+      "capture": "artifacts/rust-rewrite/evidence/a2b40b92412bfe643f7cb2f256b2c995c103207211b7ec29fcc48991c3d2df7b.json",
+      "capture_sha256": "a2b40b92412bfe643f7cb2f256b2c995c103207211b7ec29fcc48991c3d2df7b",
+      "cases_sha256": "296f68fc81b50e6e24d277c43adb50d9613b4816a1b9d6a1e610299faa6126e3",
+      "native_core_log": "artifacts/rust-rewrite/evidence/360d690c0cfbee0d4d9a8b81b140b52631eecf07319ea7a0b8137966cad4dc7d.log",
+      "native_core_log_sha256": "360d690c0cfbee0d4d9a8b81b140b52631eecf07319ea7a0b8137966cad4dc7d",
+      "native_runtime_log": "artifacts/rust-rewrite/evidence/d6edbb3f5051e75431ebb14bd9e0bd2fcfce1de2f38a61fa8e31c3fa0dd6e5f4.log",
+      "native_runtime_log_sha256": "d6edbb3f5051e75431ebb14bd9e0bd2fcfce1de2f38a61fa8e31c3fa0dd6e5f4",
+      "scope": "All121 Router instances/263 routes and29 pure calls. Complete native policy decisions, actual classifier/cache/count execution and full captured synthetic transport requests. Four literal JavaScript API/clock boundaries remain partial."
+    },
+    "related_components": [
+      "router_continuity"
+    ],
+    "assertion_mapping": "rust/parity/assertion-mappings/router-contracts.json",
+    "remaining_assertions": [
+      "Original source synchronously enters countTokens before fetchImpl. Native replay verifies both endpoint counts, full payloads and no-count small/locked paths; existing semaphore regression proves overlap/reuse. Neither proves the same JavaScript callback-start ordering across asynchronous native transport scheduling."
+    ]
+  },
+  "per_assertion": [
+    {
+      "status": "covered_under_explicit_native_async_api_migration",
+      "id": "test/router.test.mjs#51:assert-1",
+      "source_expression": "assert.equal(counted, true)",
+      "source_expression_sha256": "23d593719e541342ef91a08b332e0bbccbd7fc40c98eb5f61eda02da3e9520b7",
+      "native_test": "router::tests::count_starts_before_evaluator_and_keeps_both_responses_concurrent",
+      "native_predicate": "For original-shaped 160K system/Haiku request, actual count transport enters before evaluator, and both count and evaluator remain pending concurrently; count response40000 and Haiku decision are checked.",
+      "source_executions": 1
+    },
+    {
+      "status": "covered_under_explicit_native_async_api_migration",
+      "id": "test/router.test.mjs#51:assert-2",
+      "source_expression": "assert.equal(decision.model, config().models.haiku)",
+      "source_expression_sha256": "377f075f490be789da5bfc894356adb0f497cddfb4ef4ca14cb12b6eb7f976a7",
+      "native_test": "router::tests::count_starts_before_evaluator_and_keeps_both_responses_concurrent",
+      "native_predicate": "The selected model remains the configured Haiku after a 40000-token count; source Jev decision, context_check and unchanged document are asserted.",
+      "source_executions": 1
+    },
+    {
+      "status": "covered_under_explicit_native_async_api_migration",
+      "id": "test/router.test.mjs#51:assert-3",
+      "source_expression": "assert.fail('Must not add a counting request')",
+      "native_test": "router::contracts::small_and_large_hard_locked_requests_never_start_count_transport",
+      "native_predicate": "Frozen captured tiny and large enabled-thinking/hard-lock branches replay through actual classifier/count transport and issue no count request.",
+      "source_executions": 0,
+      "source_expression_sha256": "9d5f47e71ce7d71a2ee69a48dd09a5bdf8bb7997bf79c878db70c5c3ae45420b",
+      "negative_guard_variants": 2
+    }
+  ],
+  "native_source": {
+    "path": "rust/crates/autorouter-runtime/src/router.rs",
+    "bytes": 38436,
+    "sha256": "39b425d6e624f5d0787ea388b6d2bec3ee06c99f7d1d2a932f8757d6ce6138f8"
+  },
+  "native_API_review": {
+    "preserved": "An admitted speculative count starts before classifier evaluation for the original suspicious request, then both unresolved transport responses overlap. Tiny and enabled-thinking locked requests do not count.",
+    "migration": "JavaScript immediately invokes a caller-owned countTokens callback before fetchImpl; Rust spawns a native owned TokenCounter task and awaits an acknowledgement after its real future has been polled. No JavaScript callback or promise identity is claimed.",
+    "capacity_limit": "If bounded advisory task capacity is exhausted, the native router may skip speculation and classify before a required later count. This saturation case is not in original definition #51 and remains a reviewed resource-policy difference; no universal count-before-evaluator claim is made.",
+    "performance_limit": "First count poll performs synchronous serialization/cache work before evaluator admission; latency and unchanged performance gates require separate measurement."
+  },
+  "actual_executions": [
+    {
+      "path": "artifacts/rust-rewrite/router51-promotion-20261015-1/source-execution.json",
+      "bytes": 1080,
+      "sha256": "667f2c3ee2c3ed5292a438ee4e3074243706bd1850fa12786b075cb44a3db179"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router51-promotion-20261015-1/source.stdout",
+      "bytes": 361,
+      "sha256": "4e481880a48f8371c5d8a16d88b70399b4311c8672a3039c869309217f33df49"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router51-promotion-20261015-1/source.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-count-full-workspace-20261015-1/cargo-test.log",
+      "bytes": 141612,
+      "sha256": "50f528b55b0070fb3669f0be434612292d525f504d55a388737ebc02d4592a45"
+    }
+  ],
+  "native_evidence": {
+    "workspace_test_groups": 63,
+    "workspace_passed": 1274,
+    "workspace_failed": 0,
+    "workspace_ignored": 9,
+    "named_tests_passed": [
+      "router::tests::count_starts_before_evaluator_and_keeps_both_responses_concurrent",
+      "router::tests::cancellation_before_count_first_poll_never_starts_evaluator_and_releases_slot",
+      "router::contracts::small_and_large_hard_locked_requests_never_start_count_transport",
+      "frozen_router_instances_match_complete_policy_schedules_and_pure_calls"
+    ],
+    "frozen_router_source_sha256": "39b425d6e624f5d0787ea388b6d2bec3ee06c99f7d1d2a932f8757d6ce6138f8"
+  },
+  "scope": "Only original router#51 is covered under the explicit native async API migration. Earlier router mappings remain historical; advisory-capacity saturation, numerical latency, complete platform or release gates are not promoted."
+}

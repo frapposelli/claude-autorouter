@@ -37,6 +37,21 @@ const hashFile = (path, ownedProc = false) => consume(path, MAX_BINARY, { digest
 const scratch = await mkdtemp(join(tmpdir(), 'autorouter-musl-selection-'));
 let child, ended, npmChild, npmEnded, timer, stopped, healthRequest;
 let leaderClosed = false, npmClosed = false, terminalCause = null, terminalExitTask, reportPublicationStarted = false;
+let phase = 'archive_digest', terminalDetails, spawnFailed = false, stderrOverflow = false, readinessObserved = false;
+let executedIdentityMatches = null, healthStatus = null;
+const FAILURE_CODES = new Set(['ERR_ASSERTION', 'ENOENT', 'EACCES', 'ELOOP', 'ENOTDIR', 'ETIMEDOUT', 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER']);
+const FAILURE_SIGNALS = new Set(['SIGINT', 'SIGTERM', 'SIGKILL', 'SIGABRT', 'SIGSEGV']);
+function failureDetails(error) {
+  let errorCode = null;
+  if (error !== undefined) {
+    try { const code = error?.code; errorCode = FAILURE_CODES.has(code) ? code : 'other'; }
+    catch { errorCode = 'other'; }
+  }
+  return { phase, error_code: errorCode, serve_spawned: Boolean(child?.pid), serve_spawn_failed: spawnFailed,
+    stderr_overflow: stderrOverflow, readiness_observed: readinessObserved, executed_identity_matches: executedIdentityMatches,
+    health_status: healthStatus, child_exit_code: Number.isSafeInteger(child?.exitCode) ? child.exitCode : null,
+    child_signal: child?.signalCode == null ? null : FAILURE_SIGNALS.has(child.signalCode) ? child.signalCode : 'other' };
+}
 async function bounded(promise, ms) { let stop; try { return await Promise.race([promise, new Promise((_, reject) => { stop = setTimeout(() => reject(Error('Owned fixture deadline')), ms); })]); } finally { clearTimeout(stop); } }
 async function cleanup() {
   if (stopped) return stopped;
@@ -57,17 +72,21 @@ async function cleanup() {
 }
 async function failureWitness(reason, cleanupCompleted) {
   const failure = { schema_version: 1, kind: 'actual_mixed_npm_musl_dispatch', passed: false, target, expected_sha256: expected,
-    failure: reason, cleanup_completed: cleanupCompleted, leader_exit_observed: leaderClosed, npm_spawned: Boolean(npmChild?.pid), npm_close_observed: npmClosed };
+    failure: reason, cleanup_completed: cleanupCompleted, leader_exit_observed: leaderClosed, npm_spawned: Boolean(npmChild?.pid), npm_close_observed: npmClosed,
+    ...terminalDetails };
   try { await writeFile(output, JSON.stringify(failure, null, 2) + '\n', { flag: 'wx', mode: 0o600 }); }
   catch { process.stderr.write('Cannot retain create-only failure witness\n'); }
 }
-function failAndExit(code, reason) {
+function failAndExit(code, reason, error) {
   // The first pre-publication terminal cause is recorded synchronously before
   // cleanup can yield. A completed fixture's report-publication admission is
   // the explicit boundary; signals after it do not retroactively cancel work.
   if (reportPublicationStarted) return Promise.resolve();
   if (terminalCause !== null) return terminalExitTask;
   terminalCause = reason;
+  // Snapshot only closed codes and typed observations before cleanup yields or
+  // changes exit/signal state. Never retain exception or child output text.
+  terminalDetails = failureDetails(error);
   return terminalExitTask = (async () => {
     let cleanupCompleted = false;
     try { await cleanup(); cleanupCompleted = true; } catch {}
@@ -80,6 +99,7 @@ process.once('SIGINT', interrupt); process.once('SIGTERM', terminate);
 try {
   const prefix = join(scratch, "install ' $ with spaces");
   const archiveSha = await hashFile(resolve(archive));
+  phase = 'npm_install';
   // Admission and owned-child assignment contain no await: a prior terminal
   // cause cannot start a new child after cleanup has already completed.
   assert.equal(terminalCause, null, 'Installer admission after terminal cause');
@@ -91,44 +111,55 @@ try {
   // unhandled rejection while the signal handler is awaiting owned cleanup.
   void installPromise.catch(() => {});
   const install = await installPromise;
+  phase = 'npm_close';
   assert.equal(typeof install.stdout, 'string'); assert.ok(npmClosed);
   assert.equal(terminalCause, null);
   const packageRoot = join(prefix, 'lib/node_modules/claude-autorouter');
+  phase = 'manifest_read';
   const manifest = JSON.parse((await consume(join(packageRoot, 'build-manifest.json'), MAX_MANIFEST)).toString('utf8'));
+  phase = 'manifest_shape';
   const artifacts = manifest.artifacts;
   assert.equal(artifacts.length, 2);
   const musl = artifacts.find(row => row.target === target);
   const gnu = artifacts.find(row => row.target === target.replace('-musl', '-gnu'));
   assert.ok(musl && gnu); assert.equal(musl.sha256, expected); assert.notEqual(gnu.sha256, expected);
+  phase = 'installed_digest';
   assert.equal(await hashFile(join(packageRoot, musl.path)), expected);
+  phase = 'serve_admission';
   const cwd = join(scratch, 'unrelated'); await mkdir(cwd);
   assert.equal(terminalCause, null, 'Serve admission after terminal cause');
   child = spawn(join(prefix, 'bin/claude-autorouter'), ['serve'], { cwd, stdio: ['ignore', 'ignore', 'pipe'],
     env: { HOME: cwd, XDG_CONFIG_HOME: cwd, PATH: cwd, AUTOROUTER_CONFIG: join(cwd, 'absent.json'), AUTOROUTER_PORT: '0',
       AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'synthetic-evaluator', ANTHROPIC_API_KEY: 'synthetic-provider', AUTOROUTER_TOKEN: 'synthetic-dispatch-token',
       AUTOROUTER_UPSTREAM_URL: 'http://127.0.0.1:1', AUTOROUTER_JEV_URL: 'http://127.0.0.1:1/v1/systemone' } });
-  let spawnFailed = false;
   ended = new Promise(resolve => { child.once('error', () => { spawnFailed = true; resolve(); }); child.once('close', () => { leaderClosed = true; resolve(); }); });
-  const stderrChunks = []; let stderrBytes = 0, stderrOverflow = false;
+  const stderrChunks = []; let stderrBytes = 0;
   child.stderr.on('data', chunk => { if (chunk.length > 65536 - stderrBytes) { stderrOverflow = true; child.kill('SIGKILL'); } else { stderrBytes += chunk.length; stderrChunks.push(chunk); } });
   timer = setTimeout(() => { void failAndExit(1, 'deadline'); }, 20000);
+  phase = 'serve_readiness';
   let port;
   for (let attempt = 0; attempt < 1000; attempt++) {
     port = Number(Buffer.concat(stderrChunks, stderrBytes).toString('utf8').match(/AutoRouter listening on http:\/\/127\.0\.0\.1:(\d+)/)?.[1]);
     if (port || spawnFailed || stderrOverflow || child.exitCode !== null || child.signalCode !== null) break;
     await delay(5);
   }
+  readinessObserved = Boolean(port);
   assert.ok(port && !spawnFailed && !stderrOverflow); assert.equal(child.exitCode, null); assert.equal(child.signalCode, null);
   // /proc magic-link following is intentional only for our still-owned live leader.
-  const executedSha = await hashFile(`/proc/${child.pid}/exe`, true); assert.equal(executedSha, expected);
+  phase = 'proc_digest';
+  const executedSha = await hashFile(`/proc/${child.pid}/exe`, true); executedIdentityMatches = executedSha === expected; assert.equal(executedSha, expected);
   assert.equal(child.exitCode, null); assert.equal(child.signalCode, null);
+  phase = 'health';
   const health = await bounded(new Promise((resolve, reject) => {
     healthRequest = http.get({ host: '127.0.0.1', port, path: '/health' }, response => { response.once('error', reject); response.once('aborted', () => reject(Error('Health response aborted'))); response.resume(); response.once('end', () => resolve(response.statusCode)); });
     healthRequest.setTimeout(2000, () => healthRequest.destroy(Error('Health deadline'))); healthRequest.once('error', reject);
   }), 3000);
+  healthStatus = Number.isInteger(health) && health >= 100 && health <= 599 ? health : null;
   assert.equal(health, 200); assert.ok(!stderrOverflow);
+  phase = 'archive_recheck';
   assert.equal(await hashFile(resolve(archive)), archiveSha, 'Archive changed during installed fixture');
-  await cleanup(); assert.ok(leaderClosed && npmClosed, 'Every admitted direct child close must be observed');
+  phase = 'cleanup';
+  await cleanup(); phase = 'owned_closes'; assert.ok(leaderClosed && npmClosed, 'Every admitted direct child close must be observed');
   assert.equal(terminalCause, null);
   const report = { schema_version: 1, kind: 'actual_mixed_npm_musl_dispatch', passed: true, platform: process.platform, arch: process.arch,
     archive_sha256: archiveSha, target, installed_sha256: expected, executed_sha256: executedSha,
@@ -136,12 +167,13 @@ try {
     completion_boundary: 'All owned closes and identity checks complete; no terminal cause before synchronous report-publication admission',
     scope: 'Owned ordinary serve leader observed via /proc while alive; no provider/model requests, escaped descendants or whole matrix qualification.' };
   assert.equal(terminalCause, null);
+  phase = 'report_publication';
   reportPublicationStarted = true;
   await writeFile(output, JSON.stringify(report, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
   console.log(JSON.stringify({ passed: true, target, executed_sha256: expected }));
 } catch (error) {
   if (reportPublicationStarted) { process.exitCode = 1; throw error; }
-  await failAndExit(1, 'fixture_failed');
+  await failAndExit(1, 'fixture_failed', error);
 } finally {
   process.off('SIGINT', interrupt); process.off('SIGTERM', terminate); await cleanup();
 }

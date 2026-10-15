@@ -220,6 +220,40 @@ pub struct JsObject {
     positions: HashMap<JsString, usize>,
 }
 
+enum ObjectOrder {
+    Natural(std::ops::Range<usize>),
+    Indexed(std::vec::IntoIter<usize>),
+}
+
+impl Iterator for ObjectOrder {
+    type Item = usize;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self {
+            Self::Natural(order) => order.next(),
+            Self::Indexed(order) => order.next(),
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        match self {
+            Self::Natural(order) => order.size_hint(),
+            Self::Indexed(order) => order.size_hint(),
+        }
+    }
+}
+
+impl DoubleEndedIterator for ObjectOrder {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        match self {
+            Self::Natural(order) => order.next_back(),
+            Self::Indexed(order) => order.next_back(),
+        }
+    }
+}
+
+impl ExactSizeIterator for ObjectOrder {}
+
 impl JsObject {
     pub fn get(&self, key: &str) -> Option<NodeId> {
         let units: Vec<u16> = key.encode_utf16().collect();
@@ -235,7 +269,7 @@ impl JsObject {
     pub fn ordered_entries(
         &self,
     ) -> impl DoubleEndedIterator<Item = &(JsString, NodeId)> + ExactSizeIterator {
-        self.ordered().into_iter().map(|index| &self.entries[index])
+        self.ordered().map(|index| &self.entries[index])
     }
     fn insert(&mut self, key: JsString, value: NodeId) {
         if let Some(&index) = self.positions.get(&key) {
@@ -245,7 +279,17 @@ impl JsObject {
             self.entries.push((key, value));
         }
     }
-    fn ordered(&self) -> Vec<usize> {
+    fn ordered(&self) -> ObjectOrder {
+        // Ordinary string keys already have their required insertion order.
+        // Borrow positions without allocating vectors for common JSON objects.
+        // Numeric-key objects retain the complete sorting path below.
+        if self
+            .entries
+            .iter()
+            .all(|(key, _)| key.array_index().is_none())
+        {
+            return ObjectOrder::Natural(0..self.entries.len());
+        }
         let mut indexed = Vec::new();
         let mut ordinary = Vec::new();
         for (index, (key, _)) in self.entries.iter().enumerate() {
@@ -256,11 +300,14 @@ impl JsObject {
             }
         }
         indexed.sort_unstable_by_key(|&(number, _)| number);
-        indexed
-            .into_iter()
-            .map(|(_, index)| index)
-            .chain(ordinary)
-            .collect()
+        ObjectOrder::Indexed(
+            indexed
+                .into_iter()
+                .map(|(_, index)| index)
+                .chain(ordinary)
+                .collect::<Vec<_>>()
+                .into_iter(),
+        )
     }
 }
 
@@ -830,7 +877,7 @@ impl JsDocument {
                     JsNode::Object(value) => {
                         output.push('{');
                         stack.push(WriteItem::Punctuation('}'));
-                        for (index, position) in value.ordered().into_iter().enumerate().rev() {
+                        for (index, position) in value.ordered().enumerate().rev() {
                             let (key, child) = &value.entries[position];
                             stack.push(WriteItem::Node(*child));
                             stack.push(WriteItem::Punctuation(':'));
@@ -1132,6 +1179,200 @@ mod tests {
 
     fn normalized(input: &str) -> String {
         JsDocument::parse(input.as_bytes()).unwrap().stringify()
+    }
+
+    // Retained pre-optimization algorithm: independent of the iterator's
+    // natural-order fast path, and used only by these differential controls.
+    fn previous_object_order(object: &JsObject) -> Vec<usize> {
+        let mut indexed = Vec::new();
+        let mut ordinary = Vec::new();
+        for (index, (key, _)) in object.entries.iter().enumerate() {
+            if let Some(number) = key.array_index() {
+                indexed.push((number, index));
+            } else {
+                ordinary.push(index);
+            }
+        }
+        indexed.sort_unstable_by_key(|&(number, _)| number);
+        indexed
+            .into_iter()
+            .map(|(_, index)| index)
+            .chain(ordinary)
+            .collect()
+    }
+
+    #[test]
+    fn object_order_matches_previous_algorithm_and_exact_iterator_contract() {
+        let mut keys: Vec<_> = [
+            "a",
+            "z",
+            "__proto__",
+            "01",
+            "4294967295",
+            "é",
+            "0",
+            "2",
+            "10",
+            "4294967294",
+            "1e0",
+            "-0",
+            "０",
+        ]
+        .into_iter()
+        .map(JsString::from_scalar)
+        .collect();
+        keys.push(JsString::from_utf16(vec![0xd800]));
+        for width in 0..=keys.len() {
+            for offset in 0..keys.len() {
+                for reverse in [false, true] {
+                    let mut object = JsObject::default();
+                    for step in 0..width {
+                        let position = (offset
+                            + if reverse { keys.len() - 1 - step } else { step })
+                            % keys.len();
+                        object.insert(keys[position].clone(), step);
+                        if step % 3 == 0 {
+                            object.insert(keys[position].clone(), step + 100);
+                        }
+                    }
+                    let previous = previous_object_order(&object);
+                    assert_eq!(object.ordered().collect::<Vec<_>>(), previous);
+                    assert_eq!(
+                        object.ordered().rev().collect::<Vec<_>>(),
+                        previous.iter().copied().rev().collect::<Vec<_>>()
+                    );
+                    let natural = object
+                        .entries
+                        .iter()
+                        .all(|(key, _)| key.array_index().is_none());
+                    assert_eq!(matches!(object.ordered(), ObjectOrder::Natural(_)), natural);
+                    let mut expected = std::collections::VecDeque::from(previous.clone());
+                    let mut actual = object.ordered();
+                    let mut step = 0;
+                    while !expected.is_empty() {
+                        assert_eq!(actual.len(), expected.len());
+                        assert_eq!(actual.size_hint(), (expected.len(), Some(expected.len())));
+                        if step % 3 == 0 {
+                            assert_eq!(actual.next_back(), expected.pop_back());
+                        } else {
+                            assert_eq!(actual.next(), expected.pop_front());
+                        }
+                        step += 1;
+                    }
+                    assert_eq!(actual.len(), 0);
+                    assert_eq!(actual.size_hint(), (0, Some(0)));
+                    assert_eq!(actual.next(), None);
+                    assert_eq!(actual.next_back(), None);
+                    let ordered_keys: Vec<_> = object
+                        .ordered_entries()
+                        .map(|(key, _)| key.clone())
+                        .collect();
+                    assert_eq!(
+                        ordered_keys,
+                        previous
+                            .iter()
+                            .map(|&index| object.entries[index].0.clone())
+                            .collect::<Vec<_>>()
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn object_order_frozen_node_property_and_nested_json_outputs_match() {
+        // Actual pinned Node 22.14.0 JSON.stringify(JSON.parse(input)) results.
+        // No runtime Node process, reordering oracle or lossy projection is used.
+        let cases = [
+            (r###"{}"###, r###"{}"###),
+            (r###"{"only":"one"}"###, r###"{"only":"one"}"###),
+            (
+                r###"{"z":"first","a":"second","__proto__":"ordinary","constructor":"still ordinary"}"###,
+                r###"{"z":"first","a":"second","__proto__":"ordinary","constructor":"still ordinary"}"###,
+            ),
+            (
+                r###"{"b":"old","4294967294":"maxindex","01":"leading","1":"one","0":"zero","4294967295":"notindex","-0":"minus","1e0":"exponent","000":"zeros","2":"two","b":"new"}"###,
+                r###"{"0":"zero","1":"one","2":"two","4294967294":"maxindex","b":"new","01":"leading","4294967295":"notindex","-0":"minus","1e0":"exponent","000":"zeros"}"###,
+            ),
+            (
+                r###"{"b":"first","\u0031":"first index","1":"last index","a":"last"}"###,
+                r###"{"1":"last index","b":"first","a":"last"}"###,
+            ),
+            (
+                r###"{"\ud800":"high","\udc00":"low","é":"accent","\ud83d\ude00":"pair","\u0000":"nul","０":"wide zero","0":"ascii zero"}"###,
+                r###"{"0":"ascii zero","\ud800":"high","\udc00":"low","é":"accent","😀":"pair","\u0000":"nul","０":"wide zero"}"###,
+            ),
+            (
+                r###"{"10":"ten","2":"two","1":"one","0":"zero","4294967296":"overflow","9007199254740991":"unsafe index","-1":"negative","1.0":"decimal"}"###,
+                r###"{"0":"zero","1":"one","2":"two","10":"ten","4294967296":"overflow","9007199254740991":"unsafe index","-1":"negative","1.0":"decimal"}"###,
+            ),
+            (
+                r###"{"tools":[{"name":"Synthetic","input_schema":{"type":"object","properties":{"z":{},"2":{"9":"nine","0":"zero","b":"letter"},"a":{}}}}],"messages":[{"role":"user","content":[{"type":"text","text":"Synthetic \\ and \" and \u0000"}]}]}"###,
+                r###"{"tools":[{"name":"Synthetic","input_schema":{"type":"object","properties":{"2":{"0":"zero","9":"nine","b":"letter"},"z":{},"a":{}}}}],"messages":[{"role":"user","content":[{"type":"text","text":"Synthetic \\ and \" and \u0000"}]}]}"###,
+            ),
+            (
+                r###"{"a":"old","2":"first","a":"new","02":"ordinary","2":"replaced","__proto__":{"9":"nine","1":"one","z":"last"}}"###,
+                r###"{"2":"replaced","a":"new","02":"ordinary","__proto__":{"1":"one","9":"nine","z":"last"}}"###,
+            ),
+        ];
+        for (input, expected) in cases {
+            let document = JsDocument::parse(input.as_bytes()).unwrap();
+            assert_eq!(document.stringify(), expected);
+            let JsNode::Object(object) = document.node(document.root()).unwrap() else {
+                panic!("object fixture")
+            };
+            assert_eq!(
+                object.ordered().collect::<Vec<_>>(),
+                previous_object_order(object)
+            );
+        }
+    }
+
+    #[test]
+    fn object_order_setters_keep_positions_and_enter_indexed_fallback() {
+        let mut document = JsDocument::parse(
+            br#"{"later":"first","earlier":"second","outer":{"b":"bee","a":"aye"}}"#,
+        )
+        .unwrap();
+        let steps = [
+            (None, "later", br#""updated""#.as_slice()),
+            (None, "9", br#""nine""#.as_slice()),
+            (None, "0", br#""zero""#.as_slice()),
+            (None, "9", br#""replaced""#.as_slice()),
+            (Some("outer"), "2", br#""two""#.as_slice()),
+        ];
+        // Actual Node operations replace an existing key, append numeric keys,
+        // replace a numeric key, then mutate a nested ordinary-key object.
+        let expected = [
+            r###"{"later":"updated","earlier":"second","outer":{"b":"bee","a":"aye"}}"###,
+            r###"{"9":"nine","later":"updated","earlier":"second","outer":{"b":"bee","a":"aye"}}"###,
+            r###"{"0":"zero","9":"nine","later":"updated","earlier":"second","outer":{"b":"bee","a":"aye"}}"###,
+            r###"{"0":"zero","9":"replaced","later":"updated","earlier":"second","outer":{"b":"bee","a":"aye"}}"###,
+            r###"{"0":"zero","9":"replaced","later":"updated","earlier":"second","outer":{"2":"two","b":"bee","a":"aye"}}"###,
+        ];
+        for (index, ((parent, key, value), expected)) in steps.into_iter().zip(expected).enumerate()
+        {
+            let parent = parent.map_or(document.root(), |name| {
+                document.get(document.root(), name).unwrap()
+            });
+            document.set_field_json(parent, key, value).unwrap();
+            assert_eq!(document.stringify(), expected);
+            assert_eq!(
+                serde_json::to_string(&document.to_serde_observation_lossy()).unwrap(),
+                expected
+            );
+            let JsNode::Object(object) = document.node(parent).unwrap() else {
+                panic!("object fixture")
+            };
+            assert_eq!(
+                object.ordered().collect::<Vec<_>>(),
+                previous_object_order(object)
+            );
+            assert_eq!(
+                matches!(object.ordered(), ObjectOrder::Natural(_)),
+                index == 0
+            );
+        }
     }
 
     #[test]

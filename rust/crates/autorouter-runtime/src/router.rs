@@ -2,6 +2,7 @@
 //! Classification and token counting remain independently cancellable outside
 //! that lock, preserving the source router's three observable await phases.
 
+use std::future::{Future, poll_fn};
 use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -13,7 +14,7 @@ use hyper::HeaderMap;
 use serde_json::Value;
 #[cfg(test)]
 use serde_json::json;
-use tokio::time::Instant;
+use tokio::{sync::oneshot, time::Instant};
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
 
 use crate::classifier::{Classifier, Limits};
@@ -197,6 +198,7 @@ impl<T: HttpTransport + 'static> Router<T> {
         headers: &HeaderMap,
         cancellation: &CancellationToken,
         search: &str,
+        started: Option<oneshot::Sender<()>>,
     ) -> Result<Option<tokio::task::JoinHandle<Option<u64>>>, EvaluationError> {
         let counter = self.counter.clone();
         let model = model.to_owned();
@@ -215,10 +217,23 @@ impl<T: HttpTransport + 'static> Router<T> {
                 return Ok(None);
             }
             let worker = async move {
+                let count = counter.count(&document, &model, &headers, &cancellation, &search);
+                tokio::pin!(count);
+                let mut started = started;
+                let count = poll_fn(|context| {
+                    let result = count.as_mut().poll(context);
+                    // Spawning alone does not establish source callback-start
+                    // order. Acknowledge only after the real count future has
+                    // been polled; never wait for its response to classify.
+                    if let Some(started) = started.take() {
+                        let _ = started.send(());
+                    }
+                    result
+                });
                 let count = tokio::select! {
                     biased;
                     _ = stopping.cancelled() => None,
-                    count = counter.count(&document, &model, &headers, &cancellation, &search) => count,
+                    count = count => count,
                 };
                 #[cfg(feature = "development-probes")]
                 if let Some(observer) = observer {
@@ -325,13 +340,29 @@ impl<T: HttpTransport + 'static> Router<T> {
         let early_model = start.early_count_model.clone();
         let mut early = EarlyCount {
             preserve_background: false,
-            task: match early_model.as_ref() {
-                Some(model) => {
-                    self.start_early_count(document.clone(), model, headers, cancellation, search)?
-                }
-                None => None,
-            },
+            task: None,
         };
+        if let Some(model) = early_model.as_ref() {
+            let (started, ready) = oneshot::channel();
+            early.task = self.start_early_count(
+                document.clone(),
+                model,
+                headers,
+                cancellation,
+                search,
+                Some(started),
+            )?;
+            if early.task.is_some() {
+                tokio::select! {
+                    biased;
+                    _ = cancellation.cancelled() => return Err(EvaluationError::Cancelled),
+                    _ = self.advisory_stopping.cancelled() => return Err(EvaluationError::Cancelled),
+                    // Worker failure still represents an unavailable count;
+                    // its join result is handled by the existing count path.
+                    _ = ready => {},
+                }
+            }
+        }
         let evaluation_started = Instant::now();
         let decision = self
             .classifier
@@ -419,6 +450,8 @@ mod tests {
     struct Mock {
         counts: AtomicUsize,
         evaluations: AtomicUsize,
+        started: Mutex<Vec<&'static str>>,
+        count_value: AtomicUsize,
         active: Arc<AtomicUsize>,
         count_permits: Semaphore,
         evaluation_permits: Semaphore,
@@ -430,6 +463,8 @@ mod tests {
             Self {
                 counts: AtomicUsize::new(0),
                 evaluations: AtomicUsize::new(0),
+                started: Mutex::new(Vec::new()),
+                count_value: AtomicUsize::new(1000),
                 active: Arc::new(AtomicUsize::new(0)),
                 count_permits: Semaphore::new(0),
                 evaluation_permits: Semaphore::new(0),
@@ -453,6 +488,10 @@ mod tests {
             self.active.fetch_add(1, Ordering::SeqCst);
             let _active = Active(self.active.clone());
             let count = request.uri().path().ends_with("count_tokens");
+            self.started
+                .lock()
+                .unwrap()
+                .push(if count { "count" } else { "evaluate" });
             if count {
                 self.counts.fetch_add(1, Ordering::SeqCst);
             } else {
@@ -466,7 +505,7 @@ mod tests {
                 }
             }
             let bytes = if count {
-                json!({"input_tokens":1000})
+                json!({"input_tokens":self.count_value.load(Ordering::SeqCst)})
             } else {
                 json!({"answers":{"tier":{"choice":if self.opus.load(Ordering::SeqCst){"opus"}else{"haiku"},"confidence":0.9}}})
             };
@@ -569,6 +608,7 @@ mod tests {
                 &HeaderMap::new(),
                 &CancellationToken::new(),
                 "",
+                None,
             )
             .unwrap()
             .unwrap();
@@ -631,6 +671,199 @@ mod tests {
         assert_eq!(mock.counts.load(Ordering::SeqCst), 1);
         assert!(decision["evaluation_latency_ms"].as_f64().is_some());
         assert!(!router.complete("synthetic-request", &Value::Null));
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn count_starts_before_evaluator_and_keeps_both_responses_concurrent() {
+        let mock = Arc::new(Mock::new(true));
+        mock.count_value.store(40000, Ordering::SeqCst);
+        let settings = config();
+        let haiku = settings.models.haiku.clone();
+        let document = Arc::new(
+            JsDocument::parse(
+                &serde_json::to_vec(&json!({
+                    "model":haiku,"max_tokens":4096,
+                    "messages":[{"role":"user","content":"Simple task"}],
+                    "system":"x".repeat(160000)
+                }))
+                .unwrap(),
+            )
+            .unwrap(),
+        );
+        let before = document.stringify();
+        let router = Arc::new(Router::new(mock.clone(), settings));
+        let gate = Arc::new(crate::classifier::shutdown_gate::WorkerPollGate::default());
+        let release = gate.hold();
+        *router.advisory_gate.lock().unwrap() = Some(gate.clone());
+        let task_router = router.clone();
+        let task_document = document.clone();
+        let task = tokio::spawn(async move {
+            task_router
+                .route(
+                    task_document,
+                    options(),
+                    &HeaderMap::new(),
+                    &CancellationToken::new(),
+                    "",
+                )
+                .await
+        });
+        tokio::time::timeout(std::time::Duration::from_secs(2), gate.wait_blocked())
+            .await
+            .unwrap();
+        // Positively hold the admitted count before its first poll. Merely
+        // spawning it must not let the evaluator overtake its actual start.
+        assert_eq!(router.advisory_tasks.len(), 1);
+        assert!(mock.started.lock().unwrap().is_empty());
+        assert_eq!(mock.counts.load(Ordering::SeqCst), 0);
+        assert_eq!(mock.evaluations.load(Ordering::SeqCst), 0);
+        assert!(!task.is_finished());
+        drop(release);
+        wait_requests(&mock).await;
+        // Record outside the transport: a caught callback panic/fallback
+        // cannot masquerade as having executed the expected start sequence.
+        assert_eq!(*mock.started.lock().unwrap(), ["count", "evaluate"]);
+        assert_eq!(mock.active.load(Ordering::SeqCst), 2);
+        mock.evaluation_permits.add_permits(1);
+        tokio::time::timeout(std::time::Duration::from_secs(2), async {
+            while mock.active.load(Ordering::SeqCst) != 1 {
+                tokio::task::yield_now().await;
+            }
+        })
+        .await
+        .unwrap();
+        assert!(
+            !task.is_finished(),
+            "count response must still be independently pending"
+        );
+        mock.count_permits.add_permits(1);
+        let decision = tokio::time::timeout(std::time::Duration::from_secs(2), task)
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        assert_eq!(decision["model"], haiku);
+        assert_eq!(decision["source"], "jev");
+        assert_eq!(decision["context_check"], "within_budget");
+        assert_eq!(decision["counted_input_tokens"], 40000);
+        assert_eq!(mock.counts.load(Ordering::SeqCst), 1);
+        assert_eq!(mock.evaluations.load(Ordering::SeqCst), 1);
+        assert_eq!(document.stringify(), before);
+        assert!(!router.complete("synthetic-request", &Value::Null));
+        tokio::time::timeout(std::time::Duration::from_secs(2), router.close())
+            .await
+            .unwrap();
+        assert_eq!(mock.active.load(Ordering::SeqCst), 0);
+        assert!(router.advisory_tasks.is_empty());
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn cancellation_before_count_first_poll_never_starts_evaluator_and_releases_slot() {
+        let mock = Arc::new(Mock::new(true));
+        let router = Router::new(mock.clone(), config());
+        let gate = Arc::new(crate::classifier::shutdown_gate::WorkerPollGate::default());
+        let release = gate.hold();
+        *router.advisory_gate.lock().unwrap() = Some(gate.clone());
+        let caller = CancellationToken::new();
+        let headers = HeaderMap::new();
+        let mut route = Box::pin(router.route(document(true), options(), &headers, &caller, ""));
+        assert!(
+            poll_fn(|context| std::task::Poll::Ready(route.as_mut().poll(context)))
+                .await
+                .is_pending()
+        );
+        tokio::time::timeout(std::time::Duration::from_secs(2), gate.wait_blocked())
+            .await
+            .unwrap();
+        assert_eq!(router.advisory_tasks.len(), 1);
+        assert!(mock.started.lock().unwrap().is_empty());
+        caller.cancel();
+        assert!(matches!(
+            tokio::time::timeout(std::time::Duration::from_secs(2), &mut route)
+                .await
+                .unwrap(),
+            Err(EvaluationError::Cancelled)
+        ));
+        drop(route);
+        tokio::time::timeout(std::time::Duration::from_secs(2), gate.wait_finished())
+            .await
+            .unwrap();
+        assert!(router.advisory_tasks.is_empty());
+        assert!(mock.started.lock().unwrap().is_empty());
+        assert_eq!(mock.counts.load(Ordering::SeqCst), 0);
+        assert_eq!(mock.evaluations.load(Ordering::SeqCst), 0);
+        assert_eq!(mock.active.load(Ordering::SeqCst), 0);
+        assert_eq!(router.classifier.pending_counts(), (0, 0));
+        drop(release);
+        *router.advisory_gate.lock().unwrap() = None;
+        mock.block.store(false, Ordering::SeqCst);
+        let decision = tokio::time::timeout(
+            std::time::Duration::from_secs(2),
+            router.route(
+                document(true),
+                options(),
+                &headers,
+                &CancellationToken::new(),
+                "",
+            ),
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        assert_eq!(decision["source"], "jev");
+        assert_eq!(mock.counts.load(Ordering::SeqCst), 1);
+        assert_eq!(mock.evaluations.load(Ordering::SeqCst), 1);
+        assert!(!router.complete("synthetic-request", &Value::Null));
+        tokio::time::timeout(std::time::Duration::from_secs(2), router.close())
+            .await
+            .unwrap();
+        assert!(router.advisory_tasks.is_empty());
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn stopped_advisory_does_not_acknowledge_an_unpolled_counter() {
+        let mock = Arc::new(Mock::new(true));
+        let router = Router::new(mock.clone(), config());
+        let gate = Arc::new(crate::classifier::shutdown_gate::WorkerPollGate::default());
+        let release = gate.hold();
+        *router.advisory_gate.lock().unwrap() = Some(gate.clone());
+        let (started, ready) = oneshot::channel();
+        let task = router
+            .start_early_count(
+                document(true),
+                &router.config.models.haiku,
+                &HeaderMap::new(),
+                &CancellationToken::new(),
+                "",
+                Some(started),
+            )
+            .unwrap()
+            .unwrap();
+        tokio::time::timeout(std::time::Duration::from_secs(2), gate.wait_blocked())
+            .await
+            .unwrap();
+        assert_eq!(router.advisory_tasks.len(), 1);
+        router.advisory_stopping.cancel();
+        drop(release);
+        assert_eq!(
+            tokio::time::timeout(std::time::Duration::from_secs(2), task)
+                .await
+                .unwrap()
+                .unwrap(),
+            None
+        );
+        assert!(
+            tokio::time::timeout(std::time::Duration::from_secs(2), ready)
+                .await
+                .unwrap()
+                .is_err()
+        );
+        assert!(mock.started.lock().unwrap().is_empty());
+        assert_eq!(mock.active.load(Ordering::SeqCst), 0);
+        assert!(router.advisory_tasks.is_empty());
+        tokio::time::timeout(std::time::Duration::from_secs(2), router.close())
+            .await
+            .unwrap();
     }
 
     #[tokio::test]

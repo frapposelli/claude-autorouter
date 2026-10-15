@@ -600,7 +600,8 @@ async fn aborted_advisory_retains_capacity_until_its_owned_future_is_destroyed()
                 &router.config.models.haiku,
                 &headers,
                 &caller,
-                ""
+                "",
+                None,
             )
             .unwrap()
             .is_none()
@@ -621,6 +622,7 @@ async fn aborted_advisory_retains_capacity_until_its_owned_future_is_destroyed()
             &headers,
             &caller,
             "",
+            None,
         )
         .unwrap()
         .expect("released slot must admit real work");

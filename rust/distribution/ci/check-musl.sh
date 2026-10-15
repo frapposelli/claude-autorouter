@@ -56,20 +56,7 @@ cargo test --workspace --offline --locked
 cargo build --release --offline --locked --package claude-autorouter --message-format=json > "$out/production-build.jsonl"
 "$out/autorouter-audit-bootstrap" production-features --build-report "$out/production-build.jsonl" > "$out/production-features.json"
 cp "$CARGO_TARGET_DIR/$CARGO_BUILD_TARGET/release/claude-autorouter" "$out/claude-autorouter-musl"
-# OpenSSL embeds its absolute MODULESDIR build-output path in the binary. Move
-# the first compiler-output tree aside, then rebuild from a fresh tree at the
-# same path so the two independently compiled binaries have identical inputs.
-[[ "$CARGO_TARGET_DIR" == "$out/target-main" && -d "$CARGO_TARGET_DIR" && ! -L "$CARGO_TARGET_DIR" ]]
-[[ ! -e "$out/target-primary-outputs" && ! -L "$out/target-primary-outputs" ]]
-mv "$CARGO_TARGET_DIR" "$out/target-primary-outputs"
-mkdir -m 700 "$CARGO_TARGET_DIR"
-printf 'production_compiler_output_path=%s\nproduction_compiler_output_retained=%s\nreproduction_compiler_output_path=%s\n' \
-  "$CARGO_TARGET_DIR" "$out/target-primary-outputs" "$CARGO_TARGET_DIR" > "$out/repro-output-roots.txt"
-cargo build --release --offline --locked --package claude-autorouter --message-format=json > "$out/repro-build.jsonl"
-cp "$CARGO_TARGET_DIR/$CARGO_BUILD_TARGET/release/claude-autorouter" "$out/claude-autorouter-musl-repro"
-sha256sum "$out/claude-autorouter-musl" "$out/claude-autorouter-musl-repro" > "$out/repro-sha256.txt"
-cmp "$out/claude-autorouter-musl" "$out/claude-autorouter-musl-repro"
-# Only after copying/auditing ordinary shipping builds may the development helper
+# Only after copying/auditing the ordinary shipping build may the development helper
 # unify its probe features. It never qualifies the ordinary CLI by itself.
 cargo build --release --offline --locked --package xtask --bin xtask
 cp "$CARGO_TARGET_DIR/$CARGO_BUILD_TARGET/release/xtask" "$out/xtask-musl"
@@ -88,3 +75,17 @@ node parity/check-gateway.mjs ../artifacts/rust-rewrite/reference "$out/claude-a
 "$out/xtask-musl" package --binary "$AUTOROUTER_BUILD_TARGET=$out/claude-autorouter-musl" --output artifacts/rust-rewrite/musl-package --smoke
 version=$("$out/claude-autorouter-musl" --version)
 "$out/xtask-musl" package --direct-from "artifacts/rust-rewrite/musl-package/claude-autorouter-$version.tgz" --target "$AUTOROUTER_BUILD_TARGET" --output artifacts/rust-rewrite/musl-direct --smoke
+# Preserve the already-built debug test artifacts until both installed
+# lifecycles finish. OpenSSL embeds its absolute MODULESDIR build-output path
+# in the binary, so move the complete first compiler tree aside only now,
+# then rebuild from an empty tree at that same path. Keep the full-byte check.
+[[ "$CARGO_TARGET_DIR" == "$out/target-main" && -d "$CARGO_TARGET_DIR" && ! -L "$CARGO_TARGET_DIR" ]]
+[[ ! -e "$out/target-primary-outputs" && ! -L "$out/target-primary-outputs" ]]
+mv "$CARGO_TARGET_DIR" "$out/target-primary-outputs"
+mkdir -m 700 "$CARGO_TARGET_DIR"
+printf 'production_compiler_output_path=%s\nproduction_compiler_output_retained=%s\nreproduction_compiler_output_path=%s\n' \
+  "$CARGO_TARGET_DIR" "$out/target-primary-outputs" "$CARGO_TARGET_DIR" > "$out/repro-output-roots.txt"
+cargo build --release --offline --locked --package claude-autorouter --message-format=json > "$out/repro-build.jsonl"
+cp "$CARGO_TARGET_DIR/$CARGO_BUILD_TARGET/release/claude-autorouter" "$out/claude-autorouter-musl-repro"
+sha256sum "$out/claude-autorouter-musl" "$out/claude-autorouter-musl-repro" > "$out/repro-sha256.txt"
+cmp "$out/claude-autorouter-musl" "$out/claude-autorouter-musl-repro"

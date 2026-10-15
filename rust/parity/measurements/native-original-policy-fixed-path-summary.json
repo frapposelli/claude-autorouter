@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "kind": "original_policy_fixed_path_macos_linux_qualification",
+  "date": "2026-10-15",
+  "only_definition": "test/policy.test.mjs#1",
+  "mapping": {
+    "path": "rust/parity/assertion-mappings/policy-fixed-path-platform-contracts.json",
+    "bytes": 6691,
+    "sha256": "1a14b0fba18070e85cfbac5f3ac3d8e5a9ef48ec2107d3353a30ed20a2f32070"
+  },
+  "source_original": {
+    "frozen_baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+    "source_sha256": "4a2367d03efa940b1da878bffb0ebfac49d48106e7766d9457231dfc32e555af",
+    "node_version": "v22.14.0",
+    "focused_test_passed": true,
+    "assertion_sites": 3,
+    "stderr_empty": true,
+    "execution": {
+      "path": "artifacts/rust-rewrite/policy-fixed-path-promotion-20261015-1/frozen-node-execution.json",
+      "bytes": 1101,
+      "sha256": "281cd78212a4275f554aa1a8419ef17b7fe246448b0b9d1b319bfe082b809da2"
+    }
+  },
+  "native": {
+    "source_head": "83ae6418dd103b64a3dee9b9ae3744d55be613af",
+    "actual_checkout": "0b16eaba7e140f6e8b6f0872e527a58327418419",
+    "same_source_tree": "c5b9634dd5f4fa9034b9305b3971f346ac0ba0e6",
+    "policy_source_sha256": "4cb1405055faa941752aa5234a462e7b8d37db4912cb184dcf76cf490c36aa3e",
+    "named_test": "policy::tests::only_trusted_regular_files_and_directories_are_loaded",
+    "actual_platform_jobs": [
+      {
+        "platform": "Linux x86_64 / Ubuntu 24.04",
+        "job_id": 116301303670,
+        "selected_pass_line": "2026-10-15T07:30:15.0883682Z test policy::tests::only_trusted_regular_files_and_directories_are_loaded ... ok",
+        "raw_remote_log_sha256": "2321a86a12c63df4552a871bb446623b4d5bf5300332ad06a7800ad3ecd54358"
+      },
+      {
+        "platform": "macOS 15 Intel",
+        "job_id": 116301303421,
+        "selected_pass_line": "2026-10-15T07:38:48.9965420Z test policy::tests::only_trusted_regular_files_and_directories_are_loaded ... ok",
+        "raw_remote_log_sha256": "0ab09253f1c0927b0727d6221533c74aa0d384921a3306af371049313ea69f8c"
+      }
+    ],
+    "ci_readback": {
+      "path": "artifacts/rust-rewrite/policy-fixed-path-ci-20261015-1/named-policy-platform-passes-1.json",
+      "bytes": 3323,
+      "sha256": "942b1de78441d9f41fe80313bb028be0a535fc0bcfe23bb7b91e3cb2348fc927"
+    }
+  },
+  "native_API_review": {
+    "preserved": "Fixed macOS and Linux policy paths, and absent isolated policy returns no policy.",
+    "migration": "JS runtime platform string becomes compiled Rust target Path; JS undefined becomes Rust Option::None; isolated injected policy path/trusted owner remains an isolated adapter. Both supported OS branches execute on actual CI hosts.",
+    "limits": "No privileged system policy path modified; no complete platform, distribution, performance or cutover approval."
+  },
+  "coverage_effect": {
+    "before": {
+      "covered": 526,
+      "partial": 62,
+      "pending": 0
+    },
+    "after": {
+      "covered": 527,
+      "partial": 61,
+      "pending": 0
+    }
+  },
+  "release_platform_performance_or_full_goal_approved": false
+}
