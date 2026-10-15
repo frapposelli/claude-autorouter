@@ -21,6 +21,20 @@ The rehearsal uses one synthetic configuration with file credentials, plus exist
 
 This check does not touch real Keychain entries or call Claude, an evaluator, or a provider. Its result qualifies only the current host and the tested artifacts. Installed launcher/terminal cleanup, real Keychain migration, the other platform targets, and live canaries retain their own evidence requirements. Failed rehearsals cannot be counted as successful rollback evidence.
 
+CI runs this rehearsal after the exact native archive checks on the four native
+hosts, both pinned GNU userlands, both native musl SDKs, and i686. The input is
+read and verified once; the retained candidate and report use those same owned
+bytes. CI checks the rehearsal's archive identity against the previously tested
+package and retains the candidate, frozen baseline archive and report. i686
+also binds those files and their checksums in its bounded execution evidence.
+
+This covers successful npm upgrade, rollback and re-upgrade with synthetic
+file credentials and history. It does not cover failed startup, partial storage
+writes, concurrent status ownership, direct-archive rollback or real Keychain
+migration. The baseline archive is reconstructed and checked against frozen Git
+sources; it is not the originally published registry archive. Those separate
+rollout requirements remain pending.
+
 ## Release evidence
 
 Keep the tested tarball immutable. Record its SHA-256 and npm integrity, binary target inspections, compiler/lockfile identity, source commit, complete dependency licenses, and installed tests for every supported target. Production manifests require evidence tied to the same clean source commit; a private feasibility manifest cannot be made publishable by editing `private` alone.

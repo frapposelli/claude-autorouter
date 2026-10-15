@@ -107,6 +107,16 @@ pub fn inspect(target: &str, bytes: &[u8]) -> Result<Value, String> {
     {
         return Err("ELF architecture or executable type does not match target".into());
     }
+    if target == "armv7-unknown-linux-gnueabihf" {
+        // AAELF32 e_flags: EABI5, explicit hard-float PCS, no soft-float PCS.
+        // This header admission does not establish CPU/ISA or OS qualification.
+        let flags = read(bytes, 36, 4, little)?;
+        if flags & 0xff00_0000 != 0x0500_0000 || flags & 0x600 != 0x400 {
+            return Err(
+                "ARM executable must declare EABI5 and hard-float without soft-float".into(),
+            );
+        }
+    }
     let (phoff, entry, count) = if class == 2 {
         (
             read(bytes, 32, 8, little)?,
@@ -469,6 +479,9 @@ mod tests {
                 bytes[6] = 1;
                 put(&mut bytes, 16, 2, 2, little);
                 put(&mut bytes, 18, 2, machine, little);
+                if machine == 40 {
+                    put(&mut bytes, 36, 4, 0x0500_0400, little);
+                }
                 let (entry_offset, entry_size) = if class == 2 { (54, 56) } else { (42, 32) };
                 put(&mut bytes, entry_offset, 2, entry_size, little);
                 let result = inspect(target, &bytes);
@@ -501,6 +514,9 @@ mod tests {
             _ => panic!("No supported target has this ELF class and byte order"),
         };
         put(&mut bytes, 18, 2, machine, little);
+        if machine == 40 {
+            put(&mut bytes, 36, 4, 0x0500_0400, little);
+        }
         let width = if class == 2 { 8 } else { 4 };
         let entry = if class == 2 { 56 } else { 32 };
         let header = if class == 2 { 64 } else { 52 };
@@ -642,9 +658,41 @@ mod tests {
         }
     }
     #[test]
+    fn armv7_hard_float_admission_requires_eabi5_and_explicit_compatible_float_flags() {
+        let (target, good) = elf_fixture(1, true);
+        for executable_type in [2, 3] {
+            let mut valid = good.clone();
+            put(&mut valid, 16, 2, executable_type, true);
+            let result = inspect(&target, &valid).unwrap();
+            assert_eq!(result["execution_qualification"], "pending");
+            assert_eq!(result["interpreter"], "/ld-test.so");
+            for flags in [
+                0,           // Missing ABI and float declarations.
+                0x0000_0400, // Hard-float with unspecified EABI version.
+                0x0400_0400, // Legacy EABI4.
+                0x0600_0400, // Unknown future EABI version.
+                0x0500_0000, // EABI5 with implicit base/soft-float PCS.
+                0x0500_0200, // Explicit soft-float.
+                0x0500_0600, // Conflicting hard- and soft-float declarations.
+            ] {
+                let mut bytes = valid.clone();
+                put(&mut bytes, 36, 4, flags, true);
+                assert_eq!(
+                    inspect(&target, &bytes).unwrap_err(),
+                    "ARM executable must declare EABI5 and hard-float without soft-float",
+                    "type={executable_type} flags={flags:x}"
+                );
+            }
+        }
+        for length in 36..40 {
+            assert!(inspect(&target, &good[..length]).is_err());
+        }
+    }
+    #[test]
     fn i686_uses_elf32_dynamic_tables_and_never_admits_a_different_machine_or_class() {
         let (_, mut bytes) = elf_fixture(1, true);
         put(&mut bytes, 18, 2, 3, true); // EM_386, ELFCLASS32, ELFDATA2LSB.
+        put(&mut bytes, 36, 4, 0, true); // Clear ARM-specific e_flags.
         let result = inspect("i686-unknown-linux-gnu", &bytes).unwrap();
         assert_eq!(result["target"], "i686-unknown-linux-gnu");
         assert_eq!(result["interpreter"], "/ld-test.so");

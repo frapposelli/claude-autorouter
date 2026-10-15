@@ -280,6 +280,134 @@ fn unresolved_baseline_architectures_need_distinct_added_targets() {
             .contains("Baseline architecture must be qualified")
     );
 }
+
+fn linux_x86_allocation_fixture() -> (Value, Value) {
+    // Synthetic allocation evidence only; no checked-in qualification changes.
+    let baseline = json_read(include_bytes!("../../distribution/platforms.json")).unwrap();
+    let mut matrix = baseline.clone();
+    matrix["status"] = json!("release_matrix_approved");
+    matrix["unresolved_baseline_architectures"] = json!([]);
+    for row in matrix["targets"].as_array_mut().unwrap() {
+        row["qualification"] = json!("passed");
+    }
+    matrix["baseline_resolutions"] = json!(baseline["unresolved_baseline_architectures"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|architecture| {
+            let mut row = json!({"architecture":architecture,"evidence_sha256":digest(b"synthetic allocation only"),"review_reference":"synthetic:target-allocation"});
+            if architecture == "Linux x86" {
+                row["result"] = json!("qualified");
+                row["target"] = json!("i686-unknown-linux-gnu");
+            } else {
+                row["result"] = json!("baseline_unavailable");
+                row["reason"] = json!("synthetic unavailable baseline fixture");
+            }
+            row
+        })
+        .collect::<Vec<_>>());
+    (baseline, matrix)
+}
+
+#[test]
+fn predeclared_linux_x86_target_can_resolve_its_canonical_architecture() {
+    let (baseline, matrix) = linux_x86_allocation_fixture();
+    let original = baseline["targets"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row["target"] == "i686-unknown-linux-gnu")
+        .unwrap();
+    assert_eq!(original["candidate"], false);
+    assert_eq!(original["qualification"], "pending");
+    assert!(
+        validate_matrix(&matrix, &baseline)
+            .unwrap()
+            .contains("i686-unknown-linux-gnu")
+    );
+    // The ordinary pending matrix remains inadmissible despite the mapping.
+    assert!(validate_matrix(&baseline, &baseline).is_err());
+}
+
+#[test]
+fn predeclared_resolution_preserves_scope_evidence_uniqueness_and_qualification_guards() {
+    let (baseline, original) = linux_x86_allocation_fixture();
+    for mutation in [
+        "unrelated-target",
+        "other-architecture",
+        "shared-target",
+        "pending-target",
+        "unapproved",
+        "unresolved",
+        "drop-target",
+        "caps",
+        "baseline",
+        "missing-resolution",
+        "duplicate-resolution",
+        "evidence",
+        "review",
+    ] {
+        let mut matrix = original.clone();
+        let resolutions = matrix["baseline_resolutions"].as_array().unwrap();
+        let x86 = resolutions
+            .iter()
+            .position(|row| row["architecture"] == "Linux x86")
+            .unwrap();
+        let other = resolutions
+            .iter()
+            .position(|row| row["architecture"] != "Linux x86")
+            .unwrap();
+        match mutation {
+            "unrelated-target" => {
+                matrix["baseline_resolutions"][x86]["target"] = json!("x86_64-unknown-linux-gnu")
+            }
+            "other-architecture" | "shared-target" => {
+                matrix["baseline_resolutions"][other]["result"] = json!("qualified");
+                matrix["baseline_resolutions"][other]["target"] = json!("i686-unknown-linux-gnu");
+                if mutation == "other-architecture" {
+                    matrix["baseline_resolutions"][x86]["result"] = json!("baseline_unavailable");
+                    matrix["baseline_resolutions"][x86]["reason"] = json!("synthetic fixture");
+                }
+            }
+            "pending-target" => {
+                matrix["targets"]
+                    .as_array_mut()
+                    .unwrap()
+                    .iter_mut()
+                    .find(|row| row["target"] == "i686-unknown-linux-gnu")
+                    .unwrap()["qualification"] = json!("pending")
+            }
+            "unapproved" => matrix["status"] = baseline["status"].clone(),
+            "unresolved" => matrix["unresolved_baseline_architectures"] = json!(["Linux x86"]),
+            "drop-target" => matrix["targets"]
+                .as_array_mut()
+                .unwrap()
+                .retain(|row| row["target"] != "i686-unknown-linux-gnu"),
+            "caps" => {
+                matrix["artifact_caps"]["expanded_tar_bytes"] =
+                    json!(archive::MAX_NATIVE_EXPANDED + 1)
+            }
+            "baseline" => matrix["baseline"]["cpu_restriction"] = json!("synthetic restriction"),
+            "missing-resolution" => {
+                matrix["baseline_resolutions"]
+                    .as_array_mut()
+                    .unwrap()
+                    .remove(x86);
+            }
+            "duplicate-resolution" => {
+                let row = matrix["baseline_resolutions"][x86].clone();
+                matrix["baseline_resolutions"]
+                    .as_array_mut()
+                    .unwrap()
+                    .push(row);
+            }
+            "evidence" => matrix["baseline_resolutions"][x86]["evidence_sha256"] = json!("invalid"),
+            "review" => matrix["baseline_resolutions"][x86]["review_reference"] = json!(""),
+            _ => unreachable!(),
+        }
+        assert!(validate_matrix(&matrix, &baseline).is_err(), "{mutation}");
+    }
+}
 #[test]
 fn direct_verifier_rejects_foreign_architecture_runtime_and_undeclared_docs() {
     let f = Fixture::new();

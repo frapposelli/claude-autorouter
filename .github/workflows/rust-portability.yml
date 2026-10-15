@@ -258,6 +258,21 @@ jobs:
           env -u LD_LIBRARY_PATH -u LD_PRELOAD cargo xtask package \
             --direct-from "artifacts/rust-rewrite/native-package-glibc228/claude-autorouter-$autorouter_native_version.tgz" \
             --target "$AUTOROUTER_BUILD_TARGET" --output artifacts/rust-rewrite/native-direct-glibc228 --smoke
+      - name: Rehearse exact-archive upgrade and rollback in the pinned GNU userland
+        run: |
+          set -euo pipefail
+          autorouter_native_version=$(env -u LD_LIBRARY_PATH -u LD_PRELOAD ./target/release/claude-autorouter --version)
+          env -u LD_LIBRARY_PATH -u LD_PRELOAD cargo xtask upgrade-rollback \
+            --native "artifacts/rust-rewrite/native-package-glibc228/claude-autorouter-$autorouter_native_version.tgz" \
+            --output artifacts/rust-rewrite/upgrade-rollback-glibc228
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          const packed = JSON.parse(readFileSync('../artifacts/rust-rewrite/native-package-glibc228/package-report.json'));
+          const rehearsal = JSON.parse(readFileSync('../artifacts/rust-rewrite/upgrade-rollback-glibc228/report.json'));
+          assert.equal(rehearsal.passed, true);
+          assert.equal(rehearsal.native_archive_sha256, packed.sha256);
+          NODE
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
@@ -271,4 +286,8 @@ jobs:
             artifacts/rust-rewrite/auto-routing-contracts/*
             artifacts/rust-rewrite/native-package-glibc228/*
             artifacts/rust-rewrite/native-direct-glibc228/*
+            artifacts/rust-rewrite/upgrade-rollback-glibc228/report.json
+            artifacts/rust-rewrite/upgrade-rollback-glibc228/candidate.tgz
+            artifacts/rust-rewrite/upgrade-rollback-glibc228/baseline/*.tgz
+            artifacts/rust-rewrite/upgrade-rollback-glibc228/baseline/*.sha256
           if-no-files-found: warn

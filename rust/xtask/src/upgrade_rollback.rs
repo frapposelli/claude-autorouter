@@ -31,7 +31,16 @@ fn same_json(left: &Value, right: &Value) -> bool {
         _ => left == right,
     }
 }
-fn verify_native(path: &Path) -> Result<Value, String> {
+struct VerifiedNative {
+    bytes: Vec<u8>,
+    verification: Value,
+}
+impl VerifiedNative {
+    fn retain(&self, destination: &Path) -> Result<(), String> {
+        write_private(destination, &self.bytes)
+    }
+}
+fn verify_native(path: &Path) -> Result<VerifiedNative, String> {
     let bytes = crate::release::regular(path, archive::MAX_COMPRESSED as u64)?;
     let decoded = archive::decode(&bytes, archive::NATIVE)?;
     let files = &decoded.files;
@@ -42,13 +51,16 @@ fn verify_native(path: &Path) -> Result<Value, String> {
             .bytes,
     )
     .map_err(|_| "Invalid native package manifest")?;
-    if manifest["private"] == true {
-        return package::verify_decoded(&bytes, &decoded);
-    }
-    let build = crate::release::native_files(files, &manifest)?;
-    Ok(
-        json!({"verified":true,"kind":"native_npm_candidate","release_approved":false,"final_authorization":false,"sha256":hash(&bytes),"source":build["source"],"qualification":build["qualification"]}),
-    )
+    let verification = if manifest["private"] == true {
+        package::verify_decoded(&bytes, &decoded)?
+    } else {
+        let build = crate::release::native_files(files, &manifest)?;
+        json!({"verified":true,"kind":"native_npm_candidate","release_approved":false,"final_authorization":false,"sha256":hash(&bytes),"source":build["source"],"qualification":build["qualification"]})
+    };
+    Ok(VerifiedNative {
+        bytes,
+        verification,
+    })
 }
 fn public_path(path: &str, patterns: &[Value]) -> bool {
     if matches!(path, "package.json" | "README.md" | "LICENSE") {
@@ -277,7 +289,9 @@ fn fixture(scratch: &Path) -> Result<(PathBuf, PathBuf, Vec<u8>), String> {
     Ok((config, path, bytes.into_bytes()))
 }
 fn execute(root: &Path, native: &Path, output: &Path) -> Result<Value, String> {
-    let native_verification = verify_native(native)?;
+    // Keep the admitted archive bytes, rather than reopening a path that may
+    // change while the frozen baseline is prepared.
+    let native = verify_native(native)?;
     if output.exists() {
         return Err("Rehearsal destination already exists; choose a fresh path".into());
     }
@@ -289,9 +303,8 @@ fn execute(root: &Path, native: &Path, output: &Path) -> Result<Value, String> {
         .map_err(|_| "Cannot create isolated npm environment")?;
     npm_env.insert("HOME".into(), scratch.0.clone().into_os_string());
     let (baseline, commit) = baseline_archive(root, &scratch.0, output, &npm_env)?;
-    let native_bytes = crate::release::regular(native, archive::MAX_COMPRESSED as u64)?;
     let candidate = output.join("candidate.tgz");
-    write_private(&candidate, &native_bytes)?;
+    native.retain(&candidate)?;
     let prefix = scratch.0.join("install prefix ' $ with spaces");
     let (config, history, history_before) = fixture(&scratch.0)?;
     let mut env = Environment::new();
@@ -391,7 +404,7 @@ fn execute(root: &Path, native: &Path, output: &Path) -> Result<Value, String> {
         return Err("Rehearsal temporary directory cleanup did not complete".into());
     }
     Ok(
-        json!({"schema_version":1,"kind":"offline_upgrade_rollback_rehearsal","passed":true,"baseline_commit":commit,"baseline_archive_sha256":baseline_hash,"native_archive_sha256":hash(&native_bytes),"native_verification":native_verification,"platform":{"os":std::env::consts::OS,"arch":std::env::consts::ARCH},"stages":["baseline","native","rollback","native_after_rollback"],"verified":["exact_installed_archive_bytes","npm_command_symlink","offline_ignore_scripts","native_without_node_on_path","same_config_path_without_migration","existing_file_credentials_retained","private_atomic_edit","history_schema_1_and_2","recorded_pricing","history_bytes_unchanged","isolated_cleanup"],"limits":["local_host_only","synthetic_file_credentials_only","no_real_keychain_or_provider","no_publication_or_cutover_approval"]}),
+        json!({"schema_version":1,"kind":"offline_upgrade_rollback_rehearsal","passed":true,"baseline_commit":commit,"baseline_archive_sha256":baseline_hash,"native_archive_sha256":hash(&native.bytes),"native_verification":native.verification,"platform":{"os":std::env::consts::OS,"arch":std::env::consts::ARCH},"stages":["baseline","native","rollback","native_after_rollback"],"verified":["exact_installed_archive_bytes","npm_command_symlink","offline_ignore_scripts","native_without_node_on_path","same_config_path_without_migration","existing_file_credentials_retained","private_atomic_edit","history_schema_1_and_2","recorded_pricing","history_bytes_unchanged","isolated_cleanup"],"limits":["local_host_only","synthetic_file_credentials_only","no_real_keychain_or_provider","no_publication_or_cutover_approval"]}),
     )
 }
 pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
@@ -432,6 +445,134 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    // A header-inspection fixture only: it is never executed and carries no
+    // source-build, license, platform or release qualification.
+    fn native_fixture(marker: &str) -> Vec<u8> {
+        let target = "aarch64-apple-darwin";
+        let mut executable = vec![0u8; 32];
+        executable[..4].copy_from_slice(&[0xcf, 0xfa, 0xed, 0xfe]);
+        executable[4..8].copy_from_slice(&0x0100000cu32.to_le_bytes());
+        executable[12..16].copy_from_slice(&2u32.to_le_bytes());
+        let native = format!("native/{target}/claude-autorouter");
+        let mut files = BTreeMap::new();
+        for path in [
+            "README.md",
+            "LICENSE",
+            "THIRD-PARTY-LICENSES.txt",
+            "platforms.json",
+        ] {
+            files.insert(
+                path.to_owned(),
+                archive::Entry {
+                    bytes: format!("Synthetic unqualified fixture: {marker}").into_bytes(),
+                    mode: 0o644,
+                },
+            );
+        }
+        files.insert(
+            "package.json".into(),
+            archive::Entry {
+                bytes: serde_json::to_vec(&json!({"name":"claude-autorouter","version":"0.5.2","private":true,"bin":{"claude-autorouter":"bin/autorouter"}})).unwrap(),
+                mode: 0o644,
+            },
+        );
+        files.insert(
+            "bin/autorouter".into(),
+            archive::Entry {
+                bytes: include_bytes!("../../distribution/autorouter.sh").to_vec(),
+                mode: 0o755,
+            },
+        );
+        files.insert(
+            native.clone(),
+            archive::Entry {
+                bytes: executable.clone(),
+                mode: 0o755,
+            },
+        );
+        let declarations = files.iter().map(|(path,entry)|json!({"path":path,"sha256":hash(&entry.bytes),"bytes":entry.bytes.len(),"mode":entry.mode})).collect::<Vec<_>>();
+        let build = json!({"schema_version":1,"kind":"native_npm_feasibility","release_approved":false,"version":"0.5.2","source":{"commit":"a".repeat(40),"dirty":true,"cargo_lock_sha256":"b".repeat(64),"provenance":"unverified_prebuilt"},"files":declarations,"artifacts":[{"target":target,"path":native,"sha256":hash(&executable),"bytes":executable.len(),"inspection":package::binary::inspect(target,&executable).unwrap()}],"dependencies":[],"license_files_missing":[],"license_review":"pending","platform_qualification":"pending"});
+        files.insert(
+            "build-manifest.json".into(),
+            archive::Entry {
+                bytes: serde_json::to_vec(&build).unwrap(),
+                mode: 0o644,
+            },
+        );
+        archive::encode_root("package", &files, archive::NATIVE).unwrap()
+    }
+
+    #[test]
+    fn retained_candidate_keeps_verified_bytes_after_source_replacement_or_removal() {
+        let original = native_fixture("admitted");
+        let replacement = native_fixture("replacement");
+        assert_ne!(hash(&original), hash(&replacement));
+        for replace in [false, true] {
+            let scratch = Scratch::new("upgrade-owned-input").unwrap();
+            let source = scratch.0.join("source.tgz");
+            write_private(&source, &original).unwrap();
+            let admitted = verify_native(&source).unwrap();
+            assert_eq!(admitted.verification["verified"], true);
+            assert_eq!(admitted.verification["release_approved"], false);
+            assert_eq!(
+                admitted.verification["source_to_binary_provenance"],
+                "unverified"
+            );
+            assert_eq!(admitted.verification["platform_qualification"], "pending");
+            assert_eq!(admitted.verification["sha256"], hash(&original));
+
+            fs::remove_file(&source).unwrap();
+            if replace {
+                write_private(&source, &replacement).unwrap();
+                assert_eq!(
+                    verify_native(&source).unwrap().verification["sha256"],
+                    hash(&replacement)
+                );
+            }
+            let retained = scratch.0.join("candidate.tgz");
+            admitted.retain(&retained).unwrap();
+            assert_eq!(fs::read(&retained).unwrap(), original);
+            assert_eq!(
+                verify_native(&retained).unwrap().verification["sha256"],
+                admitted.verification["sha256"]
+            );
+            assert_eq!(
+                fs::metadata(&retained).unwrap().permissions().mode() & 0o777,
+                0o600
+            );
+        }
+    }
+
+    #[test]
+    fn invalid_or_oversized_native_input_fails_before_output_creation() {
+        let scratch = Scratch::new("upgrade-invalid-input").unwrap();
+        for kind in ["missing", "malformed", "oversized", "symlink"] {
+            let source = scratch.0.join(format!("{kind}.tgz"));
+            match kind {
+                "malformed" => write_private(&source, b"not a native archive").unwrap(),
+                "oversized" => {
+                    write_private(&source, b"").unwrap();
+                    fs::OpenOptions::new()
+                        .write(true)
+                        .open(&source)
+                        .unwrap()
+                        .set_len(archive::MAX_COMPRESSED as u64 + 1)
+                        .unwrap();
+                }
+                "symlink" => {
+                    let real = scratch.0.join("valid.tgz");
+                    write_private(&real, &native_fixture("untrusted link")).unwrap();
+                    std::os::unix::fs::symlink(real, &source).unwrap();
+                }
+                _ => {}
+            }
+            let output = scratch.0.join(kind).join("new-output");
+            assert!(execute(&scratch.0, &source, &output).is_err());
+            assert!(!output.parent().unwrap().exists());
+        }
+    }
+
     #[test]
     fn frozen_public_allowlist_does_not_pick_up_adjacent_private_files() {
         let patterns = vec![

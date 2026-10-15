@@ -71,14 +71,18 @@ stricter than the historical Node inspector. Provenance pins and bounded,
 no-follow reads also remain enforced. The old `.mjs` auditors are temporary
 comparison oracles; native CI uses the independent bootstrap path.
 
-Supported contributor feature combinations are the default full xtask and the
-bootstrap auditor without default features. CI checks both:
+Supported contributor feature combinations are the default full xtask, the
+bootstrap auditor without default features, and the default xtask with
+`executable-bundle-tests` for its release-only integration target. CI checks
+these explicitly:
 
 ```sh
 cargo clippy --package xtask --no-default-features --all-targets --locked --offline -- -D warnings
 cargo test --package xtask --no-default-features --bin autorouter-audit --locked --offline
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo test --workspace --locked
+cargo clippy --release --package xtask --locked --features executable-bundle-tests --test benchmark_bundle -- -D warnings
+cargo test --release --package xtask --locked --features executable-bundle-tests --test benchmark_bundle required_executable_bundle
 ```
 
 The ordinary launcher/configuration benchmark integration targets require
@@ -87,6 +91,12 @@ auditor interfaces can be used after compilation through
 `cargo xtask verify-vendor` and `cargo xtask verify-production-features`; the
 separate no-default build is necessary for inspection before executing the
 vendored dependency graph. Audit executables stay out of product archives.
+
+The executable-bundle target runs explicitly in release mode on the four native
+CI hosts because a debug helper exceeds the unchanged 32 MiB archive limit.
+That test feature does not enable a product capability. Runtime development
+probes and the vendored transport experiments remain excluded from ordinary
+release executables; they are not supported production feature combinations.
 
 Cargo documents [optional dependencies and features](https://doc.rust-lang.org/cargo/reference/features.html#optional-dependencies)
 and [target required-features](https://doc.rust-lang.org/cargo/reference/cargo-targets.html#the-required-features-field).

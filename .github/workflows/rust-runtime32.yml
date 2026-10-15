@@ -183,7 +183,7 @@ jobs:
           cargo build --release --target i686-unknown-linux-gnu --package xtask --bin xtask \
             --offline --locked --message-format=json > "$out/xtask-build.jsonl"
           python3 distribution/ci/runtime32-proof.py helper
-      - name: Install and exercise exact i686 npm and direct archives without Node runtime PATH
+      - name: Exercise exact i686 npm/direct archives and offline upgrade/rollback
         run: |
           set -euo pipefail
           umask 077
@@ -197,6 +197,9 @@ jobs:
           AUTOROUTER_RUNTIME32_PHASE=direct setarch i686 "$xtask" package \
             --direct-from "artifacts/rust-rewrite/runtime32/npm/claude-autorouter-$version.tgz" \
             --target i686-unknown-linux-gnu --output artifacts/rust-rewrite/runtime32/direct --smoke > "$out/direct-command.json"
+          setarch i686 "$xtask" upgrade-rollback \
+            --native "artifacts/rust-rewrite/runtime32/npm/claude-autorouter-$version.tgz" \
+            --output artifacts/rust-rewrite/runtime32/upgrade-rollback > "$out/upgrade-rollback-command.json"
           git rev-parse HEAD > "$out/source-commit-after.txt"
           git status --porcelain > "$out/source-status-after.txt"
           python3 distribution/ci/runtime32-proof.py finish
@@ -217,5 +220,9 @@ jobs:
             artifacts/rust-rewrite/runtime32/direct/*.json
             artifacts/rust-rewrite/runtime32/direct/*.tar.gz
             artifacts/rust-rewrite/runtime32/direct/*.sha256
+            artifacts/rust-rewrite/runtime32/upgrade-rollback/report.json
+            artifacts/rust-rewrite/runtime32/upgrade-rollback/candidate.tgz
+            artifacts/rust-rewrite/runtime32/upgrade-rollback/baseline/claude-autorouter-0.5.2.tgz
+            artifacts/rust-rewrite/runtime32/upgrade-rollback/baseline/claude-autorouter-0.5.2.tgz.sha256
             artifacts/rust-rewrite/runtime32/runner-receipts/*/*.json
           if-no-files-found: warn

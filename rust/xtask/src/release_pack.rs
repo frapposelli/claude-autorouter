@@ -136,7 +136,7 @@ pub(crate) fn validate_matrix(
         .map(|v| v.as_str().ok_or("Invalid baseline architecture"))
         .collect::<Result<_, _>>()?;
     let mut seen = BTreeSet::new();
-    let mut added_targets = BTreeSet::new();
+    let mut resolved_targets = BTreeSet::new();
     for resolution in matrix["baseline_resolutions"]
         .as_array()
         .ok_or("Explicit baseline architecture resolutions required")?
@@ -154,7 +154,13 @@ pub(crate) fn validate_matrix(
         match resolution["result"].as_str() {
             Some("qualified")
                 if resolution["target"].as_str().is_some_and(|t| {
-                    targets.contains(t) && !baseline_targets.contains(t) && added_targets.insert(t)
+                    // This trusted association permits allocation to the exact
+                    // predeclared ELF32 target, never infers qualification or
+                    // accepts a caller-provided architecture/target mapping.
+                    let predeclared = matches!((name, t), ("Linux x86", "i686-unknown-linux-gnu"));
+                    targets.contains(t)
+                        && (!baseline_targets.contains(t) || predeclared)
+                        && resolved_targets.insert(t)
                 }) => {}
             Some("baseline_unavailable") if text(&resolution["reason"]) => {}
             _ => {

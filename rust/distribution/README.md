@@ -96,6 +96,12 @@ dispatch agree; nested package tests also need `CARGO_BUILD_TARGET=i686-unknown-
 
 Rust documents macOS 11.0 ARM64 and 10.12 x86_64 minima; its deployment target can raise those requirements. The produced binary and every dependency still need inspection and execution on the oldest claimed system. See [Apple target requirements](https://doc.rust-lang.org/rustc/platform-support/apple-darwin.html). GNU target defaults and musl target availability likewise do not establish the minimum libc/kernel of a linked product; the [Rust target table](https://doc.rust-lang.org/rustc/platform-support.html) is an input to qualification, not product support evidence.
 
+ARMv7 `gnueabihf` header inspection requires EABI5 and explicit hard-float flags,
+and rejects soft-float or conflicting declarations, following the
+[Arm ELF header specification](https://github.com/ARM-software/abi-aa/blob/main/aaelf32/aaelf32.rst#52-elf-header).
+These checks do not qualify ARMv7 CPU instructions, the operating system or an
+installed executable. The target remains pending and is not a release candidate.
+
 npm's `bin` mapping provides Unix symbolic links. The isolated smoke check installs the exact archive offline with `--ignore-scripts`, then runs the symlink from an unrelated directory with Node absent from PATH. The dispatcher resolves standard utilities from `/usr/bin` or `/bin` without altering the child's PATH. The same native CLI integration suite then exercises the installed executable, including launcher signals, credentials, settings, configuration and cleanup. See [npm executable mappings](https://docs.npmjs.com/cli/v11/configuring-npm/package-json/#bin).
 
 From the Rust workspace, assemble and verify an explicitly supplied host artifact:

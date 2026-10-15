@@ -75,8 +75,18 @@ node parity/check-gateway.mjs ../artifacts/rust-rewrite/reference "$out/claude-a
 "$out/xtask-musl" package --binary "$AUTOROUTER_BUILD_TARGET=$out/claude-autorouter-musl" --output artifacts/rust-rewrite/musl-package --smoke
 version=$("$out/claude-autorouter-musl" --version)
 "$out/xtask-musl" package --direct-from "artifacts/rust-rewrite/musl-package/claude-autorouter-$version.tgz" --target "$AUTOROUTER_BUILD_TARGET" --output artifacts/rust-rewrite/musl-direct --smoke
-# Preserve the already-built debug test artifacts until both installed
-# lifecycles finish. OpenSSL embeds its absolute MODULESDIR build-output path
+"$out/xtask-musl" upgrade-rollback --native "artifacts/rust-rewrite/musl-package/claude-autorouter-$version.tgz" \
+  --output artifacts/rust-rewrite/upgrade-rollback-musl
+node --input-type=module <<'NODE'
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const packed=JSON.parse(readFileSync('../artifacts/rust-rewrite/musl-package/package-report.json'));
+const rehearsal=JSON.parse(readFileSync('../artifacts/rust-rewrite/upgrade-rollback-musl/report.json'));
+assert.equal(rehearsal.passed,true);
+assert.equal(rehearsal.native_archive_sha256,packed.sha256);
+NODE
+# Preserve the already-built debug test artifacts until the installed
+# lifecycles and rollback rehearsal finish. OpenSSL embeds its absolute MODULESDIR build-output path
 # in the binary, so move the complete first compiler tree aside only now,
 # then rebuild from an empty tree at that same path. Keep the full-byte check.
 [[ "$CARGO_TARGET_DIR" == "$out/target-main" && -d "$CARGO_TARGET_DIR" && ! -L "$CARGO_TARGET_DIR" ]]

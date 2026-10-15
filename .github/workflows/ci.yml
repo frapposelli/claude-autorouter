@@ -113,6 +113,21 @@ jobs:
           autorouter_native_version=$(./target/release/claude-autorouter --version)
           cargo xtask package --direct-from "artifacts/rust-rewrite/native-package-ci/claude-autorouter-$autorouter_native_version.tgz" \
             --target "$autorouter_host_target" --output artifacts/rust-rewrite/native-direct-ci --smoke
+      - name: Rehearse offline upgrade, rollback and re-upgrade with the exact native archive
+        run: |
+          set -euo pipefail
+          autorouter_native_version=$(./target/release/claude-autorouter --version)
+          cargo xtask upgrade-rollback \
+            --native "artifacts/rust-rewrite/native-package-ci/claude-autorouter-$autorouter_native_version.tgz" \
+            --output artifacts/rust-rewrite/upgrade-rollback-ci
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          const packed = JSON.parse(readFileSync('../artifacts/rust-rewrite/native-package-ci/package-report.json'));
+          const rehearsal = JSON.parse(readFileSync('../artifacts/rust-rewrite/upgrade-rollback-ci/report.json'));
+          assert.equal(rehearsal.passed, true);
+          assert.equal(rehearsal.native_archive_sha256, packed.sha256);
+          NODE
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
@@ -125,6 +140,10 @@ jobs:
             artifacts/rust-rewrite/evidence/*.json
             artifacts/rust-rewrite/native-package-ci/*
             artifacts/rust-rewrite/native-direct-ci/*
+            artifacts/rust-rewrite/upgrade-rollback-ci/report.json
+            artifacts/rust-rewrite/upgrade-rollback-ci/candidate.tgz
+            artifacts/rust-rewrite/upgrade-rollback-ci/baseline/*.tgz
+            artifacts/rust-rewrite/upgrade-rollback-ci/baseline/*.sha256
             artifacts/rust-rewrite/production-build.jsonl
             artifacts/rust-rewrite/production-features.json
             artifacts/rust-rewrite/auditor-bootstrap-build.jsonl

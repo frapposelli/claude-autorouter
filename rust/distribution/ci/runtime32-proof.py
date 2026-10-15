@@ -18,6 +18,7 @@ ROOT = Path(os.environ["GITHUB_WORKSPACE"])
 OUT = ROOT / "artifacts/rust-rewrite/runtime32"
 TARGET = "i686-unknown-linux-gnu"
 TARGET_DIR = OUT / "target"
+BASELINE_COMMIT = "ea930c247626ce2af5ccdad721b5121417bf4ad8"
 MIB = 1024 * 1024
 TEST_BINARY_CAP = 128 * MIB  # Streamed debug-test evidence only; shipping cap stays 32 MiB.
 RELEASE_BINARY_CAP = 32 * MIB
@@ -125,6 +126,7 @@ def source_rows():
         "rust/distribution/ci/runtime32-proof.py",
         "rust/distribution/autorouter.sh",
         "rust/distribution/platforms.json",
+        "rust/parity/baseline.json",
         "rust/Cargo.toml",
         "rust/Cargo.lock",
         "rust/rust-toolchain.toml",
@@ -584,6 +586,85 @@ def packages(production):
     }
 
 
+def upgrade_rollback(package_evidence, production):
+    version = production["version"]
+    original_path = OUT / f"npm/claude-autorouter-{version}.tgz"
+    original = archive(original_path, package_evidence["npm"]["archive"]["sha256"])
+    if original != package_evidence["npm"]["archive"]:
+        raise ValueError("Original verified i686 npm archive changed before rehearsal proof")
+    original_sidecar, original_sidecar_bytes = receipt(
+        Path(str(original_path) + ".sha256"), 1024, contents=True
+    )
+    if original_sidecar_bytes != f"{original['sha256']}  {original_path.name}\n".encode():
+        raise ValueError("Original i686 npm sidecar changed before rehearsal proof")
+
+    output = OUT / "upgrade-rollback"
+    report_file, report = read_json(output / "report.json", 64 * 1024)
+    command_file, command = read_json(OUT / "upgrade-rollback-command.json", 64 * 1024)
+    if report_file["sha256"] != command_file["sha256"] or report != command:
+        raise ValueError("Upgrade/rollback command output differs from its retained report")
+    candidate = receipt(output / "candidate.tgz", PACKAGE_CAP)
+    baseline_path = output / "baseline/claude-autorouter-0.5.2.tgz"
+    baseline = archive(baseline_path, report.get("baseline_archive_sha256"))
+    baseline_sidecar, baseline_sidecar_bytes = receipt(
+        Path(str(baseline_path) + ".sha256"), 1024, contents=True
+    )
+    if baseline_sidecar_bytes != f"{baseline['sha256']}  {baseline_path.name}\n".encode():
+        raise ValueError("Rehearsal baseline sidecar differs from its retained archive")
+    baseline_manifest, manifest = read_json(ROOT / "rust/parity/baseline.json", 2 * MIB)
+
+    npm_report_file, npm_report = read_json(OUT / "npm/package-report.json")
+    if npm_report_file != package_evidence["npm"]["report"]:
+        raise ValueError("Original i686 npm verification report changed")
+    expected_verification = dict(npm_report)
+    expected_verification.pop("archive", None)
+    expected_verification.pop("smoke", None)
+    verified = [
+        "exact_installed_archive_bytes", "npm_command_symlink", "offline_ignore_scripts",
+        "native_without_node_on_path", "same_config_path_without_migration",
+        "existing_file_credentials_retained", "private_atomic_edit",
+        "history_schema_1_and_2", "recorded_pricing", "history_bytes_unchanged",
+        "isolated_cleanup",
+    ]
+    limits = [
+        "local_host_only", "synthetic_file_credentials_only",
+        "no_real_keychain_or_provider", "no_publication_or_cutover_approval",
+    ]
+    stages = ["baseline", "native", "rollback", "native_after_rollback"]
+    if (
+        manifest.get("baseline_commit") != BASELINE_COMMIT
+        or manifest.get("baseline_version") != "0.5.2"
+        or report.get("schema_version") != 1
+        or report.get("kind") != "offline_upgrade_rollback_rehearsal"
+        or report.get("passed") is not True
+        or report.get("baseline_commit") != BASELINE_COMMIT
+        or report.get("native_archive_sha256") != original["sha256"]
+        or report.get("native_verification") != expected_verification
+        or report.get("platform") != {"os": "linux", "arch": "x86"}
+        or report.get("stages") != stages
+        or report.get("verified") != verified
+        or report.get("limits") != limits
+        or candidate["sha256"] != original["sha256"]
+        or candidate["bytes"] != original["bytes"]
+        or baseline["sha256"] != report.get("baseline_archive_sha256")
+    ):
+        raise ValueError("Exact i686 offline upgrade/rollback evidence differs")
+    return {
+        "passed": True,
+        "scope": "Synthetic same-prefix npm baseline/native/rollback/native rehearsal; no direct archive rollback, failed-startup or partial-write coverage",
+        "report": report_file,
+        "command": command_file,
+        "original_npm": original,
+        "original_npm_sidecar": original_sidecar,
+        "candidate": candidate,
+        "baseline": baseline,
+        "baseline_sidecar": baseline_sidecar,
+        "baseline_manifest": baseline_manifest,
+        "stages": stages,
+        "verified": verified,
+    }
+
+
 def source_commit():
     commit = receipt(OUT / "source-commit.txt", 64, contents=True)[1].decode().strip()
     after = receipt(OUT / "source-commit-after.txt", 64, contents=True)[1].decode().strip()
@@ -667,6 +748,8 @@ def finish():
     materials = {name: receipt(OUT / name, 2 * MIB) for name in (
         "source-commit-after.txt", "source-status-after.txt", "production-self-test.txt",
     )}
+    package_evidence = packages(production)
+    rehearsal = upgrade_rollback(package_evidence, production)
     write("execution.json", {
         "schema_version": 1,
         "kind": "native_runtime32_and_installed_cli_execution",
@@ -680,14 +763,15 @@ def finish():
         "total_test_passed": sum(row["passed"] for row in tests.values()),
         "strict_i686_clippy": clippy,
         "independent_auditor": bootstrap,
-        "packages": packages(production),
+        "packages": package_evidence,
+        "upgrade_rollback": rehearsal,
         "runner_executions": runner_results(prepared),
         "final_environment": environment(allow_runner=True),
         "final_materials": materials,
         "platform_qualification": "pending",
         "release_approved": False,
         "package_pin_precision": "Exact selected gcc-multilib, libc6-dev-i386, make and perl roots from rolling signed runner indexes; transitive/preinstalled package versions recorded, immutable image and full package-byte provenance not claimed",
-        "scope": "Real 32-bit runtime/CLI package and docs, strict target Clippy, pinned source/feature audit, and exact private npm/direct installed lifecycle on this 64-bit-kernel runner with a genuine i686 uname personality",
+        "scope": "Real 32-bit runtime/CLI package and docs, strict target Clippy, pinned source/feature audit, exact private npm/direct installed lifecycle and synthetic npm upgrade/rollback on this 64-bit-kernel runner with a genuine i686 uname personality",
         "excluded": [
             "minimum supported GNU OS/libc/kernel/CPU",
             "WSL and system/corporate/custom CA qualification",
@@ -695,6 +779,7 @@ def finish():
             "real Claude, Jev or Ollama provider/model calls",
             "performance and evaluator task quality",
             "aggregate release matrix and publication",
+            "direct archive rollback, failed-startup and partial-write rollback",
         ],
     })
 
