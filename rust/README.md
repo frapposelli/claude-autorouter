@@ -69,6 +69,8 @@ npm run test:package
 
 The four existing Node/OS CI jobs remain required. Native CI adds compiler, contract, integration, and executable comparison checks; it does not invoke live tools or impose workstation timing thresholds.
 
+The separate [i686 runtime/CLI workflow](../.github/workflows/rust-runtime32.yml) adds genuine ELF32 runtime and CLI tests plus exact installed npm/direct archive checks to the existing [32-bit core arithmetic job](../.github/workflows/rust-core32.yml). It uses the pinned Rust workspace toolchain, explicitly selected multilib packages and vendored OpenSSL. Its receipts bind the executed test binaries, source inputs and package bytes. Linux32 personality is scoped to owned children on the x64 runner so installed dispatch uses the real i686 machine name; the runner remains a contemporary Ubuntu system with a 64-bit kernel. Minimum OS/libc/kernel/CPU, other architectures and release qualification stay pending.
+
 The [native audit guide](vendor/AUDITING.md) describes the separate contributor
 auditor, supported feature combinations and bootstrap proof. Build it without
 default features before inspected dependencies, then preserve its executable

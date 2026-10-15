@@ -19,15 +19,25 @@ const SUITES: &[&str] = &[
 ];
 
 pub fn host_target() -> Result<&'static str, String> {
-    match (std::env::consts::OS, std::env::consts::ARCH) {
+    host_target_for(
+        std::env::consts::OS,
+        std::env::consts::ARCH,
+        cfg!(target_endian = "little"),
+    )
+}
+fn host_target_for(
+    os: &str,
+    architecture: &str,
+    little_endian: bool,
+) -> Result<&'static str, String> {
+    match (os, architecture) {
         ("macos", "aarch64") => Ok("aarch64-apple-darwin"),
         ("macos", "x86_64") => Ok("x86_64-apple-darwin"),
         ("linux", "aarch64") => Ok("aarch64-unknown-linux-gnu"),
         ("linux", "x86_64") => Ok("x86_64-unknown-linux-gnu"),
+        ("linux", "x86") => Ok("i686-unknown-linux-gnu"),
         ("linux", "arm") => Ok("armv7-unknown-linux-gnueabihf"),
-        ("linux", "powerpc64") if cfg!(target_endian = "little") => {
-            Ok("powerpc64le-unknown-linux-gnu")
-        }
+        ("linux", "powerpc64") if little_endian => Ok("powerpc64le-unknown-linux-gnu"),
         ("linux", "s390x") => Ok("s390x-unknown-linux-gnu"),
         ("linux", "loongarch64") => Ok("loongarch64-unknown-linux-gnu"),
         ("linux", "riscv64") => Ok("riscv64gc-unknown-linux-gnu"),
@@ -142,6 +152,17 @@ fn run_with(
 mod tests {
     use super::*;
     use std::os::unix::process::ExitStatusExt;
+
+    #[test]
+    fn linux_x86_process_maps_to_i686_without_inferring_other_os_support() {
+        assert_eq!(
+            host_target_for("linux", "x86", true).unwrap(),
+            "i686-unknown-linux-gnu"
+        );
+        assert!(host_target_for("macos", "x86", true).is_err());
+        assert!(host_target_for("windows", "x86", true).is_err());
+        assert!(host_target_for("linux", "powerpc64", false).is_err());
+    }
 
     #[test]
     fn exact_installed_paths_and_every_suite_are_required() {

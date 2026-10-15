@@ -85,6 +85,15 @@ lifecycle checks. Failed attempts, pins and remaining limits are recorded there.
 
 The initial macOS ARM64/x86_64 and Linux ARM64/x86_64 candidates do not cover every platform where the existing unrestricted JavaScript package can run. Node 22 additionally lists Linux armv7, ppc64le and s390x, plus experimental architectures. These remain audit items in [platforms.json](platforms.json), alongside Claude executable availability. See the [Node 22 platform table](https://raw.githubusercontent.com/nodejs/node/v22.x/BUILDING.md).
 
+The package reader also recognizes pending `i686-unknown-linux-gnu` artifacts
+as little-endian ELF32 with machine EM_386. A 32-bit Linux Rust process maps to
+that target; Linux `i386`, `i486`, `i586` and `i686` machine names select it in the
+dispatcher. These mappings permit synthetic artifact tests and do not qualify
+older CPUs or runtimes. Linux x86 remains unresolved and the target remains a
+non-candidate pending full qualification. On an x64 Linux kernel, tests of genuine
+i686 executables use an owned `setarch i686` child so real `uname` and installed
+dispatch agree; nested package tests also need `CARGO_BUILD_TARGET=i686-unknown-linux-gnu`.
+
 Rust documents macOS 11.0 ARM64 and 10.12 x86_64 minima; its deployment target can raise those requirements. The produced binary and every dependency still need inspection and execution on the oldest claimed system. See [Apple target requirements](https://doc.rust-lang.org/rustc/platform-support/apple-darwin.html). GNU target defaults and musl target availability likewise do not establish the minimum libc/kernel of a linked product; the [Rust target table](https://doc.rust-lang.org/rustc/platform-support.html) is an input to qualification, not product support evidence.
 
 npm's `bin` mapping provides Unix symbolic links. The isolated smoke check installs the exact archive offline with `--ignore-scripts`, then runs the symlink from an unrelated directory with Node absent from PATH. The dispatcher resolves standard utilities from `/usr/bin` or `/bin` without altering the child's PATH. The same native CLI integration suite then exercises the installed executable, including launcher signals, credentials, settings, configuration and cleanup. See [npm executable mappings](https://docs.npmjs.com/cli/v11/configuring-npm/package-json/#bin).

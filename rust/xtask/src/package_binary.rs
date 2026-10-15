@@ -90,6 +90,7 @@ pub fn inspect(target: &str, bytes: &[u8]) -> Result<Value, String> {
     };
     let machine = read(bytes, 18, 2, little)?;
     let (expected, class_expected, little_expected) = match target {
+        "i686-unknown-linux-gnu" => (3, 1, true),
         "x86_64-unknown-linux-gnu" | "x86_64-unknown-linux-musl" => (62, 2, true),
         "aarch64-unknown-linux-gnu" | "aarch64-unknown-linux-musl" => (183, 2, true),
         "armv7-unknown-linux-gnueabihf" => (40, 1, true),
@@ -447,6 +448,7 @@ mod tests {
     #[test]
     fn elf_target_admission_checks_byte_order_as_well_as_machine_and_class() {
         for (target, machine, class, expected_little) in [
+            ("i686-unknown-linux-gnu", 3, 1, true),
             ("x86_64-unknown-linux-gnu", 62, 2, true),
             ("x86_64-unknown-linux-musl", 62, 2, true),
             ("aarch64-unknown-linux-gnu", 183, 2, true),
@@ -637,6 +639,26 @@ mod tests {
                 );
                 assert_eq!(result["execution_qualification"], "pending");
             }
+        }
+    }
+    #[test]
+    fn i686_uses_elf32_dynamic_tables_and_never_admits_a_different_machine_or_class() {
+        let (_, mut bytes) = elf_fixture(1, true);
+        put(&mut bytes, 18, 2, 3, true); // EM_386, ELFCLASS32, ELFDATA2LSB.
+        let result = inspect("i686-unknown-linux-gnu", &bytes).unwrap();
+        assert_eq!(result["target"], "i686-unknown-linux-gnu");
+        assert_eq!(result["interpreter"], "/ld-test.so");
+        assert_eq!(
+            result["dynamic_libraries"],
+            json!(["libc.so.6", "libgcc_s.so.1"])
+        );
+        assert_eq!(result["minimum_glibc"], "2.34");
+        assert_eq!(result["execution_qualification"], "pending");
+        assert!(inspect("x86_64-unknown-linux-gnu", &bytes).is_err());
+        for (offset, width, value) in [(4, 1, 2), (18, 2, 40), (16, 2, 1)] {
+            let mut wrong = bytes.clone();
+            put(&mut wrong, offset, width, value, true);
+            assert!(inspect("i686-unknown-linux-gnu", &wrong).is_err());
         }
     }
     #[test]

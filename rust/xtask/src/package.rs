@@ -889,17 +889,7 @@ mod tests {
         put(&root.join("bin/autorouter"), DISPATCHER.as_bytes(), 0o755).unwrap();
         let native = format!(
             "native/{}/claude-autorouter",
-            if cfg!(target_arch = "aarch64") {
-                if cfg!(target_os = "macos") {
-                    "aarch64-apple-darwin"
-                } else {
-                    "aarch64-unknown-linux-gnu"
-                }
-            } else if cfg!(target_os = "macos") {
-                "x86_64-apple-darwin"
-            } else {
-                "x86_64-unknown-linux-gnu"
-            }
+            lifecycle::host_target().unwrap()
         );
         put(
             &root.join(&native),
@@ -933,6 +923,27 @@ mod tests {
             format!("{}\n", values.join("\n"))
         );
         assert!(!temporary.0.join("forbidden").exists());
+    }
+    #[test]
+    fn i686_packaging_admission_does_not_approve_the_linux_x86_platform() {
+        assert!(known_target("i686-unknown-linux-gnu"));
+        let platforms: Value = serde_json::from_str(PLATFORMS).unwrap();
+        let entries: Vec<_> = platforms["targets"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|entry| entry["target"] == "i686-unknown-linux-gnu")
+            .collect();
+        assert_eq!(entries.len(), 1);
+        assert_eq!(entries[0]["candidate"], false);
+        assert_eq!(entries[0]["qualification"], "pending");
+        assert!(
+            platforms["unresolved_baseline_architectures"]
+                .as_array()
+                .unwrap()
+                .contains(&json!("Linux x86"))
+        );
+        assert_eq!(platforms["status"], "release_matrix_not_approved");
     }
     #[test]
     fn missing_native_executable_fails_without_a_download_or_fallback() {

@@ -28,6 +28,7 @@ architecture=$("$uname_command" -m) || fail 'cannot identify the CPU architectur
 case "$platform:$architecture" in
   Darwin:arm64|Darwin:aarch64) target=aarch64-apple-darwin ;;
   Darwin:x86_64) target=x86_64-apple-darwin ;;
+  Linux:i386|Linux:i486|Linux:i586|Linux:i686) target=i686-unknown-linux-gnu ;;
   Linux:x86_64|Linux:amd64)
     if [ -x "$root/native/x86_64-unknown-linux-musl/claude-autorouter" ]; then target=x86_64-unknown-linux-musl; else target=x86_64-unknown-linux-gnu; fi ;;
   Linux:aarch64|Linux:arm64)

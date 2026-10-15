@@ -55,6 +55,7 @@ fn target() -> &'static str {
         ("macos", "x86_64") => "x86_64-apple-darwin",
         ("linux", "aarch64") => "aarch64-unknown-linux-gnu",
         ("linux", "x86_64") => "x86_64-unknown-linux-gnu",
+        ("linux", "x86") => "i686-unknown-linux-gnu",
         _ => panic!("Required executable-bundle suite needs an admitted native CI target"),
     }
 }
