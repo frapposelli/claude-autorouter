@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "kind": "committed_ee4b60e_musl_sdk_signed_index_drift",
+  "date": "2026-10-15",
+  "source_head": "ee4b60e3ea6fd860f7609247f5b20847afe23b55",
+  "actual_PR_merge_checkout": "138a12d8c761c14146137e6903e76d5f62a685a2",
+  "same_source_tree": "2d1c51ad06d43513a9a88ae2810d7ac94cd6cc09",
+  "status": "both_musl_SDK_jobs_failed_no_native_qualification",
+  "musl_run_id": 38707820703,
+  "failed_step": "Freeze source identity and build-only SDK",
+  "exact_failure": "musl.Dockerfile line 14: first SHA256 check of the signed APKINDEX bytes fetched by apk update.",
+  "executed_scope": "Stopped before dependency package fetching, Rust archive/bootstrap compilation or product tests. Neither lifecycle ordering nor dispatcher diagnostics executed.",
+  "other_workflows_at_recorded_observation": {
+    "CI_run_38707820709": "Four Node jobs succeeded; four ordinary Rust jobs still running.",
+    "core32_run_38707820335": "Success; narrow i686 core package only.",
+    "GNU_run_38707820213": "Both jobs still running.",
+    "job_counts": {
+      "success": 5,
+      "failure": 2,
+      "in_progress": 6
+    },
+    "scope": "Intermediate observation; not a terminal thirteen-job result."
+  },
+  "authoritative_index_observations": [
+    {
+      "arch": "x86_64",
+      "job_id": 116331507177,
+      "official_index_url": "https://dl-cdn.alpinelinux.org/alpine/v3.21/main/x86_64/APKINDEX.tar.gz",
+      "old_sha256_pin": "119525146f5b75e3c554856d919c8345f9686156ff6a62a037276b232ab1d406",
+      "current_bytes": 487372,
+      "current_sha256": "84f50b91b68f560a6c5e90e97bea09954f7eac55874b310f522e3d86dd104ef8",
+      "last_modified": "Thu, 15 Oct 2026 08:27:57 GMT",
+      "description": "v3.21.8-31-g0d2f7b44e23",
+      "all_twelve_pinned_root_versions_unchanged": true,
+      "signature": {
+        "key_url": "https://alpinelinux.org/keys/alpine-devel@lists.alpinelinux.org-6165ee59.rsa.pub",
+        "key_bytes": 800,
+        "key_sha256": "207e4696d3c05f7cb05966aee557307151f1f00217af4143c1bcaf33b8df733f",
+        "verification_exit": 0,
+        "verified_ok": true
+      },
+      "failed_job_raw_log": {
+        "path": "artifacts/rust-rewrite/ee4b60e-ci-20261015-1/failed-job-116331507177-raw.log",
+        "bytes": 50653,
+        "sha256": "87fbdf266e8fe68018cf4c0783340f52265ac04b1f23360e765f77d96aa5deb5"
+      }
+    },
+    {
+      "arch": "aarch64",
+      "job_id": 116331506930,
+      "official_index_url": "https://dl-cdn.alpinelinux.org/alpine/v3.21/main/aarch64/APKINDEX.tar.gz",
+      "old_sha256_pin": "7e80b10e47b57b3f7cc0dad59dfbc878e67c6356cc9305f3af22b05c74b4bd31",
+      "current_bytes": 488029,
+      "current_sha256": "bfcf467afc794a5a2312c8e8d20b8d5939f2d710394f2a9a853345a828e15e3d",
+      "last_modified": "Thu, 15 Oct 2026 08:19:05 GMT",
+      "description": "v3.21.8-31-g0d2f7b44e23",
+      "all_twelve_pinned_root_versions_unchanged": true,
+      "signature": {
+        "key_url": "https://alpinelinux.org/keys/alpine-devel@lists.alpinelinux.org-616ae350.rsa.pub",
+        "key_bytes": 800,
+        "key_sha256": "d11f6b21c61b4274e182eb888883a8ba8acdbf820dcc7a6d82a7d9fc2fd2836d",
+        "verification_exit": 0,
+        "verified_ok": true
+      },
+      "failed_job_raw_log": {
+        "path": "artifacts/rust-rewrite/ee4b60e-ci-20261015-1/failed-job-116331506930-raw.log",
+        "bytes": 50958,
+        "sha256": "7f67a492c989bff8f3e51d3f4683b95801f98ce6c9e95dad4cddcaebab577f49"
+      }
+    }
+  ],
+  "diagnosis": "Both official HTTPS index digests changed. Bounded gzip/tar parsing succeeds and both detached signatures verify against the named official Alpine public keys. All twelve pinned root-package versions remain unchanged. The evidence supports signed repository metadata drift; the exact byte guards correctly fail closed.",
+  "correction": "Refresh only the two workflow index SHA pins and their dated byte/hash/Last-Modified provenance. Preserve normal signature verification, both byte guards, twelve installed-version assertions, image/Rust pins, offline installation and package-byte provenance. The separately integrated pin refresh needs fresh CI; no musl qualification is granted.",
+  "private_evidence": [
+    {
+      "path": "artifacts/rust-rewrite/ee4b60e-apk-index-audit-20261015-1/declaration.json",
+      "bytes": 580,
+      "sha256": "f7e68a96a4a8b470995675ab920b6c98ec7fb935e1e9627a28a9b2586532fc27"
+    },
+    {
+      "path": "artifacts/rust-rewrite/ee4b60e-apk-index-audit-20261015-1/capture-1.json",
+      "bytes": 39168,
+      "sha256": "be0d4d2911de564304c8ecf9a3e2a3d4b1eecdfe5cfb10f3001c73fcafd336ed"
+    },
+    {
+      "path": "artifacts/rust-rewrite/ee4b60e-apk-index-audit-20261015-1/signature-verification-1.json",
+      "bytes": 3495,
+      "sha256": "7830f409a2a17aca89aa2db573e2fe903a45877d063f33b8ec9ef5c30e0a072d"
+    },
+    {
+      "path": "artifacts/rust-rewrite/ee4b60e-apk-index-audit-20261015-1/diagnosis-1.json",
+      "bytes": 4439,
+      "sha256": "48514eff9d4f1c9dfe14bf272d1f435ab7904a9c4740657289c559e39e1e239b"
+    },
+    {
+      "path": "artifacts/rust-rewrite/ee4b60e-ci-20261015-1/early-musl-index-failure-1.json",
+      "bytes": 2864,
+      "sha256": "ec4749d3540fe6683a5d353fe2fc4ca6eb98a02e5e37219928396788646ed83d"
+    },
+    {
+      "path": "artifacts/rust-rewrite/ee4b60e-ci-20261015-1/actual-pr-merge-commit.json",
+      "bytes": 2698,
+      "sha256": "8982a3b837d068170433341666e83cf4f3d8643e29db580a81b9ece43412b663"
+    }
+  ],
+  "limitations": [
+    "Failed CI cache bodies/new digests were not retained; their exact identity with later live captures is unproven.",
+    "Official HTTPS key retrieval and detached verification do not independently attest the pinned container key store or rule out upstream compromise. Normal apk signature checking completed before the byte-pin rejection.",
+    "Matching twelve root versions does not assert every repository or transitive dependency record is unchanged; fresh selected-closure provenance remains required.",
+    "Mutable release-branch indexes can change again. No latest-index fallback or checksum relaxation is authorized.",
+    "Other workflows were not all terminal at the observation. No complete platform/minimum environment, performance, release, provider-task or cutover approval follows. All previous failures remain retained."
+  ],
+  "operations": {
+    "official_index_metadata_bytes": 975401,
+    "official_public_key_bytes": 1600,
+    "package_or_toolchain_downloads": 0,
+    "container_builds": 0,
+    "compiler_calls": 0,
+    "provider_calls": 0,
+    "workflow_reruns": 0
+  }
+}
