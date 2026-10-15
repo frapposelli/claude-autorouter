@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "kind": "native_protocol_v5_status_startup_validation",
+  "date": "2026-10-15",
+  "passed": true,
+  "mode": "synthetic_validation_no_numerical_measurements",
+  "working_tree_base_commit": "efcbd66fe9c0071721489575d6fac3a555334534",
+  "source_uncommitted_at_validation": true,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "protocol": {
+    "path": "rust/parity/local-benchmark-v5.json",
+    "sha256": "f1bf1568b5e8b71a04a102a8ed43acd33b5addf7b5dc5ad3168009fa10a6d963",
+    "predecessor_v4_sha256": "6620d641cfdd1899878920711b149f3e6cbd7ccb5322ebaf95090db0ce5af0fe"
+  },
+  "execution": {
+    "command": "cargo run --locked --package xtask --bin xtask -- benchmark --protocol v5 --workload startup_status_snapshot --validate --rust rust/target/release/claude-autorouter --output artifacts/rust-rewrite/v5-status-validation-20261015-5",
+    "preflight": {
+      "path": "artifacts/rust-rewrite/evidence/35fe08289a4317f8139478b1a5e5db3466c77aa144aa436cc500645aab260047.json",
+      "original_path": "artifacts/rust-rewrite/v5-status-validation-20261015-5/preflight.json",
+      "sha256": "35fe08289a4317f8139478b1a5e5db3466c77aa144aa436cc500645aab260047"
+    },
+    "report": {
+      "path": "artifacts/rust-rewrite/evidence/3ef6177340332969d7b786f5f39ea3d33989d0d36d8b5659222836bf3de32999.json",
+      "original_path": "artifacts/rust-rewrite/v5-status-validation-20261015-5/report.json",
+      "sha256": "3ef6177340332969d7b786f5f39ea3d33989d0d36d8b5659222836bf3de32999"
+    },
+    "frozen_node_binary_sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0",
+    "existing_native_release_binary_sha256": "349997a44b34f95df88ac07597c13f64c82c36a0e6d994a98a0e608fee346195",
+    "rows": 8,
+    "widths": [40, 80, 100, 120],
+    "engines": ["node", "rust"],
+    "exact_expected_output_bytes_per_launch": true,
+    "paired_output_hashes_match": true,
+    "deterministic_parity_scope": "Only synthetic statusline process output at four declared widths; no gateway, evaluator, streaming or resource workload run.",
+    "stdout_sha256_by_width": {
+      "40": "32859ccc4737617e7337badce68161140fc6b4c630d0ef1da567802ca5c17f2b",
+      "80": "51d2337af51f8b6d235bf162ec8e4b7a984a0c8a6168c823dd14d656f3f07017",
+      "100": "f11e15c0f58ce2775c1e9a06659a24c9fa48b481476b3b0f6f7de6ceb3f34ab5",
+      "120": "8d4200b00a9f1f8b863d39caff2cd308a64f366497f5c2a3712bcb68d96918e8"
+    },
+    "stdin_sha256": "0001ff61ac2ba11f85ebe9b8cb8fd8294d8e409be7f44a0359868e8e1cd7f8e9",
+    "snapshot_template_sha256": "dc7c772af5edf3f8204f009796de5e6efbb90b13de2e61e7679bcc8eb4568321",
+    "numerical_comparisons": 0,
+    "timing_samples_retained": false,
+    "excluded_inherited_workloads": 11,
+    "explicitly_unmeasured_in_selected_report": ["open_file_descriptors", "true_peak_rss", "streaming", "status_snapshot_startup_numerical"],
+    "provider_calls": 0,
+    "representative_hardware_acceptance": false
+  },
+  "retained_prior_report_scope_error": {
+    "path": "artifacts/rust-rewrite/evidence/3e471f4fad043424874d7371d429b059a166a43a0c5f3ed20a41ae0986ae3eba.json",
+    "original_path": "artifacts/rust-rewrite/v5-status-validation-20261015-4/report.json",
+    "sha256": "3e471f4fad043424874d7371d429b059a166a43a0c5f3ed20a41ae0986ae3eba",
+    "finding": "Its selected status-only rows were correct, but the report inherited a gateway inference/count deterministic_parity_scope and generic HTTP/resource limits. The current report narrows those fields to the work actually run."
+  },
+  "retained_preflight_failure": {
+    "path": "artifacts/rust-rewrite/evidence/952ee97c7f51b143ef168cc87e1f820f556913e80f3aad91efbdeaec9af48b56.json",
+    "original_path": "artifacts/rust-rewrite/v5-status-validation-20261015-1/failure.json",
+    "sha256": "952ee97c7f51b143ef168cc87e1f820f556913e80f3aad91efbdeaec9af48b56",
+    "reason": "The 35,278,592-byte debug CLI exceeds the driver's preexisting 32 MiB binary-input cap. It was rejected before any status launch. The retained 12,958,784-byte release CLI admitted the retry without changing the bound."
+  },
+  "focused_checks": {
+    "benchmark_tests_passed": 12,
+    "bundle_transfer_tests_passed": 17,
+    "workspace_format_check_passed": true,
+    "git_diff_check_passed": true
+  },
+  "source_transfer_advisory": {
+    "path": "artifacts/rust-rewrite/evidence/e137785a720543f4920787954f770103aed5d30d1233cf882cb09dd79b1d564c.json",
+    "original_path": "artifacts/rust-rewrite/v5-status-transfer-20261015-2/transfer-manifest.json",
+    "sha256": "e137785a720543f4920787954f770103aed5d30d1233cf882cb09dd79b1d564c",
+    "aggregate_expanded_carrier_bytes": 33286144,
+    "aggregate_logical_file_bytes": 33153873,
+    "limit_bytes_each": 33554432,
+    "working_tree_dirty": true,
+    "release_approved": false
+  },
+  "scope_limits": [
+    "The selected workload exercises only private synthetic statusline input and a live synthetic snapshot at four widths. All inherited startup and HTTP workloads are explicitly excluded in the report.",
+    "The native release CLI predates this dirty working tree. Current-source native shipping identity and source-to-binary provenance are not claimed; the current driver and native renderer unit test independently passed.",
+    "Validation strips all timing samples and cannot establish the unchanged 0.5 startup ratio, cold OS-cache startup, installed npm dispatcher timing or representative-hardware acceptance.",
+    "The source transfer passed both unchanged size bounds for a dirty tree that also contained concurrent work; it is an advisory capacity check, not an exact committed-source, platform or release artifact."
+  ],
+  "overall_plan_performance_gate": "incomplete",
+  "default_cutover_approved": false
+}

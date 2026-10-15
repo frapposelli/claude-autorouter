@@ -1633,6 +1633,211 @@ mod forwarding_tests {
     use super::*;
     use std::collections::VecDeque;
 
+    // The connection writer proves that a final HTTP/1 framing write can fail
+    // after a prior pipelined response was flushed. Exercise the request lease
+    // against the real core task state for both resulting delivery verdicts.
+    struct ContinuityRouter {
+        turns: Mutex<autorouter_core::turn_state::TurnState>,
+        exact_completions: std::sync::atomic::AtomicUsize,
+    }
+    impl GatewayRouter for ContinuityRouter {
+        async fn route(
+            &self,
+            _: Arc<JsDocument>,
+            _: RouteOptions,
+            _: &HeaderMap,
+            _: &CancellationToken,
+            _: &str,
+        ) -> Result<Value, EvaluationError> {
+            unreachable!("the request is already staged")
+        }
+        fn complete(&self, id: &str, evidence: &Value) -> bool {
+            self.turns
+                .lock()
+                .unwrap()
+                .complete(id, (!evidence.is_null()).then_some(evidence), 2)
+        }
+        fn complete_exact(&self, id: &str, evidence: &CompletionEvidence) -> bool {
+            use autorouter_core::turn_state::{ContinuationEvidence, ToolIdentity};
+            self.exact_completions
+                .fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+            self.turns.lock().unwrap().complete_exact(
+                id,
+                Some(&ContinuationEvidence {
+                    model: evidence
+                        .continuation_model
+                        .clone()
+                        .unwrap_or_else(|| evidence.model.clone()),
+                    tools: evidence
+                        .tool_uses
+                        .iter()
+                        .map(|tool| ToolIdentity {
+                            id: tool.id.as_str().into(),
+                            model: tool.model.clone(),
+                        })
+                        .collect(),
+                }),
+                2,
+            )
+        }
+        fn shutdown(&self) {}
+        async fn close(&self) {}
+    }
+
+    #[test]
+    fn failed_final_delivery_cannot_replace_confirmed_tool_owner() {
+        use crate::response_observer::ToolUse;
+        use crate::server_events::RecordSink;
+        use autorouter_core::config::SessionLogMode;
+        use autorouter_core::turn_state::{
+            ContinuationEvidence, Pin as TaskPin, Selection, ToolIdentity, ToolOwner, TurnState,
+        };
+        use std::sync::atomic::Ordering;
+
+        for (delivery, confirmed) in [
+            (Delivery::Failed(Failure::Io), false),
+            (Delivery::Flushed, true),
+        ] {
+            let mut turns = TurnState::default();
+            let key = ["synthetic-task".to_owned()];
+            assert!(turns.select_exact(
+                &key,
+                TaskPin::new("claude-opus-5-5".into(), "claude-haiku-4-5-20251001".into()),
+                Selection {
+                    scope: "synthetic-session",
+                    request_id: Some("first"),
+                    sequence: 1,
+                },
+                0,
+            ));
+            assert!(turns.complete_exact(
+                "first",
+                Some(&ContinuationEvidence {
+                    model: "claude-opus-5-5".into(),
+                    tools: vec![ToolIdentity {
+                        id: "original-tool".into(),
+                        model: "claude-opus-5-5".into(),
+                    }],
+                }),
+                1,
+            ));
+            assert!(turns.select_exact(
+                &key,
+                TaskPin::new("claude-sonnet-5".into(), "claude-opus-5-5".into()),
+                Selection {
+                    scope: "synthetic-session",
+                    request_id: Some("second"),
+                    sequence: 2,
+                },
+                1,
+            ));
+            let router = Arc::new(ContinuityRouter {
+                turns: Mutex::new(turns),
+                exact_completions: std::sync::atomic::AtomicUsize::new(0),
+            });
+            let records = Arc::new(Mutex::new(Vec::<Value>::new()));
+            let captured = records.clone();
+            let record: RecordSink = Arc::new(move |value| {
+                captured.lock().unwrap().push(value);
+            });
+            let events = Arc::new(RequestEvents::new_typed(
+                RequestContext {
+                    request_id: "second".into(),
+                    session_id: Some("synthetic-session".into()),
+                    agent_id: None,
+                    prompt_id: Some("synthetic-task".into()),
+                    request_class: None,
+                },
+                "claude-opus-5-5",
+                SessionLogMode::Metadata,
+                EventSinks {
+                    record: Some(record),
+                    ..EventSinks::default()
+                },
+            ));
+            events.lifecycle(LifecycleName::RequestStart, TelemetryFields::default());
+            events.lifecycle(
+                LifecycleName::Route,
+                TelemetryFields {
+                    model: Some("claude-sonnet-5".into()),
+                    ..TelemetryFields::default()
+                },
+            );
+            events.forwarding();
+            let lease = RequestLease {
+                router: router.clone(),
+                id: "second".into(),
+                events,
+                cancellation: CancellationToken::new(),
+                finished: false,
+            };
+            lease.finish(
+                delivery,
+                Some(CompletionEvidence {
+                    model: "claude-sonnet-5".into(),
+                    continuation_model: Some("claude-sonnet-5".into()),
+                    stop_reason: "tool_use".into(),
+                    tool_uses: vec![ToolUse {
+                        id: "replacement-tool".into(),
+                        model: "claude-sonnet-5".into(),
+                    }],
+                }),
+                true,
+            );
+            assert_eq!(
+                router.exact_completions.load(Ordering::SeqCst),
+                usize::from(confirmed)
+            );
+            let mut turns = router.turns.lock().unwrap();
+            assert_eq!(turns.attempt_count(), 0, "failed attempts must be released");
+            let original = turns.tool_owner_exact("synthetic-session", &["original-tool".into()]);
+            let replacement =
+                turns.tool_owner_exact("synthetic-session", &["replacement-tool".into()]);
+            if confirmed {
+                assert!(original.is_none());
+            } else {
+                assert!(replacement.is_none());
+            }
+            // The core router reads this exact tool-owner surface for the next
+            // tool_result turn. Stage that continuation with the surviving
+            // owner's model, then verify its visible pin before forwarding.
+            let owner = if confirmed { replacement } else { original };
+            let (key, selected) = match owner {
+                Some(ToolOwner::Owned { key, pin }) => (key, pin.model),
+                _ => panic!("the next tool continuation lost its confirmed owner"),
+            };
+            assert_eq!(
+                selected,
+                if confirmed {
+                    JsString::from_scalar("claude-sonnet-5")
+                } else {
+                    JsString::from_scalar("claude-opus-5-5")
+                },
+            );
+            assert!(turns.select_exact(
+                std::slice::from_ref(&key),
+                TaskPin::new(selected.clone(), selected.clone()),
+                Selection {
+                    scope: "synthetic-session",
+                    request_id: Some("third"),
+                    sequence: 3,
+                },
+                3,
+            ));
+            assert_eq!(turns.get_exact(&key, 3).unwrap().model, selected);
+            assert_eq!(turns.attempt_count(), 1);
+            assert!(!turns.complete_exact("third", None, 3));
+            assert_eq!(turns.attempt_count(), 0);
+            let records = records.lock().unwrap();
+            assert_eq!(records.len(), 1);
+            assert_eq!(records[0]["completion_confirmed"], confirmed);
+            assert_eq!(
+                records[0]["status"],
+                if confirmed { "completed" } else { "cancelled" },
+            );
+        }
+    }
+
     struct Frames(VecDeque<Result<Frame<Bytes>, io::Error>>);
     impl Body for Frames {
         type Data = Bytes;

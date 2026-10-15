@@ -129,7 +129,9 @@ try {
   const cwd = join(scratch, 'unrelated'); await mkdir(cwd);
   assert.equal(terminalCause, null, 'Serve admission after terminal cause');
   child = spawn(join(prefix, 'bin/claude-autorouter'), ['serve'], { cwd, stdio: ['ignore', 'ignore', 'pipe'],
-    env: { HOME: cwd, XDG_CONFIG_HOME: cwd, PATH: cwd, AUTOROUTER_CONFIG: join(cwd, 'absent.json'), AUTOROUTER_PORT: '0',
+    // An explicitly selected missing config is correctly an error. The fresh
+    // HOME/XDG directory instead exercises the supported default-empty setup.
+    env: { HOME: cwd, XDG_CONFIG_HOME: cwd, PATH: cwd, AUTOROUTER_PORT: '0',
       AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'synthetic-evaluator', ANTHROPIC_API_KEY: 'synthetic-provider', AUTOROUTER_TOKEN: 'synthetic-dispatch-token',
       AUTOROUTER_UPSTREAM_URL: 'http://127.0.0.1:1', AUTOROUTER_JEV_URL: 'http://127.0.0.1:1/v1/systemone' } });
   ended = new Promise(resolve => { child.once('error', () => { spawnFailed = true; resolve(); }); child.once('close', () => { leaderClosed = true; resolve(); }); });

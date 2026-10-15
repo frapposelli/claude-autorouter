@@ -297,7 +297,10 @@ mod tests {
     }
     fn bounds(output: usize) -> Bounds {
         Bounds {
-            timeout: Duration::from_millis(100),
+            // Most tests here exercise output and ownership, not deadline
+            // precision. Leave room for child scheduling in a parallel suite;
+            // the timeout-specific case below sets its own shorter bound.
+            timeout: Duration::from_secs(5),
             grace: Duration::from_millis(30),
             output,
         }

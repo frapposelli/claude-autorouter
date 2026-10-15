@@ -32,6 +32,7 @@ const FIXED: &[&str] = &[
     "rust/parity/local-benchmark-v2.json",
     "rust/parity/local-benchmark-v3.json",
     "rust/parity/local-benchmark-v4.json",
+    "rust/parity/local-benchmark-v5.json",
     "rust/parity/local-model-comparison-v1.json",
     "rust/parity/local-model-comparison-v2.json",
     "rust/parity/local-model-orchestration-v1.json",
@@ -684,6 +685,7 @@ mod tests {
         assert!(allowed("rust/xtask/src/package_lifecycle.rs"));
         assert!(allowed("rust/xtask/src/release_direct_smoke.rs"));
         assert!(allowed("rust/parity/local-benchmark-v4.json"));
+        assert!(allowed("rust/parity/local-benchmark-v5.json"));
         assert!(allowed("rust/parity/local-model-comparison-v1.json"));
         assert!(allowed("rust/parity/local-model-comparison-v2.json"));
         assert!(allowed("rust/parity/descriptor-benchmark-v1.json"));

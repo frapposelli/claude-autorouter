@@ -13,7 +13,7 @@ failure into acceptance.
 
 | Requirement | Current authoritative evidence | What still proves completion |
 | --- | --- | --- |
-| Cold/warm help, version and status; at least 50% lower median startup | Four retained [v1 exploratory comparisons](performance.md); driver starts complete processes and compares stdout | Final-candidate five matched rounds on representative systems; cold OS-cache conditions, installed npm dispatcher/native archive, synthetic snapshot and 40/80/100/120 columns are still absent |
+| Cold/warm help, version and status; at least 50% lower median startup | Four retained [v1 exploratory comparisons](performance.md); [v5](../parity/local-benchmark-v5.json) adds a private synthetic online snapshot, stdin and 40/80/100/120-column status variants with exact frozen output checks | Final-candidate five matched rounds on representative systems; cold OS-cache conditions and installed npm dispatcher/native archive timing remain absent. Implemented status variants are not numerical acceptance evidence |
 | Ready-to-serve, Jev and Ollama warmup | HTTP driver verifies health and records readiness for mock Jev | Equivalent Ollama startup/warmup workload and installed-launcher boundary; v3/v4 readiness includes collector overhead and is descriptive |
 | Idle RSS at least 40% lower | Same-host v1 observed ratios; complete-process `ps` samples | Final-candidate representative runs under recorded power/load conditions |
 | Large-request/concurrent peak RSS at least 30% lower | [v3 validation](../parity/measurements/local-v3-validation-summary.json) verifies the isolated `getrusage` collector, not a numerical result | Five new verified paired lifetime peaks for each fixed large-catalog concurrency; retain exact scope, confidence intervals and the unchanged 0.7 threshold |
@@ -50,6 +50,16 @@ runs, and adds gateway-only descriptor/recovery observations outside the timed
 interval. It records omitted families when `--workload` is used. A filtered
 run never qualifies the full workload protocol or plan. Validation does not
 retain numeric performance/resource results.
+
+Protocol 5 inherits v4 by SHA-256 and adds only status-renderer startup variants.
+It stages a fresh private synthetic online snapshot before each process launch,
+checks exact output bytes against the frozen reference at four terminal widths,
+and records fixture/output hashes rather than status file contents. The
+`startup_status_snapshot` selection runs those variants on a 16 GiB host
+without opening a gateway or weakening the full v4 near-limit requirement.
+Its deterministic validation retains no timing samples. A numeric result on
+this normal-use host would still be exploratory, not representative-hardware
+acceptance; the older process-startup and all HTTP workloads remain required.
 
 ## Required representative conditions
 

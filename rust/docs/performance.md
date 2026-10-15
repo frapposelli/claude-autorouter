@@ -238,6 +238,23 @@ still run on 16 GiB using `--workload`, and their hardware qualification is
 still required. Run the complete near-limit family on the larger Mac without
 reducing its declared concurrency.
 
+The [v5 declaration](../parity/local-benchmark-v5.json) adds a private synthetic
+online status snapshot and stdin fixture at 40, 80, 100 and 120 columns. To
+validate only these renderer variants on a 16 GiB host, use a current native
+CLI binary smaller than the driver's 32 MiB executable-input limit:
+
+```sh
+cargo xtask benchmark --protocol v5 --workload startup_status_snapshot \
+  --validate --rust PATH_TO_NATIVE_CLI --output NEW_DIRECTORY
+```
+
+Each variant checks exact synthetic output bytes against the frozen Node CLI;
+the selected report names the inherited HTTP and earlier startup workloads it
+did not run. Validation strips timing samples. A full, unfiltered v5 run still
+inherits v4's 32 GiB near-limit and 1,024-descriptor preflights. Neither
+validation nor a normal-use 16 GiB timing run approves the unchanged startup
+target or representative-hardware gate.
+
 The [processing component protocol](../parity/processing-benchmark-v1.json)
 provides a separate matched parse/validate/real-router/prepare/serialize boundary
 in fresh Node and native development helpers. It uses the full classifier and

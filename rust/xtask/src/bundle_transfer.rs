@@ -252,6 +252,11 @@ mod tests {
         assert!(
             native
                 .files
+                .contains_key("rust/parity/local-benchmark-v5.json")
+        );
+        assert!(
+            native
+                .files
                 .contains_key("rust/parity/processing-reference.mjs")
         );
         assert!(

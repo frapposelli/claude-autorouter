@@ -30,7 +30,7 @@ use std::sync::{
     Arc,
     atomic::{AtomicUsize, Ordering},
 };
-use std::time::{Duration, Instant};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use tokio_util::sync::CancellationToken;
 
 const TOKEN: &str = "synthetic-benchmark-local-credential";
@@ -40,7 +40,42 @@ const PROTOCOL: &str = include_str!("../../parity/local-benchmark-v1.json");
 const PROTOCOL_V2: &str = include_str!("../../parity/local-benchmark-v2.json");
 const PROTOCOL_V3: &str = include_str!("../../parity/local-benchmark-v3.json");
 const PROTOCOL_V4: &str = include_str!("../../parity/local-benchmark-v4.json");
+const PROTOCOL_V5: &str = include_str!("../../parity/local-benchmark-v5.json");
 const GATES: &str = include_str!("../../parity/performance-gates.json");
+const STATUS_INPUT: &[u8] =
+    br#"{"session_id":"synthetic-benchmark-session","context_window":{"used_percentage":24.4}}"#;
+const STATUS_WIDTHS: [u16; 4] = [40, 80, 100, 120];
+const STATUS_WORKLOAD: &str = "startup_status_snapshot";
+fn status_snapshot(pid: u32, heartbeat_at: u64) -> Value {
+    json!({"version":1,"pid":pid,"heartbeat_at":heartbeat_at,
+        "sessions":{"synthetic-benchmark-session":{"phase":"streaming","actual_model":"claude-sonnet-5",
+            "source":"jev","latency_ms":243,"reason":"tool_turn_pinned"}},
+        "savings":{"synthetic-benchmark-session":{"baseline_model":"claude-opus-5-5",
+            "requests":4,"unpriced_requests":0,"actual_usd":0.26,"baseline_usd":0.68,
+            "saved_usd":0.42,"percent":61.76470588235294}}})
+}
+fn expected_status_output(columns: u16) -> Option<&'static str> {
+    match columns {
+        40 => Some("● AutoRouter · Sonnet 5 · turn pinned\n"),
+        80 => Some("● AutoRouter · Sonnet 5 · streaming · turn pinned · est saved 62% vs Opus\n"),
+        100 => Some(
+            "● AutoRouter · Sonnet 5 · streaming · Jev 243ms · turn pinned · est saved $0.42 (62%) vs Opus\n",
+        ),
+        120 => Some(
+            "● AutoRouter · Sonnet 5 · streaming · Jev 243ms · turn pinned · est saved $0.42 (62%) vs Opus · CLI ctx 24%\n",
+        ),
+        _ => None,
+    }
+}
+fn retain_status_only_gaps(unmeasured: &mut Vec<&'static str>, status_only: bool) {
+    if status_only {
+        for metric in ["open_file_descriptors", "true_peak_rss", "streaming"] {
+            if !unmeasured.contains(&metric) {
+                unmeasured.push(metric);
+            }
+        }
+    }
+}
 fn digest(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
 }
@@ -818,18 +853,40 @@ async fn startup(
     argument: &str,
     round: usize,
     validate: bool,
+    status_columns: Option<u16>,
 ) -> Result<Value, String> {
     let scratch = Scratch::new("benchmark-startup")?;
     let stdout = scratch.file("stdout", b"")?;
     let stderr = scratch.file("stderr", b"")?;
+    let status_stdin = status_columns
+        .map(|_| scratch.file("status-stdin.json", STATUS_INPUT))
+        .transpose()?;
+    let status_file = status_columns
+        .map(|_| scratch.file("status-snapshot.json", b""))
+        .transpose()?;
     let warmup = if validate { 1 } else { 10 };
     let count = if validate { 2 } else { 100 };
     let mut times = Vec::with_capacity(count);
     let mut identity = None;
     for index in 0..warmup + count {
+        if let Some(path) = &status_file {
+            let heartbeat_at = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .map_err(|_| "Cannot obtain benchmark snapshot time")?
+                .as_millis()
+                .min(u128::from(u64::MAX)) as u64;
+            let bytes = serde_json::to_vec(&status_snapshot(std::process::id(), heartbeat_at))
+                .map_err(|_| "Cannot serialize synthetic status snapshot")?;
+            crate::tool_process::write_private(path, &bytes)?;
+        }
         let mut command = tokio::process::Command::from(executable.command(&scratch.0, argument));
         command
-            .stdin(Stdio::null())
+            .stdin(match &status_stdin {
+                Some(path) => {
+                    Stdio::from(File::open(path).map_err(|_| "Cannot open synthetic status input")?)
+                }
+                None => Stdio::null(),
+            })
             .stdout(Stdio::from(
                 File::create(&stdout).map_err(|_| "Cannot stage benchmark stdout")?,
             ))
@@ -837,6 +894,11 @@ async fn startup(
                 File::create(&stderr).map_err(|_| "Cannot stage benchmark stderr")?,
             ))
             .kill_on_drop(true);
+        if let (Some(columns), Some(path)) = (status_columns, &status_file) {
+            command
+                .env("COLUMNS", columns.to_string())
+                .env("AUTOROUTER_STATUS_FILE", path);
+        }
         let started = Instant::now();
         let mut child = command
             .spawn()
@@ -853,7 +915,13 @@ async fn startup(
         if !status.success() || !read_bounded(&stderr, 1024 * 1024)?.is_empty() {
             return Err("Startup benchmark exited unsuccessfully or produced diagnostics".into());
         }
-        let sha = digest(&read_bounded(&stdout, 1024 * 1024)?);
+        let output = read_bounded(&stdout, 1024 * 1024)?;
+        if status_columns.is_some_and(|columns| {
+            expected_status_output(columns).is_none_or(|expected| output != expected.as_bytes())
+        }) {
+            return Err("Synthetic status output differs from the declared frozen fixture".into());
+        }
+        let sha = digest(&output);
         if identity.as_ref().is_some_and(|old| old != &sha) {
             return Err("Startup output changed between identical invocations".into());
         }
@@ -862,9 +930,24 @@ async fn startup(
             times.push(elapsed)
         }
     }
-    Ok(
-        json!({"implementation":executable.name,"workload":match argument{"--help"=>"startup_help","--version"=>"startup_version",_=>"startup_status"},"round":round,"startup_ms":measure::stats(&times),"raw_startup_ms":times,"stdout_sha256":identity,"cold_disk_cache":false}),
-    )
+    let workload = status_columns.map_or_else(
+        || match argument {
+            "--help" => "startup_help".to_owned(),
+            "--version" => "startup_version".to_owned(),
+            _ => "startup_status".to_owned(),
+        },
+        |columns| format!("{STATUS_WORKLOAD}_{columns}"),
+    );
+    let mut row = json!({"implementation":executable.name,"workload":workload,"round":round,"startup_ms":measure::stats(&times),"raw_startup_ms":times,"stdout_sha256":identity,"cold_disk_cache":false});
+    if let Some(columns) = status_columns {
+        row["columns"] = json!(columns);
+        row["stdin_sha256"] = json!(digest(STATUS_INPUT));
+        row["snapshot_template_sha256"] = json!(digest(
+            &serde_json::to_vec(&status_snapshot(1, 100000)).unwrap()
+        ));
+        row["snapshot"] = json!("private_synthetic_online");
+    }
+    Ok(row)
 }
 fn scalar(row: &Value, path: &[&str]) -> Option<f64> {
     let mut value = row;
@@ -1062,6 +1145,7 @@ struct BenchmarkOptions<'a> {
     v2: bool,
     resources: bool,
     v4: bool,
+    v5: bool,
     libproc: bool,
     selected_workload: Option<&'a str>,
 }
@@ -1076,10 +1160,13 @@ async fn execute(
         v2,
         resources,
         v4,
+        v5,
         libproc,
         selected_workload,
     } = options;
-    let protocol = if v4 {
+    let protocol = if v5 {
+        PROTOCOL_V5
+    } else if v4 {
         PROTOCOL_V4
     } else if resources {
         PROTOCOL_V3
@@ -1088,7 +1175,9 @@ async fn execute(
     } else {
         PROTOCOL
     };
-    let schema_version = if v4 {
+    let schema_version = if v5 {
+        5
+    } else if v4 {
         4
     } else if resources {
         3
@@ -1097,7 +1186,8 @@ async fn execute(
     } else {
         1
     };
-    let descriptor_limit = if v4 {
+    let selected_status_only = v5 && selected_workload == Some(STATUS_WORKLOAD);
+    let descriptor_limit = if v4 && !selected_status_only {
         let (soft, hard) =
             nix::sys::resource::getrlimit(nix::sys::resource::Resource::RLIMIT_NOFILE)
                 .map_err(|_| "Cannot inspect benchmark descriptor limit")?;
@@ -1132,7 +1222,7 @@ async fn execute(
             }),
         )?;
     }
-    let descriptor_collector = if v4 {
+    let descriptor_collector = if v4 && !selected_status_only {
         Some(descriptors::Collector::prepare(libproc).await?)
     } else {
         None
@@ -1190,6 +1280,10 @@ async fn execute(
                 "design_protocol_sha256":digest(descriptors::LIBPROC_DESIGN.as_bytes()),
                 "implementation_protocol_sha256":digest(descriptors::LIBPROC_IMPLEMENTATION.as_bytes())});
         }
+    }
+    if v5 {
+        preflight["inherited_protocol_v4"] = serde_json::from_str(PROTOCOL_V4).unwrap();
+        preflight["inherited_protocol_v4_sha256"] = json!(digest(PROTOCOL_V4.as_bytes()));
     }
     write(&destination.join("preflight.json"), &preflight)?;
     let mut rows = Vec::new();
@@ -1251,7 +1345,7 @@ async fn execute(
         {
             let mut expected = None;
             for executable in order {
-                let row = startup(executable, argument, round, validate).await?;
+                let row = startup(executable, argument, round, validate, None).await?;
                 if expected
                     .as_ref()
                     .is_some_and(|v| v != &row["stdout_sha256"])
@@ -1260,6 +1354,23 @@ async fn execute(
                 }
                 expected = Some(row["stdout_sha256"].clone());
                 save(row)?;
+            }
+        }
+        if v5 && selected_workload.is_none_or(|selected| selected == STATUS_WORKLOAD) {
+            for columns in STATUS_WIDTHS {
+                let mut expected = None;
+                for executable in order {
+                    let row =
+                        startup(executable, "statusline", round, validate, Some(columns)).await?;
+                    if expected
+                        .as_ref()
+                        .is_some_and(|value| value != &row["stdout_sha256"])
+                    {
+                        return Err("Node/Rust synthetic status output differs".into());
+                    }
+                    expected = Some(row["stdout_sha256"].clone());
+                    save(row)?;
+                }
             }
         }
         for workload in workloads(v2, v4)
@@ -1349,8 +1460,12 @@ async fn execute(
             unmeasured.retain(|metric| *metric != "open_file_descriptors");
         }
     }
+    retain_status_only_gaps(&mut unmeasured, selected_status_only);
     if selected_workload.is_some() {
         unmeasured.push("excluded_protocol_workloads");
+    }
+    if v5 && validate {
+        unmeasured.push("status_snapshot_startup_numerical");
     }
     let mut report = json!({"schema_version":schema_version,"kind":if validate{"synthetic_runtime_neutral_validation"}else{"synthetic_runtime_neutral_benchmark"},"completed":true,"deterministic_parity":true,"representative_hardware_acceptance":false,"overall_plan_performance_gate":"incomplete","rounds":rounds,"protocol_sha256":digest(protocol.as_bytes()),"comparisons":if validate{Vec::new()}else{comparisons(&rows,v2)},"rows":rows,"environment_after":measure::environment(root),"unmeasured":unmeasured,"limits":"Uncontrolled developer workstation; complete HTTP latency includes driver/network/mocks. Sampled peak RSS cannot certify the peak-memory target. No live-provider or model-quality evidence."});
     if resources {
@@ -1363,12 +1478,33 @@ async fn execute(
             "Complete inference/count fixture fields, target models, expected stage call counts, exact response bytes through EOF, mock fully-yielded/abandoned bodies and clean gateway exit/listener closure. Evaluator inputs have object-shape/count checks only; rubric/state, cancellation and transport acknowledgement parity require their separate suites."
         );
     }
+    if selected_status_only {
+        report["deterministic_parity_scope"] = json!(
+            "Only synthetic statusline process output at 40, 80, 100 and 120 columns, checked against exact declared bytes for Node and Rust. No gateway, evaluator, streaming or resource workload was run."
+        );
+        report["limits"] = json!(
+            "Uncontrolled developer workstation. This selected startup run excludes HTTP, streaming, descriptor and peak-RSS workloads. No live-provider, model-quality or numerical performance acceptance evidence."
+        );
+    }
     if v4 {
         report["selected_workload"] = json!(selected_workload);
         report["complete_protocol_workload_selection"] = json!(selected_workload.is_none());
         report["excluded_workloads"] = json!(workloads(v2, v4).into_iter()
             .filter(|workload| selected_workload.is_some_and(|selected| selected != workload.id))
             .map(|workload| workload.id).collect::<std::collections::BTreeSet<_>>());
+        if v5 && let Some(selected) = selected_workload {
+            let excluded = report["excluded_workloads"].as_array_mut().unwrap();
+            for workload in [
+                "startup_help",
+                "startup_version",
+                "startup_status",
+                STATUS_WORKLOAD,
+            ] {
+                if selected != workload {
+                    excluded.push(json!(workload));
+                }
+            }
+        }
         report["descriptor_recovery_qualified"] = json!(false);
         if libproc {
             report["descriptor_collector"] = json!({"selector":"libproc-v1","design_protocol_sha256":digest(descriptors::LIBPROC_DESIGN.as_bytes()),
@@ -1407,6 +1543,7 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
     let mut v2 = false;
     let mut resources = false;
     let mut v4 = false;
+    let mut v5 = false;
     let mut libproc = false;
     let mut selected_workload = None;
     let mut index = 0;
@@ -1417,7 +1554,7 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
                     "cargo xtask benchmark --processing --output NEW_DIRECTORY [--validate]\nUse --processing --help for the matched body-processing component and its explicit whole-gateway limits."
                 );
                 println!(
-                    "cargo xtask benchmark --output NEW_DIRECTORY [--rust EXECUTABLE] [--protocol v1|v2|v3|v4] [--workload ID] [--descriptor-collector libproc-v1] [--validate]\ncargo xtask benchmark --compare-legacy REPORT.json\nSynthetic loopback services only; --validate checks counts/bytes without retaining timing results. Default v1 retains the original workload; v2 adds first-body observations and exact streamed responses; v3 adds isolated lifetime resource collection; v4 adds near-limit/tiny-string requests and descriptor/recovery snapshots. --workload requires v4 and selects one HTTP workload at all declared concurrency groups, recording excluded coverage. Explicit --descriptor-collector libproc-v1 requires v4, compiles an identity-checked macOS SDK helper before services, and leaves Linux enumeration unchanged; ordinary v4 retains lsof. Full measurements remain local opt-in evidence; never pool protocol/collector versions.\n--compare-legacy only reads a combined historical baseline/candidate report (at most 16 MiB, 4096 rows each), recomputes the original JS heap/event-loop/latency/coalescing gates and prints JSON. Both reports must be unmarked historical shapes or schema_version 1/type synthetic_router_benchmark; finite nonnegative metrics and safe integer counts are required. Missing candidate maxima serialize as null. No measurements or files are written; these gates do not qualify native paired protocols."
+                    "cargo xtask benchmark --output NEW_DIRECTORY [--rust EXECUTABLE] [--protocol v1|v2|v3|v4|v5] [--workload ID] [--descriptor-collector libproc-v1] [--validate]\ncargo xtask benchmark --compare-legacy REPORT.json\nSynthetic loopback services only; --validate checks counts/bytes without retaining timing results. Default v1 retains the original workload; v2 adds first-body observations and exact streamed responses; v3 adds isolated lifetime resource collection; v4 adds near-limit/tiny-string requests and descriptor/recovery snapshots; v5 adds private synthetic status snapshots at 40/80/100/120 columns. --workload requires v4 or v5 and selects one HTTP workload at all declared concurrency groups; v5 also accepts startup_status_snapshot to select all four widths. Excluded coverage is recorded. Explicit --descriptor-collector libproc-v1 requires v4 or v5, compiles an identity-checked macOS SDK helper before services, and leaves Linux enumeration unchanged; ordinary v4/v5 retains lsof. Full measurements remain local opt-in evidence; never pool protocol/collector versions.\n--compare-legacy only reads a combined historical baseline/candidate report (at most 16 MiB, 4096 rows each), recomputes the original JS heap/event-loop/latency/coalescing gates and prints JSON. Both reports must be unmarked historical shapes or schema_version 1/type synthetic_router_benchmark; finite nonnegative metrics and safe integer counts are required. Missing candidate maxima serialize as null. No measurements or files are written; these gates do not qualify native paired protocols."
                 );
                 return Ok(true);
             }
@@ -1432,12 +1569,13 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
             "--validate" => validate = true,
             "--protocol" => {
                 index += 1;
-                (v2, resources, v4) = match args.get(index).map(String::as_str) {
-                    Some("v1") => (false, false, false),
-                    Some("v2") => (true, false, false),
-                    Some("v3") => (true, true, false),
-                    Some("v4") => (true, true, true),
-                    _ => return Err("--protocol requires v1, v2, v3 or v4".into()),
+                (v2, resources, v4, v5) = match args.get(index).map(String::as_str) {
+                    Some("v1") => (false, false, false, false),
+                    Some("v2") => (true, false, false, false),
+                    Some("v3") => (true, true, false, false),
+                    Some("v4") => (true, true, true, false),
+                    Some("v5") => (true, true, true, true),
+                    _ => return Err("--protocol requires v1, v2, v3, v4 or v5".into()),
                 };
             }
             "--workload" => {
@@ -1457,19 +1595,24 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
         index += 1;
     }
     if libproc && !v4 {
-        return Err("--descriptor-collector libproc-v1 requires --protocol v4; earlier frozen protocols remain unchanged".into());
+        return Err("--descriptor-collector libproc-v1 requires --protocol v4 or v5; earlier frozen protocols remain unchanged".into());
+    }
+    if libproc && v5 && selected_workload == Some(STATUS_WORKLOAD) {
+        return Err("Status-only startup selection has no gateway descriptor collector".into());
     }
     if let Some(selected) = selected_workload {
         if !v4 {
             return Err(
-                "--workload requires --protocol v4; earlier frozen protocols are unfiltered".into(),
+                "--workload requires --protocol v4 or v5; earlier frozen protocols are unfiltered"
+                    .into(),
             );
         }
-        if !workloads(v2, v4)
-            .iter()
-            .any(|workload| workload.id == selected)
+        if !(v5 && selected == STATUS_WORKLOAD)
+            && !workloads(v2, v4)
+                .iter()
+                .any(|workload| workload.id == selected)
         {
-            return Err("Unknown benchmark workload; use a declared v4 HTTP workload ID".into());
+            return Err("Unknown benchmark workload; use a declared HTTP workload ID or v5 startup_status_snapshot".into());
         }
     }
     let destination = destination.ok_or("--output requires a new directory")?;
@@ -1495,6 +1638,7 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
             v2,
             resources,
             v4,
+            v5,
             libproc,
             selected_workload,
         },
@@ -1649,11 +1793,52 @@ mod tests {
         );
     }
     #[test]
+    fn v5_status_fixture_and_each_width_match_declared_frozen_output() {
+        let protocol: Value = serde_json::from_str(PROTOCOL_V5).unwrap();
+        assert_eq!(
+            protocol["predecessor_protocol_sha256"],
+            digest(PROTOCOL_V4.as_bytes())
+        );
+        let workload = &protocol["new_workload"];
+        assert_eq!(workload["id"], STATUS_WORKLOAD);
+        assert_eq!(
+            workload["stdin"],
+            serde_json::from_slice::<Value>(STATUS_INPUT).unwrap()
+        );
+        assert_eq!(workload["snapshot_template"], status_snapshot(1, 100000));
+        assert_eq!(workload["columns"], json!(STATUS_WIDTHS));
+        for columns in STATUS_WIDTHS {
+            let output = autorouter_core::statusline::render_status_line(
+                &serde_json::from_slice(STATUS_INPUT).unwrap(),
+                &status_snapshot(1, 100000),
+                &json!({"now":100001,"alive":true,"color":false,"columns":columns}),
+            ) + "\n";
+            assert_eq!(output, expected_status_output(columns).unwrap());
+            assert!(output.trim_end().chars().count() <= usize::from(columns));
+        }
+    }
+    #[test]
+    fn v5_status_only_selection_cannot_claim_gateway_resources_or_streaming() {
+        let mut numerical_unmeasured = Vec::new();
+        retain_status_only_gaps(&mut numerical_unmeasured, true);
+        assert_eq!(
+            numerical_unmeasured,
+            ["open_file_descriptors", "true_peak_rss", "streaming"]
+        );
+        retain_status_only_gaps(&mut numerical_unmeasured, true);
+        assert_eq!(numerical_unmeasured.len(), 3);
+        let mut frozen_protocol_unmeasured = Vec::new();
+        retain_status_only_gaps(&mut frozen_protocol_unmeasured, false);
+        assert!(frozen_protocol_unmeasured.is_empty());
+    }
+    #[test]
     fn workload_selection_rejects_frozen_or_unknown_protocol_inputs_before_writes() {
         let scratch = Scratch::new("benchmark-selection").unwrap();
         for (protocol, workload) in [
             ("v3", "tiny_strings_miss"),
             ("v4", "not-a-declared-workload"),
+            ("v4", STATUS_WORKLOAD),
+            ("v5", "not-a-declared-workload"),
         ] {
             let args = [
                 "--protocol",
@@ -1687,6 +1872,10 @@ mod tests {
             );
             assert_eq!(
                 capacity_preflight(memory, Some("small_miss"))["adequate"],
+                true
+            );
+            assert_eq!(
+                capacity_preflight(memory, Some(STATUS_WORKLOAD))["adequate"],
                 true
             );
         }
