@@ -1,4 +1,6 @@
 //! Explicit public-source transfer allowlist; never copies a checkout wholesale.
+#[path = "bundle_executable.rs"]
+pub(crate) mod executable;
 #[path = "bundle_transfer_pair.rs"]
 mod pair;
 #[path = "bundle_transfer.rs"]
@@ -51,6 +53,7 @@ const FIXED: &[&str] = &[
     "scripts/rust-reference.mjs",
     "rust/xtask/tests/benchmark_storage.rs",
     "rust/xtask/tests/release_cli.rs",
+    "rust/xtask/tests/benchmark_bundle.rs",
     "rust/docs/storage-benchmark.md",
     "rust/docs/performance-completion.md",
     "rust/docs/whole-connection-benchmark.md",
@@ -605,9 +608,12 @@ fn write_archive(
     )
 }
 pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
+    if args.first().is_some_and(|arg| arg == "--executable") {
+        return executable::run(args, root);
+    }
     if args == ["--help"] {
         println!(
-            "cargo xtask benchmark-bundle [NEW_DESTINATION.tar.gz]\ncargo xtask benchmark-bundle --transfer NEW_DIRECTORY\ncargo xtask benchmark-bundle --restore-reference TRANSFER_DIRECTORY NEW_REFERENCE_DIRECTORY\nDefault creates an allowlisted public Rust source and synthetic-fixture bundle, without frozen Node product sources. --transfer creates a licensed reference delta sharing two exact fixtures with the native archive, plus checksum/resume files for matched larger-host benchmarks, without a Git checkout. Both modes exclude credentials, private reports, binaries and Cargo caches and perform no evaluator calls. Version3 uses a complete gzip-newc native source and licensed tar delta; stored carrier and complete logical file-payload caps retain32MiB. Legacy full-tar size is separately reported. --restore-reference verifies schema1,2or3 then creates the full113-file frozen reference before any reference operation. Requires pinned Rust/locked dependencies; matched reference runs need Node22.14.0."
+            "cargo xtask benchmark-bundle [NEW_DESTINATION.tar.gz]\ncargo xtask benchmark-bundle --executable TARGET=RELEASE_XTASK NEW_ARCHIVE.tar.gz\ncargo xtask benchmark-bundle --transfer NEW_DIRECTORY\ncargo xtask benchmark-bundle --restore-reference TRANSFER_DIRECTORY NEW_REFERENCE_DIRECTORY\nDefault creates an allowlisted public Rust source and synthetic-fixture bundle, without frozen Node product sources. --executable creates a separate target-specific ready-to-run evaluator with complete licenses; its receiver needs no Node/Cargo/source checkout and supports only evaluate-ollama. Prebuilt source-to-binary provenance and platform qualification remain unverified. --transfer creates a licensed reference delta sharing two exact fixtures with the native archive, plus checksum/resume files for matched larger-host benchmarks, without a Git checkout. Source and transfer modes exclude binaries; every mode excludes credentials, private reports and Cargo caches and performs no evaluator calls. Version3 uses a complete gzip-newc native source and licensed tar delta; stored carrier and complete logical file-payload caps retain32MiB. Legacy full-tar size is separately reported. --restore-reference verifies schema1,2or3 then creates the full113-file frozen reference before any reference operation. Requires pinned Rust/locked dependencies; matched reference runs need Node22.14.0."
         );
         return Ok(true);
     }

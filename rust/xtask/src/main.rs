@@ -34,6 +34,12 @@ mod vendor_audit;
 use std::path::PathBuf;
 
 fn main() {
+    // Ready-to-run evaluator artifacts resolve and verify their extracted root
+    // before hidden child commands, env files or compile-time checkout access.
+    if let Some(result) = bundle::executable::run_packaged() {
+        finish(result);
+        return;
+    }
     if std::env::args_os().nth(1).as_deref() == Some(std::ffi::OsStr::new("__storage-child")) {
         std::panic::set_hook(Box::new(|_| {}));
         let args: Result<Vec<_>, _> = std::env::args_os()
@@ -117,6 +123,10 @@ fn main() {
         }
         _ => parity::run(&args, &root).map(|()| true),
     };
+    finish(result);
+}
+
+fn finish(result: Result<bool, String>) {
     match result {
         Ok(true) => {}
         Ok(false) => std::process::exit(1),

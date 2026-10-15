@@ -31,8 +31,16 @@ name = "release_cli"
 path = "tests/release_cli.rs"
 required-features = ["runtime-tools"]
 
+# This suite executes a release helper under the unchanged 32 MiB archive cap.
+# CI explicitly builds and runs it with --release; debug helpers exceed the cap.
+[[test]]
+name = "benchmark_bundle"
+path = "tests/benchmark_bundle.rs"
+required-features = ["runtime-tools", "executable-bundle-tests"]
+
 [features]
 default = ["runtime-tools"]
+executable-bundle-tests = []
 runtime-tools = ["dep:autorouter-core", "dep:autorouter-runtime", "autorouter-runtime/development-probes", "dep:serde", "dep:tokio", "dep:tokio-util", "dep:hyper", "dep:hyper-util", "dep:subtle", "dep:http-body-util", "dep:bytes", "dep:flate2", "dep:tower-service", "dep:rustix"]
 
 [dependencies]

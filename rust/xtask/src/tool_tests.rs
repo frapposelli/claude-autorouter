@@ -110,6 +110,66 @@ impl HttpTransport for Mock {
 fn fixtures() -> Value {
     json!([{"id":"haiku-case","name":"haiku-case","expected":"haiku","split":"heldout","prompt":"Synthetic haiku task"},{"id":"sonnet-case","name":"sonnet-case","expected":"sonnet","split":"heldout","prompt":"Synthetic sonnet task"},{"id":"opus-case","name":"opus-case","expected":"opus","split":"heldout","prompt":"Synthetic opus task"}])
 }
+#[test]
+fn verified_fixture_entrypoint_keeps_admitted_bytes_when_disk_path_becomes_oversized_or_dangling() {
+    let scratch = crate::tool_process::Scratch::new("verified-fixture-entrypoint").unwrap();
+    let admitted = fixtures().to_string().into_bytes();
+    for (index, dangling) in [false, true].into_iter().enumerate() {
+        let path = scratch
+            .file(&format!("fixture-{index}.json"), &admitted)
+            .unwrap();
+        let verified = std::fs::read(&path).unwrap();
+        if dangling {
+            std::fs::remove_file(&path).unwrap();
+            std::os::unix::fs::symlink(scratch.0.join("absent-fixture"), &path).unwrap();
+        } else {
+            std::fs::OpenOptions::new()
+                .write(true)
+                .open(&path)
+                .unwrap()
+                .set_len(2 * 1024 * 1024)
+                .unwrap();
+        }
+        let output = scratch.0.join(format!("report-{index}.json"));
+        let args = vec![
+            "--models".into(),
+            DEFAULT_OLLAMA_MODEL.into(),
+            "--rounds".into(),
+            "1".into(),
+            "--output".into(),
+            output.to_str().unwrap().into(),
+        ];
+        let mock = Mock::new(Options::default());
+        let passed = crate::ollama_evaluation::run_with_verified_fixture_using(
+            &args,
+            verified,
+            |options, fixture| {
+                assert_eq!(fixture, admitted);
+                crate::evaluation::runtime()?.block_on(crate::ollama_evaluation::run_benchmark(
+                    mock.clone(),
+                    options,
+                    fixture,
+                    &CancellationToken::new(),
+                ))
+            },
+        )
+        .unwrap();
+        assert!(passed);
+        let report: Value = serde_json::from_slice(&std::fs::read(output).unwrap()).unwrap();
+        assert_eq!(
+            report["fixture_sha256"],
+            crate::evaluation::digest(&admitted)
+        );
+        assert_eq!(report["models"][0]["rows"].as_array().unwrap().len(), 3);
+        assert_eq!(
+            mock.paths()
+                .iter()
+                .filter(|path| *path == "/v1/systemone")
+                .count(),
+            4
+        );
+    }
+}
 #[tokio::test]
 async fn routing_integration_warms_once_and_never_counts_or_unloads() {
     let mock = Mock::new(Options::default());

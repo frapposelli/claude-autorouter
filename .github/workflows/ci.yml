@@ -90,6 +90,10 @@ jobs:
           cargo build --release --locked --package claude-autorouter --message-format=json > ../artifacts/rust-rewrite/production-build.jsonl
           ../artifacts/rust-rewrite/autorouter-audit-bootstrap production-features --build-report ../artifacts/rust-rewrite/production-build.jsonl > ../artifacts/rust-rewrite/production-features.json
       - run: ./target/release/claude-autorouter --version
+      - name: Verify extracted executable benchmark bundle without receiver tooling
+        run: |
+          cargo clippy --release --package xtask --locked --features executable-bundle-tests --test benchmark_bundle -- -D warnings
+          cargo test --release --package xtask --locked --features executable-bundle-tests --test benchmark_bundle required_executable_bundle
       - run: node parity/check-config-commands.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
       - run: node parity/check-node-options-startup.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
       - run: node parity/check-gateway.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter

@@ -89,18 +89,19 @@ pub fn inspect(target: &str, bytes: &[u8]) -> Result<Value, String> {
         _ => return Err("Invalid ELF endianness".into()),
     };
     let machine = read(bytes, 18, 2, little)?;
-    let (expected, class_expected) = match target {
-        "x86_64-unknown-linux-gnu" | "x86_64-unknown-linux-musl" => (62, 2),
-        "aarch64-unknown-linux-gnu" | "aarch64-unknown-linux-musl" => (183, 2),
-        "armv7-unknown-linux-gnueabihf" => (40, 1),
-        "powerpc64le-unknown-linux-gnu" => (21, 2),
-        "s390x-unknown-linux-gnu" => (22, 2),
-        "loongarch64-unknown-linux-gnu" => (258, 2),
-        "riscv64gc-unknown-linux-gnu" => (243, 2),
+    let (expected, class_expected, little_expected) = match target {
+        "x86_64-unknown-linux-gnu" | "x86_64-unknown-linux-musl" => (62, 2, true),
+        "aarch64-unknown-linux-gnu" | "aarch64-unknown-linux-musl" => (183, 2, true),
+        "armv7-unknown-linux-gnueabihf" => (40, 1, true),
+        "powerpc64le-unknown-linux-gnu" => (21, 2, true),
+        "s390x-unknown-linux-gnu" => (22, 2, false),
+        "loongarch64-unknown-linux-gnu" => (258, 2, true),
+        "riscv64gc-unknown-linux-gnu" => (243, 2, true),
         _ => return Err("Unsupported native target".into()),
     };
     if machine != expected
         || class != class_expected
+        || little != little_expected
         || !matches!(read(bytes, 16, 2, little)?, 2 | 3)
     {
         return Err("ELF architecture or executable type does not match target".into());
@@ -443,6 +444,46 @@ mod tests {
             bytes[offset + index] = (value >> (shift * 8)) as u8;
         }
     }
+    #[test]
+    fn elf_target_admission_checks_byte_order_as_well_as_machine_and_class() {
+        for (target, machine, class, expected_little) in [
+            ("x86_64-unknown-linux-gnu", 62, 2, true),
+            ("x86_64-unknown-linux-musl", 62, 2, true),
+            ("aarch64-unknown-linux-gnu", 183, 2, true),
+            ("aarch64-unknown-linux-musl", 183, 2, true),
+            ("armv7-unknown-linux-gnueabihf", 40, 1, true),
+            ("powerpc64le-unknown-linux-gnu", 21, 2, true),
+            ("s390x-unknown-linux-gnu", 22, 2, false),
+            ("loongarch64-unknown-linux-gnu", 258, 2, true),
+            ("riscv64gc-unknown-linux-gnu", 243, 2, true),
+        ] {
+            for little in [expected_little, !expected_little] {
+                // Encode the complete header in its declared byte order; merely
+                // flipping EI_DATA would also corrupt the machine/type checks.
+                let mut bytes = vec![0; 64];
+                bytes[..4].copy_from_slice(b"\x7fELF");
+                bytes[4] = class;
+                bytes[5] = if little { 1 } else { 2 };
+                bytes[6] = 1;
+                put(&mut bytes, 16, 2, 2, little);
+                put(&mut bytes, 18, 2, machine, little);
+                let (entry_offset, entry_size) = if class == 2 { (54, 56) } else { (42, 32) };
+                put(&mut bytes, entry_offset, 2, entry_size, little);
+                let result = inspect(target, &bytes);
+                if little == expected_little {
+                    let result = result.unwrap_or_else(|error| panic!("{target}: {error}"));
+                    assert_eq!(result["target"], target);
+                    assert_eq!(result["execution_qualification"], "pending");
+                } else {
+                    assert_eq!(
+                        result.unwrap_err(),
+                        "ELF architecture or executable type does not match target",
+                        "{target} little={little}",
+                    );
+                }
+            }
+        }
+    }
     // No section headers: all dynamic pointers differ from file offsets.
     fn elf_fixture(class: u8, little: bool) -> (String, Vec<u8>) {
         let mut bytes = vec![0; 0x800];
@@ -452,9 +493,10 @@ mod tests {
         bytes[6] = 1;
         put(&mut bytes, 16, 2, 3, little);
         let (target, machine) = match (class, little) {
-            (1, _) => ("armv7-unknown-linux-gnueabihf", 40),
+            (1, true) => ("armv7-unknown-linux-gnueabihf", 40),
             (2, true) => ("x86_64-unknown-linux-gnu", 62),
-            _ => ("s390x-unknown-linux-gnu", 22),
+            (2, false) => ("s390x-unknown-linux-gnu", 22),
+            _ => panic!("No supported target has this ELF class and byte order"),
         };
         put(&mut bytes, 18, 2, machine, little);
         let width = if class == 2 { 8 } else { 4 };
@@ -568,8 +610,9 @@ mod tests {
     }
     #[test]
     fn elf_dependencies_and_version_needs_use_load_mappings_for_both_classes_and_byte_orders() {
-        for class in [1, 2] {
-            for little in [false, true] {
+        // The only supported big-endian target is ELF64 s390x.
+        for (class, byte_orders) in [(1, &[true][..]), (2, &[false, true][..])] {
+            for &little in byte_orders {
                 let (target, bytes) = elf_fixture(class, little);
                 let result = inspect(&target, &bytes).unwrap();
                 assert_eq!(
@@ -598,8 +641,8 @@ mod tests {
     }
     #[test]
     fn malformed_dynamic_pointers_strings_and_version_chains_fail_closed() {
-        for class in [1, 2] {
-            for little in [false, true] {
+        for (class, byte_orders) in [(1, &[true][..]), (2, &[false, true][..])] {
+            for &little in byte_orders {
                 let (target, good) = elf_fixture(class, little);
                 let width = if class == 2 { 8 } else { 4 };
                 // Every parser-specific mutation must fail, rather than hiding a

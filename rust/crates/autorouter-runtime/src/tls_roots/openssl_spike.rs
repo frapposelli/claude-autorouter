@@ -23,6 +23,46 @@ use crate::server_events::EventSinks;
 use client::SpikeHttpClient;
 use std::sync::Arc;
 
+/// Exercise the exact buffered constructor from the gateway's delivery tests
+/// without exposing its experimental concrete types outside this test module.
+pub(crate) fn buffered_delivery_fixture(
+    version: Option<openssl::ssl::SslVersion>,
+) -> Result<
+    (
+        impl crate::http_client::HttpTransport<ResponseBody: hyper::body::Body<Error = std::io::Error>>,
+        impl Fn() -> serde_json::Value,
+        Option<openssl::ssl::SslContext>,
+    ),
+    crate::http_client::HttpError,
+> {
+    use std::sync::atomic::Ordering;
+    let (trust, tls) = lifecycle_tests::isolated_tls(version);
+    let client = raw_pool::buffered::BufferedRawPoolClient::new(&trust)?;
+    let buffers = client.probe.clone();
+    let raw = client.inner.raw_counts.clone();
+    let fetch = client.inner.fetch_counts.clone();
+    let cache = Arc::downgrade(&client.inner.raw_sessions);
+    Ok((
+        client,
+        move || {
+            serde_json::json!({
+                "buffers": buffers.snapshot(),
+                "raw_attempts": raw.attempts.load(Ordering::SeqCst),
+                "raw_tls_handshakes_completed": raw.completed.load(Ordering::SeqCst),
+                "raw_live": raw.active.load(Ordering::SeqCst),
+                "raw_tasks": raw.tasks.load(Ordering::SeqCst),
+                "raw_shutdown_handles": raw.shutdown_handles.load(Ordering::SeqCst),
+                "fetch_attempts": fetch.attempts.load(Ordering::SeqCst),
+                "fetch_live": fetch.active.load(Ordering::SeqCst),
+                "fetch_tasks": fetch.tasks.load(Ordering::SeqCst),
+                "fetch_shutdown_handles": fetch.shutdown_handles.load(Ordering::SeqCst),
+                "cache_released": cache.upgrade().is_none(),
+            })
+        },
+        tls,
+    ))
+}
+
 /// Invoked by the differential driver as the sole selected test in a fresh
 /// child process. Ordinary cargo test never starts this synthetic gateway.
 #[tokio::test]

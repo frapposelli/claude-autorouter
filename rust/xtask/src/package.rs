@@ -48,7 +48,7 @@ fn fresh(path: &Path) -> Result<(), String> {
     }
     fs::create_dir(path).map_err(|_| "Cannot create package destination".into())
 }
-fn known_target(target: &str) -> bool {
+pub(crate) fn known_target(target: &str) -> bool {
     serde_json::from_str::<Value>(PLATFORMS).unwrap()["targets"]
         .as_array()
         .unwrap()
@@ -110,6 +110,17 @@ struct LicenseMaterial {
     bytes: Vec<u8>,
     components: Vec<Value>,
     missing: Vec<String>,
+}
+/// Reuse the complete locked dependency inventory for an executable handoff.
+/// This producer-only operation never runs on the extracted receiver.
+pub(crate) fn complete_licenses(root: &Path) -> Result<(Vec<u8>, Vec<Value>), String> {
+    let material = licenses(root)?;
+    if !material.missing.is_empty() || material.bytes.is_empty() {
+        return Err(
+            "Executable benchmark bundle requires complete dependency license material".into(),
+        );
+    }
+    Ok((material.bytes, material.components))
 }
 fn licenses(root: &Path) -> Result<LicenseMaterial, String> {
     let bytes = capture(

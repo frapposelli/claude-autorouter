@@ -2,6 +2,7 @@
 use std::fs;
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::fs::PermissionsExt;
+use std::os::unix::process::ExitStatusExt;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -84,7 +85,23 @@ fn direct_claude_help_forwards_literal_arguments_and_removes_router_secrets() {
     home.claude("#!/bin/sh\n[ -z \"$TYPESAFE_API_KEY\" ] || exit 71\n[ -z \"$AUTOROUTER_TOKEN\" ] || exit 72\nprintf 'claude:%s\\n' \"$1\"\nexit 7\n");
     for arg in ["--help", "-h", "--version", "-v"] {
         let result = home.command().args(["claude", arg]).output().unwrap();
-        assert_eq!(result.status.code(), Some(7));
+        let failure_class = match result.stderr.as_slice() {
+            b"Could not initialize the Claude launcher.\n" => "launcher_initialization",
+            b"Could not launch Claude Code. Ensure `claude` is installed and on PATH.\n" => {
+                "child_spawn"
+            }
+            _ => "other",
+        };
+        assert_eq!(
+            result.status.code(),
+            Some(7),
+            "alias={arg:?} signal={:?} class={failure_class} stdout_len={} stdout_prefix={:?} stderr_len={} stderr_prefix={:?}",
+            result.status.signal(),
+            result.stdout.len(),
+            String::from_utf8_lossy(&result.stdout[..result.stdout.len().min(256)]),
+            result.stderr.len(),
+            String::from_utf8_lossy(&result.stderr[..result.stderr.len().min(256)]),
+        );
         assert_eq!(result.stdout, format!("claude:{arg}\n").as_bytes());
         assert!(result.stderr.is_empty());
     }

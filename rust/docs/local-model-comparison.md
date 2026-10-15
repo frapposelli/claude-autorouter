@@ -6,6 +6,65 @@ Jev key or model download. It preserves the original v1/v2 protocols and their
 failed results. A prepare-time declaration for another installed model or Ollama
 version is a separate experiment, with the same thresholds and samples.
 
+## Ready-to-run native evaluator
+
+For a single native evaluator trial on another machine, a contributor can create
+a target-specific executable archive. Build the helper and collect its complete
+locked dependency licenses on the producer; the receiver needs no Node, Rust,
+Cargo, Git, source checkout or dependency installation. For an Apple silicon Mac,
+from `rust/`:
+
+```sh
+cargo build --release --locked --package xtask --bin xtask
+./target/release/xtask benchmark-bundle --executable \
+  aarch64-apple-darwin=rust/target/release/xtask \
+  artifacts/autorouter-evaluator-aarch64-apple-darwin.tar.gz
+```
+
+Choose the exact target of the supplied executable for another platform. The
+producer checks the executable header, complete licenses, public source identity
+and immutable synthetic fixture. The executable and fixture hashes, target,
+source identity and Cargo.lock hash are recorded in the manifest. Supplied
+prebuilt source-to-binary provenance remains explicitly unverified; this is not a
+qualified release or an approved platform claim. Debug helpers that exceed the
+unchanged 32 MiB file/archive bounds are rejected. Source and matched-reference
+transfers remain separate and retain their existing limits and prerequisites.
+
+Transfer the archive and its `.sha256` sidecar through a trusted channel. Verify
+the checksum before extracting into a new directory, then read native help:
+
+```sh
+shasum -a 256 -c autorouter-evaluator-aarch64-apple-darwin.tar.gz.sha256
+mkdir -m 700 evaluator-test
+tar -xzpf autorouter-evaluator-aarch64-apple-darwin.tar.gz -C evaluator-test
+./evaluator-test/autorouter-benchmark/bin/autorouter-benchmark evaluate-ollama --help
+```
+
+The extracted directory can be moved and invoked from any working directory.
+The `-p` extraction option preserves the declared 0755/0644 modes even when the
+receiving shell uses a restrictive umask; the enclosing new directory stays 0700.
+Each invocation verifies its local executable, fixture and license inputs before
+dispatch. Missing or altered inputs fail before fallback to any build checkout.
+Only `evaluate-ollama` and bundle help are available; the full comparison tools
+below still need the source/reference transfer. Help makes no network calls.
+
+Evaluation is explicitly opt-in and uses an already-running local Ollama and an
+already-installed model. It downloads nothing and contacts neither Claude nor
+Jev. Choose acceptance thresholds beforehand and retain the report, including a
+failed strict-quality result. For example, replace the tag with an installed
+decision model and choose a new report path:
+
+```sh
+./evaluator-test/autorouter-benchmark/bin/autorouter-benchmark evaluate-ollama \
+  --models YOUR_INSTALLED_TAG --split heldout --rounds 3 \
+  --min-agreement 1 --max-under-route-rate 0 --output native-report.json
+```
+
+This is a native-only trial. It does not establish Node/native parity, downstream
+task quality, controlled-hardware performance or release readiness.
+
+## Paired comparison from source
+
 Build the extracted source bundle with its pinned Rust toolchain, prerequisites
 and Cargo.lock. Keep the complete111-file frozen reference at
 `artifacts/rust-rewrite/reference` and provide a Node22.14.0 executable. Read the
@@ -35,7 +94,7 @@ calls. The output directory must not exist.
 The model tag is an example; select an exact tag already present on your
 instance. The tool requires observed local decision capability and a digest,
 and refuses unsupported/remote models or any currently resident model. It
-copies the executables into a new0700 directory and creates0600 declaration
+copies the executables into a new 0700 directory and creates0600 declaration
 evidence. Any source, fixture, reference, binary, model or runtime change
 requires a new declaration. Do not rebuild or edit the source during a run.
 

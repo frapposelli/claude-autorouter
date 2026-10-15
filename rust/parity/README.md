@@ -77,15 +77,20 @@ comparisons that still differ. Clean response consumption and pool retirement
 do not establish successful downstream forwarding. The ordinary native
 release remains Rustls, with both experimental vendor features absent.
 
-The [buffered-response experiment](measurements/openssl-buffered-response-summary.json)
+The historical [buffered-response experiment](measurements/openssl-buffered-response-summary.json)
 adds bounded application buffers and first-frame response submission to that
 test-only transport. Its exact comparison passes 146 of 150 cases, including
-all 42 earlier header-timing mismatches. Four truncated responses still forward
-65,536 of the expected 65,537 bytes; they remain failures. All 300 reference and
-native executions complete cleanup. Twelve separate Node flow observations
-inform the next handoff design and are not native equivalence evidence. The
-summary retains conditional allocation bounds, source drift and earlier failed
-drafts; no production transport or full memory gate is approved.
+all 42 earlier header-timing mismatches; four truncated responses lose one byte.
+The later [encoder-handoff experiment](measurements/openssl-buffered-handoff-summary.json)
+resolves those losses and passes all 162 declared comparisons, including the
+twelve flow cases, with 324 owned executions and exact byte/framing results.
+Generation-owned tickets use actual encoder admission and write-attempt
+observations; these observations do not establish final flush or continuity.
+The earlier failures remain historical evidence. Session/cache/idle-close
+differences, seven broader lifecycle/resource families and three OpenSSL
+configuration modes remain open. The [transport qualification work](../docs/openssl-transport-qualification.md)
+maps these obligations before any production promotion; the ordinary native
+release still uses Rustls.
 
 The auto-routing baseline also has a dynamic contract capture. It verifies the
 frozen source hashes, runs all 23 original test callbacks and assertions, and

@@ -43,17 +43,20 @@ const DELTA_ROOT: &str = "autorouter-node-reference-delta";
 const DELTA_NAME: &str = "frozen-node-reference-delta.tar.gz";
 const META_LIMIT: usize = 64 * 1024;
 const FILE_LIMIT: usize = 1024 * 1024;
+/// Immutable fixture identity reviewed against the frozen baseline; shared by
+/// the source/reference transfer and the executable evaluator handoff.
+pub(super) const OLLAMA_ROUTING_FIXTURE: (&str, usize, &str) = (
+    "test/fixtures/ollama-routing.json",
+    17198,
+    "1ee6ab593e47d87a67e922c0afb0c9db5787d8a27d1a0ff3e24baa0543291fc5",
+);
 const SHARED: &[(&str, usize, &str)] = &[
     (
         "test/fixtures/claude-protocol-v1.json",
         60523,
         "4cdaa7716255ec17032e26437f65c22aea170d8abb4d259c35c61e2709a1b41f",
     ),
-    (
-        "test/fixtures/ollama-routing.json",
-        17198,
-        "1ee6ab593e47d87a67e922c0afb0c9db5787d8a27d1a0ff3e24baa0543291fc5",
-    ),
+    OLLAMA_ROUTING_FIXTURE,
 ];
 fn shared() -> Value {
     json!(

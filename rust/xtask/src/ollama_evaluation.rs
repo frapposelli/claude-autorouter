@@ -527,24 +527,57 @@ println!("{}",json!({"model":model,"max_budget_stress":entry["max_budget_stress"
     Ok(report)
 }
 pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
+    run_with_fixture_loader(
+        args,
+        || {
+            std::fs::read(root.join("test/fixtures/ollama-routing.json"))
+                .map_err(|_| "Cannot read benchmark fixtures".into())
+        },
+        measure_fixture,
+        "cargo xtask evaluate-ollama",
+    )
+}
+/// The executable bundle supplies the exact owned bytes admitted by its bounded
+/// manifest verifier. Do not reopen a mutable fixture path after that boundary.
+pub(crate) fn run_with_verified_fixture(args: &[String], fixture: Vec<u8>) -> Result<bool, String> {
+    run_with_verified_fixture_using(args, fixture, measure_fixture)
+}
+pub(crate) fn run_with_verified_fixture_using(
+    args: &[String],
+    fixture: Vec<u8>,
+    measure: impl FnOnce(&Value, &[u8]) -> Result<Value, String>,
+) -> Result<bool, String> {
+    run_with_fixture_loader(
+        args,
+        || Ok(fixture),
+        measure,
+        "autorouter-benchmark evaluate-ollama",
+    )
+}
+fn measure_fixture(options: &Value, fixture: &[u8]) -> Result<Value, String> {
+    runtime()?.block_on(async {
+        let transport =
+            Arc::new(NativeHttpClient::new().map_err(|_| "Cannot construct HTTP transport")?);
+        let signals = crate::tool_process::Signals::new()?;
+        run_benchmark(transport, options, fixture, &signals.token).await
+    })
+}
+fn run_with_fixture_loader(
+    args: &[String],
+    load_fixture: impl FnOnce() -> Result<Vec<u8>, String>,
+    measure: impl FnOnce(&Value, &[u8]) -> Result<Value, String>,
+    invocation: &str,
+) -> Result<bool, String> {
     let cwd = std::env::current_dir().map_err(|_| "Cannot resolve working directory")?;
     let options = parse_args(args, &cwd)?;
     if options["help"] == true {
         println!(
-            "Usage: cargo xtask evaluate-ollama --models nimble:9b-q4_K_M [--split tuning|heldout|all] [--rounds 3] [--stress-rounds 8] [--timeout-ms 1500] [--cold-timeout-ms 60000] [--min-agreement 1] [--max-under-route-rate 0] [--output artifacts/ollama-evaluation.json]\nUses checked-in synthetic cases and an already-running local Ollama. Downloads nothing and does not contact Claude/Jev. Requires no resident models; loads one candidate at a time and unloads only that candidate afterward. Cold calls, warm agreement, and optional full-budget stress remain separate. --timeout-ms 0 disables only the warm deadline. Set acceptance thresholds before running; labels do not measure downstream task quality."
+            "Usage: {invocation} --models nimble:9b-q4_K_M [--split tuning|heldout|all] [--rounds 3] [--stress-rounds 8] [--timeout-ms 1500] [--cold-timeout-ms 60000] [--min-agreement 1] [--max-under-route-rate 0] [--output artifacts/ollama-evaluation.json]\nUses checked-in synthetic cases and an already-running local Ollama. Downloads nothing and does not contact Claude/Jev. Requires no resident models; loads one candidate at a time and unloads only that candidate afterward. Cold calls, warm agreement, and optional full-budget stress remain separate. --timeout-ms 0 disables only the warm deadline. Set acceptance thresholds before running; labels do not measure downstream task quality."
         );
         return Ok(true);
     }
-    let fixture = std::fs::read(root.join("test/fixtures/ollama-routing.json"))
-        .map_err(|_| "Cannot read benchmark fixtures")?;
-    let report = runtime()?.block_on(async {
-        let transport =
-            Arc::new(NativeHttpClient::new().map_err(|_| "Cannot construct HTTP transport")?);
-        {
-            let signals = crate::tool_process::Signals::new()?;
-            run_benchmark(transport, &options, &fixture, &signals.token).await
-        }
-    })?;
+    let fixture = load_fixture()?;
+    let report = measure(&options, &fixture)?;
     if let Some(output) = options["output"].as_str() {
         println!("Saved {output}");
     }
