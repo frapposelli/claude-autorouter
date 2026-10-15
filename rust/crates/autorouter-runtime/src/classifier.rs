@@ -33,11 +33,22 @@ pub struct Limits {
     pub pending: usize,
     pub subscribers: usize,
 }
+impl Limits {
+    const MAX_PENDING: usize = 256;
+    const MAX_SUBSCRIBERS: usize = 1024;
+
+    fn validate(self) -> Result<Self, String> {
+        if self.pending > Self::MAX_PENDING || self.subscribers > Self::MAX_SUBSCRIBERS {
+            return Err("Invalid classifier limits.".into());
+        }
+        Ok(self)
+    }
+}
 impl Default for Limits {
     fn default() -> Self {
         Self {
-            pending: 256,
-            subscribers: 1024,
+            pending: Self::MAX_PENDING,
+            subscribers: Self::MAX_SUBSCRIBERS,
         }
     }
 }
@@ -159,6 +170,60 @@ struct Shared<T> {
     test_worker_gate: Mutex<Option<Arc<shutdown_gate::WorkerPollGate>>>,
     #[cfg(test)]
     test_spawn_gate: Mutex<Option<Arc<shutdown_gate::WorkerSpawnGate>>>,
+    #[cfg(test)]
+    test_publication_gate: Mutex<Option<Arc<PublicationGate>>>,
+}
+// A one-worker test seam at the real evaluator-to-registry handoff. The gate
+// owns neither the registry mutex nor a production code path.
+#[cfg(test)]
+struct PublicationGate {
+    observed:
+        Mutex<Option<Result<(autorouter_core::contracts::Tier, DecisionSource), EvaluationError>>>,
+    arrived: Notify,
+    release: tokio::sync::Semaphore,
+}
+#[cfg(test)]
+impl Default for PublicationGate {
+    fn default() -> Self {
+        Self {
+            observed: Mutex::new(None),
+            arrived: Notify::new(),
+            release: tokio::sync::Semaphore::new(0),
+        }
+    }
+}
+#[cfg(test)]
+impl PublicationGate {
+    async fn pause(&self, result: &ResultValue) {
+        *self.observed.lock().unwrap() = Some(
+            result
+                .as_ref()
+                .map(|value| (value.tier, value.source))
+                .map_err(|error| *error),
+        );
+        self.arrived.notify_waiters();
+        self.release
+            .acquire()
+            .await
+            .expect("publication gate open")
+            .forget();
+    }
+    async fn observed(
+        &self,
+    ) -> Result<(autorouter_core::contracts::Tier, DecisionSource), EvaluationError> {
+        loop {
+            let arrived = self.arrived.notified();
+            tokio::pin!(arrived);
+            arrived.as_mut().enable();
+            if let Some(result) = *self.observed.lock().unwrap() {
+                return result;
+            }
+            arrived.await;
+        }
+    }
+    fn release(&self) {
+        self.release.add_permits(1);
+    }
 }
 impl<T> Drop for Shared<T> {
     fn drop(&mut self) {
@@ -303,9 +368,15 @@ impl<T: HttpTransport + 'static> Classifier<T> {
 
     pub fn new(transport: Arc<T>, config: &RouterConfig) -> Self {
         Self::with_limits(transport, config, Limits::default())
+            .expect("default classifier limits are valid")
     }
-    pub fn with_limits(transport: Arc<T>, config: &RouterConfig, limits: Limits) -> Self {
-        Self {
+    pub fn with_limits(
+        transport: Arc<T>,
+        config: &RouterConfig,
+        limits: Limits,
+    ) -> Result<Self, String> {
+        let limits = limits.validate()?;
+        Ok(Self {
             shared: Arc::new(Shared {
                 transport,
                 state: Mutex::new(State::default()),
@@ -318,8 +389,10 @@ impl<T: HttpTransport + 'static> Classifier<T> {
                 test_worker_gate: Mutex::new(None),
                 #[cfg(test)]
                 test_spawn_gate: Mutex::new(None),
+                #[cfg(test)]
+                test_publication_gate: Mutex::new(None),
             }),
-        }
+        })
     }
     /// Configuration is snapshotted for each admission. Relevant evaluator
     /// endpoint/model/account/deadline/rubric changes cannot reuse old decisions.
@@ -532,6 +605,13 @@ impl<T: HttpTransport + 'static> Classifier<T> {
                 })
                 .await
             }; // Drop evaluator-owned request/body before result publication.
+            #[cfg(test)]
+            if let Some(gate) = weak
+                .upgrade()
+                .and_then(|shared| shared.test_publication_gate.lock().unwrap().take())
+            {
+                gate.pause(&result).await;
+            }
             if let Some(shared) = weak.upgrade() {
                 let mut state = shared.state.lock().unwrap();
                 if state
@@ -654,6 +734,7 @@ mod tests {
         permits: Semaphore,
         status: AtomicU16,
         payloads: Mutex<Vec<Vec<u8>>>,
+        replies: Mutex<VecDeque<Bytes>>,
     }
     impl Mock {
         fn new(blocked: bool) -> Self {
@@ -665,6 +746,7 @@ mod tests {
                 permits: Semaphore::new(0),
                 status: AtomicU16::new(200),
                 payloads: Mutex::new(Vec::new()),
+                replies: Mutex::new(VecDeque::new()),
             }
         }
         fn calls(&self) -> usize {
@@ -672,6 +754,12 @@ mod tests {
         }
         fn release(&self, n: usize) {
             self.permits.add_permits(n);
+        }
+        fn queue_reply(&self, payload: &'static [u8]) {
+            self.replies
+                .lock()
+                .unwrap()
+                .push_back(Bytes::from_static(payload));
         }
     }
     struct Active(Arc<AtomicUsize>);
@@ -702,11 +790,12 @@ mod tests {
                 let _waiting = Active(self.waiting.clone());
                 self.permits.acquire().await.unwrap().forget();
             }
+            let reply = self.replies.lock().unwrap().pop_front().unwrap_or_else(|| {
+                Bytes::from_static(br#"{"answers":{"tier":{"choice":"haiku","confidence":0.9}}}"#)
+            });
             Ok(Response::builder()
                 .status(self.status.load(Ordering::SeqCst))
-                .body(Full::new(Bytes::from_static(
-                    br#"{"answers":{"tier":{"choice":"haiku","confidence":0.9}}}"#,
-                )))
+                .body(Full::new(reply))
                 .unwrap())
         }
     }
@@ -732,6 +821,15 @@ mod tests {
                 if classifier.shared.state.lock().unwrap().subscribers == subscribers {
                     break;
                 }
+                tokio::task::yield_now().await;
+            }
+        })
+        .await
+        .unwrap();
+    }
+    async fn wait_pending(classifier: &Classifier<Mock>, counts: (usize, usize)) {
+        tokio::time::timeout(Duration::from_secs(2), async {
+            while classifier.pending_counts() != counts {
                 tokio::task::yield_now().await;
             }
         })
@@ -803,6 +901,141 @@ mod tests {
         assert_eq!(mock.calls(), 2);
     }
 
+    #[tokio::test(flavor = "current_thread")]
+    async fn cancelled_successful_old_generation_cannot_publish_over_same_key_replacement() {
+        tokio::time::timeout(Duration::from_secs(5), async {
+            let mock = Arc::new(Mock::new(true));
+            mock.queue_reply(br#"{"answers":{"tier":{"choice":"opus","confidence":0.9}}}"#);
+            mock.queue_reply(br#"{"answers":{"tier":{"choice":"haiku","confidence":0.9}}}"#);
+            let config = config();
+            let classifier = Classifier::new(mock.clone(), &config);
+            let body = document("Synthetic same-key task");
+            let key = settings_key(&body, &config);
+            let gate = Arc::new(PublicationGate::default());
+            *classifier.shared.test_publication_gate.lock().unwrap() = Some(gate.clone());
+
+            let first_cancel = CancellationToken::new();
+            let second_cancel = CancellationToken::new();
+            let first = start(&classifier, body.clone(), &config, first_cancel.clone());
+            let second = start(&classifier, body.clone(), &config, second_cancel.clone());
+            wait_pending(&classifier, (1, 2)).await;
+            wait_calls(&mock, 1).await;
+            let old_entry = classifier.shared.state.lock().unwrap().pending[&key]
+                .entry
+                .clone();
+            mock.release(1);
+            // The old evaluator has returned an actual successful Opus decision,
+            // but the real worker has not touched pending state or cache yet.
+            assert_eq!(
+                gate.observed().await,
+                Ok((autorouter_core::contracts::Tier::Opus, DecisionSource::Jev))
+            );
+            assert_eq!(mock.active.load(Ordering::SeqCst), 0);
+            assert!(!old_entry.completed.finished.load(Ordering::Acquire));
+            assert!(classifier.shared.state.lock().unwrap().cache.is_empty());
+
+            first_cancel.cancel();
+            second_cancel.cancel();
+            wait_pending(&classifier, (0, 0)).await;
+            assert!(old_entry.controller.is_cancelled());
+            let retry = start(&classifier, body.clone(), &config, CancellationToken::new());
+            wait_pending(&classifier, (1, 1)).await;
+            wait_calls(&mock, 2).await;
+            let replacement_entry = classifier.shared.state.lock().unwrap().pending[&key]
+                .entry
+                .clone();
+            assert!(!Arc::ptr_eq(&old_entry, &replacement_entry));
+
+            // Releasing the successful but cancelled old result must neither
+            // remove this new generation nor fill its same-key cache slot.
+            gate.release();
+            for task in [first, second] {
+                assert!(matches!(
+                    task.await.unwrap(),
+                    Err(EvaluationError::Cancelled)
+                ));
+            }
+            assert!(old_entry.completed.finished.load(Ordering::Acquire));
+            assert_eq!(classifier.pending_counts(), (1, 1));
+            assert!(Arc::ptr_eq(
+                &classifier.shared.state.lock().unwrap().pending[&key].entry,
+                &replacement_entry,
+            ));
+            assert!(classifier.shared.state.lock().unwrap().cache.is_empty());
+            assert_eq!(mock.active.load(Ordering::SeqCst), 1);
+
+            mock.release(1);
+            let answer = retry.await.unwrap().unwrap();
+            assert_eq!(
+                (answer.tier, answer.source),
+                (autorouter_core::contracts::Tier::Haiku, DecisionSource::Jev)
+            );
+            let cached = classifier
+                .classify(&body, &config, &CancellationToken::new())
+                .await
+                .unwrap();
+            assert_eq!(
+                (cached.tier, cached.source),
+                (
+                    autorouter_core::contracts::Tier::Haiku,
+                    DecisionSource::Cache
+                )
+            );
+            assert_eq!(mock.calls(), 2);
+            assert_eq!(classifier.pending_counts(), (0, 0));
+            assert_eq!(classifier.shared.state.lock().unwrap().cache.len(), 1);
+            assert_eq!(mock.active.load(Ordering::SeqCst), 0);
+            assert_eq!(mock.waiting.load(Ordering::SeqCst), 0);
+            classifier.close().await;
+            assert_eq!(classifier.shared.workers.len(), 0);
+        })
+        .await
+        .unwrap();
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn live_success_at_publication_gate_still_populates_cache() {
+        tokio::time::timeout(Duration::from_secs(5), async {
+            let mock = Arc::new(Mock::new(false));
+            mock.queue_reply(br#"{"answers":{"tier":{"choice":"opus","confidence":0.9}}}"#);
+            let config = config();
+            let classifier = Classifier::new(mock.clone(), &config);
+            let body = document("Synthetic live task");
+            let gate = Arc::new(PublicationGate::default());
+            *classifier.shared.test_publication_gate.lock().unwrap() = Some(gate.clone());
+            let live = start(&classifier, body.clone(), &config, CancellationToken::new());
+            assert_eq!(
+                gate.observed().await,
+                Ok((autorouter_core::contracts::Tier::Opus, DecisionSource::Jev))
+            );
+            assert_eq!(classifier.pending_counts(), (1, 1));
+            assert!(classifier.shared.state.lock().unwrap().cache.is_empty());
+            gate.release();
+            let answer = live.await.unwrap().unwrap();
+            assert_eq!(
+                (answer.tier, answer.source),
+                (autorouter_core::contracts::Tier::Opus, DecisionSource::Jev)
+            );
+            let cached = classifier
+                .classify(&body, &config, &CancellationToken::new())
+                .await
+                .unwrap();
+            assert_eq!(
+                (cached.tier, cached.source),
+                (
+                    autorouter_core::contracts::Tier::Opus,
+                    DecisionSource::Cache
+                )
+            );
+            assert_eq!(mock.calls(), 1);
+            assert_eq!(classifier.pending_counts(), (0, 0));
+            classifier.close().await;
+            assert_eq!(classifier.shared.workers.len(), 0);
+        })
+        .await
+        .unwrap();
+    }
+
     #[tokio::test]
     async fn cancellation_at_completion_and_future_drop_release_registry_without_caching() {
         let mock = Arc::new(Mock::new(true));
@@ -859,6 +1092,103 @@ mod tests {
         assert_eq!(mock.calls(), 1);
     }
 
+    #[test]
+    fn classifier_limits_reject_each_oversized_field_before_owning_transport() {
+        // This ordinary test has no Tokio runtime: invalid admission cannot
+        // create a worker, call HTTP, or retain the caller's transport.
+        let mock = Arc::new(Mock::new(false));
+        let config = config();
+        for limits in [
+            Limits {
+                pending: 257,
+                subscribers: 0,
+            },
+            Limits {
+                pending: 0,
+                subscribers: 1025,
+            },
+            Limits {
+                pending: usize::MAX,
+                subscribers: 0,
+            },
+            Limits {
+                pending: 0,
+                subscribers: usize::MAX,
+            },
+        ] {
+            let error = match Classifier::with_limits(mock.clone(), &config, limits) {
+                Ok(_) => panic!("oversized classifier limits accepted"),
+                Err(error) => error,
+            };
+            assert_eq!(error, "Invalid classifier limits.");
+            assert_eq!(Arc::strong_count(&mock), 1);
+            assert_eq!(mock.calls(), 0);
+        }
+        for limits in [
+            Limits {
+                pending: 0,
+                subscribers: 0,
+            },
+            Limits {
+                pending: 2,
+                subscribers: 1,
+            },
+            Limits {
+                pending: 256,
+                subscribers: 1024,
+            },
+        ] {
+            let classifier = Classifier::with_limits(mock.clone(), &config, limits)
+                .expect("valid lowered or exact maximum limits");
+            assert_eq!(classifier.shared.limits.pending, limits.pending);
+            assert_eq!(classifier.shared.limits.subscribers, limits.subscribers);
+            drop(classifier);
+            assert_eq!(Arc::strong_count(&mock), 1);
+        }
+        assert_eq!(mock.calls(), 0);
+    }
+
+    #[tokio::test]
+    async fn zero_classifier_capacity_is_closed_without_evaluator_requests() {
+        let config = config();
+        for limits in [
+            Limits {
+                pending: 0,
+                subscribers: 0,
+            },
+            Limits {
+                pending: 0,
+                subscribers: 1,
+            },
+            Limits {
+                pending: 1,
+                subscribers: 0,
+            },
+        ] {
+            let mock = Arc::new(Mock::new(false));
+            let classifier = Classifier::with_limits(mock.clone(), &config, limits)
+                .expect("zero capacity remains valid");
+            let answer = classifier
+                .classify(
+                    &document("Synthetic closed capacity"),
+                    &config,
+                    &CancellationToken::new(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(answer.source, DecisionSource::Fallback);
+            assert_eq!(
+                answer.classifier_error,
+                Some(ClassifierError::CapacityExhausted)
+            );
+            assert_eq!(mock.calls(), 0);
+            assert_eq!(classifier.pending_counts(), (0, 0));
+            assert!(classifier.shared.state.lock().unwrap().cache.is_empty());
+            assert_eq!(classifier.shared.workers.len(), 0);
+            classifier.close().await;
+        }
+    }
+
     #[tokio::test]
     async fn subscriber_and_work_capacity_have_distinct_bounded_admission() {
         assert_eq!(
@@ -874,7 +1204,8 @@ mod tests {
                 pending: 2,
                 subscribers: 3,
             },
-        );
+        )
+        .expect("bounded capacity test limits");
         let body = document("Synthetic first");
         let cancel = CancellationToken::new();
         let a = start(&classifier, body.clone(), &config, cancel.clone());

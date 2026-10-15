@@ -277,10 +277,20 @@ cargo test --locked --package autorouter-runtime --test local_diagnostic_timeout
 
 The [redaction mapping](assertion-mappings/redaction-contracts.json) compares
 93 complete pure-call results and covers twelve functional definitions.
-Two more definitions remain partial: their 28 timing assertions have not been
-executed or converted into performance claims.
+The [finite adversarial timing supplement](assertion-mappings/redaction-adversarial-bounds.json)
+completes definitions #5 and #16 with both unchanged original callbacks and
+all 28 exact input/output identities under the original strict per-input
+two-second bound in a recorded normal-use 16 GiB M4 run. It does not establish
+general linearity, a speedup or whole-gateway performance.
 Constructed synthetic credentials use lossless JSON escapes in the captured
 corpus; decoded fixture values and expected results match the frozen source.
+Ordinary CI checks the adversarial identities without a timing gate. To repeat
+the opt-in per-input measurement, stop other builds first and run:
+
+```sh
+cargo test --release --locked --package autorouter-core --test redaction_adversarial_bounds \
+  original_adversarial_each_input_finishes_below_two_seconds -- --ignored --nocapture
+```
 
 The [bounded JSON mapping](assertion-mappings/bounded-json-contracts.json)
 checks exact UTF-8 byte limits, malformed input, stalled cancellation and

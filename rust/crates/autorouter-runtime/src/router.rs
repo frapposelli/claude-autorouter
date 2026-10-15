@@ -116,7 +116,8 @@ impl<T: HttpTransport + 'static> Router<T> {
     ) -> Self {
         Self {
             policy: Mutex::new(PolicyRouter::new(config.clone())),
-            classifier: Classifier::with_limits(transport.clone(), &config, limits),
+            classifier: Classifier::with_limits(transport.clone(), &config, limits)
+                .expect("trusted router classifier limits are valid"),
             counter: Arc::new(TokenCounter::new(transport, &config)),
             config,
             now,

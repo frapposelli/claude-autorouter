@@ -100,6 +100,12 @@ Custom `GatewayRouter` adapters must implement the asynchronous `close()` method
 
 The classifier's pending-work limit bounds admitted, reserved and retiring worker futures until destruction. Joining an admitted request with the same key remains possible at this limit when a subscriber slot is available. Speculative token counts use the configured classifier subscriber limit as their task bound and retain slots through abort and destruction. At speculative capacity, a route still performs a required count inline; omitting a speculative task does not manufacture `count_unavailable` or change eligibility. A count that already started and returned no result is not retried.
 
+`Classifier::with_limits()` returns a `Result`. Native callers may lower the
+256 pending-worker and 1,024 subscriber ceilings; either field above its ceiling
+returns `Invalid classifier limits.` before worker state is created. The fields
+are independent. Zero is valid and closes that capacity without issuing an
+evaluator request. `Classifier::new()` retains the fixed defaults.
+
 An Ollama timeout of zero disables only the evaluator timer. Cancellation and response byte limits remain active. A positive timeout covers metadata, inference headers, and response-body consumption under one budget. The timed contracts exercise production timers with a paused native clock and real synthetic Node timers; they establish deadline and cleanup behavior without claiming equal wall-clock latency.
 
 `inspect_ollama` rejects an invalid local endpoint before transport access and returns a `SetupError` with code `INVALID_CONFIGURATION`. The original JavaScript inspection throws an uncoded `Error` at that boundary; migrating library callers should handle the native code explicitly. `setup_ollama` downloads only when `SetupOptions::pull` authorizes it and the model is missing. An installed model skips the pull, and startup warmup retains its separate deadline and configured keep-alive value.

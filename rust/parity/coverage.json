@@ -13078,17 +13078,27 @@
       "file": "test/redaction.test.mjs",
       "name": "redaction is idempotent and stays linear on adversarial input",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs"
+        "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+        "rust/crates/autorouter-core/tests/redaction_adversarial_bounds.rs#all_frozen_adversarial_input_and_output_identities_match",
+        "rust/crates/autorouter-core/tests/redaction_adversarial_bounds.rs#original_adversarial_each_input_finishes_below_two_seconds"
       ],
       "shared_cases": [
         "redaction-contract-5-1",
-        "redaction-contract-5-2"
+        "redaction-contract-5-2",
+        "redaction-adversarial-5-1",
+        "redaction-adversarial-5-2",
+        "redaction-adversarial-5-3",
+        "redaction-adversarial-5-4",
+        "redaction-adversarial-5-5",
+        "redaction-adversarial-5-6",
+        "redaction-adversarial-5-7",
+        "redaction-adversarial-5-8"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/redaction-contracts.json",
-        "assertion_mapping_sha256": "158fe268341b23ebc758694d5de7fdaf31540820c3230323775df0a51b20c7fd",
+        "assertion_mapping": "rust/parity/assertion-mappings/redaction-adversarial-bounds.json",
+        "assertion_mapping_sha256": "339eb52682b6fa6db4ec599e8a30133ee72b6ed2c86dd1f82aa71bea167438c5",
         "input_coverage": {
           "path": "artifacts/rust-rewrite/evidence/9c13d15d45378f169c3ffbeb5ec8e4aaea3d3ba928badb67bc4244e38c04c1e4.json",
           "sha256": "9c13d15d45378f169c3ffbeb5ec8e4aaea3d3ba928badb67bc4244e38c04c1e4",
@@ -13155,7 +13165,7 @@
             "selection": "Exact anchored twelve full functional definition names;5/8/10/15/16 excluded, no timed callback/evaluator network path."
           }
         },
-        "scope": "Twelve covered functional definitions and two partial definitions retaining all 28 unexecuted timing assertions. Ninety-three complete pure-call comparisons; review is by root independently of the implementing agent, not two distinct reviewers.",
+        "scope": "Historical pure-call prefix evidence plus separately retained finite-input timing supplement.",
         "serialization_review": {
           "root": {
             "path": "artifacts/rust-rewrite/evidence/c4dfd65861c30177f226f1f9392271bed770da6e4f93bf6c72931750218a23c4.json",
@@ -13169,17 +13179,32 @@
             "bytes": 6043,
             "original_path": "/private/tmp/autorouter-redaction-serialization-independent-review.json"
           }
+        },
+        "prior_assertion_mapping": {
+          "path": "rust/parity/assertion-mappings/redaction-contracts.json",
+          "sha256": "158fe268341b23ebc758694d5de7fdaf31540820c3230323775df0a51b20c7fd"
+        },
+        "completion": {
+          "original_capture": {
+            "path": "artifacts/rust-rewrite/parity-completion-20261015-1/redaction-node-1/capture.json",
+            "sha256": "620b48d6f49cd2dd0bc4e4fe3713beb2a08fd4acfa2614c4bdd2fb62115bdd4f"
+          },
+          "native_timing": {
+            "path": "artifacts/rust-rewrite/parity-completion-20261015-1/redaction-native-timing-2.log",
+            "sha256": "9e919e64af4192ad4769756abd3d994a08b6885827bbb9304811de195979d984"
+          },
+          "scope": "Exact finite original timing predicates and native strict 2s checks on recorded normal-use M4; no general linearity or gateway-performance claim."
         }
       },
       "related_components": [
         "prompt_redaction"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/redaction-contracts.json",
-      "remaining_assertions": [
-        "Original 8 per-input performance.now() - started <2000ms assertions and adversarial suffix are explicitly not executed in this deterministic batch. Historical corpus equality/termination is not per-input latency qualification."
-      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/redaction-adversarial-bounds.json",
+      "remaining_assertions": [],
       "source_hashes": {
-        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44",
+        "rust/crates/autorouter-core/tests/redaction_adversarial_bounds.rs": "5987ba6f5a829cdd771b61626c07ee55be1fa2e0087be33663185307771e38df",
+        "rust/parity/cases/redaction-adversarial.identities.json": "5c5937073063f719ea1296a57e8c43dc089924dbd3724bc4e13116467a93dde9"
       }
     },
     {
@@ -14076,17 +14101,39 @@
       "file": "test/redaction.test.mjs",
       "name": "the widened rules are idempotent and stay linear on adversarial input",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs"
+        "rust/crates/autorouter-core/tests/redaction_contracts.rs#exact_frozen_redaction_prompt_and_historical_excerpt_outputs",
+        "rust/crates/autorouter-core/tests/redaction_adversarial_bounds.rs#all_frozen_adversarial_input_and_output_identities_match",
+        "rust/crates/autorouter-core/tests/redaction_adversarial_bounds.rs#original_adversarial_each_input_finishes_below_two_seconds"
       ],
       "shared_cases": [
         "redaction-contract-16-1",
-        "redaction-contract-16-2"
+        "redaction-contract-16-2",
+        "redaction-adversarial-16-1",
+        "redaction-adversarial-16-2",
+        "redaction-adversarial-16-3",
+        "redaction-adversarial-16-4",
+        "redaction-adversarial-16-5",
+        "redaction-adversarial-16-6",
+        "redaction-adversarial-16-7",
+        "redaction-adversarial-16-8",
+        "redaction-adversarial-16-9",
+        "redaction-adversarial-16-10",
+        "redaction-adversarial-16-11",
+        "redaction-adversarial-16-12",
+        "redaction-adversarial-16-13",
+        "redaction-adversarial-16-14",
+        "redaction-adversarial-16-15",
+        "redaction-adversarial-16-16",
+        "redaction-adversarial-16-17",
+        "redaction-adversarial-16-18",
+        "redaction-adversarial-16-19",
+        "redaction-adversarial-16-20"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/redaction-contracts.json",
-        "assertion_mapping_sha256": "158fe268341b23ebc758694d5de7fdaf31540820c3230323775df0a51b20c7fd",
+        "assertion_mapping": "rust/parity/assertion-mappings/redaction-adversarial-bounds.json",
+        "assertion_mapping_sha256": "339eb52682b6fa6db4ec599e8a30133ee72b6ed2c86dd1f82aa71bea167438c5",
         "input_coverage": {
           "path": "artifacts/rust-rewrite/evidence/9c13d15d45378f169c3ffbeb5ec8e4aaea3d3ba928badb67bc4244e38c04c1e4.json",
           "sha256": "9c13d15d45378f169c3ffbeb5ec8e4aaea3d3ba928badb67bc4244e38c04c1e4",
@@ -14153,7 +14200,7 @@
             "selection": "Exact anchored twelve full functional definition names;5/8/10/15/16 excluded, no timed callback/evaluator network path."
           }
         },
-        "scope": "Twelve covered functional definitions and two partial definitions retaining all 28 unexecuted timing assertions. Ninety-three complete pure-call comparisons; review is by root independently of the implementing agent, not two distinct reviewers.",
+        "scope": "Historical pure-call prefix evidence plus separately retained finite-input timing supplement.",
         "serialization_review": {
           "root": {
             "path": "artifacts/rust-rewrite/evidence/c4dfd65861c30177f226f1f9392271bed770da6e4f93bf6c72931750218a23c4.json",
@@ -14167,17 +14214,32 @@
             "bytes": 6043,
             "original_path": "/private/tmp/autorouter-redaction-serialization-independent-review.json"
           }
+        },
+        "prior_assertion_mapping": {
+          "path": "rust/parity/assertion-mappings/redaction-contracts.json",
+          "sha256": "158fe268341b23ebc758694d5de7fdaf31540820c3230323775df0a51b20c7fd"
+        },
+        "completion": {
+          "original_capture": {
+            "path": "artifacts/rust-rewrite/parity-completion-20261015-1/redaction-node-1/capture.json",
+            "sha256": "620b48d6f49cd2dd0bc4e4fe3713beb2a08fd4acfa2614c4bdd2fb62115bdd4f"
+          },
+          "native_timing": {
+            "path": "artifacts/rust-rewrite/parity-completion-20261015-1/redaction-native-timing-2.log",
+            "sha256": "9e919e64af4192ad4769756abd3d994a08b6885827bbb9304811de195979d984"
+          },
+          "scope": "Exact finite original timing predicates and native strict 2s checks on recorded normal-use M4; no general linearity or gateway-performance claim."
         }
       },
       "related_components": [
         "prompt_redaction"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/redaction-contracts.json",
-      "remaining_assertions": [
-        "Original 20 per-input performance.now() - started <2000ms assertions and adversarial suffix are explicitly not executed in this deterministic batch. Historical corpus equality/termination is not per-input latency qualification."
-      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/redaction-adversarial-bounds.json",
+      "remaining_assertions": [],
       "source_hashes": {
-        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+        "rust/crates/autorouter-core/src/redaction.rs": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44",
+        "rust/crates/autorouter-core/tests/redaction_adversarial_bounds.rs": "5987ba6f5a829cdd771b61626c07ee55be1fa2e0087be33663185307771e38df",
+        "rust/parity/cases/redaction-adversarial.identities.json": "5c5937073063f719ea1296a57e8c43dc089924dbd3724bc4e13116467a93dde9"
       }
     },
     {

@@ -99,7 +99,8 @@ async fn retired_workers_keep_capacity_until_actual_teardown_then_admission_reco
             pending: 2,
             subscribers: 4,
         },
-    );
+    )
+    .expect("bounded shutdown test limits");
     let mut releases = Vec::new();
     let mut gates = Vec::new();
     for index in 0..2 {
@@ -158,7 +159,8 @@ async fn reusable_shutdown_keeps_new_generation_and_coalescing_at_worker_capacit
             pending: 2,
             subscribers: 4,
         },
-    );
+    )
+    .expect("bounded shutdown test limits");
     let gate = Arc::new(shutdown_gate::WorkerPollGate::default());
     classifier.test_worker_poll_gate(gate.clone());
     let body = document("reusable-shutdown");

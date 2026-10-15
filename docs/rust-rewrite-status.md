@@ -8,7 +8,7 @@ This checklist tracks the full [rewrite plan](rust-rewrite-plan.md), including i
 | --- | --- | --- |
 | One native executable, every product command, no JavaScript sidecar | Installed command/JSON/exit-code matrix, Node-free execution and binary/build feature inspection | Implemented experimental candidate; host tests pass. Complete supported-platform execution remains open. |
 | Keep package/command names, npm global installation and direct archives | Exact npm and per-target archive identities, scripts-disabled offline installation, installed byte/mode checks and lifecycle execution | Exact npm/direct host archives from clean `5ad9a76` each pass 78 installed lifecycle checks. Source-to-binary reproduction, other targets and the production release set remain open. |
-| Retain all thirteen behavior areas | Individual original-assertion mappings, shared fixtures, Rust tests and explained interface differences | Coverage ledger: 530 covered, 58 partial and no pending definitions after the release-check CLI root/output review. Partial entries still contain genuine missing behavior and explicit native API/format migrations; none is blanket approved. Reviewed native API differences are recorded per assertion. Do not infer whole-area approval from fixture counts. |
+| Retain all thirteen behavior areas | Individual original-assertion mappings, shared fixtures, Rust tests and explained interface differences | Coverage ledger: 532 covered, 56 partial and no pending definitions after the finite redaction timing review. Partial entries still contain genuine missing behavior and explicit native API/format migrations; none is blanket approved. Reviewed native API differences are recorded per assertion. Do not infer whole-area approval from fixture counts. |
 | Transparent provider responses, signed history, safety and permissions | Actual HTTP/SSE/JSON/compression/framing comparisons, client disconnects, failed flushes and pipelined-response ownership | Substantial synthetic coverage; unresolved transport/TLS differences and unreviewed original HTTP schedules remain. |
 | Authentication, refreshed subscription credentials and custom-upstream restrictions | Request-scoped credential tests, API/OAuth/beta rejection matrix, conservative unsupported-contract behavior | Implemented and tested on synthetic transports; live canaries and supported-platform TLS qualification remain. |
 | Configuration, policy, Keychain and history without mandatory migration | Exact lexical identities, permissions/revision/fsync/no-follow checks, policy admission, isolated migration/rollback and existing schemas/prices | Isolated real macOS Keychain migration passes all 25 host assertions through both engines. Complete assertion review, failure/rollback and platform qualification remain. |
@@ -266,6 +266,8 @@ The opt-in [processing stage diagnostic](../rust/parity/processing-stage-diagnos
 
 The [release-check CLI supplement](../rust/parity/assertion-mappings/release-check-cli-root-contracts.json) binds all four assertions of frozen definition #6 to a real built xtask executable invoked against a separate clean, tagged checkout. `release-check` now inspects its invoking checkout from the repository root or its `rust/` directory, preferring its own manifest even when the checkout itself is named `rust` inside another npm project. The synthetic test checks exact GitHub output after each success and no append after a malicious newline tag; its retained executables are immutable snapshots. Only this definition is promoted: the ledger is 530 covered/58 partial. The [Jev concurrency mapping](../rust/parity/assertion-mappings/router-concurrency-contracts.json) remains partial after a new non-paused 20 ms deadline regression, because the original never-settling JavaScript stream-cancellation callback remains unproven.
 
+The [redaction timing supplement](../rust/parity/assertion-mappings/redaction-adversarial-bounds.json) completes only frozen redaction definitions #5 and #16. Their unchanged Node callbacks passed, and the release native test matched all 28 synthetic input/output identities and met each original strict two-second bound. The retained declaration and execution receipts describe a normal-use, battery-powered 16 GiB Apple M4. This finite-corpus result brings the ledger to 532 covered/56 partial; it does not establish asymptotic linearity, a speedup, whole-gateway performance or other-platform qualification.
+
 Bounded native tool subprocesses now apply their existing output ceiling to stdout and stderr together. Initial and callback input use one pending action with partial writes in the main event loop, keeping cancellation, deadlines, stderr bounds and child exit responsive under stdin backpressure. Synthetic tests cover exact and overflowing limits on both streams, zero budgets, forced termination/reaping, blocked continuation writes and complete 1 MiB input delivery before stdin closes. Routine result metadata still excludes raw stderr and input; this does not close the original lifecycle helper's diagnostic-return contract.
 
 The release-profile 8-warmup/32-sample stage diagnostic at `06e9420` retains deterministic output and call parity with no provider calls (`artifacts/rust-rewrite/stages-06e-20261015/release-diagnostic/report.json`). Its one normal-use pair observed pipeline p95 of 6.966 ms for Node and 3.770 ms for Rust; these instrumented component wall times overlap and cannot qualify the unchanged whole-gateway processing gate. The combined working-tree full Rust workspace run passes 1,288 tests with nine opt-in tests ignored; strict workspace Clippy and formatting, Node check, all 596 Node tests and installed-package smoke pass. The minimal-feature xtask suite separately passes 28 tests. The source transfer includes the new integration test and stays within both 32 MiB limits at 33,334,272 expanded carrier and 33,201,419 logical bytes (`artifacts/rust-rewrite/bounds-combined-20261015-transfer-result.json`). All 13 CI jobs for `06e9420` now pass; this newer working tree has no exact-head CI yet. Supported-platform breadth, real task quality, all measured gates, production artifacts and default cutover remain open.
@@ -307,3 +309,29 @@ The [working-tree validation](../rust/parity/measurements/native-rollback-ci-val
 Release matrix validation now permits only the explicit predeclared `Linux x86` → `i686-unknown-linux-gnu` association to resolve its own baseline entry. Unrelated/shared target reuse and all review, evidence, scope, cap and qualification guards remain enforced. ARMv7 archive admission additionally requires EABI5 hard-float header flags; this does not qualify CPU instructions or a target runtime. No checked-in platform is promoted.
 
 The complete local workspace passes 1,306 Rust tests, with nine opt-in tests ignored, and the minimal auditor passes 28. Formatting, strict workspace/feature-enabled xtask Clippy, all 596 Node tests, contracts/style and exact JavaScript package smoke pass. The real host rehearsal and all workflow/proof syntax checks pass. A matched transfer verifies all 687 current allowlisted inputs at 33,427,456 carrier bytes and 33,294,653 logical bytes under each unchanged 33,554,432-byte cap. These working-tree changes require fresh CI and leave the full-plan qualification and cutover gates open.
+
+The [terminal `d9e88e6` checkpoint](../rust/parity/measurements/native-d9e88e6-ci-summary.json)
+now records all fourteen configured jobs successful, including the exact npm
+upgrade/rollback rehearsal in nine packaging environments. Independent artifact
+inspection verifies all nine retained candidate identities. The frozen 0.5.2
+baseline archive is byte-identical to the registry publication, closing that
+specific identity gap. These results qualify only the recorded source and
+synthetic environments; later changes require their own CI. Failed-startup,
+partial-write, concurrent-ownership, direct-rollback and full-plan qualification
+work remains open.
+
+The [classifier and redaction checkpoint](../rust/parity/measurements/native-classifier-redaction-jev-summary.json)
+rejects public classifier limits above the fixed ceilings before owning worker
+state. New cancellation schedules prevent a successfully evaluated but cancelled
+old generation from publishing over its same-key replacement. Real native HTTP
+fixtures cover all eight frozen Jev body-failure calls under the unchanged live
+20 ms deadline, plus retry, caller cancellation, body disposal and peer cleanup.
+These additions preserve the separately documented JavaScript cancellation and
+private-state API boundaries; they do not promote the concurrency definitions.
+The full workspace passes 1,313 Rust tests with ten explicitly ignored tests or
+helper fixtures, and the minimal auditor passes 28. Strict Clippy, formatting,
+all 596 Node tests, exact npm package smoke and all seventeen differential
+families pass. The source/reference transfer verifies 690 public inputs and
+113 restored reference files at 33,484,800 carrier and 33,351,365 logical bytes
+under the unchanged 33,554,432-byte ceilings. Fresh CI is required for this new
+checkpoint; the full rewrite remains unqualified for release or default cutover.
