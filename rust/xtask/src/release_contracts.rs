@@ -13,7 +13,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::sync::{
     Mutex,
-    atomic::{AtomicUsize, Ordering},
+    atomic::{AtomicU64, AtomicUsize, Ordering},
 };
 use std::time::Duration;
 use tokio::time::Instant;
@@ -282,6 +282,29 @@ impl HttpTransport for Registry {
             )
             .unwrap(),
         )
+    }
+}
+
+// The frozen JavaScript verifier uses an injected elapsed clock that can jump
+// independently of its request timers. Complete each synthetic metadata reply
+// before crossing the verification budget, leaving the transport timer live.
+struct ClockJumpRegistry<'a> {
+    inner: &'a Registry,
+    elapsed_ms: &'a AtomicU64,
+}
+impl HttpTransport for ClockJumpRegistry<'_> {
+    type ResponseBody = Full<Bytes>;
+
+    async fn request(
+        &self,
+        request: Request<Full<Bytes>>,
+    ) -> Result<Response<Self::ResponseBody>, HttpError> {
+        let metadata = !request.uri().path().contains("/-/");
+        let response = self.inner.request(request).await?;
+        if metadata {
+            self.elapsed_ms.store(1500, Ordering::SeqCst);
+        }
+        Ok(response)
     }
 }
 struct Install<'a> {
@@ -804,6 +827,52 @@ async fn expired_metadata_deadline_never_starts_tarball_or_install() {
         // Frozen#16 independently jumps injected now() beyond still-live fetch
         // timers and expects verification_deadline. One native Tokio clock
         // cannot recreate that injection; this whole-definition mapping stays partial.
+    })
+    .await;
+}
+
+#[tokio::test(start_paused = true)]
+async fn metadata_clock_jump_after_replies_preserves_exact_deadline_result() {
+    bounded(async {
+        let registry = Registry::new(Options::default());
+        let installer = Install::new(false, &registry.target);
+        let elapsed_ms = AtomicU64::new(0);
+        let transport = ClockJumpRegistry {
+            inner: &registry,
+            elapsed_ms: &elapsed_ms,
+        };
+        let mut states = Vec::new();
+        let result = release_verify::verify_with_elapsed(
+            &transport,
+            &installer,
+            &registry.target,
+            1000,
+            &CancellationToken::new(),
+            &mut |row| {
+                states.push(row.clone());
+                Ok(())
+            },
+            || Duration::from_millis(elapsed_ms.load(Ordering::SeqCst)),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(elapsed_ms.load(Ordering::SeqCst), 1500);
+        assert_eq!(registry.calls.lock().unwrap().len(), 2);
+        assert_eq!(registry.tarballs.load(Ordering::SeqCst), 0);
+        assert_eq!(installer.calls.load(Ordering::SeqCst), 0);
+        assert_eq!(result["state"], "validating_unavailable");
+        assert_eq!(result["reason"], "verification_deadline");
+        assert_eq!(result["elapsed_ms"], 1500);
+        assert_eq!(states.len(), 1);
+        assert_eq!(states[0]["reason"], "verification_deadline");
+
+        let control = Registry::new(Options::default());
+        let control_installer = Install::new(false, &control.target);
+        let verified = verify(&control, &control_installer, 1000, &mut Vec::new()).await;
+        assert_eq!(verified["state"], "verified");
+        assert_eq!(control.tarballs.load(Ordering::SeqCst), 1);
+        assert_eq!(control_installer.calls.load(Ordering::SeqCst), 1);
     })
     .await;
 }

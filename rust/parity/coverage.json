@@ -17081,9 +17081,10 @@
       "file": "test/release-verification.test.mjs",
       "name": "elapsed metadata checks cannot start a tarball download after the verification deadline",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/xtask/src/release_contracts.rs#release_contracts::expired_metadata_deadline_never_starts_tarball_or_install"
+        "rust/xtask/src/release_contracts.rs#release_contracts::expired_metadata_deadline_never_starts_tarball_or_install",
+        "rust/xtask/src/release_contracts.rs#release_contracts::metadata_clock_jump_after_replies_preserves_exact_deadline_result"
       ],
       "shared_cases": [],
       "evidence": {
@@ -17152,14 +17153,19 @@
             "original_path": "artifacts/rust-rewrite/evidence/a6be6e5c236a14e314893aaf43513cf5606425014bf21abc1653278c58cc9536.log"
           }
         },
-        "scope": "Fifteen covered and four partial release-tool definitions. Only pure and synthetic registry/install tests qualify; publication, private JavaScript errors and independent injected-clock behavior are not inferred."
+        "scope": "Only frozen release-verification original #16 is additionally covered by the exact independent elapsed-clock supplement. Historical release mapping and its prior timeout scenario remain intact; the other three partial release-tool definitions and all platform, real registry, publication and release gates remain open.",
+        "supplemental_assertion_mapping": "rust/parity/assertion-mappings/release-deadline-contracts.json",
+        "supplemental_assertion_mapping_sha256": "a9f2a980a4a5efb463958eab76c49d3eec9e3e4fd0e4bb23a38cefeda5e958bb",
+        "supplemental_execution_manifest": {
+          "path": "artifacts/rust-rewrite/release16-promotion-20261015-1/manifest.json",
+          "bytes": 6779,
+          "sha256": "7f27200b607c679eb27e10736b419164267e79abef76e2fccf07583b81869373"
+        }
       },
       "related_components": [
         "developer_tools"
       ],
-      "remaining_assertions": [
-        "Original now() injection jumps elapsed time1500ms while independent AbortSignal timers remain live and metadata returns. Native uses one Tokio clock for request timers and elapsed time; its stalled-metadata scenario returns timeout, not the original verification_deadline. No post-deadline tarball/install is proven; exact injected-clock outcome remains partial."
-      ],
+      "remaining_assertions": [],
       "assertion_mapping": "rust/parity/assertion-mappings/release-contracts.json"
     },
     {

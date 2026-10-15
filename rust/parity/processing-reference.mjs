@@ -10,7 +10,9 @@ try {
   if (control.length > 1024 * 1024) throw new Error();
   const spec = JSON.parse(control);
   if (spec.kind !== 'synthetic_processing_input_v1' || ![8, 200].includes(spec.warmup)
-    || ![32, 2000].includes(spec.measured) || typeof spec.fixture !== 'string') throw new Error();
+    || ![32, 2000].includes(spec.measured) || typeof spec.fixture !== 'string'
+    || ![undefined, true].includes(spec.diagnostic_stages)
+    || (spec.diagnostic_stages && (spec.warmup !== 8 || spec.measured !== 32))) throw new Error();
   const [{ readConfig }, { Router }, { createTokenCounter }, { validateRequestShape }, { prepareRequest }] = await Promise.all([
     load('config.mjs'), load('router.mjs'), load('token-counter.mjs'), load('request-validation.mjs'), load('model-request.mjs'),
   ]);
@@ -39,6 +41,9 @@ try {
   const offset = raw.indexOf('000000000000');
   if (offset < 0 || raw.indexOf('000000000000', offset + 1) >= 0) throw new Error();
   const samples = [];
+  const stageNames = ['parse', 'validate', 'router', 'prepare', 'serialize', 'advisory_settle'];
+  const stageSamples = spec.diagnostic_stages
+    ? Object.fromEntries(stageNames.map(name => [name, []])) : null;
   for (let index = 0; index < spec.warmup + spec.measured; index++) {
     const bytes = Buffer.from(raw);
     bytes.write(String(index).padStart(12, '0'), offset, 12, 'ascii');
@@ -46,26 +51,50 @@ try {
     const scope = JSON.stringify(['synthetic-benchmark-session', 'agent-0']);
     const signal = new AbortController().signal;
     const headers = { 'x-api-key': 'synthetic-processing-provider-key' };
-    const started = performance.now();
-    const body = JSON.parse(bytes);
-    const valid = validateRequestShape(body);
-    if (!valid.valid) throw new Error();
-    const decision = await router.route(body, {
-      requestId, scope, promptId: `synthetic-prompt-${index}`, signal,
-      countTokens: (value, model) => {
-        const job = counter(value, model, { headers, signal });
-        countJobs.push(job);
-        return job;
-      },
-    });
-    const prepared = JSON.stringify(prepareRequest(body, decision.model).request);
+    let started; let body; let decision; let prepared; let stageMarks;
+    if (stageSamples) {
+      started = performance.now();
+      body = JSON.parse(bytes);
+      const parsedAt = performance.now();
+      const valid = validateRequestShape(body);
+      if (!valid.valid) throw new Error();
+      const validatedAt = performance.now();
+      decision = await router.route(body, {
+        requestId, scope, promptId: `synthetic-prompt-${index}`, signal,
+        countTokens: (value, model) => {
+          const job = counter(value, model, { headers, signal });
+          countJobs.push(job);
+          return job;
+        },
+      });
+      const routedAt = performance.now();
+      const preparedRequest = prepareRequest(body, decision.model).request;
+      const preparedAt = performance.now();
+      prepared = JSON.stringify(preparedRequest);
+      stageMarks = [started, parsedAt, validatedAt, routedAt, preparedAt, performance.now()];
+    } else {
+      started = performance.now();
+      body = JSON.parse(bytes);
+      const valid = validateRequestShape(body);
+      if (!valid.valid) throw new Error();
+      decision = await router.route(body, {
+        requestId, scope, promptId: `synthetic-prompt-${index}`, signal,
+        countTokens: (value, model) => {
+          const job = counter(value, model, { headers, signal });
+          countJobs.push(job);
+          return job;
+        },
+      });
+      prepared = JSON.stringify(prepareRequest(body, decision.model).request);
+    }
     while (calls.evaluator.length !== 1 || calls.count.length !== 1) {
       if (performance.now() - started > 10000 || calls.evaluator.length > 1 || calls.count.length > 1) throw new Error();
       await new Promise(resolve => setImmediate(resolve));
     }
     if (countJobs.length !== 1 || (await Promise.all(countJobs)).some(value => value !== 1000)) throw new Error();
     countJobs = [];
-    const elapsed = performance.now() - started;
+    const stopped = performance.now();
+    const elapsed = stopped - started;
     if (decision.model !== 'claude-opus-5-5' || prepared !== bytes.toString()) throw new Error();
     for (const endpoint of ['evaluator', 'count']) {
       digests[endpoint].update(calls[endpoint][0]).update('\n');
@@ -77,15 +106,25 @@ try {
       .filter(key => !['latency_ms', 'evaluation_latency_ms'].includes(key)).map(key => [key, decision[key]]));
     digests.decision.update(JSON.stringify(metadata)).update('\n');
     if (!router.complete(requestId, { continuation_model: 'claude-opus-5-5', tool_uses: [] })) throw new Error();
-    if (index >= spec.warmup) samples.push(elapsed);
+    if (index >= spec.warmup) {
+      samples.push(elapsed);
+      if (stageSamples) {
+        const marks = [...stageMarks, stopped];
+        for (let stage = 0; stage < stageNames.length; stage++) {
+          stageSamples[stageNames[stage]].push(marks[stage + 1] - marks[stage]);
+        }
+      }
+    }
   }
-  console.log(JSON.stringify({ implementation: 'node', fixture_sha256: sha(raw), requests: spec.measured,
+  const report = { implementation: 'node', fixture_sha256: sha(raw), requests: spec.measured,
     warmup_requests: spec.warmup, deterministic_checks_passed: true, evaluator_calls: totals.evaluator,
     count_token_calls: totals.count, count_responses_completed: totals.count, count_responses_abandoned: 0,
     prepared_sha256: digests.prepared.digest('hex'),
     decision_metadata_sha256: digests.decision.digest('hex'),
     evaluator_payloads_sha256: digests.evaluator.digest('hex'), count_payloads_sha256: digests.count.digest('hex'),
-    raw_pipeline_ms: samples }));
+    raw_pipeline_ms: samples };
+  if (stageSamples) report.raw_stage_ms = stageSamples;
+  console.log(JSON.stringify(report));
 } catch {
   console.error('Synthetic processing helper failed');
   process.exitCode = 1;

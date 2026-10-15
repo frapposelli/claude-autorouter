@@ -236,12 +236,12 @@ pub async fn preflight<T: HttpTransport>(
     Ok(report)
 }
 fn remaining(
-    start: Instant,
+    elapsed: Duration,
     budget: Duration,
     maximum: Duration,
 ) -> Result<Duration, ReleaseError> {
     budget
-        .checked_sub(start.elapsed())
+        .checked_sub(elapsed)
         .filter(|d| !d.is_zero())
         .map(|d| d.min(maximum))
         .ok_or_else(|| unavailable("verification_deadline"))
@@ -254,29 +254,52 @@ pub async fn verify<T: HttpTransport, I: Installer>(
     cancel: &CancellationToken,
     on_state: &mut impl FnMut(&Value) -> Result<(), ReleaseError>,
 ) -> Result<Value, ReleaseError> {
+    let start = Instant::now();
+    verify_with_elapsed(
+        transport,
+        installer,
+        artifact,
+        timeout_ms,
+        cancel,
+        on_state,
+        || start.elapsed(),
+    )
+    .await
+}
+
+// Keeping elapsed time independent of the transport's request timers lets the
+// frozen post-metadata deadline schedule be tested without changing production time.
+pub(crate) async fn verify_with_elapsed<T: HttpTransport, I: Installer, F: Fn() -> Duration>(
+    transport: &T,
+    installer: &I,
+    artifact: &Artifact,
+    timeout_ms: u64,
+    cancel: &CancellationToken,
+    on_state: &mut impl FnMut(&Value) -> Result<(), ReleaseError>,
+    elapsed: F,
+) -> Result<Value, ReleaseError> {
     if !(1..=3600000).contains(&timeout_ms) {
         return Err(error("invalid_timeout", "invalid_timeout"));
     }
     let budget = Duration::from_millis(timeout_ms);
-    let start = Instant::now();
     let mut events = Vec::<Value>::new();
     let mut attempts = 0;
     let mut delay = 1000;
     let mut last = artifact.report_base();
-    while start.elapsed() < budget {
+    while elapsed() < budget {
         if cancel.is_cancelled() {
             return Err(error("cancelled", "cancelled"));
         }
         attempts += 1;
-        let attempt=async{let evidence=registry_evidence(transport,artifact,remaining(start,budget,Duration::from_secs(10))?,cancel).await?;
+        let attempt=async{let evidence=registry_evidence(transport,artifact,remaining(elapsed(),budget,Duration::from_secs(10))?,cancel).await?;
 let metadata=evidence.metadata.ok_or_else(||unavailable("version_not_available"))?;
 let nonce=crate::tool_process::token().map_err(|_|unavailable("nonce_unavailable"))?;
 let url=format!("{}?autorouter_verify={nonce}",metadata["dist"]["tarball"].as_str().unwrap());
-let tarball=get(transport,&url,false,remaining(start,budget,Duration::from_secs(10))?,cancel,None).await?.ok_or_else(||unavailable("tarball_not_available"))?;
+let tarball=get(transport,&url,false,remaining(elapsed(),budget,Duration::from_secs(10))?,cancel,None).await?.ok_or_else(||unavailable("tarball_not_available"))?;
 if tarball.len()!=artifact.bytes||crate::evaluation::digest(&tarball)!=artifact.sha256||release::integrity(&tarball)!=artifact.integrity{return Err(mismatch("tarball_bytes"));}let current=evidence.tags.as_ref().and_then(|t|t.get(&artifact.dist_tag)).and_then(Value::as_str).ok_or_else(||unavailable("dist_tag_unavailable"))?;
 let parsed=parse_version(current).map_err(|_|unavailable("invalid_dist_tag"))?;
 if artifact.dist_tag=="latest"&&!parsed.prerelease.is_empty(){return Err(unavailable("invalid_dist_tag"));}let order=compare_versions(current,&artifact.version).map_err(|_|unavailable("invalid_dist_tag"))?;
-if order==Ordering::Less{return Err(unavailable("dist_tag_not_updated"));}let installed=installer.install(artifact,remaining(start,budget,Duration::from_secs(120))?,cancel).await?;Ok(json!({"state":"verified","reason":"archive_and_public_install_verified","current_dist_tag":current,"dist_tag_status":if order==Ordering::Greater{"superseded_by_newer_version"}else{"current"},"install":installed}))}.await;
+if order==Ordering::Less{return Err(unavailable("dist_tag_not_updated"));}let installed=installer.install(artifact,remaining(elapsed(),budget,Duration::from_secs(120))?,cancel).await?;Ok(json!({"state":"verified","reason":"archive_and_public_install_verified","current_dist_tag":current,"dist_tag_status":if order==Ordering::Greater{"superseded_by_newer_version"}else{"current"},"install":installed}))}.await;
         let row = match attempt {
             Ok(row) => row,
             Err(err) => {
@@ -292,7 +315,7 @@ if order==Ordering::Less{return Err(unavailable("dist_tag_not_updated"));}let in
         };
         last = merge(artifact.report_base(), row.clone());
         last["attempts"] = json!(attempts);
-        last["elapsed_ms"] = json!(start.elapsed().as_millis());
+        last["elapsed_ms"] = json!(elapsed().as_millis());
         events.push(
             json!({"state":row["state"],"reason":row["reason"],"elapsed_ms":last["elapsed_ms"]}),
         );
@@ -304,7 +327,7 @@ if order==Ordering::Less{return Err(unavailable("dist_tag_not_updated"));}let in
             last["events"] = json!(events);
             return Ok(last);
         }
-        let Some(left) = budget.checked_sub(start.elapsed()).filter(|d| !d.is_zero()) else {
+        let Some(left) = budget.checked_sub(elapsed()).filter(|d| !d.is_zero()) else {
             break;
         };
         tokio::select! {biased;_=cancel.cancelled()=>return Err(error("cancelled","cancelled")),_=tokio::time::sleep(left.min(Duration::from_millis(delay)))=>{}}
@@ -312,7 +335,7 @@ if order==Ordering::Less{return Err(unavailable("dist_tag_not_updated"));}let in
     }
     last["state"] = json!("validating_unavailable");
     last["pending"] = json!(true);
-    last["elapsed_ms"] = json!(start.elapsed().as_millis());
+    last["elapsed_ms"] = json!(elapsed().as_millis());
     last["events"] = json!(events);
     last["message"] = json!(
         "Verification remains pending. Keep the original archive and rerun verification; do not submit a duplicate release."
