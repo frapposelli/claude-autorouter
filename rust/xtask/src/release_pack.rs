@@ -111,13 +111,18 @@ pub(crate) fn validate_matrix(
     baseline: &Value,
 ) -> Result<BTreeSet<String>, String> {
     let targets = matrix_targets(matrix)?;
+    let mut baseline_targets = BTreeSet::new();
     for row in baseline["targets"]
         .as_array()
         .ok_or("Invalid checked-in platform baseline")?
     {
-        if !row["target"].as_str().is_some_and(|t| targets.contains(t)) {
+        let target = row["target"]
+            .as_str()
+            .ok_or("Invalid checked-in platform target")?;
+        if !targets.contains(target) {
             return Err("Release matrix silently omits a checked-in baseline target".into());
         }
+        baseline_targets.insert(target);
     }
     if matrix["baseline"] != baseline["baseline"]
         || matrix["artifact_caps"] != baseline["artifact_caps"]
@@ -131,6 +136,7 @@ pub(crate) fn validate_matrix(
         .map(|v| v.as_str().ok_or("Invalid baseline architecture"))
         .collect::<Result<_, _>>()?;
     let mut seen = BTreeSet::new();
+    let mut added_targets = BTreeSet::new();
     for resolution in matrix["baseline_resolutions"]
         .as_array()
         .ok_or("Explicit baseline architecture resolutions required")?
@@ -147,9 +153,9 @@ pub(crate) fn validate_matrix(
         }
         match resolution["result"].as_str() {
             Some("qualified")
-                if resolution["target"]
-                    .as_str()
-                    .is_some_and(|t| targets.contains(t)) => {}
+                if resolution["target"].as_str().is_some_and(|t| {
+                    targets.contains(t) && !baseline_targets.contains(t) && added_targets.insert(t)
+                }) => {}
             Some("baseline_unavailable") if text(&resolution["reason"]) => {}
             _ => {
                 return Err(

@@ -17,6 +17,7 @@ assert.match(expected, /^[a-f0-9]{64}$/);
 assert.ok(['x86_64-unknown-linux-musl', 'aarch64-unknown-linux-musl'].includes(target));
 assert.equal(process.platform, 'linux');
 const MAX_BINARY = 32 * 1024 * 1024, MAX_MANIFEST = 2 * 1024 * 1024;
+const LOCAL_TOKEN = 'synthetic-dispatch-token';
 async function consume(path, maximum, { digest = false, ownedProc = false } = {}) {
   const file = await open(path, constants.O_RDONLY | (ownedProc ? 0 : constants.O_NOFOLLOW));
   try {
@@ -132,7 +133,7 @@ try {
     // An explicitly selected missing config is correctly an error. The fresh
     // HOME/XDG directory instead exercises the supported default-empty setup.
     env: { HOME: cwd, XDG_CONFIG_HOME: cwd, PATH: cwd, AUTOROUTER_PORT: '0',
-      AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'synthetic-evaluator', ANTHROPIC_API_KEY: 'synthetic-provider', AUTOROUTER_TOKEN: 'synthetic-dispatch-token',
+      AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'synthetic-evaluator', ANTHROPIC_API_KEY: 'synthetic-provider', AUTOROUTER_TOKEN: LOCAL_TOKEN,
       AUTOROUTER_UPSTREAM_URL: 'http://127.0.0.1:1', AUTOROUTER_JEV_URL: 'http://127.0.0.1:1/v1/systemone' } });
   ended = new Promise(resolve => { child.once('error', () => { spawnFailed = true; resolve(); }); child.once('close', () => { leaderClosed = true; resolve(); }); });
   const stderrChunks = []; let stderrBytes = 0;
@@ -153,7 +154,7 @@ try {
   assert.equal(child.exitCode, null); assert.equal(child.signalCode, null);
   phase = 'health';
   const health = await bounded(new Promise((resolve, reject) => {
-    healthRequest = http.get({ host: '127.0.0.1', port, path: '/health' }, response => { response.once('error', reject); response.once('aborted', () => reject(Error('Health response aborted'))); response.resume(); response.once('end', () => resolve(response.statusCode)); });
+    healthRequest = http.get({ host: '127.0.0.1', port, path: '/health', headers: { 'x-api-key': LOCAL_TOKEN } }, response => { response.once('error', reject); response.once('aborted', () => reject(Error('Health response aborted'))); response.resume(); response.once('end', () => resolve(response.statusCode)); });
     healthRequest.setTimeout(2000, () => healthRequest.destroy(Error('Health deadline'))); healthRequest.once('error', reject);
   }), 3000);
   healthStatus = Number.isInteger(health) && health >= 100 && health <= 599 ? health : null;

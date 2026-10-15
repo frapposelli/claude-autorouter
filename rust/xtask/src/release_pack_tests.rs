@@ -243,6 +243,44 @@ fn qualification_rejects_missing_checks_copied_hashes_and_scope_reduction() {
     }
 }
 #[test]
+fn unresolved_baseline_architectures_need_distinct_added_targets() {
+    // This proves target allocation only; platform evidence must establish
+    // whether a target actually supports the named architecture.
+    let f = Fixture::new();
+    let mut matrix = json_read(&std::fs::read(f.dir.0.join("platforms.json")).unwrap()).unwrap();
+    matrix["baseline_resolutions"][0]["result"] = json!("qualified");
+    matrix["baseline_resolutions"][0]["target"] = json!("aarch64-apple-darwin");
+    assert!(
+        validate_matrix(&matrix, &f.baseline)
+            .unwrap_err()
+            .contains("Baseline architecture must be qualified")
+    );
+
+    matrix["targets"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!({"target":"x86_64-apple-darwin","qualification":"passed"}));
+    matrix["baseline_resolutions"][0]["target"] = json!("x86_64-apple-darwin");
+    assert!(validate_matrix(&matrix, &f.baseline).is_ok());
+
+    let mut baseline = f.baseline.clone();
+    baseline["unresolved_baseline_architectures"]
+        .as_array_mut()
+        .unwrap()
+        .push(json!("second synthetic unresolved platform"));
+    let mut second = matrix["baseline_resolutions"][0].clone();
+    second["architecture"] = json!("second synthetic unresolved platform");
+    matrix["baseline_resolutions"]
+        .as_array_mut()
+        .unwrap()
+        .push(second);
+    assert!(
+        validate_matrix(&matrix, &baseline)
+            .unwrap_err()
+            .contains("Baseline architecture must be qualified")
+    );
+}
+#[test]
 fn direct_verifier_rejects_foreign_architecture_runtime_and_undeclared_docs() {
     let f = Fixture::new();
     let output = f.assembled();

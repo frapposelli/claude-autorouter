@@ -2028,3 +2028,7 @@ mod forwarding_tests {
 #[cfg(test)]
 #[path = "server_deadline_contracts.rs"]
 mod deadline_contracts;
+
+#[cfg(test)]
+#[path = "server_failed_flush_contracts.rs"]
+mod failed_flush_contracts;
