@@ -423,7 +423,7 @@ pub(super) fn extract(
                 != declaration["identities"]["files"]["rust/parity/live-gateway.mjs"]["sha256"]
             || report["reference"]["temporary_reference_only"] != true
             || report["reference_runtime"]["node_version"] != "v22.14.0"
-            || report["reference_runtime"]["adapter_version"] != 1
+            || report["reference_runtime"]["adapter_version"].as_f64() != Some(1.0)
             || !report["reference_runtime"]["address"]
                 .as_str()
                 .is_some_and(|address| {

@@ -38,7 +38,7 @@ fn main() {
             Ok(true)
         }
         Some("vendor") => vendor_audit::run(&args[1..], &root),
-        Some("bootstrap") => production_features::verify_bootstrap(&args[1..]),
+        Some("bootstrap") => production_features::verify_bootstrap(&args[1..], &root),
         Some("production-features") => production_features::run(&args[1..], &root),
         _ => Err("Unknown audit command; use --help".into()),
     };

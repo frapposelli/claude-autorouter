@@ -743,3 +743,90 @@ process.on('SIGTERM',()=>{child.kill('SIGTERM')});child.once('exit',()=>process.
     assert_eq!(status["forced_kill"], false);
     assert_eq!(status["complete"], false);
 }
+
+#[test]
+fn actual_ready_projection_keeps_version_identity_without_rejecting_float_one() {
+    use autorouter_core::js_json::JsDocument;
+    let ready = JsDocument::parse(
+        br#"{"address":"127.0.0.1:12345","node_version":"v22.14.0","adapter_version":1}"#,
+    )
+    .unwrap()
+    .to_serde_observation_lossy();
+    // This is the exact production conversion in live_reference::Gateway::start.
+    assert_eq!(ready["adapter_version"], json!(1.0));
+    assert_ne!(ready["adapter_version"], json!(1));
+    assert!(ready.to_string().contains("\"adapter_version\":1.0"));
+    let declared = declaration_stub();
+    for profile in PROFILES {
+        let original = synthetic(&declared, profile, "node-reference");
+        let mut projected = original.clone();
+        projected["reference_runtime"] = ready.clone();
+        assert!(admit(&original, &declared, profile, "node-reference").is_ok());
+        assert!(admit(&projected, &declared, profile, "node-reference").is_ok());
+        for version in [
+            json!(0),
+            json!(-1),
+            json!(2),
+            json!(1.5),
+            json!(1.0000000000000002),
+            json!(9007199254740993u64),
+            json!(u64::MAX),
+            Value::Null,
+            json!("1"),
+            json!(true),
+        ] {
+            let mut wrong = projected.clone();
+            wrong["reference_runtime"]["adapter_version"] = version;
+            assert_eq!(
+                admit(&wrong, &declared, profile, "node-reference").unwrap_err(),
+                "Actual frozen Node gateway identity differs"
+            );
+        }
+        let mut missing = projected.clone();
+        missing["reference_runtime"]
+            .as_object_mut()
+            .unwrap()
+            .remove("adapter_version");
+        assert_eq!(
+            admit(&missing, &declared, profile, "node-reference").unwrap_err(),
+            "Actual frozen Node gateway identity differs"
+        );
+        for field in [
+            "verified_source_files",
+            "baseline_commit",
+            "adapter_sha256",
+            "temporary_reference_only",
+        ] {
+            let mut wrong = projected.clone();
+            wrong["reference"][field] = match field {
+                "verified_source_files" => json!(110),
+                "temporary_reference_only" => json!(false),
+                "adapter_sha256" => json!("b".repeat(64)),
+                _ => json!("b".repeat(40)),
+            };
+            assert_eq!(
+                admit(&wrong, &declared, profile, "node-reference").unwrap_err(),
+                "Actual frozen Node gateway identity differs"
+            );
+        }
+        for (field, value) in [
+            ("node_version", json!("v22.15.0")),
+            ("address", json!("192.0.2.1:12345")),
+            ("address", json!("127.0.0.1:0")),
+        ] {
+            let mut wrong = projected.clone();
+            wrong["reference_runtime"][field] = value;
+            assert_eq!(
+                admit(&wrong, &declared, profile, "node-reference").unwrap_err(),
+                "Actual frozen Node gateway identity differs"
+            );
+        }
+        let mut extra = projected.clone();
+        extra["reference_runtime"]["private_extension"] = json!("synthetic-private");
+        assert_eq!(
+            admit(&extra, &declared, profile, "node-reference").unwrap_err(),
+            "Unknown nested reference metadata"
+        );
+        assert!(admit(&projected, &declared, profile, "native").is_err());
+    }
+}

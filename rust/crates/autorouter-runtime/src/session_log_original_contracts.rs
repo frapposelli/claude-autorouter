@@ -1185,3 +1185,167 @@ async fn durable_comparison_rejects_missing_reordered_forged_and_merged_outputs(
     changed[0].mode = 0o644;
     assert!(!outputs_match(&changed, &row, 1));
 }
+
+/// Additive replay of both original #12 warning variants through the owned
+/// future adapter. The older sync-only replay remains as historical evidence.
+#[tokio::test(flavor = "current_thread")]
+async fn original_12_returned_warning_future_rejection_preserves_factory_record_and_close() {
+    use crate::observer_tasks::{
+        ObserverAdmission, ObserverLimits, ObserverRejected, ObserverSnapshot, ObserverTasks,
+    };
+    struct RejectedWarning {
+        private_reason: &'static str,
+        polled: Arc<AtomicUsize>,
+        dropped: Arc<AtomicUsize>,
+    }
+    impl Future for RejectedWarning {
+        type Output = Result<(), ObserverRejected>;
+        fn poll(
+            self: Pin<&mut Self>,
+            _: &mut std::task::Context<'_>,
+        ) -> std::task::Poll<Self::Output> {
+            assert_eq!(self.private_reason, "PRIVATE_ASYNC_CALLBACK");
+            self.polled.fetch_add(1, Ordering::SeqCst);
+            std::task::Poll::Ready(Err(ObserverRejected))
+        }
+    }
+    impl Drop for RejectedWarning {
+        fn drop(&mut self) {
+            self.dropped.fetch_add(1, Ordering::SeqCst);
+        }
+    }
+    let row = case(12);
+    let root = Directory::new();
+    let path = root.0.join("PRIVATE_INVALID_PATH");
+    std::fs::write(&path, "not a directory").unwrap();
+    let original_file = std::fs::symlink_metadata(&path).unwrap();
+    let seen = Arc::new(Seen::default());
+    let writer = writer(path.clone(), true, seen.clone(), false, true).await;
+    original!(12, 1, !writer.record(inputs(&row, 0)[0].as_ref().unwrap()));
+    close(&writer).await;
+    close(&writer).await;
+    original!(12, 2, *seen.warnings.lock().unwrap() == [WARNING]);
+
+    let owner = ObserverTasks::new(ObserverLimits::default()).unwrap();
+    let handle = owner.handle();
+    let second_seen = Arc::new(Seen::default());
+    let warnings = second_seen.clone();
+    let admissions = Arc::new(Mutex::new(Vec::new()));
+    let admitted = admissions.clone();
+    let started = Arc::new(AtomicUsize::new(0));
+    let factory_started = started.clone();
+    let polled = Arc::new(AtomicUsize::new(0));
+    let future_polled = polled.clone();
+    let dropped = Arc::new(AtomicUsize::new(0));
+    let future_dropped = dropped.clone();
+    let second = Arc::new(ObservedLog {
+        native: SessionLog::with_sink(
+            path.clone(),
+            SessionLogOptions {
+                include_prompts: true,
+                now: Arc::new(|| GENERATED.into()),
+                warn: Arc::new(move |message| {
+                    warnings.warnings.lock().unwrap().push(message.into());
+                    warnings.changed.notify_waiters();
+                    let polled = future_polled.clone();
+                    let dropped = future_dropped.clone();
+                    let admission = handle.submit(message.len(), || {
+                        factory_started.fetch_add(1, Ordering::SeqCst);
+                        RejectedWarning {
+                            private_reason: "PRIVATE_ASYNC_CALLBACK",
+                            polled,
+                            dropped,
+                        }
+                    });
+                    admitted.lock().unwrap().push(admission);
+                }),
+            },
+            Box::new(ObserveSink {
+                native: NativeSessionSink::default(),
+                seen: second_seen.clone(),
+                post_open_failure: false,
+            }),
+        )
+        .await,
+        seen: second_seen.clone(),
+    });
+    assert_eq!(started.load(Ordering::SeqCst), 1);
+    assert_eq!(*admissions.lock().unwrap(), [ObserverAdmission::Accepted]);
+    original!(12, 3, !second.record(inputs(&row, 1)[0].as_ref().unwrap()));
+    close(&second).await;
+    tokio::time::timeout(BOUND, async {
+        while owner.snapshot().pending != 0 {
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .expect("owned rejecting warning settled before cancellation");
+    assert_eq!(polled.load(Ordering::SeqCst), 1);
+    assert_eq!(dropped.load(Ordering::SeqCst), 1);
+    assert_eq!(
+        owner.snapshot(),
+        ObserverSnapshot {
+            rejected: 1,
+            ..ObserverSnapshot::default()
+        }
+    );
+    tokio::time::timeout(BOUND, owner.close())
+        .await
+        .expect("joined warning observer shutdown");
+    let snapshot = owner.snapshot();
+    assert_eq!(
+        snapshot,
+        ObserverSnapshot {
+            closed: true,
+            worker_finished: true,
+            rejected: 1,
+            ..ObserverSnapshot::default()
+        }
+    );
+    assert_eq!(polled.load(Ordering::SeqCst), 1);
+    assert_eq!(dropped.load(Ordering::SeqCst), 1);
+    assert_eq!(*second_seen.warnings.lock().unwrap(), [WARNING]);
+    close(&writer).await;
+    close(&second).await;
+    cleanup(&seen, 0);
+    cleanup(&second_seen, 0);
+    assert_eq!(seen.entered.load(Ordering::SeqCst), 0);
+    assert_eq!(second_seen.entered.load(Ordering::SeqCst), 0);
+    let preserved = std::fs::symlink_metadata(&path).unwrap();
+    assert!(preserved.is_file() && !preserved.file_type().is_symlink());
+    assert_eq!(
+        (preserved.dev(), preserved.ino(), preserved.mode()),
+        (
+            original_file.dev(),
+            original_file.ino(),
+            original_file.mode()
+        )
+    );
+    assert_eq!(std::fs::read(&path).unwrap(), b"not a directory");
+    assert_eq!(std::fs::read_dir(&root.0).unwrap().count(), 1);
+    for marker in [
+        "PRIVATE_ASYNC_CALLBACK",
+        "PRIVATE_PROMPT",
+        "PRIVATE_INVALID_PATH",
+    ] {
+        assert!(!format!("{snapshot:?}").contains(marker));
+        assert!(!seen.warnings.lock().unwrap().join("\n").contains(marker));
+        assert!(
+            !second_seen
+                .warnings
+                .lock()
+                .unwrap()
+                .join("\n")
+                .contains(marker)
+        );
+    }
+    recorded(&seen, &row, 0);
+    recorded(&second_seen, &row, 1);
+    eprintln!(
+        "SESSION_WARNING_FUTURE_NATIVE {}",
+        json!({"source_test":"test/session-log.test.mjs#12",
+            "factory_starts":started.load(Ordering::SeqCst),
+            "polls":polled.load(Ordering::SeqCst),"drops":dropped.load(Ordering::SeqCst),
+            "observer":format!("{snapshot:?}")})
+    );
+}

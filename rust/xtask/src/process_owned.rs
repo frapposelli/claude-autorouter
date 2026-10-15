@@ -312,7 +312,11 @@ mod tests {
             bounds(1024),
         );
         let output = owner.join().await.unwrap();
-        assert_eq!(output.status["exit_code"], 17);
+        assert_eq!(
+            output.status["exit_code"], 17,
+            "owned child status: {}",
+            output.status
+        );
         assert_eq!(output.status["complete"], true);
         assert_eq!(output.stdout, b"synthetic-private-out");
         assert_eq!(output.stderr, b"synthetic-private-err");
@@ -327,7 +331,11 @@ mod tests {
             bounds(256),
         );
         let output = owner.join().await.unwrap();
-        assert_eq!(output.status["output_limit_exceeded"], true);
+        assert_eq!(
+            output.status["output_limit_exceeded"], true,
+            "owned child status: {}",
+            output.status
+        );
         assert!(!output.status["complete"].as_bool().unwrap());
         assert_eq!(output.stdout.len() + output.stderr.len(), 256);
         assert_eq!(output.status["aggregate_bytes_retained"], 256);

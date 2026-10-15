@@ -11,6 +11,7 @@ mod idle_close;
 mod idle_close_tests;
 mod lifecycle;
 mod lifecycle_tests;
+mod loopback_peer;
 mod options;
 mod policy;
 mod raw_pool;

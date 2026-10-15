@@ -4,16 +4,12 @@ use autorouter_core::js_json::JsDocument;
 use autorouter_runtime::http_client::HttpError;
 use http_body_util::BodyExt;
 use hyper::Response;
-use hyper::body::{Body, Frame, SizeHint};
 use sha2::{Digest, Sha256};
 use std::collections::VecDeque;
-use std::convert::Infallible;
-use std::pin::Pin;
 use std::sync::{
     Mutex,
     atomic::{AtomicUsize, Ordering},
 };
-use std::task::{Context, Poll};
 const CORPUS: &str = include_str!("../../parity/cases/ollama-routing-tool-contracts.jsonl");
 const CAPTURE: &str = include_str!("../../parity/cases/ollama-routing-tool-contracts.capture.json");
 const CORPUS_SHA: &str = "a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d";
@@ -80,31 +76,10 @@ fn settings(row: &Value) -> RouterConfig {
     );
     config
 }
-struct FiniteBody {
-    inner: Full<Bytes>,
-    owners: Arc<AtomicUsize>,
-}
-impl Drop for FiniteBody {
-    fn drop(&mut self) {
-        self.owners.fetch_sub(1, Ordering::SeqCst);
-    }
-}
-impl Body for FiniteBody {
-    type Data = Bytes;
-    type Error = Infallible;
-    fn poll_frame(
-        self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-    ) -> Poll<Option<Result<Frame<Bytes>, Self::Error>>> {
-        Pin::new(&mut self.get_mut().inner).poll_frame(cx)
-    }
-    fn is_end_stream(&self) -> bool {
-        self.inner.is_end_stream()
-    }
-    fn size_hint(&self) -> SizeHint {
-        self.inner.size_hint()
-    }
-}
+#[allow(dead_code)] // This family reuses only the exact finite-body ownership primitive.
+#[path = "../../crates/autorouter-runtime/tests/support/tracked_http.rs"]
+mod tracked;
+use tracked::FiniteBody;
 struct Replay {
     pending: Mutex<VecDeque<Value>>,
     observed: Mutex<Vec<Value>>,

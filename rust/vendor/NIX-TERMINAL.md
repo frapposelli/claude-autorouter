@@ -16,6 +16,18 @@ Primary sources: [Nix 0.31.3](https://docs.rs/nix/0.31.3/src/nix/sys/termios.rs.
 [musl getter](https://git.musl-libc.org/cgit/musl/tree/src/termios/tcgetattr.c?h=v1.2.5),
 [Linux v6.17 terminal ABI](https://github.com/torvalds/linux/blob/v6.17/include/uapi/asm-generic/termbits.h).
 
-This source snapshot is not yet linked into AutoRouter. Build-graph integration,
-independent source auditing, exact artifact identities and both musl executions
-remain pending. No terminal-restoration assertion is shortened or skipped.
+The runtime and CLI use this source from immutable Git revision
+`2286fd91d8165b4b56b273c2ebe5fb4f462ed672`. The bootstrap auditor uses the
+unchanged registry Nix package without its terminal feature. Keeping the two
+sources distinct lets the auditor check the full patched source before compiling
+it. The compact source descriptor and patch travel in the source bundle;
+Cargo fetches the complete reviewed supplier into its cache.
+
+The independent native auditor verifies all 126 files, the MIT license, exact
+patch and provenance, including reverse/forward reconstruction. It checks actual
+locked Cargo identities, dependency edges, target paths and compiled features;
+the same-version registry and Git packages cannot substitute for one another.
+The current host bootstrap/source checks and 28 auditor tests pass. Ordinary
+release artifact inspection, both musl executions, final source transfer and
+complete platform/release qualification remain pending. No terminal-restoration
+assertion is shortened or skipped.

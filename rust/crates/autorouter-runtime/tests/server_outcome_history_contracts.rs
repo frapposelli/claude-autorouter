@@ -3,30 +3,28 @@
 #[path = "support/server_contract.rs"]
 mod contract;
 use contract::{
-    Reply, chunks, compare_real_metadata as compare_metadata, compare_request, decode, event_names,
-    events, fixture_case, headers, javascript_number_equality, parsed, response_bytes, sink,
-    upstream_rows,
+    Reply, chunks, compare_request, decode, event_names, events, fixture_case, headers,
+    javascript_number_equality, parsed, response_bytes, sink, upstream_rows,
 };
+#[path = "support/server_audit_router.rs"]
+mod audit;
 #[allow(dead_code)] // Shared peer also supplies streaming interfaces to other targets.
 #[path = "support/server_streaming_routing.rs"]
 mod peer;
 #[path = "support/server_outcome_history.rs"]
 mod real;
-use autorouter_core::{config::read_config, js_json::JsDocument, router::RouteOptions};
+use audit::RouterImpl;
+use autorouter_core::config::read_config;
 use autorouter_runtime::{
-    evaluator::EvaluationError,
     http_client::NativeHttpClient,
     observer_tasks::{ObserverFuture, ObserverLimits, ObserverRejected, ObserverTasks},
-    response_observer::CompletionEvidence,
-    server::{Gateway, GatewayHandle, GatewayRouter},
+    server::{Gateway, GatewayHandle},
     server_events::{EventSink, EventSinks, RecordSink},
 };
-use hyper::HeaderMap;
 use peer::{Observation, Peer, ResponsePlan};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{
-    collections::BTreeMap,
     path::Path,
     sync::{
         Arc, Mutex,
@@ -34,7 +32,6 @@ use std::{
     },
     time::Duration,
 };
-use tokio_util::sync::CancellationToken;
 
 const CORPUS: &str = include_str!("../../../parity/cases/server-outcome-history-contracts.jsonl");
 const CAPTURE: &str =
@@ -61,72 +58,7 @@ fn case(number: usize) -> Value {
         .find(|row| row["source_test"] == format!("test/server.test.mjs#{number}"))
         .unwrap()
 }
-enum RouterImpl {
-    Mock(Vec<Value>),
-    Real(Box<real::OriginalRouter>),
-}
-struct AuditRouter {
-    inner: RouterImpl,
-    calls: Mutex<Vec<Value>>,
-    completions: Mutex<Vec<Value>>,
-    closed: AtomicBool,
-}
-impl GatewayRouter for AuditRouter {
-    async fn route(
-        &self,
-        document: Arc<JsDocument>,
-        options: RouteOptions,
-        headers: &HeaderMap,
-        cancellation: &CancellationToken,
-        search: &str,
-    ) -> Result<Value, EvaluationError> {
-        let index = {
-            let mut calls = self.calls.lock().unwrap();
-            let index = calls.len();
-            assert!(index < 8);
-            calls.push(json!({"document":parsed(document.stringify().as_bytes()),"scope":options.scope,"prompt_id":options.prompt_id,"request_class":options.request_class,"request_id":options.request_id,"count_tokens":options.count_tokens,"signal_live":!cancellation.is_cancelled()}));
-            index
-        };
-        match &self.inner {
-            RouterImpl::Mock(decisions) => Ok(decisions[index].clone()),
-            RouterImpl::Real(real) => {
-                real.route(document, options, headers, cancellation, search)
-                    .await
-            }
-        }
-    }
-    fn complete(&self, id: &str, evidence: &Value) -> bool {
-        let accepted = match &self.inner {
-            RouterImpl::Mock(_) => false,
-            RouterImpl::Real(real) => real.complete(id, evidence),
-        };
-        let mut rows = self.completions.lock().unwrap();
-        assert!(rows.len() < 32);
-        rows.push(json!({"id":id,"evidence":evidence,"accepted":accepted}));
-        accepted
-    }
-    fn complete_exact(&self, id: &str, evidence: &CompletionEvidence) -> bool {
-        let accepted = match &self.inner {
-            RouterImpl::Mock(_) => false,
-            RouterImpl::Real(real) => real.complete_exact(id, evidence),
-        };
-        let mut rows = self.completions.lock().unwrap();
-        assert!(rows.len() < 32);
-        rows.push(json!({"id":id,"evidence":evidence,"accepted":accepted}));
-        accepted
-    }
-    fn shutdown(&self) {
-        if let RouterImpl::Real(real) = &self.inner {
-            real.shutdown();
-        }
-    }
-    async fn close(&self) {
-        if let RouterImpl::Real(real) = &self.inner {
-            real.close().await;
-        }
-        self.closed.store(true, Ordering::SeqCst);
-    }
-}
+type AuditRouter = audit::AuditRouter<()>;
 struct Fixture {
     client: Arc<NativeHttpClient>,
     router: Arc<AuditRouter>,
@@ -209,6 +141,7 @@ impl Fixture {
             calls: Mutex::new(Vec::new()),
             completions: Mutex::new(Vec::new()),
             closed: AtomicBool::new(false),
+            witnesses: (),
         });
         let statuses = Events::default();
         let history = Events::default();
@@ -310,11 +243,7 @@ impl Fixture {
             .as_ref()
             .map(|owner| real::snapshot(owner.snapshot()));
         let never_polled_before_close = self.never_polled.load(Ordering::SeqCst);
-        let closed = tokio::time::timeout(BOUND, self.gateway.take().unwrap().close()).await;
-        let requests = self.peer.as_ref().unwrap().observations();
-        let peer_closed = self.peer.take().unwrap().close().await;
-        closed.map_err(|_| "gateway cleanup timed out")?;
-        peer_closed?;
+        let requests = contract::close_gateway(&mut self.gateway, &mut self.peer, BOUND).await?;
         if let Some(owner) = &self.observer_owner {
             tokio::time::timeout(BOUND, owner.close())
                 .await
@@ -328,16 +257,7 @@ impl Fixture {
         if !self.router.closed.load(Ordering::SeqCst) {
             return Err("mock router closure not observed".into());
         }
-        for rows in [&self.statuses, &self.history, &self.logs, &self.log_history] {
-            if rows
-                .lock()
-                .unwrap()
-                .iter()
-                .any(|row| row["event"] == "fixture_observer_overflow")
-            {
-                return Err("sticky event recorder overflow".into());
-            }
-        }
+        contract::check_recorders([&self.statuses, &self.history, &self.logs, &self.log_history])?;
         Ok(Seen {
             requests,
             routes: self.router.calls.lock().unwrap().clone(),
@@ -361,27 +281,7 @@ impl Fixture {
         })
     }
 }
-#[derive(Clone)]
-struct Assertions {
-    number: usize,
-    counts: Arc<Mutex<BTreeMap<usize, usize>>>,
-}
-impl Assertions {
-    fn new(number: usize) -> Self {
-        Self {
-            number,
-            counts: Arc::new(Mutex::new(BTreeMap::new())),
-        }
-    }
-    fn check(&self, site: usize, passed: bool) {
-        *self.counts.lock().unwrap().entry(site).or_default() += 1;
-        assert!(passed, "server#{}:assert-{site}", self.number);
-    }
-    fn finish(self) {
-        let counts = self.counts.lock().unwrap();
-        contract::finish_counts(self.number, &counts, CAPTURE);
-    }
-}
+use contract::SharedAssertions as Assertions;
 fn supplemental_transcripts(row: &Value, replies: &[Reply], seen: &Seen) {
     contract::verify_transcript(
         row,
@@ -396,55 +296,24 @@ fn supplemental_transcripts(row: &Value, replies: &[Reply], seen: &Seen) {
         },
     );
     if let Some(directory) = std::env::var_os("AUTOROUTER_NATIVE_PARITY_CAPTURE_DIR") {
-        let request = |r: &Observation| json!({"method":r.method,"path":r.path,"headers":r.headers.iter().map(|(k,v)|(k.as_str().to_owned(),v.to_str().unwrap().to_owned())).collect::<BTreeMap<_,_>>(),"body_utf8":std::str::from_utf8(&r.body).unwrap()});
-        let raw = json!({"schema_version":1,"status":"passed","source_test":row["source_test"],"upstream_requests":seen.requests.iter().map(request).collect::<Vec<_>>(),"route_calls":seen.routes,"complete_calls":seen.completions,"statuses":seen.statuses,"all_emitted_statuses":seen.history,"logs":seen.logs,"records":seen.records,"decisions":seen.decisions,"callback_outcomes":seen.callback_outcomes,"evaluator_calls":seen.evaluator_calls,"continuity_before_close":seen.continuity_before_close,"observer_before_close":seen.observer_before_close,"observer_after_close":seen.observer_after_close,"never_polled_before_close":seen.never_polled_before_close,"never_dropped_after_close":seen.never_dropped_after_close,"downstream":replies.iter().map(|r|json!({"status":r.status,"headers":r.headers.iter().map(|(k,v)|(k.as_str().to_owned(),v.to_str().unwrap().to_owned())).collect::<BTreeMap<_,_>>(),"body_base64":openssl::base64::encode_block(&r.bytes)})).collect::<Vec<_>>(),"projection":"None. Actual generated IDs, measured times, deterministic routing times, headers and complete bytes retained."});
+        let raw = json!({"schema_version":1,"status":"passed","source_test":row["source_test"],"upstream_requests":seen.requests.iter().map(contract::capture_request).collect::<Vec<_>>(),"route_calls":seen.routes,"complete_calls":seen.completions,"statuses":seen.statuses,"all_emitted_statuses":seen.history,"logs":seen.logs,"records":seen.records,"decisions":seen.decisions,"callback_outcomes":seen.callback_outcomes,"evaluator_calls":seen.evaluator_calls,"continuity_before_close":seen.continuity_before_close,"observer_before_close":seen.observer_before_close,"observer_after_close":seen.observer_after_close,"never_polled_before_close":seen.never_polled_before_close,"never_dropped_after_close":seen.never_dropped_after_close,"downstream":replies.iter().map(contract::capture_reply).collect::<Vec<_>>(),"projection":"None. Actual generated IDs, measured times, deterministic routing times, headers and complete bytes retained."});
         contract::write_row_capture(&directory, &row["id"], &raw, LIMIT, true);
     }
 }
 async fn wait_complete_count(f: &Fixture, count: usize) -> Result<(), String> {
-    for _ in 0..100 {
-        if events(&f.statuses.lock().unwrap(), "request_complete").len() >= count {
-            return Ok(());
-        }
-        tokio::time::sleep(Duration::from_millis(5)).await;
-    }
-    Err("exact per-request terminal callback not observed".into())
+    contract::wait_complete_count(&f.statuses, count).await
 }
 fn compare_record_callbacks(row: &Value, seen: &Seen) {
-    assert_eq!(seen.records.len(), row["records"].as_array().unwrap().len());
-    assert_eq!(
-        seen.decisions.len(),
-        row["decisions"].as_array().unwrap().len()
+    contract::compare_record_callbacks(
+        row,
+        &contract::RecordCallbacks {
+            records: &seen.records,
+            decisions: &seen.decisions,
+            history: &seen.history,
+            logs: &seen.logs,
+            real: seen.real,
+        },
     );
-    let source_starts = events(row["statuses"].as_array().unwrap(), "request_start");
-    let starts = events(&seen.history, "request_start");
-    for (actual, wanted) in seen
-        .records
-        .iter()
-        .zip(row["records"].as_array().unwrap())
-        .chain(
-            seen.decisions
-                .iter()
-                .zip(row["decisions"].as_array().unwrap()),
-        )
-    {
-        let index = source_starts
-            .iter()
-            .position(|r| r["request_id"] == wanted["request_id"])
-            .unwrap();
-        assert_eq!(actual["request_id"], starts[index]["request_id"]);
-        compare_metadata(wanted, actual, seen.real);
-    }
-    let private = [
-        "PRIVATE_RESPONSE_TEXT",
-        "PRIVATE_PROMPT_METADATA_MODE",
-        "PRIVATE_ERROR",
-        "private sink failure",
-        "private failure",
-    ];
-    for secret in private {
-        assert!(!json!({"records":seen.records,"decisions":seen.decisions,"logs":seen.logs,"statuses":seen.history}).to_string().contains(secret));
-    }
 }
 #[tokio::test]
 async fn original_33_provider_fallback_keeps_confirmed_tool_ownership_after_failed_attempts() {

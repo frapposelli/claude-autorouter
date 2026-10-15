@@ -4,18 +4,14 @@ use autorouter_core::js_json::JsDocument;
 use autorouter_runtime::http_client::{HttpError, HttpTransport};
 use bytes::Bytes;
 use http_body_util::{BodyExt, Full};
-use hyper::body::{Body, Frame, SizeHint};
 use hyper::{Request, Response};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::collections::VecDeque;
-use std::convert::Infallible;
-use std::pin::Pin;
 use std::sync::{
     Arc, Mutex,
     atomic::{AtomicUsize, Ordering},
 };
-use std::task::{Context, Poll};
 use tokio::sync::Notify;
 use tokio::time::Instant;
 
@@ -126,31 +122,10 @@ impl Drop for Active<'_> {
         }
     }
 }
-pub struct FiniteBody {
-    inner: Full<Bytes>,
-    owners: Arc<AtomicUsize>,
-}
-impl Drop for FiniteBody {
-    fn drop(&mut self) {
-        self.owners.fetch_sub(1, Ordering::SeqCst);
-    }
-}
-impl Body for FiniteBody {
-    type Data = Bytes;
-    type Error = Infallible;
-    fn poll_frame(
-        self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-    ) -> Poll<Option<Result<Frame<Bytes>, Self::Error>>> {
-        Pin::new(&mut self.get_mut().inner).poll_frame(cx)
-    }
-    fn is_end_stream(&self) -> bool {
-        self.inner.is_end_stream()
-    }
-    fn size_hint(&self) -> SizeHint {
-        self.inner.size_hint()
-    }
-}
+#[allow(dead_code)] // This family reuses only the exact finite-body ownership primitive.
+#[path = "tracked_http.rs"]
+mod tracked;
+use tracked::FiniteBody;
 impl Replay {
     pub fn set(&self, step: &Value) {
         assert!(self.idle());

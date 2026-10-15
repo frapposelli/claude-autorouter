@@ -298,12 +298,15 @@ fn lexical(path: &Path) -> Result<PathBuf, String> {
     Ok(result)
 }
 
-pub(crate) fn verify_bootstrap(args: &[String]) -> Result<bool, String> {
+pub(crate) fn verify_bootstrap(args: &[String], root: &Path) -> Result<bool, String> {
     if args.len() != 2 || args[0] != "--build-report" {
         return Err("Expected bootstrap --build-report PATH".into());
     }
     let bytes = regular(Path::new(&args[1]), REPORT_LIMIT)?;
-    let report = inspect_bootstrap(&bytes)?;
+    let mut report = inspect_bootstrap(&bytes)?;
+    let suppliers = crate::vendor_audit::nix_source::resolve(root)?;
+    let library = suppliers.library(&bytes, crate::vendor_audit::nix_source::Role::Bootstrap)?;
+    report["terminal_supplier"] = library;
     println!("{}", serde_json::to_string_pretty(&report).unwrap());
     Ok(true)
 }
@@ -404,7 +407,7 @@ fn inspect_bootstrap(bytes: &[u8]) -> Result<Value, String> {
 }
 pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
     if args.len() == 2 && args[0] == "--bootstrap-report" {
-        return verify_bootstrap(&["--build-report".into(), args[1].clone()]);
+        return verify_bootstrap(&["--build-report".into(), args[1].clone()], root);
     }
     if args == ["--help"] {
         println!(
@@ -423,7 +426,10 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
         return Err("Expected verify-production-features --self-test | --build-report PATH".into());
     }
     let bytes = regular(Path::new(&args[1]), REPORT_LIMIT)?;
-    let inspected = inspect(&bytes, root)?;
+    let mut inspected = inspect(&bytes, root)?;
+    let suppliers = crate::vendor_audit::nix_source::resolve(root)?;
+    inspected["terminal_supplier"] =
+        suppliers.library(&bytes, crate::vendor_audit::nix_source::Role::Production)?;
     let executable = Path::new(inspected["binary"]["executable"].as_str().unwrap());
     if executable
         .canonicalize()
@@ -433,7 +439,7 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
         return Err("Release executable must not be a symlink".into());
     }
     let binary = regular(executable, 256 * 1024 * 1024)?;
-    let report = json!({"passed":true,"report_sha256":digest(&bytes),"binary":executable,"binary_sha256":digest(&binary),"package_id":inspected["library"]["package_id"],"manifest_path":manifest(root,"vendor/hyper-util"),"features":inspected["library"]["features"],"lease_feature":false,"raw_pool_feature":false,"hyper_package_id":inspected["hyper_library"]["package_id"],"hyper_manifest_path":manifest(root,"vendor/hyper"),"hyper_features":inspected["hyper_library"]["features"],"body_handoff_feature":false,"runtime_package_id":inspected["runtime_library"]["package_id"],"runtime_manifest_path":manifest(root,"crates/autorouter-runtime"),"runtime_features":inspected["runtime_library"]["features"],"development_probes_feature":false});
+    let report = json!({"passed":true,"report_sha256":digest(&bytes),"binary":executable,"binary_sha256":digest(&binary),"package_id":inspected["library"]["package_id"],"manifest_path":manifest(root,"vendor/hyper-util"),"features":inspected["library"]["features"],"lease_feature":false,"raw_pool_feature":false,"hyper_package_id":inspected["hyper_library"]["package_id"],"hyper_manifest_path":manifest(root,"vendor/hyper"),"hyper_features":inspected["hyper_library"]["features"],"body_handoff_feature":false,"runtime_package_id":inspected["runtime_library"]["package_id"],"runtime_manifest_path":manifest(root,"crates/autorouter-runtime"),"runtime_features":inspected["runtime_library"]["features"],"development_probes_feature":false,"terminal_supplier":inspected["terminal_supplier"]});
     println!("{}", serde_json::to_string_pretty(&report).unwrap());
     Ok(true)
 }

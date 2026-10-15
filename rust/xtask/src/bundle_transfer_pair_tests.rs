@@ -1,0 +1,746 @@
+//! Synthetic format admission; original complete writer coverage stays in transfer tests.
+use super::*;
+use crate::tool_process::Scratch;
+use std::fs;
+use std::os::unix::fs::{PermissionsExt, symlink};
+use std::path::PathBuf;
+
+struct Fixture {
+    scratch: Scratch,
+    root: PathBuf,
+    native: BTreeMap<String, Entry>,
+    reference: BTreeMap<String, Entry>,
+}
+impl Fixture {
+    fn new() -> Self {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize()
+            .unwrap();
+        let (reference, baseline) = reference(&root).unwrap();
+        let mut native = BTreeMap::from([
+            (
+                "rust/parity/baseline.json".into(),
+                Entry {
+                    bytes: baseline,
+                    mode: 0o644,
+                },
+            ),
+            ("LICENSE".into(), reference["LICENSE"].clone()),
+        ]);
+        for (path, _, _) in SHARED {
+            native.insert((*path).into(), reference[*path].clone());
+        }
+        Self::manifest(&mut native);
+        Self {
+            scratch: Scratch::new("paired-format").unwrap(),
+            root,
+            native,
+            reference,
+        }
+    }
+    fn manifest(native: &mut BTreeMap<String, Entry>) {
+        let hashes: BTreeMap<_, _> = native
+            .iter()
+            .filter(|(path, _)| path.as_str() != "source-manifest.json")
+            .map(|(path, entry)| (path.clone(), sha(&entry.bytes)))
+            .collect();
+        let record = json!({"schema_version":2,"kind":"native_benchmark_public_source_bundle",
+            "fixture_sha256":hashes["test/fixtures/ollama-routing.json"],"files":hashes,
+            "build_requires":"Pinned Rust toolchain and locked dependencies","private_material_included":false,"live_calls_performed":false});
+        native.insert(
+            "source-manifest.json".into(),
+            Entry {
+                bytes: serde_json::to_vec(&record).unwrap(),
+                mode: 0o644,
+            },
+        );
+    }
+    /// Historical subset is intentional: schema1 receiver honors carried manifest,
+    /// rather than imposing today's larger FIXED inventory on old source bundles.
+    fn packet(
+        &self,
+        name: &str,
+        reused: bool,
+        mutate: impl FnOnce(&mut BTreeMap<String, Entry>, &mut BTreeMap<String, Entry>, &mut Value),
+    ) -> PathBuf {
+        let directory = self.scratch.0.join(name);
+        fs::create_dir(&directory).unwrap();
+        let mut native = self.native.clone();
+        let mut reference = self.reference.clone();
+        if reused {
+            for (path, _, _) in SHARED {
+                reference.remove(*path).unwrap();
+            }
+        }
+        let baseline: Value =
+            serde_json::from_slice(&self.reference["frozen-reference-manifest.json"].bytes)
+                .unwrap();
+        let mut record = json!({"schema_version":if reused{2}else{1},"kind":"matched_native_benchmark_transfer",
+            "baseline_commit":baseline["baseline_commit"],"baseline_version":baseline["baseline_version"],"reference_files":111,
+            "archives":{},"aggregate_expanded_tar_bytes":0,"aggregate_expanded_limit":SOURCE.expanded,
+            "node_runtime_required":"22.14.0 for temporary reference tests only","native_build_required":true,
+            "private_material_included":false,"binaries_included":false,"dependencies_bundled":false,"provider_calls":0,
+            "release_approved":false,"performance_accepted":false});
+        if reused {
+            let payload = sum(native
+                .values()
+                .map(|entry| entry.bytes.as_slice())
+                .chain(self.reference.values().map(|entry| entry.bytes.as_slice())))
+            .unwrap();
+            for (key, value) in [
+                ("logical_reference_files", json!(113)),
+                ("reference_transport_files", json!(111)),
+                ("shared_inputs", shared()),
+                ("aggregate_logical_file_bytes", json!(payload)),
+                ("aggregate_logical_file_limit", json!(SOURCE.expanded)),
+            ] {
+                record[key] = value;
+            }
+        }
+        mutate(&mut native, &mut reference, &mut record);
+        let archive_name = if reused {
+            DELTA_NAME
+        } else {
+            "frozen-node-reference.tar.gz"
+        };
+        let first = encode_root(NATIVE_ROOT, &native, SOURCE).unwrap();
+        let native_size = expanded_size(&native, SOURCE).unwrap();
+        let policy = SOURCE.remaining(SOURCE.expanded - native_size);
+        let second = encode_root(
+            if reused {
+                DELTA_ROOT
+            } else {
+                "autorouter-node-reference"
+            },
+            &reference,
+            policy,
+        )
+        .unwrap();
+        let stored = native_size + expanded_size(&reference, policy).unwrap();
+        record["archives"] = json!({"native-source.tar.gz":{"sha256":sha(&first),"expanded_tar_bytes":native_size},
+            (archive_name):{"sha256":sha(&second),"expanded_tar_bytes":stored-native_size}});
+        record["aggregate_expanded_tar_bytes"] = json!(stored);
+        if reused {
+            record["legacy_full_tar_bytes"] = json!(stored + 79360);
+            record["legacy_full_tar_within_limit"] = json!(stored + 79360 <= SOURCE.expanded);
+        }
+        fs::write(directory.join("native-source.tar.gz"), first).unwrap();
+        fs::write(directory.join(archive_name), second).unwrap();
+        Self::metadata(&directory, &record, archive_name);
+        directory
+    }
+    fn metadata(directory: &Path, record: &Value, name: &str) {
+        let raw = serde_json::to_vec(record).unwrap();
+        Self::raw_metadata(directory, &raw, name);
+    }
+    fn raw_metadata(directory: &Path, raw: &[u8], name: &str) {
+        fs::write(directory.join("transfer-manifest.json"), raw).unwrap();
+        let resume = super::super::transfer::README.as_bytes();
+        fs::write(directory.join("RESUME.md"), resume).unwrap();
+        let first = format!(
+            "{}  native-source.tar.gz\n",
+            sha(&fs::read(directory.join("native-source.tar.gz")).unwrap())
+        );
+        let second = format!(
+            "{}  {name}\n",
+            sha(&fs::read(directory.join(name)).unwrap())
+        );
+        fs::write(directory.join("native-source.tar.gz.sha256"), &first).unwrap();
+        fs::write(directory.join(format!("{name}.sha256")), &second).unwrap();
+        fs::write(
+            directory.join("SHA256SUMS"),
+            format!(
+                "{first}{second}{}  transfer-manifest.json\n{}  RESUME.md\n",
+                sha(raw),
+                sha(resume)
+            ),
+        )
+        .unwrap();
+    }
+    fn schema3(&self, directory: &Path) {
+        let mut record: Value =
+            serde_json::from_slice(&fs::read(directory.join("transfer-manifest.json")).unwrap())
+                .unwrap();
+        let native = cpio::encode_root(NATIVE_ROOT, &self.native, SOURCE, source_limit).unwrap();
+        let native_expanded =
+            cpio::expanded_size(NATIVE_ROOT, &self.native, SOURCE, source_limit).unwrap();
+        let delta_expanded = record["archives"][DELTA_NAME]["expanded_tar_bytes"]
+            .as_u64()
+            .unwrap() as usize;
+        record["schema_version"] = json!(3);
+        record
+            .as_object_mut()
+            .unwrap()
+            .remove("aggregate_expanded_tar_bytes");
+        record["aggregate_expanded_carrier_bytes"] = json!(native_expanded + delta_expanded);
+        record["archives"] = json!({(CPIO_NAME):{"sha256":sha(&native),"expanded_carrier_bytes":native_expanded,"format":"gzip-newc"},
+            (DELTA_NAME):{"sha256":sha(&fs::read(directory.join(DELTA_NAME)).unwrap()),"expanded_carrier_bytes":delta_expanded,"format":"gzip-ustar"}});
+        // Legacy diagnostic comes from the old actual tarfixture, not a CPIO size.
+        fs::remove_file(directory.join("native-source.tar.gz")).unwrap();
+        fs::remove_file(directory.join("native-source.tar.gz.sha256")).unwrap();
+        fs::write(directory.join(CPIO_NAME), native).unwrap();
+        Self::v3_metadata(directory, &record);
+    }
+    fn v3_metadata(directory: &Path, record: &Value) {
+        let bytes = serde_json::to_vec(record).unwrap();
+        fs::write(directory.join("transfer-manifest.json"), &bytes).unwrap();
+        let resume = fs::read(directory.join("RESUME.md")).unwrap();
+        let native = format!(
+            "{}  {CPIO_NAME}\n",
+            sha(&fs::read(directory.join(CPIO_NAME)).unwrap())
+        );
+        let delta = format!(
+            "{}  {DELTA_NAME}\n",
+            sha(&fs::read(directory.join(DELTA_NAME)).unwrap())
+        );
+        fs::write(directory.join(format!("{CPIO_NAME}.sha256")), &native).unwrap();
+        fs::write(directory.join(format!("{DELTA_NAME}.sha256")), &delta).unwrap();
+        fs::write(
+            directory.join("SHA256SUMS"),
+            format!(
+                "{native}{delta}{}  transfer-manifest.json\n{}  RESUME.md\n",
+                sha(&bytes),
+                sha(&resume)
+            ),
+        )
+        .unwrap();
+    }
+    fn reject(&self, directory: &Path, name: &str) {
+        let output = self.scratch.0.join(name);
+        let error = restore(&self.root, directory, &output).unwrap_err();
+        assert!(!error.contains("PRIVATE_SENTINEL"));
+        assert!(
+            !output.exists(),
+            "invalid carrier must fail before destination creation"
+        );
+    }
+}
+#[test]
+fn legacy_and_shared_carriers_restore_all_original_113_bytes_modes_and_license() {
+    let f = Fixture::new();
+    for reused in [false, true] {
+        let name = if reused { "shared" } else { "legacy" };
+        let directory = f.packet(name, reused, |_, _, _| {});
+        let plan = load(&f.root, &directory).unwrap();
+        assert_eq!(plan.reference.files.len(), if reused { 111 } else { 113 });
+        assert!(plan.reference.files.contains_key("LICENSE"));
+        for (path, _, _) in SHARED {
+            assert_eq!(plan.reference.files.contains_key(*path), !reused);
+        }
+        let output = f.scratch.0.join(format!("{name}-restored"));
+        let report = restore(&f.root, &directory, &output).unwrap();
+        assert_eq!(report["logical_files"], 113);
+        assert_eq!(report["reference_files"], 111);
+        assert_eq!(report["provider_calls"], 0);
+        assert_eq!(report["release_approved"], false);
+        for (path, entry) in &f.reference {
+            assert_eq!(fs::read(output.join(path)).unwrap(), entry.bytes);
+            assert_eq!(
+                fs::metadata(output.join(path))
+                    .unwrap()
+                    .permissions()
+                    .mode()
+                    & 0o777,
+                entry.mode
+            );
+        }
+        let before = fs::read(output.join("LICENSE")).unwrap();
+        assert!(restore(&f.root, &directory, &output).is_err());
+        assert_eq!(fs::read(output.join("LICENSE")).unwrap(), before);
+    }
+}
+#[test]
+fn sharing_and_equal_count_missing_foreign_corruption_fail_before_writes() {
+    let f = Fixture::new();
+    let variants = [
+        "donor_missing",
+        "donor_changed",
+        "donor_mode",
+        "duplicate_physical",
+        "same_count_foreign",
+        "manifest_removed",
+        "license_changed",
+        "source_hash",
+        "source_duplicate_key",
+        "foreign_source",
+    ];
+    for variant in variants {
+        let directory = f.packet(variant, true, |native, reference, _| match variant {
+            "donor_missing" => {
+                native.remove(SHARED[0].0).unwrap();
+                Fixture::manifest(native);
+            }
+            "donor_changed" => {
+                native.get_mut(SHARED[0].0).unwrap().bytes[0] ^= 1;
+                Fixture::manifest(native);
+            }
+            "donor_mode" => native.get_mut(SHARED[0].0).unwrap().mode = 0o600,
+            "duplicate_physical" => {
+                reference.insert(SHARED[0].0.into(), native[SHARED[0].0].clone());
+            }
+            "same_count_foreign" => {
+                let path = reference
+                    .keys()
+                    .find(|path| {
+                        !["LICENSE", "frozen-reference-manifest.json"].contains(&path.as_str())
+                    })
+                    .unwrap()
+                    .clone();
+                let old = reference.remove(&path).unwrap();
+                reference.insert("foreign.mjs".into(), old);
+                assert_eq!(reference.len(), 111);
+            }
+            "manifest_removed" => {
+                reference.remove("frozen-reference-manifest.json").unwrap();
+            }
+            "license_changed" => reference.get_mut("LICENSE").unwrap().bytes[0] ^= 1,
+            "source_hash" => native.get_mut(SHARED[0].0).unwrap().bytes[0] ^= 1,
+            "source_duplicate_key" => {
+                let bytes = &mut native.get_mut("source-manifest.json").unwrap().bytes;
+                *bytes = String::from_utf8(bytes.clone())
+                    .unwrap()
+                    .replacen('{', "{\"schema_version\":2,", 1)
+                    .into_bytes();
+            }
+            "foreign_source" => {
+                native.insert(
+                    "private.env".into(),
+                    Entry {
+                        bytes: b"PRIVATE_SENTINEL".to_vec(),
+                        mode: 0o644,
+                    },
+                );
+                Fixture::manifest(native);
+            }
+            _ => unreachable!(),
+        });
+        f.reject(&directory, &format!("{variant}-output"));
+    }
+}
+#[test]
+fn exact_json_fields_duplicate_keys_shared_labels_and_limits_are_enforced() {
+    let f = Fixture::new();
+    for variant in [
+        "foreign",
+        "schema",
+        "shared_duplicate",
+        "shared_foreign",
+        "shared_missing",
+        "logical_limit",
+        "logical_payload",
+        "logical_count",
+        "physical_count",
+        "privacy",
+        "provider",
+        "missing_archive",
+        "expansion",
+        "legacy",
+        "unsafe_count",
+    ] {
+        let directory = f.packet(variant, true, |_, _, record| match variant {
+            "foreign" => record["PRIVATE_SENTINEL"] = json!(true),
+            "schema" => record["schema_version"] = json!(4),
+            "shared_duplicate" => {
+                let donor = record["shared_inputs"][0].clone();
+                record["shared_inputs"].as_array_mut().unwrap().push(donor);
+            }
+            "shared_foreign" => record["shared_inputs"][0]["path"] = json!("other.json"),
+            "shared_missing" => {
+                record["shared_inputs"].as_array_mut().unwrap().pop();
+            }
+            "logical_limit" => record["aggregate_logical_file_limit"] = json!(SOURCE.expanded + 1),
+            "logical_payload" => record["aggregate_logical_file_bytes"] = json!(1),
+            "logical_count" => record["logical_reference_files"] = json!(112),
+            "physical_count" => record["reference_transport_files"] = json!(113),
+            "privacy" => record["private_material_included"] = json!(true),
+            "provider" => record["provider_calls"] = json!(1),
+            "unsafe_count" => record["reference_files"] = json!(111.5),
+            _ => {}
+        });
+        if ["missing_archive", "expansion", "legacy"].contains(&variant) {
+            let mut record: Value = serde_json::from_slice(
+                &fs::read(directory.join("transfer-manifest.json")).unwrap(),
+            )
+            .unwrap();
+            match variant {
+                "missing_archive" => {
+                    record["archives"]
+                        .as_object_mut()
+                        .unwrap()
+                        .remove(DELTA_NAME);
+                }
+                "expansion" => record["aggregate_expanded_tar_bytes"] = json!(1),
+                "legacy" => record["legacy_full_tar_bytes"] = json!(1),
+                _ => unreachable!(),
+            }
+            Fixture::metadata(&directory, &record, DELTA_NAME);
+        }
+        f.reject(&directory, &format!("{variant}-output"));
+    }
+    let directory = f.packet("duplicate-json", true, |_, _, _| {});
+    let raw = fs::read_to_string(directory.join("transfer-manifest.json")).unwrap();
+    let duplicate = raw.replacen('{', "{\"schema_version\":2,", 1);
+    Fixture::raw_metadata(&directory, duplicate.as_bytes(), DELTA_NAME);
+    f.reject(&directory, "duplicate-output");
+    assert!(metadata::parse(br#"{"a":{"b":1,"b":1}}"#, FILE_LIMIT).is_err());
+    assert!(
+        metadata::parse(
+            br#"{"schema_version":2,"\u0073chema_version":2}"#,
+            FILE_LIMIT
+        )
+        .is_err()
+    );
+    assert!(
+        metadata::parse(br#"{"PRIVATE_SENTINEL":"x"}"#, 2)
+            .unwrap_err()
+            .contains("limit")
+    );
+    let bytes = vec![0; FILE_LIMIT];
+    assert!(sum(std::iter::repeat_n(bytes.as_slice(), 33)).is_err());
+}
+#[test]
+fn checksums_truncation_outer_bounds_and_input_links_fail_before_writes() {
+    let f = Fixture::new();
+    for variant in [
+        "archive",
+        "sidecar",
+        "resume",
+        "sums",
+        "truncated",
+        "oversize",
+        "hardlink",
+        "symlink",
+    ] {
+        let directory = f.packet(variant, true, |_, _, _| {});
+        let archive = directory.join(DELTA_NAME);
+        match variant {
+            "archive" => {
+                let mut bytes = fs::read(&archive).unwrap();
+                bytes[0] ^= 1;
+                fs::write(&archive, bytes).unwrap();
+            }
+            "sidecar" => fs::write(directory.join(format!("{DELTA_NAME}.sha256")), b"bad").unwrap(),
+            "resume" => fs::write(directory.join("RESUME.md"), b"changed").unwrap(),
+            "sums" => fs::write(directory.join("SHA256SUMS"), b"bad").unwrap(),
+            "truncated" => fs::write(&archive, b"gzip").unwrap(),
+            "oversize" => fs::write(directory.join("RESUME.md"), vec![0; META_LIMIT + 1]).unwrap(),
+            "hardlink" => fs::hard_link(&archive, directory.join("second-link")).unwrap(),
+            "symlink" => {
+                fs::rename(&archive, directory.join("saved")).unwrap();
+                symlink("saved", &archive).unwrap();
+            }
+            _ => unreachable!(),
+        }
+        if variant == "truncated" {
+            let mut record: Value = serde_json::from_slice(
+                &fs::read(directory.join("transfer-manifest.json")).unwrap(),
+            )
+            .unwrap();
+            record["archives"][DELTA_NAME]["sha256"] = json!(sha(&fs::read(&archive).unwrap()));
+            Fixture::metadata(&directory, &record, DELTA_NAME);
+            let error = load(&f.root, &directory)
+                .err()
+                .expect("truncated archive cannot load");
+            assert!(["Invalid gzip archive", "Incomplete tar archive"].contains(&error.as_str()));
+        }
+        f.reject(&directory, &format!("{variant}-output"));
+    }
+}
+#[test]
+fn restore_cancel_and_final_or_ancestor_replacement_never_publish_success() {
+    let f = Fixture::new();
+    let directory = f.packet("valid", true, |_, _, _| {});
+    let output = f.scratch.0.join("pre-cancel");
+    assert!(
+        restore_with(
+            &f.root,
+            &directory,
+            &output,
+            || Err("cancelled".into()),
+            |_| Ok(())
+        )
+        .is_err()
+    );
+    assert!(!output.exists());
+    let output = f.scratch.0.join("mid-cancel");
+    let mut calls = 0;
+    assert!(
+        restore_with(
+            &f.root,
+            &directory,
+            &output,
+            || {
+                calls += 1;
+                if calls == 5 {
+                    Err("cancelled".into())
+                } else {
+                    Ok(())
+                }
+            },
+            |_| Ok(())
+        )
+        .is_err()
+    );
+    assert!(output.is_dir());
+    for ancestor in [false, true] {
+        let parent = f
+            .scratch
+            .0
+            .join(if ancestor { "ancestor" } else { "final" });
+        fs::create_dir(&parent).unwrap();
+        let output = parent.join("restored");
+        assert!(
+            restore_with(
+                &f.root,
+                &directory,
+                &output,
+                || Ok(()),
+                |path| {
+                    if ancestor {
+                        fs::rename(&parent, parent.with_extension("moved")).unwrap();
+                        fs::create_dir(&parent).unwrap();
+                        fs::create_dir(path).unwrap();
+                    } else {
+                        fs::rename(path, parent.join("moved")).unwrap();
+                        fs::create_dir(path).unwrap();
+                    }
+                    fs::write(path.join("foreign"), b"keep").unwrap();
+                    Ok(())
+                }
+            )
+            .is_err()
+        );
+        assert_eq!(fs::read(output.join("foreign")).unwrap(), b"keep");
+    }
+}
+
+#[test]
+fn archive_root_and_stream_failure_remain_rejected_with_recomputed_checksums() {
+    use std::io::{Read, Write};
+    let f = Fixture::new();
+    for variant in ["wrong-root", "duplicate-member", "foreign-directory"] {
+        let directory = f.packet(variant, true, |_, _, _| {});
+        let mut record: Value =
+            serde_json::from_slice(&fs::read(directory.join("transfer-manifest.json")).unwrap())
+                .unwrap();
+        let bytes = if variant == "wrong-root" {
+            let mut files = f.reference.clone();
+            for (path, _, _) in SHARED {
+                files.remove(*path);
+            }
+            encode_root("foreign-root", &files, SOURCE).unwrap()
+        } else {
+            let compressed = fs::read(directory.join(DELTA_NAME)).unwrap();
+            let mut raw = Vec::new();
+            flate2::read::MultiGzDecoder::new(compressed.as_slice())
+                .read_to_end(&mut raw)
+                .unwrap();
+            // First entry is the physical LICENSE member; duplicate its complete
+            // header/payload before original contents. Existing bounded decoder
+            // rejects duplicate paths rather than silently choosing a payload.
+            let padded = 512 + f.reference["LICENSE"].bytes.len().div_ceil(512) * 512;
+            let duplicate = if variant == "foreign-directory" {
+                let mut header = raw[..512].to_vec();
+                header[..100].fill(0);
+                let path = format!("{DELTA_ROOT}/foreign");
+                header[..path.len()].copy_from_slice(path.as_bytes());
+                header[124..136].copy_from_slice(b"00000000000\0");
+                header[156] = b'5';
+                header[148..156].fill(b' ');
+                let checksum: u64 = header.iter().map(|byte| u64::from(*byte)).sum();
+                header[148..156].copy_from_slice(format!("{checksum:06o}\0 ").as_bytes());
+                let expanded = record["archives"][DELTA_NAME]["expanded_tar_bytes"]
+                    .as_u64()
+                    .unwrap()
+                    + 512;
+                record["archives"][DELTA_NAME]["expanded_tar_bytes"] = json!(expanded);
+                let stored = record["aggregate_expanded_tar_bytes"].as_u64().unwrap() + 512;
+                record["aggregate_expanded_tar_bytes"] = json!(stored);
+                record["legacy_full_tar_bytes"] = json!(stored + 79360);
+                record["legacy_full_tar_within_limit"] =
+                    json!(stored + 79360 <= SOURCE.expanded as u64);
+                [header.as_slice(), raw.as_slice()].concat()
+            } else {
+                [&raw[..padded], raw.as_slice()].concat()
+            };
+            let mut writer =
+                flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::default());
+            writer.write_all(&duplicate).unwrap();
+            writer.finish().unwrap()
+        };
+        record["archives"][DELTA_NAME]["sha256"] = json!(sha(&bytes));
+        fs::write(directory.join(DELTA_NAME), bytes).unwrap();
+        Fixture::metadata(&directory, &record, DELTA_NAME);
+        if variant == "foreign-directory" {
+            let error = load(&f.root, &directory)
+                .err()
+                .expect("directory tar member cannot load");
+            assert_eq!(
+                error,
+                "Paired transfer archives require regular members only"
+            );
+        }
+        f.reject(&directory, &format!("{variant}-output"));
+    }
+}
+
+#[test]
+fn legacy_native_fixture_identity_cannot_be_null_missing_or_non_digest() {
+    let f = Fixture::new();
+    for variant in ["missing-and-null", "null-present", "non-digest"] {
+        let directory = f.packet(variant, false, |native, _, _| {
+            let mut record: Value =
+                serde_json::from_slice(&native["source-manifest.json"].bytes).unwrap();
+            if variant == "missing-and-null" {
+                native.remove("test/fixtures/ollama-routing.json").unwrap();
+                record["files"]
+                    .as_object_mut()
+                    .unwrap()
+                    .remove("test/fixtures/ollama-routing.json");
+            }
+            record["fixture_sha256"] = if variant == "non-digest" {
+                json!({"wrong":"shape"})
+            } else {
+                Value::Null
+            };
+            native.get_mut("source-manifest.json").unwrap().bytes =
+                serde_json::to_vec(&record).unwrap();
+        });
+        f.reject(&directory, &format!("{variant}-output"));
+    }
+}
+
+#[test]
+fn schema3_complete_reference_restore_and_independent_legacy_tar_charge_are_exact() {
+    let f = Fixture::new();
+    let directory = f.packet("schema3", true, |_, _, _| {});
+    let old: Value =
+        serde_json::from_slice(&fs::read(directory.join("transfer-manifest.json")).unwrap())
+            .unwrap();
+    f.schema3(&directory);
+    let plan = load(&f.root, &directory).unwrap();
+    assert_eq!(plan.record["schema_version"], 3);
+    assert_eq!(
+        plan.record["legacy_full_tar_bytes"],
+        old["legacy_full_tar_bytes"]
+    );
+    assert_eq!(plan.native.files.len(), f.native.len());
+    for (path, entry) in &f.native {
+        assert_eq!(plan.native.files[path].bytes, entry.bytes);
+        assert_eq!(plan.native.files[path].mode, entry.mode);
+    }
+    assert_eq!(
+        plan.record["aggregate_expanded_carrier_bytes"].as_u64(),
+        Some((plan.native.expanded_bytes + plan.reference.expanded_bytes) as u64)
+    );
+    let output = f.scratch.0.join("schema3-restored");
+    let report = restore(&f.root, &directory, &output).unwrap();
+    assert_eq!(report["transfer_schema"], 3);
+    assert_eq!(report["logical_files"], 113);
+    assert_eq!(report["reference_files"], 111);
+    for (path, entry) in &f.reference {
+        assert_eq!(fs::read(output.join(path)).unwrap(), entry.bytes);
+        assert_eq!(
+            fs::metadata(output.join(path))
+                .unwrap()
+                .permissions()
+                .mode()
+                & 0o777,
+            entry.mode
+        );
+    }
+    assert!(restore(&f.root, &directory, &output).is_err());
+}
+#[test]
+fn schema3_format_names_dimensions_unknown_fields_and_legacy_fallback_are_rejected() {
+    let f = Fixture::new();
+    for variant in [
+        "format",
+        "old_dimension",
+        "wrong_charge",
+        "extra_descriptor",
+        "native_name",
+        "shared_omission",
+        "logical_charge",
+        "legacy_charge",
+    ] {
+        let directory = f.packet(variant, true, |_, _, _| {});
+        f.schema3(&directory);
+        let mut record: Value =
+            serde_json::from_slice(&fs::read(directory.join("transfer-manifest.json")).unwrap())
+                .unwrap();
+        match variant {
+            "format" => record["archives"][CPIO_NAME]["format"] = json!("gzip-ustar"),
+            "old_dimension" => {
+                let old = record
+                    .as_object_mut()
+                    .unwrap()
+                    .remove("aggregate_expanded_carrier_bytes")
+                    .unwrap();
+                record["aggregate_expanded_tar_bytes"] = old;
+            }
+            "wrong_charge" => record["aggregate_expanded_carrier_bytes"] = json!(1),
+            "extra_descriptor" => record["archives"][CPIO_NAME]["PRIVATE_FIELD"] = json!(true),
+            "native_name" => {
+                let old = record["archives"]
+                    .as_object_mut()
+                    .unwrap()
+                    .remove(CPIO_NAME)
+                    .unwrap();
+                record["archives"]["native-source.tar.gz"] = old;
+            }
+            "shared_omission" => {
+                record["shared_inputs"].as_array_mut().unwrap().pop();
+            }
+            "logical_charge" => record["aggregate_logical_file_bytes"] = json!(1),
+            "legacy_charge" => record["legacy_full_tar_bytes"] = json!(1),
+            _ => unreachable!(),
+        }
+        Fixture::v3_metadata(&directory, &record);
+        f.reject(&directory, &format!("{variant}-output"));
+    }
+    let directory = f.packet("v2-body-labelled-v3", true, |_, _, record| {
+        record["schema_version"] = json!(3)
+    });
+    f.reject(&directory, "no-fallback-output");
+}
+#[test]
+fn schema3_truncated_or_nonzero_after_trailer_inputs_fail_before_destination_creation() {
+    use std::io::{Read, Write};
+    let f = Fixture::new();
+    for variant in ["truncated", "after-trailer"] {
+        let directory = f.packet(variant, true, |_, _, _| {});
+        f.schema3(&directory);
+        let mut record: Value =
+            serde_json::from_slice(&fs::read(directory.join("transfer-manifest.json")).unwrap())
+                .unwrap();
+        let bytes = if variant == "truncated" {
+            b"gzip".to_vec()
+        } else {
+            let encoded = fs::read(directory.join(CPIO_NAME)).unwrap();
+            let mut bytes = Vec::new();
+            flate2::read::MultiGzDecoder::new(encoded.as_slice())
+                .read_to_end(&mut bytes)
+                .unwrap();
+            bytes.push(1);
+            let mut writer = flate2::GzBuilder::new()
+                .mtime(0)
+                .write(Vec::new(), flate2::Compression::default());
+            writer.write_all(&bytes).unwrap();
+            writer.finish().unwrap()
+        };
+        record["archives"][CPIO_NAME]["sha256"] = json!(sha(&bytes));
+        fs::write(directory.join(CPIO_NAME), bytes).unwrap();
+        Fixture::v3_metadata(&directory, &record);
+        let error = load(&f.root, &directory)
+            .err()
+            .expect("actual CPIO decoder must reject");
+        assert!(if variant == "truncated" {
+            ["Invalid gzip archive", "Incomplete CPIO archive"].contains(&error.as_str())
+        } else {
+            error == "Nonzero data after CPIO trailer"
+        });
+        f.reject(&directory, &format!("{variant}-output"));
+    }
+}

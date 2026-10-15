@@ -1,4 +1,6 @@
 //! Explicit public-source transfer allowlist; never copies a checkout wholesale.
+#[path = "bundle_transfer_pair.rs"]
+mod pair;
 #[path = "bundle_transfer.rs"]
 mod transfer;
 use crate::package::archive::{Entry, SOURCE, decode_root, encode_root};
@@ -179,6 +181,8 @@ const FIXED: &[&str] = &[
     "rust/vendor/hyper-util-request-lease.patch",
     "rust/vendor/verify-hyper-util.mjs",
     "rust/vendor/verify-production-features.mjs",
+    "rust/vendor/nix-source.json",
+    "rust/vendor/nix-termios-init.patch",
     "rust/vendor/openssl-provenance.json",
     "rust/vendor/openssl-node-trust.patch",
     "rust/vendor/verify-openssl.mjs",
@@ -516,7 +520,7 @@ fn collect(root: &Path) -> Result<BTreeMap<String, Entry>, String> {
         manifest.insert(path.clone(), sha(&bytes));
         files.insert(path, Entry { bytes, mode: 0o644 });
     }
-    let readme=b"# AutoRouter native benchmark source bundle\n\nPublic source and synthetic fixtures only. Install the pinned Rust toolchain, a C compiler, Make and Perl for the bundled OpenSSL build, and fetch the Cargo.lock dependencies (or provide an existing Cargo cache), then run from rust/:\n\n    cargo build --locked --release --package xtask\n    cargo xtask evaluate-ollama --help\n\nReading help makes no evaluator calls. Hardware evaluator runs are explicitly opt-in, do not download models, and must retain fixture hashes, model digest, residency, cold/warm conditions and the unchanged acceptance rubric. Existing experimental quality failures remain visible. The historical docs describe the original Node commands; use native xtask help for the replacement interface.\n\nThe runtime-neutral Node/Rust HTTP benchmark requires its separately verified frozen Node reference; no frozen Node product source/runtime, private reports, credentials, user configuration, Cargo cache or binaries are included here. This source bundle itself does not establish build provenance, platform qualification, task quality or performance acceptance.\n".to_vec();
+    let readme=b"# AutoRouter native benchmark source bundle\n\nPublic source and synthetic fixtures only. Install the pinned Rust toolchain, a C compiler, Make and Perl for the bundled OpenSSL build, and fetch the Cargo.lock dependencies (or provide an existing Cargo cache), then run from rust/:\n\n    cargo build --locked --release --package xtask\n    cargo xtask evaluate-ollama --help\n\nReading help makes no evaluator calls. Hardware evaluator runs are explicitly opt-in, do not download models, and must retain fixture hashes, model digest, residency, cold/warm conditions and the unchanged acceptance rubric. Existing experimental quality failures remain visible. The historical docs describe the original Node commands; use native xtask help for the replacement interface.\n\nThe locked Nix supplier is fetched at its reviewed immutable Git revision; its complete source/provenance stays in the Cargo cache. Run the no-default-features autorouter-audit vendor check before building ordinary CLI/helper code.\n\nThe runtime-neutral Node/Rust HTTP benchmark requires its separately verified frozen Node reference; no frozen Node product source/runtime, private reports, credentials, user configuration, Cargo cache or binaries are included here. This source bundle itself does not establish build provenance, platform qualification, task quality or performance acceptance.\n".to_vec();
     manifest.insert("README.native.md".into(), sha(&readme));
     files.insert(
         "README.native.md".into(),
@@ -601,7 +605,22 @@ fn write_archive(
 pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
     if args == ["--help"] {
         println!(
-            "cargo xtask benchmark-bundle [NEW_DESTINATION.tar.gz]\ncargo xtask benchmark-bundle --transfer NEW_DIRECTORY\nDefault creates an allowlisted public Rust source and synthetic-fixture bundle, without frozen Node product sources. --transfer also creates a separately verified frozen Node reference archive and checksum/resume files for matched larger-host benchmarks, without a Git checkout. Both modes exclude credentials, private reports, binaries and Cargo caches and perform no evaluator calls. The transfer's combined source/reference expansion retains32MiB cap. Requires pinned Rust/locked dependencies; matched reference runs need Node22.14.0."
+            "cargo xtask benchmark-bundle [NEW_DESTINATION.tar.gz]\ncargo xtask benchmark-bundle --transfer NEW_DIRECTORY\ncargo xtask benchmark-bundle --restore-reference TRANSFER_DIRECTORY NEW_REFERENCE_DIRECTORY\nDefault creates an allowlisted public Rust source and synthetic-fixture bundle, without frozen Node product sources. --transfer creates a licensed reference delta sharing two exact fixtures with the native archive, plus checksum/resume files for matched larger-host benchmarks, without a Git checkout. Both modes exclude credentials, private reports, binaries and Cargo caches and perform no evaluator calls. Version3 uses a complete gzip-newc native source and licensed tar delta; stored carrier and complete logical file-payload caps retain32MiB. Legacy full-tar size is separately reported. --restore-reference verifies schema1,2or3 then creates the full113-file frozen reference before any reference operation. Requires pinned Rust/locked dependencies; matched reference runs need Node22.14.0."
+        );
+        return Ok(true);
+    }
+    if args.first().is_some_and(|arg| arg == "--restore-reference") {
+        if args.len() != 3 || args[1..].iter().any(|arg| arg.starts_with("--")) {
+            return Err("Usage: cargo xtask benchmark-bundle --restore-reference TRANSFER_DIRECTORY NEW_REFERENCE_DIRECTORY".into());
+        }
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&pair::restore(
+                root,
+                &root.join(&args[1]),
+                &root.join(&args[2])
+            )?)
+            .map_err(|_| "Cannot serialize reference restore result")?
         );
         return Ok(true);
     }

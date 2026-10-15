@@ -402,3 +402,6 @@ pub fn encode_root(
 #[cfg(test)]
 #[path = "package_archive_tests.rs"]
 mod tests;
+
+#[path = "package_cpio.rs"]
+pub(crate) mod cpio;

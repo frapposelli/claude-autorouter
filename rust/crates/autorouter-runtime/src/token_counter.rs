@@ -56,6 +56,32 @@ const CACHE_HEADERS: &[&str] = &[
 ];
 const RESPONSE_LIMIT: usize = 65_536;
 
+// Keep the original JSON array identity while avoiding a cloned Value and a
+// second payload-sized buffer. Only the SHA state is retained by this writer.
+struct CacheKeyHash(Sha256);
+impl std::io::Write for CacheKeyHash {
+    fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+        self.0.update(bytes);
+        Ok(bytes.len())
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+fn write_cache_key(
+    output: impl std::io::Write,
+    url: &str,
+    scope: &[Option<String>],
+    serialized: &str,
+) -> serde_json::Result<()> {
+    serde_json::to_writer(output, &(url, scope, serialized))
+}
+fn cache_key(url: &str, scope: &[Option<String>], serialized: &str) -> Option<[u8; 32]> {
+    let mut output = CacheKeyHash(Sha256::new());
+    write_cache_key(&mut output, url, scope, serialized).ok()?;
+    Some(output.0.finalize().into())
+}
+
 fn field(document: &JsDocument, node: NodeId, key: &str) -> Option<NodeId> {
     document.get(node, key)
 }
@@ -333,8 +359,7 @@ impl<T: HttpTransport> TokenCounter<T> {
                 (!values.is_empty()).then(|| values.join(", "))
             })
             .collect();
-        let key: [u8; 32] =
-            Sha256::digest(serde_json::to_vec(&json!([url, scope, serialized])).ok()?).into();
+        let key = cache_key(&url, &scope, &serialized)?;
         if let Some(count) = self.cache.lock().unwrap().get(&key) {
             return Some(count);
         }
@@ -405,6 +430,109 @@ mod tests {
         sync::atomic::{AtomicUsize, Ordering},
         task::{Context, Poll},
     };
+
+    #[test]
+    fn streamed_count_key_preserves_previous_exact_bytes_and_digest() {
+        let url = "http://synthetic.invalid/v1/messages/count_tokens?query=%2F&empty=";
+        let scope = vec![
+            None,
+            Some("Bearer synthetic-key".into()),
+            Some("é, value".into()),
+            Some("\"\\\0\u{2028}".into()),
+            None,
+            Some("".into()),
+        ];
+        let large =
+            serde_json::to_string(&json!({"content":"é\0\"\\😀\u{2028}".repeat(16384)})).unwrap();
+        let source_golden = [
+            (
+                139,
+                "a9eee1d20351cf16e784c04a87f1272e074e3311aacb15c05a51272d2f957d50",
+            ),
+            (
+                180,
+                "6ab1f3aaa9f8a721cce4940f84d54a23191b784a965f73e1d1d8c0cf5f0c610f",
+            ),
+            (
+                173,
+                "3b6b2e38085334e54fc5c4bfcb8d11b77135b1c0aa82f153352968514dccef0f",
+            ),
+            (
+                393373,
+                "2682b7de9837281aca6f72dca9c17600ce4001269a89a1db789a3fccd839b5bf",
+            ),
+        ];
+        for (serialized, (source_bytes, source_digest)) in [
+            "",
+            r#"{"escaped":"\ud800","number":null}"#,
+            "control\0\n\t/\"\\é😀\u{2028}\u{2029}",
+            large.as_str(),
+        ]
+        .into_iter()
+        .zip(source_golden)
+        {
+            let before = serde_json::to_vec(&json!([url, scope, serialized])).unwrap();
+            let mut after = Vec::new();
+            write_cache_key(&mut after, url, &scope, serialized).unwrap();
+            assert_eq!(after, before);
+            assert_eq!(after.len(), source_bytes);
+            assert_eq!(format!("{:x}", Sha256::digest(&after)), source_digest);
+            let expected: [u8; 32] = Sha256::digest(&before).into();
+            assert_eq!(cache_key(url, &scope, serialized), Some(expected));
+        }
+    }
+
+    #[test]
+    fn streamed_count_key_keeps_all_scope_positions_and_tuple_boundaries_distinct() {
+        let url = "http://synthetic.invalid/v1/messages/count_tokens?x=ab";
+        let scope = vec![None; CACHE_HEADERS.len()];
+        let mut keys = std::collections::HashSet::new();
+        assert!(keys.insert(cache_key(url, &scope, "{}").unwrap()));
+        for index in 0..CACHE_HEADERS.len() {
+            for value in ["", "same synthetic credential", "\"\\\0é"] {
+                let mut changed = scope.clone();
+                changed[index] = Some(value.into());
+                assert!(keys.insert(cache_key(url, &changed, "{}").unwrap()));
+            }
+        }
+        assert!(
+            keys.insert(
+                cache_key(
+                    "http://synthetic.invalid/v1/messages/count_tokens?x=a",
+                    &scope,
+                    "{}"
+                )
+                .unwrap()
+            )
+        );
+        assert!(keys.insert(cache_key(url, &scope, "{\"changed\":true}").unwrap()));
+        let mut a = scope.clone();
+        a[0] = Some("c".into());
+        let mut b = scope.clone();
+        b[0] = Some("bc".into());
+        assert_eq!(
+            format!("{url}c"),
+            format!("{}bc", url.strip_suffix('b').unwrap())
+        );
+        assert_ne!(
+            cache_key(url, &a, "{}"),
+            cache_key(url.strip_suffix('b').unwrap(), &b, "{}")
+        );
+    }
+
+    #[test]
+    fn streamed_count_key_rejects_incomplete_writer_instead_of_hashing_partial_json() {
+        struct Rejected;
+        impl std::io::Write for Rejected {
+            fn write(&mut self, _: &[u8]) -> std::io::Result<usize> {
+                Err(std::io::Error::other("synthetic write failure"))
+            }
+            fn flush(&mut self) -> std::io::Result<()> {
+                Ok(())
+            }
+        }
+        assert!(write_cache_key(Rejected, "http://synthetic.invalid", &[], "{}").is_err());
+    }
 
     const HAIKU: &str = "claude-haiku-4-5-20251001";
     const SONNET: &str = "claude-sonnet-5";

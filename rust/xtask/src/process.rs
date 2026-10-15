@@ -605,9 +605,33 @@ mod tests {
                     std::thread::sleep(Duration::from_millis(10));
                 }
                 let mut observer = ExitObserver::new(child.id()).unwrap();
+                #[cfg(target_os = "macos")]
+                let initial_registration_exited = Some(observer.exited);
+                #[cfg(not(target_os = "macos"))]
+                let initial_registration_exited = None::<bool>;
                 let deadline = Instant::now() + Duration::from_secs(2);
                 while !observer.exited(&mut child).unwrap() {
-                    assert!(Instant::now() < deadline);
+                    assert!(
+                        Instant::now() < deadline,
+                        "owned child stat: {:?}; already_exited: {}; initial_registration_exited: {:?}",
+                        capture(
+                            Command::new("/bin/ps").env_clear().args([
+                                "-o",
+                                "stat=",
+                                "-p",
+                                &child.id().to_string()
+                            ]),
+                            b"",
+                            Duration::from_secs(1),
+                        )
+                        .map(|bytes| String::from_utf8_lossy(
+                            &bytes[..bytes.len().min(64)]
+                        )
+                        .trim()
+                        .to_owned()),
+                        already_exited,
+                        initial_registration_exited,
+                    );
                     std::thread::sleep(Duration::from_millis(1));
                 }
                 // An independent OS wait proves observation did not consume

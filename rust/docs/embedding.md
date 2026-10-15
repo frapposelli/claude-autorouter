@@ -121,16 +121,32 @@ JavaScript `Error` identity.
 
 Before starting workers, an embedding host can explicitly call `autorouter_runtime::callback_privacy::initialize_observer_privacy()` after configuring its own panic hook. This installs one delegating process hook: ordinary observer panics are caught without printing their private payload or backtrace, while unrelated panics use the previous host hook. The CLI initializes this guard automatically. Initialization must precede concurrent work because stable Rust cannot atomically replace a hook; replacing the hook afterward revokes the guard. The library does not silently replace a host hook when emitting an event. Thread-local scopes cover each synchronous callback or future poll and are restored after nesting/unwinding; they never span an await. Panic-abort behavior, a subsequently replaced or aborting hook, and panic payloads with panicking destructors remain outside containment.
 
-`run_local_diagnostic_with_progress` calls a synchronous `FnMut(&Value) -> Result<(), ()>` in event order. Returned errors and ordinary unwinding callback panics do not prevent the remaining diagnostic work. Without the explicit privacy initialization, the host's existing hook may still print a caught panic. JavaScript callbacks returning promises have no direct equivalent in this synchronous Rust interface, and synchronous `Err(())` coverage does not establish async-callback rejection equivalence.
+`run_local_diagnostic_with_progress` calls a synchronous `FnMut(&Value) -> Result<(), ()>` in event order. Returned errors and ordinary unwinding callback panics do not prevent the remaining diagnostic work. Without the explicit privacy initialization, the host's existing hook may still print a caught panic. Callbacks returning futures use the owned adapter described below; a synchronous `Err(())` alone does not establish asynchronous rejection behavior.
 
 For callbacks that return futures, create an `ObserverTasks` owner in the active
 Tokio runtime and use `owner.handle().event_sink(factory)` or
 `owner.handle().record_sink(factory)`. An admitted factory starts synchronously;
 its `Future<Output = Result<(), ObserverRejected>>` runs independently of
 forwarding. Retain the owner and explicitly call `owner.close().await` during
-shutdown. Close cancels accepted observer work and joins its one worker; it does
+shutdown. For diagnostic progress, forward each borrowed event with
+`sink(event.clone())` and return `Ok(())` from the synchronous bridge. The
+diagnostic regression polls actual returned futures to `ObserverRejected`,
+preserves the completed report, releases every observer and joins its owner.
+This is an explicit Rust API migration: futures are owned, `Send` and `'static`;
+JavaScript Promise and Error object identities are not preserved. Close cancels
+accepted observer work and joins its one worker; it does
 not promise to finish arbitrary pending observers or make them durable. Dropping
 the owner requests cancellation without observing joined cleanup.
+
+`ResponseObserver::new` accepts a synchronous `FnMut(Observation)` sink.
+To migrate JavaScript model, execution or completion callbacks that return
+futures, dispatch the corresponding typed observation and use
+`ObserverHandle::submit` with its exact serialized callback-metadata byte count.
+Keep and explicitly close its `ObserverTasks` owner. The bridge returns unit;
+forwarding and clean body EOF do not await its returned futures. Rust owned
+`Send` + `'static` futures and `ObserverRejected` replace Promise settlement and
+private Error details; JavaScript callback aliases, Promise/Error identities and
+microtask scheduling are not part of this adapter contract.
 
 Default limits are 256 pending factories/futures, 64 KiB per serialized payload
 and 1 MiB of charged payload/inline factory/future storage. Callers may lower
@@ -145,7 +161,7 @@ token. Snapshots contain numeric counters and lifecycle flags, never payloads.
 
 `SessionLog::close().await` stops record admission and waits for the writer to finish and close its files. Healthy writers drain accepted records; write failures disable logging. Rust close futures begin this operation when first polled; constructing an unpolled future does not stop admission. Separate close futures wait for the same writer-owned worker, which closes the sink once. Cancelling a close waiter leaves that worker owned by the logger so another close call can await it. This is an explicit migration from JavaScript's shared close Promise; Rust futures do not preserve its object identity.
 
-Session logging accepts `serde_json::Value`, which has no property getters, `undefined`, or nonfinite numbers. Native tests retain complete durable metadata and privacy checks for representable values; omitted JavaScript getters and nonfinite-input projections are not equivalent input operations. `SessionLogOptions::warn` is a synchronous callback. Ordinary unwinding warning panics are contained, with hook output suppressed only after the explicit privacy initialization; rejected asynchronous warning promises have no counterpart in that interface and remain outside its qualified coverage.
+Session logging accepts `serde_json::Value`, which has no property getters, `undefined`, or nonfinite numbers. Native tests retain complete durable metadata and privacy checks for representable values; omitted JavaScript getters and nonfinite-input projections are not equivalent input operations. `SessionLogOptions::warn` is a synchronous callback. Ordinary unwinding warning panics are contained, with hook output suppressed only after the explicit privacy initialization. To adapt a warning callback that returns a future, copy the warning into an owned string and call `handle.submit(warning.len(), move || factory(warning))` from the synchronous bridge. Keep the `ObserverTasks` owner and explicitly close it at shutdown. The returned `Send` + `'static` future is polled independently; a payload-free `ObserverRejected` replaces JavaScript rejection details. Returning unit from the warning bridge alone does not prove asynchronous rejection handling, and Promise/Error object identities are not preserved.
 
 `read_session_history()` validates every `HistoryLimits` field before starting its filesystem worker, including fields constructed directly by Rust callers. Zero values and values above the original reader ceilings return `Invalid session-history read limit.` before ID or path errors. Defaults and smaller positive limits retain their existing behavior. The pure parser APIs accept caller-owned data separately; they do not perform filesystem admission.
 

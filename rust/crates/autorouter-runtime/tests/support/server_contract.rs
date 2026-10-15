@@ -1,14 +1,29 @@
 //! Exact shared server-contract helpers; distinct original metadata policies stay separate.
 use super::peer::Observation;
-use autorouter_runtime::{http_client::HttpTransport, server_events::EventSink};
+use autorouter_core::{js_json::JsDocument, router::RouteOptions};
+use autorouter_runtime::{
+    evaluator::EvaluationError,
+    http_client::{HttpError, HttpTransport, NativeHttpClient},
+    response_observer::CompletionEvidence,
+    server::GatewayRouter,
+    server_events::EventSink,
+};
 use bytes::Bytes;
-use http_body_util::{BodyExt, Full, Limited};
-use hyper::{HeaderMap, Request};
+use http_body_util::{BodyExt, Full, Limited, combinators::UnsyncBoxBody};
+use hyper::{HeaderMap, Request, Response};
 use serde_json::{Value, json};
 use std::{
     collections::{BTreeMap, BTreeSet},
-    sync::{Arc, Mutex},
+    sync::{
+        Arc, Mutex,
+        atomic::{AtomicBool, Ordering},
+    },
 };
+
+use tokio_util::sync::CancellationToken;
+
+type Error = Box<dyn std::error::Error + Send + Sync>;
+type Body = UnsyncBoxBody<Bytes, Error>;
 
 const LIMIT: usize = 2 * 1024 * 1024;
 type Events = Arc<Mutex<Vec<Value>>>;
@@ -395,16 +410,38 @@ pub async fn send_buffered(
     gateway: Option<&autorouter_runtime::server::GatewayHandle>,
     row: &Value,
 ) -> Result<Reply, String> {
+    send_configured_buffered::<false, true>(client, gateway, row).await
+}
+
+pub async fn send_configured_buffered<const QUERY: bool, const DEFAULT_BODY: bool>(
+    client: &autorouter_runtime::http_client::NativeHttpClient,
+    gateway: Option<&autorouter_runtime::server::GatewayHandle>,
+    row: &Value,
+) -> Result<Reply, String> {
     let url = url::Url::parse(row["url"].as_str().unwrap()).unwrap();
+    let suffix = if QUERY {
+        format!(
+            "{}{}",
+            url.path(),
+            url.query().map(|q| format!("?{q}")).unwrap_or_default()
+        )
+    } else {
+        url.path().to_owned()
+    };
     let mut request = Request::builder()
         .method(row["method"].as_str().unwrap())
-        .uri(format!("http://{}{}", gateway.unwrap().address, url.path()));
+        .uri(format!("http://{}{}", gateway.unwrap().address, suffix));
     *request.headers_mut().unwrap() = headers(&row["headers"]);
     let response = client
         .request(
             request
                 .body(Full::new(Bytes::from(
-                    row["body"].as_str().unwrap_or_default().to_owned(),
+                    if DEFAULT_BODY {
+                        row["body"].as_str().unwrap_or_default()
+                    } else {
+                        row["body"].as_str().unwrap()
+                    }
+                    .to_owned(),
                 )))
                 .unwrap(),
         )
@@ -588,4 +625,309 @@ pub fn write_capture_file(path: &std::path::Path, bytes: &[u8]) {
     let mut file = options.open(path).unwrap();
     file.write_all(bytes).unwrap();
     file.write_all(b"\n").unwrap();
+}
+
+pub struct MockRouter {
+    pub decisions: Vec<Value>,
+    pub calls: Mutex<Vec<Value>>,
+    pub completions: Mutex<Vec<Value>>,
+    pub closed: AtomicBool,
+}
+impl GatewayRouter for MockRouter {
+    async fn route(
+        &self,
+        document: Arc<JsDocument>,
+        options: RouteOptions,
+        _: &HeaderMap,
+        cancellation: &CancellationToken,
+        _: &str,
+    ) -> Result<Value, EvaluationError> {
+        let mut rows = self.calls.lock().unwrap();
+        let index = rows.len();
+        assert!(index < self.decisions.len());
+        rows.push(json!({"document":parsed(document.stringify().as_bytes()),"scope":options.scope,"prompt_id":options.prompt_id,"request_class":options.request_class,"request_id":options.request_id,"count_tokens":options.count_tokens,"signal_live":!cancellation.is_cancelled()}));
+        Ok(self.decisions[index].clone())
+    }
+    fn complete(&self, id: &str, evidence: &Value) -> bool {
+        let mut rows = self.completions.lock().unwrap();
+        assert!(rows.len() < 32);
+        rows.push(json!({"id":id,"evidence":evidence,"accepted":false}));
+        false
+    }
+    fn complete_exact(&self, id: &str, evidence: &CompletionEvidence) -> bool {
+        let mut rows = self.completions.lock().unwrap();
+        assert!(rows.len() < 32);
+        rows.push(json!({"id":id,"evidence":evidence,"accepted":false}));
+        false
+    }
+    fn shutdown(&self) {
+        self.closed.store(true, Ordering::SeqCst);
+    }
+    async fn close(&self) {
+        self.shutdown();
+    }
+}
+#[derive(Clone)]
+pub struct SharedAssertions {
+    number: usize,
+    counts: Arc<Mutex<BTreeMap<usize, usize>>>,
+}
+impl SharedAssertions {
+    pub fn new(number: usize) -> Self {
+        Self {
+            number,
+            counts: Arc::new(Mutex::new(BTreeMap::new())),
+        }
+    }
+    pub fn check(&self, site: usize, passed: bool) {
+        *self.counts.lock().unwrap().entry(site).or_default() += 1;
+        assert!(passed, "server#{}:assert-{site}", self.number);
+    }
+    pub fn finish(self) {
+        let counts = self.counts.lock().unwrap();
+        finish_counts(self.number, &counts, super::CAPTURE);
+    }
+}
+pub struct Assertions<const VARIANTS: usize, const ACTIVE_ONLY: bool> {
+    number: usize,
+    counts: BTreeMap<usize, usize>,
+}
+impl<const VARIANTS: usize, const ACTIVE_ONLY: bool> Assertions<VARIANTS, ACTIVE_ONLY> {
+    pub fn new(number: usize) -> Self {
+        Self {
+            number,
+            counts: BTreeMap::new(),
+        }
+    }
+    pub fn check(&mut self, site: usize, passed: bool) {
+        *self.counts.entry(site).or_default() += 1;
+        assert!(passed, "server#{}:assert-{site}", self.number);
+    }
+    pub fn finish(self) {
+        let capture: Value = serde_json::from_str(super::CAPTURE).unwrap();
+        let row = capture["definitions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|row| row["number"] == self.number)
+            .unwrap();
+        for (index, site) in row["assertions"].as_array().unwrap().iter().enumerate() {
+            let executions = site["executions"].as_u64().unwrap() as usize;
+            if VARIANTS == 2 {
+                assert_eq!(
+                    executions % 2,
+                    0,
+                    "both original variants execute each site equally"
+                );
+                assert_eq!(
+                    self.counts.get(&(index + 1)).copied().unwrap_or(0),
+                    executions / 2,
+                    "server#{}:assert-{} per-variant count",
+                    self.number,
+                    index + 1
+                );
+            } else {
+                assert_eq!(
+                    self.counts.get(&(index + 1)).copied().unwrap_or(0),
+                    executions,
+                    "server#{}:assert-{} execution count",
+                    self.number,
+                    index + 1
+                );
+            }
+        }
+        let sites = row["assertions"].as_array().unwrap();
+        assert_eq!(
+            self.counts.len(),
+            if ACTIVE_ONLY {
+                sites.iter().filter(|site| site["executions"] != 0).count()
+            } else {
+                sites.len()
+            }
+        );
+    }
+}
+
+pub async fn close_gateway(
+    gateway: &mut Option<autorouter_runtime::server::GatewayHandle>,
+    peer: &mut Option<super::peer::Peer>,
+    bound: std::time::Duration,
+) -> Result<Vec<Observation>, String> {
+    let closed = tokio::time::timeout(bound, gateway.take().unwrap().close()).await;
+    let requests = peer.as_ref().unwrap().observations();
+    let peer_closed = peer.take().unwrap().close().await;
+    closed.map_err(|_| "gateway cleanup timed out")?;
+    peer_closed?;
+    Ok(requests)
+}
+
+pub fn check_recorders<const N: usize>(rows: [&Events; N]) -> Result<(), String> {
+    for rows in rows {
+        if rows
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|row| row["event"] == "fixture_observer_overflow")
+        {
+            return Err("sticky event recorder overflow".into());
+        }
+    }
+    Ok(())
+}
+pub fn capture_headers(headers: &HeaderMap) -> BTreeMap<String, String> {
+    headers
+        .iter()
+        .map(|(k, v)| (k.as_str().to_owned(), v.to_str().unwrap().to_owned()))
+        .collect()
+}
+
+pub fn capture_request(r: &Observation) -> Value {
+    json!({"method":r.method,"path":r.path,"headers":capture_headers(&r.headers),"body_utf8":std::str::from_utf8(&r.body).unwrap()})
+}
+
+pub fn capture_reply(r: &Reply) -> Value {
+    json!({"status":r.status,"headers":capture_headers(&r.headers),"body_base64":openssl::base64::encode_block(&r.bytes)})
+}
+
+pub struct EvaluatorTransport<const FROM_SLICE: bool> {
+    pub native: Arc<NativeHttpClient>,
+    pub authority: String,
+    pub script: Vec<Value>,
+    pub mocked: Mutex<Vec<Observation>>,
+    pub faults: Mutex<Vec<String>>,
+    pub mismatch_message: &'static str,
+    pub endpoint_message: &'static str,
+}
+impl<const FROM_SLICE: bool> EvaluatorTransport<FROM_SLICE> {
+    fn fault(&self, text: &str) -> HttpError {
+        let mut faults = self.faults.lock().unwrap();
+        if faults.len() < 16 {
+            faults.push(text.into());
+        }
+        HttpError::InvalidRequest
+    }
+}
+impl<const FROM_SLICE: bool> HttpTransport for EvaluatorTransport<FROM_SLICE> {
+    type ResponseBody = Body;
+    async fn request(&self, request: Request<Full<Bytes>>) -> Result<Response<Body>, HttpError> {
+        if self
+            .script
+            .first()
+            .is_some_and(|row| request.uri() == row["url"].as_str().unwrap())
+        {
+            let (parts, body) = request.into_parts();
+            let observation = Observation {
+                method: parts.method.to_string(),
+                path: parts.uri.to_string(),
+                headers: parts.headers,
+                body: body.collect().await.unwrap().to_bytes().to_vec(),
+            };
+            let index = {
+                let mut calls = self.mocked.lock().unwrap();
+                if calls.len() >= self.script.len() {
+                    return Err(self.fault("extra evaluator request"));
+                }
+                let index = calls.len();
+                calls.push(observation.clone());
+                index
+            };
+            let row = &self.script[index];
+            if observation.method != row["method"].as_str().unwrap()
+                || !header_is(
+                    &observation.headers,
+                    "authorization",
+                    row["headers"]["authorization"].as_str(),
+                )
+                || parsed(&observation.body)
+                    != if FROM_SLICE {
+                        parsed(row["body"].as_str().unwrap().as_bytes())
+                    } else {
+                        serde_json::from_str::<Value>(row["body"].as_str().unwrap()).unwrap()
+                    }
+            {
+                return Err(self.fault(self.mismatch_message));
+            }
+            let bytes: Vec<u8> = row["reads"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter(|read| read["kind"] == "read" && read["done"] == false)
+                .flat_map(|read| decode(&read["base64"]))
+                .collect();
+            let body = Full::new(Bytes::from(bytes))
+                .map_err(|never| -> Error { match never {} })
+                .boxed_unsync();
+            return Ok(Response::builder()
+                .status(row["status"].as_u64().unwrap() as u16)
+                .header("content-type", "application/json")
+                .body(body)
+                .unwrap());
+        }
+        if request.uri().scheme_str() != Some("http")
+            || request
+                .uri()
+                .authority()
+                .is_none_or(|a| a.as_str() != self.authority)
+        {
+            return Err(self.fault(self.endpoint_message));
+        }
+        self.native.request(request).await.map(|response| {
+            response.map(|body| {
+                body.map_err(|error| -> Error { Box::new(error) })
+                    .boxed_unsync()
+            })
+        })
+    }
+}
+pub struct RecordCallbacks<'a> {
+    pub records: &'a [Value],
+    pub decisions: &'a [Value],
+    pub history: &'a [Value],
+    pub logs: &'a [Value],
+    pub real: bool,
+}
+pub fn compare_record_callbacks(row: &Value, seen: &RecordCallbacks<'_>) {
+    assert_eq!(seen.records.len(), row["records"].as_array().unwrap().len());
+    assert_eq!(
+        seen.decisions.len(),
+        row["decisions"].as_array().unwrap().len()
+    );
+    let source_starts = events(row["statuses"].as_array().unwrap(), "request_start");
+    let starts = events(seen.history, "request_start");
+    for (actual, wanted) in seen
+        .records
+        .iter()
+        .zip(row["records"].as_array().unwrap())
+        .chain(
+            seen.decisions
+                .iter()
+                .zip(row["decisions"].as_array().unwrap()),
+        )
+    {
+        let index = source_starts
+            .iter()
+            .position(|r| r["request_id"] == wanted["request_id"])
+            .unwrap();
+        assert_eq!(actual["request_id"], starts[index]["request_id"]);
+        compare_real_metadata(wanted, actual, seen.real);
+    }
+    let private = [
+        "PRIVATE_RESPONSE_TEXT",
+        "PRIVATE_PROMPT_METADATA_MODE",
+        "PRIVATE_ERROR",
+        "private sink failure",
+        "private failure",
+    ];
+    for secret in private {
+        assert!(!json!({"records":seen.records,"decisions":seen.decisions,"logs":seen.logs,"statuses":seen.history}).to_string().contains(secret));
+    }
+}
+pub async fn wait_complete_count(statuses: &Events, count: usize) -> Result<(), String> {
+    for _ in 0..100 {
+        if events(&statuses.lock().unwrap(), "request_complete").len() >= count {
+            return Ok(());
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(5)).await;
+    }
+    Err("exact per-request terminal callback not observed".into())
 }

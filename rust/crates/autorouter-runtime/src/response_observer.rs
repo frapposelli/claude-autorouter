@@ -1640,4 +1640,392 @@ mod tests {
         assert_eq!(contract_events(&events)["usages"], json!([]));
         assert_eq!(contract_events(&events)["completions"], json!([]));
     }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn original_32_throwing_and_owned_rejecting_callbacks_preserve_bytes_and_eof() {
+        use crate::observer_tasks::{
+            ObserverAdmission, ObserverLimits, ObserverRejected, ObserverSnapshot, ObserverTasks,
+        };
+        use std::future::Future;
+        use std::sync::atomic::{AtomicUsize, Ordering};
+        use std::time::Duration;
+
+        struct RejectedExecution {
+            private_reason: &'static str,
+            polled: std::sync::Arc<AtomicUsize>,
+            dropped: std::sync::Arc<AtomicUsize>,
+        }
+        impl Future for RejectedExecution {
+            type Output = Result<(), ObserverRejected>;
+            fn poll(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<Self::Output> {
+                assert_eq!(self.private_reason, "PRIVATE_ERROR");
+                self.polled.fetch_add(1, Ordering::SeqCst);
+                Poll::Ready(Err(ObserverRejected))
+            }
+        }
+        impl Drop for RejectedExecution {
+            fn drop(&mut self) {
+                self.dropped.fetch_add(1, Ordering::SeqCst);
+            }
+        }
+        let corpus = include_str!("../../../parity/cases/response-observer-contracts.jsonl");
+        assert_eq!(
+            format!(
+                "{:x}",
+                <sha2::Sha256 as sha2::Digest>::digest(corpus.as_bytes())
+            ),
+            "c9833a7f743165f201e0a7b5c314cc34c125c0ae5460a5a4e1c6913d5e88c2d3"
+        );
+        let row = corpus
+            .lines()
+            .map(|line| serde_json::from_str::<Value>(line).unwrap())
+            .find(|row| row["id"] == "baseline-observer-32-1")
+            .unwrap();
+        let chunks: Vec<Bytes> = row["input"]["chunks"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|chunk| {
+                Bytes::from(
+                    chunk
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .map(|byte| u8::try_from(byte.as_u64().unwrap()).unwrap())
+                        .collect::<Vec<_>>(),
+                )
+            })
+            .collect();
+        assert_eq!(
+            chunks.iter().map(Bytes::len).collect::<Vec<_>>(),
+            [136, 117]
+        );
+        let expected_arguments = vec![
+            json!({"kind":"models","value":{"model":"claude-opus-5-5"}}),
+            json!({"kind":"executions","value":{"model":"claude-opus-5-5","source":"message_start"}}),
+            json!({"kind":"completions","value":{"model":"claude-opus-5-5",
+                "continuation_model":"claude-opus-5-5","stop_reason":"end_turn","tool_uses":[]}}),
+        ];
+        let mut original_byte_assertions = 0;
+        for asynchronous in [false, true] {
+            let owner = ObserverTasks::new(ObserverLimits::default()).unwrap();
+            let handle = owner.handle();
+            let arguments = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+            let callback_arguments = arguments.clone();
+            let admissions = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+            let admitted = admissions.clone();
+            let started = std::sync::Arc::new(AtomicUsize::new(0));
+            let factories = started.clone();
+            let polled = std::sync::Arc::new(AtomicUsize::new(0));
+            let future_polled = polled.clone();
+            let dropped = std::sync::Arc::new(AtomicUsize::new(0));
+            let future_dropped = dropped.clone();
+            let events = Events::default();
+            let default_events = events.clone();
+            let observer =
+                ResponseObserver::new("text/event-stream", DEFAULT_BUFFER_BYTES, move |event| {
+                    let (kind, value) = contract_event(&event);
+                    if ["models", "executions", "completions"].contains(&kind) {
+                        callback_arguments
+                            .lock()
+                            .unwrap()
+                            .push(json!({"kind":kind,"value":value}));
+                        if !asynchronous {
+                            panic!("synthetic execution callback failure");
+                        }
+                        let bytes = serde_json::to_vec(&value).unwrap().len();
+                        let polled = future_polled.clone();
+                        let dropped = future_dropped.clone();
+                        let admission = handle.submit(bytes, || {
+                            factories.fetch_add(1, Ordering::SeqCst);
+                            RejectedExecution {
+                                private_reason: "PRIVATE_ERROR",
+                                polled,
+                                dropped,
+                            }
+                        });
+                        admitted.lock().unwrap().push(admission);
+                    } else {
+                        default_events.lock().unwrap().push(event);
+                    }
+                })
+                .unwrap();
+            let mut body =
+                ObservedBody::new(ContractBody(chunks.iter().cloned().collect()), observer);
+            let mut forwarded = Vec::new();
+            for chunk in &chunks {
+                let actual =
+                    poll_contract_frame(&mut body).expect("original frame forwards immediately");
+                assert_eq!(actual.as_ptr(), chunk.as_ptr());
+                assert_eq!(&actual, chunk);
+                forwarded.extend_from_slice(&actual);
+            }
+            assert_eq!(*arguments.lock().unwrap(), expected_arguments[..2]);
+            assert!(poll_contract_frame(&mut body).is_none());
+            original_byte_assertions += 1;
+            assert_eq!(
+                forwarded,
+                chunks.concat(),
+                "original #32 inherited byte assertion"
+            );
+            assert_eq!(*arguments.lock().unwrap(), expected_arguments);
+            let mut complete_result = contract_events(&events);
+            complete_result["forwarded"] = json!(forwarded);
+            assert_eq!(complete_result, row["node_expected"]);
+            assert_eq!(polled.load(Ordering::SeqCst), 0);
+            assert_eq!(dropped.load(Ordering::SeqCst), 0);
+            let count = usize::from(asynchronous) * 3;
+            assert_eq!(started.load(Ordering::SeqCst), count);
+            assert_eq!(
+                *admissions.lock().unwrap(),
+                vec![ObserverAdmission::Accepted; count]
+            );
+            assert_eq!(owner.snapshot().pending, count);
+            assert_eq!(owner.snapshot().factories, 0);
+            tokio::time::timeout(Duration::from_secs(10), async {
+                while owner.snapshot().pending != 0 {
+                    tokio::task::yield_now().await;
+                }
+            })
+            .await
+            .expect("actual rejected callbacks settle before shutdown");
+            assert_eq!(polled.load(Ordering::SeqCst), count);
+            assert_eq!(dropped.load(Ordering::SeqCst), count);
+            assert_eq!(
+                owner.snapshot(),
+                ObserverSnapshot {
+                    rejected: count as u64,
+                    ..ObserverSnapshot::default()
+                }
+            );
+            tokio::time::timeout(Duration::from_secs(10), owner.close())
+                .await
+                .expect("joined callback owner shutdown");
+            let snapshot = owner.snapshot();
+            assert_eq!(
+                snapshot,
+                ObserverSnapshot {
+                    closed: true,
+                    worker_finished: true,
+                    rejected: count as u64,
+                    ..ObserverSnapshot::default()
+                }
+            );
+            assert!(!format!("{snapshot:?}").contains("PRIVATE_ERROR"));
+            assert!(
+                !serde_json::to_string(&complete_result)
+                    .unwrap()
+                    .contains("PRIVATE_ERROR")
+            );
+            eprintln!(
+                "RESPONSE_EXECUTION_FUTURE_NATIVE {}",
+                json!({
+                    "source_test":"test/response-observer.test.mjs#32", "asynchronous":asynchronous,
+                    "factory_starts":started.load(Ordering::SeqCst), "polls":polled.load(Ordering::SeqCst),
+                    "drops":dropped.load(Ordering::SeqCst), "arguments":*arguments.lock().unwrap(),
+                    "observer":format!("{snapshot:?}"), "forwarded_bytes":253,
+                    "original_byte_assertions_so_far":original_byte_assertions
+                })
+            );
+        }
+        assert_eq!(original_byte_assertions, 2);
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn original_10_json_usage_callback_rejection_preserves_all_schedules() {
+        use crate::observer_tasks::{
+            ObserverAdmission, ObserverLimits, ObserverRejected, ObserverSnapshot, ObserverTasks,
+        };
+        use std::future::Future;
+        use std::sync::atomic::{AtomicUsize, Ordering};
+        use std::time::Duration;
+
+        struct RejectedUsage {
+            polls: std::sync::Arc<AtomicUsize>,
+            drops: std::sync::Arc<AtomicUsize>,
+        }
+        impl Future for RejectedUsage {
+            type Output = Result<(), ObserverRejected>;
+            fn poll(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<Self::Output> {
+                self.polls.fetch_add(1, Ordering::SeqCst);
+                Poll::Ready(Err(ObserverRejected))
+            }
+        }
+        impl Drop for RejectedUsage {
+            fn drop(&mut self) {
+                self.drops.fetch_add(1, Ordering::SeqCst);
+            }
+        }
+        let corpus = include_str!("../../../parity/cases/response-observer-contracts.jsonl");
+        assert_eq!(
+            format!(
+                "{:x}",
+                <sha2::Sha256 as sha2::Digest>::digest(corpus.as_bytes())
+            ),
+            "c9833a7f743165f201e0a7b5c314cc34c125c0ae5460a5a4e1c6913d5e88c2d3"
+        );
+        let cases: Vec<Value> = corpus
+            .lines()
+            .map(|line| serde_json::from_str(line).unwrap())
+            .collect();
+        let expected_usage = json!({"usage":{"input_tokens":0,"output_tokens":0,
+            "cache_read_input_tokens":99,"speed":"unknown","inference_geo":"unknown","service_tier":"unknown"}});
+        let mut byte_predicates = 0;
+        let mut direct_predicates = 0;
+        // Call3's expected arrays are deliberately checked against the exact
+        // throwing-call2 row; the separate frozen Source replay qualifies that
+        // its actual rejecting Promise has the same full result, not a facsimile.
+        for (variant, id) in [
+            "baseline-observer-10-1",
+            "baseline-observer-10-2",
+            "baseline-observer-10-2",
+            "baseline-observer-10-4",
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            let row = cases.iter().find(|row| row["id"] == id).unwrap();
+            let chunks: Vec<Bytes> = row["input"]["chunks"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|chunk| {
+                    Bytes::from(
+                        chunk
+                            .as_array()
+                            .unwrap()
+                            .iter()
+                            .map(|byte| u8::try_from(byte.as_u64().unwrap()).unwrap())
+                            .collect::<Vec<_>>(),
+                    )
+                })
+                .collect();
+            assert_eq!(chunks.iter().map(Bytes::len).sum::<usize>(), 194);
+            let owner = ObserverTasks::new(ObserverLimits::default()).unwrap();
+            let handle = owner.handle();
+            let calls = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+            let callback_calls = calls.clone();
+            let polls = std::sync::Arc::new(AtomicUsize::new(0));
+            let poll_counter = polls.clone();
+            let drops = std::sync::Arc::new(AtomicUsize::new(0));
+            let drop_counter = drops.clone();
+            let starts = std::sync::Arc::new(AtomicUsize::new(0));
+            let start_counter = starts.clone();
+            let events = Events::default();
+            let collected = events.clone();
+            let observer = ResponseObserver::new(
+                "application/json",
+                if variant == 3 {
+                    16
+                } else {
+                    DEFAULT_BUFFER_BYTES
+                },
+                move |event| {
+                    if matches!(&event, Observation::Usage { .. }) {
+                        let (_, value) = contract_event(&event);
+                        callback_calls.lock().unwrap().push(value.clone());
+                        if variant == 1 {
+                            panic!("synthetic usage callback failure");
+                        }
+                        if variant == 2 {
+                            let charged = serde_json::to_vec(&value).unwrap().len();
+                            let polls = poll_counter.clone();
+                            let drops = drop_counter.clone();
+                            assert_eq!(
+                                handle.submit(charged, || {
+                                    start_counter.fetch_add(1, Ordering::SeqCst);
+                                    RejectedUsage { polls, drops }
+                                }),
+                                ObserverAdmission::Accepted
+                            );
+                            return;
+                        }
+                    }
+                    collected.lock().unwrap().push(event);
+                },
+            )
+            .unwrap();
+            let mut body =
+                ObservedBody::new(ContractBody(chunks.iter().cloned().collect()), observer);
+            let mut forwarded = Vec::new();
+            for chunk in &chunks {
+                let actual = poll_contract_frame(&mut body)
+                    .expect("original JSON chunk forwards immediately");
+                assert_eq!(actual.as_ptr(), chunk.as_ptr());
+                assert_eq!(&actual, chunk);
+                forwarded.extend_from_slice(&actual);
+                assert!(events.lock().unwrap().is_empty());
+                assert!(calls.lock().unwrap().is_empty());
+            }
+            assert!(poll_contract_frame(&mut body).is_none());
+            assert_eq!(
+                forwarded,
+                chunks.concat(),
+                "original #10 inherited byte predicate"
+            );
+            byte_predicates += 1;
+            let metadata = contract_events(&events);
+            if variant == 0 {
+                assert_eq!(metadata["models"], json!([{"model":"claude-sonnet-5"}]));
+                assert_eq!(metadata["usages"], json!([expected_usage.clone()]));
+                direct_predicates += 2;
+            } else if variant == 3 {
+                assert_eq!(metadata["usages"], json!([]));
+                direct_predicates += 1;
+            }
+            assert!(!metadata.to_string().contains("PRIVATE_CONTENT"));
+            let expected_calls = if variant == 3 {
+                Vec::new()
+            } else {
+                vec![expected_usage.clone()]
+            };
+            assert_eq!(*calls.lock().unwrap(), expected_calls);
+            let mut complete = metadata;
+            complete["forwarded"] = json!(forwarded);
+            assert_eq!(complete, row["node_expected"]);
+            let count = usize::from(variant == 2);
+            assert_eq!(starts.load(Ordering::SeqCst), count);
+            assert_eq!(polls.load(Ordering::SeqCst), 0);
+            assert_eq!(drops.load(Ordering::SeqCst), 0);
+            assert_eq!(owner.snapshot().pending, count);
+            tokio::time::timeout(Duration::from_secs(10), async {
+                while owner.snapshot().pending != 0 {
+                    tokio::task::yield_now().await;
+                }
+            })
+            .await
+            .expect("returned usage rejection settles before shutdown");
+            assert_eq!(polls.load(Ordering::SeqCst), count);
+            assert_eq!(drops.load(Ordering::SeqCst), count);
+            assert_eq!(
+                owner.snapshot(),
+                ObserverSnapshot {
+                    rejected: count as u64,
+                    ..ObserverSnapshot::default()
+                }
+            );
+            tokio::time::timeout(Duration::from_secs(10), owner.close())
+                .await
+                .expect("usage owner joins");
+            let closed = owner.snapshot();
+            assert_eq!(
+                closed,
+                ObserverSnapshot {
+                    closed: true,
+                    worker_finished: true,
+                    rejected: count as u64,
+                    ..ObserverSnapshot::default()
+                }
+            );
+            eprintln!(
+                "RESPONSE_USAGE_FUTURE_NATIVE {}",
+                json!({"source_test":"test/response-observer.test.mjs#10",
+                "call":variant+1,"arguments":*calls.lock().unwrap(),"factory_starts":starts.load(Ordering::SeqCst),
+                "polls":polls.load(Ordering::SeqCst),"drops":drops.load(Ordering::SeqCst),"observer":format!("{closed:?}"),
+                "original_byte_predicates_so_far":byte_predicates,"original_direct_predicates_so_far":direct_predicates})
+            );
+        }
+        assert_eq!(byte_predicates, 4);
+        assert_eq!(direct_predicates, 3);
+    }
 }

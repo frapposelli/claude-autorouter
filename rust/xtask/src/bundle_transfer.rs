@@ -1,14 +1,12 @@
 //! Explicit temporary-reference handoff, separate from default Rust-only bundle.
-use super::{Entry, SOURCE, collect, regular, sha, write_archive};
-use crate::package::archive::expanded_size;
-use serde_json::{Value, json};
-use std::collections::BTreeMap;
-use std::fs::{self, OpenOptions};
-use std::io::Write;
-use std::path::{Component, Path};
+#[cfg(test)]
+use super::{SOURCE, sha};
+use serde_json::Value;
+#[cfg(test)]
+use std::fs;
+use std::path::Path;
 
-const REFERENCE_ROOT: &str = "autorouter-node-reference";
-const README: &str = r#"# Matched Rust rewrite benchmark transfer
+pub(super) const README: &str = r#"# Matched Rust rewrite benchmark transfer
 
 This directory contains public source and synthetic fixtures plus the exact
 temporary Node compatibility reference. It contains no built executable, Cargo
@@ -16,14 +14,40 @@ cache, credentials, user configuration, real transcripts or private reports.
 The reference is only for migration comparisons and is not a product sidecar.
 This transfer does not establish release approval or performance acceptance.
 
-Verify before unpacking:
+Choose exactly one extraction sequence below in a dedicated Bash/Zsh shell,
+starting in the transfer directory. The new private directory must not exist;
+fail-fast commands stop before extraction if creation or checksums fail.
+For BSD/libarchive tar (including the installed macOS tar):
 
+    set -eu
     shasum -a 256 -c SHA256SUMS
-    tar -xzf native-source.tar.gz
-    tar -xzf frozen-node-reference.tar.gz
-    mkdir -p autorouter-benchmark/artifacts/rust-rewrite
-    mv autorouter-node-reference autorouter-benchmark/artifacts/rust-rewrite/reference
+    mkdir -m 700 native-restore
+    tar -xzf native-source.cpio.gz -C native-restore
+    cd native-restore/autorouter-benchmark/rust
+
+The licensed reference delta is unusable alone: its two shared synthetic fixture
+files must first be restored from the complete native archive. LICENSE remains
+physically present in both carriers. The version3 stored carrier expansion and full
+logical file payload each retain a separate32MiB cap; legacy full-tar expansion
+is reported separately and may exceed that cap.
+
+The native carrier is gzip newc CPIO. On macOS, the installed libarchive-based
+tar reads it; the command above requires that BSD/libarchive implementation.
+On Linux use an actual BSD/libarchive tar as above, or choose this GNUcpio
+alternative from the transfer directory (GNUtar alone is insufficient).
+Do not run both alternatives or reuse an existing extraction directory:
+
+    set -euo pipefail
+    shasum -a 256 -c SHA256SUMS
+    mkdir -m 700 native-restore
+    cd native-restore
+    gzip -dc ../native-source.cpio.gz | cpio -idm --no-absolute-filenames --no-preserve-owner
     cd autorouter-benchmark/rust
+
+Verify authenticated checksums before standard-tool trusted-source extraction;
+these commands are not arbitrary hostile-archive security validation. The full
+native source is present; no reference, Node or Git is needed to build the helper.
+Actual Linux/oldest-platform bootstrap qualification remains separately required.
 
 No Git checkout is needed: the driver verifies every supplied reference file
 against rust/parity/baseline.json before importing it. Install the pinned Rust
@@ -37,7 +61,7 @@ combined Cargo invocation would unify the helper's development probes into the
 CLI. From the extracted rust directory, use a fresh evidence directory:
 
     ulimit -n 1024
-    mkdir ../artifacts/rust-rewrite/transfer-build-1
+    mkdir -p ../artifacts/rust-rewrite/transfer-build-1
     cargo fetch --locked
     cargo build --locked --package xtask --no-default-features --bin autorouter-audit --message-format=json > ../artifacts/rust-rewrite/transfer-build-1/bootstrap-build.jsonl
     cp target/debug/autorouter-audit ../artifacts/rust-rewrite/transfer-build-1/autorouter-audit
@@ -53,6 +77,19 @@ intentionally enables development probes; its separate build does not rebuild
 the CLI target. Keep the build/audit reports, and repeat the ordinary CLI audit
 if that binary is rebuilt. This verifies features and current binary identity,
 without approving release, platform support, model quality or performance.
+
+After the helper build, restore the complete111-file frozen reference plus its
+original manifest and license before any reference operation. The receiver
+verifies both archives, every fixture/hash/mode, both budgets and checksums
+before creating a private destination. Existing destinations are never replaced.
+This command also reads historical schema1 full-reference and schema2 tar-delta transfers:
+
+    ./target/release/xtask benchmark-bundle --restore-reference TRANSFER_ABSOLUTE_PATH artifacts/rust-rewrite/reference
+
+Use the absolute path of the directory containing both carriers and their outer
+checksums; the new reference path is relative to the extracted native root.
+A failed/interrupted restore leaves an incomplete private directory; preserve it
+and select a new destination. No Git, Node, evaluator or provider is called.
 
 First validate deterministic behavior without retaining performance values:
 
@@ -120,121 +157,8 @@ visible. Conditions are separately declared/observed; these model trials do not
 qualify controlled gateway performance, completed Claude tasks or release.
 "#;
 
-fn write(path: &Path, bytes: &[u8]) -> Result<(), String> {
-    let mut file = OpenOptions::new()
-        .create_new(true)
-        .write(true)
-        .open(path)
-        .map_err(|_| "Refusing to overwrite transfer evidence")?;
-    file.write_all(bytes)
-        .map_err(|_| "Cannot write transfer evidence".into())
-}
-fn reference(root: &Path) -> Result<(BTreeMap<String, Entry>, Value), String> {
-    let directory = root.join("artifacts/rust-rewrite/reference");
-    crate::reference::freeze(root, &directory)?;
-    let bytes = crate::process::read_bounded(&root.join("rust/parity/baseline.json"), 1024 * 1024)?;
-    let manifest: Value =
-        serde_json::from_slice(&bytes).map_err(|_| "Invalid transfer reference manifest")?;
-    let mut files = BTreeMap::new();
-    for entry in manifest["files"]
-        .as_array()
-        .ok_or("Missing transfer reference files")?
-    {
-        let relative = entry["path"]
-            .as_str()
-            .ok_or("Invalid transfer reference path")?;
-        if relative.is_empty()
-            || !Path::new(relative)
-                .components()
-                .all(|part| matches!(part, Component::Normal(_)))
-        {
-            return Err("Unsafe transfer reference path".into());
-        }
-        let source = regular(&directory, relative)?;
-        if entry["bytes"].as_u64() != Some(source.len() as u64) || entry["sha256"] != sha(&source) {
-            return Err("Transfer reference changed after verification".into());
-        }
-        if files
-            .insert(
-                relative.to_owned(),
-                Entry {
-                    bytes: source,
-                    mode: 0o644,
-                },
-            )
-            .is_some()
-        {
-            return Err("Duplicate transfer reference path".into());
-        }
-    }
-    files.insert(
-        "frozen-reference-manifest.json".into(),
-        Entry { bytes, mode: 0o644 },
-    );
-    // Keep the project's license with the independently transferable source.
-    if !files.contains_key("LICENSE") {
-        files.insert(
-            "LICENSE".into(),
-            Entry {
-                bytes: regular(root, "LICENSE")?,
-                mode: 0o644,
-            },
-        );
-    }
-    Ok((files, manifest))
-}
-
 pub(super) fn create(root: &Path, destination: &Path) -> Result<Value, String> {
-    if fs::symlink_metadata(destination).is_ok() {
-        return Err("Refusing to overwrite an existing transfer directory".into());
-    }
-    let source = collect(root)?;
-    let source_expanded = expanded_size(&source, SOURCE)?;
-    let (reference, baseline) = reference(root)?;
-    let reference_policy = SOURCE.remaining(
-        SOURCE
-            .expanded
-            .checked_sub(source_expanded)
-            .ok_or("Transfer source exhausted archive budget")?,
-    );
-    let reference_expanded = expanded_size(&reference, reference_policy)?;
-    let mut builder = fs::DirBuilder::new();
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::DirBuilderExt;
-        builder.mode(0o700);
-    }
-    builder
-        .create(destination)
-        .map_err(|_| "Cannot create private transfer directory")?;
-    let source_report = write_archive(
-        "autorouter-benchmark",
-        &source,
-        &destination.join("native-source.tar.gz"),
-        SOURCE,
-    )?;
-    let reference_report = write_archive(
-        REFERENCE_ROOT,
-        &reference,
-        &destination.join("frozen-node-reference.tar.gz"),
-        reference_policy,
-    )?;
-    let manifest = json!({"schema_version":1,"kind":"matched_native_benchmark_transfer","baseline_commit":baseline["baseline_commit"],"baseline_version":baseline["baseline_version"],"reference_files":baseline["files"].as_array().unwrap().len(),
-        "archives":{"native-source.tar.gz":{"sha256":source_report["sha256"],"expanded_tar_bytes":source_expanded},"frozen-node-reference.tar.gz":{"sha256":reference_report["sha256"],"expanded_tar_bytes":reference_expanded}},
-        "aggregate_expanded_tar_bytes":source_expanded+reference_expanded,"aggregate_expanded_limit":SOURCE.expanded,"node_runtime_required":"22.14.0 for temporary reference tests only","native_build_required":true,"private_material_included":false,"binaries_included":false,"dependencies_bundled":false,"provider_calls":0,"release_approved":false,"performance_accepted":false});
-    let bytes =
-        serde_json::to_vec_pretty(&manifest).map_err(|_| "Cannot encode transfer manifest")?;
-    write(&destination.join("transfer-manifest.json"), &bytes)?;
-    write(&destination.join("RESUME.md"), README.as_bytes())?;
-    let sums = format!(
-        "{}  native-source.tar.gz\n{}  frozen-node-reference.tar.gz\n{}  transfer-manifest.json\n{}  RESUME.md\n",
-        source_report["sha256"].as_str().unwrap(),
-        reference_report["sha256"].as_str().unwrap(),
-        sha(&bytes),
-        sha(README.as_bytes())
-    );
-    write(&destination.join("SHA256SUMS"), sums.as_bytes())?;
-    Ok(manifest)
+    super::pair::create(root, destination)
 }
 
 #[cfg(test)]
@@ -253,21 +177,57 @@ mod tests {
         let report = create(&root, &directory).unwrap();
         assert_eq!(report["reference_files"], 111);
         assert_eq!(report["provider_calls"], 0);
-        let native_bytes = fs::read(directory.join("native-source.tar.gz")).unwrap();
-        let native = decode_root(&native_bytes, "autorouter-benchmark", SOURCE).unwrap();
-        let reference_bytes = fs::read(directory.join("frozen-node-reference.tar.gz")).unwrap();
+        let native_bytes = fs::read(directory.join("native-source.cpio.gz")).unwrap();
+        let native = crate::package::archive::cpio::decode_root(
+            &native_bytes,
+            "autorouter-benchmark",
+            SOURCE,
+            |path| {
+                if super::super::LARGE_SYNTHETIC_CORPORA.contains(&path) {
+                    4 * 1024 * 1024
+                } else {
+                    1024 * 1024
+                }
+            },
+        )
+        .unwrap();
+        let reference_bytes =
+            fs::read(directory.join("frozen-node-reference-delta.tar.gz")).unwrap();
         let reference = decode_root(
             &reference_bytes,
-            REFERENCE_ROOT,
+            "autorouter-node-reference-delta",
             SOURCE.remaining(SOURCE.expanded - native.expanded_bytes),
         )
         .unwrap();
         assert_eq!(
             native.expanded_bytes + reference.expanded_bytes,
-            report["aggregate_expanded_tar_bytes"].as_u64().unwrap() as usize
+            report["aggregate_expanded_carrier_bytes"].as_u64().unwrap() as usize
         );
         assert!(native.expanded_bytes + reference.expanded_bytes <= SOURCE.expanded);
-        let supplied = &reference.files;
+        assert_eq!(reference.files.len(), 111);
+        assert_eq!(report["shared_inputs"].as_array().unwrap().len(), 2);
+        let restored = scratch.0.join("restored");
+        super::super::pair::restore(&root, &directory, &restored).unwrap();
+        let baseline: Value = serde_json::from_slice(
+            &fs::read(restored.join("frozen-reference-manifest.json")).unwrap(),
+        )
+        .unwrap();
+        let supplied: std::collections::BTreeMap<_, _> = baseline["files"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|entry| entry["path"].as_str().unwrap())
+            .chain(["LICENSE", "frozen-reference-manifest.json"])
+            .map(|path| {
+                (
+                    path.to_owned(),
+                    super::super::Entry {
+                        bytes: fs::read(restored.join(path)).unwrap(),
+                        mode: 0o644,
+                    },
+                )
+            })
+            .collect();
         let manifest: Value =
             serde_json::from_slice(&supplied["frozen-reference-manifest.json"].bytes).unwrap();
         for entry in manifest["files"].as_array().unwrap() {
@@ -301,7 +261,7 @@ mod tests {
         );
         assert!(create(&root, &directory).is_err());
         assert_eq!(
-            fs::read(directory.join("native-source.tar.gz")).unwrap(),
+            fs::read(directory.join("native-source.cpio.gz")).unwrap(),
             native_bytes
         );
         let checksum = fs::read_to_string(directory.join("SHA256SUMS")).unwrap();

@@ -3,27 +3,24 @@
 #[path = "support/server_contract.rs"]
 mod contract;
 use contract::{
-    Reply, chunks, compare_metadata, compare_request, event_names, events, headers, parsed,
-    response_bytes, same_request, sink, upstream_rows,
+    Reply, chunks, compare_metadata, compare_request, event_names, events, headers, response_bytes,
+    same_request, sink, upstream_rows,
 };
 #[allow(dead_code)] // Shared peer also supplies streaming interfaces to other targets.
 #[path = "support/server_streaming_routing.rs"]
 mod peer;
-use autorouter_core::{config::read_config, js_json::JsDocument, router::RouteOptions};
+use autorouter_core::config::read_config;
 use autorouter_runtime::{
-    evaluator::EvaluationError,
     http_client::NativeHttpClient,
-    response_observer::CompletionEvidence,
-    server::{Gateway, GatewayHandle, GatewayRouter},
+    server::{Gateway, GatewayHandle},
     server_events::EventSinks,
 };
 use bytes::Bytes;
-use hyper::HeaderMap;
 use peer::{Observation, Peer, ResponsePlan, StreamGate};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::BTreeSet,
     path::Path,
     sync::{
         Arc, Mutex,
@@ -31,7 +28,6 @@ use std::{
     },
     time::Duration,
 };
-use tokio_util::sync::CancellationToken;
 
 const CORPUS: &str = include_str!("../../../parity/cases/server-status-lifecycle-contracts.jsonl");
 const CAPTURE: &str =
@@ -58,46 +54,7 @@ fn case(number: usize) -> Value {
         .find(|row| row["source_test"] == format!("test/server.test.mjs#{number}"))
         .unwrap()
 }
-struct MockRouter {
-    decisions: Vec<Value>,
-    calls: Mutex<Vec<Value>>,
-    completions: Mutex<Vec<Value>>,
-    closed: AtomicBool,
-}
-impl GatewayRouter for MockRouter {
-    async fn route(
-        &self,
-        document: Arc<JsDocument>,
-        options: RouteOptions,
-        _: &HeaderMap,
-        cancellation: &CancellationToken,
-        _: &str,
-    ) -> Result<Value, EvaluationError> {
-        let mut rows = self.calls.lock().unwrap();
-        let index = rows.len();
-        assert!(index < self.decisions.len());
-        rows.push(json!({"document":parsed(document.stringify().as_bytes()),"scope":options.scope,"prompt_id":options.prompt_id,"request_class":options.request_class,"request_id":options.request_id,"count_tokens":options.count_tokens,"signal_live":!cancellation.is_cancelled()}));
-        Ok(self.decisions[index].clone())
-    }
-    fn complete(&self, id: &str, evidence: &Value) -> bool {
-        let mut rows = self.completions.lock().unwrap();
-        assert!(rows.len() < 32);
-        rows.push(json!({"id":id,"evidence":evidence,"accepted":false}));
-        false
-    }
-    fn complete_exact(&self, id: &str, evidence: &CompletionEvidence) -> bool {
-        let mut rows = self.completions.lock().unwrap();
-        assert!(rows.len() < 32);
-        rows.push(json!({"id":id,"evidence":evidence,"accepted":false}));
-        false
-    }
-    fn shutdown(&self) {
-        self.closed.store(true, Ordering::SeqCst);
-    }
-    async fn close(&self) {
-        self.shutdown();
-    }
-}
+use contract::MockRouter;
 struct Fixture {
     client: Arc<NativeHttpClient>,
     router: Arc<MockRouter>,
@@ -215,24 +172,11 @@ impl Fixture {
         contract::wait_for_status(&self.statuses, event).await
     }
     async fn finish(mut self) -> Result<Seen, String> {
-        let closed = tokio::time::timeout(BOUND, self.gateway.take().unwrap().close()).await;
-        let requests = self.peer.as_ref().unwrap().observations();
-        let peer_closed = self.peer.take().unwrap().close().await;
-        closed.map_err(|_| "gateway cleanup timed out")?;
-        peer_closed?;
+        let requests = contract::close_gateway(&mut self.gateway, &mut self.peer, BOUND).await?;
         if !self.router.closed.load(Ordering::SeqCst) {
             return Err("mock router closure not observed".into());
         }
-        for rows in [&self.statuses, &self.history, &self.logs, &self.log_history] {
-            if rows
-                .lock()
-                .unwrap()
-                .iter()
-                .any(|row| row["event"] == "fixture_observer_overflow")
-            {
-                return Err("sticky event recorder overflow".into());
-            }
-        }
+        contract::check_recorders([&self.statuses, &self.history, &self.logs, &self.log_history])?;
         Ok(Seen {
             requests,
             routes: self.router.calls.lock().unwrap().clone(),
@@ -244,25 +188,7 @@ impl Fixture {
         })
     }
 }
-struct Assertions {
-    number: usize,
-    counts: BTreeMap<usize, usize>,
-}
-impl Assertions {
-    fn new(number: usize) -> Self {
-        Self {
-            number,
-            counts: BTreeMap::new(),
-        }
-    }
-    fn check(&mut self, site: usize, passed: bool) {
-        *self.counts.entry(site).or_default() += 1;
-        assert!(passed, "server#{}:assert-{site}", self.number);
-    }
-    fn finish(self) {
-        contract::finish_counts(self.number, &self.counts, CAPTURE);
-    }
-}
+type Assertions = contract::Assertions<1, false>;
 fn supplemental_transcripts(row: &Value, replies: &[Reply], seen: &Seen) {
     let expected = upstream_rows(row);
     assert_eq!(seen.requests.len(), expected.len());
@@ -389,8 +315,7 @@ fn supplemental_transcripts(row: &Value, replies: &[Reply], seen: &Seen) {
             .all(|row| row["evidence"].is_null() && row["accepted"] == false)
     );
     if let Some(directory) = std::env::var_os("AUTOROUTER_NATIVE_PARITY_CAPTURE_DIR") {
-        let request = |r: &Observation| json!({"method":r.method,"path":r.path,"headers":r.headers.iter().map(|(k,v)|(k.as_str().to_owned(),v.to_str().unwrap().to_owned())).collect::<BTreeMap<_,_>>(),"body_utf8":std::str::from_utf8(&r.body).unwrap()});
-        let raw = json!({"schema_version":1,"status":"passed","source_test":row["source_test"],"upstream_requests":seen.requests.iter().map(request).collect::<Vec<_>>(),"route_calls":seen.routes,"complete_calls":seen.completions,"statuses":seen.statuses,"all_emitted_statuses":seen.history,"logs":seen.logs,"native_provider_overlap":seen.overlap,"downstream":replies.iter().map(|r|json!({"status":r.status,"headers":r.headers.iter().map(|(k,v)|(k.as_str().to_owned(),v.to_str().unwrap().to_owned())).collect::<BTreeMap<_,_>>(),"body_base64":openssl::base64::encode_block(&r.bytes)})).collect::<Vec<_>>(),"projection":"None. Actual generated IDs, measured times, deterministic routing times, headers and complete bytes retained."});
+        let raw = json!({"schema_version":1,"status":"passed","source_test":row["source_test"],"upstream_requests":seen.requests.iter().map(contract::capture_request).collect::<Vec<_>>(),"route_calls":seen.routes,"complete_calls":seen.completions,"statuses":seen.statuses,"all_emitted_statuses":seen.history,"logs":seen.logs,"native_provider_overlap":seen.overlap,"downstream":replies.iter().map(contract::capture_reply).collect::<Vec<_>>(),"projection":"None. Actual generated IDs, measured times, deterministic routing times, headers and complete bytes retained."});
         contract::write_row_capture(&directory, &row["id"], &raw, LIMIT, true);
     }
 }

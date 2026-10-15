@@ -3,23 +3,22 @@
 #[path = "support/server_contract.rs"]
 mod contract;
 use contract::{
-    chunks as writes, decode, events, header_is, identity_headers as headers, parsed,
-    single_sink as sink,
+    chunks as writes, events, header_is, identity_headers as headers, parsed, single_sink as sink,
 };
 #[path = "support/server_streaming_routing.rs"]
 mod peer;
 use autorouter_core::{config::read_config, js_json::JsDocument, router::RouteOptions};
 use autorouter_runtime::{
     evaluator::EvaluationError,
-    http_client::{HttpError, HttpTransport, NativeHttpClient},
+    http_client::{HttpTransport, NativeHttpClient},
     response_observer::CompletionEvidence,
     router::Router,
     server::{Gateway, GatewayHandle, GatewayRouter},
     server_events::EventSinks,
 };
 use bytes::Bytes;
-use http_body_util::{BodyExt, Full, Limited, combinators::UnsyncBoxBody};
-use hyper::{HeaderMap, Request, Response};
+use http_body_util::{BodyExt, Full, Limited};
+use hyper::{HeaderMap, Request};
 use peer::{Observation, Peer, ResponsePlan, StreamGate};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -37,8 +36,6 @@ const CAPTURE: &str =
     include_str!("../../../parity/cases/server-identity-safety-contracts.capture.json");
 const BOUND: Duration = Duration::from_secs(5);
 const LIMIT: usize = 2 * 1024 * 1024;
-type Error = Box<dyn std::error::Error + Send + Sync>;
-type Body = UnsyncBoxBody<Bytes, Error>;
 type Events = Arc<Mutex<Vec<Value>>>;
 
 fn case(number: usize) -> Value {
@@ -125,91 +122,7 @@ fn compare(observed: &Observation, expected: &Value, exact_text: bool) -> Result
     Ok(())
 }
 
-struct Transport {
-    native: Arc<NativeHttpClient>,
-    authority: String,
-    script: Vec<Value>,
-    mocked: Mutex<Vec<Observation>>,
-    faults: Mutex<Vec<String>>,
-}
-impl Transport {
-    fn fault(&self, text: &str) -> HttpError {
-        let mut faults = self.faults.lock().unwrap();
-        if faults.len() < 16 {
-            faults.push(text.into());
-        }
-        HttpError::InvalidRequest
-    }
-}
-impl HttpTransport for Transport {
-    type ResponseBody = Body;
-    async fn request(&self, request: Request<Full<Bytes>>) -> Result<Response<Body>, HttpError> {
-        if self
-            .script
-            .first()
-            .is_some_and(|row| request.uri() == row["url"].as_str().unwrap())
-        {
-            let (parts, body) = request.into_parts();
-            let observation = Observation {
-                method: parts.method.to_string(),
-                path: parts.uri.to_string(),
-                headers: parts.headers,
-                body: body.collect().await.unwrap().to_bytes().to_vec(),
-            };
-            let index = {
-                let mut calls = self.mocked.lock().unwrap();
-                if calls.len() >= self.script.len() {
-                    return Err(self.fault("extra evaluator request"));
-                }
-                let index = calls.len();
-                calls.push(observation.clone());
-                index
-            };
-            let row = &self.script[index];
-            if observation.method != row["method"].as_str().unwrap()
-                || !header_is(
-                    &observation.headers,
-                    "authorization",
-                    row["headers"]["authorization"].as_str(),
-                )
-                || parsed(&observation.body)
-                    != serde_json::from_str::<Value>(row["body"].as_str().unwrap()).unwrap()
-            {
-                return Err(self.fault("complete evaluator request mismatch"));
-            }
-            let response_bytes: Vec<u8> = row["reads"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .filter(|read| read["kind"] == "read" && read["done"] == false)
-                .flat_map(|read| decode(&read["base64"]))
-                .collect();
-            let body = Full::new(Bytes::from(response_bytes))
-                .map_err(|never| -> Error { match never {} })
-                .boxed_unsync();
-            return Ok(Response::builder()
-                .status(row["status"].as_u64().unwrap() as u16)
-                .header("content-type", "application/json")
-                .body(body)
-                .unwrap());
-        }
-        if request.uri().scheme_str() != Some("http")
-            || request
-                .uri()
-                .authority()
-                .is_none_or(|a| a.as_str() != self.authority)
-        {
-            return Err(self.fault("unregistered endpoint or unexpected token count"));
-        }
-        self.native.request(request).await.map(|response| {
-            response.map(|body| {
-                body.map_err(|error| -> Error { Box::new(error) })
-                    .boxed_unsync()
-            })
-        })
-    }
-}
-
+type Transport = contract::EvaluatorTransport<false>;
 struct AuditRouter {
     real: Option<Router<Transport>>,
     calls: Mutex<Vec<Value>>,
@@ -373,6 +286,8 @@ impl Fixture {
             script: row["mocked_fetch"].as_array().unwrap().clone(),
             mocked: Mutex::new(Vec::new()),
             faults: Mutex::new(Vec::new()),
+            mismatch_message: "complete evaluator request mismatch",
+            endpoint_message: "unregistered endpoint or unexpected token count",
         });
         let original_config =
             read_config(&row["config_arguments"][0][0], false, Path::new("/tmp")).unwrap();
@@ -511,16 +426,7 @@ impl Fixture {
         if !faults.is_empty() {
             return Err(format!("sticky transport faults: {faults:?}"));
         }
-        for rows in [&self.logs, &self.statuses, &self.records] {
-            if rows
-                .lock()
-                .unwrap()
-                .iter()
-                .any(|row| row["event"] == "fixture_observer_overflow")
-            {
-                return Err("sticky event recorder overflow".into());
-            }
-        }
+        contract::check_recorders([&self.logs, &self.statuses, &self.records])?;
         if self
             .router
             .completions

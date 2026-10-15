@@ -123,7 +123,7 @@ fn licenses(root: &Path) -> Result<LicenseMaterial, String> {
         "Cannot read locked offline Cargo dependency metadata for license inventory; run `cargo fetch --locked` from the rust directory to cache dependencies for all targets, then retry"
             .to_owned()
     })?;
-    let metadata: Value = serde_json::from_slice(&bytes).map_err(|_| "Invalid Cargo metadata")?;
+    let (metadata, suppliers) = crate::vendor_audit::nix_source::from_bytes(root, &bytes)?;
     let mut output = Vec::new();
     let mut components = Vec::new();
     let mut missing = Vec::new();
@@ -221,11 +221,21 @@ fn licenses(root: &Path) -> Result<LicenseMaterial, String> {
         if paths.is_empty() {
             missing.push(format!("{name}@{version}"));
         }
+        let supplier_label = if name == "nix" {
+            format!(
+                " [{}]",
+                package["id"]
+                    .as_str()
+                    .ok_or("Missing license supplier identity")?
+            )
+        } else {
+            String::new()
+        };
         for path in paths {
             let content = read_bounded(&path, 1024 * 1024)?;
             output.extend(
                 format!(
-                    "\n===== {name}@{version}: {} =====\n",
+                    "\n===== {name}@{version}: {}{supplier_label} =====\n",
                     path.strip_prefix(directory)
                         .unwrap_or_else(|_| Path::new(path.file_name().unwrap()))
                         .to_string_lossy()
@@ -237,7 +247,17 @@ fn licenses(root: &Path) -> Result<LicenseMaterial, String> {
                 return Err("Dependency license bundle exceeds limit".into());
             }
         }
-        components.push(json!({"name":name,"version":version,"license":package["license"],"source":package["source"],"vendored":vendored}));
+        let mut component = json!({"name":name,"version":version,"license":package["license"],"source":package["source"],"vendored":vendored});
+        if name == "nix" {
+            component["package_id"] = package["id"].clone();
+            component["supplier_role"] = json!(if package["id"] == suppliers.production.id {
+                "production-patched"
+            } else {
+                "bootstrap-registry"
+            });
+            component["license_sha256"] = json!(crate::vendor_audit::nix_source::LICENSE);
+        }
+        components.push(component);
     }
     let certificate_provenance: Value = serde_json::from_slice(&read_bounded(
         &root.join("rust/vendor/node-ca/provenance.json"),
@@ -751,6 +771,56 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn terminal_license_inventory_keeps_same_version_source_identities_distinct() {
+        use std::collections::BTreeSet;
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize()
+            .unwrap();
+        let material = licenses(&root).unwrap();
+        let suppliers = material
+            .components
+            .iter()
+            .filter(|row| row["name"] == "nix")
+            .collect::<Vec<_>>();
+        assert_eq!(suppliers.len(), 2);
+        assert_eq!(
+            suppliers
+                .iter()
+                .map(|row| row["package_id"].as_str().unwrap())
+                .collect::<BTreeSet<_>>()
+                .len(),
+            2
+        );
+        assert_eq!(
+            suppliers
+                .iter()
+                .map(|row| row["source"].as_str().unwrap())
+                .collect::<BTreeSet<_>>()
+                .len(),
+            2
+        );
+        assert_eq!(
+            suppliers
+                .iter()
+                .map(|row| row["supplier_role"].as_str().unwrap())
+                .collect::<BTreeSet<_>>(),
+            ["production-patched", "bootstrap-registry"]
+                .into_iter()
+                .collect()
+        );
+        assert!(
+            suppliers
+                .iter()
+                .all(|row| row["license_sha256"] == crate::vendor_audit::nix_source::LICENSE)
+        );
+        let text = String::from_utf8(material.bytes).unwrap();
+        for supplier in suppliers {
+            assert!(text.contains(supplier["package_id"].as_str().unwrap()));
+        }
+    }
+
     #[test]
     fn license_inventory_includes_subcrate_authors_and_bundled_sources() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR"))

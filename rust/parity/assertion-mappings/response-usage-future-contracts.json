@@ -1,0 +1,505 @@
+{
+  "schema_version": 1,
+  "status": "one_definition_covered_with_reviewed_native_adapter_migration",
+  "original_id": "test/response-observer.test.mjs#10",
+  "conclusion": "All three direct assertions and the inherited full-byte assertion in all four original schedules passed against frozen Source and actual native ObservedBody. The missing returned rejecting callback is proved by the existing public owned Future adapter; only definition10 is proposed covered.",
+  "transition": {
+    "before": {
+      "covered": 524,
+      "partial_assertion_mapping": 64
+    },
+    "proposed_after_root_review": {
+      "covered": 525,
+      "partial_assertion_mapping": 63
+    },
+    "only_row": "test/response-observer.test.mjs#10",
+    "central_writes": true
+  },
+  "historical_partial_row": {
+    "id": "test/response-observer.test.mjs#10",
+    "file": "test/response-observer.test.mjs",
+    "name": "collects bounded JSON usage together with the provider model and isolates callback failures",
+    "parameterized": false,
+    "status": "partial_assertion_mapping",
+    "rust_tests": [
+      "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+    ],
+    "shared_cases": [
+      "baseline-observer-10-1",
+      "baseline-observer-10-2",
+      "baseline-observer-10-4"
+    ],
+    "evidence": {
+      "native_log": "artifacts/rust-rewrite/evidence/7a01539d30e403b7a944f65a9a1b8239a09a2d54792471456972468b25d811fe.log",
+      "native_log_sha256": "7a01539d30e403b7a944f65a9a1b8239a09a2d54792471456972468b25d811fe",
+      "capture": "artifacts/rust-rewrite/evidence/c527a3ab8e4511c4ca081c8078ee0ae9ca71974e1b2b02b5d9d81a3432037f59.json",
+      "capture_sha256": "c527a3ab8e4511c4ca081c8078ee0ae9ca71974e1b2b02b5d9d81a3432037f59",
+      "cases_sha256": "c9833a7f743165f201e0a7b5c314cc34c125c0ae5460a5a4e1c6913d5e88c2d3"
+    },
+    "related_components": [
+      "js_document",
+      "response_observer"
+    ],
+    "assertion_mapping": "rust/parity/assertion-mappings/response-observer-token-counter.json",
+    "remaining_assertions": [
+      "The frozen source also passes an async callback that returns a rejected Promise. Native callbacks are synchronous FnMut; the captured async call remains an explicit API migration boundary and is not claimed covered."
+    ]
+  },
+  "other_rows_guard": {
+    "count": 587,
+    "sha256_sorted_key_compact_JSON_of_ordered_rows": "d2910b8e3b131b05af5a9e43fbf1a20d04499b727975531f47b86df95bb1d232",
+    "original32_status": "covered",
+    "original32_row_sha256_same_explicit_JSON_method": "11c16e9ba48f81fa16efc2b38c5ac4af33c84a37b2bee97335603091f7d3c3fa",
+    "current_coverage_file": {
+      "path": "artifacts/rust-rewrite/evidence/3ec8f0d506a33ec01f9daea3c21c900733017c64d0868ca21575ea6f2b8079a7.json",
+      "bytes": 1757661,
+      "sha256": "3ec8f0d506a33ec01f9daea3c21c900733017c64d0868ca21575ea6f2b8079a7",
+      "original_path": "rust/parity/coverage.json",
+      "binding_epoch": "before_original10_root_promotion"
+    },
+    "note": "These structural hashes protect the ledger; no provider bytes or numeric comparisons are normalized."
+  },
+  "source_proof": {
+    "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+    "source": {
+      "path": "test/response-observer.test.mjs",
+      "sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+      "statement_sha256": "07aeb81936f2cda44bb4bb883b41b8023d93a48169dc8cb57ca012c5ebf96132",
+      "inherited_site": {
+        "expression": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+        "line": 20,
+        "executions": 4
+      }
+    },
+    "registered_definitions": 32,
+    "selected_definitions": 1,
+    "direct_sites_executions": 3,
+    "inherited_sites": 1,
+    "inherited_executions": 4,
+    "execution_order": [
+      "helper",
+      "direct1",
+      "direct2",
+      "helper",
+      "helper",
+      "helper",
+      "direct3"
+    ],
+    "actual_callbacks": 3,
+    "actual_sync_throw": 1,
+    "actual_returned_rejected_Promise": 1,
+    "all111_original_files_before_after": [
+      111,
+      111
+    ],
+    "all111_current_readback": true,
+    "unhandled_before_late_extra_observation": [],
+    "observation_scope": "Original functions/options/byte arrays/Error/Promise returns delegate unchanged. Extra rejection observation attaches after one full immediate tick with zero prior original unhandled rejection. The production callback wrapper has a different identity; original alias IDs are separately recorded."
+  },
+  "predicates": [
+    {
+      "id": "provider_model",
+      "source_expression": "assert.deepEqual(result.models, [{ model: payload.model }])",
+      "source_line": 121,
+      "native_expression": "assert_eq!(metadata[\"models\"], json!([{\"model\":\"claude-sonnet-5\"}]))",
+      "native_line": 1969,
+      "executions": 1,
+      "passed": true
+    },
+    {
+      "id": "sanitized_bounded_usage",
+      "source_expression": "assert.deepEqual(result.usages, [{ usage: { input_tokens: 0, output_tokens: 0, cache_read_input_tokens: 99, speed: 'unknown', inference_geo: 'unknown', service_tier: 'unknown' } }])",
+      "source_line": 122,
+      "native_expression": "assert_eq!(metadata[\"usages\"], json!([expected_usage.clone()]))",
+      "native_line": 1970,
+      "executions": 1,
+      "passed": true
+    },
+    {
+      "id": "sixteen_byte_limit",
+      "source_expression": "assert.deepEqual((await observe([bytes], { contentType: 'application/json', maxBufferBytes: 16 })).usages, [])",
+      "source_line": 125,
+      "native_expression": "assert_eq!(metadata[\"usages\"], json!([]))",
+      "native_line": 1973,
+      "executions": 1,
+      "passed": true
+    },
+    {
+      "id": "all_provider_bytes_preserved",
+      "source_expression": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+      "source_line": 20,
+      "native_expression": "assert_eq!(forwarded, chunks.concat(), \"original #10 inherited byte predicate\")",
+      "native_line": 1964,
+      "executions": 4,
+      "passed": true
+    }
+  ],
+  "schedules": [
+    {
+      "call": 1,
+      "callback": "default helper push",
+      "chunks": [
+        10,
+        184
+      ],
+      "forwarded_bytes": 194,
+      "corpus_expected_row": "baseline-observer-10-1",
+      "input_binding": "Complete source JSON input equals the existing corpus input.",
+      "complete_source_result_matches_corpus_row": true,
+      "native_arguments": [
+        {
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "cache_read_input_tokens": 99,
+            "speed": "unknown",
+            "inference_geo": "unknown",
+            "service_tier": "unknown"
+          }
+        }
+      ],
+      "native_factory_poll_drop": [
+        0,
+        0,
+        0
+      ],
+      "native_joined_snapshot": {
+        "closed": true,
+        "worker_finished": true,
+        "pending": 0,
+        "factories": 0,
+        "charged_bytes": 0,
+        "completed": 0,
+        "rejected": 0,
+        "factory_panicked": 0,
+        "poll_panicked": 0,
+        "destructor_panicked": 0,
+        "timed_out": 0,
+        "cancelled": 0,
+        "declined_closed": 0,
+        "declined_cancelled": 0,
+        "declined_payload": 0,
+        "declined_capacity": 0,
+        "declined_deadline": 0
+      }
+    },
+    {
+      "call": 2,
+      "callback": "original synchronous Error throw",
+      "chunks": [
+        194
+      ],
+      "forwarded_bytes": 194,
+      "corpus_expected_row": "baseline-observer-10-2",
+      "input_binding": "All source byte/media/cap fields compare exactly. Corpus row2 additionally contains panic_callbacks:[usages], a replay descriptor, which is not in Source JSON input. Calls2/3 preserve their distinct actual callback schedules; this descriptor is explicitly not compared as an original option.",
+      "complete_source_result_matches_corpus_row": true,
+      "native_arguments": [
+        {
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "cache_read_input_tokens": 99,
+            "speed": "unknown",
+            "inference_geo": "unknown",
+            "service_tier": "unknown"
+          }
+        }
+      ],
+      "native_factory_poll_drop": [
+        0,
+        0,
+        0
+      ],
+      "native_joined_snapshot": {
+        "closed": true,
+        "worker_finished": true,
+        "pending": 0,
+        "factories": 0,
+        "charged_bytes": 0,
+        "completed": 0,
+        "rejected": 0,
+        "factory_panicked": 0,
+        "poll_panicked": 0,
+        "destructor_panicked": 0,
+        "timed_out": 0,
+        "cancelled": 0,
+        "declined_closed": 0,
+        "declined_cancelled": 0,
+        "declined_payload": 0,
+        "declined_capacity": 0,
+        "declined_deadline": 0
+      }
+    },
+    {
+      "call": 3,
+      "callback": "original returned rejected Promise",
+      "chunks": [
+        194
+      ],
+      "forwarded_bytes": 194,
+      "corpus_expected_row": "baseline-observer-10-2",
+      "input_binding": "All source byte/media/cap fields compare exactly. Corpus row2 additionally contains panic_callbacks:[usages], a replay descriptor, which is not in Source JSON input. Calls2/3 preserve their distinct actual callback schedules; this descriptor is explicitly not compared as an original option.",
+      "complete_source_result_matches_corpus_row": true,
+      "native_arguments": [
+        {
+          "usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "cache_read_input_tokens": 99,
+            "speed": "unknown",
+            "inference_geo": "unknown",
+            "service_tier": "unknown"
+          }
+        }
+      ],
+      "native_factory_poll_drop": [
+        1,
+        1,
+        1
+      ],
+      "native_joined_snapshot": {
+        "closed": true,
+        "worker_finished": true,
+        "pending": 0,
+        "factories": 0,
+        "charged_bytes": 0,
+        "completed": 0,
+        "rejected": 1,
+        "factory_panicked": 0,
+        "poll_panicked": 0,
+        "destructor_panicked": 0,
+        "timed_out": 0,
+        "cancelled": 0,
+        "declined_closed": 0,
+        "declined_cancelled": 0,
+        "declined_payload": 0,
+        "declined_capacity": 0,
+        "declined_deadline": 0
+      }
+    },
+    {
+      "call": 4,
+      "callback": "default helper; cap16 suppresses callback",
+      "chunks": [
+        194
+      ],
+      "forwarded_bytes": 194,
+      "corpus_expected_row": "baseline-observer-10-4",
+      "input_binding": "Complete source JSON input equals the existing corpus input.",
+      "complete_source_result_matches_corpus_row": true,
+      "native_arguments": [],
+      "native_factory_poll_drop": [
+        0,
+        0,
+        0
+      ],
+      "native_joined_snapshot": {
+        "closed": true,
+        "worker_finished": true,
+        "pending": 0,
+        "factories": 0,
+        "charged_bytes": 0,
+        "completed": 0,
+        "rejected": 0,
+        "factory_panicked": 0,
+        "poll_panicked": 0,
+        "destructor_panicked": 0,
+        "timed_out": 0,
+        "cancelled": 0,
+        "declined_closed": 0,
+        "declined_cancelled": 0,
+        "declined_payload": 0,
+        "declined_capacity": 0,
+        "declined_deadline": 0
+      }
+    }
+  ],
+  "native_execution": {
+    "passed": 23,
+    "failed": 0,
+    "ignored": 0,
+    "old_tests": 22,
+    "new_tests": 1,
+    "test": "response_observer::tests::original_10_json_usage_callback_rejection_preserves_all_schedules",
+    "argv": [
+      "/Users/fabio.rapposelli/AI/autorouter/artifacts/dev-environment/run",
+      "cargo",
+      "test",
+      "--manifest-path",
+      "rust/Cargo.toml",
+      "--package",
+      "autorouter-runtime",
+      "--lib",
+      "response_observer::tests::",
+      "--offline",
+      "--locked",
+      "--",
+      "--nocapture",
+      "--test-threads=4"
+    ],
+    "actual_running_target": "rust/target/debug/deps/autorouter_runtime-f3deea33ddaadfcc",
+    "source_head": "2286fd91d8165b4b56b273c2ebe5fb4f462ed672",
+    "worktree_dirty": true,
+    "stable_input_scope": "1234 git-listed contributor input files unchanged within the executed batch; not the older1294 broad selector.",
+    "strict_workspace_alltargets_Clippy_exit": 0,
+    "fmt_check_exit": 0,
+    "direct_predicate_counter": 3,
+    "inherited_predicate_counter": 4,
+    "retained_initial_failure": "The -1 fmt check exited1 before Clippy or focused tests. Root retained it, formatted only the addition, and then ran the successful -2 batch.",
+    "stderr": "Existing external hyper-util unused timer warning and ordinary contained synthetic callback panic messages are retained; no empty-stderr or panic-hook privacy assertion."
+  },
+  "old_source_preservation": {
+    "old_bytes": 68483,
+    "old_sha256": "f113aed15d3456257902156e365d278a4302683b912905544d109eb104e8eaf8",
+    "unchanged_prefix_bytes": 68481,
+    "unchanged_tail_bytes": 2,
+    "reverse_reconstructed_old_sha256": "f113aed15d3456257902156e365d278a4302683b912905544d109eb104e8eaf8",
+    "entire_old_file_byte_equal": true,
+    "formatted_new_fragment_bytes": 8839,
+    "formatted_new_fragment_sha256": "c9c1607c96aa65f4046d7967d6abb75398ec22849a03ec766b9bcae3ce8dedd3",
+    "all22_old_named_tests": [
+      "consumed_utf16_models_remain_distinct_in_completion_and_fallback_checks",
+      "clean_eof_is_required_after_final_delta_and_observation_is_immediate",
+      "every_chunk_boundary_preserves_unicode_crlf_comments_and_multiline_data",
+      "many_ping_frames_do_not_consume_the_per_frame_budget",
+      "oversized_output_is_skipped_but_later_errors_remain_sanitized",
+      "skipped_metadata_and_malformed_frames_never_invent_completion",
+      "destruction_after_terminal_frame_cannot_publish_completion_or_usage",
+      "cumulative_usage_replaces_counts_and_retains_only_safe_metadata",
+      "invalid_usage_does_not_erase_independent_execution_evidence",
+      "fallback_boundaries_discard_earlier_tools_and_use_final_model",
+      "sticky_fallback_iterations_cannot_reassign_an_existing_tool",
+      "open_duplicate_invalid_excessive_or_missing_client_tools_never_pin",
+      "unknown_or_refused_stops_never_pin_and_private_stop_names_are_sanitized",
+      "json_final_boundary_and_nullable_cache_usage_preserve_native_behavior",
+      "json_oversize_unknown_media_and_malformed_data_cannot_emit_metadata",
+      "iteration_accounting_is_cumulative_and_unknown_shapes_are_unsupported",
+      "body_adapter_retains_original_bytes_and_defers_finish_until_actual_eof",
+      "callback_panics_do_not_change_forwarded_bytes",
+      "frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks",
+      "incomplete_model_frame_is_forwarded_before_observation_and_repeated_model_is_ignored",
+      "message_stop_does_not_confirm_until_actual_eof_and_drop_never_confirms",
+      "original_32_throwing_and_owned_rejecting_callbacks_preserve_bytes_and_eof"
+    ],
+    "original32_preserved": "The entire prior module is byte-exact outside the new append; no token or whitespace normalization of the old module."
+  },
+  "explicit_API_migration": {
+    "bridge": "Synchronous FnMut(Observation) dispatches Usage into public ObserverHandle::submit with exact serialized callback metadata charge. Its owned Send + static Future actually polls to Err(ObserverRejected); the owner is explicitly closed and joined.",
+    "proof_against_false_positive": "Before EOF no metadata or work; actual shared Bytes allocation forwards. Async accepted work starts1 with pending1/polls0/drops0; exact pre-close rejected1 with all other counters0 distinguishes rejection from panic/cancellation. Actual joined receipts report start/poll/drop/reject1 and no charged/pending/factory work. Other schedules report all observer counters0.",
+    "language_difference": "Source default push returns1, typed sink returns unit and Source ignores that return value. Synchronous Error throw maps to ordinary contained unwind; payload-free ObserverRejected replaces private Error details. Promise/Error identity, aliases and microtask scheduling are not claimed equivalent.",
+    "privacy_boundary": "Raw194-byte provider output contains synthetic PRIVATE_CONTENT and remains exact. Sanitized metadata and callback arguments exclude the marker. This test does not redact provider bodies."
+  },
+  "limits": [
+    "Synthetic Source/native controls only; zero providers/evaluators/models/downloads.",
+    "Only#10 is proposed covered under this explicit adapter migration; allother587 rows and previous partial mappings remain preserved.",
+    "Bundle/current-creator cap and sixcpio outcomes are separate root evidence, not callback or global qualification. Prior transfer/workspace failures remain failed.",
+    "No whole-workspace/platform/shipping/performance/live release gate is inferred."
+  ],
+  "bindings": [
+    {
+      "path": "artifacts/rust-rewrite/response-usage-future-draft-20261014/manifest-1.json",
+      "bytes": 3210,
+      "sha256": "42dfc852e5376535af6120c3dd0a3de8d34d00e0daccd2298bb5934d8d0a85b4"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-usage-future-draft-20261014/source-execution-1.json",
+      "bytes": 5255,
+      "sha256": "42ce0fea8ff43d0ab4d612f48d250c58338c302a5c63a1bf240dbe975ec53084"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-usage-future-draft-20261014/source-execution-1/source-observations.json",
+      "bytes": 41672,
+      "sha256": "3662e54d39d0a6481a9046086e4e3f4141eb7f9b79e2020a76847b72c071fb4f"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-usage-future-draft-20261014/peer-review-performance-1.json",
+      "bytes": 8269,
+      "sha256": "d40f864ae0cd3edbc22ec35b849445d2532526f2e7d048b42fb987fc460788ee"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-usage-future-draft-20261014/postexecution-readback-initial-guard.json",
+      "bytes": 978,
+      "sha256": "4e493a9a5379050d84aa332c0e9bf275b6f23eef7da1feadad68e48310409475"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/response_observer.rs",
+      "bytes": 77322,
+      "sha256": "1bab780b1e9505485f05bf5c13fee277f42830ba71fc506b497bccf18fd3d181"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/observer_tasks.rs",
+      "bytes": 33217,
+      "sha256": "623314674a4ba3ec94440e2dea24595377a1aa68e9f7aed8dd159905ec6ffd9d"
+    },
+    {
+      "path": "rust/docs/embedding.md",
+      "bytes": 23905,
+      "sha256": "22f8b9c5a8269adf950c12d5febad0d061a379096c91099fa443d85be13a8c63"
+    },
+    {
+      "path": "rust/parity/cases/response-observer-contracts.jsonl",
+      "bytes": 1109038,
+      "sha256": "c9833a7f743165f201e0a7b5c314cc34c125c0ae5460a5a4e1c6913d5e88c2d3"
+    },
+    {
+      "path": "rust/parity/assertion-mappings/response-observer-token-counter.json",
+      "bytes": 160841,
+      "sha256": "b663514820fee81c3adafbf141d4337677865bd9a0d2ebe813b84f25ee627ee0"
+    },
+    {
+      "path": "artifacts/rust-rewrite/newc-and-usage-native-20261014-2/response-observer-execution.json",
+      "bytes": 763,
+      "sha256": "993439304cc0208bff2818318b163e63a3e2208f483ca2ff31747548d3df5f75"
+    },
+    {
+      "path": "artifacts/rust-rewrite/newc-and-usage-native-20261014-2/response-observer.stdout",
+      "bytes": 2531,
+      "sha256": "645823552a4b89bb73fbeb7b6557cd3bc920fe602022a38abd68f72407967bb0"
+    },
+    {
+      "path": "artifacts/rust-rewrite/newc-and-usage-native-20261014-2/response-observer.stderr",
+      "bytes": 8162,
+      "sha256": "07e6d2afc48682c2a054c2ea1b88df97f0373f95c298787de33c2d4a54bfbca0"
+    },
+    {
+      "path": "artifacts/rust-rewrite/newc-and-usage-native-20261014-2/clippy-execution.json",
+      "bytes": 718,
+      "sha256": "eb19825abe967444992c02c2c37d732889357255b8c8dab0097bc66b6df97cd1"
+    },
+    {
+      "path": "artifacts/rust-rewrite/newc-and-usage-native-20261014-2/clippy.stderr",
+      "bytes": 856,
+      "sha256": "24f1c98a6e68dec79296f445e393ab2b0ebb1069f5c49f41546ebf7700c07e4d"
+    },
+    {
+      "path": "artifacts/rust-rewrite/newc-and-usage-native-20261014-2/fmt-execution.json",
+      "bytes": 624,
+      "sha256": "3ccad0ea8d924064cab7ef7fbb989f91bfa0943e56ce6193d518a70256c0216f"
+    },
+    {
+      "path": "artifacts/rust-rewrite/newc-and-usage-native-20261014-2/source-bindings-before.json",
+      "bytes": 146935,
+      "sha256": "12dffb9d34bfb6ec3217ff1d9bd229bcfc4e20b86bcbb8997caa94096bc501ea"
+    },
+    {
+      "path": "artifacts/rust-rewrite/newc-and-usage-native-20261014-2/source-readback.json",
+      "bytes": 320,
+      "sha256": "b3ab0d71b0095b23d34bf96ee07bec14267fc1c0f07b287c2511f8c3893829cc"
+    },
+    {
+      "path": "artifacts/rust-rewrite/newc-and-usage-native-20261014-1/fmt-execution.json",
+      "bytes": 624,
+      "sha256": "9dacb80b5951f03122d0d4b4426d18e3187fb084af84100736463ffb7254e041"
+    }
+  ],
+  "root_API_review": {
+    "path": "artifacts/rust-rewrite/response-usage-future-promotion-20261014-2/root-API-review.json",
+    "bytes": 2113,
+    "sha256": "df6c84c1ce1f26de42d25ddd82bb9e73b9a1a7e3003edd4ae3fd21bce4abc662"
+  },
+  "prepromotion_coverage_snapshot": {
+    "path": "artifacts/rust-rewrite/evidence/3ec8f0d506a33ec01f9daea3c21c900733017c64d0868ca21575ea6f2b8079a7.json",
+    "bytes": 1757661,
+    "sha256": "3ec8f0d506a33ec01f9daea3c21c900733017c64d0868ca21575ea6f2b8079a7"
+  }
+}

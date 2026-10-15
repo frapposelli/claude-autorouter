@@ -24,7 +24,6 @@ use peer::{Observation, Peer};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{
-    collections::BTreeMap,
     path::Path,
     sync::{
         Arc, Mutex,
@@ -284,16 +283,7 @@ impl Fixture {
         if !self.router.closed.load(Ordering::SeqCst) {
             return Err("router cleanup unobserved".into());
         }
-        for rows in [&self.statuses, &self.history, &self.logs, &self.log_history] {
-            if rows
-                .lock()
-                .unwrap()
-                .iter()
-                .any(|row| row["event"] == "fixture_observer_overflow")
-            {
-                return Err("sticky event recorder overflow".into());
-            }
-        }
+        contract::check_recorders([&self.statuses, &self.history, &self.logs, &self.log_history])?;
         Ok(Seen {
             requests,
             routes: self.router.calls.lock().unwrap().clone(),
@@ -311,49 +301,7 @@ impl Fixture {
         })
     }
 }
-struct Assertions {
-    number: usize,
-    counts: BTreeMap<usize, usize>,
-}
-impl Assertions {
-    fn new(number: usize) -> Self {
-        Self {
-            number,
-            counts: BTreeMap::new(),
-        }
-    }
-    fn check(&mut self, site: usize, passed: bool) {
-        *self.counts.entry(site).or_default() += 1;
-        assert!(passed, "server#{}:assert-{site}", self.number);
-    }
-    fn finish(self) {
-        let capture: Value = serde_json::from_str(CAPTURE).unwrap();
-        let row = capture["definitions"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .find(|row| row["number"] == self.number)
-            .unwrap();
-        for (index, site) in row["assertions"].as_array().unwrap().iter().enumerate() {
-            assert_eq!(
-                self.counts.get(&(index + 1)).copied().unwrap_or(0),
-                site["executions"].as_u64().unwrap() as usize,
-                "server#{}:assert-{} execution count",
-                self.number,
-                index + 1
-            );
-        }
-        assert_eq!(
-            self.counts.len(),
-            row["assertions"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .filter(|site| site["executions"] != 0)
-                .count()
-        );
-    }
-}
+type Assertions = contract::Assertions<1, true>;
 fn supplemental_transcripts(row: &Value, reply: &Reply, seen: &Seen) {
     let expected = upstream_rows(row);
     assert_eq!(seen.requests.len(), expected.len());
@@ -437,8 +385,7 @@ fn supplemental_transcripts(row: &Value, reply: &Reply, seen: &Seen) {
         "every original delivered response byte stays unchanged"
     );
     if let Some(directory) = std::env::var_os("AUTOROUTER_NATIVE_PARITY_CAPTURE_DIR") {
-        let request = |r: &Observation| json!({"method":r.method,"path":r.path,"headers":r.headers.iter().map(|(k,v)|(k.as_str().to_owned(),v.to_str().unwrap().to_owned())).collect::<BTreeMap<_,_>>(),"body_utf8":std::str::from_utf8(&r.body).unwrap()});
-        let raw = json!({"schema_version":1,"source_test":row["source_test"],"status":if row["source_test"]=="test/server.test.mjs#26"{"partial_async_callback_API"}else{"passed"},"upstream_requests":seen.requests.iter().map(request).collect::<Vec<_>>(),"route_calls":seen.routes,"complete_calls":seen.completions,"statuses":seen.statuses,"all_emitted_statuses":seen.history,"logs":seen.logs,"decisions":seen.decisions,"callback_outcomes":seen.callback_outcomes,"route_token_cancelled":seen.router_cancelled,"route_cancellation_branch_resumed":seen.cancellation_branch_resumed,"route_future_destroyed":seen.router_dropped,"provider_destroyed_after_first_read":seen.provider_destroyed,"provider_connection_closed_by_gateway":seen.provider_peer_closed,"downstream":{"status":reply.status,"headers":reply.headers.iter().map(|(k,v)|(k.as_str().to_owned(),v.to_str().unwrap().to_owned())).collect::<BTreeMap<_,_>>(),"body_base64":openssl::base64::encode_block(&reply.bytes),"body_rejected":reply.body_rejected,"request_cancelled":reply.request_cancelled},"projection":"None. Native raw IDs, numbers, timing values, callback kinds, headers and complete delivered bytes remain unchanged."});
+        let raw = json!({"schema_version":1,"source_test":row["source_test"],"status":if row["source_test"]=="test/server.test.mjs#26"{"partial_async_callback_API"}else{"passed"},"upstream_requests":seen.requests.iter().map(contract::capture_request).collect::<Vec<_>>(),"route_calls":seen.routes,"complete_calls":seen.completions,"statuses":seen.statuses,"all_emitted_statuses":seen.history,"logs":seen.logs,"decisions":seen.decisions,"callback_outcomes":seen.callback_outcomes,"route_token_cancelled":seen.router_cancelled,"route_cancellation_branch_resumed":seen.cancellation_branch_resumed,"route_future_destroyed":seen.router_dropped,"provider_destroyed_after_first_read":seen.provider_destroyed,"provider_connection_closed_by_gateway":seen.provider_peer_closed,"downstream":{"status":reply.status,"headers":contract::capture_headers(&reply.headers),"body_base64":openssl::base64::encode_block(&reply.bytes),"body_rejected":reply.body_rejected,"request_cancelled":reply.request_cancelled},"projection":"None. Native raw IDs, numbers, timing values, callback kinds, headers and complete delivered bytes remain unchanged."});
         contract::write_row_capture(&directory, &row["id"], &raw, LIMIT, false);
     }
 }

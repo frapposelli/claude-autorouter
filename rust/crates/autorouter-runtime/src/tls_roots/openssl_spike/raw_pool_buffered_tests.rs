@@ -6,7 +6,7 @@ use crate::{server::Gateway, server_events::EventSinks};
 use openssl::ssl::SslVersion;
 use std::io;
 use std::time::Duration;
-use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, ReadBuf};
+use tokio::io::{AsyncRead, AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 use tokio::task::JoinSet;
 
@@ -254,60 +254,7 @@ actual_case!(
     Some(SslVersion::TLS1_3)
 );
 
-enum Peer {
-    Tcp(TcpStream),
-    Tls(hyper_util::rt::TokioIo<hyper_openssl::SslStream<hyper_util::rt::TokioIo<TcpStream>>>),
-}
-async fn accept_peer(listener: &TcpListener, context: Option<&openssl::ssl::SslContext>) -> Peer {
-    let (stream, _) = listener.accept().await.unwrap();
-    if let Some(context) = context {
-        let mut stream = hyper_openssl::SslStream::new(
-            openssl::ssl::Ssl::new(context).unwrap(),
-            hyper_util::rt::TokioIo::new(stream),
-        )
-        .unwrap();
-        Pin::new(&mut stream).accept().await.unwrap();
-        Peer::Tls(hyper_util::rt::TokioIo::new(stream))
-    } else {
-        Peer::Tcp(stream)
-    }
-}
-impl AsyncRead for Peer {
-    fn poll_read(
-        self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-        buf: &mut ReadBuf<'_>,
-    ) -> Poll<io::Result<()>> {
-        match self.get_mut() {
-            Self::Tcp(stream) => Pin::new(stream).poll_read(cx, buf),
-            Self::Tls(stream) => Pin::new(stream).poll_read(cx, buf),
-        }
-    }
-}
-impl AsyncWrite for Peer {
-    fn poll_write(
-        self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-        buf: &[u8],
-    ) -> Poll<io::Result<usize>> {
-        match self.get_mut() {
-            Self::Tcp(stream) => Pin::new(stream).poll_write(cx, buf),
-            Self::Tls(stream) => Pin::new(stream).poll_write(cx, buf),
-        }
-    }
-    fn poll_flush(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
-        match self.get_mut() {
-            Self::Tcp(stream) => Pin::new(stream).poll_flush(cx),
-            Self::Tls(stream) => Pin::new(stream).poll_flush(cx),
-        }
-    }
-    fn poll_shutdown(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
-        match self.get_mut() {
-            Self::Tcp(stream) => Pin::new(stream).poll_shutdown(cx),
-            Self::Tls(stream) => Pin::new(stream).poll_shutdown(cx),
-        }
-    }
-}
+use super::super::super::loopback_peer::accept_peer;
 
 #[tokio::test]
 async fn producer_eof_does_not_return_pool_before_consumer_final_data() {

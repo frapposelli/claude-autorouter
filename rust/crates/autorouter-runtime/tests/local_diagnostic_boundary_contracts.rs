@@ -216,3 +216,99 @@ async fn callback_panic_containment_covers_each_original_progress_site_and_repea
         callback_case(8, Some(kind)).await;
     }
 }
+
+#[tokio::test]
+async fn original_rejected_progress_future_is_owned_polled_and_cannot_fail_diagnostic() {
+    use autorouter_runtime::observer_tasks::{ObserverLimits, ObserverRejected, ObserverTasks};
+    use std::future::Future;
+    use std::pin::Pin;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::task::{Context, Poll};
+
+    struct RejectedProgress {
+        polls: Arc<AtomicUsize>,
+        drops: Arc<AtomicUsize>,
+    }
+    impl Future for RejectedProgress {
+        type Output = Result<(), ObserverRejected>;
+        fn poll(self: Pin<&mut Self>, _: &mut Context<'_>) -> Poll<Self::Output> {
+            self.polls.fetch_add(1, Ordering::SeqCst);
+            Poll::Ready(Err(ObserverRejected))
+        }
+    }
+    impl Drop for RejectedProgress {
+        fn drop(&mut self) {
+            self.drops.fetch_add(1, Ordering::SeqCst);
+        }
+    }
+
+    let row = &captured()[9];
+    assert_eq!(row["id"], "operation-10");
+    assert_eq!(row["source_test"], "test/local-diagnostic.test.mjs#14");
+    assert_eq!(
+        row["callback_source"],
+        "async () => { throw new Error('unavailable'); }"
+    );
+    let token = CancellationToken::new();
+    let replay = Replay::new(row, &token);
+    let owner = ObserverTasks::new(ObserverLimits::default()).unwrap();
+    let progress = Arc::new(Mutex::new(Vec::<Value>::new()));
+    let observed = progress.clone();
+    let polls = Arc::new(AtomicUsize::new(0));
+    let drops = Arc::new(AtomicUsize::new(0));
+    let future_polls = polls.clone();
+    let future_drops = drops.clone();
+    // The existing public adapter owns the future actually returned at each
+    // progress site. No detached task or synchronous Err substitutes rejection.
+    let sink = owner.handle().record_sink(move |event| {
+        let mut events = observed.lock().unwrap();
+        assert!(events.len() < 15);
+        events.push(event);
+        RejectedProgress {
+            polls: future_polls.clone(),
+            drops: future_drops.clone(),
+        }
+    });
+    let report = tokio::time::timeout(
+        Duration::from_secs(2),
+        run_local_diagnostic_with_progress(replay.clone(), &settings(row), &token, |event| {
+            sink(event.clone());
+            Ok(())
+        }),
+    )
+    .await
+    .expect("bounded original rejecting-progress diagnostic")
+    .unwrap();
+    assert_eq!(report["passed"], true); // Original #14 assertion1, async variant.
+    assert_eq!(progress.lock().unwrap().len(), 15);
+    assert!(replay.verified() && replay.idle());
+    assert_eq!(replay.counts().requests, 24);
+    assert_eq!(replay.counts().requests_dropped, 24);
+    assert_eq!(replay.counts().bodies_dropped, 24);
+    assert!(!token.is_cancelled());
+    check_report(&report, &progress.lock().unwrap(), row);
+    tokio::time::timeout(Duration::from_secs(2), async {
+        while owner.snapshot().pending != 0 {
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .expect("all original progress futures must be observed and released");
+    let snapshot = owner.snapshot();
+    assert_eq!(snapshot.rejected, 15);
+    assert_eq!(snapshot.completed, 0);
+    assert_eq!(snapshot.factory_panicked, 0);
+    assert_eq!(snapshot.poll_panicked, 0);
+    assert_eq!(snapshot.destructor_panicked, 0);
+    assert_eq!(snapshot.cancelled, 0);
+    assert_eq!(snapshot.timed_out, 0);
+    assert_eq!(snapshot.factories, 0);
+    assert_eq!(snapshot.charged_bytes, 0);
+    assert_eq!(polls.load(Ordering::SeqCst), 15);
+    assert_eq!(drops.load(Ordering::SeqCst), 15);
+    tokio::time::timeout(Duration::from_secs(2), owner.close())
+        .await
+        .expect("progress owner joined cleanup");
+    assert!(owner.snapshot().closed && owner.snapshot().worker_finished);
+    assert_eq!(owner.snapshot().pending, 0);
+}

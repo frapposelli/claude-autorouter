@@ -7200,11 +7200,12 @@
       "file": "test/local-diagnostic.test.mjs",
       "name": "progress callback throws or rejected promises cannot prevent diagnostic completion",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
         "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#original_progress_callback_panic_cannot_prevent_complete_diagnostic",
         "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#original_rejected_progress_promise_migrates_to_synchronous_result_error",
-        "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#callback_panic_containment_covers_each_original_progress_site_and_repeats"
+        "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#callback_panic_containment_covers_each_original_progress_site_and_repeats",
+        "rust/crates/autorouter-runtime/tests/local_diagnostic_boundary_contracts.rs#original_rejected_progress_future_is_owned_polled_and_cannot_fail_diagnostic"
       ],
       "shared_cases": [
         "operation-9",
@@ -7219,15 +7220,21 @@
           "bytes": 10456,
           "original_path": "/private/tmp/autorouter-local-diagnostic-boundary-independent-review.json"
         },
-        "scope": "Reviewed partial correspondence only; explicit API boundaries remain."
+        "scope": "Exact sole Source assertion executed for both callback variants; ordinary panic containment and actual owned Future rejection preserve diagnostic completion under reviewed Rust API migration. No Promise/Error identity or scheduling equivalence claim.",
+        "supplemental_assertion_mapping": "rust/parity/assertion-mappings/diagnostic-progress-future-contracts.json",
+        "supplemental_assertion_mapping_sha256": "b84da8a9d94eb9d493a6f0cf57ab304e0b1bb622a7600de9ad0bd42e4cb2f103",
+        "supplemental_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/199f0152d39fc554667ba0cbc346372e6eae03cf2f0c12388f2f6458d865df53.json",
+          "sha256": "199f0152d39fc554667ba0cbc346372e6eae03cf2f0c12388f2f6458d865df53",
+          "bytes": 11024,
+          "original_path": "artifacts/rust-rewrite/diagnostic-progress-migration-20261014-1/peer-review-parity-1.json"
+        }
       },
       "related_components": [
         "evaluators",
         "native_cli_package"
       ],
-      "remaining_assertions": [
-        "The source assertion executes for both a throwing callback and a rejected async Promise. Native ordinary unwind containment covers the first; synchronous Result Err is separate migration evidence and does not qualify async Promise rejection."
-      ],
+      "remaining_assertions": [],
       "assertion_mapping": "rust/parity/assertion-mappings/local-diagnostic-boundary-contracts.json"
     },
     {
@@ -14934,7 +14941,7 @@
       ],
       "remaining_assertions": [
         "Historical JavaScript archive release-check acceptance and exact npm packed-file/source comparisons are intentionally not admitted by native publication gates. Synthetic native baseline has real temporary HEAD/lock identity and all admission checks; approval declarations are test fixtures, not qualification evidence.",
-        "Nested nine original diagnostic/format assertions remain partial; see definitions #8\u201316."
+        "Nested nine original diagnostic/format assertions remain partial; see definitions #8–16."
       ],
       "assertion_mapping": "rust/parity/assertion-mappings/release-remaining-contracts.json"
     },
@@ -17601,9 +17608,10 @@
       "file": "test/response-observer.test.mjs",
       "name": "collects bounded JSON usage together with the provider model and isolates callback failures",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks",
+        "rust/crates/autorouter-runtime/src/response_observer.rs#original_10_json_usage_callback_rejection_preserves_all_schedules"
       ],
       "shared_cases": [
         "baseline-observer-10-1",
@@ -17615,16 +17623,25 @@
         "native_log_sha256": "7a01539d30e403b7a944f65a9a1b8239a09a2d54792471456972468b25d811fe",
         "capture": "artifacts/rust-rewrite/evidence/c527a3ab8e4511c4ca081c8078ee0ae9ca71974e1b2b02b5d9d81a3432037f59.json",
         "capture_sha256": "c527a3ab8e4511c4ca081c8078ee0ae9ca71974e1b2b02b5d9d81a3432037f59",
-        "cases_sha256": "c9833a7f743165f201e0a7b5c314cc34c125c0ae5460a5a4e1c6913d5e88c2d3"
+        "cases_sha256": "c9833a7f743165f201e0a7b5c314cc34c125c0ae5460a5a4e1c6913d5e88c2d3",
+        "owned_future_summary": {
+          "path": "rust/parity/measurements/native-original-response-usage-future-summary.json",
+          "bytes": 3896,
+          "sha256": "fcdc6389e132a7142fa929a5208018ad4d9c5b3fc79aa81fe5abd7d809409dbd"
+        }
       },
       "related_components": [
         "js_document",
         "response_observer"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/response-observer-token-counter.json",
-      "remaining_assertions": [
-        "The frozen source also passes an async callback that returns a rejected Promise. Native callbacks are synchronous FnMut; the captured async call remains an explicit API migration boundary and is not claimed covered."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/response-usage-future-contracts.json",
+      "remaining_assertions": [],
+      "native_API_review": {
+        "bridge": "Synchronous FnMut(Observation) dispatches Usage into public ObserverHandle::submit with exact serialized callback metadata charge. Its owned Send + static Future actually polls to Err(ObserverRejected); the owner is explicitly closed and joined.",
+        "proof_against_false_positive": "Before EOF no metadata or work; actual shared Bytes allocation forwards. Async accepted work starts1 with pending1/polls0/drops0; exact pre-close rejected1 with all other counters0 distinguishes rejection from panic/cancellation. Actual joined receipts report start/poll/drop/reject1 and no charged/pending/factory work. Other schedules report all observer counters0.",
+        "language_difference": "Source default push returns1, typed sink returns unit and Source ignores that return value. Synchronous Error throw maps to ordinary contained unwind; payload-free ObserverRejected replaces private Error details. Promise/Error identity, aliases and microtask scheduling are not claimed equivalent.",
+        "privacy_boundary": "Raw194-byte provider output contains synthetic PRIVATE_CONTENT and remains exact. Sanitized metadata and callback arguments exclude the marker. This test does not redact provider bodies."
+      }
     },
     {
       "id": "test/response-observer.test.mjs#11",
@@ -18235,9 +18252,10 @@
       "file": "test/response-observer.test.mjs",
       "name": "execution callback throws and rejections cannot interfere with original response bytes",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+        "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks",
+        "rust/crates/autorouter-runtime/src/response_observer.rs#original_32_throwing_and_owned_rejecting_callbacks_preserve_bytes_and_eof"
       ],
       "shared_cases": [
         "baseline-observer-32-1"
@@ -18247,16 +18265,29 @@
         "native_log_sha256": "7a01539d30e403b7a944f65a9a1b8239a09a2d54792471456972468b25d811fe",
         "capture": "artifacts/rust-rewrite/evidence/c527a3ab8e4511c4ca081c8078ee0ae9ca71974e1b2b02b5d9d81a3432037f59.json",
         "capture_sha256": "c527a3ab8e4511c4ca081c8078ee0ae9ca71974e1b2b02b5d9d81a3432037f59",
-        "cases_sha256": "c9833a7f743165f201e0a7b5c314cc34c125c0ae5460a5a4e1c6913d5e88c2d3"
+        "cases_sha256": "c9833a7f743165f201e0a7b5c314cc34c125c0ae5460a5a4e1c6913d5e88c2d3",
+        "supplemental_assertion_mapping": "rust/parity/assertion-mappings/response-execution-future-contracts.json",
+        "supplemental_assertion_mapping_sha256": "f9714b3372da224000a94cbb5b0d310913ee119b66a218dc6f91dee2f0c516d1",
+        "supplemental_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/b14c8782a65b9d52b66b343d3b3be66ac2d0dd631524b433151e523b4b949a08.json",
+          "bytes": 18047,
+          "sha256": "b14c8782a65b9d52b66b343d3b3be66ac2d0dd631524b433151e523b4b949a08",
+          "original_path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/peer-postexecution-review-1.json"
+        },
+        "supplemental_root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/5f9c2d47683a93262477ac30d4c92201cc035bc66d0e851cd2066690b21a3769.json",
+          "bytes": 2670,
+          "sha256": "5f9c2d47683a93262477ac30d4c92201cc035bc66d0e851cd2066690b21a3769",
+          "original_path": "artifacts/rust-rewrite/response-execution-future-promotion-20261014-1/root-API-acceptance.json"
+        },
+        "scope": "Both original inherited byte assertions and all six original callback arguments are retained. Native ordinary panic and actual owned Future rejection preserve every data frame and clean EOF through explicit public adapter migration; no Promise/Error identity, microtask scheduling, implicit async overload or final downstream-flush/continuity claim."
       },
       "related_components": [
         "js_document",
         "response_observer"
       ],
       "assertion_mapping": "rust/parity/assertion-mappings/response-observer-token-counter.json",
-      "remaining_assertions": [
-        "The frozen source also passes an async callback that returns a rejected Promise. Native callbacks are synchronous FnMut; the captured async call remains an explicit API migration boundary and is not claimed covered."
-      ]
+      "remaining_assertions": []
     },
     {
       "id": "test/router-concurrency.test.mjs#1",
@@ -20324,7 +20355,7 @@
         "assertion_mapping_sha256": "c0b90b3a4488f40efa797c4492f106cea9a82d8cee1d044eabdaac9c7df4b51a",
         "report": "artifacts/rust-rewrite/evidence/d43862667e75572a449fcb7559e732d1e29fb657354eb43f18a880e375ab9c68.json",
         "report_sha256": "d43862667e75572a449fcb7559e732d1e29fb657354eb43f18a880e375ab9c68",
-        "review": "Root reviewed all22 original predicates/73 executions, real HTTP/provider/count/evaluator paths, exact provider bytes, malformed zero-work/privacy, complete diagnostics and actual attempts retired before close. Explicit optional/number/local error/cleanup callback ownership differences retained. This approves only original2\u20135, not overall protocol/API equivalence or release."
+        "review": "Root reviewed all22 original predicates/73 executions, real HTTP/provider/count/evaluator paths, exact provider bytes, malformed zero-work/privacy, complete diagnostics and actual attempts retired before close. Explicit optional/number/local error/cleanup callback ownership differences retained. This approves only original2–5, not overall protocol/API equivalence or release."
       },
       "related_components": [
         "model_guards",
@@ -20388,7 +20419,7 @@
         "assertion_mapping_sha256": "c0b90b3a4488f40efa797c4492f106cea9a82d8cee1d044eabdaac9c7df4b51a",
         "report": "artifacts/rust-rewrite/evidence/d43862667e75572a449fcb7559e732d1e29fb657354eb43f18a880e375ab9c68.json",
         "report_sha256": "d43862667e75572a449fcb7559e732d1e29fb657354eb43f18a880e375ab9c68",
-        "review": "Root reviewed all22 original predicates/73 executions, real HTTP/provider/count/evaluator paths, exact provider bytes, malformed zero-work/privacy, complete diagnostics and actual attempts retired before close. Explicit optional/number/local error/cleanup callback ownership differences retained. This approves only original2\u20135, not overall protocol/API equivalence or release."
+        "review": "Root reviewed all22 original predicates/73 executions, real HTTP/provider/count/evaluator paths, exact provider bytes, malformed zero-work/privacy, complete diagnostics and actual attempts retired before close. Explicit optional/number/local error/cleanup callback ownership differences retained. This approves only original2–5, not overall protocol/API equivalence or release."
       },
       "related_components": [
         "model_guards",
@@ -20452,7 +20483,7 @@
         "assertion_mapping_sha256": "c0b90b3a4488f40efa797c4492f106cea9a82d8cee1d044eabdaac9c7df4b51a",
         "report": "artifacts/rust-rewrite/evidence/d43862667e75572a449fcb7559e732d1e29fb657354eb43f18a880e375ab9c68.json",
         "report_sha256": "d43862667e75572a449fcb7559e732d1e29fb657354eb43f18a880e375ab9c68",
-        "review": "Root reviewed all22 original predicates/73 executions, real HTTP/provider/count/evaluator paths, exact provider bytes, malformed zero-work/privacy, complete diagnostics and actual attempts retired before close. Explicit optional/number/local error/cleanup callback ownership differences retained. This approves only original2\u20135, not overall protocol/API equivalence or release."
+        "review": "Root reviewed all22 original predicates/73 executions, real HTTP/provider/count/evaluator paths, exact provider bytes, malformed zero-work/privacy, complete diagnostics and actual attempts retired before close. Explicit optional/number/local error/cleanup callback ownership differences retained. This approves only original2–5, not overall protocol/API equivalence or release."
       },
       "related_components": [
         "model_guards",
@@ -20517,7 +20548,7 @@
         "assertion_mapping_sha256": "c0b90b3a4488f40efa797c4492f106cea9a82d8cee1d044eabdaac9c7df4b51a",
         "report": "artifacts/rust-rewrite/evidence/d43862667e75572a449fcb7559e732d1e29fb657354eb43f18a880e375ab9c68.json",
         "report_sha256": "d43862667e75572a449fcb7559e732d1e29fb657354eb43f18a880e375ab9c68",
-        "review": "Root reviewed all22 original predicates/73 executions, real HTTP/provider/count/evaluator paths, exact provider bytes, malformed zero-work/privacy, complete diagnostics and actual attempts retired before close. Explicit optional/number/local error/cleanup callback ownership differences retained. This approves only original2\u20135, not overall protocol/API equivalence or release."
+        "review": "Root reviewed all22 original predicates/73 executions, real HTTP/provider/count/evaluator paths, exact provider bytes, malformed zero-work/privacy, complete diagnostics and actual attempts retired before close. Explicit optional/number/local error/cleanup callback ownership differences retained. This approves only original2–5, not overall protocol/API equivalence or release."
       },
       "related_components": [
         "model_guards",
@@ -24568,9 +24599,10 @@
       "file": "test/session-log.test.mjs",
       "name": "filesystem and warning failures never reject the factory, record, or close",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_12_factory_and_sync_warning_failure_are_nonrejecting"
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_12_factory_and_sync_warning_failure_are_nonrejecting",
+        "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs#original_12_returned_warning_future_rejection_preserves_factory_record_and_close"
       ],
       "shared_cases": [
         "session-log-contracts.jsonl:10"
@@ -24590,15 +24622,27 @@
           "bytes": 2919,
           "original_path": "artifacts/rust-rewrite/session-log-root-API-decision.json"
         },
-        "scope": "Twelve reviewed original definitions; three explicit getter/nonfinite/async-warning partials. Scope includes real native files and mocked post-open write failure, not kernel fault injection or complete platform qualification."
+        "scope": "All three original #12 assertions executed with both original callback variants. Native panic containment and actual owned Future rejection preserve factory, record and close through the documented synchronous bridge and owned adapter migration. Historical partial mapping and reviews retained; no Promise/Error identity or full workspace/platform/transfer qualification claim.",
+        "supplemental_assertion_mapping": "rust/parity/assertion-mappings/session-warning-future-contracts.json",
+        "supplemental_assertion_mapping_sha256": "0149f7f06aedd3b2b2c437c3f6d39c56af863474cae844e2b6ea846103ed9238",
+        "supplemental_independent_review": {
+          "path": "artifacts/rust-rewrite/evidence/210b54a149faa019a7a6c1c911b36e569acaf2652713935f2d9a529ca84dd1f4.json",
+          "bytes": 6641,
+          "sha256": "210b54a149faa019a7a6c1c911b36e569acaf2652713935f2d9a529ca84dd1f4",
+          "original_path": "artifacts/rust-rewrite/session-warning-future-draft-20261014/peer-postexecution-review-1.json"
+        },
+        "supplemental_root_API_review": {
+          "path": "artifacts/rust-rewrite/evidence/97d26c7edaca1c7f51caa0b706e0b8bf1f6550211ffcbee545d809d0043657cd.json",
+          "bytes": 3273,
+          "sha256": "97d26c7edaca1c7f51caa0b706e0b8bf1f6550211ffcbee545d809d0043657cd",
+          "original_path": "artifacts/rust-rewrite/session-warning-future-admission-20261014-1/root-API-acceptance.json"
+        }
       },
       "related_components": [
         "telemetry_savings_history"
       ],
       "assertion_mapping": "rust/parity/assertion-mappings/session-log-original-contracts.json",
-      "remaining_assertions": [
-        "The second source warning callback returns a rejected Promise. Native Fn(&str) returns normally; that labelled predicate does not qualify asynchronous callback failure handling."
-      ]
+      "remaining_assertions": []
     },
     {
       "id": "test/session-log.test.mjs#13",

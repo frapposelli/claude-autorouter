@@ -1,6 +1,8 @@
 //! Offline pinned-source audit. Git only reverses/reapplies patches in scratch.
 //! The autorouter-audit binary builds without runtime-tools so its dependency
 //! graph excludes the native sources inspected here; regular xtask can reuse it.
+#[path = "nix_source.rs"]
+pub(crate) mod nix_source;
 #[path = "vendor_roots.rs"]
 mod roots;
 use crate::audit_support::{Scratch, digest, regular};
@@ -92,6 +94,18 @@ const SPECS: &[Spec] = &[
         unidiff_zero: false,
     },
 ];
+
+const NIX: Spec = Spec {
+    name: "nix",
+    version: "0.31.3",
+    patch: "nix-termios-init.patch",
+    provenance_sha256: nix_source::PROVENANCE,
+    upstream_count: 126,
+    patched_count: 126,
+    changed: &["src/sys/termios.rs"],
+    feature_dependencies: &[],
+    unidiff_zero: false,
+};
 
 fn hashes(value: &Value) -> Result<BTreeMap<String, String>, String> {
     value
@@ -330,7 +344,7 @@ fn verify_tree(vendor: &Path, spec: &Spec) -> Result<Value, String> {
 pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
     if args == ["--help"] {
         println!(
-            "Usage: cargo xtask verify-vendor [--only hyper|hyper-util|openssl|node-ca]\nOffline pinned source/patch, feature, root certificate and license audit. No downloads, builds or execution of inspected source trees. For pre-build inspection use autorouter-audit with --no-default-features so inspected dependencies are excluded."
+            "Usage: cargo xtask verify-vendor [--only hyper|hyper-util|openssl|nix|node-ca]\nOffline pinned source/patch, feature, root certificate and license audit. No downloads, builds or execution of inspected source trees. For pre-build inspection use autorouter-audit with --no-default-features so inspected dependencies are excluded."
         );
         return Ok(true);
     }
@@ -339,8 +353,9 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
         [flag, name] if flag == "--only" => Some(name.as_str()),
         _ => return Err("Expected verify-vendor [--only NAME]".into()),
     };
-    if selected.is_some_and(|name| !SPECS.iter().any(|spec| spec.name == name) && name != "node-ca")
-    {
+    if selected.is_some_and(|name| {
+        !SPECS.iter().any(|spec| spec.name == name) && name != "node-ca" && name != "nix"
+    }) {
         return Err("Unknown vendored audit component".into());
     }
     let vendor = root.join("rust/vendor");
@@ -350,6 +365,21 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
         .filter(|spec| selected.is_none_or(|name| name == spec.name))
     {
         reports.push(verify_tree(&vendor, spec)?);
+    }
+    if selected.is_none_or(|name| name == "nix") {
+        let suppliers = nix_source::resolve(root)?;
+        let mut report = verify_tree(suppliers.vendor(), &NIX)?;
+        let local = match fs::symlink_metadata(vendor.join("nix")) {
+            Ok(_) => {
+                verify_tree(&vendor, &NIX)?;
+                true
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => false,
+            Err(_) => return Err("Cannot inspect local terminal supplier duplicate".into()),
+        };
+        report["cargo_suppliers"] = suppliers.identities();
+        report["worktree_duplicate_present"] = json!(local);
+        reports.push(report);
     }
     if selected.is_none_or(|name| name == "node-ca") {
         reports.push(roots::verify(&vendor.join("node-ca"))?);
@@ -370,6 +400,65 @@ mod tests {
                 true
             );
         }
+    }
+
+    #[test]
+    fn actual_git_terminal_supplier_round_trips_complete_reviewed_source() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize()
+            .unwrap();
+        let suppliers = nix_source::resolve(&root).unwrap();
+        let report = verify_tree(suppliers.vendor(), &NIX).unwrap();
+        assert_eq!(report["passed"], true);
+        assert_eq!(report["upstream_files"], 126);
+        assert_eq!(report["patched_files"], 126);
+        assert_eq!(report["changed_files"], json!(["src/sys/termios.rs"]));
+        let scratch = Scratch::new("nix-specific-mutations").unwrap();
+        let tree = scratch.0.join("nix");
+        fs::create_dir(&tree).unwrap();
+        copy_tree(
+            &suppliers.vendor().join("nix"),
+            &tree,
+            &inventory(&suppliers.vendor().join("nix")).unwrap(),
+        )
+        .unwrap();
+        for name in ["nix-provenance.json", "nix-termios-init.patch"] {
+            fs::write(
+                scratch.0.join(name),
+                regular(&suppliers.vendor().join(name), FILE_CAP).unwrap(),
+            )
+            .unwrap();
+        }
+        assert_eq!(verify_tree(&scratch.0, &NIX).unwrap()["passed"], true);
+        for name in ["src/sys/termios.rs", "LICENSE", ".cargo_vcs_info.json"] {
+            let path = tree.join(name);
+            let original = regular(&path, FILE_CAP).unwrap();
+            let mut changed = original.clone();
+            changed.extend(b"unreviewed mutation");
+            fs::write(&path, changed).unwrap();
+            assert!(verify_tree(&scratch.0, &NIX).is_err(), "{name}");
+            fs::write(&path, &original).unwrap();
+            fs::remove_file(&path).unwrap();
+            assert!(verify_tree(&scratch.0, &NIX).is_err(), "missing:{name}");
+            fs::write(&path, original).unwrap();
+        }
+        for name in ["nix-provenance.json", "nix-termios-init.patch"] {
+            let path = scratch.0.join(name);
+            let original = regular(&path, FILE_CAP).unwrap();
+            fs::write(&path, b"PRIVATE_UNREVIEWED_METADATA").unwrap();
+            let error = verify_tree(&scratch.0, &NIX).unwrap_err();
+            assert!(!error.contains("PRIVATE_"));
+            fs::write(&path, original).unwrap();
+        }
+        fs::write(tree.join("unreviewed"), b"extra supplier file").unwrap();
+        assert!(verify_tree(&scratch.0, &NIX).is_err());
+        fs::remove_file(tree.join("unreviewed")).unwrap();
+        std::os::unix::fs::symlink("LICENSE", tree.join("link")).unwrap();
+        assert!(verify_tree(&scratch.0, &NIX).is_err());
+        fs::remove_file(tree.join("link")).unwrap();
+        nix::unistd::mkfifo(&tree.join("fifo"), nix::sys::stat::Mode::S_IRUSR).unwrap();
+        assert!(verify_tree(&scratch.0, &NIX).is_err());
     }
 
     #[test]

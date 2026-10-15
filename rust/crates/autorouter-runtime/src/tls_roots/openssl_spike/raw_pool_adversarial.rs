@@ -7,7 +7,7 @@ use hyper_openssl::SslStream;
 use hyper_util::rt::TokioIo;
 use openssl::ssl::{Ssl, SslVersion};
 use std::io;
-use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
+use tokio::io::{AsyncRead, AsyncWrite};
 use tokio::net::TcpListener;
 use tokio::sync::{mpsc, oneshot};
 use tokio::task::JoinSet;
@@ -37,22 +37,14 @@ fn owned_spawn<T: Send + 'static>(future: impl Future<Output = T> + Send + 'stat
 }
 const LIMIT: Duration = Duration::from_secs(8);
 const COMPLETE: &[u8] = b"HTTP/1.1 200 OK\r\nContent-Length: 1\r\nConnection: keep-alive\r\n\r\nx";
-struct Reply {
-    first: &'static [u8],
-    remainder: Option<oneshot::Receiver<&'static [u8]>>,
-}
+use super::super::loopback_peer::Reply;
 struct PeerRequest {
     connection: usize,
     path: String,
     head: String,
     reply: oneshot::Sender<Reply>,
 }
-struct PeerLease(Arc<AtomicUsize>);
-impl Drop for PeerLease {
-    fn drop(&mut self) {
-        self.0.fetch_sub(1, Ordering::SeqCst);
-    }
-}
+use super::super::loopback_peer::PeerLease;
 struct Fixture {
     client: Arc<RawPoolClient>,
     origin: String,
@@ -69,36 +61,9 @@ async fn peer<S: AsyncRead + AsyncWrite + Unpin>(
     requests: mpsc::Sender<PeerRequest>,
 ) -> io::Result<()> {
     loop {
-        let mut head = Vec::new();
-        while !head.ends_with(b"\r\n\r\n") {
-            let mut byte = [0];
-            let count = match stream.read(&mut byte).await {
-                Ok(count) => count,
-                // The client owns shutdown; TLS Drop need not send close_notify.
-                // Only an empty between-request read may treat this as teardown.
-                Err(error)
-                    if head.is_empty()
-                        && matches!(
-                            error.kind(),
-                            io::ErrorKind::UnexpectedEof | io::ErrorKind::ConnectionReset
-                        ) =>
-                {
-                    return Ok(());
-                }
-                Err(error) => return Err(error),
-            };
-            if count == 0 {
-                return if head.is_empty() {
-                    Ok(())
-                } else {
-                    Err(io::Error::other("fixture incomplete request"))
-                };
-            }
-            head.push(byte[0]);
-            if head.len() > 16384 {
-                return Err(io::Error::other("fixture header bound"));
-            }
-        }
+        let Some(head) = super::super::loopback_peer::read_head(&mut stream).await? else {
+            return Ok(());
+        };
         let request_head = String::from_utf8(head.clone()).unwrap();
         let path = std::str::from_utf8(&head)
             .ok()
@@ -115,17 +80,8 @@ async fn peer<S: AsyncRead + AsyncWrite + Unpin>(
             })
             .await
             .map_err(|_| io::Error::other("fixture request receiver closed"))?;
-        let Ok(reply) = receive.await else {
-            return Ok(()); // Scenario unwound before authorizing a reply.
-        };
-        stream.write_all(reply.first).await?;
-        stream.flush().await?;
-        if let Some(remainder) = reply.remainder {
-            let Ok(remainder) = remainder.await else {
-                return Ok(()); // Scenario unwound with a partial response.
-            };
-            stream.write_all(remainder).await?;
-            stream.flush().await?;
+        if !super::super::loopback_peer::write_reply(&mut stream, receive).await? {
+            return Ok(());
         }
     }
 }

@@ -3,7 +3,7 @@
 #[path = "support/server_contract.rs"]
 mod contract;
 use contract::{
-    chunks, decode, events, header_is, identity_headers as headers, parsed, response_bytes,
+    chunks, events, header_is, identity_headers as headers, parsed, response_bytes,
     single_sink as sink, upstream_rows,
 };
 // This shared fixture also exposes held-stream gates to other test targets.
@@ -13,20 +13,17 @@ mod peer;
 use autorouter_core::{config::read_config, js_json::JsDocument, router::RouteOptions};
 use autorouter_runtime::{
     evaluator::EvaluationError,
-    http_client::{HttpError, HttpTransport, NativeHttpClient},
+    http_client::NativeHttpClient,
     response_observer::CompletionEvidence,
     router::Router,
     server::{Gateway, GatewayHandle, GatewayRouter},
     server_events::EventSinks,
 };
-use bytes::Bytes;
-use http_body_util::{BodyExt, Full, Limited, combinators::UnsyncBoxBody};
-use hyper::{HeaderMap, Request, Response};
+use hyper::HeaderMap;
 use peer::{Observation, Peer, ResponsePlan};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{
-    collections::BTreeMap,
     path::Path,
     sync::{Arc, Mutex},
     time::Duration,
@@ -39,9 +36,6 @@ const HEADERLESS_CORPUS: &str =
     include_str!("../../../parity/cases/server-auto-goal-headerless-contracts.jsonl");
 const CAPTURE: &str = include_str!("../../../parity/cases/server-auto-goal-contracts.capture.json");
 const BOUND: Duration = Duration::from_secs(5);
-const LIMIT: usize = 2 * 1024 * 1024;
-type Error = Box<dyn std::error::Error + Send + Sync>;
-type Body = UnsyncBoxBody<Bytes, Error>;
 type Events = Arc<Mutex<Vec<Value>>>;
 
 fn case(number: usize, use_prompt_ids: bool) -> Value {
@@ -122,89 +116,7 @@ fn compare_upstream(observed: &Observation, expected: &Value) -> Result<(), Stri
     }
     Ok(())
 }
-struct Transport {
-    native: Arc<NativeHttpClient>,
-    authority: String,
-    script: Vec<Value>,
-    mocked: Mutex<Vec<Observation>>,
-    faults: Mutex<Vec<String>>,
-}
-impl Transport {
-    fn fault(&self, text: &str) -> HttpError {
-        let mut faults = self.faults.lock().unwrap();
-        if faults.len() < 16 {
-            faults.push(text.into());
-        }
-        HttpError::InvalidRequest
-    }
-}
-impl HttpTransport for Transport {
-    type ResponseBody = Body;
-    async fn request(&self, request: Request<Full<Bytes>>) -> Result<Response<Body>, HttpError> {
-        if self
-            .script
-            .first()
-            .is_some_and(|row| request.uri() == row["url"].as_str().unwrap())
-        {
-            let (parts, body) = request.into_parts();
-            let observation = Observation {
-                method: parts.method.to_string(),
-                path: parts.uri.to_string(),
-                headers: parts.headers,
-                body: body.collect().await.unwrap().to_bytes().to_vec(),
-            };
-            let index = {
-                let mut calls = self.mocked.lock().unwrap();
-                if calls.len() >= self.script.len() {
-                    return Err(self.fault("extra evaluator request"));
-                }
-                let index = calls.len();
-                calls.push(observation.clone());
-                index
-            };
-            let row = &self.script[index];
-            if observation.method != row["method"].as_str().unwrap()
-                || !header_is(
-                    &observation.headers,
-                    "authorization",
-                    row["headers"]["authorization"].as_str(),
-                )
-                || parsed(&observation.body) != parsed(row["body"].as_str().unwrap().as_bytes())
-            {
-                return Err(self.fault("complete evaluator request differs"));
-            }
-            let bytes: Vec<u8> = row["reads"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .filter(|read| read["kind"] == "read" && read["done"] == false)
-                .flat_map(|read| decode(&read["base64"]))
-                .collect();
-            let body = Full::new(Bytes::from(bytes))
-                .map_err(|never| -> Error { match never {} })
-                .boxed_unsync();
-            return Ok(Response::builder()
-                .status(row["status"].as_u64().unwrap() as u16)
-                .header("content-type", "application/json")
-                .body(body)
-                .unwrap());
-        }
-        if request.uri().scheme_str() != Some("http")
-            || request
-                .uri()
-                .authority()
-                .is_none_or(|a| a.as_str() != self.authority)
-        {
-            return Err(self.fault("unregistered endpoint"));
-        }
-        self.native.request(request).await.map(|response| {
-            response.map(|body| {
-                body.map_err(|error| -> Error { Box::new(error) })
-                    .boxed_unsync()
-            })
-        })
-    }
-}
+type Transport = contract::EvaluatorTransport<true>;
 struct AuditRouter {
     real: Router<Transport>,
     calls: Mutex<Vec<Value>>,
@@ -261,11 +173,7 @@ struct Fixture {
     logs: Events,
     statuses: Events,
 }
-struct Reply {
-    status: u16,
-    headers: HeaderMap,
-    bytes: Vec<u8>,
-}
+use contract::Reply;
 struct Seen {
     requests: Vec<Observation>,
     mocked: Vec<Observation>,
@@ -295,6 +203,8 @@ impl Fixture {
             script: row["mocked_fetch"].as_array().unwrap().clone(),
             mocked: Mutex::new(Vec::new()),
             faults: Mutex::new(Vec::new()),
+            mismatch_message: "complete evaluator request differs",
+            endpoint_message: "unregistered endpoint",
         });
         let original =
             read_config(&row["config_arguments"][0][0], false, Path::new("/tmp")).unwrap();
@@ -343,62 +253,16 @@ impl Fixture {
         }
     }
     async fn send(&self, row: &Value) -> Result<Reply, String> {
-        let url = url::Url::parse(row["url"].as_str().unwrap()).unwrap();
-        let suffix = format!(
-            "{}{}",
-            url.path(),
-            url.query().map(|q| format!("?{q}")).unwrap_or_default()
-        );
-        let mut request = Request::builder()
-            .method(row["method"].as_str().unwrap())
-            .uri(format!(
-                "http://{}{suffix}",
-                self.gateway.as_ref().unwrap().address
-            ));
-        *request.headers_mut().unwrap() = headers(&row["headers"]);
-        let request = request
-            .body(Full::new(Bytes::from(
-                row["body"].as_str().unwrap().to_owned(),
-            )))
-            .unwrap();
-        let response = self
-            .client
-            .request(request)
+        contract::send_configured_buffered::<true, false>(&self.client, self.gateway.as_ref(), row)
             .await
-            .map_err(|e| e.to_string())?;
-        let (parts, body) = response.into_parts();
-        let bytes = Limited::new(body, LIMIT)
-            .collect()
-            .await
-            .map_err(|e| e.to_string())?
-            .to_bytes()
-            .to_vec();
-        Ok(Reply {
-            status: parts.status.as_u16(),
-            headers: parts.headers,
-            bytes,
-        })
     }
     async fn finish(mut self) -> Result<Seen, String> {
-        let closed = tokio::time::timeout(BOUND, self.gateway.take().unwrap().close()).await;
-        let requests = self.peer.as_ref().unwrap().observations();
-        let peer_closed = self.peer.take().unwrap().close().await;
-        closed.map_err(|_| "gateway cleanup timed out")?;
-        peer_closed?;
+        let requests = contract::close_gateway(&mut self.gateway, &mut self.peer, BOUND).await?;
         let faults = self.transport.faults.lock().unwrap().clone();
         if !faults.is_empty() {
             return Err(format!("sticky transport faults: {faults:?}"));
         }
-        for rows in [&self.logs, &self.statuses] {
-            if rows
-                .lock()
-                .unwrap()
-                .iter()
-                .any(|row| row["event"] == "fixture_observer_overflow")
-            {
-                return Err("sticky event recorder overflow".into());
-            }
-        }
+        contract::check_recorders([&self.logs, &self.statuses])?;
         Ok(Seen {
             requests,
             mocked: self.transport.mocked.lock().unwrap().clone(),
@@ -427,50 +291,7 @@ async fn run(row: &Value) -> (Vec<Reply>, Seen) {
         seen.expect("owned cleanup"),
     )
 }
-struct Assertions {
-    number: usize,
-    counts: BTreeMap<usize, usize>,
-}
-impl Assertions {
-    fn new(number: usize) -> Self {
-        Self {
-            number,
-            counts: BTreeMap::new(),
-        }
-    }
-    fn check(&mut self, site: usize, passed: bool) {
-        *self.counts.entry(site).or_default() += 1;
-        assert!(passed, "server#{}:assert-{site}", self.number);
-    }
-    fn finish(self) {
-        let capture: Value = serde_json::from_str(CAPTURE).unwrap();
-        let row = capture["definitions"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .find(|row| row["number"] == self.number)
-            .unwrap();
-        for (index, site) in row["assertions"].as_array().unwrap().iter().enumerate() {
-            let executions = site["executions"].as_u64().unwrap() as usize;
-            assert_eq!(
-                executions % 2,
-                0,
-                "both original variants execute each site equally"
-            );
-            assert_eq!(
-                self.counts.get(&(index + 1)).copied().unwrap_or(0),
-                executions / 2,
-                "server#{}:assert-{} per-variant count",
-                self.number,
-                index + 1
-            );
-        }
-        assert_eq!(
-            self.counts.len(),
-            row["assertions"].as_array().unwrap().len()
-        );
-    }
-}
+type Assertions = contract::Assertions<2, false>;
 fn supplemental_exact_observations(row: &Value, seen: &Seen) {
     let calls = row["route_calls"].as_array().unwrap();
     assert_eq!(seen.routes.len(), calls.len());
@@ -546,7 +367,7 @@ fn retain_native_observations(row: &Value, replies: &[Reply], seen: &Seen) {
     let request = |observed: &Observation| {
         json!({
             "method":observed.method,"path":observed.path,
-            "headers":observed.headers.iter().map(|(k,v)|(k.as_str().to_owned(),v.to_str().unwrap().to_owned())).collect::<BTreeMap<_,_>>(),
+            "headers":contract::capture_headers(&observed.headers),
             "body_utf8":std::str::from_utf8(&observed.body).unwrap()
         })
     };
@@ -556,7 +377,7 @@ fn retain_native_observations(row: &Value, replies: &[Reply], seen: &Seen) {
         "mocked_evaluator_requests":seen.mocked.iter().map(request).collect::<Vec<_>>(),
         "route_calls":seen.routes,"complete_calls":seen.completions,"logs":seen.logs,"statuses":seen.statuses,
         "downstream":replies.iter().map(|reply|json!({"status":reply.status,
-            "headers":reply.headers.iter().map(|(k,v)|(k.as_str().to_owned(),v.to_str().unwrap().to_owned())).collect::<BTreeMap<_,_>>(),
+            "headers":contract::capture_headers(&reply.headers),
             "body_base64":openssl::base64::encode_block(&reply.bytes)})).collect::<Vec<_>>(),
         "api_adaptations":["Absent typed prompt_id is an empty String; the actual HTTP header remains absent.",
             "Native successful completion consumes the request lease once; the source additionally invokes a false-returning undefined cleanup callback."],

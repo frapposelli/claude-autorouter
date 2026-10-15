@@ -484,10 +484,7 @@ async fn tls13_gateway_abort_preserves_sibling() {
     actual_version(Scenario::Sibling, Some(openssl::ssl::SslVersion::TLS1_3)).await;
 }
 
-enum Peer {
-    Tcp(TcpStream),
-    Tls(hyper_util::rt::TokioIo<hyper_openssl::SslStream<hyper_util::rt::TokioIo<TcpStream>>>),
-}
+use super::loopback_peer::{Peer, accept_peer};
 impl Peer {
     fn resumed(&self) -> bool {
         match self {
@@ -501,56 +498,6 @@ impl Peer {
             Self::Tls(stream) => stream.inner().get_ref().inner().set_zero_linger().unwrap(),
         }
         drop(self);
-    }
-}
-async fn accept_peer(listener: &TcpListener, context: Option<&openssl::ssl::SslContext>) -> Peer {
-    let (stream, _) = listener.accept().await.unwrap();
-    if let Some(context) = context {
-        let mut stream = hyper_openssl::SslStream::new(
-            openssl::ssl::Ssl::new(context).unwrap(),
-            hyper_util::rt::TokioIo::new(stream),
-        )
-        .unwrap();
-        Pin::new(&mut stream).accept().await.unwrap();
-        Peer::Tls(hyper_util::rt::TokioIo::new(stream))
-    } else {
-        Peer::Tcp(stream)
-    }
-}
-impl AsyncRead for Peer {
-    fn poll_read(
-        self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-        buf: &mut ReadBuf<'_>,
-    ) -> Poll<io::Result<()>> {
-        match self.get_mut() {
-            Self::Tcp(stream) => Pin::new(stream).poll_read(cx, buf),
-            Self::Tls(stream) => Pin::new(stream).poll_read(cx, buf),
-        }
-    }
-}
-impl AsyncWrite for Peer {
-    fn poll_write(
-        self: Pin<&mut Self>,
-        cx: &mut Context<'_>,
-        buf: &[u8],
-    ) -> Poll<io::Result<usize>> {
-        match self.get_mut() {
-            Self::Tcp(stream) => Pin::new(stream).poll_write(cx, buf),
-            Self::Tls(stream) => Pin::new(stream).poll_write(cx, buf),
-        }
-    }
-    fn poll_flush(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
-        match self.get_mut() {
-            Self::Tcp(stream) => Pin::new(stream).poll_flush(cx),
-            Self::Tls(stream) => Pin::new(stream).poll_flush(cx),
-        }
-    }
-    fn poll_shutdown(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
-        match self.get_mut() {
-            Self::Tcp(stream) => Pin::new(stream).poll_shutdown(cx),
-            Self::Tls(stream) => Pin::new(stream).poll_shutdown(cx),
-        }
     }
 }
 

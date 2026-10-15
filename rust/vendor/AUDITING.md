@@ -1,11 +1,16 @@
 # Native dependency and release-feature audits
 
-Run the source auditor before building the inspected Hyper, hyper-util and
+Run the source auditor before building the inspected Hyper, hyper-util, Nix and
 OpenSSL sources. The `autorouter-audit` contributor binary belongs to the existing
 xtask crate and builds with `--no-default-features`; its graph contains no
 AutoRouter runtime/core, Hyper, hyper-util, OpenSSL or Tokio dependency. The
 ordinary `cargo xtask` keeps its default `runtime-tools` feature and existing
-commands. The auditor rejects invocation with that feature enabled.
+commands. The auditor rejects invocation with that feature enabled. Its Nix
+dependency is the unchanged registry package without the terminal feature;
+the product's [patched terminal supplier](NIX-TERMINAL.md) is a separately pinned
+Git package. Actual Cargo artifact checks reject source substitution or feature
+unification. Fetch locked dependencies before resolving and auditing either
+supplier; the source audit performs no downloads itself.
 
 From `rust/`, choose fresh retained report paths:
 

@@ -48,12 +48,7 @@ struct RequestEvent {
     path: String,
     reply: oneshot::Sender<Reply>,
 }
-struct PeerLease(Arc<AtomicUsize>);
-impl Drop for PeerLease {
-    fn drop(&mut self) {
-        self.0.fetch_sub(1, Ordering::SeqCst);
-    }
-}
+use super::loopback_peer::PeerLease;
 
 async fn peer<S: AsyncRead + AsyncWrite + Unpin>(
     mut io: S,
