@@ -7,6 +7,7 @@ use serde_json::{Value, json};
 use sha2::{Digest, Sha512};
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet};
+use std::ffi::OsStr;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -14,6 +15,28 @@ use std::time::Duration;
 pub const PACKAGE: &str = "claude-autorouter";
 pub const REPOSITORY: &str = "frapposelli/claude-autorouter";
 pub const REGISTRY: &str = "https://registry.npmjs.org";
+/// Resolve the caller's checkout for release checks. `cargo xtask` is normally
+/// invoked from `rust/`; an already-built xtask may be run from the root of a
+/// separate checkout. Neither case may silently inspect its build checkout.
+pub fn checkout_root(cwd: &Path) -> PathBuf {
+    // A repository root can itself be named rust and sit inside another npm
+    // project. Any local manifest, even one that cannot be read safely, must
+    // be checked here rather than silently selecting the parent project.
+    if !matches!(
+        std::fs::symlink_metadata(cwd.join("package.json")),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound
+    ) {
+        return cwd.to_path_buf();
+    }
+    if cwd.file_name() == Some(OsStr::new("rust"))
+        && cwd.join("Cargo.toml").is_file()
+        && let Some(parent) = cwd.parent()
+        && parent.join("package.json").is_file()
+    {
+        return parent.to_path_buf();
+    }
+    cwd.to_path_buf()
+}
 #[derive(Clone, Debug)]
 pub struct ReleaseError {
     pub code: &'static str,

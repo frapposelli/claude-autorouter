@@ -1534,7 +1534,7 @@
             "count": 8
           },
           "remaining": [
-            "The frozen Node definition uses real20ms deadlines within a real2000ms test bound. Native timeout behavior uses paused Tokio time; no real-wall-clock latency equivalence is claimed."
+            "The captured four-mode native schedule uses paused Tokio time. A separate non-paused synthetic Rust regression exercises two stalled-body deadlines at 20 ms within the frozen 2 s bound, confirms body polling after headers, and checks cleanup and retry. That later test is outside this hash-bound assertion mapping; it does not establish full four-mode or JavaScript stream-cancellation equivalence."
           ]
         },
         {
@@ -1648,11 +1648,11 @@
         }
       ],
       "migration_boundaries": [
-        "The frozen Node definition uses real20ms deadlines within a real2000ms test bound. Native timeout behavior uses paused Tokio time; no real-wall-clock latency equivalence is claimed.",
+        "The captured four-mode native schedule uses paused Tokio time. A separate non-paused synthetic Rust regression exercises two stalled-body deadlines at 20 ms within the frozen 2 s bound, confirms body polling after headers, and checks cleanup and retry. That later test is outside this hash-bound assertion mapping; it does not establish full four-mode or JavaScript stream-cancellation equivalence.",
         "Native unfinished Body destruction is asserted, including503 without body consumption. It replaces but does not execute the original ReadableStream cancel() callback returning a never-settling Promise."
       ],
       "remaining": [
-        "The frozen Node definition uses real20ms deadlines within a real2000ms test bound. Native timeout behavior uses paused Tokio time; no real-wall-clock latency equivalence is claimed.",
+        "The captured four-mode native schedule uses paused Tokio time. A separate non-paused synthetic Rust regression exercises two stalled-body deadlines at 20 ms within the frozen 2 s bound, confirms body polling after headers, and checks cleanup and retry. That later test is outside this hash-bound assertion mapping; it does not establish full four-mode or JavaScript stream-cancellation equivalence.",
         "Native unfinished Body destruction is asserted, including503 without body consumption. It replaces but does not execute the original ReadableStream cancel() callback returning a never-settling Promise."
       ],
       "review_notes": [

@@ -59,10 +59,7 @@ fn main() {
         }
         return;
     }
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../..")
-        .canonicalize()
-        .expect("repository root must exist");
+    let cwd = std::env::current_dir().expect("working directory");
     let supplied = match std::env::args_os()
         .skip(1)
         .map(|value| value.into_string())
@@ -74,15 +71,23 @@ fn main() {
             std::process::exit(1);
         }
     };
-    let args = match env_file::load_args(
-        &supplied,
-        &std::env::current_dir().expect("working directory"),
-    ) {
+    let args = match env_file::load_args(&supplied, &cwd) {
         Ok(args) => args,
         Err(error) => {
             eprintln!("{error}");
             std::process::exit(1);
         }
+    };
+    // A release check must inspect the checkout that invoked the tool, not
+    // whichever checkout originally built the xtask binary. Other source
+    // tools retain their existing build-checkout root until migrated.
+    let root = if args.first().is_some_and(|arg| arg == "release-check") {
+        release::checkout_root(&cwd)
+    } else {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize()
+            .expect("repository root must exist")
     };
     let result = match args.first().map(String::as_str) {
         None | Some("--help" | "help") => {

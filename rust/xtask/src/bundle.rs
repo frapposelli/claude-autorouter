@@ -50,6 +50,7 @@ const FIXED: &[&str] = &[
     "rust/parity/storage-reference.mjs",
     "scripts/rust-reference.mjs",
     "rust/xtask/tests/benchmark_storage.rs",
+    "rust/xtask/tests/release_cli.rs",
     "rust/docs/storage-benchmark.md",
     "rust/docs/performance-completion.md",
     "rust/docs/whole-connection-benchmark.md",

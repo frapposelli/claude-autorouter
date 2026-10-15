@@ -14764,92 +14764,28 @@
       "file": "test/release-check.test.mjs",
       "name": "CLI writes only validated release metadata to GITHUB_OUTPUT",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/xtask/src/release_archive_contracts.rs#release_pack::tests::archive_contracts::source_entrypoint_validates_before_exact_github_output_append"
+        "rust/xtask/src/release_archive_contracts.rs#release_pack::tests::archive_contracts::source_entrypoint_validates_before_exact_github_output_append",
+        "rust/xtask/tests/release_cli.rs#built_xtask_checks_the_invoking_checkout_and_only_appends_validated_outputs"
       ],
       "shared_cases": [],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/release-remaining-contracts.json",
-        "assertion_mapping_sha256": "4c6c3efa7ca4c3b8357f80e4f04d0579d9191187556989ea037d04e28f2120e5",
-        "input_coverage": {
-          "path": "artifacts/rust-rewrite/evidence/bf0b3beeb9a265f1e3513aa83b259090a8ac5c14aa687fa71ffe69766ec6f76f.json",
-          "sha256": "bf0b3beeb9a265f1e3513aa83b259090a8ac5c14aa687fa71ffe69766ec6f76f",
-          "bytes": 1125350,
-          "original_path": "rust/parity/coverage.json",
-          "source_commit": "ab068b006953627486afe42477ea8f52b4855324"
+        "assertion_mapping": "rust/parity/assertion-mappings/release-check-cli-root-contracts.json",
+        "assertion_mapping_sha256": "e112504b6f0adeada28b598b9d0afdbf140eaa3dd151d0fd06d8690612f90abd",
+        "frozen_original_sha256": "55c3112868355e94aeb3240d1d06116145a50689a878e8cfbf4b236feab5eb30",
+        "native_execution": {
+          "path": "artifacts/rust-rewrite/release-check6-promotion-20261015-2/native.stdout",
+          "sha256": "ceee519a8c29db30475bb7b1c6dc8e95c8f90b38f6673a416f4c2e08e7278043",
+          "bytes": 200
         },
-        "review": {
-          "path": "artifacts/rust-rewrite/evidence/f2c2f1083e67571523ec95e14c4e88974e56e80e0f748b24dcb24ec2c3ebfa7b.json",
-          "sha256": "f2c2f1083e67571523ec95e14c4e88974e56e80e0f748b24dcb24ec2c3ebfa7b",
-          "bytes": 3548,
-          "original_path": "/private/tmp/autorouter-release-remaining-root-review.json"
-        },
-        "independent_review": {
-          "path": "artifacts/rust-rewrite/evidence/911c057a5277ac4372a38e1f289a7abe7f1d822cd49a6f8f5972bfd2e24531f3.json",
-          "sha256": "911c057a5277ac4372a38e1f289a7abe7f1d822cd49a6f8f5972bfd2e24531f3",
-          "bytes": 10641,
-          "original_path": "/private/tmp/autorouter-release-remaining-independent-review.json"
-        },
-        "execution": {
-          "initial_unavailable_base64_dependency": {
-            "path": "artifacts/rust-rewrite/evidence/d6438e63b0466f5a300271b709c2a6aa611d5be5a152f2911de1c3b30314b4b6.log",
-            "sha256": "d6438e63b0466f5a300271b709c2a6aa611d5be5a152f2911de1c3b30314b4b6",
-            "bytes": 1881,
-            "original_path": "artifacts/rust-rewrite/evidence/d6438e63b0466f5a300271b709c2a6aa611d5be5a152f2911de1c3b30314b4b6.log"
-          },
-          "pre_fix_exact_report_failure": {
-            "path": "artifacts/rust-rewrite/evidence/f7104c3b4ca8a89e5c9bfc6912b0f8adcfb9f2f51e885d30157750db07de3364.log",
-            "sha256": "f7104c3b4ca8a89e5c9bfc6912b0f8adcfb9f2f51e885d30157750db07de3364",
-            "bytes": 2661,
-            "original_path": "artifacts/rust-rewrite/evidence/f7104c3b4ca8a89e5c9bfc6912b0f8adcfb9f2f51e885d30157750db07de3364.log"
-          },
-          "initial_green": {
-            "path": "artifacts/rust-rewrite/evidence/7443ffa99af19dee5a5a0607d3456a5de77da0bafe3cc251996b603ae083cd60.log",
-            "sha256": "7443ffa99af19dee5a5a0607d3456a5de77da0bafe3cc251996b603ae083cd60",
-            "bytes": 1987,
-            "original_path": "artifacts/rust-rewrite/evidence/7443ffa99af19dee5a5a0607d3456a5de77da0bafe3cc251996b603ae083cd60.log"
-          },
-          "final_native_release_regressions": {
-            "path": "artifacts/rust-rewrite/evidence/d79af07e46d35ff7d2bffde54c6e149c9b76fbb2b256c39b7a7aa13969140ba2.log",
-            "sha256": "d79af07e46d35ff7d2bffde54c6e149c9b76fbb2b256c39b7a7aa13969140ba2",
-            "bytes": 6895,
-            "original_path": "artifacts/rust-rewrite/evidence/d79af07e46d35ff7d2bffde54c6e149c9b76fbb2b256c39b7a7aa13969140ba2.log"
-          },
-          "scoped_clippy": {
-            "path": "artifacts/rust-rewrite/evidence/a916f3f1b719db0a19fe8d7fd84066de7534e8cc681f3203210cb79f6f787a1d.log",
-            "sha256": "a916f3f1b719db0a19fe8d7fd84066de7534e8cc681f3203210cb79f6f787a1d",
-            "bytes": 877,
-            "original_path": "artifacts/rust-rewrite/evidence/a916f3f1b719db0a19fe8d7fd84066de7534e8cc681f3203210cb79f6f787a1d.log"
-          },
-          "frozen_manifest": {
-            "path": "artifacts/rust-rewrite/evidence/e6235e89a8bab9356cca558c6f904e64251d33af732f977849167d33720ec743.log",
-            "sha256": "e6235e89a8bab9356cca558c6f904e64251d33af732f977849167d33720ec743",
-            "bytes": 35,
-            "original_path": "artifacts/rust-rewrite/evidence/e6235e89a8bab9356cca558c6f904e64251d33af732f977849167d33720ec743.log"
-          },
-          "frozen_release_check_13": {
-            "path": "artifacts/rust-rewrite/evidence/75033bfd34c093971c910de0e6b2d972aa6e3bf2089dd3697a5f76ed1a4040d7.log",
-            "sha256": "75033bfd34c093971c910de0e6b2d972aa6e3bf2089dd3697a5f76ed1a4040d7",
-            "bytes": 2625,
-            "original_path": "artifacts/rust-rewrite/evidence/75033bfd34c093971c910de0e6b2d972aa6e3bf2089dd3697a5f76ed1a4040d7.log"
-          },
-          "frozen_verification_14": {
-            "path": "artifacts/rust-rewrite/evidence/25d41f2b33d0a5533401b776f2f31f2bfe69c8d342bbdeb34d5e043f69bfff17.log",
-            "sha256": "25d41f2b33d0a5533401b776f2f31f2bfe69c8d342bbdeb34d5e043f69bfff17",
-            "bytes": 389,
-            "original_path": "artifacts/rust-rewrite/evidence/25d41f2b33d0a5533401b776f2f31f2bfe69c8d342bbdeb34d5e043f69bfff17.log"
-          }
-        },
-        "scope": "Two covered Git source definitions and twelve partial archive/entrypoint definitions. Historical/native format, admission, diagnostics and installed root-selection adaptations remain explicit. Synthetic approvals are fixtures, not release authorization."
+        "scope": "Only the four frozen CLI output assertions and invoking-checkout root selection; no native archive, platform or publication qualification."
       },
       "related_components": [
         "developer_tools"
       ],
-      "remaining_assertions": [
-        "Actual installed xtask source-root selection is compile-time checkout based; the test subprocess calls the exact production parser with an explicit temporary root. Original Node standalone executable cwd-root selection is not reproduced. Observable parser/output/injection assertions pass at the native entrypoint boundary."
-      ],
-      "assertion_mapping": "rust/parity/assertion-mappings/release-remaining-contracts.json"
+      "remaining_assertions": [],
+      "assertion_mapping": "rust/parity/assertion-mappings/release-check-cli-root-contracts.json"
     },
     {
       "id": "test/release-check.test.mjs#7",
@@ -18573,7 +18509,7 @@
         "evaluators"
       ],
       "remaining_assertions": [
-        "The frozen Node definition uses real20ms deadlines within a real2000ms test bound. Native timeout behavior uses paused Tokio time; no real-wall-clock latency equivalence is claimed.",
+        "The captured four-mode native schedule uses paused Tokio time. A separate non-paused synthetic Rust regression exercises two stalled-body deadlines at 20 ms within the frozen 2 s bound, confirms body polling after headers, and checks cleanup and retry. That later test is outside this hash-bound assertion mapping; it does not establish full four-mode or JavaScript stream-cancellation equivalence.",
         "Native unfinished Body destruction is asserted, including503 without body consumption. It replaces but does not execute the original ReadableStream cancel() callback returning a never-settling Promise."
       ],
       "assertion_mapping": "rust/parity/assertion-mappings/router-concurrency-contracts.json"

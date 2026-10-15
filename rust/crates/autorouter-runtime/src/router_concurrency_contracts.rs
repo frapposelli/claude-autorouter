@@ -3,6 +3,7 @@ use super::*;
 use crate::evaluator::{ClassifierDecision, EvaluationError};
 use crate::http_client::HttpError;
 use autorouter_core::config::read_config;
+use autorouter_core::contracts::{ClassifierError, DecisionSource};
 use bytes::Bytes;
 use http_body_util::{BodyExt, Full};
 use hyper::body::{Body, Frame};
@@ -144,6 +145,7 @@ struct ResponseBody {
     stalled: bool,
     finished: bool,
     aborted: Arc<AtomicBool>,
+    polled: Arc<AtomicBool>,
 }
 impl Body for ResponseBody {
     type Data = Bytes;
@@ -152,6 +154,7 @@ impl Body for ResponseBody {
         mut self: Pin<&mut Self>,
         _: &mut Context<'_>,
     ) -> Poll<Option<Result<Frame<Bytes>, HttpError>>> {
+        self.polled.store(true, Ordering::SeqCst);
         if let Some(bytes) = self.bytes.take() {
             return Poll::Ready(Some(Ok(Frame::data(bytes))));
         }
@@ -173,6 +176,7 @@ struct Call {
     path: String,
     send: Option<oneshot::Sender<Reply>>,
     aborted: Arc<AtomicBool>,
+    body_polled: Arc<AtomicBool>,
 }
 #[derive(Default)]
 struct Mock {
@@ -210,6 +214,11 @@ impl Mock {
             .aborted
             .load(Ordering::SeqCst)
     }
+    fn body_polled(&self, index: usize) -> bool {
+        self.calls.lock().unwrap()[index]
+            .body_polled
+            .load(Ordering::SeqCst)
+    }
 }
 impl HttpTransport for Mock {
     type ResponseBody = ResponseBody;
@@ -219,6 +228,7 @@ impl HttpTransport for Mock {
     ) -> Result<Response<ResponseBody>, HttpError> {
         self.active.fetch_add(1, Ordering::SeqCst);
         let aborted = Arc::new(AtomicBool::new(false));
+        let body_polled = Arc::new(AtomicBool::new(false));
         let mut active = Active {
             mock: self,
             aborted: aborted.clone(),
@@ -233,6 +243,7 @@ impl HttpTransport for Mock {
             path: path.clone(),
             send: Some(send),
             aborted: aborted.clone(),
+            body_polled: body_polled.clone(),
         });
         let automatic = self.automatic.lock().unwrap().clone();
         let reply = if path == "/api/show" {
@@ -250,6 +261,7 @@ impl HttpTransport for Mock {
                 stalled: reply.stalled,
                 finished: false,
                 aborted,
+                polled: body_polled,
             })
             .unwrap())
     }
@@ -872,4 +884,50 @@ async fn each_jev_body_failure_retries_privately_with_cleanup_and_deadline_after
         observed.finish();
     })
     .await;
+}
+
+#[tokio::test]
+async fn real_jev_deadline_after_headers_drops_stalled_bodies_and_allows_retry() {
+    // The frozen Node case uses a 20 ms deadline and a two-second test bound.
+    // Keep this clock live: the captured assertion schedule above uses paused
+    // time and cannot by itself show that a real stalled body is interrupted.
+    tokio::time::timeout(Duration::from_secs(2), async {
+        let mut config = config();
+        config.jev_timeout_ms = 20;
+        let mock = Arc::new(Mock::default());
+        *mock.automatic.lock().unwrap() = Some(Reply {
+            status: 200,
+            bytes: Bytes::new(),
+            stalled: true,
+        });
+        let classifier = Classifier::new(mock.clone(), &config);
+        let document = body("Synthetic task");
+
+        for index in 0..2 {
+            let task = start(
+                &classifier,
+                document.clone(),
+                &config,
+                CancellationToken::new(),
+            );
+            ready(|| mock.count() == index + 1 && mock.body_polled(index)).await;
+            assert_eq!(mock.active.load(Ordering::SeqCst), 0);
+            let result = task.await.unwrap().unwrap();
+            assert_eq!(result.source, DecisionSource::Fallback);
+            assert_eq!(result.classifier_error, Some(ClassifierError::Timeout));
+            assert!(mock.aborted(index), "unfinished body must be dropped");
+            assert_eq!(classifier.pending_counts(), (0, 0));
+        }
+
+        *mock.automatic.lock().unwrap() = Some(Reply::answer("haiku", 1.0));
+        let retry = classifier
+            .classify(&document, &config, &CancellationToken::new())
+            .await
+            .unwrap();
+        assert_eq!(retry.source, DecisionSource::Jev);
+        assert_eq!(mock.count(), 3);
+        assert_eq!(classifier.pending_counts(), (0, 0));
+    })
+    .await
+    .expect("real Jev timeout and retry exceeded frozen two-second bound");
 }

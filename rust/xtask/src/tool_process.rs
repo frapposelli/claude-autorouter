@@ -140,11 +140,33 @@ pub struct InputAction {
 pub struct RunOptions<'a> {
     pub timeout: Duration,
     pub grace: Duration,
+    /// Legacy field name: bounds observed stdout and stderr together. The
+    /// stdout callback also stops once this aggregate byte ceiling is exceeded.
+    /// None preserves explicitly streaming callers without an output ceiling.
     pub max_stdout: Option<usize>,
     pub interactive: bool,
     pub response: &'a CancellationToken,
     pub cancel: &'a CancellationToken,
     pub initial: InputAction,
+}
+fn exceeds_output_limit(stdout: usize, stderr: usize, maximum: Option<usize>) -> bool {
+    maximum.is_some_and(|limit| stdout.checked_add(stderr).is_none_or(|total| total > limit))
+}
+fn stage_input(
+    action: InputAction,
+    stdin: &mut Option<tokio::process::ChildStdin>,
+) -> Option<InputAction> {
+    if stdin.is_none() {
+        return None;
+    }
+    if action.bytes.is_empty() {
+        if action.close {
+            stdin.take();
+        }
+        None
+    } else {
+        Some(action)
+    }
 }
 pub async fn run_child(
     command: &mut Command,
@@ -173,24 +195,10 @@ pub async fn run_child(
     let mut stdout = child.stdout.take().unwrap();
     let mut stderr = child.stderr.take().unwrap();
     let deadline = tokio::time::Instant::now() + options.timeout;
-    if let Some(input) = &mut stdin {
-        let result = tokio::select! {
-            result = input.write_all(&options.initial.bytes) => result.map_err(|_| "stdin_error"),
-            _ = options.cancel.cancelled() => Err("cancelled"),
-            _ = tokio::time::sleep_until(deadline) => Err("timed_out"),
-        };
-        if let Err(reason) = result
-            && reason != "stdin_error"
-        {
-            signal_group(group.0, true);
-            let _ = child.kill().await;
-            let _ = child.wait().await;
-            return json!({"exit_code":null,"exit_signal":"SIGKILL","timed_out":reason=="timed_out","cancelled":reason=="cancelled","stdin_error":reason=="stdin_error","output_limit_exceeded":false,"duration_ms":started.elapsed().as_millis(),"stdout_bytes":0,"stderr_bytes":0});
-        }
-    }
-    if options.initial.close {
-        stdin.take();
-    }
+    // Retain at most one owned action. Suspend further stdout callbacks until
+    // it finishes, while the main loop still polls stderr, exit and stop bounds.
+    let mut pending_input = stage_input(options.initial, &mut stdin);
+    let mut input_offset = 0;
     let (mut outbuf, mut errbuf) = ([0; 8192], [0; 8192]);
     let (mut outdone, mut errdone) = (false, false);
     let (mut outbytes, mut errbytes) = (0usize, 0usize);
@@ -207,19 +215,27 @@ pub async fn run_child(
             .map(|at: tokio::time::Instant| at + options.grace)
             .unwrap_or(deadline);
         tokio::select! {biased;
-                    _=options.cancel.cancelled(),if !cancelled&&stopping.is_none()=>{cancelled=true;signal_group(group.0,false);stopping=Some(tokio::time::Instant::now());stdin.take();},
+                    _=options.cancel.cancelled(),if !cancelled&&stopping.is_none()=>{cancelled=true;signal_group(group.0,false);stopping=Some(tokio::time::Instant::now());pending_input.take();stdin.take();},
                     _=options.response.cancelled(),if options.interactive&&!response_received=>{response_received=true;response_at=Some(tokio::time::Instant::now()+Duration::from_secs(1));},
-                    _=tokio::time::sleep_until(response_at.unwrap_or(deadline)),if response_at.is_some()&&stopping.is_none()=>{signal_group(group.0,false);stopping=Some(tokio::time::Instant::now());stdin.take();},
-                    _=tokio::time::sleep_until(next)=>{if stopping.is_none(){timed_out=true;signal_group(group.0,false);stopping=Some(tokio::time::Instant::now());stdin.take();}else{signal_group(group.0,true);
+                    _=tokio::time::sleep_until(response_at.unwrap_or(deadline)),if response_at.is_some()&&stopping.is_none()=>{signal_group(group.0,false);stopping=Some(tokio::time::Instant::now());pending_input.take();stdin.take();},
+                    _=tokio::time::sleep_until(next)=>{if stopping.is_none(){timed_out=true;signal_group(group.0,false);stopping=Some(tokio::time::Instant::now());pending_input.take();stdin.take();}else{signal_group(group.0,true);
         let _=child.start_kill();
         if status.is_none(){status=child.wait().await.ok();}break;}},
-                    result=child.wait(),if status.is_none()=>{status=result.ok();stdin.take();},
-                    result=stdout.read(&mut outbuf),if !outdone=>{match result{Ok(0)|Err(_)=>outdone=true,Ok(n)=>{outbytes=outbytes.saturating_add(n);
-        if options.max_stdout.is_some_and(|max|outbytes>max){output_limit=true;
-        if stopping.is_none(){signal_group(group.0,false);stopping=Some(tokio::time::Instant::now());stdin.take();}}else{let action=output(&outbuf[..n]);
-        if let Some(input)=&mut stdin{let _=input.write_all(&action.bytes).await;}
-        if action.close{stdin.take();}}}}},
-                    result=stderr.read(&mut errbuf),if !errdone=>{match result{Ok(0)|Err(_)=>errdone=true,Ok(n)=>errbytes=errbytes.saturating_add(n)}}
+                    result=child.wait(),if status.is_none()=>{status=result.ok();pending_input.take();stdin.take();},
+                    result=stdout.read(&mut outbuf),if !outdone&&pending_input.is_none()=>{match result{Ok(0)|Err(_)=>outdone=true,Ok(n)=>{outbytes=outbytes.saturating_add(n);
+        if exceeds_output_limit(outbytes,errbytes,options.max_stdout){output_limit=true;
+        if stopping.is_none(){signal_group(group.0,false);stopping=Some(tokio::time::Instant::now());pending_input.take();stdin.take();}}else{pending_input=stage_input(output(&outbuf[..n]),&mut stdin);input_offset=0;}}}},
+                    result=stderr.read(&mut errbuf),if !errdone=>{match result{Ok(0)|Err(_)=>errdone=true,Ok(n)=>{errbytes=errbytes.saturating_add(n);
+        if exceeds_output_limit(outbytes,errbytes,options.max_stdout){output_limit=true;
+        if stopping.is_none(){signal_group(group.0,false);stopping=Some(tokio::time::Instant::now());pending_input.take();stdin.take();}}}}},
+                    result=async {
+                        let action=pending_input.as_ref().expect("pending input action");
+                        stdin.as_mut().expect("pending input pipe").write(&action.bytes[input_offset..]).await
+                    },if pending_input.is_some()&&stopping.is_none()=>{
+                        let action=pending_input.as_ref().expect("pending input action");
+                        let complete=match result{Ok(n)if n>0=>{input_offset+=n;input_offset==action.bytes.len()},_=>true};
+                        if complete{if action.close{stdin.take();}pending_input.take();input_offset=0;}
+                    },
                 }
     }
     #[cfg(unix)]
@@ -379,6 +395,253 @@ mod tests {
         assert_eq!(result["stderr_bytes"], "private-error-canary".len());
         assert!(!result.to_string().contains("private-canary"));
         assert!(!result.to_string().contains("private-error-canary"));
+    }
+    fn assert_child_reaped(pid_file: &Path) {
+        use nix::sys::signal::kill;
+        use nix::sys::wait::{WaitPidFlag, waitpid};
+        use nix::unistd::Pid;
+        let pid = Pid::from_raw(std::fs::read_to_string(pid_file).unwrap().parse().unwrap());
+        assert_eq!(kill(pid, None), Err(nix::errno::Errno::ESRCH));
+        assert_eq!(
+            waitpid(pid, Some(WaitPidFlag::WNOHANG)),
+            Err(nix::errno::Errno::ECHILD)
+        );
+    }
+    async fn output_case(
+        stdout: usize,
+        stderr: usize,
+        maximum: Option<usize>,
+        stall: bool,
+    ) -> (Value, Vec<u8>) {
+        let scratch = Scratch::new("tool-output-bound").unwrap();
+        let pid_file = scratch.0.join("child.pid");
+        let stdout = "O".repeat(stdout);
+        let stderr = "E".repeat(stderr);
+        let ending = if stall {
+            // Ignore TERM so an overflow exercises grace, forced group cleanup
+            // and reaping. exec retains the recorded leader PID without a child.
+            "exec /bin/sleep 30"
+        } else {
+            "exit 17"
+        };
+        let script = format!(
+            "trap '' TERM; printf '%s' \"$$\" > \"$1\"; printf '%s' \"$2\"; printf '%s' \"$3\" >&2; {ending}"
+        );
+        let cancel = CancellationToken::new();
+        let response = CancellationToken::new();
+        let mut captured = Vec::new();
+        let result = tokio::time::timeout(
+            Duration::from_secs(10),
+            run_child(
+                Command::new("/bin/sh").args([
+                    std::ffi::OsStr::new("-c"),
+                    script.as_ref(),
+                    std::ffi::OsStr::new("synthetic-output-bound"),
+                    pid_file.as_os_str(),
+                    stdout.as_ref(),
+                    stderr.as_ref(),
+                ]),
+                RunOptions {
+                    timeout: Duration::from_secs(5),
+                    grace: Duration::from_millis(30),
+                    max_stdout: maximum,
+                    interactive: false,
+                    response: &response,
+                    cancel: &cancel,
+                    initial: InputAction {
+                        close: true,
+                        ..Default::default()
+                    },
+                },
+                |chunk| {
+                    captured.extend_from_slice(chunk);
+                    InputAction::default()
+                },
+            ),
+        )
+        .await
+        .expect("bounded output must terminate and reap the owned subprocess");
+        assert_child_reaped(&pid_file);
+        assert_eq!(result["timed_out"], false);
+        assert_eq!(result["cancelled"], false);
+        for private in [&stdout, &stderr]
+            .into_iter()
+            .filter(|text| text.len() >= 16)
+        {
+            assert!(!result.to_string().contains(&private[..16]));
+        }
+        (result, captured)
+    }
+    #[tokio::test]
+    async fn bounded_children_accept_exact_combined_output_on_either_pipe() {
+        for (stdout, stderr) in [(256, 0), (0, 256), (128, 128), (0, 0)] {
+            let (result, output) = output_case(stdout, stderr, Some(stdout + stderr), false).await;
+            assert_eq!(result["exit_code"], 17);
+            assert_eq!(result["exit_signal"], Value::Null);
+            assert_eq!(result["output_limit_exceeded"], false);
+            assert_eq!(result["stdout_bytes"], stdout);
+            assert_eq!(result["stderr_bytes"], stderr);
+            assert_eq!(output, vec![b'O'; stdout]);
+        }
+    }
+    #[tokio::test]
+    async fn bounded_children_stop_and_reap_on_stderr_or_combined_output_overflow() {
+        for (stdout, stderr) in [(257, 0), (0, 257), (128, 129), (1, 0), (0, 1)] {
+            let maximum = if stdout + stderr == 1 { 0 } else { 256 };
+            let (result, output) = output_case(stdout, stderr, Some(maximum), true).await;
+            assert_eq!(result["exit_code"], Value::Null);
+            assert_eq!(result["exit_signal"], "SIGKILL");
+            assert_eq!(result["output_limit_exceeded"], true);
+            assert_eq!(result["stdout_bytes"], stdout);
+            assert_eq!(result["stderr_bytes"], stderr);
+            assert!(output.len() <= maximum);
+        }
+    }
+    #[tokio::test]
+    async fn explicitly_streaming_children_keep_their_output_without_an_aggregate_ceiling() {
+        let (result, output) = output_case(257, 257, None, false).await;
+        assert_eq!(result["exit_code"], 17);
+        assert_eq!(result["exit_signal"], Value::Null);
+        assert_eq!(result["output_limit_exceeded"], false);
+        assert_eq!(result["stdout_bytes"], 257);
+        assert_eq!(result["stderr_bytes"], 257);
+        assert_eq!(output, vec![b'O'; 257]);
+    }
+    #[tokio::test]
+    async fn callback_input_backpressure_keeps_deadline_cancellation_and_stderr_bounds_live() {
+        for stop in ["deadline", "cancel", "output"] {
+            let scratch = Scratch::new("tool-callback-input").unwrap();
+            let pid_file = scratch.0.join("child.pid");
+            let callback_file = scratch.0.join("callback-ready");
+            let stderr = if stop == "output" {
+                "E".repeat(60)
+            } else {
+                String::new()
+            };
+            let mut command = Command::new("/bin/sh");
+            command.args([
+                std::ffi::OsStr::new("-c"),
+                std::ffi::OsStr::new(
+                    "trap '' TERM; printf '%s' \"$$\" > \"$1\"; printf ready; while [ ! -f \"$2\" ]; do :; done; printf '%s' \"$3\" >&2; exec /bin/sleep 30",
+                ),
+                std::ffi::OsStr::new("synthetic-callback-input"),
+                pid_file.as_os_str(),
+                callback_file.as_os_str(),
+                stderr.as_ref(),
+            ]);
+            let cancel = CancellationToken::new();
+            let response = CancellationToken::new();
+            let callback_started = CancellationToken::new();
+            let mut next_input = Some(vec![b'I'; 1024 * 1024]);
+            let mut captured = Vec::new();
+            let run = run_child(
+                &mut command,
+                RunOptions {
+                    timeout: Duration::from_secs(if stop == "deadline" { 1 } else { 5 }),
+                    grace: Duration::from_millis(30),
+                    max_stdout: Some(64),
+                    interactive: false,
+                    response: &response,
+                    cancel: &cancel,
+                    initial: InputAction::default(),
+                },
+                |chunk| {
+                    captured.extend_from_slice(chunk);
+                    std::fs::write(&callback_file, b"ready").unwrap();
+                    callback_started.cancel();
+                    InputAction {
+                        bytes: next_input.take().expect("only one pending input action"),
+                        close: true,
+                    }
+                },
+            );
+            let interrupt = async {
+                callback_started.cancelled().await;
+                if stop == "cancel" {
+                    cancel.cancel();
+                }
+            };
+            let (result, ()) = tokio::time::timeout(Duration::from_secs(10), async {
+                tokio::join!(run, interrupt)
+            })
+            .await
+            .expect("blocked callback input must retain stop bounds and cleanup");
+            assert_child_reaped(&pid_file);
+            assert!(next_input.is_none());
+            assert_eq!(captured, b"ready");
+            assert_eq!(result["stdout_bytes"], 5);
+            assert_eq!(result["stderr_bytes"], stderr.len());
+            assert_eq!(result["exit_code"], Value::Null);
+            assert_eq!(result["exit_signal"], "SIGKILL");
+            assert_eq!(result["timed_out"], stop == "deadline");
+            assert_eq!(result["cancelled"], stop == "cancel");
+            assert_eq!(result["output_limit_exceeded"], stop == "output");
+            assert!(!result.to_string().contains("EEEEEEEEEEEEEEEE"));
+            assert!(!result.to_string().contains("IIIIIIIIIIIIIIII"));
+        }
+    }
+    #[tokio::test]
+    async fn initial_and_callback_actions_close_stdin_only_after_all_bytes_are_written() {
+        for callback in [false, true] {
+            let scratch = Scratch::new("tool-close-after-input").unwrap();
+            let pid_file = scratch.0.join("child.pid");
+            let input_file = scratch.0.join("received-input");
+            let input = vec![b'I'; 1024 * 1024];
+            let mut command = Command::new("/bin/sh");
+            command.args([
+                std::ffi::OsStr::new("-c"),
+                std::ffi::OsStr::new(
+                    "printf '%s' \"$$\" > \"$1\"; printf ready; /bin/cat > \"$2\"; printf done",
+                ),
+                std::ffi::OsStr::new("synthetic-close-after-input"),
+                pid_file.as_os_str(),
+                input_file.as_os_str(),
+            ]);
+            let cancel = CancellationToken::new();
+            let response = CancellationToken::new();
+            let mut next_input = callback.then(|| input.clone());
+            let mut captured = Vec::new();
+            let result = tokio::time::timeout(
+                Duration::from_secs(10),
+                run_child(
+                    &mut command,
+                    RunOptions {
+                        timeout: Duration::from_secs(5),
+                        grace: Duration::from_millis(30),
+                        max_stdout: Some(64),
+                        interactive: false,
+                        response: &response,
+                        cancel: &cancel,
+                        initial: InputAction {
+                            bytes: if callback { Vec::new() } else { input.clone() },
+                            close: !callback,
+                        },
+                    },
+                    |chunk| {
+                        captured.extend_from_slice(chunk);
+                        next_input
+                            .take()
+                            .map_or_else(InputAction::default, |bytes| InputAction {
+                                bytes,
+                                close: true,
+                            })
+                    },
+                ),
+            )
+            .await
+            .expect("a complete action must close stdin and allow clean child exit");
+            assert_child_reaped(&pid_file);
+            assert_eq!(result["exit_code"], 0);
+            assert_eq!(result["exit_signal"], Value::Null);
+            assert_eq!(result["timed_out"], false);
+            assert_eq!(result["cancelled"], false);
+            assert_eq!(result["output_limit_exceeded"], false);
+            assert_eq!(result["stdout_bytes"], 9);
+            assert_eq!(result["stderr_bytes"], 0);
+            assert_eq!(captured, b"readydone");
+            assert_eq!(std::fs::read(&input_file).unwrap(), input);
+            assert!(next_input.is_none());
+        }
     }
     #[tokio::test]
     async fn deadline_terminates_child_without_assuming_output_readiness() {

@@ -334,12 +334,14 @@ The [release-tool mapping](assertion-mappings/release-contracts.json) covers
 schedules. JavaScript private-error injection, independent clock injection
 and native publication eligibility remain explicit boundaries. The
 [remaining release mapping](assertion-mappings/release-remaining-contracts.json)
-covers two source/tag definitions and records twelve partial archive/entrypoint
-definitions. Native archive admission, historical package format, diagnostics
-and installed source-root selection remain explicit differences. A corrupt
-checksum now retains the original public report reason, `invalid_archive`,
-while the reader keeps its specific checksum detail. These tests do not publish
-a package or qualify an actual release.
+historically covers two source/tag definitions and records twelve partial
+archive/entrypoint definitions. The [CLI root supplement](assertion-mappings/release-check-cli-root-contracts.json)
+completes original definition #6 with the actual built xtask invoked from a
+separate checkout, leaving eleven partial definitions in this group. Native
+archive admission, historical package format and diagnostics remain explicit
+differences. A corrupt checksum now retains the original public report reason,
+`invalid_archive`, while the reader keeps its specific checksum detail. These
+tests do not publish a package or qualify an actual release.
 
 ```sh
 node parity/capture-router-concurrency-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/concurrency-NEW
