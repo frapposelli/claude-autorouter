@@ -44,8 +44,9 @@ for (const args of [
   ['set', 'synthetic-unknown-key', 'value'], ['show', '--invalid'], ['set', 'AUTOROUTER_SECRET_STORE', 'file'],
 ]) {
   for (const env of [{}, { AUTOROUTER_PORT: '9000', TYPESAFE_API_KEY: 'synthetic-environment' }]) {
+    // Early argument errors close stdin without reading it; only --stdin cases need a writer.
     cases.push({ saved: { AUTOROUTER_PORT: '8123', TYPESAFE_API_KEY: 'synthetic-saved' }, env,
-      args: ['config', ...args], stdin: ' synthetic-stdin-value\r\n' });
+      args: ['config', ...args], ...(args.includes('--stdin') ? { stdin: ' synthetic-stdin-value\r\n' } : {}) });
   }
 }
 for (const saved of [undefined, { AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_SECRET_STORE: 'file', AUTOROUTER_AUTH_MODE: 'subscription', TYPESAFE_API_KEY: 'synthetic-kept', AUTOROUTER_PORT: '8123' }]) {
@@ -76,7 +77,7 @@ function run(executable, prefix, testCase, index, implementation) {
   rmSync(path, { force: true });
   if (testCase.saved !== undefined) writeFileSync(path, JSON.stringify(testCase.saved), { mode: 0o600 });
   const output = spawnSync(executable, [...prefix, ...testCase.args], {
-    cwd: directory, env: { ...base, ...testCase.env }, input: testCase.stdin ?? '', encoding: 'utf8',
+    cwd: directory, env: { ...base, ...testCase.env }, ...(testCase.stdin === undefined ? {} : { input: testCase.stdin }), encoding: 'utf8',
     timeout: 15000, maxBuffer: 1024 * 1024,
   });
   if (output.error || output.signal) {

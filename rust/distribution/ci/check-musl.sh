@@ -56,10 +56,17 @@ cargo test --workspace --offline --locked
 cargo build --release --offline --locked --package claude-autorouter --message-format=json > "$out/production-build.jsonl"
 "$out/autorouter-audit-bootstrap" production-features --build-report "$out/production-build.jsonl" > "$out/production-features.json"
 cp "$CARGO_TARGET_DIR/$CARGO_BUILD_TARGET/release/claude-autorouter" "$out/claude-autorouter-musl"
-# Rebuild ordinary CLI from a second empty compiler-output tree. No normalization
-# or exception is allowed: failure retains both identities and stops the job.
-CARGO_TARGET_DIR="$out/target-repro" cargo build --release --offline --locked --package claude-autorouter --message-format=json > "$out/repro-build.jsonl"
-cp "$out/target-repro/$CARGO_BUILD_TARGET/release/claude-autorouter" "$out/claude-autorouter-musl-repro"
+# OpenSSL embeds its absolute MODULESDIR build-output path in the binary. Move
+# the first compiler-output tree aside, then rebuild from a fresh tree at the
+# same path so the two independently compiled binaries have identical inputs.
+[[ "$CARGO_TARGET_DIR" == "$out/target-main" && -d "$CARGO_TARGET_DIR" && ! -L "$CARGO_TARGET_DIR" ]]
+[[ ! -e "$out/target-primary-outputs" && ! -L "$out/target-primary-outputs" ]]
+mv "$CARGO_TARGET_DIR" "$out/target-primary-outputs"
+mkdir -m 700 "$CARGO_TARGET_DIR"
+printf 'production_compiler_output_path=%s\nproduction_compiler_output_retained=%s\nreproduction_compiler_output_path=%s\n' \
+  "$CARGO_TARGET_DIR" "$out/target-primary-outputs" "$CARGO_TARGET_DIR" > "$out/repro-output-roots.txt"
+cargo build --release --offline --locked --package claude-autorouter --message-format=json > "$out/repro-build.jsonl"
+cp "$CARGO_TARGET_DIR/$CARGO_BUILD_TARGET/release/claude-autorouter" "$out/claude-autorouter-musl-repro"
 sha256sum "$out/claude-autorouter-musl" "$out/claude-autorouter-musl-repro" > "$out/repro-sha256.txt"
 cmp "$out/claude-autorouter-musl" "$out/claude-autorouter-musl-repro"
 # Only after copying/auditing ordinary shipping builds may the development helper
