@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "kind": "original_status_cleanup_failing_filesystem_qualification",
+  "date": "2026-10-15",
+  "only_definition": "test/status-cleanup.test.mjs#5",
+  "mapping": {
+    "path": "rust/parity/assertion-mappings/status-cleanup-filesystem-contracts.json",
+    "bytes": 7245,
+    "sha256": "c6c26ac83a7686ae59669d93b63ff77fad7c477e1057ca6ee3adf30383755e3c"
+  },
+  "source_original": {
+    "test_passed": true,
+    "assertion_sites": 2,
+    "baseline_files_verified_before_and_after": 111,
+    "stderr_empty": true
+  },
+  "native": {
+    "missing_directory_test_passed": true,
+    "permission_and_disappearance_parent_test_passed": true,
+    "child_entry_ignored_by_default_but_executed_by_parent": true,
+    "euid": 502,
+    "actual_faults": [
+      "PermissionDenied/OS13 with readable enumeration and zero liveness calls",
+      "NotFound after listed entry disappears, followed by continued cleanup and successful recreation"
+    ],
+    "private_child_output_assertions_passed": true
+  },
+  "native_API_review": {
+    "preserved": "Missing directory and failed per-entry metadata reads return zero without leaking private errors or modifying retained settings; later entries and recovery remain usable.",
+    "migration": "Rust CleanupOptions uses concrete Tokio filesystem operations rather than an injected JavaScript io object. Actual PermissionDenied (OS13) and NotFound faults replace source-injected Error values; JavaScript provider/callback/Error identities are not part of the Rust API.",
+    "review": "Accepted for the two original return-value assertions under the documented native embedding boundary. A non-root execution is required for permission-fault evidence; privileged skips do not qualify that branch."
+  },
+  "execution_bindings": [
+    {
+      "path": "artifacts/rust-rewrite/status-cleanup5-current-20261015-1/additional-executions.json",
+      "bytes": 1033,
+      "sha256": "be0465322db78abdde2d8752fd961eca8bcd998d0d7127fd9892b3542b7b68e8"
+    },
+    {
+      "path": "artifacts/rust-rewrite/status-cleanup5-current-20261015-1/execution.json",
+      "bytes": 754,
+      "sha256": "bc3a9c2e6bbc6744586ba3f5750436920c6329ed52a21bce139f506dfbbba923"
+    },
+    {
+      "path": "artifacts/rust-rewrite/status-cleanup5-current-20261015-1/missing-native.stderr",
+      "bytes": 632,
+      "sha256": "7694ca12b9711d56515dc5c682eee522e242cfb2d48cea25fd448f08b38a11dd"
+    },
+    {
+      "path": "artifacts/rust-rewrite/status-cleanup5-current-20261015-1/missing-native.stdout",
+      "bytes": 201,
+      "sha256": "2d71b251d7759bf1c02ae24e9230bc41a1b0d11cb95efaa0c6f855a59ba95b9c"
+    },
+    {
+      "path": "artifacts/rust-rewrite/status-cleanup5-current-20261015-1/source.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/status-cleanup5-current-20261015-1/source.stdout",
+      "bytes": 330,
+      "sha256": "707db98120bb83a275fcf959e4ad0a7d63d89c6fb88106d63811f129899a49fc"
+    },
+    {
+      "path": "artifacts/rust-rewrite/status-cleanup5-current-20261015-1/stderr.log",
+      "bytes": 753,
+      "sha256": "d578aada1c187b6cfcde6343791ea69d41f8476f190c084593f540737329d4c0"
+    },
+    {
+      "path": "artifacts/rust-rewrite/status-cleanup5-current-20261015-1/stdout.log",
+      "bytes": 348,
+      "sha256": "d8c09bfde14238a20a7404dfea13f70116e4cfe6e00114a3c80888fdce5222dd"
+    }
+  ],
+  "release_platform_performance_or_full_goal_approved": false
+}

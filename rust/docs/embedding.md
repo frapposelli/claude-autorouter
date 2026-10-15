@@ -165,6 +165,8 @@ Session logging accepts `serde_json::Value`, which has no property getters, `und
 
 `read_session_history()` validates every `HistoryLimits` field before starting its filesystem worker, including fields constructed directly by Rust callers. Zero values and values above the original reader ceilings return `Invalid session-history read limit.` before ID or path errors. Defaults and smaller positive limits retain their existing behavior. The pure parser APIs accept caller-owned data separately; they do not perform filesystem admission.
 
+`remove_stale_status_directories` uses the Tokio filesystem rather than JavaScript's injected `io` object. An unavailable directory returns zero; failed metadata reads skip that entry without exposing its path or error. Tests exercise real owned permission and disappearance faults. The injected filesystem-provider and JavaScript Error object identities are not part of the Rust API.
+
 `CleanupOptions::alive` receives a `u64` so it can observe every positive JavaScript safe-integer PID through `9_007_199_254_740_991`. Embeddings with an explicitly typed `u32` callback must update that argument type. The default callback checks the positive signed operating-system PID range before querying liveness; larger values return false without narrowing, wrapping or signalling a process group.
 
 `SavingsTracker::update(&Value)` accepts owned JSON data, without executable

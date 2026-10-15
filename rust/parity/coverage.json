@@ -24969,9 +24969,10 @@
       "file": "test/status-cleanup.test.mjs",
       "name": "cleanup never throws, including for a missing directory or a failing filesystem",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/status_cleanup.rs#status_cleanup::tests::cleanup_is_bounded_and_missing_directory_is_ignored"
+        "rust/crates/autorouter-runtime/src/status_cleanup.rs#status_cleanup::tests::cleanup_is_bounded_and_missing_directory_is_ignored",
+        "rust/crates/autorouter-runtime/tests/status_cleanup_probe.rs#failed_probe_skips_only_its_directory_and_private_panic_output_is_suppressed"
       ],
       "shared_cases": [],
       "evidence": {
@@ -24980,15 +24981,23 @@
         "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
         "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
         "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
-        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage.",
+        "filesystem_summary": {
+          "path": "rust/parity/measurements/native-original-status-cleanup-filesystem-summary.json",
+          "bytes": 3509,
+          "sha256": "2b16497714892694dbbf41509eb496943b2a269d9eed6c8c0162d3268f23f015"
+        }
       },
       "related_components": [
         "status"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
-      "remaining_assertions": [
-        "Missing directory is tested; a synthetic lstat/filesystem failure and private error suppression are not injected."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/status-cleanup-filesystem-contracts.json",
+      "remaining_assertions": [],
+      "native_API_review": {
+        "preserved": "Missing directory and failed per-entry metadata reads return zero without leaking private errors or modifying retained settings; later entries and recovery remain usable.",
+        "migration": "Rust CleanupOptions uses concrete Tokio filesystem operations rather than an injected JavaScript io object. Actual PermissionDenied (OS13) and NotFound faults replace source-injected Error values; JavaScript provider/callback/Error identities are not part of the Rust API.",
+        "review": "Accepted for the two original return-value assertions under the documented native embedding boundary. A non-root execution is required for permission-fault evidence; privileged skips do not qualify that branch."
+      }
     },
     {
       "id": "test/status-settings.test.mjs#1",

@@ -374,6 +374,15 @@ fn unavailable_logging_warns_once_preserves_existing_file_and_keeps_forwarding()
 }
 #[test]
 fn launcher_keeps_default_stderr_empty_and_debug_events_private_while_status_savings_work() {
+    let grep = ["/usr/bin/grep", "/bin/grep"]
+        .into_iter()
+        .find(|path| {
+            fs::metadata(path).is_ok_and(|metadata| {
+                metadata.is_file() && metadata.permissions().mode() & 0o111 != 0
+            })
+        })
+        .expect("Synthetic launcher test requires an executable grep in /usr/bin or /bin");
+    let grep = quote(Path::new(grep));
     let home = Home::new();
     home.save(&json!({"AUTOROUTER_EVALUATOR":"jev"}));
     let jev = Server::new(|request| {
@@ -396,7 +405,7 @@ fn launcher_keeps_default_stderr_empty_and_debug_events_private_while_status_sav
         ))
     });
     let body=home.write("request.json",serde_json::to_vec(&json!({"model":HAIKU,"max_tokens":64,"stream":true,"messages":[{"role":"user","content":"private-prompt-content"}]})).unwrap());
-    home.claude(&format!("#!/bin/sh\nset -eu\n[ \"$AUTOROUTER_EVALUATOR\" = jev ] || exit 71\n[ -z \"${{TYPESAFE_API_KEY-}}\" ] || exit 72\n[ \"${{#ANTHROPIC_API_KEY}}\" = 64 ] || exit 73\n[ \"$ANTHROPIC_API_KEY\" != private-upstream-key ] || exit 74\n[ \"$ANTHROPIC_MODEL\" = claude-haiku-4-5-20251001 ] || exit 75\n/usr/bin/curl --silent --show-error --fail --max-time 10 -H 'content-type: application/json' -H \"x-api-key: $ANTHROPIC_API_KEY\" -H 'x-claude-code-session-id: logging-session' -H 'x-claude-code-request-class: main' --data-binary @{} \"$ANTHROPIC_BASE_URL/v1/messages\" --output {}\ni=0\nwhile [ \"$i\" -lt 100 ]; do if /usr/bin/grep -q '\"phase\":\"ready\"' \"$AUTOROUTER_STATUS_FILE\" && /usr/bin/grep -q '\"requests\":1' \"$AUTOROUTER_STATUS_FILE\"; then break; fi; i=$((i+1)); /bin/sleep 0.01; done\n/bin/cp \"$AUTOROUTER_STATUS_FILE\" {}\nprintf 'Claude reply: private-response-content\\n'\n",quote(&body),quote(&home.0.join("reply.sse")),quote(&home.0.join("snapshot-copy.json"))));
+    home.claude(&format!("#!/bin/sh\nset -eu\n[ \"$AUTOROUTER_EVALUATOR\" = jev ] || exit 71\n[ -z \"${{TYPESAFE_API_KEY-}}\" ] || exit 72\n[ \"${{#ANTHROPIC_API_KEY}}\" = 64 ] || exit 73\n[ \"$ANTHROPIC_API_KEY\" != private-upstream-key ] || exit 74\n[ \"$ANTHROPIC_MODEL\" = claude-haiku-4-5-20251001 ] || exit 75\n/usr/bin/curl --silent --show-error --fail --max-time 10 -H 'content-type: application/json' -H \"x-api-key: $ANTHROPIC_API_KEY\" -H 'x-claude-code-session-id: logging-session' -H 'x-claude-code-request-class: main' --data-binary @{} \"$ANTHROPIC_BASE_URL/v1/messages\" --output {}\ni=0\nwhile [ \"$i\" -lt 100 ]; do if {grep} -q '\"phase\":\"ready\"' \"$AUTOROUTER_STATUS_FILE\" && {grep} -q '\"requests\":1' \"$AUTOROUTER_STATUS_FILE\"; then break; fi; i=$((i+1)); /bin/sleep 0.01; done\n/bin/cp \"$AUTOROUTER_STATUS_FILE\" {}\nprintf 'Claude reply: private-response-content\\n'\n",quote(&body),quote(&home.0.join("reply.sse")),quote(&home.0.join("snapshot-copy.json"))));
     for debug in [false, true] {
         let mut command = home.command();
         command
