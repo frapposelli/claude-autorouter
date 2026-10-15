@@ -67,7 +67,7 @@ jobs:
           if os.environ.get('RUSTFLAGS') or os.environ.get('OPENSSL_NO_VENDOR') != '0':
               raise SystemExit('Unexpected compiler flags or OpenSSL source policy')
           with open(os.environ['GITHUB_ENV'], 'a') as output:
-              output.write('AUTOROUTER_RUNTIME32_RUST=' + version + '\n')
+              output.write('AUTOROUTER_RUNTIME32_RUST_HOST=' + version + '-x86_64-unknown-linux-gnu\n')
           PYTHON
       - name: Install exact selected multilib and OpenSSL build tools
         run: |
@@ -102,12 +102,12 @@ jobs:
           set -euo pipefail
           umask 077
           out=../artifacts/rust-rewrite/runtime32
-          rustup toolchain install "$AUTOROUTER_RUNTIME32_RUST" --profile minimal --component clippy --component rustfmt
-          rustup target add --toolchain "$AUTOROUTER_RUNTIME32_RUST" i686-unknown-linux-gnu
-          rustc "+$AUTOROUTER_RUNTIME32_RUST" -vV > "$out/rustc-version.txt"
-          cargo "+$AUTOROUTER_RUNTIME32_RUST" --version > "$out/cargo-version.txt"
+          rustup toolchain install "$AUTOROUTER_RUNTIME32_RUST_HOST" --profile minimal --component clippy --component rustfmt
+          rustup target add --toolchain "$AUTOROUTER_RUNTIME32_RUST_HOST" i686-unknown-linux-gnu
+          rustc "+$AUTOROUTER_RUNTIME32_RUST_HOST" -vV > "$out/rustc-version.txt"
+          cargo "+$AUTOROUTER_RUNTIME32_RUST_HOST" --version > "$out/cargo-version.txt"
           rustup --version > "$out/rustup-version.txt"
-          rustc "+$AUTOROUTER_RUNTIME32_RUST" --print cfg --target i686-unknown-linux-gnu > "$out/target-cfg.txt"
+          rustc "+$AUTOROUTER_RUNTIME32_RUST_HOST" --print cfg --target i686-unknown-linux-gnu > "$out/target-cfg.txt"
           grep -Fxq 'target_pointer_width="32"' "$out/target-cfg.txt"
           cat > "$out/preflight32.c" <<'C'
           int main(void) { return sizeof(void *) == 4 ? 0 : 1; }
@@ -119,12 +119,12 @@ jobs:
           setarch i686 uname -m > "$out/personality-uname.txt"
           test "$(cat "$out/host-uname.txt")" = x86_64
           test "$(cat "$out/personality-uname.txt")" = i686
-          setarch i686 rustc "+$AUTOROUTER_RUNTIME32_RUST" -vV > "$out/personality-rustc-version.txt"
+          setarch i686 rustc "+$AUTOROUTER_RUNTIME32_RUST_HOST" -vV > "$out/personality-rustc-version.txt"
           grep -Fxq 'host: x86_64-unknown-linux-gnu' "$out/personality-rustc-version.txt"
-          cargo "+$AUTOROUTER_RUNTIME32_RUST" fetch --locked
-          cargo "+$AUTOROUTER_RUNTIME32_RUST" fetch --locked --target i686-unknown-linux-gnu
-          cargo "+$AUTOROUTER_RUNTIME32_RUST" metadata --format-version 1 --locked --offline > /dev/null
-          printf 'RUSTUP_TOOLCHAIN=%s\nCARGO_NET_OFFLINE=true\n' "$AUTOROUTER_RUNTIME32_RUST" >> "$GITHUB_ENV"
+          cargo "+$AUTOROUTER_RUNTIME32_RUST_HOST" fetch --locked
+          cargo "+$AUTOROUTER_RUNTIME32_RUST_HOST" fetch --locked --target i686-unknown-linux-gnu
+          cargo "+$AUTOROUTER_RUNTIME32_RUST_HOST" metadata --format-version 1 --locked --offline > /dev/null
+          printf 'RUSTUP_TOOLCHAIN=%s\nCARGO_NET_OFFLINE=true\n' "$AUTOROUTER_RUNTIME32_RUST_HOST" >> "$GITHUB_ENV"
       - name: Bootstrap independent auditor before inspected runtime dependencies
         run: |
           set -euo pipefail

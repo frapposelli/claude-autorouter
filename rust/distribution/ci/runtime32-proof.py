@@ -230,7 +230,7 @@ def environment(allow_runner=False):
         "CARGO_TARGET_I686_UNKNOWN_LINUX_GNU_LINKER": "gcc",
         "CARGO_BUILD_TARGET": TARGET,
         "CARGO_NET_OFFLINE": "true",
-        "RUSTUP_TOOLCHAIN": version,
+        "RUSTUP_TOOLCHAIN": version + "-x86_64-unknown-linux-gnu",
         "OPENSSL_NO_VENDOR": "0",
         "RUSTFLAGS": "",
     }
