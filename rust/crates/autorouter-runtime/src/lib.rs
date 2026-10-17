@@ -13,6 +13,7 @@ pub mod ollama_setup;
 pub mod policy;
 
 pub mod response_observer;
+pub mod route_counter;
 pub mod router;
 pub mod server;
 pub mod server_events;

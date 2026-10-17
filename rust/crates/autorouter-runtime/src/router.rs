@@ -20,6 +20,7 @@ use tokio_util::{sync::CancellationToken, task::TaskTracker};
 use crate::classifier::{Classifier, Limits};
 use crate::evaluator::EvaluationError;
 use crate::http_client::HttpTransport;
+use crate::route_counter::RouteTokenCounter;
 use crate::token_counter::TokenCounter;
 
 pub struct Router<T> {
@@ -205,8 +206,40 @@ impl<T: HttpTransport + 'static> Router<T> {
         let model = model.to_owned();
         let headers = headers.clone();
         let cancellation = cancellation.clone();
-        let stopping = self.advisory_stopping.clone();
         let search = search.to_owned();
+        self.start_count_work(
+            async move {
+                counter
+                    .count(&document, &model, &headers, &cancellation, &search)
+                    .await
+            },
+            started,
+        )
+    }
+
+    fn start_override_count(
+        &self,
+        document: Arc<JsDocument>,
+        model: &str,
+        cancellation: &CancellationToken,
+        counter: RouteTokenCounter,
+        started: Option<oneshot::Sender<()>>,
+    ) -> Result<Option<tokio::task::JoinHandle<Option<u64>>>, EvaluationError> {
+        let model = model.to_owned();
+        let cancellation = cancellation.clone();
+        let timeout = std::time::Duration::from_millis(self.config.token_count_timeout_ms);
+        self.start_count_work(
+            async move { counter.count(document, model, &cancellation, timeout).await },
+            started,
+        )
+    }
+
+    fn start_count_work(
+        &self,
+        count: impl Future<Output = Option<u64>> + Send + 'static,
+        started: Option<oneshot::Sender<()>>,
+    ) -> Result<Option<tokio::task::JoinHandle<Option<u64>>>, EvaluationError> {
+        let stopping = self.advisory_stopping.clone();
         #[cfg(feature = "development-probes")]
         let observer = self.development_count_observer.clone();
         let worker = {
@@ -218,7 +251,6 @@ impl<T: HttpTransport + 'static> Router<T> {
                 return Ok(None);
             }
             let worker = async move {
-                let count = counter.count(&document, &model, &headers, &cancellation, &search);
                 tokio::pin!(count);
                 let mut started = started;
                 let count = poll_fn(|context| {
@@ -272,6 +304,33 @@ impl<T: HttpTransport + 'static> Router<T> {
         count
     }
 
+    async fn required_count_using(
+        &self,
+        input: (Arc<JsDocument>, Option<&RouteTokenCounter>),
+        model: &str,
+        headers: &HeaderMap,
+        cancellation: &CancellationToken,
+        search: &str,
+    ) -> Option<u64> {
+        let (document, counter) = input;
+        let Some(counter) = counter else {
+            return self
+                .required_count(&document, model, headers, cancellation, search)
+                .await;
+        };
+        let timeout = std::time::Duration::from_millis(self.config.token_count_timeout_ms);
+        let count = tokio::select! {
+            biased;
+            _ = self.advisory_stopping.cancelled() => None,
+            count = counter.count(document, model.to_owned(), cancellation, timeout) => count,
+        };
+        #[cfg(feature = "development-probes")]
+        if let Some(observer) = &self.development_count_observer {
+            let _ = crate::callback_privacy::contain_callback(|| observer(count));
+        }
+        count
+    }
+
     pub async fn route(
         &self,
         document: Arc<JsDocument>,
@@ -309,6 +368,42 @@ impl<T: HttpTransport + 'static> Router<T> {
         cancellation: &CancellationToken,
         search: &str,
     ) -> Result<TypedRouteDecision, EvaluationError> {
+        self.route_with_optional_counter(document, options, headers, cancellation, search, None)
+            .await
+    }
+
+    /// Route with a per-call counter instead of the default HTTP TokenCounter.
+    /// Passing the counter enables counting, subject to ordinary policy guards.
+    pub async fn route_typed_exact_with_counter(
+        &self,
+        document: Arc<JsDocument>,
+        mut options: RouteOptions,
+        headers: &HeaderMap,
+        cancellation: &CancellationToken,
+        search: &str,
+        counter: RouteTokenCounter,
+    ) -> Result<TypedRouteDecision, EvaluationError> {
+        options.count_tokens = true;
+        self.route_with_optional_counter(
+            document,
+            options,
+            headers,
+            cancellation,
+            search,
+            Some(counter),
+        )
+        .await
+    }
+
+    async fn route_with_optional_counter(
+        &self,
+        document: Arc<JsDocument>,
+        options: RouteOptions,
+        headers: &HeaderMap,
+        cancellation: &CancellationToken,
+        search: &str,
+        counter: Option<RouteTokenCounter>,
+    ) -> Result<TypedRouteDecision, EvaluationError> {
         if *self.advisory_closing.lock().unwrap() {
             return Err(EvaluationError::Cancelled);
         }
@@ -345,14 +440,24 @@ impl<T: HttpTransport + 'static> Router<T> {
         };
         if let Some(model) = early_model.as_ref() {
             let (started, ready) = oneshot::channel();
-            early.task = self.start_early_count(
-                document.clone(),
-                model,
-                headers,
-                cancellation,
-                search,
-                Some(started),
-            )?;
+            early.task = if let Some(counter) = counter.as_ref() {
+                self.start_override_count(
+                    document.clone(),
+                    model,
+                    cancellation,
+                    counter.clone(),
+                    Some(started),
+                )?
+            } else {
+                self.start_early_count(
+                    document.clone(),
+                    model,
+                    headers,
+                    cancellation,
+                    search,
+                    Some(started),
+                )?
+            };
             if early.task.is_some() {
                 tokio::select! {
                     biased;
@@ -383,12 +488,24 @@ impl<T: HttpTransport + 'static> Router<T> {
                     early.await.ok().flatten()
                 } else {
                     // Capacity can omit speculation, never a required count.
-                    self.required_count(&document, model, headers, cancellation, search)
-                        .await
+                    self.required_count_using(
+                        (document.clone(), counter.as_ref()),
+                        model,
+                        headers,
+                        cancellation,
+                        search,
+                    )
+                    .await
                 }
             } else {
-                self.required_count(&document, model, headers, cancellation, search)
-                    .await
+                self.required_count_using(
+                    (document.clone(), counter.as_ref()),
+                    model,
+                    headers,
+                    cancellation,
+                    search,
+                )
+                .await
             }
         } else {
             None
@@ -865,6 +982,415 @@ mod tests {
         tokio::time::timeout(std::time::Duration::from_secs(2), router.close())
             .await
             .unwrap();
+    }
+
+    struct CallbackProbe {
+        calls: AtomicUsize,
+        active: AtomicUsize,
+        released: AtomicUsize,
+        permits: Semaphore,
+        tokens: Mutex<Vec<CancellationToken>>,
+    }
+    impl Default for CallbackProbe {
+        fn default() -> Self {
+            Self {
+                calls: AtomicUsize::new(0),
+                active: AtomicUsize::new(0),
+                released: AtomicUsize::new(0),
+                permits: Semaphore::new(0),
+                tokens: Mutex::new(Vec::new()),
+            }
+        }
+    }
+    struct CallbackLease(Arc<CallbackProbe>);
+    impl Drop for CallbackLease {
+        fn drop(&mut self) {
+            self.0.active.fetch_sub(1, Ordering::SeqCst);
+            self.0.released.fetch_add(1, Ordering::SeqCst);
+        }
+    }
+    fn callback_counter(
+        probe: &Arc<CallbackProbe>,
+        transport: &Arc<Mock>,
+        value: Option<f64>,
+    ) -> RouteTokenCounter {
+        let probe = probe.clone();
+        let transport = transport.clone();
+        RouteTokenCounter::new(move |_, _, cancellation| {
+            probe.calls.fetch_add(1, Ordering::SeqCst);
+            probe.active.fetch_add(1, Ordering::SeqCst);
+            probe.tokens.lock().unwrap().push(cancellation);
+            transport.started.lock().unwrap().push("callback");
+            let lease = CallbackLease(probe.clone());
+            let probe = probe.clone();
+            // Deliberately ignore cancellation: the router must enforce it by
+            // dropping this pending future, not merely notifying its token.
+            async move {
+                let _lease = lease;
+                probe.permits.acquire().await.unwrap().forget();
+                value
+            }
+        })
+    }
+    async fn wait_callback(probe: &CallbackProbe, transport: &Mock) {
+        tokio::time::timeout(std::time::Duration::from_secs(2), async {
+            while probe.calls.load(Ordering::SeqCst) != 1
+                || transport.evaluations.load(Ordering::SeqCst) != 1
+            {
+                tokio::task::yield_now().await;
+            }
+        })
+        .await
+        .unwrap();
+    }
+    fn callback_released(probe: &CallbackProbe, calls: usize) {
+        assert_eq!(probe.calls.load(Ordering::SeqCst), calls);
+        assert_eq!(probe.active.load(Ordering::SeqCst), 0);
+        assert_eq!(probe.released.load(Ordering::SeqCst), calls);
+        assert!(
+            probe
+                .tokens
+                .lock()
+                .unwrap()
+                .iter()
+                .all(CancellationToken::is_cancelled)
+        );
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn custom_counter_starts_before_classification_overlaps_and_is_reused_once() {
+        let transport = Arc::new(Mock::new(true));
+        let probe = Arc::new(CallbackProbe::default());
+        let counter = callback_counter(&probe, &transport, Some(54_481.0));
+        let router = Arc::new(Router::new(transport.clone(), config()));
+        let gate = Arc::new(crate::classifier::shutdown_gate::WorkerPollGate::default());
+        let release = gate.hold();
+        *router.advisory_gate.lock().unwrap() = Some(gate.clone());
+        let caller = CancellationToken::new();
+        let cancellation = caller.clone();
+        let owner = router.clone();
+        let task = tokio::spawn(async move {
+            owner
+                .route_typed_exact_with_counter(
+                    document(true),
+                    options(),
+                    &HeaderMap::new(),
+                    &cancellation,
+                    "",
+                    counter,
+                )
+                .await
+        });
+        tokio::time::timeout(std::time::Duration::from_secs(2), gate.wait_blocked())
+            .await
+            .unwrap();
+        assert_eq!(probe.calls.load(Ordering::SeqCst), 0);
+        assert_eq!(transport.evaluations.load(Ordering::SeqCst), 0);
+        assert_eq!(router.advisory_tasks.len(), 1);
+        drop(release);
+        wait_callback(&probe, &transport).await;
+        assert_eq!(*transport.started.lock().unwrap(), ["callback", "evaluate"]);
+        assert_eq!(probe.active.load(Ordering::SeqCst), 1);
+        assert_eq!(transport.active.load(Ordering::SeqCst), 1);
+        transport.evaluation_permits.add_permits(1);
+        wait_idle(&transport).await;
+        assert!(!task.is_finished());
+        probe.permits.add_permits(1);
+        let decision = tokio::time::timeout(std::time::Duration::from_secs(2), task)
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        let observed = decision.metadata.observation();
+        assert_eq!(observed["model"], config().models.haiku);
+        assert_eq!(observed["context_check"], "within_budget");
+        assert_eq!(observed["counted_input_tokens"], 54_481);
+        assert_eq!(transport.counts.load(Ordering::SeqCst), 0);
+        assert!(!caller.is_cancelled());
+        router.close().await;
+        callback_released(&probe, 1);
+        assert!(router.advisory_tasks.is_empty());
+        assert_eq!(router.classifier.pending_counts(), (0, 0));
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn custom_count_deadline_is_exact_releases_ignored_token_and_does_not_cache_failure() {
+        let transport = Arc::new(Mock::new(false));
+        let probe = Arc::new(CallbackProbe::default());
+        let counter = callback_counter(&probe, &transport, Some(54_481.0));
+        let mut settings = config();
+        settings.token_count_timeout_ms = 20;
+        let router = Arc::new(Router::new(transport.clone(), settings));
+        let caller = CancellationToken::new();
+        let cancellation = caller.clone();
+        let owner = router.clone();
+        let first_counter = counter.clone();
+        let task = tokio::spawn(async move {
+            owner
+                .route_typed_exact_with_counter(
+                    document(true),
+                    options(),
+                    &HeaderMap::new(),
+                    &cancellation,
+                    "",
+                    first_counter,
+                )
+                .await
+        });
+        wait_callback(&probe, &transport).await;
+        tokio::time::advance(std::time::Duration::from_millis(19)).await;
+        tokio::task::yield_now().await;
+        assert!(!task.is_finished());
+        assert_eq!(probe.active.load(Ordering::SeqCst), 1);
+        tokio::time::advance(std::time::Duration::from_millis(1)).await;
+        let first = task.await.unwrap().unwrap().metadata.observation();
+        assert_eq!(first["model"], config().models.sonnet);
+        assert_eq!(first["reason"], "context_capacity");
+        assert_eq!(first["context_check"], "count_unavailable");
+        callback_released(&probe, 1);
+        assert!(!caller.is_cancelled());
+        // A fresh scope keeps this a new task, while the identical classifier
+        // input remains reusable. The custom unavailable result is not cached.
+        let retry = RouteOptions {
+            scope: "synthetic-retry".into(),
+            prompt_id: "retry".into(),
+            request_id: Some("synthetic-retry".into()),
+            ..options()
+        };
+        probe.permits.add_permits(1);
+        let second = router
+            .route_typed_exact_with_counter(
+                document(true),
+                retry,
+                &HeaderMap::new(),
+                &caller,
+                "",
+                counter,
+            )
+            .await
+            .unwrap()
+            .metadata
+            .observation();
+        assert_eq!(second["model"], config().models.haiku);
+        assert_eq!(second["counted_input_tokens"], 54_481);
+        assert_eq!(transport.evaluations.load(Ordering::SeqCst), 1);
+        assert_eq!(transport.counts.load(Ordering::SeqCst), 0);
+        router.close().await;
+        callback_released(&probe, 2);
+        assert!(router.advisory_tasks.is_empty());
+    }
+
+    #[tokio::test]
+    async fn custom_speculative_count_cancel_drop_and_close_release_last_owner() {
+        for mode in ["cancel", "drop", "close"] {
+            let transport = Arc::new(Mock::new(true));
+            let probe = Arc::new(CallbackProbe::default());
+            let counter = callback_counter(&probe, &transport, None);
+            let router = Arc::new(Router::new(transport.clone(), config()));
+            let caller = CancellationToken::new();
+            let cancellation = caller.clone();
+            let owner = router.clone();
+            let task = tokio::spawn(async move {
+                owner
+                    .route_typed_exact_with_counter(
+                        document(true),
+                        options(),
+                        &HeaderMap::new(),
+                        &cancellation,
+                        "",
+                        counter,
+                    )
+                    .await
+            });
+            wait_callback(&probe, &transport).await;
+            match mode {
+                "cancel" => caller.cancel(),
+                "drop" => task.abort(),
+                "close" => tokio::time::timeout(std::time::Duration::from_secs(2), router.close())
+                    .await
+                    .unwrap(),
+                _ => unreachable!(),
+            }
+            let result = tokio::time::timeout(std::time::Duration::from_secs(2), task)
+                .await
+                .unwrap();
+            if mode == "drop" {
+                match result {
+                    Err(error) => assert!(error.is_cancelled()),
+                    Ok(_) => panic!("aborted route unexpectedly completed"),
+                }
+            } else {
+                assert!(matches!(result.unwrap(), Err(EvaluationError::Cancelled)));
+            }
+            tokio::time::timeout(std::time::Duration::from_secs(2), router.close())
+                .await
+                .unwrap();
+            callback_released(&probe, 1);
+            assert_eq!(transport.active.load(Ordering::SeqCst), 0);
+            assert_eq!(transport.counts.load(Ordering::SeqCst), 0);
+            assert!(router.advisory_tasks.is_empty());
+            assert_eq!(router.classifier.pending_counts(), (0, 0));
+            assert!(!router.complete(
+                "synthetic-request",
+                &json!({"continuation_model":config().models.haiku,"tool_uses":[]})
+            ));
+        }
+    }
+
+    #[tokio::test]
+    async fn custom_required_inline_count_survives_speculative_capacity_but_not_cancel_or_close() {
+        for close in [false, true] {
+            let transport = Arc::new(Mock::new(false));
+            let probe = Arc::new(CallbackProbe::default());
+            let counter = callback_counter(&probe, &transport, None);
+            let mut router = Router::new(transport.clone(), config());
+            // Isolate speculative exhaustion without also denying classifier
+            // admission: a required count must still be awaited by the caller.
+            router.advisory_limit = 0;
+            let router = Arc::new(router);
+            let caller = CancellationToken::new();
+            let cancellation = caller.clone();
+            let owner = router.clone();
+            let task = tokio::spawn(async move {
+                owner
+                    .route_typed_exact_with_counter(
+                        document(true),
+                        options(),
+                        &HeaderMap::new(),
+                        &cancellation,
+                        "",
+                        counter,
+                    )
+                    .await
+            });
+            wait_callback(&probe, &transport).await;
+            assert!(router.advisory_tasks.is_empty());
+            assert_eq!(probe.active.load(Ordering::SeqCst), 1);
+            assert_eq!(*transport.started.lock().unwrap(), ["evaluate", "callback"]);
+            if close {
+                tokio::time::timeout(std::time::Duration::from_secs(2), router.close())
+                    .await
+                    .unwrap();
+            } else {
+                caller.cancel();
+            }
+            let result = tokio::time::timeout(std::time::Duration::from_secs(2), task)
+                .await
+                .unwrap()
+                .unwrap();
+            assert!(matches!(result, Err(EvaluationError::Cancelled)));
+            router.close().await;
+            callback_released(&probe, 1);
+            assert_eq!(transport.counts.load(Ordering::SeqCst), 0);
+            assert_eq!(transport.active.load(Ordering::SeqCst), 0);
+            assert!(router.advisory_tasks.is_empty());
+            assert_eq!(router.classifier.pending_counts(), (0, 0));
+            assert!(!router.complete(
+                "synthetic-request",
+                &json!({"continuation_model":config().models.haiku,"tool_uses":[]})
+            ));
+        }
+    }
+
+    #[tokio::test]
+    async fn custom_counter_is_not_called_for_small_or_hard_locked_requests() {
+        let transport = Arc::new(Mock::new(false));
+        let probe = Arc::new(CallbackProbe::default());
+        let counter = callback_counter(&probe, &transport, Some(54_481.0));
+        let router = Router::new(transport.clone(), config());
+        let mut hard_locked = document(true).to_serde_observation_lossy();
+        hard_locked["thinking"] = json!({"type":"enabled","budget_tokens":1024});
+        let hard_locked =
+            Arc::new(JsDocument::parse(&serde_json::to_vec(&hard_locked).unwrap()).unwrap());
+        for (index, document) in [document(false), hard_locked].into_iter().enumerate() {
+            let options = RouteOptions {
+                scope: format!("guard-{index}"),
+                ..RouteOptions::default()
+            };
+            router
+                .route_typed_exact_with_counter(
+                    document,
+                    options,
+                    &HeaderMap::new(),
+                    &CancellationToken::new(),
+                    "",
+                    counter.clone(),
+                )
+                .await
+                .unwrap();
+        }
+        router.close().await;
+        callback_released(&probe, 0);
+        assert_eq!(transport.counts.load(Ordering::SeqCst), 0);
+        assert!(router.advisory_tasks.is_empty());
+    }
+
+    #[tokio::test(flavor = "current_thread")]
+    async fn custom_count_cancel_or_close_before_first_poll_never_calls_factory_or_evaluator() {
+        for close in [false, true] {
+            let transport = Arc::new(Mock::new(false));
+            let probe = Arc::new(CallbackProbe::default());
+            let counter = callback_counter(&probe, &transport, None);
+            let router = Arc::new(Router::new(transport.clone(), config()));
+            let gate = Arc::new(crate::classifier::shutdown_gate::WorkerPollGate::default());
+            let mut release = Some(gate.hold());
+            *router.advisory_gate.lock().unwrap() = Some(gate.clone());
+            let caller = CancellationToken::new();
+            let cancellation = caller.clone();
+            let owner = router.clone();
+            let task = tokio::spawn(async move {
+                owner
+                    .route_typed_exact_with_counter(
+                        document(true),
+                        options(),
+                        &HeaderMap::new(),
+                        &cancellation,
+                        "",
+                        counter,
+                    )
+                    .await
+            });
+            tokio::time::timeout(std::time::Duration::from_secs(2), gate.wait_blocked())
+                .await
+                .unwrap();
+            assert_eq!(router.advisory_tasks.len(), 1);
+            assert_eq!(probe.calls.load(Ordering::SeqCst), 0);
+            assert_eq!(transport.evaluations.load(Ordering::SeqCst), 0);
+            if close {
+                // The test gate deliberately prevents the owned worker from
+                // observing closure. The drain must remain pending until it is
+                // released; then stop wins before the callback's first poll.
+                let mut closing = Box::pin(router.close());
+                assert!(
+                    poll_fn(|context| std::task::Poll::Ready(closing.as_mut().poll(context)))
+                        .await
+                        .is_pending()
+                );
+                assert!(router.advisory_tasks.is_closed());
+                assert_eq!(probe.calls.load(Ordering::SeqCst), 0);
+                drop(release.take());
+                tokio::time::timeout(std::time::Duration::from_secs(2), closing)
+                    .await
+                    .unwrap();
+            } else {
+                caller.cancel();
+            }
+            let result = tokio::time::timeout(std::time::Duration::from_secs(2), task)
+                .await
+                .unwrap()
+                .unwrap();
+            assert!(matches!(result, Err(EvaluationError::Cancelled)));
+            drop(release.take());
+            tokio::time::timeout(std::time::Duration::from_secs(2), gate.wait_finished())
+                .await
+                .unwrap();
+            router.close().await;
+            callback_released(&probe, 0);
+            assert_eq!(transport.counts.load(Ordering::SeqCst), 0);
+            assert_eq!(transport.evaluations.load(Ordering::SeqCst), 0);
+            assert!(router.advisory_tasks.is_empty());
+            assert_eq!(router.classifier.pending_counts(), (0, 0));
+        }
     }
 
     #[tokio::test]

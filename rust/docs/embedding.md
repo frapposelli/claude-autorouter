@@ -28,6 +28,50 @@ Use `JsDocument` as the authoritative request representation and `JsString` for 
 
 The convenience `route()`/`complete()` adapters use `serde_json::Value` and serve scalar-string embeddings and historical fixtures. The product gateway uses the exact APIs. A displayed replacement character cannot stand in for an escaped lone surrogate when deciding which request or model owns a continuation.
 
+For a per-route equivalent of JavaScript's `countTokens(body, model)` option,
+construct a `route_counter::RouteTokenCounter` and call
+`route_typed_exact_with_counter(document, options, headers, cancellation, search,
+counter).await`. Supplying this counter enables counting even when
+`RouteOptions::count_tokens` is false; ordinary small-request, compatibility and
+hard-lock guards still decide whether counting is needed. Other route methods
+and the product gateway retain the existing HTTP `TokenCounter`.
+
+```rust,ignore
+use autorouter_runtime::route_counter::RouteTokenCounter;
+let counter = RouteTokenCounter::new(|original, target, cancellation| async move {
+    // Read the authoritative request without modifying or projecting it.
+    // Use target for the estimate, not original's requested model.
+    // Cooperatively cancel any work owned by this future.
+    let _ = (original, target, cancellation);
+    Some(54_481.0)
+});
+```
+
+The factory receives the unchanged `Arc<JsDocument>`, an owned target model and
+an independent child cancellation token. It returns a `Send` future whose
+`Option<f64>` result preserves numeric validation: `None` replaces JavaScript
+`undefined`; negative, fractional, NaN, infinite and unsafe-integer values become
+unavailable. Only finite nonnegative integers through `9_007_199_254_740_991`
+reach routing policy. No JSON serialization converts these inputs first, and no
+custom result cache is added. Return `None` for an ordinary counting error;
+JavaScript Promise/Error identity is not part of this Rust interface.
+
+Custom counting shares the configured `tokenCountTimeoutMs` deadline, caller
+cancellation, speculative admission and terminal drain. A count admitted before
+classification is first polled before the classifier and reused when its target
+matches. At speculative capacity a required count still runs inline. Closing or
+dropping the count cancels its child token and releases its future; it does not
+cancel the caller's parent token. Caller-owned route futures still need to be
+cancelled or dropped and joined by their owner. The callback must not block or
+spawn detached work: cooperative timers cannot preempt blocking code, and the
+router cannot join tasks hidden by the host.
+
+Ordinary unwinding factory, poll and destructor panics become an unavailable
+count with payload-free results. The explicit observer privacy initialization
+described below is required to suppress the host panic hook. Panic-abort,
+replaced or aborting hooks and panic payload destructors that panic remain
+outside containment. No host hook is silently installed by the library.
+
 The pure `autorouter_core::router::context_size_bytes()` API now returns
 `Result<ContextByteCharge, ContextByteChargeUnavailable>`, replacing the native
 `usize` return. Deferred schemas can be expanded repeatedly while the original

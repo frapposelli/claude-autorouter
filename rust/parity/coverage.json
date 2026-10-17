@@ -737,7 +737,16 @@
         "rust/crates/autorouter-runtime/src/router.rs#early_count_and_classification_run_concurrently_and_count_is_reused",
         "rust/crates/autorouter-runtime/src/router.rs#exact_auxiliary_model_reaches_request_preparation_without_unicode_repair",
         "rust/crates/autorouter-runtime/src/router.rs#unused_early_count_retains_bounded_source_lifetime_and_request_cancellation",
-        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::real_twenty_ms_timeout_returns_before_one_second_and_retries_without_cached_failure"
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::real_twenty_ms_timeout_returns_before_one_second_and_retries_without_cached_failure",
+        "rust/crates/autorouter-runtime/src/route_counter.rs#route_counter::tests::source_safe_integer_predicate_precedes_every_integer_conversion",
+        "rust/crates/autorouter-runtime/src/route_counter.rs#route_counter::tests::constructor_poll_and_destructor_panics_are_unavailable_and_cancel_child_only",
+        "rust/crates/autorouter-runtime/src/router.rs#router::tests::custom_counter_starts_before_classification_overlaps_and_is_reused_once",
+        "rust/crates/autorouter-runtime/src/router.rs#router::tests::custom_count_deadline_is_exact_releases_ignored_token_and_does_not_cache_failure",
+        "rust/crates/autorouter-runtime/src/router.rs#router::tests::custom_speculative_count_cancel_drop_and_close_release_last_owner",
+        "rust/crates/autorouter-runtime/src/router.rs#router::tests::custom_required_inline_count_survives_speculative_capacity_but_not_cancel_or_close",
+        "rust/crates/autorouter-runtime/src/router.rs#router::tests::custom_counter_is_not_called_for_small_or_hard_locked_requests",
+        "rust/crates/autorouter-runtime/src/router.rs#router::tests::custom_count_cancel_or_close_before_first_poll_never_calls_factory_or_evaluator",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::original_large_request_callbacks_receive_original_document_and_validate_every_numeric_outcome"
       ],
       "evidence": [
         "js_document",
@@ -1128,7 +1137,16 @@
         "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids",
         "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary",
         "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity",
-        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::real_twenty_ms_timeout_returns_before_one_second_and_retries_without_cached_failure"
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::real_twenty_ms_timeout_returns_before_one_second_and_retries_without_cached_failure",
+        "rust/crates/autorouter-runtime/src/route_counter.rs#route_counter::tests::source_safe_integer_predicate_precedes_every_integer_conversion",
+        "rust/crates/autorouter-runtime/src/route_counter.rs#route_counter::tests::constructor_poll_and_destructor_panics_are_unavailable_and_cancel_child_only",
+        "rust/crates/autorouter-runtime/src/router.rs#router::tests::custom_counter_starts_before_classification_overlaps_and_is_reused_once",
+        "rust/crates/autorouter-runtime/src/router.rs#router::tests::custom_count_deadline_is_exact_releases_ignored_token_and_does_not_cache_failure",
+        "rust/crates/autorouter-runtime/src/router.rs#router::tests::custom_speculative_count_cancel_drop_and_close_release_last_owner",
+        "rust/crates/autorouter-runtime/src/router.rs#router::tests::custom_required_inline_count_survives_speculative_capacity_but_not_cancel_or_close",
+        "rust/crates/autorouter-runtime/src/router.rs#router::tests::custom_counter_is_not_called_for_small_or_hard_locked_requests",
+        "rust/crates/autorouter-runtime/src/router.rs#router::tests::custom_count_cancel_or_close_before_first_poll_never_calls_factory_or_evaluator",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::original_large_request_callbacks_receive_original_document_and_validate_every_numeric_outcome"
       ],
       "evidence": [
         "model_guards",
@@ -20201,44 +20219,43 @@
       "file": "test/router.test.mjs",
       "name": "a large serialized request that fits Haiku stays on Haiku after token counting",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
         "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
-        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::exact_count_requests_cover_both_source_models_and_invalid_count_adaptations"
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::exact_count_requests_cover_both_source_models_and_invalid_count_adaptations",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::original_large_request_callbacks_receive_original_document_and_validate_every_numeric_outcome"
       ],
       "shared_cases": [
         "baseline-router-instance-112",
         "baseline-router-instance-113"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/router-contracts.json",
-        "assertion_mapping_sha256": "6e1c2f8bd229c02fafe382ae618e20a89b6d2a43e49671401d06d50164eff2ab",
-        "capture": "artifacts/rust-rewrite/evidence/a2b40b92412bfe643f7cb2f256b2c995c103207211b7ec29fcc48991c3d2df7b.json",
-        "capture_sha256": "a2b40b92412bfe643f7cb2f256b2c995c103207211b7ec29fcc48991c3d2df7b",
-        "cases_sha256": "296f68fc81b50e6e24d277c43adb50d9613b4816a1b9d6a1e610299faa6126e3",
-        "native_core_log": "artifacts/rust-rewrite/evidence/360d690c0cfbee0d4d9a8b81b140b52631eecf07319ea7a0b8137966cad4dc7d.log",
-        "native_core_log_sha256": "360d690c0cfbee0d4d9a8b81b140b52631eecf07319ea7a0b8137966cad4dc7d",
-        "native_runtime_log": "artifacts/rust-rewrite/evidence/d6edbb3f5051e75431ebb14bd9e0bd2fcfce1de2f38a61fa8e31c3fa0dd6e5f4.log",
-        "native_runtime_log_sha256": "d6edbb3f5051e75431ebb14bd9e0bd2fcfce1de2f38a61fa8e31c3fa0dd6e5f4",
-        "scope": "All121 Router instances/263 routes and29 pure calls. Complete native policy decisions, actual classifier/cache/count execution and full captured synthetic transport requests. Four literal JavaScript API/clock boundaries remain partial."
+        "assertion_mapping": "rust/parity/assertion-mappings/router-count-callback-contracts.json",
+        "assertion_mapping_sha256": "aeb5bfa96c123daedb5008aef5472a9e9fd8d9574a11ec17b4eab62483ae613d",
+        "qualification_summary": {
+          "path": "rust/parity/measurements/native-original-router-count-callback-summary.json",
+          "bytes": 4450,
+          "sha256": "83d3f5304758b26245d8b0e0bc6c8d5329dc90ef8cec04f2ef246c712a9a0b4e"
+        },
+        "scope": "Actual native callback ingress, invocation-one/HTTP-zero, complete frozen decisions and unchanged bodies cover this original definition under the explicitly documented native counter API migration. Complete prior row/history remains in the supplement."
       },
       "related_components": [
         "router_continuity"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/router-contracts.json",
-      "remaining_assertions": [
-        "Source callback argument received is deep-equal to the original request before count preparation. Native Router owns TokenCounter instead of accepting that callback: tests prove original immutable document preservation, exact source-observed prepared HTTP request, target, call count and complete decisions; they do not expose the literal source callback argument contract."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/router-count-callback-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/router.test.mjs#50",
       "file": "test/router.test.mjs",
       "name": "near-limit, overflowing, and uncountable large requests keep the capacity floor",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
         "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
-        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::exact_count_requests_cover_both_source_models_and_invalid_count_adaptations"
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::exact_count_requests_cover_both_source_models_and_invalid_count_adaptations",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::original_large_request_callbacks_receive_original_document_and_validate_every_numeric_outcome",
+        "rust/crates/autorouter-runtime/src/route_counter.rs#route_counter::tests::source_safe_integer_predicate_precedes_every_integer_conversion"
       ],
       "shared_cases": [
         "baseline-router-instance-114",
@@ -20249,24 +20266,20 @@
         "baseline-router-instance-119"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/router-contracts.json",
-        "assertion_mapping_sha256": "6e1c2f8bd229c02fafe382ae618e20a89b6d2a43e49671401d06d50164eff2ab",
-        "capture": "artifacts/rust-rewrite/evidence/a2b40b92412bfe643f7cb2f256b2c995c103207211b7ec29fcc48991c3d2df7b.json",
-        "capture_sha256": "a2b40b92412bfe643f7cb2f256b2c995c103207211b7ec29fcc48991c3d2df7b",
-        "cases_sha256": "296f68fc81b50e6e24d277c43adb50d9613b4816a1b9d6a1e610299faa6126e3",
-        "native_core_log": "artifacts/rust-rewrite/evidence/360d690c0cfbee0d4d9a8b81b140b52631eecf07319ea7a0b8137966cad4dc7d.log",
-        "native_core_log_sha256": "360d690c0cfbee0d4d9a8b81b140b52631eecf07319ea7a0b8137966cad4dc7d",
-        "native_runtime_log": "artifacts/rust-rewrite/evidence/d6edbb3f5051e75431ebb14bd9e0bd2fcfce1de2f38a61fa8e31c3fa0dd6e5f4.log",
-        "native_runtime_log_sha256": "d6edbb3f5051e75431ebb14bd9e0bd2fcfce1de2f38a61fa8e31c3fa0dd6e5f4",
-        "scope": "All121 Router instances/263 routes and29 pure calls. Complete native policy decisions, actual classifier/cache/count execution and full captured synthetic transport requests. Four literal JavaScript API/clock boundaries remain partial."
+        "assertion_mapping": "rust/parity/assertion-mappings/router-count-callback-contracts.json",
+        "assertion_mapping_sha256": "aeb5bfa96c123daedb5008aef5472a9e9fd8d9574a11ec17b4eab62483ae613d",
+        "qualification_summary": {
+          "path": "rust/parity/measurements/native-original-router-count-callback-summary.json",
+          "bytes": 4450,
+          "sha256": "83d3f5304758b26245d8b0e0bc6c8d5329dc90ef8cec04f2ef246c712a9a0b4e"
+        },
+        "scope": "Actual native callback ingress, invocation-one/HTTP-zero, complete frozen decisions and unchanged bodies cover this original definition under the explicitly documented native counter API migration. Complete prior row/history remains in the supplement."
       },
       "related_components": [
         "router_continuity"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/router-contracts.json",
-      "remaining_assertions": [
-        "Three original callback return types (undefined, NaN,+Infinity) remain explicitly tagged. Core replays downstream Option::None; runtime uses missing HTTP input_tokens as the typed adaptation. Outcomes/routing are equal, but this is not literal nonJSON callback API equality."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/router-count-callback-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/router.test.mjs#51",

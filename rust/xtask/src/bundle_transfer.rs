@@ -25,10 +25,13 @@ For BSD/libarchive tar (including the installed macOS tar):
     tar -xzf native-source.cpio.gz -C native-restore
     cd native-restore/autorouter-benchmark/rust
 
-The licensed reference delta is unusable alone: its two shared synthetic fixture
-files must first be restored from the complete native archive. LICENSE remains
-physically present in both carriers. The version3 stored carrier expansion and full
-logical file payload each retain a separate32MiB cap; legacy full-tar expansion
+The licensed reference delta is unusable alone: its two shared synthetic fixtures,
+LICENSE and original reference manifest are restored from the complete native
+archive. Schema4 permits only the pinned LICENSE and the explicit manifest alias
+from rust/parity/baseline.json in addition to the two original fixtures. All native
+and reference logical paths, bytes and modes remain present after restoration.
+Stored carrier expansion and the full logical file payload, including both logical
+copies of reused files, each retain a separate32MiB cap. Legacy full-tar expansion
 is reported separately and may exceed that cap.
 
 The native carrier is gzip newc CPIO. On macOS, the installed libarchive-based
@@ -82,7 +85,7 @@ After the helper build, restore the complete111-file frozen reference plus its
 original manifest and license before any reference operation. The receiver
 verifies both archives, every fixture/hash/mode, both budgets and checksums
 before creating a private destination. Existing destinations are never replaced.
-This command also reads historical schema1 full-reference and schema2 tar-delta transfers:
+This command also reads historical schema1 full-reference, schema2 tar-delta and schema3 CPIO transfers:
 
     ./target/release/xtask benchmark-bundle --restore-reference TRANSFER_ABSOLUTE_PATH artifacts/rust-rewrite/reference
 
@@ -204,8 +207,15 @@ mod tests {
             report["aggregate_expanded_carrier_bytes"].as_u64().unwrap() as usize
         );
         assert!(native.expanded_bytes + reference.expanded_bytes <= SOURCE.expanded);
-        assert_eq!(reference.files.len(), 111);
-        assert_eq!(report["shared_inputs"].as_array().unwrap().len(), 2);
+        assert_eq!(reference.files.len(), 109);
+        assert_eq!(report["schema_version"], 4);
+        assert_eq!(report["shared_inputs"].as_array().unwrap().len(), 4);
+        assert!(!reference.files.contains_key("LICENSE"));
+        assert!(
+            !reference
+                .files
+                .contains_key("frozen-reference-manifest.json")
+        );
         let restored = scratch.0.join("restored");
         super::super::pair::restore(&root, &directory, &restored).unwrap();
         let baseline: Value = serde_json::from_slice(

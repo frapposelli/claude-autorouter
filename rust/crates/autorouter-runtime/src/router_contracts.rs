@@ -25,6 +25,7 @@ struct Replay {
     current: Mutex<Responses>,
     active: AtomicUsize,
     started: AtomicUsize,
+    http_count_calls: AtomicUsize,
     entered: Notify,
     invalid: AtomicUsize,
 }
@@ -113,6 +114,9 @@ impl HttpTransport for Replay {
         let bytes = body.collect().await.unwrap().to_bytes();
         let payload: Value = serde_json::from_slice(&bytes).unwrap();
         let is_count = parts.uri.path().ends_with("count_tokens");
+        if is_count {
+            self.http_count_calls.fetch_add(1, Ordering::SeqCst);
+        }
         let captured = {
             let mut current = self.current.lock().unwrap();
             current
@@ -219,6 +223,7 @@ async fn replay(definitions: &[usize], clock_mode: ReplayClock) -> (usize, usize
             current: Mutex::new(Responses::default()),
             active: AtomicUsize::new(0),
             started: AtomicUsize::new(0),
+            http_count_calls: AtomicUsize::new(0),
             entered: Notify::new(),
             invalid: AtomicUsize::new(0),
         });
@@ -400,4 +405,112 @@ fn native_request_comparison_rejects_lost_payload_auth_and_count_projection_fiel
         &expected,
         &count
     ));
+}
+
+#[tokio::test]
+async fn original_large_request_callbacks_receive_original_document_and_validate_every_numeric_outcome()
+ {
+    assert_eq!(digest(CASES.as_bytes()), CASES_SHA256);
+    let mut lines = CASES.lines();
+    let dictionary = Arc::new(serde_json::from_str::<Value>(lines.next().unwrap()).unwrap());
+    let mut instances = 0;
+    for line in lines {
+        let row: Value = serde_json::from_str(line).unwrap();
+        if row["kind"] != "router" {
+            continue;
+        }
+        let input = &row["input"];
+        if !matches!(
+            text(input, "source_test"),
+            "test/router.test.mjs#49" | "test/router.test.mjs#50"
+        ) {
+            continue;
+        }
+        instances += 1;
+        let transport = Arc::new(Replay {
+            dictionary: dictionary.clone(),
+            current: Mutex::new(Responses::default()),
+            active: AtomicUsize::new(0),
+            started: AtomicUsize::new(0),
+            http_count_calls: AtomicUsize::new(0),
+            entered: Notify::new(),
+            invalid: AtomicUsize::new(0),
+        });
+        let router = Router::new(transport.clone(), configuration(&input["config"]));
+        for step in input["steps"].as_array().unwrap() {
+            transport.set(step);
+            let body = Arc::new(document(step, &dictionary));
+            let original = body.clone();
+            let observed = transport.clone();
+            let callback_calls = Arc::new(AtomicUsize::new(0));
+            let callback_observed = callback_calls.clone();
+            assert_eq!(step["count_calls"].as_array().unwrap().len(), 1);
+            // Decode the fixture before entering the contained host callback:
+            // a malformed case must fail this test rather than become None.
+            let outcome = &step["count_calls"][0]["outcome"];
+            let value = match text(outcome, "kind") {
+                "json" => Some(outcome["value"].as_f64().expect("numeric source outcome")),
+                "undefined" => None,
+                "nan" => Some(f64::NAN),
+                "positive_infinity" => Some(f64::INFINITY),
+                other => panic!("unexpected original count outcome: {other}"),
+            };
+            let counter = crate::route_counter::RouteTokenCounter::new(
+                move |received, model, cancellation| {
+                    callback_observed.fetch_add(1, Ordering::SeqCst);
+                    let captured = {
+                        let mut current = observed.current.lock().unwrap();
+                        current.observed.push("count");
+                        current
+                            .counts
+                            .pop_front()
+                            .expect("unexpected native count callback")
+                    };
+                    // Record outside assertions: callback panic containment cannot
+                    // turn an unexecuted or mismatching ingress check into parity.
+                    let matches = Arc::ptr_eq(&received, &original)
+                        && digest(received.stringify().as_bytes()) == captured["received_sha256"]
+                        && model == text(&captured, "model")
+                        && !cancellation.is_cancelled();
+                    if !matches {
+                        observed.invalid.fetch_add(1, Ordering::SeqCst);
+                    }
+                    async move { value }
+                },
+            );
+            let caller = CancellationToken::new();
+            let mut actual = router
+                .route_typed_exact_with_counter(
+                    body.clone(),
+                    RouteOptions::default(),
+                    &HeaderMap::new(),
+                    &caller,
+                    "",
+                    counter,
+                )
+                .await
+                .unwrap()
+                .metadata
+                .observation();
+            assert_eq!(callback_calls.load(Ordering::SeqCst), 1);
+            assert_eq!(transport.http_count_calls.load(Ordering::SeqCst), 0);
+            actual.as_object_mut().unwrap().remove("latency_ms");
+            actual
+                .as_object_mut()
+                .unwrap()
+                .remove("evaluation_latency_ms");
+            assert_eq!(actual, step["node_expected"], "{}", row["id"]);
+            assert_eq!(
+                digest(body.stringify().as_bytes()),
+                step["body_after_sha256"]
+            );
+            assert!(!caller.is_cancelled());
+            transport.checked(step);
+            assert_eq!(router.classifier.pending_counts(), (0, 0));
+        }
+        router.close().await;
+        assert!(router.advisory_tasks.is_empty());
+        assert_eq!(transport.active.load(Ordering::SeqCst), 0);
+    }
+    assert_eq!(instances, 8);
 }

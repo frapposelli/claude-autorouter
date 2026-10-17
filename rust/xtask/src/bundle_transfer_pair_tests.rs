@@ -91,7 +91,10 @@ impl Fixture {
             for (key, value) in [
                 ("logical_reference_files", json!(113)),
                 ("reference_transport_files", json!(111)),
-                ("shared_inputs", shared()),
+                (
+                    "shared_inputs",
+                    shared(2, &self.reference["frozen-reference-manifest.json"].bytes),
+                ),
                 ("aggregate_logical_file_bytes", json!(payload)),
                 ("aggregate_logical_file_limit", json!(SOURCE.expanded)),
             ] {
@@ -180,6 +183,44 @@ impl Fixture {
         fs::remove_file(directory.join("native-source.tar.gz")).unwrap();
         fs::remove_file(directory.join("native-source.tar.gz.sha256")).unwrap();
         fs::write(directory.join(CPIO_NAME), native).unwrap();
+        Self::v3_metadata(directory, &record);
+    }
+    fn schema4(
+        &self,
+        directory: &Path,
+        mutate: impl FnOnce(&mut BTreeMap<String, Entry>, &mut BTreeMap<String, Entry>, &mut Value),
+    ) {
+        self.schema3(directory);
+        let mut record: Value =
+            serde_json::from_slice(&fs::read(directory.join("transfer-manifest.json")).unwrap())
+                .unwrap();
+        let mut native = self.native.clone();
+        let mut reference = decode_root(
+            &fs::read(directory.join(DELTA_NAME)).unwrap(),
+            DELTA_ROOT,
+            SOURCE,
+        )
+        .unwrap()
+        .files;
+        for path in ["LICENSE", "frozen-reference-manifest.json"] {
+            reference.remove(path).unwrap();
+        }
+        record["schema_version"] = json!(4);
+        record["reference_transport_files"] = json!(109);
+        record["shared_inputs"] =
+            shared(4, &self.reference["frozen-reference-manifest.json"].bytes);
+        mutate(&mut native, &mut reference, &mut record);
+        let first = cpio::encode_root(NATIVE_ROOT, &native, SOURCE, source_limit).unwrap();
+        let first_size = cpio::expanded_size(NATIVE_ROOT, &native, SOURCE, source_limit).unwrap();
+        let policy = SOURCE.remaining(SOURCE.expanded - first_size);
+        let second = encode_root(DELTA_ROOT, &reference, policy).unwrap();
+        let second_size = expanded_size(&reference, policy).unwrap();
+        record["aggregate_expanded_carrier_bytes"] = json!(first_size + second_size);
+        record["archives"] = json!({
+            (CPIO_NAME):{"sha256":sha(&first),"expanded_carrier_bytes":first_size,"format":"gzip-newc"},
+            (DELTA_NAME):{"sha256":sha(&second),"expanded_carrier_bytes":second_size,"format":"gzip-ustar"}});
+        fs::write(directory.join(CPIO_NAME), first).unwrap();
+        fs::write(directory.join(DELTA_NAME), second).unwrap();
         Self::v3_metadata(directory, &record);
     }
     fn v3_metadata(directory: &Path, record: &Value) {
@@ -340,7 +381,7 @@ fn exact_json_fields_duplicate_keys_shared_labels_and_limits_are_enforced() {
     ] {
         let directory = f.packet(variant, true, |_, _, record| match variant {
             "foreign" => record["PRIVATE_SENTINEL"] = json!(true),
-            "schema" => record["schema_version"] = json!(4),
+            "schema" => record["schema_version"] = json!(5),
             "shared_duplicate" => {
                 let donor = record["shared_inputs"][0].clone();
                 record["shared_inputs"].as_array_mut().unwrap().push(donor);
@@ -740,6 +781,158 @@ fn schema3_truncated_or_nonzero_after_trailer_inputs_fail_before_destination_cre
             ["Invalid gzip archive", "Incomplete CPIO archive"].contains(&error.as_str())
         } else {
             error == "Nonzero data after CPIO trailer"
+        });
+        f.reject(&directory, &format!("{variant}-output"));
+    }
+}
+
+#[test]
+fn schema4_reuses_only_pinned_extras_preserving_every_logical_byte_mode_and_legacy_charge() {
+    let f = Fixture::new();
+    let directory = f.packet("schema4", true, |_, _, _| {});
+    f.schema3(&directory);
+    let old = load(&f.root, &directory).unwrap();
+    // The schema4 helper starts from a schema2 packet; keep the admitted schema3
+    // record above as an independent unchanged-format comparison.
+    let directory = f.packet("schema4-new", true, |_, _, _| {});
+    f.schema4(&directory, |_, _, _| {});
+    let plan = load(&f.root, &directory).unwrap();
+    assert_eq!(plan.record["schema_version"], 4);
+    assert_eq!(plan.record["shared_inputs"].as_array().unwrap().len(), 4);
+    assert_eq!(plan.reference.files.len(), 109);
+    assert!(!plan.reference.files.contains_key("LICENSE"));
+    assert!(
+        !plan
+            .reference
+            .files
+            .contains_key("frozen-reference-manifest.json")
+    );
+    assert_eq!(
+        plan.record["aggregate_logical_file_bytes"],
+        old.record["aggregate_logical_file_bytes"]
+    );
+    assert_eq!(plan.record["aggregate_logical_file_limit"], SOURCE.expanded);
+    assert_eq!(plan.record["aggregate_expanded_limit"], SOURCE.expanded);
+    assert_eq!(
+        plan.record["legacy_full_tar_bytes"],
+        old.record["legacy_full_tar_bytes"]
+    );
+    let removed = ["LICENSE", "frozen-reference-manifest.json"]
+        .into_iter()
+        .map(|path| 512 + f.reference[path].bytes.len().div_ceil(512) * 512)
+        .sum::<usize>();
+    assert_eq!(removed, 99840);
+    assert_eq!(
+        old.reference.expanded_bytes - plan.reference.expanded_bytes,
+        removed
+    );
+    assert_eq!(plan.native.files.len(), old.native.files.len());
+    for (path, entry) in &old.native.files {
+        assert_eq!(plan.native.files[path].bytes, entry.bytes);
+        assert_eq!(plan.native.files[path].mode, entry.mode);
+    }
+    let output = f.scratch.0.join("schema4-restored");
+    let report = restore(&f.root, &directory, &output).unwrap();
+    assert_eq!(report["logical_files"], 113);
+    assert_eq!(report["reference_files"], 111);
+    assert_eq!(report["transfer_schema"], 4);
+    for (path, entry) in &f.reference {
+        assert_eq!(fs::read(output.join(path)).unwrap(), entry.bytes);
+        assert_eq!(
+            fs::metadata(output.join(path))
+                .unwrap()
+                .permissions()
+                .mode()
+                & 0o777,
+            entry.mode
+        );
+    }
+    assert!(restore(&f.root, &directory, &output).is_err());
+}
+#[test]
+fn schema4_changed_missing_duplicate_or_unpinned_donors_and_relaxed_charges_fail_before_writes() {
+    let f = Fixture::new();
+    let mut reference = f.reference.clone();
+    for path in [
+        SHARED[0].0,
+        SHARED[1].0,
+        "LICENSE",
+        "frozen-reference-manifest.json",
+    ] {
+        reference.remove(path).unwrap();
+    }
+    for path in ["LICENSE", "rust/parity/baseline.json"] {
+        let mut native = f.native.clone();
+        native.get_mut(path).unwrap().mode = 0o600;
+        assert!(
+            logical(
+                &native,
+                &reference,
+                &f.reference["frozen-reference-manifest.json"].bytes,
+                4
+            )
+            .is_err()
+        );
+    }
+    for variant in [
+        "license_missing",
+        "license_changed",
+        "baseline_changed",
+        "duplicate_license",
+        "duplicate_manifest",
+        "missing_license_label",
+        "missing_manifest_alias",
+        "foreign_alias",
+        "alias_digest",
+        "alias_field",
+        "logical_count",
+        "physical_count",
+        "logical_bytes",
+        "logical_limit",
+        "carrier_limit",
+        "legacy_charge",
+        "downgrade",
+    ] {
+        let directory = f.packet(variant, true, |_, _, _| {});
+        f.schema4(&directory, |native, reference, record| match variant {
+            "license_missing" => {
+                native.remove("LICENSE").unwrap();
+                Fixture::manifest(native);
+            }
+            "license_changed" => {
+                native.get_mut("LICENSE").unwrap().bytes[0] ^= 1;
+                Fixture::manifest(native);
+            }
+            "baseline_changed" => {
+                native.get_mut("rust/parity/baseline.json").unwrap().bytes[0] ^= 1;
+                Fixture::manifest(native);
+            }
+            "duplicate_license" => {
+                reference.insert("LICENSE".into(), f.reference["LICENSE"].clone());
+            }
+            "duplicate_manifest" => {
+                reference.insert(
+                    "frozen-reference-manifest.json".into(),
+                    f.reference["frozen-reference-manifest.json"].clone(),
+                );
+            }
+            "missing_license_label" => {
+                record["shared_inputs"].as_array_mut().unwrap().remove(2);
+            }
+            "missing_manifest_alias" => {
+                record["shared_inputs"].as_array_mut().unwrap().pop();
+            }
+            "foreign_alias" => record["shared_inputs"][3]["source_path"] = json!("foreign.json"),
+            "alias_digest" => record["shared_inputs"][3]["sha256"] = json!("0".repeat(64)),
+            "alias_field" => record["shared_inputs"][3]["PRIVATE_SENTINEL"] = json!(true),
+            "logical_count" => record["logical_reference_files"] = json!(111),
+            "physical_count" => record["reference_transport_files"] = json!(111),
+            "logical_bytes" => record["aggregate_logical_file_bytes"] = json!(1),
+            "logical_limit" => record["aggregate_logical_file_limit"] = json!(SOURCE.expanded + 1),
+            "carrier_limit" => record["aggregate_expanded_limit"] = json!(SOURCE.expanded + 1),
+            "legacy_charge" => record["legacy_full_tar_bytes"] = json!(1),
+            "downgrade" => record["schema_version"] = json!(3),
+            _ => unreachable!(),
         });
         f.reject(&directory, &format!("{variant}-output"));
     }

@@ -1,4 +1,4 @@
-//! Versioned paired carrier; two exact fixture payloads are materialized once.
+//! Versioned paired carrier; only exact, explicitly versioned donor payloads are reused.
 #[path = "bundle_transfer_fs.rs"]
 mod disk;
 #[path = "bundle_transfer_json.rs"]
@@ -19,7 +19,32 @@ fn source_limit(path: &str) -> usize {
     }
 }
 // Diagnostic arithmetic only: never used to admit/decode an oversized old tar.
-fn legacy_full(native: &BTreeMap<String, Entry>, reference: usize) -> Result<usize, String> {
+fn legacy_full(
+    native: &BTreeMap<String, Entry>,
+    reference: usize,
+    schema: u64,
+) -> Result<usize, String> {
+    let reference = if schema >= 4 {
+        ["LICENSE", "rust/parity/baseline.json"]
+            .into_iter()
+            .try_fold(reference, |total, path| {
+                let bytes = native
+                    .get(path)
+                    .ok_or("Missing legacy diagnostic donor")?
+                    .bytes
+                    .len();
+                let padded = bytes
+                    .checked_add(511)
+                    .map(|n| n / 512 * 512)
+                    .ok_or("Legacy full-tar size overflow")?;
+                total
+                    .checked_add(512)
+                    .and_then(|n| n.checked_add(padded))
+                    .ok_or("Legacy full-tar size overflow")
+            })?
+    } else {
+        reference
+    };
     native.values().try_fold(
         reference
             .checked_add(79360)
@@ -58,13 +83,34 @@ const SHARED: &[(&str, usize, &str)] = &[
     ),
     OLLAMA_ROUTING_FIXTURE,
 ];
-fn shared() -> Value {
-    json!(
-        SHARED
-            .iter()
-            .map(|(path, bytes, digest)| json!({"path":path,"bytes":bytes,"sha256":digest}))
-            .collect::<Vec<_>>()
-    )
+const SHARED_LICENSE: (&str, usize, &str) = (
+    "LICENSE",
+    11358,
+    "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+);
+fn shared(schema: u64, baseline: &[u8]) -> Value {
+    let mut rows: Vec<_> = SHARED
+        .iter()
+        .map(|(path, bytes, digest)| json!({"path":path,"bytes":bytes,"sha256":digest}))
+        .collect();
+    if schema >= 4 {
+        let (path, bytes, digest) = SHARED_LICENSE;
+        rows.push(json!({"path":path,"bytes":bytes,"sha256":digest}));
+        rows.push(json!({"path":"frozen-reference-manifest.json","source_path":"rust/parity/baseline.json",
+            "bytes":baseline.len(),"sha256":sha(baseline)}));
+    }
+    json!(rows)
+}
+fn donor(path: &str, schema: u64) -> Option<&str> {
+    if schema >= 2 && SHARED.iter().any(|item| item.0 == path) {
+        Some(path)
+    } else if schema >= 4 && path == "LICENSE" {
+        Some("LICENSE")
+    } else if schema >= 4 && path == "frozen-reference-manifest.json" {
+        Some("rust/parity/baseline.json")
+    } else {
+        None
+    }
 }
 fn sum<'a>(files: impl IntoIterator<Item = &'a [u8]>) -> Result<usize, String> {
     files.into_iter().try_fold(0usize, |total, bytes| {
@@ -137,15 +183,16 @@ fn logical<'a>(
     native: &'a BTreeMap<String, Entry>,
     reference: &'a BTreeMap<String, Entry>,
     baseline: &[u8],
-    reused: bool,
+    schema: u64,
 ) -> Result<BTreeMap<String, (&'a [u8], u32)>, String> {
     source(native)?;
     if native
         .get("rust/parity/baseline.json")
         .is_none_or(|entry| entry.bytes != baseline)
-        || reference
-            .get("frozen-reference-manifest.json")
-            .is_none_or(|entry| entry.bytes != baseline)
+        || (schema < 4
+            && reference
+                .get("frozen-reference-manifest.json")
+                .is_none_or(|entry| entry.bytes != baseline))
     {
         return Err("Original frozen baseline manifest identity differs".into());
     }
@@ -167,7 +214,7 @@ fn logical<'a>(
     if expected.contains_key("LICENSE") || expected.contains_key("frozen-reference-manifest.json") {
         return Err("Unexpected original reference extras".into());
     }
-    if reused {
+    if schema >= 2 {
         for (path, bytes, hash) in SHARED {
             let entry = native
                 .get(*path)
@@ -187,18 +234,24 @@ fn logical<'a>(
             }
         }
     }
+    if schema >= 4 {
+        let (path, bytes, digest) = SHARED_LICENSE;
+        let entry = native.get(path).ok_or("Missing pinned shared license")?;
+        if entry.bytes.len() != bytes || sha(&entry.bytes) != digest || entry.mode != 0o644 {
+            return Err("Shared license differs from pinned original bytes or mode".into());
+        }
+    }
     let mut files: BTreeMap<String, (&[u8], u32)> = BTreeMap::new();
     for path in expected
         .keys()
         .copied()
         .chain(["LICENSE", "frozen-reference-manifest.json"])
     {
-        let origin = if reused && SHARED.iter().any(|item| item.0 == path) {
-            native
-        } else {
-            reference
-        };
-        let entry = origin.get(path).ok_or("Reference payload is incomplete")?;
+        let entry = match donor(path, schema) {
+            Some(path) => native.get(path),
+            None => reference.get(path),
+        }
+        .ok_or("Reference payload is incomplete")?;
         if entry.mode != 0o644 || entry.bytes.len() > FILE_LIMIT {
             return Err("Reference member violates original mode or byte bounds".into());
         }
@@ -212,17 +265,17 @@ fn logical<'a>(
     }
     let physical: BTreeSet<_> = files
         .keys()
-        .filter(|path| !reused || !SHARED.iter().any(|item| item.0 == path.as_str()))
+        .filter(|path| donor(path, schema).is_none())
         .collect();
     if reference.keys().collect::<BTreeSet<_>>() != physical {
         return Err("Reference carrier contains foreign or missing members".into());
     }
-    if reference.get("LICENSE").is_none_or(|entry| {
+    if files.get("LICENSE").is_none_or(|(bytes, _)| {
         native
             .get("LICENSE")
-            .is_none_or(|license| license.bytes != entry.bytes)
+            .is_none_or(|license| license.bytes.as_slice() != *bytes)
     }) {
-        return Err("Independent reference license is missing or different".into());
+        return Err("Reference license is missing or different".into());
     }
     sum(native
         .values()
@@ -234,7 +287,7 @@ struct Plan {
     native: DecodedArchive,
     reference: DecodedArchive,
     baseline: Vec<u8>,
-    reused: bool,
+    schema: u64,
     record: Value,
 }
 fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
@@ -243,9 +296,9 @@ fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
     let record = metadata::parse(&raw, META_LIMIT)?;
     let schema = record["schema_version"]
         .as_u64()
-        .filter(|value| [1, 2, 3].contains(value))
+        .filter(|value| [1, 2, 3, 4].contains(value))
         .ok_or("Unknown paired transfer schema")?;
-    let aggregate = if schema == 3 {
+    let aggregate = if schema >= 3 {
         "aggregate_expanded_carrier_bytes"
     } else {
         "aggregate_expanded_tar_bytes"
@@ -312,12 +365,12 @@ fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
     } else {
         "frozen-node-reference.tar.gz"
     };
-    let native_name = if schema == 3 {
+    let native_name = if schema >= 3 {
         CPIO_NAME
     } else {
         "native-source.tar.gz"
     };
-    let expanded_key = if schema == 3 {
+    let expanded_key = if schema >= 3 {
         "expanded_carrier_bytes"
     } else {
         "expanded_tar_bytes"
@@ -327,13 +380,13 @@ fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
         let fields = &record["archives"][name];
         metadata::keys(
             fields,
-            if schema == 3 {
+            if schema >= 3 {
                 &["sha256", "expanded_carrier_bytes", "format"][..]
             } else {
                 &["sha256", "expanded_tar_bytes"][..]
             },
         )?;
-        if schema == 3
+        if schema >= 3
             && fields["format"]
                 != if name == CPIO_NAME {
                     "gzip-newc"
@@ -347,7 +400,7 @@ fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
         if metadata::digest(&fields["sha256"])? != sha(&bytes) {
             return Err("Paired transfer archive digest differs".into());
         }
-        let archive = if schema == 3 && name == CPIO_NAME {
+        let archive = if schema >= 3 && name == CPIO_NAME {
             cpio::decode_root(&bytes, archive_root, policy, source_limit)?
         } else {
             decode_root(&bytes, archive_root, policy)?
@@ -381,32 +434,40 @@ fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
     if record[aggregate].as_u64() != Some(stored as u64) {
         return Err("Paired transfer aggregate declaration differs".into());
     }
-    let files = logical(&native.files, &reference.files, &baseline, schema >= 2)?;
+    let files = logical(&native.files, &reference.files, &baseline, schema)?;
     if schema >= 2 {
         let reused = &record["shared_inputs"];
-        if reused != &shared() {
+        if reused != &shared(schema, &baseline) {
             return Err("Missing changed foreign or duplicate shared fixture declaration".into());
         }
         for row in reused
             .as_array()
             .ok_or("Invalid shared fixture declarations")?
         {
-            metadata::keys(row, &["path", "bytes", "sha256"])?;
+            metadata::keys(
+                row,
+                if schema >= 4 && row["path"] == "frozen-reference-manifest.json" {
+                    &["path", "source_path", "bytes", "sha256"][..]
+                } else {
+                    &["path", "bytes", "sha256"][..]
+                },
+            )?;
         }
         let payload = sum(native
             .files
             .values()
             .map(|entry| entry.bytes.as_slice())
             .chain(files.values().map(|(bytes, _)| *bytes)))?;
-        let legacy = if schema == 3 {
-            legacy_full(&native.files, reference.expanded_bytes)?
+        let legacy = if schema >= 3 {
+            legacy_full(&native.files, reference.expanded_bytes, schema)?
         } else {
             stored
                 .checked_add(79360)
                 .ok_or("Legacy full-tar sum overflow")?
         };
         if record["logical_reference_files"].as_u64() != Some(113)
-            || record["reference_transport_files"].as_u64() != Some(111)
+            || record["reference_transport_files"].as_u64()
+                != Some(if schema >= 4 { 109 } else { 111 })
             || record["aggregate_logical_file_limit"].as_u64() != Some(SOURCE.expanded as u64)
             || record["aggregate_logical_file_bytes"].as_u64() != Some(payload as u64)
             || record["legacy_full_tar_bytes"].as_u64() != Some(legacy as u64)
@@ -448,7 +509,7 @@ fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
         native,
         reference,
         baseline,
-        reused: schema >= 2,
+        schema,
         record,
     })
 }
@@ -467,7 +528,7 @@ fn restore_with(
         &plan.native.files,
         &plan.reference.files,
         &plan.baseline,
-        plan.reused,
+        plan.schema,
     )?;
     checkpoint()?;
     let parent = disk::Directory::open(destination.parent().ok_or("Missing restore parent")?)?;
@@ -496,7 +557,7 @@ fn restore_with(
     Ok(
         json!({"schema_version":1,"kind":"paired_transfer_reference_restore","transfer_schema":plan.record["schema_version"],
         "reference_files":111,"logical_files":113,"original_modes_bytes_verified":true,"root_identity_verified":true,
-        "shared_fixture_files":if plan.reused{2}else{0},"license_restored":true,"provider_calls":0,"release_approved":false,"performance_accepted":false}),
+        "shared_fixture_files":if plan.schema>=2{2}else{0},"license_restored":true,"provider_calls":0,"release_approved":false,"performance_accepted":false}),
     )
 }
 
@@ -556,7 +617,10 @@ pub(super) fn create(root: &Path, destination: &Path) -> Result<Value, String> {
             .remove(*path)
             .ok_or("Missing original shared fixture")?;
     }
-    let files = logical(&native, &delta, &baseline, true)?;
+    for path in ["LICENSE", "frozen-reference-manifest.json"] {
+        delta.remove(path).ok_or("Missing original shared extra")?;
+    }
+    let files = logical(&native, &delta, &baseline, 4)?;
     let payload = sum(native
         .values()
         .map(|entry| entry.bytes.as_slice())
@@ -603,17 +667,18 @@ pub(super) fn create(root: &Path, destination: &Path) -> Result<Value, String> {
     let stored = native_expanded
         .checked_add(delta_expanded)
         .ok_or("Paired transfer size overflow")?;
-    let legacy = legacy_full(&native, delta_expanded)?;
-    let baseline = metadata::parse(&baseline, FILE_LIMIT)?;
-    let record = json!({"schema_version":3,"kind":"matched_native_benchmark_transfer",
+    let legacy = legacy_full(&native, delta_expanded, 4)?;
+    let delta_baseline = baseline;
+    let baseline = metadata::parse(&delta_baseline, FILE_LIMIT)?;
+    let record = json!({"schema_version":4,"kind":"matched_native_benchmark_transfer",
         "baseline_commit":baseline["baseline_commit"],"baseline_version":baseline["baseline_version"],"reference_files":111,
         "archives":{(CPIO_NAME):{"sha256":sha(&native_bytes),"expanded_carrier_bytes":native_expanded,"format":"gzip-newc"},
             (DELTA_NAME):{"sha256":sha(&delta_bytes),"expanded_carrier_bytes":delta_expanded,"format":"gzip-ustar"}},
         "aggregate_expanded_carrier_bytes":stored,"aggregate_expanded_limit":SOURCE.expanded,
         "node_runtime_required":"22.14.0 for temporary reference tests only","native_build_required":true,
         "private_material_included":false,"binaries_included":false,"dependencies_bundled":false,"provider_calls":0,
-        "release_approved":false,"performance_accepted":false,"logical_reference_files":113,"reference_transport_files":111,
-        "shared_inputs":shared(),"aggregate_logical_file_bytes":payload,"aggregate_logical_file_limit":SOURCE.expanded,
+        "release_approved":false,"performance_accepted":false,"logical_reference_files":113,"reference_transport_files":109,
+        "shared_inputs":shared(4, &delta_baseline),"aggregate_logical_file_bytes":payload,"aggregate_logical_file_limit":SOURCE.expanded,
         "legacy_full_tar_bytes":legacy,"legacy_full_tar_within_limit":legacy<=SOURCE.expanded});
     let raw = serde_json::to_vec_pretty(&record).map_err(|_| "Cannot encode transfer metadata")?;
     let resume = super::transfer::README.as_bytes();

@@ -8,7 +8,7 @@ This checklist tracks the full [rewrite plan](rust-rewrite-plan.md), including i
 | --- | --- | --- |
 | One native executable, every product command, no JavaScript sidecar | Installed command/JSON/exit-code matrix, Node-free execution and binary/build feature inspection | Implemented experimental candidate; host tests pass. Complete supported-platform execution remains open. |
 | Keep package/command names, npm global installation and direct archives | Exact npm and per-target archive identities, scripts-disabled offline installation, installed byte/mode checks and lifecycle execution | Exact npm/direct host archives from clean `5ad9a76` each pass 78 installed lifecycle checks. Source-to-binary reproduction, other targets and the production release set remain open. |
-| Retain all thirteen behavior areas | Individual original-assertion mappings, shared fixtures, Rust tests and explained interface differences | Coverage ledger: 533 covered, 55 partial and no pending definitions after the real-clock Router deadline review. Partial entries still contain genuine missing behavior and explicit native API/format migrations; none is blanket approved. Reviewed native API differences are recorded per assertion. Do not infer whole-area approval from fixture counts. |
+| Retain all thirteen behavior areas | Individual original-assertion mappings, shared fixtures, Rust tests and explained interface differences | Coverage ledger: 535 covered, 53 partial and no pending definitions after the per-route counter review. All 51 original Router definitions have individual mappings. Partial entries elsewhere still contain genuine missing behavior and explicit native API/format migrations; no whole area is blanket approved. Reviewed native API differences are recorded per assertion. Do not infer whole-area approval from fixture counts. |
 | Transparent provider responses, signed history, safety and permissions | Actual HTTP/SSE/JSON/compression/framing comparisons, client disconnects, failed flushes and pipelined-response ownership | Substantial synthetic coverage; unresolved transport/TLS differences and unreviewed original HTTP schedules remain. |
 | Authentication, refreshed subscription credentials and custom-upstream restrictions | Request-scoped credential tests, API/OAuth/beta rejection matrix, conservative unsupported-contract behavior | Implemented and tested on synthetic transports; live canaries and supported-platform TLS qualification remain. |
 | Configuration, policy, Keychain and history without mandatory migration | Exact lexical identities, permissions/revision/fsync/no-follow checks, policy admission, isolated migration/rollback and existing schemas/prices | Isolated real macOS Keychain migration passes all 25 host assertions through both engines. Complete assertion review, failure/rollback and platform qualification remain. |
@@ -16,7 +16,7 @@ This checklist tracks the full [rewrite plan](rust-rewrite-plan.md), including i
 | Predeclared speed and memory gates | Fresh matched five-round reports on representative hardware, unchanged thresholds, processing-only control, uncertainty and complete declared workload coverage | Exploratory v1 evidence exists. Five separately retained normal-use whole-processing five-pair runs retain complete parity; none qualifies the unchanged 0.5 p95 target. Numerical qualification, missing metrics/workloads and representative hardware remain open. |
 | Real evaluator and task evidence | Explicit matched trials with fixed fixtures/rubrics/models and separately reported availability, transport, policy and task quality | Compatible and actual Auto simple Jev preflights pass. Two five-pair real Tev1 experiments retain identical warm classification failures, finite-deadline stress differences and matching zero-deadline outcomes. Full profile/task and larger-host evidence remain open. |
 | Rust contributor/release tools | Original tool behavior mappings, release state handling, immutable archives, registry verification, direct installation and source/build provenance | Most tooling exists; original tooling assertions and production release workflow/provenance remain incomplete. |
-| Native CI and supported platform matrix | Compiler/feature/license checks, installed native/npm/direct artifacts, minimum OS/libc/CPU/TLS/PTY/WSL evidence for every approved target | The [complete `d9e88e6` checkpoint](../rust/parity/measurements/native-d9e88e6-ci-summary.json) passes all fourteen jobs, including exact rollback rehearsals in nine packaging environments. The [following `19e3d2c` run](../rust/parity/measurements/native-19e3d2c-ci-timeout-summary.json) passes thirteen jobs and times out on Intel macOS. The targeted job allowance and current source need fresh CI; complete platform/minimum-OS/TLS/WSL and release qualification remain open. |
+| Native CI and supported platform matrix | Compiler/feature/license checks, installed native/npm/direct artifacts, minimum OS/libc/CPU/TLS/PTY/WSL evidence for every approved target | The [complete `58e1531` checkpoint](../rust/parity/measurements/native-58e1531-ci-summary.json) passes all fourteen jobs, including ordinary macOS/Linux, GNU, musl and i686 validation. Intel completes in 42m10s; both musl SDK setup steps pass. This observation uses terminal metadata rather than independently rehashed artifacts. Later source changes require fresh CI; complete platform/minimum-OS/TLS/WSL and release qualification remain open. |
 | Default cutover and retirement | All preceding gates approved, separately authorized release, migration/help/contributor docs, retained rollback and defined stabilization period | JavaScript remains shipping default. This phase remains required for full completion. |
 
 The [assertion ledger](../rust/parity/coverage.json) and [evidence index](../rust/parity/evidence.json) retain individual test status. Existing report hashes refer to historical inputs; editing code or a manifest does not transfer old qualification to new bytes.
@@ -68,7 +68,7 @@ Update release verification and publishing around the exact qualified native set
 
 1. Finish the additive exact-archive upgrade/rollback CI checks on all current native packaging environments, retaining the successful and failed evidence separately.
 2. Extend execution coverage to remaining baseline architectures with pinned toolchains and real target userlands; emulated execution must remain separate from CPU/minimum-kernel qualification.
-3. Complete the remaining 55 original assertion definitions and configuration/limit audit, including explicit native API/format migration review rather than blanket suite approval.
+3. Complete the remaining 53 original assertion definitions and configuration/limit audit, including explicit native API/format migration review rather than blanket suite approval.
 4. Complete TLS/protocol/resource schedules and failed-startup, partial-write and ownership scenarios for rollback.
 5. Meet every unchanged numerical gate and declared workload/hardware requirement, complete real-task evidence and final source/build/license/installed-artifact qualification, then perform separately authorized stabilization and cutover.
 
@@ -404,6 +404,63 @@ the original callback. Neither process time nor TAP callback duration is the
 private first-route elapsed value. This is an original finite scheduling
 regression, with separate process ceilings; it does not qualify numerical
 performance, the complete configuration/limit audit, supported platforms or
-cutover. The historical main Router mapping is unchanged. Current coverage is
-533 covered/55 partial; Router definitions 49 and 50 still lack a native
+cutover. The historical main Router mapping is unchanged. At that checkpoint,
+coverage was 533 covered/55 partial; Router definitions 49 and 50 still lacked a native
 per-route counter boundary for the original callback and numeric outcomes.
+
+## Complete `58e1531` CI checkpoint
+
+The [terminal five-workflow observation](../rust/parity/measurements/native-58e1531-ci-summary.json)
+records all fourteen named jobs successful. Git metadata binds the pushed
+`58e1531` source and the PR merge checkout to the same tree. Intel macOS completes
+all checks in 42m10s, including exact npm/direct installation and offline
+upgrade/rollback. Both musl targets pass SDK/index admission, offline build and
+lifecycle checks, their separate GNU controls and mixed-package selection.
+
+This establishes the recorded CI scopes for that exact source. Per-job checkout
+logs and artifact bytes were not downloaded or independently rehashed in this
+observation. Earlier Intel timeout and musl setup failures remain retained; the
+later timeout-regression commit and working-tree counter/transfer changes need
+their own CI. Minimum deployment environments, full TLS/WSL, numerical and
+real-provider gates, production provenance and default cutover remain open.
+
+## Native per-route counting and lossless transfer reuse
+
+The [counter callback supplement](../rust/parity/measurements/native-original-router-count-callback-summary.json)
+completes only original Router definitions 49 and 50. The native library now
+accepts an optional counter for one route, receiving the complete authoritative
+document and selected target before HTTP projection. `None`, NaN and infinity
+reach this boundary directly; only finite, nonnegative safe integers become
+usable counts. Default HTTP counting retains its existing payload, cache and
+deadline behavior. The [embedding guide](../rust/docs/embedding.md) documents
+the native interface and its ownership/type differences from JavaScript.
+
+The unchanged original Node callbacks pass all twelve assertion sites across
+eight instances. Actual native replay verifies complete decisions, unchanged
+bodies, exactly one custom callback and zero HTTP count requests per instance.
+Additional tests prove start order/overlap, required inline work at speculative
+capacity, exact deadline, ignored-token cancellation and owned future cleanup.
+All nine new tests and all 53 Router tests pass. The full workspace passes
+1,333 tests with ten ignored tests or helper fixtures, strict Clippy and
+formatting. Node check, all 596 tests and the exact 58-file package smoke pass;
+restricted loopback failures remain retained alongside successful authorized
+runs. Fresh comparisons pass seventeen differential families and the
+whole-connection deterministic control without numerical samples.
+
+Transfer producers now explicitly use schema 4. The receiver also retains
+schemas 1, 2 and 3. Two additional exact donors reuse the pinned license and
+trusted baseline manifest, removing 99,840 physical carrier bytes while still
+charging both logical copies. Every logical path, byte and mode remains
+present; no filesystem links are introduced. Actual export/restore verifies
+694 public inputs and all 113 logical reference files, at 33,495,040 carrier
+bytes and 33,460,327 logical bytes under the unchanged 32 MiB limits. The same
+helper restores the retained real schema 3 packet with exact bytes, ownership,
+private directories and public-file modes. Fourteen format/filesystem tests
+and the actual-export regression pass. Supplied-binary provenance remains
+unverified; these checks do not approve a shipping artifact.
+
+Coverage is now 535 covered/53 partial, with every original Router definition
+individually covered and all thirteen area statuses still partial. Historical
+mapping/evidence identities remain unchanged. The counter/transfer checkpoint
+needs fresh CI; full configuration/limits, transport/TLS/resource schedules,
+numerical/real-task/hardware/platform and final cutover gates remain open.
