@@ -240,8 +240,14 @@ Setup's `ConfigContext` receives `Environment`, a map of `OsString` keys and
 values. `environment_json()` converts present entries to strings and preserves
 absence. Raw JSON null, boolean or optional values cannot be inserted into that
 map; caller code must supply real OS strings or omit the key. The separate
-`read_config(&Value, ...)` JSON interface rejects malformed raw values rather
-than coercing them. [Setup migration evidence](../parity/assertion-mappings/onboarding-environment-contracts.json)
+`read_config(&Value, ...)` JSON interface applies field-specific validation.
+URL fields first use JavaScript primitive and array string conversion, then
+the existing URL safety checks. `read_config_document()` reads those fields
+from the original `JsDocument`, before its lossy metadata projection can turn
+nonfinite numbers into null or replace lone UTF-16 surrogates. Inactive
+evaluator URLs remain masked, and URL conversion preserves validation order.
+This URL behavior does not qualify raw credential values or other malformed
+configuration fields. [Setup migration evidence](../parity/assertion-mappings/onboarding-environment-contracts.json)
 keeps these input domains separate from historical executable CLI checks.
 
 `policy::load_policy()` and `load_policy_at()` return `PolicyError` on failure.

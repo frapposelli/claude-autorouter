@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "kind": "native_configuration_url_primitive_coercion",
+  "date": "2026-10-17",
+  "source_base": "c86bd78d4ae033585d4baadb3973c85bcacaac2a",
+  "scope": "Public read_config Value and read_config_document URL conversion only; existing endpoint safety policy, evaluator masks and validation order retained. No baseline definition/configuration-key/limit/area promotion.",
+  "behavior": [
+    "URL values use source primitive/array string conversion before existing URL parsing and safety checks.",
+    "Source-document URL nodes preserve nonfinite numbers and UTF-16 until the URL conversion boundary; observation projection does not select defaults.",
+    "Fallible object primitive conversion uses existing safe URL diagnostics at the original validation position.",
+    "Ordinary OS-string configuration and public typed validate_ollama_endpoint remain unchanged."
+  ],
+  "original_reproduction": {
+    "receipt": {
+      "path": "artifacts/rust-rewrite/config-url-coercion-20261017-1/reproduction-receipt.json",
+      "bytes": 4666,
+      "sha256": "d136fc1f1556b456db2e9cc2cca0177c4cffbdfa424d44923a09fda79ea61e41"
+    },
+    "ordinary_cases": 167,
+    "before_fix_matches": 97,
+    "before_fix_mismatches": 70,
+    "source_success_native_error": 54,
+    "diagnostic_differences": 16,
+    "outcome": "Expected old-native mismatch evidence remains unchanged; it is not relabeled as a passing comparison.",
+    "frozen_files_verified_before_after": 111
+  },
+  "raw_document_controls": {
+    "original_cases": 43,
+    "native_cases": 43,
+    "focused_native_tests": 2,
+    "tests": [
+      "config::tests::raw_url_documents_coerce_before_lossy_projection",
+      "config::tests::document_url_conversion_keeps_backend_masks_and_validation_order"
+    ],
+    "cases_main": 37,
+    "cases_backend_phase": 6,
+    "backend_phase_original_receipt": {
+      "path": "artifacts/rust-rewrite/config-url-coercion-20261017-1/document-phase-supplement/receipt.json",
+      "bytes": 2563,
+      "sha256": "c57d7134690f837ac8bab692d857a367c1877fa247c365d88fd58ba7a333fdef"
+    },
+    "initial_review_supplement": {
+      "path": "artifacts/rust-rewrite/config-url-validation-20261017-1/initial-proof-supplement-correction.json",
+      "bytes": 4463,
+      "sha256": "32b2cdcffde32c37e1ce4701fa33600beae544d8b8761bdb436a7e6a86cd5ec8"
+    },
+    "expected_red": {
+      "executed_tests": 1,
+      "failed": 1,
+      "exit_code": 101,
+      "fault": "Raw1e400 incorrectly defaulted after lossy observation conversion.",
+      "declaration": {
+        "path": "artifacts/rust-rewrite/config-url-validation-20261017-1/red-declaration.json",
+        "bytes": 580,
+        "sha256": "5bfba5ea1c08249a03a613ac2c95ad869c73f728d23cb50c17cbf6583cd09ec7"
+      },
+      "actual_execution": {
+        "path": "artifacts/rust-rewrite/config-url-validation-20261017-1/red-progress.json",
+        "bytes": 1860,
+        "sha256": "ed4186e84ad8121ef7ac118694c2ba61253cffa57e2bbfaa8f15d4fbdb24106d"
+      },
+      "source_limitation": "Exact test-only red source bytes could not be reconstructed from retained drafts. Its preexecution hash, actual Cargo artifact/binary and failure logs are retained; no independent exact red-source reconstruction is claimed."
+    }
+  },
+  "native_source": {
+    "path": "rust/crates/autorouter-core/src/config.rs",
+    "sha256": "bc8be818ca9f26ae0cd364987416ade645fda746a08ea0f586c35795febcbae4",
+    "compile_export_inputs": 694,
+    "generator_separately_bound_outside_native_inputs": {
+      "path": "rust/parity/generate-config-auth.mjs",
+      "bytes": 15736,
+      "sha256": "e8c21004ecf76b9f76f15478825752ff6bc5c794eddee6606642ff9ae0d13950"
+    },
+    "source_snapshot": {
+      "path": "artifacts/rust-rewrite/config-url-validation-20261017-1/full-validation-source-inputs.json",
+      "bytes": 117014,
+      "sha256": "7c0ab844fcc256c623c66a7c8fb70437eb3cf43c3a0080dcfc968da5a1edba43"
+    }
+  },
+  "checks": {
+    "fmt": "passed",
+    "strict_clippy": "passed",
+    "workspace": {
+      "passed": 1344,
+      "failed": 0,
+      "ignored": 10,
+      "groups": 66
+    },
+    "node_check": "passed",
+    "node_tests_passed": 596,
+    "package_smoke": "passed",
+    "package_files": 58,
+    "differential_families": 17,
+    "differential_matches": 206792,
+    "config_auth_matches": 627,
+    "original460_cases_byte_identical_prefix": true,
+    "added_url_cases": 167,
+    "deterministic_whole_connection_parity": true,
+    "performance_status": "not_measured",
+    "numerical_samples_retained": false,
+    "local_summary": {
+      "path": "artifacts/rust-rewrite/config-url-validation-20261017-1/local-checks-summary.json",
+      "bytes": 5310,
+      "sha256": "8a49718fb8304718484136fd43ba0b77fc4f7f116afd102b8ec7074176a505cc"
+    },
+    "independent_full_review": {
+      "path": "artifacts/rust-rewrite/config-url-validation-20261017-1/independent-full-local-review.json",
+      "bytes": 11878,
+      "sha256": "c0a84469b163c68b9ce65f29a2f8f2bec7c8bcf6d222f93877458c7e261cefbe"
+    }
+  },
+  "source_transfer": {
+    "schema": 4,
+    "native_inputs_verified": 694,
+    "frozen_original_files_verified": 111,
+    "logical_reference_files_verified": 113,
+    "carrier_bytes": 33551872,
+    "logical_bytes": 33517333,
+    "separate_each_limit": 33554432,
+    "carrier_headroom": 2560,
+    "logical_headroom": 37099,
+    "required_inputs_removed": false,
+    "manifest_compaction_applied": false,
+    "actual_inspection": {
+      "path": "artifacts/rust-rewrite/config-url-initial-transfer-evidence-20261017-1/inspection.json",
+      "bytes": 1896,
+      "sha256": "f64204fd254760e60de8dbde2b4c3d6c292d5ac917dfec85b6b915ecbb5ba201"
+    },
+    "helper": {
+      "path": "artifacts/rust-rewrite/config-url-validation-20261017-1/initial-green/initial-helper.json",
+      "bytes": 314,
+      "sha256": "717d6f9244f87a71be9fa1a1e7355459356b23449d7e97729b5e53ca276a26a1"
+    },
+    "helper_binding": "Actual initial green Cargo-built helper reused after checking all694inputs unchanged; no later fresh helperbuild is claimed.",
+    "receiver_rebuilds": 0,
+    "source_to_shipping_binary_provenance": "unverified_prebuilt"
+  },
+  "coverage_after": {
+    "covered": 538,
+    "partial": 50,
+    "definitions": 588,
+    "all588_definition_rows_unchanged": true,
+    "all27_configuration_keys_unchanged": true,
+    "all53_limits_unchanged": true,
+    "all13_areas_still_partial": true,
+    "configuration_area_test_inventory_added": 2
+  },
+  "current_source_ci": "Requires new checkpoint push; c86bd78 CI is separate source evidence.",
+  "remaining": [
+    "Credential preservation/require_keys and other configuration-key behavior remain open.",
+    "Remaining original assertions, limits, transport/TLS/resource schedules and platform qualification.",
+    "Full numerical/hardware and opt-in provider/task-quality evidence.",
+    "Final artifact/provenance, upgrade/rollback, stabilization and authorized cutover."
+  ],
+  "provider_calls": 0,
+  "release_platform_performance_or_full_goal_approved": false
+}

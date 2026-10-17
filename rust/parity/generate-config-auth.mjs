@@ -48,6 +48,80 @@ const valid = { authorization: 'Bearer fake-login-token', 'anthropic-beta': 'som
 for (const headers of [valid, {}, { authorization: valid.authorization }, { ...valid, 'x-api-key': 'api-key' }, { ...valid, authorization: 'Basic abc' }, { ...valid, authorization: 'Bearer ' }, { ...valid, 'anthropic-beta': 'not-oauth-2025-04-20' }]) auth(11, 'subscription_request', headers);
 const policy = { allowed_evaluators: ['ollama'], allowed_auth_modes: ['subscription'], session_log_mode: 'metadata', upstream_url: 'https://api.anthropic.com' };
 for (const input of [{ env: { AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_AUTH_MODE: 'subscription' }, policy }, { env: {}, policy }, { env: { AUTOROUTER_AUTH_MODE: 'subscription' }, policy: { allowed_evaluators: ['jev'] } }, { env: { AUTOROUTER_AUTH_MODE: 'subscription', AUTOROUTER_SESSION_LOG_MODE: 'prompts', AUTOROUTER_UPSTREAM_URL: 'https://evil.example', KEEP: '1' }, policy }, { env: { AUTOROUTER_EVALUATOR: 'jev' }, policy, allowlists: false }]) emit('policy', 4, 'apply_policy', input);
+// Additive URL-value boundary cases; these are API coercion regressions, not
+// additional executions or inferred assertions of any original test definition.
+// Append immediately before destination/writeFileSync in generate-config-auth.
+const urlBoundary = (key, label, raw, extra = {}) => {
+  const backend = key === 'AUTOROUTER_JEV_URL' ? 'jev' : 'ollama';
+  const env = { AUTOROUTER_EVALUATOR: backend, ...(raw === undefined ? {} : { [key]: raw }), ...(extra.env ?? {}) };
+  cases.push({ id: `config-url-value-${key.slice(11).toLowerCase()}-${label}`, op: 'read_config',
+    input: { env, ...(extra.validate_all === undefined ? {} : { validate_all: extra.validate_all }) },
+    source_tests: ['test/config.test.mjs'],
+    source_basis: 'Additional frozen readConfig JSON-value API boundary; no original definition or assertion attribution' });
+};
+for (const key of ['AUTOROUTER_UPSTREAM_URL', 'AUTOROUTER_JEV_URL', 'AUTOROUTER_OLLAMA_URL']) {
+  const valid = key === 'AUTOROUTER_OLLAMA_URL' ? 'http://localhost:11434/' : 'https://example.test/v1/systemone/';
+  const shared = [
+    ['absent', undefined], ['null-default', null], ['valid-string', valid],
+    ['empty-string', ''], ['empty-array', []], ['null-array', [null]],
+    ['singleton-empty-array', [[]]], ['singleton-valid', [valid]],
+    ['nested-singleton-valid', [[[valid]]]], ['singleton-null-default-is-not-null', [[null]]],
+    ['null-leading', [null, valid]], ['null-trailing', [valid, null]],
+    ['nested-null-trailing', [valid, [null]]], ['empty-array-trailing', [valid, []]],
+    ['https-public', ['https://example.test/']],
+    ['http-public', ['http://example.test/']],
+    ['http-ipv4-loopback', ['http://127.0.0.1:11434/']],
+    ['http-ipv6-loopback', ['http://[::1]:11434/']],
+    ['credential', ['https://synthetic-user:synthetic-pass@example.test/']],
+    ['loopback-credential', ['http://synthetic-user:synthetic-pass@127.0.0.1:11434/']],
+    ['query', ['http://127.0.0.1:11434/?synthetic-query']],
+    ['fragment', ['http://127.0.0.1:11434/#synthetic-fragment']],
+    ['path', ['http://127.0.0.1:11434/path']],
+    ['bare-query', ['http://127.0.0.1:11434/?']],
+    ['bare-fragment', ['http://127.0.0.1:11434/#']],
+    ['false-scalar', false], ['number-scalar', 1e20], ['plain-object', {}],
+    ['object-tostring-null', { toString: null }],
+    ['object-valueof-null', { valueOf: null }],
+    ['object-both-null', { toString: null, valueOf: null }],
+    ['object-tostring-url-is-noncallable', { toString: valid }],
+    ['path-object-default', ['https://example.test/path', {}]],
+    ['path-object-tostring-null', ['https://example.test/path', { toString: null }]],
+    ['path-object-valueof-null', ['https://example.test/path', { valueOf: null }]],
+    ['path-object-both-null', ['https://example.test/path', { toString: null, valueOf: null }]],
+    ['path-object-tostring-array', ['https://example.test/path', { toString: [] }]],
+    ['path-array-tostring-word', ['https://example.test/path', { toString: 'synthetic' }]],
+    ['path-negative-zero', ['https://example.test/path', -0]],
+    ['path-small-number', ['https://example.test/path', 1e-7]],
+    ['path-large-decimal-number', ['https://example.test/path', 1e20]],
+    ['path-large-exponent-number', ['https://example.test/path', 1e21]],
+    ['path-number-threshold', ['https://example.test/path', 1e-6]],
+    ['path-nested-number-array', ['https://example.test/path', [1e-7, 1e20, 1e21, null]]],
+    ['path-small-number-string', ['https://example.test/path', '1e-7']],
+    ['path-large-decimal-string', ['https://example.test/path', '100000000000000000000']],
+    ['path-large-exponent-string', ['https://example.test/path', '1e+21']],
+  ];
+  for (const [label, raw] of shared) urlBoundary(key, label, raw);
+}
+for (const key of ['AUTOROUTER_JEV_URL', 'AUTOROUTER_OLLAMA_URL']) {
+  const inactive = key === 'AUTOROUTER_JEV_URL' ? 'ollama' : 'jev';
+  const valid = key === 'AUTOROUTER_OLLAMA_URL' ? ['http://localhost:11434/'] : ['https://example.test/v1/systemone/'];
+  for (const [label, raw] of [['valid-array', valid], ['invalid-url-array', ['not-a-url']],
+    ['unsafe-array', ['http://example.test/']], ['throwing-object-path', ['https://example.test/path', { toString: null }]]]) {
+    for (const validate_all of [false, true]) urlBoundary(key, `inactive-${label}-all-${validate_all}`, raw,
+      { env: { AUTOROUTER_EVALUATOR: inactive }, validate_all });
+  }
+}
+for (const [label, raw] of [
+  ['official-string', 'https://api.anthropic.com/'], ['official-singleton', ['https://api.anthropic.com/']],
+  ['official-nested', [[['https://API.ANTHROPIC.COM:443/']]]],
+  ['foreign-array', ['https://example.test/']], ['path-array', ['https://api.anthropic.com/path']],
+  ['credential-array', ['https://synthetic-user:synthetic-pass@api.anthropic.com/']],
+  ['query-array', ['https://api.anthropic.com/?synthetic-query']],
+  ['fragment-array', ['https://api.anthropic.com/#synthetic-fragment']],
+  ['null-default', null], ['absent-default', undefined],
+]) urlBoundary('AUTOROUTER_UPSTREAM_URL', `subscription-${label}`, raw,
+  { env: { AUTOROUTER_AUTH_MODE: 'subscription' } });
+
 const destination = process.argv[2] ?? resolve(import.meta.dirname, 'cases/config-auth.jsonl');
 writeFileSync(destination, cases.map(value => JSON.stringify(value)).join('\n') + '\n');
 console.log(`Wrote ${cases.length} config/auth/policy cases`);

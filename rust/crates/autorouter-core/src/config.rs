@@ -2,10 +2,11 @@
 //!
 //! This module has no environment or filesystem access. The caller supplies the
 //! effective environment and working directory after storage/policy resolution.
-use crate::js_json::{JsDocument, JsString};
+use crate::js_json::{JsDocument, JsNode, JsString, NodeId};
 use regex::Regex;
 use serde::Serialize;
 use serde_json::Value;
+use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::path::{Component, Path, PathBuf};
 use std::sync::LazyLock;
@@ -246,11 +247,123 @@ fn model_name(raw: Option<&Value>, default: &str, name: &str) -> Result<String, 
         .ok_or_else(|| format!("{name} must be a nonempty model name without control characters"))
 }
 
-fn endpoint(raw: Option<&Value>, default: &str, name: &str) -> Result<String, String> {
-    let raw = raw
-        .and_then(Value::as_str)
-        .unwrap_or(if raw.is_some() { "" } else { default });
-    let url = Url::parse(raw).map_err(|_| format!("{name} must be a valid URL"))?;
+// URL's JSON primitive conversion is distinct from enum/model validation.
+// Source nodes retain nonfinite numbers and UTF-16 until this URL boundary.
+#[derive(Clone, Copy)]
+enum UrlInput<'a> {
+    Json(&'a Value),
+    Source(&'a JsDocument, NodeId),
+}
+fn url_input<'a>(
+    env: &'a Value,
+    source: Option<&'a JsDocument>,
+    key: &str,
+    active: bool,
+) -> Option<UrlInput<'a>> {
+    if !active {
+        return None;
+    }
+    if let Some(source) = source {
+        let node = source.get(source.root(), key)?;
+        return (!matches!(source.node(node), Some(JsNode::Null)))
+            .then_some(UrlInput::Source(source, node));
+    }
+    nullish(env, key).map(UrlInput::Json)
+}
+fn url_string(input: UrlInput<'_>) -> Result<Cow<'_, str>, ()> {
+    if let UrlInput::Json(Value::String(text)) = input {
+        return Ok(Cow::Borrowed(text));
+    }
+    let mut output = String::new();
+    let mut pending = vec![(Some(input), false)];
+    let mut number = ryu_js::Buffer::new();
+    while let Some((input, array_item)) = pending.pop() {
+        let Some(input) = input else {
+            output.push(',');
+            continue;
+        };
+        let numeric = match input {
+            UrlInput::Json(Value::Number(value)) => Some(value.as_f64().ok_or(())?),
+            UrlInput::Source(source, node) => match source.node(node).ok_or(())? {
+                JsNode::Number(value) => Some(*value),
+                _ => None,
+            },
+            _ => None,
+        };
+        if let Some(value) = numeric {
+            output.push_str(if value.is_nan() {
+                "NaN"
+            } else if value == f64::INFINITY {
+                "Infinity"
+            } else if value == f64::NEG_INFINITY {
+                "-Infinity"
+            } else if value == 0.0 {
+                "0"
+            } else {
+                number.format_finite(value)
+            });
+            continue;
+        }
+        match input {
+            UrlInput::Json(value) => match value {
+                Value::Null => {
+                    if !array_item {
+                        output.push_str("null");
+                    }
+                }
+                Value::Bool(value) => output.push_str(if *value { "true" } else { "false" }),
+                Value::String(value) => output.push_str(value),
+                Value::Array(values) => {
+                    for (index, value) in values.iter().enumerate().rev() {
+                        pending.push((Some(UrlInput::Json(value)), true));
+                        if index != 0 {
+                            pending.push((None, false));
+                        }
+                    }
+                }
+                Value::Object(value) => {
+                    if value.contains_key("toString") {
+                        return Err(());
+                    }
+                    output.push_str("[object Object]");
+                }
+                Value::Number(_) => unreachable!("number handled above"),
+            },
+            UrlInput::Source(source, node) => match source.node(node).ok_or(())? {
+                JsNode::Null => {
+                    if !array_item {
+                        output.push_str("null");
+                    }
+                }
+                JsNode::Bool(value) => output.push_str(if *value { "true" } else { "false" }),
+                JsNode::String(value) => output.push_str(&value.to_well_formed()),
+                JsNode::Array(values) => {
+                    for (index, node) in values.iter().enumerate().rev() {
+                        pending.push((Some(UrlInput::Source(source, *node)), true));
+                        if index != 0 {
+                            pending.push((None, false));
+                        }
+                    }
+                }
+                JsNode::Object(value) => {
+                    if value.get("toString").is_some() {
+                        return Err(());
+                    }
+                    output.push_str("[object Object]");
+                }
+                JsNode::Number(_) => unreachable!("number handled above"),
+            },
+        }
+    }
+    Ok(Cow::Owned(output))
+}
+fn endpoint(raw: Option<UrlInput<'_>>, default: &str, name: &str) -> Result<String, String> {
+    let text = raw
+        .map(url_string)
+        .transpose()
+        .map_err(|_| format!("{name} must be a valid URL"))?;
+    let url = Url::parse(text.as_deref().unwrap_or(default))
+        .map_err(|_| format!("{name} must be a valid URL"))?;
     let local = matches!(url.host_str(), Some("127.0.0.1" | "[::1]" | "localhost"));
     // WHATWG URL.search/hash are empty for a bare trailing '?' or '#'.
     if (url.scheme() != "https" && !(local && url.scheme() == "http"))
@@ -270,9 +383,10 @@ fn endpoint(raw: Option<&Value>, default: &str, name: &str) -> Result<String, St
         .to_owned())
 }
 
+const OLLAMA_ENDPOINT_ERROR: &str =
+    "Ollama must use a loopback base URL without a path, credentials, a query, or a fragment.";
 pub fn validate_ollama_endpoint(raw: &str) -> Result<String, String> {
-    let error =
-        "Ollama must use a loopback base URL without a path, credentials, a query, or a fragment.";
+    let error = OLLAMA_ENDPOINT_ERROR;
     let mut url = Url::parse(raw).map_err(|_| error.to_owned())?;
     if !matches!(url.scheme(), "http" | "https")
         || !matches!(url.host_str(), Some("127.0.0.1" | "[::1]" | "localhost"))
@@ -326,6 +440,14 @@ pub fn default_ollama_timeout_ms(model: &str) -> u64 {
 }
 
 pub fn read_config(env: &Value, validate_all: bool, cwd: &Path) -> Result<RouterConfig, String> {
+    read_config_inner(env, None, validate_all, cwd)
+}
+fn read_config_inner(
+    env: &Value,
+    source: Option<&JsDocument>,
+    validate_all: bool,
+    cwd: &Path,
+) -> Result<RouterConfig, String> {
     let session_log_mode = match value(env, "AUTOROUTER_SESSION_LOG_MODE") {
         None => SessionLogMode::Metadata,
         Some(v) if v == "metadata" => SessionLogMode::Metadata,
@@ -416,7 +538,7 @@ pub fn read_config(env: &Value, validate_all: bool, cwd: &Path) -> Result<Router
         }
     }
     let upstream = endpoint(
-        nullish(env, "AUTOROUTER_UPSTREAM_URL"),
+        url_input(env, source, "AUTOROUTER_UPSTREAM_URL", true),
         "https://api.anthropic.com",
         "AUTOROUTER_UPSTREAM_URL",
     )?;
@@ -433,7 +555,12 @@ pub fn read_config(env: &Value, validate_all: bool, cwd: &Path) -> Result<Router
         .map(|raw| parse_stop_hook_block_cap(raw, "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP"))
         .transpose()?;
     let jev_endpoint = endpoint(
-        nullish(jev_env, "AUTOROUTER_JEV_URL"),
+        url_input(
+            jev_env,
+            source,
+            "AUTOROUTER_JEV_URL",
+            evaluator == Evaluator::Jev || validate_all,
+        ),
         "https://api.typesafe.ai/v1/systemone",
         "AUTOROUTER_JEV_URL",
     )?;
@@ -442,11 +569,17 @@ pub fn read_config(env: &Value, validate_all: bool, cwd: &Path) -> Result<Router
         "jev-latest",
         "AUTOROUTER_JEV_MODEL",
     )?;
-    let ollama_endpoint = validate_ollama_endpoint(enum_text(
+    let ollama_url = url_input(
         ollama_env,
+        source,
         "AUTOROUTER_OLLAMA_URL",
-        "http://127.0.0.1:11434",
-    ))?;
+        evaluator == Evaluator::Ollama || validate_all,
+    )
+    .map(url_string)
+    .transpose()
+    .map_err(|_| OLLAMA_ENDPOINT_ERROR.to_owned())?;
+    let ollama_endpoint =
+        validate_ollama_endpoint(ollama_url.as_deref().unwrap_or("http://127.0.0.1:11434"))?;
     let ollama_timeout_ms = number(
         ollama_env,
         "AUTOROUTER_OLLAMA_TIMEOUT_MS",
@@ -520,7 +653,12 @@ pub fn read_config_document(
     validate_all: bool,
     cwd: &Path,
 ) -> Result<RouterConfig, String> {
-    let mut config = read_config(&env.to_serde_observation_lossy(), validate_all, cwd)?;
+    let mut config = read_config_inner(
+        &env.to_serde_observation_lossy(),
+        Some(env),
+        validate_all,
+        cwd,
+    )?;
     for (tier, key) in [
         ("haiku", "AUTOROUTER_HAIKU_MODEL"),
         ("sonnet", "AUTOROUTER_SONNET_MODEL"),
@@ -743,5 +881,152 @@ mod tests {
             require_keys(&config(json!({}))).unwrap_err(),
             "Set ANTHROPIC_API_KEY before starting the router"
         );
+    }
+
+    #[test]
+    fn raw_url_documents_coerce_before_lossy_projection() {
+        let keys = [
+            "AUTOROUTER_UPSTREAM_URL",
+            "AUTOROUTER_JEV_URL",
+            "AUTOROUTER_OLLAMA_URL",
+        ];
+        let defaults = [
+            "https://api.anthropic.com",
+            "https://api.typesafe.ai/v1/systemone",
+            "http://127.0.0.1:11434",
+        ];
+        // None expected => generic URL-conversion error. Empty expected => default.
+        // All literal goldens were captured from the frozen Node oracle.
+        let cases = [
+            (None, Some("")),
+            (Some("null"), Some("")),
+            (Some("1e400"), None),
+            (Some("-1e400"), None),
+            (
+                Some(r#"["https://example.test/path",1e400,-1e400]"#),
+                Some("https://example.test/path,Infinity,-Infinity"),
+            ),
+            (
+                Some(r#"["https://example.test/path",[1e400,null,-1e400]]"#),
+                Some("https://example.test/path,Infinity,,-Infinity"),
+            ),
+            (
+                Some(r#""https://example.test/path\ud800""#),
+                Some("https://example.test/path%EF%BF%BD"),
+            ),
+            (
+                Some(r#"["https://example.test/path\udfff"]"#),
+                Some("https://example.test/path%EF%BF%BD"),
+            ),
+            (
+                Some(r#"["https://example.test/path\ud83d\ude00"]"#),
+                Some("https://example.test/path%F0%9F%98%80"),
+            ),
+            (
+                Some(r#"["https://example.test/path",[{"toString":null}]]"#),
+                None,
+            ),
+            (
+                Some(r#"["https://example.test/path",[{"valueOf":null}]]"#),
+                Some("https://example.test/path,[object%20Object]"),
+            ),
+            (
+                Some(r#"["https://example.test/path",[{"toString":null,"valueOf":null}]]"#),
+                None,
+            ),
+        ];
+        let mut checked = 0;
+        for (index, key) in keys.into_iter().enumerate() {
+            let backend = if index == 1 { "jev" } else { "ollama" };
+            let error = if index == 2 {
+                "Ollama must use a loopback base URL without a path, credentials, a query, or a fragment.".to_owned()
+            } else {
+                format!("{key} must be a valid URL")
+            };
+            for (raw, expected) in cases.into_iter().chain(
+                (index == 2).then_some((Some(r#"["http://127.0.0.1:11434/path\ud800"]"#), None)),
+            ) {
+                let member = raw
+                    .map(|value| format!(",\"{key}\":{value}"))
+                    .unwrap_or_default();
+                let bytes = format!("{{\"AUTOROUTER_EVALUATOR\":\"{backend}\"{member}}}");
+                let document = JsDocument::parse(bytes.as_bytes()).unwrap();
+                let actual =
+                    read_config_document(&document, false, Path::new("/synthetic")).map(|config| {
+                        match index {
+                            0 => config.upstream,
+                            1 => config.jev_endpoint,
+                            _ => config.ollama_endpoint,
+                        }
+                    });
+                let expected = expected
+                    .filter(|text| index != 2 || text.is_empty())
+                    .map(|text| {
+                        (if text.is_empty() {
+                            defaults[index]
+                        } else {
+                            text
+                        })
+                        .to_owned()
+                    })
+                    .ok_or_else(|| error.clone());
+                assert_eq!(actual, expected, "key {key}, raw {raw:?}");
+                checked += 1;
+            }
+        }
+        assert_eq!(checked, 37);
+    }
+
+    #[test]
+    fn document_url_conversion_keeps_backend_masks_and_validation_order() {
+        let mut checked = 0;
+        for (backend, key, error) in [
+            (
+                "jev",
+                "AUTOROUTER_OLLAMA_URL",
+                "Ollama must use a loopback base URL without a path, credentials, a query, or a fragment.",
+            ),
+            (
+                "ollama",
+                "AUTOROUTER_JEV_URL",
+                "AUTOROUTER_JEV_URL must be a valid URL",
+            ),
+        ] {
+            let bytes = format!(
+                r#"{{"AUTOROUTER_EVALUATOR":"{backend}","{key}":["https://example.test/path",{{"toString":null}}]}}"#
+            );
+            let document = JsDocument::parse(bytes.as_bytes()).unwrap();
+            for validate_all in [false, true] {
+                let actual = read_config_document(&document, validate_all, Path::new("/synthetic"));
+                if validate_all {
+                    assert_eq!(actual.err().as_deref(), Some(error), "{backend}");
+                } else {
+                    let config = actual.unwrap_or_else(|error| panic!("{backend}: {error}"));
+                    assert_eq!(config.jev_endpoint, "https://api.typesafe.ai/v1/systemone");
+                    assert_eq!(config.ollama_endpoint, "http://127.0.0.1:11434");
+                }
+                checked += 1;
+            }
+        }
+        for (raw, error) in [
+            (
+                r#"{"AUTOROUTER_EVALUATOR":"ollama","AUTOROUTER_OLLAMA_MODEL":"synthetic bad model","AUTOROUTER_UPSTREAM_URL":["https://example.test/path",{"toString":null}]}"#,
+                "Ollama requires a valid local model tag; cloud models are not supported.",
+            ),
+            (
+                r#"{"AUTOROUTER_EVALUATOR":"ollama","AUTOROUTER_UPSTREAM_URL":["https://example.test/path",{"toString":null}],"AUTOROUTER_PORT":"bad"}"#,
+                "AUTOROUTER_UPSTREAM_URL must be a valid URL",
+            ),
+        ] {
+            let document = JsDocument::parse(raw.as_bytes()).unwrap();
+            assert_eq!(
+                read_config_document(&document, false, Path::new("/synthetic"))
+                    .err()
+                    .as_deref(),
+                Some(error)
+            );
+            checked += 1;
+        }
+        assert_eq!(checked, 6);
     }
 }
