@@ -223,9 +223,9 @@ impl RouterConfig {
             CredentialValue::Source(document) => document.stringify(),
         })
     }
-    /// Materialize only at the OS boundary, without losing null or number types.
-    pub(crate) fn local_token_text(&self) -> Result<Option<Cow<'_, str>>, ()> {
-        self.credential_value(Credential::LocalToken)
+    /// Sensitive primitive text; validate permitted bytes at the OS/HTTP boundary.
+    pub fn credential_text(&self, key: Credential) -> Result<Option<Cow<'_, str>>, &'static str> {
+        self.credential_value(key)
             .map(|value| match value {
                 CredentialValue::Text(text) => Ok(Cow::Borrowed(text)),
                 CredentialValue::Source(source) => {
@@ -233,6 +233,7 @@ impl RouterConfig {
                 }
             })
             .transpose()
+            .map_err(|()| "Cannot convert credential to text")
     }
 }
 impl Serialize for RouterConfig {
@@ -1253,6 +1254,24 @@ mod tests {
         assert_eq!(checked, 6);
     }
 
+    const CREDENTIAL_FIELDS: [(&str, &str); 3] = [
+        ("ANTHROPIC_API_KEY", "anthropicKey"),
+        ("TYPESAFE_API_KEY", "jevKey"),
+        ("AUTOROUTER_TOKEN", "localToken"),
+    ];
+
+    fn credential_profiles() -> impl Iterator<Item = (&'static str, &'static str, &'static str)> {
+        CREDENTIAL_FIELDS.into_iter().flat_map(|(target, _)| {
+            ["api-key", "subscription"]
+                .into_iter()
+                .flat_map(move |mode| {
+                    ["jev", "ollama"]
+                        .into_iter()
+                        .map(move |evaluator| (target, mode, evaluator))
+                })
+        })
+    }
+
     #[test]
     fn credentials_keep_raw_presence_requirement_activation_and_safe_failures() {
         let values = [
@@ -1271,70 +1290,55 @@ mod tests {
             Some(json!({"synthetic":"credential-input"})),
             Some(json!({"trim":null,"synthetic":"credential-input"})),
         ];
-        let fields = [
-            ("ANTHROPIC_API_KEY", "anthropicKey"),
-            ("TYPESAFE_API_KEY", "jevKey"),
-            ("AUTOROUTER_TOKEN", "localToken"),
-        ];
         let mut checked = 0;
-        for (target, _) in fields {
-            for mode in ["api-key", "subscription"] {
-                for evaluator in ["jev", "ollama"] {
-                    for raw in &values {
-                        let mut env = json!({"ANTHROPIC_API_KEY":"synthetic-anthropic-valid",
-                        "TYPESAFE_API_KEY":"synthetic-jev-valid", "AUTOROUTER_TOKEN":"synthetic-local-token-123456789",
-                        "AUTOROUTER_AUTH_MODE":mode,"AUTOROUTER_EVALUATOR":evaluator});
-                        if let Some(value) = raw {
-                            env[target] = value.clone();
-                        } else {
-                            env.as_object_mut().unwrap().remove(target);
-                        }
-                        let config = read_config(&env, false, Path::new("/synthetic"))
-                            .unwrap_or_else(|error| {
-                                panic!("Unexpected admission rejection: {error}")
-                            });
-                        let encoded = serde_json::to_string(&config).unwrap();
-                        let observed: Value = serde_json::from_str(&encoded).unwrap();
-                        for (key, field) in fields {
-                            let expected = if key == "ANTHROPIC_API_KEY" && mode == "subscription" {
-                                None
-                            } else {
-                                env.get(key)
-                            };
-                            assert_eq!(
-                                observed.get(field),
-                                expected,
-                                "{target}/{mode}/{evaluator}"
-                            );
-                            assert_eq!(
-                                encoded.matches(&format!("\"{field}\":")).count(),
-                                usize::from(expected.is_some())
-                            );
-                        }
-                        let required = (target == "ANTHROPIC_API_KEY" && mode == "api-key")
-                            || (target == "TYPESAFE_API_KEY" && evaluator == "jev");
-                        let expected = if !required {
-                            Ok(())
-                        } else {
-                            match raw {
-                                None | Some(Value::Null) => {
-                                    Err(format!("Set {target} before starting the router"))
-                                }
-                                Some(Value::String(value)) if value.trim().is_empty() => {
-                                    Err(format!("Set {target} before starting the router"))
-                                }
-                                Some(Value::String(_)) => Ok(()),
-                                _ => Err("value?.trim is not a function".to_owned()),
-                            }
-                        };
-                        let actual = require_keys(&config);
-                        if let Err(error) = &actual {
-                            assert!(!error.contains("synthetic-"));
-                        }
-                        assert_eq!(actual, expected, "{target}/{mode}/{evaluator}");
-                        checked += 1;
-                    }
+        for (target, mode, evaluator) in credential_profiles() {
+            for raw in &values {
+                let mut env = json!({"ANTHROPIC_API_KEY":"synthetic-anthropic-valid",
+                "TYPESAFE_API_KEY":"synthetic-jev-valid", "AUTOROUTER_TOKEN":"synthetic-local-token-123456789",
+                "AUTOROUTER_AUTH_MODE":mode,"AUTOROUTER_EVALUATOR":evaluator});
+                if let Some(value) = raw {
+                    env[target] = value.clone();
+                } else {
+                    env.as_object_mut().unwrap().remove(target);
                 }
+                let config = read_config(&env, false, Path::new("/synthetic"))
+                    .unwrap_or_else(|error| panic!("Unexpected admission rejection: {error}"));
+                let encoded = serde_json::to_string(&config).unwrap();
+                let observed: Value = serde_json::from_str(&encoded).unwrap();
+                for (key, field) in CREDENTIAL_FIELDS {
+                    let expected = if key == "ANTHROPIC_API_KEY" && mode == "subscription" {
+                        None
+                    } else {
+                        env.get(key)
+                    };
+                    assert_eq!(observed.get(field), expected, "{target}/{mode}/{evaluator}");
+                    assert_eq!(
+                        encoded.matches(&format!("\"{field}\":")).count(),
+                        usize::from(expected.is_some())
+                    );
+                }
+                let required = (target == "ANTHROPIC_API_KEY" && mode == "api-key")
+                    || (target == "TYPESAFE_API_KEY" && evaluator == "jev");
+                let expected = if !required {
+                    Ok(())
+                } else {
+                    match raw {
+                        None | Some(Value::Null) => {
+                            Err(format!("Set {target} before starting the router"))
+                        }
+                        Some(Value::String(value)) if value.trim().is_empty() => {
+                            Err(format!("Set {target} before starting the router"))
+                        }
+                        Some(Value::String(_)) => Ok(()),
+                        _ => Err("value?.trim is not a function".to_owned()),
+                    }
+                };
+                let actual = require_keys(&config);
+                if let Err(error) = &actual {
+                    assert!(!error.contains("synthetic-"));
+                }
+                assert_eq!(actual, expected, "{target}/{mode}/{evaluator}");
+                checked += 1;
             }
         }
         assert_eq!(checked, 168); // Two observed contracts per original paired input.
@@ -1366,73 +1370,61 @@ mod tests {
             ),
             (Some(r#"{"trim":null}"#), Some(r#"{"trim":null}"#), 1),
         ];
-        let fields = [
-            ("ANTHROPIC_API_KEY", "anthropicKey"),
-            ("TYPESAFE_API_KEY", "jevKey"),
-            ("AUTOROUTER_TOKEN", "localToken"),
-        ];
         let mut checked = 0;
-        for (target, _) in fields {
-            for mode in ["api-key", "subscription"] {
-                for evaluator in ["jev", "ollama"] {
-                    for (raw, serialized, kind) in cases {
-                        let mut members = vec![
-                            format!(r#""AUTOROUTER_AUTH_MODE":"{mode}""#),
-                            format!(r#""AUTOROUTER_EVALUATOR":"{evaluator}""#),
-                        ];
-                        for (key, _) in fields {
-                            if key == target {
-                                if let Some(raw) = raw {
-                                    members.push(format!("\"{key}\":{raw}"));
-                                }
-                            } else {
-                                members.push(format!(
-                                    r#""{key}":"synthetic-credential-value-123456789""#
-                                ));
-                            }
+        for (target, mode, evaluator) in credential_profiles() {
+            for (raw, serialized, kind) in cases {
+                let mut members = vec![
+                    format!(r#""AUTOROUTER_AUTH_MODE":"{mode}""#),
+                    format!(r#""AUTOROUTER_EVALUATOR":"{evaluator}""#),
+                ];
+                for (key, _) in CREDENTIAL_FIELDS {
+                    if key == target {
+                        if let Some(raw) = raw {
+                            members.push(format!("\"{key}\":{raw}"));
                         }
-                        let input = format!("{{{}}}", members.join(","));
-                        let document = JsDocument::parse(input.as_bytes()).unwrap();
-                        let config =
-                            read_config_document(&document, false, Path::new("/synthetic"))
-                                .unwrap();
-                        let before = serde_json::to_string(&config).unwrap();
-                        let observed = JsDocument::parse(before.as_bytes()).unwrap();
-                        for (key, field) in fields {
-                            let expected = if key == "ANTHROPIC_API_KEY" && mode == "subscription" {
-                                None
-                            } else if key == target {
-                                serialized.map(str::to_owned)
-                            } else {
-                                Some(r#""synthetic-credential-value-123456789""#.to_owned())
-                            };
-                            let actual = observed
-                                .get(observed.root(), field)
-                                .map(|node| observed.stringify_node(node));
-                            assert_eq!(actual, expected, "{target}/{mode}/{evaluator}/{raw:?}");
-                            assert_eq!(
-                                before.matches(&format!("\"{field}\":")).count(),
-                                usize::from(expected.is_some())
-                            );
-                        }
-                        let required = (target == "ANTHROPIC_API_KEY" && mode == "api-key")
-                            || (target == "TYPESAFE_API_KEY" && evaluator == "jev");
-                        let expected = if !required || kind == 2 {
-                            Ok(())
-                        } else if kind == 1 {
-                            Err("value?.trim is not a function".to_owned())
-                        } else {
-                            Err(format!("Set {target} before starting the router"))
-                        };
-                        assert_eq!(
-                            require_keys(&config),
-                            expected,
-                            "{target}/{mode}/{evaluator}/{raw:?}"
-                        );
-                        assert_eq!(serde_json::to_string(&config).unwrap(), before);
-                        checked += 1;
+                    } else {
+                        members.push(format!(r#""{key}":"synthetic-credential-value-123456789""#));
                     }
                 }
+                let input = format!("{{{}}}", members.join(","));
+                let document = JsDocument::parse(input.as_bytes()).unwrap();
+                let config =
+                    read_config_document(&document, false, Path::new("/synthetic")).unwrap();
+                let before = serde_json::to_string(&config).unwrap();
+                let observed = JsDocument::parse(before.as_bytes()).unwrap();
+                for (key, field) in CREDENTIAL_FIELDS {
+                    let expected = if key == "ANTHROPIC_API_KEY" && mode == "subscription" {
+                        None
+                    } else if key == target {
+                        serialized.map(str::to_owned)
+                    } else {
+                        Some(r#""synthetic-credential-value-123456789""#.to_owned())
+                    };
+                    let actual = observed
+                        .get(observed.root(), field)
+                        .map(|node| observed.stringify_node(node));
+                    assert_eq!(actual, expected, "{target}/{mode}/{evaluator}/{raw:?}");
+                    assert_eq!(
+                        before.matches(&format!("\"{field}\":")).count(),
+                        usize::from(expected.is_some())
+                    );
+                }
+                let required = (target == "ANTHROPIC_API_KEY" && mode == "api-key")
+                    || (target == "TYPESAFE_API_KEY" && evaluator == "jev");
+                let expected = if !required || kind == 2 {
+                    Ok(())
+                } else if kind == 1 {
+                    Err("value?.trim is not a function".to_owned())
+                } else {
+                    Err(format!("Set {target} before starting the router"))
+                };
+                assert_eq!(
+                    require_keys(&config),
+                    expected,
+                    "{target}/{mode}/{evaluator}/{raw:?}"
+                );
+                assert_eq!(serde_json::to_string(&config).unwrap(), before);
+                checked += 1;
             }
         }
         assert_eq!(checked, 108);

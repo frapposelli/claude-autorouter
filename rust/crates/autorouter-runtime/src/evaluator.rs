@@ -6,7 +6,7 @@ use std::future::pending;
 use std::time::Duration;
 
 use autorouter_core::config::{
-    Evaluator, RouterConfig, validate_ollama_endpoint, validate_ollama_model,
+    Credential, Evaluator, RouterConfig, validate_ollama_endpoint, validate_ollama_model,
 };
 pub use autorouter_core::contracts::{ClassifierDecision, Tier};
 use autorouter_core::contracts::{ClassifierError, DecisionSource};
@@ -405,11 +405,15 @@ pub async fn evaluate_serialized_answer<T: HttpTransport>(
                 parse_ollama_document(&payload, &config.ollama_model)
             }
             Evaluator::Jev => {
+                let request = request_with_serialized_state(state, config)?;
+                let credential = config
+                    .credential_text(Credential::Jev)
+                    .map_err(|_| EvaluationError::Network)?;
                 let payload = request_json(
                     transport,
                     &config.jev_endpoint,
-                    request_with_serialized_state(state, config)?,
-                    Some(config.jev_key.as_deref().unwrap_or("undefined")),
+                    request,
+                    Some(credential.as_deref().unwrap_or("undefined")),
                     DECISION_RESPONSE_LIMIT,
                     false,
                     cancellation,
@@ -669,6 +673,12 @@ mod tests {
         fn calls(&self) -> usize {
             self.requests.lock().unwrap().len()
         }
+        async fn evaluate_empty(
+            &self,
+            config: &RouterConfig,
+        ) -> Result<EvaluationAnswer, EvaluationError> {
+            evaluate_answer(self, config, &json!({}), &CancellationToken::new()).await
+        }
     }
     impl HttpTransport for MockTransport {
         type ResponseBody = MockBody;
@@ -722,6 +732,175 @@ mod tests {
         Step::json(json!({"answers":{"tier":{"choice":tier,"confidence":confidence}}}))
     }
 
+    // Synthetic source controls keep header conversion separate from gateway auth.
+    fn jev_source_config(raw: &str) -> RouterConfig {
+        let field = if raw.is_empty() {
+            String::new()
+        } else {
+            format!(r#","TYPESAFE_API_KEY":{raw}"#)
+        };
+        let source = format!(
+            r#"{{"AUTOROUTER_EVALUATOR":"jev","AUTOROUTER_AUTH_MODE":"subscription"{field}}}"#
+        );
+        autorouter_core::config::read_config_document(
+            &JsDocument::parse(source.as_bytes()).unwrap(),
+            false,
+            Path::new("/synthetic"),
+        )
+        .unwrap()
+    }
+    async fn assert_jev_source_auth(
+        config: &RouterConfig,
+        mock: &MockTransport,
+        expected: Option<&[u8]>,
+    ) {
+        use autorouter_core::config::Credential;
+        let state = json!({"current_task":"Synthetic Jev authorization", "opaque":[true, {"kept":"state"}]});
+        let settings = || {
+            (
+                serde_json::to_string(config).unwrap(),
+                config.credential_json(Credential::Jev),
+            )
+        };
+        let effects = || {
+            (
+                mock.calls(),
+                mock.dropped.load(Ordering::SeqCst),
+                mock.steps.lock().unwrap().len(),
+            )
+        };
+        let snapshot = settings();
+        let before = effects();
+        let result = evaluate_answer(mock, config, &state, &CancellationToken::new()).await;
+        let after = effects();
+        match expected {
+            Some(bytes) => {
+                let answer = result.unwrap();
+                assert_eq!((answer.choice, answer.confidence), (Tier::Haiku, Some(1.0)));
+                assert_eq!(after.0, before.0 + 1);
+                let requests = mock.requests.lock().unwrap();
+                let request = requests.last().unwrap();
+                assert_eq!(request.headers["authorization"].as_bytes(), bytes);
+                assert_eq!(request.headers["content-type"], "application/json");
+                assert_eq!(request.uri, config.jev_endpoint);
+                assert_eq!(
+                    request.payload,
+                    json!({"model":"jev-latest", "state":state, "questions":jev_questions()})
+                );
+                assert!(!request.headers.contains_key("x-api-key"));
+                assert_eq!(after.1, before.1 + 1);
+                assert_eq!(after.2, before.2 - 1);
+            }
+            None => {
+                assert_eq!(result, Err(EvaluationError::Network));
+                assert_eq!(after, before);
+                let error = result.unwrap_err();
+                assert_eq!(
+                    (error.to_string(), format!("{error:?}")),
+                    ("Evaluator transport failed".into(), "Network".into())
+                );
+                assert!(std::error::Error::source(&error).is_none());
+            }
+        }
+        assert_eq!(settings(), snapshot);
+    }
+    fn jev_auth_cases() -> &'static [(&'static str, Option<&'static [u8]>)] {
+        use Option::{None as N, Some as H};
+        &[
+            (r#"null"#, H(b"Bearer null")),
+            (r#""#, H(b"Bearer undefined")),
+            (r#"false"#, H(b"Bearer false")),
+            (r#"true"#, H(b"Bearer true")),
+            (r#"0"#, H(b"Bearer 0")),
+            (r#"-0"#, H(b"Bearer 0")),
+            (r#"42"#, H(b"Bearer 42")),
+            (r#"1e-7"#, H(b"Bearer 1e-7")),
+            (r#"1e20"#, H(b"Bearer 100000000000000000000")),
+            (r#"1e21"#, H(b"Bearer 1e+21")),
+            (r#"1e400"#, H(b"Bearer Infinity")),
+            (r#"-1e400"#, H(b"Bearer -Infinity")),
+            (r#""""#, H(b"Bearer")),
+            (r#""synthetic-key""#, H(b"Bearer synthetic-key")),
+            (r#""synthetic-\u00e9""#, H(b"Bearer synthetic-\xe9")),
+            (r#""synthetic-\u00ff""#, H(b"Bearer synthetic-\xff")),
+            (r#""synthetic-\u0100""#, N),
+            (r#""synthetic-\ud83d\udd10""#, N),
+            (r#""synthetic-\ud800""#, N),
+            (r#""synthetic-\udc00""#, N),
+            (r#""   ""#, H(b"Bearer")),
+            (r#""  synthetic""#, H(b"Bearer   synthetic")),
+            (r#""synthetic  ""#, H(b"Bearer synthetic")),
+            (r#""synthetic\r\n""#, H(b"Bearer synthetic")),
+            (r#""\r\nsynthetic""#, N),
+            (r#""synthetic\tkey""#, H(b"Bearer synthetic\tkey")),
+            (r#""synthetic\u0000key""#, N),
+            (r#""synthetic\u0001key""#, N),
+            (r#""synthetic\u001fkey""#, N),
+            (r#""synthetic\u007fkey""#, N),
+            (r#""synthetic\u0085key""#, H(b"Bearer synthetic\x85key")),
+            (r#""synthetic\u009fkey""#, H(b"Bearer synthetic\x9fkey")),
+            (r#"[]"#, H(b"Bearer")),
+            (r#"[null]"#, H(b"Bearer")),
+            (r#"["synthetic","key"]"#, H(b"Bearer synthetic,key")),
+            (
+                r#"[[null],[false,0,"synthetic"],{}]"#,
+                H(b"Bearer ,false,0,synthetic,[object Object]"),
+            ),
+            (r#"[1e400,null,-0]"#, H(b"Bearer Infinity,,0")),
+            (r#"{}"#, H(b"Bearer [object Object]")),
+            (r#"{"valueOf":false}"#, H(b"Bearer [object Object]")),
+            (r#"{"toString":null}"#, N),
+            (r#"{"toString":false}"#, N),
+            (r#"{"toString":"synthetic-noncallable"}"#, N),
+            (r#"{"toString":{}}"#, N),
+            (r#"["synthetic",{"toString":false}]"#, N),
+        ]
+    }
+    #[tokio::test]
+    async fn jev_source_credentials_materialize_at_the_request_boundary() {
+        let rows = jev_auth_cases();
+        assert_eq!(rows.len(), 44);
+        for &(raw, expected) in rows {
+            let config = jev_source_config(raw);
+            let mock = MockTransport::new([jev(Tier::Haiku, 1.0)]);
+            assert_jev_source_auth(&config, &mock, expected).await;
+        }
+    }
+    #[tokio::test]
+    async fn jev_explicit_replacement_does_not_restore_captured_credentials() {
+        use Option::Some as H;
+        use autorouter_core::config::Credential;
+        for raw in [
+            r#"null"#,
+            r#"false"#,
+            r#"{}"#,
+            r#"{"toString":false}"#,
+            r#"[null]"#,
+            r#""synthetic-\ud800""#,
+        ] {
+            let &(_, initial) = jev_auth_cases()
+                .iter()
+                .find(|(case, _)| *case == raw)
+                .unwrap();
+            let mut config = jev_source_config(raw);
+            let mock = MockTransport::new((0..6).map(|_| jev(Tier::Haiku, 1.0)));
+            assert_jev_source_auth(&config, &mock, initial).await;
+            for (value, expected) in [
+                (
+                    Some("synthetic-replacement"),
+                    b"Bearer synthetic-replacement".as_slice(),
+                ),
+                (None, b"Bearer undefined"),
+                (Some(""), b"Bearer"),
+                (None, b"Bearer undefined"),
+                (Some("synthetic-final"), b"Bearer synthetic-final"),
+            ] {
+                config.replace_credential(Credential::Jev, value.map(str::to_owned));
+                assert_jev_source_auth(&config, &mock, H(expected)).await;
+            }
+        }
+    }
+
     #[tokio::test]
     async fn opaque_json_edges_do_not_reject_valid_answers_or_weaken_local_gate() {
         let mut config = config("ollama");
@@ -736,10 +915,7 @@ mod tests {
         .into_bytes();
         let mock = MockTransport::new([metadata(), valid]);
         assert_eq!(
-            evaluate_answer(&mock, &config, &json!({}), &CancellationToken::new())
-                .await
-                .unwrap()
-                .choice,
+            mock.evaluate_empty(&config).await.unwrap().choice,
             Tier::Sonnet
         );
         for field in ["remote_host", "remote_model"] {
@@ -750,7 +926,7 @@ mod tests {
             };
             let mock = MockTransport::new([step]);
             assert_eq!(
-                evaluate_answer(&mock, &config, &json!({}), &CancellationToken::new()).await,
+                mock.evaluate_empty(&config).await,
                 Err(EvaluationError::InvalidResponse)
             );
             assert_eq!(mock.calls(), 1);
@@ -763,7 +939,7 @@ mod tests {
         };
         let mock = MockTransport::new([metadata(), malicious]);
         assert_eq!(
-            evaluate_answer(&mock, &config, &json!({}), &CancellationToken::new()).await,
+            mock.evaluate_empty(&config).await,
             Err(EvaluationError::InvalidResponse)
         );
         config.ollama_model = "local\u{fffd}".into();
@@ -878,7 +1054,7 @@ mod tests {
         config.ollama_model = "model:cloud".into();
         let mock = MockTransport::new([]);
         assert_eq!(
-            evaluate_answer(&mock, &config, &json!({}), &CancellationToken::new()).await,
+            mock.evaluate_empty(&config).await,
             Err(EvaluationError::Network)
         );
         assert_eq!(mock.calls(), 0);
@@ -998,9 +1174,7 @@ mod tests {
             ..metadata()
         };
         let mock = MockTransport::new([metadata(), missing()]);
-        let error = evaluate_answer(&mock, &config, &json!({}), &CancellationToken::new())
-            .await
-            .unwrap_err();
+        let error = mock.evaluate_empty(&config).await.unwrap_err();
         assert_eq!(error.to_string(), OLLAMA_VERSION_MESSAGE);
         assert_eq!(
             error,
@@ -1011,7 +1185,7 @@ mod tests {
         );
         let mock = MockTransport::new([missing()]);
         assert_eq!(
-            evaluate_answer(&mock, &config, &json!({}), &CancellationToken::new()).await,
+            mock.evaluate_empty(&config).await,
             Err(EvaluationError::Http {
                 status: 404,
                 missing_systemone: false
@@ -1029,7 +1203,7 @@ mod tests {
         second.body_delay = 7;
         let mock = MockTransport::new([first, second]);
         assert_eq!(
-            evaluate_answer(&mock, &config, &json!({}), &CancellationToken::new()).await,
+            mock.evaluate_empty(&config).await,
             Err(EvaluationError::Timeout)
         );
         assert_eq!(mock.calls(), 2);
@@ -1065,10 +1239,7 @@ mod tests {
         second.body_delay = 100_000;
         let mock = MockTransport::new([first, second]);
         assert_eq!(
-            evaluate_answer(&mock, &config, &json!({}), &CancellationToken::new())
-                .await
-                .unwrap()
-                .choice,
+            mock.evaluate_empty(&config).await.unwrap().choice,
             Tier::Opus
         );
         let mock = MockTransport::new([
@@ -1076,7 +1247,7 @@ mod tests {
             Step::json(json!({"padding":"x".repeat(DECISION_RESPONSE_LIMIT)})),
         ]);
         assert_eq!(
-            evaluate_answer(&mock, &config, &json!({}), &CancellationToken::new()).await,
+            mock.evaluate_empty(&config).await,
             Err(EvaluationError::InvalidResponse)
         );
         assert_eq!(mock.dropped.load(Ordering::SeqCst), 2);
@@ -1120,26 +1291,24 @@ mod tests {
         let config = config("ollama");
         let cancellation = CancellationToken::new();
         cancellation.cancel();
-        let mock = MockTransport::new([]);
-        assert_eq!(
-            evaluate_answer(&mock, &config, &json!({}), &cancellation).await,
-            Err(EvaluationError::Cancelled)
-        );
-        assert_eq!(mock.calls(), 0);
+        for selected in [config.clone(), jev_source_config(r#"{"toString":null}"#)] {
+            let mock = MockTransport::new([]);
+            assert_eq!(
+                evaluate_answer(&mock, &selected, &json!({}), &cancellation).await,
+                Err(EvaluationError::Cancelled)
+            );
+            assert_eq!(mock.calls(), 0);
+        }
         let mock = MockTransport::new([
             Step::json(json!({"details":{"parameter_size":"9B"},"license":"x".repeat(100_000)})),
             answer(&config.ollama_model, Tier::Haiku),
         ]);
-        assert!(
-            evaluate_answer(&mock, &config, &json!({}), &CancellationToken::new())
-                .await
-                .is_ok()
-        );
+        assert!(mock.evaluate_empty(&config).await.is_ok());
         let mock = MockTransport::new([Step::json(
             json!({"details":{"parameter_size":"9B"},"license":"x".repeat(MODEL_METADATA_LIMIT)}),
         )]);
         assert_eq!(
-            evaluate_answer(&mock, &config, &json!({}), &CancellationToken::new()).await,
+            mock.evaluate_empty(&config).await,
             Err(EvaluationError::InvalidResponse)
         );
         assert_eq!(mock.calls(), 1);

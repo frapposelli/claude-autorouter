@@ -1032,6 +1032,25 @@ mod tests {
             }
         })
     }
+    fn spawn_counter_route(
+        owner: Arc<Router<Mock>>,
+        cancellation: CancellationToken,
+        counter: RouteTokenCounter,
+    ) -> tokio::task::JoinHandle<Result<TypedRouteDecision, EvaluationError>> {
+        tokio::spawn(async move {
+            owner
+                .route_typed_exact_with_counter(
+                    document(true),
+                    options(),
+                    &HeaderMap::new(),
+                    &cancellation,
+                    "",
+                    counter,
+                )
+                .await
+        })
+    }
+
     async fn wait_callback(probe: &CallbackProbe, transport: &Mock) {
         tokio::time::timeout(std::time::Duration::from_secs(2), async {
             while probe.calls.load(Ordering::SeqCst) != 1
@@ -1069,18 +1088,7 @@ mod tests {
         let caller = CancellationToken::new();
         let cancellation = caller.clone();
         let owner = router.clone();
-        let task = tokio::spawn(async move {
-            owner
-                .route_typed_exact_with_counter(
-                    document(true),
-                    options(),
-                    &HeaderMap::new(),
-                    &cancellation,
-                    "",
-                    counter,
-                )
-                .await
-        });
+        let task = spawn_counter_route(owner, cancellation, counter);
         tokio::time::timeout(std::time::Duration::from_secs(2), gate.wait_blocked())
             .await
             .unwrap();
@@ -1125,18 +1133,7 @@ mod tests {
         let cancellation = caller.clone();
         let owner = router.clone();
         let first_counter = counter.clone();
-        let task = tokio::spawn(async move {
-            owner
-                .route_typed_exact_with_counter(
-                    document(true),
-                    options(),
-                    &HeaderMap::new(),
-                    &cancellation,
-                    "",
-                    first_counter,
-                )
-                .await
-        });
+        let task = spawn_counter_route(owner, cancellation, first_counter);
         wait_callback(&probe, &transport).await;
         tokio::time::advance(std::time::Duration::from_millis(19)).await;
         tokio::task::yield_now().await;
@@ -1190,18 +1187,7 @@ mod tests {
             let caller = CancellationToken::new();
             let cancellation = caller.clone();
             let owner = router.clone();
-            let task = tokio::spawn(async move {
-                owner
-                    .route_typed_exact_with_counter(
-                        document(true),
-                        options(),
-                        &HeaderMap::new(),
-                        &cancellation,
-                        "",
-                        counter,
-                    )
-                    .await
-            });
+            let task = spawn_counter_route(owner, cancellation, counter);
             wait_callback(&probe, &transport).await;
             match mode {
                 "cancel" => caller.cancel(),
@@ -1251,18 +1237,7 @@ mod tests {
             let caller = CancellationToken::new();
             let cancellation = caller.clone();
             let owner = router.clone();
-            let task = tokio::spawn(async move {
-                owner
-                    .route_typed_exact_with_counter(
-                        document(true),
-                        options(),
-                        &HeaderMap::new(),
-                        &cancellation,
-                        "",
-                        counter,
-                    )
-                    .await
-            });
+            let task = spawn_counter_route(owner, cancellation, counter);
             wait_callback(&probe, &transport).await;
             assert!(router.advisory_tasks.is_empty());
             assert_eq!(probe.active.load(Ordering::SeqCst), 1);
@@ -1338,18 +1313,7 @@ mod tests {
             let caller = CancellationToken::new();
             let cancellation = caller.clone();
             let owner = router.clone();
-            let task = tokio::spawn(async move {
-                owner
-                    .route_typed_exact_with_counter(
-                        document(true),
-                        options(),
-                        &HeaderMap::new(),
-                        &cancellation,
-                        "",
-                        counter,
-                    )
-                    .await
-            });
+            let task = spawn_counter_route(owner, cancellation, counter);
             tokio::time::timeout(std::time::Duration::from_secs(2), gate.wait_blocked())
                 .await
                 .unwrap();

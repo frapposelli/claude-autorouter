@@ -258,6 +258,14 @@ pub fn capture_result(
     input: &[u8],
     timeout: Duration,
 ) -> Result<CapturedProcess, String> {
+    capture_with_deadline(command, input, |started| started.elapsed() >= timeout)
+}
+
+fn capture_with_deadline(
+    command: &mut Command,
+    input: &[u8],
+    mut expired: impl FnMut(Instant) -> bool,
+) -> Result<CapturedProcess, String> {
     let scratch = Scratch::new()?;
     scratch
         .file("stdin")?
@@ -302,7 +310,7 @@ pub fn capture_result(
                 .map_err(|_| "Cannot inspect fixture errors")?
                 .len()
                 > MAX_STDERR;
-        if oversized || started.elapsed() >= timeout {
+        if oversized || expired(started) {
             child.cleanup();
             return Err(if oversized {
                 "Fixture executable exceeded output limit"
@@ -362,6 +370,10 @@ pub fn read_bounded(path: &Path, max: u64) -> Result<Vec<u8>, String> {
 mod tests {
     use super::*;
 
+    fn assert_existing_owner(path: impl AsRef<Path>) {
+        assert_eq!(fs::read(path).unwrap(), b"existing owner");
+    }
+
     #[test]
     fn scratch_collisions_preserve_existing_directories_and_files() {
         for existing_file in [false, true] {
@@ -398,7 +410,7 @@ mod tests {
             let created_path = created.0.clone();
             drop(created);
             assert!(!created_path.exists());
-            assert_eq!(fs::read(marker).unwrap(), b"existing owner");
+            assert_existing_owner(marker);
         }
     }
 
@@ -419,10 +431,7 @@ mod tests {
             error,
             "Cannot create private fixture directory (name collisions)"
         );
-        assert_eq!(
-            fs::read(existing.0.join("marker")).unwrap(),
-            b"existing owner"
-        );
+        assert_existing_owner(existing.0.join("marker"));
     }
 
     #[test]
@@ -452,7 +461,7 @@ mod tests {
                 .file_type()
                 .is_symlink()
         );
-        assert_eq!(fs::read(target.join("marker")).unwrap(), b"existing owner");
+        assert_existing_owner(target.join("marker"));
     }
 
     #[test]
@@ -514,19 +523,29 @@ mod tests {
     }
 
     #[cfg(unix)]
-    fn descendant_fixture(mode: &str) -> (Scratch, Result<CapturedProcess, String>) {
+    fn run_descendant_fixture(
+        mode: &str,
+        startup: Duration,
+    ) -> (Scratch, Result<CapturedProcess, String>, Option<bool>) {
         let scratch = Scratch::new().unwrap();
+        if mode == "arm-failed" {
+            fs::create_dir(scratch.0.join("armed")).unwrap();
+        }
         // The descendant announces that it is running, ignores shell HUP,
         // and waits for a release file created only after capture returns.
         // Without group cleanup it can then write the escaped marker.
         let script = r#"
+            wait_for() { while [ ! -f "$1" ]; do sleep 0.01; done; }
+            [ "$2" = no-ready ] && exec sleep 30
             (
                 trap '' HUP
-                printf ready > "$1/started"
-                while [ ! -f "$1/release" ]; do sleep 0.01; done
+                printf ready > "$1/starting" && mv "$1/starting" "$1/started"
+                wait_for "$1/release"
                 printf escaped > "$1/escaped"
             ) &
-            while [ ! -f "$1/started" ]; do sleep 0.01; done
+            wait_for "$1/started"
+            printf ready > "$1/leader-starting" && mv "$1/leader-starting" "$1/leader-ready"
+            wait_for "$1/armed"
             case "$2" in
                 timeout) wait ;;
                 overflow) dd if=/dev/zero bs=65536 count=2 1>&2 2>/dev/null; wait ;;
@@ -539,17 +558,78 @@ mod tests {
             .args(["-c", script, "owned-descendant-fixture"])
             .arg(&scratch.0)
             .arg(mode);
-        let result = capture_result(&mut command, b"", Duration::from_secs(2));
+        let mut ready_at = None;
+        let mut armed = None;
+        let result = capture_with_deadline(&mut command, b"", |started| {
+            if ready_at.is_none() && started.elapsed() >= startup {
+                return true;
+            }
+            if ready_at.is_none()
+                && ["started", "leader-ready"].iter().all(|name| {
+                    fs::read(scratch.0.join(name)).ok().as_deref() == Some(b"ready".as_slice())
+                })
+            {
+                armed = Some(scratch.file("armed").is_ok());
+                if armed == Some(false) {
+                    return true;
+                }
+                ready_at = Some(Instant::now());
+            }
+            match ready_at {
+                Some(ready) => mode == "timeout" || ready.elapsed() >= Duration::from_secs(2),
+                None => false,
+            }
+        });
         // Release even if the assertion below fails, so a regressed helper
         // cannot leave this synthetic descendant waiting indefinitely.
         fs::write(scratch.0.join("release"), b"released").unwrap();
         std::thread::sleep(Duration::from_millis(200));
-        assert_eq!(fs::read(scratch.0.join("started")).unwrap(), b"ready");
         assert!(
             !scratch.0.join("escaped").exists(),
             "fixture descendant continued after capture returned ({mode})"
         );
+        (scratch, result, armed)
+    }
+
+    #[cfg(unix)]
+    fn descendant_fixture(mode: &str) -> (Scratch, Result<CapturedProcess, String>) {
+        let (scratch, result, armed) = run_descendant_fixture(mode, Duration::from_secs(10));
+        assert_eq!(
+            armed,
+            Some(true),
+            "{mode}: fixture readiness failed: {:?}",
+            result.as_ref().map(|output| output.status.code())
+        );
+        assert_eq!(
+            fs::read(scratch.0.join("started")).ok().as_deref(),
+            Some(b"ready".as_slice()),
+            "{mode}: {:?}",
+            result.as_ref().map(|output| output.status.code())
+        );
         (scratch, result)
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn failed_fixture_admission_cleans_without_arming() {
+        for (mode, startup, armed) in [
+            ("no-ready", Duration::from_millis(30), None),
+            ("arm-failed", Duration::from_secs(10), Some(false)),
+        ] {
+            let (scratch, result, observed) = run_descendant_fixture(mode, startup);
+            assert_eq!(observed, armed);
+            assert_eq!(
+                result.err().as_deref(),
+                Some("Fixture executable timed out")
+            );
+            assert_eq!(
+                fs::read(scratch.0.join("started")).ok().as_deref(),
+                armed.map(|_| b"ready".as_slice())
+            );
+            assert!(!scratch.0.join("armed").is_file());
+            assert_eq!(scratch.0.join("armed").is_dir(), armed.is_some());
+            assert_eq!(fs::read(scratch.0.join("release")).unwrap(), b"released");
+        }
     }
 
     #[test]
@@ -587,20 +667,26 @@ mod tests {
         }
     }
 
+    #[cfg(any(target_os = "macos", target_os = "linux"))]
+    fn exit_fixture() -> OwnedChild {
+        use std::os::unix::process::CommandExt;
+        OwnedChild::new(
+            Command::new("/bin/sh")
+                .args(["-c", "exit 23"])
+                .process_group(0)
+                .spawn()
+                .unwrap(),
+        )
+    }
+
     #[test]
     #[cfg(any(target_os = "macos", target_os = "linux"))]
     fn exit_observation_keeps_the_leader_waitable_until_group_cleanup() {
         use nix::sys::wait::WaitStatus;
         use nix::unistd::Pid;
-        use std::os::unix::process::CommandExt;
         for already_exited in [false, true] {
             for _ in 0..8 {
-                let child = Command::new("/bin/sh")
-                    .args(["-c", "exit 23"])
-                    .process_group(0)
-                    .spawn()
-                    .unwrap();
-                let mut child = OwnedChild::new(child);
+                let mut child = exit_fixture();
                 if already_exited {
                     std::thread::sleep(Duration::from_millis(10));
                 }
@@ -681,14 +767,7 @@ mod tests {
     #[test]
     #[cfg(any(target_os = "macos", target_os = "linux"))]
     fn independent_wait_rejects_a_reaping_observer_instead_of_accepting_cached_status() {
-        use std::os::unix::process::CommandExt;
-        let mut child = OwnedChild::new(
-            Command::new("/bin/sh")
-                .args(["-c", "exit 23"])
-                .process_group(0)
-                .spawn()
-                .unwrap(),
-        );
+        let mut child = exit_fixture();
         let deadline = Instant::now() + Duration::from_secs(2);
         // Deliberately substitute the dangerous observer implementation. Its
         // cached Child status must not satisfy the independent OS assertion.
@@ -722,14 +801,9 @@ mod tests {
             .spawn()
             .unwrap();
         let mut other = OwnedChild::new(child);
-        assert_eq!(
-            nix::unistd::getpgid(Some(nix::unistd::Pid::from_raw(other.id() as i32))).unwrap(),
-            nix::unistd::Pid::from_raw(other.id() as i32)
-        );
-        assert_ne!(
-            nix::unistd::getpgrp(),
-            nix::unistd::Pid::from_raw(other.id() as i32)
-        );
+        let group = nix::unistd::Pid::from_raw(other.id() as i32);
+        assert_eq!(nix::unistd::getpgid(Some(group)).unwrap(), group);
+        assert_ne!(nix::unistd::getpgrp(), group);
         let error = capture(
             Command::new("/bin/sh").args(["-c", "exec sleep 30"]),
             b"",

@@ -279,6 +279,22 @@ and local credentials, and launcher/doctor replacements discard old source
 state. Effective Jev presence and JSON feed private cache identity. These
 configuration and snapshot contracts do not qualify malformed provider headers,
 local-token authentication or raw JavaScript object-to-OS environment output.
+`credential_text(Credential)` returns sensitive primitive text as
+`Result<Option<Cow<'_, str>>, &'static str>`. Absence remains distinct from null;
+arrays and objects use the source primitive-conversion rules. Conversion failure
+returns a fixed message without the rejected value. This is a conversion API,
+not permission to use its output as an OS string or HTTP header.
+
+The Jev evaluator materializes that effective credential for each request, then
+applies the existing Fetch-style byte conversion, edge whitespace trimming and
+HTTP header validation. Explicit replacement or removal cannot restore an older
+captured credential. Invalid conversion or header bytes return the safe
+`EvaluationError::Network` before transport; pre-cancellation still wins and no
+request is sent. Native `evaluate_serialized_answer()` validates its serialized
+state before credential conversion, so competing invalid state/credential inputs
+retain that native API error order rather than JavaScript options-object order.
+These controls do not qualify malformed Anthropic gateway authorization.
+
 `auth::build_claude_env()` returns `Result<Environment, ChildEnvironmentError>`
 and materializes effective local-token values into OS strings. Null becomes
 `"null"`, arrays use primitive joining, and source numbers retain their original

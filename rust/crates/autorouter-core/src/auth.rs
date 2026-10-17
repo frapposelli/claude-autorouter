@@ -1,5 +1,5 @@
 //! Claude-owned authentication and launch environment adaptation.
-use crate::config::{AuthMode, ClientProfile, RouterConfig, js_trim};
+use crate::config::{AuthMode, ClientProfile, Credential, RouterConfig, js_trim};
 use std::collections::BTreeMap;
 use std::ffi::{OsStr, OsString};
 
@@ -119,7 +119,7 @@ pub fn build_claude_env(
     parent: &Environment,
 ) -> Result<Environment, ChildEnvironmentError> {
     let token = config
-        .local_token_text()
+        .credential_text(Credential::LocalToken)
         .map_err(|_| ChildEnvironmentError { nul: false })?;
     if token.as_deref().is_some_and(|value| value.contains('\0')) {
         return Err(ChildEnvironmentError { nul: true });
