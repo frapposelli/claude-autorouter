@@ -364,3 +364,14 @@ were skipped. The next native Intel job has a 60-minute allowance, with every
 step retained and the other job/product/test deadlines unchanged. Fresh CI
 must verify this source; neither the cancelled run nor local checks approve
 release, the complete platform matrix or default cutover.
+
+The [following musl setup observation](../rust/parity/measurements/native-4a60593-musl-index-summary.json)
+finds both `4a60593` musl jobs stopped before product compilation. Independent
+official-input inspection reproduces a blocker: Alpine's October 16 indexes
+have different hashes, although all twelve explicitly asserted package versions
+remain present. The reviewed refresh changes only those index digests and their
+size/date metadata. Signature, package-version, image, compiler and offline
+installation guards remain enforced. Actual package resolution and execution
+require fresh CI; local signature verification and failed-step log inspection
+were not performed. Routine musl CI still depends on a moving repository index;
+freezing complete reviewed SDK images by immutable digest remains future work.
