@@ -365,6 +365,12 @@ async fn registry_abort_cancels_and_releases_a_saturated_producer_join() {
 
 #[tokio::test]
 async fn actual_constructor_empty_handoff_needs_no_consumer_body_poll() {
+    for version in [None, Some(SslVersion::TLS1_2), Some(SslVersion::TLS1_3)] {
+        actual_empty_handoff(version).await;
+    }
+}
+
+async fn actual_empty_handoff(version: Option<SslVersion>) {
     for (method, response) in [
         ("GET", "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n"),
         ("HEAD", "HTTP/1.1 200 OK\r\nContent-Length: 1000000\r\n\r\n"),
@@ -375,7 +381,7 @@ async fn actual_constructor_empty_handoff_needs_no_consumer_body_poll() {
         ),
     ] {
         let peer = TcpListener::bind("127.0.0.1:0").await.unwrap();
-        let (trust, _) = isolated_tls(None);
+        let (trust, tls) = isolated_tls(version);
         let client = Arc::new(BufferedRawPoolClient::new(&trust).unwrap());
         let buffers = client.probe.clone();
         let counts = client.inner.raw_counts.clone();
@@ -383,7 +389,8 @@ async fn actual_constructor_empty_handoff_needs_no_consumer_body_poll() {
         let request = Request::builder()
             .method(method)
             .uri(format!(
-                "http://{}/v1/models/empty",
+                "{}://{}/v1/models/empty",
+                if version.is_some() { "https" } else { "http" },
                 peer.local_addr().unwrap()
             ))
             .body(Full::new(Bytes::new()))
@@ -392,12 +399,40 @@ async fn actual_constructor_empty_handoff_needs_no_consumer_body_poll() {
         let mut tasks = JoinSet::new();
         tasks.spawn(async move { worker.request_raw(request).await.unwrap() });
         let result = tokio::time::timeout(Duration::from_secs(8), async {
-            let (mut socket, _) = peer.accept().await.unwrap();
-            let _ = head(&mut socket).await;
-            socket.write_all(response.as_bytes()).await.unwrap();
-            let response = tasks.join_next().await.unwrap().unwrap();
+            let mut socket = accept_peer(&peer, tls.as_ref()).await;
+            match &socket {
+                super::super::super::loopback_peer::Peer::Tcp(_) => assert!(version.is_none()),
+                super::super::super::loopback_peer::Peer::Tls(stream) => assert_eq!(
+                    stream.inner().ssl().version_str(),
+                    if version == Some(SslVersion::TLS1_2) {
+                        "TLSv1.2"
+                    } else {
+                        "TLSv1.3"
+                    }
+                ),
+            }
             assert!(
-                response.body().is_end_stream(),
+                head(&mut socket)
+                    .await
+                    .starts_with(format!("{method} /v1/models/empty HTTP/1.1\r\n").as_bytes())
+            );
+            socket.write_all(response.as_bytes()).await.unwrap();
+            socket.flush().await.unwrap();
+            let received = tasks.join_next().await.unwrap().unwrap();
+            let expected_status: u16 = response.split_whitespace().nth(1).unwrap().parse().unwrap();
+            assert_eq!(received.status().as_u16(), expected_status);
+            let length = response
+                .lines()
+                .find_map(|line| line.strip_prefix("Content-Length: "));
+            assert_eq!(
+                received
+                    .headers()
+                    .get("content-length")
+                    .map(|value| value.to_str().unwrap()),
+                length
+            );
+            assert!(
+                received.body().is_end_stream(),
                 "{method} header-only handoff was hidden"
             );
             assert_eq!(buffers.snapshot().consumer_polls, 0);
@@ -410,7 +445,14 @@ async fn actual_constructor_empty_handoff_needs_no_consumer_body_poll() {
             })
             .await;
             assert_eq!(buffers.snapshot().consumer_polls, 0);
-            drop(response);
+            assert_eq!(buffers.snapshot().clean_sources, 1);
+            assert_eq!(buffers.snapshot().failed_sources, 0);
+            assert_eq!(
+                counts.active.load(Ordering::SeqCst),
+                1,
+                "empty body EOF must precede held peer socket closure"
+            );
+            drop(received);
             socket
         })
         .await;

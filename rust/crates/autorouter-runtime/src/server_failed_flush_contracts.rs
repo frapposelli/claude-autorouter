@@ -145,12 +145,56 @@ impl GatewayRouter for TrackedRouter {
     async fn close(&self) {}
 }
 
+#[derive(Clone, Copy, Default)]
+enum FlushBoundary {
+    #[default]
+    ChunkEnd,
+    Empty200,
+    HeaderOnly(u16),
+}
+impl FlushBoundary {
+    fn reached(self, output: &[u8]) -> bool {
+        if matches!(self, Self::ChunkEnd) {
+            return output.ends_with(b"0\r\n\r\n");
+        }
+        let Some(end) = output.windows(4).position(|bytes| bytes == b"\r\n\r\n") else {
+            return false;
+        };
+        let head = std::str::from_utf8(&output[..end + 4])
+            .unwrap()
+            .to_ascii_lowercase();
+        let payload = &output[end + 4..];
+        match self {
+            Self::HeaderOnly(status) => {
+                head.starts_with(&format!("http/1.1 {status} ")) && payload.is_empty()
+            }
+            Self::Empty200 => {
+                head.starts_with("http/1.1 200 ")
+                    && if head
+                        .lines()
+                        .any(|line| line == "transfer-encoding: chunked")
+                    {
+                        payload == b"0\r\n\r\n"
+                    } else {
+                        head.lines().any(|line| line == "content-length: 0")
+                            && !head
+                                .lines()
+                                .any(|line| line.starts_with("transfer-encoding:"))
+                            && payload.is_empty()
+                    }
+            }
+            Self::ChunkEnd => unreachable!(),
+        }
+    }
+}
+
 #[derive(Default)]
 struct WriterState {
     input: VecDeque<u8>,
     output: Vec<u8>,
     fail_at: Option<usize>,
     write_failed: bool,
+    flush_boundary: FlushBoundary,
     hold_final_flush: bool,
     fail_final_flush: bool,
     flush_failed: bool,
@@ -199,7 +243,7 @@ impl AsyncWrite for ScriptedIo {
         let mut waker = Some(cx.waker().clone());
         let (result, previous) = {
             let mut state = self.0.lock().unwrap();
-            if state.output.ends_with(b"0\r\n\r\n") && state.hold_final_flush {
+            if state.flush_boundary.reached(&state.output) && state.hold_final_flush {
                 state.final_flush_pending = true;
                 let previous = state.flush_waker.replace(waker.take().unwrap());
                 (Poll::Pending, previous)
@@ -399,10 +443,89 @@ async fn until(predicate: impl Fn() -> bool) {
     .expect("synthetic buffered delivery barrier exceeded its bound");
 }
 
+#[derive(Clone, Copy, Debug)]
+enum BufferedResponse {
+    ToolJson,
+    EmptyJson,
+    NoContent,
+    NotModified,
+}
+impl BufferedResponse {
+    fn bodyless(self) -> bool {
+        !matches!(self, Self::ToolJson)
+    }
+    fn status(self) -> u16 {
+        match self {
+            Self::ToolJson | Self::EmptyJson => 200,
+            Self::NoContent => 204,
+            Self::NotModified => 304,
+        }
+    }
+    fn flush_boundary(self) -> FlushBoundary {
+        match self {
+            Self::ToolJson => FlushBoundary::ChunkEnd,
+            Self::EmptyJson => FlushBoundary::Empty200,
+            Self::NoContent | Self::NotModified => FlushBoundary::HeaderOnly(self.status()),
+        }
+    }
+    fn assert_output(self, output: &[u8]) {
+        assert!(self.flush_boundary().reached(output));
+        let end = output
+            .windows(4)
+            .position(|bytes| bytes == b"\r\n\r\n")
+            .unwrap()
+            + 4;
+        let head = std::str::from_utf8(&output[..end])
+            .unwrap()
+            .to_ascii_lowercase();
+        assert!(head.starts_with(&format!("http/1.1 {} ", self.status())));
+        if !self.bodyless() {
+            assert!(
+                output
+                    .windows(PROVIDER_BODY.len())
+                    .any(|bytes| bytes == PROVIDER_BODY)
+            );
+            return;
+        }
+        assert!(head.lines().any(|line| line == "x-safe: retained"));
+        assert!(
+            head.lines()
+                .any(|line| line == "content-type: application/json")
+        );
+        for name in [
+            "keep-alive:",
+            "trailer:",
+            "x-provider-hop:",
+            "x-provider-trailer:",
+        ] {
+            assert!(!head.lines().any(|line| line.starts_with(name)));
+        }
+        assert!(!head.contains("content-length: 1000000"));
+        // Regenerated framing is allowed; the application payload and any
+        // forwarded trailers must be empty, even for a representation length.
+        if head
+            .lines()
+            .any(|line| line == "transfer-encoding: chunked")
+        {
+            assert!(matches!(self, Self::EmptyJson));
+            assert_eq!(&output[end..], b"0\r\n\r\n");
+        } else {
+            assert!(output[end..].is_empty());
+        }
+    }
+}
+
+struct ProviderHold {
+    ready: tokio::sync::oneshot::Sender<()>,
+    release: tokio::sync::oneshot::Receiver<()>,
+}
+
 async fn buffered_provider(
     listener: tokio::net::TcpListener,
     tls: Option<SslContext>,
     version: Option<SslVersion>,
+    response: BufferedResponse,
+    hold: Option<ProviderHold>,
 ) {
     let (socket, _) = listener.accept().await.unwrap();
     if let Some(context) = tls {
@@ -420,14 +543,18 @@ async fn buffered_provider(
                 "TLSv1.3"
             }
         );
-        buffered_provider_socket(hyper_util::rt::TokioIo::new(socket)).await;
+        buffered_provider_socket(hyper_util::rt::TokioIo::new(socket), response, hold).await;
     } else {
         assert!(version.is_none());
-        buffered_provider_socket(socket).await;
+        buffered_provider_socket(socket, response, hold).await;
     }
 }
 
-async fn buffered_provider_socket(mut socket: impl AsyncRead + AsyncWrite + Unpin) {
+async fn buffered_provider_socket(
+    mut socket: impl AsyncRead + AsyncWrite + Unpin,
+    response: BufferedResponse,
+    hold: Option<ProviderHold>,
+) {
     let mut request = Vec::new();
     loop {
         let mut block = [0; 1024];
@@ -458,13 +585,41 @@ async fn buffered_provider_socket(mut socket: impl AsyncRead + AsyncWrite + Unpi
         );
         break;
     }
-    let headers = format!(
-        "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
-        PROVIDER_BODY.len()
-    );
+    let headers = if response.bodyless() {
+        let (status, length) = match response {
+            BufferedResponse::EmptyJson => ("200 OK", "Content-Length: 0\r\n"),
+            BufferedResponse::NoContent => ("204 No Content", ""),
+            BufferedResponse::NotModified => ("304 Not Modified", "Content-Length: 1000000\r\n"),
+            BufferedResponse::ToolJson => unreachable!(),
+        };
+        format!(
+            "HTTP/1.1 {status}\r\nContent-Type: application/json\r\n{length}Connection: keep-alive, x-provider-hop\r\nKeep-Alive: timeout=60\r\nX-Provider-Hop: removed\r\nTrailer: x-provider-trailer\r\nX-Safe: retained\r\n\r\n"
+        )
+    } else {
+        format!(
+            "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+            PROVIDER_BODY.len()
+        )
+    };
     socket.write_all(headers.as_bytes()).await.unwrap();
-    socket.write_all(PROVIDER_BODY).await.unwrap();
-    socket.shutdown().await.unwrap();
+    if let Some(hold) = hold {
+        assert!(response.bodyless());
+        socket.flush().await.unwrap();
+        hold.ready
+            .send(())
+            .expect("bodyless provider has a ready waiter");
+        hold.release
+            .await
+            .expect("only owned cleanup releases the provider");
+        // The gateway may already have closed its peer after cancellation.
+        // Retain the actual socket until this explicit teardown, after the
+        // test has separately observed decoder EOF and pending final flush.
+        let _ = socket.shutdown().await;
+    } else {
+        assert!(!response.bodyless());
+        socket.write_all(PROVIDER_BODY).await.unwrap();
+        socket.shutdown().await.unwrap();
+    }
 }
 
 fn previous_owner_survives(router: &TrackedRouter, attempts: usize) {
@@ -489,7 +644,12 @@ enum FinalFlush {
     Deadline,
 }
 
-async fn buffered_final_flush(schedule: FinalFlush, terminal: bool, version: Option<SslVersion>) {
+async fn buffered_final_flush(
+    response: BufferedResponse,
+    schedule: FinalFlush,
+    terminal: bool,
+    version: Option<SslVersion>,
+) {
     use crate::server_events::RecordSink;
     use crate::tls_roots::openssl_spike::gateway_intent::Disconnect;
     use crate::tls_roots::openssl_spike::gateway_terminal::{Event, FailureCause};
@@ -545,39 +705,72 @@ async fn buffered_final_flush(schedule: FinalFlush, terminal: bool, version: Opt
     let io = ScriptedIo(Arc::new(Mutex::new(WriterState {
         input: input.into(),
         hold_final_flush: true,
+        flush_boundary: response.flush_boundary(),
         ..WriterState::default()
     })));
     let registry = CompletionRegistry::new(16);
     let cancellation = CancellationToken::new();
-    let mut provider = OwnedTask(tokio::spawn(buffered_provider(listener, tls, version)));
+    let (hold, provider_release, provider_ready) = if response.bodyless() {
+        let (release, wait) = tokio::sync::oneshot::channel();
+        let (ready, notified) = tokio::sync::oneshot::channel();
+        (
+            Some(ProviderHold {
+                ready,
+                release: wait,
+            }),
+            Some(release),
+            Some(notified),
+        )
+    } else {
+        (None, None, None)
+    };
+    let mut provider = OwnedTask(tokio::spawn(buffered_provider(
+        listener, tls, version, response, hold,
+    )));
     let mut connection = OwnedTask(tokio::spawn(gateway.clone().serve_connection(
         io.clone(),
         registry.clone(),
         cancellation.clone(),
     )));
     until(|| io.0.lock().unwrap().final_flush_pending).await;
-    provider.join().await;
+    if let Some(ready) = provider_ready {
+        tokio::time::timeout(BARRIER, ready)
+            .await
+            .expect("provider header flush exceeded its bound")
+            .expect("provider signals headers before awaiting release");
+    } else {
+        provider.join().await;
+    }
     until(|| snapshot()["buffers"]["clean_sources"] == 1).await;
 
-    // Upstream clean EOF and all downstream response bytes are insufficient:
-    // the actual HTTP writer still owns the unacknowledged final flush.
+    // Clean source-body EOF and accepted downstream framing are insufficient:
+    // the actual writer still owns the unacknowledged final flush. Bodyless
+    // providers remain open behind owned release, so source EOF is not socket EOF.
     let pending_output = io.0.lock().unwrap().output.clone();
-    assert!(pending_output.ends_with(b"0\r\n\r\n"));
-    assert!(
-        pending_output
-            .windows(PROVIDER_BODY.len())
-            .any(|v| v == PROVIDER_BODY)
-    );
+    response.assert_output(&pending_output);
     assert_eq!(registry.pending(), 1);
     assert!(!connection.0.is_finished());
     assert_eq!(router.exact_completions.load(Ordering::SeqCst), 0);
     assert_eq!(router.releases.load(Ordering::SeqCst), 0);
     previous_owner_survives(&router, 1);
-    assert_eq!(records.lock().unwrap().len(), 1);
+    {
+        let rows = records.lock().unwrap();
+        assert_eq!(rows.len(), 1);
+        assert!(rows.iter().all(|row| row["event"] != "outcome"));
+    }
     let observed = snapshot();
     assert_eq!(observed["raw_attempts"], 1);
     assert_eq!(observed["fetch_attempts"], 0);
-    assert!(observed["buffers"]["consumer_polls"].as_u64().unwrap() > 0);
+    assert_eq!(observed["buffers"]["clean_sources"], 1);
+    assert_eq!(observed["buffers"]["failed_sources"], 0);
+    assert_eq!(observed["buffers"]["cancelled_sources"], 0);
+    if response.bodyless() {
+        assert!(!provider.0.is_finished());
+        assert!(!provider_release.as_ref().unwrap().is_closed());
+        assert_eq!(observed["raw_live"], 1);
+    } else {
+        assert!(observed["buffers"]["consumer_polls"].as_u64().unwrap() > 0);
+    }
     if terminal {
         let events = terminals.events();
         assert_eq!(
@@ -617,8 +810,8 @@ async fn buffered_final_flush(schedule: FinalFlush, terminal: bool, version: Opt
         }
         FinalFlush::Cancelled => cancellation.cancel(),
         FinalFlush::Deadline => {
-            // Real TCP and provider work have finished before virtual time is
-            // paused. Advance only the live request's absolute delivery bound.
+            // Real request/header I/O has finished; any held provider only
+            // awaits owned release. Advance the live absolute delivery bound.
             let _clock = PausedClock::new();
             tokio::time::advance(Duration::from_millis(30_001)).await;
             tokio::task::yield_now().await;
@@ -630,17 +823,18 @@ async fn buffered_final_flush(schedule: FinalFlush, terminal: bool, version: Opt
     assert_eq!(registry.pending(), 0);
     assert_eq!(Arc::strong_count(&io.0), 1, "connection released its IO");
     let success = matches!(schedule, FinalFlush::Success);
+    let confirms = success && !response.bodyless();
     assert_eq!(
         router.exact_completions.load(Ordering::SeqCst),
-        usize::from(success)
+        usize::from(confirms)
     );
     assert_eq!(
         router.releases.load(Ordering::SeqCst),
-        usize::from(!success)
+        usize::from(!confirms)
     );
     let final_records = records.lock().unwrap().clone();
     assert_eq!(final_records.len(), 2);
-    assert_eq!(outcome(&final_records)["completion_confirmed"], success);
+    assert_eq!(outcome(&final_records)["completion_confirmed"], confirms);
     assert_eq!(
         outcome(&final_records)["status"],
         match schedule {
@@ -658,7 +852,7 @@ async fn buffered_final_flush(schedule: FinalFlush, terminal: bool, version: Opt
             matches!(schedule, FinalFlush::Cancelled | FinalFlush::Deadline)
         );
     }
-    if success {
+    if confirms {
         let turns = router.turns.lock().unwrap();
         assert_eq!(turns.attempt_count(), 0);
         assert!(
@@ -732,6 +926,13 @@ async fn buffered_final_flush(schedule: FinalFlush, terminal: bool, version: Opt
         assert_eq!(terminals.writer_snapshot().waiters, 0);
         assert!(!terminals.observer_failed());
     }
+    if let Some(release) = provider_release {
+        assert!(!provider.0.is_finished());
+        release
+            .send(())
+            .expect("owned provider cleanup releases its socket");
+        provider.join().await;
+    }
     drop(gateway);
     drop(transport);
     until(|| {
@@ -766,13 +967,31 @@ async fn buffered_final_flush(schedule: FinalFlush, terminal: bool, version: Opt
     assert_eq!(cleaned["buffers"]["clean_sources"], 1);
     assert_eq!(cleaned["buffers"]["failed_sources"], 0);
     assert_eq!(cleaned["buffers"]["cancelled_sources"], 0);
+    assert_eq!(
+        router.exact_completions.load(Ordering::SeqCst),
+        usize::from(confirms)
+    );
+    assert_eq!(
+        router.releases.load(Ordering::SeqCst),
+        usize::from(!confirms)
+    );
+    assert_eq!(records.lock().unwrap().len(), 2);
+    if response.bodyless() {
+        previous_owner_survives(&router, 0);
+    }
 }
 
 #[tokio::test]
 async fn buffered_raw_success_confirms_continuity_only_after_final_flush() {
     for version in [None, Some(SslVersion::TLS1_2), Some(SslVersion::TLS1_3)] {
         for terminal in [false, true] {
-            buffered_final_flush(FinalFlush::Success, terminal, version).await;
+            buffered_final_flush(
+                BufferedResponse::ToolJson,
+                FinalFlush::Success,
+                terminal,
+                version,
+            )
+            .await;
         }
     }
 }
@@ -781,7 +1000,13 @@ async fn buffered_raw_success_confirms_continuity_only_after_final_flush() {
 async fn buffered_raw_final_flush_error_preserves_confirmed_tool_owner() {
     for version in [None, Some(SslVersion::TLS1_2), Some(SslVersion::TLS1_3)] {
         for terminal in [false, true] {
-            buffered_final_flush(FinalFlush::Error, terminal, version).await;
+            buffered_final_flush(
+                BufferedResponse::ToolJson,
+                FinalFlush::Error,
+                terminal,
+                version,
+            )
+            .await;
         }
     }
 }
@@ -790,7 +1015,13 @@ async fn buffered_raw_final_flush_error_preserves_confirmed_tool_owner() {
 async fn buffered_raw_cancellation_during_final_flush_preserves_confirmed_tool_owner() {
     for version in [None, Some(SslVersion::TLS1_2), Some(SslVersion::TLS1_3)] {
         for terminal in [false, true] {
-            buffered_final_flush(FinalFlush::Cancelled, terminal, version).await;
+            buffered_final_flush(
+                BufferedResponse::ToolJson,
+                FinalFlush::Cancelled,
+                terminal,
+                version,
+            )
+            .await;
         }
     }
 }
@@ -799,7 +1030,48 @@ async fn buffered_raw_cancellation_during_final_flush_preserves_confirmed_tool_o
 async fn buffered_raw_delivery_deadline_during_final_flush_preserves_confirmed_tool_owner() {
     for version in [None, Some(SslVersion::TLS1_2), Some(SslVersion::TLS1_3)] {
         for terminal in [false, true] {
-            buffered_final_flush(FinalFlush::Deadline, terminal, version).await;
+            buffered_final_flush(
+                BufferedResponse::ToolJson,
+                FinalFlush::Deadline,
+                terminal,
+                version,
+            )
+            .await;
         }
     }
+}
+
+async fn buffered_bodyless_final_flush(schedule: FinalFlush) {
+    for response in [
+        BufferedResponse::EmptyJson,
+        BufferedResponse::NoContent,
+        BufferedResponse::NotModified,
+    ] {
+        for version in [None, Some(SslVersion::TLS1_2), Some(SslVersion::TLS1_3)] {
+            for terminal in [false, true] {
+                buffered_final_flush(response, schedule, terminal, version).await;
+            }
+        }
+    }
+}
+
+#[tokio::test]
+async fn buffered_raw_bodyless_success_releases_without_confirming_execution() {
+    buffered_bodyless_final_flush(FinalFlush::Success).await;
+}
+
+#[tokio::test]
+async fn buffered_raw_bodyless_final_flush_error_preserves_confirmed_tool_owner() {
+    buffered_bodyless_final_flush(FinalFlush::Error).await;
+}
+
+#[tokio::test]
+async fn buffered_raw_bodyless_cancellation_during_final_flush_preserves_confirmed_tool_owner() {
+    buffered_bodyless_final_flush(FinalFlush::Cancelled).await;
+}
+
+#[tokio::test]
+async fn buffered_raw_bodyless_delivery_deadline_during_final_flush_preserves_confirmed_tool_owner()
+{
+    buffered_bodyless_final_flush(FinalFlush::Deadline).await;
 }

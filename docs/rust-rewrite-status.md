@@ -565,3 +565,39 @@ independently rehashed CI artifacts. It does not qualify the subsequent local
 policy/capacity changes, minimum deployment platforms, numerical performance,
 real tasks, final release provenance, stabilization or default cutover. Earlier
 CI successes and failures remain recorded separately.
+
+## Empty-response delivery and direct constructor TLS
+
+The [bodyless flush summary](../rust/parity/measurements/native-bodyless-flush-summary.json)
+records 72 additional actual-constructor gateway schedules for empty JSON 200,
+204 and 304 responses over HTTP, TLS 1.2 and TLS 1.3. Both ordinary and attached
+terminal ownership are held at final client flush, with success, flush error,
+cancellation and deadline expiry tested separately. The original 24 nonempty
+schedules still pass. Clean response-body EOF occurs while the provider socket
+remains held; it cannot establish downstream delivery. Successful empty delivery
+releases the attempt once without confirming execution or replacing the prior
+Opus tool owner. The other outcomes also preserve that owner.
+
+Twelve direct-constructor controls separately exercise HEAD with a representation
+length, zero-length GET, 204 and 304 over all three protocols. Exact method,
+status, representation length, negotiated TLS and clean pool return are checked
+before the held provider socket is released, without consumer body polling.
+These controls preserve the gateway's existing method allowlist.
+
+The complete Rust workspace passes 1,339 tests, with ten ignored tests or helper
+fixtures, formatting and strict Clippy. Node check, all 596 tests and the exact
+58-file package smoke also pass. Fresh bounded source export/restore
+verifies 694 public inputs and 113 logical reference files at 33,517,568 carrier
+and 33,483,160 logical bytes, under each unchanged 33,554,432-byte cap. The export
+uses the retained, previously compiler-bound helper without a fresh-helper build
+or shipping-provenance claim. No real provider calls or numerical samples are
+part of this evidence.
+
+The original-definition tally remains 536 covered/52 partial. No further limit,
+configuration or area status advances. Final-data end hints, delayed trailers,
+close-delimited EOF and broader reuse ownership remain among the actual-constructor
+lifecycle requirements; ordinary production transport still uses Rustls.
+The pushed `2d5defa` checkpoint has a separate ARM musl SDK-preparation failure
+before Rust compilation, with diagnosis pending. Its CI cannot qualify these
+later local tests. All other platform, performance, real-task, provenance,
+rollback, stabilization and cutover requirements remain open.
