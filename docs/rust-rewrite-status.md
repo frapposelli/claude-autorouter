@@ -12,11 +12,11 @@ This checklist tracks the full [rewrite plan](rust-rewrite-plan.md), including i
 | Transparent provider responses, signed history, safety and permissions | Actual HTTP/SSE/JSON/compression/framing comparisons, client disconnects, failed flushes and pipelined-response ownership | Substantial synthetic coverage; unresolved transport/TLS differences and unreviewed original HTTP schedules remain. |
 | Authentication, refreshed subscription credentials and custom-upstream restrictions | Request-scoped credential tests, API/OAuth/beta rejection matrix, conservative unsupported-contract behavior | Implemented and tested on synthetic transports; live canaries and supported-platform TLS qualification remain. |
 | Configuration, policy, Keychain and history without mandatory migration | Exact lexical identities, permissions/revision/fsync/no-follow checks, policy admission, isolated migration/rollback and existing schemas/prices | Isolated real macOS Keychain migration passes all 25 host assertions through both engines. Complete assertion review, failure/rollback and platform qualification remain. |
-| Bounds, cancellation and state ownership | Full boundary/interleaving matrix; bounded retention, no uncancelled workers, clean shutdown, no false continuation confirmation | Many deterministic proofs exist. Every inventoried configuration key/limit and full failure/resource matrix must be reviewed. |
+| Bounds, cancellation and state ownership | Full boundary/interleaving matrix; bounded retention, no uncancelled workers, clean shutdown, no false continuation confirmation | The [two classifier ceilings](../rust/parity/measurements/native-classifier-capacity-limits-summary.json) now have individual default, boundary, cancellation and cleanup review. The other 51 limit rows, all 27 configuration keys and the complete failure/resource matrix remain pending. |
 | Predeclared speed and memory gates | Fresh matched five-round reports on representative hardware, unchanged thresholds, processing-only control, uncertainty and complete declared workload coverage | Exploratory v1 evidence exists. Five separately retained normal-use whole-processing five-pair runs retain complete parity; none qualifies the unchanged 0.5 p95 target. Numerical qualification, missing metrics/workloads and representative hardware remain open. |
 | Real evaluator and task evidence | Explicit matched trials with fixed fixtures/rubrics/models and separately reported availability, transport, policy and task quality | Compatible and actual Auto simple Jev preflights pass. Two five-pair real Tev1 experiments retain identical warm classification failures, finite-deadline stress differences and matching zero-deadline outcomes. Full profile/task and larger-host evidence remain open. |
 | Rust contributor/release tools | Original tool behavior mappings, release state handling, immutable archives, registry verification, direct installation and source/build provenance | Most tooling exists; original tooling assertions and production release workflow/provenance remain incomplete. |
-| Native CI and supported platform matrix | Compiler/feature/license checks, installed native/npm/direct artifacts, minimum OS/libc/CPU/TLS/PTY/WSL evidence for every approved target | The [complete `58e1531` checkpoint](../rust/parity/measurements/native-58e1531-ci-summary.json) passes all fourteen jobs, including ordinary macOS/Linux, GNU, musl and i686 validation. Intel completes in 42m10s; both musl SDK setup steps pass. This observation uses terminal metadata rather than independently rehashed artifacts. Later source changes require fresh CI; complete platform/minimum-OS/TLS/WSL and release qualification remain open. |
+| Native CI and supported platform matrix | Compiler/feature/license checks, installed native/npm/direct artifacts, minimum OS/libc/CPU/TLS/PTY/WSL evidence for every approved target | The [complete `26412f2` checkpoint](../rust/parity/measurements/native-26412f2-ci-summary.json) passes all fourteen jobs, including ordinary macOS/Linux, GNU, musl and i686 validation. Intel completes in 29m35s; both musl SDK setup steps pass. This observation uses terminal metadata rather than independently rehashed artifacts. Later local policy/capacity changes require fresh CI; complete platform/minimum-OS/TLS/WSL and release qualification remain open. |
 | Default cutover and retirement | All preceding gates approved, separately authorized release, migration/help/contributor docs, retained rollback and defined stabilization period | JavaScript remains shipping default. This phase remains required for full completion. |
 
 The [assertion ledger](../rust/parity/coverage.json) and [evidence index](../rust/parity/evidence.json) retain individual test status. Existing report hashes refer to historical inputs; editing code or a manifest does not transfer old qualification to new bytes.
@@ -72,7 +72,7 @@ Update release verification and publishing around the exact qualified native set
 4. Complete TLS/protocol/resource schedules and failed-startup, partial-write and ownership scenarios for rollback.
 5. Meet every unchanged numerical gate and declared workload/hardware requirement, complete real-task evidence and final source/build/license/installed-artifact qualification, then perform separately authorized stabilization and cutover.
 
-The fourteen green jobs at `5fa6ac8` establish only their recorded scopes. Later working-tree changes require fresh CI, and none of these slices replaces the full plan.
+The latest fourteen green jobs at `26412f2` establish only their recorded scopes. Later local policy and capacity changes require fresh CI, and none of these slices replaces the full plan.
 
 ## Recorded local evaluator investigation
 
@@ -498,7 +498,70 @@ binary provenance remains unverified; these are local synthetic checks.
 Coverage is now 536 covered/52 partial, with all thirteen areas still partial.
 The original historical mapping and every other definition remain unchanged;
 in particular, user-config definitions 6 and 12 still lack their own structured
-error boundary. All configuration keys and limit rows retain their pending
-status. Fresh CI for this source, complete transport/platform/resource and
+error boundary. At that checkpoint, all configuration keys and limit rows
+remained pending. Fresh CI for that source, complete transport/platform/resource and
 performance/real-task/hardware evidence, final artifact provenance, rollback,
 stabilization and default cutover remain open.
+
+
+## Independent classifier work and subscriber ceilings
+
+The [classifier limit review](../rust/parity/measurements/native-classifier-capacity-limits-summary.json)
+completes only `pending_evaluations` (256) and `evaluation_subscribers` (1,024).
+The native defaults retain both fixed ceilings. Constructor tests reject either
+field above its ceiling before retaining a transport or creating worker state;
+independent lower and zero values remain an explicit native embedding API.
+Capacity fallback performs no extra evaluator request. The default Router uses
+these same classifier limits.
+
+The exact full-capacity schedules preserve all sixteen original observations,
+covering 256 distinct evaluations and 1,024 subscribers sharing one evaluation.
+They cancel and join every caller, reject late delivery, successfully retry the
+overflow key and now await terminal close in both dimensions. Separate controls
+cover independent waiter cancellation, reserved/retiring workers, same-key
+replacement and abandoned-result cache isolation. Native work accounting keeps
+reserved and retiring futures charged until destruction; this documented
+ownership boundary is stronger than the source's pending-map-only admission.
+
+The new saturation regression fills both lowered capacities with real mock
+transport futures. Uncached same-key and new-key requests fall back, while an
+already successful cached key returns without another request or any capacity
+change. It cancels and joins every held caller and awaits the worker drain.
+An already-cancelled token and terminal closure still precede cache lookup.
+These facts concern classification admission, not confirmed provider execution.
+
+All seventeen named capacity/cancellation tests pass. The unchanged original
+Node callback separately passes eight assertion sites across both dimensions;
+its previous raw control log is unavailable locally and remains recorded as
+historical, without a rewritten success claim. The fresh control verifies all
+111 frozen source identities before and after execution. The complete workspace
+passes 1,335 tests with ten ignored tests or helper fixtures, strict Clippy and
+formatting. Node check, all 596 tests and the exact 58-file package smoke pass,
+as do seventeen differential families and the whole-connection deterministic
+control. No numerical samples or provider calls are collected.
+
+Fresh schema 4 export/restore verifies 694 public inputs and all 113 logical
+reference files at 33,506,816 carrier and 33,472,483 logical bytes, within both
+unchanged 33,554,432-byte caps. The supplied helper's provenance remains
+unverified for shipping despite its actual local compiler/test binding.
+
+The original-definition tally remains 536 covered/52 partial. Only two of the
+53 limit rows advance; the other 51 limits, all 27 configuration keys and all
+thirteen partial area statuses remain open. New-source CI, complete protocol,
+TLS/platform/resource, performance, real-task/hardware and final artifact,
+rollback, stabilization and default-cutover requirements remain separate.
+
+## Complete 26412f2 CI checkpoint
+
+The [terminal CI summary](../rust/parity/measurements/native-26412f2-ci-summary.json)
+records all five runs and fourteen jobs passing for source `26412f2` and its
+identical merge tree. Intel macOS completes in 29m35s; both musl architectures
+pass SDK admission, locked dependency fetch, offline native and installed
+lifecycle checks, followed by GNU-control and mixed npm-selection checks.
+Required Node jobs and workflow timeouts remain unchanged.
+
+This is terminal run/job/step metadata, without downloaded checkout logs or
+independently rehashed CI artifacts. It does not qualify the subsequent local
+policy/capacity changes, minimum deployment platforms, numerical performance,
+real tasks, final release provenance, stabilization or default cutover. Earlier
+CI successes and failures remain recorded separately.

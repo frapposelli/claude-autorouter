@@ -150,6 +150,11 @@ returns `Invalid classifier limits.` before worker state is created. The fields
 are independent. Zero is valid and closes that capacity without issuing an
 evaluator request. `Classifier::new()` retains the fixed defaults.
 
+A successful cached decision consumes no work or subscriber slot and remains
+available when those capacities are full. An already-cancelled token or terminal
+close still rejects classification before the cache lookup. Cache availability
+does not establish successful provider execution or confirm task continuity.
+
 An Ollama timeout of zero disables only the evaluator timer. Cancellation and response byte limits remain active. A positive timeout covers metadata, inference headers, and response-body consumption under one budget. The timed contracts exercise production timers with a paused native clock and real synthetic Node timers; they establish deadline and cleanup behavior without claiming equal wall-clock latency.
 
 `inspect_ollama` rejects an invalid local endpoint before transport access and returns a `SetupError` with code `INVALID_CONFIGURATION`. The original JavaScript inspection throws an uncoded `Error` at that boundary; migrating library callers should handle the native code explicitly. `setup_ollama` downloads only when `SetupOptions::pull` authorizes it and the model is missing. An installed model skips the pull, and startup warmup retains its separate deadline and configured keep-alive value.

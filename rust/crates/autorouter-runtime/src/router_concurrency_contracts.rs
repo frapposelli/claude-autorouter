@@ -821,6 +821,7 @@ async fn full_default_work_and_subscriber_limits_recover_after_all_cancellations
             for index in 0..pending_count {
                 assert!(!mock.release(index, Reply::answer("sonnet", 1.0)));
             }
+            classifier.close().await;
             tokio::task::yield_now().await;
             assert_eq!(classifier.pending_counts(), (0, 0));
             assert_eq!(mock.active.load(Ordering::SeqCst), 0);

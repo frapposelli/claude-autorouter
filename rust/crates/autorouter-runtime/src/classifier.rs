@@ -1252,6 +1252,94 @@ mod tests {
         assert_eq!(mock.calls(), 2);
     }
 
+    #[tokio::test(flavor = "current_thread")]
+    async fn cached_decision_bypasses_saturated_work_and_subscriber_limits() {
+        tokio::time::timeout(Duration::from_secs(5), async {
+            let mock = Arc::new(Mock::new(false));
+            let config = config();
+            let classifier = Classifier::with_limits(
+                mock.clone(),
+                &config,
+                Limits {
+                    pending: 2,
+                    subscribers: 3,
+                },
+            )
+            .expect("bounded cache/capacity test limits");
+            let cached_body = document("Synthetic cached task");
+            let seeded = classifier
+                .classify(&cached_body, &config, &CancellationToken::new())
+                .await
+                .unwrap();
+            assert_eq!(seeded.source, DecisionSource::Jev);
+            assert_eq!(mock.calls(), 1);
+            assert_eq!(classifier.pending_counts(), (0, 0));
+
+            mock.blocked.store(true, Ordering::SeqCst);
+            let shared_body = document("Synthetic shared held task");
+            let tokens: Vec<_> = (0..3).map(|_| CancellationToken::new()).collect();
+            let tasks = [
+                start(&classifier, shared_body.clone(), &config, tokens[0].clone()),
+                start(&classifier, shared_body.clone(), &config, tokens[1].clone()),
+                start(
+                    &classifier,
+                    document("Synthetic other held task"),
+                    &config,
+                    tokens[2].clone(),
+                ),
+            ];
+            wait_subscribers(&classifier, 3).await;
+            wait_calls(&mock, 3).await;
+            assert_eq!(classifier.pending_counts(), (2, 3));
+            assert_eq!(classifier.shared.workers.len(), 2);
+            assert_eq!(mock.active.load(Ordering::SeqCst), 2);
+            assert_eq!(mock.waiting.load(Ordering::SeqCst), 2);
+
+            // Prove actual saturation before exercising the cache exemption.
+            for body in [shared_body, document("Synthetic overflow task")] {
+                let refused = classifier
+                    .classify(&body, &config, &CancellationToken::new())
+                    .await
+                    .unwrap();
+                assert_eq!(refused.source, DecisionSource::Fallback);
+                assert_eq!(
+                    refused.classifier_error,
+                    Some(ClassifierError::CapacityExhausted)
+                );
+            }
+            let cached = classifier
+                .classify(&cached_body, &config, &CancellationToken::new())
+                .await
+                .unwrap();
+            assert_eq!(cached.source, DecisionSource::Cache);
+            assert_eq!(cached.tier, seeded.tier);
+            assert_eq!(cached.classifier_error, None);
+            assert_eq!(mock.calls(), 3);
+            assert_eq!(classifier.pending_counts(), (2, 3));
+            assert_eq!(classifier.shared.workers.len(), 2);
+            assert_eq!(mock.active.load(Ordering::SeqCst), 2);
+            assert_eq!(mock.waiting.load(Ordering::SeqCst), 2);
+
+            for token in &tokens {
+                token.cancel();
+            }
+            for task in tasks {
+                assert!(matches!(
+                    task.await.unwrap(),
+                    Err(EvaluationError::Cancelled)
+                ));
+            }
+            classifier.close().await;
+            assert_eq!(classifier.pending_counts(), (0, 0));
+            assert_eq!(classifier.shared.workers.len(), 0);
+            assert_eq!(mock.active.load(Ordering::SeqCst), 0);
+            assert_eq!(mock.waiting.load(Ordering::SeqCst), 0);
+            assert_eq!(mock.calls(), 3);
+        })
+        .await
+        .expect("cache/capacity schedule exceeded its independent deadline");
+    }
+
     #[tokio::test(start_paused = true)]
     async fn successful_cache_is_bounded_lru_with_expiration_but_failures_are_not_cached() {
         let mock = Arc::new(Mock::new(false));

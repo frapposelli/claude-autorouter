@@ -1,0 +1,1373 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_classifier_capacity_limit_obligation_mapping",
+  "status": "qualified_for_only_two_classifier_capacity_limit_rows",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "checkpoint_base": "38bc7cd5c48ae94a2fe1c0358a38e5f57be0479e",
+  "source_state": "working_tree_with_two_test_only_files_changed",
+  "release_approved": false,
+  "default_cutover_approved": false,
+  "only_limit_ids": [
+    "pending_evaluations",
+    "evaluation_subscribers"
+  ],
+  "scope": "Only fixed classifier pending-work 256 and subscriber 1024 limits, their bounded native constructor/cancellation/owner-cleanup obligations, and the cache admission exemption. No original-definition promotion, area completion, other limit/key qualification, provider/model-quality or numerical performance claim.",
+  "declaration": {
+    "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/declaration.json",
+    "bytes": 3736,
+    "sha256": "3efe787c286183866f957ff629eb22463bfb00ff6d4a1a71160f2d27343576ac"
+  },
+  "preapplication_review": {
+    "path": "artifacts/rust-rewrite/classifier-limits-audit-20261017-1/independent-preapplication-review.json",
+    "bytes": 17899,
+    "sha256": "73127c1b65cb20fbed02fead40e7069f680bb9b1f09727e583c7a2deaa3c4e8a"
+  },
+  "historical_obligation_draft": {
+    "path": "artifacts/rust-rewrite/classifier-limits-audit-20261017-1/obligation-draft.json",
+    "bytes": 22816,
+    "sha256": "4451cf46ffff408654d4be460c3cb87550ff8d18a752ac3c5a2aca38f74f91a4"
+  },
+  "original_contract": {
+    "definition": "test/router-concurrency.test.mjs#8",
+    "name": "pending evaluations and their subscribers are independently bounded and recover after cancellation",
+    "statement": "test('pending evaluations and their subscribers are independently bounded and recover after cancellation', async () => {\n  for (const dimension of ['pending', 'subscribers']) {\n    const { router, requests } = heldRouter();\n    const controllers = Array.from({ length: CLASSIFICATION_LIMITS[dimension] }, () => new AbortController());\n    const pending = controllers.map((controller, index) => router.classify(body(dimension === 'pending' ? String(index) : 'same'), controller.signal));\n    const outcomes = Promise.allSettled(pending);\n    const extra = await router.classify(body('overflow'));\n    assert.equal(extra.source, 'fallback');\n    assert.equal(extra.classifier_error, 'capacity_exhausted');\n    assert.equal(router.pendingEvaluations.size, dimension === 'pending' ? CLASSIFICATION_LIMITS.pending : 1);\n    assert.equal(router.evaluationSubscribers, CLASSIFICATION_LIMITS[dimension]);\n    controllers.forEach(controller => controller.abort()); await outcomes;\n    assert.equal(router.pendingEvaluations.size, 0);\n    assert.equal(router.evaluationSubscribers, 0);\n    assert.ok(requests.every(request => request.signal.aborted));\n    const retry = router.classify(body('overflow')); await settle();\n    requests.at(-1).resolve(answer());\n    assert.equal((await retry).source, 'jev');\n    requests.forEach(request => request.resolve(answer()));\n    await settle();\n  }\n});",
+    "statement_sha256": "63a8e0e5511df9f167a57d555218c739ae2d55d2d2b50c1c00ef2f6f686d25c5",
+    "statement_bytes": 1384,
+    "call_expression_sha256": "5a3e8792bf50e5bde208e0c8733639b5d68a33281c5fdaa1c3519ecf910a56f5",
+    "hash_framing": "Exact statement includes trailing semicolon; historical CallExpression capture excludes only that semicolon. Neither historical identity is rewritten.",
+    "static_assertion_sites": 8,
+    "expanded_assertion_instances": 16,
+    "dimensions": [
+      {
+        "iteration": 0,
+        "pending_keys": 256,
+        "subscribers": 256,
+        "overflow_caller": 257
+      },
+      {
+        "iteration": 1,
+        "pending_keys": 1,
+        "subscribers": 1024,
+        "overflow_caller": 1025
+      }
+    ],
+    "source_file": {
+      "path": "artifacts/rust-rewrite/reference/test/router-concurrency.test.mjs",
+      "bytes": 11288,
+      "sha256": "63018e55137449a30129d48daff6b81f724d66fd6694f74eefeba43342db3836"
+    },
+    "source_runtime": {
+      "path": "artifacts/rust-rewrite/reference/src/router.mjs",
+      "bytes": 27898,
+      "sha256": "aebf10268348f00b6c8cdc82ef9ced2d60c8e1cc0ddeee7c3498bcaf100b9d56"
+    },
+    "unchanged_assertion_capture": {
+      "path": "rust/parity/cases/router-concurrency-contracts.capture.json",
+      "bytes": 1358,
+      "sha256": "5a5b1599518e092be0abe54ce0f210eb487ed63000ed73c154c0ab6801c60c29"
+    },
+    "unchanged_assertion_cases": {
+      "path": "rust/parity/cases/router-concurrency-contracts.jsonl",
+      "bytes": 27645,
+      "sha256": "ef5ee89a0b9407ff2e632d4355e7c67653fb578ac7f837069e63d986f0f70f0c"
+    }
+  },
+  "historical_mapping_preserved": {
+    "path": "rust/parity/assertion-mappings/router-concurrency-contracts.json",
+    "bytes": 87589,
+    "sha256": "c4d1d98483c7011849dc0dac7923c710563861726446415cc1565fa070d0faa0"
+  },
+  "existing_original_row_action": "No mutation. This definition is already covered; its unchanged assertions support only two separately pending inventory rows.",
+  "historical_raw_control_availability": {
+    "declared_identity": {
+      "path": "artifacts/rust-rewrite/evidence/309861148cb6fccca88d32f1ceec2d45e34d694c56eedece7bbfba3b10765064.log",
+      "sha256": "309861148cb6fccca88d32f1ceec2d45e34d694c56eedece7bbfba3b10765064",
+      "original_path": "artifacts/rust-rewrite/seventh-router-concurrency-frozen-control.log"
+    },
+    "available_at_declared_local_path": false,
+    "available_at_original_local_path": false,
+    "raw_bytes_reverified": false,
+    "scope": "Historical identity/success stay historical and are not reverified raw execution. After cleanup both paths were absent; root authorized one fresh unchanged original #8 callback to replace the unavailable control in this supplement."
+  },
+  "historical_control_independent_review": {
+    "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/historical-control-review.json",
+    "bytes": 14934,
+    "sha256": "1f24a7e055932aae4106574650b3b14e4b7b5a00be9c8c6d992131619634952a"
+  },
+  "fresh_original_control": {
+    "status": "passed_independently_reviewed",
+    "report": {
+      "path": "artifacts/rust-rewrite/classifier-limit-original-20261017-1/report.json",
+      "bytes": 4321,
+      "sha256": "46fb284202adcac3e615835cfdee7bb45bfa1ff5eca17b88d58ca402bc67ee42"
+    },
+    "declaration": {
+      "path": "artifacts/rust-rewrite/classifier-limit-original-20261017-1/declaration.json",
+      "bytes": 4543,
+      "sha256": "75304dea11e98c06d1fa7be2a229a0a4c87eb53451192774b9b812983658f263"
+    },
+    "runner": {
+      "path": "artifacts/rust-rewrite/classifier-limit-original-20261017-1/run.mjs",
+      "bytes": 5564,
+      "sha256": "d380f9588b4aa13a0fbd1ee6b73de1a518d958ba1f6e30506b374bbcb92d7476"
+    },
+    "stdout": {
+      "path": "artifacts/rust-rewrite/classifier-limit-original-20261017-1/stdout.tap",
+      "bytes": 368,
+      "sha256": "43209c6d7e73bb37a4a87ab6190d8883a0abc48a4bbb85f42161009d5d4d33d9"
+    },
+    "stderr": {
+      "path": "artifacts/rust-rewrite/classifier-limit-original-20261017-1/stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "statement": {
+      "path": "artifacts/rust-rewrite/classifier-limit-original-20261017-1/definition-8.mjs.txt",
+      "bytes": 1384,
+      "sha256": "63a8e0e5511df9f167a57d555218c739ae2d55d2d2b50c1c00ef2f6f686d25c5"
+    },
+    "source": {
+      "path": "artifacts/rust-rewrite/classifier-limit-original-20261017-1/router-concurrency.test.mjs",
+      "bytes": 11288,
+      "sha256": "63018e55137449a30129d48daff6b81f724d66fd6694f74eefeba43342db3836"
+    },
+    "router_source": {
+      "path": "artifacts/rust-rewrite/classifier-limit-original-20261017-1/router.mjs",
+      "bytes": 27898,
+      "sha256": "aebf10268348f00b6c8cdc82ef9ced2d60c8e1cc0ddeee7c3498bcaf100b9d56"
+    },
+    "baseline_manifest": {
+      "path": "artifacts/rust-rewrite/classifier-limit-original-20261017-1/baseline.json",
+      "bytes": 86691,
+      "sha256": "6722bd7a0109efb4d48e743412fbcc21affb0ceda1058d06726d03375113f588"
+    },
+    "actual_callbacks": 1,
+    "static_assertion_sites": 8,
+    "expanded_instances": 16,
+    "unchanged_files_before_after": 111,
+    "exit_code": 0,
+    "signal": null,
+    "timeout_ms": 10000,
+    "max_buffer_bytes": 1048576,
+    "scope": "One fresh actual unchanged callback replaces missing local raw historical proof without rewriting it. Frozen source is executed directly with no callback/assertion transformation. AST inspection establishes eight sites; the literal two-dimension successful callback establishes 16 instances. Original-definition rows remain unchanged.",
+    "independent_source_control_review": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/fresh-control-review.json",
+      "bytes": 4997,
+      "sha256": "1299a9a4913a5ad33ff53bca05ccf6e2e8b2106f578a78df5f1f0932d23d8ffa"
+    }
+  },
+  "current_native_code_sources": [
+    {
+      "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+      "bytes": 56627,
+      "sha256": "4106bdd945b47738b51a54e17098d68d1ed3e49f6ab652d4854544a42e94f8a8"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/router_concurrency_contracts.rs",
+      "bytes": 33674,
+      "sha256": "02b1e88225b667b56de27fc29c645145d20d9742f3ba98c798a8345558ae0ccd"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/classifier_cancellation_contracts.rs",
+      "bytes": 14312,
+      "sha256": "1920f0e2a0295d0c08f0ef12ec9f931cd43d82fb77e794e126cd08d6541edc83"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/classifier_shutdown_contracts.rs",
+      "bytes": 9020,
+      "sha256": "4f8e5b5a27eb31d0b3136968552404c0a1314b3fb98d7156af62455e303be6a2"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/classifier_shutdown_gate.rs",
+      "bytes": 3852,
+      "sha256": "19d411676477c2f8a22251978e6d49c61be7d9a12f31adef87a84dd8be7ecf68"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/evaluator.rs",
+      "bytes": 43904,
+      "sha256": "61fde01fc4e29420d96369424f8979c8af7025dffcde629fc1925c0f506a18ce"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/router.rs",
+      "bytes": 59843,
+      "sha256": "3cd16029b87618a89dc0f8ee0299b4426535c15c4d5442dce8cafa22baf60251"
+    }
+  ],
+  "reviewed_embedding_document": {
+    "path": "rust/docs/embedding.md",
+    "bytes": 28349,
+    "sha256": "1e670a6b5c53ffb07e80e5bf71e4b7b6dc617d6281ef41a6221f0d14f73b0590"
+  },
+  "plan": {
+    "path": "docs/rust-rewrite-plan.md",
+    "bytes": 45398,
+    "sha256": "7ad1d36a97c56a8c952bf5bd9a3b9e34991fae53082c64e03c48c2110b68bb34"
+  },
+  "source_before_build": {
+    "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/source-inputs-before-build.json",
+    "bytes": 116635,
+    "sha256": "b8049714d9cfdfb7f62e09419aca2db866f453af6d08acefaf8b8e6ee6299448"
+  },
+  "source_patch_before_build": {
+    "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/source-before-build.patch",
+    "bytes": 6825,
+    "sha256": "489f465c25429e93c7217a38d2dbf51cbc7ff40ba93d263b8034738ebdb11b87"
+  },
+  "source_binding_review": {
+    "declared_public_input_count": 694,
+    "current_relevant_declared_code_inputs_match": true,
+    "classifier_before_snapshot": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/classifier-before.rs",
+      "bytes": 52810,
+      "sha256": "db29a1036cf450dd9bf3b6148eb47441eb3b1a16f2df31d1513ac001b4eae5b5"
+    },
+    "concurrency_before_snapshot": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/router-concurrency-before.rs",
+      "bytes": 33636,
+      "sha256": "27fcbce0d6344ea2a8892af55b75e56d83e8a6c04bd04aadc9175a022004b687"
+    },
+    "classifier_production_prefix_byte_identical": true,
+    "new_production_logic": false,
+    "new_dependency": false,
+    "note": "Applied cache test differs from its unapplied draft only by formatting its matches! assertion; the other change awaits close before existing default-dimension final checks. Embedding prose is separately pinned, outside the 694 build-input declaration. Actual local binary binding is verified by the focused and full-check receipts below; shipping provenance remains separate.",
+    "all_current_declared_inputs_verified_by_independent_focused_review": 694,
+    "binary_binding_status": "Actual Cargo JSON artifact/copy hashes, all17exact invocations, full workspace/helper receipts and all694unchanged build inputs independently verified. Shipping provenance remains separate.",
+    "constructor_ownership_precision": "with_limits temporarily owns its by-value Arc argument before validation returns; invalid calls retain no transport/Shared/worker afterward and make no request. The ordinary regression proves Arc strong_count returns to1, not absence of temporary argument ownership."
+  },
+  "per_assertion_reuse": [
+    {
+      "id": "test/router-concurrency.test.mjs#8/assert-1",
+      "source_line": 138,
+      "expression": "assert.equal(extra.source, 'fallback')",
+      "source_iterations": [
+        0,
+        1
+      ],
+      "expanded_instances": 2,
+      "native_symbol": "router::concurrency_contracts::full_default_work_and_subscriber_limits_recover_after_all_cancellations",
+      "native_observation": {
+        "path": "rust/crates/autorouter-runtime/src/router_concurrency_contracts.rs",
+        "line": 795,
+        "statement": "observed.value(1, json!(extra.source));",
+        "assertion_index": 1
+      },
+      "captured_case": "test/router-concurrency.test.mjs#8",
+      "status": "represented_by_actual_original_and_native_execution",
+      "execution_result": {
+        "result": "passed",
+        "receipt_ref": "#/actual_focused_receipts/progress",
+        "row": 0
+      },
+      "capture_selection": {
+        "case_number": 8,
+        "assertion_id": "test/router-concurrency.test.mjs#8/assert-1",
+        "iterations": [
+          0,
+          1
+        ],
+        "count": 2,
+        "selected_records_canonical_sha256": "9cc5e28844d5ab130b21a840bd66af9709d1d5a5cea16c4264dfac41ccd440f8"
+      },
+      "captured_checked_values_by_iteration": [
+        "fallback",
+        "fallback"
+      ]
+    },
+    {
+      "id": "test/router-concurrency.test.mjs#8/assert-2",
+      "source_line": 139,
+      "expression": "assert.equal(extra.classifier_error, 'capacity_exhausted')",
+      "source_iterations": [
+        0,
+        1
+      ],
+      "expanded_instances": 2,
+      "native_symbol": "router::concurrency_contracts::full_default_work_and_subscriber_limits_recover_after_all_cancellations",
+      "native_observation": {
+        "path": "rust/crates/autorouter-runtime/src/router_concurrency_contracts.rs",
+        "line": 796,
+        "statement": "observed.value(2, json!(extra.classifier_error));",
+        "assertion_index": 2
+      },
+      "captured_case": "test/router-concurrency.test.mjs#8",
+      "status": "represented_by_actual_original_and_native_execution",
+      "execution_result": {
+        "result": "passed",
+        "receipt_ref": "#/actual_focused_receipts/progress",
+        "row": 0
+      },
+      "capture_selection": {
+        "case_number": 8,
+        "assertion_id": "test/router-concurrency.test.mjs#8/assert-2",
+        "iterations": [
+          0,
+          1
+        ],
+        "count": 2,
+        "selected_records_canonical_sha256": "df820cc6aa3548c07cf62890f055a6e7a4e23d0a2dc1c7f873cf9afcf568e5f6"
+      },
+      "captured_checked_values_by_iteration": [
+        "capacity_exhausted",
+        "capacity_exhausted"
+      ]
+    },
+    {
+      "id": "test/router-concurrency.test.mjs#8/assert-3",
+      "source_line": 140,
+      "expression": "assert.equal(router.pendingEvaluations.size, dimension === 'pending' ? CLASSIFICATION_LIMITS.pending : 1)",
+      "source_iterations": [
+        0,
+        1
+      ],
+      "expanded_instances": 2,
+      "native_symbol": "router::concurrency_contracts::full_default_work_and_subscriber_limits_recover_after_all_cancellations",
+      "native_observation": {
+        "path": "rust/crates/autorouter-runtime/src/router_concurrency_contracts.rs",
+        "line": 797,
+        "statement": "observed.value(3, json!(classifier.pending_counts().0));",
+        "assertion_index": 3
+      },
+      "captured_case": "test/router-concurrency.test.mjs#8",
+      "status": "represented_by_actual_original_and_native_execution",
+      "execution_result": {
+        "result": "passed",
+        "receipt_ref": "#/actual_focused_receipts/progress",
+        "row": 0
+      },
+      "capture_selection": {
+        "case_number": 8,
+        "assertion_id": "test/router-concurrency.test.mjs#8/assert-3",
+        "iterations": [
+          0,
+          1
+        ],
+        "count": 2,
+        "selected_records_canonical_sha256": "c69be5dcb2d4dcfd49002151521816f7c9f0bfc6e99c8e9b97aa1d513ec9269c"
+      },
+      "captured_checked_values_by_iteration": [
+        256,
+        1
+      ]
+    },
+    {
+      "id": "test/router-concurrency.test.mjs#8/assert-4",
+      "source_line": 141,
+      "expression": "assert.equal(router.evaluationSubscribers, CLASSIFICATION_LIMITS[dimension])",
+      "source_iterations": [
+        0,
+        1
+      ],
+      "expanded_instances": 2,
+      "native_symbol": "router::concurrency_contracts::full_default_work_and_subscriber_limits_recover_after_all_cancellations",
+      "native_observation": {
+        "path": "rust/crates/autorouter-runtime/src/router_concurrency_contracts.rs",
+        "line": 798,
+        "statement": "observed.value(4, json!(classifier.pending_counts().1));",
+        "assertion_index": 4
+      },
+      "captured_case": "test/router-concurrency.test.mjs#8",
+      "status": "represented_by_actual_original_and_native_execution",
+      "execution_result": {
+        "result": "passed",
+        "receipt_ref": "#/actual_focused_receipts/progress",
+        "row": 0
+      },
+      "capture_selection": {
+        "case_number": 8,
+        "assertion_id": "test/router-concurrency.test.mjs#8/assert-4",
+        "iterations": [
+          0,
+          1
+        ],
+        "count": 2,
+        "selected_records_canonical_sha256": "9a27062a53c84146ce27a93410e8fe86dc0435893386bee11dfca3e6f5b3cb7a"
+      },
+      "captured_checked_values_by_iteration": [
+        256,
+        1024
+      ]
+    },
+    {
+      "id": "test/router-concurrency.test.mjs#8/assert-5",
+      "source_line": 143,
+      "expression": "assert.equal(router.pendingEvaluations.size, 0)",
+      "source_iterations": [
+        0,
+        1
+      ],
+      "expanded_instances": 2,
+      "native_symbol": "router::concurrency_contracts::full_default_work_and_subscriber_limits_recover_after_all_cancellations",
+      "native_observation": {
+        "path": "rust/crates/autorouter-runtime/src/router_concurrency_contracts.rs",
+        "line": 809,
+        "statement": "observed.value(5, json!(classifier.pending_counts().0));",
+        "assertion_index": 5
+      },
+      "captured_case": "test/router-concurrency.test.mjs#8",
+      "status": "represented_by_actual_original_and_native_execution",
+      "execution_result": {
+        "result": "passed",
+        "receipt_ref": "#/actual_focused_receipts/progress",
+        "row": 0
+      },
+      "capture_selection": {
+        "case_number": 8,
+        "assertion_id": "test/router-concurrency.test.mjs#8/assert-5",
+        "iterations": [
+          0,
+          1
+        ],
+        "count": 2,
+        "selected_records_canonical_sha256": "a677b465bd6e3bd3a75406e516cf9ac059a44076f6f0a9f1e9b81a1ccf2ee7e4"
+      },
+      "captured_checked_values_by_iteration": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "test/router-concurrency.test.mjs#8/assert-6",
+      "source_line": 144,
+      "expression": "assert.equal(router.evaluationSubscribers, 0)",
+      "source_iterations": [
+        0,
+        1
+      ],
+      "expanded_instances": 2,
+      "native_symbol": "router::concurrency_contracts::full_default_work_and_subscriber_limits_recover_after_all_cancellations",
+      "native_observation": {
+        "path": "rust/crates/autorouter-runtime/src/router_concurrency_contracts.rs",
+        "line": 810,
+        "statement": "observed.value(6, json!(classifier.pending_counts().1));",
+        "assertion_index": 6
+      },
+      "captured_case": "test/router-concurrency.test.mjs#8",
+      "status": "represented_by_actual_original_and_native_execution",
+      "execution_result": {
+        "result": "passed",
+        "receipt_ref": "#/actual_focused_receipts/progress",
+        "row": 0
+      },
+      "capture_selection": {
+        "case_number": 8,
+        "assertion_id": "test/router-concurrency.test.mjs#8/assert-6",
+        "iterations": [
+          0,
+          1
+        ],
+        "count": 2,
+        "selected_records_canonical_sha256": "aa84fae319cc8fc967e1cabff4c7158ed782fa649058cd139270e01ef7044337"
+      },
+      "captured_checked_values_by_iteration": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "test/router-concurrency.test.mjs#8/assert-7",
+      "source_line": 145,
+      "expression": "assert.ok(requests.every(request => request.signal.aborted))",
+      "source_iterations": [
+        0,
+        1
+      ],
+      "expanded_instances": 2,
+      "native_symbol": "router::concurrency_contracts::full_default_work_and_subscriber_limits_recover_after_all_cancellations",
+      "native_observation": {
+        "path": "rust/crates/autorouter-runtime/src/router_concurrency_contracts.rs",
+        "line": 811,
+        "statement": "observed.value(7, json!((0..mock.count()).all(|index| mock.aborted(index))));",
+        "assertion_index": 7
+      },
+      "captured_case": "test/router-concurrency.test.mjs#8",
+      "status": "represented_by_actual_original_and_native_execution",
+      "execution_result": {
+        "result": "passed",
+        "receipt_ref": "#/actual_focused_receipts/progress",
+        "row": 0
+      },
+      "capture_selection": {
+        "case_number": 8,
+        "assertion_id": "test/router-concurrency.test.mjs#8/assert-7",
+        "iterations": [
+          0,
+          1
+        ],
+        "count": 2,
+        "selected_records_canonical_sha256": "c0340ceb3fd69658a725d2fc57ff84404c780a51635bae65988092a7e78376db"
+      },
+      "captured_checked_values_by_iteration": [
+        true,
+        true
+      ]
+    },
+    {
+      "id": "test/router-concurrency.test.mjs#8/assert-8",
+      "source_line": 148,
+      "expression": "assert.equal((await retry).source, 'jev')",
+      "source_iterations": [
+        0,
+        1
+      ],
+      "expanded_instances": 2,
+      "native_symbol": "router::concurrency_contracts::full_default_work_and_subscriber_limits_recover_after_all_cancellations",
+      "native_observation": {
+        "path": "rust/crates/autorouter-runtime/src/router_concurrency_contracts.rs",
+        "line": 820,
+        "statement": "observed.value(8, json!(retry.await.unwrap().unwrap().source));",
+        "assertion_index": 8
+      },
+      "captured_case": "test/router-concurrency.test.mjs#8",
+      "status": "represented_by_actual_original_and_native_execution",
+      "execution_result": {
+        "result": "passed",
+        "receipt_ref": "#/actual_focused_receipts/progress",
+        "row": 0
+      },
+      "capture_selection": {
+        "case_number": 8,
+        "assertion_id": "test/router-concurrency.test.mjs#8/assert-8",
+        "iterations": [
+          0,
+          1
+        ],
+        "count": 2,
+        "selected_records_canonical_sha256": "1147af564c9da9a1977271b43944b80c8e3a1ac0b80f0ef28026ef582ac44035"
+      },
+      "captured_checked_values_by_iteration": [
+        "jev",
+        "jev"
+      ]
+    }
+  ],
+  "limit_rows": [
+    {
+      "inventory_id": "pending_evaluations",
+      "baseline_value": 256,
+      "existing_inventory_row": {
+        "id": "pending_evaluations",
+        "baseline_value": 256,
+        "source": "src/router.mjs",
+        "tests": [
+          "test/router-concurrency.test.mjs"
+        ],
+        "status": "pending",
+        "evidence": null
+      },
+      "proposed_scope": "Only this named hard classifier limit; no cache, body, response, speculative-count or configuration-key signoff.",
+      "obligations": [
+        {
+          "id": "pending_evaluations/fixed_ceiling",
+          "requirement": "Baseline pending ceiling is immutable 256; native defaults equal that ceiling and cannot be raised by the public constructor.",
+          "baseline": "reference/src/router.mjs:24 and :202-204",
+          "native": "classifier.rs:32-55 and :373-380",
+          "status": "reviewed_local_validation_complete",
+          "native_test_ids": [
+            "T01",
+            "T02",
+            "T04"
+          ]
+        },
+        {
+          "id": "pending_evaluations/exact_boundary",
+          "requirement": "256 distinct uncached keys are admitted; key 257 receives Fallback/CapacityExhausted without becoming a subscriber or launching work.",
+          "baseline_assertion_refs": [
+            "test/router-concurrency.test.mjs#8/assert-1",
+            "test/router-concurrency.test.mjs#8/assert-2",
+            "test/router-concurrency.test.mjs#8/assert-3",
+            "test/router-concurrency.test.mjs#8/assert-4"
+          ],
+          "captured_iteration": 0,
+          "status": "reviewed_local_validation_complete",
+          "native_test_ids": [
+            "T01"
+          ]
+        },
+        {
+          "id": "pending_evaluations/independent_joining",
+          "requirement": "At the work ceiling an existing key may still accept a subscriber when its independent subscriber budget has room. Retiring/reserved native worker futures retain work capacity until destruction.",
+          "status": "reviewed_local_validation_complete",
+          "native_test_ids": [
+            "T04",
+            "T05",
+            "T09",
+            "T10"
+          ]
+        },
+        {
+          "id": "pending_evaluations/lowered_zero_oversize",
+          "requirement": "Native with_limits permits independent lower values and zero; 257 and usize::MAX in pending are rejected with Invalid classifier limits. Zero pending closes uncached admission without evaluator I/O.",
+          "migration": "Native-only bounded embedding API; JavaScript exposes no lowered/zero constructor limits. Rust usize excludes negative, fractional, NaN and Infinity inputs at the type boundary; do not invent JavaScript execution parity for these values.",
+          "status": "reviewed_local_validation_complete",
+          "native_test_ids": [
+            "T02",
+            "T03"
+          ]
+        },
+        {
+          "id": "pending_evaluations/cancel_recover",
+          "requirement": "After cancelling every admitted waiter, join all caller tasks, observe both registries empty and every evaluator request aborted/dropped, then admit and successfully evaluate the same overflow key. Capacity fallback must not become a successful cache value.",
+          "baseline_assertion_refs": [
+            "test/router-concurrency.test.mjs#8/assert-5",
+            "test/router-concurrency.test.mjs#8/assert-6",
+            "test/router-concurrency.test.mjs#8/assert-7",
+            "test/router-concurrency.test.mjs#8/assert-8"
+          ],
+          "captured_iteration": 0,
+          "status": "reviewed_local_validation_complete",
+          "native_test_ids": [
+            "T01"
+          ]
+        },
+        {
+          "id": "pending_evaluations/cache_before_capacity",
+          "requirement": "At simultaneous pending/subscriber saturation, a successful cached decision returns with no evaluator dispatch or capacity mutation. Cancel/join all held callers and close/drain actual workers.",
+          "status": "reviewed_local_validation_complete",
+          "native_test_ids": [
+            "T17"
+          ]
+        },
+        {
+          "id": "pending_evaluations/cancellation_and_close_before_cache",
+          "requirement": "Already-cancelled calls cannot return cached decisions or issue I/O. Terminal close prevents cached and uncached admission; reusable shutdown remains distinct.",
+          "status": "reviewed_local_validation_complete",
+          "native_test_ids": [
+            "T16",
+            "T10"
+          ]
+        }
+      ],
+      "status": "qualified_for_only_this_named_classifier_limit",
+      "proposed_admission_status": "qualified_for_only_this_named_classifier_limit_after_review"
+    },
+    {
+      "inventory_id": "evaluation_subscribers",
+      "baseline_value": 1024,
+      "existing_inventory_row": {
+        "id": "evaluation_subscribers",
+        "baseline_value": 1024,
+        "source": "src/router.mjs",
+        "tests": [
+          "test/router-concurrency.test.mjs"
+        ],
+        "status": "pending",
+        "evidence": null
+      },
+      "proposed_scope": "Only this named hard classifier limit; no cache, body, response, speculative-count or configuration-key signoff.",
+      "obligations": [
+        {
+          "id": "evaluation_subscribers/fixed_ceiling",
+          "requirement": "Baseline subscribers ceiling is immutable 1024; native defaults equal that ceiling and cannot be raised by the public constructor.",
+          "baseline": "reference/src/router.mjs:24 and :202-204",
+          "native": "classifier.rs:32-55 and :373-380",
+          "status": "reviewed_local_validation_complete",
+          "native_test_ids": [
+            "T01",
+            "T02",
+            "T04"
+          ]
+        },
+        {
+          "id": "evaluation_subscribers/exact_boundary",
+          "requirement": "1024 live subscribers sharing one key are admitted; subscriber 1025 receives Fallback/CapacityExhausted without increasing either count or launching work.",
+          "baseline_assertion_refs": [
+            "test/router-concurrency.test.mjs#8/assert-1",
+            "test/router-concurrency.test.mjs#8/assert-2",
+            "test/router-concurrency.test.mjs#8/assert-3",
+            "test/router-concurrency.test.mjs#8/assert-4"
+          ],
+          "captured_iteration": 1,
+          "status": "reviewed_local_validation_complete",
+          "native_test_ids": [
+            "T01"
+          ]
+        },
+        {
+          "id": "evaluation_subscribers/independent_joining",
+          "requirement": "The subscriber ceiling applies even to an existing shared key. Cancelling one waiter frees only its slot; remaining waiters and worker remain live.",
+          "status": "reviewed_local_validation_complete",
+          "native_test_ids": [
+            "T04",
+            "T05",
+            "T09",
+            "T10"
+          ]
+        },
+        {
+          "id": "evaluation_subscribers/lowered_zero_oversize",
+          "requirement": "Native with_limits permits independent lower values and zero; 1025 and usize::MAX in subscribers are rejected with Invalid classifier limits. Zero subscribers closes uncached admission without evaluator I/O.",
+          "migration": "Native-only bounded embedding API; JavaScript exposes no lowered/zero constructor limits. Rust usize excludes negative, fractional, NaN and Infinity inputs at the type boundary; do not invent JavaScript execution parity for these values.",
+          "status": "reviewed_local_validation_complete",
+          "native_test_ids": [
+            "T02",
+            "T03"
+          ]
+        },
+        {
+          "id": "evaluation_subscribers/cancel_recover",
+          "requirement": "After cancelling every admitted waiter, join all caller tasks, observe both registries empty and every evaluator request aborted/dropped, then admit and successfully evaluate the same overflow key. Capacity fallback must not become a successful cache value.",
+          "baseline_assertion_refs": [
+            "test/router-concurrency.test.mjs#8/assert-5",
+            "test/router-concurrency.test.mjs#8/assert-6",
+            "test/router-concurrency.test.mjs#8/assert-7",
+            "test/router-concurrency.test.mjs#8/assert-8"
+          ],
+          "captured_iteration": 1,
+          "status": "reviewed_local_validation_complete",
+          "native_test_ids": [
+            "T01"
+          ]
+        },
+        {
+          "id": "evaluation_subscribers/cache_before_capacity",
+          "requirement": "At simultaneous pending/subscriber saturation, a successful cached decision returns with no evaluator dispatch or capacity mutation. Cancel/join all held callers and close/drain actual workers.",
+          "status": "reviewed_local_validation_complete",
+          "native_test_ids": [
+            "T17"
+          ]
+        },
+        {
+          "id": "evaluation_subscribers/cancellation_and_close_before_cache",
+          "requirement": "Already-cancelled calls cannot return cached decisions or issue I/O. Terminal close prevents cached and uncached admission; reusable shutdown remains distinct.",
+          "status": "reviewed_local_validation_complete",
+          "native_test_ids": [
+            "T16",
+            "T10"
+          ]
+        }
+      ],
+      "status": "qualified_for_only_this_named_classifier_limit",
+      "proposed_admission_status": "qualified_for_only_this_named_classifier_limit_after_review"
+    }
+  ],
+  "shared_lifecycle_obligations": [
+    {
+      "id": "independent_waiter_cancel",
+      "requirement": "One cancelled waiter returns without waiting for a live peer; the shared request and remaining subscriber survive. Cancellation of all tokens includes peers not polled again.",
+      "native_test_ids": [
+        "T05",
+        "T06"
+      ],
+      "status": "reviewed_local_validation_complete"
+    },
+    {
+      "id": "exact_generation_and_no_abandoned_cache",
+      "requirement": "Old cancellation/completion cannot cancel, remove or cache over a same-key replacement. A genuinely successful live generation may still cache.",
+      "native_test_ids": [
+        "T07",
+        "T08",
+        "T13",
+        "T14"
+      ],
+      "status": "reviewed_local_validation_complete"
+    },
+    {
+      "id": "retiring_worker_and_close",
+      "requirement": "Resource accounting includes reserved/unpolled/retiring workers; replacement/coalescing does not exceed the limit. close is terminal, joins actual worker destruction, and another close waiter can resume a dropped waiter. Reusable shutdown only requests cancellation. Caller-owned classification futures must also be cancelled/dropped and joined.",
+      "native_test_ids": [
+        "T09",
+        "T10",
+        "T11",
+        "T12"
+      ],
+      "status": "reviewed_local_validation_complete"
+    },
+    {
+      "id": "failed_result_not_cached",
+      "requirement": "HTTP/evaluator fallback is not reused as a successful classifier decision.",
+      "scope_limit": "This named test also covers cache size/TTL; those separate inventory limits remain pending.",
+      "native_test_ids": [
+        "T15"
+      ],
+      "status": "reviewed_local_validation_complete"
+    }
+  ],
+  "typed_api_and_resource_migrations": [
+    {
+      "boundary": "constructor_input_domain",
+      "native": "Limits has usize fields; with_limits accepts independent lower bounds including zero, rejects pending>256 or subscribers>1024 before shared worker construction; new keeps exact defaults.",
+      "source": "Frozen JavaScript CLASSIFICATION_LIMITS is 256/1024 with no lowered/zero constructor.",
+      "review": "This is an additive bounded embedding API. Negative/fractional/nonfinite dynamic values are excluded by usize; impossible Rust calls and blanket configuration-key parity are not claimed. Four actual oversized controls and three zero-capacity runtime schedules still require execution."
+    },
+    {
+      "boundary": "reserved_and_retiring_workers",
+      "native": "Pending accounting charges TaskTracker futures before spawn and while retired until destruction; same-key coalescing remains possible with a subscriber slot.",
+      "source": "The JavaScript gate charges live Map entries. Removing a last-subscriber entry can permit replacement while an abort-ignoring old fetch survives.",
+      "review": "Native ownership is intentionally stronger and can temporarily refuse that replacement. Retiring/reservation/coalescing/terminal-close tests and embedding prose make this a reviewed resource migration, not exact equality of every scheduling window."
+    },
+    {
+      "boundary": "cancellation_reason_and_close",
+      "native": "Cancellation returns EvaluationError::Cancelled; last-owner cancellation waits for its exact worker, terminal close drains classifier-owned futures.",
+      "source": "Original #8 asserts aborted request signals; arbitrary reason identity belongs to other definitions.",
+      "review": "No arbitrary JavaScript Error/reason identity parity is claimed. Caller-owned requests still require cancellation/drop and joining; custom transport background tasks remain their owner responsibility."
+    },
+    {
+      "boundary": "cache_and_measurement_scope",
+      "native": "Cache precedes both capacity guards, after precancellation and terminal-close checks. New regression observes actual mock HttpTransport future entry/drop, real registries and owned workers.",
+      "review": "This qualifies the cache admission exemption only for these two guards. It does not qualify separate cache-entry/TTL inventory rows, actual provider request counts, local evaluator latency, automatic routing quality or performance gates."
+    }
+  ],
+  "additional_native_observations": {
+    "cache_saturation": {
+      "symbol": "classifier::tests::cached_decision_bypasses_saturated_work_and_subscriber_limits",
+      "before": "Seed actual Jev result: calls1; then hold 2 keys/3 subscribers: calls3, active2, waiting2, workers2 and pending/subscribers(2,3); same/new uncached calls both actually return capacity fallback.",
+      "cached": "Cache source, seeded tier, no error, calls3 and all counts unchanged.",
+      "after": "Cancel three retained tokens, await every caller Cancelled, await terminal close; pending/subscribers/workers/active/waiting0 and calls3."
+    },
+    "maximum_terminal_drain": {
+      "symbol": "router::concurrency_contracts::full_default_work_and_subscriber_limits_recover_after_all_cancellations",
+      "path": "rust/crates/autorouter-runtime/src/router_concurrency_contracts.rs",
+      "line": 824,
+      "statement": "classifier.close().await;",
+      "scope": "Both exact-default dimensions retain all 16 observations and failed late old sends, then await close and recheck empty registries/no active transport. No private TaskTracker seam added."
+    },
+    "precancelled_cache": {
+      "symbol": "classifier::tests::already_cancelled_calls_skip_network_and_cached_decisions",
+      "scope": "Typed Cancelled before cold request and cached decision; actual mock calls0 before seed and1 after seed."
+    }
+  },
+  "actual_native_binary": {
+    "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/runtime-binary.json",
+    "bytes": 1651,
+    "sha256": "6002317bc55e3d7a66ee8689e49ad362ee83f34e258230ee8463c23ffedece1d"
+  },
+  "actual_focused_receipts": {
+    "status": "passed",
+    "tests": 17,
+    "failures": 0,
+    "progress": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/focused-progress.json",
+      "bytes": 19763,
+      "sha256": "61f22f3ffcdd587648c06389f307dd8f8b111caa02f68ab0f27d79520966c277"
+    },
+    "procedure": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/run-focused.py",
+      "bytes": 2596,
+      "sha256": "1e72e716a2d567a0e570560c4e11eb2a23605bcc6ee75f2f1f9822ee0ad74bd8"
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/independent-focused-review.json",
+      "bytes": 6260,
+      "sha256": "42e85e6f79d44e57fa7e20dbbece9d05713c50e4ea353481844e468569f6d4da"
+    },
+    "runtime_binary_sha256": "1d33bf77335b3a720e9beac808d866a06e0fb29c69093ff22f8a1f9f449947fa",
+    "runtime_binary_bytes": 99029584,
+    "current_declared_inputs_verified": 694,
+    "scope": "Each exact symbol actually passed once from the retained Cargo artifact. Raw logs, argv/cwd/30-second ceilings, source pins and actual binary bytes were independently checked; no reviewer execution."
+  },
+  "actual_full_check_receipts": {
+    "status": "passed_independently_reviewed",
+    "local_rollup": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/local-checks-summary.json",
+      "bytes": 2476,
+      "sha256": "0a8c25f40983fb1db461285b61eb886e20677880ead3c0cea3c4bd4abdcde2b5"
+    },
+    "workspace_progress": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/workspace-progress.json",
+      "bytes": 4041,
+      "sha256": "4b98c582e5e4dbaa83251ccea019f7eec1aefb940238375677cdf083e232ef46"
+    },
+    "workspace_counts": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/workspace-counts.json",
+      "bytes": 585,
+      "sha256": "f77557546c71e5d99d388003f9a95bd8a8aa914a48fe0acf1a60aa7c33f3b2e4"
+    },
+    "independent_workspace_review": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/independent-workspace-review.json",
+      "bytes": 2891,
+      "sha256": "68ca9f183c321bc06a85d18037662532398ed453b8aaee7b5ba669ae38feddba"
+    },
+    "helper_binary": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/helper-binary.json",
+      "bytes": 1579,
+      "sha256": "bece10b15f6b19ada15cadfb49a00dc77f10fce01df4a9028747a4e86e4dab9b"
+    },
+    "node_progress": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/node-progress.json",
+      "bytes": 2705,
+      "sha256": "504041905b2199deae563eb2ef717c0b00c6870b5b17adcb1a617d3c2f3d77eb"
+    },
+    "deterministic_progress": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/deterministic-progress.json",
+      "bytes": 2618,
+      "sha256": "d041b8a4132f3f83a7367c4b15b1d38f1041091aa8c76410fe60dd667787651f"
+    },
+    "family_suite": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/parity-all/suite.json",
+      "bytes": 7767,
+      "sha256": "e7f494d2c4db04191c7457d308a513c1931e72d4f6afbcd17806c4622ce1793e"
+    },
+    "whole_validation": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/whole-validation/report.json",
+      "bytes": 160973,
+      "sha256": "aee1031e9cdbdcd38381348f59065dbe03331a2205943e3711204d77fe83a973"
+    },
+    "whole_preflight": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/whole-validation/preflight.json",
+      "bytes": 137697,
+      "sha256": "91dad804ad13abe906b7cb4ee0c088a0deb8576b1552f69f29fff1127d1c7b22"
+    },
+    "independent_full_local_review": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/independent-full-local-review.json",
+      "bytes": 9063,
+      "sha256": "9d906ea74f5e48c51640822ca64eb8c2b28cc4a7a65b5052504154f19dec6192"
+    },
+    "counts": {
+      "native_workspace_passed": 1335,
+      "native_workspace_failed": 0,
+      "native_workspace_ignored": 10,
+      "native_workspace_groups": 66,
+      "focused_classifier_tests_passed": 17,
+      "node_checks_passed": 3,
+      "node_tests_passed": 596,
+      "installed_js_archive_files": 58,
+      "differential_families": 17,
+      "matched_differential_cases": 206625,
+      "whole_matching_requests_per_engine": 40,
+      "whole_matching_loopback_controls_per_engine": 2,
+      "whole_status": "not_measured",
+      "provider_calls": 0,
+      "numerical_samples_retained": false,
+      "transfer_native_files": 696,
+      "transfer_current_declared_inputs": 694,
+      "transfer_frozen_files": 111,
+      "transfer_logical_reference_files": 113,
+      "aggregate_carrier_bytes": 33506816,
+      "aggregate_logical_bytes": 33472483,
+      "separate_caps_each": 33554432
+    }
+  },
+  "actual_transfer_receipts": {
+    "status": "passed_independently_reviewed",
+    "inspection": {
+      "path": "artifacts/rust-rewrite/classifier-limit-export-evidence-20261017-1/inspection.json",
+      "bytes": 1895,
+      "sha256": "767264ffeb2154c01d97ca48d3d519740b3f8f94c0ef9f2fb72f766652a0f0c9"
+    },
+    "manifest": {
+      "path": "artifacts/rust-rewrite/classifier-limit-transfer-20261017-1/transfer-manifest.json",
+      "bytes": 1953,
+      "sha256": "ff92c05977395a52270f3e44e64af31045636b9d2cb9d0b6871bdae0726b13ef"
+    },
+    "second_independent_actual_review": {
+      "path": "artifacts/rust-rewrite/classifier-limit-export-evidence-20261017-1/actual-proof-review.json",
+      "bytes": 6208,
+      "sha256": "d97bdef305a75c408cca598bdbed61243a0cc6fa30ce0f0631a99e17158e6765"
+    },
+    "native_archive": {
+      "path": "artifacts/rust-rewrite/classifier-limit-transfer-20261017-1/native-source.cpio.gz",
+      "bytes": 2873213,
+      "sha256": "daf23eace819f0c04fbfbdd9477dcbe00da3964c22aba2caa6e5ea816786db2c"
+    },
+    "reference_delta_archive": {
+      "path": "artifacts/rust-rewrite/classifier-limit-transfer-20261017-1/frozen-node-reference-delta.tar.gz",
+      "bytes": 299945,
+      "sha256": "0abea5d907b897c69d1e6f12ac2132f185781569e5d2c6f115a79d1f1fd0b4e8"
+    },
+    "source_to_binary_provenance": "unverified_prebuilt",
+    "rebuilds": 0,
+    "release_approved": false
+  },
+  "deadline_and_evidence_limits": {
+    "declared_focused_process_timeout_seconds": 30,
+    "default_and_cache_schedule_cooperative_timeout_seconds": 5,
+    "readiness_helper_timeout_seconds": 2,
+    "unchanged_production_jev_default_deadline_ms": 1500,
+    "scope": "No provider calls or timing samples. Cooperative Tokio bounds cannot preempt non-yielding synchronous deadlocks; actual process deadline/cleanup receipts remain necessary. Five seconds is a synthetic fixture guard, not model latency evidence."
+  },
+  "preservation_contract": {
+    "complete_before_coverage_snapshot": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/coverage-before-limit-review.json",
+      "bytes": 1761646,
+      "sha256": "85e9c227e55b349eddf611ef8be75972b73f4c7f7bc9ae93c8e606bc635b76c0"
+    },
+    "baseline_definition_rows": {
+      "count": 588,
+      "tally": {
+        "covered": 536,
+        "partial_assertion_mapping": 52
+      },
+      "canonical_sha256": "ee96b46bca5a9300988e115f7389820c9abb8db728ca8e5c94bba2e9a56db59f",
+      "all_rows_must_remain_identical": true
+    },
+    "area_rows": {
+      "count": 13,
+      "tally": {
+        "partial_evidence": 13
+      },
+      "before_canonical_sha256": "43cb8c5c7bc991411af889896dad3e05f092e2903209119a58d47ab57389598c",
+      "proposed_after_canonical_sha256": "18c2be5f624eece2b4747d88b01c7a6da327fc94472548b034095c5d73d811b9",
+      "all_statuses_and_requirements_unchanged": true,
+      "only_allowed_change": {
+        "area_id": "classification_and_task_extraction",
+        "append_rust_test": "rust/crates/autorouter-runtime/src/classifier.rs#classifier::tests::cached_decision_bypasses_saturated_work_and_subscriber_limits",
+        "before_test_count": 93,
+        "after_test_count": 94,
+        "every_prior_test_entry_and_other_field_unchanged": true
+      },
+      "other12_area_objects_must_remain_identical": true
+    },
+    "configuration_rows": {
+      "count": 27,
+      "tally": {
+        "pending": 27
+      },
+      "canonical_sha256": "424bb297b1abfca5a0798fe0872aeb9eea1487e28c39f181e0d29a7808e73db0",
+      "all_rows_must_remain_identical": true
+    },
+    "other_limit_rows": {
+      "count": 51,
+      "canonical_sha256": "a4d5eb6dda5228b19f82847be116824b6faff4e044679e1fc58aed7d4f8b892d",
+      "all_rows_must_remain_identical": true
+    },
+    "complete_prior_limit_rows": [
+      {
+        "id": "pending_evaluations",
+        "baseline_value": 256,
+        "source": "src/router.mjs",
+        "tests": [
+          "test/router-concurrency.test.mjs"
+        ],
+        "status": "pending",
+        "evidence": null
+      },
+      {
+        "id": "evaluation_subscribers",
+        "baseline_value": 1024,
+        "source": "src/router.mjs",
+        "tests": [
+          "test/router-concurrency.test.mjs"
+        ],
+        "status": "pending",
+        "evidence": null
+      }
+    ],
+    "all_historical_mappings_preserved": true,
+    "historical_tally_note": "The prior obligation draft 535/53 predates policy #3; this supplement binds current 536 covered/52 partial. No baseline-definition changes proposed.",
+    "pre_application_coverage_byte_identical_to_before_snapshot": true,
+    "only_inventory_ids_qualified": [
+      "pending_evaluations",
+      "evaluation_subscribers"
+    ],
+    "pre_application_limits_admitted_by_draft": [],
+    "limits_admitted_by_this_mapping": [
+      "pending_evaluations",
+      "evaluation_subscribers"
+    ]
+  },
+  "remaining_gates": {
+    "new_current_source_ci": "requires_new_push_after_changes",
+    "all_other_plan_gates": "unchanged_open",
+    "release_or_default_cutover": "not_approved"
+  },
+  "admission_rule": "All required local evidence is complete and independently reviewed. Root may attach this reviewed mapping/evidence/status to exactly pending_evaluations/evaluation_subscribers and append the sole new cache-test inventory entry, after final metadata-diff review. Preserve all original-definition rows, historical mappings, other limits/keys and area statuses. This does not close any broader CI/platform/performance/live/release gate.",
+  "historical_mapping_row_reference": {
+    "document_ref": "#/historical_mapping_preserved",
+    "pointer": "#/mappings/7",
+    "id": "test/router-concurrency.test.mjs#8",
+    "status": "covered",
+    "canonical_sha256": "f9342c65c425657740040473bcb87978ac349df3ef3aba5f9a9fa02c65ff73dc"
+  },
+  "existing_original_row_reference": {
+    "document_ref": "#/preservation_contract/complete_before_coverage_snapshot",
+    "pointer": "#/baseline_tests/322",
+    "id": "test/router-concurrency.test.mjs#8",
+    "status": "covered",
+    "canonical_sha256": "b7a37cb117e0f023bfaf52db3625f784f5ce3d68cdbcc9a47340144541d53b9d"
+  },
+  "native_tests": [
+    {
+      "symbol": "router::concurrency_contracts::full_default_work_and_subscriber_limits_recover_after_all_cancellations",
+      "source_binding": {
+        "path": "rust/crates/autorouter-runtime/src/router_concurrency_contracts.rs",
+        "line": 755,
+        "end_line": 832,
+        "bytes": 3218,
+        "sha256": "72e6bed0b7431e56398a86aec68b1cf4ddc0a6f5d5f2ce01891b44aa4564c4dd"
+      },
+      "status": "passed_independently_reviewed",
+      "actual_result": "passed",
+      "id": "T01",
+      "actual_progress_ref": "#/actual_focused_receipts/progress",
+      "actual_progress_row": 0
+    },
+    {
+      "symbol": "classifier::tests::classifier_limits_reject_each_oversized_field_before_owning_transport",
+      "source_binding": {
+        "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+        "line": 1096,
+        "end_line": 1149,
+        "bytes": 1900,
+        "sha256": "c8ddfdee33dc58d82846a6cdcdc1663bba294ea8336a155313dd5213b4152cc5"
+      },
+      "status": "passed_independently_reviewed",
+      "actual_result": "passed",
+      "id": "T02",
+      "actual_progress_ref": "#/actual_focused_receipts/progress",
+      "actual_progress_row": 1
+    },
+    {
+      "symbol": "classifier::tests::zero_classifier_capacity_is_closed_without_evaluator_requests",
+      "source_binding": {
+        "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+        "line": 1152,
+        "end_line": 1190,
+        "bytes": 1389,
+        "sha256": "138b0e25783efe61705f7ff1b9e7183471f79974a9526faa9d28d38bff65bf87"
+      },
+      "status": "passed_independently_reviewed",
+      "actual_result": "passed",
+      "id": "T03",
+      "actual_progress_ref": "#/actual_focused_receipts/progress",
+      "actual_progress_row": 2
+    },
+    {
+      "symbol": "classifier::tests::subscriber_and_work_capacity_have_distinct_bounded_admission",
+      "source_binding": {
+        "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+        "line": 1193,
+        "end_line": 1253,
+        "bytes": 2234,
+        "sha256": "c7d7412df0cd4419eb73b49a8e170e9fc93b1cb766dbd4d43f6c0f50b1712bbe"
+      },
+      "status": "passed_independently_reviewed",
+      "actual_result": "passed",
+      "id": "T04",
+      "actual_progress_ref": "#/actual_focused_receipts/progress",
+      "actual_progress_row": 3
+    },
+    {
+      "symbol": "classifier::tests::one_cancelled_peer_returns_without_waiting_for_the_live_shared_request",
+      "source_binding": {
+        "path": "rust/crates/autorouter-runtime/src/classifier_cancellation_contracts.rs",
+        "line": 55,
+        "end_line": 78,
+        "bytes": 1087,
+        "sha256": "2456369aa30a4cb74afd9da8ba0afe9f7f3877c96938b8dc65110696892b4e5b"
+      },
+      "status": "passed_independently_reviewed",
+      "actual_result": "passed",
+      "id": "T05",
+      "actual_progress_ref": "#/actual_focused_receipts/progress",
+      "actual_progress_row": 4
+    },
+    {
+      "symbol": "classifier::tests::cancelled_shared_or_distinct_tokens_prune_unpolled_peer_and_release_before_return",
+      "source_binding": {
+        "path": "rust/crates/autorouter-runtime/src/classifier_cancellation_contracts.rs",
+        "line": 16,
+        "end_line": 53,
+        "bytes": 1552,
+        "sha256": "08b8fa1594117a1267496399dda0323d6903765e929537404a3b41315e61523f"
+      },
+      "status": "passed_independently_reviewed",
+      "actual_result": "passed",
+      "id": "T06",
+      "actual_progress_ref": "#/actual_focused_receipts/progress",
+      "actual_progress_row": 5
+    },
+    {
+      "symbol": "classifier::tests::old_cleanup_completion_cannot_cancel_or_remove_same_key_replacement",
+      "source_binding": {
+        "path": "rust/crates/autorouter-runtime/src/classifier_cancellation_contracts.rs",
+        "line": 125,
+        "end_line": 178,
+        "bytes": 2335,
+        "sha256": "37b26021ca8caddbcc749d2b44f8f5c7d5d65b5f25ffb3c628b21095ed95b6f7"
+      },
+      "status": "passed_independently_reviewed",
+      "actual_result": "passed",
+      "id": "T07",
+      "actual_progress_ref": "#/actual_focused_receipts/progress",
+      "actual_progress_row": 6
+    },
+    {
+      "symbol": "classifier::tests::cancelled_successful_old_generation_cannot_publish_over_same_key_replacement",
+      "source_binding": {
+        "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+        "line": 905,
+        "end_line": 994,
+        "bytes": 4337,
+        "sha256": "af29f24be5d7af540eb4569d145efde473ce4839641539bb72d637d282a48eeb"
+      },
+      "status": "passed_independently_reviewed",
+      "actual_result": "passed",
+      "id": "T08",
+      "actual_progress_ref": "#/actual_focused_receipts/progress",
+      "actual_progress_row": 7
+    },
+    {
+      "symbol": "classifier::tests::retired_workers_keep_capacity_until_actual_teardown_then_admission_recovers",
+      "source_binding": {
+        "path": "rust/crates/autorouter-runtime/src/classifier_shutdown_contracts.rs",
+        "line": 92,
+        "end_line": 149,
+        "bytes": 2221,
+        "sha256": "663ae940139697213d21ecb319f6710d24de2aeb17b7a252c21d6a799a8f96e6"
+      },
+      "status": "passed_independently_reviewed",
+      "actual_result": "passed",
+      "id": "T09",
+      "actual_progress_ref": "#/actual_focused_receipts/progress",
+      "actual_progress_row": 8
+    },
+    {
+      "symbol": "classifier::tests::reusable_shutdown_keeps_new_generation_and_coalescing_at_worker_capacity",
+      "source_binding": {
+        "path": "rust/crates/autorouter-runtime/src/classifier_shutdown_contracts.rs",
+        "line": 152,
+        "end_line": 217,
+        "bytes": 2732,
+        "sha256": "40306dea051a4ec1fd7c283e7d556d7e9d4d6cf00cb29164b032eeb9dc72e90c"
+      },
+      "status": "passed_independently_reviewed",
+      "actual_result": "passed",
+      "id": "T10",
+      "actual_progress_ref": "#/actual_focused_receipts/progress",
+      "actual_progress_row": 9
+    },
+    {
+      "symbol": "classifier::tests::terminal_close_owns_reservation_before_spawn_and_drop_before_first_poll",
+      "source_binding": {
+        "path": "rust/crates/autorouter-runtime/src/classifier_shutdown_contracts.rs",
+        "line": 53,
+        "end_line": 89,
+        "bytes": 1721,
+        "sha256": "9c842341c44c7e980d0865602a973d4964ec438bc83a8a8e4c26296e1cecb4fa"
+      },
+      "status": "passed_independently_reviewed",
+      "actual_result": "passed",
+      "id": "T11",
+      "actual_progress_ref": "#/actual_focused_receipts/progress",
+      "actual_progress_row": 10
+    },
+    {
+      "symbol": "classifier::tests::close_waits_for_retired_worker_after_first_close_waiter_is_dropped",
+      "source_binding": {
+        "path": "rust/crates/autorouter-runtime/src/classifier_shutdown_contracts.rs",
+        "line": 15,
+        "end_line": 50,
+        "bytes": 1659,
+        "sha256": "57034dc8d110c6491e41c5e3d99f048998614044f6860d375f119535fb7010a0"
+      },
+      "status": "passed_independently_reviewed",
+      "actual_result": "passed",
+      "id": "T12",
+      "actual_progress_ref": "#/actual_focused_receipts/progress",
+      "actual_progress_row": 11
+    },
+    {
+      "symbol": "classifier::tests::live_success_at_publication_gate_still_populates_cache",
+      "source_binding": {
+        "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+        "line": 997,
+        "end_line": 1037,
+        "bytes": 1856,
+        "sha256": "fe15cdc26fd0b952d3e830a5b56ab016e106046489ab81394bc48400f9be72b5"
+      },
+      "status": "passed_independently_reviewed",
+      "actual_result": "passed",
+      "id": "T13",
+      "actual_progress_ref": "#/actual_focused_receipts/progress",
+      "actual_progress_row": 12
+    },
+    {
+      "symbol": "classifier::tests::all_cancelled_work_cannot_cache_or_remove_a_replacement_entry",
+      "source_binding": {
+        "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+        "line": 876,
+        "end_line": 902,
+        "bytes": 1217,
+        "sha256": "6ad1a9c813f1cc1b1a4f5ba8d6fbf905e6b5f1a9797f0481f9ae265d0e144b2c"
+      },
+      "status": "passed_independently_reviewed",
+      "actual_result": "passed",
+      "id": "T14",
+      "actual_progress_ref": "#/actual_focused_receipts/progress",
+      "actual_progress_row": 13
+    },
+    {
+      "symbol": "classifier::tests::successful_cache_is_bounded_lru_with_expiration_but_failures_are_not_cached",
+      "source_binding": {
+        "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+        "line": 1344,
+        "end_line": 1391,
+        "bytes": 1575,
+        "sha256": "d1193fdb17c6f9f383b68c7889e71e2a9f43277b52b9c74f9edaf7fb2cd0a62f"
+      },
+      "status": "passed_independently_reviewed",
+      "actual_result": "passed",
+      "id": "T15",
+      "actual_progress_ref": "#/actual_focused_receipts/progress",
+      "actual_progress_row": 14
+    },
+    {
+      "symbol": "classifier::tests::already_cancelled_calls_skip_network_and_cached_decisions",
+      "source_binding": {
+        "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+        "line": 1072,
+        "end_line": 1093,
+        "bytes": 835,
+        "sha256": "b62152c2e1f77c82a9b2e03273849d2f8c419233213376e92bc702f9507889a6"
+      },
+      "status": "passed_independently_reviewed",
+      "actual_result": "passed",
+      "id": "T16",
+      "actual_progress_ref": "#/actual_focused_receipts/progress",
+      "actual_progress_row": 15
+    },
+    {
+      "symbol": "classifier::tests::cached_decision_bypasses_saturated_work_and_subscriber_limits",
+      "source_binding": {
+        "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+        "line": 1256,
+        "end_line": 1341,
+        "bytes": 3770,
+        "sha256": "67e4ab88c4582ccf2158e3cb1779753822256f8bda271589c9297952198eaf31"
+      },
+      "status": "passed_independently_reviewed",
+      "actual_result": "passed",
+      "id": "T17",
+      "actual_progress_ref": "#/actual_focused_receipts/progress",
+      "actual_progress_row": 16
+    }
+  ],
+  "draft_revision_note": {
+    "initial_pending_draft_bytes": 63107,
+    "initial_pending_draft_sha256": "29c061b784b08162d1d65e81dad9f9f868062598308676a87c4a322969d5e581",
+    "note": "Filled only with actual root-provided source/focused receipts. Duplicate immutable historical rows and capture records are represented by exact pinned pointers/selectors; all original files stay intact."
+  },
+  "production_router_binding": {
+    "path": "rust/crates/autorouter-runtime/src/router.rs",
+    "entrypoint_line": 92,
+    "default_limits_line": 110,
+    "classifier_constructor_line": 120,
+    "fact": "Router::new delegates through public with_clock to private with_clock_and_limits using Limits::default(), then Classifier::with_limits. These limits are not user environment keys; the same subscribers value separately bounds speculative count tasks, which this two-row slice does not qualify."
+  },
+  "local_validation_complete": true,
+  "intended_public_path": "rust/parity/assertion-mappings/classifier-capacity-limits.json",
+  "new_classification_test_inventory": {
+    "area_id": "classification_and_task_extraction",
+    "append_only": [
+      "rust/crates/autorouter-runtime/src/classifier.rs#classifier::tests::cached_decision_bypasses_saturated_work_and_subscriber_limits"
+    ],
+    "before": 93,
+    "after": 94,
+    "status_unchanged": "partial_evidence"
+  },
+  "draft_author_changed_public_metadata": false,
+  "root_metadata_application": {
+    "status": "applied_after_independent_local_evidence_review",
+    "changes": "Only two limit rows and one classification test inventory append; all588original rows,27keys,other51limits,all13area statuses and other12area objects preserved.",
+    "post_application_verification": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/post-metadata-verification.json",
+      "bytes": 802,
+      "sha256": "efbe29cb4063fbee5575aad52d5b6b7f3e1dd8ec15126a0e7c5fc9af76b294b7"
+    },
+    "draft_before_wording_clarification": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/classifier-limit-contracts.draft.json",
+      "bytes": 61389,
+      "sha256": "0de8df0918c83adee07914b22cacc185dc0be2d6d0d67eb1d574e6f4881a99cb"
+    }
+  }
+}

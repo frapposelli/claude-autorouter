@@ -747,7 +747,8 @@
         "rust/crates/autorouter-runtime/src/router.rs#router::tests::custom_required_inline_count_survives_speculative_capacity_but_not_cancel_or_close",
         "rust/crates/autorouter-runtime/src/router.rs#router::tests::custom_counter_is_not_called_for_small_or_hard_locked_requests",
         "rust/crates/autorouter-runtime/src/router.rs#router::tests::custom_count_cancel_or_close_before_first_poll_never_calls_factory_or_evaluator",
-        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::original_large_request_callbacks_receive_original_document_and_validate_every_numeric_outcome"
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::original_large_request_callbacks_receive_original_document_and_validate_every_numeric_outcome",
+        "rust/crates/autorouter-runtime/src/classifier.rs#classifier::tests::cached_decision_bypasses_saturated_work_and_subscriber_limits"
       ],
       "evidence": [
         "js_document",
@@ -30577,8 +30578,9 @@
       "tests": [
         "test/router-concurrency.test.mjs"
       ],
-      "status": "pending",
-      "evidence": null
+      "status": "covered",
+      "evidence": "rust/parity/measurements/native-classifier-capacity-limits-summary.json",
+      "note": "Only this fixed classifier capacity limit is qualified. See classifier-capacity-limits.json for exact default boundaries, cache exemption, independent cancellation, terminal cleanup and explicitly reviewed native embedding/retiring-worker ownership differences. Other limits, keys and whole-area requirements remain separate."
     },
     {
       "id": "evaluation_subscribers",
@@ -30587,8 +30589,9 @@
       "tests": [
         "test/router-concurrency.test.mjs"
       ],
-      "status": "pending",
-      "evidence": null
+      "status": "covered",
+      "evidence": "rust/parity/measurements/native-classifier-capacity-limits-summary.json",
+      "note": "Only this fixed classifier capacity limit is qualified. See classifier-capacity-limits.json for exact default boundaries, cache exemption, independent cancellation, terminal cleanup and explicitly reviewed native embedding/retiring-worker ownership differences. Other limits, keys and whole-area requirements remain separate."
     },
     {
       "id": "turn_records_attempts",
