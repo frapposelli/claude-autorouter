@@ -653,3 +653,9 @@ The [URL conversion supplement](../rust/parity/measurements/native-config-url-co
 All 627 configuration/auth cases match the frozen reference, including the byte-identical original 460-case prefix. Two native regressions cover 43 document controls with separately executed original outcomes. The expected-red control retains its actual failing binary and logs, but exact reconstruction of its test-only source is unverified. Full local validation passes 1,344 Rust tests, strict Clippy, formatting, 596 Node tests, package checks, seventeen differential families with 206,792 matches and deterministic whole-connection parity. These checks contain no numerical performance qualification.
 
 The unchanged source-transfer limits pass with all 694 native inputs and 111 frozen files retained; carrier headroom is 2,560 bytes. No source/fixture removal, minification or manifest compaction was used. Coverage remains 538 covered/50 partial, with all definition, configuration-key, limit and area statuses unchanged. This working tree still needs its own CI checkpoint; platform, performance, real-provider, release and cutover gates remain open.
+
+## Terminal CI for c86bd78
+
+The [five-run terminal metadata record](../rust/parity/measurements/native-c86bd78-ci-summary.json) reports all fourteen jobs successful for source `c86bd78` and its matching merge tree. This includes four protected Node jobs, four ordinary Rust hosts, GNU and musl on x64/ARM, and both i686 workflows. Intel completes in 37m57s, including exact npm/direct installation and upgrade/rollback steps. Both musl SDK and later native/GNU-control phases succeed.
+
+This is job/step metadata evidence; no executable, archive or report bytes were independently downloaded or rehashed. It does not transfer to the later URL or credential changes, diagnose the historical `2d5defa` ARM SDK failure, or approve the full platform matrix, performance, provider quality, production provenance or cutover.
