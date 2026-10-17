@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "kind": "actual_musl_sdk_setup_failure_and_reviewed_correction",
+  "date": "2026-10-14",
+  "failed_source_commit": "94738179c385148f61bb8e531610e9f37d8e1875",
+  "run_url": "https://github.com/frapposelli/claude-autorouter/actions/runs/38545762814",
+  "run_status": "completed",
+  "run_conclusion": "failure",
+  "failed_jobs": [
+    {
+      "name": "musl / x86_64-unknown-linux-musl",
+      "url": "https://github.com/frapposelli/claude-autorouter/actions/runs/38545762814/job/115791288561",
+      "conclusion": "failure",
+      "failed_steps": [
+        "Freeze source identity and build-only SDK"
+      ]
+    },
+    {
+      "name": "musl / aarch64-unknown-linux-musl",
+      "url": "https://github.com/frapposelli/claude-autorouter/actions/runs/38545762814/job/115791288741",
+      "conclusion": "failure",
+      "failed_steps": [
+        "Freeze source identity and build-only SDK"
+      ]
+    }
+  ],
+  "actual_run_record": {
+    "path": "artifacts/rust-rewrite/context-processing-checkpoint-20261014-1/9473817-musl-run.json",
+    "bytes": 5461,
+    "sha256": "3ac9a63e2f8894ea28885de908f85a121b9b7e50706c894484cc2add4dd7cdd4"
+  },
+  "actual_failed_setup_log": {
+    "path": "artifacts/rust-rewrite/context-processing-checkpoint-20261014-1/9473817-musl-failure.log",
+    "bytes": 135067,
+    "sha256": "2a2124c397d634d19a12f1d5f8769c37fa08a1a14a07f1782aef5b0b0a469d32"
+  },
+  "independent_primary_source_diagnosis": {
+    "path": "artifacts/rust-rewrite/musl-apk-diagnosis-20261014/diagnosis-report-1.json",
+    "bytes": 9918,
+    "sha256": "13cf1ca0e451b7820f29eecdc5049cb17fd25598f034a1a3e536164374da2cc2"
+  },
+  "actual_public_index_capture": {
+    "path": "artifacts/rust-rewrite/musl-index-failure-audit-20261014-1/capture.json",
+    "bytes": 4927,
+    "sha256": "2d5668bc1368c8fc81ca46480158bf4e8b213d709b64b588a25f94424ca9733e"
+  },
+  "root_version_uniqueness": {
+    "path": "artifacts/rust-rewrite/musl-apk-diagnosis-20261014/root-version-uniqueness-1.json",
+    "bytes": 2611,
+    "sha256": "8092c1bd56509b06d3c163fd6aabb429cd028e28be095fdd5b222305a5a82e69"
+  },
+  "diagnoses": {
+    "x86_64": "The exact cached signed index passed its checksum. apk fetch treated eleven name=version arguments as literal names and could not select them; exit22 agrees with the pinned implementation. This is a setup-command error, not compilation or product execution.",
+    "aarch64": "SDK setup failed the cached signed-index checksum. A later bounded raw upstream capture has a changed SHA/size/Last-Modified and unchanged eleven required versions. Failed cached bytes were not uploaded, so their exact identity is not claimed recovered by the later capture."
+  },
+  "reviewed_correction_manifest": {
+    "path": "artifacts/rust-rewrite/musl-apk-diagnosis-20261014/correction-manifest-1.json",
+    "bytes": 2015,
+    "sha256": "1100ba9fbea0410b864d26c94fbd26a9c9c480fd8ba490e8696ab6d7fdd3596b"
+  },
+  "root_correction_admission": {
+    "path": "artifacts/rust-rewrite/musl-apk-diagnosis-20261014/root-admission.json",
+    "bytes": 1220,
+    "sha256": "aef6e7c930bdc8a6f8c3929aca8b8e28ef533612273f7dce3e1b9bee9ec70f50"
+  },
+  "own_initial_shell_control_extraction_failure": {
+    "path": "artifacts/rust-rewrite/musl-apk-diagnosis-20261014/root-initial-shell-extraction-failure.json",
+    "bytes": 294,
+    "sha256": "ba9ddb66091c9a38cdbed760e6f3b8d311b65fab98cd30ca6c20b044447567ee"
+  },
+  "corrected_files": [
+    {
+      "path": "rust/distribution/ci/musl.Dockerfile",
+      "bytes": 2655,
+      "sha256": "50304b91406bd86a8cc882ce40a25c1c65d2f012ac656ec3fe9484e3f7ef6a56"
+    },
+    {
+      "path": ".github/workflows/rust-musl.yml",
+      "bytes": 9190,
+      "sha256": "8eba2467b02d25358154b000af15629ae11be1daf5e67282d9361579f7d7ea46"
+    },
+    {
+      "path": "rust/distribution/musl-builder-pins.json",
+      "bytes": 3400,
+      "sha256": "095175b418584435185dbc7f5526c4f46dbae42750e1d0230c713eda76e41f2f"
+    }
+  ],
+  "correction": "Fetch by eleven actual package names under the fixed signed index, retain the same eleven exact installed-version guards, and refresh only the independently verified ARM index pin. Cached signed-index checks before/after fetch, package byte hashes, offline install, source/toolchain/image identities and all audits remain.",
+  "primary_sources": [
+    "https://raw.githubusercontent.com/alpinelinux/apk-tools/v2.14.6/src/app_fetch.c",
+    "https://raw.githubusercontent.com/alpinelinux/apk-tools/v2.14.6/src/database.c"
+  ],
+  "source_controls": "Actual v2.14.6/v2.14.8 fetched app_fetch.c are byte-identical; the package-name matching and raw-cache-before-decompression sources are bound in the retained diagnosis. This is source analysis, not an executed mock apk solver.",
+  "actual_musl_compilation_executed": false,
+  "actual_product_tests_executed": false,
+  "correction_ci_execution_qualified": false,
+  "provider_calls": 0,
+  "model_downloads": 0,
+  "release_approved": false,
+  "default_cutover_approved": false,
+  "scope_limits": [
+    "Both unsuccessful CI jobs remain failed. The correction requires its own fresh CI execution.",
+    "Current-host ordinary CLI, other passing CI jobs or successful raw metadata reads cannot qualify musl artifacts or supported-platform minimums.",
+    "The corrected Docker RUN shell and workflow parse pass; the initial own shell-extraction failure is retained and does not represent a Dockerfile product failure.",
+    "No required check, architecture, request/archive bound, classifier fixture, performance gate, package version or signature check is removed."
+  ]
+}

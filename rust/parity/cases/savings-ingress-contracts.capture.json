@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "kind": "exact_original_savings_ingress_and_facts",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "status": "passed",
+  "generator_sha256": "c90036cb910e7a05688704c8907aeb6bd3c13722bae4b5052abcbfaef0e39f01",
+  "baseline_file_sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd",
+  "cases_sha256": "3cc2f2ba9351a046d5ae65e7ecb9355bf31b737c049af2a98fdd057336f1c682",
+  "cases": 20,
+  "trackers": 19,
+  "steps": 163,
+  "static_assertions": 12,
+  "expanded_assertions": 46,
+  "definitions": [
+    {
+      "id": "test/savings.test.mjs#8",
+      "number": 8,
+      "name": "missing, invalid or contradictory usage never becomes a guessed estimate",
+      "statement": "test('missing, invalid or contradictory usage never becomes a guessed estimate', () => {\n  const examples = [undefined, {}, { input_tokens: 1 }, { output_tokens: 1 },\n    { ...usage, input_tokens: -1 }, { ...usage, output_tokens: 1.5 }, { ...usage, output_tokens: Infinity },\n    { ...usage, input_tokens: Number.MAX_SAFE_INTEGER + 1 }, { ...usage, input_tokens: '100' },\n    { ...usage, cache_read_input_tokens: -1 }, { ...usage, cache_read_input_tokens: null },\n    { ...usage, cache_creation_input_tokens: 100 },\n    { ...usage, cache_creation_input_tokens: 100, cache_creation: { ephemeral_5m_input_tokens: 99 } },\n    { ...usage, cache_creation_input_tokens: 0, cache_creation: { ephemeral_1h_input_tokens: 1 } },\n    { ...usage, cache_creation_input_tokens: null }, { ...usage, cache_creation: null },\n    { ...usage, cache_creation: { ephemeral_5m_input_tokens: null } },\n    { ...usage, cache_creation: { ephemeral_1h_input_tokens: '1' } },\n  ];\n  for (let index = 0; index < examples.length; index++) {\n    const tracker = createSavingsTracker();\n    complete(tracker, { tokens: examples[index] });\n    assert.equal(current(tracker).unpriced_requests, 1, `invalid usage ${index}`);\n    assert.equal(current(tracker).actual_usd, 0);\n  }\n});",
+      "statement_sha256": "1709830f549fab6b0eb012763dc1eaaeabbfcaeac6b55d96016a5f3f00b541eb",
+      "selected": true,
+      "assertions": [
+        {
+          "id": "test/savings.test.mjs#8:assert-1",
+          "expression": "assert.equal(current(tracker).unpriced_requests, 1, `invalid usage ${index}`)",
+          "sha256": "de4b935b4592d8810a613a1ebc2236d0bcb1a80cc55915e323af2f90143c7940",
+          "line": 156,
+          "executions": 18
+        },
+        {
+          "id": "test/savings.test.mjs#8:assert-2",
+          "expression": "assert.equal(current(tracker).actual_usd, 0)",
+          "sha256": "a456d9979218d108db989fffb17f66257b85348e2dda2bfe106a3ccfcaa9a6dd",
+          "line": 157,
+          "executions": 18
+        }
+      ],
+      "cases": [
+        "savings-ingress-8-1",
+        "savings-ingress-8-2",
+        "savings-ingress-8-3",
+        "savings-ingress-8-4",
+        "savings-ingress-8-5",
+        "savings-ingress-8-6",
+        "savings-ingress-8-7",
+        "savings-ingress-8-8",
+        "savings-ingress-8-9",
+        "savings-ingress-8-10",
+        "savings-ingress-8-11",
+        "savings-ingress-8-12",
+        "savings-ingress-8-13",
+        "savings-ingress-8-14",
+        "savings-ingress-8-15",
+        "savings-ingress-8-16",
+        "savings-ingress-8-17",
+        "savings-ingress-8-18"
+      ]
+    },
+    {
+      "id": "test/savings.test.mjs#17",
+      "number": 17,
+      "name": "malformed telemetry never throws, and clearing removes totals and request history",
+      "statement": "test('malformed telemetry never throws, and clearing removes totals and request history', () => {\n  const tracker = createSavingsTracker();\n  assert.doesNotThrow(() => {\n    tracker.update(null);\n    tracker.update({ get event() { throw new Error('private error'); } });\n    tracker.update(event('request_complete'));\n  });\n  assert.deepEqual(tracker.snapshot(), {});\n  complete(tracker);\n  tracker.clear();\n  assert.deepEqual(tracker.snapshot(), {});\n  complete(tracker);\n  assert.equal(current(tracker).requests, 1);\n});",
+      "statement_sha256": "db59f79f3cd63c7e45721abb1f8d388b7a6dcd1fbb94434c779cb01e55a8bffb",
+      "selected": true,
+      "assertions": [
+        {
+          "id": "test/savings.test.mjs#17:assert-1",
+          "expression": "assert.doesNotThrow(() => {\n    tracker.update(null);\n    tracker.update({ get event() { throw new Error('private error'); } });\n    tracker.update(event('request_complete'));\n  })",
+          "sha256": "da62ceda55e44dbd9abf42c577f85c446bc7f5fac1672fa80f3b28bc92fa2ae3",
+          "line": 274,
+          "executions": 1
+        },
+        {
+          "id": "test/savings.test.mjs#17:assert-2",
+          "expression": "assert.deepEqual(tracker.snapshot(), {})",
+          "sha256": "8168dde3e23887bc13453f56305485651580e807630c6efffa8dc84cd5fc14be",
+          "line": 279,
+          "executions": 1
+        },
+        {
+          "id": "test/savings.test.mjs#17:assert-3",
+          "expression": "assert.deepEqual(tracker.snapshot(), {})",
+          "sha256": "8168dde3e23887bc13453f56305485651580e807630c6efffa8dc84cd5fc14be",
+          "line": 282,
+          "executions": 1
+        },
+        {
+          "id": "test/savings.test.mjs#17:assert-4",
+          "expression": "assert.equal(current(tracker).requests, 1)",
+          "sha256": "03d97051c43cc537e57433f73b710a49c7be27d93f2406e9cc14eb2f753f8d33",
+          "line": 284,
+          "executions": 1
+        }
+      ],
+      "cases": [
+        "savings-ingress-17-1"
+      ]
+    },
+    {
+      "id": "test/savings.test.mjs#18",
+      "number": 18,
+      "name": "pricing facts are immutable, dated and attached to each estimate",
+      "statement": "test('pricing facts are immutable, dated and attached to each estimate', () => {\n  assert.equal(PRICING_FACTS.version, PRICING_VERSION);\n  assert.equal(PRICING_FACTS.date, PRICING_DATE);\n  assert.equal(PRICING_FACTS.source, PRICING_SOURCE);\n  assert.equal(PRICING_FACTS.unit, 'cents_per_million_tokens');\n  assert.throws(() => { PRICING_FACTS.models[HAIKU].input = 0; }, TypeError);\n  assert.throws(() => { PRICING_FACTS.models.private = {}; }, TypeError);\n});",
+      "statement_sha256": "d11313490cfdec6b02b24a124f6739acf3dd9240ed9bd138124474d0383bfbfb",
+      "selected": true,
+      "assertions": [
+        {
+          "id": "test/savings.test.mjs#18:assert-1",
+          "expression": "assert.equal(PRICING_FACTS.version, PRICING_VERSION)",
+          "sha256": "d035fa1f79189fe4952cfe2cf6a9b7a6b1af9e99892a0e7745245165d2fb9dd5",
+          "line": 288,
+          "executions": 1
+        },
+        {
+          "id": "test/savings.test.mjs#18:assert-2",
+          "expression": "assert.equal(PRICING_FACTS.date, PRICING_DATE)",
+          "sha256": "a5c3d8c99ca0bbc879d2336a7a9a9a3d90a8865409597adfa4da05508c7980b1",
+          "line": 289,
+          "executions": 1
+        },
+        {
+          "id": "test/savings.test.mjs#18:assert-3",
+          "expression": "assert.equal(PRICING_FACTS.source, PRICING_SOURCE)",
+          "sha256": "0cc8ac1782583c3ccb6db1cadf86ea416cc886eddd05b65eff09ccb855eefea1",
+          "line": 290,
+          "executions": 1
+        },
+        {
+          "id": "test/savings.test.mjs#18:assert-4",
+          "expression": "assert.equal(PRICING_FACTS.unit, 'cents_per_million_tokens')",
+          "sha256": "2ca8d6070f884978224ff9acec2458d8608e42ddce2c9e732cbbe5c7b9823468",
+          "line": 291,
+          "executions": 1
+        },
+        {
+          "id": "test/savings.test.mjs#18:assert-5",
+          "expression": "assert.throws(() => { PRICING_FACTS.models[HAIKU].input = 0; }, TypeError)",
+          "sha256": "04b500104ef72e4e66501bcacfd1d6dd6763666bb9fdfffcfd5f61f57a1666b0",
+          "line": 292,
+          "executions": 1
+        },
+        {
+          "id": "test/savings.test.mjs#18:assert-6",
+          "expression": "assert.throws(() => { PRICING_FACTS.models.private = {}; }, TypeError)",
+          "sha256": "7a7dd994ab953ac3fa6f04754f50b9b7b449191fa113ec4da76a2f4009e1ea07",
+          "line": 293,
+          "executions": 1
+        }
+      ],
+      "cases": [
+        "savings-ingress-18-1"
+      ]
+    }
+  ],
+  "node": {
+    "version": "v22.14.0",
+    "executable_sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0"
+  },
+  "semantics": [
+    "Original callbacks, source helpers, all18 usage values and all12 original assertion expressions execute unchanged.",
+    "Own undefined, nonfinite Number values and accessor descriptors are tagged, never converted to null or invoked by capture.",
+    "The source getter actually runs inside original update and is caught by the source tracker; no native getter-equivalence claim is made.",
+    "Actual frozen pricing facts before/after both throwing mutation attempts and all nested frozen objects are recorded; no current-provider pricing claim."
+  ],
+  "baseline_files_verified": 111
+}

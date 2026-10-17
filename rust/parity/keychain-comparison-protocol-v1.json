@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "kind": "isolated_real_keychain_language_port_comparison",
+  "declared_before_runs": "2026-10-13",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "scope": "macOS real security adapter with disposable synthetic settings and previously absent credential accounts; no existing user credential is changed.",
+  "service": "claude-autorouter",
+  "identity": "Setting name, colon and first 16 hexadecimal SHA256 characters of the same lexical absolute temporary configuration path, matching the frozen baseline.",
+  "sequence": [
+    "Verify all three synthetic-path accounts are absent before performing any writes; stop on unexpected lookup results.",
+    "Native CLI migrates the synthetic file credential to Keychain; verify exact account/password read-back and no plaintext in the saved file or command output.",
+    "Frozen Node CLI reads the same configuration, then updates the same synthetic account through stdin; verify exact read-back.",
+    "Native CLI reads the updated account and migrates back to file; verify credential preservation, private file mode and Keychain deletion.",
+    "Frozen Node migrates to Keychain again; native CLI unsets the synthetic credential and verifies deletion.",
+    "Finally remove only the exact accounts proven absent before this run and verify absence, then remove the disposable directory. Retain bounded metadata-only results."
+  ],
+  "limits": {"command_timeout_ms":30000,"stdout_stderr_bytes_per_command":65536},
+  "policy": "Honor the real system policy. Do not bypass allowlists/locks or unlock a user Keychain. An interactive/permission/unavailable result remains failed or blocked evidence.",
+  "acceptance": "All sequence assertions and cleanup pass against exact native/frozen source identities. This host check does not qualify other macOS versions, GUI consent flows, all failure/rollback cases, real user secrets or publication.",
+  "privacy": "Synthetic values only; secrets passed through stdin and never retained in reports. Outputs are checked for canaries before any metadata is saved. Existing caller environment configuration/secret overrides are removed only from the synthetic child environment; no shell profile or persistent user settings are edited."
+}

@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "kind": "benchmark_v3_functional_resource_validation",
+  "mode": "synthetic_validation_no_numerical_measurements",
+  "protocol": {
+    "path": "artifacts/rust-rewrite/evidence/7c347d155a17575b65e13c57cf0c11e7e68c193dfa93fd252dc600257dee6c5e.json",
+    "sha256": "7c347d155a17575b65e13c57cf0c11e7e68c193dfa93fd252dc600257dee6c5e",
+    "original_path": "rust/parity/local-benchmark-v3.json"
+  },
+  "protocol_sha256": "7c347d155a17575b65e13c57cf0c11e7e68c193dfa93fd252dc600257dee6c5e",
+  "result": {
+    "passed": true,
+    "rows": 69,
+    "requests": 3456,
+    "successful_gateway_resource_collections": 42,
+    "stream_requests": 1344,
+    "provider_calls": 0,
+    "numerical_performance_values_retained": false,
+    "comparisons": 0
+  },
+  "report": {
+    "path": "artifacts/rust-rewrite/evidence/f839e32a7a6fc83a8e824004b939340b8c2c1766a2d878c6c163ead9559b8d29.json",
+    "sha256": "f839e32a7a6fc83a8e824004b939340b8c2c1766a2d878c6c163ead9559b8d29",
+    "original_path": "artifacts/rust-rewrite/benchmark-v3-validation-3/report.json"
+  },
+  "preflight": {
+    "path": "artifacts/rust-rewrite/evidence/f41a213d39d49ae2336bf3ce292cd63334442e30afa0d716a745ace42cf320a3.json",
+    "sha256": "f41a213d39d49ae2336bf3ce292cd63334442e30afa0d716a745ace42cf320a3",
+    "original_path": "artifacts/rust-rewrite/benchmark-v3-validation-3/preflight.json"
+  },
+  "execution": {
+    "path": "artifacts/rust-rewrite/evidence/d31c6c9f91445cd37490d0329b72af4ec14d97195321945500c7dc5537a888e0.json",
+    "sha256": "d31c6c9f91445cd37490d0329b72af4ec14d97195321945500c7dc5537a888e0",
+    "original_path": "artifacts/rust-rewrite/sixth-benchmark-v3-validation-3-result.json"
+  },
+  "exact_binaries": {
+    "path": "artifacts/rust-rewrite/evidence/3efc92ae5772ae2ebedeacbf637fa56525aeff4c95effa96bf1c3fcb9544b039.json",
+    "sha256": "3efc92ae5772ae2ebedeacbf637fa56525aeff4c95effa96bf1c3fcb9544b039",
+    "original_path": "artifacts/rust-rewrite/benchmark-v3-validation-3-inputs/inputs.json"
+  },
+  "candidate_sha256": "a4737f5464e59811e672bce6f70ab7dcfc0ab776eec0fd86fb040749e5d9bb92",
+  "node_sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0",
+  "collection": "A fresh single-child helper uses getrusage(RUSAGE_CHILDREN) after reaping its measured gateway. Child and helper share a process group whose unreaped leader stays owned by the driver. Full report and explicit marker precede intentional collector SIGKILL; actual gateway status remains separate. Owner Drop kills the anchored group even with a stopped helper. Responsive helper handles owner EOF; final-report cleanup also ends unwaited descendants.",
+  "metric_scope": "Whole child lifetime including startup, warmup and shutdown. Waited descendant CPU and largest individual RSS are included; driver, mocks, collector and previous workload children are excluded. Not aggregate process-tree RSS or measured-interval peak. Lifetime CPU never substitutes for measured-interval CPU.",
+  "comparator": "Each peak-memory pair requires both resource_collection_verified flags. Missing/false flags cannot contribute numeric pairs. The unchanged 0.7 ratio threshold requires five fresh matched rounds; acceptance_qualified remains false.",
+  "review": {
+    "path": "artifacts/rust-rewrite/evidence/d0b2a00b30338be7b40283a3d43dea7fc711a9cec6c9af46cb2a36162c85cc40.json",
+    "sha256": "d0b2a00b30338be7b40283a3d43dea7fc711a9cec6c9af46cb2a36162c85cc40",
+    "original_path": "/private/tmp/resource-collector-group-review.json"
+  },
+  "focused_tests": {
+    "stopped_helper_drop": 1,
+    "collector_integration": 6,
+    "comparator": 1
+  },
+  "focused_checks": [
+    {
+      "path": "artifacts/rust-rewrite/resource-collector-unit-4.log",
+      "sha256": "68a6e03859ce25c484f4db29aab15b648d2f8573cfde5bc9622bed6f0ce639ef",
+      "bytes": 433,
+      "retained_path": "artifacts/rust-rewrite/evidence/68a6e03859ce25c484f4db29aab15b648d2f8573cfde5bc9622bed6f0ce639ef.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/resource-collector-groups-4.log",
+      "sha256": "ad19219454ee83233ade5cd087107ded579a2be80d968d73fb9e3667bdb5b1e3",
+      "bytes": 944,
+      "retained_path": "artifacts/rust-rewrite/evidence/ad19219454ee83233ade5cd087107ded579a2be80d968d73fb9e3667bdb5b1e3.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/resource-collector-comparator-1.log",
+      "sha256": "d2ebf30611c9b6569706b2973b1f1f0b33d1aec80c12796db64c225bd76b8be9",
+      "bytes": 356,
+      "retained_path": "artifacts/rust-rewrite/evidence/d2ebf30611c9b6569706b2973b1f1f0b33d1aec80c12796db64c225bd76b8be9.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/resource-collector-clippy-3.log",
+      "sha256": "2d0d53b42e829e471c267ab4bb08b7676ab42915b86c0ed93ba1156204590e47",
+      "bytes": 145,
+      "retained_path": "artifacts/rust-rewrite/evidence/2d0d53b42e829e471c267ab4bb08b7676ab42915b86c0ed93ba1156204590e47.log"
+    }
+  ],
+  "prior_runs": [
+    {
+      "run": 1,
+      "passed": false,
+      "failure": {
+        "path": "artifacts/rust-rewrite/evidence/3656fbaded06ed06aa214bd05166fd1a0bcfc0e697e223e34e82ad2c554f8987.json",
+        "sha256": "3656fbaded06ed06aa214bd05166fd1a0bcfc0e697e223e34e82ad2c554f8987",
+        "original_path": "artifacts/rust-rewrite/benchmark-v3-validation-1/failure.json"
+      },
+      "execution_log": {
+        "path": "artifacts/rust-rewrite/evidence/9d357a31e24f82ffa5438ea7dcd4ef77e7e07b6ddca70c6e7330b76b8f32f10e.log",
+        "sha256": "9d357a31e24f82ffa5438ea7dcd4ef77e7e07b6ddca70c6e7330b76b8f32f10e",
+        "original_path": "artifacts/rust-rewrite/sixth-benchmark-v3-validation-1.log"
+      },
+      "inputs": {
+        "path": "artifacts/rust-rewrite/evidence/b883d3b6970dd88763f4eee2d7907d5e9a3a2ebfe1a4b1fde6600e7631eddf6d.json",
+        "sha256": "b883d3b6970dd88763f4eee2d7907d5e9a3a2ebfe1a4b1fde6600e7631eddf6d",
+        "original_path": "artifacts/rust-rewrite/benchmark-v3-validation-1-inputs/inputs.json"
+      },
+      "completed_rows": 54,
+      "limit": "The next scheduled row was direct_upstream stream_burst concurrency128, before a collector-backed implementation row. Generic HTTP request failure remains unexplained. Diagnostic context was added; no HTTP behavior or assertion was relaxed."
+    },
+    {
+      "run": 2,
+      "passed": true,
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/a492fe27a6a5658a727804c41a9ccc4d3047ffcaea63f33decc728d68ddace6f.json",
+        "sha256": "a492fe27a6a5658a727804c41a9ccc4d3047ffcaea63f33decc728d68ddace6f",
+        "original_path": "artifacts/rust-rewrite/benchmark-v3-validation-2/report.json"
+      },
+      "preflight": {
+        "path": "artifacts/rust-rewrite/evidence/003428f6be5e6ba175b5270cda9cc372e55fb0d5999230c2756f3e459a08dd7f.json",
+        "sha256": "003428f6be5e6ba175b5270cda9cc372e55fb0d5999230c2756f3e459a08dd7f",
+        "original_path": "artifacts/rust-rewrite/benchmark-v3-validation-2/preflight.json"
+      },
+      "inputs": {
+        "path": "artifacts/rust-rewrite/evidence/840eca0b996417afca6bee14f34ab74b8ae37d340f9a7fd5e1c6f35d3998465f.json",
+        "sha256": "840eca0b996417afca6bee14f34ab74b8ae37d340f9a7fd5e1c6f35d3998465f",
+        "original_path": "artifacts/rust-rewrite/benchmark-v3-validation-2-inputs/inputs.json"
+      },
+      "limit": "69 rows passed before collector ownership and per-pair verification fixes. This does not qualify final cleanup. Original protocol hash and evidence are retained."
+    }
+  ],
+  "retained_fixture_failures": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/5065324ec630942702af7ee46d43a10583b49f5525e9969d1c432ceb37e02880.log",
+      "sha256": "5065324ec630942702af7ee46d43a10583b49f5525e9969d1c432ceb37e02880",
+      "original_path": "artifacts/rust-rewrite/sixth-resource-focused-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/b34fe93e928ad15451a2dca20b00817e45e255f42a9520af4961c94fd9bb60e7.log",
+      "sha256": "b34fe93e928ad15451a2dca20b00817e45e255f42a9520af4961c94fd9bb60e7",
+      "original_path": "artifacts/rust-rewrite/resource-group-drop-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/46f5c6d42538ad632f3e191e8b7a64c81e56779fad333b9fc0ba7babe4320e29.log",
+      "sha256": "46f5c6d42538ad632f3e191e8b7a64c81e56779fad333b9fc0ba7babe4320e29",
+      "original_path": "artifacts/rust-rewrite/resource-collector-groups-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/fd70f169bf9f0ba12d871f5ffe34777d6ff4af36a90f4bd3556293fc233db57e.log",
+      "sha256": "fd70f169bf9f0ba12d871f5ffe34777d6ff4af36a90f4bd3556293fc233db57e",
+      "original_path": "artifacts/rust-rewrite/resource-collector-groups-2.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/10aabac62f2515d1458147545ac76e396f3f1fafd6e97e6a8cc783545bf3c8e1.log",
+      "sha256": "10aabac62f2515d1458147545ac76e396f3f1fafd6e97e6a8cc783545bf3c8e1",
+      "original_path": "artifacts/rust-rewrite/resource-collector-groups-3.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/6b40927c1b586c32bf5dbfad18fabbcfa2f9bff45ad370e7c34d098e640847d8.log",
+      "sha256": "6b40927c1b586c32bf5dbfad18fabbcfa2f9bff45ad370e7c34d098e640847d8",
+      "original_path": "artifacts/rust-rewrite/resource-collector-clippy-1.log"
+    }
+  ],
+  "failure_context": "The initial blocked-child fixture masked SIGTERM only in a libtest worker while its main thread remained eligible; a process-wide shell ignore fixture corrected that test. Later descendant fixtures exposed macOS Unix-socket path limits and inherited nonblocking status. Lint failures were corrected without weakening assertions. Ownership review found separate-group forced-kill orphan risk and unverified comparator pairs; both now have regressions.",
+  "limits": [
+    "Simultaneous abrupt driver death and unresponsive collector are outside portable cleanup guarantee.",
+    "Processes escaping the owned group and OS-uninterruptible processes are excluded.",
+    "Measured child exit status is exact; marked collector SIGKILL after report is intentional protocol termination.",
+    "Ready/cleanup observations include collector overhead. Startup commands remain direct. Allocations, descriptor counts, measured-interval peaks, remaining failure/storage workloads, representative hardware and live quality remain unqualified.",
+    "Versions 1, 2 and 3 are separate protocols. No v3 numerical measurements have been run; historical v1 numerical reports remain unchanged."
+  ],
+  "overall_plan_performance_gate": "incomplete",
+  "release_approved": false,
+  "default_v1_validation": {
+    "passed": true,
+    "rows": 45,
+    "report": {
+      "path": "artifacts/rust-rewrite/evidence/219a48865369159c2ed5368d745cbb3c7dc7c8cd55e87e078d535e36f9f116aa.json",
+      "sha256": "219a48865369159c2ed5368d745cbb3c7dc7c8cd55e87e078d535e36f9f116aa",
+      "original_path": "artifacts/rust-rewrite/benchmark-v1-validation-sixth/report.json"
+    },
+    "execution": {
+      "path": "artifacts/rust-rewrite/evidence/889fe3eacf799a9fa4e7dbf9d15e255feb48b6f3d26070e71c096b67c9978b82.json",
+      "sha256": "889fe3eacf799a9fa4e7dbf9d15e255feb48b6f3d26070e71c096b67c9978b82",
+      "original_path": "artifacts/rust-rewrite/sixth-benchmark-v1-validation-result.json"
+    },
+    "scope": "Same final immutable binaries, omitted --protocol argument; direct-launch default remains schema1."
+  }
+}

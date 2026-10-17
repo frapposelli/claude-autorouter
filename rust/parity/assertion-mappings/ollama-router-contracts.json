@@ -1,0 +1,1193 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_ollama_router_contracts_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_head": "46587867cd0b4db89b273ba293555a5619009a4c",
+  "production_changes": false,
+  "registration": "Only minimal cfg(test) child registration in runtime/router.rs; real Router/classifier/config are accessed from that descendant test module without a production API addition.",
+  "counts": {
+    "definitions": 5,
+    "scenarios": 26,
+    "source_router_instances": 25,
+    "classify_calls": 40,
+    "route_calls": 4,
+    "direct_evaluations": 1,
+    "total_operations": 45,
+    "requests": 79,
+    "finite_responses": 78,
+    "intentional_network_errors": 1,
+    "static_assertions": 37,
+    "executed_original_assertions": 194,
+    "native_tests": 5,
+    "unchanged_frozen_controls": 5,
+    "negative_schedules": 5,
+    "covered": 5,
+    "partial": 0
+  },
+  "current_sources": [
+    {
+      "path": "rust/parity/capture-ollama-router-contracts.mjs",
+      "bytes": 17330,
+      "sha256": "09257da09a1fb1732347c413be1de55b5a1a3199bf988045e9c307f814ebb7aa"
+    },
+    {
+      "path": "rust/parity/cases/ollama-router-contracts.jsonl",
+      "bytes": 1406478,
+      "sha256": "0859b00d2f91c90d0c278eb89613f40840f6ff3e4a3240050aef975cea7930da"
+    },
+    {
+      "path": "rust/parity/cases/ollama-router-contracts.capture.json",
+      "bytes": 46061,
+      "sha256": "5e611d8bda93675aa7fe7ad93ca1bc54dd79b0cf6a3c58daa7276d7bf3d5a04b"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs",
+      "bytes": 8365,
+      "sha256": "cccb0126ab670cafbc9b1b60b9de9d55b9a33f5a705c33394bb40a3bebea1670"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/ollama_router_contracts_support.rs",
+      "bytes": 8147,
+      "sha256": "fe5399097a91b84c85fc504e3676c1d48ae36648c892e01393e5bc01c5db2090"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/router.rs",
+      "bytes": 18645,
+      "sha256": "7c28f5ee23e54e982d4a6bd2b65cba0c2c5e2e3ccc57d522b715c5fccb0d0e6b"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+      "bytes": 32670,
+      "sha256": "f5e9bf5f36969ec89ddf1a9b91b7e83d4b4a74b460f60f8ddddd576dbfaad899"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/evaluator.rs",
+      "bytes": 44305,
+      "sha256": "a44198f1c62c7b4d45d1427bf67b673f8b0b252f97244354a0cfc66eb9933527"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+      "bytes": 23125,
+      "sha256": "e1548d83034ad97dd8f6ec4da65636d8e52c9c25ce3a4d29f6794e7566d451e3"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/http_client.rs",
+      "bytes": 16711,
+      "sha256": "c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1"
+    }
+  ],
+  "retained_sources": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/09257da09a1fb1732347c413be1de55b5a1a3199bf988045e9c307f814ebb7aa.mjs",
+      "sha256": "09257da09a1fb1732347c413be1de55b5a1a3199bf988045e9c307f814ebb7aa",
+      "bytes": 17330,
+      "original_path": "rust/parity/capture-ollama-router-contracts.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/0859b00d2f91c90d0c278eb89613f40840f6ff3e4a3240050aef975cea7930da.jsonl",
+      "sha256": "0859b00d2f91c90d0c278eb89613f40840f6ff3e4a3240050aef975cea7930da",
+      "bytes": 1406478,
+      "original_path": "rust/parity/cases/ollama-router-contracts.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/5e611d8bda93675aa7fe7ad93ca1bc54dd79b0cf6a3c58daa7276d7bf3d5a04b.json",
+      "sha256": "5e611d8bda93675aa7fe7ad93ca1bc54dd79b0cf6a3c58daa7276d7bf3d5a04b",
+      "bytes": 46061,
+      "original_path": "rust/parity/cases/ollama-router-contracts.capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/cccb0126ab670cafbc9b1b60b9de9d55b9a33f5a705c33394bb40a3bebea1670.rs",
+      "sha256": "cccb0126ab670cafbc9b1b60b9de9d55b9a33f5a705c33394bb40a3bebea1670",
+      "bytes": 8365,
+      "original_path": "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/fe5399097a91b84c85fc504e3676c1d48ae36648c892e01393e5bc01c5db2090.rs",
+      "sha256": "fe5399097a91b84c85fc504e3676c1d48ae36648c892e01393e5bc01c5db2090",
+      "bytes": 8147,
+      "original_path": "rust/crates/autorouter-runtime/src/ollama_router_contracts_support.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/7c28f5ee23e54e982d4a6bd2b65cba0c2c5e2e3ccc57d522b715c5fccb0d0e6b.rs",
+      "sha256": "7c28f5ee23e54e982d4a6bd2b65cba0c2c5e2e3ccc57d522b715c5fccb0d0e6b",
+      "bytes": 18645,
+      "original_path": "rust/crates/autorouter-runtime/src/router.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/f5e9bf5f36969ec89ddf1a9b91b7e83d4b4a74b460f60f8ddddd576dbfaad899.rs",
+      "sha256": "f5e9bf5f36969ec89ddf1a9b91b7e83d4b4a74b460f60f8ddddd576dbfaad899",
+      "bytes": 32670,
+      "original_path": "rust/crates/autorouter-runtime/src/classifier.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/a44198f1c62c7b4d45d1427bf67b673f8b0b252f97244354a0cfc66eb9933527.rs",
+      "sha256": "a44198f1c62c7b4d45d1427bf67b673f8b0b252f97244354a0cfc66eb9933527",
+      "bytes": 44305,
+      "original_path": "rust/crates/autorouter-runtime/src/evaluator.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/e1548d83034ad97dd8f6ec4da65636d8e52c9c25ce3a4d29f6794e7566d451e3.rs",
+      "sha256": "e1548d83034ad97dd8f6ec4da65636d8e52c9c25ce3a4d29f6794e7566d451e3",
+      "bytes": 23125,
+      "original_path": "rust/crates/autorouter-runtime/src/bounded_json.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1.rs",
+      "sha256": "c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1",
+      "bytes": 16711,
+      "original_path": "rust/crates/autorouter-runtime/src/http_client.rs"
+    }
+  ],
+  "evidence": {
+    "0-ollama-router-frozen-control.log": {
+      "path": "artifacts/rust-rewrite/evidence/34eda369de3a9d92f1ea013e4ed676ae5af066fa1df0d8d65ab0380e5aff4aa7.log",
+      "bytes": 1307,
+      "sha256": "34eda369de3a9d92f1ea013e4ed676ae5af066fa1df0d8d65ab0380e5aff4aa7",
+      "original_path": "artifacts/rust-rewrite/ollama-router-frozen-control.log"
+    },
+    "1-ollama-router-capture-1.log": {
+      "path": "artifacts/rust-rewrite/evidence/93290b1dfb9c790ca5029eac80d317d9fa163af1c0c2be9fcd8e9d85ff2b002e.log",
+      "bytes": 153,
+      "sha256": "93290b1dfb9c790ca5029eac80d317d9fa163af1c0c2be9fcd8e9d85ff2b002e",
+      "original_path": "artifacts/rust-rewrite/ollama-router-capture-1.log"
+    },
+    "2-ollama-router-capture-2.log": {
+      "path": "artifacts/rust-rewrite/evidence/93290b1dfb9c790ca5029eac80d317d9fa163af1c0c2be9fcd8e9d85ff2b002e.log",
+      "bytes": 153,
+      "sha256": "93290b1dfb9c790ca5029eac80d317d9fa163af1c0c2be9fcd8e9d85ff2b002e",
+      "original_path": "artifacts/rust-rewrite/ollama-router-capture-2.log"
+    },
+    "3-ollama-router-native-1.log": {
+      "path": "artifacts/rust-rewrite/evidence/05b5bd2d4a8f7e04a22b7cb26f8aeafa394ffd351a99350ad7e3b009bbc8b952.log",
+      "bytes": 1434,
+      "sha256": "05b5bd2d4a8f7e04a22b7cb26f8aeafa394ffd351a99350ad7e3b009bbc8b952",
+      "original_path": "artifacts/rust-rewrite/ollama-router-native-1.log"
+    },
+    "4-ollama-router-clippy-1.log": {
+      "path": "artifacts/rust-rewrite/evidence/5c2eb42e155af017f23112a04a0b22197d4c02ca41f99fe2763c7dcf0db17f7d.log",
+      "bytes": 678,
+      "sha256": "5c2eb42e155af017f23112a04a0b22197d4c02ca41f99fe2763c7dcf0db17f7d",
+      "original_path": "artifacts/rust-rewrite/ollama-router-clippy-1.log"
+    }
+  },
+  "retained_evidence": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/34eda369de3a9d92f1ea013e4ed676ae5af066fa1df0d8d65ab0380e5aff4aa7.log",
+      "bytes": 1307,
+      "sha256": "34eda369de3a9d92f1ea013e4ed676ae5af066fa1df0d8d65ab0380e5aff4aa7",
+      "original_path": "artifacts/rust-rewrite/ollama-router-frozen-control.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/93290b1dfb9c790ca5029eac80d317d9fa163af1c0c2be9fcd8e9d85ff2b002e.log",
+      "bytes": 153,
+      "sha256": "93290b1dfb9c790ca5029eac80d317d9fa163af1c0c2be9fcd8e9d85ff2b002e",
+      "original_path": "artifacts/rust-rewrite/ollama-router-capture-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/93290b1dfb9c790ca5029eac80d317d9fa163af1c0c2be9fcd8e9d85ff2b002e.log",
+      "bytes": 153,
+      "sha256": "93290b1dfb9c790ca5029eac80d317d9fa163af1c0c2be9fcd8e9d85ff2b002e",
+      "original_path": "artifacts/rust-rewrite/ollama-router-capture-2.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/05b5bd2d4a8f7e04a22b7cb26f8aeafa394ffd351a99350ad7e3b009bbc8b952.log",
+      "bytes": 1434,
+      "sha256": "05b5bd2d4a8f7e04a22b7cb26f8aeafa394ffd351a99350ad7e3b009bbc8b952",
+      "original_path": "artifacts/rust-rewrite/ollama-router-native-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/5c2eb42e155af017f23112a04a0b22197d4c02ca41f99fe2763c7dcf0db17f7d.log",
+      "bytes": 678,
+      "sha256": "5c2eb42e155af017f23112a04a0b22197d4c02ca41f99fe2763c7dcf0db17f7d",
+      "original_path": "artifacts/rust-rewrite/ollama-router-clippy-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/c35ec7664e64dd1ca843e6d6d0e9eb0c51dd5239031f7cda32c807c44e0ce8dd.json",
+      "bytes": 26614,
+      "sha256": "c35ec7664e64dd1ca843e6d6d0e9eb0c51dd5239031f7cda32c807c44e0ce8dd",
+      "original_path": "/private/tmp/autorouter-ollama-router-next-plan.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/a74c5b816250f74eb56d5395dc4695c001a604803cdcedf475c537309dac6cac.json",
+      "bytes": 17201,
+      "sha256": "a74c5b816250f74eb56d5395dc4695c001a604803cdcedf475c537309dac6cac",
+      "original_path": "/private/tmp/autorouter-ollama-router-next-ast.json"
+    }
+  ],
+  "capture_method": [
+    "verifyBaseline authenticates frozen reference before imports; exact original test-file hash is pinned. Static import replacement leaves original callbacks/helpers/loops/mutations/assertions intact.",
+    "A subclass delegates all source Router.classify/route operations to original implementations, preserving each instance and exact request sequence. Calls nested inside source route are observed within the route step rather than invoking extra classifications.",
+    "Built-in finite Response constructor proxy returns the same instance without cloning, teeing or consuming its body. Explicit original thrown error is recorded/rethrown unchanged and is distinguished from independent capture bookkeeping failures.",
+    "Original output/config undefined tags are explicit. Complete native config, method/URL/headers/raw and parsed request body/status/response bytes and complete result records are compared. Only declared unasserted route elapsed fields and Error.stack are excluded.",
+    "Two fresh complete captures have byte-identical corpus and capture metadata; measured counts, not predicted plan values, supply this proposal."
+  ],
+  "limits": {
+    "cases": 26,
+    "steps_per_router": 2,
+    "requests_per_step": 2,
+    "requests": 79,
+    "field_bytes": 65536,
+    "response_bytes": 1048704,
+    "response_snapshot_bytes": 1052800,
+    "aggregate_bytes": 16777216,
+    "corpus_bytes": 8388608,
+    "case_bytes": 2097152,
+    "snapshot_nodes": 4096,
+    "snapshot_depth": 32,
+    "product_metadata_bytes": 1048576,
+    "product_decision_bytes": 65536,
+    "source_metadata_encoded_bytes": [
+      80048,
+      1048625
+    ],
+    "native_operation_deadline_ms": 2000,
+    "native_input_request_bytes_max": 65536,
+    "native_step_requests_max": 2,
+    "native_step_body_owners_after": 0,
+    "native_step_pending_registry_after": [
+      0,
+      0
+    ],
+    "native_output_reference": "Complete actual return values are compared to bounded captured fixtures; this does not introduce a new general product output cap.",
+    "capture_timing_boundary": "Capture inputs/request/response/cardinality/serialized output are explicitly bounded; capture completed synchronously over finite synthetic callbacks. No hard-preemption or adversarial JavaScript executor timing guarantee is claimed.",
+    "native_timing_boundary": "2s timeout is cooperative and each supplied transport future is finite/nonblocking; no timed/cancellation/stream proof is inferred."
+  },
+  "exclusions": [
+    "Only unasserted route latency_ms/evaluation_latency_ms after finite/nonnegative validation",
+    "Only unasserted Error.stack on the intentional synthetic thrown fetch error"
+  ],
+  "negative_controls": [
+    {
+      "schedule": "wrong metadata URL",
+      "original_case": "baseline-ollama-router-12-1",
+      "proof": "Real route returns identical scripted fallback, yet independent request mismatch rejects verification."
+    },
+    {
+      "schedule": "wrong native state body",
+      "original_case": "baseline-ollama-router-4-1",
+      "proof": "Real classifier returns identical scripted successful tier, yet independent parsed/raw request mismatch rejects verification."
+    },
+    {
+      "schedule": "extra expected cache-hit fetch",
+      "original_case": "baseline-ollama-router-4-1",
+      "proof": "Real second classify stays cache with zero calls; unconsumed expected queue rejects verification."
+    },
+    {
+      "schedule": "wrong retry state body",
+      "original_case": "baseline-ollama-router-5-1",
+      "proof": "Real first malformed fallback and successful retry preserve same source results; second-operation request mismatch still rejects verification."
+    },
+    {
+      "schedule": "oversized metadata replaced with valid80000-character tensors",
+      "original_case": "baseline-ollama-router-13-2",
+      "proof": "Native now attempts inference (2actualcalls), making both complete expected result and independently expected1call schedule fail; no product parser/cap modification."
+    }
+  ],
+  "existing_actual_redirect_evidence": {
+    "rust_test": "rust/crates/autorouter-runtime/src/http_client.rs#http_client::tests::local_http_reuses_connections_preserves_credentials_and_never_decodes_or_redirects",
+    "source": {
+      "path": "rust/crates/autorouter-runtime/src/http_client.rs",
+      "bytes": 16711,
+      "sha256": "c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1"
+    },
+    "passed_log": "artifacts/rust-rewrite/eighth-final-3-workspace.log",
+    "scope": "Actual mock HTTP307 response has unchanged body and observed one request/no redirect follow; evaluator request_json separately rejects non-success status. Literal JS redirect:error is a Rust transport-policy adaptation."
+  },
+  "boundaries": [
+    "Source Router.classify maps to the same real classifier owned by native Router; no captured decisions or direct evaluator result substitute for cache/fallback/routing schedules. Only the source direct evaluateOllama tail uses evaluate_serialized_answer.",
+    "Finite full in-memory response fixtures retain original oversized metadata for parser admission testing; native product metadata1MiB and decision64KiB limits remain unchanged. This is not streaming-resource or fleet-performance evidence.",
+    "No output masking beyond two unasserted finite/nonnegative route elapsed fields. Own undefined field tags remain explicit; JSON numeric representation1vs1.0 is normalized only for complete config equality.",
+    "No JS function/AbortSignal/Error-object/prototype identity equivalence, real providers/models/downloads/authentication, local service calls, OS/platform qualification or release approval is claimed.",
+    "Definitions7/8/9/10/15 (deadlines/cancellation/continuity) remain outside this finite batch. Prior finite evaluator and setup/diagnostic corpus/evidence files stay unchanged."
+  ],
+  "rows": [
+    {
+      "id": "test/ollama-evaluator.test.mjs#4",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "Ollama scores all three tiers natively with the frozen policy and no Jev confidence threshold",
+      "line": 66,
+      "baseline_file_sha256": "5015a563933bc51ffcc8ab88214cb4d972f590548ae8e5c768aa46f24669a371",
+      "definition_statement": "test('Ollama scores all three tiers natively with the frozen policy and no Jev confidence threshold', async () => {\n  for (const tier of ['haiku', 'sonnet', 'opus']) {\n    const calls = [];\n    const fetchImpl = async (url, options) => {\n      calls.push(url);\n      assert.equal(options.redirect, 'error');\n      assert.deepEqual(options.headers, { 'content-type': 'application/json' });\n      assert.ok(!options.body.includes('PRIVATE_'));\n      if (url.endsWith('/api/show')) return metadata();\n      assert.equal(url, 'http://127.0.0.1:11434/v1/systemone');\n      const payload = JSON.parse(options.body);\n      assert.deepEqual(Object.keys(payload).sort(), ['keep_alive', 'model', 'questions', 'state']);\n      assert.equal(payload.model, DEFAULT_OLLAMA_MODEL);\n      assert.equal(payload.keep_alive, '5m');\n      assert.equal(payload.state.current_task, 'Fix one typo');\n      assert.ok(Buffer.byteLength(JSON.stringify(payload.state)) <= 3000);\n      assert.deepEqual(payload.questions, OLLAMA_QUESTIONS);\n      return Response.json(decisionPayload(tier));\n    };\n    const router = new Router(config({ jevKey: 'PRIVATE_JEV_KEY', anthropicKey: 'PRIVATE_ANTHROPIC_KEY', minConfidence: 1 }), { fetchImpl });\n    const routed = await router.classify(body());\n    assert.equal(routed.tier, tier);\n    assert.equal(routed.source, 'ollama');\n    assert.equal(routed.confidence, undefined);\n    assert.equal(routed.probabilities, undefined);\n    assert.equal((await router.classify(body())).source, 'cache');\n    assert.deepEqual(calls, ['http://127.0.0.1:11434/api/show', 'http://127.0.0.1:11434/v1/systemone']);\n  }\n  const result = await evaluateOllama(buildOllamaState(body()), config(), {\n    fetchImpl: async url => url.endsWith('/show') ? metadata() : Response.json(decisionPayload()),\n  });\n  assert.deepEqual(result, { choice: 'haiku', metrics: { input_tokens: 1234, output_tokens: 1 } });\n});",
+      "definition_sha256": "7360ab6bbc754c1bebcd0eb78d525de711e96f7678d84e15eb113687dcde2dbe",
+      "definition_call_sha256": "d474e00b3505c4e0cc5c75f14122f92822af2884ad98de9461b4f8540878b109",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_three_tiers_use_frozen_policy_and_identical_second_calls_hit_cache"
+      ],
+      "shared_cases": [
+        "baseline-ollama-router-4-1",
+        "baseline-ollama-router-4-2",
+        "baseline-ollama-router-4-3",
+        "baseline-ollama-router-4-4"
+      ],
+      "scenarios": 4,
+      "router_instances": 3,
+      "operations": 7,
+      "requests": 8,
+      "executed_original_assertions": 58,
+      "assertions": [
+        {
+          "line": 71,
+          "expression": "assert.equal(options.redirect, 'error')",
+          "sha256": "8867547a8dffc17a3aa008e64a715fe5a4f24738ba0b79b5257a046a95a1b00a",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_three_tiers_use_frozen_policy_and_identical_second_calls_hit_cache"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-4-1",
+            "baseline-ollama-router-4-2",
+            "baseline-ollama-router-4-3",
+            "baseline-ollama-router-4-4"
+          ],
+          "native_check": "Each original fetch asserts redirect:error before returning its unchanged Response; captured option metadata is exact. Native request replay validates same URL/status sequence; existing actual NativeHttpClient regression proves redirects are never followed, and request_json rejects non-success statuses. Literal JS fetch-option identity is an explicit Rust transport adaptation."
+        },
+        {
+          "line": 72,
+          "expression": "assert.deepEqual(options.headers, { 'content-type': 'application/json' })",
+          "sha256": "1eda214956b9fe552cec743bd9bd668bdb23325753faadb6a8cd2f046da70586",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_three_tiers_use_frozen_policy_and_identical_second_calls_hit_cache"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-4-1",
+            "baseline-ollama-router-4-2",
+            "baseline-ollama-router-4-3",
+            "baseline-ollama-router-4-4"
+          ],
+          "native_check": "Complete captured headers equal the native transport headers on both metadata and decision calls; this enforces the sole content-type application/json header and excludes credentials."
+        },
+        {
+          "line": 73,
+          "expression": "assert.ok(!options.body.includes('PRIVATE_'))",
+          "sha256": "15dc05c4e7101ca378205a1224c82b4611179a18368f858e3722b57cbf4c1989",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_three_tiers_use_frozen_policy_and_identical_second_calls_hit_cache"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-4-1",
+            "baseline-ollama-router-4-2",
+            "baseline-ollama-router-4-3",
+            "baseline-ollama-router-4-4"
+          ],
+          "native_check": "Original fetch callback checks PRIVATE_ absence for all six requests under the three credential-bearing configs. Native complete raw and parsed request equality reproduces those exact credential-free bodies, without dropping the fake keys from input config comparison."
+        },
+        {
+          "line": 75,
+          "expression": "assert.equal(url, 'http://127.0.0.1:11434/v1/systemone')",
+          "sha256": "682143d0a9ee26ab79e2c310b5be16f00b49754c6d1d783551436f16995e5428",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_three_tiers_use_frozen_policy_and_identical_second_calls_hit_cache"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-4-1",
+            "baseline-ollama-router-4-2",
+            "baseline-ollama-router-4-3",
+            "baseline-ollama-router-4-4"
+          ],
+          "native_check": "Native exact URL/method/raw body/headers are compared to the original systemone request on each tier."
+        },
+        {
+          "line": 77,
+          "expression": "assert.deepEqual(Object.keys(payload).sort(), ['keep_alive', 'model', 'questions', 'state'])",
+          "sha256": "154c818e253db604f049946e43deb79f13f9d6a8e35fb0fcd012267185f75b68",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_three_tiers_use_frozen_policy_and_identical_second_calls_hit_cache"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-4-1",
+            "baseline-ollama-router-4-2",
+            "baseline-ollama-router-4-3",
+            "baseline-ollama-router-4-4"
+          ],
+          "native_check": "Native full parsed and raw body equality preserves exactly keep_alive/model/questions/state, including no extra keys."
+        },
+        {
+          "line": 78,
+          "expression": "assert.equal(payload.model, DEFAULT_OLLAMA_MODEL)",
+          "sha256": "62413d3c648abf8bffd2048ff2b47ceeee3ea0a6b41452794271c19e3070c429",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_three_tiers_use_frozen_policy_and_identical_second_calls_hit_cache"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-4-1",
+            "baseline-ollama-router-4-2",
+            "baseline-ollama-router-4-3",
+            "baseline-ollama-router-4-4"
+          ],
+          "native_check": "Native complete request equality includes exact frozen default model; complete native config is independently compared to original config."
+        },
+        {
+          "line": 79,
+          "expression": "assert.equal(payload.keep_alive, '5m')",
+          "sha256": "6beb271098eb1d418b786e8f3a3402436b26c4bf809ab5347b409132330e52b0",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_three_tiers_use_frozen_policy_and_identical_second_calls_hit_cache"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-4-1",
+            "baseline-ollama-router-4-2",
+            "baseline-ollama-router-4-3",
+            "baseline-ollama-router-4-4"
+          ],
+          "native_check": "Complete raw and parsed requests contain exact keep_alive=5m."
+        },
+        {
+          "line": 80,
+          "expression": "assert.equal(payload.state.current_task, 'Fix one typo')",
+          "sha256": "5a44038b4fa40557991b7dd1d6b7d1151cace211ae43e7b12fe9eb97a355cb41",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_three_tiers_use_frozen_policy_and_identical_second_calls_hit_cache"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-4-1",
+            "baseline-ollama-router-4-2",
+            "baseline-ollama-router-4-3",
+            "baseline-ollama-router-4-4"
+          ],
+          "native_check": "Real native classifier builds the state from the original body, and full wire comparison requires current_task=Fix one typo."
+        },
+        {
+          "line": 81,
+          "expression": "assert.ok(Buffer.byteLength(JSON.stringify(payload.state)) <= 3000)",
+          "sha256": "fe7863ce1d03e32c89e0cd7620d66ad911f242891088eca76738294e7696f4e7",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_three_tiers_use_frozen_policy_and_identical_second_calls_hit_cache"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-4-1",
+            "baseline-ollama-router-4-2",
+            "baseline-ollama-router-4-3",
+            "baseline-ollama-router-4-4"
+          ],
+          "native_check": "Same real state bytes are captured from the source request and compared exactly to native request bytes; all source invocations enforce original3000-byte bound."
+        },
+        {
+          "line": 82,
+          "expression": "assert.deepEqual(payload.questions, OLLAMA_QUESTIONS)",
+          "sha256": "428f7af0d8f49ec45b83e677ebb3945b1bf50fb68af01a625c0d38341b00e491",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_three_tiers_use_frozen_policy_and_identical_second_calls_hit_cache"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-4-1",
+            "baseline-ollama-router-4-2",
+            "baseline-ollama-router-4-3",
+            "baseline-ollama-router-4-4"
+          ],
+          "native_check": "Complete serialized question object/policy in each native request equals the unchanged frozen source question object captured after original deepEqual."
+        },
+        {
+          "line": 87,
+          "expression": "assert.equal(routed.tier, tier)",
+          "sha256": "2c6d3cf0f2ad30b4da824649dfe5d771f0cb330a14054f93c5696b34b23ca26b",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_three_tiers_use_frozen_policy_and_identical_second_calls_hit_cache"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-4-1",
+            "baseline-ollama-router-4-2",
+            "baseline-ollama-router-4-3",
+            "baseline-ollama-router-4-4"
+          ],
+          "native_check": "Complete real classifier result equals captured original result for each of haiku/sonnet/opus, preserving actual tier despite minConfidence=1."
+        },
+        {
+          "line": 88,
+          "expression": "assert.equal(routed.source, 'ollama')",
+          "sha256": "f0c5931162021f57fd899999e7349007f8b351046915d0fe03807b93639fafcc",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_three_tiers_use_frozen_policy_and_identical_second_calls_hit_cache"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-4-1",
+            "baseline-ollama-router-4-2",
+            "baseline-ollama-router-4-3",
+            "baseline-ollama-router-4-4"
+          ],
+          "native_check": "Each first complete result has source ollama; no injected decision is supplied to native classifier."
+        },
+        {
+          "line": 89,
+          "expression": "assert.equal(routed.confidence, undefined)",
+          "sha256": "7fb796377bd680a2f304ed5d8bd2c178a48168cb6e759165df7377aa59585829",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_three_tiers_use_frozen_policy_and_identical_second_calls_hit_cache"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-4-1",
+            "baseline-ollama-router-4-2",
+            "baseline-ollama-router-4-3",
+            "baseline-ollama-router-4-4"
+          ],
+          "native_check": "Captured result has absent confidence and zero undefined-own-property tags; native complete serialized result is equal and skip_serializing_if preserves absence."
+        },
+        {
+          "line": 90,
+          "expression": "assert.equal(routed.probabilities, undefined)",
+          "sha256": "992326bcf5cbd613fbd9532fbad5d43289d02b8c8603aadd1c97e1ceb1cec733",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_three_tiers_use_frozen_policy_and_identical_second_calls_hit_cache"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-4-1",
+            "baseline-ollama-router-4-2",
+            "baseline-ollama-router-4-3",
+            "baseline-ollama-router-4-4"
+          ],
+          "native_check": "Captured result has no probabilities; complete native result equality excludes it as well."
+        },
+        {
+          "line": 91,
+          "expression": "assert.equal((await router.classify(body())).source, 'cache')",
+          "sha256": "91cf91371bcf0e4f9327260cfc2ceb6dd4bc37f1ff5bbcc548d76d13daafeecc",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_three_tiers_use_frozen_policy_and_identical_second_calls_hit_cache"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-4-1",
+            "baseline-ollama-router-4-2",
+            "baseline-ollama-router-4-3",
+            "baseline-ollama-router-4-4"
+          ],
+          "native_check": "The second identical body call reuses the same real Router classifier/cache; full second result has source cache and exact per-step request count zero."
+        },
+        {
+          "line": 92,
+          "expression": "assert.deepEqual(calls, ['http://127.0.0.1:11434/api/show', 'http://127.0.0.1:11434/v1/systemone'])",
+          "sha256": "9c34b5153f1e64c1e2a6c6a9ac6121ea9bb23e3f6fa267f1ebabfdbd67e32e91",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_three_tiers_use_frozen_policy_and_identical_second_calls_hit_cache"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-4-1",
+            "baseline-ollama-router-4-2",
+            "baseline-ollama-router-4-3",
+            "baseline-ollama-router-4-4"
+          ],
+          "native_check": "Per-instance original requests are exactly show+systemone on first classify, then zero on second. Queue exhaustion, actual request count, complete URLs and body owners are checked for each step."
+        },
+        {
+          "line": 97,
+          "expression": "assert.deepEqual(result, { choice: 'haiku', metrics: { input_tokens: 1234, output_tokens: 1 } })",
+          "sha256": "0dbd45d4af274f2c07c87f9eb57960a00b0ed1d35668de85b08f0da9ec7d9b89",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_three_tiers_use_frozen_policy_and_identical_second_calls_hit_cache"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-4-1",
+            "baseline-ollama-router-4-2",
+            "baseline-ollama-router-4-3",
+            "baseline-ollama-router-4-4"
+          ],
+          "native_check": "Original trailing direct evaluateOllama operation is separately replayed through evaluate_serialized_answer with the captured actual state; complete result equals choice haiku plus exact1234/1 metrics."
+        }
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#5",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "malformed native answers fall back safely without caching or consulting Jev",
+      "line": 100,
+      "baseline_file_sha256": "5015a563933bc51ffcc8ab88214cb4d972f590548ae8e5c768aa46f24669a371",
+      "definition_statement": "test('malformed native answers fall back safely without caching or consulting Jev', async () => {\n  const mutations = [\n    value => { value.model = 'other-model'; },\n    value => { value.answers.tier.type = 'score'; },\n    value => { value.answers.tier.choice = 'unknown'; },\n    value => { value.answers.tier.choice = 'opus'; },\n    value => { value.answers.tier.confidence = '0.8'; },\n    value => { value.answers.tier.confidence = 1.1; },\n    value => { delete value.answers.tier.probabilities.opus; },\n    value => { value.answers.tier.probabilities.opus = -0.1; },\n    value => { value.answers.tier.probabilities.opus = 0.2; },\n    value => { value.answers.extra = 'PRIVATE_RESPONSE'; },\n    value => { value.usage.input_tokens = -1; },\n    value => { delete value.usage; },\n  ];\n  for (const mutate of mutations) {\n    let classifications = 0;\n    const calls = [];\n    const router = new Router(config(), { fetchImpl: async url => {\n      calls.push(new URL(url).pathname);\n      if (url.endsWith('/show')) return metadata();\n      const value = decisionPayload();\n      if (++classifications === 1) mutate(value);\n      return Response.json(value);\n    } });\n    const request = { ...body(), model: config().models.opus };\n    const failed = await router.classify(request);\n    assert.equal(failed.source, 'fallback');\n    assert.equal(failed.classifier_error, 'invalid_response');\n    assert.equal(failed.tier, 'opus');\n    assert.ok(!JSON.stringify(failed).includes('PRIVATE_'));\n    assert.equal((await router.classify(request)).source, 'ollama');\n    assert.deepEqual(calls, ['/api/show', '/v1/systemone', '/api/show', '/v1/systemone']);\n  }\n});",
+      "definition_sha256": "bca520a08909f0a076719ef7db926e0d95bb4f99ce33639dd787d59bfb46a77d",
+      "definition_call_sha256": "ee285b9a34fff5d298d9e778191380c37802b8fcdfab173ee325957246cccd8c",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_malformed_and_disabled_deadline_failures_retry_same_opus_body_uncached"
+      ],
+      "shared_cases": [
+        "baseline-ollama-router-5-1",
+        "baseline-ollama-router-5-2",
+        "baseline-ollama-router-5-3",
+        "baseline-ollama-router-5-4",
+        "baseline-ollama-router-5-5",
+        "baseline-ollama-router-5-6",
+        "baseline-ollama-router-5-7",
+        "baseline-ollama-router-5-8",
+        "baseline-ollama-router-5-9",
+        "baseline-ollama-router-5-10",
+        "baseline-ollama-router-5-11",
+        "baseline-ollama-router-5-12"
+      ],
+      "scenarios": 12,
+      "router_instances": 12,
+      "operations": 24,
+      "requests": 48,
+      "executed_original_assertions": 72,
+      "assertions": [
+        {
+          "line": 127,
+          "expression": "assert.equal(failed.source, 'fallback')",
+          "sha256": "169fdd66d988a8af3051da97998c5233b7595abdd4ad3ea4b643b450d9edc8d6",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_malformed_and_disabled_deadline_failures_retry_same_opus_body_uncached"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-5-1",
+            "baseline-ollama-router-5-2",
+            "baseline-ollama-router-5-3",
+            "baseline-ollama-router-5-4",
+            "baseline-ollama-router-5-5",
+            "baseline-ollama-router-5-6",
+            "baseline-ollama-router-5-7",
+            "baseline-ollama-router-5-8",
+            "baseline-ollama-router-5-9",
+            "baseline-ollama-router-5-10",
+            "baseline-ollama-router-5-11",
+            "baseline-ollama-router-5-12"
+          ],
+          "native_check": "All twelve source mutations use a new actual Router instance; complete first native result equals source fallback."
+        },
+        {
+          "line": 128,
+          "expression": "assert.equal(failed.classifier_error, 'invalid_response')",
+          "sha256": "e37e611dd317487200fb244450984f26a2410a67b8f6af29ace6ebce6a49e0df",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_malformed_and_disabled_deadline_failures_retry_same_opus_body_uncached"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-5-1",
+            "baseline-ollama-router-5-2",
+            "baseline-ollama-router-5-3",
+            "baseline-ollama-router-5-4",
+            "baseline-ollama-router-5-5",
+            "baseline-ollama-router-5-6",
+            "baseline-ollama-router-5-7",
+            "baseline-ollama-router-5-8",
+            "baseline-ollama-router-5-9",
+            "baseline-ollama-router-5-10",
+            "baseline-ollama-router-5-11",
+            "baseline-ollama-router-5-12"
+          ],
+          "native_check": "Full first results preserve classifier_error invalid_response for all twelve original malformed payloads."
+        },
+        {
+          "line": 129,
+          "expression": "assert.equal(failed.tier, 'opus')",
+          "sha256": "0b83819fc17b604b961172c289396958d8045b896f53afe15af0e7d6e4e07f2d",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_malformed_and_disabled_deadline_failures_retry_same_opus_body_uncached"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-5-1",
+            "baseline-ollama-router-5-2",
+            "baseline-ollama-router-5-3",
+            "baseline-ollama-router-5-4",
+            "baseline-ollama-router-5-5",
+            "baseline-ollama-router-5-6",
+            "baseline-ollama-router-5-7",
+            "baseline-ollama-router-5-8",
+            "baseline-ollama-router-5-9",
+            "baseline-ollama-router-5-10",
+            "baseline-ollama-router-5-11",
+            "baseline-ollama-router-5-12"
+          ],
+          "native_check": "Every first call uses original requested Opus model/body; complete result preserves Opus tier."
+        },
+        {
+          "line": 130,
+          "expression": "assert.ok(!JSON.stringify(failed).includes('PRIVATE_'))",
+          "sha256": "8c190615fe9d0a4c908ed5adaffbb4b9df386251ede8c96decc5c7e9eed10a38",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_malformed_and_disabled_deadline_failures_retry_same_opus_body_uncached"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-5-1",
+            "baseline-ollama-router-5-2",
+            "baseline-ollama-router-5-3",
+            "baseline-ollama-router-5-4",
+            "baseline-ollama-router-5-5",
+            "baseline-ollama-router-5-6",
+            "baseline-ollama-router-5-7",
+            "baseline-ollama-router-5-8",
+            "baseline-ollama-router-5-9",
+            "baseline-ollama-router-5-10",
+            "baseline-ollama-router-5-11",
+            "baseline-ollama-router-5-12"
+          ],
+          "native_check": "Original callback checks serialized first decision excludes PRIVATE_; complete native result equality cannot add private error/response fields."
+        },
+        {
+          "line": 131,
+          "expression": "assert.equal((await router.classify(request)).source, 'ollama')",
+          "sha256": "fd667c675f3513af36ed4c31c05f6841e97ecdf2457f902078267910417a9439",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_malformed_and_disabled_deadline_failures_retry_same_opus_body_uncached"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-5-1",
+            "baseline-ollama-router-5-2",
+            "baseline-ollama-router-5-3",
+            "baseline-ollama-router-5-4",
+            "baseline-ollama-router-5-5",
+            "baseline-ollama-router-5-6",
+            "baseline-ollama-router-5-7",
+            "baseline-ollama-router-5-8",
+            "baseline-ollama-router-5-9",
+            "baseline-ollama-router-5-10",
+            "baseline-ollama-router-5-11",
+            "baseline-ollama-router-5-12"
+          ],
+          "native_check": "Same instance and exact same body are retried through the real shared classifier; second complete result source is ollama, proving fallback was not cached."
+        },
+        {
+          "line": 132,
+          "expression": "assert.deepEqual(calls, ['/api/show', '/v1/systemone', '/api/show', '/v1/systemone'])",
+          "sha256": "15df415485d06086fab64a5454da0c27dd07c1121d3bf9a146964faa918eac9a",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_malformed_and_disabled_deadline_failures_retry_same_opus_body_uncached"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-5-1",
+            "baseline-ollama-router-5-2",
+            "baseline-ollama-router-5-3",
+            "baseline-ollama-router-5-4",
+            "baseline-ollama-router-5-5",
+            "baseline-ollama-router-5-6",
+            "baseline-ollama-router-5-7",
+            "baseline-ollama-router-5-8",
+            "baseline-ollama-router-5-9",
+            "baseline-ollama-router-5-10",
+            "baseline-ollama-router-5-11",
+            "baseline-ollama-router-5-12"
+          ],
+          "native_check": "Each mutation requires four exact calls in order: metadata/inference then metadata/inference. Requests are compared in full, queues exhaust, cumulative/per-step counts and pending registry zero are asserted."
+        }
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#12",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "a cloud alias or unknown metadata is rejected before any prompt text is sent",
+      "line": 261,
+      "baseline_file_sha256": "5015a563933bc51ffcc8ab88214cb4d972f590548ae8e5c768aa46f24669a371",
+      "definition_statement": "test('a cloud alias or unknown metadata is rejected before any prompt text is sent', async () => {\n  for (const data of [{ remote_model: 'cloud-model', details: { parameter_size: '1B' } },\n    { remote_host: 'https://ollama.com', details: { parameter_size: '1B' } }, {}, null]) {\n    const calls = [];\n    const router = new Router(config(), { fetchImpl: async (url, options) => {\n      calls.push(url);\n      assert.ok(url.endsWith('/api/show'));\n      assert.ok(!options.body.includes('private-prompt-sentinel'));\n      return Response.json(data);\n    } });\n    const decision = await router.route(body('private-prompt-sentinel'));\n    assert.equal(decision.source, 'fallback');\n    assert.equal(decision.classifier_error, 'invalid_response');\n    assert.equal(decision.evaluator, 'ollama');\n    assert.equal(calls.length, 1);\n  }\n});",
+      "definition_sha256": "fe647902bd4225cb6adf892c5f9b0189a7c9f72237330fa1369ef37265ff904e",
+      "definition_call_sha256": "e40941c840f952f738f814d20dc664dfcfc26fa9a2b135639450b19f7b8599cd",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_metadata_guards_route_without_prompt_and_preserve_separate_megabyte_bound"
+      ],
+      "shared_cases": [
+        "baseline-ollama-router-12-1",
+        "baseline-ollama-router-12-2",
+        "baseline-ollama-router-12-3",
+        "baseline-ollama-router-12-4"
+      ],
+      "scenarios": 4,
+      "router_instances": 4,
+      "operations": 4,
+      "requests": 4,
+      "executed_original_assertions": 24,
+      "assertions": [
+        {
+          "line": 267,
+          "expression": "assert.ok(url.endsWith('/api/show'))",
+          "sha256": "5061bd38cab2b017b3b10be7fcbfebd0519292e9a50e449adb37c21d843d9982",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_metadata_guards_route_without_prompt_and_preserve_separate_megabyte_bound"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-12-1",
+            "baseline-ollama-router-12-2",
+            "baseline-ollama-router-12-3",
+            "baseline-ollama-router-12-4"
+          ],
+          "native_check": "All four original metadata tuples run through real native route; the sole full URL matches original /api/show and no inference request may occur."
+        },
+        {
+          "line": 268,
+          "expression": "assert.ok(!options.body.includes('private-prompt-sentinel'))",
+          "sha256": "b6ffb27a44882bff0eb9b0f58fe55e7428df7a11ad06e1247e0c85c89f08cee0",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_metadata_guards_route_without_prompt_and_preserve_separate_megabyte_bound"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-12-1",
+            "baseline-ollama-router-12-2",
+            "baseline-ollama-router-12-3",
+            "baseline-ollama-router-12-4"
+          ],
+          "native_check": "Real routing receives private-prompt-sentinel while native sole metadata request equals exact prompt-free captured body. Unexpected additional requests increment independent mismatch state."
+        },
+        {
+          "line": 272,
+          "expression": "assert.equal(decision.source, 'fallback')",
+          "sha256": "3ce7af3dbd0598a5f285f280db41fecdfd2239253bdb13ab161b4f803bd3f594",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_metadata_guards_route_without_prompt_and_preserve_separate_megabyte_bound"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-12-1",
+            "baseline-ollama-router-12-2",
+            "baseline-ollama-router-12-3",
+            "baseline-ollama-router-12-4"
+          ],
+          "native_check": "Complete real routed results equal original fallback results for remote_model,remote_host,empty object and null."
+        },
+        {
+          "line": 273,
+          "expression": "assert.equal(decision.classifier_error, 'invalid_response')",
+          "sha256": "6a3d07d5ac525c61c2c87f8e2081eb24de0e6f41983f83a5e6843df1eaf4bcc2",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_metadata_guards_route_without_prompt_and_preserve_separate_megabyte_bound"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-12-1",
+            "baseline-ollama-router-12-2",
+            "baseline-ollama-router-12-3",
+            "baseline-ollama-router-12-4"
+          ],
+          "native_check": "Complete routed result preserves invalid_response; nested source classifier fields are also required to match same fields in actual route result."
+        },
+        {
+          "line": 274,
+          "expression": "assert.equal(decision.evaluator, 'ollama')",
+          "sha256": "eed6256a3fd98ff5dcff298e243223a4da4be28b0f47a409f9521c6721182b1b",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_metadata_guards_route_without_prompt_and_preserve_separate_megabyte_bound"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-12-1",
+            "baseline-ollama-router-12-2",
+            "baseline-ollama-router-12-3",
+            "baseline-ollama-router-12-4"
+          ],
+          "native_check": "Complete routed result preserves evaluator ollama; metadata-only request count excludes Jev/Anthropic fallback."
+        },
+        {
+          "line": 275,
+          "expression": "assert.equal(calls.length, 1)",
+          "sha256": "4c49b614c4f4a9cb8242518b9d27739b12bf86ce60d12754117d5dcfb89bdf2e",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_metadata_guards_route_without_prompt_and_preserve_separate_megabyte_bound"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-12-1",
+            "baseline-ollama-router-12-2",
+            "baseline-ollama-router-12-3",
+            "baseline-ollama-router-12-4"
+          ],
+          "native_check": "Every original route step has exactly one actual metadata request, consumed queue and zero active request/response body owners afterward."
+        }
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#13",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "large local model metadata is accepted within its separate bound while oversized metadata is rejected",
+      "line": 279,
+      "baseline_file_sha256": "5015a563933bc51ffcc8ab88214cb4d972f590548ae8e5c768aa46f24669a371",
+      "definition_statement": "test('large local model metadata is accepted within its separate bound while oversized metadata is rejected', async () => {\n  for (const [size, expected] of [[80000, 'ollama'], [1024 * 1024 + 1, 'fallback']]) {\n    let decisions = 0;\n    const router = new Router(config(), { fetchImpl: async url => {\n      if (url.endsWith('/show')) return Response.json({ details: { parameter_size: '4B' }, tensors: 'x'.repeat(size) });\n      decisions++;\n      return response('haiku');\n    } });\n    const decision = await router.classify(body());\n    assert.equal(decision.source, expected);\n    assert.equal(decisions, expected === 'ollama' ? 1 : 0);\n  }\n});",
+      "definition_sha256": "9a9adcb6066ba7b3688bda064304c2b1f489ef8fe0b4c81a36b91c23e013425c",
+      "definition_call_sha256": "7aec17f41ea3f4cc34343df6b8aa0402894d57ee571b33838035798d3ac97cf3",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_metadata_guards_route_without_prompt_and_preserve_separate_megabyte_bound"
+      ],
+      "shared_cases": [
+        "baseline-ollama-router-13-1",
+        "baseline-ollama-router-13-2"
+      ],
+      "scenarios": 2,
+      "router_instances": 2,
+      "operations": 2,
+      "requests": 3,
+      "executed_original_assertions": 4,
+      "assertions": [
+        {
+          "line": 288,
+          "expression": "assert.equal(decision.source, expected)",
+          "sha256": "3d4356f5493387d0aa46a29b07c557a4ecf1e41d4bd15af9b389c0f38b26af3b",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_metadata_guards_route_without_prompt_and_preserve_separate_megabyte_bound"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-13-1",
+            "baseline-ollama-router-13-2"
+          ],
+          "native_check": "Real shared classifier accepts original80048-byte metadata and rejects original1048625-byte metadata under unchanged1MiB product bound. Full results match ollama/fallback respectively."
+        },
+        {
+          "line": 289,
+          "expression": "assert.equal(decisions, expected === 'ollama' ? 1 : 0)",
+          "sha256": "968fca430521dcf5669d58f51e5ca19f55f06612079d809fc1e00ac18cfd5c78",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_metadata_guards_route_without_prompt_and_preserve_separate_megabyte_bound"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-13-1",
+            "baseline-ollama-router-13-2"
+          ],
+          "native_check": "Valid metadata starts exactly one systemone request; oversized metadata starts none. Total native requests are2/1 respectively, and every queue/count is verified."
+        }
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#14",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "Ollama failures with a disabled deadline never contact Jev, are not cached, and retain an existing Opus request",
+      "line": 293,
+      "baseline_file_sha256": "5015a563933bc51ffcc8ab88214cb4d972f590548ae8e5c768aa46f24669a371",
+      "definition_statement": "test('Ollama failures with a disabled deadline never contact Jev, are not cached, and retain an existing Opus request', async () => {\n  for (const failure of [() => { throw new Error('private upstream detail'); },\n    () => new Response('private provider error', { status: 503 }),\n    () => new Response('private invalid JSON'),\n    () => Response.json({ error: 'private response detail' })]) {\n    let attempts = 0;\n    const router = new Router(config({ ollamaTimeoutMs: 0 }), { fetchImpl: async url => {\n      assert.ok(url.startsWith(config().ollamaEndpoint));\n      if (url.endsWith('/show')) return metadata();\n      attempts++;\n      return attempts === 1 ? failure() : response('sonnet');\n    } });\n    const request = { ...body(), model: config().models.opus };\n    const first = await router.classify(request);\n    assert.equal(first.source, 'fallback');\n    assert.equal(first.tier, 'opus');\n    assert.equal(first.evaluator, 'ollama');\n    assert.ok(!JSON.stringify(first).includes('private'));\n    assert.equal((await router.classify(request)).source, 'ollama');\n  }\n});",
+      "definition_sha256": "e620bc906cdbf8848c0297be73e15a0995bd5e11dbc95c8b8cd1a878a4bc8f2e",
+      "definition_call_sha256": "f4fadf2311bca6736835f524ca31cd5e5db8da043767b6c469f42382c49cb808",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_malformed_and_disabled_deadline_failures_retry_same_opus_body_uncached"
+      ],
+      "shared_cases": [
+        "baseline-ollama-router-14-1",
+        "baseline-ollama-router-14-2",
+        "baseline-ollama-router-14-3",
+        "baseline-ollama-router-14-4"
+      ],
+      "scenarios": 4,
+      "router_instances": 4,
+      "operations": 8,
+      "requests": 16,
+      "executed_original_assertions": 36,
+      "assertions": [
+        {
+          "line": 300,
+          "expression": "assert.ok(url.startsWith(config().ollamaEndpoint))",
+          "sha256": "960efa2787f068fcf1669b3cd7c3f108ffa0a1d3311adc51c1087a63f7536045",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_malformed_and_disabled_deadline_failures_retry_same_opus_body_uncached"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-14-1",
+            "baseline-ollama-router-14-2",
+            "baseline-ollama-router-14-3",
+            "baseline-ollama-router-14-4"
+          ],
+          "native_check": "All source calls in four disabled-deadline cases assert local endpoint; native full URLs match those source calls and no other request can be hidden by a caught safe error."
+        },
+        {
+          "line": 307,
+          "expression": "assert.equal(first.source, 'fallback')",
+          "sha256": "a151b9281427d0dab0ceb3d34711630406dd0510647e36d949aa4c1f249169d4",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_malformed_and_disabled_deadline_failures_retry_same_opus_body_uncached"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-14-1",
+            "baseline-ollama-router-14-2",
+            "baseline-ollama-router-14-3",
+            "baseline-ollama-router-14-4"
+          ],
+          "native_check": "Original network throw,HTTP503,invalid JSON,error-object produce complete matching first fallback results through actual shared classifier."
+        },
+        {
+          "line": 308,
+          "expression": "assert.equal(first.tier, 'opus')",
+          "sha256": "0dac014b8dd4e71e37fa9df97d5c09cbae6590524d0edeafa4c698457d2f58eb",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_malformed_and_disabled_deadline_failures_retry_same_opus_body_uncached"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-14-1",
+            "baseline-ollama-router-14-2",
+            "baseline-ollama-router-14-3",
+            "baseline-ollama-router-14-4"
+          ],
+          "native_check": "Each same-body first call preserves existing Opus tier under the original timeout0 config."
+        },
+        {
+          "line": 309,
+          "expression": "assert.equal(first.evaluator, 'ollama')",
+          "sha256": "6c76c470169172f6693b6b672b81772e0f4c5a7bbcea4e46aefc27cc00418e8e",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_malformed_and_disabled_deadline_failures_retry_same_opus_body_uncached"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-14-1",
+            "baseline-ollama-router-14-2",
+            "baseline-ollama-router-14-3",
+            "baseline-ollama-router-14-4"
+          ],
+          "native_check": "Complete first results retain evaluator ollama; full local-only request sequence excludes Jev."
+        },
+        {
+          "line": 310,
+          "expression": "assert.ok(!JSON.stringify(first).includes('private'))",
+          "sha256": "7f8c4bc8ff49af0da0329cb49cfb764f7c58a49fc7928d77511a0ccb4618708e",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_malformed_and_disabled_deadline_failures_retry_same_opus_body_uncached"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-14-1",
+            "baseline-ollama-router-14-2",
+            "baseline-ollama-router-14-3",
+            "baseline-ollama-router-14-4"
+          ],
+          "native_check": "Original callback checks absence of private substring in first serialized result; native full result equality preserves safe fields without private fetch/response detail."
+        },
+        {
+          "line": 311,
+          "expression": "assert.equal((await router.classify(request)).source, 'ollama')",
+          "sha256": "fd667c675f3513af36ed4c31c05f6841e97ecdf2457f902078267910417a9439",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/src/ollama_router_contracts.rs#router::ollama_contracts::original_malformed_and_disabled_deadline_failures_retry_same_opus_body_uncached"
+          ],
+          "shared_cases": [
+            "baseline-ollama-router-14-1",
+            "baseline-ollama-router-14-2",
+            "baseline-ollama-router-14-3",
+            "baseline-ollama-router-14-4"
+          ],
+          "native_check": "Second call on the same actual Router/classifier and exact body returns source ollama after all four failures. Exact captured show/systemone twice ensures no fallback caching and no skipped retry."
+        }
+      ],
+      "remaining": []
+    }
+  ],
+  "input_coverage": {
+    "path": "artifacts/rust-rewrite/evidence/9c13d15d45378f169c3ffbeb5ec8e4aaea3d3ba928badb67bc4244e38c04c1e4.json",
+    "sha256": "9c13d15d45378f169c3ffbeb5ec8e4aaea3d3ba928badb67bc4244e38c04c1e4",
+    "bytes": 1275411,
+    "original_path": "rust/parity/coverage.json",
+    "source_commit": "46587867cd0b4db89b273ba293555a5619009a4c"
+  },
+  "scope": "Five covered finite Router/classifier definitions with exact per-instance cache/retry schedules, 26 scenarios and 79 observed fetches. Actual shared classifier and route paths are used; all timed/cancellation definitions remain separate.",
+  "status": "Reviewed assertion mapping; full rewrite qualification remains incomplete.",
+  "review": {
+    "proposal": {
+      "path": "artifacts/rust-rewrite/evidence/c3296f0367740021ee87f54377e73c8e75f225974c51499732a5b966fdc5f1a7.json",
+      "sha256": "c3296f0367740021ee87f54377e73c8e75f225974c51499732a5b966fdc5f1a7",
+      "bytes": 61850,
+      "original_path": "/private/tmp/autorouter-ollama-router-mapping-proposal.json"
+    },
+    "review": {
+      "path": "artifacts/rust-rewrite/evidence/d638f98423ffb97dff0c119b7683edfa99ca965d1ea39b83acf720908fd52fc2.json",
+      "sha256": "d638f98423ffb97dff0c119b7683edfa99ca965d1ea39b83acf720908fd52fc2",
+      "bytes": 4315,
+      "original_path": "/private/tmp/autorouter-ollama-router-root-review.json"
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/evidence/30f61950e3e35eba693d6a061e4566e8b006971ab1af4a3f1b2763f3d42a7062.json",
+      "sha256": "30f61950e3e35eba693d6a061e4566e8b006971ab1af4a3f1b2763f3d42a7062",
+      "bytes": 4336,
+      "original_path": "/private/tmp/autorouter-ollama-router-independent-review-2.json"
+    }
+  },
+  "previous_coverage_rows": [
+    {
+      "id": "test/ollama-evaluator.test.mjs#4",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "Ollama scores all three tiers natively with the frozen policy and no Jev confidence threshold",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#5",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "malformed native answers fall back safely without caching or consulting Jev",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#12",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "a cloud alias or unknown metadata is rejected before any prompt text is sent",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#13",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "large local model metadata is accepted within its separate bound while oversized metadata is rejected",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    },
+    {
+      "id": "test/ollama-evaluator.test.mjs#14",
+      "file": "test/ollama-evaluator.test.mjs",
+      "name": "Ollama failures with a disabled deadline never contact Jev, are not cached, and retain an existing Opus request",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators"
+      ]
+    }
+  ]
+}

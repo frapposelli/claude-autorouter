@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "kind": "native_source_bundle_offline_compile_summary",
+  "date": "2026-10-09",
+  "status": "passed_compile_and_native_help_on_one_cached_host",
+  "scope": "Corrected public source transfer archive extracted independently into a fresh private directory; all host workspace test executables compiled offline, then only native xtask --help ran. No test bodies, Node reference, live evaluator or provider commands ran.",
+  "archive": {
+    "path": "artifacts/rust-rewrite/source-bundle-validation-1/autorouter-native-source.tar.gz",
+    "sha256": "da0d707cc224b0cb3548be44b3b91a6ef8a0eb20fce98f90a448882800fa56ad",
+    "bytes": 1439916,
+    "compressed_bytes": 1439916,
+    "expanded_tar_bytes": 11711488,
+    "regular_files": 351,
+    "checksum_sidecar": {
+      "path": "artifacts/rust-rewrite/source-bundle-validation-1/autorouter-native-source.tar.gz.sha256",
+      "sha256": "cb46dfd14564098a8139b862a8f55ef24856d9f31cccb296e5fe29fd452fe20a",
+      "bytes": 98,
+      "retained_path": "artifacts/rust-rewrite/evidence/cb46dfd14564098a8139b862a8f55ef24856d9f31cccb296e5fe29fd452fe20a.sha256"
+    }
+  },
+  "integrity": {
+    "source_manifest": {
+      "path": "artifacts/rust-rewrite/source-bundle-validation-1/source-manifest.json",
+      "sha256": "bd21dbcd7a434c310f6c6158edd23566c00d7d95d1494081bfb5f1ca6fa1215e",
+      "bytes": 40434,
+      "retained_path": "artifacts/rust-rewrite/evidence/bd21dbcd7a434c310f6c6158edd23566c00d7d95d1494081bfb5f1ca6fa1215e.json"
+    },
+    "manifest_files": 350,
+    "all_archive_members_verified": true,
+    "manifest_membership_exact": true,
+    "all_manifest_source_bytes_matched_frozen_capture": true,
+    "all_extracted_source_bytes_unchanged_after_compile": true,
+    "symlinks_hardlinks_traversal_duplicates_nonregular_entries_rejected": true
+  },
+  "producer": {
+    "binary": {
+      "path": "artifacts/rust-rewrite/source-bundle-validation-1/bundle-driver",
+      "sha256": "da3f927dae9f97aa8808e71f5a067309a6693294e928a7201c92d03f3b92dd2a",
+      "bytes": 46717368
+    },
+    "bundle_implementation_sha256": "f12c08914491c44db58c3593801d9ee1e024823f1bc05fc39705df2dce13d7fc",
+    "cargo_lock_sha256": "f80d4cd26139fff5f7d2ee130a0a40cfca69df7b168b486a184898f98d9de5ea",
+    "toolchain_file_sha256": "2ad6f15416572b4836585087f1d4abc53b8fa2dbd616f8dacfaa587ed6714228",
+    "source_identity": "Per-file archive manifest; no claim of clean tagged source or release provenance."
+  },
+  "host": {
+    "os": "macOS27.0 (26A428), Darwin27.0.0",
+    "architecture": "aarch64-apple-darwin",
+    "rustc": "1.99.0 (b940084d7 2026-09-28)",
+    "cargo": "1.99.0 (5f94df478 2026-08-27)",
+    "c_compiler": "Apple clang21.0.0 (clang-2100.3.34.2)",
+    "make": "GNU Make3.81",
+    "perl": "5.34.1",
+    "cargo_dependency_cache": "Existing prepopulated host registry/index/source cache; no dependency cache bundled. No global Cargo config files found.",
+    "build_target": "Separate newly created empty directory outside both repository target and extracted source tree.",
+    "environment": "CARGO_NET_OFFLINE=true, CARGO_INCREMENTAL=0, CARGO_BUILD_JOBS=4; inherited Rust flag/wrapper/build-target variables omitted.",
+    "tools_evidence": {
+      "path": "artifacts/rust-rewrite/source-bundle-validation-1/host-tools.log",
+      "sha256": "15173a8c3a99a23c6eacc1dfa6ed6288dc7ce6a40fb3706782b926fa7f6b1b81",
+      "bytes": 826,
+      "retained_path": "artifacts/rust-rewrite/evidence/15173a8c3a99a23c6eacc1dfa6ed6288dc7ce6a40fb3706782b926fa7f6b1b81.log"
+    }
+  },
+  "checks": [
+    {
+      "command": "cargo +1.99.0 test --locked --offline --workspace --no-run",
+      "exit_code": 0,
+      "compiled_test_executables": 19,
+      "test_bodies_executed": 0,
+      "log": {
+        "path": "artifacts/rust-rewrite/source-bundle-validation-1/compile-tests.log",
+        "sha256": "038082ed66780008db6ed81134c80cfabf78d836ac75b5a66c8eec51762ab230",
+        "bytes": 7974,
+        "retained_path": "artifacts/rust-rewrite/evidence/038082ed66780008db6ed81134c80cfabf78d836ac75b5a66c8eec51762ab230.log"
+      }
+    },
+    {
+      "command": "<extracted-target>/debug/xtask --help",
+      "exit_code": 0,
+      "binary_sha256": "7a91b8ec2f32d59e81d0e795aa8f34241ff1b7498e33dfd627312c5cb3a06807",
+      "log": {
+        "path": "artifacts/rust-rewrite/source-bundle-validation-1/native-help.log",
+        "sha256": "84b287a7639cb675a62c9db8a1911ed23eb68e2bbb1eea3db2de55ccba13a201",
+        "bytes": 637,
+        "retained_path": "artifacts/rust-rewrite/evidence/84b287a7639cb675a62c9db8a1911ed23eb68e2bbb1eea3db2de55ccba13a201.log"
+      }
+    }
+  ],
+  "historical_regression": {
+    "status": "retained_failed_archive_input_check_then_corrected",
+    "failure": "The actual archive omitted rust/parity/cases/status-state-contracts.jsonl required by an included Rust include_str! call.",
+    "failed_log": {
+      "path": "artifacts/rust-rewrite/sixth-bundle-embedded-regression-1.log",
+      "sha256": "89cf8a94964a91ff91febbbf99e0d9fd27d3a046977412c4253b155d22531588",
+      "bytes": 1069,
+      "retained_path": "artifacts/rust-rewrite/evidence/89cf8a94964a91ff91febbbf99e0d9fd27d3a046977412c4253b155d22531588.log"
+    },
+    "corrected_allowlist_test_log": {
+      "path": "artifacts/rust-rewrite/sixth-bundle-embedded-regression-3.log",
+      "sha256": "4911f22c3da68418f31473da1cc3d11edd625213dc077ca11c25aa91f9933b76",
+      "bytes": 796,
+      "retained_path": "artifacts/rust-rewrite/evidence/4911f22c3da68418f31473da1cc3d11edd625213dc077ca11c25aa91f9933b76.log"
+    },
+    "correction_scope": "Explicitly includes router, response-observer, telemetry/statusline and status-state corpora plus the embedded live-reference adapter; only the three named large synthetic corpora receive4MiB source allowances, other files retain1MiB and source archive retains32MiB expansion."
+  },
+  "reports": {
+    "extraction": {
+      "path": "artifacts/rust-rewrite/source-bundle-validation-1/extraction.json",
+      "sha256": "7ee8b43838bcd354c9065a5b6005403b9a6eb149fdcb38ad614effa0ab1affa7",
+      "bytes": 41076,
+      "retained_path": "artifacts/rust-rewrite/evidence/7ee8b43838bcd354c9065a5b6005403b9a6eb149fdcb38ad614effa0ab1affa7.json"
+    },
+    "complete_compile": {
+      "path": "artifacts/rust-rewrite/source-bundle-validation-1/report.json",
+      "sha256": "d733bcff8f215a706d14c5c38ab5eeafa387e4e1747b5f1dd111a9560db41b89",
+      "bytes": 5795,
+      "retained_path": "artifacts/rust-rewrite/evidence/d733bcff8f215a706d14c5c38ab5eeafa387e4e1747b5f1dd111a9560db41b89.json"
+    },
+    "runner": {
+      "path": "artifacts/rust-rewrite/source-bundle-validation-1/validate-source-bundle.py",
+      "sha256": "e5c84f501ab72ed1a39346c97b23a8d55a541dad6b1810780ca37ba91b05ae59",
+      "bytes": 7855,
+      "retained_path": "artifacts/rust-rewrite/evidence/e5c84f501ab72ed1a39346c97b23a8d55a541dad6b1810780ca37ba91b05ae59.py"
+    }
+  },
+  "limitations": [
+    "One current macOS ARM64 host; no cross-platform or oldest-supported-runtime qualification.",
+    "Existing dependency cache required; not an empty-cache offline build or complete dependency-vendor archive.",
+    "Compilation executes build scripts/proc macros but does not run workspace tests or prove behavioral parity.",
+    "No bit-for-bit reproducibility, release provenance, platform qualification, numerical performance or task-quality claim.",
+    "Frozen Node product sources/runtime remain deliberately absent; reference comparison paths require separately verified inputs."
+  ],
+  "release_approved": false,
+  "provider_calls": 0,
+  "model_downloads": 0,
+  "numerical_performance_evidence": false
+}

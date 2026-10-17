@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "kind": "original_router_counter_callback_and_lossless_transfer_qualification",
+  "date": "2026-10-17",
+  "only_definitions": [
+    "test/router.test.mjs#49",
+    "test/router.test.mjs#50"
+  ],
+  "mapping": {
+    "path": "rust/parity/assertion-mappings/router-count-callback-contracts.json",
+    "bytes": 82266,
+    "sha256": "aeb5bfa96c123daedb5008aef5472a9e9fd8d9574a11ec17b4eab62483ae613d"
+  },
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "original_callback_executions": 2,
+  "original_assertion_sites": 12,
+  "original_loop_instances": 8,
+  "original_source": {
+    "path": "artifacts/rust-rewrite/router-count-original-20261017-1/report.json",
+    "bytes": 5917,
+    "sha256": "ce65be765d90ac4e1cd141f0580c48231d6034d441509f5668d5bd9a66ebce5a"
+  },
+  "native": {
+    "per_route_counter": "Router::route_typed_exact_with_counter and RouteTokenCounter::new",
+    "typed_outcomes": "None and f64 permit actual undefined/NaN/infinity inputs before finite/nonnegative/integral/safe-integer validation",
+    "original_document_and_target": true,
+    "callback_invocations_per_original_instance": 1,
+    "http_count_requests": 0,
+    "new_exact_tests_passed": 9,
+    "all_router_tests_passed": 53,
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/counter-transfer-validation-20261017-1/focused-proof-review.json",
+      "bytes": 36239,
+      "sha256": "85fea3dc0bf8d201745246b5c3a65a5cc7dbbff81520021aba352d3bfd8d7e0d"
+    }
+  },
+  "checks": {
+    "rust_workspace_passed": 1333,
+    "rust_workspace_ignored": 10,
+    "strict_clippy": "passed",
+    "fmt": "passed",
+    "node_check": "passed",
+    "node_tests_passed": 596,
+    "installed_package_files": 58,
+    "package_smoke": "passed",
+    "transfer_format_tests_passed": 14,
+    "actual_export_regression": "passed",
+    "differential_families_passed": 17,
+    "whole_connection_deterministic_control": "passed",
+    "numerical_samples_retained": false
+  },
+  "transfer": {
+    "schema": 4,
+    "historical_readers_tested": [
+      1,
+      2,
+      3
+    ],
+    "actual_schema3_packet_restored": true,
+    "logical_reference_files": 113,
+    "reference_physical_files": 109,
+    "source_inputs_verified": 694,
+    "expanded_carrier_bytes": 33495040,
+    "logical_file_bytes": 33460327,
+    "carrier_limit_bytes": 33554432,
+    "logical_limit_bytes": 33554432,
+    "gross_duplicate_reference_carrier_removed_bytes": 99840,
+    "logical_charge_discount_bytes": 0,
+    "exact_four_donors": {
+      "test/fixtures/claude-protocol-v1.json": "test/fixtures/claude-protocol-v1.json",
+      "test/fixtures/ollama-routing.json": "test/fixtures/ollama-routing.json",
+      "LICENSE": "LICENSE",
+      "frozen-reference-manifest.json": "rust/parity/baseline.json"
+    },
+    "proof": {
+      "path": "artifacts/rust-rewrite/counter-transfer-export-evidence-20261017-1/inspection.json",
+      "bytes": 1886,
+      "sha256": "8df7002fbf9a13bea509fb3279e03eea382bc10b293cf7a732934a01af6fbfe7"
+    },
+    "historical_proof": {
+      "path": "artifacts/rust-rewrite/counter-transfer-export-evidence-20261017-1/historical-schema3-inspection.json",
+      "bytes": 1186,
+      "sha256": "f0a746445e45cc1953d222397c93d48f821f22149317e818c48e51d8bb0c90df"
+    },
+    "helper": {
+      "path": "artifacts/rust-rewrite/counter-transfer-validation-20261017-1/final-xtask",
+      "bytes": 52467600,
+      "sha256": "bbc7d576544ae922c91ec88552e495a0cd63109086a658368d19a62a23fd73e9"
+    },
+    "source_to_binary_provenance": "unverified_prebuilt"
+  },
+  "coverage_after": {
+    "covered": 535,
+    "partial_assertion_mapping": 53,
+    "definitions": 588,
+    "router_definitions_covered": 51,
+    "router_definitions_partial": 0,
+    "historical_main_mapping_unchanged": true
+  },
+  "final_execution_review": {
+    "path": "artifacts/rust-rewrite/counter-transfer-validation-20261017-1/final-execution-review.json",
+    "bytes": 8881,
+    "sha256": "6a7d07aa2a1eda46fc7712abf1c920a48fc5d23b6c818bc681bfb248a17e27d0"
+  },
+  "scope": "Adds the missing native per-route counting operation and qualifies only original router49/50. The source/reference format changes explicitly to4 while retaining historical1/2/3 readers, all logical paths/bytes/modes and both32MiB caps. Current-source CI, whole-area/config/limit/platform/numerical/real-task/provenance and cutover approval remain separate.",
+  "release_platform_performance_or_full_goal_approved": false
+}

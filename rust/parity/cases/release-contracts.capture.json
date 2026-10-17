@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "kind": "frozen_pure_release_contract_capture",
+  "passed": true,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "node_version": "v22.14.0",
+  "typescript_version": "6.0.3",
+  "generator_sha256": "2e94f814b1f76acb1b5b87b4c687363605a2074847996409537a6fb7a928747a",
+  "cases_sha256": "f938b7b0bb4819fe9e918bed6356d8afb72536da92297c18378222bf47699392",
+  "definitions": [
+    {
+      "id": "test/release-check.test.mjs#1",
+      "file": "test/release-check.test.mjs",
+      "number": 1,
+      "name": "release tags enforce canonical SemVer and select stable/prerelease dist-tags",
+      "baseline_file_sha256": "55c3112868355e94aeb3240d1d06116145a50689a878e8cfbf4b236feab5eb30",
+      "definition_sha256": "e786b0a7bcbd02121b9043210e5532ebafd438cd0815e099cb606f8350c35ddf",
+      "assertions": [
+        {
+          "line": 90,
+          "method": "deepEqual",
+          "expression": "assert.deepEqual(releaseMetadata(manifest(), TAG), metadata)"
+        },
+        {
+          "line": 93,
+          "method": "equal",
+          "expression": "assert.equal(result.version, version)"
+        },
+        {
+          "line": 94,
+          "method": "equal",
+          "expression": "assert.equal(result.dist_tag, version.includes('-') ? 'next' : 'latest')"
+        },
+        {
+          "line": 99,
+          "method": "throws",
+          "expression": "assert.throws(() => releaseMetadata({ ...manifest(), version: tag.slice(1) }, tag), /tag|SemVer/)"
+        },
+        {
+          "line": 101,
+          "method": "throws",
+          "expression": "assert.throws(() => releaseMetadata(manifest(), 'v1.2.4'), /does not match/)"
+        }
+      ],
+      "calls": [
+        "baseline-release-check-1-1",
+        "baseline-release-check-1-2",
+        "baseline-release-check-1-3",
+        "baseline-release-check-1-4",
+        "baseline-release-check-1-5",
+        "baseline-release-check-1-6",
+        "baseline-release-check-1-7",
+        "baseline-release-check-1-8",
+        "baseline-release-check-1-9",
+        "baseline-release-check-1-10",
+        "baseline-release-check-1-11",
+        "baseline-release-check-1-12",
+        "baseline-release-check-1-13",
+        "baseline-release-check-1-14",
+        "baseline-release-check-1-15",
+        "baseline-release-check-1-16",
+        "baseline-release-check-1-17",
+        "baseline-release-check-1-18",
+        "baseline-release-check-1-19",
+        "baseline-release-check-1-20",
+        "baseline-release-check-1-21",
+        "baseline-release-check-1-22"
+      ],
+      "executed_assertions": 27
+    },
+    {
+      "id": "test/release-check.test.mjs#2",
+      "file": "test/release-check.test.mjs",
+      "number": 2,
+      "name": "release metadata rejects wrong identity, publication policy, and runtime dependencies",
+      "baseline_file_sha256": "55c3112868355e94aeb3240d1d06116145a50689a878e8cfbf4b236feab5eb30",
+      "definition_sha256": "902b0ff1a30a4b1e9e89f5ac7b1818f5449a94b6c3d645df18eb85d1ae8fe41b",
+      "assertions": [
+        {
+          "line": 112,
+          "method": "throws",
+          "expression": "assert.throws(() => releaseMetadata({ ...manifest(), ...change }, TAG))"
+        },
+        {
+          "line": 113,
+          "method": "deepEqual",
+          "expression": "assert.deepEqual(releaseMetadata({ ...manifest(), private: false, dependencies: {}, optionalDependencies: {} }, TAG), metadata)"
+        }
+      ],
+      "calls": [
+        "baseline-release-check-2-1",
+        "baseline-release-check-2-2",
+        "baseline-release-check-2-3",
+        "baseline-release-check-2-4",
+        "baseline-release-check-2-5",
+        "baseline-release-check-2-6",
+        "baseline-release-check-2-7",
+        "baseline-release-check-2-8",
+        "baseline-release-check-2-9",
+        "baseline-release-check-2-10",
+        "baseline-release-check-2-11"
+      ],
+      "executed_assertions": 11
+    },
+    {
+      "id": "test/release-check.test.mjs#3",
+      "file": "test/release-check.test.mjs",
+      "number": 3,
+      "name": "GitHub identity must match the exact repository and tag when supplied",
+      "baseline_file_sha256": "55c3112868355e94aeb3240d1d06116145a50689a878e8cfbf4b236feab5eb30",
+      "definition_sha256": "022bdeb7bc7db46efda927e619075d6ff45d6f5bdbdea6adcdb2e54ec9ce5085",
+      "assertions": [
+        {
+          "line": 117,
+          "method": "deepEqual",
+          "expression": "assert.deepEqual(releaseMetadata(manifest(), TAG, github), metadata)"
+        },
+        {
+          "line": 123,
+          "method": "throws",
+          "expression": "assert.throws(() => releaseMetadata(manifest(), TAG, env), /GitHub|GITHUB_REPOSITORY/)"
+        }
+      ],
+      "calls": [
+        "baseline-release-check-3-1",
+        "baseline-release-check-3-2",
+        "baseline-release-check-3-3",
+        "baseline-release-check-3-4",
+        "baseline-release-check-3-5",
+        "baseline-release-check-3-6"
+      ],
+      "executed_assertions": 6
+    },
+    {
+      "id": "test/release-verification.test.mjs#1",
+      "file": "test/release-verification.test.mjs",
+      "number": 1,
+      "name": "stable version ordering uses numeric SemVer and rejects ambiguous inputs",
+      "baseline_file_sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38",
+      "definition_sha256": "a117a760ce76e7dceeeb17994fb400519daf6af4e6bf81b39148d25ca60e8296",
+      "assertions": [
+        {
+          "line": 46,
+          "method": "equal",
+          "expression": "assert.equal(compareVersions('0.10.0', '0.9.9'), 1)"
+        },
+        {
+          "line": 47,
+          "method": "equal",
+          "expression": "assert.equal(compareVersions('1.0.0', '1.0.0-rc.2'), 1)"
+        },
+        {
+          "line": 48,
+          "method": "equal",
+          "expression": "assert.equal(compareVersions('1.0.0-rc.10', '1.0.0-rc.2'), 1)"
+        },
+        {
+          "line": 49,
+          "method": "equal",
+          "expression": "assert.equal(compareVersions('1.0.0-alpha', '1.0.0-beta'), -1)"
+        },
+        {
+          "line": 50,
+          "method": "equal",
+          "expression": "assert.equal(compareVersions('1.0.0-alpha.1', '1.0.0-alpha'), 1)"
+        },
+        {
+          "line": 51,
+          "method": "throws",
+          "expression": "assert.throws(() => parseVersion(invalid))"
+        }
+      ],
+      "calls": [
+        "baseline-release-verification-1-1",
+        "baseline-release-verification-1-2",
+        "baseline-release-verification-1-3",
+        "baseline-release-verification-1-4",
+        "baseline-release-verification-1-5",
+        "baseline-release-verification-1-6",
+        "baseline-release-verification-1-7",
+        "baseline-release-verification-1-8",
+        "baseline-release-verification-1-9",
+        "baseline-release-verification-1-10",
+        "baseline-release-verification-1-11",
+        "baseline-release-verification-1-12"
+      ],
+      "executed_assertions": 12
+    },
+    {
+      "id": "test/release-verification.test.mjs#11",
+      "file": "test/release-verification.test.mjs",
+      "number": 11,
+      "name": "manual verification accepts only the original canonical artifact bound to the tag commit",
+      "baseline_file_sha256": "09f37e04109d688cc4b43d805935ed862b16323b664949f20045811d67ad7d38",
+      "definition_sha256": "5e9d679240cfeaf00aaf6a966c202576391670755ea0b110f07730f4598b198f",
+      "assertions": [
+        {
+          "line": 180,
+          "method": "deepEqual",
+          "expression": "assert.deepEqual(validateArtifactSource(run, archive, identity), { run_id: '123', artifact_id: '456', notes_artifact_name: 'release-notes-123-1' })"
+        },
+        {
+          "line": 183,
+          "method": "throws",
+          "expression": "assert.throws(() => validateArtifactSource({ ...run, ...changed }, archive, identity))"
+        },
+        {
+          "line": 186,
+          "method": "throws",
+          "expression": "assert.throws(() => validateArtifactSource(run, { ...archive, ...changed }, identity))"
+        }
+      ],
+      "calls": [
+        "baseline-release-verification-11-1",
+        "baseline-release-verification-11-2",
+        "baseline-release-verification-11-3",
+        "baseline-release-verification-11-4",
+        "baseline-release-verification-11-5",
+        "baseline-release-verification-11-6",
+        "baseline-release-verification-11-7",
+        "baseline-release-verification-11-8",
+        "baseline-release-verification-11-9",
+        "baseline-release-verification-11-10"
+      ],
+      "executed_assertions": 10
+    }
+  ],
+  "cases": 61,
+  "static_assertions": 18,
+  "executed_assertions": 66,
+  "scope": "Original five pure callbacks, assertions and loop arguments execute unchanged in a same-realm temporary module. Only imports are rebound and unselected test registrations removed. Unused filesystem/npm/Git helper declarations remain unexecuted. Pure inputs and complete returned values/errors are retained. No registry, npm, Git, tag or publication operation runs. Error messages/codes unasserted by the source remain observations, not automatically claimed native API parity."
+}

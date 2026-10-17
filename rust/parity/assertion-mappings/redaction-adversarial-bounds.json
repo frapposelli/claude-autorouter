@@ -1,0 +1,321 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_frozen_redaction_adversarial_bounds_assertion_supplement",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "scope": "Exact frozen redaction definitions #5/#16, 28 finite synthetic identities, both unchanged full callbacks, idempotence and strict per-input <2000ms on a normal-use battery-powered 16GiB Apple M4. Native release uses std::time::Instant on matched identities. No general linearity, speedup, whole-gateway, other-hardware or platform qualification.",
+  "prior_partial_mapping": {
+    "path": "rust/parity/assertion-mappings/redaction-contracts.json",
+    "sha256": "158fe268341b23ebc758694d5de7fdaf31540820c3230323775df0a51b20c7fd"
+  },
+  "sources": {
+    "frozen_test": {
+      "path": "artifacts/rust-rewrite/reference/test/redaction.test.mjs",
+      "sha256": "2c39564dea427488ffa04caeb78281a77c753d6a9deb61c067e8d1d505dab3a6"
+    },
+    "frozen_redactor": {
+      "path": "artifacts/rust-rewrite/reference/src/redaction.mjs",
+      "sha256": "880c883c68cae3bde03d93e7231b1d2a6d5f7b907c2f2555859894e5475fdff1"
+    },
+    "capture_script": {
+      "path": "rust/parity/capture-redaction-adversarial-bounds.mjs",
+      "sha256": "6e4fceae2818152a386499f561b44cb5327c89a06ed5f0277cd4d3cd3c8189c6"
+    },
+    "native_redactor": {
+      "path": "rust/crates/autorouter-core/src/redaction.rs",
+      "sha256": "fe1da8c2b4cef7901ab2964c5547f522b84d83d6931fba68279d0291abc42b44"
+    },
+    "native_test": {
+      "path": "rust/crates/autorouter-core/tests/redaction_adversarial_bounds.rs",
+      "sha256": "5987ba6f5a829cdd771b61626c07ee55be1fa2e0087be33663185307771e38df"
+    },
+    "case_identities": {
+      "path": "rust/parity/cases/redaction-adversarial.identities.json",
+      "sha256": "5c5937073063f719ea1296a57e8c43dc089924dbd3724bc4e13116467a93dde9"
+    }
+  },
+  "definitions": [
+    {
+      "id": "test/redaction.test.mjs#5",
+      "definition_sha256": "0d9fec8f69d65dc344ee7c64b015bd1eafb8295aa5250189ab79be1ea97f945a",
+      "statement_sha256": "6dd638f4c8ed240fe68c693a10032e8914fa6e1c0387a2028908e7b246a08edf",
+      "status": "covered",
+      "assertions": [
+        {
+          "id": "test/redaction.test.mjs#5:assert-1",
+          "sha256": "0772f64e8cbd7e3879ddfa985bfae77fec313369979552ea7954460e71590a58",
+          "status": "covered",
+          "basis": "historical exact idempotence prefix"
+        },
+        {
+          "id": "test/redaction.test.mjs#5:assert-2",
+          "sha256": "71d53105fb601cbd3c32f49b8b572eb3b0bcd3b268c98bc64b7f9d96aaad91d9",
+          "status": "covered",
+          "expanded_executions": 8,
+          "basis": "unchanged full callback and release native strict per-input bound"
+        }
+      ],
+      "adversarial_case_ids": [
+        "redaction-adversarial-5-1",
+        "redaction-adversarial-5-2",
+        "redaction-adversarial-5-3",
+        "redaction-adversarial-5-4",
+        "redaction-adversarial-5-5",
+        "redaction-adversarial-5-6",
+        "redaction-adversarial-5-7",
+        "redaction-adversarial-5-8"
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/redaction.test.mjs#16",
+      "definition_sha256": "8dc19f60fc16fb9053096d247311fe8444b4f895448d6ed266bae6886baf8f3a",
+      "statement_sha256": "9daf176d2ba0dfaf8ef9bf7407ce3bf9d21986b4a2fa3fa8d6f5e0165dd2c81c",
+      "status": "covered",
+      "assertions": [
+        {
+          "id": "test/redaction.test.mjs#16:assert-1",
+          "sha256": "0772f64e8cbd7e3879ddfa985bfae77fec313369979552ea7954460e71590a58",
+          "status": "covered",
+          "basis": "historical exact idempotence prefix"
+        },
+        {
+          "id": "test/redaction.test.mjs#16:assert-2",
+          "sha256": "3ec2c9c2a7b5ebaba45d9bac4f6d9b1f19bbacb70a26491ccff47a0ffba3842f",
+          "status": "covered",
+          "expanded_executions": 20,
+          "basis": "unchanged full callback and release native strict per-input bound"
+        }
+      ],
+      "adversarial_case_ids": [
+        "redaction-adversarial-16-1",
+        "redaction-adversarial-16-2",
+        "redaction-adversarial-16-3",
+        "redaction-adversarial-16-4",
+        "redaction-adversarial-16-5",
+        "redaction-adversarial-16-6",
+        "redaction-adversarial-16-7",
+        "redaction-adversarial-16-8",
+        "redaction-adversarial-16-9",
+        "redaction-adversarial-16-10",
+        "redaction-adversarial-16-11",
+        "redaction-adversarial-16-12",
+        "redaction-adversarial-16-13",
+        "redaction-adversarial-16-14",
+        "redaction-adversarial-16-15",
+        "redaction-adversarial-16-16",
+        "redaction-adversarial-16-17",
+        "redaction-adversarial-16-18",
+        "redaction-adversarial-16-19",
+        "redaction-adversarial-16-20"
+      ],
+      "remaining_assertions": []
+    }
+  ],
+  "execution": {
+    "original_declaration": {
+      "path": "artifacts/rust-rewrite/parity-completion-20261015-1/redaction-node-1/declaration.json",
+      "sha256": "e4bc79bb5a4aa53aca0d4a4483d1aa8012680cf0814565423788dbfe1b4266c5"
+    },
+    "original_capture": {
+      "path": "artifacts/rust-rewrite/parity-completion-20261015-1/redaction-node-1/capture.json",
+      "sha256": "620b48d6f49cd2dd0bc4e4fe3713beb2a08fd4acfa2614c4bdd2fb62115bdd4f"
+    },
+    "unchanged_callbacks_log": {
+      "path": "artifacts/rust-rewrite/parity-completion-20261015-1/redaction-frozen-control.log",
+      "sha256": "14f3e7b016fe1179c8882bf87d6956cb65eb4bd1364cd18d834fa5c0e51dbf84"
+    },
+    "native_declaration": {
+      "path": "artifacts/rust-rewrite/parity-completion-20261015-1/redaction-measurement-declaration-2.json",
+      "sha256": "5797c8f89bb3ec14ca1024c2f9a4ae9fb6306914b73ede8f5f225ad8c0e9c5d3"
+    },
+    "native_execution": {
+      "path": "artifacts/rust-rewrite/parity-completion-20261015-1/redaction-measurement-execution-2.json",
+      "sha256": "323b9615df6ff21165c6f478878a486902884f51353ee517d3e219c517505a77"
+    },
+    "native_release_binary": {
+      "path": "artifacts/rust-rewrite/parity-completion-20261015-1/redaction-native-release-test-2",
+      "sha256": "e6040d9ea8dffdd6a150a7969511a950fdd834cb7862cf02b0929b6346c4553f"
+    },
+    "native_identities_log": {
+      "path": "artifacts/rust-rewrite/parity-completion-20261015-1/redaction-native-identities-2.log",
+      "sha256": "65f9c0c6a0dc9b07fc09be62f502f2cd8222ea8357998e4b32a2e63823c409db"
+    },
+    "native_timing_log": {
+      "path": "artifacts/rust-rewrite/parity-completion-20261015-1/redaction-native-timing-2.log",
+      "sha256": "9e919e64af4192ad4769756abd3d994a08b6885827bbb9304811de195979d984"
+    },
+    "original_callbacks_passed": 2,
+    "original_input_assertions_passed": 28,
+    "native_identity_test_passed": 1,
+    "native_timing_test_passed": 1,
+    "native_input_bounds_passed": 28,
+    "native_limit_ns": 2000000000,
+    "prior_native_attempt_retained": {
+      "path": "artifacts/rust-rewrite/parity-completion-20261015-1/redaction-measurement-execution.json",
+      "sha256": "ead376c778b49a869caa6c7d4c800d105b4e2935a7ed9a8f25f87ac344a88930",
+      "reason": "First passing run retained. Final source changes only the ignored test debug-profile rejection to satisfy strict Clippy; bound and input identities unchanged."
+    }
+  },
+  "case_result_fields": [
+    "id",
+    "original_ms",
+    "native_ns"
+  ],
+  "case_results": [
+    [
+      "redaction-adversarial-5-1",
+      252.362459,
+      8003958
+    ],
+    [
+      "redaction-adversarial-5-2",
+      17.43825000000004,
+      3350167
+    ],
+    [
+      "redaction-adversarial-5-3",
+      11.686624999999992,
+      5602875
+    ],
+    [
+      "redaction-adversarial-5-4",
+      27.151125000000093,
+      18133708
+    ],
+    [
+      "redaction-adversarial-5-5",
+      0.35387500000001637,
+      1301875
+    ],
+    [
+      "redaction-adversarial-5-6",
+      7.179916999999932,
+      3259875
+    ],
+    [
+      "redaction-adversarial-5-7",
+      4.346958000000086,
+      900250
+    ],
+    [
+      "redaction-adversarial-5-8",
+      23.039457999999968,
+      10478041
+    ],
+    [
+      "redaction-adversarial-16-1",
+      48.41416700000002,
+      5087708
+    ],
+    [
+      "redaction-adversarial-16-2",
+      33.20662499999992,
+      9081417
+    ],
+    [
+      "redaction-adversarial-16-3",
+      29.023249999999962,
+      61614625
+    ],
+    [
+      "redaction-adversarial-16-4",
+      27.013584000000037,
+      52782375
+    ],
+    [
+      "redaction-adversarial-16-5",
+      6.287750000000074,
+      8819916
+    ],
+    [
+      "redaction-adversarial-16-6",
+      6.650457999999958,
+      9313209
+    ],
+    [
+      "redaction-adversarial-16-7",
+      4.926917000000003,
+      6169625
+    ],
+    [
+      "redaction-adversarial-16-8",
+      9.07695799999999,
+      3585708
+    ],
+    [
+      "redaction-adversarial-16-9",
+      9.395667000000003,
+      6211417
+    ],
+    [
+      "redaction-adversarial-16-10",
+      5.451124999999934,
+      3177500
+    ],
+    [
+      "redaction-adversarial-16-11",
+      250.682459,
+      8021208
+    ],
+    [
+      "redaction-adversarial-16-12",
+      5.11729200000002,
+      5410417
+    ],
+    [
+      "redaction-adversarial-16-13",
+      126.67095900000004,
+      11444041
+    ],
+    [
+      "redaction-adversarial-16-14",
+      7.2144170000001395,
+      2952875
+    ],
+    [
+      "redaction-adversarial-16-15",
+      10.29862500000013,
+      5148333
+    ],
+    [
+      "redaction-adversarial-16-16",
+      5.921542000000045,
+      3018750
+    ],
+    [
+      "redaction-adversarial-16-17",
+      22.129458000000113,
+      20557250
+    ],
+    [
+      "redaction-adversarial-16-18",
+      8.307334000000083,
+      2338625
+    ],
+    [
+      "redaction-adversarial-16-19",
+      6.367584000000079,
+      2938666
+    ],
+    [
+      "redaction-adversarial-16-20",
+      5.918709000000035,
+      1983708
+    ]
+  ],
+  "case_digest_source": "sources.case_identities: ordered ID, source_test, input/output byte counts and SHA256 digests for all 28 rows",
+  "coverage_effect": {
+    "before": {
+      "covered": 530,
+      "partial_assertion_mapping": 58
+    },
+    "after": {
+      "covered": 532,
+      "partial_assertion_mapping": 56
+    }
+  },
+  "remaining_boundaries": [
+    "One finite corpus below a per-input bound does not prove asymptotic linearity.",
+    "No provider, model, gateway, real credential or representative hardware speed gate was tested."
+  ]
+}

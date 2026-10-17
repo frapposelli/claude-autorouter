@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "kind": "committed_5ad9a76_ci_checkpoint",
+  "date": "2026-10-15",
+  "source_head": "5ad9a7649e556ba74c19ebb2b86ff0bc549bcbac",
+  "actual_PR_merge_checkout": "670bc3e6ffcc13c4dcf8764b52b616ea62116e60",
+  "same_source_tree": "a9ac550eab5fce922eb21b7bb13467ce346404fc",
+  "status": "terminal_eleven_success_two_failures_not_complete_native_qualification",
+  "job_counts": {
+    "jobs": 13,
+    "success": 11,
+    "failure": 2,
+    "in_progress": 0,
+    "queued": 0
+  },
+  "workflows": [
+    {
+      "run_id": 38703001966,
+      "name": "CI",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/frapposelli/claude-autorouter/actions/runs/38703001966"
+    },
+    {
+      "run_id": 38703001970,
+      "name": "Rust 32-bit core arithmetic",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/frapposelli/claude-autorouter/actions/runs/38703001970"
+    },
+    {
+      "run_id": 38703001928,
+      "name": "Rust GNU portability",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/frapposelli/claude-autorouter/actions/runs/38703001928"
+    },
+    {
+      "run_id": 38703001987,
+      "name": "Rust musl portability",
+      "status": "completed",
+      "conclusion": "failure",
+      "url": "https://github.com/frapposelli/claude-autorouter/actions/runs/38703001987"
+    }
+  ],
+  "terminal_observation": {
+    "path": "artifacts/rust-rewrite/5ad9a76-ci-20261015-1/terminal-13-job-observation-1.json",
+    "bytes": 16311,
+    "sha256": "c963ddd0eec5819670a3ffa95819cadb87ec422f501344f9186bdde97897727d"
+  },
+  "all13_actual_checkout_identities_verified": true,
+  "passing_gates": [
+    "All four protected Node/OS jobs, all four ordinary Rust jobs, both GNU glibc 2.28 userland jobs and the i686 core-only arithmetic job succeeded.",
+    "The ARM configuration comparison previously interrupted by case 110 EPIPE completed successfully, including subsequent installed native npm/direct lifecycle verification.",
+    "All five named reference-publication/strict-transfer regressions passed in all six ordinary/GNU jobs; both musl workspace phases also passed them.",
+    "Both musl primary/reproduction checksum pairs match and the unchanged full-byte cmp completed; both proceeded through later static/transport checks. This proves same-declared-build-path reproducibility in these exact CI environments, not arbitrary build-path independence."
+  ],
+  "musl_reproduction_evidence": [
+    {
+      "target": "aarch64-unknown-linux-musl",
+      "matching_primary_and_reproduction_sha256": "ffb913819a280695c0d9088f845e23ecca13ec59c4e67ce194bd5854983f39c6",
+      "checksum_report": {
+        "path": "artifacts/rust-rewrite/5ad9a76-ci-20261015-1/failure-reports/rust-musl-aarch64-unknown-linux-musl/musl-portability/repro-sha256.txt",
+        "bytes": 372,
+        "sha256": "f4ef72cafcccda2d16d7df16faf69c8f843b13c06e04e1ed7d873bff3a4ec54e"
+      },
+      "scope": "Selected report digests match; actual later CI phases show full cmp passed. Binary/aggregate artifact hashes were not independently verified in this readback."
+    },
+    {
+      "target": "x86_64-unknown-linux-musl",
+      "matching_primary_and_reproduction_sha256": "285d542843a52cc79bf5235a63f2fdcfc887aaea51b677a89dd5992bc0269dd5",
+      "checksum_report": {
+        "path": "artifacts/rust-rewrite/5ad9a76-ci-20261015-1/failure-reports/rust-musl-x86_64-unknown-linux-musl/musl-portability/repro-sha256.txt",
+        "bytes": 372,
+        "sha256": "2ffbd9c3baa19706957a373c2e77027a12a1680af76a39b34f4a1ead854d9413"
+      },
+      "scope": "Selected report digests match; actual later CI phases show full cmp passed. Binary/aggregate artifact hashes were not independently verified in this readback."
+    }
+  ],
+  "failures": [
+    {
+      "target": "aarch64-unknown-linux-musl",
+      "job_id": 116315475907,
+      "step": "Exact musl artifacts on GNU host and independently observed mixed npm selection",
+      "isolated_command": "node parity/check-musl-dispatcher.mjs",
+      "witness": {
+        "path": "artifacts/rust-rewrite/5ad9a76-ci-20261015-1/failure-reports/rust-musl-aarch64-unknown-linux-musl/musl-portability/gnu-mixed-dispatch.json",
+        "bytes": 365,
+        "sha256": "25952daac5897cf63ea2a827c48189f9cf9836b88fe73cfd9b4d4efb828af304"
+      },
+      "raw_log": {
+        "path": "artifacts/rust-rewrite/5ad9a76-ci-20261015-1/failed-job-116315475907-raw.log",
+        "bytes": 394566,
+        "sha256": "9a09ac0a142a8ce630f7f01f28a62f0a1d791cf9077edc4118e2f96935b7f541"
+      },
+      "conclusion": "The independent mixed-dispatch observation reports only fixture_failed with cleanup and child-close witnesses true. The exact failed assertion and product-versus-harness cause remain unknown; no raw exception or child output was retained. The preceding GNU-host npm, direct and mixed-package seven-suite smokes passed. Later GNU-host transport/TLS reruns were not admitted."
+    },
+    {
+      "target": "x86_64-unknown-linux-musl",
+      "job_id": 116315475651,
+      "step": "Offline native musl build, static inspection, synthetic transport and installed lifecycle",
+      "raw_log": {
+        "path": "artifacts/rust-rewrite/5ad9a76-ci-20261015-1/failed-job-116315475651-raw.log",
+        "bytes": 343105,
+        "sha256": "1a7037b4a9afeb658d0f65ddf1c478983388ddbebd55dbcfb42fa62ebb14c59d"
+      },
+      "exact_error": "Installed archive CLI lifecycle check failed: Fixture executable timed out",
+      "failed_phase": "First native npm package --smoke installed-lifecycle capture, after protocol/transport/TLS/localhost checks. The package lifecycle retains its original 180-second bound.",
+      "conclusion": "The same-path reproduction reset discarded prebuilt debug test artifacts before the later cargo test lifecycle capture. Cold recompilation is a plausible explanation for the approximately 184-second interval, not a proven timeout cause because bounded partial output was intentionally not persisted. Subsequent direct-archive and GNU-host mixed-selection phases were not admitted."
+    }
+  ],
+  "evidence_limits": [
+    "The two artifact reads used 19,636 and 12,969 ZIP-range bytes, selected 28,629 and 18,040 plain report bytes, and fetched zero binary member ranges. Their full aggregate artifact hashes were not independently verified.",
+    "The successful prerequisite gates do not convert either failed job into platform qualification. These results apply only to the exact 5ad9a76/PR-merge tree; later dispatcher diagnostics, script ordering and JSON iterator changes require separate validation.",
+    "No full eleven-target/minimum OS/kernel/CPU/WSL/corporate CA qualification, aggregate final-release artifact/licensing approval, performance acceptance, paired live-provider/task-quality approval, deferred larger-Mac result or default cutover follows from this CI checkpoint.",
+    "All previous failed CI checkpoints remain retained and unchanged. No tags, npm publication, provider calls, model downloads or cutover occurred."
+  ],
+  "small_report_capture_scope": "The bound terminal observation includes all seven ARM and four x86 selected report bindings and acquisition receipts. No full ZIP or binary member was fetched."
+}

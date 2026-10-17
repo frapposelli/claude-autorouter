@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "kind": "native_i686_ci_working_tree_host_validation",
+  "base_commit": "34c5142138e77119c0c63a167e696fe0c0fe84c5",
+  "date": "2026-10-15",
+  "sources": [
+    {
+      "path": ".github/workflows/rust-runtime32.yml",
+      "bytes": 12275,
+      "sha256": "a4963afd63eee4d710f2950fcd08c92a60d8018bcfcbf86e353be5590639da5c"
+    },
+    {
+      "path": "rust/distribution/ci/runtime32-proof.py",
+      "bytes": 32443,
+      "sha256": "f0684e2fa87bf87dbf7e36ac0d19bbc8ba814e211faa35775c5c043c21e9c8f2"
+    },
+    {
+      "path": "rust/distribution/autorouter.sh",
+      "bytes": 2431,
+      "sha256": "02df85bdf8974874add0dc63805d3c80ce0f2a7862e0798f428ea72bf6c9797c"
+    },
+    {
+      "path": "rust/distribution/platforms.json",
+      "bytes": 7419,
+      "sha256": "76bb343ac96b3cb1f81b4acea1637967641c3f7ee6dc7710856c83b3e54d7dbb"
+    },
+    {
+      "path": "rust/xtask/src/package.rs",
+      "bytes": 39780,
+      "sha256": "7cf78862a99e43262a4baa5b2579c659f24f8d19a1b672d396d525591fef651f"
+    },
+    {
+      "path": "rust/xtask/src/package_binary.rs",
+      "bytes": 33618,
+      "sha256": "26ce796384c718bad3387f5cff33a565806972b2dfb61142fa7ea483368639a9"
+    },
+    {
+      "path": "rust/xtask/src/package_lifecycle.rs",
+      "bytes": 8862,
+      "sha256": "864133ca371afcfb691b91675fefd310bbca68c58ee566a1cb1404260b2f5506"
+    },
+    {
+      "path": "rust/xtask/tests/benchmark_bundle.rs",
+      "bytes": 20027,
+      "sha256": "3e5b357ed72cb0f778caefda1ee8a222091ad1e8d6d1a68f1377481ff6054d2e"
+    }
+  ],
+  "logs": [
+    {
+      "path": "artifacts/rust-rewrite/runtime32-host-package-tests.log",
+      "bytes": 4497,
+      "sha256": "c905cc96e3ae2efe7b41ec2d0a521104ca437fd3a2f7f5a34a21312bf7114ba7"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime32-host-xtask-clippy.log",
+      "bytes": 638,
+      "sha256": "32db098c4cae6af1f16533ae8ef46e3157dc24cc413a9c008e1d13db404a5bd8"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime32-host-workspace-tests.log",
+      "bytes": 143643,
+      "sha256": "b218001fae563f47e08bf16e4c1d34fde6c35d2811be9edc2ad4a7643a5a5b7a"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime32-host-workspace-clippy.log",
+      "bytes": 638,
+      "sha256": "99ea2ab21893be16d3c46e9120d3aa3282a57cd315b6a0f48f8b63299e067847"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime32-host-node-check.log",
+      "bytes": 153,
+      "sha256": "4882654ddbf9853bf4f185dc398c36b83eaa63b59fbb76d525b746ce417b768f"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime32-host-node-test-sequential.log",
+      "bytes": 144792,
+      "sha256": "5333e1159e1b30a21a86dcb47802c24978fdbb4e3680cb1a66c50ff422e60815"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime32-host-node-package-sequential.log",
+      "bytes": 885,
+      "sha256": "43ddec6e2f78d5f18fde47d7d90a106613d91fd9b1d7ece9fc34c46b9d083b97"
+    }
+  ],
+  "validation": {
+    "rust_workspace": {
+      "passed": 1301,
+      "failed": 0,
+      "ignored_opt_in": 9,
+      "groups": 64
+    },
+    "strict_workspace_and_feature_enabled_xtask_clippy": "passed",
+    "formatting": "passed",
+    "focused_packaging_tests": 37,
+    "node_check": "passed",
+    "node_tests": 596,
+    "exact_npm_package_smoke": "passed",
+    "workflow_yaml_bash_and_python_syntax": "passed",
+    "independent_review": "no_remaining_must_fix_findings"
+  },
+  "failed_attempts": [
+    {
+      "path": "artifacts/rust-rewrite/runtime32-host-node-test.log",
+      "result": "595 passed, one spawned Node process exceeded its existing 2-second deadline during concurrent Cargo/Node work"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime32-host-node-package.log",
+      "result": "optional status storage unavailable before launcher assertion during concurrent checks; sequential attempt passed with unchanged code and deadlines"
+    }
+  ],
+  "provider_calls": 0,
+  "limits": [
+    "All Rust execution in this record is on the local macOS ARM host; genuine i686 runtime/CLI/installed execution needs fresh GitHub CI.",
+    "The existing thirteen jobs passed at 34c5142. No claim that subsequent code inherits that result.",
+    "Minimum OS/libc/kernel/CPU, other architectures, full release, task quality and numerical qualification remain pending."
+  ],
+  "matched_source_transfer": {
+    "evidence": {
+      "path": "artifacts/rust-rewrite/runtime32-transfer-evidence-20261015-1/inspection.json",
+      "sha256": "ef33bfd23af5be93d2c807dc30220bc3cc9d5947c97b5ff46ff810ed28df41e5"
+    },
+    "result": {
+      "passed": true,
+      "transfer": "artifacts/rust-rewrite/handoff-runtime32-transfer-20261015-1",
+      "helper_sha256": "99485219c0f4f40aece59744e637895e8f1f6a53260596d3ab3e5797553bc742",
+      "rebuilds": 0,
+      "provider_calls": 0,
+      "source_to_binary_provenance": "unverified_prebuilt",
+      "current_allowlisted_files_verified": 687,
+      "native_files": 689,
+      "current_source_manifest_sha256": "f8f0f3bdf1feef2ecc806567cf01841e8aed7dd0fac988c4b69b748d6c2ac519",
+      "frozen_original_files_verified": 111,
+      "logical_reference_files_verified": 113,
+      "aggregate_expanded_carrier_bytes": 33412096,
+      "aggregate_expanded_limit": 33554432,
+      "aggregate_logical_file_bytes": 33279279,
+      "aggregate_logical_file_limit": 33554432,
+      "carrier_headroom_bytes": 142336,
+      "logical_headroom_bytes": 275153,
+      "independent_archive_hashes": {
+        "native-source.cpio.gz": "23e74316b841851f7890509166b1dc8935a4ea89c8813517060049ee0bf0893c",
+        "frozen-node-reference-delta.tar.gz": "796d69bfd5bfcfdd55fdd3afbdc0aeea4cb838e0f51c5683d402930d14ce56a2"
+      },
+      "receiver_restore": {
+        "schema_version": 1,
+        "kind": "paired_transfer_reference_restore",
+        "transfer_schema": 3,
+        "reference_files": 111,
+        "logical_files": 113,
+        "original_modes_bytes_verified": true,
+        "root_identity_verified": true,
+        "shared_fixture_files": 2,
+        "license_restored": true,
+        "provider_calls": 0,
+        "release_approved": false,
+        "performance_accepted": false
+      },
+      "owned_temporary_directory_removed": true,
+      "platform_qualification": "pending",
+      "release_approved": false
+    }
+  }
+}

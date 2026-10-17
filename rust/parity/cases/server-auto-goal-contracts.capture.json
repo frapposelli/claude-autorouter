@@ -1,0 +1,425 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "kind": "complete_frozen_server_auto_goal_callbacks",
+  "baseline": {
+    "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+    "files_verified": 111
+  },
+  "node": {
+    "version": "v22.14.0",
+    "sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0"
+  },
+  "generator_sha256": "9bb4f29a04f8b73394ea46f21529ba22d468568fd3c9010556eafdbdc559d861",
+  "baseline_file_sha256": "b82681e2383f3466d66f9801745d4e62fb45d20065f136804f677089f2d41809",
+  "helpers": [
+    {
+      "statement": "const token = 'local-test-token-123456789';",
+      "sha256": "5dda796ceeca0fea036443e6719fae79167ac2c6f02c7ece2059bf907bc150cd"
+    },
+    {
+      "statement": "const body = { model: 'claude-sonnet-5', stream: true, max_tokens: 1024, system: [{ type: 'text', text: 'system', cache_control: { type: 'ephemeral' } }], messages: [{ role: 'user', content: 'Fix a typo' }], tools: [{ name: 'Read', input_schema: { type: 'object' } }] };",
+      "sha256": "610c8e3e707dfd5cfc92d007659e4abd400be1c8ff9b4e561d97bea553cd8bd8"
+    },
+    {
+      "statement": "async function fixture(t, handler, overrides = {}, routeImpl, onStatus, onDecision, onRecord) {\n  const upstream = http.createServer(handler);\n  const address = await listen(upstream, 0);\n  let evaluations = 0;\n  const logs = [];\n  const statuses = [];\n  const config = { ...readConfig({ AUTOROUTER_EVALUATOR: 'jev', ANTHROPIC_API_KEY: 'upstream-secret', TYPESAFE_API_KEY: 'classifier-secret' }), localToken: token, upstream: `http://127.0.0.1:${address.port}`, ...overrides };\n  const server = createRouterServer(config, {\n    router: {\n      route: async (...args) => { evaluations++; return routeImpl?.route ? routeImpl.route(...args)\n        : routeImpl ? routeImpl(...args) : { model: config.models.haiku, source: 'test' }; },\n      complete: (...args) => routeImpl?.complete?.(...args),\n    },\n    log: entry => logs.push(entry), onStatus: entry => { statuses.push(entry); return onStatus?.(entry); },\n    onDecision, onRecord,\n  });\n  const local = await listen(server, 0);\n  t.after(() => { server.closeAllConnections(); server.close(); upstream.closeAllConnections(); upstream.close(); });\n  const localAuth = config.authMode === 'subscription' ? { 'x-autorouter-token': token } : { 'x-api-key': token };\n  const baseUrl = `http://127.0.0.1:${local.port}`;\n  const call = (path, options = {}) => fetch(`${baseUrl}${path}`, { ...options, headers: { ...localAuth, ...options.headers } });\n  return { call, baseUrl, logs, statuses, evaluations: () => evaluations };\n}",
+      "sha256": "7c78ac5d771adb4044bdb12dad87f158232592e41d5493a1ce8eb2ce730f8026"
+    },
+    {
+      "statement": "async function waitForStatus(f, event) {\n  for (let i = 0; i < 100; i++) {\n    if (f.statuses.some(entry => entry.event === event)) return;\n    await new Promise(resolve => setTimeout(resolve, 5));\n  }\n  assert.fail(`Missing status event: ${event}`);\n}",
+      "sha256": "f9600fd02bfdb90b814db6ccf0b988ae38555e7c1bcb5dc89e61ad122329d93d"
+    },
+    {
+      "statement": "const oauthHeaders = { authorization: 'Bearer fake-subscription-token', 'anthropic-beta': 'oauth-2025-04-20,future-capability', 'anthropic-version': '2023-06-01' };",
+      "sha256": "92aea0530edfe378aeb32dcf9e99196b8ccfa68fea2e0664cef1b25b93da3a17"
+    }
+  ],
+  "definitions": [
+    {
+      "number": 18,
+      "id": "test/server.test.mjs#18",
+      "name_expression": "`auto execution switches Sonnet to Opus to Sonnet across human turns, preserving native context and tool ownership (${usePromptIds ? 'gateway prompt IDs' : 'without prompt IDs'})`",
+      "statement": "for (const usePromptIds of [true, false]) test(`auto execution switches Sonnet to Opus to Sonnet across human turns, preserving native context and tool ownership (${usePromptIds ? 'gateway prompt IDs' : 'without prompt IDs'})`, { timeout: 5000 }, async t => {\n  const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'classifier-secret', AUTOROUTER_CLIENT_PROFILE: 'auto', AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5' });\n  const choices = ['haiku', 'opus', 'haiku', 'haiku'];\n  let classifications = 0;\n  const router = new Router(config, { fetchImpl: async (url, options) => {\n    assert.equal(url, config.jevEndpoint);\n    assert.equal(options.headers.authorization, 'Bearer classifier-secret');\n    assert.ok(classifications < choices.length, 'Unexpected classifier request');\n    return Response.json({ answers: { tier: { choice: choices[classifications++], confidence: 0.99 } } });\n  } });\n  const instructions = { role: 'system', clear_at: 'next_user_message', content: [{ type: 'text', text: 'Synthetic turn-specific instructions.' }] };\n  const initial = { ...body, model: config.models.sonnet, thinking: { type: 'adaptive' },\n    // Both selected models have the same native 1M window. The byte trigger\n    // must not independently pin Opus after a demanding task is complete.\n    system: [{ type: 'text', text: 'Synthetic shared context. '.repeat(7000), cache_control: { type: 'ephemeral' } }],\n    messages: [...body.messages, instructions],\n    context_management: { edits: [\n      { type: 'clear_thinking_20251015', keep: { type: 'thinking_turns', value: 1 } },\n      { type: 'clear_tool_uses_20250919', trigger: { type: 'input_tokens', value: 100000 }, keep: { type: 'tool_uses', value: 3 } },\n    ] },\n    safeguards: [{ type: 'dangerous_tool_use', classifier_context: { v: 1, synthetic_context: 'Keep the native tool review context.' } }],\n  };\n  const sonnetThinking = { type: 'thinking', thinking: 'Synthetic Sonnet reasoning.', signature: 'signed-sonnet-history+/==' };\n  const opusThinking = { type: 'thinking', thinking: 'Synthetic Opus reasoning.', signature: 'signed-opus-history+/==' };\n  const toolUse = { type: 'tool_use', id: 'tool_auto_fixture', name: 'Read', input: { path: 'fixture.txt' } };\n  const demanding = { ...initial, messages: [...initial.messages,\n    { role: 'assistant', content: [sonnetThinking, { type: 'text', text: 'The typo is fixed.' }] },\n    { role: 'user', content: 'Investigate an intermittent cross-process race with no known cause.' }, instructions,\n  ] };\n  const toolContinuation = { ...demanding, messages: [...demanding.messages,\n    { role: 'assistant', content: [opusThinking, toolUse] },\n    { role: 'user', content: [{ type: 'tool_result', tool_use_id: toolUse.id, content: 'Synthetic fixture result.' }] },\n  ] };\n  const nextHuman = { ...toolContinuation, messages: [...toolContinuation.messages,\n    { role: 'assistant', content: [{ type: 'text', text: 'The concurrency issue is resolved.' }] },\n    { role: 'user', content: 'Now change the exact typo teh to the in fixture.txt.' }, instructions,\n  ] };\n  const requests = [initial, demanding, toolContinuation, nextHuman];\n  const originals = structuredClone(requests);\n  const expectedModels = [config.models.sonnet, config.models.opus, config.models.opus, config.models.sonnet];\n  const promptIds = ['auto-first', 'auto-demanding', 'auto-demanding', 'auto-next'];\n  const beta = `${oauthHeaders['anthropic-beta']},dangerous-tool-use-2026-09-03,context-management-2025-06-27,mid-conversation-system-clear-at-2026-08-21`;\n  const event = payload => `event: ${payload.type}\\r\\ndata: ${JSON.stringify(payload)}\\r\\n\\r\\n`;\n  const replies = requests.map((_request, index) => Buffer.from([\n    { type: 'message_start', message: { id: `msg_auto_${index}`, model: expectedModels[index], content: [],\n      ...(index > 0 ? { input_transformations: [{ type: 'thinking_dropped', reason: 'model_binding_mismatch' }] } : {}) } },\n    { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },\n    { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Synthetic reply → unchanged.' } },\n    { type: 'content_block_stop', index: 0 },\n    { type: 'message_delta', delta: { stop_reason: 'end_turn', safeguard_results: [{ type: 'dangerous_tool_use', status: { type: 'available', tool_uses: {} } }] }, usage: { output_tokens: 10 } },\n    { type: 'message_stop' },\n  ].map(event).join('')));\n  const received = [];\n  const f = await fixture(t, async (req, res) => {\n    let text = ''; for await (const chunk of req) text += chunk;\n    const index = received.length;\n    received.push(JSON.parse(text));\n    // A count endpoint would consume an extra call and violate this assertion.\n    assert.equal(req.url, '/v1/messages?beta=true');\n    assert.equal(req.headers.authorization, oauthHeaders.authorization);\n    assert.equal(req.headers['anthropic-beta'], beta);\n    assert.equal(req.headers['x-claude-code-session-id'], 'auto-switch-session');\n    assert.equal(req.headers['x-claude-code-prompt-id'], usePromptIds ? promptIds[index] : undefined);\n    assert.equal(req.headers['x-autorouter-token'], undefined);\n    res.writeHead(200, { 'content-type': 'text/event-stream' });\n    const split = replies[index].indexOf(Buffer.from('→')) + 1;\n    res.write(replies[index].subarray(0, split));\n    res.end(replies[index].subarray(split));\n  }, { authMode: 'subscription', models: config.models, clientProfile: 'auto' }, router);\n  for (const [index, request] of requests.entries()) {\n    const response = await f.call('/v1/messages?beta=true', { method: 'POST', headers: {\n      ...oauthHeaders, 'anthropic-beta': beta, 'x-claude-code-session-id': 'auto-switch-session', 'x-claude-code-agent-id': 'auto-main-agent',\n      'x-claude-code-request-class': 'main', ...(usePromptIds ? { 'x-claude-code-prompt-id': promptIds[index] } : {}),\n    }, body: JSON.stringify(request) });\n    assert.equal(response.status, 200);\n    assert.deepEqual(Buffer.from(await response.arrayBuffer()), replies[index]);\n    assert.deepEqual(received[index], { ...request, model: expectedModels[index] });\n  }\n  assert.equal(classifications, 4);\n  assert.equal(received.length, 4);\n  assert.deepEqual(requests, originals);\n  assert.deepEqual(f.statuses.filter(entry => entry.event === 'route').map(({ model, source, reason, classified_tier }) =>\n    ({ model, source, reason, classified_tier })), [\n    { model: config.models.sonnet, source: 'jev', reason: 'auto_mode_floor', classified_tier: 'haiku' },\n    { model: config.models.opus, source: 'jev', reason: 'classified', classified_tier: 'opus' },\n    { model: config.models.opus, source: 'jev', reason: 'tool_turn_pinned', classified_tier: 'haiku' },\n    { model: config.models.sonnet, source: 'jev', reason: 'auto_mode_floor', classified_tier: 'haiku' },\n  ]);\n  for (const value of [sonnetThinking.thinking, sonnetThinking.signature, opusThinking.thinking, opusThinking.signature,\n    initial.safeguards[0].classifier_context.synthetic_context, 'classifier-secret', 'fake-subscription-token']) {\n    assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes(value));\n  }\n});",
+      "sha256": "a4fa2c0ab69c09f624fbe67227c6a2c81272981c25179a463a9678932233d652",
+      "assertions": [
+        {
+          "id": "server#18:assert-1",
+          "expression": "assert.equal(url, config.jevEndpoint)",
+          "sha256": "86983dba3f95631c4fb3381d4f7f579b0b67dc027e3fb4e157ccc6c116a9fbb9",
+          "line": 646,
+          "executions": 8
+        },
+        {
+          "id": "server#18:assert-2",
+          "expression": "assert.equal(options.headers.authorization, 'Bearer classifier-secret')",
+          "sha256": "744649ec1d73757a8e2af52fd164709938cd095919ecc6eb6afc8b68b33c661e",
+          "line": 647,
+          "executions": 8
+        },
+        {
+          "id": "server#18:assert-3",
+          "expression": "assert.ok(classifications < choices.length, 'Unexpected classifier request')",
+          "sha256": "a46aeaff7853ec7d01140247d6f97fb2e4549fb1e0d1a265975b0efee2b027aa",
+          "line": 648,
+          "executions": 8
+        },
+        {
+          "id": "server#18:assert-4",
+          "expression": "assert.equal(req.url, '/v1/messages?beta=true')",
+          "sha256": "04f4434dac9189e462941da5cba054c97bceae86a8196f16542fdb59d70382a0",
+          "line": 699,
+          "executions": 8
+        },
+        {
+          "id": "server#18:assert-5",
+          "expression": "assert.equal(req.headers.authorization, oauthHeaders.authorization)",
+          "sha256": "eef89dd65a86aa771879b9ddd8d8f1b5c29b07b68f9c316c45574f2436ac645e",
+          "line": 700,
+          "executions": 8
+        },
+        {
+          "id": "server#18:assert-6",
+          "expression": "assert.equal(req.headers['anthropic-beta'], beta)",
+          "sha256": "cbe6bcb713e3425ac553532340cb3c6cbc95c21dd0e646a66605de2f15169e77",
+          "line": 701,
+          "executions": 8
+        },
+        {
+          "id": "server#18:assert-7",
+          "expression": "assert.equal(req.headers['x-claude-code-session-id'], 'auto-switch-session')",
+          "sha256": "a7ae49466e7c93c0c8d7cac574056eb5db5b4b6c449752414b6dc4701ededa63",
+          "line": 702,
+          "executions": 8
+        },
+        {
+          "id": "server#18:assert-8",
+          "expression": "assert.equal(req.headers['x-claude-code-prompt-id'], usePromptIds ? promptIds[index] : undefined)",
+          "sha256": "9517eaabcb1496b91c0a075d14db4b98576ef767719dfa75b4270cc3e251b3d1",
+          "line": 703,
+          "executions": 8
+        },
+        {
+          "id": "server#18:assert-9",
+          "expression": "assert.equal(req.headers['x-autorouter-token'], undefined)",
+          "sha256": "0cd9ed0e32b31cec139db3b3d2368936faa1d892c452e24b5e562c3403862e78",
+          "line": 704,
+          "executions": 8
+        },
+        {
+          "id": "server#18:assert-10",
+          "expression": "assert.equal(response.status, 200)",
+          "sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "line": 715,
+          "executions": 8
+        },
+        {
+          "id": "server#18:assert-11",
+          "expression": "assert.deepEqual(Buffer.from(await response.arrayBuffer()), replies[index])",
+          "sha256": "198df34b6991b93b8d5b71c534643b10f0fdcbede20c32a0036000fc17a19317",
+          "line": 716,
+          "executions": 8
+        },
+        {
+          "id": "server#18:assert-12",
+          "expression": "assert.deepEqual(received[index], { ...request, model: expectedModels[index] })",
+          "sha256": "d05f8f6c7fa2e487a645488035d9e7239300507f893e908c9fce5480aed71a83",
+          "line": 717,
+          "executions": 8
+        },
+        {
+          "id": "server#18:assert-13",
+          "expression": "assert.equal(classifications, 4)",
+          "sha256": "0c56bb56699581e4adbc1d761c9cb998cb91b3b3919a6132d0c3031931169ca8",
+          "line": 719,
+          "executions": 2
+        },
+        {
+          "id": "server#18:assert-14",
+          "expression": "assert.equal(received.length, 4)",
+          "sha256": "1b6874e0d565e850c473ff726ae54b1cc311f6b1774a73c85367b48140afab7c",
+          "line": 720,
+          "executions": 2
+        },
+        {
+          "id": "server#18:assert-15",
+          "expression": "assert.deepEqual(requests, originals)",
+          "sha256": "3a1ea6d1182fb50d67d6e7580ccc8a36066061229e1adbdbef502f478369b1d4",
+          "line": 721,
+          "executions": 2
+        },
+        {
+          "id": "server#18:assert-16",
+          "expression": "assert.deepEqual(f.statuses.filter(entry => entry.event === 'route').map(({ model, source, reason, classified_tier }) =>\n    ({ model, source, reason, classified_tier })), [\n    { model: config.models.sonnet, source: 'jev', reason: 'auto_mode_floor', classified_tier: 'haiku' },\n    { model: config.models.opus, source: 'jev', reason: 'classified', classified_tier: 'opus' },\n    { model: config.models.opus, source: 'jev', reason: 'tool_turn_pinned', classified_tier: 'haiku' },\n    { model: config.models.sonnet, source: 'jev', reason: 'auto_mode_floor', classified_tier: 'haiku' },\n  ])",
+          "sha256": "2460d193c245c268ebb46e617e177d42549ff0134dcb45a918f38eaa09113e47",
+          "line": 722,
+          "executions": 2
+        },
+        {
+          "id": "server#18:assert-17",
+          "expression": "assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes(value))",
+          "sha256": "76b4f609065ce4f69f8289cd440b954f7219bbffa25ba0d877d352436fbeb0f8",
+          "line": 731,
+          "executions": 14
+        }
+      ]
+    },
+    {
+      "number": 19,
+      "id": "test/server.test.mjs#19",
+      "name_expression": "`goal feedback and tool results retain the main model, preserving auxiliary verdicts and new human turns (${usePromptIds ? 'gateway prompt IDs' : 'expanded command without prompt IDs'})`",
+      "statement": "for (const usePromptIds of [true, false]) test(`goal feedback and tool results retain the main model, preserving auxiliary verdicts and new human turns (${usePromptIds ? 'gateway prompt IDs' : 'expanded command without prompt IDs'})`, { timeout: 5000 }, async t => {\n  const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5', TYPESAFE_API_KEY: 'classifier-secret' });\n  const classifierChoices = ['sonnet', 'haiku', 'haiku', 'haiku'];\n  let classifications = 0;\n  const router = new Router(config, { fetchImpl: async (url, options) => {\n    assert.equal(url, config.jevEndpoint);\n    assert.equal(options.headers.authorization, 'Bearer classifier-secret');\n    assert.ok(classifications < classifierChoices.length, 'Unexpected classifier request');\n    return Response.json({ answers: { tier: { choice: classifierChoices[classifications++], confidence: 0.99 } } });\n  } });\n  const condition = 'Create the fixture file once the synthetic resource is available.';\n  const answer = 'The synthetic resource is unavailable. Please enable it to continue.';\n  const verdict = '{\"ok\":false,\"reason\":\"The synthetic resource is not available yet.\"}';\n  const initial = {\n    ...body, model: config.models.haiku, thinking: { type: 'disabled' },\n    messages: [{ role: 'user', content: [\n      { type: 'text', text: `<command-name>/goal</command-name>\\n<command-message>goal</command-message>\\n<command-args>${condition}</command-args>` },\n      { type: 'text', text: `A session-scoped Stop hook is now active with condition: \"${condition}\". Briefly acknowledge the goal, then immediately start working toward it.` },\n    ] }],\n  };\n  const judgedMessages = [...initial.messages, { role: 'assistant', content: [{ type: 'text', text: answer }] }];\n  const judge = {\n    ...initial, system: 'Judge the synthetic goal using transcript evidence only.', tools: [],\n    messages: [...judgedMessages, { role: 'user', content: `Has this stopping condition been satisfied? ${condition}` }],\n    output_config: { format: { type: 'json_schema', schema: {\n      type: 'object', properties: { ok: { type: 'boolean' }, reason: { type: 'string' }, impossible: { type: 'boolean' } },\n      required: ['ok', 'reason'], additionalProperties: false,\n    } } },\n  };\n  // Claude's internal isMeta flag is absent from the Messages API: the same\n  // human-prompt identity must distinguish this feedback from a new task.\n  const continuation = {\n    ...initial, messages: [...judgedMessages, { role: 'user', content: [\n      { type: 'text', text: `Stop hook feedback:\\n[${condition}]: ${JSON.parse(verdict).reason}`, cache_control: { type: 'ephemeral' } },\n    ] }],\n  };\n  const toolUse = { type: 'tool_use', id: 'tool_goal_fixture', name: 'Read', input: { path: 'fixture.txt' } };\n  const toolContinuation = { ...initial, messages: [\n    ...continuation.messages,\n    { role: 'assistant', content: [{ type: 'text', text: 'Checking the fixture.' }, toolUse] },\n    { role: 'user', content: [{ type: 'tool_result', tool_use_id: toolUse.id, content: 'The synthetic resource is unavailable.', cache_control: { type: 'ephemeral' } }] },\n  ] };\n  const nextTurn = { ...initial, messages: [\n    ...toolContinuation.messages, { role: 'assistant', content: [{ type: 'text', text: answer }] },\n    { role: 'user', content: 'Instead, what is the length of []? Reply with the number.' },\n  ] };\n  const requests = [initial, judge, continuation, toolContinuation, nextTurn];\n  const originals = structuredClone(requests);\n  const expectedModels = [config.models.sonnet, config.models.haiku, config.models.sonnet, config.models.sonnet, config.models.haiku];\n  const classes = ['main', 'auxiliary', 'main', 'main', 'main'];\n  const promptIds = usePromptIds ? ['goal-prompt', 'goal-prompt', 'goal-prompt', 'goal-prompt', 'new-human-prompt'] : [];\n  const event = payload => `event: ${payload.type}\\r\\ndata: ${JSON.stringify(payload)}\\r\\n\\r\\n`;\n  const replies = [answer, verdict, 'Checking the fixture.', answer, '0'].map((text, index) => Buffer.from([\n    { type: 'message_start', message: { id: `msg_goal_${index}`, model: expectedModels[index], content: [] } },\n    { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },\n    { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text } },\n    { type: 'content_block_stop', index: 0 },\n    ...(index === 2 ? [\n      { type: 'content_block_start', index: 1, content_block: { ...toolUse, input: {} } },\n      { type: 'content_block_delta', index: 1, delta: { type: 'input_json_delta', partial_json: JSON.stringify(toolUse.input) } },\n      { type: 'content_block_stop', index: 1 },\n    ] : []),\n    { type: 'message_delta', delta: { stop_reason: index === 2 ? 'tool_use' : 'end_turn' }, usage: { output_tokens: 20 } },\n    { type: 'message_stop' },\n  ].map(event).join('')));\n  const received = [];\n  const f = await fixture(t, async (req, res) => {\n    let text = ''; for await (const chunk of req) text += chunk;\n    const index = received.length;\n    received.push(JSON.parse(text));\n    assert.equal(req.url, '/v1/messages?beta=true');\n    assert.equal(req.headers.authorization, oauthHeaders.authorization);\n    assert.equal(req.headers['anthropic-beta'], oauthHeaders['anthropic-beta']);\n    assert.equal(req.headers['anthropic-version'], oauthHeaders['anthropic-version']);\n    assert.equal(req.headers['x-claude-code-session-id'], 'synthetic-goal-session');\n    assert.equal(req.headers['x-claude-code-agent-id'], 'synthetic-main-agent');\n    assert.equal(req.headers['x-claude-code-prompt-id'], promptIds[index]);\n    assert.equal(req.headers['x-claude-code-request-class'], classes[index]);\n    assert.equal(req.headers['x-autorouter-token'], undefined);\n    res.writeHead(200, { 'content-type': 'text/event-stream', 'request-id': `goal-provider-${index}` });\n    res.write(replies[index].subarray(0, 31));\n    res.end(replies[index].subarray(31));\n  }, { authMode: 'subscription', models: config.models }, router);\n  for (const [index, request] of requests.entries()) {\n    const response = await f.call('/v1/messages?beta=true', { method: 'POST', headers: {\n      ...oauthHeaders, 'x-claude-code-session-id': 'synthetic-goal-session', 'x-claude-code-agent-id': 'synthetic-main-agent',\n      ...(usePromptIds ? { 'x-claude-code-prompt-id': promptIds[index] } : {}), 'x-claude-code-request-class': classes[index],\n    }, body: JSON.stringify(request) });\n    assert.equal(response.status, 200);\n    assert.equal(response.headers.get('request-id'), `goal-provider-${index}`);\n    assert.deepEqual(Buffer.from(await response.arrayBuffer()), replies[index]);\n    assert.deepEqual(received[index], {\n      ...request, model: expectedModels[index],\n      thinking: { type: expectedModels[index] === config.models.sonnet ? 'between_tools' : 'disabled' },\n    });\n  }\n  assert.equal(classifications, 4);\n  assert.deepEqual(requests, originals);\n  const routes = f.statuses.filter(entry => entry.event === 'route');\n  assert.deepEqual(routes.map(({ model, source, reason, classified_tier }) => ({ model, source, reason, classified_tier })), [\n    { model: config.models.sonnet, source: 'jev', reason: 'classified', classified_tier: 'sonnet' },\n    { model: config.models.haiku, source: 'passthrough', reason: 'internal_request', classified_tier: undefined },\n    { model: config.models.sonnet, source: 'jev', reason: usePromptIds ? 'prompt_turn_pinned' : 'goal_turn_pinned', classified_tier: 'haiku' },\n    { model: config.models.sonnet, source: 'jev', reason: 'tool_turn_pinned', classified_tier: 'haiku' },\n    { model: config.models.haiku, source: 'jev', reason: 'classified', classified_tier: 'haiku' },\n  ]);\n  assert.deepEqual(f.logs.filter(entry => entry.event === 'upstream_model').map(entry => entry.model), expectedModels);\n  for (const privateValue of [condition, answer, verdict, 'classifier-secret', 'fake-subscription-token']) {\n    assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes(privateValue));\n  }\n});",
+      "sha256": "a23adf5e5e6c1c9ebdc5ad4ff0bfccf7c8a064fd04a98340ce2ef65d5e998379",
+      "assertions": [
+        {
+          "id": "server#19:assert-1",
+          "expression": "assert.equal(url, config.jevEndpoint)",
+          "sha256": "86983dba3f95631c4fb3381d4f7f579b0b67dc027e3fb4e157ccc6c116a9fbb9",
+          "line": 740,
+          "executions": 8
+        },
+        {
+          "id": "server#19:assert-2",
+          "expression": "assert.equal(options.headers.authorization, 'Bearer classifier-secret')",
+          "sha256": "744649ec1d73757a8e2af52fd164709938cd095919ecc6eb6afc8b68b33c661e",
+          "line": 741,
+          "executions": 8
+        },
+        {
+          "id": "server#19:assert-3",
+          "expression": "assert.ok(classifications < classifierChoices.length, 'Unexpected classifier request')",
+          "sha256": "0993b545d3e0d427c9e39decfa9c24f8cf6731383563fc5baeb5ce3d21712db7",
+          "line": 742,
+          "executions": 8
+        },
+        {
+          "id": "server#19:assert-4",
+          "expression": "assert.equal(req.url, '/v1/messages?beta=true')",
+          "sha256": "04f4434dac9189e462941da5cba054c97bceae86a8196f16542fdb59d70382a0",
+          "line": 805,
+          "executions": 10
+        },
+        {
+          "id": "server#19:assert-5",
+          "expression": "assert.equal(req.headers.authorization, oauthHeaders.authorization)",
+          "sha256": "eef89dd65a86aa771879b9ddd8d8f1b5c29b07b68f9c316c45574f2436ac645e",
+          "line": 806,
+          "executions": 10
+        },
+        {
+          "id": "server#19:assert-6",
+          "expression": "assert.equal(req.headers['anthropic-beta'], oauthHeaders['anthropic-beta'])",
+          "sha256": "0a84668b34b057e1b217ebeb847cf3c7a860e9229e3ea327d50afbdd4f264b95",
+          "line": 807,
+          "executions": 10
+        },
+        {
+          "id": "server#19:assert-7",
+          "expression": "assert.equal(req.headers['anthropic-version'], oauthHeaders['anthropic-version'])",
+          "sha256": "b4fb97aff23405e1cd6bb05e7684454f5e4020e9c589be36e1d9ff6636009ec7",
+          "line": 808,
+          "executions": 10
+        },
+        {
+          "id": "server#19:assert-8",
+          "expression": "assert.equal(req.headers['x-claude-code-session-id'], 'synthetic-goal-session')",
+          "sha256": "e0c1de909aeba2af59ba930667aad1cc13f794b7a12a0fc5bda7d0bd6ddeeca1",
+          "line": 809,
+          "executions": 10
+        },
+        {
+          "id": "server#19:assert-9",
+          "expression": "assert.equal(req.headers['x-claude-code-agent-id'], 'synthetic-main-agent')",
+          "sha256": "cacb5c31335aa0e11bd9adf87e1acd9dd0a0afdbe75af0fe8351117d40c5114c",
+          "line": 810,
+          "executions": 10
+        },
+        {
+          "id": "server#19:assert-10",
+          "expression": "assert.equal(req.headers['x-claude-code-prompt-id'], promptIds[index])",
+          "sha256": "7cc8e88ec8624fd443f512f1c2ee93e18ce4852fea154bd3718ed1dea539a513",
+          "line": 811,
+          "executions": 10
+        },
+        {
+          "id": "server#19:assert-11",
+          "expression": "assert.equal(req.headers['x-claude-code-request-class'], classes[index])",
+          "sha256": "9b2dc56e08851418053dc820274f3f8b2bab3d51fb43053ebc7d642e125ab004",
+          "line": 812,
+          "executions": 10
+        },
+        {
+          "id": "server#19:assert-12",
+          "expression": "assert.equal(req.headers['x-autorouter-token'], undefined)",
+          "sha256": "0cd9ed0e32b31cec139db3b3d2368936faa1d892c452e24b5e562c3403862e78",
+          "line": 813,
+          "executions": 10
+        },
+        {
+          "id": "server#19:assert-13",
+          "expression": "assert.equal(response.status, 200)",
+          "sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "line": 823,
+          "executions": 10
+        },
+        {
+          "id": "server#19:assert-14",
+          "expression": "assert.equal(response.headers.get('request-id'), `goal-provider-${index}`)",
+          "sha256": "2715b763b6a18ef1507c8d432ba3fc2936a7b07670cedf31279829e4394f3a11",
+          "line": 824,
+          "executions": 10
+        },
+        {
+          "id": "server#19:assert-15",
+          "expression": "assert.deepEqual(Buffer.from(await response.arrayBuffer()), replies[index])",
+          "sha256": "198df34b6991b93b8d5b71c534643b10f0fdcbede20c32a0036000fc17a19317",
+          "line": 825,
+          "executions": 10
+        },
+        {
+          "id": "server#19:assert-16",
+          "expression": "assert.deepEqual(received[index], {\n      ...request, model: expectedModels[index],\n      thinking: { type: expectedModels[index] === config.models.sonnet ? 'between_tools' : 'disabled' },\n    })",
+          "sha256": "65065a45e47b8f3d6cd2848803b21e75a4adf191afd1fe18691aa2f5b4549519",
+          "line": 826,
+          "executions": 10
+        },
+        {
+          "id": "server#19:assert-17",
+          "expression": "assert.equal(classifications, 4)",
+          "sha256": "0c56bb56699581e4adbc1d761c9cb998cb91b3b3919a6132d0c3031931169ca8",
+          "line": 831,
+          "executions": 2
+        },
+        {
+          "id": "server#19:assert-18",
+          "expression": "assert.deepEqual(requests, originals)",
+          "sha256": "3a1ea6d1182fb50d67d6e7580ccc8a36066061229e1adbdbef502f478369b1d4",
+          "line": 832,
+          "executions": 2
+        },
+        {
+          "id": "server#19:assert-19",
+          "expression": "assert.deepEqual(routes.map(({ model, source, reason, classified_tier }) => ({ model, source, reason, classified_tier })), [\n    { model: config.models.sonnet, source: 'jev', reason: 'classified', classified_tier: 'sonnet' },\n    { model: config.models.haiku, source: 'passthrough', reason: 'internal_request', classified_tier: undefined },\n    { model: config.models.sonnet, source: 'jev', reason: usePromptIds ? 'prompt_turn_pinned' : 'goal_turn_pinned', classified_tier: 'haiku' },\n    { model: config.models.sonnet, source: 'jev', reason: 'tool_turn_pinned', classified_tier: 'haiku' },\n    { model: config.models.haiku, source: 'jev', reason: 'classified', classified_tier: 'haiku' },\n  ])",
+          "sha256": "da1d4fab869f0338cbc6f12002577051ec894f1395b3ae57b5edf72cbc5de5d7",
+          "line": 834,
+          "executions": 2
+        },
+        {
+          "id": "server#19:assert-20",
+          "expression": "assert.deepEqual(f.logs.filter(entry => entry.event === 'upstream_model').map(entry => entry.model), expectedModels)",
+          "sha256": "4b6fefcc3ef3a45ef5b84c2c03c4e4406f9cc39a01f769fc4ddf641a3dc0ded3",
+          "line": 841,
+          "executions": 2
+        },
+        {
+          "id": "server#19:assert-21",
+          "expression": "assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes(privateValue))",
+          "sha256": "27f75c49c2a5b78669d48d7c5bdcd4d6d35f3356a4f28261da29e0274fdc9654",
+          "line": 843,
+          "executions": 10
+        }
+      ]
+    }
+  ],
+  "static_assertions": 38,
+  "expanded_assertions": 290,
+  "expanded_callbacks": [
+    {
+      "id": "server-auto-goal-18-prompt-ids",
+      "source_test": "test/server.test.mjs#18",
+      "name": "auto execution switches Sonnet to Opus to Sonnet across human turns, preserving native context and tool ownership (gateway prompt IDs)",
+      "use_prompt_ids": true,
+      "passed": true,
+      "executed_assertions": 59
+    },
+    {
+      "id": "server-auto-goal-18-headerless",
+      "source_test": "test/server.test.mjs#18",
+      "name": "auto execution switches Sonnet to Opus to Sonnet across human turns, preserving native context and tool ownership (without prompt IDs)",
+      "use_prompt_ids": false,
+      "passed": true,
+      "executed_assertions": 59
+    },
+    {
+      "id": "server-auto-goal-19-prompt-ids",
+      "source_test": "test/server.test.mjs#19",
+      "name": "goal feedback and tool results retain the main model, preserving auxiliary verdicts and new human turns (gateway prompt IDs)",
+      "use_prompt_ids": true,
+      "passed": true,
+      "executed_assertions": 86
+    },
+    {
+      "id": "server-auto-goal-19-headerless",
+      "source_test": "test/server.test.mjs#19",
+      "name": "goal feedback and tool results retain the main model, preserving auxiliary verdicts and new human turns (expanded command without prompt IDs)",
+      "use_prompt_ids": false,
+      "passed": true,
+      "executed_assertions": 86
+    }
+  ],
+  "assertion_execution_order_file": "assertion-executions.json",
+  "assertion_order_scope": "Raw successful assertion order retained separately. Per-site and per-callback counts are exact; no scheduling or chunk partition equivalence is inferred.",
+  "cases_sha256": "6ccb01e63126ebf19c9201ed0b68d60be9d7530d491adba9e3ff0de1bd92003c",
+  "callbacks_executed": 4,
+  "network_scope": "Actual synthetic loopback HTTP only; original #18/#19 evaluator fetches remain supplied mocks.",
+  "capture_semantics": "Complete selected callbacks and five helper statements restored unchanged except successful assertion-result wrappers. Recording delegates actual HTTP and original return objects; no clone/drain, substituted verdict, timing threshold or source clock changes. Per-peer complete bodies preserve bytes; raw chunks and chronological reads remain in raw observations.",
+  "projection_kinds": [
+    "validated_latency",
+    "generated_request_id",
+    "automatic_http_date",
+    "loopback_authority"
+  ],
+  "typed_observations": [
+    "Headers inputs are enumerated into their complete normalized field map.",
+    "Route signal observation records actual AbortSignal type and aborted state; no serialized object identity is claimed. countTokens is recorded as a function capability only.",
+    "Individual response chunks remain base64, including intentionally split UTF-8. Only complete request bodies use UTF-8 after exact roundtrip validation."
+  ],
+  "raw_observations_file": "raw-observations.json",
+  "projection_ledger_file": "projections.json",
+  "cleanup": [
+    {
+      "id": "server-auto-goal-18-prompt-ids",
+      "servers": 2,
+      "all_closed": true,
+      "remaining_sockets": 0
+    },
+    {
+      "id": "server-auto-goal-18-headerless",
+      "servers": 2,
+      "all_closed": true,
+      "remaining_sockets": 0
+    },
+    {
+      "id": "server-auto-goal-19-prompt-ids",
+      "servers": 2,
+      "all_closed": true,
+      "remaining_sockets": 0
+    },
+    {
+      "id": "server-auto-goal-19-headerless",
+      "servers": 2,
+      "all_closed": true,
+      "remaining_sockets": 0
+    }
+  ],
+  "partitioned_case_files": [
+    {
+      "name": "server-auto-goal-prompt-ids-contracts.jsonl",
+      "bytes": 2313967,
+      "sha256": "aad22fb15bb1573bc7cbc1de8758b37de4512a61efa7c10474cfca7b636aadb3",
+      "cases": [
+        "server-auto-goal-18-prompt-ids",
+        "server-auto-goal-19-prompt-ids"
+      ]
+    },
+    {
+      "name": "server-auto-goal-headerless-contracts.jsonl",
+      "bytes": 2313790,
+      "sha256": "915b85bc7238aca22f0e55f2c324e2f7b6aa2a38a411f03bf9f3566e9be2c3d1",
+      "cases": [
+        "server-auto-goal-18-headerless",
+        "server-auto-goal-19-headerless"
+      ]
+    }
+  ],
+  "partition_semantics": "Exact complete case JSONL lines partitioned by use_prompt_ids, with no field, array or byte changes. The combined capture remains in original callback order with its original checksum. Each source corpus stays within the existing 4 MiB limit."
+}

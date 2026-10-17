@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "kind": "additive_complete_original_server_telemetry_async_assertion_mapping",
+  "status": "focused_pass_closes_original_async_return_gap",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "worktree_base_commit": "da51574ec1a895286c0379db1623d715e986be7e",
+  "production_changes_by_this_agent": false,
+  "shared_support_changes": false,
+  "central_ledger_edits": false,
+  "counts": {
+    "baseline_definitions": 1,
+    "static_assertion_sites": 3,
+    "expanded_original_assertions": 3,
+    "expanded_native_assertions": 3,
+    "native_tests": 1,
+    "downstream_http_operations": 1,
+    "actual_provider_requests": 1,
+    "route_calls": 1,
+    "source_complete_callbacks": 2,
+    "native_complete_callbacks": 1,
+    "source_emitted_status_events": 5,
+    "native_emitted_status_events": 5,
+    "source_synchronous_failures": 3,
+    "source_returned_promise_rejections": 2,
+    "native_synchronous_factory_unwinds": 3,
+    "native_actual_returned_future_rejections": 2
+  },
+  "capture": {
+    "path": "rust/parity/cases/server-stream-failure-contracts.capture.json",
+    "bytes": 14403,
+    "sha256": "0eb917770f8b49a114ce914d9a31b6c24a987d2c980221b82305d9a3f3427332"
+  },
+  "corpus": {
+    "path": "rust/parity/cases/server-stream-failure-contracts.jsonl",
+    "bytes": 21995,
+    "sha256": "93427d9e2bcb68304b4bd28af30974083a0238b97d305377725029bcef87a21f"
+  },
+  "native_validation": {
+    "path": "artifacts/rust-rewrite/server-telemetry-async-native-20261013-1/report.json",
+    "bytes": 12321,
+    "sha256": "51df3b6116fe9e4a70512df33ac7c84acac1145e5a269436852f3d5e9f87b4d3"
+  },
+  "earlier_partial_report_unchanged": {
+    "path": "artifacts/rust-rewrite/server-stream-failure-native-20261013-3/report.json",
+    "bytes": 15994,
+    "sha256": "9d39d58f499b47c8988b88d0550b960d9f69350ee9f92e92e961417c22ef8c1e"
+  },
+  "rows": [
+    {
+      "id": "test/server.test.mjs#26",
+      "name": "synchronous and asynchronous telemetry failures never interfere with successful inference",
+      "statement": "test('synchronous and asynchronous telemetry failures never interfere with successful inference', async t => {\n  let callbacks = 0;\n  const f = await fixture(t, (req, res) => {\n    res.writeHead(200, { 'content-type': 'application/json' }); res.end('{\"model\":\"claude-haiku-4-5-20251001\"}');\n  }, {}, undefined, () => {\n    callbacks++;\n    if (callbacks % 2) throw new Error('Status storage unavailable');\n    return Promise.reject(new Error('Asynchronous status failure'));\n  });\n  const response = await f.call('/v1/messages', { method: 'POST', body: JSON.stringify(body) });\n  assert.equal(response.status, 200);\n  assert.equal((await response.json()).model, 'claude-haiku-4-5-20251001');\n  await waitForStatus(f, 'request_complete');\n  assert.equal(callbacks, 5);\n});",
+      "sha256": "08263a81dd8a2fa97b0e6a3709a2c3246a58aee05c7a26bd087593d8bb58234a",
+      "previous_status": "partial",
+      "proposed_status": "covered",
+      "static_assertions": 3,
+      "expanded_assertions": 3,
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_telemetry_async_contract.rs#original_26_actual_status_factory_unwinds_and_returned_rejections_preserve_inference"
+      ],
+      "shared_cases": [
+        "server-stream-failure-26"
+      ],
+      "assertions": [
+        {
+          "id": "test/server.test.mjs#26:assert-1",
+          "expression": "assert.equal(response.status, 200)",
+          "sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "line": 997,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_telemetry_async_contract.rs#original_26_actual_status_factory_unwinds_and_returned_rejections_preserve_inference"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_telemetry_async_contract.rs",
+              "function": "original_26_actual_status_factory_unwinds_and_returned_rejections_preserve_inference",
+              "line": 349,
+              "fragment": "check(1, status == 200);",
+              "fragment_sha256": "a03d4e3668c29a57d68c6f8deb06b3de1550af5a382dcf24616e09eb47dd38c3",
+              "file_sha256": "0f361464a1225d73a4417c05d6505bb39263c13e83951c6bfd9d67ef7a9639c9"
+            }
+          ],
+          "native_check": "Exact original observable predicate with the original five-event factory sequence and actual supported returned-future rejection handling, both rejected outcomes proven before joined owner shutdown.",
+          "api_adaptation": "The original status callback factory increments synchronously, throws on odd invocations and returns a rejected Promise on even invocations. The true native EventSink wrapper executes each admitted factory synchronously, preserves the five event order/count, contains all three actual factory panics and independently polls both actual returned Err futures on its one bounded owned worker. No detached failing task is substituted for a returned result. Source rejections carry JavaScript Error messages. Native returned futures use payload-free ObserverRejected; private rejection strings are intentionally outside this typed API. Actual factory panic message Status storage unavailable remains synthetic test input. Routine safe logs/statuses exclude it and the source asynchronous error string. Global panic hooks are not mutated in ordinary parallel tests; root host/subprocess privacy evidence qualifies stderr separately."
+        },
+        {
+          "id": "test/server.test.mjs#26:assert-2",
+          "expression": "assert.equal((await response.json()).model, 'claude-haiku-4-5-20251001')",
+          "sha256": "642d3e7c03446e3fc326f9620852eb340583c60ae515e80ccaf5cdb5d5862b54",
+          "line": 998,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_telemetry_async_contract.rs#original_26_actual_status_factory_unwinds_and_returned_rejections_preserve_inference"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_telemetry_async_contract.rs",
+              "function": "original_26_actual_status_factory_unwinds_and_returned_rejections_preserve_inference",
+              "line": 350,
+              "fragment": "check(2, parsed(&bytes)[\"model\"] == \"claude-haiku-4-5-20251001\");",
+              "fragment_sha256": "adac60b34aa1440755dcd9f055f3a251f55f41b48929ca5d79a89b83a179aa55",
+              "file_sha256": "0f361464a1225d73a4417c05d6505bb39263c13e83951c6bfd9d67ef7a9639c9"
+            }
+          ],
+          "native_check": "Exact original observable predicate with the original five-event factory sequence and actual supported returned-future rejection handling, both rejected outcomes proven before joined owner shutdown.",
+          "api_adaptation": "The original status callback factory increments synchronously, throws on odd invocations and returns a rejected Promise on even invocations. The true native EventSink wrapper executes each admitted factory synchronously, preserves the five event order/count, contains all three actual factory panics and independently polls both actual returned Err futures on its one bounded owned worker. No detached failing task is substituted for a returned result. Source rejections carry JavaScript Error messages. Native returned futures use payload-free ObserverRejected; private rejection strings are intentionally outside this typed API. Actual factory panic message Status storage unavailable remains synthetic test input. Routine safe logs/statuses exclude it and the source asynchronous error string. Global panic hooks are not mutated in ordinary parallel tests; root host/subprocess privacy evidence qualifies stderr separately."
+        },
+        {
+          "id": "test/server.test.mjs#26:assert-3",
+          "expression": "assert.equal(callbacks, 5)",
+          "sha256": "ff07c408e4d09303c32d4e4e8ec0a73062b8713c1bce09b50d868096fb78ef44",
+          "line": 1000,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_telemetry_async_contract.rs#original_26_actual_status_factory_unwinds_and_returned_rejections_preserve_inference"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_telemetry_async_contract.rs",
+              "function": "original_26_actual_status_factory_unwinds_and_returned_rejections_preserve_inference",
+              "line": 351,
+              "fragment": "check(3, raw_callbacks.len() == 5);",
+              "fragment_sha256": "c5e303e847ae00a1773270749c558ce72806c9317fd88282e61b27d9cbc8d037",
+              "file_sha256": "0f361464a1225d73a4417c05d6505bb39263c13e83951c6bfd9d67ef7a9639c9"
+            }
+          ],
+          "native_check": "Exact original observable predicate with the original five-event factory sequence and actual supported returned-future rejection handling, both rejected outcomes proven before joined owner shutdown.",
+          "api_adaptation": "The original status callback factory increments synchronously, throws on odd invocations and returns a rejected Promise on even invocations. The true native EventSink wrapper executes each admitted factory synchronously, preserves the five event order/count, contains all three actual factory panics and independently polls both actual returned Err futures on its one bounded owned worker. No detached failing task is substituted for a returned result. Source rejections carry JavaScript Error messages. Native returned futures use payload-free ObserverRejected; private rejection strings are intentionally outside this typed API. Actual factory panic message Status storage unavailable remains synthetic test input. Routine safe logs/statuses exclude it and the source asynchronous error string. Global panic hooks are not mutated in ordinary parallel tests; root host/subprocess privacy evidence qualifies stderr separately."
+        }
+      ],
+      "comparison_boundary": "The original status callback factory increments synchronously, throws on odd invocations and returns a rejected Promise on even invocations. The true native EventSink wrapper executes each admitted factory synchronously, preserves the five event order/count, contains all three actual factory panics and independently polls both actual returned Err futures on its one bounded owned worker. No detached failing task is substituted for a returned result. Source rejections carry JavaScript Error messages. Native returned futures use payload-free ObserverRejected; private rejection strings are intentionally outside this typed API. Actual factory panic message Status storage unavailable remains synthetic test input. Routine safe logs/statuses exclude it and the source asynchronous error string. Global panic hooks are not mutated in ordinary parallel tests; root host/subprocess privacy evidence qualifies stderr separately."
+    }
+  ],
+  "comparison_boundaries": [
+    "Additive replay of the complete frozen original #26 callback captured earlier with all three successful source assertions and the exact five status callback invocations. The prior partial native test/report remain byte-identical; their missing async-return precondition is now exercised through a separate supported native adapter rather than rewritten as past coverage.",
+    "The original status callback factory increments synchronously, throws on odd invocations and returns a rejected Promise on even invocations. The true native EventSink wrapper executes each admitted factory synchronously, preserves the five event order/count, contains all three actual factory panics and independently polls both actual returned Err futures on its one bounded owned worker. No detached failing task is substituted for a returned result.",
+    "Source rejections carry JavaScript Error messages. Native returned futures use payload-free ObserverRejected; private rejection strings are intentionally outside this typed API. Actual factory panic message Status storage unavailable remains synthetic test input. Routine safe logs/statuses exclude it and the source asynchronous error string. Global panic hooks are not mutated in ordinary parallel tests; root host/subprocess privacy evidence qualifies stderr separately.",
+    "Default observer pending timeout is disabled. Both actual returned rejections are observed after completed HTTP inference and before owner close; numeric before-close rejected=2/factory_panicked=3/pending=0/charged_bytes=0/cancelled=0 controls prevent owner shutdown from manufacturing the rejected outcomes. Explicit bounded close joins the worker and retains identical counters, with worker_finished=true.",
+    "The source fixture supplied routing callback remains supplied in native code, preserving its exact captured Haiku decision and complete request document. No live evaluator calls occur. Real provider/client loopback HTTP retains every delivered byte, actual response headers and all semantic forwarding/authentication headers.",
+    "Generated UUID and measured first_response_ms/total_latency_ms differ between runs and remain raw. Native controls correlate every actual event/route/completion ID and validate timing presence/nonnegative values. Source undefined event fields become absent native fields; optional typed RouteOptions identifiers use empty strings. Actual numeric values compare as JavaScript Number values without rewriting raw metadata.",
+    "Source mocked complete is called twice for successful cleanup and returns undefined. Native Gateway consumes its request lease once and the supplied mock returns false. All actual source/native callbacks remain raw; the body has a model observation but no stop reason or confirmed completion evidence. Callback cardinality equality or production continuation acceptance is not claimed.",
+    "Passive source capture preserves the provider callback unread request stream. Native bounded peer reads the complete finite synthetic request before responding. Full body/header policy parity is checked; unread-stream API/timing equivalence is not asserted."
+  ]
+}

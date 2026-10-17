@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "kind": "native_a858a8d_pr_merge_ci_observation",
+  "date": "2026-10-15",
+  "head_commit": "a858a8ddf780c0ac4b5e1d7c61162e18f857e4ea",
+  "checkout_merge_commit": "e4c52c49452ae731506655dd1854556399be89cb",
+  "checkout_merge_parents": [
+    "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+    "a858a8ddf780c0ac4b5e1d7c61162e18f857e4ea"
+  ],
+  "status": "twelve_success_one_failure",
+  "jobs": { "success": 12, "failure": 1 },
+  "workflows": [
+    { "name": "CI", "run_id": 38727300006, "conclusion": "success", "success_jobs": 8, "url": "https://github.com/frapposelli/claude-autorouter/actions/runs/38727300006" },
+    { "name": "Rust GNU portability", "run_id": 38727299790, "conclusion": "success", "success_jobs": 2, "url": "https://github.com/frapposelli/claude-autorouter/actions/runs/38727299790" },
+    { "name": "Rust 32-bit core arithmetic", "run_id": 38727299753, "conclusion": "success", "success_jobs": 1, "url": "https://github.com/frapposelli/claude-autorouter/actions/runs/38727299753" },
+    { "name": "Rust musl portability", "run_id": 38727299763, "conclusion": "failure", "success_jobs": 1, "failure_jobs": 1, "url": "https://github.com/frapposelli/claude-autorouter/actions/runs/38727299763" }
+  ],
+  "retained_observation": {
+    "path": "artifacts/rust-rewrite/a858a8d-ci-20261015-1/observation.json",
+    "sha256": "09b15445fac4082a73146e1847bc69f48d5baaee627539c07d03040c76a7445d"
+  },
+  "failure": {
+    "target": "aarch64-unknown-linux-musl",
+    "host": "GNU Linux ARM",
+    "command": "xtask-musl release-pack smoke-direct",
+    "test": "direct_claude_help_forwards_literal_arguments_and_removes_router_secrets",
+    "expected_exit": 7,
+    "observed_exit": 1,
+    "commands_suite": { "passed": 16, "failed": 1 },
+    "mixed_dispatcher_probe_reached": false,
+    "cause": "undetermined; original assertion omitted the alias and captured child diagnostics",
+    "archive_sha256": "b07e203bb6ed0e79477d2dd96821c468812a4f5d2782b25293a62c4860617bc2",
+    "ci_artifact_id": 11969363234,
+    "retained_synthetic_diagnostic": {
+      "path": "artifacts/rust-rewrite/a858a8d-ci-20261015-1/failed-installed-lifecycle.json",
+      "sha256": "664e5f800aaa4dd32bb0486f64184b4daa06272cc60ea3c86b8f0ceed17026d4"
+    }
+  },
+  "provider_calls": 0,
+  "limits": [
+    "The workflow executes the PR merge checkout; this is not an assertion that it checked out the head commit directly.",
+    "The failed ARM run remains failed. Later synthetic test diagnostics require fresh CI and do not establish a cause or a product fix.",
+    "Current working-tree changes, complete platform/minimum-OS/TLS/WSL coverage, performance, real-task quality, final release artifacts and default cutover remain unqualified."
+  ]
+}

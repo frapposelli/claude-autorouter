@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "kind": "native_extreme_cache_ttl_correction",
+  "date": "2026-10-14",
+  "checkpoint_base": "1fec5492e9ca06837ed502ba739f9368e79ecd82",
+  "source_uncommitted_at_validation": true,
+  "passed": true,
+  "release_approved": false,
+  "default_cutover_approved": false,
+  "mapping": {
+    "path": "rust/parity/assertion-mappings/cache-ttl-domain-contracts.json",
+    "bytes": 27034,
+    "sha256": "d9f98d6ac4985b5996797abb6f513cd7b7781208eb22978cb7d0b4bc92b21105"
+  },
+  "private_execution_report": {
+    "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/execution-report.json",
+    "bytes": 10828,
+    "sha256": "de0530224fcf86395a50d52b2ed393fcb849426f08d211e38d38dafefc3e6a09"
+  },
+  "private_comparison": {
+    "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/source-native-comparison.json",
+    "bytes": 43431,
+    "sha256": "d3590fa1f6c3fe7e0e52d44594649bf4c08e4766ee1806b02306d331640fdaac"
+  },
+  "root_independent_review": {
+    "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/root-independent-review.json",
+    "bytes": 476,
+    "sha256": "fb384272138373239edaa2f2c9679935c86c1f554bb568c41d4189fe8f1cd326"
+  },
+  "source_inputs": [
+    {
+      "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+      "bytes": 39996,
+      "sha256": "776837882cb925ab634c76e0470d9b94551de144f7bafa9acab28d65b72dfe2d"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/token_counter.rs",
+      "bytes": 44249,
+      "sha256": "1e47e6596ec9d230a2cacd0d4b9f9efc1e6a2f2195f963e33d2e9d350a31728e"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/cache_ttl_domain_contracts.rs",
+      "bytes": 19585,
+      "sha256": "3a0975b7b6f7d3044d66d7fd7e6e3f03737dfe4337fb6230439e2b296a714d8d"
+    }
+  ],
+  "pre_fix_defect": {
+    "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-pre-fix-summary.json",
+    "bytes": 12771,
+    "sha256": "f5429d74b73dc9659bd47e22f946f40a800b2c9af2a6c9e4b6b0e2ad6743df30"
+  },
+  "pre_fix_compiler_rlib_execution": {
+    "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-pre-fix-1/execution.json",
+    "bytes": 26423,
+    "sha256": "4ab6d1c1b212a0e612819e1ba6655e67498d60ba0dea8f3e49860bc6a4c4f8db"
+  },
+  "actual_change": "Checked cache expiry uses Option<Instant>: unrepresentable expiry retains successful values until normal capacity/LRU eviction; representable expiry keeps exact <= comparison. No TTL clamp, cache bypass, timer or cancellation change.",
+  "checks": [
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-2/test.log",
+        "bytes": 2180,
+        "sha256": "758cd8813b8d2a3f5ccedc2afb78da7ac71edb7636079877550932b7e9fce5c8"
+      },
+      "test_count": 11,
+      "phase": "final formatted source"
+    },
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-1/cache-boundary.log",
+        "bytes": 1222,
+        "sha256": "5ae39711fa7df701d79adc2402f5f77946835bd0fcf8ffafc09cd4f205cbe728"
+      },
+      "test_count": 5,
+      "phase": "pre-format equivalent guard source (only rustfmt layout changed afterward)"
+    },
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-1/classifier-unit.log",
+        "bytes": 3177,
+        "sha256": "da31ecbe9993b8dd6a5ff9446e41482359619505d3fdae0c80c9a0bc6a4c1284"
+      },
+      "test_count": 23,
+      "phase": "pre-format equivalent guard source (only rustfmt layout changed afterward)"
+    },
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-1/token-counter-unit-loopback.log",
+        "bytes": 2307,
+        "sha256": "40a1cdf7f4ac46c8c5784bf8f028118046314d0b6d057c9e2287f8cfdc2e3952"
+      },
+      "test_count": 15,
+      "phase": "pre-format equivalent guard source (only rustfmt layout changed afterward)"
+    },
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-2/clippy.log",
+        "bytes": 670,
+        "sha256": "ad5b95a464454efbce06769a00422a2b91efad906fdb245f438744511fee4980"
+      },
+      "status": "passed",
+      "phase": "final formatted source"
+    },
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-2/fmt.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "status": "passed",
+      "phase": "final formatted source"
+    }
+  ],
+  "retained_initial_failures": [
+    {
+      "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-setup-failure-1.log",
+      "bytes": 247,
+      "sha256": "59f79c1f7ec04518bc2b0e16fa15c2d5a3352ed37b42b14ed3f5631f13e8e3a0"
+    },
+    {
+      "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-1/fmt.log",
+      "bytes": 1080,
+      "sha256": "195cb3dca838a1db7676b82a3caee773ee2de06d26f4cefb0dbbb0ed0326e3b0"
+    },
+    {
+      "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-1/token-counter-unit.log",
+      "bytes": 2978,
+      "sha256": "d28d219ca7d91e97ac32fe29ded90d166bac520afd7fdc55e38465cae9b9ee96"
+    }
+  ],
+  "counts": {
+    "native_new_tests": 11,
+    "focused_new_and_existing_tests": 54,
+    "final_formatted_new_tests_passed": 11,
+    "native_api_operations": 34,
+    "exact_complete_mock_provider_wire_calls": 21,
+    "body_drop_witnesses": 21,
+    "owned_classifier_closes": 5,
+    "actual_unrepresentable_expiry_scenarios": 3,
+    "source_controls": 30,
+    "source_api_operations": 98,
+    "source_mock_transport_calls": 52,
+    "original_assertions_promoted": 0
+  },
+  "scope_limits": [
+    "Actual TokenCounter Duration::MAX overflow and subsequent poisoned mutex were observed before the correction. Post-correction actual API calls succeed and reuse the cached count; bounded capacity, touched-entry eviction, zero capacity and pre-cancellation remain enforced.",
+    "Exact u64::MAX millisecond lifetimes are representable on this Darwin host, in both classifier and count caches. They are not relabelled overflow. Native Duration and JavaScript rounded/nonfinite/nullish TTL domains remain explicit; no clock expiry equality is fabricated.",
+    "Overlapping complete request/response bytes match exactly; finite result tags are separately verified against binary64 bits. Source-only third 1ms calls, private cache counts and different cancellation error shapes remain distinct.",
+    "Earlier equivalent pre-format boundary runs and the final 11-test formatted run have separate source/log identities. Root full combined validation and new clean native archives remain required after this production source change.",
+    "Prior 1fec549 workspace, CI and host archives remain historical source-bound evidence; they do not qualify this correction.",
+    "Synthetic controls make zero real provider/model calls and change no user settings. No hardware/numerical/full-platform/task-quality/release/default-cutover approval follows."
+  ]
+}

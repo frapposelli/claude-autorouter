@@ -1,0 +1,842 @@
+{
+  "schema_version": 1,
+  "kind": "additive_user_config_error_category_per_assertion_qualification",
+  "status": "covered_only_user_config_6_12_with_explicit_native_api_migration",
+  "source_base": "af95b5066392c555ce9b97999a333f8a337471f4",
+  "public_metadata_edited_by_draft_author": false,
+  "purpose": "Supplement the unchanged historical config-storage-policy-keychain mapping and qualify only frozen user-config definitions6/12 with the documented native typed-error migration.",
+  "historical_mapping_unchanged": {
+    "path": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
+    "bytes": 43633,
+    "sha256": "991071762f126b2b115e6433e2afc3375c11044d78d74cb9a057c336900a2ef1"
+  },
+  "pre_admission_coverage": {
+    "path": "artifacts/rust-rewrite/config-error-validation-20261017-1/coverage-before.json",
+    "bytes": 1764576,
+    "sha256": "e483e7c5e98e8dd745f15e0e1676da4e1c00630008cbe54c1ed3d86491895c06",
+    "captured_from": "rust/parity/coverage.json"
+  },
+  "root_preserved_coverage_snapshot": {
+    "path": "artifacts/rust-rewrite/config-error-validation-20261017-1/coverage-before.json",
+    "bytes": 1764576,
+    "sha256": "e483e7c5e98e8dd745f15e0e1676da4e1c00630008cbe54c1ed3d86491895c06"
+  },
+  "baseline_tally": {
+    "definitions": 588,
+    "covered": 536,
+    "partial": 52,
+    "limits": 53,
+    "configuration_keys": 27,
+    "areas": 13,
+    "all_area_statuses": "partial_evidence"
+  },
+  "root_preexecution_declaration": {
+    "path": "artifacts/rust-rewrite/config-error-validation-20261017-1/declaration.json",
+    "bytes": 3606,
+    "sha256": "afb5fac9f8d1956651c3e0e1a9190c2f2dff9fab6ba7845c246461d2a2ef2730"
+  },
+  "compiled_source_input_declaration": {
+    "path": "artifacts/rust-rewrite/config-error-validation-20261017-1/source-inputs-before-build.json",
+    "bytes": 117048,
+    "sha256": "dc89c70cdc6cb06b8a3555986dd001c865434ebd6704af276ea276fdaea880a2"
+  },
+  "source_pins": [
+    {
+      "path": "rust/crates/autorouter-runtime/src/user_config.rs",
+      "bytes": 68820,
+      "sha256": "cc7da6cb330f864abe2512c788144d4a22201d02e4d6c1424fec6553b00790ea"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/configuration.rs",
+      "bytes": 16852,
+      "sha256": "1ac790294404f0c20ad6c2a1723127da06b6c6b074d82dc45f1b79e22d26edf4"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/policy_command_contracts.rs",
+      "bytes": 22976,
+      "sha256": "57f3f9b040569b804d5f122ffbcbe19ce154298c2226d61a93659a91e6689d4c"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs",
+      "bytes": 13146,
+      "sha256": "5c390817c6674c828a4344e5bb34a3a12d5c9cc2cd3e6d36b7c7d3be9a873f6d"
+    },
+    {
+      "path": "rust/docs/embedding.md",
+      "bytes": 29462,
+      "sha256": "30d3be803fa4ad06be8f688d11e356887d058ce738d63fa0898f5ffdc21d6b9c"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/keychain.rs",
+      "bytes": 17011,
+      "sha256": "0ed061cbe63315ae67131a2d30012f2dd509c1c43e1206accfaa35f2f068570b"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/policy.rs",
+      "bytes": 17109,
+      "sha256": "8ba4c5c6e5beb6b12adae03a0edfd7461205799ec15941d57ccfcd7fdd830961"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/policy.rs",
+      "bytes": 5906,
+      "sha256": "2470f79731556af1d2ea5cf824ee709eb0b1fafdec7359d4b7db92016721e28d"
+    }
+  ],
+  "native_fragments": {
+    "typed_error_api": {
+      "source_path": "rust/crates/autorouter-runtime/src/user_config.rs",
+      "source_sha256": "cc7da6cb330f864abe2512c788144d4a22201d02e4d6c1424fec6553b00790ea",
+      "start_line": 52,
+      "end_line_inclusive": 93,
+      "start_anchor": "/// Stable category for saved-configuration path and load failures.",
+      "end_anchor": "// No Debug on environments, snapshots or save options:",
+      "end_anchor_included": false,
+      "bytes": 1299,
+      "sha256": "8d64c1df2bd896c4ecc7fe6c26c5d443efec55a9d94acee540fc554beb21028b"
+    },
+    "public_path_wrapper": {
+      "source_path": "rust/crates/autorouter-runtime/src/user_config.rs",
+      "source_sha256": "cc7da6cb330f864abe2512c788144d4a22201d02e4d6c1424fec6553b00790ea",
+      "start_line": 221,
+      "end_line_inclusive": 223,
+      "start_anchor": "pub fn get_config_path(",
+      "end_anchor": "fn get_config_path_message(",
+      "end_anchor_included": false,
+      "bytes": 159,
+      "sha256": "369f365bb481fe2aa4b91172a5e7ef7d50b7fd6a7b9e5261b53126fb42aa1331"
+    },
+    "public_fixed_policy_load_wrapper": {
+      "source_path": "rust/crates/autorouter-runtime/src/user_config.rs",
+      "source_sha256": "cc7da6cb330f864abe2512c788144d4a22201d02e4d6c1424fec6553b00790ea",
+      "start_line": 324,
+      "end_line_inclusive": 332,
+      "start_anchor": "pub async fn load_user_config(",
+      "end_anchor": "async fn load_user_config_message(",
+      "end_anchor_included": false,
+      "bytes": 283,
+      "sha256": "3fa5fb63aefa5155d354b023a9757ed095ba111aabedc151fc5d1771eab24e31"
+    },
+    "private_fixed_policy_load": {
+      "source_path": "rust/crates/autorouter-runtime/src/user_config.rs",
+      "source_sha256": "cc7da6cb330f864abe2512c788144d4a22201d02e4d6c1424fec6553b00790ea",
+      "start_line": 333,
+      "end_line_inclusive": 342,
+      "start_anchor": "async fn load_user_config_message(",
+      "end_anchor": "/// Injected policy is an adapter boundary",
+      "end_anchor_included": false,
+      "bytes": 393,
+      "sha256": "401d32284a9ac540fa04b1bdebd1e153e94a2fc1a27d68399fa213ae8e6948e7"
+    },
+    "public_injected_load_wrapper": {
+      "source_path": "rust/crates/autorouter-runtime/src/user_config.rs",
+      "source_sha256": "cc7da6cb330f864abe2512c788144d4a22201d02e4d6c1424fec6553b00790ea",
+      "start_line": 346,
+      "end_line_inclusive": 355,
+      "start_anchor": "pub async fn load_with_policy(",
+      "end_anchor": "async fn load_with_policy_message(",
+      "end_anchor_included": false,
+      "bytes": 326,
+      "sha256": "f113928fea7113b31b83e138eafb65e7769334b47380812ad8732af475b6a968"
+    },
+    "private_path_load_logic": {
+      "source_path": "rust/crates/autorouter-runtime/src/user_config.rs",
+      "source_sha256": "cc7da6cb330f864abe2512c788144d4a22201d02e4d6c1424fec6553b00790ea",
+      "start_line": 356,
+      "end_line_inclusive": 465,
+      "start_anchor": "async fn load_with_policy_message(",
+      "end_anchor": "/// Convert only string environment",
+      "end_anchor_included": false,
+      "bytes": 3954,
+      "sha256": "38da139230d66f90eda89e91e7c37800fe937a39f6a6d9c9a59f504ab2e22271"
+    },
+    "save_validation_precedes_any_path_or_keychain_effect": {
+      "source_path": "rust/crates/autorouter-runtime/src/user_config.rs",
+      "source_sha256": "cc7da6cb330f864abe2512c788144d4a22201d02e4d6c1424fec6553b00790ea",
+      "start_line": 552,
+      "end_line_inclusive": 571,
+      "start_anchor": "pub async fn save_user_config_document(",
+      "end_anchor": "    if existing_file(&path)?",
+      "end_anchor_included": false,
+      "bytes": 703,
+      "sha256": "b6d11042356cb20152a07254c4939df152d422fba60d07766133b2c60393c5d8"
+    },
+    "typed_error_assertion_helper": {
+      "source_path": "rust/crates/autorouter-runtime/src/user_config.rs",
+      "source_sha256": "cc7da6cb330f864abe2512c788144d4a22201d02e4d6c1424fec6553b00790ea",
+      "start_line": 1118,
+      "end_line_inclusive": 1142,
+      "start_anchor": "    fn assert_config_error(",
+      "end_anchor": "    #[tokio::test]\n    async fn invalid_content_and_hostile_paths",
+      "end_anchor_included": false,
+      "bytes": 930,
+      "sha256": "b24a55c6ea6eeab7f13629fb625cf57c110bf31eca2df9e89693a4a16346dcb3"
+    },
+    "malformed_public_loads_and_preservation": {
+      "source_path": "rust/crates/autorouter-runtime/src/user_config.rs",
+      "source_sha256": "cc7da6cb330f864abe2512c788144d4a22201d02e4d6c1424fec6553b00790ea",
+      "start_line": 1153,
+      "end_line_inclusive": 1207,
+      "start_anchor": "        for (content, expected) in [",
+      "end_anchor": "        let before_file = fs::read(&path).unwrap();",
+      "end_anchor_included": false,
+      "bytes": 2242,
+      "sha256": "4718119782405e5c2f6afdba8d316676a648a6743ba1633424ea1e132e775c56"
+    },
+    "hostile_public_path_load_and_save": {
+      "source_path": "rust/crates/autorouter-runtime/src/user_config.rs",
+      "source_sha256": "cc7da6cb330f864abe2512c788144d4a22201d02e4d6c1424fec6553b00790ea",
+      "start_line": 1211,
+      "end_line_inclusive": 1272,
+      "start_anchor": "        for name in [\n            \"config\\ndelete-keychain",
+      "end_anchor": "        let valid = directory.0.join(\"Müller 設定/config.json\");",
+      "end_anchor_included": false,
+      "bytes": 2804,
+      "sha256": "7769ef9581f6129acb3170e2482b86b114fe6998aad48bc2b36b1c535f2f0b6b"
+    },
+    "ordinary_unicode_path": {
+      "source_path": "rust/crates/autorouter-runtime/src/user_config.rs",
+      "source_sha256": "cc7da6cb330f864abe2512c788144d4a22201d02e4d6c1424fec6553b00790ea",
+      "start_line": 1273,
+      "end_line_inclusive": 1279,
+      "start_anchor": "        let valid = directory.0.join(\"Müller 設定/config.json\");",
+      "end_anchor": "        let invalid = Environment::from([(",
+      "end_anchor_included": false,
+      "bytes": 302,
+      "sha256": "b04ccde76e2e1509b1147ce5c5bef9f33e96f14b579dc6d99ad7b106f1465dd3"
+    },
+    "invalid_save_privacy_and_no_new_directory": {
+      "source_path": "rust/crates/autorouter-runtime/src/user_config.rs",
+      "source_sha256": "cc7da6cb330f864abe2512c788144d4a22201d02e4d6c1424fec6553b00790ea",
+      "start_line": 1280,
+      "end_line_inclusive": 1302,
+      "start_anchor": "        let invalid = Environment::from([(",
+      "end_anchor": "        let private_path = directory.0.join(\"PRIVATE_PATH\");",
+      "end_anchor_included": false,
+      "bytes": 786,
+      "sha256": "bdaab8c887b0b3e73d192ee2c5750a0ff9b9fc9362932941d337d2104810c965"
+    },
+    "builtin_adapter_policy_and_overrides": {
+      "source_path": "rust/crates/autorouter-runtime/src/user_config.rs",
+      "source_sha256": "cc7da6cb330f864abe2512c788144d4a22201d02e4d6c1424fec6553b00790ea",
+      "start_line": 1329,
+      "end_line_inclusive": 1474,
+      "start_anchor": "    async fn typed_load_errors_cover_keychain_policy_and_override_boundaries()",
+      "end_anchor": "    #[tokio::test]\n    async fn saved_settings_and_stop_cap_keep_environment_precedence_without_mutation()",
+      "end_anchor_included": false,
+      "bytes": 5880,
+      "sha256": "8e6b75f6c2e68b3afa80fd99126406cc9d8e33c6858d184be58183817c50a088"
+    },
+    "actual_fixed_policy_public_loader_cli_control": {
+      "source_path": "rust/crates/claude-autorouter/src/configuration_keychain_contracts.rs",
+      "source_sha256": "5c390817c6674c828a4344e5bb34a3a12d5c9cc2cd3e6d36b7c7d3be9a873f6d",
+      "start_line": 243,
+      "end_line_inclusive": 253,
+      "start_anchor": "    let error = load_user_config(",
+      "end_anchor": "    let mut overridden = fixture.env.clone();",
+      "end_anchor_included": false,
+      "bytes": 352,
+      "sha256": "588758c71ff5bf23fd98e611361345fbb33551c3eeaa61c0b1e421cd485a56dc"
+    }
+  },
+  "original_control": {
+    "report": {
+      "path": "artifacts/rust-rewrite/config-error-original-20261017-1/report.json",
+      "bytes": 11709,
+      "sha256": "5c0bfd9a3220b6b80a4019ca7c89b960ad16f521331c557644db6cecb3f43aed"
+    },
+    "preexecution_declaration": {
+      "path": "artifacts/rust-rewrite/config-error-original-20261017-1/declaration.json",
+      "bytes": 10225,
+      "sha256": "b2e1f87a538e15ec29f27de5e3c45c0ddb2c811a63122af1606573ebe6c54243"
+    },
+    "unchanged_runner": {
+      "path": "artifacts/rust-rewrite/config-error-original-20261017-1/run.mjs",
+      "bytes": 11427,
+      "sha256": "d71c1995cf2f615e302486ec8d66fea96b8f54ac70e7b0b9bd7793999ec84fd6"
+    },
+    "unchanged_preload": {
+      "path": "artifacts/rust-rewrite/config-error-original-20261017-1/policy-absence-preload.mjs",
+      "bytes": 2175,
+      "sha256": "841c2118af5e2beb0bb114866284ca5b438d3e56bfdcb5c7bb4b4256ecb12177"
+    },
+    "independent_original_isolation_review": {
+      "path": "artifacts/rust-rewrite/config-error-original-20261017-1/coordinator-review/independent-original-review.json",
+      "bytes": 7051,
+      "sha256": "90561e3fa2cc6ba11d78b92b773420e83b580a21f22d110b8d75212bc1ac9b6d"
+    },
+    "actual_callbacks": 2,
+    "reviewer_callback_reruns": 0,
+    "tap_tests_pass_fail": [
+      2,
+      2,
+      0
+    ],
+    "test_subprocess_exit_code": 0,
+    "mocked_fixed_policy_lstat_calls": 23,
+    "blocked_fixed_policy_read_attempts": 0,
+    "all111_baseline_files_verified_before_after": true,
+    "wrapper_expected_guard_traces": 2,
+    "actual_guard_traces": 1,
+    "declared_guard_trace_criterion_passed": false,
+    "post_run_wrapper_exit_code": 1,
+    "whole_wrapper_passed": false,
+    "coordinator_exit_status": "not retained; remains unmeasured",
+    "coordinator_no_product_import_basis": "Binary-bound same-Node built-in source/default process-isolation inspection; source-based inference, not measured coordinator counters.",
+    "runner_failure_boundary": "run.mjs151 fails after retaining TAP/stderr and baseline-after verification; later sum/cleanup/child-status checks and normal pass report are not reached.",
+    "cleanup_scope": "Original t.after hooks complete within passing callbacks. Current report separately retains a post-failure independent empty-temp check/removal; never claim the failed wrapper executed its later cleanup check.",
+    "acceptance": "Qualified actual original callbacks and product-policy isolation, not complete predeclared wrapper acceptance. No callbacks are rerun solely for receipt repair."
+  },
+  "typed_api_migration": {
+    "boundaries": [
+      "user_config::get_config_path",
+      "user_config::load_user_config",
+      "user_config::load_with_policy"
+    ],
+    "error": "UserConfigError: private constructor/message field; code()/message()/message-only Display/code-and-message-only Debug/Error with source None.",
+    "cli_compatibility": "From<UserConfigError> for String retains message bytes. Direct Result-return/mixed-error branches explicitly map_err(String::from); ordinary ? String CLI callers remain compatible.",
+    "no_public_from_string": true,
+    "unchanged_string_apis": [
+      "save_user_config",
+      "save_user_config_document",
+      "validate_values",
+      "validate_document",
+      "keychain_removals"
+    ],
+    "builtin_privacy": "Existing path/parser/fs/PolicyError and built-in MacKeychain diagnostics remain safe message strings. Wrapper stores no path, I/O/JSON error, cause or backtrace.",
+    "injected_keychain_limit": "Keychain already returns arbitrary String; wrapper preserves it verbatim and assigns native configuration category. It does not sanitize foreign messages or preserve foreign JS error identity/custom codes. Trusted adapters must avoid secrets.",
+    "javascript_migration": "Rust typed methods/ownership and Display/Debug/source replace JS Error properties/stack/cause; no JS Error/stack getter/object-identity equivalence is claimed.",
+    "policy_order": "Fixed trusted system policy still loads before config/Keychain. Injected None boundary is explicit in the exact native fixture replay."
+  },
+  "supporting_native_controls": [
+    {
+      "test": "user_config::tests::typed_load_errors_cover_keychain_policy_and_override_boundaries",
+      "fragment": "builtin_adapter_policy_and_overrides",
+      "scope": "Fake SecurityRunner exercises built-in unavailable/denied messages, zero real tool execution, env override/read_secrets skip, explicit raw adapter message and policy rejection. The exact focused test passes; see actual_evidence."
+    },
+    {
+      "test": "configuration::configuration_keychain_contracts::locked_store_environment_overrides_allow_loading_but_refuse_destructive_command_migration",
+      "fragment": "actual_fixed_policy_public_loader_cli_control",
+      "scope": "Existing actual public load_user_config call now asserts category/message/no source; existing migration behavior unchanged. The exact focused test passes; see actual_evidence."
+    }
+  ],
+  "mappings": [
+    {
+      "baseline_test": "test/user-config.test.mjs#6",
+      "name": "unknown keys, non-string values, and malformed JSON fail without exposing their contents",
+      "status": "covered_with_explicit_native_api_migration",
+      "original_source": {
+        "path": "artifacts/rust-rewrite/reference/test/user-config.test.mjs",
+        "bytes": 11062,
+        "sha256": "692f1b0551a3928109cc9c299c0840e184de2a57e4d0683a8aac9f9f53eac565"
+      },
+      "original_callback_statement": {
+        "path": "artifacts/rust-rewrite/config-error-original-20261017-1/definition-6.mjs.txt",
+        "bytes": 1129,
+        "sha256": "7ec99b993b3318d46ad148f2456573fac664ade131dee052f2a47e19ebc9d1b8"
+      },
+      "original_historical_span": {
+        "path": "artifacts/rust-rewrite/config-error-original-20261017-1/definition-6-historical-span.mjs.txt",
+        "bytes": 1131,
+        "sha256": "bbe4031d1f8e4965386f7009efdb59da51fb5f4f69478ed8175a732464276174"
+      },
+      "reviewed_assertion_sites": 6,
+      "fixture_counts": {
+        "malformed_loads": 7,
+        "invalid_saves": 4,
+        "rejection_instances": 11,
+        "expanded_assertion_invocations": 33,
+        "arrays": [
+          "[\n    `{\"${secret}\":\"unknown\"}`,\n    `{\"TYPESAFE_API_KEY\":{\"private\":\"${secret}\"}}`,\n    `{\"TYPESAFE_API_KEY\":\"${secret}\",}`,\n    '[]', 'null', '\"a string\"',\n    '{\"__proto__\":{\"polluted\":\"value\"}}',\n  ]",
+          "[{ [secret]: 'value' }, { TYPESAFE_API_KEY: { private: secret } }, [], null]"
+        ]
+      },
+      "expanded_counts_are_static_not_runtime_instrumentation": true,
+      "prior_coverage_row_preserved": {
+        "id": "test/user-config.test.mjs#6",
+        "file": "test/user-config.test.mjs",
+        "name": "unknown keys, non-string values, and malformed JSON fail without exposing their contents",
+        "parameterized": false,
+        "status": "partial_assertion_mapping",
+        "rust_tests": [
+          "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::invalid_content_and_hostile_paths_fail_without_secret_disclosure_or_side_effects"
+        ],
+        "shared_cases": [],
+        "evidence": {
+          "native_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+          "native_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+          "scope": "Only the exact mapped native assertions; no actual system policy/Keychain interaction, cross-platform or installed-artifact qualification is implied."
+        },
+        "related_components": [
+          "config_auth_policy"
+        ],
+        "assertion_mapping": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
+        "remaining_assertions": [
+          "The baseline additionally requires error.code = AUTOROUTER_CONFIG_ERROR. The native runtime API currently returns String, so this JavaScript library error-envelope migration has no exact structured counterpart."
+        ]
+      },
+      "historical_mapping_record_preserved": {
+        "baseline_test": "test/user-config.test.mjs#6",
+        "name": "unknown keys, non-string values, and malformed JSON fail without exposing their contents",
+        "baseline_file_sha256": "692f1b0551a3928109cc9c299c0840e184de2a57e4d0683a8aac9f9f53eac565",
+        "baseline_definition_sha256": "bbe4031d1f8e4965386f7009efdb59da51fb5f4f69478ed8175a732464276174",
+        "baseline_line": 88,
+        "reviewed_assertion_calls": 6,
+        "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+        "status": "partial",
+        "rust_tests": [
+          "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::invalid_content_and_hostile_paths_fail_without_secret_disclosure_or_side_effects"
+        ],
+        "shared_cases": [],
+        "review_notes": [
+          "All seven malformed read inputs and four invalid writes are rejected without secret disclosure or directory creation. Rust errors are content-free strings without nested causes."
+        ],
+        "remaining": [
+          "The baseline additionally requires error.code = AUTOROUTER_CONFIG_ERROR. The native runtime API currently returns String, so this JavaScript library error-envelope migration has no exact structured counterpart."
+        ]
+      },
+      "native_test": "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::invalid_content_and_hostile_paths_fail_without_secret_disclosure_or_side_effects",
+      "assertions": [
+        {
+          "id": "test/user-config.test.mjs#6:assertion-1",
+          "original_assertion": {
+            "line": 100,
+            "expression": "assert.throws(() => loadUserConfig(env), error => {\n      assert.equal(error.code, 'AUTOROUTER_CONFIG_ERROR');\n      assert.ok(!String(error.stack).includes(secret));\n      assert.equal(error.cause, undefined);\n      return true;\n    })",
+            "sha256": "d602b6d68a31e96e3e32811f20db3c6c312cc06e75b2cd08acb3350b10807792"
+          },
+          "static_expanded_invocations": 7,
+          "native_assertion_anchors": [
+            {
+              "fragment": "malformed_public_loads_and_preservation",
+              "expression": ".expect(\"malformed configuration must fail\")",
+              "expression_sha256": "f2f326a372f169f7cf2dbb68f8ea5c108b3f7af577f5eee88a197f56649332f3",
+              "meaning": "Public load_with_policy returns Err for every exact malformed fixture; no successful LoadedConfig is formatted."
+            },
+            {
+              "fragment": "malformed_public_loads_and_preservation",
+              "expression": "assert_config_error(",
+              "expression_sha256": "f5e47eb4c0b3415b8b8ae01c38a259c553300072dd538bc4bab0d7990fe54c3f",
+              "meaning": "Checks each returned typed error against its exact allowlisted diagnostic and secret/path exclusion list."
+            }
+          ],
+          "native_migration_and_scope": "The public injected-load boundary receives explicit None policy, matching the original guarded optional-policy absence. The separate actual load_user_config CLI control verifies the fixed-policy public wrapper also exposes the category.",
+          "status": "reviewed_against_actual_original_and_native_results"
+        },
+        {
+          "id": "test/user-config.test.mjs#6:assertion-2",
+          "original_assertion": {
+            "line": 101,
+            "expression": "assert.equal(error.code, 'AUTOROUTER_CONFIG_ERROR')",
+            "sha256": "247853107d146c093df41401a13a212fd8c5faf2cc3b3b8e8bc7da6fe4605c8e"
+          },
+          "static_expanded_invocations": 7,
+          "native_assertion_anchors": [
+            {
+              "fragment": "typed_error_assertion_helper",
+              "expression": "assert_eq!(error.code(), \"AUTOROUTER_CONFIG_ERROR\");",
+              "expression_sha256": "0414ab1e20c31905e34789ec21465e9b21dae3b3aa2a25f09185315beaa21a67",
+              "meaning": "Stable category is exposed by a method on a private-constructor native error."
+            }
+          ],
+          "native_migration_and_scope": "Typed method value replaces a mutable JavaScript Error.code property; no JavaScript object identity or arbitrary foreign error code is promised.",
+          "status": "reviewed_against_actual_original_and_native_results"
+        },
+        {
+          "id": "test/user-config.test.mjs#6:assertion-3",
+          "original_assertion": {
+            "line": 102,
+            "expression": "assert.ok(!String(error.stack).includes(secret))",
+            "sha256": "399ad66b499d08ba02e0cab22cbaa36a212ed23f27e2875401dadf09c720656f"
+          },
+          "static_expanded_invocations": 7,
+          "native_assertion_anchors": [
+            {
+              "fragment": "typed_error_assertion_helper",
+              "expression": "let display = error.to_string();",
+              "expression_sha256": "a2a51b7369c439921792372167a419146255f39cd45b2e459f856374f4907bed",
+              "meaning": "Message-only Display is an explicitly observed native rendering."
+            },
+            {
+              "fragment": "typed_error_assertion_helper",
+              "expression": "let debug = format!(\"{error:?}\");",
+              "expression_sha256": "9c195a1e2fe7756d88c77a5ae18063e6b10187519f390c79644293a27ff24f2d",
+              "meaning": "Debug is checked to contain exactly code and message."
+            },
+            {
+              "fragment": "typed_error_assertion_helper",
+              "expression": "!rendered.contains(value)",
+              "expression_sha256": "66aebff505da0bfe63feaf7a395d1a7e357feb188fee6fced9e21ac922233f30",
+              "meaning": "message/Display/Debug must omit the exact secret, PRIVATE marker and private config path supplied by each fixture."
+            },
+            {
+              "fragment": "malformed_public_loads_and_preservation",
+              "expression": "&[secret, \"PRIVATE\", &path.to_string_lossy()]",
+              "expression_sha256": "7c8321dad802ad004ed41ff860e927d90b31966ed1e4a9469b7cf6f5eab87c22",
+              "meaning": "The original synthetic secret is passed as the exclusion value rather than a substitute label."
+            }
+          ],
+          "native_migration_and_scope": "Rust has no JavaScript stack property. Exact native Display/Debug privacy plus no source/backtrace field is the documented rendering migration; do not claim execution of a JS stack getter or retain JS Error identity.",
+          "status": "reviewed_against_actual_original_and_native_results"
+        },
+        {
+          "id": "test/user-config.test.mjs#6:assertion-4",
+          "original_assertion": {
+            "line": 103,
+            "expression": "assert.equal(error.cause, undefined)",
+            "sha256": "253954509690887da7c4e804d477aedecc4927041a455be7684abc91be7b4a6c"
+          },
+          "static_expanded_invocations": 7,
+          "native_assertion_anchors": [
+            {
+              "fragment": "typed_error_assertion_helper",
+              "expression": "assert!(std::error::Error::source(error).is_none());",
+              "expression_sha256": "7a0bda493b8bd6ee18ce66449e087dff34edd096c170d1fba1f018f907dec1e8",
+              "meaning": "No underlying error/cause is retained or exposed."
+            }
+          ],
+          "native_migration_and_scope": "Error::source()==None replaces undefined JavaScript cause. UserConfigError stores one String only and has no nested-source/backtrace field.",
+          "status": "reviewed_against_actual_original_and_native_results"
+        },
+        {
+          "id": "test/user-config.test.mjs#6:assertion-5",
+          "original_assertion": {
+            "line": 109,
+            "expression": "assert.throws(() => saveUserConfig(values, { env: newEnv }), error => !String(error.stack).includes(secret))",
+            "sha256": "16e96468fd590d350e0a6f12fd54b6207a4e1b779f9bd112d62ae5080b3601da"
+          },
+          "static_expanded_invocations": 4,
+          "native_assertion_anchors": [
+            {
+              "fragment": "invalid_save_privacy_and_no_new_directory",
+              "expression": "json!({(secret):\"value\"})",
+              "expression_sha256": "1f69f15f4b0fa1d59cdcb3363aacb670609d7118586738f2df6410ac4876e376",
+              "meaning": "Exact unknown-key save fixture uses the original secret as the key."
+            },
+            {
+              "fragment": "invalid_save_privacy_and_no_new_directory",
+              "expression": "json!({\"TYPESAFE_API_KEY\":{\"private\":secret}})",
+              "expression_sha256": "2359849e8974cde155e545dd777b012890213b046a9ff1dcdb0994b6697a13c3",
+              "meaning": "Exact non-string save fixture keeps the secret inside its value."
+            },
+            {
+              "fragment": "invalid_save_privacy_and_no_new_directory",
+              "expression": ".unwrap_err();",
+              "expression_sha256": "d077db104257519736b4fd7058ddf614bde614cf3d63659def4748e447a4ce18",
+              "meaning": "Each of the four exact invalid save inputs must reject."
+            },
+            {
+              "fragment": "invalid_save_privacy_and_no_new_directory",
+              "expression": "assert!(!error.contains(secret));",
+              "expression_sha256": "d551a924defb11eaabd424b1ec3d3044ffe6be6ede31877dec9568090c8e5142",
+              "meaning": "The native save String diagnostic must exclude the original secret."
+            }
+          ],
+          "native_migration_and_scope": "Save remains a String-error API; this original predicate checks rejection/privacy rather than requiring a category or full JS Error object. Existing [] and null fixtures are retained.",
+          "status": "reviewed_against_actual_original_and_native_results"
+        },
+        {
+          "id": "test/user-config.test.mjs#6:assertion-6",
+          "original_assertion": {
+            "line": 111,
+            "expression": "assert.equal(readdirSync(base).includes('new'), false)",
+            "sha256": "d18005fa5ce2019202565c632f7752118c3b445460b1c820407f19921867f651"
+          },
+          "static_expanded_invocations": 1,
+          "native_assertion_anchors": [
+            {
+              "fragment": "invalid_save_privacy_and_no_new_directory",
+              "expression": "assert!(!directory.0.join(\"new\").exists());",
+              "expression_sha256": "37bcddc33479f74a1677d18faa00be86dc68a41b549a2b82af45e6d08c56ac77",
+              "meaning": "The rejected saves must not create the new target directory."
+            },
+            {
+              "fragment": "invalid_save_privacy_and_no_new_directory",
+              "expression": "assert_eq!(keychain.calls, 0);",
+              "expression_sha256": "ab47ace3d145ae2b2b3b65e3f2bdd023bf4dd88d9a05cac5795d5af3e9de59ec",
+              "meaning": "No Keychain operation accompanies these validation failures."
+            }
+          ],
+          "native_migration_and_scope": "Original readdir(base).includes(\"new\")===false is represented by a fresh isolated fixture, failed saves and no target directory. Static save-body review confirms validation rejects every input before path resolution or any filesystem/Keychain write; this is not a hostile concurrent directory/symlink admission test.",
+          "status": "reviewed_against_actual_original_and_native_results"
+        }
+      ],
+      "remaining_before_root_admission": [
+        "Completed actual focused/full/differential/transfer evidence and independent review on these exact source bytes.",
+        "Root explicitly accepts the typed native stack/cause/category migration and narrow original-child isolation evidence while preserving failed whole-wrapper trace acceptance."
+      ]
+    },
+    {
+      "baseline_test": "test/user-config.test.mjs#12",
+      "name": "a configuration path containing control or line-separator characters is rejected without echoing it",
+      "status": "covered_with_explicit_native_api_migration",
+      "original_source": {
+        "path": "artifacts/rust-rewrite/reference/test/user-config.test.mjs",
+        "bytes": 11062,
+        "sha256": "692f1b0551a3928109cc9c299c0840e184de2a57e4d0683a8aac9f9f53eac565"
+      },
+      "original_callback_statement": {
+        "path": "artifacts/rust-rewrite/config-error-original-20261017-1/definition-12.mjs.txt",
+        "bytes": 1143,
+        "sha256": "ae8fce2d2e0196266a9bb755d2223e2665b885f90a1cd02817967b0d0aa96705"
+      },
+      "original_historical_span": {
+        "path": "artifacts/rust-rewrite/config-error-original-20261017-1/definition-12-historical-span.mjs.txt",
+        "bytes": 1144,
+        "sha256": "99b7d33ad4137cf74ff05e453cf565c5832c60215660ceee659eb91781179d48"
+      },
+      "reviewed_assertion_sites": 4,
+      "fixture_counts": {
+        "hostile_names": 8,
+        "path_variables": 2,
+        "operations": 3,
+        "rejection_instances": 48,
+        "accepted_unicode_instances": 1,
+        "expanded_assertion_invocations": 49,
+        "hostile_array": "[\n    'config\\ndelete-keychain /tmp/synthetic.keychain\\n.json', 'config\\r.json', 'config\\u001b[2J.json', 'config\\u0000.json',\n    'config\\u0085.json', 'config .json', 'config .json', 'config‮.json',\n  ]",
+        "environment_array": "[{ AUTOROUTER_CONFIG: join(base, name) }, { XDG_CONFIG_HOME: join(base, name) }]"
+      },
+      "expanded_counts_are_static_not_runtime_instrumentation": true,
+      "prior_coverage_row_preserved": {
+        "id": "test/user-config.test.mjs#12",
+        "file": "test/user-config.test.mjs",
+        "name": "a configuration path containing control or line-separator characters is rejected without echoing it",
+        "parameterized": false,
+        "status": "partial_assertion_mapping",
+        "rust_tests": [
+          "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::invalid_content_and_hostile_paths_fail_without_secret_disclosure_or_side_effects"
+        ],
+        "shared_cases": [],
+        "evidence": {
+          "native_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+          "native_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+          "scope": "Only the exact mapped native assertions; no actual system policy/Keychain interaction, cross-platform or installed-artifact qualification is implied."
+        },
+        "related_components": [
+          "config_auth_policy"
+        ],
+        "assertion_mapping": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
+        "remaining_assertions": [
+          "The baseline getConfigPath predicate additionally checks AUTOROUTER_CONFIG_ERROR on the JavaScript Error object; native errors are String. Exact error-envelope migration remains to be reviewed."
+        ]
+      },
+      "historical_mapping_record_preserved": {
+        "baseline_test": "test/user-config.test.mjs#12",
+        "name": "a configuration path containing control or line-separator characters is rejected without echoing it",
+        "baseline_file_sha256": "692f1b0551a3928109cc9c299c0840e184de2a57e4d0683a8aac9f9f53eac565",
+        "baseline_definition_sha256": "99b7d33ad4137cf74ff05e453cf565c5832c60215660ceee659eb91781179d48",
+        "baseline_line": 195,
+        "reviewed_assertion_calls": 4,
+        "parameter_review": "Reviewed every local loop/variant inside this definition; inventory parameterized=false does not omit local loops.",
+        "status": "partial",
+        "rust_tests": [
+          "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::invalid_content_and_hostile_paths_fail_without_secret_disclosure_or_side_effects"
+        ],
+        "shared_cases": [],
+        "review_notes": [
+          "Eight control/line-separator variants through both path variables and get/load/save operations are rejected privately; ordinary Unicode/spaces accepted."
+        ],
+        "remaining": [
+          "The baseline getConfigPath predicate additionally checks AUTOROUTER_CONFIG_ERROR on the JavaScript Error object; native errors are String. Exact error-envelope migration remains to be reviewed."
+        ]
+      },
+      "native_test": "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::invalid_content_and_hostile_paths_fail_without_secret_disclosure_or_side_effects",
+      "assertions": [
+        {
+          "id": "test/user-config.test.mjs#12:assertion-1",
+          "original_assertion": {
+            "line": 205,
+            "expression": "assert.throws(() => getConfigPath(env), error => error.code === 'AUTOROUTER_CONFIG_ERROR'\n        && /control characters/.test(error.message) && !error.message.includes('synthetic') && !error.message.includes(base))",
+            "sha256": "4e0e55b2fad7bb478fc739377bda863b942bfb7515b9d68198827efabb4adf2f"
+          },
+          "static_expanded_invocations": 16,
+          "native_assertion_anchors": [
+            {
+              "fragment": "hostile_public_path_load_and_save",
+              "expression": "let error = get_config_path(&context).unwrap_err();",
+              "expression_sha256": "be2a2786ac3590f8c8ef44172bd90d40ad004c3f7ac1ea82d3de4e490ed4b627",
+              "meaning": "Both path variables for all eight exact hostile names reject at the public typed path API."
+            },
+            {
+              "fragment": "hostile_public_path_load_and_save",
+              "expression": "&[\"synthetic\", &directory.0.to_string_lossy()]",
+              "expression_sha256": "07d96a80fa8a6967368943c3996d3146c367c89cd57b310433869764f1c20da2",
+              "meaning": "The same synthetic filename and private base prefix are forbidden in the typed error renderings."
+            },
+            {
+              "fragment": "typed_error_assertion_helper",
+              "expression": "assert_eq!(error.code(), \"AUTOROUTER_CONFIG_ERROR\");",
+              "expression_sha256": "0414ab1e20c31905e34789ec21465e9b21dae3b3aa2a25f09185315beaa21a67",
+              "meaning": "Category value is exact."
+            },
+            {
+              "fragment": "typed_error_assertion_helper",
+              "expression": "assert_eq!(error.message(), expected);",
+              "expression_sha256": "16796d63678b8c10c9d2d63e43849d9de013c6b95ff6976f94cf0face0578cd6",
+              "meaning": "Message equals the control-character diagnostic for every hostile path."
+            }
+          ],
+          "native_migration_and_scope": "Method-based native category/message replaces JavaScript Error fields. Ordinary Unicode/spaces are separately accepted, and host/path content is not echoed.",
+          "status": "reviewed_against_actual_original_and_native_results"
+        },
+        {
+          "id": "test/user-config.test.mjs#12:assertion-2",
+          "original_assertion": {
+            "line": 207,
+            "expression": "assert.throws(() => loadUserConfig(env, { allowMissing: true }), /control characters/)",
+            "sha256": "5e107252931d7a4c5bfda22ea6a27176853559c95bf6f1a57c9669b37f217536"
+          },
+          "static_expanded_invocations": 16,
+          "native_assertion_anchors": [
+            {
+              "fragment": "hostile_public_path_load_and_save",
+              "expression": ".expect(\"hostile configuration path must fail\")",
+              "expression_sha256": "b2bb94e9a9faa0ca0d762e9c8511b8bc352e5a4117b300783eaf6d5bfcc447cb",
+              "meaning": "Public load_with_policy with allow_missing=true must still reject every unsafe path."
+            },
+            {
+              "fragment": "hostile_public_path_load_and_save",
+              "expression": "allow_missing: true,",
+              "expression_sha256": "84b88ce23ecec7dd766097b234542878cba177bf6987fbfef8688a8635e9d581",
+              "meaning": "Missing-file permission does not weaken control-character rejection."
+            },
+            {
+              "fragment": "typed_error_assertion_helper",
+              "expression": "assert_eq!(error.message(), expected);",
+              "expression_sha256": "16796d63678b8c10c9d2d63e43849d9de013c6b95ff6976f94cf0face0578cd6",
+              "meaning": "The exact control-character message is observed, not an unrelated earlier failure."
+            }
+          ],
+          "native_migration_and_scope": "Explicit absent injected policy matches the original test subprocess optional-policy mock. Actual system-policy trust/ownership behavior and arbitrary injected policy objects are outside this fixture.",
+          "status": "reviewed_against_actual_original_and_native_results"
+        },
+        {
+          "id": "test/user-config.test.mjs#12:assertion-3",
+          "original_assertion": {
+            "line": 208,
+            "expression": "assert.throws(() => saveUserConfig({ AUTOROUTER_PORT: '1' }, { env }), /control characters/)",
+            "sha256": "7b4c8f908ec3c24d9e1ca248bf4379119055a6ec1c4dd80dcd84d6b3287b195f"
+          },
+          "static_expanded_invocations": 16,
+          "native_assertion_anchors": [
+            {
+              "fragment": "hostile_public_path_load_and_save",
+              "expression": "json!({\"AUTOROUTER_PORT\":\"1\"})",
+              "expression_sha256": "f6d3e354a1915c12319b65289b803bbff23f8d134948d6132957b0a73f1c1a83",
+              "meaning": "Retains the exact original valid save payload whose path is hostile."
+            },
+            {
+              "fragment": "hostile_public_path_load_and_save",
+              "expression": "save_user_config(&values, &context, &SaveOptions::default(), &mut keychain)",
+              "expression_sha256": "827fca8f8b5524dc35a902f68cdc444f1cd9a01e8fea755cdbda9bd93375fe34",
+              "meaning": "Exercises the unchanged public save API."
+            },
+            {
+              "fragment": "hostile_public_path_load_and_save",
+              "expression": "assert_eq!(error, expected);",
+              "expression_sha256": "25c47f8114830e108cff473e1d2324dd4b0fcdfe402b9a00aeafbecd7ade4627",
+              "meaning": "Every original port-setting hostile save must reject for the exact path diagnostic."
+            },
+            {
+              "fragment": "hostile_public_path_load_and_save",
+              "expression": "assert_eq!(keychain.calls, 0);",
+              "expression_sha256": "ab47ace3d145ae2b2b3b65e3f2bdd023bf4dd88d9a05cac5795d5af3e9de59ec",
+              "meaning": "No Keychain effects are permitted."
+            }
+          ],
+          "native_migration_and_scope": "The additional secret-store save payload adds sixteen native guards only; it is not counted among the frozen assertion expansions. The public save error intentionally remains String.",
+          "status": "reviewed_against_actual_original_and_native_results"
+        },
+        {
+          "id": "test/user-config.test.mjs#12:assertion-4",
+          "original_assertion": {
+            "line": 212,
+            "expression": "assert.equal(getConfigPath({ AUTOROUTER_CONFIG: join(base, 'Müller 設定', 'config.json') }), join(base, 'Müller 設定', 'config.json'))",
+            "sha256": "7a34166753d0a143ba863b373deb9e59cfe0602e4526b6891a0f5b75119d8a57"
+          },
+          "static_expanded_invocations": 1,
+          "native_assertion_anchors": [
+            {
+              "fragment": "ordinary_unicode_path",
+              "expression": "get_config_path(&directory.context(&unicode)).unwrap(),",
+              "expression_sha256": "dddc4c0b6e4f776aae38d87dd867c1de7dcb67f337c09925dbac512004df07ba",
+              "meaning": "Public path API accepts the exact ordinary Unicode/spaces fixture."
+            },
+            {
+              "fragment": "ordinary_unicode_path",
+              "expression": "let valid = directory.0.join(\"Müller 設定/config.json\");",
+              "expression_sha256": "13ec4e72f29c3408e332abebe6e267c225b847300b9f9565ca458bd683db78ea",
+              "meaning": "Expected path matches the frozen accepted Unicode/spaces components."
+            }
+          ],
+          "native_migration_and_scope": "OsString/PathBuf preserves the scalar Unicode/spaces case; this does not qualify every non-Unicode OS pathname or add an arbitrary JavaScript coercion API.",
+          "status": "reviewed_against_actual_original_and_native_results"
+        }
+      ],
+      "remaining_before_root_admission": [
+        "Completed actual focused/full/differential/transfer evidence and independent review on these exact source bytes.",
+        "Root explicitly accepts the typed native stack/cause/category migration and narrow original-child isolation evidence while preserving failed whole-wrapper trace acceptance."
+      ]
+    }
+  ],
+  "assertion_accounting": {
+    "original_sites": 10,
+    "original_static_expanded_invocations": 82,
+    "original_static_rejection_instances": 59,
+    "native_extra_hostile_secret_store_saves": 16,
+    "native_extra_saves_count_as_original_assertions": false
+  },
+  "remaining_gates": "All other original rows, all53 limits and27 keys, all13 partial area statuses, actual system-policy/Keychain, platform/transport/family/performance/provider/task-quality/provenance/release/cutover gates remain as before.",
+  "public_path": "rust/parity/assertion-mappings/user-config-error-category-contracts.json",
+  "actual_evidence": {
+    "local_checks": {
+      "path": "artifacts/rust-rewrite/config-error-validation-20261017-1/local-checks-summary.json",
+      "bytes": 3579,
+      "sha256": "8d598d4a061339d65dbebb5ed568e863054e20d8eb33c61d794d8b0d246f5145"
+    },
+    "independent_full_local_review": {
+      "path": "artifacts/rust-rewrite/config-error-validation-20261017-1/independent-full-local-review.json",
+      "bytes": 7732,
+      "sha256": "677f6543e91175823a1d4c76d76c335188658ff5f3f3bc3262c9b8d750480b6d"
+    },
+    "native_progress": {
+      "path": "artifacts/rust-rewrite/config-error-validation-20261017-1/native-progress.json",
+      "bytes": 7973,
+      "sha256": "0c4327a3bc857672d8947a466e440238f6ba525ee50c9a6dc81e3f4d2c9cd3a2"
+    },
+    "runtime_binary": {
+      "path": "artifacts/rust-rewrite/config-error-validation-20261017-1/autorouter-runtime-test.json",
+      "bytes": 347,
+      "sha256": "db8cbd4cc172094a754e6dd332c7a32d86d04f301e405664c9e78d3bd19b2a86"
+    },
+    "cli_test_binary": {
+      "path": "artifacts/rust-rewrite/config-error-validation-20261017-1/claude-autorouter-test.json",
+      "bytes": 344,
+      "sha256": "60dec7ff0f5b8352d0c6ba9620346214ff4b03cce07db8e0c29fe6e56c02d764"
+    },
+    "fresh_helper": {
+      "path": "artifacts/rust-rewrite/config-error-validation-20261017-1/final-xtask.json",
+      "bytes": 299,
+      "sha256": "9b5e50e476dccfd344692ee81723478306a164059c0f810453623a04250a0a5e"
+    },
+    "deterministic_progress": {
+      "path": "artifacts/rust-rewrite/config-error-validation-20261017-1/deterministic-progress.json",
+      "bytes": 2586,
+      "sha256": "8c98942c787af6a862503010276de6e068d318d541a169b863919ecf1fbc39a0"
+    },
+    "source_transfer": {
+      "path": "artifacts/rust-rewrite/config-error-export-evidence-20261017-1/inspection.json",
+      "bytes": 1891,
+      "sha256": "e3ce9e47b50423885c8a44c1a13cadc723132d5654b8ca0a15d07946bd270cc1"
+    }
+  },
+  "admission": {
+    "only_ids": [
+      "test/user-config.test.mjs#6",
+      "test/user-config.test.mjs#12"
+    ],
+    "covered": 538,
+    "partial": 50,
+    "original_wrapper_guard_protocol_passed": false,
+    "other586_rows_unchanged": true,
+    "keys_limits_area_status_promotions": 0
+  }
+}

@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "kind": "test_only_gateway_intent_qualification",
+  "production_eligible": false,
+  "positive": {
+    "new_tests": 25,
+    "deterministic_controls": 2,
+    "actual_loopback_schedules": 23,
+    "total_spike_tests": 83,
+    "scoped_clippy": "passed; existing vendored unused timer warning retained",
+    "isolated_positive_tests": 25
+  },
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/gateway-intent-final-snapshot/snapshot.json",
+    "bytes": 1412,
+    "sha256": "1f86ec738f85f9e060ae978cf403975dd641edcc24154e8c2dd1f3c0feecea78"
+  },
+  "binary": {
+    "path": "artifacts/rust-rewrite/gateway-intent-final-snapshot/runtime-tests",
+    "bytes": 73890112,
+    "sha256": "e62b57ae22e6e3f133d5f7f8e3380b3b21820fca3a34a22d554815072c136067"
+  },
+  "mutations": {
+    "path": "artifacts/rust-rewrite/gateway-intent-final-snapshot/mutation-controls.json",
+    "bytes": 2531,
+    "sha256": "b65d039e87575fb289d50d7d33d7d8cc43612cac43ee8c228de452c3d65ea796"
+  },
+  "isolated_positive_binary": {
+    "path": "artifacts/rust-rewrite/gateway-intent-final-snapshot/isolated-positive-tests",
+    "bytes": 73866480,
+    "sha256": "9b1573deb64516ab01a7f3b0041d3ffdeb23b0a64f993c28d021365a722836b1"
+  },
+  "isolated_graph": {
+    "package_count": 162,
+    "registry_identities_subset_of_main": true,
+    "manifest": {
+      "path": "artifacts/rust-rewrite/gateway-intent-final-snapshot/isolated-Cargo.toml",
+      "bytes": 1996,
+      "sha256": "42feddabcfdfaa9891ab7faa0cace881fd9108b674dfc3c44b0dfa066c2192a7"
+    },
+    "lock": {
+      "path": "artifacts/rust-rewrite/gateway-intent-final-snapshot/isolated-Cargo.lock",
+      "bytes": 37862,
+      "sha256": "c48327c4f26eb341b21fcec9faa08b468851f26bec894cece22e1d638712a559"
+    },
+    "source_inventory": {
+      "path": "artifacts/rust-rewrite/gateway-intent-final-snapshot/isolated-source-snapshot-2.json",
+      "bytes": 8889,
+      "sha256": "3a9a926dba3c4ec0f505262119fd011547397e4d79d3f3a94919528c14d0abde"
+    }
+  },
+  "node_closure_characterization": {
+    "path": "artifacts/rust-rewrite/evidence/node-downstream-intent-ca90fea3fe3e2819dda44e5b899f9f0dc5a09a6ad3252c1bb43fba04ab705857.json",
+    "bytes": 4173,
+    "sha256": "ca90fea3fe3e2819dda44e5b899f9f0dc5a09a6ad3252c1bb43fba04ab705857"
+  },
+  "node_held_body_characterization": {
+    "report": {
+      "path": "artifacts/rust-rewrite/gateway-intent-final-snapshot/held-report-1.json",
+      "bytes": 16952,
+      "sha256": "fbded86389efd012d785b00919490637bbe049c4e8c42508fcdb4cc90996fa29"
+    },
+    "driver": {
+      "path": "artifacts/rust-rewrite/gateway-intent-final-snapshot/held-probe.mjs",
+      "bytes": 12472,
+      "sha256": "a5a38bd911d10341d35fb5b5b161542dc7c1a3379929986baba8ef47ecdf91e6"
+    },
+    "count": 3,
+    "all_cleanup_passed": true
+  },
+  "fresh_handshake_regression": {
+    "passed": true,
+    "matched": 223,
+    "count": 223,
+    "report": {
+      "path": "artifacts/rust-rewrite/evidence/openssl-spike-82daf30d9e2732e96cdaa3c832bffd109d60420b06bfb9375080df96d3ae8c2c.json",
+      "bytes": 105683,
+      "sha256": "82daf30d9e2732e96cdaa3c832bffd109d60420b06bfb9375080df96d3ae8c2c"
+    }
+  },
+  "original_b2": {
+    "passed": false,
+    "matched": 13,
+    "count": 18,
+    "all_cleanup_passed": true,
+    "remaining_mismatches": [
+      "TLSv1.2-abrupt-after-complete",
+      "TLSv1.2-cancel-body",
+      "TLSv1.3-rejected-host-then-valid",
+      "TLSv1.3-abrupt-after-complete",
+      "TLSv1.3-cancel-body"
+    ],
+    "report": {
+      "path": "artifacts/rust-rewrite/evidence/openssl-b2-sessions-05103b27d7508892cbf12c8bb78867dbce72088930819586a1e265c80e2bdb84.json",
+      "bytes": 66841,
+      "sha256": "05103b27d7508892cbf12c8bb78867dbce72088930819586a1e265c80e2bdb84"
+    }
+  },
+  "optin_b2": {
+    "passed": false,
+    "matched": 15,
+    "count": 18,
+    "all_cleanup_passed": true,
+    "remaining_mismatches": [
+      "TLSv1.2-abrupt-after-complete",
+      "TLSv1.3-rejected-host-then-valid",
+      "TLSv1.3-abrupt-after-complete"
+    ],
+    "report": {
+      "path": "artifacts/rust-rewrite/evidence/openssl-b2-gateway-intent-00cf784e2117c11efeb2bafcabc53c13d2c4e2b07d8338d5143653357715eaa1.json",
+      "bytes": 77768,
+      "sha256": "00cf784e2117c11efeb2bafcabc53c13d2c4e2b07d8338d5143653357715eaa1"
+    }
+  },
+  "driver_derivation": {
+    "path": "artifacts/rust-rewrite/gateway-intent-final-snapshot/driver-derivation.json",
+    "bytes": 760,
+    "sha256": "6c5ee350b2336e1e6dc18d4f3e7ed23f636fb26a39e3fa7af3d656b0dd5f2062"
+  },
+  "retained_failures": [
+    {
+      "log": "gateway-intent-actual-2.log",
+      "result": "15PASS/1FAIL",
+      "meaning": "Original hypothesis that short EOF is observed while Incoming never polled failed at1s; cleanup completed before rethrow.",
+      "snapshot": {
+        "path": "artifacts/rust-rewrite/gateway-intent-held-body-failed-1/snapshot.json",
+        "bytes": 1220,
+        "sha256": "ae9fb99ded4bcbcac4fc117e444a04689ed2fa8632271cb6752bd131e46cf256"
+      }
+    },
+    {
+      "log": "gateway-intent-spike-regression-1.log",
+      "result": "82PASS/1FAIL",
+      "meaning": "Header deadline notification in select branch occurs after losing request future Drop; Action(Retired). Corrected notification inside polled deadline future.",
+      "snapshot": {
+        "path": "artifacts/rust-rewrite/gateway-intent-deadline-failed-1/snapshot.json",
+        "bytes": 962,
+        "sha256": "9ac802e59795186aa606e988d9204cf9113cee0c183e773df26019bb479343ea"
+      }
+    },
+    {
+      "log": "gateway-intent-isolated-positive-1.log",
+      "meaning": "Isolated source copy omitted public router_contract test-support include; added exact public include/corpus; no runtime behavior changed."
+    },
+    {
+      "log": "gateway-intent-mutation-controls-1.log",
+      "meaning": "Runner used relative Cargo test executable path; failed before any mutation. Corrected rooted path."
+    }
+  ],
+  "limits": [
+    "No production transport promotion; cfg(test) and explicit constructor/child entrypoint only. Shipping release/feature-off/package proof remains parent-owned.",
+    "Original mode remains13/18. Opt-in mode15/18 closes only the two cancel-body rows; idle-close races2 and rejectedTLS1.3-event-order remain.",
+    "Small unconsumed-body EOF buffering differs: native no-poll driver remainsLive; Node buffers7bytes below64KiBHWM and observesEOF. Both retained; revised native test releases gate before claiming upstream failure.",
+    "Node128KiB saturated buffer has not observedEOF at its barrier; cancellation then legitimately has signal-first/hadErrortrue. ProviderFIN is only a stimulus, not observed failure.",
+    "Preassignment/held-handshake cancellation and replay of pending intent remain unqualified; no sweeping connecting/losing IO authority.",
+    "Generic cancellation-token/process shutdown and ordinary Drop do not supply explicit intent; process-stop behavior remains unqualified.",
+    "No new separate two-origin, true multi-threaded OS-close, shutdown-syscall-failure or broad raw/fetch pooling qualification.",
+    "Node traces use declared callback/resume/write instrumentation on macOSarm64; cross-platform exact error/event order is not inferred.",
+    "Fresh-handshake223 retains three unqualified configuration modes; B3 and broad OpenSSL-version equivalence remain separate."
+  ],
+  "report": {
+    "path": "artifacts/rust-rewrite/evidence/openssl-gateway-intent-733a0a17a2851c7a84d224fd25fe2521a6418c47215df027c65d780a701adfad.json",
+    "bytes": 14032,
+    "sha256": "733a0a17a2851c7a84d224fd25fe2521a6418c47215df027c65d780a701adfad"
+  }
+}

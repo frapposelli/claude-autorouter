@@ -1,0 +1,844 @@
+{
+  "schema_version": 1,
+  "status": "one_definition_covered_with_reviewed_native_adapter_migration",
+  "original": "test/response-observer.test.mjs#32",
+  "original_statement_sha256": "81afe220711f145576c0bcb5203fb3952a7d5277027d99c5ca1a9c5390bc2248",
+  "original_direct_assertion_sites": 0,
+  "original_inherited_assertion_sites": 1,
+  "original_executions": 2,
+  "source_helper_assertion": {
+    "helper_path": "test/response-observer.test.mjs:20",
+    "expression": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+    "sha256": "96a95fb06ae8b1d1ac2b45cbd2b1e3589d57d5a278eb8ff46edcd90dbb2bafb2",
+    "expanded_executions": 2
+  },
+  "native_target": "response_observer::tests::original_32_throwing_and_owned_rejecting_callbacks_preserve_bytes_and_eof",
+  "native_fragment": "assert_eq!(forwarded, chunks.concat(), \"original #32 inherited byte assertion\");",
+  "native_loop": "for asynchronous in [false, true]",
+  "declared_native_executions": 2,
+  "source_execution": {
+    "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/source-execution-1.json",
+    "bytes": 5256,
+    "sha256": "caa7d84d5c7f80abdab9fe49fd94e828fe070cbdcf2ec38a3b7624bba87fc5fc"
+  },
+  "source_observations": {
+    "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/source-execution-1/source-observations.json",
+    "bytes": 28346,
+    "sha256": "6346b25400f1f84a387fb1d61c8566090e35c6cd499d469433763e0dc54ddd9d"
+  },
+  "exact_callback_arguments_each_variant": [
+    {
+      "kind": "models",
+      "value": {
+        "model": "claude-opus-5-5"
+      }
+    },
+    {
+      "kind": "executions",
+      "value": {
+        "model": "claude-opus-5-5",
+        "source": "message_start"
+      }
+    },
+    {
+      "kind": "completions",
+      "value": {
+        "model": "claude-opus-5-5",
+        "continuation_model": "claude-opus-5-5",
+        "stop_reason": "end_turn",
+        "tool_uses": []
+      }
+    }
+  ],
+  "complete_fresh_source_bytes_chunks_arrays": "Both actual original schedules match existing baseline-observer-32-1 full chunks and complete default callback arrays; no second schedule is skipped or invented.",
+  "original_callbacks": [
+    "() => { throw new Error('PRIVATE_ERROR'); }",
+    "async () => { throw new Error('PRIVATE_ERROR'); }"
+  ],
+  "source_actual_callback_returns": [
+    {
+      "call": 1,
+      "kind": "models",
+      "alias_id": 1,
+      "async": false,
+      "return_kind": "throw",
+      "promise": null,
+      "error": {
+        "name": "Error",
+        "message": "PRIVATE_ERROR",
+        "is_error": true
+      },
+      "rejection": null
+    },
+    {
+      "call": 1,
+      "kind": "executions",
+      "alias_id": 1,
+      "async": false,
+      "return_kind": "throw",
+      "promise": null,
+      "error": {
+        "name": "Error",
+        "message": "PRIVATE_ERROR",
+        "is_error": true
+      },
+      "rejection": null
+    },
+    {
+      "call": 1,
+      "kind": "completions",
+      "alias_id": 1,
+      "async": false,
+      "return_kind": "throw",
+      "promise": null,
+      "error": {
+        "name": "Error",
+        "message": "PRIVATE_ERROR",
+        "is_error": true
+      },
+      "rejection": null
+    },
+    {
+      "call": 2,
+      "kind": "models",
+      "alias_id": 2,
+      "async": true,
+      "return_kind": "return",
+      "promise": true,
+      "error": null,
+      "rejection": {
+        "name": "Error",
+        "message": "PRIVATE_ERROR",
+        "is_error": true
+      }
+    },
+    {
+      "call": 2,
+      "kind": "executions",
+      "alias_id": 2,
+      "async": true,
+      "return_kind": "return",
+      "promise": true,
+      "error": null,
+      "rejection": {
+        "name": "Error",
+        "message": "PRIVATE_ERROR",
+        "is_error": true
+      }
+    },
+    {
+      "call": 2,
+      "kind": "completions",
+      "alias_id": 2,
+      "async": true,
+      "return_kind": "return",
+      "promise": true,
+      "error": null,
+      "rejection": {
+        "name": "Error",
+        "message": "PRIVATE_ERROR",
+        "is_error": true
+      }
+    }
+  ],
+  "source_missing_handler_control": "Diagnostic handlers attach only after one full immediate tick and zero unhandledRejection events. Source wrapper returns each actual Promise or rethrows the exact original Error; internal catch-derived Promise identity/state is not claimed.",
+  "native_controls": [
+    "Record exact three callback kind/value arguments before each original-style failure: models, executions and completions, with original model/source/stop/tool ownership. Compare fresh Source values/ordering, not guessed family metadata.",
+    "Ordinary branch really panics for all three targeted callbacks through ResponseObserver.emit containment; it does not submit arbitrary synchronous Err as async proof.",
+    "Async branch synchronously admits exactly3 factories and returns actual owned futures; same-thread ready frame delivery and EOF finish before those futures are polled, so body forwarding never awaits callback futures.",
+    "After forwarding, positively wait within10seconds for pending0/rejected3, external polls3/drops3 and all panic/timeout/cancel/declined counters0. Before-close complete snapshot must show actual rejection rather than cancellation.",
+    "Close ObserverTasks once within10seconds and require joined worker, closed flag, pending/factories/charged0, rejected3; existing Body EOF ownership intact.",
+    "No private PRIVATE_ERROR text in default metadata arrays or numeric snapshot, no global hook mutation in parallel tests. Ordinary panic hook suppression requires explicit host initialization, qualified separately."
+  ],
+  "API_migration": "ResponseObserver::new accepts one synchronous owned FnMut(Observation), replacing five JavaScript callbacks. Dispatch only corresponding typed observation variants; bridge futures via public ObserverHandle::submit with exact serialized callback metadata charge and retained ObserverTasks owner. Actual Future::poll Err(ObserverRejected) replaces Promise settlement/Error payload identity; no automatic async overload, Promise/Error identity or microtask scheduling equivalence claimed.",
+  "privacy_scope": "Parallel native test does not change process hooks. A harmless synthetic synchronous panic may reach the existing hook; explicit hook-initialization privacy controls are separate. Future rejection marker never enters metadata or numeric diagnostics.",
+  "native_qualification_pending": [],
+  "separate_gates": [
+    "Global source/reference transfer fit",
+    "Full default workspace tests",
+    "Fresh immutable shipping artifacts",
+    "Supported CI/platform matrix and minimum environments",
+    "Representative hardware and unchanged0.5 p95/0.7 CPU gates",
+    "Real evaluator/task quality and release/cutover"
+  ],
+  "only_original32_promotion_after_review": true,
+  "canonical_changes": true,
+  "native_execution": {
+    "execution": {
+      "path": "artifacts/rust-rewrite/response-execution-future-native-20261014-1/execution.json",
+      "bytes": 913,
+      "sha256": "b87dcaa7975033f173d16dfa391de76273cb1c7dc7967f1749475830a893f954"
+    },
+    "actual_named_tests": [
+      "body_adapter_retains_original_bytes_and_defers_finish_until_actual_eof",
+      "clean_eof_is_required_after_final_delta_and_observation_is_immediate",
+      "consumed_utf16_models_remain_distinct_in_completion_and_fallback_checks",
+      "destruction_after_terminal_frame_cannot_publish_completion_or_usage",
+      "cumulative_usage_replaces_counts_and_retains_only_safe_metadata",
+      "callback_panics_do_not_change_forwarded_bytes",
+      "fallback_boundaries_discard_earlier_tools_and_use_final_model",
+      "incomplete_model_frame_is_forwarded_before_observation_and_repeated_model_is_ignored",
+      "invalid_usage_does_not_erase_independent_execution_evidence",
+      "iteration_accounting_is_cumulative_and_unknown_shapes_are_unsupported",
+      "json_oversize_unknown_media_and_malformed_data_cannot_emit_metadata",
+      "json_final_boundary_and_nullable_cache_usage_preserve_native_behavior",
+      "message_stop_does_not_confirm_until_actual_eof_and_drop_never_confirms",
+      "many_ping_frames_do_not_consume_the_per_frame_budget",
+      "open_duplicate_invalid_excessive_or_missing_client_tools_never_pin",
+      "oversized_output_is_skipped_but_later_errors_remain_sanitized",
+      "skipped_metadata_and_malformed_frames_never_invent_completion",
+      "sticky_fallback_iterations_cannot_reassign_an_existing_tool",
+      "unknown_or_refused_stops_never_pin_and_private_stop_names_are_sanitized",
+      "every_chunk_boundary_preserves_unicode_crlf_comments_and_multiline_data",
+      "original_32_throwing_and_owned_rejecting_callbacks_preserve_bytes_and_eof",
+      "frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+    ],
+    "summary": {
+      "passed": 22,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 455
+    },
+    "receipts": [
+      {
+        "source_test": "test/response-observer.test.mjs#32",
+        "asynchronous": false,
+        "factory_starts": 0,
+        "polls": 0,
+        "drops": 0,
+        "arguments": [
+          {
+            "kind": "models",
+            "value": {
+              "model": "claude-opus-5-5"
+            }
+          },
+          {
+            "kind": "executions",
+            "value": {
+              "model": "claude-opus-5-5",
+              "source": "message_start"
+            }
+          },
+          {
+            "kind": "completions",
+            "value": {
+              "model": "claude-opus-5-5",
+              "continuation_model": "claude-opus-5-5",
+              "stop_reason": "end_turn",
+              "tool_uses": []
+            }
+          }
+        ],
+        "observer": "ObserverSnapshot { closed: true, worker_finished: true, pending: 0, factories: 0, charged_bytes: 0, completed: 0, rejected: 0, factory_panicked: 0, poll_panicked: 0, destructor_panicked: 0, timed_out: 0, cancelled: 0, declined_closed: 0, declined_cancelled: 0, declined_payload: 0, declined_capacity: 0, declined_deadline: 0 }",
+        "forwarded_bytes": 253,
+        "original_byte_assertions_so_far": 1
+      },
+      {
+        "source_test": "test/response-observer.test.mjs#32",
+        "asynchronous": true,
+        "factory_starts": 3,
+        "polls": 3,
+        "drops": 3,
+        "arguments": [
+          {
+            "kind": "models",
+            "value": {
+              "model": "claude-opus-5-5"
+            }
+          },
+          {
+            "kind": "executions",
+            "value": {
+              "model": "claude-opus-5-5",
+              "source": "message_start"
+            }
+          },
+          {
+            "kind": "completions",
+            "value": {
+              "model": "claude-opus-5-5",
+              "continuation_model": "claude-opus-5-5",
+              "stop_reason": "end_turn",
+              "tool_uses": []
+            }
+          }
+        ],
+        "observer": "ObserverSnapshot { closed: true, worker_finished: true, pending: 0, factories: 0, charged_bytes: 0, completed: 0, rejected: 3, factory_panicked: 0, poll_panicked: 0, destructor_panicked: 0, timed_out: 0, cancelled: 0, declined_closed: 0, declined_cancelled: 0, declined_payload: 0, declined_capacity: 0, declined_deadline: 0 }",
+        "forwarded_bytes": 253,
+        "original_byte_assertions_so_far": 2
+      }
+    ],
+    "executed_target": {
+      "path": "rust/target/debug/deps/autorouter_runtime-f3deea33ddaadfcc",
+      "bytes": 92872992,
+      "sha256": "ac2f2892437548531a0d8b542a48139ba7f1bb75925afdd63d551847785a39fa"
+    },
+    "executed_target_mtime_utc_within_actual_build": "2026-10-14T17:09:35.703699+00:00",
+    "fingerprint": {
+      "path": "rust/target/debug/.fingerprint/autorouter-runtime-f3deea33ddaadfcc/test-lib-autorouter_runtime.json",
+      "bytes": 1738,
+      "sha256": "eb10f4800436404597e450770b357542f0d1621935caf2d2cbe4f3f428081ddb"
+    },
+    "fingerprint_features": "[\"default\"]",
+    "fingerprint_rustflags": []
+  },
+  "source_preservation": {
+    "old_test_count": 21,
+    "old_named_tests_all_actually_passed": [
+      {
+        "name": "consumed_utf16_models_remain_distinct_in_completion_and_fallback_checks",
+        "bytes": 1394,
+        "sha256": "38b4c065221270762d9a6b7336f8d8b6f0df82d4c7d11d97811877102842c851",
+        "actually_passed": true
+      },
+      {
+        "name": "clean_eof_is_required_after_final_delta_and_observation_is_immediate",
+        "bytes": 1091,
+        "sha256": "f471f34648ea9457c86b15579737608a43adb840cf7812a6fca62c2d2d5fce51",
+        "actually_passed": true
+      },
+      {
+        "name": "every_chunk_boundary_preserves_unicode_crlf_comments_and_multiline_data",
+        "bytes": 1224,
+        "sha256": "e6de2529aae69dccf2846b1ff81576259d1da8f48b4985684b0e666dc6b8adf5",
+        "actually_passed": true
+      },
+      {
+        "name": "many_ping_frames_do_not_consume_the_per_frame_budget",
+        "bytes": 415,
+        "sha256": "05e4776a4a45c3c87f38953b64a6ba7a5d4bfa34bd1d2c9e690df5926c11e72c",
+        "actually_passed": true
+      },
+      {
+        "name": "oversized_output_is_skipped_but_later_errors_remain_sanitized",
+        "bytes": 972,
+        "sha256": "da0f106436730ac45d0b034668bdaeadd07acc26341a1b97ee5065c74c6f14f1",
+        "actually_passed": true
+      },
+      {
+        "name": "skipped_metadata_and_malformed_frames_never_invent_completion",
+        "bytes": 868,
+        "sha256": "8280a8ca89a97104aac9b378c11eebc0fa8f8d5481737875301a79d2168e13e5",
+        "actually_passed": true
+      },
+      {
+        "name": "destruction_after_terminal_frame_cannot_publish_completion_or_usage",
+        "bytes": 429,
+        "sha256": "45570d0009ef8f19f7a6ee07c707e7ac22b1dafb819f609c8138de6c4eb2860c",
+        "actually_passed": true
+      },
+      {
+        "name": "cumulative_usage_replaces_counts_and_retains_only_safe_metadata",
+        "bytes": 1071,
+        "sha256": "4d15b23334351ac57c568d888abfd97767b3eb8b91474e97e0cf2e63a8686c05",
+        "actually_passed": true
+      },
+      {
+        "name": "invalid_usage_does_not_erase_independent_execution_evidence",
+        "bytes": 689,
+        "sha256": "d5dc380061b23fa8f49c11cc99d8c935009da4bd67a0db8a0bddb05b9d3e14aa",
+        "actually_passed": true
+      },
+      {
+        "name": "fallback_boundaries_discard_earlier_tools_and_use_final_model",
+        "bytes": 1284,
+        "sha256": "89fbe363847fb7fd8050fe920994423c87aedd6b3785429090e1e1d18b30ad78",
+        "actually_passed": true
+      },
+      {
+        "name": "sticky_fallback_iterations_cannot_reassign_an_existing_tool",
+        "bytes": 1394,
+        "sha256": "dc4370dde1157c4008f1430764c114af362ad3654aa1d57b70d82fc196b31fd6",
+        "actually_passed": true
+      },
+      {
+        "name": "open_duplicate_invalid_excessive_or_missing_client_tools_never_pin",
+        "bytes": 1592,
+        "sha256": "c4f96846ae64b36f7e2404f7de82d7eb1ffa9043f508617680b22bcd7c0e4bed",
+        "actually_passed": true
+      },
+      {
+        "name": "unknown_or_refused_stops_never_pin_and_private_stop_names_are_sanitized",
+        "bytes": 576,
+        "sha256": "da3c9d4781fcbb41e7e164079568ffb0634708096aa7333fbbfc5fcecb4e96df",
+        "actually_passed": true
+      },
+      {
+        "name": "json_final_boundary_and_nullable_cache_usage_preserve_native_behavior",
+        "bytes": 1225,
+        "sha256": "bcdf5835182ec639aac1b33109b89f6762177c57a860972a178aa3f2c6b916c0",
+        "actually_passed": true
+      },
+      {
+        "name": "json_oversize_unknown_media_and_malformed_data_cannot_emit_metadata",
+        "bytes": 784,
+        "sha256": "0c164e628555c77233082629f71ffdd706ace60d46d4eb3bf4bc9158890c9758",
+        "actually_passed": true
+      },
+      {
+        "name": "iteration_accounting_is_cumulative_and_unknown_shapes_are_unsupported",
+        "bytes": 1087,
+        "sha256": "51d86dee8ea6f74493ef7e0ba7403df0894c42b8ccf4aed30183e242bea056a7",
+        "actually_passed": true
+      },
+      {
+        "name": "body_adapter_retains_original_bytes_and_defers_finish_until_actual_eof",
+        "bytes": 716,
+        "sha256": "59bccbf7da84a62d8d251eed633f070e5cb854f4c558383b856d3398274020c3",
+        "actually_passed": true
+      },
+      {
+        "name": "callback_panics_do_not_change_forwarded_bytes",
+        "bytes": 463,
+        "sha256": "68e7546fb088095a4282a57fc376c832eb07efc87513c33e5719028eb97b54c7",
+        "actually_passed": true
+      },
+      {
+        "name": "frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks",
+        "bytes": 3096,
+        "sha256": "99092767e900dc7f14cec2d36ac7415f12442dd7cbbcacb77b75a9c3b2e4785f",
+        "actually_passed": true
+      },
+      {
+        "name": "incomplete_model_frame_is_forwarded_before_observation_and_repeated_model_is_ignored",
+        "bytes": 1523,
+        "sha256": "236686ce9c46cd399b1eb86b8a9e5d4010f2e0eafdaf8b09b8cebfb0416bdc67",
+        "actually_passed": true
+      },
+      {
+        "name": "message_stop_does_not_confirm_until_actual_eof_and_drop_never_confirms",
+        "bytes": 1966,
+        "sha256": "eddcdcf113cc6ed76cf9b62a682ca2b7a5b4f8f1834f87365de5138bf21f3e73",
+        "actually_passed": true
+      }
+    ],
+    "exact_old_file_recovered_removing_only_new_append_before_final_module_brace": true,
+    "unchanged_before_closing_brace_prefix_bytes": 59819,
+    "formatted_new_fragment_bytes": 8662,
+    "formatted_new_fragment_sha256": "8263f02bc0f6a0d821a02b006cb2fde9f39f380dd24d71527087445cd3ca0c7a",
+    "literal_tokens_difference_only_two_known_optional_comma_insertions": [
+      {
+        "operation": "insert",
+        "old": [],
+        "new": [
+          ","
+        ],
+        "context": [
+          ".",
+          "collect",
+          ":",
+          ":",
+          "<",
+          "Vec",
+          "<",
+          "_",
+          ">",
+          ">",
+          "(",
+          ")",
+          ",",
+          ")",
+          "}",
+          ")",
+          ".",
+          "collect"
+        ]
+      },
+      {
+        "operation": "insert",
+        "old": [],
+        "new": [
+          ","
+        ],
+        "context": [
+          "SeqCst",
+          ")",
+          ";",
+          "RejectedExecution",
+          "{",
+          "private_reason",
+          ":",
+          "\"PRIVATE_ERROR\"",
+          ",",
+          "polled",
+          ",",
+          "dropped",
+          ",",
+          "}",
+          "}",
+          ")",
+          ";",
+          "admitted"
+        ]
+      }
+    ],
+    "raw_formatting_diff": {
+      "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/postexecution-source-snapshots/new-test-formatting.diff",
+      "bytes": 9974,
+      "sha256": "0ad18029b39c9548f0f8787b3885c6de0a535398d0625de0a0b7467ccb4b231e"
+    }
+  },
+  "executed_fragment": {
+    "path": "rust/crates/autorouter-runtime/src/response_observer.rs",
+    "start_line": 1643,
+    "bytes": 8662,
+    "sha256": "8263f02bc0f6a0d821a02b006cb2fde9f39f380dd24d71527087445cd3ca0c7a"
+  },
+  "predicate_evidence": [
+    {
+      "site": {
+        "helper_path": "test/response-observer.test.mjs:20",
+        "expression": "assert.deepEqual(Buffer.concat(received), Buffer.concat(chunks))",
+        "sha256": "96a95fb06ae8b1d1ac2b45cbd2b1e3589d57d5a278eb8ff46edcd90dbb2bafb2",
+        "expanded_executions": 2
+      },
+      "source_executions": 2,
+      "native_executions": 2,
+      "native_fragment": "assert_eq!(\n                forwarded,\n                chunks.concat(),\n                \"original #32 inherited byte assertion\"\n            );",
+      "argument_arrays_identical_each_variant": [
+        {
+          "kind": "models",
+          "value": {
+            "model": "claude-opus-5-5"
+          }
+        },
+        {
+          "kind": "executions",
+          "value": {
+            "model": "claude-opus-5-5",
+            "source": "message_start"
+          }
+        },
+        {
+          "kind": "completions",
+          "value": {
+            "model": "claude-opus-5-5",
+            "continuation_model": "claude-opus-5-5",
+            "stop_reason": "end_turn",
+            "tool_uses": []
+          }
+        }
+      ],
+      "source_total_forwarded_bytes_each_variant": 253,
+      "actual_native_full_source_result_and_frame_pointer_assertions_passed": true,
+      "before_actual_EOF_only_model_execution_callbacks": true,
+      "owned_returned_future_rejection_before_close": {
+        "started": 3,
+        "polled": 3,
+        "dropped": 3,
+        "rejected": 3,
+        "panic_timeout_cancel_decline": 0,
+        "close_joined": true
+      }
+    }
+  ],
+  "preserved_historical_coverage_row": {
+    "id": "test/response-observer.test.mjs#32",
+    "file": "test/response-observer.test.mjs",
+    "name": "execution callback throws and rejections cannot interfere with original response bytes",
+    "parameterized": false,
+    "status": "partial_assertion_mapping",
+    "rust_tests": [
+      "rust/crates/autorouter-runtime/src/response_observer.rs#frozen_observer_schedules_preserve_actual_body_bytes_and_complete_callbacks"
+    ],
+    "shared_cases": [
+      "baseline-observer-32-1"
+    ],
+    "evidence": {
+      "native_log": "artifacts/rust-rewrite/evidence/7a01539d30e403b7a944f65a9a1b8239a09a2d54792471456972468b25d811fe.log",
+      "native_log_sha256": "7a01539d30e403b7a944f65a9a1b8239a09a2d54792471456972468b25d811fe",
+      "capture": "artifacts/rust-rewrite/evidence/c527a3ab8e4511c4ca081c8078ee0ae9ca71974e1b2b02b5d9d81a3432037f59.json",
+      "capture_sha256": "c527a3ab8e4511c4ca081c8078ee0ae9ca71974e1b2b02b5d9d81a3432037f59",
+      "cases_sha256": "c9833a7f743165f201e0a7b5c314cc34c125c0ae5460a5a4e1c6913d5e88c2d3"
+    },
+    "related_components": [
+      "js_document",
+      "response_observer"
+    ],
+    "assertion_mapping": "rust/parity/assertion-mappings/response-observer-token-counter.json",
+    "remaining_assertions": [
+      "The frozen source also passes an async callback that returns a rejected Promise. Native callbacks are synchronous FnMut; the captured async call remains an explicit API migration boundary and is not claimed covered."
+    ]
+  },
+  "other587_rows_order_and_content_sha256": "8f0aaa26a061e9cd3db044d1e53621bfba39b9e94e76f40d1d47fc4c5f03e3b6",
+  "bindings": [
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-native-20261014-1/execution.json",
+      "bytes": 913,
+      "sha256": "b87dcaa7975033f173d16dfa391de76273cb1c7dc7967f1749475830a893f954"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-native-20261014-1/execution.started.json",
+      "bytes": 841,
+      "sha256": "e393cdc12ad83aa02be125ac1b24af409711442e02f2baf0e1d21df5f3487cae"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-native-20261014-1/fmt-preflight-history.json",
+      "bytes": 479,
+      "sha256": "ec45bead01a18c86f6b5d10ffdd30b12688c5e7606293cda689f00f8acf2b0d1"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-native-20261014-1/native.log",
+      "bytes": 2427,
+      "sha256": "c1ec57595019c393a3498f15b531f232a0086cfb12438a4fb3ba9a8d9bd00ec8"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-native-20261014-1/native.stderr",
+      "bytes": 10166,
+      "sha256": "07a114d8c5a022c84a0ca4a2b912b7a9fbdaa56579600c3be315cbbc5ab1fd48"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/source-execution-1.json",
+      "bytes": 5256,
+      "sha256": "caa7d84d5c7f80abdab9fe49fd94e828fe070cbdcf2ec38a3b7624bba87fc5fc"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/source-execution-1/source-observations.json",
+      "bytes": 28346,
+      "sha256": "6346b25400f1f84a387fb1d61c8566090e35c6cd499d469433763e0dc54ddd9d"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/manifest-1.json",
+      "bytes": 4805,
+      "sha256": "fe625c61609471f71c08528166450a7ffdc05396602b8ccebb3e63256ae23b33"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/controls-1.json",
+      "bytes": 10635,
+      "sha256": "35fea63d97b9e84bb8b1fb9a979300c817b73c5151208b0e698b9510490daeb4"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/old-test-inventory-correction-1.json",
+      "bytes": 4850,
+      "sha256": "8f16f84cde0d50f588c3d9ca24492522d491e20357bd22e6d59f3d2f7c90577e"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/per-assertion-supplement.draft.json",
+      "bytes": 6918,
+      "sha256": "26b32ccf57909dcffd7b1b47b38c9344f66cf3b5b9f744590afa1d6036fab723"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/peer-review-performance-1.json",
+      "bytes": 6699,
+      "sha256": "49e9daee5f5472a0aab408fcb9a626e9f79305fd7939319d741b32c09ca170b4"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/peer-review-distribution-1.json",
+      "bytes": 9353,
+      "sha256": "b34e8a50dc7b25f750ffe3f4c9dbf17224c084a8515890bee6df97df4101befa"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/postexecution-source-snapshots/response_observer.rs",
+      "bytes": 68483,
+      "sha256": "f113aed15d3456257902156e365d278a4302683b912905544d109eb104e8eaf8"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/postexecution-source-snapshots/embedding.md",
+      "bytes": 23905,
+      "sha256": "22f8b9c5a8269adf950c12d5febad0d061a379096c91099fa443d85be13a8c63"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/postexecution-source-snapshots/new-test-formatting.diff",
+      "bytes": 9974,
+      "sha256": "0ad18029b39c9548f0f8787b3885c6de0a535398d0625de0a0b7467ccb4b231e"
+    },
+    {
+      "path": "rust/parity/cases/response-observer-contracts.jsonl",
+      "bytes": 1109038,
+      "sha256": "c9833a7f743165f201e0a7b5c314cc34c125c0ae5460a5a4e1c6913d5e88c2d3"
+    },
+    {
+      "path": "rust/target/debug/.fingerprint/autorouter-runtime-f3deea33ddaadfcc/test-lib-autorouter_runtime.json",
+      "bytes": 1738,
+      "sha256": "eb10f4800436404597e450770b357542f0d1621935caf2d2cbe4f3f428081ddb"
+    },
+    {
+      "path": "rust/target/debug/.fingerprint/autorouter-runtime-f3deea33ddaadfcc/test-lib-autorouter_runtime",
+      "bytes": 16,
+      "sha256": "9e41c0603c87949b768e4d1e275077758a5c4cd0971c197826fd23dadb26c958"
+    },
+    {
+      "path": "rust/Cargo.toml",
+      "bytes": 2050,
+      "sha256": "63b6f84bdbd39de8620735fc7c208fe11b66d9480a1b5decbe0be7dd55354f70"
+    },
+    {
+      "path": "rust/Cargo.lock",
+      "bytes": 38949,
+      "sha256": "d44d4966e8fbbf640b704ddda91ba71accc0522e166747d86bafb205c25da268"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/Cargo.toml",
+      "bytes": 1124,
+      "sha256": "9411fd629b48ff18328cf064bf1474699b9206696edea2b43b416d836c7b6a99"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/7ec2821b3171faeba96b1dbba7a14f19ac6f686966215eeb74601e8d1e49b1a7.json",
+      "bytes": 1756335,
+      "sha256": "7ec2821b3171faeba96b1dbba7a14f19ac6f686966215eeb74601e8d1e49b1a7",
+      "original_path": "rust/parity/coverage.json",
+      "binding_epoch": "before_original32_root_promotion"
+    },
+    {
+      "path": "rust/parity/assertion-mappings/response-observer-token-counter.json",
+      "bytes": 160841,
+      "sha256": "b663514820fee81c3adafbf141d4337677865bd9a0d2ebe813b84f25ee627ee0"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/observer_tasks.rs",
+      "bytes": 33217,
+      "sha256": "623314674a4ba3ec94440e2dea24595377a1aa68e9f7aed8dd159905ec6ffd9d"
+    },
+    {
+      "path": "artifacts/rust-rewrite/transfer-v2-native-controls-20261014-2/clippy-execution.json",
+      "bytes": 577,
+      "sha256": "8c34f0cdcff6c7a22bc11264fb0bd198b15960afaf0f96e6f2d25dfb58d1d059"
+    },
+    {
+      "path": "artifacts/rust-rewrite/transfer-v2-native-controls-20261014-2/clippy.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/transfer-v2-native-controls-20261014-2/clippy.stderr",
+      "bytes": 637,
+      "sha256": "e3496cc7cbb8d7631c315dce4b5f7941db6b8703945aea895075446bf7a34c41"
+    },
+    {
+      "path": "artifacts/rust-rewrite/transfer-v2-native-controls-20261014-2/batch-result.json",
+      "bytes": 252,
+      "sha256": "1972c4d91421be84e20f6bd6b5ae55d17db37d2e3f4cc7d64eb9ef89b15b52b4"
+    },
+    {
+      "path": "artifacts/rust-rewrite/transfer-v2-native-controls-20261014-2/source-bindings-before.json",
+      "bytes": 1433,
+      "sha256": "7da0b2cbb321e04aff1ee2c4bfa9476796bb1f1b5a519fd90ac0c091fa765cc4"
+    },
+    {
+      "path": "artifacts/rust-rewrite/transfer-v2-native-controls-20261014-2/correction.json",
+      "bytes": 339,
+      "sha256": "13862a646c6c016688636ff485f014bc6bcb631d619537dc89b96bbbe3f8b1f0"
+    },
+    {
+      "path": "artifacts/rust-rewrite/transfer-v2-native-controls-20261014-1/clippy-execution.json",
+      "bytes": 579,
+      "sha256": "84558e54ed8fe365a46346d86b83e4d538314b40374816d96a521f784cb38a4a"
+    },
+    {
+      "path": "artifacts/rust-rewrite/transfer-v2-native-controls-20261014-1/clippy.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/transfer-v2-native-controls-20261014-1/clippy.stderr",
+      "bytes": 6499,
+      "sha256": "9dd7c69e666be9fc44aebff672c3865c3210f5a1af0dc2b39af0dc8cdb1306a1"
+    },
+    {
+      "path": "artifacts/rust-rewrite/transfer-v2-native-controls-20261014-1/batch-result.json",
+      "bytes": 192,
+      "sha256": "f7bb68b6de947ecd53e9f0f106e321e1cee76d8c77b599769b343720d89d5d2f"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/readback-execution-1.json",
+      "bytes": 2186,
+      "sha256": "5f164da48c277670cf6fb45106e0ba982b7f21067e0d0862a2fce286d77f88f2"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/readback-native-1.py",
+      "bytes": 15171,
+      "sha256": "9f0b25cf920c90849f5d516ec06a57b654e262cc6f7065113e8804e144914c9d"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/readback-initial-inventory-failure.json",
+      "bytes": 900,
+      "sha256": "cef78eb69b0c5f1b295c4a8cb3860f1ff7dfd0a52235892858a8c3744a163bc7"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/readback-source-schema-failure.json",
+      "bytes": 639,
+      "sha256": "375c49b8cc9aa4d4debe94bb0fc5aa76da6a7fbacd345ead31bff636e5c67814"
+    },
+    {
+      "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/finalize-native-review-1.py",
+      "bytes": 6339,
+      "sha256": "43063e315063ada6b93baca475c48d3df8991807c37a4748c417af5de25243a3"
+    }
+  ],
+  "no_central_files_changed": false,
+  "execution_scope": "Readback of root-run native result only, no new Cargo/compiler/Source/provider/model executions.",
+  "format_scope": "Only the new test differs from frozen candidate; exact tokens retain both literals and comments, with two individually reviewed optional commas. Old file recovered byte-exactly.",
+  "stderr_scope": "Harmless caught synchronous panics and existing external hyper-util unused timer warning are retained. Parallel native test deliberately does not mutate the host hook; no empty-stderr or global hook privacy claim.",
+  "promotion_status": "accepted_only_original32_with_explicit_owned_future_API_migration",
+  "strict_check": {
+    "execution": {
+      "path": "artifacts/rust-rewrite/transfer-v2-native-controls-20261014-2/clippy-execution.json",
+      "bytes": 577,
+      "sha256": "8c34f0cdcff6c7a22bc11264fb0bd198b15960afaf0f96e6f2d25dfb58d1d059"
+    },
+    "terminal_exit_code": 0,
+    "scope": "Actual strict workspace/all-target Clippy; no fresh full-workspace test or source-cap claim.",
+    "all9_declared_batch_source_bindings_match_after_execution": true,
+    "response_source_matches_actual22_test_source": true,
+    "retained_failure": {
+      "execution": {
+        "path": "artifacts/rust-rewrite/transfer-v2-native-controls-20261014-1/clippy-execution.json",
+        "bytes": 579,
+        "sha256": "84558e54ed8fe365a46346d86b83e4d538314b40374816d96a521f784cb38a4a"
+      },
+      "exit_code": 101,
+      "scope": "Two transfer-tool BTreeMap inference errors before tests, corrected with explicit type annotations in disjoint xtask files. Neither Source nor #32 test was rerun."
+    }
+  },
+  "proposed_ledger_delta": {
+    "from": {
+      "covered": 523,
+      "partial": 65
+    },
+    "to": {
+      "covered": 524,
+      "partial": 64
+    },
+    "only_definition": "test/response-observer.test.mjs#32",
+    "other587_content_order_sha256": "8f0aaa26a061e9cd3db044d1e53621bfba39b9e94e76f40d1d47fc4c5f03e3b6"
+  },
+  "preserved_historical_partial_assertion_mapping": {
+    "path": "rust/parity/assertion-mappings/response-observer-token-counter.json",
+    "bytes": 160841,
+    "sha256": "b663514820fee81c3adafbf141d4337677865bd9a0d2ebe813b84f25ee627ee0"
+  },
+  "readback_execution": {
+    "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/readback-execution-1.json",
+    "bytes": 2186,
+    "sha256": "5f164da48c277670cf6fb45106e0ba982b7f21067e0d0862a2fce286d77f88f2"
+  },
+  "reader_failures": "Initial private reader span/field-name mistakes retained; no source/native evidence changed or inference invoked.",
+  "private_proposal": {
+    "path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/per-assertion-supplement.postexecution-1.json",
+    "bytes": 33564,
+    "sha256": "5d991b87df9077b983111de95896008f2a031713b64b0165d2cc88d684749011"
+  },
+  "root_acceptance": {
+    "path": "artifacts/rust-rewrite/evidence/5f9c2d47683a93262477ac30d4c92201cc035bc66d0e851cd2066690b21a3769.json",
+    "bytes": 2670,
+    "sha256": "5f9c2d47683a93262477ac30d4c92201cc035bc66d0e851cd2066690b21a3769",
+    "original_path": "artifacts/rust-rewrite/response-execution-future-promotion-20261014-1/root-API-acceptance.json"
+  },
+  "independent_postexecution_review": {
+    "path": "artifacts/rust-rewrite/evidence/b14c8782a65b9d52b66b343d3b3be66ac2d0dd631524b433151e523b4b949a08.json",
+    "bytes": 18047,
+    "sha256": "b14c8782a65b9d52b66b343d3b3be66ac2d0dd631524b433151e523b4b949a08",
+    "original_path": "artifacts/rust-rewrite/response-execution-future-draft-20261014/peer-postexecution-review-1.json"
+  },
+  "root_history_label_correction": {
+    "reason": "Retained exact pre-promotion coverage snapshot replaces mutable current-path label; original byte/hash identity and held proposal remain unchanged. Proposed status is now labeled accepted.",
+    "historical_coverage_snapshot": {
+      "path": "artifacts/rust-rewrite/evidence/7ec2821b3171faeba96b1dbba7a14f19ac6f686966215eeb74601e8d1e49b1a7.json",
+      "bytes": 1756335,
+      "sha256": "7ec2821b3171faeba96b1dbba7a14f19ac6f686966215eeb74601e8d1e49b1a7"
+    },
+    "old_promotion_status": "Propose only original #32 covered under the explicit owned-Future adapter migration; root owns central promotion.",
+    "coverage_statuses_changed": false
+  }
+}

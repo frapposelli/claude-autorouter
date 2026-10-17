@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "kind": "classifier_capacity_limit_qualification",
+  "date": "2026-10-17",
+  "only_limits": [
+    {
+      "id": "pending_evaluations",
+      "baseline_value": 256
+    },
+    {
+      "id": "evaluation_subscribers",
+      "baseline_value": 1024
+    }
+  ],
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "mapping": {
+    "path": "rust/parity/assertion-mappings/classifier-capacity-limits.json",
+    "bytes": 62410,
+    "sha256": "837f92d90bfb9dc0ce6113d0a40e868467ef53568dfe19c5e8c5eb8106346ec0"
+  },
+  "source_definition": "test/router-concurrency.test.mjs#8",
+  "source_definition_status_unchanged": "covered",
+  "original_assertion_sites": 8,
+  "original_assertion_instances": 16,
+  "original_control": {
+    "path": "artifacts/rust-rewrite/classifier-limit-original-20261017-1/report.json",
+    "bytes": 4321,
+    "sha256": "46fb284202adcac3e615835cfdee7bb45bfa1ff5eca17b88d58ca402bc67ee42"
+  },
+  "original_control_callbacks": 1,
+  "original_control_unchanged_baseline_files_before_and_after": 111,
+  "historical_control_raw_available": false,
+  "historical_control_raw_success_reverified": false,
+  "fresh_control_reason": "One unchanged original callback replaces unavailable local raw historical proof. The old mapping and its declared control identity remain unchanged.",
+  "native": {
+    "interface": "Classifier::new/with_limits/classify/close with typed Limits",
+    "production_changes": false,
+    "exact_defaults": {
+      "pending": 256,
+      "subscribers": 1024
+    },
+    "independent_lower_zero_and_oversized_boundaries_verified": true,
+    "invalid_constructor_retains_no_transport_or_shared_worker_state": true,
+    "by_value_arc_argument_temporary_ownership_preserved": true,
+    "cached_decisions_bypass_both_capacity_guards_without_io_or_slots": true,
+    "cancellation_and_terminal_close_precede_cache": true,
+    "independent_waiter_cancellation_and_exact_generation_cleanup_verified": true,
+    "maximum_capacity_caller_join_and_terminal_drain_verified": true,
+    "reserved_and_retiring_workers_charged_until_destruction": true,
+    "reviewed_migration": "Native ownership accounting includes reserved/retiring futures beyond the source live Map gate; bounded usize constructor options are additive. Arbitrary JavaScript cancellation-reason identity is not claimed.",
+    "focused_tests_passed": 17,
+    "test_binary": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/autorouter-runtime-test",
+      "bytes": 99029584,
+      "sha256": "1d33bf77335b3a720e9beac808d866a06e0fb29c69093ff22f8a1f9f449947fa"
+    }
+  },
+  "checks": {
+    "rust_workspace_passed": 1335,
+    "rust_workspace_failed": 0,
+    "rust_workspace_ignored": 10,
+    "rust_workspace_groups": 66,
+    "strict_clippy": "passed",
+    "fmt": "passed",
+    "node_check": "passed",
+    "node_tests_passed": 596,
+    "installed_package_files": 58,
+    "package_smoke": "passed",
+    "differential_families_passed": 17,
+    "differential_matches": 206625,
+    "whole_connection_deterministic_control": "passed",
+    "whole_matching_requests_per_engine": 40,
+    "whole_matching_loopback_controls_per_engine": 2,
+    "whole_status": "not_measured",
+    "numerical_samples_retained": false,
+    "local_rollup": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/local-checks-summary.json",
+      "bytes": 2476,
+      "sha256": "0a8c25f40983fb1db461285b61eb886e20677880ead3c0cea3c4bd4abdcde2b5"
+    },
+    "independent_full_review": {
+      "path": "artifacts/rust-rewrite/classifier-limit-validation-20261017-1/independent-full-local-review.json",
+      "bytes": 9063,
+      "sha256": "9d906ea74f5e48c51640822ca64eb8c2b28cc4a7a65b5052504154f19dec6192"
+    }
+  },
+  "source_transfer": {
+    "schema": 4,
+    "public_source_inputs_verified": 694,
+    "native_files": 696,
+    "frozen_original_files_verified": 111,
+    "logical_reference_files": 113,
+    "expanded_carrier_bytes": 33506816,
+    "logical_file_bytes": 33472483,
+    "carrier_limit_bytes": 33554432,
+    "logical_limit_bytes": 33554432,
+    "actual_proof": {
+      "path": "artifacts/rust-rewrite/classifier-limit-export-evidence-20261017-1/inspection.json",
+      "bytes": 1895,
+      "sha256": "767264ffeb2154c01d97ca48d3d519740b3f8f94c0ef9f2fb72f766652a0f0c9"
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/classifier-limit-export-evidence-20261017-1/actual-proof-review.json",
+      "bytes": 6208,
+      "sha256": "d97bdef305a75c408cca598bdbed61243a0cc6fa30ce0f0631a99e17158e6765"
+    },
+    "source_to_binary_provenance": "unverified_prebuilt"
+  },
+  "coverage_after": {
+    "covered": 536,
+    "partial_assertion_mapping": 52,
+    "definitions": 588,
+    "all_original_definition_rows_unchanged": true,
+    "all_13_areas_still_partial": true,
+    "historical_mapping_unchanged": true,
+    "qualified_named_limit_rows": 2,
+    "other_51_limit_rows_unchanged_pending": true,
+    "all_27_configuration_rows_unchanged_pending": true,
+    "sole_area_inventory_change": {
+      "id": "classification_and_task_extraction",
+      "appended_tests": 1,
+      "prior_tests": 93,
+      "after_tests": 94
+    },
+    "other_12_area_objects_unchanged": true
+  },
+  "current_source_ci": "requires_new_push",
+  "provider_calls": 0,
+  "scope": "Qualifies only the two named classifier capacity limits, with explicit native ownership and typed-constructor migrations. The sole new cache test is added to the existing classification inventory. Original-definition statuses, other limits/keys and area statuses remain unchanged. Full protocol/TLS, platform, numerical, real-task, hardware, final-artifact, rollback, stabilization and cutover gates remain separate. JavaScript remains shipping default.",
+  "release_platform_performance_or_full_goal_approved": false,
+  "metadata_review_note": "The root applied the independently reviewed draft with metadata-only wording corrections: local binary binding is complete, ledger identity is explicitly pre-application, and the two admitted limits are recorded after application. Public source inputs remain unchanged; final metadata receives a separate independent review."
+}

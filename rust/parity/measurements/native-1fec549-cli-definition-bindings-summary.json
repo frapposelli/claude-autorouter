@@ -1,0 +1,2844 @@
+{
+  "schema_version": 1,
+  "kind": "committed_source_per_definition_cli_binding_review",
+  "date": "2026-10-14",
+  "source_commit": "1fec5492e9ca06837ed502ba739f9368e79ecd82",
+  "private_inventory": {
+    "path": "artifacts/rust-rewrite/current-cli-definition-bindings-draft-20261014-v2.json",
+    "bytes": 428376,
+    "sha256": "9b9501726baf74a4c0f23d5d2f6224da94ac3d8d71816353095873d16f3996f9"
+  },
+  "historical_missing_bindings": {
+    "path": "artifacts/rust-rewrite/historical-cli-bindings-independent-review-20261014.json",
+    "bytes": 12512,
+    "sha256": "b35127817bd86560c2ab0d3ac2df655156dba06f8d2b00b3611ea54ef650119a"
+  },
+  "current_workspace_log": {
+    "path": "artifacts/dev-environment/logs/migration-checkpoint-rust-tests-20261014.log",
+    "bytes": 131371,
+    "sha256": "69d44987934cb7d3732067b022338e798bc079eb95fba9b8780b343d16a5a413"
+  },
+  "mapping_snapshot": {
+    "path": "rust/parity/assertion-mappings/cli-tooling.json",
+    "bytes": 142287,
+    "sha256": "9295d40b4e116746c029259925065db3f12dcf259d389fb865133bd7e1453411",
+    "identity_kind": "historical_observed_workspace_file",
+    "exact_observed_bytes_available": false,
+    "current_path_matches_recorded_identity": false,
+    "availability_note": "The observation predates the doctor migration review. That path now has later bytes. The exact observed workspace snapshot was not retained; do not replace its historical hash with the current path or infer new execution from this record."
+  },
+  "counts": {
+    "mapped_definitions": 54,
+    "covered_status_preserved": 48,
+    "partial_status_preserved": 6,
+    "unique_native_anchors": 59,
+    "all_current_anchors_passed": true,
+    "ordered_direct_assertion_token_matches": 55,
+    "historical_body_changes": 0,
+    "no_historical_function": 2,
+    "current_pass_group_context_bound": 59,
+    "absent_declared_old_review_functions": 2
+  },
+  "definitions": [
+    {
+      "baseline_definition": "test/cli-help.test.mjs#1",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/launcher_contracts.rs#command_help_matrix_needs_no_credentials_or_readable_configuration"
+      ],
+      "existing_predicates_sha256": "f212ccbae0ab4d56e8aba2b183e368b299ea92f2dcdbd0c5e03090e81b6bdf15",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/cli-help.test.mjs",
+        "sha256": "8025bbe32b7f9ecf15133faa50605957928ef562c439650fc2e3f0ac04cc2435",
+        "name": "command help works with no credentials and an invalid config path",
+        "definition_ordinal": 1,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/cli-help.test.mjs#2",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/launcher_contracts.rs#direct_help_matrix_bypasses_invalid_local_endpoint_and_all_temporary_resources"
+      ],
+      "existing_predicates_sha256": "ab9181d5452be4ba72b9955e1ab28946d48790edec97ae3034f0356d0fb277bb",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/cli-help.test.mjs",
+        "sha256": "8025bbe32b7f9ecf15133faa50605957928ef562c439650fc2e3f0ac04cc2435",
+        "name": "Claude help and version bypass configuration, gateway, Ollama and temporary files",
+        "definition_ordinal": 2,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/config-command.test.mjs#1",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/config_contracts.rs#show_preserves_saved_bytes_and_reports_complete_redacted_provenance"
+      ],
+      "existing_predicates_sha256": "53b6064aaedfd83329ea065e6280fe68afe1db7b98cfb8f410a2b2a7966e2fed",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/config-command.test.mjs",
+        "sha256": "f9f23d340a71f3fa3d1c2720d21a838d230475cc2130877a3db7944ea46fbd26",
+        "name": "show reports default, saved and environment provenance and hides every secret",
+        "definition_ordinal": 1,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/config-command.test.mjs#2",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/config_contracts.rs#show_without_saved_settings_and_inactive_full_checks_are_read_only"
+      ],
+      "existing_predicates_sha256": "cb1d53c6eb369b4147a16bd97e74da30b52716b5e184fc633e175ba58dd336e7",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/config-command.test.mjs",
+        "sha256": "f9f23d340a71f3fa3d1c2720d21a838d230475cc2130877a3db7944ea46fbd26",
+        "name": "show is read-only without a saved file and full checks report inactive errors safely",
+        "definition_ordinal": 2,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/config-command.test.mjs#3",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/config_contracts.rs#set_and_unset_change_only_the_named_saved_value_despite_runtime_overrides"
+      ],
+      "existing_predicates_sha256": "2a064bd6f30ffcd3bc998928708ef05dc1f8195377ebe6594e63fd380a666d39",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/config-command.test.mjs",
+        "sha256": "f9f23d340a71f3fa3d1c2720d21a838d230475cc2130877a3db7944ea46fbd26",
+        "name": "set and unset merge only the named setting and environment overrides stay ephemeral",
+        "definition_ordinal": 3,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/config-command.test.mjs#4",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/config_contracts.rs#secret_argument_stdin_and_hidden_edits_preserve_files_and_never_echo_values"
+      ],
+      "existing_predicates_sha256": "be026c3a1243bf15f6fbc3ea2854bc902b5ba6e77bdff3db24d589e307724526",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/config-command.test.mjs",
+        "sha256": "f9f23d340a71f3fa3d1c2720d21a838d230475cc2130877a3db7944ea46fbd26",
+        "name": "secret arguments are rejected before persistence and stdin or hidden entry never echoes them",
+        "definition_ordinal": 4,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/config-command.test.mjs#5",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/config_contracts.rs#every_invalid_edit_preserves_saved_bytes_and_hides_url_or_unknown_key_values"
+      ],
+      "existing_predicates_sha256": "31c44a57546e7216ccd0a391060dc559c3cfe99939c54266a485693f53e18c62",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/config-command.test.mjs",
+        "sha256": "f9f23d340a71f3fa3d1c2720d21a838d230475cc2130877a3db7944ea46fbd26",
+        "name": "invalid edits fail without clobbering saved settings or leaking URL credentials",
+        "definition_ordinal": 5,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/config-command.test.mjs#6",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/edge_cases.rs#hidden_secret_cancellation_restores_echo_and_preserves_saved_configuration",
+        "rust/crates/claude-autorouter/tests/edge_cases.rs#stale_hidden_edit_cannot_replace_a_concurrent_configuration_change"
+      ],
+      "existing_predicates_sha256": "858c997a76ffa1bb5cab66f7120fa4698419f6d81233f0bd4434df94bfb4d914",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/config-command.test.mjs",
+        "sha256": "f9f23d340a71f3fa3d1c2720d21a838d230475cc2130877a3db7944ea46fbd26",
+        "name": "cancelled or stale interactive secret edits preserve the current file",
+        "definition_ordinal": 6,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/config-command.test.mjs#7",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/commands.rs#invalid_config_show_uses_json_stdout_and_never_echoes_corrupt_secrets"
+      ],
+      "existing_predicates_sha256": "96991ef8f5168631b662d662c733ecd73edd06a14f9798d72e8d4eb89cafd80b",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/config-command.test.mjs",
+        "sha256": "f9f23d340a71f3fa3d1c2720d21a838d230475cc2130877a3db7944ea46fbd26",
+        "name": "JSON inspection of a malformed file remains machine readable and never includes parser input",
+        "definition_ordinal": 7,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#1",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/edge_cases.rs#hidden_secret_uses_raw_editing_and_restores_terminal_before_exit",
+        "rust/crates/claude-autorouter/src/secret_input.rs#prompt_writer_observes_hidden_terminal_before_inviting_secret_input",
+        "rust/crates/claude-autorouter/src/secret_input.rs#invitation_panic_restores_terminal_and_descriptor_flags"
+      ],
+      "existing_predicates_sha256": "fc082542e9ded1ca1ebeaa1c227de7e89cd8484aedb93662eb76deb439e0256a",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "hidden key prompt disables terminal echo before inviting input and restores it afterward",
+        "definition_ordinal": 1,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#2",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#relevant_keys_only_default_subscription_and_forced_api_mode_match_saved_maps"
+      ],
+      "existing_predicates_sha256": "7ba8d747aace3d31acc27389415b4c6b6cba563cc2fb8b6c8d20554b19c1d6a5",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "setup stores only relevant keys, defaults to subscription, and never prints credentials",
+        "definition_ordinal": 2,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#3",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#all_profile_cli_precedence_cases_preserve_parent_permission_environment"
+      ],
+      "existing_predicates_sha256": "8fee7fb8525905686a0712f0e8aef6819ccf8cd831bacc8e6827b47347ab33cf",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "setup persists the chosen client profile with CLI precedence and leaves permission controls to Claude",
+        "definition_ordinal": 3,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#4",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#every_invalid_profile_is_rejected_before_secret_input_or_persistence"
+      ],
+      "existing_predicates_sha256": "d99825ebc243b139592da5a80de01434066382b3d6e3ea7a8a4bbab079ccefad",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "setup rejects missing or invalid client profiles before keys, provider calls, and persistence",
+        "definition_ordinal": 4,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#5",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#jev_auto_doctor_reports_routing_profile_without_permission_eligibility_claims"
+      ],
+      "existing_predicates_sha256": "059f9e541c7c8b2a0063d97a8221547699e26270920645abebae8602babc6a15",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "doctor reports the saved Auto profile without checking or claiming permission-mode eligibility",
+        "definition_ordinal": 5,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#6",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#logging_setup_resolves_cli_directory_and_disables_without_creating_history"
+      ],
+      "existing_predicates_sha256": "fe0a407ba9f6c552bdcc60257b169fbf116c47693a11c20b3ceb632ded4fb54d",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "session logging setup saves an absolute directory with CLI precedence and supports disabling at runtime",
+        "definition_ordinal": 6,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#7",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#invalid_log_directory_arguments_and_nul_environment_fail_before_secret_input"
+      ],
+      "existing_predicates_sha256": "1005dbc7a7b9461bf319b1914d51b52767cd142aac73d9e73f37a4e142fce901",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "session logging setup rejects invalid directory flags before prompting or saving",
+        "definition_ordinal": 7,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#8",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#metadata_mode_updates_only_that_setting_without_enabling_a_log_directory"
+      ],
+      "existing_predicates_sha256": "14a4cc727b1b9833f6afd790eac6084c9e45e7269fa78569281f02b36ba9cf1d",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "metadata history setup preserves unrelated settings and does not enable logging by itself",
+        "definition_ordinal": 8,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#9",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#setup_missing_keys_prompt_in_order_and_reject_blank_cancelled_or_nonterminal_input"
+      ],
+      "existing_predicates_sha256": "085cdf11400bcacbea1db068d5ca66b8aa5a9430103046597aac60d01ea991fd",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "setup prompts only for missing keys and leaves no file on invalid or cancelled input",
+        "definition_ordinal": 9,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#10",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#saved_subscription_doctor_scrubs_all_credentials_and_uses_the_exact_auth_sequence"
+      ],
+      "existing_predicates_sha256": "c41fed63042884cc4e4f04282cedd6221bc4d16a5d3cbe209179035a6f926446",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "doctor uses saved subscription login with sanitized environment and does not print account data",
+        "definition_ordinal": 10,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#11",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#doctor_missing_login_provider_conflicts_and_child_errors_fail_without_private_diagnostics"
+      ],
+      "existing_predicates_sha256": "31b7d25fd00aa8a6a514d00b8d6b0408aa31b65976b9ec8222950ba9388db145",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "doctor reports missing login, conflicting provider, and subprocess failures without dumping errors",
+        "definition_ordinal": 11,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#12",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#environment_only_api_doctor_checks_only_claude_version_and_never_creates_config"
+      ],
+      "existing_predicates_sha256": "596b95e425bc65bb62779f88a52d58cf0d7b3e11d7cc2b8ee5db0f5a6c5da175",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "doctor accepts environment-only API configuration and skips subscription inspection",
+        "definition_ordinal": 12,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#13",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#stop_cap_cli_precedence_normalization_and_doctor_overrides_work_for_both_evaluators"
+      ],
+      "existing_predicates_sha256": "a5f01369d50672f4778edb2c3fea201c76adb34c2b0020700dd1aff64b348b80",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "native Stop-hook block cap setup works with either evaluator and CLI values override the environment",
+        "definition_ordinal": 13,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#14",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#stop_cap_cli_precedence_normalization_and_doctor_overrides_work_for_both_evaluators"
+      ],
+      "existing_predicates_sha256": "99691af7eaffad75d090679c6c03d9838a95a7eaea8a1fc2ab6c680e42989cbd",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "native Stop-hook block cap setup saves a normalized environment opt-in without changing its parent",
+        "definition_ordinal": 14,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#15",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#invalid_stop_cap_admission_matrix_rejects_before_prompts_network_or_persistence"
+      ],
+      "existing_predicates_sha256": "1395c553d7d1747d9f3b4881e78881075551408282c77d7534629281e36028d2",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "native Stop-hook block cap setup rejects invalid CLI and environment values before prompts, persistence or providers",
+        "definition_ordinal": 15,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#16",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#stop_cap_doctor_reports_absent_saved_and_runtime_values_without_inference"
+      ],
+      "existing_predicates_sha256": "e75c75ba09b74afc218bd448fd4bcf35e0f911ebf2e9b8c8cb01a74c353314b1",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "native Stop-hook block cap doctor reports only a configured value and respects runtime overrides without inference",
+        "definition_ordinal": 16,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#17",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#ollama_subscription_setup_preloads_before_saving_and_doctor_is_read_only"
+      ],
+      "existing_predicates_sha256": "fb5bb8f12c5e8547567a173c346341bb24162b50c6b70678d11fbbe7a932b7bb",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "Ollama subscription setup needs no keys, stays local, and preloads before saving",
+        "definition_ordinal": 17,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#18",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#ollama_api_setup_prompts_only_anthropic_preserves_keepalive_and_accepts_custom_model"
+      ],
+      "existing_predicates_sha256": "fa4b38e36715ab2ce9b456aebf76aa3d19284f419dda78f7396e21d5b6ac5200",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "Ollama setup preserves API-key authentication and selects the default or an explicit compatible model",
+        "definition_ordinal": 18,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#19",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#forced_model_deadlines_and_doctor_runtime_overrides_preserve_saved_values"
+      ],
+      "existing_predicates_sha256": "eafb65e82ff30ce60ee48bdf7245799d60101ff689833451526976c33128d431",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "forced model setup persists an explicit deadline and later environment overrides still win",
+        "definition_ordinal": 19,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#20",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#explicit_zero_deadline_overrides_environment_and_doctor_never_warms"
+      ],
+      "existing_predicates_sha256": "fa80a4e57cfcc7ca6d38a3c43a410fd232e7c8520fee4a8f4fc99655b4104bc6",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "setup can disable the runtime deadline explicitly, overriding the environment and reporting it in doctor",
+        "definition_ordinal": 20,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#21",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#all_invalid_local_deadline_values_and_jev_option_fail_before_input"
+      ],
+      "existing_predicates_sha256": "7bef1689fe6d5eb7be704df2ddc5d1d798d47a85a62e338f567e23bd24e39b3e",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "setup rejects missing, blank, invalid and Jev deadline options before prompting or calling a provider",
+        "definition_ordinal": 21,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#22",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#failed_ollama_setup_and_custom_model_repair_leave_existing_configuration_intact"
+      ],
+      "existing_predicates_sha256": "a76db847551365c8f026c7f76389a9f0551e40e3309deba2817036a721624880",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "failed Ollama setup leaves the existing configuration intact and never downloads implicitly",
+        "definition_ordinal": 22,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#23",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#environment_only_ollama_doctor_checks_availability_without_warming_or_creating_config"
+      ],
+      "existing_predicates_sha256": "e99747599be1516d58e5c747ab479d12645b7c911a74fc26b5afc7f6beb53822",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "Ollama doctor verifies local model metadata without warming, downloading, or asking for Jev",
+        "definition_ordinal": 23,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#24",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#forced_model_deadlines_and_doctor_runtime_overrides_preserve_saved_values"
+      ],
+      "existing_predicates_sha256": "d6f43098b7d5329a9aafade85057b107caee281f63908e97731552db0fee5a23",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "Ollama doctor reports the effective saved model and environment deadline without inference",
+        "definition_ordinal": 24,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#25",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#forced_ollama_updates_keep_all_unrelated_saved_settings_and_runtime_overrides_ephemeral"
+      ],
+      "existing_predicates_sha256": "f74113323fcc80a43aa9c8a67c47c76806b13d34f65fd258c2f832ff20cd6458",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "forced setup preserves unrelated saved preferences and the exact configured local model",
+        "definition_ordinal": 25,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#26",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#forced_ollama_updates_keep_all_unrelated_saved_settings_and_runtime_overrides_ephemeral"
+      ],
+      "existing_predicates_sha256": "9bdff2ef3fab37825acac382417243c89b6be4e9fa28a5d7367427f990d03175",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "a one-setting setup update keeps conflicting runtime overrides and credentials ephemeral",
+        "definition_ordinal": 26,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#27",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#explicitly_selected_backend_and_auth_use_environment_values_without_overwriting_unrelated_preferences"
+      ],
+      "existing_predicates_sha256": "86137ed0398de8f91d5681cdaeb14a00387da26227f4b2e17ec3ee7dd7c92dad",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "explicit backend or authentication selection still accepts its environment model and credential",
+        "definition_ordinal": 27,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#28",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#replacement_discards_old_backend_auth_preferences_and_prompts_only_for_jev"
+      ],
+      "existing_predicates_sha256": "06d87f39bdcc9dd49aed4af31af1099a54887219b13ba0deb365228bc29c19eb",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "explicit replacement starts with defaults and supplied values instead of retaining old settings",
+        "definition_ordinal": 28,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#29",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#invalid_setup_settings_fail_before_keys_and_cancelled_replacement_preserves_bytes"
+      ],
+      "existing_predicates_sha256": "f6a2887aee3e0134b041626f3c484e5f61b0eaa3a1743b5798b099dbc58c6863",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "setup rejects invalid saved or explicit settings before secret input and cancellation preserves the old file",
+        "definition_ordinal": 29,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#30",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#failed_ollama_setup_and_custom_model_repair_leave_existing_configuration_intact"
+      ],
+      "existing_predicates_sha256": "1e585c7856a9744c387d86e8c9e10d1a48e2716cf8bf33a98f7e4932e92969c3",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "doctor missing-model repair retains the exact custom model and distinguishes fixture versions",
+        "definition_ordinal": 30,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#31",
+      "status_preserved": "partial_assertion_mapping",
+      "native_tests": [
+        "rust/crates/autorouter-runtime/src/local_diagnostic.rs#synthetic_diagnostic_separates_labels_from_transport_and_task_claims",
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#local_diagnostic_cli_bypasses_cloud_keys_and_claude_auth_and_emits_one_json_record"
+      ],
+      "existing_predicates_sha256": "0080e7527968f7276e7f6062ca2d3f9a5c59f1377c69762068eecae70abbf07d",
+      "remaining": [
+        "The JavaScript definition injects an arbitrary diagnosticRunner result and asserts exact passthrough of that particular four-field object. Native CLI tests execute the real diagnostic and assert its observable report/exit contract; Rust exposes no equivalent injected runner API. Literal injected-object parity remains a deliberate embedding-boundary adaptation to review."
+      ],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "explicit local diagnosis bypasses cloud credentials and Claude authentication and keeps JSON output singular",
+        "definition_ordinal": 31,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#32",
+      "status_preserved": "partial_assertion_mapping",
+      "native_tests": [
+        "rust/crates/autorouter-runtime/src/local_diagnostic.rs#invalid_settings_and_early_cancellation_do_not_perform_io",
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#local_diagnostic_cli_rejects_jev_without_io_or_claude_authentication",
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#local_diagnostic_cli_cancellation_after_request_closes_transport_without_a_report"
+      ],
+      "existing_predicates_sha256": "c9dc29f1e0acabd4dc68932f4599a9781245b53a25023e6b73a47a5a0beda8d5",
+      "remaining": [
+        "The JavaScript definition asserts rejection with the identical Error object supplied by its injected diagnosticRunner (error === reason). Rust uses Result<bool,String> and executable exit/diagnostic output; the tests preserve cancellation as an error instead of converting it to a configuration_error report, but literal JavaScript object identity is not a supported native boundary and remains an explicit adaptation to review."
+      ],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "local diagnosis rejects the cloud backend without requests and caller cancellation propagates",
+        "definition_ordinal": 32,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#33",
+      "status_preserved": "partial_assertion_mapping",
+      "native_tests": [
+        "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#pre_cancelled_setup_performs_no_keychain_input_output_or_file_access"
+      ],
+      "existing_predicates_sha256": "79241a1e87af2ecfb66bd4e6a07ac4d7b9b31ee263742669c6555eab125755e9",
+      "remaining": [
+        "Cancellation triggered immediately after the API-key prompt but before local setup/save remains untested at the onboarding boundary."
+      ],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "setup cancellation stops before prompts, local requests, and saving",
+        "definition_ordinal": 33,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/onboarding.test.mjs#34",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/onboarding_local.rs#default_ollama_failure_saves_nothing_and_only_implicit_selection_suggests_jev"
+      ],
+      "existing_predicates_sha256": "24918cf6a24f8b9ba5b4293dfd705b6b947e0fa08b67997af1db6f1135092057",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/onboarding.test.mjs",
+        "sha256": "f3675846ae38dd94beea22e74127d4eb9eec3be92dd90f8d55d569b0dea120db",
+        "name": "setup defaults to local Ollama, needs no evaluator key, and points to Jev when Ollama is unavailable",
+        "definition_ordinal": 34,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/launcher-logging.test.mjs#1",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/launcher_logging.rs#opt_in_launcher_logs_private_sessions_and_drains_final_outcomes_before_child_exit"
+      ],
+      "existing_predicates_sha256": "a9ac9234f52d0ab2821d712e169eb2f30e33348d8f5c52ae7b9622d16a2abea5",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/launcher-logging.test.mjs",
+        "sha256": "281203be3d251fcaadd13144ffa7c18ffb6d09b52be900a46e15d915abdab55d",
+        "name": "opt-in launcher logs each observed session privately and drains the final row before exit",
+        "definition_ordinal": 1,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/launcher-logging.test.mjs#2",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/launcher_logging.rs#metadata_launcher_history_keeps_correlated_events_without_any_excerpt_fields"
+      ],
+      "existing_predicates_sha256": "a54486ea684006563d06a8ffc76c685ebd6d8bf1e484bccbc43007298a75cd90",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/launcher-logging.test.mjs",
+        "sha256": "281203be3d251fcaadd13144ffa7c18ffb6d09b52be900a46e15d915abdab55d",
+        "name": "metadata-only launcher history contains correlated decisions and outcomes without excerpts",
+        "definition_ordinal": 2,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/launcher-logging.test.mjs#3",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/launcher_logging.rs#unset_logging_and_empty_override_create_no_history_files"
+      ],
+      "existing_predicates_sha256": "28d2b4f52807337c2738f5368b16468805986350b7f4af43f3815aef6cfa45ef",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/launcher-logging.test.mjs",
+        "sha256": "281203be3d251fcaadd13144ffa7c18ffb6d09b52be900a46e15d915abdab55d",
+        "name": "unset logging creates no files and an empty environment override disables a saved directory",
+        "definition_ordinal": 3,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/launcher-logging.test.mjs#4",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/launcher_logging.rs#unavailable_logging_warns_once_preserves_existing_file_and_keeps_forwarding"
+      ],
+      "existing_predicates_sha256": "639f7f3448e5aa34a20a79c260eed7146768af1312afdea9c0ea148b5ac67b0c",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/launcher-logging.test.mjs",
+        "sha256": "281203be3d251fcaadd13144ffa7c18ffb6d09b52be900a46e15d915abdab55d",
+        "name": "unavailable log storage warns once without exposing prompts or preventing requests",
+        "definition_ordinal": 4,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/launcher-logging.test.mjs#5",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/launcher_logging.rs#launcher_keeps_default_stderr_empty_and_debug_events_private_while_status_savings_work"
+      ],
+      "existing_predicates_sha256": "963530dbba59c1a1199aefc5e93dbf0e087043774e88999c70bdd187640fd4b0",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/launcher-logging.test.mjs",
+        "sha256": "281203be3d251fcaadd13144ffa7c18ffb6d09b52be900a46e15d915abdab55d",
+        "name": "launcher keeps inference logs out of Claude by default while status and explicit debug logs work",
+        "definition_ordinal": 5,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/package-lifecycle.test.mjs#1",
+      "status_preserved": "partial_assertion_mapping",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/commands.rs#direct_help_forwards_termination_and_reaps_the_child",
+        "rust/crates/claude-autorouter/tests/commands.rs#full_launcher_forwards_signal_waits_for_child_and_removes_overlay",
+        "rust/crates/claude-autorouter/tests/launcher_contracts.rs#both_launcher_modes_forward_each_requested_signal_once_and_reap_the_child"
+      ],
+      "existing_predicates_sha256": "57241e6e38cae0cdb87764514fdbafbfe9c5a8090f3e05a4a7c6944a21c8eaf1",
+      "remaining": [
+        "The baseline definition directly tests the package lifecycle helper API. Native launcher coverage now proves all signal/process semantics, but does not establish an equivalent tooling runner return contract; this helper definition stays partial."
+      ],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/package-lifecycle.test.mjs",
+        "sha256": "b97bad7a875b88151f2583395d13dcee65cee339304f6bbd575c9b65c92587ad",
+        "name": "package lifecycle runner observes readiness and forwards requested signals once",
+        "definition_ordinal": 1,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/package-lifecycle.test.mjs#2",
+      "status_preserved": "partial_assertion_mapping",
+      "native_tests": [
+        "rust/xtask/src/tool_process.rs#failed_launch_and_exit_are_not_success"
+      ],
+      "existing_predicates_sha256": "430c724c207bffa9ac1a800d6ff6b9851050e481e6e1a1eb69ae941cfdc0dfd6",
+      "remaining": [
+        "Baseline helper retains synthetic nonzero stderr diagnostics and ready absence; Rust helper intentionally returns safe metadata and discards raw diagnostics. Needs explicit reviewed tooling-boundary adaptation or equivalent safe diagnostic-retention coverage, not silent whole-test coverage."
+      ],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/package-lifecycle.test.mjs",
+        "sha256": "b97bad7a875b88151f2583395d13dcee65cee339304f6bbd575c9b65c92587ad",
+        "name": "package lifecycle runner retains nonzero exits without concealing test diagnostics",
+        "definition_ordinal": 2,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/package-lifecycle.test.mjs#3",
+      "status_preserved": "partial_assertion_mapping",
+      "native_tests": [
+        "rust/xtask/src/tool_process.rs#failed_launch_and_exit_are_not_success",
+        "rust/xtask/src/tool_process.rs#completed_child_output_is_captured_and_omitted_from_metadata",
+        "rust/xtask/src/tool_process.rs#deadline_terminates_child_without_assuming_output_readiness"
+      ],
+      "existing_predicates_sha256": "e6c06cc0c9101bf7e17221e08bae3f70002710c05ea783e9a4208668d5b7c1b9",
+      "remaining": [
+        "Exact baseline rejected Promise shapes (deadline error, ENOENT code) differ from Rust structured result; mapping needs explicit native contract adaptation and assertions on that chosen interface, rather than treating equal purpose as exact parity."
+      ],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/package-lifecycle.test.mjs",
+        "sha256": "b97bad7a875b88151f2583395d13dcee65cee339304f6bbd575c9b65c92587ad",
+        "name": "package lifecycle runner bounds a stalled child and rejects missing executables",
+        "definition_ordinal": 3,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/auth.test.mjs#12",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/launcher_contracts.rs#subscription_launch_uses_only_local_header_auth_and_cleans_its_listener_and_overlay"
+      ],
+      "existing_predicates_sha256": "2aa7cdde86e065f81173313e2cf15e95df39fce3610b3c0a0b8d93458e937f4d",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/auth.test.mjs",
+        "sha256": "79d517251358aa3d2a63dc9979ec86bd592c25a39eb93a147949b272d0c9e2b1",
+        "name": "subscription launcher starts and stops its proxy with a fake Claude process, without reading a login",
+        "definition_ordinal": 12,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/auth.test.mjs#13",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/launcher_contracts.rs#four_permission_argument_cases_route_without_changing_claude_permissions_or_settings"
+      ],
+      "existing_predicates_sha256": "257742ce5570559a058729a0afc15ddaf6a1ee8423ee8df3e82692a80878e774",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/auth.test.mjs",
+        "sha256": "79d517251358aa3d2a63dc9979ec86bd592c25a39eb93a147949b272d0c9e2b1",
+        "name": "explicit Auto launch configures real routing and preserves permission arguments and settings",
+        "definition_ordinal": 13,
+        "not_rerun": true
+      }
+    },
+    {
+      "baseline_definition": "test/auth.test.mjs#14",
+      "status_preserved": "covered",
+      "native_tests": [
+        "rust/crates/claude-autorouter/tests/launcher_contracts.rs#disabled_or_malformed_status_settings_keep_original_arguments_and_clear_stale_state"
+      ],
+      "existing_predicates_sha256": "b0ab1f8f99da27cc998acb9a10f1c5c6994bac84f62b087165df686a89602d89",
+      "remaining": [],
+      "frozen_original_file": {
+        "path": "artifacts/rust-rewrite/reference/test/auth.test.mjs",
+        "sha256": "79d517251358aa3d2a63dc9979ec86bd592c25a39eb93a147949b272d0c9e2b1",
+        "name": "statusline opt-out or setup failure passes original settings and clears inherited router status",
+        "definition_ordinal": 14,
+        "not_rerun": true
+      }
+    }
+  ],
+  "anchors": {
+    "rust/crates/claude-autorouter/tests/launcher_contracts.rs#command_help_matrix_needs_no_credentials_or_readable_configuration": {
+      "file": "rust/crates/claude-autorouter/tests/launcher_contracts.rs",
+      "file_sha256": "4d89192b060732e80a0fa32db40df7b32ca4a119999a621efef52ec50e8b6be7",
+      "first_line": 240,
+      "last_line": 253,
+      "fragment_sha256": "4b9e6d60569889c3f1d2f3fedfbe7e455661bd451309388fbb03cd017434861c",
+      "current_actual_pass_entries": [
+        {
+          "line": 1213,
+          "text": "test command_help_matrix_needs_no_credentials_or_readable_configuration ... ok",
+          "cargo_group": {
+            "line": 1210,
+            "text": "Running tests/launcher_contracts.rs (target/debug/deps/launcher_contracts-13ffa5e8f9eea15f)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "4d89192b060732e80a0fa32db40df7b32ca4a119999a621efef52ec50e8b6be7",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 240,
+        "last_line": 253,
+        "fragment_sha256": "4b9e6d60569889c3f1d2f3fedfbe7e455661bd451309388fbb03cd017434861c",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 3,
+        "current_direct_assertion_count": 3
+      },
+      "current_direct_assertion_macros": 3
+    },
+    "rust/crates/claude-autorouter/tests/launcher_contracts.rs#direct_help_matrix_bypasses_invalid_local_endpoint_and_all_temporary_resources": {
+      "file": "rust/crates/claude-autorouter/tests/launcher_contracts.rs",
+      "file_sha256": "4d89192b060732e80a0fa32db40df7b32ca4a119999a621efef52ec50e8b6be7",
+      "first_line": 256,
+      "last_line": 275,
+      "fragment_sha256": "89dba88c3c6745a2bf9cf48c3ff5c2956d15d36b3ba9cb45354308285de0180a",
+      "current_actual_pass_entries": [
+        {
+          "line": 1216,
+          "text": "test direct_help_matrix_bypasses_invalid_local_endpoint_and_all_temporary_resources ... ok",
+          "cargo_group": {
+            "line": 1210,
+            "text": "Running tests/launcher_contracts.rs (target/debug/deps/launcher_contracts-13ffa5e8f9eea15f)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "4d89192b060732e80a0fa32db40df7b32ca4a119999a621efef52ec50e8b6be7",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 256,
+        "last_line": 275,
+        "fragment_sha256": "89dba88c3c6745a2bf9cf48c3ff5c2956d15d36b3ba9cb45354308285de0180a",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 3,
+        "current_direct_assertion_count": 3
+      },
+      "current_direct_assertion_macros": 3
+    },
+    "rust/crates/claude-autorouter/tests/config_contracts.rs#show_preserves_saved_bytes_and_reports_complete_redacted_provenance": {
+      "file": "rust/crates/claude-autorouter/tests/config_contracts.rs",
+      "file_sha256": "40a3514358fe2a754417e8092d735ff96ffad18ebc327e17cf83fe5048254d4f",
+      "first_line": 9,
+      "last_line": 45,
+      "fragment_sha256": "aa6f6fe8b2851b0118a157e6d01c5b7066c975cc6c46c3ccbd239d431173ac45",
+      "current_actual_pass_entries": [
+        {
+          "line": 1185,
+          "text": "test show_preserves_saved_bytes_and_reports_complete_redacted_provenance ... ok",
+          "cargo_group": {
+            "line": 1182,
+            "text": "Running tests/config_contracts.rs (target/debug/deps/config_contracts-7354b21606fe3b6e)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "40a3514358fe2a754417e8092d735ff96ffad18ebc327e17cf83fe5048254d4f",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 9,
+        "last_line": 45,
+        "fragment_sha256": "aa6f6fe8b2851b0118a157e6d01c5b7066c975cc6c46c3ccbd239d431173ac45",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 8,
+        "current_direct_assertion_count": 8
+      },
+      "current_direct_assertion_macros": 8
+    },
+    "rust/crates/claude-autorouter/tests/config_contracts.rs#show_without_saved_settings_and_inactive_full_checks_are_read_only": {
+      "file": "rust/crates/claude-autorouter/tests/config_contracts.rs",
+      "file_sha256": "40a3514358fe2a754417e8092d735ff96ffad18ebc327e17cf83fe5048254d4f",
+      "first_line": 48,
+      "last_line": 78,
+      "fragment_sha256": "a6ac36a9aa50f04b3e6476bb051273e210733d0e338b1f0dc314cf03fa385990",
+      "current_actual_pass_entries": [
+        {
+          "line": 1187,
+          "text": "test show_without_saved_settings_and_inactive_full_checks_are_read_only ... ok",
+          "cargo_group": {
+            "line": 1182,
+            "text": "Running tests/config_contracts.rs (target/debug/deps/config_contracts-7354b21606fe3b6e)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "40a3514358fe2a754417e8092d735ff96ffad18ebc327e17cf83fe5048254d4f",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 48,
+        "last_line": 78,
+        "fragment_sha256": "a6ac36a9aa50f04b3e6476bb051273e210733d0e338b1f0dc314cf03fa385990",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 8,
+        "current_direct_assertion_count": 8
+      },
+      "current_direct_assertion_macros": 8
+    },
+    "rust/crates/claude-autorouter/tests/config_contracts.rs#set_and_unset_change_only_the_named_saved_value_despite_runtime_overrides": {
+      "file": "rust/crates/claude-autorouter/tests/config_contracts.rs",
+      "file_sha256": "40a3514358fe2a754417e8092d735ff96ffad18ebc327e17cf83fe5048254d4f",
+      "first_line": 81,
+      "last_line": 106,
+      "fragment_sha256": "795b72d93846ad52cde61fb671598aaec884df6eaeb26773ace36bbbd737d404",
+      "current_actual_pass_entries": [
+        {
+          "line": 1186,
+          "text": "test set_and_unset_change_only_the_named_saved_value_despite_runtime_overrides ... ok",
+          "cargo_group": {
+            "line": 1182,
+            "text": "Running tests/config_contracts.rs (target/debug/deps/config_contracts-7354b21606fe3b6e)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "40a3514358fe2a754417e8092d735ff96ffad18ebc327e17cf83fe5048254d4f",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 81,
+        "last_line": 106,
+        "fragment_sha256": "795b72d93846ad52cde61fb671598aaec884df6eaeb26773ace36bbbd737d404",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 4,
+        "current_direct_assertion_count": 4
+      },
+      "current_direct_assertion_macros": 4
+    },
+    "rust/crates/claude-autorouter/tests/config_contracts.rs#secret_argument_stdin_and_hidden_edits_preserve_files_and_never_echo_values": {
+      "file": "rust/crates/claude-autorouter/tests/config_contracts.rs",
+      "file_sha256": "40a3514358fe2a754417e8092d735ff96ffad18ebc327e17cf83fe5048254d4f",
+      "first_line": 109,
+      "last_line": 153,
+      "fragment_sha256": "204030cdbb81b18cc867285fe970f04b9f1f6b76fec6095697a328aa8022d8bd",
+      "current_actual_pass_entries": [
+        {
+          "line": 1188,
+          "text": "test secret_argument_stdin_and_hidden_edits_preserve_files_and_never_echo_values ... ok",
+          "cargo_group": {
+            "line": 1182,
+            "text": "Running tests/config_contracts.rs (target/debug/deps/config_contracts-7354b21606fe3b6e)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "40a3514358fe2a754417e8092d735ff96ffad18ebc327e17cf83fe5048254d4f",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 109,
+        "last_line": 153,
+        "fragment_sha256": "204030cdbb81b18cc867285fe970f04b9f1f6b76fec6095697a328aa8022d8bd",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 13,
+        "current_direct_assertion_count": 13
+      },
+      "current_direct_assertion_macros": 13
+    },
+    "rust/crates/claude-autorouter/tests/config_contracts.rs#every_invalid_edit_preserves_saved_bytes_and_hides_url_or_unknown_key_values": {
+      "file": "rust/crates/claude-autorouter/tests/config_contracts.rs",
+      "file_sha256": "40a3514358fe2a754417e8092d735ff96ffad18ebc327e17cf83fe5048254d4f",
+      "first_line": 156,
+      "last_line": 179,
+      "fragment_sha256": "a9674ee22b0d9426af5454a831518566e0e993e81c912a0fa3545a3d7bc0dd41",
+      "current_actual_pass_entries": [
+        {
+          "line": 1189,
+          "text": "test every_invalid_edit_preserves_saved_bytes_and_hides_url_or_unknown_key_values ... ok",
+          "cargo_group": {
+            "line": 1182,
+            "text": "Running tests/config_contracts.rs (target/debug/deps/config_contracts-7354b21606fe3b6e)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "40a3514358fe2a754417e8092d735ff96ffad18ebc327e17cf83fe5048254d4f",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 156,
+        "last_line": 179,
+        "fragment_sha256": "a9674ee22b0d9426af5454a831518566e0e993e81c912a0fa3545a3d7bc0dd41",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 4,
+        "current_direct_assertion_count": 4
+      },
+      "current_direct_assertion_macros": 4
+    },
+    "rust/crates/claude-autorouter/tests/edge_cases.rs#hidden_secret_cancellation_restores_echo_and_preserves_saved_configuration": {
+      "file": "rust/crates/claude-autorouter/tests/edge_cases.rs",
+      "file_sha256": "c3040f784bec697999f2698181a38699cf08cf755f2a83178fa1acf48d9bc8f9",
+      "first_line": 293,
+      "last_line": 312,
+      "fragment_sha256": "15ad6331079a4249bc5586b48fe76b90493248f7743ccab826d87999035d929a",
+      "current_actual_pass_entries": [
+        {
+          "line": 1199,
+          "text": "test hidden_secret_cancellation_restores_echo_and_preserves_saved_configuration ... ok",
+          "cargo_group": {
+            "line": 1193,
+            "text": "Running tests/edge_cases.rs (target/debug/deps/edge_cases-8e14f67c28aff35a)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "892e425988b01a658e69dc0151f1ea1dfa4e97c354aabd2e9ddf3fbf4e2ce311",
+          "available_via": "existing_git_blob",
+          "git_commit": "1d8ce9e9831f89e0109b36d04a54ffc1903b8e02",
+          "git_blob": "550bdb383fbb48b8e11fbf6cc19f5995da8e7b54"
+        },
+        "first_line": 272,
+        "last_line": 291,
+        "fragment_sha256": "15ad6331079a4249bc5586b48fe76b90493248f7743ccab826d87999035d929a",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 3,
+        "current_direct_assertion_count": 3
+      },
+      "current_direct_assertion_macros": 3
+    },
+    "rust/crates/claude-autorouter/tests/edge_cases.rs#stale_hidden_edit_cannot_replace_a_concurrent_configuration_change": {
+      "file": "rust/crates/claude-autorouter/tests/edge_cases.rs",
+      "file_sha256": "c3040f784bec697999f2698181a38699cf08cf755f2a83178fa1acf48d9bc8f9",
+      "first_line": 315,
+      "last_line": 331,
+      "fragment_sha256": "bc1fb0eb953e2c26a2997ee751297fc63179ee67d5f2efe397960e1bfcaaa8e9",
+      "current_actual_pass_entries": [
+        {
+          "line": 1196,
+          "text": "test stale_hidden_edit_cannot_replace_a_concurrent_configuration_change ... ok",
+          "cargo_group": {
+            "line": 1193,
+            "text": "Running tests/edge_cases.rs (target/debug/deps/edge_cases-8e14f67c28aff35a)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "892e425988b01a658e69dc0151f1ea1dfa4e97c354aabd2e9ddf3fbf4e2ce311",
+          "available_via": "existing_git_blob",
+          "git_commit": "1d8ce9e9831f89e0109b36d04a54ffc1903b8e02",
+          "git_blob": "550bdb383fbb48b8e11fbf6cc19f5995da8e7b54"
+        },
+        "first_line": 294,
+        "last_line": 310,
+        "fragment_sha256": "bc1fb0eb953e2c26a2997ee751297fc63179ee67d5f2efe397960e1bfcaaa8e9",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 3,
+        "current_direct_assertion_count": 3
+      },
+      "current_direct_assertion_macros": 3
+    },
+    "rust/crates/claude-autorouter/tests/commands.rs#invalid_config_show_uses_json_stdout_and_never_echoes_corrupt_secrets": {
+      "file": "rust/crates/claude-autorouter/tests/commands.rs",
+      "file_sha256": "a0072f3e56735f17b54aa24250059d6589bedc6852b3980ed7fb07963bb32af9",
+      "first_line": 297,
+      "last_line": 316,
+      "fragment_sha256": "2970aaa98af8f9133d3ca273e9ef5674872dd30cecde87a6a22697198ab3ca7b",
+      "current_actual_pass_entries": [
+        {
+          "line": 1164,
+          "text": "test invalid_config_show_uses_json_stdout_and_never_echoes_corrupt_secrets ... ok",
+          "cargo_group": {
+            "line": 1159,
+            "text": "Running tests/commands.rs (target/debug/deps/commands-ac935c2847e7baab)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "a0072f3e56735f17b54aa24250059d6589bedc6852b3980ed7fb07963bb32af9",
+          "available_via": "declared_review_source_commit_git_file",
+          "git_commit": "8e94a9b43f40b134d65cc3dadc399e993c69d217",
+          "not_an_old_worktree_file_hash_claim": true
+        },
+        "first_line": 297,
+        "last_line": 316,
+        "fragment_sha256": "2970aaa98af8f9133d3ca273e9ef5674872dd30cecde87a6a22697198ab3ca7b",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 4,
+        "current_direct_assertion_count": 4
+      },
+      "current_direct_assertion_macros": 4
+    },
+    "rust/crates/claude-autorouter/tests/edge_cases.rs#hidden_secret_uses_raw_editing_and_restores_terminal_before_exit": {
+      "file": "rust/crates/claude-autorouter/tests/edge_cases.rs",
+      "file_sha256": "c3040f784bec697999f2698181a38699cf08cf755f2a83178fa1acf48d9bc8f9",
+      "first_line": 263,
+      "last_line": 290,
+      "fragment_sha256": "32aab597bcc53522f855763389dd55119364af4d73571f3cb55d4440033d729a",
+      "current_actual_pass_entries": [
+        {
+          "line": 1201,
+          "text": "test hidden_secret_uses_raw_editing_and_restores_terminal_before_exit ... ok",
+          "cargo_group": {
+            "line": 1193,
+            "text": "Running tests/edge_cases.rs (target/debug/deps/edge_cases-8e14f67c28aff35a)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "892e425988b01a658e69dc0151f1ea1dfa4e97c354aabd2e9ddf3fbf4e2ce311",
+          "available_via": "existing_git_blob",
+          "git_commit": "1d8ce9e9831f89e0109b36d04a54ffc1903b8e02",
+          "git_blob": "550bdb383fbb48b8e11fbf6cc19f5995da8e7b54"
+        },
+        "first_line": 242,
+        "last_line": 269,
+        "fragment_sha256": "32aab597bcc53522f855763389dd55119364af4d73571f3cb55d4440033d729a",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 2,
+        "current_direct_assertion_count": 2
+      },
+      "current_direct_assertion_macros": 2
+    },
+    "rust/crates/claude-autorouter/src/secret_input.rs#prompt_writer_observes_hidden_terminal_before_inviting_secret_input": {
+      "file": "rust/crates/claude-autorouter/src/secret_input.rs",
+      "file_sha256": "51c15a60f3d215421569c7093659a7dfe61f70db60897a267de1a902f2cb366e",
+      "first_line": 237,
+      "last_line": 306,
+      "fragment_sha256": "98680f2e0a851132f228ecada50f83e4b0db7956902952a78ebea753c523d2db",
+      "current_actual_pass_entries": [
+        {
+          "line": 1142,
+          "text": "test secret_input::tests::prompt_writer_observes_hidden_terminal_before_inviting_secret_input ... ok",
+          "cargo_group": {
+            "line": 1119,
+            "text": "Running unittests src/main.rs (target/debug/deps/claude_autorouter-34a86b9742798207)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "7bcfc226fc4b56b5c312a038334ec573e403dc559779828c383bf6d33235ba2f",
+          "available_via": "existing_git_blob",
+          "git_commit": "1d8ce9e9831f89e0109b36d04a54ffc1903b8e02",
+          "git_blob": "1993b59f5970f92bf1b86018e710db7b9a31d56e"
+        },
+        "mapped_function_present_in_historical_file": false,
+        "scope": "New supplemental/current function: no claim it existed in historical reviewed file; use its separately retained current mapping and pass."
+      },
+      "current_direct_assertion_macros": 9
+    },
+    "rust/crates/claude-autorouter/src/secret_input.rs#invitation_panic_restores_terminal_and_descriptor_flags": {
+      "file": "rust/crates/claude-autorouter/src/secret_input.rs",
+      "file_sha256": "51c15a60f3d215421569c7093659a7dfe61f70db60897a267de1a902f2cb366e",
+      "first_line": 309,
+      "last_line": 336,
+      "fragment_sha256": "4428dbbdfd1b0cfb6be9309de0236b62ef3c7abd2d932274851da9c788a650e3",
+      "current_actual_pass_entries": [
+        {
+          "line": 1141,
+          "text": "test secret_input::tests::invitation_panic_restores_terminal_and_descriptor_flags ... ok",
+          "cargo_group": {
+            "line": 1119,
+            "text": "Running unittests src/main.rs (target/debug/deps/claude_autorouter-34a86b9742798207)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "7bcfc226fc4b56b5c312a038334ec573e403dc559779828c383bf6d33235ba2f",
+          "available_via": "existing_git_blob",
+          "git_commit": "1d8ce9e9831f89e0109b36d04a54ffc1903b8e02",
+          "git_blob": "1993b59f5970f92bf1b86018e710db7b9a31d56e"
+        },
+        "mapped_function_present_in_historical_file": false,
+        "scope": "New supplemental/current function: no claim it existed in historical reviewed file; use its separately retained current mapping and pass."
+      },
+      "current_direct_assertion_macros": 7
+    },
+    "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#relevant_keys_only_default_subscription_and_forced_api_mode_match_saved_maps": {
+      "file": "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs",
+      "file_sha256": "ad44e315251b2d2b60090860fafc7b2fff299658b0d68b8b9e8236a10e12790d",
+      "first_line": 155,
+      "last_line": 184,
+      "fragment_sha256": "a5d74b74bc1fd156fc114723b057686ad784acbafd489a62c9e23690db25f257",
+      "current_actual_pass_entries": [
+        {
+          "line": 1132,
+          "text": "test onboarding::contract_tests::relevant_keys_only_default_subscription_and_forced_api_mode_match_saved_maps ... ok",
+          "cargo_group": {
+            "line": 1119,
+            "text": "Running unittests src/main.rs (target/debug/deps/claude_autorouter-34a86b9742798207)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "ad44e315251b2d2b60090860fafc7b2fff299658b0d68b8b9e8236a10e12790d",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 155,
+        "last_line": 184,
+        "fragment_sha256": "a5d74b74bc1fd156fc114723b057686ad784acbafd489a62c9e23690db25f257",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 5,
+        "current_direct_assertion_count": 5
+      },
+      "current_direct_assertion_macros": 5
+    },
+    "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#all_profile_cli_precedence_cases_preserve_parent_permission_environment": {
+      "file": "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs",
+      "file_sha256": "ad44e315251b2d2b60090860fafc7b2fff299658b0d68b8b9e8236a10e12790d",
+      "first_line": 187,
+      "last_line": 222,
+      "fragment_sha256": "3440f1c91829cbd8f29ae0fbff7e99fbb8548237105d5c3177325fae075bdb42",
+      "current_actual_pass_entries": [
+        {
+          "line": 1146,
+          "text": "test onboarding::contract_tests::all_profile_cli_precedence_cases_preserve_parent_permission_environment ... ok",
+          "cargo_group": {
+            "line": 1119,
+            "text": "Running unittests src/main.rs (target/debug/deps/claude_autorouter-34a86b9742798207)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "ad44e315251b2d2b60090860fafc7b2fff299658b0d68b8b9e8236a10e12790d",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 187,
+        "last_line": 222,
+        "fragment_sha256": "3440f1c91829cbd8f29ae0fbff7e99fbb8548237105d5c3177325fae075bdb42",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 5,
+        "current_direct_assertion_count": 5
+      },
+      "current_direct_assertion_macros": 5
+    },
+    "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#every_invalid_profile_is_rejected_before_secret_input_or_persistence": {
+      "file": "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs",
+      "file_sha256": "ad44e315251b2d2b60090860fafc7b2fff299658b0d68b8b9e8236a10e12790d",
+      "first_line": 268,
+      "last_line": 296,
+      "fragment_sha256": "9b3e0e682bcf77a4c5d3b0886a3d418201dbf82ae10bb22cc1bbb479e3723c65",
+      "current_actual_pass_entries": [
+        {
+          "line": 1123,
+          "text": "test onboarding::contract_tests::every_invalid_profile_is_rejected_before_secret_input_or_persistence ... ok",
+          "cargo_group": {
+            "line": 1119,
+            "text": "Running unittests src/main.rs (target/debug/deps/claude_autorouter-34a86b9742798207)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "ad44e315251b2d2b60090860fafc7b2fff299658b0d68b8b9e8236a10e12790d",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 268,
+        "last_line": 296,
+        "fragment_sha256": "9b3e0e682bcf77a4c5d3b0886a3d418201dbf82ae10bb22cc1bbb479e3723c65",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 4,
+        "current_direct_assertion_count": 4
+      },
+      "current_direct_assertion_macros": 4
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#jev_auto_doctor_reports_routing_profile_without_permission_eligibility_claims": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 999,
+      "last_line": 1026,
+      "fragment_sha256": "08d09a28be155d18c2ff5b30736cb516ac16ae029512e85a24479617ac81fe28",
+      "current_actual_pass_entries": [
+        {
+          "line": 1256,
+          "text": "test jev_auto_doctor_reports_routing_profile_without_permission_eligibility_claims ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 999,
+        "last_line": 1026,
+        "fragment_sha256": "08d09a28be155d18c2ff5b30736cb516ac16ae029512e85a24479617ac81fe28",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 6,
+        "current_direct_assertion_count": 6
+      },
+      "current_direct_assertion_macros": 6
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#logging_setup_resolves_cli_directory_and_disables_without_creating_history": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 1121,
+      "last_line": 1203,
+      "fragment_sha256": "338ff4db3b1870b8b3d292cbf9f28cd2143aac6e02e1efb5f7db735939a9e3bb",
+      "current_actual_pass_entries": [
+        {
+          "line": 1259,
+          "text": "test logging_setup_resolves_cli_directory_and_disables_without_creating_history ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 1121,
+        "last_line": 1203,
+        "fragment_sha256": "338ff4db3b1870b8b3d292cbf9f28cd2143aac6e02e1efb5f7db735939a9e3bb",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 21,
+        "current_direct_assertion_count": 21
+      },
+      "current_direct_assertion_macros": 21
+    },
+    "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#invalid_log_directory_arguments_and_nul_environment_fail_before_secret_input": {
+      "file": "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs",
+      "file_sha256": "ad44e315251b2d2b60090860fafc7b2fff299658b0d68b8b9e8236a10e12790d",
+      "first_line": 299,
+      "last_line": 318,
+      "fragment_sha256": "8b24a48cf3e3723a56da11710fc33d6adbe6cbad105a9ddbf9ad973c657a37b0",
+      "current_actual_pass_entries": [
+        {
+          "line": 1122,
+          "text": "test onboarding::contract_tests::invalid_log_directory_arguments_and_nul_environment_fail_before_secret_input ... ok",
+          "cargo_group": {
+            "line": 1119,
+            "text": "Running unittests src/main.rs (target/debug/deps/claude_autorouter-34a86b9742798207)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "ad44e315251b2d2b60090860fafc7b2fff299658b0d68b8b9e8236a10e12790d",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 299,
+        "last_line": 318,
+        "fragment_sha256": "8b24a48cf3e3723a56da11710fc33d6adbe6cbad105a9ddbf9ad973c657a37b0",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 4,
+        "current_direct_assertion_count": 4
+      },
+      "current_direct_assertion_macros": 4
+    },
+    "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#metadata_mode_updates_only_that_setting_without_enabling_a_log_directory": {
+      "file": "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs",
+      "file_sha256": "ad44e315251b2d2b60090860fafc7b2fff299658b0d68b8b9e8236a10e12790d",
+      "first_line": 225,
+      "last_line": 260,
+      "fragment_sha256": "4533f28d27e669262ac26a3618a590c466f325b8b0575bae75c7ca3613ada62c",
+      "current_actual_pass_entries": [
+        {
+          "line": 1131,
+          "text": "test onboarding::contract_tests::metadata_mode_updates_only_that_setting_without_enabling_a_log_directory ... ok",
+          "cargo_group": {
+            "line": 1119,
+            "text": "Running unittests src/main.rs (target/debug/deps/claude_autorouter-34a86b9742798207)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "ad44e315251b2d2b60090860fafc7b2fff299658b0d68b8b9e8236a10e12790d",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 225,
+        "last_line": 260,
+        "fragment_sha256": "4533f28d27e669262ac26a3618a590c466f325b8b0575bae75c7ca3613ada62c",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 4,
+        "current_direct_assertion_count": 4
+      },
+      "current_direct_assertion_macros": 4
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#setup_missing_keys_prompt_in_order_and_reject_blank_cancelled_or_nonterminal_input": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 1206,
+      "last_line": 1255,
+      "fragment_sha256": "05ebd4616c68bb4b8d6c1d0cfd3056a6a552c8b73f99588306be67fd449a5df8",
+      "current_actual_pass_entries": [
+        {
+          "line": 1252,
+          "text": "test setup_missing_keys_prompt_in_order_and_reject_blank_cancelled_or_nonterminal_input ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 1206,
+        "last_line": 1255,
+        "fragment_sha256": "05ebd4616c68bb4b8d6c1d0cfd3056a6a552c8b73f99588306be67fd449a5df8",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 18,
+        "current_direct_assertion_count": 18
+      },
+      "current_direct_assertion_macros": 18
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#saved_subscription_doctor_scrubs_all_credentials_and_uses_the_exact_auth_sequence": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 1029,
+      "last_line": 1061,
+      "fragment_sha256": "6032033c0fff8deecebf36b0be316d64e21070fe56971abc7a6f2980875f7679",
+      "current_actual_pass_entries": [
+        {
+          "line": 1261,
+          "text": "test saved_subscription_doctor_scrubs_all_credentials_and_uses_the_exact_auth_sequence ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 1029,
+        "last_line": 1061,
+        "fragment_sha256": "6032033c0fff8deecebf36b0be316d64e21070fe56971abc7a6f2980875f7679",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 4,
+        "current_direct_assertion_count": 4
+      },
+      "current_direct_assertion_macros": 4
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#doctor_missing_login_provider_conflicts_and_child_errors_fail_without_private_diagnostics": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 1064,
+      "last_line": 1098,
+      "fragment_sha256": "1e84d92bb4719bfa177f612c4969faa6cc9776f69e86f13e3fe41ce3e19a21bc",
+      "current_actual_pass_entries": [
+        {
+          "line": 1254,
+          "text": "test doctor_missing_login_provider_conflicts_and_child_errors_fail_without_private_diagnostics ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 1064,
+        "last_line": 1098,
+        "fragment_sha256": "1e84d92bb4719bfa177f612c4969faa6cc9776f69e86f13e3fe41ce3e19a21bc",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 8,
+        "current_direct_assertion_count": 8
+      },
+      "current_direct_assertion_macros": 8
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#environment_only_api_doctor_checks_only_claude_version_and_never_creates_config": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 1101,
+      "last_line": 1118,
+      "fragment_sha256": "4644edc18abc82aa46b72028669e6752a6f84d2e28c6e609239e270f67efdf99",
+      "current_actual_pass_entries": [
+        {
+          "line": 1245,
+          "text": "test environment_only_api_doctor_checks_only_claude_version_and_never_creates_config ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 1101,
+        "last_line": 1118,
+        "fragment_sha256": "4644edc18abc82aa46b72028669e6752a6f84d2e28c6e609239e270f67efdf99",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 5,
+        "current_direct_assertion_count": 5
+      },
+      "current_direct_assertion_macros": 5
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#stop_cap_cli_precedence_normalization_and_doctor_overrides_work_for_both_evaluators": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 836,
+      "last_line": 918,
+      "fragment_sha256": "38e031dc1f15037ddd05f095102eb258d94b914092a7bd6dd9492866ad04fc2e",
+      "current_actual_pass_entries": [
+        {
+          "line": 1263,
+          "text": "test stop_cap_cli_precedence_normalization_and_doctor_overrides_work_for_both_evaluators ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 836,
+        "last_line": 918,
+        "fragment_sha256": "38e031dc1f15037ddd05f095102eb258d94b914092a7bd6dd9492866ad04fc2e",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 13,
+        "current_direct_assertion_count": 13
+      },
+      "current_direct_assertion_macros": 13
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#invalid_stop_cap_admission_matrix_rejects_before_prompts_network_or_persistence": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 729,
+      "last_line": 833,
+      "fragment_sha256": "dbc30906cc4fd73bcc9666a5c37b831a9c5c0754c677a781ef4bbe945001df01",
+      "current_actual_pass_entries": [
+        {
+          "line": 1248,
+          "text": "test invalid_stop_cap_admission_matrix_rejects_before_prompts_network_or_persistence ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 729,
+        "last_line": 833,
+        "fragment_sha256": "dbc30906cc4fd73bcc9666a5c37b831a9c5c0754c677a781ef4bbe945001df01",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 11,
+        "current_direct_assertion_count": 11
+      },
+      "current_direct_assertion_macros": 11
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#stop_cap_doctor_reports_absent_saved_and_runtime_values_without_inference": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 921,
+      "last_line": 960,
+      "fragment_sha256": "4e1fcbd31d161e9ff371a08f3fb4300f94ec285f7f2688e73d61db03f2691be6",
+      "current_actual_pass_entries": [
+        {
+          "line": 1262,
+          "text": "test stop_cap_doctor_reports_absent_saved_and_runtime_values_without_inference ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 921,
+        "last_line": 960,
+        "fragment_sha256": "4e1fcbd31d161e9ff371a08f3fb4300f94ec285f7f2688e73d61db03f2691be6",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 6,
+        "current_direct_assertion_count": 6
+      },
+      "current_direct_assertion_macros": 6
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#ollama_subscription_setup_preloads_before_saving_and_doctor_is_read_only": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 316,
+      "last_line": 377,
+      "fragment_sha256": "ff452b5667cf71315c5c913a47353f233c6396265992ce8ddad53e5a95b76131",
+      "current_actual_pass_entries": [
+        {
+          "line": 1260,
+          "text": "test ollama_subscription_setup_preloads_before_saving_and_doctor_is_read_only ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 316,
+        "last_line": 377,
+        "fragment_sha256": "ff452b5667cf71315c5c913a47353f233c6396265992ce8ddad53e5a95b76131",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 24,
+        "current_direct_assertion_count": 24
+      },
+      "current_direct_assertion_macros": 24
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#ollama_api_setup_prompts_only_anthropic_preserves_keepalive_and_accepts_custom_model": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 379,
+      "last_line": 430,
+      "fragment_sha256": "f3cf8c64d85467f28ba70f271d367939bc4fd2871cf796049791acd46ded4688",
+      "current_actual_pass_entries": [
+        {
+          "line": 1249,
+          "text": "test ollama_api_setup_prompts_only_anthropic_preserves_keepalive_and_accepts_custom_model ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 379,
+        "last_line": 430,
+        "fragment_sha256": "f3cf8c64d85467f28ba70f271d367939bc4fd2871cf796049791acd46ded4688",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 12,
+        "current_direct_assertion_count": 12
+      },
+      "current_direct_assertion_macros": 12
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#forced_model_deadlines_and_doctor_runtime_overrides_preserve_saved_values": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 432,
+      "last_line": 511,
+      "fragment_sha256": "95333c8bcb1966c416cf3e3a15c523bc5d8af7aac6ee1293b497093cdea97ba3",
+      "current_actual_pass_entries": [
+        {
+          "line": 1258,
+          "text": "test forced_model_deadlines_and_doctor_runtime_overrides_preserve_saved_values ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 432,
+        "last_line": 511,
+        "fragment_sha256": "95333c8bcb1966c416cf3e3a15c523bc5d8af7aac6ee1293b497093cdea97ba3",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 12,
+        "current_direct_assertion_count": 12
+      },
+      "current_direct_assertion_macros": 12
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#explicit_zero_deadline_overrides_environment_and_doctor_never_warms": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 513,
+      "last_line": 575,
+      "fragment_sha256": "a8cbe28c10e91a0fbb058968c2ca64112bee3dd5aa6969acaa0c145ccec89d9f",
+      "current_actual_pass_entries": [
+        {
+          "line": 1255,
+          "text": "test explicit_zero_deadline_overrides_environment_and_doctor_never_warms ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 513,
+        "last_line": 575,
+        "fragment_sha256": "a8cbe28c10e91a0fbb058968c2ca64112bee3dd5aa6969acaa0c145ccec89d9f",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 9,
+        "current_direct_assertion_count": 9
+      },
+      "current_direct_assertion_macros": 9
+    },
+    "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#all_invalid_local_deadline_values_and_jev_option_fail_before_input": {
+      "file": "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs",
+      "file_sha256": "ad44e315251b2d2b60090860fafc7b2fff299658b0d68b8b9e8236a10e12790d",
+      "first_line": 321,
+      "last_line": 353,
+      "fragment_sha256": "e06d73b1273b47ddbfd5ab0f32d0001b40fe765de80f3734b0d7ceb757fa6552",
+      "current_actual_pass_entries": [
+        {
+          "line": 1124,
+          "text": "test onboarding::contract_tests::all_invalid_local_deadline_values_and_jev_option_fail_before_input ... ok",
+          "cargo_group": {
+            "line": 1119,
+            "text": "Running unittests src/main.rs (target/debug/deps/claude_autorouter-34a86b9742798207)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "ad44e315251b2d2b60090860fafc7b2fff299658b0d68b8b9e8236a10e12790d",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 321,
+        "last_line": 353,
+        "fragment_sha256": "e06d73b1273b47ddbfd5ab0f32d0001b40fe765de80f3734b0d7ceb757fa6552",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 4,
+        "current_direct_assertion_count": 4
+      },
+      "current_direct_assertion_macros": 4
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#failed_ollama_setup_and_custom_model_repair_leave_existing_configuration_intact": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 577,
+      "last_line": 629,
+      "fragment_sha256": "b2b400796f60a2339bede406ca7aac01b7ee1537d3efb5abc40a3044acb7538d",
+      "current_actual_pass_entries": [
+        {
+          "line": 1257,
+          "text": "test failed_ollama_setup_and_custom_model_repair_leave_existing_configuration_intact ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 577,
+        "last_line": 629,
+        "fragment_sha256": "b2b400796f60a2339bede406ca7aac01b7ee1537d3efb5abc40a3044acb7538d",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 15,
+        "current_direct_assertion_count": 15
+      },
+      "current_direct_assertion_macros": 15
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#environment_only_ollama_doctor_checks_availability_without_warming_or_creating_config": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 963,
+      "last_line": 996,
+      "fragment_sha256": "2e3573f7780c40d0a6424acc7e93a00a95fd35192c314dfb71266454d1d77328",
+      "current_actual_pass_entries": [
+        {
+          "line": 1253,
+          "text": "test environment_only_ollama_doctor_checks_availability_without_warming_or_creating_config ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 963,
+        "last_line": 996,
+        "fragment_sha256": "2e3573f7780c40d0a6424acc7e93a00a95fd35192c314dfb71266454d1d77328",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 14,
+        "current_direct_assertion_count": 14
+      },
+      "current_direct_assertion_macros": 14
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#forced_ollama_updates_keep_all_unrelated_saved_settings_and_runtime_overrides_ephemeral": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 631,
+      "last_line": 680,
+      "fragment_sha256": "79421e85586dfa877e471f0b6f028c7b93449b2795407c6d791bf7d96bf70573",
+      "current_actual_pass_entries": [
+        {
+          "line": 1243,
+          "text": "test forced_ollama_updates_keep_all_unrelated_saved_settings_and_runtime_overrides_ephemeral ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 631,
+        "last_line": 680,
+        "fragment_sha256": "79421e85586dfa877e471f0b6f028c7b93449b2795407c6d791bf7d96bf70573",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 8,
+        "current_direct_assertion_count": 8
+      },
+      "current_direct_assertion_macros": 8
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#explicitly_selected_backend_and_auth_use_environment_values_without_overwriting_unrelated_preferences": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 682,
+      "last_line": 727,
+      "fragment_sha256": "1957878f381733c0bbff92aba6c3e35eda5949a350851431b5107bf646a6df7c",
+      "current_actual_pass_entries": [
+        {
+          "line": 1242,
+          "text": "test explicitly_selected_backend_and_auth_use_environment_values_without_overwriting_unrelated_preferences ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 682,
+        "last_line": 727,
+        "fragment_sha256": "1957878f381733c0bbff92aba6c3e35eda5949a350851431b5107bf646a6df7c",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 7,
+        "current_direct_assertion_count": 7
+      },
+      "current_direct_assertion_macros": 7
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#replacement_discards_old_backend_auth_preferences_and_prompts_only_for_jev": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 1258,
+      "last_line": 1301,
+      "fragment_sha256": "813a1283b2d3262ed25ecb740de406cdd61357a25f6973c3c5219124a636778c",
+      "current_actual_pass_entries": [
+        {
+          "line": 1250,
+          "text": "test replacement_discards_old_backend_auth_preferences_and_prompts_only_for_jev ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 1258,
+        "last_line": 1301,
+        "fragment_sha256": "813a1283b2d3262ed25ecb740de406cdd61357a25f6973c3c5219124a636778c",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 8,
+        "current_direct_assertion_count": 8
+      },
+      "current_direct_assertion_macros": 8
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#invalid_setup_settings_fail_before_keys_and_cancelled_replacement_preserves_bytes": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 1304,
+      "last_line": 1345,
+      "fragment_sha256": "b3fad5c4a8ddc7d8a69f2ffd153026a1f8dc188867b15a2c0fef626a910a9a51",
+      "current_actual_pass_entries": [
+        {
+          "line": 1241,
+          "text": "test invalid_setup_settings_fail_before_keys_and_cancelled_replacement_preserves_bytes ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 1304,
+        "last_line": 1345,
+        "fragment_sha256": "b3fad5c4a8ddc7d8a69f2ffd153026a1f8dc188867b15a2c0fef626a910a9a51",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 14,
+        "current_direct_assertion_count": 14
+      },
+      "current_direct_assertion_macros": 14
+    },
+    "rust/crates/autorouter-runtime/src/local_diagnostic.rs#synthetic_diagnostic_separates_labels_from_transport_and_task_claims": {
+      "file": "rust/crates/autorouter-runtime/src/local_diagnostic.rs",
+      "file_sha256": "503dd0117488b7700087a4f39202d58c2a8c9f7e8c4f74c29cc2880b4d2759ea",
+      "first_line": 614,
+      "last_line": 662,
+      "fragment_sha256": "1b9917a2989becf979e4c0df833347b56c388d305cc0d9d7216014e5b798f17e",
+      "current_actual_pass_entries": [
+        {
+          "line": 367,
+          "text": "test local_diagnostic::tests::synthetic_diagnostic_separates_labels_from_transport_and_task_claims ... ok",
+          "cargo_group": {
+            "line": 277,
+            "text": "Running unittests src/lib.rs (target/debug/deps/autorouter_runtime-39ef58590bc6daef)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "0fe832e9debde2798fc76fa15df9f381d6fbd59127fc36f973d87c1c6d9b973e",
+          "available_via": "declared_review_source_commit_git_file",
+          "git_commit": "8e94a9b43f40b134d65cc3dadc399e993c69d217",
+          "not_an_old_worktree_file_hash_claim": true
+        },
+        "first_line": 604,
+        "last_line": 652,
+        "fragment_sha256": "1b9917a2989becf979e4c0df833347b56c388d305cc0d9d7216014e5b798f17e",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 11,
+        "current_direct_assertion_count": 11
+      },
+      "current_direct_assertion_macros": 11
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#local_diagnostic_cli_bypasses_cloud_keys_and_claude_auth_and_emits_one_json_record": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 65,
+      "last_line": 144,
+      "fragment_sha256": "a5cc2b1afcd50b26d53ee39510ada4b4fc6ddbe90cbe66167791bd3216f5de5b",
+      "current_actual_pass_entries": [
+        {
+          "line": 1244,
+          "text": "test local_diagnostic_cli_bypasses_cloud_keys_and_claude_auth_and_emits_one_json_record ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 65,
+        "last_line": 144,
+        "fragment_sha256": "a5cc2b1afcd50b26d53ee39510ada4b4fc6ddbe90cbe66167791bd3216f5de5b",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 18,
+        "current_direct_assertion_count": 18
+      },
+      "current_direct_assertion_macros": 18
+    },
+    "rust/crates/autorouter-runtime/src/local_diagnostic.rs#invalid_settings_and_early_cancellation_do_not_perform_io": {
+      "file": "rust/crates/autorouter-runtime/src/local_diagnostic.rs",
+      "file_sha256": "503dd0117488b7700087a4f39202d58c2a8c9f7e8c4f74c29cc2880b4d2759ea",
+      "first_line": 779,
+      "last_line": 811,
+      "fragment_sha256": "c5b78466764743f52d694a83e043212184dc7cd17cf571e1249006489f587d72",
+      "current_actual_pass_entries": [
+        {
+          "line": 333,
+          "text": "test local_diagnostic::tests::invalid_settings_and_early_cancellation_do_not_perform_io ... ok",
+          "cargo_group": {
+            "line": 277,
+            "text": "Running unittests src/lib.rs (target/debug/deps/autorouter_runtime-39ef58590bc6daef)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "0fe832e9debde2798fc76fa15df9f381d6fbd59127fc36f973d87c1c6d9b973e",
+          "available_via": "declared_review_source_commit_git_file",
+          "git_commit": "8e94a9b43f40b134d65cc3dadc399e993c69d217",
+          "not_an_old_worktree_file_hash_claim": true
+        },
+        "first_line": 769,
+        "last_line": 801,
+        "fragment_sha256": "c5b78466764743f52d694a83e043212184dc7cd17cf571e1249006489f587d72",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 5,
+        "current_direct_assertion_count": 5
+      },
+      "current_direct_assertion_macros": 5
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#local_diagnostic_cli_rejects_jev_without_io_or_claude_authentication": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 147,
+      "last_line": 177,
+      "fragment_sha256": "d278c1769d1f1a904ec22ab7129d2875f1cde989c3a68203c084679e2b89bc95",
+      "current_actual_pass_entries": [
+        {
+          "line": 1246,
+          "text": "test local_diagnostic_cli_rejects_jev_without_io_or_claude_authentication ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 147,
+        "last_line": 177,
+        "fragment_sha256": "d278c1769d1f1a904ec22ab7129d2875f1cde989c3a68203c084679e2b89bc95",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 7,
+        "current_direct_assertion_count": 7
+      },
+      "current_direct_assertion_macros": 7
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#local_diagnostic_cli_cancellation_after_request_closes_transport_without_a_report": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 180,
+      "last_line": 239,
+      "fragment_sha256": "5e624775c458cdd471c0354a8c06ca51930fa296aa0dc3ad0cd92ac594145a85",
+      "current_actual_pass_entries": [
+        {
+          "line": 1247,
+          "text": "test local_diagnostic_cli_cancellation_after_request_closes_transport_without_a_report ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 180,
+        "last_line": 239,
+        "fragment_sha256": "5e624775c458cdd471c0354a8c06ca51930fa296aa0dc3ad0cd92ac594145a85",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 8,
+        "current_direct_assertion_count": 8
+      },
+      "current_direct_assertion_macros": 8
+    },
+    "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs#pre_cancelled_setup_performs_no_keychain_input_output_or_file_access": {
+      "file": "rust/crates/claude-autorouter/src/onboarding_contract_tests.rs",
+      "file_sha256": "ad44e315251b2d2b60090860fafc7b2fff299658b0d68b8b9e8236a10e12790d",
+      "first_line": 356,
+      "last_line": 376,
+      "fragment_sha256": "de4fb3cade74a33d90f0b13e6b998ec41aead83135b0aeb49b6fe27fbfaa4cc8",
+      "current_actual_pass_entries": [
+        {
+          "line": 1129,
+          "text": "test onboarding::contract_tests::pre_cancelled_setup_performs_no_keychain_input_output_or_file_access ... ok",
+          "cargo_group": {
+            "line": 1119,
+            "text": "Running unittests src/main.rs (target/debug/deps/claude_autorouter-34a86b9742798207)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "ad44e315251b2d2b60090860fafc7b2fff299658b0d68b8b9e8236a10e12790d",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 356,
+        "last_line": 376,
+        "fragment_sha256": "de4fb3cade74a33d90f0b13e6b998ec41aead83135b0aeb49b6fe27fbfaa4cc8",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 5,
+        "current_direct_assertion_count": 5
+      },
+      "current_direct_assertion_macros": 5
+    },
+    "rust/crates/claude-autorouter/tests/onboarding_local.rs#default_ollama_failure_saves_nothing_and_only_implicit_selection_suggests_jev": {
+      "file": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+      "file_sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+      "first_line": 1348,
+      "last_line": 1372,
+      "fragment_sha256": "0c29ca23d106c8a2ecd30abf454d25354eec8bac2a8af3f69e62c67dae2ddce6",
+      "current_actual_pass_entries": [
+        {
+          "line": 1240,
+          "text": "test default_ollama_failure_saves_nothing_and_only_implicit_selection_suggests_jev ... ok",
+          "cargo_group": {
+            "line": 1237,
+            "text": "Running tests/onboarding_local.rs (target/debug/deps/onboarding_local-e17013bad319d7b6)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "1fa429dd56f1c4f242be12f3bbe413875245bdfb567b04420081321a698dcfe1",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 1348,
+        "last_line": 1372,
+        "fragment_sha256": "0c29ca23d106c8a2ecd30abf454d25354eec8bac2a8af3f69e62c67dae2ddce6",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 9,
+        "current_direct_assertion_count": 9
+      },
+      "current_direct_assertion_macros": 9
+    },
+    "rust/crates/claude-autorouter/tests/launcher_logging.rs#opt_in_launcher_logs_private_sessions_and_drains_final_outcomes_before_child_exit": {
+      "file": "rust/crates/claude-autorouter/tests/launcher_logging.rs",
+      "file_sha256": "81cc049f5f713ae2413da950af812a59e1c1c08db9f0b5acea3dce41905d80dc",
+      "first_line": 177,
+      "last_line": 309,
+      "fragment_sha256": "f00dc8c60ce4f40d31fcb4ac204687b449b8d80a3e5e440b20cc41ebb5b3e25d",
+      "current_actual_pass_entries": [
+        {
+          "line": 1233,
+          "text": "test opt_in_launcher_logs_private_sessions_and_drains_final_outcomes_before_child_exit ... ok",
+          "cargo_group": {
+            "line": 1226,
+            "text": "Running tests/launcher_logging.rs (target/debug/deps/launcher_logging-b0fb84a4b0e39e84)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "81cc049f5f713ae2413da950af812a59e1c1c08db9f0b5acea3dce41905d80dc",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 177,
+        "last_line": 309,
+        "fragment_sha256": "f00dc8c60ce4f40d31fcb4ac204687b449b8d80a3e5e440b20cc41ebb5b3e25d",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 39,
+        "current_direct_assertion_count": 39
+      },
+      "current_direct_assertion_macros": 39
+    },
+    "rust/crates/claude-autorouter/tests/launcher_logging.rs#metadata_launcher_history_keeps_correlated_events_without_any_excerpt_fields": {
+      "file": "rust/crates/claude-autorouter/tests/launcher_logging.rs",
+      "file_sha256": "81cc049f5f713ae2413da950af812a59e1c1c08db9f0b5acea3dce41905d80dc",
+      "first_line": 311,
+      "last_line": 331,
+      "fragment_sha256": "15cca8d186eb8503ce6425cfec9175fa482026fb632e14a1c72ff0fb46dd8843",
+      "current_actual_pass_entries": [
+        {
+          "line": 1230,
+          "text": "test metadata_launcher_history_keeps_correlated_events_without_any_excerpt_fields ... ok",
+          "cargo_group": {
+            "line": 1226,
+            "text": "Running tests/launcher_logging.rs (target/debug/deps/launcher_logging-b0fb84a4b0e39e84)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "81cc049f5f713ae2413da950af812a59e1c1c08db9f0b5acea3dce41905d80dc",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 311,
+        "last_line": 331,
+        "fragment_sha256": "15cca8d186eb8503ce6425cfec9175fa482026fb632e14a1c72ff0fb46dd8843",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 4,
+        "current_direct_assertion_count": 4
+      },
+      "current_direct_assertion_macros": 4
+    },
+    "rust/crates/claude-autorouter/tests/launcher_logging.rs#unset_logging_and_empty_override_create_no_history_files": {
+      "file": "rust/crates/claude-autorouter/tests/launcher_logging.rs",
+      "file_sha256": "81cc049f5f713ae2413da950af812a59e1c1c08db9f0b5acea3dce41905d80dc",
+      "first_line": 333,
+      "last_line": 355,
+      "fragment_sha256": "106a8fde58728593407f85e22274b6683d9ed05549006f05e4c539f527ea3e7a",
+      "current_actual_pass_entries": [
+        {
+          "line": 1229,
+          "text": "test unset_logging_and_empty_override_create_no_history_files ... ok",
+          "cargo_group": {
+            "line": 1226,
+            "text": "Running tests/launcher_logging.rs (target/debug/deps/launcher_logging-b0fb84a4b0e39e84)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "81cc049f5f713ae2413da950af812a59e1c1c08db9f0b5acea3dce41905d80dc",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 333,
+        "last_line": 355,
+        "fragment_sha256": "106a8fde58728593407f85e22274b6683d9ed05549006f05e4c539f527ea3e7a",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 5,
+        "current_direct_assertion_count": 5
+      },
+      "current_direct_assertion_macros": 5
+    },
+    "rust/crates/claude-autorouter/tests/launcher_logging.rs#unavailable_logging_warns_once_preserves_existing_file_and_keeps_forwarding": {
+      "file": "rust/crates/claude-autorouter/tests/launcher_logging.rs",
+      "file_sha256": "81cc049f5f713ae2413da950af812a59e1c1c08db9f0b5acea3dce41905d80dc",
+      "first_line": 357,
+      "last_line": 374,
+      "fragment_sha256": "d0950c095bce3c537b89e5c9af8d8903ae840bf9a7766b6caf99b04313336b73",
+      "current_actual_pass_entries": [
+        {
+          "line": 1231,
+          "text": "test unavailable_logging_warns_once_preserves_existing_file_and_keeps_forwarding ... ok",
+          "cargo_group": {
+            "line": 1226,
+            "text": "Running tests/launcher_logging.rs (target/debug/deps/launcher_logging-b0fb84a4b0e39e84)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "81cc049f5f713ae2413da950af812a59e1c1c08db9f0b5acea3dce41905d80dc",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 357,
+        "last_line": 374,
+        "fragment_sha256": "d0950c095bce3c537b89e5c9af8d8903ae840bf9a7766b6caf99b04313336b73",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 4,
+        "current_direct_assertion_count": 4
+      },
+      "current_direct_assertion_macros": 4
+    },
+    "rust/crates/claude-autorouter/tests/launcher_logging.rs#launcher_keeps_default_stderr_empty_and_debug_events_private_while_status_savings_work": {
+      "file": "rust/crates/claude-autorouter/tests/launcher_logging.rs",
+      "file_sha256": "81cc049f5f713ae2413da950af812a59e1c1c08db9f0b5acea3dce41905d80dc",
+      "first_line": 376,
+      "last_line": 459,
+      "fragment_sha256": "c138c2e4366dc010d5b3008388294c4ba3a8f56e68282ecf48cff9ba67f8947d",
+      "current_actual_pass_entries": [
+        {
+          "line": 1232,
+          "text": "test launcher_keeps_default_stderr_empty_and_debug_events_private_while_status_savings_work ... ok",
+          "cargo_group": {
+            "line": 1226,
+            "text": "Running tests/launcher_logging.rs (target/debug/deps/launcher_logging-b0fb84a4b0e39e84)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "81cc049f5f713ae2413da950af812a59e1c1c08db9f0b5acea3dce41905d80dc",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 376,
+        "last_line": 459,
+        "fragment_sha256": "c138c2e4366dc010d5b3008388294c4ba3a8f56e68282ecf48cff9ba67f8947d",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 24,
+        "current_direct_assertion_count": 24
+      },
+      "current_direct_assertion_macros": 24
+    },
+    "rust/crates/claude-autorouter/tests/commands.rs#direct_help_forwards_termination_and_reaps_the_child": {
+      "file": "rust/crates/claude-autorouter/tests/commands.rs",
+      "file_sha256": "a0072f3e56735f17b54aa24250059d6589bedc6852b3980ed7fb07963bb32af9",
+      "first_line": 107,
+      "last_line": 140,
+      "fragment_sha256": "641458c813ff675a5c30f546df96438d92371ff7575f1370194e1f13f98c341b",
+      "current_actual_pass_entries": [
+        {
+          "line": 1172,
+          "text": "test direct_help_forwards_termination_and_reaps_the_child ... ok",
+          "cargo_group": {
+            "line": 1159,
+            "text": "Running tests/commands.rs (target/debug/deps/commands-ac935c2847e7baab)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "a0072f3e56735f17b54aa24250059d6589bedc6852b3980ed7fb07963bb32af9",
+          "available_via": "declared_review_source_commit_git_file",
+          "git_commit": "8e94a9b43f40b134d65cc3dadc399e993c69d217",
+          "not_an_old_worktree_file_hash_claim": true
+        },
+        "first_line": 107,
+        "last_line": 140,
+        "fragment_sha256": "641458c813ff675a5c30f546df96438d92371ff7575f1370194e1f13f98c341b",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 2,
+        "current_direct_assertion_count": 2
+      },
+      "current_direct_assertion_macros": 2
+    },
+    "rust/crates/claude-autorouter/tests/commands.rs#full_launcher_forwards_signal_waits_for_child_and_removes_overlay": {
+      "file": "rust/crates/claude-autorouter/tests/commands.rs",
+      "file_sha256": "a0072f3e56735f17b54aa24250059d6589bedc6852b3980ed7fb07963bb32af9",
+      "first_line": 623,
+      "last_line": 654,
+      "fragment_sha256": "c846b177a0729d3134c728c4f9ada1f273595c555ca087ec1df7bd6ab8febdb3",
+      "current_actual_pass_entries": [
+        {
+          "line": 1174,
+          "text": "test full_launcher_forwards_signal_waits_for_child_and_removes_overlay ... ok",
+          "cargo_group": {
+            "line": 1159,
+            "text": "Running tests/commands.rs (target/debug/deps/commands-ac935c2847e7baab)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "a0072f3e56735f17b54aa24250059d6589bedc6852b3980ed7fb07963bb32af9",
+          "available_via": "declared_review_source_commit_git_file",
+          "git_commit": "8e94a9b43f40b134d65cc3dadc399e993c69d217",
+          "not_an_old_worktree_file_hash_claim": true
+        },
+        "first_line": 623,
+        "last_line": 654,
+        "fragment_sha256": "c846b177a0729d3134c728c4f9ada1f273595c555ca087ec1df7bd6ab8febdb3",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 4,
+        "current_direct_assertion_count": 4
+      },
+      "current_direct_assertion_macros": 4
+    },
+    "rust/crates/claude-autorouter/tests/launcher_contracts.rs#both_launcher_modes_forward_each_requested_signal_once_and_reap_the_child": {
+      "file": "rust/crates/claude-autorouter/tests/launcher_contracts.rs",
+      "file_sha256": "4d89192b060732e80a0fa32db40df7b32ca4a119999a621efef52ec50e8b6be7",
+      "first_line": 442,
+      "last_line": 525,
+      "fragment_sha256": "4f2bea7addf287f8ea89244c8f8a2d333763f91cbe9f228774fdeb6e5255e7ea",
+      "current_actual_pass_entries": [
+        {
+          "line": 1222,
+          "text": "test both_launcher_modes_forward_each_requested_signal_once_and_reap_the_child ... ok",
+          "cargo_group": {
+            "line": 1210,
+            "text": "Running tests/launcher_contracts.rs (target/debug/deps/launcher_contracts-13ffa5e8f9eea15f)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "4d89192b060732e80a0fa32db40df7b32ca4a119999a621efef52ec50e8b6be7",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 442,
+        "last_line": 525,
+        "fragment_sha256": "4f2bea7addf287f8ea89244c8f8a2d333763f91cbe9f228774fdeb6e5255e7ea",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 11,
+        "current_direct_assertion_count": 11
+      },
+      "current_direct_assertion_macros": 11
+    },
+    "rust/xtask/src/tool_process.rs#failed_launch_and_exit_are_not_success": {
+      "file": "rust/xtask/src/tool_process.rs",
+      "file_sha256": "c6230718198855293ffa74eb4e91436277c35ddd33aebcab7aef05d38179ffa2",
+      "first_line": 409,
+      "last_line": 429,
+      "fragment_sha256": "3079cb34eb4bd9757c49ec139766bf7f7cd5a077e73eb5e20da20f9d82982a5b",
+      "current_actual_pass_entries": [
+        {
+          "line": 1515,
+          "text": "test tool_process::tests::failed_launch_and_exit_are_not_success ... ok",
+          "cargo_group": {
+            "line": 1312,
+            "text": "Running unittests src/main.rs (target/debug/deps/xtask-58c55909b50433fc)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "98d37cfd432a9700a72115131aae605050ce1860be3f34c310d6dec4e5b8b10a",
+          "available_via": "declared_review_source_commit_git_file",
+          "git_commit": "8e94a9b43f40b134d65cc3dadc399e993c69d217",
+          "not_an_old_worktree_file_hash_claim": true
+        },
+        "first_line": 281,
+        "last_line": 301,
+        "fragment_sha256": "3079cb34eb4bd9757c49ec139766bf7f7cd5a077e73eb5e20da20f9d82982a5b",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 2,
+        "current_direct_assertion_count": 2
+      },
+      "current_direct_assertion_macros": 2
+    },
+    "rust/xtask/src/tool_process.rs#completed_child_output_is_captured_and_omitted_from_metadata": {
+      "file": "rust/xtask/src/tool_process.rs",
+      "file_sha256": "c6230718198855293ffa74eb4e91436277c35ddd33aebcab7aef05d38179ffa2",
+      "first_line": 362,
+      "last_line": 382,
+      "fragment_sha256": "80409478c9340a8ec03266a22585a31fabaa4b1a16d272abaff9f7f31ed9d02d",
+      "current_actual_pass_entries": [
+        {
+          "line": 1513,
+          "text": "test tool_process::tests::completed_child_output_is_captured_and_omitted_from_metadata ... ok",
+          "cargo_group": {
+            "line": 1312,
+            "text": "Running unittests src/main.rs (target/debug/deps/xtask-58c55909b50433fc)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "98d37cfd432a9700a72115131aae605050ce1860be3f34c310d6dec4e5b8b10a",
+          "available_via": "declared_review_source_commit_git_file",
+          "git_commit": "8e94a9b43f40b134d65cc3dadc399e993c69d217",
+          "not_an_old_worktree_file_hash_claim": true
+        },
+        "mapped_function_present_in_declared_review_commit": false,
+        "scope": "Current test source/pass is bound; function did not exist in the declared old review commit and has no old worktree-file hash. This does not restore historical execution or prove unchanged historical assertions."
+      },
+      "current_direct_assertion_macros": 7
+    },
+    "rust/xtask/src/tool_process.rs#deadline_terminates_child_without_assuming_output_readiness": {
+      "file": "rust/xtask/src/tool_process.rs",
+      "file_sha256": "c6230718198855293ffa74eb4e91436277c35ddd33aebcab7aef05d38179ffa2",
+      "first_line": 384,
+      "last_line": 407,
+      "fragment_sha256": "267ed2f9d34112057d805baee8b309f6183589e3678454f843d27a0601899a7e",
+      "current_actual_pass_entries": [
+        {
+          "line": 1514,
+          "text": "test tool_process::tests::deadline_terminates_child_without_assuming_output_readiness ... ok",
+          "cargo_group": {
+            "line": 1312,
+            "text": "Running unittests src/main.rs (target/debug/deps/xtask-58c55909b50433fc)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "98d37cfd432a9700a72115131aae605050ce1860be3f34c310d6dec4e5b8b10a",
+          "available_via": "declared_review_source_commit_git_file",
+          "git_commit": "8e94a9b43f40b134d65cc3dadc399e993c69d217",
+          "not_an_old_worktree_file_hash_claim": true
+        },
+        "mapped_function_present_in_declared_review_commit": false,
+        "scope": "Current test source/pass is bound; function did not exist in the declared old review commit and has no old worktree-file hash. This does not restore historical execution or prove unchanged historical assertions."
+      },
+      "current_direct_assertion_macros": 5
+    },
+    "rust/crates/claude-autorouter/tests/launcher_contracts.rs#subscription_launch_uses_only_local_header_auth_and_cleans_its_listener_and_overlay": {
+      "file": "rust/crates/claude-autorouter/tests/launcher_contracts.rs",
+      "file_sha256": "4d89192b060732e80a0fa32db40df7b32ca4a119999a621efef52ec50e8b6be7",
+      "first_line": 278,
+      "last_line": 320,
+      "fragment_sha256": "71b4b13f1bfaef6b428318707e61b108d3a51906f39a721b41f7d14a3a1a32a5",
+      "current_actual_pass_entries": [
+        {
+          "line": 1217,
+          "text": "test subscription_launch_uses_only_local_header_auth_and_cleans_its_listener_and_overlay ... ok",
+          "cargo_group": {
+            "line": 1210,
+            "text": "Running tests/launcher_contracts.rs (target/debug/deps/launcher_contracts-13ffa5e8f9eea15f)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "4d89192b060732e80a0fa32db40df7b32ca4a119999a621efef52ec50e8b6be7",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 278,
+        "last_line": 320,
+        "fragment_sha256": "71b4b13f1bfaef6b428318707e61b108d3a51906f39a721b41f7d14a3a1a32a5",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 8,
+        "current_direct_assertion_count": 8
+      },
+      "current_direct_assertion_macros": 8
+    },
+    "rust/crates/claude-autorouter/tests/launcher_contracts.rs#four_permission_argument_cases_route_without_changing_claude_permissions_or_settings": {
+      "file": "rust/crates/claude-autorouter/tests/launcher_contracts.rs",
+      "file_sha256": "4d89192b060732e80a0fa32db40df7b32ca4a119999a621efef52ec50e8b6be7",
+      "first_line": 323,
+      "last_line": 398,
+      "fragment_sha256": "15d6fc4ae123bc2d0cee0d00a39007d5568f8684c2714b8cce99d871d457d9d1",
+      "current_actual_pass_entries": [
+        {
+          "line": 1219,
+          "text": "test four_permission_argument_cases_route_without_changing_claude_permissions_or_settings ... ok",
+          "cargo_group": {
+            "line": 1210,
+            "text": "Running tests/launcher_contracts.rs (target/debug/deps/launcher_contracts-13ffa5e8f9eea15f)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "4d89192b060732e80a0fa32db40df7b32ca4a119999a621efef52ec50e8b6be7",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 323,
+        "last_line": 398,
+        "fragment_sha256": "15d6fc4ae123bc2d0cee0d00a39007d5568f8684c2714b8cce99d871d457d9d1",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 7,
+        "current_direct_assertion_count": 7
+      },
+      "current_direct_assertion_macros": 7
+    },
+    "rust/crates/claude-autorouter/tests/launcher_contracts.rs#disabled_or_malformed_status_settings_keep_original_arguments_and_clear_stale_state": {
+      "file": "rust/crates/claude-autorouter/tests/launcher_contracts.rs",
+      "file_sha256": "4d89192b060732e80a0fa32db40df7b32ca4a119999a621efef52ec50e8b6be7",
+      "first_line": 401,
+      "last_line": 430,
+      "fragment_sha256": "075c9a53a4264b38b5d2d6437b82d972e2c29d45d455e88e63ccd2e340a54d61",
+      "current_actual_pass_entries": [
+        {
+          "line": 1218,
+          "text": "test disabled_or_malformed_status_settings_keep_original_arguments_and_clear_stale_state ... ok",
+          "cargo_group": {
+            "line": 1210,
+            "text": "Running tests/launcher_contracts.rs (target/debug/deps/launcher_contracts-13ffa5e8f9eea15f)"
+          }
+        }
+      ],
+      "historical_fragment_comparison": {
+        "historical_file": {
+          "sha256": "4d89192b060732e80a0fa32db40df7b32ca4a119999a621efef52ec50e8b6be7",
+          "available_via": "current_file_exact_historical_hash"
+        },
+        "first_line": 401,
+        "last_line": 430,
+        "fragment_sha256": "075c9a53a4264b38b5d2d6437b82d972e2c29d45d455e88e63ccd2e340a54d61",
+        "fragment_byte_identical": true,
+        "format_comment_normalized_body_identical": true,
+        "ordered_direct_assertion_tokens_identical": true,
+        "historical_direct_assertion_count": 4,
+        "current_direct_assertion_count": 4
+      },
+      "current_direct_assertion_macros": 4
+    }
+  },
+  "no_tests_rerun": true,
+  "coverage_promoted": false,
+  "release_approved": false,
+  "default_cutover_approved": false,
+  "scope_limits": [
+    "All 59 named native anchors have exact actual pass lines and Cargo test-group context in the separately retained 1fec549 combined workspace run.",
+    "Root independently verifies 59 source-file/function fragment hashes against committed 1fec549 Git blobs and each pass/group entry against the actual log. Later TTL/statusline source edits retain separate identities and are not qualified here.",
+    "55 complete historical function bodies and ordered direct assertion tokens match unchanged after explicit formatting/comment normalization. Two new secret-input functions have dedicated supplemental evidence; two later tool-process functions have current pass/source evidence only.",
+    "Existing 54 per-definition mappings remain 48 covered and 6 partial. Predicate identities and every remaining migration/gap are retained; no new original-definition coverage follows from this inventory.",
+    "Direct assertion macro comparison excludes transitive helper assertions. Existing explicit original/native correspondence remains in the reviewed mappings; this supplement does not independently execute original JavaScript callbacks.",
+    "Missing historical logs and three unavailable historical installed artifacts are not recreated, requalified or presumed available. Their original identities and local-availability gaps remain in the separate inventory.",
+    "Workspace synthetic source execution does not establish current installed archive, real provider/model/Keychain, minimum environment, supported-platform, numerical performance, task quality, release or cutover approval."
+  ],
+  "committed_mapping_blob": {
+    "path": "artifacts/rust-rewrite/1fec549-host-20261014-1/committed-cli-tooling-mapping.json",
+    "bytes": 142287,
+    "sha256": "b147a708fdef1bd597e64dc4c93e2e749e54cff9b132b9066c56320b7bee4d9b",
+    "source_commit": "1fec5492e9ca06837ed502ba739f9368e79ecd82",
+    "git_path": "rust/parity/assertion-mappings/cli-tooling.json",
+    "identity_kind": "exact_git_blob_retained_after_review",
+    "qualification_note": "Retained directly from the named committed Git blob. Its byte hash differs from the historical observed workspace snapshot; these identities remain separate."
+  }
+}

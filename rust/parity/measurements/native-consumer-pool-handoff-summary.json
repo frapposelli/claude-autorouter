@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "kind": "actual_constructor_consumer_pool_ownership_regressions",
+  "date": "2026-10-17",
+  "source_base": "19b0e7372a597b0f261ef11afac3daf5201dd916",
+  "source_state": "one test-only file append; existing 19054-byte prefix unchanged",
+  "declaration": {
+    "path": "artifacts/rust-rewrite/consumer-pool-validation-20261017-1/declaration.json",
+    "bytes": 1808,
+    "sha256": "8e7fd447483a8d13faa25a163aa377384950dcf22020465c3c381a510c23a01f"
+  },
+  "source": {
+    "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/raw_pool_buffered_tests.rs": {
+      "bytes": 29706,
+      "sha256": "a81fd9cebe9f5e2599167de93cdd61c865a9614a3f35ac7b9c505b53370d5291"
+    }
+  },
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/consumer-pool-validation-20261017-1/source-inputs-before-build.json",
+    "bytes": 116648,
+    "sha256": "d0dff4c07ecb44748d8fc12ded3da9ef65e2c5baa874e994d2f7320056aa3830"
+  },
+  "independent_source_and_focused_review": {
+    "path": "artifacts/rust-rewrite/consumer-pool-validation-20261017-1/independent-source-focused-review.json",
+    "bytes": 7654,
+    "sha256": "54aa24c9c8de52bb0bd4f5509ed609946e6e38e4c0d6ecf7a6745eea6b6f0b1e"
+  },
+  "independent_actual_full_proof_review": {
+    "path": "artifacts/rust-rewrite/consumer-pool-validation-20261017-1/final-proof-review.json",
+    "bytes": 7364,
+    "sha256": "ed2dffe91ff8b25a0adbb755a4136fbf7d6b766303e2cf6dad7954a61e90390b"
+  },
+  "actual_compiler_and_retained_binary": {
+    "actual_compiler_executable": "/Users/fabio.rapposelli/AI/autorouter/rust/target/debug/deps/autorouter_runtime-f3deea33ddaadfcc",
+    "retained_executable": "artifacts/rust-rewrite/consumer-pool-validation-20261017-1/autorouter-runtime-test",
+    "bytes": 99939904,
+    "sha256": "4aaf86199cd1bcc12fb51567e374ff2307cac942788f7a771c19abae8677d9c8"
+  },
+  "controls": {
+    "exact_tests": [
+      "actual_constructor_final_data_returns_pool_and_reuses_peer_with_retained_bytes",
+      "actual_constructor_abandoned_prefetch_retires_peer_before_replacement"
+    ],
+    "protocols": [
+      "HTTP",
+      "TLS1.2",
+      "TLS1.3"
+    ],
+    "schedules": 6,
+    "unread_clean_prefetch_reservation_not_free": true,
+    "source_eof_before_provider_socket_eof": true,
+    "last_frame_end_hint_returns_pool_without_none_poll": true,
+    "success_B_on_same_accepted_peer_and_connection_id": true,
+    "abandonment_A_retired_before_B_on_new_accepted_peer": true,
+    "retained_A_bytes_remain_charged_through_B_and_client_task_cache_cleanup": true,
+    "last_clone_drop_releases_remaining_pools_blocks": true,
+    "bounded_cleanup": true,
+    "fetch_attempts": 0,
+    "loopback_provider_requests": 12,
+    "exact_payloads_methods_paths_marker_headers_statuses_lengths_negotiated_TLS_and_assignment_trace_verified": true
+  },
+  "checks": {
+    "native_receipts": {
+      "path": "artifacts/rust-rewrite/consumer-pool-validation-20261017-1/native-progress.json",
+      "bytes": 5994,
+      "sha256": "729ca1a4b057680c625e1dfbc0fd800c00295523f23402efd17512e35aab0a78"
+    },
+    "focused_exact_tests_passed": 2,
+    "workspace": {
+      "passed": 1341,
+      "failed": 0,
+      "ignored": 10,
+      "groups": 66
+    },
+    "format": "passed",
+    "strict_clippy": "passed",
+    "node_receipts": {
+      "path": "artifacts/rust-rewrite/consumer-pool-validation-20261017-1/node-progress.json",
+      "bytes": 2687,
+      "sha256": "7442045c76468f4c77e2ace85984466ca0639a8ea095fb7ceb3bece0bb3e8f9e"
+    },
+    "node_check": "passed",
+    "node_tests_passed": 596,
+    "package_smoke": "passed",
+    "package_files": 58
+  },
+  "source_transfer": {
+    "inspection": {
+      "path": "artifacts/rust-rewrite/consumer-pool-export-evidence-20261017-1/inspection.json",
+      "bytes": 1892,
+      "sha256": "6ca06c5260ada7265f213f20522ceec6dbe070ff965cfdef4a1f7b8d78158a05"
+    },
+    "source_inputs": 694,
+    "frozen_originals": 111,
+    "logical_reference_files": 113,
+    "carrier_bytes": 33528320,
+    "logical_bytes": 33493812,
+    "separate_caps_each": 33554432,
+    "retained_helper_sha256": "6ab8b353dff1d77cf68e0929355f09117967d9f8b42442d3889c0b9ab62822ab",
+    "fresh_helper_builds": 0,
+    "receiver_rebuilds": 0,
+    "source_to_shipping_binary_provenance": "unverified_prebuilt"
+  },
+  "coverage": {
+    "covered": 536,
+    "partial": 52,
+    "all588_original_rows_unchanged": true,
+    "all53_limit_and27_config_rows_unchanged": true,
+    "all13_areas_partial": true,
+    "sole_gateway_test_inventory_append": 2,
+    "post_metadata_verification": {
+      "path": "artifacts/rust-rewrite/consumer-pool-validation-20261017-1/post-metadata-verification.json",
+      "bytes": 388,
+      "sha256": "ae5bee87e70b263046a6c24915348896576fa4682adaa7a44f080c5f93d349af"
+    }
+  },
+  "real_provider_calls": 0,
+  "numerical_samples": false,
+  "source_ci": "Fresh push/checks required;2d5 CI is separate prior source, with an unresolved ARM musl SDK setup failure.",
+  "shipping_default": "JavaScript 0.5.2; ordinary native transport remains Rustls",
+  "remaining": "Actual gateway final-data ownership, delayed trailers, close-delimited EOF, broader concurrent reuse and all other full-plan protocol/TLS/platform/performance/real-task/provenance/rollback/stabilization/cutover requirements remain open.",
+  "release_transport_promotion_or_full_goal_approved": false
+}

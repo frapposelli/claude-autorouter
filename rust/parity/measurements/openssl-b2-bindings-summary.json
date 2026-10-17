@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "stage": "OpenSSL B2 bindings only",
+  "passed": true,
+  "base_commit": "1d8ce9e9831f89e0109b36d04a54ffc1903b8e02",
+  "platform": "macOS-27.0-arm64-arm-64bit",
+  "toolchain": "Rust 1.99.0",
+  "report": {
+    "path": "artifacts/rust-rewrite/evidence/openssl-b2-bindings-82fadc0736d622cc71859ba85631a896056432e995ee4a22e2e1378b33ec6aaa.json",
+    "sha256": "82fadc0736d622cc71859ba85631a896056432e995ee4a22e2e1378b33ec6aaa"
+  },
+  "binding": "openssl 0.10.81",
+  "sys": "openssl-sys 0.9.117",
+  "backend": "openssl-src 300.6.1+3.6.3",
+  "asserted_backend_number": "0x30600030",
+  "features": [
+    "vendored"
+  ],
+  "OPENSSL_NO_VENDOR": "0",
+  "ownership_tests": {
+    "passed": 7,
+    "failed": 0
+  },
+  "compile_fail_docs": {
+    "passed": 3,
+    "failed": 0
+  },
+  "test_executable_sha256": "0c6c3a965027544a849fe959fa0cf3216e4800eea60ee38fbc8aafd574dab65f",
+  "provenance": {
+    "upstream_files": 112,
+    "patched_paths": 5,
+    "patch_sha256": "7e5bc777067681778d8c4b1b58b399eb6d37c575fe007e475ee6727443394fbb",
+    "manifest_sha256": "bca206aab567dc6f3307a0b35f8b8a0a8a7b2eda2b6879f618a891d72f7a47a4",
+    "reverse_forward_verified": true
+  },
+  "patched_source_sha256": {
+    "src/lib.rs": "62fd38eb978fd1e460a6b5a103e4109f1b11c29f22fe8afad75f6f006fa38bd9",
+    "src/ssl/mod.rs": "a27c0baa9c36f35adcf1e7490988f56c0975671b14f81955a357d720e39e8b29",
+    "src/ssl/test/mod.rs": "75aa6cc23c5f084b6c01261d4c772bb2deb8633079ab0d8eed09c93380637028",
+    "src/x509/mod.rs": "6f6a6d71d29cd5d25a3fc63416e2d3208e73b8eabf334d878c3c720cff9ad97b",
+    "src/x509/store.rs": "f5dc0326022ae979562af3c599c7d752fd1982f29e285d27b1cb166ebded3448"
+  },
+  "source_inventory_sha256": "3f1af46c5b1d16a0a84c0f10847dff9b4ea6874b4f0af521cb918112967bfce2",
+  "dependency_isolation": {
+    "isolated_lock_sha256": "9e80f4662dc1fe29781e54cdfef17a12d0bd4b4a1f7cc634b2810121f2d0309a",
+    "active_graph_sha256": "a98e5b59db6ab43c84d151149a5abff4a3ed80aab9f8d81b5e1d33319841afec",
+    "active_packages": 19,
+    "all_shared_versions_match_workspace": true,
+    "additional_active_dev_dependency": "hex 0.4.3, already declared by upstream",
+    "optional_backend_metadata_only": "Inactive optional backend packages appear in the isolated resolver lock but are not built or linked.",
+    "workspace_lock_unchanged": true,
+    "upstream_vendor_lock_unchanged": true,
+    "upstream_test_lock_backend": "OpenSSL 3.6.2; preserved for provenance and replaced only in the isolated test copy."
+  },
+  "retained_first_failure": {
+    "passed": 2,
+    "failed": 5,
+    "log": "artifacts/rust-rewrite/openssl-b2-tests/ownership-first.log",
+    "sha256": "63c777f411a0d55f8d575a9eae73d1b189ded27a5b1d569042d5e77eb14b0d39",
+    "cause": "Accepted macOS test sockets inherited nonblocking from the bounded listener.",
+    "fix": "Restore blocking mode before bounded SSL_accept; no library API or ownership assertion changed.",
+    "original_source_retained": true
+  },
+  "upstream_warning": "Unchanged upstream src/hash.rs:494 has an unused std::io::prelude::* test import.",
+  "limitations": [
+    "No production transport/cache switch.",
+    "No B3 initializer changes.",
+    "Immutable session DER uses ordinary heap storage; no extra guaranteed wiping.",
+    "Binding ownership does not prove peer acceptance; runtime must publish only accepted sessions and isolate policies/origins.",
+    "Weak callback captures are required to avoid context/cache/session cycles.",
+    "Library patch is local and not upstream approved."
+  ],
+  "central_evidence_unchanged": true
+}

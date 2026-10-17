@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "kind": "native_original_statusline_cli_matrix",
+  "date": "2026-10-14",
+  "passed": true,
+  "source_uncommitted_at_validation": true,
+  "baseline_definition": "test/statusline.test.mjs#31",
+  "mapping": {
+    "path": "rust/parity/assertion-mappings/statusline-cli-contracts.json",
+    "bytes": 6608,
+    "sha256": "9807f8ab0c0c8a3a528d34a2a69d0d85370766d6cfde3ca63584564f2493909a"
+  },
+  "original_source_assertion_sites": 11,
+  "original_executable_branches": 7,
+  "source_tests_passed": 1,
+  "native_tests_passed": 1,
+  "source_execution": {
+    "original_callback_passed": true,
+    "tests_passed": 1,
+    "tests_failed": 0,
+    "log": {
+      "path": "artifacts/dev-environment/logs/statusline-original-cli-20261014-2.log",
+      "bytes": 375,
+      "sha256": "2704d07c643bfa1da0595f1252e35d9445ac9964b23c5395e4ae83100771c949"
+    },
+    "source_identity_verification": {
+      "path": "artifacts/rust-rewrite/statusline-cli-contracts-20261014/source-identities.json",
+      "bytes": 13635,
+      "sha256": "4297c0ebc4c48c2c28b3cd3d7e3d7a5edae29a5397c026962b5d73b79b7c6873"
+    },
+    "byte_equal_frozen_javascript_files": 96,
+    "frozen_reference_modified": false
+  },
+  "native_execution": {
+    "path": "rust/crates/claude-autorouter/tests/edge_cases.rs",
+    "bytes": 27768,
+    "sha256": "df03bf4898abcce3373833c522415c15920b67b72293b2ddb4b9ebcb175b7e25",
+    "test": "statusline_cli_color_privacy_and_missing_file_matrix_matches_original",
+    "first_line": 455,
+    "last_line": 511,
+    "fragment_sha256": "a15b57cf4ddd44885cc302313ca5c53e2e6d2ceb184cc2a3b41c5980e0c7997f",
+    "tests_passed": 1,
+    "tests_failed": 0,
+    "log": {
+      "path": "artifacts/dev-environment/logs/statusline-native-cli-20261014.log",
+      "bytes": 1031,
+      "sha256": "9cf920b702bdf97d2cf16b6b45f57d29688e8a6381751978905df93525ed13cd"
+    },
+    "strict_cli_clippy": {
+      "path": "artifacts/dev-environment/logs/statusline-native-cli-clippy-20261014.log",
+      "bytes": 778,
+      "sha256": "4e6f4727eb84b27554cc572d672b7459dcdb323713cf041bcde31bc49afd7184"
+    },
+    "workspace_fmt": {
+      "path": "artifacts/dev-environment/logs/statusline-native-cli-fmt-20261014.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "retained_initial_source_failure": {
+    "log": {
+      "path": "artifacts/dev-environment/logs/statusline-original-cli-20261014.log",
+      "bytes": 868,
+      "sha256": "35a699c89f200971fefc974968a33d1a4864849e4174f66fdd7feea5e05ad1f2"
+    },
+    "reason": "Frozen reference executable mode is0644, so original direct-spawn callback failed withEACCES before renderer execution. Root preserved that mode and used current executable-mode files verified byte-identical to frozen reference; no source behavior change or callback rewrite.",
+    "product_failure": false
+  },
+  "independent_review": {
+    "reviewer": "rust_distribution_audit",
+    "source_assertion_sites": 11,
+    "original_branches": 7,
+    "binding_hashes_verified": 8,
+    "definition_fragments_verified": 2,
+    "material_mismatches_found": 0
+  },
+  "release_approved": false,
+  "default_cutover_approved": false,
+  "scope_limits": [
+    "Actual original executable callback and actual native CLI test, with synthetic status/config/environment values and seven original branches.",
+    "POSIX native statusline subcommand replaces the original Node executable script. Original observable predicates are exercised at their actual CLI boundary; no script-path identity is claimed.",
+    "No real provider/evaluator, account credentials, user settings or model download. No numerical performance or installed archive/platform/release/default-cutover qualification.",
+    "Current tested source/log identities remain separate from the earlier clean1fec archives and CI. Later source changes need their own validation."
+  ]
+}

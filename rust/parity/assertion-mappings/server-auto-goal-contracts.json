@@ -1,0 +1,1116 @@
+{
+  "schema_version": 1,
+  "kind": "complete_original_server_auto_goal_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "worktree_base_commit": "da51574ec1a895286c0379db1623d715e986be7e",
+  "status": "reviewed_original_contracts_focused_pass",
+  "production_changes": false,
+  "counts": {
+    "baseline_definitions": 2,
+    "expanded_callbacks": 4,
+    "static_assertions": 38,
+    "expanded_source_assertions": 290,
+    "expanded_native_assertions": 290,
+    "native_tests": 4,
+    "inference_requests": 18,
+    "mocked_evaluator_requests": 16,
+    "token_count_requests": 0,
+    "source_complete_callbacks": 36,
+    "source_evidence_bearing_completions": 18,
+    "native_complete_callbacks": 18
+  },
+  "capture": {
+    "path": "rust/parity/cases/server-auto-goal-contracts.capture.json",
+    "bytes": 36407,
+    "sha256": "b2e8033bb261c1297e6a707e4d4360034343e2f065bb1aec2545aaa08d7126fa"
+  },
+  "native_validation": {
+    "path": "artifacts/rust-rewrite/server-auto-goal-native-20261013-3/report.json",
+    "bytes": 9748,
+    "sha256": "780d093608725042cf6881e6fa52648ef3fa4c32183e16324ca2895f052118ae"
+  },
+  "rows": [
+    {
+      "id": "test/server.test.mjs#18",
+      "name_expression": "`auto execution switches Sonnet to Opus to Sonnet across human turns, preserving native context and tool ownership (${usePromptIds ? 'gateway prompt IDs' : 'without prompt IDs'})`",
+      "statement": "for (const usePromptIds of [true, false]) test(`auto execution switches Sonnet to Opus to Sonnet across human turns, preserving native context and tool ownership (${usePromptIds ? 'gateway prompt IDs' : 'without prompt IDs'})`, { timeout: 5000 }, async t => {\n  const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'classifier-secret', AUTOROUTER_CLIENT_PROFILE: 'auto', AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5' });\n  const choices = ['haiku', 'opus', 'haiku', 'haiku'];\n  let classifications = 0;\n  const router = new Router(config, { fetchImpl: async (url, options) => {\n    assert.equal(url, config.jevEndpoint);\n    assert.equal(options.headers.authorization, 'Bearer classifier-secret');\n    assert.ok(classifications < choices.length, 'Unexpected classifier request');\n    return Response.json({ answers: { tier: { choice: choices[classifications++], confidence: 0.99 } } });\n  } });\n  const instructions = { role: 'system', clear_at: 'next_user_message', content: [{ type: 'text', text: 'Synthetic turn-specific instructions.' }] };\n  const initial = { ...body, model: config.models.sonnet, thinking: { type: 'adaptive' },\n    // Both selected models have the same native 1M window. The byte trigger\n    // must not independently pin Opus after a demanding task is complete.\n    system: [{ type: 'text', text: 'Synthetic shared context. '.repeat(7000), cache_control: { type: 'ephemeral' } }],\n    messages: [...body.messages, instructions],\n    context_management: { edits: [\n      { type: 'clear_thinking_20251015', keep: { type: 'thinking_turns', value: 1 } },\n      { type: 'clear_tool_uses_20250919', trigger: { type: 'input_tokens', value: 100000 }, keep: { type: 'tool_uses', value: 3 } },\n    ] },\n    safeguards: [{ type: 'dangerous_tool_use', classifier_context: { v: 1, synthetic_context: 'Keep the native tool review context.' } }],\n  };\n  const sonnetThinking = { type: 'thinking', thinking: 'Synthetic Sonnet reasoning.', signature: 'signed-sonnet-history+/==' };\n  const opusThinking = { type: 'thinking', thinking: 'Synthetic Opus reasoning.', signature: 'signed-opus-history+/==' };\n  const toolUse = { type: 'tool_use', id: 'tool_auto_fixture', name: 'Read', input: { path: 'fixture.txt' } };\n  const demanding = { ...initial, messages: [...initial.messages,\n    { role: 'assistant', content: [sonnetThinking, { type: 'text', text: 'The typo is fixed.' }] },\n    { role: 'user', content: 'Investigate an intermittent cross-process race with no known cause.' }, instructions,\n  ] };\n  const toolContinuation = { ...demanding, messages: [...demanding.messages,\n    { role: 'assistant', content: [opusThinking, toolUse] },\n    { role: 'user', content: [{ type: 'tool_result', tool_use_id: toolUse.id, content: 'Synthetic fixture result.' }] },\n  ] };\n  const nextHuman = { ...toolContinuation, messages: [...toolContinuation.messages,\n    { role: 'assistant', content: [{ type: 'text', text: 'The concurrency issue is resolved.' }] },\n    { role: 'user', content: 'Now change the exact typo teh to the in fixture.txt.' }, instructions,\n  ] };\n  const requests = [initial, demanding, toolContinuation, nextHuman];\n  const originals = structuredClone(requests);\n  const expectedModels = [config.models.sonnet, config.models.opus, config.models.opus, config.models.sonnet];\n  const promptIds = ['auto-first', 'auto-demanding', 'auto-demanding', 'auto-next'];\n  const beta = `${oauthHeaders['anthropic-beta']},dangerous-tool-use-2026-09-03,context-management-2025-06-27,mid-conversation-system-clear-at-2026-08-21`;\n  const event = payload => `event: ${payload.type}\\r\\ndata: ${JSON.stringify(payload)}\\r\\n\\r\\n`;\n  const replies = requests.map((_request, index) => Buffer.from([\n    { type: 'message_start', message: { id: `msg_auto_${index}`, model: expectedModels[index], content: [],\n      ...(index > 0 ? { input_transformations: [{ type: 'thinking_dropped', reason: 'model_binding_mismatch' }] } : {}) } },\n    { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },\n    { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Synthetic reply → unchanged.' } },\n    { type: 'content_block_stop', index: 0 },\n    { type: 'message_delta', delta: { stop_reason: 'end_turn', safeguard_results: [{ type: 'dangerous_tool_use', status: { type: 'available', tool_uses: {} } }] }, usage: { output_tokens: 10 } },\n    { type: 'message_stop' },\n  ].map(event).join('')));\n  const received = [];\n  const f = await fixture(t, async (req, res) => {\n    let text = ''; for await (const chunk of req) text += chunk;\n    const index = received.length;\n    received.push(JSON.parse(text));\n    // A count endpoint would consume an extra call and violate this assertion.\n    assert.equal(req.url, '/v1/messages?beta=true');\n    assert.equal(req.headers.authorization, oauthHeaders.authorization);\n    assert.equal(req.headers['anthropic-beta'], beta);\n    assert.equal(req.headers['x-claude-code-session-id'], 'auto-switch-session');\n    assert.equal(req.headers['x-claude-code-prompt-id'], usePromptIds ? promptIds[index] : undefined);\n    assert.equal(req.headers['x-autorouter-token'], undefined);\n    res.writeHead(200, { 'content-type': 'text/event-stream' });\n    const split = replies[index].indexOf(Buffer.from('→')) + 1;\n    res.write(replies[index].subarray(0, split));\n    res.end(replies[index].subarray(split));\n  }, { authMode: 'subscription', models: config.models, clientProfile: 'auto' }, router);\n  for (const [index, request] of requests.entries()) {\n    const response = await f.call('/v1/messages?beta=true', { method: 'POST', headers: {\n      ...oauthHeaders, 'anthropic-beta': beta, 'x-claude-code-session-id': 'auto-switch-session', 'x-claude-code-agent-id': 'auto-main-agent',\n      'x-claude-code-request-class': 'main', ...(usePromptIds ? { 'x-claude-code-prompt-id': promptIds[index] } : {}),\n    }, body: JSON.stringify(request) });\n    assert.equal(response.status, 200);\n    assert.deepEqual(Buffer.from(await response.arrayBuffer()), replies[index]);\n    assert.deepEqual(received[index], { ...request, model: expectedModels[index] });\n  }\n  assert.equal(classifications, 4);\n  assert.equal(received.length, 4);\n  assert.deepEqual(requests, originals);\n  assert.deepEqual(f.statuses.filter(entry => entry.event === 'route').map(({ model, source, reason, classified_tier }) =>\n    ({ model, source, reason, classified_tier })), [\n    { model: config.models.sonnet, source: 'jev', reason: 'auto_mode_floor', classified_tier: 'haiku' },\n    { model: config.models.opus, source: 'jev', reason: 'classified', classified_tier: 'opus' },\n    { model: config.models.opus, source: 'jev', reason: 'tool_turn_pinned', classified_tier: 'haiku' },\n    { model: config.models.sonnet, source: 'jev', reason: 'auto_mode_floor', classified_tier: 'haiku' },\n  ]);\n  for (const value of [sonnetThinking.thinking, sonnetThinking.signature, opusThinking.thinking, opusThinking.signature,\n    initial.safeguards[0].classifier_context.synthetic_context, 'classifier-secret', 'fake-subscription-token']) {\n    assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes(value));\n  }\n});",
+      "sha256": "a4fa2c0ab69c09f624fbe67227c6a2c81272981c25179a463a9678932233d652",
+      "static_assertions": 17,
+      "expanded_assertions": 118,
+      "expanded_callbacks": [
+        {
+          "id": "server-auto-goal-18-prompt-ids",
+          "source_test": "test/server.test.mjs#18",
+          "name": "auto execution switches Sonnet to Opus to Sonnet across human turns, preserving native context and tool ownership (gateway prompt IDs)",
+          "use_prompt_ids": true,
+          "passed": true,
+          "executed_assertions": 59
+        },
+        {
+          "id": "server-auto-goal-18-headerless",
+          "source_test": "test/server.test.mjs#18",
+          "name": "auto execution switches Sonnet to Opus to Sonnet across human turns, preserving native context and tool ownership (without prompt IDs)",
+          "use_prompt_ids": false,
+          "passed": true,
+          "executed_assertions": 59
+        }
+      ],
+      "proposed_status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_with_prompt_ids",
+        "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_without_prompt_ids"
+      ],
+      "shared_cases": [
+        "server-auto-goal-18-prompt-ids",
+        "server-auto-goal-18-headerless"
+      ],
+      "api_boundaries": [
+        "The original assertions are ported individually; Rust assertions count every original dynamic site per variant, not one aggregate substitute.",
+        "Full input mutation checks additionally retain an Arc to the authoritative JsDocument across the real Router call and compare complete serialized input before/after. Rust does not claim JavaScript object-reference identity."
+      ],
+      "assertions": [
+        {
+          "id": "test/server.test.mjs#18:assert-1",
+          "expression": "assert.equal(url, config.jevEndpoint)",
+          "sha256": "86983dba3f95631c4fb3381d4f7f579b0b67dc027e3fb4e157ccc6c116a9fbb9",
+          "line": 646,
+          "expanded_executions": 8,
+          "native_executions": 8,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_18",
+              "line": 643,
+              "fragment": "a.check(\n            1,\n            call.path == row[\"router_config\"][\"jevEndpoint\"].as_str().unwrap(),\n        );",
+              "fragment_sha256": "30f42c89a17efe36142d525592a8cc5e3fa40bd0e6cd67454790e69f46d516d2",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#18:assert-2",
+          "expression": "assert.equal(options.headers.authorization, 'Bearer classifier-secret')",
+          "sha256": "744649ec1d73757a8e2af52fd164709938cd095919ecc6eb6afc8b68b33c661e",
+          "line": 647,
+          "expanded_executions": 8,
+          "native_executions": 8,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_18",
+              "line": 647,
+              "fragment": "a.check(\n            2,\n            header_is(\n                &call.headers,\n                \"authorization\",\n                Some(\"Bearer classifier-secret\"),\n            ),\n        );",
+              "fragment_sha256": "74ecfea55a573867140f59aff354c754bb86576e41e7593d6459079bfd28045f",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#18:assert-3",
+          "expression": "assert.ok(classifications < choices.length, 'Unexpected classifier request')",
+          "sha256": "a46aeaff7853ec7d01140247d6f97fb2e4549fb1e0d1a265975b0efee2b027aa",
+          "line": 648,
+          "expanded_executions": 8,
+          "native_executions": 8,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_18",
+              "line": 655,
+              "fragment": "a.check(3, index < 4);",
+              "fragment_sha256": "5b710f113ddca1bb797da13791cbd7101373f83111502813175e4ca325b0c297",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#18:assert-4",
+          "expression": "assert.equal(req.url, '/v1/messages?beta=true')",
+          "sha256": "04f4434dac9189e462941da5cba054c97bceae86a8196f16542fdb59d70382a0",
+          "line": 699,
+          "expanded_executions": 8,
+          "native_executions": 8,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_18",
+              "line": 659,
+              "fragment": "a.check(4, request.path == \"/v1/messages?beta=true\");",
+              "fragment_sha256": "ad5630ae0ec261b000b1757e93c1705bf143d390c0ad3bfd5140ed593c88c288",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#18:assert-5",
+          "expression": "assert.equal(req.headers.authorization, oauthHeaders.authorization)",
+          "sha256": "eef89dd65a86aa771879b9ddd8d8f1b5c29b07b68f9c316c45574f2436ac645e",
+          "line": 700,
+          "expanded_executions": 8,
+          "native_executions": 8,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_18",
+              "line": 660,
+              "fragment": "a.check(\n            5,\n            header_is(\n                &request.headers,\n                \"authorization\",\n                Some(\"Bearer fake-subscription-token\"),\n            ),\n        );",
+              "fragment_sha256": "96f915f93a20841a54c87ffb4fba9df58aad70579932c11ccffd725d38359960",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#18:assert-6",
+          "expression": "assert.equal(req.headers['anthropic-beta'], beta)",
+          "sha256": "cbe6bcb713e3425ac553532340cb3c6cbc95c21dd0e646a66605de2f15169e77",
+          "line": 701,
+          "expanded_executions": 8,
+          "native_executions": 8,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_18",
+              "line": 668,
+              "fragment": "a.check(\n            6,\n            header_is(\n                &request.headers,\n                \"anthropic-beta\",\n                expected[index][\"headers\"][\"anthropic-beta\"].as_str(),\n            ),\n        );",
+              "fragment_sha256": "e4a56943ef6c0dcd3034b61c98ea40197e258ef71f0ef146a8067ed556ef11d1",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#18:assert-7",
+          "expression": "assert.equal(req.headers['x-claude-code-session-id'], 'auto-switch-session')",
+          "sha256": "a7ae49466e7c93c0c8d7cac574056eb5db5b4b6c449752414b6dc4701ededa63",
+          "line": 702,
+          "expanded_executions": 8,
+          "native_executions": 8,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_18",
+              "line": 676,
+              "fragment": "a.check(\n            7,\n            header_is(\n                &request.headers,\n                \"x-claude-code-session-id\",\n                Some(\"auto-switch-session\"),\n            ),\n        );",
+              "fragment_sha256": "508f733a36b7eb365dfb510328901fea3811887bc623c0ae2d4f4e1bd0977897",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#18:assert-8",
+          "expression": "assert.equal(req.headers['x-claude-code-prompt-id'], usePromptIds ? promptIds[index] : undefined)",
+          "sha256": "9517eaabcb1496b91c0a075d14db4b98576ef767719dfa75b4270cc3e251b3d1",
+          "line": 703,
+          "expanded_executions": 8,
+          "native_executions": 8,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_18",
+              "line": 684,
+              "fragment": "a.check(\n            8,\n            header_is(\n                &request.headers,\n                \"x-claude-code-prompt-id\",\n                if use_prompt_ids {\n                    Some(\n                        [\n                            \"auto-first\",\n                            \"auto-demanding\",\n                            \"auto-demanding\",\n                            \"auto-next\",\n                        ][index],\n                    )\n                } else {\n                    None\n                },\n            ),\n        );",
+              "fragment_sha256": "f3bff34e79e12709eb90f89abe4b78c02ff0a40d5fd598163ef3dffde3b0d1b7",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#18:assert-9",
+          "expression": "assert.equal(req.headers['x-autorouter-token'], undefined)",
+          "sha256": "0cd9ed0e32b31cec139db3b3d2368936faa1d892c452e24b5e562c3403862e78",
+          "line": 704,
+          "expanded_executions": 8,
+          "native_executions": 8,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_18",
+              "line": 703,
+              "fragment": "a.check(9, header_is(&request.headers, \"x-autorouter-token\", None));",
+              "fragment_sha256": "bfa73e51b4503c304c96a909730dd5aad401cc2977a6cfdcb659274dfb2d63ca",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#18:assert-10",
+          "expression": "assert.equal(response.status, 200)",
+          "sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "line": 715,
+          "expanded_executions": 8,
+          "native_executions": 8,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_18",
+              "line": 704,
+              "fragment": "a.check(10, replies[index].status == 200);",
+              "fragment_sha256": "01ffd13fa46f7c354e1a97e0d7a4682fe0fb5aa961eb463afa0fed088319a8d0",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#18:assert-11",
+          "expression": "assert.deepEqual(Buffer.from(await response.arrayBuffer()), replies[index])",
+          "sha256": "198df34b6991b93b8d5b71c534643b10f0fdcbede20c32a0036000fc17a19317",
+          "line": 716,
+          "expanded_executions": 8,
+          "native_executions": 8,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_18",
+              "line": 705,
+              "fragment": "a.check(11, replies[index].bytes == response_bytes(&expected[index]));",
+              "fragment_sha256": "2499410557a26ef4a93c1c3a867eeb8bc7e6ef4cb0bf30d2aba7a1dafe3fb63f",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#18:assert-12",
+          "expression": "assert.deepEqual(received[index], { ...request, model: expectedModels[index] })",
+          "sha256": "d05f8f6c7fa2e487a645488035d9e7239300507f893e908c9fce5480aed71a83",
+          "line": 717,
+          "expanded_executions": 8,
+          "native_executions": 8,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_18",
+              "line": 720,
+              "fragment": "a.check(12, parsed(&request.body) == input);",
+              "fragment_sha256": "be2f0630bea01157a5e61ef8ca69d3aa1a9d47d599ded7ae2bc37880be7fe0b0",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#18:assert-13",
+          "expression": "assert.equal(classifications, 4)",
+          "sha256": "0c56bb56699581e4adbc1d761c9cb998cb91b3b3919a6132d0c3031931169ca8",
+          "line": 719,
+          "expanded_executions": 2,
+          "native_executions": 2,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_18",
+              "line": 722,
+              "fragment": "a.check(13, seen.mocked.len() == 4);",
+              "fragment_sha256": "5d0c7ff922a78a8c0ece89ae3af676d574b12f131a28a1da3d69798fd5a5d629",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#18:assert-14",
+          "expression": "assert.equal(received.length, 4)",
+          "sha256": "1b6874e0d565e850c473ff726ae54b1cc311f6b1774a73c85367b48140afab7c",
+          "line": 720,
+          "expanded_executions": 2,
+          "native_executions": 2,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_18",
+              "line": 723,
+              "fragment": "a.check(14, seen.requests.len() == 4);",
+              "fragment_sha256": "ecb7e10dbccf6486322fc7cafc42c6fc09216cb01de9dca15f00e513577e0952",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#18:assert-15",
+          "expression": "assert.deepEqual(requests, originals)",
+          "sha256": "3a1ea6d1182fb50d67d6e7580ccc8a36066061229e1adbdbef502f478369b1d4",
+          "line": 721,
+          "expanded_executions": 2,
+          "native_executions": 2,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_18",
+              "line": 724,
+              "fragment": "a.check(\n        15,\n        row == original && seen.routes.iter().all(|row| row[\"unchanged\"] == true),\n    );",
+              "fragment_sha256": "2087e4931e382e3787ee4cf17b7defc630bbc02ff8492bc1145c6fbd79f5d78b",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#18:assert-16",
+          "expression": "assert.deepEqual(f.statuses.filter(entry => entry.event === 'route').map(({ model, source, reason, classified_tier }) =>\n    ({ model, source, reason, classified_tier })), [\n    { model: config.models.sonnet, source: 'jev', reason: 'auto_mode_floor', classified_tier: 'haiku' },\n    { model: config.models.opus, source: 'jev', reason: 'classified', classified_tier: 'opus' },\n    { model: config.models.opus, source: 'jev', reason: 'tool_turn_pinned', classified_tier: 'haiku' },\n    { model: config.models.sonnet, source: 'jev', reason: 'auto_mode_floor', classified_tier: 'haiku' },\n  ])",
+          "sha256": "2460d193c245c268ebb46e617e177d42549ff0134dcb45a918f38eaa09113e47",
+          "line": 722,
+          "expanded_executions": 2,
+          "native_executions": 2,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_18",
+              "line": 728,
+              "fragment": "a.check(16,events(&seen.statuses,\"route\").iter().map(route_tuple).collect::<Vec<_>>()==vec![json!({\"model\":\"claude-sonnet-5-5\",\"source\":\"jev\",\"reason\":\"auto_mode_floor\",\"classified_tier\":\"haiku\"}),json!({\"model\":\"claude-opus-5-5\",\"source\":\"jev\",\"reason\":\"classified\",\"classified_tier\":\"opus\"}),json!({\"model\":\"claude-opus-5-5\",\"source\":\"jev\",\"reason\":\"tool_turn_pinned\",\"classified_tier\":\"haiku\"}),json!({\"model\":\"claude-sonnet-5-5\",\"source\":\"jev\",\"reason\":\"auto_mode_floor\",\"classified_tier\":\"haiku\"})]);",
+              "fragment_sha256": "5480b5ccd8563fe42bd95d77d9495215d7e2412a1f3c61a6a9dff06ec5d16214",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#18:assert-17",
+          "expression": "assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes(value))",
+          "sha256": "76b4f609065ce4f69f8289cd440b954f7219bbffa25ba0d877d352436fbeb0f8",
+          "line": 731,
+          "expanded_executions": 14,
+          "native_executions": 14,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_18_auto_human_switches_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_18",
+              "line": 739,
+              "fragment": "a.check(\n            17,\n            !json!({\"logs\":seen.logs,\"statuses\":seen.statuses})\n                .to_string()\n                .contains(secret),\n        );",
+              "fragment_sha256": "65d1b806927c6c9be708c13b2bfbb0d60758889fedf71f0c53eb2f2dd51569f6",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        }
+      ],
+      "name": "auto execution switches Sonnet to Opus to Sonnet across human turns, preserving native context and tool ownership (${usePromptIds ? 'gateway prompt IDs' : 'without prompt IDs'})",
+      "previous_status": "pending_assertion_mapping"
+    },
+    {
+      "id": "test/server.test.mjs#19",
+      "name_expression": "`goal feedback and tool results retain the main model, preserving auxiliary verdicts and new human turns (${usePromptIds ? 'gateway prompt IDs' : 'expanded command without prompt IDs'})`",
+      "statement": "for (const usePromptIds of [true, false]) test(`goal feedback and tool results retain the main model, preserving auxiliary verdicts and new human turns (${usePromptIds ? 'gateway prompt IDs' : 'expanded command without prompt IDs'})`, { timeout: 5000 }, async t => {\n  const config = readConfig({ AUTOROUTER_EVALUATOR: 'jev', AUTOROUTER_SONNET_MODEL: 'claude-sonnet-5-5', TYPESAFE_API_KEY: 'classifier-secret' });\n  const classifierChoices = ['sonnet', 'haiku', 'haiku', 'haiku'];\n  let classifications = 0;\n  const router = new Router(config, { fetchImpl: async (url, options) => {\n    assert.equal(url, config.jevEndpoint);\n    assert.equal(options.headers.authorization, 'Bearer classifier-secret');\n    assert.ok(classifications < classifierChoices.length, 'Unexpected classifier request');\n    return Response.json({ answers: { tier: { choice: classifierChoices[classifications++], confidence: 0.99 } } });\n  } });\n  const condition = 'Create the fixture file once the synthetic resource is available.';\n  const answer = 'The synthetic resource is unavailable. Please enable it to continue.';\n  const verdict = '{\"ok\":false,\"reason\":\"The synthetic resource is not available yet.\"}';\n  const initial = {\n    ...body, model: config.models.haiku, thinking: { type: 'disabled' },\n    messages: [{ role: 'user', content: [\n      { type: 'text', text: `<command-name>/goal</command-name>\\n<command-message>goal</command-message>\\n<command-args>${condition}</command-args>` },\n      { type: 'text', text: `A session-scoped Stop hook is now active with condition: \"${condition}\". Briefly acknowledge the goal, then immediately start working toward it.` },\n    ] }],\n  };\n  const judgedMessages = [...initial.messages, { role: 'assistant', content: [{ type: 'text', text: answer }] }];\n  const judge = {\n    ...initial, system: 'Judge the synthetic goal using transcript evidence only.', tools: [],\n    messages: [...judgedMessages, { role: 'user', content: `Has this stopping condition been satisfied? ${condition}` }],\n    output_config: { format: { type: 'json_schema', schema: {\n      type: 'object', properties: { ok: { type: 'boolean' }, reason: { type: 'string' }, impossible: { type: 'boolean' } },\n      required: ['ok', 'reason'], additionalProperties: false,\n    } } },\n  };\n  // Claude's internal isMeta flag is absent from the Messages API: the same\n  // human-prompt identity must distinguish this feedback from a new task.\n  const continuation = {\n    ...initial, messages: [...judgedMessages, { role: 'user', content: [\n      { type: 'text', text: `Stop hook feedback:\\n[${condition}]: ${JSON.parse(verdict).reason}`, cache_control: { type: 'ephemeral' } },\n    ] }],\n  };\n  const toolUse = { type: 'tool_use', id: 'tool_goal_fixture', name: 'Read', input: { path: 'fixture.txt' } };\n  const toolContinuation = { ...initial, messages: [\n    ...continuation.messages,\n    { role: 'assistant', content: [{ type: 'text', text: 'Checking the fixture.' }, toolUse] },\n    { role: 'user', content: [{ type: 'tool_result', tool_use_id: toolUse.id, content: 'The synthetic resource is unavailable.', cache_control: { type: 'ephemeral' } }] },\n  ] };\n  const nextTurn = { ...initial, messages: [\n    ...toolContinuation.messages, { role: 'assistant', content: [{ type: 'text', text: answer }] },\n    { role: 'user', content: 'Instead, what is the length of []? Reply with the number.' },\n  ] };\n  const requests = [initial, judge, continuation, toolContinuation, nextTurn];\n  const originals = structuredClone(requests);\n  const expectedModels = [config.models.sonnet, config.models.haiku, config.models.sonnet, config.models.sonnet, config.models.haiku];\n  const classes = ['main', 'auxiliary', 'main', 'main', 'main'];\n  const promptIds = usePromptIds ? ['goal-prompt', 'goal-prompt', 'goal-prompt', 'goal-prompt', 'new-human-prompt'] : [];\n  const event = payload => `event: ${payload.type}\\r\\ndata: ${JSON.stringify(payload)}\\r\\n\\r\\n`;\n  const replies = [answer, verdict, 'Checking the fixture.', answer, '0'].map((text, index) => Buffer.from([\n    { type: 'message_start', message: { id: `msg_goal_${index}`, model: expectedModels[index], content: [] } },\n    { type: 'content_block_start', index: 0, content_block: { type: 'text', text: '' } },\n    { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text } },\n    { type: 'content_block_stop', index: 0 },\n    ...(index === 2 ? [\n      { type: 'content_block_start', index: 1, content_block: { ...toolUse, input: {} } },\n      { type: 'content_block_delta', index: 1, delta: { type: 'input_json_delta', partial_json: JSON.stringify(toolUse.input) } },\n      { type: 'content_block_stop', index: 1 },\n    ] : []),\n    { type: 'message_delta', delta: { stop_reason: index === 2 ? 'tool_use' : 'end_turn' }, usage: { output_tokens: 20 } },\n    { type: 'message_stop' },\n  ].map(event).join('')));\n  const received = [];\n  const f = await fixture(t, async (req, res) => {\n    let text = ''; for await (const chunk of req) text += chunk;\n    const index = received.length;\n    received.push(JSON.parse(text));\n    assert.equal(req.url, '/v1/messages?beta=true');\n    assert.equal(req.headers.authorization, oauthHeaders.authorization);\n    assert.equal(req.headers['anthropic-beta'], oauthHeaders['anthropic-beta']);\n    assert.equal(req.headers['anthropic-version'], oauthHeaders['anthropic-version']);\n    assert.equal(req.headers['x-claude-code-session-id'], 'synthetic-goal-session');\n    assert.equal(req.headers['x-claude-code-agent-id'], 'synthetic-main-agent');\n    assert.equal(req.headers['x-claude-code-prompt-id'], promptIds[index]);\n    assert.equal(req.headers['x-claude-code-request-class'], classes[index]);\n    assert.equal(req.headers['x-autorouter-token'], undefined);\n    res.writeHead(200, { 'content-type': 'text/event-stream', 'request-id': `goal-provider-${index}` });\n    res.write(replies[index].subarray(0, 31));\n    res.end(replies[index].subarray(31));\n  }, { authMode: 'subscription', models: config.models }, router);\n  for (const [index, request] of requests.entries()) {\n    const response = await f.call('/v1/messages?beta=true', { method: 'POST', headers: {\n      ...oauthHeaders, 'x-claude-code-session-id': 'synthetic-goal-session', 'x-claude-code-agent-id': 'synthetic-main-agent',\n      ...(usePromptIds ? { 'x-claude-code-prompt-id': promptIds[index] } : {}), 'x-claude-code-request-class': classes[index],\n    }, body: JSON.stringify(request) });\n    assert.equal(response.status, 200);\n    assert.equal(response.headers.get('request-id'), `goal-provider-${index}`);\n    assert.deepEqual(Buffer.from(await response.arrayBuffer()), replies[index]);\n    assert.deepEqual(received[index], {\n      ...request, model: expectedModels[index],\n      thinking: { type: expectedModels[index] === config.models.sonnet ? 'between_tools' : 'disabled' },\n    });\n  }\n  assert.equal(classifications, 4);\n  assert.deepEqual(requests, originals);\n  const routes = f.statuses.filter(entry => entry.event === 'route');\n  assert.deepEqual(routes.map(({ model, source, reason, classified_tier }) => ({ model, source, reason, classified_tier })), [\n    { model: config.models.sonnet, source: 'jev', reason: 'classified', classified_tier: 'sonnet' },\n    { model: config.models.haiku, source: 'passthrough', reason: 'internal_request', classified_tier: undefined },\n    { model: config.models.sonnet, source: 'jev', reason: usePromptIds ? 'prompt_turn_pinned' : 'goal_turn_pinned', classified_tier: 'haiku' },\n    { model: config.models.sonnet, source: 'jev', reason: 'tool_turn_pinned', classified_tier: 'haiku' },\n    { model: config.models.haiku, source: 'jev', reason: 'classified', classified_tier: 'haiku' },\n  ]);\n  assert.deepEqual(f.logs.filter(entry => entry.event === 'upstream_model').map(entry => entry.model), expectedModels);\n  for (const privateValue of [condition, answer, verdict, 'classifier-secret', 'fake-subscription-token']) {\n    assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes(privateValue));\n  }\n});",
+      "sha256": "a23adf5e5e6c1c9ebdc5ad4ff0bfccf7c8a064fd04a98340ce2ef65d5e998379",
+      "static_assertions": 21,
+      "expanded_assertions": 172,
+      "expanded_callbacks": [
+        {
+          "id": "server-auto-goal-19-prompt-ids",
+          "source_test": "test/server.test.mjs#19",
+          "name": "goal feedback and tool results retain the main model, preserving auxiliary verdicts and new human turns (gateway prompt IDs)",
+          "use_prompt_ids": true,
+          "passed": true,
+          "executed_assertions": 86
+        },
+        {
+          "id": "server-auto-goal-19-headerless",
+          "source_test": "test/server.test.mjs#19",
+          "name": "goal feedback and tool results retain the main model, preserving auxiliary verdicts and new human turns (expanded command without prompt IDs)",
+          "use_prompt_ids": false,
+          "passed": true,
+          "executed_assertions": 86
+        }
+      ],
+      "proposed_status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+        "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+      ],
+      "shared_cases": [
+        "server-auto-goal-19-prompt-ids",
+        "server-auto-goal-19-headerless"
+      ],
+      "api_boundaries": [
+        "The original assertions are ported individually; Rust assertions count every original dynamic site per variant, not one aggregate substitute.",
+        "Full input mutation checks additionally retain an Arc to the authoritative JsDocument across the real Router call and compare complete serialized input before/after. Rust does not claim JavaScript object-reference identity."
+      ],
+      "assertions": [
+        {
+          "id": "test/server.test.mjs#19:assert-1",
+          "expression": "assert.equal(url, config.jevEndpoint)",
+          "sha256": "86983dba3f95631c4fb3381d4f7f579b0b67dc027e3fb4e157ccc6c116a9fbb9",
+          "line": 740,
+          "expanded_executions": 8,
+          "native_executions": 8,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 756,
+              "fragment": "a.check(\n            1,\n            call.path == row[\"router_config\"][\"jevEndpoint\"].as_str().unwrap(),\n        );",
+              "fragment_sha256": "30f42c89a17efe36142d525592a8cc5e3fa40bd0e6cd67454790e69f46d516d2",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#19:assert-2",
+          "expression": "assert.equal(options.headers.authorization, 'Bearer classifier-secret')",
+          "sha256": "744649ec1d73757a8e2af52fd164709938cd095919ecc6eb6afc8b68b33c661e",
+          "line": 741,
+          "expanded_executions": 8,
+          "native_executions": 8,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 760,
+              "fragment": "a.check(\n            2,\n            header_is(\n                &call.headers,\n                \"authorization\",\n                Some(\"Bearer classifier-secret\"),\n            ),\n        );",
+              "fragment_sha256": "74ecfea55a573867140f59aff354c754bb86576e41e7593d6459079bfd28045f",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#19:assert-3",
+          "expression": "assert.ok(classifications < classifierChoices.length, 'Unexpected classifier request')",
+          "sha256": "0993b545d3e0d427c9e39decfa9c24f8cf6731383563fc5baeb5ce3d21712db7",
+          "line": 742,
+          "expanded_executions": 8,
+          "native_executions": 8,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 768,
+              "fragment": "a.check(3, index < 4);",
+              "fragment_sha256": "5b710f113ddca1bb797da13791cbd7101373f83111502813175e4ca325b0c297",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#19:assert-4",
+          "expression": "assert.equal(req.url, '/v1/messages?beta=true')",
+          "sha256": "04f4434dac9189e462941da5cba054c97bceae86a8196f16542fdb59d70382a0",
+          "line": 805,
+          "expanded_executions": 10,
+          "native_executions": 10,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 772,
+              "fragment": "a.check(4, request.path == \"/v1/messages?beta=true\");",
+              "fragment_sha256": "ad5630ae0ec261b000b1757e93c1705bf143d390c0ad3bfd5140ed593c88c288",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#19:assert-5",
+          "expression": "assert.equal(req.headers.authorization, oauthHeaders.authorization)",
+          "sha256": "eef89dd65a86aa771879b9ddd8d8f1b5c29b07b68f9c316c45574f2436ac645e",
+          "line": 806,
+          "expanded_executions": 10,
+          "native_executions": 10,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 773,
+              "fragment": "a.check(\n            5,\n            header_is(\n                &request.headers,\n                \"authorization\",\n                Some(\"Bearer fake-subscription-token\"),\n            ),\n        );",
+              "fragment_sha256": "96f915f93a20841a54c87ffb4fba9df58aad70579932c11ccffd725d38359960",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#19:assert-6",
+          "expression": "assert.equal(req.headers['anthropic-beta'], oauthHeaders['anthropic-beta'])",
+          "sha256": "0a84668b34b057e1b217ebeb847cf3c7a860e9229e3ea327d50afbdd4f264b95",
+          "line": 807,
+          "expanded_executions": 10,
+          "native_executions": 10,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 781,
+              "fragment": "a.check(\n            6,\n            header_is(\n                &request.headers,\n                \"anthropic-beta\",\n                Some(\"oauth-2025-04-20,future-capability\"),\n            ),\n        );",
+              "fragment_sha256": "d049a1e39e1de316b21a0027898ccbb94d30921413ec277c9f6cd38e75e7ef49",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#19:assert-7",
+          "expression": "assert.equal(req.headers['anthropic-version'], oauthHeaders['anthropic-version'])",
+          "sha256": "b4fb97aff23405e1cd6bb05e7684454f5e4020e9c589be36e1d9ff6636009ec7",
+          "line": 808,
+          "expanded_executions": 10,
+          "native_executions": 10,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 789,
+              "fragment": "a.check(\n            7,\n            header_is(&request.headers, \"anthropic-version\", Some(\"2023-06-01\")),\n        );",
+              "fragment_sha256": "17beb31e19f5f57a978d94627acb02bd662aee0bd5eff79388a44039bd6c902e",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#19:assert-8",
+          "expression": "assert.equal(req.headers['x-claude-code-session-id'], 'synthetic-goal-session')",
+          "sha256": "e0c1de909aeba2af59ba930667aad1cc13f794b7a12a0fc5bda7d0bd6ddeeca1",
+          "line": 809,
+          "expanded_executions": 10,
+          "native_executions": 10,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 793,
+              "fragment": "a.check(\n            8,\n            header_is(\n                &request.headers,\n                \"x-claude-code-session-id\",\n                Some(\"synthetic-goal-session\"),\n            ),\n        );",
+              "fragment_sha256": "6a4f00af22328c3e7fab2b506201f1cb378f669efd5eb4eed6a794c46d844d3d",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#19:assert-9",
+          "expression": "assert.equal(req.headers['x-claude-code-agent-id'], 'synthetic-main-agent')",
+          "sha256": "cacb5c31335aa0e11bd9adf87e1acd9dd0a0afdbe75af0fe8351117d40c5114c",
+          "line": 810,
+          "expanded_executions": 10,
+          "native_executions": 10,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 801,
+              "fragment": "a.check(\n            9,\n            header_is(\n                &request.headers,\n                \"x-claude-code-agent-id\",\n                Some(\"synthetic-main-agent\"),\n            ),\n        );",
+              "fragment_sha256": "d7b94433ef4814b9b2b5fd911a7b38d697acb750339951e17e68a218c23491d0",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#19:assert-10",
+          "expression": "assert.equal(req.headers['x-claude-code-prompt-id'], promptIds[index])",
+          "sha256": "7cc8e88ec8624fd443f512f1c2ee93e18ce4852fea154bd3718ed1dea539a513",
+          "line": 811,
+          "expanded_executions": 10,
+          "native_executions": 10,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 809,
+              "fragment": "a.check(\n            10,\n            header_is(\n                &request.headers,\n                \"x-claude-code-prompt-id\",\n                if use_prompt_ids {\n                    Some(if index == 4 {\n                        \"new-human-prompt\"\n                    } else {\n                        \"goal-prompt\"\n                    })\n                } else {\n                    None\n                },\n            ),\n        );",
+              "fragment_sha256": "ba9b17594ed22de921a1e9e0be466cfa1de441886442a74d2b8cf0b505132cbb",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#19:assert-11",
+          "expression": "assert.equal(req.headers['x-claude-code-request-class'], classes[index])",
+          "sha256": "9b2dc56e08851418053dc820274f3f8b2bab3d51fb43053ebc7d642e125ab004",
+          "line": 812,
+          "expanded_executions": 10,
+          "native_executions": 10,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 825,
+              "fragment": "a.check(\n            11,\n            header_is(\n                &request.headers,\n                \"x-claude-code-request-class\",\n                Some(if index == 1 { \"auxiliary\" } else { \"main\" }),\n            ),\n        );",
+              "fragment_sha256": "857ed829cbc0ae22f3d8495dbdaad68ac1f45adc4e855c7707b7b10020700c5b",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#19:assert-12",
+          "expression": "assert.equal(req.headers['x-autorouter-token'], undefined)",
+          "sha256": "0cd9ed0e32b31cec139db3b3d2368936faa1d892c452e24b5e562c3403862e78",
+          "line": 813,
+          "expanded_executions": 10,
+          "native_executions": 10,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 833,
+              "fragment": "a.check(12, header_is(&request.headers, \"x-autorouter-token\", None));",
+              "fragment_sha256": "9757d33a8459be4af160d8a52f42a1cc3e14ce9b4867c12fcd83afcd09d6e5b0",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#19:assert-13",
+          "expression": "assert.equal(response.status, 200)",
+          "sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "line": 823,
+          "expanded_executions": 10,
+          "native_executions": 10,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 834,
+              "fragment": "a.check(13, replies[index].status == 200);",
+              "fragment_sha256": "e55bc00474d97b4f2b4e35a38ef8d79d0970889ed7872c6b90ad0fb5b6d68f8c",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#19:assert-14",
+          "expression": "assert.equal(response.headers.get('request-id'), `goal-provider-${index}`)",
+          "sha256": "2715b763b6a18ef1507c8d432ba3fc2936a7b07670cedf31279829e4394f3a11",
+          "line": 824,
+          "expanded_executions": 10,
+          "native_executions": 10,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 835,
+              "fragment": "a.check(\n            14,\n            header_is(\n                &replies[index].headers,\n                \"request-id\",\n                Some(&format!(\"goal-provider-{index}\")),\n            ),\n        );",
+              "fragment_sha256": "3d260bbd9b5e9b49c41074d531ea64bf2a328ef84bf8835a996c30a8d703173f",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#19:assert-15",
+          "expression": "assert.deepEqual(Buffer.from(await response.arrayBuffer()), replies[index])",
+          "sha256": "198df34b6991b93b8d5b71c534643b10f0fdcbede20c32a0036000fc17a19317",
+          "line": 825,
+          "expanded_executions": 10,
+          "native_executions": 10,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 843,
+              "fragment": "a.check(15, replies[index].bytes == response_bytes(&expected[index]));",
+              "fragment_sha256": "cec51370d19489393faac8f0aa5f89e857926f5c3c3573e8057d0778e1cdaee2",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#19:assert-16",
+          "expression": "assert.deepEqual(received[index], {\n      ...request, model: expectedModels[index],\n      thinking: { type: expectedModels[index] === config.models.sonnet ? 'between_tools' : 'disabled' },\n    })",
+          "sha256": "65065a45e47b8f3d6cd2848803b21e75a4adf191afd1fe18691aa2f5b4549519",
+          "line": 826,
+          "expanded_executions": 10,
+          "native_executions": 10,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 860,
+              "fragment": "a.check(16, parsed(&request.body) == input);",
+              "fragment_sha256": "edf3589e28e5b42ee6dd1981fb34331860ad70f428ee9b9b9709177df758ae34",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#19:assert-17",
+          "expression": "assert.equal(classifications, 4)",
+          "sha256": "0c56bb56699581e4adbc1d761c9cb998cb91b3b3919a6132d0c3031931169ca8",
+          "line": 831,
+          "expanded_executions": 2,
+          "native_executions": 2,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 862,
+              "fragment": "a.check(17, seen.mocked.len() == 4);",
+              "fragment_sha256": "ac73a6c45aaba68f144efa73ce9d1b004a466ee755f03c8b99ab526b705aada9",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#19:assert-18",
+          "expression": "assert.deepEqual(requests, originals)",
+          "sha256": "3a1ea6d1182fb50d67d6e7580ccc8a36066061229e1adbdbef502f478369b1d4",
+          "line": 832,
+          "expanded_executions": 2,
+          "native_executions": 2,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 863,
+              "fragment": "a.check(\n        18,\n        row == original && seen.routes.iter().all(|row| row[\"unchanged\"] == true),\n    );",
+              "fragment_sha256": "aedd45ecf9a2bb3515927c60d27c86955b1b7142b2decf513cae308cc060ddb5",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#19:assert-19",
+          "expression": "assert.deepEqual(routes.map(({ model, source, reason, classified_tier }) => ({ model, source, reason, classified_tier })), [\n    { model: config.models.sonnet, source: 'jev', reason: 'classified', classified_tier: 'sonnet' },\n    { model: config.models.haiku, source: 'passthrough', reason: 'internal_request', classified_tier: undefined },\n    { model: config.models.sonnet, source: 'jev', reason: usePromptIds ? 'prompt_turn_pinned' : 'goal_turn_pinned', classified_tier: 'haiku' },\n    { model: config.models.sonnet, source: 'jev', reason: 'tool_turn_pinned', classified_tier: 'haiku' },\n    { model: config.models.haiku, source: 'jev', reason: 'classified', classified_tier: 'haiku' },\n  ])",
+          "sha256": "da1d4fab869f0338cbc6f12002577051ec894f1395b3ae57b5edf72cbc5de5d7",
+          "line": 834,
+          "expanded_executions": 2,
+          "native_executions": 2,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 867,
+              "fragment": "a.check(19,events(&seen.statuses,\"route\").iter().map(route_tuple).collect::<Vec<_>>()==vec![json!({\"model\":\"claude-sonnet-5-5\",\"source\":\"jev\",\"reason\":\"classified\",\"classified_tier\":\"sonnet\"}),json!({\"model\":\"claude-haiku-4-5-20251001\",\"source\":\"passthrough\",\"reason\":\"internal_request\"}),json!({\"model\":\"claude-sonnet-5-5\",\"source\":\"jev\",\"reason\":if use_prompt_ids {\"prompt_turn_pinned\"} else {\"goal_turn_pinned\"},\"classified_tier\":\"haiku\"}),json!({\"model\":\"claude-sonnet-5-5\",\"source\":\"jev\",\"reason\":\"tool_turn_pinned\",\"classified_tier\":\"haiku\"}),json!({\"model\":\"claude-haiku-4-5-20251001\",\"source\":\"jev\",\"reason\":\"classified\",\"classified_tier\":\"haiku\"})]);",
+              "fragment_sha256": "40550441a76a7d81f23144b60f338e2c791fe76c2255a6416b74220a3ed5b30d",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#19:assert-20",
+          "expression": "assert.deepEqual(f.logs.filter(entry => entry.event === 'upstream_model').map(entry => entry.model), expectedModels)",
+          "sha256": "4b6fefcc3ef3a45ef5b84c2c03c4e4406f9cc39a01f769fc4ddf641a3dc0ded3",
+          "line": 841,
+          "expanded_executions": 2,
+          "native_executions": 2,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 868,
+              "fragment": "a.check(\n        20,\n        events(&seen.logs, \"upstream_model\")\n            .iter()\n            .map(|row| row[\"model\"].clone())\n            .collect::<Vec<_>>()\n            == vec![\n                json!(\"claude-sonnet-5-5\"),\n                json!(\"claude-haiku-4-5-20251001\"),\n                json!(\"claude-sonnet-5-5\"),\n                json!(\"claude-sonnet-5-5\"),\n                json!(\"claude-haiku-4-5-20251001\"),\n            ],\n    );",
+              "fragment_sha256": "b364347d68d5b9d7695838432ff217a0ad2ac2ec7b4eb9f0bacef43f51b50d4e",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#19:assert-21",
+          "expression": "assert.ok(!JSON.stringify({ logs: f.logs, statuses: f.statuses }).includes(privateValue))",
+          "sha256": "27f75c49c2a5b78669d48d7c5bdcd4d6d35f3356a4f28261da29e0274fdc9654",
+          "line": 843,
+          "expanded_executions": 10,
+          "native_executions": 10,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
+            "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+              "function": "original_19",
+              "line": 890,
+              "fragment": "a.check(\n            21,\n            !json!({\"logs\":seen.logs,\"statuses\":seen.statuses})\n                .to_string()\n                .contains(secret),\n        );",
+              "fragment_sha256": "3288ff1b5dd38175d47cd81bd9e616807658539c6fb3fcbd9c17f84480d6fd34",
+              "file_sha256": "c21f57ade009547c6948f20ba8e27487c3c809046674837dc01227431c4e5a2b"
+            }
+          ],
+          "native_check": "The complete original predicate through production native Gateway/Router and bounded synthetic HTTP peers. Per-variant execution counts are checked against the frozen capture; evaluator full payload equality and response bytes are additionally checked.",
+          "api_adaptation": null
+        }
+      ],
+      "name": "goal feedback and tool results retain the main model, preserving auxiliary verdicts and new human turns (${usePromptIds ? 'gateway prompt IDs' : 'expanded command without prompt IDs'})",
+      "previous_status": "pending_assertion_mapping"
+    }
+  ],
+  "supplemental_observation_contracts": {
+    "native_anchor": {
+      "path": "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs",
+      "function": "supplemental_exact_observations"
+    },
+    "scope": "Every actual route input, scope, prompt identity, class, live cancellation token; every evidence-bearing completion with correlated generated request ID, accepted result, exact provider model, terminal reason and emitted tool ownership. All 18 requests complete and no request_error occurs.",
+    "api_adaptations": [
+      "Rust RouteOptions absent prompt_id is an empty String. This is compared explicitly and both real HTTP prompt headers remain absent in headerless variants.",
+      "The original JS callback executes evidence-bearing complete then no-op complete(id,undefined); native consumes its successful request lease once. Source records all 36 calls, native all 18 calls. Every source cleanup is checked false and every evidence-bearing call has exact semantic parity. No raw-call cardinality equivalence is claimed.",
+      "The frozen report retains explicit undefined sentinels in route-tuple fields, whereas the original deepEqual expected tuple has the property with undefined. Native tuple lacks the unrepresentable field; a null value is not dropped and would fail."
+    ]
+  },
+  "projection_scope": "Frozen stability projection is limited to validated nonnegative latency, actual generated request UUIDs, automatic HTTP dates and registered loopback authorities, with an exact per-value ledger. Native raw reports are never projected or rewritten.",
+  "bundle_fixed_paths": [
+    "rust/parity/cases/server-auto-goal-prompt-ids-contracts.jsonl",
+    "rust/parity/cases/server-auto-goal-headerless-contracts.jsonl",
+    "rust/parity/cases/server-auto-goal-contracts.capture.json"
+  ],
+  "bundle_cap_changes": false,
+  "central_ledger_edits": false,
+  "limits": [
+    "Synthetic loopback HTTP with original supplied Jev responses; no real Claude, Jev or Ollama usage.",
+    "Complete semantic request-object assertions do not claim general JSON key-order parity beyond the original scope. Complete provider response bytes are compared exactly, including split UTF-8 and CRLF.",
+    "Per-variant original assertions all pass; no general socket fragmentation or wall-clock timing equivalence is claimed.",
+    "Native successful completion has one typed call per request, unlike the source extra no-op undefined cleanup callback. Native raw transcripts retain actual shapes."
+  ],
+  "corpora": [
+    {
+      "path": "rust/parity/cases/server-auto-goal-prompt-ids-contracts.jsonl",
+      "bytes": 2313967,
+      "sha256": "aad22fb15bb1573bc7cbc1de8758b37de4512a61efa7c10474cfca7b636aadb3"
+    },
+    {
+      "path": "rust/parity/cases/server-auto-goal-headerless-contracts.jsonl",
+      "bytes": 2313790,
+      "sha256": "915b85bc7238aca22f0e55f2c324e2f7b6aa2a38a411f03bf9f3566e9be2c3d1"
+    }
+  ],
+  "bundle_large_corpus_additions": [
+    "rust/parity/cases/server-auto-goal-prompt-ids-contracts.jsonl",
+    "rust/parity/cases/server-auto-goal-headerless-contracts.jsonl"
+  ],
+  "independent_review": {
+    "reviewed_at": "2026-10-13",
+    "scope": "Original callbacks/predicates, all38 exact source anchors/hashes, per-variant counts, actual native transcripts and documented supplemental typed API adaptations."
+  }
+}

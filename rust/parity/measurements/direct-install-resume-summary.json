@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "kind": "native_direct_installed_host_validation",
+  "reviewed_at": "2026-10-13",
+  "release_approved": false,
+  "source": {
+    "commit": "da51574ec1a895286c0379db1623d715e986be7e",
+    "dirty": false,
+    "cargo_lock_sha256": "7abff1b608f0487c39941ee2a354f4f2d3978f2613243f8e88250e5f5e209992",
+    "provenance": "prebuilt local artifacts; source-to-binary reproducibility unverified"
+  },
+  "validation_tool_source": {
+    "base_commit": "da51574ec1a895286c0379db1623d715e986be7e",
+    "working_tree_changes": true,
+    "files": {
+      "rust/xtask/src/package.rs": "36dbfad55580dd21817c21d8a42e414c11b0b477f3cc181ad3050e1597b73783",
+      "rust/xtask/src/package_direct.rs": "0753c4c1ae65ecd20c56b6aa80efa8d2f45b24ca5ecb3ac6ba95b9df3a1212d1",
+      "rust/xtask/src/package_lifecycle.rs": "72311d2ff54dea3aafd9390ab08bcb6a24db98ae2f3cbfcb5348673ef398abe3",
+      "rust/xtask/src/release_pack.rs": "f5f871ce808ba1b051a018249d5e4e0495fe14872da93d497e2b65cfd2c72f8d",
+      "rust/xtask/src/release_direct_smoke.rs": "1fddefb602e7dde976498dfd78d9e1a36a786af2daeb490f6398cb1e310a9df6"
+    }
+  },
+  "parent_npm_archive": {
+    "path": "artifacts/rust-rewrite/resume-20261013-package/claude-autorouter-0.5.2.tgz",
+    "sha256": "96308b354f5f0942f7b8902abb8012638f114c1333c294935fadf17f47c81fe5"
+  },
+  "direct_archive": {
+    "path": "artifacts/rust-rewrite/direct-resume-20261013/claude-autorouter-0.5.2-aarch64-apple-darwin.tar.gz",
+    "sha256": "9b6ed674510bb9feee72f7d22000bdb990e0050f4874978fc54ce7d82e1578f2",
+    "bytes": 5810244,
+    "kind": "native_direct_feasibility",
+    "private": true
+  },
+  "checks": {
+    "focused_direct_and_admission_tests_passed": 5,
+    "shared_lifecycle_contract_tests_passed": 1,
+    "direct_installed_tests_passed": 74,
+    "npm_installed_tests_passed": 74,
+    "installed_suite_count": 7,
+    "no_provider_calls": true
+  },
+  "commands": [
+    "cargo test -p xtask --offline --locked direct_ -- --test-threads=4",
+    "cargo test -p xtask --offline --locked package::lifecycle -- --test-threads=4",
+    "cargo xtask package --direct-from artifacts/rust-rewrite/resume-20261013-package/claude-autorouter-0.5.2.tgz --target aarch64-apple-darwin --output artifacts/rust-rewrite/direct-resume-20261013 --smoke",
+    "cargo xtask release-pack smoke-direct ../artifacts/rust-rewrite/direct-resume-20261013/claude-autorouter-0.5.2-aarch64-apple-darwin.tar.gz",
+    "cargo xtask package-smoke artifacts/rust-rewrite/resume-20261013-package/claude-autorouter-0.5.2.tgz"
+  ],
+  "evidence": {
+    "direct_pass": "artifacts/rust-rewrite/direct-resume-20261013/direct-smoke-report.json",
+    "sandbox_restriction_failure": "artifacts/rust-rewrite/direct-resume-20261013/installed-lifecycle-failure-1791881014715673000.json"
+  },
+  "conditions": [
+    "macOS ARM64 host",
+    "same native binary as clean da51574 resume npm candidate",
+    "first direct smoke failed because sandbox denied loopback binding; original private diagnostics retained",
+    "unchanged direct archive passed with loopback-authorized execution",
+    "both installed checks use mock Claude/evaluator and synthetic private homes",
+    "tool/test changes were uncommitted at validation; repeat final qualification after source is fixed"
+  ],
+  "limits": [
+    "current_host_and_exact_archive_only",
+    "mock_claude_and_evaluator_only",
+    "oldest_os_libc_cpu_and_corporate_tls_require_separate_evidence",
+    "no_real_keychain_or_provider",
+    "no_final_release_authorization",
+    "no_ci_source_build_provenance",
+    "full_platform_matrix_remains_pending",
+    "no_performance_or_live_qualification"
+  ]
+}

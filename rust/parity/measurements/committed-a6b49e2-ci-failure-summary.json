@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "kind": "committed_a6b49e2_ci_failure_checkpoint",
+  "date": "2026-10-15",
+  "source_head": "a6b49e22a31b988f54bb5102958648d01ec66acf",
+  "actual_PR_merge_checkout": "80c46f92244bc59164f94d4155dc6200fb71b550",
+  "source_tree": "dff39a5654d75f33a3121a705bae64a6018fc2cf",
+  "merge_checkout_and_pushed_head_trees_equal": true,
+  "actual_all13_job_logs_individually_bind_merge_checkout": true,
+  "status": "terminal_failure_checkpoint_not_native_CI_or_shipping_approval",
+  "run_ids": {
+    "CI": 38695203766,
+    "Rust32bitCore": 38695203768,
+    "RustGNUPortability": 38695203807,
+    "RustMuslPortability": 38695203849
+  },
+  "jobs": {
+    "total": 13,
+    "success": 5,
+    "failure": 8,
+    "success_domains": [
+      "Four required Node22/24 ×ubuntu/macOS jobs",
+      "Actual i686 core arithmetic package only"
+    ],
+    "failed_domains": {
+      "six_ordinary_Rust_and_GNU_jobs": "Reference destination appeared during construction at the shared Fixture::new reference preparation. Six jobs contain seven panic occurrences; IntelMac has two affected predicates. The create-only production guard correctly refuses the competing publication. Fixing fixture preparation requires a separate reviewed source/test change.",
+      "two_musl_jobs": "Launcher logging default-stderr assertion fails at launcher_logging.rs427. Captured stderr was not printed by the failed assertion; exact emitted content/cause requires separate diagnosis."
+    }
+  },
+  "terminal_observation": {
+    "path": "artifacts/rust-rewrite/a6b49e2-ci-20261015-1/terminal-13-job-observation-1.json",
+    "bytes": 23363,
+    "sha256": "080c8e2ad3f8a3dcaa7aec02daf3c8630faa8bcd57ec0774170d3ea1f5a5a081"
+  },
+  "musl_terminal_regression_scope": {
+    "supplier": "Production Git Nix0.31.3 at exactsuppliercommit2286fd91d8165b4b56b273c2ebe5fb4f462ed672; independent bootstrap uses registryNix separately. Actual musl logs include production Git supplier compilation.",
+    "both_targets_passed": "Both actualmusl targets pass all35CLIunit tests, including the four named terminal lifecycle controls below. Prior queued-byte/flow-restoration failures do not recur in this run. This is a narrow terminal correction observation; both complete musl jobs still fail later.",
+    "per_target_evidence": [
+      {
+        "target": "aarch64-unknown-linux-musl",
+        "job_id": 116290040397,
+        "raw_log": {
+          "path": "artifacts/rust-rewrite/a6b49e2-ci-20261015-1/failed-job-116290040397-raw.log",
+          "bytes": 248119,
+          "sha256": "d05df0b36fcb752196090496832737fcd77953b017eea54d7f1c89f69ececa91"
+        },
+        "Git_Nix_compile_log_lines": [
+          911,
+          1099
+        ],
+        "CLI_unit_35_0_0_log_line": 2296,
+        "terminal_lifecycle_passes": [
+          {
+            "name": "secret_input::tests::invitation_panic_restores_terminal_and_descriptor_flags",
+            "passed_log_line": 2284
+          },
+          {
+            "name": "secret_input::tests::leaving_hidden_input_discards_queued_bytes_before_restoring_echo",
+            "passed_log_line": 2285
+          },
+          {
+            "name": "secret_input::tests::prompt_writer_observes_hidden_terminal_before_inviting_secret_input",
+            "passed_log_line": 2286
+          },
+          {
+            "name": "secret_input::tests::restoration_does_not_wait_for_stopped_terminal_output",
+            "passed_log_line": 2287
+          }
+        ]
+      },
+      {
+        "target": "x86_64-unknown-linux-musl",
+        "job_id": 116290040661,
+        "raw_log": {
+          "path": "artifacts/rust-rewrite/a6b49e2-ci-20261015-1/failed-job-116290040661-raw.log",
+          "bytes": 247630,
+          "sha256": "e9d8e410900866af98b99720721c7dad24c4b57b184c9276b1ee50458b988fa3"
+        },
+        "Git_Nix_compile_log_lines": [
+          907,
+          1096
+        ],
+        "CLI_unit_35_0_0_log_line": 2292,
+        "terminal_lifecycle_passes": [
+          {
+            "name": "secret_input::tests::invitation_panic_restores_terminal_and_descriptor_flags",
+            "passed_log_line": 2280
+          },
+          {
+            "name": "secret_input::tests::leaving_hidden_input_discards_queued_bytes_before_restoring_echo",
+            "passed_log_line": 2281
+          },
+          {
+            "name": "secret_input::tests::prompt_writer_observes_hidden_terminal_before_inviting_secret_input",
+            "passed_log_line": 2282
+          },
+          {
+            "name": "secret_input::tests::restoration_does_not_wait_for_stopped_terminal_output",
+            "passed_log_line": 2283
+          }
+        ]
+      }
+    ]
+  },
+  "all_existing_failed_runs_and_logs_remain_retained": true,
+  "no_retries_or_deadline_target_cap_protection_relaxation": true,
+  "provider_calls": 0,
+  "model_downloads": 0,
+  "scope": "Actual terminal results for this exactsource tree only. FourshippingNode checks and narrowcore32 pass; all8nativefunctional/platformjobs fail before complete qualification. Localserialized1265/0/9 is separate, not defaultparallelCI success. No complete native/npm/direct shipping set, all11target/minimumOS/WSL/CA/CPU/platform/performance/live/hardware/release/defaultcutover approval. Treeidentity is not binaryidentity."
+}

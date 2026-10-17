@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "kind": "native_tooling_rubric_protocol_resume_checkpoint",
+  "date": "2026-10-13",
+  "head_commit": "da51574ec1a895286c0379db1623d715e986be7e",
+  "source_uncommitted": true,
+  "release_approved": false,
+  "provider_calls_performed": false,
+  "counts": {
+    "covered": 4,
+    "partial": 1,
+    "original_assertion_call_sites": 63,
+    "inherited_helper_call_sites": 3,
+    "original_protocol_scenarios": 7,
+    "original_protocol_steps": 14,
+    "original_live_cases": 10,
+    "original_live_prompts": 12
+  },
+  "tests": {
+    "native_tests_passed": 7,
+    "native_protocol_scenarios": 7,
+    "native_protocol_steps": 14,
+    "provenance_mutations_rejected": 5,
+    "original_node_expanded_tests_passed": 11,
+    "native_workspace_help_semantics_passed": true,
+    "dependency_free_extracted_native_help_qualified": false,
+    "final_scoped_strict_clippy_passed": true,
+    "earlier_incomplete_performance_clippy_attempts_retained": 2,
+    "owned_sources_unchanged_during_final_behavior_checks": true
+  },
+  "mapping": {
+    "path": "rust/parity/assertion-mappings/tooling-rubric-protocol.json",
+    "sha256": "7186b6e3afb8ec88b314d81514f1237e04f6aa63cdfe332d0b8b3a735b116931"
+  },
+  "evidence": {
+    "frozen_capture": {
+      "path": "rust/parity/cases/tooling-rubric-protocol.capture.json",
+      "sha256": "12c4788d8d515cf8698975b72ce9759d7be3d541eae16d0d4a063cea5da4ed6b"
+    },
+    "native_local_execution": {
+      "path": "artifacts/rust-rewrite/tooling-protocol-native-20261013-1/report.json",
+      "sha256": "62d680b4f319f01446d52e52cad2d8aa486103a5749a8563f65da8323f7be58a",
+      "qualified_scope": "First 5 commands/7 native tests passed; full report remains false because its concurrent xtask Clippy attempt encountered unwired performance helpers. Retained as an unsuccessful union attempt, not an all-checks pass."
+    },
+    "original_node_and_workspace_help": {
+      "path": "artifacts/rust-rewrite/tooling-protocol-native-20261013-2/report.json",
+      "sha256": "0136aa0afcaa360fc1aa7b5508e2df8da46de28fda4fecd9eb647bba5a46fecd",
+      "passed": true,
+      "original_expanded_tests": 11
+    },
+    "frozen_reference_added_document_inputs": {
+      "path": "artifacts/dev-environment/tooling-reference-doc-inputs.json",
+      "sha256": "9e5833f955f2c7e59d6730b06735ada1518f788f7466a26113a311499069141c",
+      "source_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+      "extra_docs": 3
+    },
+    "final_strict_clippy": {
+      "path": "artifacts/dev-environment/logs/tooling-protocol-clippy-final-2.log",
+      "sha256": "ee1bad486aa44af1b426e0b27d285a1e03eeba90b5125d01fe3e849d65f6bd88",
+      "exit_code": 0,
+      "command": [
+        "artifacts/dev-environment/run",
+        "cargo",
+        "clippy",
+        "--locked",
+        "--offline",
+        "--package",
+        "autorouter-core",
+        "--test",
+        "evaluation_report_contracts",
+        "--package",
+        "autorouter-runtime",
+        "--test",
+        "gateway",
+        "--test",
+        "protocol_provenance_contracts",
+        "--package",
+        "xtask",
+        "--bin",
+        "xtask",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "cwd": "rust",
+      "qualified_scope": "Final scoped package/target strict Clippy passed after the other agent wired its performance helpers and corrected its len_zero lint. Earlier unsuccessful union attempts remain retained."
+    }
+  },
+  "source_inputs": [
+    {
+      "path": "rust/xtask/src/live.rs",
+      "sha256": "5bd2e4eca167a0d7f0a07e6e64361c6375387457620ea4d3b99dc90f5b55729e"
+    },
+    {
+      "path": "rust/xtask/src/live_rubric_contracts.rs",
+      "sha256": "e0c16fb73a678bb7378132d138890b0cb81bd5d7e1e183d89431c4857bae0a48"
+    },
+    {
+      "path": "rust/xtask/src/bundle.rs",
+      "sha256": "136dc1a54810d95e4cd8ea796971dbb59ed6bc12a551c2cfb36185ce99214444"
+    },
+    {
+      "path": "rust/xtask/src/bundle_original_contracts.rs",
+      "sha256": "057793d1c41aa99405005cef374a62fdf0bf20e593659f43df0b3608ce0a057e"
+    },
+    {
+      "path": "rust/xtask/src/ollama_evaluation.rs",
+      "sha256": "9f388dc488341e8a981694f81863852236b0e3e661d61fa3128ca5d805753c5d"
+    },
+    {
+      "path": "rust/xtask/fixtures/live-cases-v2.json",
+      "sha256": "90b3e5b7b8e4e5bacd3a4ad3990b341807bd13b075d9379f022e0042fcdf8e21"
+    },
+    {
+      "path": "rust/crates/autorouter-core/tests/evaluation_report_contracts.rs",
+      "sha256": "8de055f44e55cd397a7caef0616e84f249e02c1b93913ab56735d95609950ac9"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs",
+      "sha256": "a6ee6a9de3986f573ce59d161a1317acf69522a74e74f6dbc2227b787846ac0a"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/gateway.rs",
+      "sha256": "9cbd6d9afc499314dc85d3f459572890db3bf83182ae3c54311692a4d38b2115"
+    },
+    {
+      "path": "rust/parity/capture-tooling-protocol-contracts.mjs",
+      "sha256": "0839c041611b47f6c403725ec0eafdbe772c80d476b040d47a5fe8d704089544"
+    },
+    {
+      "path": "rust/parity/cases/tooling-rubric-protocol.capture.json",
+      "sha256": "12c4788d8d515cf8698975b72ce9759d7be3d541eae16d0d4a063cea5da4ed6b"
+    }
+  ],
+  "remaining": [
+    "The source-only native bundle requires the pinned Rust toolchain, native build tools and locked dependencies; provide a concrete contributor artifact and extracted execution evidence before claiming the original dependency-free behavior.",
+    "Native schema2 and three exact public upstream vendor .github/.gitignore paths are explicit source-format changes; original literal schema1/privacy-regex equivalence remains partial.",
+    "The corpus and live rubric assertions are provider-free; current client compatibility, model/evaluator quality, downstream task success, numerical performance, platform matrix, publication and default cutover are not qualified here.",
+    "Root owns final combined fixed-source/CI checks and central ledger admission."
+  ]
+}

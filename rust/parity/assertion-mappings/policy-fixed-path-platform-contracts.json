@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "kind": "original_policy_fixed_path_per_assertion_platform_migration",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "only_definition": "test/policy.test.mjs#1",
+  "original_definition": {
+    "name": "the policy path is fixed per platform and a missing file means no policy",
+    "statement": "test('the policy path is fixed per platform and a missing file means no policy', t => {\n  assert.equal(defaultPolicyPath('darwin'), '/Library/Application Support/claude-autorouter/policy.json');\n  assert.equal(defaultPolicyPath('linux'), '/etc/claude-autorouter/policy.json');\n  assert.equal(loadPolicy(fixture(t).options), undefined);\n});",
+    "statement_sha256": "df92400d9b4fe3f8db8ccb402adbc911cb33c91f7fe34f02381b6b37b43d82d3",
+    "historical_definition_sha256": "b6a78eee0d55f07832f23743c640c1293b556e9e86bd19927df62d64a412d42e",
+    "source": {
+      "path": "artifacts/rust-rewrite/reference/test/policy.test.mjs",
+      "bytes": 7785,
+      "sha256": "4a2367d03efa940b1da878bffb0ebfac49d48106e7766d9457231dfc32e555af"
+    },
+    "byte_equal_to_baseline_git_blob": true,
+    "assertion_sites": 3
+  },
+  "previous_coverage_row": {
+    "id": "test/policy.test.mjs#1",
+    "file": "test/policy.test.mjs",
+    "name": "the policy path is fixed per platform and a missing file means no policy",
+    "parameterized": false,
+    "status": "partial_assertion_mapping",
+    "rust_tests": [
+      "rust/crates/autorouter-runtime/src/policy.rs#policy::tests::only_trusted_regular_files_and_directories_are_loaded"
+    ],
+    "shared_cases": [],
+    "evidence": {
+      "native_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
+      "native_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
+      "scope": "Only the exact mapped native assertions; no actual system policy/Keychain interaction, cross-platform or installed-artifact qualification is implied."
+    },
+    "related_components": [
+      "config_auth_policy"
+    ],
+    "assertion_mapping": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
+    "remaining_assertions": [
+      "The fixed Linux path is present behind native platform selection but has not yet been executed in the retained evidence for this definition; both platform branches are required."
+    ]
+  },
+  "per_assertion": [
+    {
+      "id": "test/policy.test.mjs#1:assert-1",
+      "source_expression": "assert.equal(defaultPolicyPath('darwin'), '/Library/Application Support/claude-autorouter/policy.json');",
+      "source_expression_sha256": "7a243772de3a19953cd9bf1c15fd0eb826431609b967f65779e80a011ec631a4",
+      "source_executions": 1,
+      "status": "covered_under_explicit_native_api_migration",
+      "native_predicate": "On actual macOS 15 Intel CI, the compiled target branch asserts default_policy_path() equals /Library/Application Support/claude-autorouter/policy.json.",
+      "native_job_id": 116301303421
+    },
+    {
+      "id": "test/policy.test.mjs#1:assert-2",
+      "source_expression": "assert.equal(defaultPolicyPath('linux'), '/etc/claude-autorouter/policy.json');",
+      "source_expression_sha256": "a417bd0e05686b12128eccd3eb05f49f78384437c3c459ae7625a840907ec735",
+      "source_executions": 1,
+      "status": "covered_under_explicit_native_api_migration",
+      "native_predicate": "On actual Linux x86_64 CI, the compiled target branch asserts default_policy_path() equals /etc/claude-autorouter/policy.json.",
+      "native_job_id": 116301303670
+    },
+    {
+      "id": "test/policy.test.mjs#1:assert-3",
+      "source_expression": "assert.equal(loadPolicy(fixture(t).options), undefined);",
+      "source_expression_sha256": "8c4c54dbdaa9fa82c368bda3712918c9cadcecf0a152ebc69dc8f17b81629d04",
+      "source_executions": 1,
+      "status": "covered_under_explicit_native_api_migration",
+      "native_predicate": "The same named native test constructs a missing isolated policy path and asserts load_policy_at(&path, trusted_uid).unwrap().is_none() on both actual CI targets.",
+      "native_job_ids": [
+        116301303421,
+        116301303670
+      ]
+    }
+  ],
+  "native_test": "rust/crates/autorouter-runtime/src/policy.rs#policy::tests::only_trusted_regular_files_and_directories_are_loaded",
+  "native_source": {
+    "path": "rust/crates/autorouter-runtime/src/policy.rs",
+    "bytes": 8992,
+    "sha256": "4cb1405055faa941752aa5234a462e7b8d37db4912cb184dcf76cf490c36aa3e"
+  },
+  "native_API_review": {
+    "preserved": "The fixed policy path is selected for each supported host OS, and an absent isolated policy is optional. The product load_policy() delegates to the same default path and load_policy_at implementation with root trust.",
+    "migration": "JavaScript defaultPolicyPath(platform) accepts a runtime platform argument and returns a string; Rust default_policy_path() selects at compile time and returns Path. The source undefined result of loadPolicy on a missing injected path maps to Rust Option::None from load_policy_at. Both actual OS branches execute in separate CI jobs; no fake cross-platform call is claimed.",
+    "review": "Accepted for these three original assertions only. Isolated missing-path behavior is proven; no read or write of privileged system policy paths is claimed."
+  },
+  "actual_executions": [
+    {
+      "path": "artifacts/rust-rewrite/policy-fixed-path-promotion-20261015-1/frozen-node-execution.json",
+      "bytes": 1101,
+      "sha256": "281cd78212a4275f554aa1a8419ef17b7fe246448b0b9d1b319bfe082b809da2"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-fixed-path-promotion-20261015-1/frozen-node.stdout",
+      "bytes": 314,
+      "sha256": "45cc2eb3742b8005e3d710ba711e4db71c8d5a1896a4a5f710fb8367fc681082"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-fixed-path-promotion-20261015-1/frozen-node.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/policy-fixed-path-ci-20261015-1/named-policy-platform-passes-1.json",
+      "bytes": 3323,
+      "sha256": "942b1de78441d9f41fe80313bb028be0a535fc0bcfe23bb7b91e3cb2348fc927"
+    }
+  ],
+  "source_and_checkout": {
+    "native_source_head": "83ae6418dd103b64a3dee9b9ae3744d55be613af",
+    "ci_actual_checkout": "0b16eaba7e140f6e8b6f0872e527a58327418419",
+    "same_source_tree": "c5b9634dd5f4fa9034b9305b3971f346ac0ba0e6",
+    "current_native_source_matches_ci": true
+  },
+  "scope": "Only original policy#1. The old partial mapping remains historical. This mapping neither approves real system-policy deployment nor whole-area/platform/release/performance gates."
+}

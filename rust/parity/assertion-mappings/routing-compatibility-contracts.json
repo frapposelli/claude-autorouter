@@ -1,0 +1,593 @@
+{
+  "schema_version": 1,
+  "kind": "exact_routing_compatibility_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "status": "focused_source_and_native_passed_awaiting_independent_review",
+  "scope": "Complete original routing compatibility #2\u2013#5. No whole-area or central-ledger completion claim.",
+  "counts": {
+    "definitions": 4,
+    "static_assertions": 22,
+    "expanded_original_assertions": 73,
+    "actual_gateway_requests": 18,
+    "provider_requests": 8,
+    "mocked_fetch_calls": 9,
+    "direct_counter_calls": 3
+  },
+  "sources": {
+    "capture_driver": {
+      "path": "rust/parity/capture-routing-compatibility-contracts.mjs",
+      "sha256": "6cfb938694c948f00512a50eb3d68e9f03e99eaff700b8638bb4c5ce73754abb",
+      "bytes": 27322
+    },
+    "baseline_test": {
+      "path": "artifacts/rust-rewrite/reference/test/routing-compatibility.test.mjs",
+      "sha256": "54007c625ab9227cc79c22e33738742d46373723cc51ddd103bede948808fa0a",
+      "bytes": 6983
+    },
+    "baseline_server": {
+      "path": "artifacts/rust-rewrite/reference/src/server.mjs",
+      "sha256": "91df67483b2bf97a037ba7091b7fa5d008de0b733705813e00f874a6c240d8c0",
+      "bytes": 17919
+    },
+    "baseline_router": {
+      "path": "artifacts/rust-rewrite/reference/src/router.mjs",
+      "sha256": "aebf10268348f00b6c8cdc82ef9ced2d60c8e1cc0ddeee7c3498bcaf100b9d56",
+      "bytes": 27898
+    },
+    "baseline_counter": {
+      "path": "artifacts/rust-rewrite/reference/src/token-counter.mjs",
+      "sha256": "2eb82afbfdd0677135f9e73fbf58692a2e78c7932c500602000b022a0fa3fb73",
+      "bytes": 6113
+    },
+    "native_test": {
+      "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+      "sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+      "bytes": 26553
+    },
+    "shared_peer": {
+      "path": "rust/crates/autorouter-runtime/tests/support/server_streaming_routing.rs",
+      "sha256": "c97fbda633f6ea3b6c4c23af13bbd315404936445e60d0363abe5c04841005a6",
+      "bytes": 14540
+    },
+    "corpus": {
+      "path": "rust/parity/cases/routing-compatibility-contracts.jsonl",
+      "sha256": "a326874632344f59ccd01eb05cf361034b0abc31e594d1d8fa02b3a76fd9e098",
+      "bytes": 88222
+    },
+    "capture": {
+      "path": "rust/parity/cases/routing-compatibility-contracts.capture.json",
+      "sha256": "df1848d2cd186af13aea9a49140520db7f21c427fcaf3b4af0d90fc7ffc4e0ae",
+      "bytes": 16505
+    }
+  },
+  "source_evidence": {
+    "routing-compatibility-contracts.capture.json": {
+      "path": "artifacts/rust-rewrite/routing-compatibility-source-20261013-1/routing-compatibility-contracts.capture.json",
+      "sha256": "df1848d2cd186af13aea9a49140520db7f21c427fcaf3b4af0d90fc7ffc4e0ae",
+      "bytes": 16505
+    },
+    "raw-observations.json": {
+      "path": "artifacts/rust-rewrite/routing-compatibility-source-20261013-1/raw-observations.json",
+      "sha256": "812a97b84c92b98247821c5602538b8e575b826269f878077cc89b375ef93294",
+      "bytes": 143668
+    },
+    "assertion-executions.json": {
+      "path": "artifacts/rust-rewrite/routing-compatibility-source-20261013-1/assertion-executions.json",
+      "sha256": "d926b44545d7fc50fc2dc478b4afd3829760057c05301f7cd5307bb1f1b7b5b2",
+      "bytes": 2777
+    },
+    "projections.json": {
+      "path": "artifacts/rust-rewrite/routing-compatibility-source-20261013-1/projections.json",
+      "sha256": "4393275cb640af0d04548db2c2bf2c417640f6bfd79a58aead9974b15f51a72f",
+      "bytes": 24656
+    }
+  },
+  "native_evidence": {
+    "comparison": {
+      "path": "artifacts/rust-rewrite/routing-compatibility-comparison-20261013.json",
+      "sha256": "d43862667e75572a449fcb7559e732d1e29fb657354eb43f18a880e375ab9c68",
+      "bytes": 34841
+    },
+    "checks": {
+      "source_capture": {
+        "path": "artifacts/rust-rewrite/routing-compatibility-source-20261013-1.log",
+        "sha256": "867d95c8acaced68fe832159771f311e05507c5f91e5aae8fcae1e0a243413a8",
+        "bytes": 255
+      },
+      "first_native_replay_failure": {
+        "path": "artifacts/rust-rewrite/routing-compatibility-native-20261013-1.log",
+        "sha256": "ae037a59031729b1727c427d2ce3a9177bb8604289dbe57ae877755a57d437c2",
+        "bytes": 9948
+      },
+      "final_native_replay": {
+        "path": "artifacts/rust-rewrite/routing-compatibility-native-20261013-2.log",
+        "sha256": "b69b134ab0d18bad76e3aa15f52cfd701e36b63b069b589b459f12e8f5c29da1",
+        "bytes": 1338
+      },
+      "focused_clippy": {
+        "path": "artifacts/rust-rewrite/routing-compatibility-clippy-20261013-1.log",
+        "sha256": "97412a53df526e9f1a252a89424a2603584aab6697873561d7382f2ccf4b8697",
+        "bytes": 682
+      }
+    },
+    "raw_native_artifacts": [
+      {
+        "path": "artifacts/rust-rewrite/routing-compatibility-native-20261013-2/native-2-0.json",
+        "sha256": "8590c042d8203a9c04856c840caf622144400e2286476a963e7f6d4b28e128ce",
+        "bytes": 4586
+      },
+      {
+        "path": "artifacts/rust-rewrite/routing-compatibility-native-20261013-2/native-2-1.json",
+        "sha256": "3a550f5ab162c53ae4559b33dc2610e69d6a613eb7b9ca04723217f22d2401ad",
+        "bytes": 4584
+      },
+      {
+        "path": "artifacts/rust-rewrite/routing-compatibility-native-20261013-2/native-2-2.json",
+        "sha256": "047817dde51aae1829abb48a714aa1a5325958735317f84d6a665b177edbc0c5",
+        "bytes": 4498
+      },
+      {
+        "path": "artifacts/rust-rewrite/routing-compatibility-native-20261013-2/native-2-99.json",
+        "sha256": "54c0290f871a2ab001ec0e8f23fcff3b0420e7bb45a18c41e344683d49f3ea9d",
+        "bytes": 216
+      },
+      {
+        "path": "artifacts/rust-rewrite/routing-compatibility-native-20261013-2/native-3-0.json",
+        "sha256": "f938f8fd2b89dc390e3cdd53c16af3134c3154f38e9f47585fd0bae0503fbb78",
+        "bytes": 6857
+      },
+      {
+        "path": "artifacts/rust-rewrite/routing-compatibility-native-20261013-2/native-3-99.json",
+        "sha256": "fb917c745d85baa313c88ec83568f567de6e45e4dfa392c327f3d5f419bad108",
+        "bytes": 286
+      },
+      {
+        "path": "artifacts/rust-rewrite/routing-compatibility-native-20261013-2/native-4-0.json",
+        "sha256": "6aa99af6e6556b5f6d035b7e56e0b5466e5ced39d3f8bd9bfea04a5cdfdb8076",
+        "bytes": 21656
+      },
+      {
+        "path": "artifacts/rust-rewrite/routing-compatibility-native-20261013-2/native-4-99.json",
+        "sha256": "06de0a11b6248f70616d620a1468616cd2fcf5eae38a0dc48b23ec04935e0340",
+        "bytes": 118
+      },
+      {
+        "path": "artifacts/rust-rewrite/routing-compatibility-native-20261013-2/native-5-0.json",
+        "sha256": "17944eb9cc54ea8c9150b8c5f3c46033fb4014129b8d79cb849fe3d0356a6d42",
+        "bytes": 1788
+      },
+      {
+        "path": "artifacts/rust-rewrite/routing-compatibility-native-20261013-2/native-5-99.json",
+        "sha256": "048885e378d7a2df2d325265bf96e77574d0404908e00ec98aee42141d2c2ab8",
+        "bytes": 83
+      }
+    ],
+    "original_assertion_order_matches": true,
+    "original_assertions_executed": 73,
+    "native_original_tests_passed": 4,
+    "supplemental_controls_passed": 1
+  },
+  "comparison_policy": [
+    "Provider response bytes and full outbound request bytes are compared exactly. Semantic authentication/session/beta/content headers and query are explicit. Complete raw request/response headers remain in both transcripts; generated authority and automatic HTTP framing/date metadata have no hidden equality claim.",
+    "Authoritative gateway requests use exact JsDocument text; direct count bodies are extracted with stringify_node from the raw corpus arena, preserving source property order and UTF16. serde_json observations never create evaluator/count wire requests.",
+    "Complete safe diagnostic event order/fields are compared after validated nonnegative measured timing projection, explicit optional-metadata undefined omission, and guarded exact numeric representation comparison (no tolerance or lossy integer conversion).",
+    "All22 original assertion predicates and73 execution counts are retained; actual assertion execution order is saved independently. Supplemental full request/rubric bytes and realRouter state/counters cannot be replaced by a mock decision."
+  ],
+  "native_api_and_format_adaptations": [
+    {
+      "boundary": "optional shape diagnostic field",
+      "source": "Own blocks:undefined appears in original malformed-request log objects, captured with an explicit $js_type marker.",
+      "native": "Typed optional MessageShape.blocks is absent. Only blocks fields with that exact source marker may be removed for supplemental log comparison; all raw source/native logs remain intact. Original privacy/event assertions still execute."
+    },
+    {
+      "boundary": "direct optional token-count return",
+      "source": "First two actual direct counter results are undefined, preserved with explicit tagged raw values.",
+      "native": "TokenCounter returns Option<u64>; first two predicates are is_none, third Some100. Native transcript records native_optional_count, not a fabricated JavaScript undefined value. Complete fetch paths/headers/bodies and counters stay exact."
+    },
+    {
+      "boundary": "local generated JSON errors",
+      "source": "Malformed responses carry api_error and exact Invalid Messages API request shape messages. Raw source property order is retained.",
+      "native": "serde JSON local error object field order can differ. Exact statuses, all parsed category/message fields and original text-regex/privacy predicates are compared; full native error bytes remain in the raw transcript. This does not permit changing any provider response bytes."
+    },
+    {
+      "boundary": "router cleanup callback ownership",
+      "source": "Gateway invokes source completion and redundant finally cleanup, including undefined evidence on rejected/unregistered main requests.",
+      "native": "Actual typed completion and owned attempt retirement callbacks are recorded. Successful source/native evidence and acceptance match exactly. Rejected malformed main requests pass actual native absent evidence (null in its serde transcript), compared with source tagged undefined, and all five return false. Successful requests omit source redundant finally cleanup: raw source21 and native13 callback records are retained, with original request IDs/order. Generated IDs differ between engines; neither history is rewritten. Numeric continuity attempts must retire before close without manufacturing complete(false)."
+    },
+    {
+      "boundary": "count callback seam",
+      "source": "Injected tokenCounter callback has zero invocations in the forced/malformed gateway schedules.",
+      "native": "Router owns TokenCounter; native records actual evaluator HTTP, internal count HTTP and provider count endpoint calls separately, with no malformed input reaching route. Literal JavaScript callback-object identity is not claimed."
+    },
+    {
+      "boundary": "parsed diagnostic numeric representation",
+      "source": "JavaScript diagnostic status200 is captured as JSON integer200.",
+      "native": "JsDocument-to-serde observations record Number(200.0). Parsed diagnostic comparisons use the exact xtask numeric_equal algorithm: distinct integer values remain unequal, mixed integer/float values require exact round-trip, saturating integer conversion boundaries are rejected. A separate six-boundary/two-structure control passed. Raw source/native JSON spelling and all provider bytes are retained unchanged."
+    }
+  ],
+  "remaining": [
+    "Independent review of all22 original predicates,73 execution order/counts, full provider bytes and the explicitly recorded typed API/format boundaries. No central rows automatically changed.",
+    "Full workspace/remote CI qualification and rewrite gates remain root-owned; this focused synthetic replay is not real-provider or hardware performance evidence."
+  ],
+  "rows": [
+    {
+      "baseline_test": "test/routing-compatibility.test.mjs#2",
+      "baseline_name": "gateway preserves forced tool bodies and headers in compatible, native and Auto profiles",
+      "baseline_file_sha256": "54007c625ab9227cc79c22e33738742d46373723cc51ddd103bede948808fa0a",
+      "baseline_statement_sha256": "dc7ec7064999a06dc030179b311ae35b93f329c7aa31c1bbdb4b4de9ad2e3181",
+      "baseline_statement": "test('gateway preserves forced tool bodies and headers in compatible, native and Auto profiles', async t => {\n  for (const profile of ['compatible', 'native', 'auto']) {\n    const f = await gateway(t, profile);\n    const body = request(profile, { tool_choice: { type: 'tool', name: 'Read' } });\n    const response = await f.send(body, '/v1/messages?beta=true');\n    assert.equal(response.status, 200);\n    assert.equal((await response.json()).model, body.model);\n    assert.equal(response.headers.get('request-id'), 'synthetic-upstream-id');\n    assert.deepEqual(f.received[0].body, body);\n    assert.equal(f.received[0].path, '/v1/messages?beta=true');\n    assert.equal(f.received[0].headers['anthropic-beta'], 'synthetic-future-beta');\n    assert.equal(f.evaluations(), 1);\n    assert.equal(f.counts(), 0);\n  }\n});",
+      "native_test": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs#original_02_forced_tool_preserves_three_profiles_bodies_headers_and_zero_counts",
+      "status": "focused_native_passed_awaiting_independent_review",
+      "static_assertions": 8,
+      "expanded_assertions": 24,
+      "assertions": [
+        {
+          "id": "routing-compatibility#2:assert-1",
+          "baseline_expression": "assert.equal(response.status, 200)",
+          "baseline_expression_sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "baseline_line": 70,
+          "expanded_executions": 3,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 582,
+            "predicate": "a.check(1, reply.status == 200)",
+            "predicate_sha256": "62a8b83c3f8a134893fcc9eb16a583510a7f37fe88f8f3d4638041c116bee57d"
+          }
+        },
+        {
+          "id": "routing-compatibility#2:assert-2",
+          "baseline_expression": "assert.equal((await response.json()).model, body.model)",
+          "baseline_expression_sha256": "85510526d69ed16b2366c014378e84e6bcb0c281a91f777a560f26370c70c2a6",
+          "baseline_line": 71,
+          "expanded_executions": 3,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 583,
+            "predicate": "a.check(2, parse(&reply.bytes)[\"model\"] == body[\"model\"])",
+            "predicate_sha256": "71f53190f72d356aea9a0caf13b130e851b98eab8ac0b5052395108c5289731a"
+          }
+        },
+        {
+          "id": "routing-compatibility#2:assert-3",
+          "baseline_expression": "assert.equal(response.headers.get('request-id'), 'synthetic-upstream-id')",
+          "baseline_expression_sha256": "2322c4a0446e99fb74dc663933a22b8ccdc611b641bd4c76cb3febeba8899171",
+          "baseline_line": 72,
+          "expanded_executions": 3,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 584,
+            "predicate": "a.check(\n            3,\n            header(&reply.headers, \"request-id\").as_deref() == Some(\"synthetic-upstream-id\"),\n        )",
+            "predicate_sha256": "2d204cbfa8d4a67042a0c04ab764ba9327f3ba27b9a6a81cc829548a04b78fef"
+          }
+        },
+        {
+          "id": "routing-compatibility#2:assert-4",
+          "baseline_expression": "assert.deepEqual(f.received[0].body, body)",
+          "baseline_expression_sha256": "ac347506299b84ea789c518d61fe8c223607c08dcc5d668a204fea9848a9f1d0",
+          "baseline_line": 73,
+          "expanded_executions": 3,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 588,
+            "predicate": "a.check(4, parse(&provider[0].body) == body)",
+            "predicate_sha256": "d1c2697ec8d3036cba5a3477c564c4f9921abdc4dc0e9739fced5be345bb5711"
+          }
+        },
+        {
+          "id": "routing-compatibility#2:assert-5",
+          "baseline_expression": "assert.equal(f.received[0].path, '/v1/messages?beta=true')",
+          "baseline_expression_sha256": "233d5faa05feaa7a3a19f29f3124a485fe22d3bb083d44a6bdcb5fb470f99241",
+          "baseline_line": 74,
+          "expanded_executions": 3,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 589,
+            "predicate": "a.check(5, provider[0].path == \"/v1/messages?beta=true\")",
+            "predicate_sha256": "804a3031678a96f0bddbc2ca94e453e44fd649129b432b246e4039323714d9c4"
+          }
+        },
+        {
+          "id": "routing-compatibility#2:assert-6",
+          "baseline_expression": "assert.equal(f.received[0].headers['anthropic-beta'], 'synthetic-future-beta')",
+          "baseline_expression_sha256": "72a606cd96f3a37738015bbabf07bfbb4117fbef0617fd3881506c6e9dd6b507",
+          "baseline_line": 75,
+          "expanded_executions": 3,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 590,
+            "predicate": "a.check(\n            6,\n            header(&provider[0].headers, \"anthropic-beta\").as_deref()\n                == Some(\"synthetic-future-beta\"),\n        )",
+            "predicate_sha256": "861e51fe7bbf3e2454c4ab419a131b0506c2481f32fa3e2e81eea17f5a0a17b4"
+          }
+        },
+        {
+          "id": "routing-compatibility#2:assert-7",
+          "baseline_expression": "assert.equal(f.evaluations(), 1)",
+          "baseline_expression_sha256": "88921c6c6c505d4ccbf95e0985d6f2895f90272e41fbd81649eecbb4e55c38d3",
+          "baseline_line": 76,
+          "expanded_executions": 3,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 595,
+            "predicate": "a.check(7, f.evaluations() == 1)",
+            "predicate_sha256": "a037de7be714622384d19fab57cdb79db9e56ffdbdf1240b992417edcb699625"
+          }
+        },
+        {
+          "id": "routing-compatibility#2:assert-8",
+          "baseline_expression": "assert.equal(f.counts(), 0)",
+          "baseline_expression_sha256": "ff1394090393b8da99429671eceab746854b8615261ac3e59f52079c50b12ec9",
+          "baseline_line": 77,
+          "expanded_executions": 3,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 596,
+            "predicate": "a.check(8, f.counts() == 0)",
+            "predicate_sha256": "5247f576922c7c477cf8995425ae444403e4c9bf8d7abd2f86cfc820312e2fbf"
+          }
+        }
+      ]
+    },
+    {
+      "baseline_test": "test/routing-compatibility.test.mjs#3",
+      "baseline_name": "gateway rejects malformed consumed shapes before evaluation, token counting or upstream forwarding",
+      "baseline_file_sha256": "54007c625ab9227cc79c22e33738742d46373723cc51ddd103bede948808fa0a",
+      "baseline_statement_sha256": "0bfdf17a2e0c3008316eb5320514e6af5fa7a7990f71be38b5d389fb8f94bd7a",
+      "baseline_statement": "test('gateway rejects malformed consumed shapes before evaluation, token counting or upstream forwarding', async t => {\n  const f = await gateway(t);\n  const invalid = [\n    { tools: {} }, { tools: [null] }, { thinking: [] }, { output_config: 'PRIVATE_TEST_VALUE' },\n    { messages: [{ role: 'user', content: [{ type: 'tool_result', content: [null] }] }] },\n  ];\n  for (const fields of invalid) for (const path of ['/v1/messages', '/v1/messages/count_tokens']) {\n    const response = await f.send(request('compatible', fields), path);\n    assert.equal(response.status, 400);\n    const text = await response.text();\n    assert.match(text, /Invalid Messages API request shape/);\n    assert.ok(!text.includes('PRIVATE_TEST_VALUE'));\n  }\n  assert.equal(f.evaluations(), 0);\n  assert.equal(f.counts(), 0);\n  assert.deepEqual(f.received, []);\n  assert.ok(!JSON.stringify(f.logs).includes('PRIVATE_TEST_VALUE'));\n});",
+      "native_test": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs#original_03_five_malformed_shapes_reject_both_endpoints_before_any_work_or_leak",
+      "status": "focused_native_passed_awaiting_independent_review",
+      "static_assertions": 7,
+      "expanded_assertions": 34,
+      "assertions": [
+        {
+          "id": "routing-compatibility#3:assert-1",
+          "baseline_expression": "assert.equal(response.status, 400)",
+          "baseline_expression_sha256": "a5a639feb78df0154ef8bc894bb1e1756f90e619b98ca3f9f3acbaaabace22c2",
+          "baseline_line": 89,
+          "expanded_executions": 10,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 616,
+            "predicate": "a.check(1, reply.status == 400)",
+            "predicate_sha256": "1397a8e53ef33f8e0290bc8587cb45e5f8b719077a790f671c7b03aac9cf635f"
+          }
+        },
+        {
+          "id": "routing-compatibility#3:assert-2",
+          "baseline_expression": "assert.match(text, /Invalid Messages API request shape/)",
+          "baseline_expression_sha256": "57e8d8243a2fa37b2e3f5384b3805638ef7164d59aab4c11bb1ccd0e29697e08",
+          "baseline_line": 91,
+          "expanded_executions": 10,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 617,
+            "predicate": "a.check(2, text.contains(\"Invalid Messages API request shape\"))",
+            "predicate_sha256": "c0285bbe8d2d20460238c81c7212df7053d611e04883c5460507e330e8d9f131"
+          }
+        },
+        {
+          "id": "routing-compatibility#3:assert-3",
+          "baseline_expression": "assert.ok(!text.includes('PRIVATE_TEST_VALUE'))",
+          "baseline_expression_sha256": "ff46c41fd430352ed32381f2ec2e3a01936376c09d544a215474ca9ea0f42402",
+          "baseline_line": 92,
+          "expanded_executions": 10,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 618,
+            "predicate": "a.check(3, !text.contains(\"PRIVATE_TEST_VALUE\"))",
+            "predicate_sha256": "b9152027eb5d3a8a64356c394e2b04df2c9c80187f6a3a553993cac7651cb2e1"
+          }
+        },
+        {
+          "id": "routing-compatibility#3:assert-4",
+          "baseline_expression": "assert.equal(f.evaluations(), 0)",
+          "baseline_expression_sha256": "b483891e8e71725fc2a96f39c496d0c12e39d964366915d9a976f02610786fc6",
+          "baseline_line": 94,
+          "expanded_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 634,
+            "predicate": "a.check(4, f.evaluations() == 0)",
+            "predicate_sha256": "8458444c62db608982b825049cf23874129c967fbd7e8963b2496bb07d145f9b"
+          }
+        },
+        {
+          "id": "routing-compatibility#3:assert-5",
+          "baseline_expression": "assert.equal(f.counts(), 0)",
+          "baseline_expression_sha256": "ff1394090393b8da99429671eceab746854b8615261ac3e59f52079c50b12ec9",
+          "baseline_line": 95,
+          "expanded_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 635,
+            "predicate": "a.check(5, f.counts() == 0)",
+            "predicate_sha256": "afe9e3ac0e2e3a4bd277ee88e4dcca8fe243fca6fefd50d33ce358d2ae95a947"
+          }
+        },
+        {
+          "id": "routing-compatibility#3:assert-6",
+          "baseline_expression": "assert.deepEqual(f.received, [])",
+          "baseline_expression_sha256": "fd8df839e0cb8bd4df443894cff14e2f6d819a18207a4f53768d6fce34cb79c2",
+          "baseline_line": 96,
+          "expanded_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 636,
+            "predicate": "a.check(6, f.provider().is_empty())",
+            "predicate_sha256": "a092efb9b868137e1ce2c0b2bd927b1ae43332d0742927800fbf778ebef50266"
+          }
+        },
+        {
+          "id": "routing-compatibility#3:assert-7",
+          "baseline_expression": "assert.ok(!JSON.stringify(f.logs).includes('PRIVATE_TEST_VALUE'))",
+          "baseline_expression_sha256": "d29892b5902b02a6df2f089327e2feb41f8ad1fe9799404b6b8f94e88a287586",
+          "baseline_line": 97,
+          "expanded_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 637,
+            "predicate": "a.check(\n        7,\n        !serde_json::to_string(&*f.logs.lock().unwrap())\n            .unwrap()\n            .contains(\"PRIVATE_TEST_VALUE\"),\n    )",
+            "predicate_sha256": "206d4d449a65701020e1f5217b8007778da52ac66eb84990a43538f0266fd6b4"
+          }
+        }
+      ]
+    },
+    {
+      "baseline_test": "test/routing-compatibility.test.mjs#4",
+      "baseline_name": "unfamiliar provider extensions and native same-model contracts pass through unmodified",
+      "baseline_file_sha256": "54007c625ab9227cc79c22e33738742d46373723cc51ddd103bede948808fa0a",
+      "baseline_statement_sha256": "8e492a601263ae29c7b002940404348c123278f140e857c08733892bc7b8a9a5",
+      "baseline_statement": "test('unfamiliar provider extensions and native same-model contracts pass through unmodified', async t => {\n  const f = await gateway(t);\n  const variants = [\n    request('compatible', { future_contract: { version: 7, opaque: 'retained' } }),\n    request('compatible', { system: [{ type: 'future_system_block', opaque: 'retained' }] }),\n    request('compatible', { messages: [{ role: 'user', content: [{ type: 'future_message_block', opaque: 'retained' }] }] }),\n    request('compatible', { model: 'team/claude-sonnet-5-5' }),\n    request('compatible', { model: 'claude-opus-5-5', thinking: { type: 'disabled' }, tool_choice: { type: 'any' } }),\n  ];\n  for (const body of variants) {\n    const response = await f.send(body);\n    assert.equal(response.status, 200);\n    await response.arrayBuffer();\n    assert.deepEqual(f.received.at(-1).body, body);\n  }\n});",
+      "native_test": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs#original_04_opaque_extensions_and_same_model_contracts_reach_provider_unchanged",
+      "status": "focused_native_passed_awaiting_independent_review",
+      "static_assertions": 2,
+      "expanded_assertions": 10,
+      "assertions": [
+        {
+          "id": "routing-compatibility#4:assert-1",
+          "baseline_expression": "assert.equal(response.status, 200)",
+          "baseline_expression_sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "baseline_line": 111,
+          "expanded_executions": 5,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 659,
+            "predicate": "a.check(1, reply.status == 200)",
+            "predicate_sha256": "62a8b83c3f8a134893fcc9eb16a583510a7f37fe88f8f3d4638041c116bee57d"
+          }
+        },
+        {
+          "id": "routing-compatibility#4:assert-2",
+          "baseline_expression": "assert.deepEqual(f.received.at(-1).body, body)",
+          "baseline_expression_sha256": "ef613ef9d52d2d393cb44678187bc4974baea63a1d482581e357f9b2d973ae39",
+          "baseline_line": 113,
+          "expanded_executions": 5,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 660,
+            "predicate": "a.check(\n            2,\n            parse(&f.provider().last().unwrap().body)\n                == parse(request[\"body\"].as_str().unwrap().as_bytes()),\n        )",
+            "predicate_sha256": "57c24408297c380005c040325c189b44857c261c3122599aafa3106256483dbc"
+          }
+        }
+      ]
+    },
+    {
+      "baseline_test": "test/routing-compatibility.test.mjs#5",
+      "baseline_name": "internal token counting avoids incompatible targets and retains native provider-owned requests",
+      "baseline_file_sha256": "54007c625ab9227cc79c22e33738742d46373723cc51ddd103bede948808fa0a",
+      "baseline_statement_sha256": "c95b446848172c5f5c56e03ecf4b4a88e2697bf8842ac3f034c31c72b9c76d80",
+      "baseline_statement": "test('internal token counting avoids incompatible targets and retains native provider-owned requests', async () => {\n  let calls = 0;\n  const counter = createTokenCounter(config('compatible'), { fetchImpl: async () => {\n    calls++; return Response.json({ input_tokens: 100 });\n  } });\n  const forced = request('compatible', { tool_choice: { type: 'any' } });\n  assert.equal(await counter(forced, 'claude-opus-5-5'), undefined);\n  const adaptive = request('auto', { thinking: { type: 'adaptive' } });\n  assert.equal(await counter(adaptive, 'claude-haiku-4-5-20251001'), undefined);\n  assert.equal(calls, 0);\n  assert.equal(await counter(forced, forced.model), 100);\n  assert.equal(calls, 1);\n});",
+      "native_test": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs#original_05_same_counter_skips_incompatible_targets_then_counts_same_model",
+      "status": "focused_native_passed_awaiting_independent_review",
+      "static_assertions": 5,
+      "expanded_assertions": 5,
+      "assertions": [
+        {
+          "id": "routing-compatibility#5:assert-1",
+          "baseline_expression": "assert.equal(await counter(forced, 'claude-opus-5-5'), undefined)",
+          "baseline_expression_sha256": "5093b385fceb9c9b828fbd452db3fe771e903353ffad03282a182b69da0a82c1",
+          "baseline_line": 123,
+          "expanded_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 727,
+            "predicate": "a.check(1, count.is_none())",
+            "predicate_sha256": "3e5327889752cba7376569129dc8d39c0ee5eb6ae2f5f04808d81b81dda84ce7"
+          }
+        },
+        {
+          "id": "routing-compatibility#5:assert-2",
+          "baseline_expression": "assert.equal(await counter(adaptive, 'claude-haiku-4-5-20251001'), undefined)",
+          "baseline_expression_sha256": "8f43807b5b2e4e6959c9ad99b35a0c9cba35846df3e9ff0985bd67ea855a82fb",
+          "baseline_line": 125,
+          "expanded_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 729,
+            "predicate": "a.check(2, count.is_none())",
+            "predicate_sha256": "51155092b24e1c2a2bca78ff2defdf09ddb2aff51073e59b24d97a6add592c6a"
+          }
+        },
+        {
+          "id": "routing-compatibility#5:assert-3",
+          "baseline_expression": "assert.equal(calls, 0)",
+          "baseline_expression_sha256": "c53f1b7e89efb35e4fc56dc85f89d408cce799b6be14c9c59d97f20cb50d4ab7",
+          "baseline_line": 126,
+          "expanded_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 730,
+            "predicate": "a.check(3, script.calls.lock().unwrap().is_empty())",
+            "predicate_sha256": "354811baefa592af268df75f54e0aad9986d3c57eee531fc3239abffe3484283"
+          }
+        },
+        {
+          "id": "routing-compatibility#5:assert-4",
+          "baseline_expression": "assert.equal(await counter(forced, forced.model), 100)",
+          "baseline_expression_sha256": "5467da245a53adadf8ffef4252c08aeb5e495eec05d21c0c3462c73ef3ddb81e",
+          "baseline_line": 127,
+          "expanded_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 733,
+            "predicate": "a.check(4, count == Some(100))",
+            "predicate_sha256": "4d72292610bacf1f7e9966af15876b5577b51bf13f87a5546218c1fcfa1be213"
+          }
+        },
+        {
+          "id": "routing-compatibility#5:assert-5",
+          "baseline_expression": "assert.equal(calls, 1)",
+          "baseline_expression_sha256": "ec42f47942d2a67f361a8a69f69bf048a48c3ac0f490460b706344cd8ff4b228",
+          "baseline_line": 128,
+          "expanded_executions": 1,
+          "native": {
+            "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+            "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+            "line": 734,
+            "predicate": "a.check(5, script.calls.lock().unwrap().len() == 1)",
+            "predicate_sha256": "075325d00dc290d3b7b6d760aeae64d551c9a5014b9367a5147e2a562e62b0f8"
+          }
+        }
+      ]
+    }
+  ],
+  "numeric_comparator_provenance": {
+    "reference": {
+      "path": "rust/xtask/src/parity.rs",
+      "file_sha256": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64",
+      "line": 56,
+      "end_line": 85,
+      "fragment": "fn numeric_equal(a: &serde_json::Number, b: &serde_json::Number) -> bool {\n    if a == b {\n        return true;\n    }\n    // JSON numbers such as 1 and 1.0 denote the same value. Do not round two\n    // distinct large integers through f64 and hide a safe-integer regression.\n    if !a.is_f64() && !b.is_f64() {\n        return false;\n    }\n    let (Some(left), Some(right)) = (a.as_f64(), b.as_f64()) else {\n        return false;\n    };\n    if left != right {\n        return false;\n    }\n    if a.is_f64() && b.is_f64() {\n        return true;\n    }\n    // Exactly representable integers can have different JSON number encodings.\n    // Require an exact round-trip and reject saturating conversion boundaries.\n    let integer = if a.is_f64() { b } else { a };\n    if let Some(value) = integer.as_u64() {\n        (0.0..18_446_744_073_709_551_616.0).contains(&left) && left as u64 == value\n    } else if let Some(value) = integer.as_i64() {\n        (-9_223_372_036_854_775_808.0..9_223_372_036_854_775_808.0).contains(&left)\n            && left as i64 == value\n    } else {\n        false\n    }\n}",
+      "fragment_sha256": "6005babd656e3067228042a08c0bf5dffd1d4b348aecfc06338583da73dc4689"
+    },
+    "native_test": {
+      "path": "rust/crates/autorouter-runtime/tests/routing_compatibility_contracts.rs",
+      "file_sha256": "714a28cb75ac2e6b517565712dc6c39ad08870b515d0983fc227497e3f200bf6",
+      "line": 508,
+      "end_line": 533,
+      "fragment": "fn numeric_equal(a: &serde_json::Number, b: &serde_json::Number) -> bool {\n    if a == b {\n        return true;\n    }\n    if !a.is_f64() && !b.is_f64() {\n        return false;\n    }\n    let (Some(left), Some(right)) = (a.as_f64(), b.as_f64()) else {\n        return false;\n    };\n    if left != right {\n        return false;\n    }\n    if a.is_f64() && b.is_f64() {\n        return true;\n    }\n    let integer = if a.is_f64() { b } else { a };\n    if let Some(value) = integer.as_u64() {\n        (0.0..18_446_744_073_709_551_616.0).contains(&left) && left as u64 == value\n    } else if let Some(value) = integer.as_i64() {\n        (-9_223_372_036_854_775_808.0..9_223_372_036_854_775_808.0).contains(&left)\n            && left as i64 == value\n    } else {\n        false\n    }\n}",
+      "fragment_sha256": "8bd28eb1ef95002894574c82fdba817b6f1dc868962efe76ef869287fcd09ba2"
+    },
+    "algorithm_matches_ignoring_comments_and_whitespace": true
+  }
+}

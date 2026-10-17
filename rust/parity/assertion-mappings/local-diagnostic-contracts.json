@@ -1,0 +1,1678 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_local_diagnostic_contracts_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_head": "ab068b006953627486afe42477ea8f52b4855324",
+  "production_changes": false,
+  "counts": {
+    "definitions": 7,
+    "source_scenarios": 10,
+    "direct_static_assertions": 55,
+    "shared_fixture_static_assertions": 11,
+    "executed_source_and_helper_assertions": 564,
+    "requests": 102,
+    "progress_events": 58,
+    "raw_elapsed_observations": 48,
+    "original_source_formatter_calls": 3,
+    "full_native_formatter_replays": 10,
+    "native_tests": 3,
+    "unchanged_frozen_tests_passed": 14,
+    "baseline_files_verified": 111,
+    "covered": 7,
+    "partial": 0
+  },
+  "current_sources": [
+    {
+      "path": "rust/parity/capture-local-diagnostic-contracts.mjs",
+      "bytes": 17377,
+      "sha256": "621aecbc8d6292aa42f10d05e22468da73cb220ab21f9d5967ce3feda2c1ad75"
+    },
+    {
+      "path": "rust/parity/cases/local-diagnostic-contracts.jsonl",
+      "bytes": 235890,
+      "sha256": "b4c78704f4808880492f0aeff63bb4c40ce34b4074013a0cb3fd3c8c04b53fcb"
+    },
+    {
+      "path": "rust/parity/cases/local-diagnostic-contracts.capture.json",
+      "bytes": 48807,
+      "sha256": "91ad611d202e061768a07a2bbba5ac46e68e5fe6bbd724c8f6f5d0fa58cdddca"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs",
+      "bytes": 5842,
+      "sha256": "f88ffb43c0e7927dbc41ec2b3f8f5126e975cf69c8ee306bdcfeba0a9a33ca5e"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/support/local_diagnostic.rs",
+      "bytes": 9062,
+      "sha256": "a67bdd21ed8cc434b31fd3928c1d6494692e668515b1edf2fef0bf68c0b1a560"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/local_diagnostic.rs",
+      "bytes": 35161,
+      "sha256": "0fe832e9debde2798fc76fa15df9f381d6fbd59127fc36f973d87c1c6d9b973e"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/http_client.rs",
+      "bytes": 16711,
+      "sha256": "c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1"
+    }
+  ],
+  "evidence": {
+    "0-local-diagnostic-contracts-frozen-tests.log": {
+      "path": "artifacts/rust-rewrite/evidence/6bf5320d30b9ca2f56a998795f48876c751eadaa7f715acad7c64e55caee5af6.log",
+      "sha256": "6bf5320d30b9ca2f56a998795f48876c751eadaa7f715acad7c64e55caee5af6",
+      "bytes": 3287,
+      "original_path": "artifacts/rust-rewrite/local-diagnostic-contracts-frozen-tests.log"
+    },
+    "1-local-diagnostic-contracts-capture-2.log": {
+      "path": "artifacts/rust-rewrite/evidence/336ae893e341eff65a36fe4ef14e7bf99d349300922f726680d1b3451ef53d40.log",
+      "sha256": "336ae893e341eff65a36fe4ef14e7bf99d349300922f726680d1b3451ef53d40",
+      "bytes": 264,
+      "original_path": "artifacts/rust-rewrite/local-diagnostic-contracts-capture-2.log"
+    },
+    "2-cases.jsonl": {
+      "path": "artifacts/rust-rewrite/evidence/b4c78704f4808880492f0aeff63bb4c40ce34b4074013a0cb3fd3c8c04b53fcb.jsonl",
+      "sha256": "b4c78704f4808880492f0aeff63bb4c40ce34b4074013a0cb3fd3c8c04b53fcb",
+      "bytes": 235890,
+      "original_path": "artifacts/rust-rewrite/local-diagnostic-contracts-capture-2/cases.jsonl"
+    },
+    "3-capture.json": {
+      "path": "artifacts/rust-rewrite/evidence/91ad611d202e061768a07a2bbba5ac46e68e5fe6bbd724c8f6f5d0fa58cdddca.json",
+      "sha256": "91ad611d202e061768a07a2bbba5ac46e68e5fe6bbd724c8f6f5d0fa58cdddca",
+      "bytes": 48807,
+      "original_path": "artifacts/rust-rewrite/local-diagnostic-contracts-capture-2/capture.json"
+    },
+    "4-local-diagnostic-contracts-capture-3.log": {
+      "path": "artifacts/rust-rewrite/evidence/97449e21e9887c02acd553639c715dded0a27e8f7b0d0bac9bff82f1fad042a2.log",
+      "sha256": "97449e21e9887c02acd553639c715dded0a27e8f7b0d0bac9bff82f1fad042a2",
+      "bytes": 264,
+      "original_path": "artifacts/rust-rewrite/local-diagnostic-contracts-capture-3.log"
+    },
+    "5-cases.jsonl": {
+      "path": "artifacts/rust-rewrite/evidence/3d256c28b2868c81a36f2df0d2446437385abd0737da895468ec9624a7385759.jsonl",
+      "sha256": "3d256c28b2868c81a36f2df0d2446437385abd0737da895468ec9624a7385759",
+      "bytes": 235890,
+      "original_path": "artifacts/rust-rewrite/local-diagnostic-contracts-capture-3/cases.jsonl"
+    },
+    "6-capture.json": {
+      "path": "artifacts/rust-rewrite/evidence/9a271b372acdf2ad52a656eebb030d1334d4cc0830763118958b589742042bb8.json",
+      "sha256": "9a271b372acdf2ad52a656eebb030d1334d4cc0830763118958b589742042bb8",
+      "bytes": 48807,
+      "original_path": "artifacts/rust-rewrite/local-diagnostic-contracts-capture-3/capture.json"
+    },
+    "7-local-diagnostic-contracts-native-tests-1.log": {
+      "path": "artifacts/rust-rewrite/evidence/f736cd921d7425b73a2fab4b5b40bca64b7494b5b1383eb0c73a51e725c014e9.log",
+      "sha256": "f736cd921d7425b73a2fab4b5b40bca64b7494b5b1383eb0c73a51e725c014e9",
+      "bytes": 1132,
+      "original_path": "artifacts/rust-rewrite/local-diagnostic-contracts-native-tests-1.log"
+    },
+    "8-local-diagnostic-contracts-clippy-1.log": {
+      "path": "artifacts/rust-rewrite/evidence/de3d9a536d9aafa813cf45f9d9f59409f6b971037a5066ec69c57028faec690f.log",
+      "sha256": "de3d9a536d9aafa813cf45f9d9f59409f6b971037a5066ec69c57028faec690f",
+      "bytes": 678,
+      "original_path": "artifacts/rust-rewrite/local-diagnostic-contracts-clippy-1.log"
+    },
+    "9-eighth-final-3-workspace.log": {
+      "path": "artifacts/rust-rewrite/evidence/88bbe808876fe5803b821e0750bf021bbced0b5aebe0b628c3be6831c73c3917.log",
+      "sha256": "88bbe808876fe5803b821e0750bf021bbced0b5aebe0b628c3be6831c73c3917",
+      "bytes": 64807,
+      "original_path": "artifacts/rust-rewrite/eighth-final-3-workspace.log"
+    },
+    "10-eighth-final-3-source-inputs.json": {
+      "path": "artifacts/rust-rewrite/evidence/4397e9e4aa6cbf2f3c5945f626dbd8d6477e2f1f1377fdd5e69bdd5e2010754d.json",
+      "sha256": "4397e9e4aa6cbf2f3c5945f626dbd8d6477e2f1f1377fdd5e69bdd5e2010754d",
+      "bytes": 78116,
+      "original_path": "artifacts/rust-rewrite/eighth-final-3-source-inputs.json"
+    }
+  },
+  "capture_method": [
+    "Only static imports are removed. Selected original callbacks, fixture helper, loops and assertions execute unchanged in the same realm.",
+    "Lexical Response observer forwards finite built-in constructors and returns identical responses; no clone, tee or body consumption.",
+    "All reports, progress events, request parsed bodies and exact body text, responses, raw timings and complete formatted lines are retained.",
+    "Only report.startup.latency_ms, report.rows[].latency_ms and matching startup_complete/case_complete event fields differ across execution clocks; selected source assertions never test them. Each must be finite and nonnegative.",
+    "Stable digest sets exactly those named fields to zero and regenerates formatting from that projected report. Native formatter must instead match raw captured strings on raw captured reports, without exclusions.",
+    "Own-undefined properties are tagged explicitly; native Option omission is reviewed, not converted to null. Injected functions, AbortSignal identity and fetch method omission are source API observations, not Rust object identity claims.",
+    "No actual service/provider/model/download, response cancellation, elapsed-time threshold, other-platform or performance qualification is performed."
+  ],
+  "limits": {
+    "cases": 16,
+    "requests_per_call": 64,
+    "field_bytes": 65536,
+    "response_bytes": 1048576,
+    "aggregate_bytes": 8388608,
+    "progress_per_call": 64,
+    "snapshot_nodes": 4096,
+    "snapshot_depth": 32
+  },
+  "timing_policy": {
+    "exclusions": "Only report.startup.latency_ms, report.rows[].latency_ms and corresponding startup_complete/case_complete events. Exact per-case paths/raw values retained in capture metadata. Missing, negative or nonnumeric native observations fail.",
+    "source_justification": "PinnedTS AST scan proves none of the selected55 direct assertions mentions latency_ms. Timed source definitions7/8 are excluded and remain pending. Source formatter assertions concern report content/residency/guidance; all exact raw formatter lines are nevertheless replayed.",
+    "cross_capture": "Raw case bytes differ due to measured timings. Stable digest explicitly sets only listed fields to0 and regenerates formatter from that projected report; no formatter masking is applied in native replay.",
+    "stable_non_timing_cases_sha256": "b395a4beb69ff1bf401699ac16ddf20e305ff36305d3329ebd62d657a0a06889",
+    "excluded_observations": [
+      {
+        "case": "baseline-local-diagnostic-1-1",
+        "path": "$.report.value.startup.latency_ms",
+        "observed_ms": 2.94
+      },
+      {
+        "case": "baseline-local-diagnostic-1-1",
+        "path": "$.report.value.rows[0].latency_ms",
+        "observed_ms": 1.18
+      },
+      {
+        "case": "baseline-local-diagnostic-1-1",
+        "path": "$.report.value.rows[1].latency_ms",
+        "observed_ms": 0.38
+      },
+      {
+        "case": "baseline-local-diagnostic-1-1",
+        "path": "$.report.value.rows[2].latency_ms",
+        "observed_ms": 0.56
+      },
+      {
+        "case": "baseline-local-diagnostic-1-1",
+        "path": "$.report.value.rows[3].latency_ms",
+        "observed_ms": 0.4
+      },
+      {
+        "case": "baseline-local-diagnostic-1-1",
+        "path": "$.report.value.rows[4].latency_ms",
+        "observed_ms": 0.25
+      },
+      {
+        "case": "baseline-local-diagnostic-1-1",
+        "path": "$.report.value.rows[5].latency_ms",
+        "observed_ms": 0.29
+      },
+      {
+        "case": "baseline-local-diagnostic-1-1",
+        "path": "$.progress[2].value.latency_ms",
+        "observed_ms": 2.94
+      },
+      {
+        "case": "baseline-local-diagnostic-1-1",
+        "path": "$.progress[4].value.latency_ms",
+        "observed_ms": 1.18
+      },
+      {
+        "case": "baseline-local-diagnostic-1-1",
+        "path": "$.progress[6].value.latency_ms",
+        "observed_ms": 0.38
+      },
+      {
+        "case": "baseline-local-diagnostic-1-1",
+        "path": "$.progress[8].value.latency_ms",
+        "observed_ms": 0.56
+      },
+      {
+        "case": "baseline-local-diagnostic-1-1",
+        "path": "$.progress[10].value.latency_ms",
+        "observed_ms": 0.4
+      },
+      {
+        "case": "baseline-local-diagnostic-1-1",
+        "path": "$.progress[12].value.latency_ms",
+        "observed_ms": 0.25
+      },
+      {
+        "case": "baseline-local-diagnostic-1-1",
+        "path": "$.progress[14].value.latency_ms",
+        "observed_ms": 0.29
+      },
+      {
+        "case": "baseline-local-diagnostic-2-1",
+        "path": "$.report.value.startup.latency_ms",
+        "observed_ms": 0.25
+      },
+      {
+        "case": "baseline-local-diagnostic-2-1",
+        "path": "$.report.value.rows[0].latency_ms",
+        "observed_ms": 0.42
+      },
+      {
+        "case": "baseline-local-diagnostic-2-1",
+        "path": "$.report.value.rows[1].latency_ms",
+        "observed_ms": 0.36
+      },
+      {
+        "case": "baseline-local-diagnostic-2-1",
+        "path": "$.report.value.rows[2].latency_ms",
+        "observed_ms": 0.22
+      },
+      {
+        "case": "baseline-local-diagnostic-2-1",
+        "path": "$.report.value.rows[3].latency_ms",
+        "observed_ms": 1.23
+      },
+      {
+        "case": "baseline-local-diagnostic-2-1",
+        "path": "$.report.value.rows[4].latency_ms",
+        "observed_ms": 0.24
+      },
+      {
+        "case": "baseline-local-diagnostic-2-1",
+        "path": "$.report.value.rows[5].latency_ms",
+        "observed_ms": 0.24
+      },
+      {
+        "case": "baseline-local-diagnostic-2-1",
+        "path": "$.progress[2].value.latency_ms",
+        "observed_ms": 0.25
+      },
+      {
+        "case": "baseline-local-diagnostic-2-1",
+        "path": "$.progress[4].value.latency_ms",
+        "observed_ms": 0.42
+      },
+      {
+        "case": "baseline-local-diagnostic-2-1",
+        "path": "$.progress[6].value.latency_ms",
+        "observed_ms": 0.36
+      },
+      {
+        "case": "baseline-local-diagnostic-2-1",
+        "path": "$.progress[8].value.latency_ms",
+        "observed_ms": 0.22
+      },
+      {
+        "case": "baseline-local-diagnostic-2-1",
+        "path": "$.progress[10].value.latency_ms",
+        "observed_ms": 1.23
+      },
+      {
+        "case": "baseline-local-diagnostic-2-1",
+        "path": "$.progress[12].value.latency_ms",
+        "observed_ms": 0.24
+      },
+      {
+        "case": "baseline-local-diagnostic-2-1",
+        "path": "$.progress[14].value.latency_ms",
+        "observed_ms": 0.24
+      },
+      {
+        "case": "baseline-local-diagnostic-4-1",
+        "path": "$.report.value.startup.latency_ms",
+        "observed_ms": 0.2
+      },
+      {
+        "case": "baseline-local-diagnostic-4-1",
+        "path": "$.report.value.rows[0].latency_ms",
+        "observed_ms": 0.24
+      },
+      {
+        "case": "baseline-local-diagnostic-4-1",
+        "path": "$.progress[2].value.latency_ms",
+        "observed_ms": 0.2
+      },
+      {
+        "case": "baseline-local-diagnostic-4-1",
+        "path": "$.progress[4].value.latency_ms",
+        "observed_ms": 0.24
+      },
+      {
+        "case": "baseline-local-diagnostic-9-1",
+        "path": "$.report.value.startup.latency_ms",
+        "observed_ms": 0.19
+      },
+      {
+        "case": "baseline-local-diagnostic-9-1",
+        "path": "$.report.value.rows[0].latency_ms",
+        "observed_ms": 0.19
+      },
+      {
+        "case": "baseline-local-diagnostic-9-1",
+        "path": "$.report.value.rows[1].latency_ms",
+        "observed_ms": 0.18
+      },
+      {
+        "case": "baseline-local-diagnostic-9-1",
+        "path": "$.report.value.rows[2].latency_ms",
+        "observed_ms": 0.2
+      },
+      {
+        "case": "baseline-local-diagnostic-9-1",
+        "path": "$.report.value.rows[3].latency_ms",
+        "observed_ms": 0.24
+      },
+      {
+        "case": "baseline-local-diagnostic-9-1",
+        "path": "$.report.value.rows[4].latency_ms",
+        "observed_ms": 0.22
+      },
+      {
+        "case": "baseline-local-diagnostic-9-1",
+        "path": "$.report.value.rows[5].latency_ms",
+        "observed_ms": 0.22
+      },
+      {
+        "case": "baseline-local-diagnostic-9-1",
+        "path": "$.progress[2].value.latency_ms",
+        "observed_ms": 0.19
+      },
+      {
+        "case": "baseline-local-diagnostic-9-1",
+        "path": "$.progress[4].value.latency_ms",
+        "observed_ms": 0.19
+      },
+      {
+        "case": "baseline-local-diagnostic-9-1",
+        "path": "$.progress[6].value.latency_ms",
+        "observed_ms": 0.18
+      },
+      {
+        "case": "baseline-local-diagnostic-9-1",
+        "path": "$.progress[8].value.latency_ms",
+        "observed_ms": 0.2
+      },
+      {
+        "case": "baseline-local-diagnostic-9-1",
+        "path": "$.progress[10].value.latency_ms",
+        "observed_ms": 0.24
+      },
+      {
+        "case": "baseline-local-diagnostic-9-1",
+        "path": "$.progress[12].value.latency_ms",
+        "observed_ms": 0.22
+      },
+      {
+        "case": "baseline-local-diagnostic-9-1",
+        "path": "$.progress[14].value.latency_ms",
+        "observed_ms": 0.22
+      },
+      {
+        "case": "baseline-local-diagnostic-10-1",
+        "path": "$.report.value.startup.latency_ms",
+        "observed_ms": 0.36
+      },
+      {
+        "case": "baseline-local-diagnostic-10-1",
+        "path": "$.progress[2].value.latency_ms",
+        "observed_ms": 0.36
+      }
+    ]
+  },
+  "negative_controls": [
+    {
+      "test": "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#wrong_request_cannot_hide_behind_matching_safe_failure_or_success_report",
+      "cases": [
+        "wrong first version URL with identical expected safe failure",
+        "wrong initial synthetic prompt in parsed and raw body with identical complete success report"
+      ],
+      "decision": "Independent request verification fails despite matching native report/progress."
+    },
+    {
+      "test": "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#comparison_preserves_semantics_and_requires_every_timing_observation",
+      "cases": [
+        "null,string,negative and missing elapsed observations reject",
+        "coverage gate and progress residency mutations remain unequal",
+        "unexpected nested latency_ms field remains unequal",
+        "changing formatter input elapsed value changes exact output"
+      ],
+      "decision": "Timing exclusion cannot erase semantic or formatter differences."
+    }
+  ],
+  "helper_source": {
+    "file": "test/local-diagnostic.test.mjs",
+    "line": 10,
+    "sha256": "dd3ceed5292fb55d40a95f0fd73cf03e24a6011a007becc015884418e5648416",
+    "assertions": [
+      {
+        "line": 16,
+        "expression": "assert.equal(new URL(url).origin, config.ollamaEndpoint)",
+        "sha256": "932b3aec52d59f8ec98cae431c87f27b6df60d003a2ef59ba4cdadc7ee40a7ab",
+        "status": "covered",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match",
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#wrong_request_cannot_hide_behind_matching_safe_failure_or_success_report"
+        ],
+        "native_check": "Independent complete request URL/headers/parsed-body/raw-body comparison for every source callback invocation. The staged response alone cannot establish correctness; mismatched requests set a separate invalid counter even when output still matches."
+      },
+      {
+        "line": 17,
+        "expression": "assert.equal(options.redirect, 'error')",
+        "sha256": "8867547a8dffc17a3aa008e64a715fe5a4f24738ba0b79b5257a046a95a1b00a",
+        "status": "covered",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match",
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#wrong_request_cannot_hide_behind_matching_safe_failure_or_success_report",
+          "rust/crates/autorouter-runtime/src/http_client.rs#http_client::tests::local_http_reuses_connections_preserves_credentials_and_never_decodes_or_redirects"
+        ],
+        "native_check": "Source literal redirect:error is retained in each call. HttpTransport has no per-request redirect flag; actual native transport is nonredirecting, separately proved by retained307 response/body/path-count test with matching source hash. Mock302/raw-option inspection is not used alone."
+      },
+      {
+        "line": 18,
+        "expression": "assert.ok(!Object.keys(options.headers ?? {}).some(key => ['authorization', 'x-api-key'].includes(key.toLowerCase())))",
+        "sha256": "99c7a8c74c25ff30d4e0e8ad4414976c39fbf6f8a1085927215416c3d408b4bb",
+        "status": "covered",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match",
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#wrong_request_cannot_hide_behind_matching_safe_failure_or_success_report"
+        ],
+        "native_check": "Independent complete request URL/headers/parsed-body/raw-body comparison for every source callback invocation. The staged response alone cannot establish correctness; mismatched requests set a separate invalid counter even when output still matches."
+      },
+      {
+        "line": 28,
+        "expression": "assert.equal(path, '/v1/systemone', 'No cloud, chat, downloads, unloads, or service control')",
+        "sha256": "d72750437a7d9777804a98d1d01c2f431a2d33c5ae13994cdf70831a989ea093",
+        "status": "covered",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match",
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#wrong_request_cannot_hide_behind_matching_safe_failure_or_success_report"
+        ],
+        "native_check": "Independent complete request URL/headers/parsed-body/raw-body comparison for every source callback invocation. The staged response alone cannot establish correctness; mismatched requests set a separate invalid counter even when output still matches."
+      },
+      {
+        "line": 29,
+        "expression": "assert.equal(body.model, config.ollamaModel)",
+        "sha256": "6f82c9e3256a27ffe40b5cea99934de89e50f74d3ae5bce090b3bf92c5737b9a",
+        "status": "covered",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match",
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#wrong_request_cannot_hide_behind_matching_safe_failure_or_success_report"
+        ],
+        "native_check": "Independent complete request URL/headers/parsed-body/raw-body comparison for every source callback invocation. The staged response alone cannot establish correctness; mismatched requests set a separate invalid counter even when output still matches."
+      },
+      {
+        "line": 30,
+        "expression": "assert.equal(body.keep_alive, config.ollamaKeepAlive)",
+        "sha256": "d814f7b61cb31c7a0e5fc7ff94dc60f06e992e0c1c1ef479a8a1a728bd99f96d",
+        "status": "covered",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match",
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#wrong_request_cannot_hide_behind_matching_safe_failure_or_success_report"
+        ],
+        "native_check": "Independent complete request URL/headers/parsed-body/raw-body comparison for every source callback invocation. The staged response alone cannot establish correctness; mismatched requests set a separate invalid counter even when output still matches."
+      },
+      {
+        "line": 31,
+        "expression": "assert.notEqual(body.keep_alive, '0')",
+        "sha256": "6fc1dd3db6cbbbb7978b3ab922489c13def0f61b6eef00f9362693b3859f2a11",
+        "status": "covered",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match",
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#wrong_request_cannot_hide_behind_matching_safe_failure_or_success_report"
+        ],
+        "native_check": "Independent complete request URL/headers/parsed-body/raw-body comparison for every source callback invocation. The staged response alone cannot establish correctness; mismatched requests set a separate invalid counter even when output still matches."
+      },
+      {
+        "line": 32,
+        "expression": "assert.ok(!JSON.stringify(body).includes('PRIVATE_KEY'))",
+        "sha256": "d05da9c4f08f3ec8649de13af7c7eec74ff93475f27c497c8ed7cc9c0ae6e947",
+        "status": "covered",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match",
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#wrong_request_cannot_hide_behind_matching_safe_failure_or_success_report"
+        ],
+        "native_check": "Independent complete request URL/headers/parsed-body/raw-body comparison for every source callback invocation. The staged response alone cannot establish correctness; mismatched requests set a separate invalid counter even when output still matches."
+      },
+      {
+        "line": 33,
+        "expression": "assert.ok(!JSON.stringify(body.state).includes('SYNTHETIC_REMINDER_ONLY'))",
+        "sha256": "686b71bb641a365c1a9f83fe20bd8aaebee995e04b5e2bfefa0645230010659e",
+        "status": "covered",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match",
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#wrong_request_cannot_hide_behind_matching_safe_failure_or_success_report"
+        ],
+        "native_check": "Independent complete request URL/headers/parsed-body/raw-body comparison for every source callback invocation. The staged response alone cannot establish correctness; mismatched requests set a separate invalid counter even when output still matches."
+      },
+      {
+        "line": 34,
+        "expression": "assert.ok(!JSON.stringify(body.state).includes('Synthetic coding assistant guidance'))",
+        "sha256": "36305463cfc3d80248eec4ec5c31250c8bb70ae133bd46114e7297cebe31d602",
+        "status": "covered",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match",
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#wrong_request_cannot_hide_behind_matching_safe_failure_or_success_report"
+        ],
+        "native_check": "Independent complete request URL/headers/parsed-body/raw-body comparison for every source callback invocation. The staged response alone cannot establish correctness; mismatched requests set a separate invalid counter even when output still matches."
+      },
+      {
+        "line": 40,
+        "expression": "assert.ok(tiers.includes(selected), 'Each synthetic task survived the actual state extraction')",
+        "sha256": "f6f5054ccd85446793df11e48138bd5eb6a9e8aa52900ec52226f76dff81411c",
+        "status": "covered",
+        "native_tests": [
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match",
+          "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#wrong_request_cannot_hide_behind_matching_safe_failure_or_success_report"
+        ],
+        "native_check": "Independent complete request URL/headers/parsed-body/raw-body comparison for every source callback invocation. The staged response alone cannot establish correctness; mismatched requests set a separate invalid counter even when output still matches."
+      }
+    ]
+  },
+  "existing_actual_redirect_evidence": {
+    "rust_test": "rust/crates/autorouter-runtime/src/http_client.rs#http_client::tests::local_http_reuses_connections_preserves_credentials_and_never_decodes_or_redirects",
+    "source_sha256": "c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1",
+    "source_line": 315,
+    "executed_log": "artifacts/rust-rewrite/eighth-final-3-workspace.log",
+    "executed_log_line": 255,
+    "assertions": "Native307 body is forwarded without redirect; expected request-path/call counts include no destination follow."
+  },
+  "boundaries": [
+    "Synthetic in-memory transport only; no listener, real Ollama, provider/model/download or user configuration.",
+    "Original safe reports, callbacks and Response identities retained in source capture; native typed callback/Result interface is an explicit API adaptation, not JavaScript object identity.",
+    "Own-undefined fields are tagged and checked absent in native JSON, never replaced with null; these selected source tests do not assert own-undefined property existence.",
+    "Config construction compares the complete serialized native configuration against captured source values; only original undefined tags are absent.",
+    "CARGO_INCREMENTAL=0 used for scoped native tests/Clippy. No production or previous finite-setup files changed.",
+    "Clippy exits0; separately owned vendored hyper-util unused timer warning remains recorded.",
+    "Local macOS execution only; no performance or cross-platform qualification."
+  ],
+  "historical_preservation": "Earlier finite-setup generator/cases/metadata/test/support have no diff. Capture1 retained before final aggregate-count assertions; final2/3 share identical generator and stable non-timing digest.",
+  "rows": [
+    {
+      "id": "test/local-diagnostic.test.mjs#1",
+      "file": "test/local-diagnostic.test.mjs",
+      "name": "diagnostic uses packaged synthetic all-tier cases without cloud credentials and keeps observations separate from claims",
+      "line": 47,
+      "baseline_file_sha256": "b2f198cd7200a4bede5b6c038a96db989f778ce50ef710d2d0cf0fa2ebdf748e",
+      "definition_statement": "test('diagnostic uses packaged synthetic all-tier cases without cloud credentials and keeps observations separate from claims', async () => {\n  const config = { ...configFor(), jevKey: 'PRIVATE_KEY_JEV', anthropicKey: 'PRIVATE_KEY_ANTHROPIC' };\n  const local = fixture(config);\n  const progress = [];\n  const report = await runLocalDiagnostic(config, { fetchImpl: local.fetchImpl, onProgress: row => progress.push(row) });\n  assert.equal(report.passed, true);\n  assert.equal(report.fixture_version, 1);\n  assert.match(report.fixture_sha256, /^[a-f0-9]{64}$/);\n  assert.match(report.questions_sha256, /^[a-f0-9]{64}$/);\n  assert.equal(report.residency_before, 'not_resident');\n  assert.equal(report.startup.residency_before, 'not_resident');\n  assert.equal(report.startup.timeout_ms, 60000);\n  assert.equal(report.runtime_timeout_ms, 15000);\n  assert.equal(report.gates.transport.passed, null);\n  assert.equal(report.gates.policy.passed, null);\n  assert.equal(report.gates.task.passed, null);\n  assert.deepEqual(report.gates.coverage.missing, []);\n  assert.deepEqual(report.rows.map(row => [row.case, row.classified_tier]), LOCAL_DIAGNOSTIC_CASES.map(item => [item.id, item.expected]));\n  assert.ok(report.rows.every(row => row.residency_before === 'resident' && row.source === 'ollama' && row.current_task_matches && row.state_bytes <= 3000));\n  assert.equal(local.calls.filter(call => call.path === '/v1/systemone').length, LOCAL_DIAGNOSTIC_CASES.length + 1);\n  assert.equal(local.calls.filter(call => call.path === '/api/ps').length, LOCAL_DIAGNOSTIC_CASES.length + 1);\n  assert.equal(progress.filter(row => row.event === 'case_complete').length, LOCAL_DIAGNOSTIC_CASES.length);\n  assert.equal(report.paid_provider_calls, 0);\n  assert.equal(report.models_unloaded, 0);\n  assert.equal(report.downloads, 0);\n  assert.equal(report.configuration_changed, false);\n  assert.ok(!JSON.stringify(report).includes('PRIVATE_'));\n  assert.ok(!JSON.stringify(report).includes(LOCAL_DIAGNOSTIC_CASES[0].prompt));\n  assert.match(formatLocalDiagnostic(report).join('\\n'), /PASS: 6\\/6.*\\nResidency is observed/);\n});",
+      "definition_sha256": "31094624f1f2bde6040f6a7ee5d33d96ad2ed3e73e06cad708db7d90e9e6ae78",
+      "definition_call_sha256": "9232b4776ae0f21e7fc99c2381a5a7c9c4e4a2fa7a4af28bf65d61b4cd5f6cc5",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+      ],
+      "shared_cases": [
+        "baseline-local-diagnostic-1-1"
+      ],
+      "scenarios": 1,
+      "requests": 24,
+      "progress_events": 15,
+      "executed_source_and_helper_assertions": 152,
+      "assertions": [
+        {
+          "line": 52,
+          "expression": "assert.equal(report.passed, true)",
+          "sha256": "30095a40b0e4d8fd8ba33255448fc341c72ff18f8ed9205db71fb17401fb56a1",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 53,
+          "expression": "assert.equal(report.fixture_version, 1)",
+          "sha256": "6faa16ee518c4b9ba3037abbf4755a8e43471cbe721a73b5c6159fe74bc15e34",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 54,
+          "expression": "assert.match(report.fixture_sha256, /^[a-f0-9]{64}$/)",
+          "sha256": "e1eda5812f5d314f09d0228e5d0b0e15b05c734fa42d3fbd4fe388f702ff7f08",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 55,
+          "expression": "assert.match(report.questions_sha256, /^[a-f0-9]{64}$/)",
+          "sha256": "0efc111a8e69c1a0a278d73a4064c2b18ef34d16f333b0f8559e0f012b88f45d",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 56,
+          "expression": "assert.equal(report.residency_before, 'not_resident')",
+          "sha256": "c4232c14cd549e8af3d1603c25b3f2d1caa811822b92299e834bd10a85e21f97",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 57,
+          "expression": "assert.equal(report.startup.residency_before, 'not_resident')",
+          "sha256": "c463a603bd7dc3347d87d763c6a72092a967bdc1a293d57a35c5464e1a0318d2",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 58,
+          "expression": "assert.equal(report.startup.timeout_ms, 60000)",
+          "sha256": "5c295d91201e7931f9ff7ee6cccfd8e37a98ec99c810fc6024c4038fe3fd199b",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 59,
+          "expression": "assert.equal(report.runtime_timeout_ms, 15000)",
+          "sha256": "7c2e1fc398e60f4122494ed6298ef905d15a92a6a11a07dfa39998a83e89dd1b",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 60,
+          "expression": "assert.equal(report.gates.transport.passed, null)",
+          "sha256": "4d77a314e53e0d5d84ada9a78d79d50696ee9e95d2317d9409d423bb0f946b0e",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 61,
+          "expression": "assert.equal(report.gates.policy.passed, null)",
+          "sha256": "095e13fb1087aa0a87e5402ad773e1bee534d85362bb4afdea8b52b24f965ac9",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 62,
+          "expression": "assert.equal(report.gates.task.passed, null)",
+          "sha256": "9efbc0da83e2383f0f4156904635b02925461aba785670c71752aa17ea489320",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 63,
+          "expression": "assert.deepEqual(report.gates.coverage.missing, [])",
+          "sha256": "986dd4a489d35dc69d16e176b2d6955700abc806a851263ba5d1215f9ba62116",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 64,
+          "expression": "assert.deepEqual(report.rows.map(row => [row.case, row.classified_tier]), LOCAL_DIAGNOSTIC_CASES.map(item => [item.id, item.expected]))",
+          "sha256": "9a629c8698a319d7388c5faa14ef60313b789b17a7ccfc307c2ffe9f8b0e3bae",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 65,
+          "expression": "assert.ok(report.rows.every(row => row.residency_before === 'resident' && row.source === 'ollama' && row.current_task_matches && row.state_bytes <= 3000))",
+          "sha256": "98e20fe29e0a101fb21960976f0fddb8fa18be21ea9ebfc3e3b9ae1f70fd86ac",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 66,
+          "expression": "assert.equal(local.calls.filter(call => call.path === '/v1/systemone').length, LOCAL_DIAGNOSTIC_CASES.length + 1)",
+          "sha256": "d6e459790300b00dd4cf87412904d7dffb8dddddca35142a62917b510d23589f",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 67,
+          "expression": "assert.equal(local.calls.filter(call => call.path === '/api/ps').length, LOCAL_DIAGNOSTIC_CASES.length + 1)",
+          "sha256": "5f8487522f62431f07609ea5d07f8294308b3f1baf73bb70cd4e4a7af054f0c8",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 68,
+          "expression": "assert.equal(progress.filter(row => row.event === 'case_complete').length, LOCAL_DIAGNOSTIC_CASES.length)",
+          "sha256": "9078107f52cb16b160a062405fe3d81da7a28beaa864a7235e33086c81cfb200",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 69,
+          "expression": "assert.equal(report.paid_provider_calls, 0)",
+          "sha256": "c85f019097356443035c1e36e45347f5fa45872f4d735e56661eda74f02fe3c2",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 70,
+          "expression": "assert.equal(report.models_unloaded, 0)",
+          "sha256": "7289d2e09197ab8a5efdbe28dda8e7ae967f1f4b2cee144dd568c115f3025a79",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 71,
+          "expression": "assert.equal(report.downloads, 0)",
+          "sha256": "f86df2259e9d2efa863ac76ed9d08785e628e4238fbcd3ca8707cdbebc448b05",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 72,
+          "expression": "assert.equal(report.configuration_changed, false)",
+          "sha256": "93815a96fa9da948853e377e91c044ceaebc897e4510e27c42a2be008c0a56d1",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 73,
+          "expression": "assert.ok(!JSON.stringify(report).includes('PRIVATE_'))",
+          "sha256": "a92ca30ef59a3420f4589fefc2b0b0e7419db3043e3f85af850c0ffb65464997",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 74,
+          "expression": "assert.ok(!JSON.stringify(report).includes(LOCAL_DIAGNOSTIC_CASES[0].prompt))",
+          "sha256": "bea7105a829baa054467016864aa10068b74d81dc30abbf1fa62f80ab4637cd1",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 75,
+          "expression": "assert.match(formatLocalDiagnostic(report).join('\\n'), /PASS: 6\\/6.*\\nResidency is observed/)",
+          "sha256": "e4fad2f45d0b71abf4f2d3df85637b241aa623904bccadbe9eb865a7d76f501b",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-1-1"
+          ],
+          "native_check": "Exact native formatter on raw captured input; all lines compared without exclusions."
+        }
+      ],
+      "helper_assertion_mapping": "Shared fixture helper audit below applies to every actual fetch invocation in these cases.",
+      "review_notes": [
+        "Complete successful report, exact fixture/question digests, case/tier pairs, source/residency/task-state checks,7inference/7residency calls,6case_complete callbacks, all no-side-effect counters/privacy and complete formatting. Full config includes both original synthetic PRIVATE_KEY credentials; every emitted request is compared including raw body and headers."
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/local-diagnostic.test.mjs#2",
+      "file": "test/local-diagnostic.test.mjs",
+      "name": "an already resident model is reported honestly and Auto profile still checks all classifier tiers",
+      "line": 78,
+      "baseline_file_sha256": "b2f198cd7200a4bede5b6c038a96db989f778ce50ef710d2d0cf0fa2ebdf748e",
+      "definition_statement": "test('an already resident model is reported honestly and Auto profile still checks all classifier tiers', async () => {\n  const config = configFor({ AUTOROUTER_CLIENT_PROFILE: 'auto' });\n  const report = await runLocalDiagnostic(config, { fetchImpl: fixture(config, { initiallyResident: true }).fetchImpl });\n  assert.equal(report.passed, true);\n  assert.equal(report.startup.residency_before, 'resident');\n  assert.deepEqual(report.gates.coverage.required, tiers);\n  assert.match(formatLocalDiagnostic(report)[2], /model resident before call/);\n  assert.ok(!('confirmed_model' in report.rows[0]), 'No Claude model executed');\n});",
+      "definition_sha256": "4ee21d7363768d505ab985f34a8320f6070610e423229627fbaca22c1e41aa71",
+      "definition_call_sha256": "81fca667d18aeeb8f4813b27d65e44a0ffb52249f658ce565a45eb96dd7af623",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+      ],
+      "shared_cases": [
+        "baseline-local-diagnostic-2-1"
+      ],
+      "scenarios": 1,
+      "requests": 24,
+      "progress_events": 15,
+      "executed_source_and_helper_assertions": 133,
+      "assertions": [
+        {
+          "line": 81,
+          "expression": "assert.equal(report.passed, true)",
+          "sha256": "30095a40b0e4d8fd8ba33255448fc341c72ff18f8ed9205db71fb17401fb56a1",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-2-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 82,
+          "expression": "assert.equal(report.startup.residency_before, 'resident')",
+          "sha256": "16bf2347c27690743e6f0eb1592a2ee57e891774b0d0a607e47b6d8e4cb0acea",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-2-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 83,
+          "expression": "assert.deepEqual(report.gates.coverage.required, tiers)",
+          "sha256": "3fd877498c738b58576a17425b628509f51df389d1e2fc05b00d36ec90f5000c",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-2-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 84,
+          "expression": "assert.match(formatLocalDiagnostic(report)[2], /model resident before call/)",
+          "sha256": "70824c8b381a5fce8e168f012772b42d0f875218655c941d80d7f69f0370d3f8",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-2-1"
+          ],
+          "native_check": "Exact native formatter on raw captured input; all lines compared without exclusions."
+        },
+        {
+          "line": 85,
+          "expression": "assert.ok(!('confirmed_model' in report.rows[0]), 'No Claude model executed')",
+          "sha256": "d8681fd81c2a677366b47e8f61eb7858846550b315af119e3dca782ad19f4013",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-2-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        }
+      ],
+      "helper_assertion_mapping": "Shared fixture helper audit below applies to every actual fetch invocation in these cases.",
+      "review_notes": [
+        "Auto profile and initially resident response retained exactly; full result contains all three required classifier tiers and no confirmed_model field; complete formatter input/output uses original measured values."
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/local-diagnostic.test.mjs#3",
+      "file": "test/local-diagnostic.test.mjs",
+      "name": "unrelated resident models are never evicted to manufacture a cold or warm measurement",
+      "line": 88,
+      "baseline_file_sha256": "b2f198cd7200a4bede5b6c038a96db989f778ce50ef710d2d0cf0fa2ebdf748e",
+      "definition_statement": "test('unrelated resident models are never evicted to manufacture a cold or warm measurement', async () => {\n  const config = configFor();\n  for (const initiallyResident of [false, true]) {\n    const local = fixture(config, { initiallyResident, others: ['PRIVATE_OTHER_MODEL:latest'] });\n    const report = await runLocalDiagnostic(config, { fetchImpl: local.fetchImpl });\n    assert.equal(report.passed, false);\n    assert.equal(report.error.code, 'unrelated_models_resident');\n    assert.equal(local.calls.filter(call => call.path === '/v1/systemone').length, 0);\n    assert.ok(!JSON.stringify(report).includes('PRIVATE_OTHER_MODEL'));\n  }\n});",
+      "definition_sha256": "d37cafd6fba2bff1d4c65b2b3d3b186a28c3223bde99c18c8164053547960052",
+      "definition_call_sha256": "4fdeafd3b1bac4dab28ca53a3108a97695111fefef4ceacd7dcee226ce02e726",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+      ],
+      "shared_cases": [
+        "baseline-local-diagnostic-3-1",
+        "baseline-local-diagnostic-3-2"
+      ],
+      "scenarios": 2,
+      "requests": 8,
+      "progress_events": 2,
+      "executed_source_and_helper_assertions": 32,
+      "assertions": [
+        {
+          "line": 93,
+          "expression": "assert.equal(report.passed, false)",
+          "sha256": "a5cd1a59c13df045b8c6b34d3205aa168ecac43f8534c32e3cf87970c04aa98f",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-3-1",
+            "baseline-local-diagnostic-3-2"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 94,
+          "expression": "assert.equal(report.error.code, 'unrelated_models_resident')",
+          "sha256": "a390d7a0f98f24d0cbe8bbebda463200158eafb9424f0ad63217645d6b443c85",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-3-1",
+            "baseline-local-diagnostic-3-2"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 95,
+          "expression": "assert.equal(local.calls.filter(call => call.path === '/v1/systemone').length, 0)",
+          "sha256": "3c7d82dc40a08e895b62ced99818f4733d4bb65ac4a1fe3d2d945577d3e4300a",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-3-1",
+            "baseline-local-diagnostic-3-2"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 96,
+          "expression": "assert.ok(!JSON.stringify(report).includes('PRIVATE_OTHER_MODEL'))",
+          "sha256": "ad58c7684733fc5af453c8ea84b371b2bf2681e94130fdc3b1c7d34f4fd38a77",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-3-1",
+            "baseline-local-diagnostic-3-2"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        }
+      ],
+      "helper_assertion_mapping": "Shared fixture helper audit below applies to every actual fetch invocation in these cases.",
+      "review_notes": [
+        "Both initiallyResident=false/true with the exact PRIVATE_OTHER_MODEL response are replayed. Complete safe refusal report and exactly4metadata requests prove no inference or unload/control action; private model identity stays out of result/progress."
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/local-diagnostic.test.mjs#4",
+      "file": "test/local-diagnostic.test.mjs",
+      "name": "a newly resident unrelated model stops the diagnostic before another inference",
+      "line": 100,
+      "baseline_file_sha256": "b2f198cd7200a4bede5b6c038a96db989f778ce50ef710d2d0cf0fa2ebdf748e",
+      "definition_statement": "test('a newly resident unrelated model stops the diagnostic before another inference', async () => {\n  const config = configFor();\n  let inspections = 0;\n  const local = fixture(config, { residentResponse: () => Response.json({ models: ++inspections < 3\n    ? [] : [{ name: 'unrelated:latest' }] }) });\n  const report = await runLocalDiagnostic(config, { fetchImpl: local.fetchImpl });\n  assert.equal(report.passed, false);\n  assert.equal(report.error.code, 'unrelated_models_resident');\n  assert.equal(report.rows.length, 1);\n  assert.equal(local.calls.filter(call => call.path === '/v1/systemone').length, 2);\n  assert.equal(report.gates.cases.passed, false);\n});",
+      "definition_sha256": "b952ad8c2008f182a3791441365343cba2e8a4beef239f99533b229b692075b8",
+      "definition_call_sha256": "0695f17406ae89c199e381573a893e6609d70eb514252ea54bec4d2e0249690b",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+      ],
+      "shared_cases": [
+        "baseline-local-diagnostic-4-1"
+      ],
+      "scenarios": 1,
+      "requests": 10,
+      "progress_events": 5,
+      "executed_source_and_helper_assertions": 51,
+      "assertions": [
+        {
+          "line": 106,
+          "expression": "assert.equal(report.passed, false)",
+          "sha256": "a5cd1a59c13df045b8c6b34d3205aa168ecac43f8534c32e3cf87970c04aa98f",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-4-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 107,
+          "expression": "assert.equal(report.error.code, 'unrelated_models_resident')",
+          "sha256": "a390d7a0f98f24d0cbe8bbebda463200158eafb9424f0ad63217645d6b443c85",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-4-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 108,
+          "expression": "assert.equal(report.rows.length, 1)",
+          "sha256": "afd378670ad0bf17e7007959a973462466f8118805bb49a8fc6481ed282238e0",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-4-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 109,
+          "expression": "assert.equal(local.calls.filter(call => call.path === '/v1/systemone').length, 2)",
+          "sha256": "5083fba65263fa165e52c726948859c5e4ca6b4e6cae36a0cc41a365dbe6dbdf",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-4-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 110,
+          "expression": "assert.equal(report.gates.cases.passed, false)",
+          "sha256": "d3b8771dcfeff22e90e398e454d095a386f4da3f13af75582959f73e443c28f2",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-4-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        }
+      ],
+      "helper_assertion_mapping": "Shared fixture helper audit below applies to every actual fetch invocation in these cases.",
+      "review_notes": [
+        "Original residentResponse closure produces empty,empty,unrelated responses. Native exact10request transcript stops after startup plus one measured inference; full report contains one row and failed cases gate."
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/local-diagnostic.test.mjs#5",
+      "file": "test/local-diagnostic.test.mjs",
+      "name": "missing, cloud, and unsupported local installations fail before sending synthetic tasks",
+      "line": 113,
+      "baseline_file_sha256": "b2f198cd7200a4bede5b6c038a96db989f778ce50ef710d2d0cf0fa2ebdf748e",
+      "definition_statement": "test('missing, cloud, and unsupported local installations fail before sending synthetic tasks', async () => {\n  const config = configFor();\n  for (const [options, code] of [\n    [{ installed: false }, 'model_missing'], [{ remote: true }, 'OLLAMA_CLOUD'], [{ version: '0.34.9' }, 'OLLAMA_VERSION'],\n  ]) {\n    const local = fixture(config, options);\n    const report = await runLocalDiagnostic(config, { fetchImpl: local.fetchImpl });\n    assert.equal(report.passed, false);\n    assert.equal(report.error.code, code);\n    assert.equal(local.calls.filter(call => call.path === '/v1/systemone').length, 0);\n    assert.ok(!JSON.stringify(report).includes('PRIVATE_'));\n  }\n});",
+      "definition_sha256": "d564dd2c4159d2d25e353e2f9443156389729b37246effb2310729402cdede00",
+      "definition_call_sha256": "296987f817be63cafacf3ca15bc9016472ffb486ebcd0a5d7abdccda62dba0ad",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+      ],
+      "shared_cases": [
+        "baseline-local-diagnostic-5-1",
+        "baseline-local-diagnostic-5-2",
+        "baseline-local-diagnostic-5-3"
+      ],
+      "scenarios": 3,
+      "requests": 6,
+      "progress_events": 3,
+      "executed_source_and_helper_assertions": 30,
+      "assertions": [
+        {
+          "line": 120,
+          "expression": "assert.equal(report.passed, false)",
+          "sha256": "a5cd1a59c13df045b8c6b34d3205aa168ecac43f8534c32e3cf87970c04aa98f",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-5-1",
+            "baseline-local-diagnostic-5-2",
+            "baseline-local-diagnostic-5-3"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 121,
+          "expression": "assert.equal(report.error.code, code)",
+          "sha256": "baabde990af6c8af9e0ed0edd6929c778d1d757b58ee80bee30673d02966c4bc",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-5-1",
+            "baseline-local-diagnostic-5-2",
+            "baseline-local-diagnostic-5-3"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 122,
+          "expression": "assert.equal(local.calls.filter(call => call.path === '/v1/systemone').length, 0)",
+          "sha256": "3c7d82dc40a08e895b62ced99818f4733d4bb65ac4a1fe3d2d945577d3e4300a",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-5-1",
+            "baseline-local-diagnostic-5-2",
+            "baseline-local-diagnostic-5-3"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 123,
+          "expression": "assert.ok(!JSON.stringify(report).includes('PRIVATE_'))",
+          "sha256": "a92ca30ef59a3420f4589fefc2b0b0e7419db3043e3f85af850c0ffb65464997",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-5-1",
+            "baseline-local-diagnostic-5-2",
+            "baseline-local-diagnostic-5-3"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        }
+      ],
+      "helper_assertion_mapping": "Shared fixture helper audit below applies to every actual fetch invocation in these cases.",
+      "review_notes": [
+        "All3 original installed=false,remote=true,version0.34.9 scenarios compare complete safe report and exact2/3/1metadata request queues; no inference or PRIVATE_ disclosure."
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/local-diagnostic.test.mjs#9",
+      "file": "test/local-diagnostic.test.mjs",
+      "name": "wrong labels fail agreement and coverage even when every local call succeeds",
+      "line": 173,
+      "baseline_file_sha256": "b2f198cd7200a4bede5b6c038a96db989f778ce50ef710d2d0cf0fa2ebdf748e",
+      "definition_statement": "test('wrong labels fail agreement and coverage even when every local call succeeds', async () => {\n  const config = configFor();\n  const report = await runLocalDiagnostic(config, { fetchImpl: fixture(config, { choice: 'sonnet' }).fetchImpl });\n  assert.equal(report.passed, false);\n  assert.equal(report.gates.evaluator.passed, true);\n  assert.equal(report.gates.rubric.passed, false);\n  assert.equal(report.gates.coverage.passed, false);\n  assert.deepEqual(report.gates.coverage.missing, ['haiku', 'opus']);\n});",
+      "definition_sha256": "1dfb009b190bf2ed6978a821ed5b979a51cb88307d29cd1747ac864a6ef790c4",
+      "definition_call_sha256": "c24af84c3caaa6d434c74f3d62ddcc042e6030b67265ccb987137687c4e5d004",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+      ],
+      "shared_cases": [
+        "baseline-local-diagnostic-9-1"
+      ],
+      "scenarios": 1,
+      "requests": 24,
+      "progress_events": 15,
+      "executed_source_and_helper_assertions": 133,
+      "assertions": [
+        {
+          "line": 176,
+          "expression": "assert.equal(report.passed, false)",
+          "sha256": "a5cd1a59c13df045b8c6b34d3205aa168ecac43f8534c32e3cf87970c04aa98f",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-9-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 177,
+          "expression": "assert.equal(report.gates.evaluator.passed, true)",
+          "sha256": "3cefb562eaf3b3df1afb696b454c1040d57509811c39ba88b9949d3345624794",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-9-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 178,
+          "expression": "assert.equal(report.gates.rubric.passed, false)",
+          "sha256": "1556302b06e90e867f9310c417cbf25640ccb882c1f266567891234029abe825",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-9-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 179,
+          "expression": "assert.equal(report.gates.coverage.passed, false)",
+          "sha256": "5ef03095fcbfbcd1edf468433201f7cab549c7f900049af681835f979a08b729",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-9-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 180,
+          "expression": "assert.deepEqual(report.gates.coverage.missing, ['haiku', 'opus'])",
+          "sha256": "f09fe5870548099543612afab4d7d1dc776e2e7a0f65c4206f18c0991cdebcc4",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-9-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        }
+      ],
+      "helper_assertion_mapping": "Shared fixture helper audit below applies to every actual fetch invocation in these cases.",
+      "review_notes": [
+        "Every finite inference response returns Sonnet except initial Haiku; complete report preserves evaluator success, failed rubric/coverage, and missing Haiku/Opus. Actual task extraction and all24requests remain checked."
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/local-diagnostic.test.mjs#10",
+      "file": "test/local-diagnostic.test.mjs",
+      "name": "failed preparation returns safe error metadata and skips measured cases",
+      "line": 183,
+      "baseline_file_sha256": "b2f198cd7200a4bede5b6c038a96db989f778ce50ef710d2d0cf0fa2ebdf748e",
+      "definition_statement": "test('failed preparation returns safe error metadata and skips measured cases', async () => {\n  const config = configFor();\n  const local = fixture(config, { respond: () => new Response('PRIVATE_PROVIDER_ERROR', { status: 503 }) });\n  const report = await runLocalDiagnostic(config, { fetchImpl: local.fetchImpl });\n  assert.equal(report.passed, false);\n  assert.equal(report.error.code, 'startup_failed');\n  assert.equal(report.startup.classifier_error, 'http_error');\n  assert.equal(report.startup.classifier_status, 503);\n  assert.equal(report.rows.length, 0);\n  assert.equal(local.calls.filter(call => call.path === '/v1/systemone').length, 1);\n  assert.ok(!JSON.stringify(report).includes('PRIVATE_PROVIDER_ERROR'));\n  assert.match(formatLocalDiagnostic(report).join('\\n'), /http_error 503/);\n});",
+      "definition_sha256": "d48f16d682b8179d971126f3d75590f21462c6a24a023d3e8c3cd8c29752fceb",
+      "definition_call_sha256": "ffb5ee9482362e807d67de4ed82178a005e35fd6a5a640b4eabc9c59104472a9",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments/whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+      ],
+      "shared_cases": [
+        "baseline-local-diagnostic-10-1"
+      ],
+      "scenarios": 1,
+      "requests": 6,
+      "progress_events": 3,
+      "executed_source_and_helper_assertions": 33,
+      "assertions": [
+        {
+          "line": 187,
+          "expression": "assert.equal(report.passed, false)",
+          "sha256": "a5cd1a59c13df045b8c6b34d3205aa168ecac43f8534c32e3cf87970c04aa98f",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-10-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 188,
+          "expression": "assert.equal(report.error.code, 'startup_failed')",
+          "sha256": "92c56e2059066de98fb7c93e89d43f9da04deefda5d7f1ecb7c8aa4fadea7139",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-10-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 189,
+          "expression": "assert.equal(report.startup.classifier_error, 'http_error')",
+          "sha256": "5c65b210055eafc431e0186cb7b5fb38134b061d02e3f96b3af131c47c1fb76a",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-10-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 190,
+          "expression": "assert.equal(report.startup.classifier_status, 503)",
+          "sha256": "0acc4221c60cbf6177451b6b1c7e35604cffe8dc8fdc9756ab983f60de39911b",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-10-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 191,
+          "expression": "assert.equal(report.rows.length, 0)",
+          "sha256": "07995fbaaf5e72d6d9684dbd8a21cf7e92654f12d5233884429ad3460b5e9406",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-10-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 192,
+          "expression": "assert.equal(local.calls.filter(call => call.path === '/v1/systemone').length, 1)",
+          "sha256": "7d6c9b0494859793a1432ed083801ec2ecc362cf97cd77b25b655c85bcbde437",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-10-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 193,
+          "expression": "assert.ok(!JSON.stringify(report).includes('PRIVATE_PROVIDER_ERROR'))",
+          "sha256": "03d735bec1cf2ce4f97caa97fc9a7505a8280a8bfa7f70f1ff38f8c655c7e5ba",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-10-1"
+          ],
+          "native_check": "Full captured report/progress and independent complete request transcript comparison for every source scenario. Only explicitly named unasserted elapsed fields excluded."
+        },
+        {
+          "line": 194,
+          "expression": "assert.match(formatLocalDiagnostic(report).join('\\n'), /http_error 503/)",
+          "sha256": "16fa36b76d6ce6443fd86d25f2b08c0da35420259aaf001b3f304cfd1c7bb73a",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs#original_finite_diagnostic_reports_progress_requests_and_formatter_match"
+          ],
+          "shared_cases": [
+            "baseline-local-diagnostic-10-1"
+          ],
+          "native_check": "Exact native formatter on raw captured input; all lines compared without exclusions."
+        }
+      ],
+      "helper_assertion_mapping": "Shared fixture helper audit below applies to every actual fetch invocation in these cases.",
+      "review_notes": [
+        "Original synthetic503 response reaches startup only; exact6request trace, safe HTTP status/error/source report, zero measured rows and exact formatter on the raw source report all compare."
+      ],
+      "remaining": []
+    }
+  ],
+  "retained_sources": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/83c980461780f5ee1bc72edcd3a82ee4678010fdf3b7ab26a9a356ee0d311888.mjs",
+      "sha256": "83c980461780f5ee1bc72edcd3a82ee4678010fdf3b7ab26a9a356ee0d311888",
+      "bytes": 17378,
+      "original_path": "rust/parity/capture-local-diagnostic-contracts.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/b4c78704f4808880492f0aeff63bb4c40ce34b4074013a0cb3fd3c8c04b53fcb.jsonl",
+      "sha256": "b4c78704f4808880492f0aeff63bb4c40ce34b4074013a0cb3fd3c8c04b53fcb",
+      "bytes": 235890,
+      "original_path": "rust/parity/cases/local-diagnostic-contracts.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/91ad611d202e061768a07a2bbba5ac46e68e5fe6bbd724c8f6f5d0fa58cdddca.json",
+      "sha256": "91ad611d202e061768a07a2bbba5ac46e68e5fe6bbd724c8f6f5d0fa58cdddca",
+      "bytes": 48807,
+      "original_path": "rust/parity/cases/local-diagnostic-contracts.capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/f88ffb43c0e7927dbc41ec2b3f8f5126e975cf69c8ee306bdcfeba0a9a33ca5e.rs",
+      "sha256": "f88ffb43c0e7927dbc41ec2b3f8f5126e975cf69c8ee306bdcfeba0a9a33ca5e",
+      "bytes": 5842,
+      "original_path": "rust/crates/autorouter-runtime/tests/local_diagnostic_contracts.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/a67bdd21ed8cc434b31fd3928c1d6494692e668515b1edf2fef0bf68c0b1a560.rs",
+      "sha256": "a67bdd21ed8cc434b31fd3928c1d6494692e668515b1edf2fef0bf68c0b1a560",
+      "bytes": 9062,
+      "original_path": "rust/crates/autorouter-runtime/tests/support/local_diagnostic.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/0fe832e9debde2798fc76fa15df9f381d6fbd59127fc36f973d87c1c6d9b973e.rs",
+      "sha256": "0fe832e9debde2798fc76fa15df9f381d6fbd59127fc36f973d87c1c6d9b973e",
+      "bytes": 35161,
+      "original_path": "rust/crates/autorouter-runtime/src/local_diagnostic.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1.rs",
+      "sha256": "c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1",
+      "bytes": 16711,
+      "original_path": "rust/crates/autorouter-runtime/src/http_client.rs"
+    }
+  ],
+  "input_coverage": {
+    "path": "artifacts/rust-rewrite/evidence/bf0b3beeb9a265f1e3513aa83b259090a8ac5c14aa687fa71ffe69766ec6f76f.json",
+    "sha256": "bf0b3beeb9a265f1e3513aa83b259090a8ac5c14aa687fa71ffe69766ec6f76f",
+    "bytes": 1125350,
+    "original_path": "rust/parity/coverage.json",
+    "source_commit": "ab068b006953627486afe42477ea8f52b4855324"
+  },
+  "scope": "Seven covered finite diagnostic definitions, ten source scenarios, complete request/report/progress comparisons and raw formatter replay. Only specifically unasserted clock fields are excluded; timed/cancellation/live definitions remain separate.",
+  "status": "Reviewed assertion mapping; full rewrite qualification remains incomplete.",
+  "review": {
+    "proposal": {
+      "path": "artifacts/rust-rewrite/evidence/611f977b697f017e6394378efe269d7dd4f929ff707f098d5e82cacc414315f8.json",
+      "sha256": "611f977b697f017e6394378efe269d7dd4f929ff707f098d5e82cacc414315f8",
+      "bytes": 84367,
+      "original_path": "/private/tmp/autorouter-local-diagnostic-contracts-mapping-proposal.json"
+    },
+    "review": {
+      "path": "artifacts/rust-rewrite/evidence/8521bfab3413d84108bea87433c68f8fa1f4af8f40d3dfa9b0c45a0bd7bd26cc.json",
+      "sha256": "8521bfab3413d84108bea87433c68f8fa1f4af8f40d3dfa9b0c45a0bd7bd26cc",
+      "bytes": 3319,
+      "original_path": "/private/tmp/autorouter-local-diagnostic-contracts-root-review.json"
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/evidence/e226d6d4fe97e385ce0995a688dab4df4c1ca0b178fcfae80dd862c1ebec5ce0.json",
+      "sha256": "e226d6d4fe97e385ce0995a688dab4df4c1ca0b178fcfae80dd862c1ebec5ce0",
+      "bytes": 2781,
+      "original_path": "/private/tmp/autorouter-local-diagnostic-independent-review.json"
+    }
+  },
+  "previous_coverage_rows": [
+    {
+      "id": "test/local-diagnostic.test.mjs#1",
+      "file": "test/local-diagnostic.test.mjs",
+      "name": "diagnostic uses packaged synthetic all-tier cases without cloud credentials and keeps observations separate from claims",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators",
+        "native_cli_package"
+      ]
+    },
+    {
+      "id": "test/local-diagnostic.test.mjs#2",
+      "file": "test/local-diagnostic.test.mjs",
+      "name": "an already resident model is reported honestly and Auto profile still checks all classifier tiers",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators",
+        "native_cli_package"
+      ]
+    },
+    {
+      "id": "test/local-diagnostic.test.mjs#3",
+      "file": "test/local-diagnostic.test.mjs",
+      "name": "unrelated resident models are never evicted to manufacture a cold or warm measurement",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators",
+        "native_cli_package"
+      ]
+    },
+    {
+      "id": "test/local-diagnostic.test.mjs#4",
+      "file": "test/local-diagnostic.test.mjs",
+      "name": "a newly resident unrelated model stops the diagnostic before another inference",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators",
+        "native_cli_package"
+      ]
+    },
+    {
+      "id": "test/local-diagnostic.test.mjs#5",
+      "file": "test/local-diagnostic.test.mjs",
+      "name": "missing, cloud, and unsupported local installations fail before sending synthetic tasks",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators",
+        "native_cli_package"
+      ]
+    },
+    {
+      "id": "test/local-diagnostic.test.mjs#9",
+      "file": "test/local-diagnostic.test.mjs",
+      "name": "wrong labels fail agreement and coverage even when every local call succeeds",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators",
+        "native_cli_package"
+      ]
+    },
+    {
+      "id": "test/local-diagnostic.test.mjs#10",
+      "file": "test/local-diagnostic.test.mjs",
+      "name": "failed preparation returns safe error metadata and skips measured cases",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "evaluators",
+        "native_cli_package"
+      ]
+    }
+  ]
+}

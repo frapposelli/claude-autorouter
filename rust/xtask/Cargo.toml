@@ -1,0 +1,69 @@
+[package]
+name = "xtask"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+default-run = "xtask"
+
+[[bin]]
+name = "xtask"
+path = "src/main.rs"
+required-features = ["runtime-tools"]
+
+[[bin]]
+name = "autorouter-audit"
+path = "src/audit_main.rs"
+
+[[test]]
+name = "benchmark_resources"
+path = "tests/benchmark_resources.rs"
+required-features = ["runtime-tools"]
+
+[[test]]
+name = "benchmark_storage"
+path = "tests/benchmark_storage.rs"
+required-features = ["runtime-tools"]
+
+[[test]]
+name = "release_cli"
+path = "tests/release_cli.rs"
+required-features = ["runtime-tools"]
+
+# This suite executes a release helper under the unchanged 32 MiB archive cap.
+# CI explicitly builds and runs it with --release; debug helpers exceed the cap.
+[[test]]
+name = "benchmark_bundle"
+path = "tests/benchmark_bundle.rs"
+required-features = ["runtime-tools", "executable-bundle-tests"]
+
+[features]
+default = ["runtime-tools"]
+executable-bundle-tests = []
+runtime-tools = ["dep:autorouter-core", "dep:autorouter-runtime", "autorouter-runtime/development-probes", "dep:serde", "dep:tokio", "dep:tokio-util", "dep:hyper", "dep:hyper-util", "dep:subtle", "dep:http-body-util", "dep:bytes", "dep:flate2", "dep:tower-service", "dep:rustix"]
+
+[dependencies]
+autorouter-core = { path = "../crates/autorouter-core", optional = true }
+autorouter-runtime = { path = "../crates/autorouter-runtime", optional = true }
+serde = { workspace = true, optional = true }
+serde_json.workspace = true
+sha2.workspace = true
+tokio = { workspace = true, optional = true }
+tokio-util = { workspace = true, optional = true }
+hyper = { workspace = true, optional = true }
+hyper-util = { workspace = true, optional = true }
+subtle = { workspace = true, optional = true }
+http-body-util = { workspace = true, optional = true }
+bytes = { workspace = true, optional = true }
+regex.workspace = true
+getrandom.workspace = true
+nix = { version = "=0.31.3", default-features = false, features = ["signal", "process", "fs", "user", "event", "resource"] }
+flate2 = { workspace = true, optional = true }
+tower-service = { version = "=0.3.3", optional = true }
+url.workspace = true
+rustls-pki-types = "=1.15.1"
+rustix = { version = "=1.1.5", default-features = false, features = ["std", "fs"], optional = true }
+
+[lints]
+workspace = true

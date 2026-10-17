@@ -1,0 +1,643 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "baseline_test": "test/ollama-setup.test.mjs",
+  "baseline_sha256": "1558c1820c78228b849ab4a3a16549617509806af43356c38f6a0b5737d8de4a",
+  "generator_sha256": "b25922c7641d563379961f71cbc8055ad5df2792e4cecae35efb60fdd1658790",
+  "cases_sha256": "f2071490be6f926e750d95f863f728fc729129357848a846435662b6fadc35a5",
+  "typescript_version": "6.0.3",
+  "selected_definitions": [
+    1,
+    2,
+    3,
+    5,
+    8,
+    11
+  ],
+  "cases": 24,
+  "fetch_groups": 23,
+  "requests": 63,
+  "executed_assertions": 79,
+  "tests": [
+    {
+      "id": "test/ollama-setup.test.mjs#1",
+      "number": 1,
+      "name": "local setup checks the minimum Ollama version before any model download",
+      "selected": true,
+      "line": 18,
+      "statement_sha256": "5a7ef8b85d1fc92e414e3eb1fa951becbdeb8183c64ad0f79ad18c57fc7067bb",
+      "call_sha256": "85ae57c30b78bc8c5686f235423f1431adfd9b24aa644b4dcc496a77f59de7a5",
+      "assertions": [
+        {
+          "line": 21,
+          "expression": "assert.rejects(setupOllama({ ...config(), ollamaModel: 'team/local-decider:v1' }, {\n      pull: true, write: () => {}, fetchImpl: async url => {\n        calls.push(new URL(url).pathname);\n        return Response.json({ version });\n      },\n    }), error => error.code === 'OLLAMA_VERSION' && /0\\.35/.test(error.message) && !error.message.includes('PRIVATE_'))",
+          "sha256": "477db578c85e07ef07721321203d922fa542eaf872b2d00b1231586b9cd3e86e"
+        },
+        {
+          "line": 27,
+          "expression": "assert.deepEqual(calls, ['/api/version'])",
+          "sha256": "66b6ab4238344464503cfa9499fac45b6a4c32784dbb6cedffa2c065d76b8375"
+        },
+        {
+          "line": 36,
+          "expression": "assert.equal(result.installed, false)",
+          "sha256": "1e2e91693651d390462c7e17d35244d31c9ba74dfce1ea7892132173b973a0ba"
+        },
+        {
+          "line": 37,
+          "expression": "assert.deepEqual(calls, ['/api/version', '/api/tags'])",
+          "sha256": "599c46dac22e8ed9f4309499af957b2e41d6c5de6dda5d68752a65abfbe58bf5"
+        }
+      ],
+      "case_ids": [
+        "baseline-local-finite-1-1",
+        "baseline-local-finite-1-2",
+        "baseline-local-finite-1-3",
+        "baseline-local-finite-1-4",
+        "baseline-local-finite-1-5",
+        "baseline-local-finite-1-6",
+        "baseline-local-finite-1-7",
+        "baseline-local-finite-1-8",
+        "baseline-local-finite-1-9"
+      ],
+      "executed_assertions": 18
+    },
+    {
+      "id": "test/ollama-setup.test.mjs#2",
+      "number": 2,
+      "name": "local startup warms native scoring with synthetic text and exposes missing-endpoint guidance",
+      "selected": true,
+      "line": 41,
+      "statement_sha256": "a2b7dcac5392b9c9ac515e2670d76823289100d6ec31920b6efe20392dea1a62",
+      "call_sha256": "ac92a1233022cb74c54b407d97ef05051d25c758c6b572ac72ba436ea12a7938",
+      "assertions": [
+        {
+          "line": 50,
+          "expression": "assert.equal(path, '/v1/systemone')",
+          "sha256": "a00f5d7b8c9ea99650369e800f02847dea4b23fa66eb6dcf101072e2d2262ce4"
+        },
+        {
+          "line": 52,
+          "expression": "assert.equal(body.state.current_task, 'Return the literal word ready.')",
+          "sha256": "f61b54a4ffeb276528b4b4f5fe91c07a1c43721bb39b2bc291cf63c2fd49be08"
+        },
+        {
+          "line": 53,
+          "expression": "assert.equal(body.questions.tier.type, 'choice')",
+          "sha256": "1a720bac409ca86d2e98894b121d88feb0a17dfbf81d1eafcc668084efa056b4"
+        },
+        {
+          "line": 54,
+          "expression": "assert.equal(body.keep_alive, '5m')",
+          "sha256": "96ff53464535fbddebbbc4e5853dfb85254132c66a65f014c106d3dd1550c7d9"
+        },
+        {
+          "line": 55,
+          "expression": "assert.equal(body.messages, undefined)",
+          "sha256": "8f278dd18d02e2bc4d219a405011fc523ed5e6b7e531398c3c8ce7b560d574f2"
+        },
+        {
+          "line": 56,
+          "expression": "assert.equal(body.think, undefined)",
+          "sha256": "d628fba98321e94b76bf7e38ba745ff05701a377db210b94c6cf65578eaf2402"
+        },
+        {
+          "line": 57,
+          "expression": "assert.equal(body.options, undefined)",
+          "sha256": "9123756d199d2a10b5e89476276659b29f4915aec3a91bef62247b77f27f19ce"
+        },
+        {
+          "line": 63,
+          "expression": "assert.rejects(pending, error => error.code === 'OLLAMA_VERSION'\n      && /Ollama 0\\.35 or newer/.test(error.message) && !error.message.includes('PRIVATE_'))",
+          "sha256": "85fe640a227a196fd642e1d6ca604c2fe40f9062d120d5fc00adbba0353293ab"
+        },
+        {
+          "line": 65,
+          "expression": "assert.deepEqual(await pending, { model: DEFAULT_OLLAMA_MODEL, pulled: false, warmed: true })",
+          "sha256": "1351852c4660c7af5c8fe0d7d92c5b5146be60cfa960092ff2455dc0511df15d"
+        },
+        {
+          "line": 66,
+          "expression": "assert.deepEqual(calls, ['/api/version', '/api/tags', '/api/show', '/api/show', '/v1/systemone'])",
+          "sha256": "0c955d6440094e4aa64d3da0fbc40fcc883b53b203f75d1bde30935f3dc9cb2d"
+        }
+      ],
+      "case_ids": [
+        "baseline-local-finite-2-1",
+        "baseline-local-finite-2-2"
+      ],
+      "executed_assertions": 18
+    },
+    {
+      "id": "test/ollama-setup.test.mjs#3",
+      "number": 3,
+      "name": "official library prefixes and custom aliases match canonical installed model tags",
+      "selected": true,
+      "line": 70,
+      "statement_sha256": "4a6d4d22a97a71a292de4f19cfee4a9dc18e75309347051fcf1ea881cfa199ae",
+      "call_sha256": "f5244eda56134583857fbc48715f01af1e18de1aef6ce19e2420ffaa1ba0ea5b",
+      "assertions": [
+        {
+          "line": 85,
+          "expression": "assert.equal(path, '/api/show')",
+          "sha256": "1214e15c06c3a613ad4c6357a1b51e9f659ca6c43220e96bfb2a0a235175aebc"
+        },
+        {
+          "line": 86,
+          "expression": "assert.equal(JSON.parse(options.body).model, requested)",
+          "sha256": "5afba5cdf07389f53177b493aeaa43c6bcb3359a5ec00b7390d4bff46063a28f"
+        },
+        {
+          "line": 89,
+          "expression": "assert.deepEqual(result, { model: requested, installed: true })",
+          "sha256": "fe1fd749cc5644ddaf62247990ad90e2d9196e209f3ff04f719cda52e16e400b"
+        },
+        {
+          "line": 90,
+          "expression": "assert.deepEqual(calls, ['/api/version', '/api/tags', '/api/show'])",
+          "sha256": "5ba9a2dcc0cec4d330cc5c0755d76ca05274330a7feabe2422bd6ecda4aebd18"
+        }
+      ],
+      "case_ids": [
+        "baseline-local-finite-3-1",
+        "baseline-local-finite-3-2",
+        "baseline-local-finite-3-3",
+        "baseline-local-finite-3-4",
+        "baseline-local-finite-3-5",
+        "baseline-local-finite-3-6"
+      ],
+      "executed_assertions": 24
+    },
+    {
+      "id": "test/ollama-setup.test.mjs#4",
+      "number": 4,
+      "name": "only local endpoints and safe local model tags are accepted before any request",
+      "selected": false,
+      "line": 94,
+      "statement_sha256": "67a5275577efd01bdae48d8434c858fa88bc2d8484d825450681c59acfb56838",
+      "call_sha256": "7487fe5ab581f5705444d3c42d4bbe877a03538c0160ab7011b80d225a57e088",
+      "assertions": [
+        {
+          "line": 95,
+          "expression": "assert.equal(validateOllamaEndpoint('http://localhost:11434/'), 'http://127.0.0.1:11434', 'localhost connects to the loopback address, not a resolved name')",
+          "sha256": "0522ee5f5a91580b6be4d46763041dd2d6c308901b39ebd1964b2f069ca7f5f3"
+        },
+        {
+          "line": 96,
+          "expression": "assert.equal(validateOllamaEndpoint('https://LOCALHOST:8443'), 'https://127.0.0.1:8443')",
+          "sha256": "44654654270d27e0f48a11ec9670eee3bac181fc655174ae48a38dfa4d107dc3"
+        },
+        {
+          "line": 97,
+          "expression": "assert.equal(validateOllamaEndpoint('http://[::1]:11434'), 'http://[::1]:11434')",
+          "sha256": "2746d522409af4b7b3ba3b9196f041a8f509c700118f78b587d09e3989decd43"
+        },
+        {
+          "line": 99,
+          "expression": "assert.throws(() => validateOllamaEndpoint(value), error => !error.message.includes('secret'))",
+          "sha256": "99d0cc765e6072fde9818ab3a251c19ae6583041cecbaa8d0e0a1b6e97018a88"
+        },
+        {
+          "line": 100,
+          "expression": "assert.rejects(inspectOllama({ ...config(), ollamaEndpoint: value }, { fetchImpl: () => assert.fail('Must not request an invalid endpoint') }))",
+          "sha256": "317e8e378ab9c11486d429f122c4663e8df09c75ce9a51f58c141d705dd90fff"
+        },
+        {
+          "line": 100,
+          "expression": "assert.fail('Must not request an invalid endpoint')",
+          "sha256": "9d469950d681d2e6dc5ab415ce4f0e5c9d111bb757ac51c61b27f7b4894c50e0"
+        },
+        {
+          "line": 103,
+          "expression": "assert.throws(() => validateOllamaModel(model), error => !error.message.includes('secret'))",
+          "sha256": "09fedb7c6004ec0100cf85303b04afd9d9a6bb647d8287c918bb8e9f2e1530f5"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0
+    },
+    {
+      "id": "test/ollama-setup.test.mjs#5",
+      "number": 5,
+      "name": "missing model inspection is read-only and default setup never downloads it",
+      "selected": true,
+      "line": 107,
+      "statement_sha256": "2a3b29ca5e7e4f281f68bd4dfc1b223efbe021d638be8a7ced32e2733d28266c",
+      "call_sha256": "2cc52d74ba711a7607eeb963f528541a59414621f7553930e71cf9c62c53a316",
+      "assertions": [
+        {
+          "line": 114,
+          "expression": "assert.deepEqual(await inspectOllama(config(), { fetchImpl }), { model: DEFAULT_OLLAMA_MODEL, installed: false })",
+          "sha256": "27970261c6a86c386744e2fdeb71cfb559ca8bae1e8becacd816c687056bec00"
+        },
+        {
+          "line": 115,
+          "expression": "assert.rejects(setupOllama(config(), { fetchImpl, write: () => {} }), /--pull/)",
+          "sha256": "56f8231f28d0e9caf8607772202cec4e60a4ad6a082e56712f99cf4648480d3c"
+        },
+        {
+          "line": 116,
+          "expression": "assert.deepEqual(calls, [['/api/version', 'GET'], ['/api/tags', 'GET'], ['/api/version', 'GET'], ['/api/tags', 'GET']])",
+          "sha256": "966593064a6c506937c2f251b717c7f7de88871683059ba6a0051fdc757e6c48"
+        }
+      ],
+      "case_ids": [
+        "baseline-local-finite-5-1",
+        "baseline-local-finite-5-2"
+      ],
+      "executed_assertions": 3
+    },
+    {
+      "id": "test/ollama-setup.test.mjs#6",
+      "number": 6,
+      "name": "an explicit pull handles split NDJSON safely, deduplicates progress, verifies installation, then warms",
+      "selected": false,
+      "line": 119,
+      "statement_sha256": "175a809afcd3132daf592eb62cce95273173f65cfc719d9f70480d2fc6c9945e",
+      "call_sha256": "af0428a95b74a5918e5ef1b7299d1375fb6061c208e664f37ccb6de72559e97d",
+      "assertions": [
+        {
+          "line": 124,
+          "expression": "assert.equal(options.redirect, 'error')",
+          "sha256": "8867547a8dffc17a3aa008e64a715fe5a4f24738ba0b79b5257a046a95a1b00a"
+        },
+        {
+          "line": 125,
+          "expression": "assert.equal(options.headers?.authorization, undefined)",
+          "sha256": "335ef9966f146e39b68c63e5041e39e49bc3b45d105df36dfa34818524eb5253"
+        },
+        {
+          "line": 133,
+          "expression": "assert.deepEqual(body, { model: DEFAULT_OLLAMA_MODEL, stream: true })",
+          "sha256": "fa4ec4d1105e64159c5d03afa1f1d0935aeac5ee4ad4427d458f22468c6b5320"
+        },
+        {
+          "line": 139,
+          "expression": "assert.equal(path, '/v1/systemone')",
+          "sha256": "a00f5d7b8c9ea99650369e800f02847dea4b23fa66eb6dcf101072e2d2262ce4"
+        },
+        {
+          "line": 140,
+          "expression": "assert.equal(body.model, DEFAULT_OLLAMA_MODEL)",
+          "sha256": "9e1211d6b9e72447307f1c002c529d4d6f5634c92838569313c884feaf8551d7"
+        },
+        {
+          "line": 141,
+          "expression": "assert.equal(body.keep_alive, '5m')",
+          "sha256": "96ff53464535fbddebbbc4e5853dfb85254132c66a65f014c106d3dd1550c7d9"
+        },
+        {
+          "line": 142,
+          "expression": "assert.deepEqual(Object.keys(body).sort(), ['keep_alive', 'model', 'questions', 'state'])",
+          "sha256": "c7085eae92984de4a2e4978cfe3e7b95439b67ca6225d428d3ee5a28f667c335"
+        },
+        {
+          "line": 143,
+          "expression": "assert.deepEqual(body.questions, OLLAMA_QUESTIONS)",
+          "sha256": "13057e143d72c98eb8cc2202c2643765fa44872b9faa9b0024db5f6e7a13a65a"
+        },
+        {
+          "line": 144,
+          "expression": "assert.deepEqual(body.state, {\n      system: '', original_task: 'Return the literal word ready.', current_task: 'Return the literal word ready.',\n      recent_messages: [], message_count: 1, tool_count: 0, context_is_excerpt: true,\n    })",
+          "sha256": "9a78dc9344eb21a349adf019adeb8fa02881356ba34efd0456177336144f2ff9"
+        },
+        {
+          "line": 150,
+          "expression": "assert.deepEqual(await setupOllama(config(), { pull: true, fetchImpl, write: text => progress.push(text) }), {\n    model: DEFAULT_OLLAMA_MODEL, pulled: true, warmed: true,\n  })",
+          "sha256": "1b707276c50137b68d6fab421c8698fded1a9cdec728cbced1b98e53f01ac545"
+        },
+        {
+          "line": 153,
+          "expression": "assert.deepEqual(calls, ['/api/version', '/api/tags', '/api/pull', '/api/version', '/api/tags', '/api/show', '/api/show', '/v1/systemone'])",
+          "sha256": "0f7c6d0e3606d00eb315891eb0219cf4970b272596478a4aa3fec20fdbc273a3"
+        },
+        {
+          "line": 154,
+          "expression": "assert.equal(progress.filter(text => text.includes('(50%)')).length, 1)",
+          "sha256": "e40597a47ada926b7ef8e2a6e57084cbbfc9d0cb942b24ef78b579b09643af9c"
+        },
+        {
+          "line": 155,
+          "expression": "assert.ok(!progress.join('\\n').includes('PRIVATE_PROVIDER_DATA'))",
+          "sha256": "7010fdfc88cb8a967db1c2e1a06726feeda5c39d5a0024f393e411d7e349d2f7"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0
+    },
+    {
+      "id": "test/ollama-setup.test.mjs#7",
+      "number": 7,
+      "name": "an already installed local model is inspected and warmed without pulling, even with --pull",
+      "selected": false,
+      "line": 158,
+      "statement_sha256": "7093d5f87e4673a09c8cfcc570c5e69e19fbf33b665dea8d1a010c90f0c36cd3",
+      "call_sha256": "4f895560384222f3c4ab09fc249b416c749562f81a0467b7e6a4f7fe3a22c020",
+      "assertions": [
+        {
+          "line": 166,
+          "expression": "assert.equal(path, '/v1/systemone')",
+          "sha256": "a00f5d7b8c9ea99650369e800f02847dea4b23fa66eb6dcf101072e2d2262ce4"
+        },
+        {
+          "line": 167,
+          "expression": "assert.equal(JSON.parse(options.body).keep_alive, '10m')",
+          "sha256": "62ee1487500b85d59aa044b21a69d9232e75f53cc4d7a1337e9ab25974728d74"
+        },
+        {
+          "line": 168,
+          "expression": "assert.ok(!JSON.stringify(options).includes('PRIVATE_'))",
+          "sha256": "b1dc5ca6243ba33b5a0c5bdde0eef2803f0e8b70be58f991c65988752662315e"
+        },
+        {
+          "line": 173,
+          "expression": "assert.deepEqual(await setupOllama({ ...config(), ollamaKeepAlive: '10m', ollamaTimeoutMs: 1,\n    jevKey: 'PRIVATE_JEV_KEY', anthropicKey: 'PRIVATE_ANTHROPIC_KEY' }, { pull: true, fetchImpl, write: () => {} }), {\n    model: DEFAULT_OLLAMA_MODEL, pulled: false, warmed: true,\n  })",
+          "sha256": "5d454e95e8c29fc3252258b9b8f3148dd345176f82c8e304b694542013fd8242"
+        },
+        {
+          "line": 177,
+          "expression": "assert.deepEqual(calls, ['/api/version', '/api/tags', '/api/show', '/api/show', '/v1/systemone'])",
+          "sha256": "0c955d6440094e4aa64d3da0fbc40fcc883b53b203f75d1bde30935f3dc9cb2d"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0
+    },
+    {
+      "id": "test/ollama-setup.test.mjs#8",
+      "number": 8,
+      "name": "warming rejects invalid classifier output and a model that becomes remote before the synthetic request",
+      "selected": true,
+      "line": 180,
+      "statement_sha256": "9364bc26c49d7e0c439b800f8e61ab20cb920ee95ca7348edf08724545366b0b",
+      "call_sha256": "87a8f2d2e3762f58367ca2c2b7fe6eee2d6dcb89440759c145da8144a5817149",
+      "assertions": [
+        {
+          "line": 184,
+          "expression": "assert.rejects(setupOllama(config(), { write: () => {}, fetchImpl: async url => {\n      const path = new URL(url).pathname;\n      if (path === '/api/version') return currentVersion();\n      if (path === '/api/tags') return tags(true);\n      if (path === '/api/show') {\n        inspections++;\n        return kind === 'remote' && inspections === 2\n          ? Response.json({ remote_host: 'PRIVATE_REMOTE_HOST', details: { parameter_size: '1B' } }) : localDetails();\n      }\n      assert.equal(path, '/v1/systemone');\n      decisions++;\n      return Response.json({ error: 'PRIVATE_INVALID_ANSWER' });\n    } }), error => error.code === 'OLLAMA_WARMUP' && !error.message.includes('PRIVATE_'))",
+          "sha256": "0e326d178a668b219d85801b78e960aed0d8782649f068c88161a8d76b27e30d"
+        },
+        {
+          "line": 193,
+          "expression": "assert.equal(path, '/v1/systemone')",
+          "sha256": "a00f5d7b8c9ea99650369e800f02847dea4b23fa66eb6dcf101072e2d2262ce4"
+        },
+        {
+          "line": 197,
+          "expression": "assert.equal(inspections, 2)",
+          "sha256": "9ec54c46f6b65ea9845cad1690b64b676fff5d0b9f7922ab3b7406b1ed64df21"
+        },
+        {
+          "line": 198,
+          "expression": "assert.equal(decisions, kind === 'remote' ? 0 : 1)",
+          "sha256": "0ca1b02bf4d3d8b1f2caebfd65fe7f2b2275995ef3fc54e7b101fc5a290a0393"
+        }
+      ],
+      "case_ids": [
+        "baseline-local-finite-8-1",
+        "baseline-local-finite-8-2"
+      ],
+      "executed_assertions": 7
+    },
+    {
+      "id": "test/ollama-setup.test.mjs#9",
+      "number": 9,
+      "name": "warmup timeout and caller cancellation stop stalled classifier bodies with safe errors",
+      "selected": false,
+      "line": 202,
+      "statement_sha256": "e77e5816ca4e5fda6aa2fc6653a119e188e3292cd81644c1b8bcf0b6035b8112",
+      "call_sha256": "4bdf729662982fd98ce84153a233d4223aa5464b71f565083f059951c2fa4e35",
+      "assertions": [
+        {
+          "line": 213,
+          "expression": "assert.equal(path, '/v1/systemone')",
+          "sha256": "a00f5d7b8c9ea99650369e800f02847dea4b23fa66eb6dcf101072e2d2262ce4"
+        },
+        {
+          "line": 217,
+          "expression": "assert.rejects(pending, error => {\n      assert.equal(error.code, cancelled ? 'OLLAMA_CANCELLED' : 'OLLAMA_TIMEOUT');\n      assert.ok(!error.message.includes('PRIVATE_'));\n      return true;\n    })",
+          "sha256": "bc1dc1ec564e2477d8cefd35bcf7e2e1dc000b58b9266624cbddee3251ed2d4b"
+        },
+        {
+          "line": 218,
+          "expression": "assert.equal(error.code, cancelled ? 'OLLAMA_CANCELLED' : 'OLLAMA_TIMEOUT')",
+          "sha256": "be9af1da8b179e4f391260a26ec1de8b9c8440e61cd21257b20a0ad2397b3c99"
+        },
+        {
+          "line": 219,
+          "expression": "assert.ok(!error.message.includes('PRIVATE_'))",
+          "sha256": "8b8f5ba6a28c2525bf5c9f73386c1e1c16ffa458a65089f8e4b0f669c371e1bd"
+        },
+        {
+          "line": 222,
+          "expression": "assert.equal(bodyCancelled, true)",
+          "sha256": "2428da9e87732d6a63511615b4ed3f58fad91c421de84a8f531e3965402fe6ff"
+        },
+        {
+          "line": 223,
+          "expression": "assert.ok(performance.now() - started < 500)",
+          "sha256": "275a9b517797f106ce323dc375b2ce4b311720c96f7484977830535aa2a3945c"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0
+    },
+    {
+      "id": "test/ollama-setup.test.mjs#10",
+      "number": 10,
+      "name": "disabling the runtime deadline does not disable the independent warmup deadline",
+      "selected": false,
+      "line": 227,
+      "statement_sha256": "3c01a39a197a06c14c5e2cbf26212014d38b07737627c522faa04b792bbb12d1",
+      "call_sha256": "fc97fa7403cefbaf1e961c71b976ff217a5d7a3d1032b29115fc8841d0dcd338",
+      "assertions": [
+        {
+          "line": 232,
+          "expression": "assert.rejects(setupOllama(settings, {\n    write: () => {}, warmTimeoutMs: 20, fetchImpl: async (url, options) => {\n      const path = new URL(url).pathname;\n      paths.push(path);\n      if (path === '/api/version') return currentVersion();\n      if (path === '/api/tags') return tags(true);\n      if (path === '/api/show') return localDetails();\n      assert.equal(path, '/v1/systemone');\n      assert.equal(JSON.parse(options.body).state.current_task, 'Return the literal word ready.');\n      decisionSignal = options.signal;\n      return new Response(new ReadableStream({ cancel() { bodyCancelled = true; } }));\n    },\n  }), error => error.code === 'OLLAMA_TIMEOUT')",
+          "sha256": "8e7eb757eea24f76a024221df839416f2157ad4d048cb57858261741a197b303"
+        },
+        {
+          "line": 239,
+          "expression": "assert.equal(path, '/v1/systemone')",
+          "sha256": "a00f5d7b8c9ea99650369e800f02847dea4b23fa66eb6dcf101072e2d2262ce4"
+        },
+        {
+          "line": 240,
+          "expression": "assert.equal(JSON.parse(options.body).state.current_task, 'Return the literal word ready.')",
+          "sha256": "c1efe8f9c30c9bf65767af8e947f89f09b8c84b7dcd1fcbe2f99cb0b6bc1f4b9"
+        },
+        {
+          "line": 245,
+          "expression": "assert.equal(settings.ollamaTimeoutMs, 0)",
+          "sha256": "2fde893d0ee4a8b3a229e247e9c8db2c687363d1a901a1bba6ee9f21879deaa4"
+        },
+        {
+          "line": 246,
+          "expression": "assert.equal(decisionSignal.aborted, true)",
+          "sha256": "2c1002c8ae681928a5e40a21dcf39433937077a0a2db93ca0d880c279bad6907"
+        },
+        {
+          "line": 247,
+          "expression": "assert.equal(bodyCancelled, true)",
+          "sha256": "2428da9e87732d6a63511615b4ed3f58fad91c421de84a8f531e3965402fe6ff"
+        },
+        {
+          "line": 248,
+          "expression": "assert.deepEqual(paths, ['/api/version', '/api/tags', '/api/show', '/api/show', '/v1/systemone'])",
+          "sha256": "d33b6e822d6e62b66944eb9f9548556818d3be60d24e64d6c02145fcf40890f6"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0
+    },
+    {
+      "id": "test/ollama-setup.test.mjs#11",
+      "number": 11,
+      "name": "cloud-backed aliases and ambiguous model details are rejected before warming",
+      "selected": true,
+      "line": 251,
+      "statement_sha256": "6d994adcf6ebd339e48d1880b1ed7d664595635dfce6511d37188017eb5d922c",
+      "call_sha256": "160cb1a956e5aa58ae24dec94b28ec219db166dec4ff0ec781ca66f4ae14b2f0",
+      "assertions": [
+        {
+          "line": 254,
+          "expression": "assert.rejects(setupOllama(config(), { write: () => {}, fetchImpl: async url => {\n      const path = new URL(url).pathname;\n      calls.push(path);\n      if (path === '/api/version') return currentVersion();\n      if (path === '/api/tags') return tags(true);\n      assert.equal(path, '/api/show');\n      return Response.json(details);\n    } }), error => !error.message.includes('PRIVATE_REMOTE_HOST'))",
+          "sha256": "e11d7be5a641ff12a79fa6bde922f6e0cda9c8f8f5e2ea5456daa57c2d6075d7"
+        },
+        {
+          "line": 259,
+          "expression": "assert.equal(path, '/api/show')",
+          "sha256": "1214e15c06c3a613ad4c6357a1b51e9f659ca6c43220e96bfb2a0a235175aebc"
+        },
+        {
+          "line": 262,
+          "expression": "assert.deepEqual(calls, ['/api/version', '/api/tags', '/api/show'])",
+          "sha256": "5ba9a2dcc0cec4d330cc5c0755d76ca05274330a7feabe2422bd6ecda4aebd18"
+        }
+      ],
+      "case_ids": [
+        "baseline-local-finite-11-1",
+        "baseline-local-finite-11-2",
+        "baseline-local-finite-11-3"
+      ],
+      "executed_assertions": 9
+    },
+    {
+      "id": "test/ollama-setup.test.mjs#12",
+      "number": 12,
+      "name": "server, HTTP, malformed, and oversized responses produce safe errors without following redirects",
+      "selected": false,
+      "line": 266,
+      "statement_sha256": "9a8f5f68a2d33a650b9ddd0deb1400397587565a45a304306ea67e1d9f5580ef",
+      "call_sha256": "f4ef23a944630cac920e1f341aaf02d3d5c1cc3f6f284621cc2edf67c0548a40",
+      "assertions": [
+        {
+          "line": 272,
+          "expression": "assert.equal(options.redirect, 'error')",
+          "sha256": "8867547a8dffc17a3aa008e64a715fe5a4f24738ba0b79b5257a046a95a1b00a"
+        },
+        {
+          "line": 274,
+          "expression": "assert.rejects(inspectOllama(config(), { fetchImpl }), error => {\n      assert.ok(!error.message.includes('PRIVATE_'));\n      assert.equal(error.cause, undefined);\n      return true;\n    })",
+          "sha256": "04de7807c7a73b428065b1b4a86c63a392844844a35ea6e5997f03caa32ec422"
+        },
+        {
+          "line": 275,
+          "expression": "assert.ok(!error.message.includes('PRIVATE_'))",
+          "sha256": "8b8f5ba6a28c2525bf5c9f73386c1e1c16ffa458a65089f8e4b0f669c371e1bd"
+        },
+        {
+          "line": 276,
+          "expression": "assert.equal(error.cause, undefined)",
+          "sha256": "253954509690887da7c4e804d477aedecc4927041a455be7684abc91be7b4a6c"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0
+    },
+    {
+      "id": "test/ollama-setup.test.mjs#13",
+      "number": 13,
+      "name": "incomplete, failed, and oversized pull streams never proceed to warming",
+      "selected": false,
+      "line": 282,
+      "statement_sha256": "be2501b181b93de3697af650515f1fe41ba250b7dbdff4c091c4541bf6852bee",
+      "call_sha256": "c9944767a65cd82788190b2d6551c9751af11afb20f746c3ddb05901fed583ca",
+      "assertions": [
+        {
+          "line": 290,
+          "expression": "assert.rejects(setupOllama(config(), { pull: true, write: () => {}, fetchImpl: async url => {\n      const path = new URL(url).pathname;\n      calls.push(path);\n      if (path === '/api/version') return currentVersion();\n      if (path === '/api/tags') return tags(false);\n      assert.equal(path, '/api/pull');\n      return stream(chunks);\n    } }), error => !error.message.includes('PRIVATE_'))",
+          "sha256": "9457c921f031c3e10d10600d4cc8a0183c7a0422f0f4132ca6252beb4737ea8c"
+        },
+        {
+          "line": 295,
+          "expression": "assert.equal(path, '/api/pull')",
+          "sha256": "38262f659778bd1e29ca4de54f2e6c7054c227cef200048ef295dbed8a3c1401"
+        },
+        {
+          "line": 298,
+          "expression": "assert.deepEqual(calls, ['/api/version', '/api/tags', '/api/pull'])",
+          "sha256": "3f6479fc2ec6c4a1659eb82cfa71aa8ad88ac12ba909885e0107515090b2f142"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0
+    },
+    {
+      "id": "test/ollama-setup.test.mjs#14",
+      "number": 14,
+      "name": "pull timeout and user cancellation cancel stalled response bodies promptly",
+      "selected": false,
+      "line": 302,
+      "statement_sha256": "33d2a10e04f63bf19e15274dece43aebf8aea5ed073181b2049c0798960e52eb",
+      "call_sha256": "441507821bc1392926e377634cd96dd08b5fc200dcce04254acfd3727cbcece1",
+      "assertions": [
+        {
+          "line": 314,
+          "expression": "assert.rejects(pending, error => {\n      assert.equal(error.code, cancelled ? 'OLLAMA_CANCELLED' : 'OLLAMA_TIMEOUT');\n      assert.ok(!error.message.includes('PRIVATE_'));\n      return true;\n    })",
+          "sha256": "bc1dc1ec564e2477d8cefd35bcf7e2e1dc000b58b9266624cbddee3251ed2d4b"
+        },
+        {
+          "line": 315,
+          "expression": "assert.equal(error.code, cancelled ? 'OLLAMA_CANCELLED' : 'OLLAMA_TIMEOUT')",
+          "sha256": "be9af1da8b179e4f391260a26ec1de8b9c8440e61cd21257b20a0ad2397b3c99"
+        },
+        {
+          "line": 316,
+          "expression": "assert.ok(!error.message.includes('PRIVATE_'))",
+          "sha256": "8b8f5ba6a28c2525bf5c9f73386c1e1c16ffa458a65089f8e4b0f669c371e1bd"
+        },
+        {
+          "line": 319,
+          "expression": "assert.equal(bodyCancelled, true)",
+          "sha256": "2428da9e87732d6a63511615b4ed3f58fad91c421de84a8f531e3965402fe6ff"
+        },
+        {
+          "line": 320,
+          "expression": "assert.ok(performance.now() - started < 500)",
+          "sha256": "275a9b517797f106ce323dc375b2ce4b311720c96f7484977830535aa2a3945c"
+        }
+      ],
+      "case_ids": [],
+      "executed_assertions": 0
+    }
+  ],
+  "limits": {
+    "cases": 32,
+    "requests_per_call": 16,
+    "field_bytes": 65536,
+    "response_bytes": 1048576,
+    "aggregate_bytes": 8388608,
+    "progress_per_call": 16,
+    "snapshot_nodes": 4096,
+    "snapshot_depth": 32
+  },
+  "boundaries": [
+    "Only static imports are removed; selected original test callbacks, loops and assertion expressions execute unchanged in the same realm.",
+    "Lexical Response observer forwards to native constructors; no clone/tee/body read, changed response identity or staged classification answer.",
+    "Function option tags preserve injected fetch/write boundaries; native replay compares their request/progress effects, not JS function identity.",
+    "Own-undefined JSON input fields are explicitly tagged; original JSON.stringify bytes omit them exactly. No timing/report field is excluded.",
+    "Safe error tuple compares code/message/cause absence; Error name is retained separately, stack/prototype identity is not native API parity.",
+    "No live I/O, provider/model/service invocation, cancellation or pull-stream claim in this batch. Unselected definitions are listed with selected:false and zero executed assertions."
+  ]
+}

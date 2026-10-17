@@ -1,0 +1,233 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_status_settings_actual_file_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "scope": "Exact original #4 and #6 callbacks/assertions, actual source and overlay files, relative settings filename, all allow/ask/deny rules and defaultMode, literal glob escaping, unchanged original bytes. Native renderer command uses its own executable and is checked in full; synthetic absolute root and mkdtemp suffix normalization are declared, with no production edits.",
+  "status": "reviewed_original_contracts_focused_pass",
+  "production_changes": false,
+  "counts": {
+    "definitions": 2,
+    "cases": 2,
+    "static_original_assertions": 4,
+    "expanded_original_assertions": 4,
+    "native_tests": 3
+  },
+  "current_sources": [
+    {
+      "path": "rust/parity/capture-status-settings-file-contracts.mjs",
+      "bytes": 9845,
+      "sha256": "0ba4ee94efad340e55e3aea87c28fb7ece156fe2a52878be00a6fe71ead17d0e"
+    },
+    {
+      "path": "rust/parity/cases/status-settings-file-contracts.jsonl",
+      "bytes": 3458,
+      "sha256": "587458346495d5811880fb577f9e5f7856139b99696a67e5210ca3b4b28891ae"
+    },
+    {
+      "path": "rust/parity/cases/status-settings-file-contracts.capture.json",
+      "bytes": 18925,
+      "sha256": "b3a6b173b2923b2b82fb328944331f4e89bcfa2b7373bca93899bea4ae622a6f"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/status_settings_file_contracts.rs",
+      "bytes": 9329,
+      "sha256": "4e782b113ae6703df24063f0b1dd1a6828f83afe30f0ad193401813190972339"
+    }
+  ],
+  "source_captures": [
+    {
+      "path": "artifacts/rust-rewrite/completion-20261013-status-settings-source-capture-1",
+      "status": "retained_normalization_diagnostic",
+      "note": "The callbacks/assertions passed, but /var versus /private/var symlink spelling caused the relative filename projection to escape the synthetic root. This capture is not the native replay fixture."
+    },
+    {
+      "path": "artifacts/rust-rewrite/completion-20261013-status-settings-source-capture-2",
+      "status": "passed",
+      "corpus_sha256": "587458346495d5811880fb577f9e5f7856139b99696a67e5210ca3b4b28891ae"
+    },
+    {
+      "path": "artifacts/rust-rewrite/completion-20261013-status-settings-source-capture-3",
+      "status": "passed_identical_corpus",
+      "corpus_sha256": "587458346495d5811880fb577f9e5f7856139b99696a67e5210ca3b4b28891ae"
+    }
+  ],
+  "definitions": [
+    {
+      "baseline_test": "test/status-settings.test.mjs#4",
+      "name": "relocated file settings retain source-relative allow, ask and deny permission anchors",
+      "baseline_line": 45,
+      "baseline_file_sha256": "ad02fc85d4fcd9790556781438b88ef038f1e6d508f712b68fd26ba2dd1c0f16",
+      "baseline_definition_sha256": "b49fa2ed767c505380fea6cb0c8a44e4a19bd849af4f5ab922f18eb024bcb1a3",
+      "ast_call_sha256": "311b97bab61a51aee5f877404d5c05c5b4503ddd2a31c62159dc055d80b688d0",
+      "reviewed_assertion_calls": 2,
+      "expanded_original_assertions": 2,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/status_settings_file_contracts.rs#original_relative_file_retains_allow_ask_deny_default_mode_and_unchanged_source"
+      ],
+      "source_assertions": [
+        {
+          "id": "status-settings#4:assert-1",
+          "line": 62,
+          "expression": "assert.deepEqual(result.permissions, {\n    allow: [`Read(/${sourceDirectory}/public/**)`, `Edit(/${sourceDirectory}/src/**/*.mjs)`, 'Read', 'Bash(node --test)'],\n    ask: [`Edit(/${sourceDirectory}/review/**)`, `Read(/${sourceDirectory}/logs/*.log)`],\n    deny: [`Read(/${sourceDirectory}/secrets/**)`, `Edit(/${sourceDirectory}/protected/**)`],\n    defaultMode: 'dontAsk',\n  })",
+          "sha256": "ec3ca31ac2380313cf2db1f1a2381e24852be5995b133cc7d69f42a04ce2bac1",
+          "executions": 1
+        },
+        {
+          "id": "status-settings#4:assert-2",
+          "line": 68,
+          "expression": "assert.deepEqual(JSON.parse(readFileSync(sourcePath, 'utf8')), original)",
+          "sha256": "331182e92beb0d943346f6b3331adb71ed1adef8a13f6e8c05e895fda2cd6678",
+          "executions": 1
+        }
+      ],
+      "remaining": [],
+      "native_anchor_keys": [
+        "complete_permissions",
+        "relative_filename",
+        "original_file_bytes",
+        "original_parsed_json"
+      ],
+      "review_notes": [
+        "Every original assertion in this complete callback is replayed against the pinned actual source output, using the ordinary native settings API and actual owned files. Original source bytes are additionally compared exactly; common renderer fields and the complete native executable command are independently checked."
+      ]
+    },
+    {
+      "baseline_test": "test/status-settings.test.mjs#6",
+      "name": "literal glob characters in a settings directory cannot broaden rebased permissions",
+      "baseline_line": 87,
+      "baseline_file_sha256": "ad02fc85d4fcd9790556781438b88ef038f1e6d508f712b68fd26ba2dd1c0f16",
+      "baseline_definition_sha256": "2bad70357b126f354b6340d24cf0f7bee87d8417ee23cc95cc7dc51f7af40041",
+      "ast_call_sha256": "276ae14946d94503ff3668800ed68281c1de9f9a2d5c1e17fbc77aa87ef5c5fd",
+      "reviewed_assertion_calls": 2,
+      "expanded_original_assertions": 2,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/status_settings_file_contracts.rs#original_literal_glob_directory_cannot_broaden_edit_or_read_anchors"
+      ],
+      "source_assertions": [
+        {
+          "id": "status-settings#6:assert-1",
+          "line": 95,
+          "expression": "assert.deepEqual(permissions, { allow: [`Edit(/${anchor}/src/**)`], deny: [`Read(/${anchor}/keys/**)`] })",
+          "sha256": "89f42c804cc56d8a5c1bdd90f1f38a46c7fe9e5a78719f8dec04eb9bbbc39d6b",
+          "executions": 1
+        },
+        {
+          "id": "status-settings#6:assert-2",
+          "line": 96,
+          "expression": "assert.ok(permissions.allow[0].includes('\\\\[literal\\\\]\\\\*\\\\?'))",
+          "sha256": "db36ad777420eb88868a1bfe4f31c8e61735d00bd5be2f4c85d362a72cfe091c",
+          "executions": 1
+        }
+      ],
+      "remaining": [],
+      "native_anchor_keys": [
+        "complete_permissions",
+        "literal_glob_escape"
+      ],
+      "review_notes": [
+        "Every original assertion in this complete callback is replayed against the pinned actual source output, using the ordinary native settings API and actual owned files. Original source bytes are additionally compared exactly; common renderer fields and the complete native executable command are independently checked."
+      ]
+    }
+  ],
+  "retained_sources": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/0ba4ee94efad340e55e3aea87c28fb7ece156fe2a52878be00a6fe71ead17d0e.mjs",
+      "bytes": 9845,
+      "sha256": "0ba4ee94efad340e55e3aea87c28fb7ece156fe2a52878be00a6fe71ead17d0e",
+      "original_path": "rust/parity/capture-status-settings-file-contracts.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/587458346495d5811880fb577f9e5f7856139b99696a67e5210ca3b4b28891ae.jsonl",
+      "bytes": 3458,
+      "sha256": "587458346495d5811880fb577f9e5f7856139b99696a67e5210ca3b4b28891ae",
+      "original_path": "rust/parity/cases/status-settings-file-contracts.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/b3a6b173b2923b2b82fb328944331f4e89bcfa2b7373bca93899bea4ae622a6f.json",
+      "bytes": 18925,
+      "sha256": "b3a6b173b2923b2b82fb328944331f4e89bcfa2b7373bca93899bea4ae622a6f",
+      "original_path": "rust/parity/cases/status-settings-file-contracts.capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/4e782b113ae6703df24063f0b1dd1a6828f83afe30f0ad193401813190972339.rs",
+      "bytes": 9329,
+      "sha256": "4e782b113ae6703df24063f0b1dd1a6828f83afe30f0ad193401813190972339",
+      "original_path": "rust/crates/autorouter-runtime/tests/status_settings_file_contracts.rs"
+    }
+  ],
+  "native_anchors": {
+    "complete_permissions": {
+      "path": "rust/crates/autorouter-runtime/tests/status_settings_file_contracts.rs",
+      "line": 181,
+      "fragment": "        scratch.normalized(&generated[\"permissions\"]),",
+      "fragment_sha256": "ba90391b6d675a9b9776000e8f6376ba81f44282f7cb9d7ba06e1317877de53e",
+      "file_sha256": "4e782b113ae6703df24063f0b1dd1a6828f83afe30f0ad193401813190972339"
+    },
+    "original_file_bytes": {
+      "path": "rust/crates/autorouter-runtime/tests/status_settings_file_contracts.rs",
+      "line": 201,
+      "fragment": "    assert_eq!(original_after, input.as_bytes());",
+      "fragment_sha256": "5128a243ac2a651fdd581c3e9a36f500d908bf7018c409a6e6a71275d7251b15",
+      "file_sha256": "4e782b113ae6703df24063f0b1dd1a6828f83afe30f0ad193401813190972339"
+    },
+    "original_parsed_json": {
+      "path": "rust/crates/autorouter-runtime/tests/status_settings_file_contracts.rs",
+      "line": 207,
+      "fragment": "        serde_json::from_slice::<Value>(&original_after).unwrap(),",
+      "fragment_sha256": "03574c032b10e114035d80c03b47b580b4f56bf46e3c856166567e1c434f3191",
+      "file_sha256": "4e782b113ae6703df24063f0b1dd1a6828f83afe30f0ad193401813190972339"
+    },
+    "relative_filename": {
+      "path": "rust/crates/autorouter-runtime/tests/status_settings_file_contracts.rs",
+      "line": 168,
+      "fragment": "            \"../temporary/autorouter-settings-FIXTURE/original/config.json\"",
+      "fragment_sha256": "359fb00e2f6a950eff847055919d6f133dcb774cc3587bdde4fb0b5ee6cca877",
+      "file_sha256": "4e782b113ae6703df24063f0b1dd1a6828f83afe30f0ad193401813190972339"
+    },
+    "literal_glob_escape": {
+      "path": "rust/crates/autorouter-runtime/tests/status_settings_file_contracts.rs",
+      "line": 233,
+      "fragment": "            .contains(\"\\\\[literal\\\\]\\\\*\\\\?\")",
+      "fragment_sha256": "d7cd391790e175be263d45517610a765324f2645d2fbfe55ffd6894b34161b66",
+      "file_sha256": "4e782b113ae6703df24063f0b1dd1a6828f83afe30f0ad193401813190972339"
+    }
+  },
+  "validation": {
+    "directory": "artifacts/rust-rewrite/completion-20261013-status-settings-native-1",
+    "native_tests_passed": 3,
+    "strict_clippy_exit_code": 0,
+    "provider_calls_performed": false,
+    "user_configuration_touched": false,
+    "numerical_measurements": false,
+    "environment_overrides": {
+      "CARGO_INCREMENTAL": "0",
+      "CARGO_PROFILE_TEST_DEBUG": "0",
+      "CARGO_PROFILE_DEV_DEBUG": "0"
+    },
+    "dependency_warning": "Existing vendored hyper-util unused timer warning is retained in both logs; the focused target and strict Clippy both exit 0."
+  },
+  "reports": [
+    {
+      "path": "artifacts/rust-rewrite/completion-20261013-status-settings-native-1/native-tests.log",
+      "bytes": 1137,
+      "sha256": "d46f82ad766f9541f7d1bb995362f6e3ab44534837b67a0b4288b981f070847b"
+    },
+    {
+      "path": "artifacts/rust-rewrite/completion-20261013-status-settings-native-1/strict-clippy.log",
+      "bytes": 945,
+      "sha256": "647835ade38dfa71dac510f64b4502a559514bb7733e53e68e8669ccd17704fe"
+    },
+    {
+      "path": "artifacts/rust-rewrite/completion-20261013-status-settings-native-1/native-test-result.json",
+      "bytes": 404,
+      "sha256": "5ac3b732c3078d3a8f551da8e0f78a639bdac07675b7d571b90a0276ef7ae325"
+    },
+    {
+      "path": "artifacts/rust-rewrite/completion-20261013-status-settings-native-1/clippy-result.json",
+      "bytes": 442,
+      "sha256": "64aa5dc456828ee31323d29662365881f57954f29abdfa79b1153a673dc16758"
+    }
+  ]
+}

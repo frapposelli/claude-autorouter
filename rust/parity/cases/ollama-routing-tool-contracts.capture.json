@@ -1,0 +1,1819 @@
+{
+  "schema_version": 1,
+  "kind": "frozen_ollama_routing_tool_contracts",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "baseline_file": "test/ollama-routing.test.mjs",
+  "baseline_file_sha256": "a32e4cf40d44971fc7f720058e7cedc444977753b9b2d3d8f65db7841511513b",
+  "capture_source_sha256": "e408420ca4986b838bf1bc0a941510242fece3fe0568145365afb70aed2283df",
+  "selected_definitions": [
+    5,
+    6,
+    7,
+    8
+  ],
+  "static_assertions": 25,
+  "helper_static_assertions": 9,
+  "expanded_assertions": 377,
+  "cases": 6,
+  "requests": 58,
+  "corpus_sha256": "a7c1f9520daafc280723e4f2d33536483e7cd782a5fb557047ff700cebfcea1d",
+  "definitions": [
+    {
+      "id": "test/ollama-routing.test.mjs#5",
+      "number": 5,
+      "name": "the opt-in live harness warms once, routes every case, and reports only metadata",
+      "selected": true,
+      "statement_sha256": "f3015f21369b05914cbf7c55374ce4943ad3bfcc0cdcb7f69c0c7fa1a1e104f1",
+      "call_sha256": "5398fa7eba0adeb7dcac244b8e45a11578fafd2dd433b304582e115f21925fa0",
+      "line": 119,
+      "assertions": [
+        {
+          "id": "test/ollama-routing.test.mjs#5:assert-1",
+          "line": 123,
+          "expression": "assert.equal(report.passed, true)",
+          "sha256": "30095a40b0e4d8fd8ba33255448fc341c72ff18f8ed9205db71fb17401fb56a1"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#5:assert-2",
+          "line": 124,
+          "expression": "assert.deepEqual(report.missing_tiers, [])",
+          "sha256": "4d42e55662d21d091a42404dbb796942873be9724f309b5dfd3ecc0ab63b6754"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#5:assert-3",
+          "line": 125,
+          "expression": "assert.equal(report.timeout_ms, config.ollamaTimeoutMs)",
+          "sha256": "78747225a15c972b634ed4022fb8b10698ab384d7602352e6d339fae07726879"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#5:assert-4",
+          "line": 126,
+          "expression": "assert.equal(report.resident_before, true)",
+          "sha256": "8e78cedf7cc13338f820587b9b07feaafe00edfd032441444d5e84cdae074978"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#5:assert-5",
+          "line": 127,
+          "expression": "assert.equal(report.rows.length, cases.length)",
+          "sha256": "dd43feba2786cbe1ffe0cec0c16b24b3d60c33552b64bdc404f18f69a8f17746"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#5:assert-6",
+          "line": 128,
+          "expression": "assert.ok(report.rows.every(row => row.source === 'ollama' && row.current_task_matches))",
+          "sha256": "4920ec2bce89722b5560fc55c2f45432cd0e238052db011dd97aa24136eb037c"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#5:assert-7",
+          "line": 129,
+          "expression": "assert.equal(fixture.calls.filter(call => call.path === '/v1/systemone').length, cases.length + 1)",
+          "sha256": "9dd511daf0c541ae859a108f3e54a9374d3b6cded97784d66304541a779ed09e"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#5:assert-8",
+          "line": 130,
+          "expression": "assert.ok(!JSON.stringify(report).includes(item.prompt))",
+          "sha256": "4438ba84d5e60404c158758da2d0efcf2946841d7c4788dae67363b59be5b5fc"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#5:assert-9",
+          "line": 131,
+          "expression": "assert.ok(!JSON.stringify(report).includes('Synthetic coding assistant guidance'))",
+          "sha256": "03a258627c9ebde519ab1624a0ddc42584e171ef98b6d4448cf5dd68cca536e6"
+        }
+      ],
+      "case_ids": [
+        "ollama-routing-tool-5-1"
+      ],
+      "expanded_assertions": 129
+    },
+    {
+      "id": "test/ollama-routing.test.mjs#6",
+      "number": 6,
+      "name": "the live harness fails honestly when native answers collapse to Sonnet or become fallbacks",
+      "selected": true,
+      "statement_sha256": "52d18bc3c1e1af11db46e3cf2005155f7754cb4cf8786b6ce20e0f0aa7d79b68",
+      "call_sha256": "d71d9cc7d859499403da713f0444521507b57b8c0e7d9506be6ab459c99c1538",
+      "line": 134,
+      "assertions": [
+        {
+          "id": "test/ollama-routing.test.mjs#6:assert-1",
+          "line": 138,
+          "expression": "assert.equal(report.passed, false)",
+          "sha256": "a5cd1a59c13df045b8c6b34d3205aa168ecac43f8534c32e3cf87970c04aa98f"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#6:assert-2",
+          "line": 139,
+          "expression": "assert.deepEqual(report.missing_tiers, ['haiku', 'opus'])",
+          "sha256": "d7cc58984fc52dd994883e45122a7b19564765fc24597f9e757fb242bb99a692"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#6:assert-3",
+          "line": 140,
+          "expression": "assert.equal(report.rows.find(row => row.case === 'bounded-feature').result, 'pass')",
+          "sha256": "9ccec5acd7fcc077b6bb036d644f36471d38f2e3686fd1126c52e793bb9d8303"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#6:assert-4",
+          "line": 141,
+          "expression": "assert.ok(report.rows.filter(row => row.expected !== 'sonnet').every(row => row.result === 'classification_mismatch' && row.source === 'ollama'))",
+          "sha256": "399d6ad20a24a54b701e4247d6f98faf3aa8acab7cc44f619baed94f6504f981"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#6:assert-5",
+          "line": 146,
+          "expression": "assert.equal(fallback.passed, false)",
+          "sha256": "af9ef7ad2bfe41d0d487ee388d333035c1d485580f693273fe15472d0a217fe4"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#6:assert-6",
+          "line": 147,
+          "expression": "assert.equal(fallback.rows[0].result, 'fallback')",
+          "sha256": "5d1b91cc43880db1899743d265b2f26c64a0986e0a9f421c22325fad2be25934"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#6:assert-7",
+          "line": 148,
+          "expression": "assert.equal(fallback.rows[0].classifier_error, 'invalid_response')",
+          "sha256": "de1d4d70d89c5d76f1c501dca9ee3f0a79fe45b778c3ed05dfc820998210eaa7"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#6:assert-8",
+          "line": 149,
+          "expression": "assert.deepEqual(fallback.missing_tiers, ['haiku', 'sonnet', 'opus'])",
+          "sha256": "7fb7bf3e4133a6a2fdba559be5f3a8791042e8abef9a3117417327b02dd3d7d8"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#6:assert-9",
+          "line": 150,
+          "expression": "assert.ok(!JSON.stringify(fallback).includes('SYNTHETIC_PRIVATE_RESPONSE'))",
+          "sha256": "55709fe8b943bc1692089fd66110a94ff970cc16d5ef06f6822ec8a33a866840"
+        }
+      ],
+      "case_ids": [
+        "ollama-routing-tool-6-1",
+        "ollama-routing-tool-6-2"
+      ],
+      "expanded_assertions": 166
+    },
+    {
+      "id": "test/ollama-routing.test.mjs#7",
+      "number": 7,
+      "name": "duplicate live cases still perform native evaluations instead of passing from the router cache",
+      "selected": true,
+      "statement_sha256": "d99a3d05518c6f4e4f6ac5a8e125525384bc0f28103f5c57369dde2c8d0d306b",
+      "call_sha256": "d73ad33a0c13421c486d353f73c3edc428204beea9916b505042cb4e16b1db7b",
+      "line": 153,
+      "assertions": [
+        {
+          "id": "test/ollama-routing.test.mjs#7:assert-1",
+          "line": 158,
+          "expression": "assert.equal(fixture.calls.filter(call => call.path === '/v1/systemone').length, 3)",
+          "sha256": "4a7dbe7f5fe24b16c16a7551bf5d09f7bab6683a1f07a703bea3560bb1393ea1"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#7:assert-2",
+          "line": 159,
+          "expression": "assert.ok(report.rows.every(row => row.source === 'ollama'))",
+          "sha256": "0a0fef9d00fe51940445acee01b3845ffef643f17c3eef2d8519377a56f600da"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#7:assert-3",
+          "line": 160,
+          "expression": "assert.equal(report.passed, false, 'Two Haiku decisions alone do not establish all-tier coverage')",
+          "sha256": "997e2b9d64e88d8e5911d2a75439a08d7a3d99911be8ae3ad9c44c016ca84db4"
+        }
+      ],
+      "case_ids": [
+        "ollama-routing-tool-7-1"
+      ],
+      "expanded_assertions": 62
+    },
+    {
+      "id": "test/ollama-routing.test.mjs#8",
+      "number": 8,
+      "name": "live preflight never unloads another resident model or downloads a missing selected model",
+      "selected": true,
+      "statement_sha256": "bfc3d07899d866d04c636c2a5c6cc08f9c2e062278abe662c8f2925bdc47887b",
+      "call_sha256": "dfab4dcddaac7748a505b31a24d6547e9169ddbad69177dcd9264943e73f954f",
+      "line": 163,
+      "assertions": [
+        {
+          "id": "test/ollama-routing.test.mjs#8:assert-1",
+          "line": 166,
+          "expression": "assert.rejects(runRoutingTests(config, { fetchImpl: busy.fetchImpl, write: () => {}, cases }), /Other Ollama models are resident/)",
+          "sha256": "c18c7a1eef53b2e704b0a3f815ddc503e29019147a583f37a3831b03f7cc7791"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#8:assert-2",
+          "line": 167,
+          "expression": "assert.deepEqual(busy.calls.map(call => call.path), ['/api/ps'])",
+          "sha256": "b3a39db4d6379fd417f09b0626ef2411c86b39fe0382843d04e8a5360646af23"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#8:assert-3",
+          "line": 169,
+          "expression": "assert.rejects(runRoutingTests(config, { fetchImpl: missing.fetchImpl, write: () => {}, cases }), error => error.code === 'OLLAMA_MODEL_MISSING')",
+          "sha256": "82dc1307109c058390931c70d16b34a076bae4051e1bd802b1ecceafeef1eda8"
+        },
+        {
+          "id": "test/ollama-routing.test.mjs#8:assert-4",
+          "line": 170,
+          "expression": "assert.deepEqual(missing.calls.map(call => call.path), ['/api/ps', '/api/version', '/api/tags'])",
+          "sha256": "0b4adb340c5ef4d509055ed0369819fb727e960858f2a7a309fd4fac6941e681"
+        }
+      ],
+      "case_ids": [
+        "ollama-routing-tool-8-1",
+        "ollama-routing-tool-8-2"
+      ],
+      "expanded_assertions": 20
+    }
+  ],
+  "helper_assertions": [
+    {
+      "id": "localFixture:assert-1",
+      "line": 16,
+      "expression": "assert.equal(new URL(url).origin, config.ollamaEndpoint)",
+      "sha256": "932b3aec52d59f8ec98cae431c87f27b6df60d003a2ef59ba4cdadc7ee40a7ab"
+    },
+    {
+      "id": "localFixture:assert-2",
+      "line": 17,
+      "expression": "assert.equal(options.redirect, 'error')",
+      "sha256": "8867547a8dffc17a3aa008e64a715fe5a4f24738ba0b79b5257a046a95a1b00a"
+    },
+    {
+      "id": "localFixture:assert-3",
+      "line": 18,
+      "expression": "assert.equal(options.headers?.authorization, undefined)",
+      "sha256": "335ef9966f146e39b68c63e5041e39e49bc3b45d105df36dfa34818524eb5253"
+    },
+    {
+      "id": "localFixture:assert-4",
+      "line": 19,
+      "expression": "assert.equal(options.headers?.['x-api-key'], undefined)",
+      "sha256": "50c1f55f687f7ab26a64692f6bd9f3c3108797a8a63a43d5b8bd6a809cade439"
+    },
+    {
+      "id": "localFixture:assert-5",
+      "line": 26,
+      "expression": "assert.equal(payload.model, config.ollamaModel)",
+      "sha256": "d0e971608d0223d1a26e5bb400050bcef1590314ee7784054ca11884bbc49747"
+    },
+    {
+      "id": "localFixture:assert-6",
+      "line": 28,
+      "expression": "assert.equal(path, '/v1/systemone', 'No downloads, unloads, Jev, chat or Anthropic calls are allowed')",
+      "sha256": "68e72967d2bae1d37d4a98a9e82b69afe249f9b7111e27cf287ac9e9ed2c6365"
+    },
+    {
+      "id": "localFixture:assert-7",
+      "line": 33,
+      "expression": "assert.ok(choice, 'The actual human task must survive Claude-shaped background')",
+      "sha256": "1657552a2b1f17268ed40cac801cbbb0efa73b9bcb3b50b97b0bfea58fc0c5ac"
+    },
+    {
+      "id": "localFixture:assert-8",
+      "line": 34,
+      "expression": "assert.ok(!JSON.stringify(payload.state).includes('SYNTHETIC_REMINDER_ONLY'))",
+      "sha256": "33d53058dc7f74d17b6c2b1fde857a32aaeb16cfb9a8d583e4ebc7444df39e27"
+    },
+    {
+      "id": "localFixture:assert-9",
+      "line": 35,
+      "expression": "assert.ok(!JSON.stringify(payload.state).includes('PRIVATE_THINKING'))",
+      "sha256": "44178e2de10d1dded802ab8e354825219addbec6eb4bbfbbd6a8c0c7def02466"
+    }
+  ],
+  "assertion_executions": [
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-7"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-9"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-7"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-9"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-7"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-9"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-7"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-9"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-7"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-9"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-7"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-9"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-7"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "localFixture:assert-9"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "test/ollama-routing.test.mjs#5:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "test/ollama-routing.test.mjs#5:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "test/ollama-routing.test.mjs#5:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "test/ollama-routing.test.mjs#5:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "test/ollama-routing.test.mjs#5:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "test/ollama-routing.test.mjs#5:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "test/ollama-routing.test.mjs#5:assert-7"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "test/ollama-routing.test.mjs#5:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "test/ollama-routing.test.mjs#5:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "test/ollama-routing.test.mjs#5:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "test/ollama-routing.test.mjs#5:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "test/ollama-routing.test.mjs#5:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "test/ollama-routing.test.mjs#5:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#5",
+      "assertion": "test/ollama-routing.test.mjs#5:assert-9"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-7"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-9"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-7"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-9"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-7"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-9"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-7"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-9"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-7"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-9"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-7"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-9"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-7"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-9"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "test/ollama-routing.test.mjs#6:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "test/ollama-routing.test.mjs#6:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "test/ollama-routing.test.mjs#6:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "test/ollama-routing.test.mjs#6:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-7"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-9"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "localFixture:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "test/ollama-routing.test.mjs#6:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "test/ollama-routing.test.mjs#6:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "test/ollama-routing.test.mjs#6:assert-7"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "test/ollama-routing.test.mjs#6:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#6",
+      "assertion": "test/ollama-routing.test.mjs#6:assert-9"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-7"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-9"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-7"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-9"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-5"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-6"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-7"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-8"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "localFixture:assert-9"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "test/ollama-routing.test.mjs#7:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "test/ollama-routing.test.mjs#7:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#7",
+      "assertion": "test/ollama-routing.test.mjs#7:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#8",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#8",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#8",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#8",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#8",
+      "assertion": "test/ollama-routing.test.mjs#8:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#8",
+      "assertion": "test/ollama-routing.test.mjs#8:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#8",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#8",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#8",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#8",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#8",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#8",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#8",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#8",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#8",
+      "assertion": "localFixture:assert-1"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#8",
+      "assertion": "localFixture:assert-2"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#8",
+      "assertion": "localFixture:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#8",
+      "assertion": "localFixture:assert-4"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#8",
+      "assertion": "test/ollama-routing.test.mjs#8:assert-3"
+    },
+    {
+      "definition": "test/ollama-routing.test.mjs#8",
+      "assertion": "test/ollama-routing.test.mjs#8:assert-4"
+    }
+  ],
+  "limits": {
+    "cases": 6,
+    "requests_per_case": 20,
+    "requests": 64,
+    "field_bytes": 65536,
+    "report_bytes": 131072,
+    "corpus_bytes": 2097152,
+    "aggregate_bytes": 4194304,
+    "nodes": 4096,
+    "depth": 32
+  },
+  "fixture_source_sha256": "88e12f962fb42b36a00edd6b8c2560e54620d90c978b1ff13a1ddf31ee46b585",
+  "adaptations": [
+    "Only timestamp,warmup_ms,row latency_ms and final progress duration are projected after validation; raw observations remain separately retained. No timing qualification.",
+    "Native accepts fixture bytes rather than cases plus optional fixtureHash. Preserve supplied/omitted hash tags; independently verify native digest of exact input bytes.",
+    "Fetch redirect:error/AbortSignal are Node API properties; native owned transport does not follow redirects. All actual request headers,URL,method and body remain compared.",
+    "Native typed error identity must preserve source code/message. Generic JS Error stack/prototype is outside Rust API.",
+    "No live evaluator, provider, model download, configuration write or numerical benchmark is executed."
+  ]
+}

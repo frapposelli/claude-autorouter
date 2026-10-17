@@ -1,0 +1,1901 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "reviewed_checkpoint": "1d8ce9e",
+  "scope": "Reviewed mapping of23 frozen status-state definitions: complete saved-snapshot/render replay, native storage scheduling/filesystem regressions, and the reproduced shared-drain fix. JavaScript API boundaries remain explicit.",
+  "semantics": "covered means every baseline assertion and local parameter case is represented; explicit JS undefined/Error/getter/Promise identity inputs remain partial even when adapted typed tests cover observable outputs. Direct assertion JSON pointers resolve within this mapping and preserve exact case IDs once per definition.",
+  "counts": {
+    "covered": 19,
+    "partial": 4,
+    "definitions": 23,
+    "static_assertions": 145,
+    "captured_cases": 49,
+    "captured_snapshots": 45,
+    "captured_renders": 4,
+    "unsupported_event_calls": 3,
+    "skipped_dependent_snapshots": 7
+  },
+  "evidence": {
+    "frozen_capture": {
+      "path": "artifacts/rust-rewrite/evidence/06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231.json",
+      "sha256": "06a73367fb3148bf6a7168067c2b12f254c74c416d51388332df6deaa24ca231",
+      "original_path": "rust/parity/cases/status-state-contracts.capture.json"
+    },
+    "frozen_node_assertions": {
+      "path": "artifacts/rust-rewrite/evidence/07f0cd883c71045511645c52a4620f2e0b9f83bcd7da5f2632cca769b955d80f.log",
+      "sha256": "07f0cd883c71045511645c52a4620f2e0b9f83bcd7da5f2632cca769b955d80f",
+      "original_path": "artifacts/rust-rewrite/status-state-capture-3.log"
+    },
+    "native_state_tests": {
+      "path": "artifacts/rust-rewrite/evidence/5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766.log",
+      "sha256": "5bf788de60f3bdbbf3ff1cebea0a25e97ccbdc012e8d4361b6e08b254b6c9766",
+      "original_path": "artifacts/rust-rewrite/status-state-contracts-3.log"
+    },
+    "native_storage_tests": {
+      "path": "artifacts/rust-rewrite/evidence/7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860.log",
+      "sha256": "7a2feeab8961d48be6a598d87aa48b97925bc300ae702a8e2f04ebd06cc66860",
+      "original_path": "artifacts/rust-rewrite/status-store-contracts-2.log"
+    },
+    "native_clippy": {
+      "path": "artifacts/rust-rewrite/evidence/d5ae4c6b4fd105fa6a8f06e377a3f39ff90f6d516f57ad6df093fda18272b3da.log",
+      "sha256": "d5ae4c6b4fd105fa6a8f06e377a3f39ff90f6d516f57ad6df093fda18272b3da",
+      "original_path": "artifacts/rust-rewrite/status-state-clippy-2.log"
+    },
+    "original_native_flush_failure": {
+      "path": "artifacts/rust-rewrite/evidence/0cec272173a3eaa84bc6259382348641265b71be4edc43bbaf57fff9468a1d91.log",
+      "sha256": "0cec272173a3eaa84bc6259382348641265b71be4edc43bbaf57fff9468a1d91",
+      "original_path": "artifacts/rust-rewrite/status-flush-regression-2.log"
+    },
+    "frozen_shared_drain_control": {
+      "path": "artifacts/rust-rewrite/evidence/b8c4033750295cc37c39e2f4f76f7567784db95acc26d67246718de1b20e45d2.json",
+      "sha256": "b8c4033750295cc37c39e2f4f76f7567784db95acc26d67246718de1b20e45d2",
+      "original_path": "artifacts/rust-rewrite/status-flush-node-control-2.json"
+    }
+  },
+  "current_sources": [
+    {
+      "path": "rust/crates/autorouter-core/src/status_state.rs",
+      "sha256": "228c1e2b31683c9fbb554e0421825d8d10bb7cf475f3382c96fed2673496fcf6",
+      "bytes": 19198
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/status_store.rs",
+      "sha256": "9f0f88e35f5b16914cc23b41c110a94628f67c1b7b58755bf1ad0f1ae20e4bbd",
+      "bytes": 46072
+    },
+    {
+      "path": "rust/parity/capture-status-state-contracts.mjs",
+      "sha256": "2ae64e80f64d2c685d91a97fe4707e193c5f189eb53ce39c0b9ba0c5453a08bc",
+      "bytes": 9656
+    },
+    {
+      "path": "rust/parity/check-status-drain.mjs",
+      "sha256": "10675bab7f912cccbe65a70fcc94fa8899f387b7089ae12d0f7058405a67824a",
+      "bytes": 3026
+    },
+    {
+      "path": "rust/parity/cases/status-state-contracts.jsonl",
+      "sha256": "2decdad48ee550646a91fea40b87ec9fad38de2c9150f4c3416ebc89e7ee1bf5",
+      "bytes": 127841
+    }
+  ],
+  "captured_input_projection": "Raw overflowing JSON numbers pass through the existing metadata normalization projection, preserving their invalid-value status; unsupported JavaScript ownership/accessor/nonplain semantics are never silently converted. Captured PID/heartbeat/update clock values are injected. No storage behavior is inferred from a pure snapshot replay.",
+  "behavior_fix": "Native flush previously returned after its generation write while accepted updates still belonged to the same active drain. Frozen Node control remains blocked; retained deterministic native regression failed before fix. Completion now publishes at quiescence serialized with event/flush/close acceptance, with no lock across filesystem work. Failed writes remain best-effort. Initial writes and multiple flushers/next drain also tested.",
+  "mappings": [
+    {
+      "baseline_test": "test/status-state.test.mjs#1",
+      "name": "a protocol-unconfirmed response retains its observed model but displays unknown completion and no savings",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 20,
+      "baseline_definition_sha256": "337f2423185098f43f591a399b7851342adb4d4f46a9d14bbf4989fd6cbfa4cf",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 6,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
+      ],
+      "shared_cases": [
+        "baseline-status-state-1-1",
+        "baseline-status-render-1-1"
+      ],
+      "direct_assertions": [
+        {
+          "line": 31,
+          "expression": "assert.equal(saved.sessions['session-a'].actual_model, 'claude-sonnet-5')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/0/rust_tests",
+          "captured_cases_ref": "#/mappings/0/shared_cases"
+        },
+        {
+          "line": 32,
+          "expression": "assert.equal(saved.sessions['session-a'].completion_confirmed, false)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/0/rust_tests",
+          "captured_cases_ref": "#/mappings/0/shared_cases"
+        },
+        {
+          "line": 33,
+          "expression": "assert.equal(saved.savings['session-a'].requests, 0)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/0/rust_tests",
+          "captured_cases_ref": "#/mappings/0/shared_cases"
+        },
+        {
+          "line": 34,
+          "expression": "assert.deepEqual(saved.savings['session-a'].unpriced_reasons, { unconfirmed_completion: 1 })",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/0/rust_tests",
+          "captured_cases_ref": "#/mappings/0/shared_cases"
+        },
+        {
+          "line": 36,
+          "expression": "assert.match(line, /Sonnet 5.*completion unknown/)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/0/rust_tests",
+          "captured_cases_ref": "#/mappings/0/shared_cases"
+        },
+        {
+          "line": 37,
+          "expression": "assert.doesNotMatch(line, /ready/)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/0/rust_tests",
+          "captured_cases_ref": "#/mappings/0/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [],
+      "review_notes": [
+        "Full captured snapshot/render comparison checks values, types, omitted fields and exact strings. No numerical tolerance is used; object key order is not an observable JSON value distinction."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "partial",
+        "remaining": [
+          "Random event corpus includes completion_confirmed=false; rendering corpus checks unknown completion separately. Missing integrated observed model, zero savings/unconfirmed reason and40-column line from one saved snapshot."
+        ]
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#2",
+      "name": "readiness creates a private atomic snapshot and cleans up idempotently",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 70,
+      "baseline_definition_sha256": "47afd82ece9c4a5c04bb49a79c95e8d813b7fe2361c28b78b14ab7a7f7ef9b1b",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 10,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::native_files_are_private_atomic_bounded_and_removed"
+      ],
+      "shared_cases": [],
+      "direct_assertions": [
+        {
+          "line": 73,
+          "expression": "assert.equal(snapshot.version, 1)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/1/rust_tests",
+          "captured_cases_ref": "#/mappings/1/shared_cases"
+        },
+        {
+          "line": 74,
+          "expression": "assert.equal(snapshot.pid, process.pid)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/1/rust_tests",
+          "captured_cases_ref": "#/mappings/1/shared_cases"
+        },
+        {
+          "line": 75,
+          "expression": "assert.ok(Math.abs(snapshot.heartbeat_at - Date.now()) < 1000)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/1/rust_tests",
+          "captured_cases_ref": "#/mappings/1/shared_cases"
+        },
+        {
+          "line": 76,
+          "expression": "assert.deepEqual(snapshot.sessions, {})",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/1/rust_tests",
+          "captured_cases_ref": "#/mappings/1/shared_cases"
+        },
+        {
+          "line": 77,
+          "expression": "assert.equal(statSync(dirname(state.path)).mode & 0o777, 0o700)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/1/rust_tests",
+          "captured_cases_ref": "#/mappings/1/shared_cases"
+        },
+        {
+          "line": 78,
+          "expression": "assert.equal(statSync(state.path).mode & 0o777, 0o600)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/1/rust_tests",
+          "captured_cases_ref": "#/mappings/1/shared_cases"
+        },
+        {
+          "line": 82,
+          "expression": "assert.equal(statSync(state.path).mode & 0o777, 0o600)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/1/rust_tests",
+          "captured_cases_ref": "#/mappings/1/shared_cases"
+        },
+        {
+          "line": 83,
+          "expression": "assert.deepEqual(readdirSync(dirname(state.path)), ['state.json'])",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/1/rust_tests",
+          "captured_cases_ref": "#/mappings/1/shared_cases"
+        },
+        {
+          "line": 86,
+          "expression": "assert.equal(existsSync(dirname(state.path)), false)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/1/rust_tests",
+          "captured_cases_ref": "#/mappings/1/shared_cases"
+        },
+        {
+          "line": 87,
+          "expression": "assert.doesNotReject(async () => { state.update(event('request_start')); await state.flush(); })",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/1/rust_tests",
+          "captured_cases_ref": "#/mappings/1/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [],
+      "review_notes": [
+        "Initial native file version/PID/injected heartbeat/empty sessions, directory0700/file0600 before and after replacement, one file, idempotent close and post-close update/flush all asserted."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "partial",
+        "remaining": [
+          "Private atomic output, one-file directory, repeated cleanup and post-close update/flush are now asserted. Initial version/PID/heartbeat tolerance and initial empty native file still need explicit assertions."
+        ]
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#3",
+      "name": "tracks requested, selected and confirmed models distinctly and retains last confirmed model",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 90,
+      "baseline_definition_sha256": "1ef5f36859991b2dcb2e2e35fba9977b425072c482da22d11e0991230a3dd632",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 19,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
+      ],
+      "shared_cases": [
+        "baseline-status-state-3-1",
+        "baseline-status-state-3-2",
+        "baseline-status-state-3-3",
+        "baseline-status-state-3-4",
+        "baseline-status-state-3-5"
+      ],
+      "direct_assertions": [
+        {
+          "line": 94,
+          "expression": "assert.equal(read(state).sessions['session-a'].phase, 'routing')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        },
+        {
+          "line": 99,
+          "expression": "assert.equal(current.phase, 'connecting')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        },
+        {
+          "line": 100,
+          "expression": "assert.equal(current.requested_model, 'claude-haiku-4-5')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        },
+        {
+          "line": 101,
+          "expression": "assert.equal(current.selected_model, 'claude-sonnet-5')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        },
+        {
+          "line": 102,
+          "expression": "assert.equal(current.classified_tier, 'haiku')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        },
+        {
+          "line": 103,
+          "expression": "assert.equal(current.context_check, 'over_budget')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        },
+        {
+          "line": 104,
+          "expression": "assert.equal(current.counted_input_tokens, 227338)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        },
+        {
+          "line": 105,
+          "expression": "assert.equal(current.actual_model, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        },
+        {
+          "line": 106,
+          "expression": "assert.equal(current.last_model, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        },
+        {
+          "line": 111,
+          "expression": "assert.equal(current.phase, 'streaming')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        },
+        {
+          "line": 112,
+          "expression": "assert.equal(current.actual_model, 'claude-sonnet-5')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        },
+        {
+          "line": 113,
+          "expression": "assert.equal(current.last_model, 'claude-sonnet-5')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        },
+        {
+          "line": 116,
+          "expression": "assert.equal(read(state).sessions['session-a'].phase, 'ready')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        },
+        {
+          "line": 120,
+          "expression": "assert.equal(current.phase, 'routing')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        },
+        {
+          "line": 121,
+          "expression": "assert.equal(current.actual_model, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        },
+        {
+          "line": 122,
+          "expression": "assert.equal(current.selected_model, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        },
+        {
+          "line": 123,
+          "expression": "assert.equal(current.requested_model, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        },
+        {
+          "line": 124,
+          "expression": "assert.equal(current.prompt_id, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        },
+        {
+          "line": 125,
+          "expression": "assert.equal(current.last_model, 'claude-sonnet-5')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/2/rust_tests",
+          "captured_cases_ref": "#/mappings/2/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [],
+      "review_notes": [
+        "Full captured snapshot/render comparison checks values, types, omitted fields and exact strings. No numerical tolerance is used; object key order is not an observable JSON value distinction."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "partial",
+        "remaining": [
+          "Random event sequences cover resets/model observation, but exact requested/selected/confirmed phases, context capacity metadata and prompt-id clearing with retained last_model are not mapped."
+        ]
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#4",
+      "name": "shared telemetry retains safe compatibility, continuity and distinct timing evidence for the current request",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 128,
+      "baseline_definition_sha256": "d595b035fc47752fa2d7315ca68d01ff050cb99975a851cfc18f1d1c3aae82f3",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 11,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
+      ],
+      "shared_cases": [
+        "baseline-status-state-4-1",
+        "baseline-status-state-4-2"
+      ],
+      "direct_assertions": [
+        {
+          "line": 140,
+          "expression": "assert.equal(current.selected_model, 'claude-sonnet-5-5')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        },
+        {
+          "line": 141,
+          "expression": "assert.equal(current.actual_model, 'claude-sonnet-5-5')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        },
+        {
+          "line": 142,
+          "expression": "assert.equal(current.compatibility_reason, 'forced_tool_choice')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        },
+        {
+          "line": 143,
+          "expression": "assert.equal(current.continuity_state, 'unknown')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        },
+        {
+          "line": 144,
+          "expression": "assert.equal(current.evaluation_latency_ms, 5000000, 'A disabled evaluator deadline can exceed an hour')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        },
+        {
+          "line": 145,
+          "expression": "assert.equal(current.routing_latency_ms, 5000005)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        },
+        {
+          "line": 146,
+          "expression": "assert.equal(current.first_response_ms, 5000020)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        },
+        {
+          "line": 147,
+          "expression": "assert.equal(current.total_latency_ms, 5000120)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        },
+        {
+          "line": 148,
+          "expression": "assert.equal(current.completion_confirmed, true)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        },
+        {
+          "line": 149,
+          "expression": "assert.ok(!readFileSync(state.path, 'utf8').includes('PRIVATE_REQUEST'))",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        },
+        {
+          "line": 158,
+          "expression": "assert.equal(next[field], undefined, `${field} must not leak from another request`)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/3/rust_tests",
+          "captured_cases_ref": "#/mappings/3/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [],
+      "review_notes": [
+        "Full captured snapshot/render comparison checks values, types, omitted fields and exact strings. No numerical tolerance is used; object key order is not an observable JSON value distinction."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "partial",
+        "remaining": [
+          "Missing combined very long distinct timings/compatibility/continuity/completion privacy fixture and second-request clearing after Infinity/negative/invalid route fields."
+        ]
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#5",
+      "name": "invalid agent and class identities cannot collapse into foreground or anonymous status",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 162,
+      "baseline_definition_sha256": "06b69904ec312961b9f1eefd371969c451d87d378fb6f847491b07bdacf72990",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
+      ],
+      "shared_cases": [
+        "baseline-status-state-5-1",
+        "baseline-status-state-5-2",
+        "baseline-status-state-5-3"
+      ],
+      "direct_assertions": [
+        {
+          "line": 170,
+          "expression": "assert.deepEqual(Object.keys(read(state).sessions), ['session-a'])",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/4/rust_tests",
+          "captured_cases_ref": "#/mappings/4/shared_cases"
+        },
+        {
+          "line": 171,
+          "expression": "assert.equal(read(state).sessions['session-a'].request_id, 'request-1')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/4/rust_tests",
+          "captured_cases_ref": "#/mappings/4/shared_cases"
+        },
+        {
+          "line": 172,
+          "expression": "assert.equal(read(state).sessions['session-a'].actual_model, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/4/rust_tests",
+          "captured_cases_ref": "#/mappings/4/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [],
+      "review_notes": [
+        "Full captured snapshot/render comparison checks values, types, omitted fields and exact strings. No numerical tolerance is used; object key order is not an observable JSON value distinction."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "partial",
+        "remaining": [
+          "Normalizer corpus rejects invalid identities; status corpus does not test all four invalid agent/class/session/prompt variants against an existing foreground snapshot."
+        ]
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#6",
+      "name": "Auto safety pass-through is visible without stale evaluator decisions from the previous request",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 175,
+      "baseline_definition_sha256": "682238cead7d2492eb6f1020b95c1c0ad8d5bc9322311de9e9d5061a09a91a31",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
+      ],
+      "shared_cases": [
+        "baseline-status-state-6-1",
+        "baseline-status-state-6-2",
+        "baseline-status-state-6-3",
+        "baseline-status-state-6-4",
+        "baseline-status-render-6-1",
+        "baseline-status-render-6-2",
+        "baseline-status-render-6-3"
+      ],
+      "direct_assertions": [
+        {
+          "line": 181,
+          "expression": "assert.match(render(), /Jev\u2192Haiku \u00b7 Auto floor from Haiku/)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/5/rust_tests",
+          "captured_cases_ref": "#/mappings/5/shared_cases"
+        },
+        {
+          "line": 186,
+          "expression": "assert.match(render(), /Sonnet 5 selected \u00b7 connecting \u00b7 pass-through \u00b7 Auto safety/)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/5/rust_tests",
+          "captured_cases_ref": "#/mappings/5/shared_cases"
+        },
+        {
+          "line": 187,
+          "expression": "assert.ok(!/Jev|Ollama|Haiku/.test(render()))",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/5/rust_tests",
+          "captured_cases_ref": "#/mappings/5/shared_cases"
+        },
+        {
+          "line": 188,
+          "expression": "assert.equal(read(state).sessions['session-a'].classified_tier, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/5/rust_tests",
+          "captured_cases_ref": "#/mappings/5/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [],
+      "review_notes": [
+        "Full captured snapshot/render comparison checks values, types, omitted fields and exact strings. No numerical tolerance is used; object key order is not an observable JSON value distinction."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "partial",
+        "remaining": [
+          "No retained status sequence combines classified Auto floor, completion, new request and Auto safety passthrough while proving stale evaluator/tier removed from rendered output."
+        ]
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#7",
+      "name": "context uses the latest foreground response input including cache without summing the session",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 191,
+      "baseline_definition_sha256": "8e59c961d51fe7e434ada77dd72623a53b54edf0ca77a321eb303ccfb048bd60",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 6,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
+      ],
+      "shared_cases": [
+        "baseline-status-state-7-1",
+        "baseline-status-state-7-2",
+        "baseline-status-state-7-3",
+        "baseline-status-state-7-4",
+        "baseline-status-state-7-5"
+      ],
+      "direct_assertions": [
+        {
+          "line": 201,
+          "expression": "assert.deepEqual(read(state).sessions['session-a'].context_usage, context)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/6/rust_tests",
+          "captured_cases_ref": "#/mappings/6/shared_cases"
+        },
+        {
+          "line": 202,
+          "expression": "assert.ok(!readFileSync(state.path, 'utf8').includes('PRIVATE'))",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/6/rust_tests",
+          "captured_cases_ref": "#/mappings/6/shared_cases"
+        },
+        {
+          "line": 205,
+          "expression": "assert.equal(read(state).sessions['session-a'].context_usage, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/6/rust_tests",
+          "captured_cases_ref": "#/mappings/6/shared_cases"
+        },
+        {
+          "line": 206,
+          "expression": "assert.deepEqual(read(state).sessions['session-a'].last_context_usage, context)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/6/rust_tests",
+          "captured_cases_ref": "#/mappings/6/shared_cases"
+        },
+        {
+          "line": 214,
+          "expression": "assert.deepEqual(read(state).sessions['session-a'].context_usage, { model: 'claude-haiku-4-5-20251001', input_tokens: 1000 })",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/6/rust_tests",
+          "captured_cases_ref": "#/mappings/6/shared_cases"
+        },
+        {
+          "line": 215,
+          "expression": "assert.deepEqual(read(state).sessions['session-a'].last_context_usage, context)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/6/rust_tests",
+          "captured_cases_ref": "#/mappings/6/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [],
+      "review_notes": [
+        "Full captured snapshot/render comparison checks values, types, omitted fields and exact strings. No numerical tolerance is used; object key order is not an observable JSON value distinction."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "partial",
+        "remaining": [
+          "Usage/caches and superseded events appear in random cases. Missing exact224891-token total excluding output, last_context preservation, stale/subagent suppression and nextHaiku context snapshot sequence."
+        ]
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#8",
+      "name": "unconfirmed, invalid or interrupted usage cannot become a current API context claim",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 218,
+      "baseline_definition_sha256": "5c0af719d6824138685ce80d897b890d139897772a14a2b39be056f59e19fa42",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
+      ],
+      "shared_cases": [
+        "baseline-status-state-8-1",
+        "baseline-status-state-8-2",
+        "baseline-status-state-8-3",
+        "baseline-status-state-8-4",
+        "baseline-status-state-8-5",
+        "baseline-status-state-8-6",
+        "baseline-status-state-8-7",
+        "baseline-status-state-8-8",
+        "baseline-status-state-8-9",
+        "baseline-status-state-8-10",
+        "baseline-status-state-8-11",
+        "baseline-status-state-8-12",
+        "baseline-status-state-8-13",
+        "baseline-status-state-8-14"
+      ],
+      "direct_assertions": [
+        {
+          "line": 227,
+          "expression": "assert.equal(read(state).sessions['session-a'].context_usage, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/7/rust_tests",
+          "captured_cases_ref": "#/mappings/7/shared_cases"
+        },
+        {
+          "line": 233,
+          "expression": "assert.equal(read(state).sessions['session-a'].context_usage, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/7/rust_tests",
+          "captured_cases_ref": "#/mappings/7/shared_cases"
+        },
+        {
+          "line": 241,
+          "expression": "assert.equal(read(state).sessions['session-a'].context_usage, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/7/rust_tests",
+          "captured_cases_ref": "#/mappings/7/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [],
+      "review_notes": [
+        "Full captured snapshot/render comparison checks values, types, omitted fields and exact strings. No numerical tolerance is used; object key order is not an observable JSON value distinction."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "partial",
+        "remaining": [
+          "Core regression protects cancellation from late usage. Missing complete nine-invalid-usage matrix, selected-but-unobserved case and all four failure variants followed by usage."
+        ]
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#9",
+      "name": "latest-started request wins under overlapping same-session requests",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 245,
+      "baseline_definition_sha256": "6808fbfc5dbc7db5661b1efbdd7e92cf69f33a97e6d880fa7c4d936ce7a4a33b",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 6,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
+      ],
+      "shared_cases": [
+        "baseline-status-state-9-1"
+      ],
+      "direct_assertions": [
+        {
+          "line": 256,
+          "expression": "assert.equal(current.request_id, 'request-2')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/8/rust_tests",
+          "captured_cases_ref": "#/mappings/8/shared_cases"
+        },
+        {
+          "line": 257,
+          "expression": "assert.equal(current.phase, 'connecting')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/8/rust_tests",
+          "captured_cases_ref": "#/mappings/8/shared_cases"
+        },
+        {
+          "line": 258,
+          "expression": "assert.equal(current.selected_model, 'claude-opus-5-5')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/8/rust_tests",
+          "captured_cases_ref": "#/mappings/8/shared_cases"
+        },
+        {
+          "line": 259,
+          "expression": "assert.equal(current.last_model, 'claude-haiku-4-5')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/8/rust_tests",
+          "captured_cases_ref": "#/mappings/8/shared_cases"
+        },
+        {
+          "line": 260,
+          "expression": "assert.equal(current.status, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/8/rust_tests",
+          "captured_cases_ref": "#/mappings/8/shared_cases"
+        },
+        {
+          "line": 261,
+          "expression": "assert.equal(current.error_type, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/8/rust_tests",
+          "captured_cases_ref": "#/mappings/8/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [],
+      "review_notes": [
+        "Full captured snapshot/render comparison checks values, types, omitted fields and exact strings. No numerical tolerance is used; object key order is not an observable JSON value distinction."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "partial",
+        "remaining": [
+          "Core verifies old model and agent start cannot replace newer request; random sequences add terminals. Missing explicit seven-event old-request loop and retained last_model/status/error assertions."
+        ]
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#10",
+      "name": "keeps sessions and anonymous requests isolated without prototype pollution",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 264,
+      "baseline_definition_sha256": "a19b13f8a94b7482c4ebdabdb3e50944ad8209826d0fde6f1a555dc62d4ff086",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 5,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
+      ],
+      "shared_cases": [
+        "baseline-status-state-10-1"
+      ],
+      "direct_assertions": [
+        {
+          "line": 274,
+          "expression": "assert.equal(Object.keys(sessions).length, 5)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/9/rust_tests",
+          "captured_cases_ref": "#/mappings/9/shared_cases"
+        },
+        {
+          "line": 275,
+          "expression": "assert.equal(sessions[''].selected_model, 'model-anonymous')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/9/rust_tests",
+          "captured_cases_ref": "#/mappings/9/shared_cases"
+        },
+        {
+          "line": 276,
+          "expression": "assert.equal(sessions['session-b'].selected_model, 'model-session-b')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/9/rust_tests",
+          "captured_cases_ref": "#/mappings/9/shared_cases"
+        },
+        {
+          "line": 277,
+          "expression": "assert.equal(sessions.__proto__.selected_model, 'model-__proto__')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/9/rust_tests",
+          "captured_cases_ref": "#/mappings/9/shared_cases"
+        },
+        {
+          "line": 278,
+          "expression": "assert.equal({}.selected_model, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/9/rust_tests",
+          "captured_cases_ref": "#/mappings/9/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [],
+      "review_notes": [
+        "Full captured snapshot/render comparison checks values, types, omitted fields and exact strings. No numerical tolerance is used; object key order is not an observable JSON value distinction."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "partial",
+        "remaining": [
+          "No status corpus uses the combined anonymous,__proto__, constructor and two ordinary sessions plus invalid/nonstarted events; savings identity coverage is not a substitute."
+        ]
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#11",
+      "name": "ignores agent events and every non-main request class",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 281,
+      "baseline_definition_sha256": "e8a8a4dbd2fcd049b5618e822cb113249acaf208c0be2faeb9277031c91c853a",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
+      ],
+      "shared_cases": [
+        "baseline-status-state-11-1",
+        "baseline-status-state-11-2"
+      ],
+      "direct_assertions": [
+        {
+          "line": 291,
+          "expression": "assert.equal(current.request_id, 'request-1')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/10/rust_tests",
+          "captured_cases_ref": "#/mappings/10/shared_cases"
+        },
+        {
+          "line": 292,
+          "expression": "assert.equal(current.phase, 'routing')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/10/rust_tests",
+          "captured_cases_ref": "#/mappings/10/shared_cases"
+        },
+        {
+          "line": 293,
+          "expression": "assert.equal(current.actual_model, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/10/rust_tests",
+          "captured_cases_ref": "#/mappings/10/shared_cases"
+        },
+        {
+          "line": 296,
+          "expression": "assert.equal(read(state).sessions['session-a'].selected_model, 'claude-sonnet-5')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/10/rust_tests",
+          "captured_cases_ref": "#/mappings/10/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [],
+      "review_notes": [
+        "Full captured snapshot/render comparison checks values, types, omitted fields and exact strings. No numerical tolerance is used; object key order is not an observable JSON value distinction."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "partial",
+        "remaining": [
+          "Random corpus has worker-agent and count class. Missing auxiliary/compaction/background/subagent/workflow/future class matrix and explicit main-class acceptance."
+        ]
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#12",
+      "name": "preserves HTTP, SSE and transport errors through completion",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 299,
+      "baseline_definition_sha256": "f7a514d636121aaa976b42004769f1c285a2936580c8ea7ff9bee825b092a7f9",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
+      ],
+      "shared_cases": [
+        "baseline-status-state-12-1",
+        "baseline-status-state-12-2",
+        "baseline-status-state-12-3",
+        "baseline-status-state-12-4"
+      ],
+      "direct_assertions": [
+        {
+          "line": 312,
+          "expression": "assert.equal(current.phase, 'error')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/11/rust_tests",
+          "captured_cases_ref": "#/mappings/11/shared_cases"
+        },
+        {
+          "line": 313,
+          "expression": "assert.ok(current.error_type)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/11/rust_tests",
+          "captured_cases_ref": "#/mappings/11/shared_cases"
+        },
+        {
+          "line": 319,
+          "expression": "assert.equal(read(state).sessions['session-a'].phase, 'cancelled')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/11/rust_tests",
+          "captured_cases_ref": "#/mappings/11/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [],
+      "review_notes": [
+        "Full captured snapshot/render comparison checks values, types, omitted fields and exact strings. No numerical tolerance is used; object key order is not an observable JSON value distinction."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "partial",
+        "remaining": [
+          "Random corpus contains HTTP529, SSE overload, request_error and cancellation. Exact429/502 failures followed by complete with error_type preservation are not identified as definition counterparts."
+        ]
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#13",
+      "name": "classifier fallback diagnostics do not imply an upstream error",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 322,
+      "baseline_definition_sha256": "eacb0e50d8f6e8029dca11dc37015a9c79f4fc5b1be4b067b7a38e45028c68fa",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 5,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
+      ],
+      "shared_cases": [
+        "baseline-status-state-13-1"
+      ],
+      "direct_assertions": [
+        {
+          "line": 330,
+          "expression": "assert.equal(current.phase, 'ready')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/12/rust_tests",
+          "captured_cases_ref": "#/mappings/12/shared_cases"
+        },
+        {
+          "line": 331,
+          "expression": "assert.equal(current.source, 'fallback')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/12/rust_tests",
+          "captured_cases_ref": "#/mappings/12/shared_cases"
+        },
+        {
+          "line": 332,
+          "expression": "assert.equal(current.classifier_error, 'http_error')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/12/rust_tests",
+          "captured_cases_ref": "#/mappings/12/shared_cases"
+        },
+        {
+          "line": 333,
+          "expression": "assert.equal(current.classifier_status, 503)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/12/rust_tests",
+          "captured_cases_ref": "#/mappings/12/shared_cases"
+        },
+        {
+          "line": 334,
+          "expression": "assert.equal(current.status, 200)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/12/rust_tests",
+          "captured_cases_ref": "#/mappings/12/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [],
+      "review_notes": [
+        "Full captured snapshot/render comparison checks values, types, omitted fields and exact strings. No numerical tolerance is used; object key order is not an observable JSON value distinction."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "pending",
+        "remaining": [
+          "Status random generator does not emit fallback diagnostics, so successful upstream200/completion with retained classifier503 and ready phase is not represented."
+        ]
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#14",
+      "name": "evaluator identity survives local, cached and fallback routes without retaining arbitrary metadata",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 337,
+      "baseline_definition_sha256": "bf673599e0c4d2d71b3a28b3a06c58b114393edee1d9becdaf976169b8cbdc22",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 9,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::evaluator_identity_and_private_fields_stay_separate_across_local_cache_and_fallback"
+      ],
+      "shared_cases": [],
+      "direct_assertions": [
+        {
+          "line": 346,
+          "expression": "assert.equal(current.source, source)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/13/rust_tests",
+          "captured_cases_ref": "#/mappings/13/shared_cases"
+        },
+        {
+          "line": 347,
+          "expression": "assert.equal(current.evaluator, 'ollama')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/13/rust_tests",
+          "captured_cases_ref": "#/mappings/13/shared_cases"
+        },
+        {
+          "line": 348,
+          "expression": "assert.equal(current.classified_tier, 'haiku')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/13/rust_tests",
+          "captured_cases_ref": "#/mappings/13/shared_cases"
+        },
+        {
+          "line": 349,
+          "expression": "assert.equal(current.phase, 'connecting')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/13/rust_tests",
+          "captured_cases_ref": "#/mappings/13/shared_cases"
+        },
+        {
+          "line": 350,
+          "expression": "assert.ok(!readFileSync(state.path, 'utf8').includes('PRIVATE'))",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/13/rust_tests",
+          "captured_cases_ref": "#/mappings/13/shared_cases"
+        },
+        {
+          "line": 357,
+          "expression": "assert.equal(read(state).sessions['session-a'].evaluator, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/13/rust_tests",
+          "captured_cases_ref": "#/mappings/13/shared_cases"
+        },
+        {
+          "line": 358,
+          "expression": "assert.equal(read(state).sessions['session-a'].source, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/13/rust_tests",
+          "captured_cases_ref": "#/mappings/13/shared_cases"
+        },
+        {
+          "line": 359,
+          "expression": "assert.ok(!readFileSync(state.path, 'utf8').includes('PRIVATE'))",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/13/rust_tests",
+          "captured_cases_ref": "#/mappings/13/shared_cases"
+        },
+        {
+          "line": 362,
+          "expression": "assert.equal(read(state).sessions['session-a'].evaluator, 'jev')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/13/rust_tests",
+          "captured_cases_ref": "#/mappings/13/shared_cases"
+        }
+      ],
+      "migration_boundaries": [
+        {
+          "baseline_test": "test/status-state.test.mjs#14",
+          "reason": "$.classifier_error: undefined",
+          "event_call": 2
+        },
+        {
+          "baseline_test": "test/status-state.test.mjs#14",
+          "reason": "$.classifier_error: undefined",
+          "event_call": 4
+        }
+      ],
+      "skipped_snapshots": 6,
+      "remaining": [
+        "Two source route events explicitly own classifier_error=undefined. The complete source schedules execute in Node, but native Value cannot preserve explicit undefined ownership; those calls and six dependent snapshots are not differential evidence. Typed native regression covers local/cache/fallback and stale/agent/invalid/jev overwrite behavior with absent optional fields."
+      ],
+      "review_notes": [
+        "Full captured snapshot/render comparison checks values, types, omitted fields and exact strings. No numerical tolerance is used; object key order is not an observable JSON value distinction."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "pending",
+        "remaining": [
+          "Status generator includes ollama route but not local/cache/fallback evaluator/privacy matrix or stale/agent/invalid/jev overwrite sequence."
+        ]
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#15",
+      "name": "bounds retained sessions and model metadata and discards sensitive extras",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 365,
+      "baseline_definition_sha256": "c309ba1fec083abef17ceb0162ce0eaecd965e3ba6074427115fd39910f8c4d2",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 8,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::session_eviction_and_malformed_metadata_never_expose_private_extras"
+      ],
+      "shared_cases": [],
+      "direct_assertions": [
+        {
+          "line": 375,
+          "expression": "assert.equal(Object.keys(snapshot.sessions).length, 100)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/14/rust_tests",
+          "captured_cases_ref": "#/mappings/14/shared_cases"
+        },
+        {
+          "line": 376,
+          "expression": "assert.equal(snapshot.sessions['session-0'], undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/14/rust_tests",
+          "captured_cases_ref": "#/mappings/14/shared_cases"
+        },
+        {
+          "line": 377,
+          "expression": "assert.equal(snapshot.sessions['session-1'], undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/14/rust_tests",
+          "captured_cases_ref": "#/mappings/14/shared_cases"
+        },
+        {
+          "line": 378,
+          "expression": "assert.equal(snapshot.sessions['session-101'].selected_model, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/14/rust_tests",
+          "captured_cases_ref": "#/mappings/14/shared_cases"
+        },
+        {
+          "line": 379,
+          "expression": "assert.equal(snapshot.sessions['session-101'].requested_model, undefined)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/14/rust_tests",
+          "captured_cases_ref": "#/mappings/14/shared_cases"
+        },
+        {
+          "line": 380,
+          "expression": "assert.equal(snapshot.sessions['session-101'].error_type, 'unknown_error')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/14/rust_tests",
+          "captured_cases_ref": "#/mappings/14/shared_cases"
+        },
+        {
+          "line": 381,
+          "expression": "assert.ok(!readFileSync(state.path, 'utf8').includes('SECRET'))",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/14/rust_tests",
+          "captured_cases_ref": "#/mappings/14/shared_cases"
+        },
+        {
+          "line": 384,
+          "expression": "assert.ok(!readFileSync(state.path, 'utf8').includes('token_secret_without_spaces'))",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/14/rust_tests",
+          "captured_cases_ref": "#/mappings/14/shared_cases"
+        }
+      ],
+      "migration_boundaries": [
+        {
+          "baseline_test": "test/status-state.test.mjs#15",
+          "reason": "$.error: non-plain object",
+          "event_call": 103
+        }
+      ],
+      "skipped_snapshots": 1,
+      "remaining": [
+        "Source supplies an actual JavaScript Error instance in an unknown event property; the capture skips that nonplain event and its dependent snapshot. Native Value has no Error instance equivalent. The typed regression verifies the full102-session/invalid metadata/privacy schedule with a synthetic string in error, but does not establish arbitrary JavaScript object/getter behavior."
+      ],
+      "review_notes": [
+        "Full captured snapshot/render comparison checks values, types, omitted fields and exact strings. No numerical tolerance is used; object key order is not an observable JSON value distinction."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "partial",
+        "remaining": [
+          "Core and corpus prove100-session cap. Missing oversized/control-bearing model fields, arbitrary sensitive extras and unknown_error fallback combined after102 sessions."
+        ]
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#16",
+      "name": "coalesces updates and refreshes heartbeat without inference traffic",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 387,
+      "baseline_definition_sha256": "523e905096c37ad980d63502ea05960a849f85fd1b096e36fda4e498503e4dff",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::coalesced_updates_and_idle_heartbeat_use_the_injected_clock"
+      ],
+      "shared_cases": [],
+      "direct_assertions": [
+        {
+          "line": 392,
+          "expression": "assert.deepEqual(read(state).sessions, {})",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/15/rust_tests",
+          "captured_cases_ref": "#/mappings/15/shared_cases"
+        },
+        {
+          "line": 394,
+          "expression": "assert.equal(read(state).sessions['session-a'].phase, 'connecting')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/15/rust_tests",
+          "captured_cases_ref": "#/mappings/15/shared_cases"
+        },
+        {
+          "line": 397,
+          "expression": "assert.equal(read(state).heartbeat_at, 1005000)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/15/rust_tests",
+          "captured_cases_ref": "#/mappings/15/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [],
+      "review_notes": [
+        "Paused clock checks coalesced initial view, flushed connecting phase and exact heartbeat1005000."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "covered",
+        "remaining": []
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#17",
+      "name": "separate instances use isolated directories under the requested parent",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 400,
+      "baseline_definition_sha256": "2bebd38195bfd58ad2e8d4300bccf068307738179ed70875bbceca8bd73d0392",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::separate_instances_stay_isolated_under_the_requested_parent"
+      ],
+      "shared_cases": [],
+      "direct_assertions": [
+        {
+          "line": 405,
+          "expression": "assert.notEqual(first.path, second.path)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/16/rust_tests",
+          "captured_cases_ref": "#/mappings/16/shared_cases"
+        },
+        {
+          "line": 406,
+          "expression": "assert.equal(dirname(dirname(first.path)), parent)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/16/rust_tests",
+          "captured_cases_ref": "#/mappings/16/shared_cases"
+        },
+        {
+          "line": 409,
+          "expression": "assert.deepEqual(read(second).sessions, {})",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/16/rust_tests",
+          "captured_cases_ref": "#/mappings/16/shared_cases"
+        },
+        {
+          "line": 411,
+          "expression": "assert.ok(existsSync(second.path))",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/16/rust_tests",
+          "captured_cases_ref": "#/mappings/16/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [],
+      "review_notes": [
+        "Two real private directories under one requested parent; isolated snapshots and one close leaves the other file intact."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "covered",
+        "remaining": []
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#18",
+      "name": "unavailable storage and malformed telemetry never throw",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 414,
+      "baseline_definition_sha256": "06eaeb68e67215f5785c9a69a9341e85b3e4a6e4ec53182159b26025c13d4d19",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 5,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::unavailable_and_removed_storage_accepts_malformed_updates_without_side_effects"
+      ],
+      "shared_cases": [],
+      "direct_assertions": [
+        {
+          "line": 422,
+          "expression": "assert.equal(unavailable.path, null)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/17/rust_tests",
+          "captured_cases_ref": "#/mappings/17/shared_cases"
+        },
+        {
+          "line": 423,
+          "expression": "assert.doesNotReject(async () => { unavailable.update(event('request_start')); await unavailable.flush(); await unavailable.close(); })",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/17/rust_tests",
+          "captured_cases_ref": "#/mappings/17/shared_cases"
+        },
+        {
+          "line": 425,
+          "expression": "assert.doesNotThrow(() => { invalidOptions = createStatusState({ get directory() { throw new Error('bad directory'); } }); })",
+          "status": "explicit_api_adaptation",
+          "native_tests_ref": "#/mappings/17/rust_tests",
+          "captured_cases_ref": "#/mappings/17/shared_cases"
+        },
+        {
+          "line": 427,
+          "expression": "assert.equal(invalidOptions.path, null)",
+          "status": "explicit_api_adaptation",
+          "native_tests_ref": "#/mappings/17/rust_tests",
+          "captured_cases_ref": "#/mappings/17/shared_cases"
+        },
+        {
+          "line": 431,
+          "expression": "assert.doesNotReject(async () => {\n    state.update(null);\n    state.update({ get event() { throw new Error('bad telemetry'); } });\n    state.update(event('request_start'));\n    await state.flush();\n    await state.close();\n  })",
+          "status": "explicit_api_adaptation",
+          "native_tests_ref": "#/mappings/17/rust_tests",
+          "captured_cases_ref": "#/mappings/17/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [
+        "Native storage cases cover non-directory parent, removed storage, null/array/malformed telemetry, fail-soft update/flush/close and no file recreation. Throwing JavaScript option/telemetry getters have no native typed API counterpart and remain an explicit adaptation."
+      ],
+      "review_notes": [
+        "Full captured snapshot/render comparison checks values, types, omitted fields and exact strings. No numerical tolerance is used; object key order is not an observable JSON value distinction."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "partial",
+        "remaining": [
+          "No native regression for parent path being a regular file, directory removal after readiness and null/malformed update no-throw; throwing JS options/getters require boundary rationale."
+        ]
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#19",
+      "name": "session savings include overlapping and background calls without changing the foreground model",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 440,
+      "baseline_definition_sha256": "e257c7d4f99dfd98dacbbff3b1b6f3c955ccc548d414faa3028a1a2975ffc2f6",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 8,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/status_state.rs#status_state::tests::frozen_status_schedules_match_complete_saved_snapshots_and_rendered_strings"
+      ],
+      "shared_cases": [
+        "baseline-status-state-19-1",
+        "baseline-status-state-19-2"
+      ],
+      "direct_assertions": [
+        {
+          "line": 458,
+          "expression": "assert.equal(snapshot.sessions['session-a'].actual_model, 'claude-opus-5-5')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/18/rust_tests",
+          "captured_cases_ref": "#/mappings/18/shared_cases"
+        },
+        {
+          "line": 459,
+          "expression": "assert.equal(snapshot.sessions['session-a'].request_id, 'latest')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/18/rust_tests",
+          "captured_cases_ref": "#/mappings/18/shared_cases"
+        },
+        {
+          "line": 461,
+          "expression": "assert.equal(savings.requests, 3)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/18/rust_tests",
+          "captured_cases_ref": "#/mappings/18/shared_cases"
+        },
+        {
+          "line": 462,
+          "expression": "assert.equal(savings.unpriced_requests, 0)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/18/rust_tests",
+          "captured_cases_ref": "#/mappings/18/shared_cases"
+        },
+        {
+          "line": 463,
+          "expression": "assert.ok(Math.abs(savings.actual_usd - 0.0105) < 1e-12)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/18/rust_tests",
+          "captured_cases_ref": "#/mappings/18/shared_cases"
+        },
+        {
+          "line": 464,
+          "expression": "assert.ok(Math.abs(savings.baseline_usd - 0.018) < 1e-12)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/18/rust_tests",
+          "captured_cases_ref": "#/mappings/18/shared_cases"
+        },
+        {
+          "line": 465,
+          "expression": "assert.ok(Math.abs(savings.saved_usd - 0.0075) < 1e-12)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/18/rust_tests",
+          "captured_cases_ref": "#/mappings/18/shared_cases"
+        },
+        {
+          "line": 469,
+          "expression": "assert.deepEqual(snapshot.savings['session-a'], savings)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/18/rust_tests",
+          "captured_cases_ref": "#/mappings/18/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [],
+      "review_notes": [
+        "Full captured snapshot/render comparison checks values, types, omitted fields and exact strings. No numerical tolerance is used; object key order is not an observable JSON value distinction."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "partial",
+        "remaining": [
+          "Pure savings overlap is tested independently. Missing StatusState integrated background/older/latest calls with exact cumulative0.0105/0.018/0.0075 and foreground unchanged across next turn."
+        ]
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#20",
+      "name": "a blocked snapshot leaves inference streaming and coalesces a large burst into one latest snapshot",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 472,
+      "baseline_definition_sha256": "f5f78dc435a38181f80105341e182e8c1aa88ee48be791370706ab70efa9ac60",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 8,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::blocked_native_snapshot_preserves_file_and_allows_complete_duplex_stream",
+        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::flush_retains_shared_drain_until_updates_accepted_during_write_are_saved",
+        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::multiple_flushers_share_one_drain_without_waiting_for_the_next_drain"
+      ],
+      "shared_cases": [],
+      "direct_assertions": [
+        {
+          "line": 479,
+          "expression": "assert.deepEqual(read(state).sessions, {}, 'Atomic replacement preserves the previous complete snapshot')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/19/rust_tests",
+          "captured_cases_ref": "#/mappings/19/shared_cases"
+        },
+        {
+          "line": 491,
+          "expression": "assert.equal(delivered.length, 10, 'The whole mock inference stream finishes while disk I/O is blocked')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/19/rust_tests",
+          "captured_cases_ref": "#/mappings/19/shared_cases"
+        },
+        {
+          "line": 492,
+          "expression": "assert.equal(storage.snapshots.length, 2, 'No snapshot copies or writes accumulate behind the blocked writer')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/19/rust_tests",
+          "captured_cases_ref": "#/mappings/19/shared_cases"
+        },
+        {
+          "line": 493,
+          "expression": "assert.equal(storage.maximum, 1)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/19/rust_tests",
+          "captured_cases_ref": "#/mappings/19/shared_cases"
+        },
+        {
+          "line": 496,
+          "expression": "assert.equal(storage.snapshots.length, 3)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/19/rust_tests",
+          "captured_cases_ref": "#/mappings/19/shared_cases"
+        },
+        {
+          "line": 497,
+          "expression": "assert.equal(read(state).sessions['session-a'].request_id, 'burst-1999')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/19/rust_tests",
+          "captured_cases_ref": "#/mappings/19/shared_cases"
+        },
+        {
+          "line": 498,
+          "expression": "assert.equal(read(state).sessions['session-a'].selected_model, 'claude-sonnet-5-5')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/19/rust_tests",
+          "captured_cases_ref": "#/mappings/19/shared_cases"
+        },
+        {
+          "line": 499,
+          "expression": "assert.deepEqual(readdirSync(dirname(state.path)), ['state.json'])",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/19/rust_tests",
+          "captured_cases_ref": "#/mappings/19/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [],
+      "review_notes": [
+        "Native duplex byte stream with ten actual writes/reads completes while native filesystem snapshot2 is blocked. Exact prior file bytes,4000 update calls, maximum concurrency1, exactly3 snapshots and final burst1999/model match. New barrier regression reproduced early flush return and now checks shared drain through blocked snapshot3."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "partial",
+        "remaining": [
+          "Controlled I/O now proves old snapshot retention,2000-update coalescing and ten chunks of unrelated asynchronous work finishing while blocked. The baseline whole HTTP/inference streaming pipeline and explicit maximum writer concurrency remain unmapped."
+        ]
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#21",
+      "name": "close drains the accepted latest state before deletion and cannot recreate status files",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 502,
+      "baseline_definition_sha256": "ae3c08815e5981262a3b303b74cf10897ef8f88d11d285c5f85db5ad54945096",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 8,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::concurrent_close_callers_wait_for_one_native_drain_and_cannot_recreate_files"
+      ],
+      "shared_cases": [],
+      "direct_assertions": [
+        {
+          "line": 512,
+          "expression": "assert.equal(state.close(), closing, 'Concurrent shutdown callers share the same drain')",
+          "status": "explicit_api_adaptation",
+          "native_tests_ref": "#/mappings/20/rust_tests",
+          "captured_cases_ref": "#/mappings/20/shared_cases"
+        },
+        {
+          "line": 517,
+          "expression": "assert.equal(closed, false)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/20/rust_tests",
+          "captured_cases_ref": "#/mappings/20/shared_cases"
+        },
+        {
+          "line": 518,
+          "expression": "assert.equal(existsSync(directory), true)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/20/rust_tests",
+          "captured_cases_ref": "#/mappings/20/shared_cases"
+        },
+        {
+          "line": 521,
+          "expression": "assert.equal(storage.snapshots.at(-1).sessions['session-a'].selected_model, 'claude-opus-5-5')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/20/rust_tests",
+          "captured_cases_ref": "#/mappings/20/shared_cases"
+        },
+        {
+          "line": 522,
+          "expression": "assert.equal(storage.snapshots.at(-1).sessions['session-a'].request_id, 'request-1')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/20/rust_tests",
+          "captured_cases_ref": "#/mappings/20/shared_cases"
+        },
+        {
+          "line": 523,
+          "expression": "assert.equal(storage.maximum, 1)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/20/rust_tests",
+          "captured_cases_ref": "#/mappings/20/shared_cases"
+        },
+        {
+          "line": 524,
+          "expression": "assert.equal(existsSync(directory), false)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/20/rust_tests",
+          "captured_cases_ref": "#/mappings/20/shared_cases"
+        },
+        {
+          "line": 527,
+          "expression": "assert.equal(existsSync(directory), false)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/20/rust_tests",
+          "captured_cases_ref": "#/mappings/20/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [
+        "Concurrent native shutdown futures now share one actual drain/removal and preserve accepted/latest state, reject later events and cannot recreate files. JavaScript close() returns the same Promise object; Rust async futures have no equivalent JavaScript reference-identity assertion."
+      ],
+      "review_notes": [
+        "Full captured snapshot/render comparison checks values, types, omitted fields and exact strings. No numerical tolerance is used; object key order is not an observable JSON value distinction."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "partial",
+        "remaining": [
+          "Controlled I/O now proves latest accepted state drains, post-close events reject and repeated close/flush cannot write after deletion. Explicit concurrent-close shared completion identity/count and native file recreation schedule remain unmapped."
+        ]
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#22",
+      "name": "readiness fails soft on stalled storage while close retains ownership of the late write",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 530,
+      "baseline_definition_sha256": "e25b781d6e920fbfa57b4fe50533ed4693d844fb6d9abb6797429f1ce2ad61a4",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 4,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::stalled_initial_native_write_times_out_ignores_updates_and_leaves_empty_parent"
+      ],
+      "shared_cases": [],
+      "direct_assertions": [
+        {
+          "line": 536,
+          "expression": "assert.equal(state.path, null, 'No partial initial snapshot is exposed')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/21/rust_tests",
+          "captured_cases_ref": "#/mappings/21/shared_cases"
+        },
+        {
+          "line": 540,
+          "expression": "assert.equal(state.path, null)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/21/rust_tests",
+          "captured_cases_ref": "#/mappings/21/shared_cases"
+        },
+        {
+          "line": 545,
+          "expression": "assert.deepEqual(readdirSync(parent), [])",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/21/rust_tests",
+          "captured_cases_ref": "#/mappings/21/shared_cases"
+        },
+        {
+          "line": 546,
+          "expression": "assert.equal(storage.snapshots.length, 1)",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/21/rust_tests",
+          "captured_cases_ref": "#/mappings/21/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [],
+      "review_notes": [
+        "Actual private parent with blocked initial native write; unpublished path, explicit1s paused deadline, ignored post-disable event, close owns late write, exactlyone snapshot and empty parent."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "partial",
+        "remaining": [
+          "Paused-time native test covers1s readiness failure and late writer ownership. Missing update-after-disabled plus exact one-write count and empty real parent directory assertions."
+        ]
+      }
+    },
+    {
+      "baseline_test": "test/status-state.test.mjs#23",
+      "name": "write failure cleans the temporary file and a later snapshot can recover without rejecting",
+      "baseline_file_sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa",
+      "baseline_line": 549,
+      "baseline_definition_sha256": "c1958c820e1884f8dc7bf07c80061772d0cecc6a8384279272068483f4078508",
+      "baseline_inventory_parameterized": false,
+      "reviewed_assertion_calls": 3,
+      "parameter_review": "All original definition assertions and local loops executed unchanged in frozen Node; native counterpart follows the complete captured event prefix or named storage schedule. Explicit skipped inputs invalidate dependent snapshots.",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::failed_native_rename_removes_temporary_file_and_can_retry",
+        "rust/crates/autorouter-runtime/src/status_store.rs#status_store::tests::failed_snapshot_keeps_previous_file_and_later_update_recovers"
+      ],
+      "shared_cases": [],
+      "direct_assertions": [
+        {
+          "line": 558,
+          "expression": "assert.deepEqual(read(state).sessions, {})",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/22/rust_tests",
+          "captured_cases_ref": "#/mappings/22/shared_cases"
+        },
+        {
+          "line": 559,
+          "expression": "assert.deepEqual(readdirSync(dirname(state.path)), ['state.json'])",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/22/rust_tests",
+          "captured_cases_ref": "#/mappings/22/shared_cases"
+        },
+        {
+          "line": 563,
+          "expression": "assert.equal(read(state).sessions['session-a'].selected_model, 'claude-sonnet-5-5')",
+          "status": "represented",
+          "native_tests_ref": "#/mappings/22/rust_tests",
+          "captured_cases_ref": "#/mappings/22/shared_cases"
+        }
+      ],
+      "migration_boundaries": [],
+      "skipped_snapshots": 0,
+      "remaining": [],
+      "review_notes": [
+        "Two complementary native regressions: real rename failure after temp-file creation leaves no temp file and preserves destination; worker injected failure preserves previous snapshot and a later route update recovers. Both use native filesystem paths, and error conditions cannot reject the store caller."
+      ],
+      "previous_mapping": {
+        "path": "rust/parity/assertion-mappings/storage-status-history.json",
+        "sha256": "5dd41ad3490cfa2aded9f3a0b8079e3a3d20bb183299155ae5aed5a5c58edda1",
+        "status": "pending",
+        "remaining": [
+          "No injected rename-failure regression proves temporary-file cleanup, retained old snapshot and successful later recovery."
+        ]
+      }
+    }
+  ],
+  "status": "Reviewed assertion mapping: 19 covered and 4 partial; skipped JavaScript API semantics remain explicitly partial."
+}

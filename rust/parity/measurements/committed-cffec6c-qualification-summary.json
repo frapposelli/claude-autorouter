@@ -1,0 +1,402 @@
+{
+  "schema_version": 1,
+  "kind": "committed_cffec_historical_qualification_summary",
+  "status": "reviewed_historical_checkpoint_only",
+  "scope": "Retained CI/local artifact and report read-back only. No CI starts/network/downloads/builds/providers/model calls or canonical edits. The exact historical source is qualified only for the stated checks; later dirty/Git-supplier/test work is excluded.",
+  "source_identity": {
+    "trigger_and_local_commit": "cffec6c187459caa31e0cee9473b081d15809d37",
+    "actual_ci_checkout_commit": "769f4a86ec8966e07167e508eba4ebcaf89251f6",
+    "git_tree": "0297b51410c3e954a0b670186b44eb84edc90a4a",
+    "same_tree_verified_from_retained_GitHub_commit_metadata": true,
+    "source_commit_identity_is_not_binary_reproduction": true,
+    "lock_sha256_at_checkpoint": "bfc3a2e68129631c068663466cdd1556b2491daae7d8bbd6ee3def0ea1504c20",
+    "merge_identity_evidence": {
+      "path": "artifacts/rust-rewrite/cffec6c-ci-20261014-1/peer-ci-merge-head-source-1.json",
+      "bytes": 1208,
+      "sha256": "ee05de575a334de2ebbb989779c345f15655837fdc3c8d288ce75f2425d8c47a"
+    }
+  },
+  "ci": {
+    "main": {
+      "run_id": 38566195715,
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": 8,
+      "metadata": {
+        "path": "artifacts/rust-rewrite/cffec6c-ci-20261014-1/peer-main-terminal-1-run.json",
+        "bytes": 37271,
+        "sha256": "baa465e2d82501f76c3ed6b182be04192764015505d7a7bbd74f3d7d9fd8bdb1"
+      }
+    },
+    "gnu_glibc228": {
+      "run_id": 38566195708,
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": 2,
+      "metadata": {
+        "path": "artifacts/rust-rewrite/cffec6c-ci-20261014-1/peer-gnu-terminal-1-run.json",
+        "bytes": 17152,
+        "sha256": "9f3dd9189663cbcc64de1b79447702b1f4ae8bcf8e6011610781e02d7bea8917"
+      }
+    },
+    "main_and_gnu_jobs_successful": 10,
+    "required_node_jobs_retained": 4,
+    "native_main_jobs": 4,
+    "gnu_jobs": 2,
+    "all_successful_jobs": [
+      {
+        "name": "Rust / macos-15",
+        "job_id": 115859373663,
+        "conclusion": "success",
+        "completed_at": "2026-10-14T12:58:29Z"
+      },
+      {
+        "name": "Node 22 / macos-latest",
+        "job_id": 115859373907,
+        "conclusion": "success",
+        "completed_at": "2026-10-14T12:45:46Z"
+      },
+      {
+        "name": "Rust / ubuntu-24.04",
+        "job_id": 115859373912,
+        "conclusion": "success",
+        "completed_at": "2026-10-14T12:57:30Z"
+      },
+      {
+        "name": "Rust / macos-15-intel",
+        "job_id": 115859374018,
+        "conclusion": "success",
+        "completed_at": "2026-10-14T13:21:01Z"
+      },
+      {
+        "name": "Node 24 / ubuntu-latest",
+        "job_id": 115859374216,
+        "conclusion": "success",
+        "completed_at": "2026-10-14T12:45:40Z"
+      },
+      {
+        "name": "Rust / ubuntu-24.04-arm",
+        "job_id": 115859374287,
+        "conclusion": "success",
+        "completed_at": "2026-10-14T12:55:12Z"
+      },
+      {
+        "name": "Node 22 / ubuntu-latest",
+        "job_id": 115859374324,
+        "conclusion": "success",
+        "completed_at": "2026-10-14T12:45:33Z"
+      },
+      {
+        "name": "Node 24 / macos-latest",
+        "job_id": 115859374693,
+        "conclusion": "success",
+        "completed_at": "2026-10-14T12:45:43Z"
+      },
+      {
+        "name": "GNU glibc 2.28 / aarch64-unknown-linux-gnu",
+        "job_id": 115859373673,
+        "conclusion": "success",
+        "completed_at": "2026-10-14T12:59:08Z"
+      },
+      {
+        "name": "GNU glibc 2.28 / x86_64-unknown-linux-gnu",
+        "job_id": 115859374286,
+        "conclusion": "success",
+        "completed_at": "2026-10-14T13:02:55Z"
+      }
+    ],
+    "full_matrix_passed": false,
+    "retained_CI_archives_reported": {
+      "archives": 12,
+      "installed_checks_per_archive": 78,
+      "suites_per_archive": 7,
+      "total_installed_test_executions": 936,
+      "scope": "Exact six CI artifact reports for npm/direct; small reports read without fetching binary/archive members. Archive checks are reported CI evidence, not independent local remote-archive digest verification.",
+      "evidence": {
+        "path": "artifacts/rust-rewrite/cffec6c-ci-20261014-1/peer-main-gnu-status-review-1.json",
+        "bytes": 52062,
+        "sha256": "dae42a40dc2f6143f31f1775a70cccbf81c00f819f25eac16a703eacf210a2be"
+      }
+    },
+    "core32": {
+      "run_id": 38566195770,
+      "passed": 207,
+      "failed": 0,
+      "ignored": 0,
+      "actual_ELF32_groups": 12,
+      "target": "i686-unknown-linux-gnu",
+      "mandatory_source_number_controls": [
+        "router::tests::deferred_context_charge_matches_actual_source_above_u32_without_mutation",
+        "router::tests::context_charge_preserves_source_number_operation_order_and_json_shape",
+        "router::tests::unavailable_context_length_requires_capacity_check_without_fake_bytes"
+      ],
+      "scope": "Actual32-bit core arithmetic/API and consumer-compiler context only. No runtime/CLI/installed i686 support, minimum glibc/kernel/CPU fleet, other32-bit target or full rewrite proof.",
+      "metadata": {
+        "path": "artifacts/rust-rewrite/cffec6c-ci-20261014-1/peer-core32-run.json",
+        "bytes": 2511,
+        "sha256": "56b5d7291ba668e355b0b7ff13ec4f22128246ba5e8e9a2086bf1d636bd03151"
+      },
+      "evidence": {
+        "path": "artifacts/rust-rewrite/cffec6c-ci-20261014-1/peer-core32-status-review.json",
+        "bytes": 29551,
+        "sha256": "372c0cb90af10c77ecf54ad4aab0839aa555f4353e35e22524af8f7567a7dcfc"
+      }
+    },
+    "musl": {
+      "run_id": 38566195713,
+      "status": "completed",
+      "conclusion": "failure",
+      "jobs_failed": 2,
+      "targets": [
+        "aarch64-unknown-linux-musl",
+        "x86_64-unknown-linux-musl"
+      ],
+      "failed_unit_tests": [
+        "secret_input::tests::leaving_hidden_input_discards_queued_bytes_before_restoring_echo",
+        "secret_input::tests::restoration_does_not_wait_for_stopped_terminal_output"
+      ],
+      "CLI_units_each": {
+        "passed": 33,
+        "failed": 2,
+        "ignored": 0
+      },
+      "scope": "Real workspace PTY restoration assertions failed on botharches; current-run SDK/build/compiler context progressed beyond earlier failures. Subsequent installed/static/mixedGNU stages do not qualify. Later reviewed Nix initialization correction is not retroactive success.",
+      "metadata": {
+        "path": "artifacts/rust-rewrite/cffec6c-ci-20261014-1/peer-musl-failed-run.json",
+        "bytes": 5593,
+        "sha256": "6e35d3cf1d4c54290de40262ba3cfaa2e8b3031e0c8a0f1dea550a63dff6190f"
+      },
+      "raw_failed_log": {
+        "path": "artifacts/rust-rewrite/cffec6c-ci-20261014-1/peer-musl-failed.log",
+        "bytes": 700027,
+        "sha256": "2ff243a742063bf6bb2eeb2fd0ed198eac513dffaad855e236c7300103cc897a"
+      }
+    }
+  },
+  "local_host": {
+    "target": "aarch64-apple-darwin",
+    "ordinary_binary": {
+      "path": "artifacts/rust-rewrite/cffec6c-host-20261014-1/claude-autorouter",
+      "bytes": 12958848,
+      "sha256": "83776a587feb0347a29986bd55cea00c3401d6d17d2b764c42aa7c4d01c04e9b"
+    },
+    "source_clean": true,
+    "all_tracked_inputs_checked_before_after": 1147,
+    "ordinary_CLI_built_before_helper": true,
+    "identity": {
+      "path": "artifacts/rust-rewrite/cffec6c-host-20261014-1/identity.json",
+      "bytes": 461,
+      "sha256": "cd8e6cc300fbe85018061ff7e135060627044d120ba680d1e3d9c038552a62dc"
+    },
+    "archives": [
+      {
+        "distribution": "npm",
+        "archive": {
+          "path": "artifacts/rust-rewrite/cffec6c-host-20261014-1/npm/claude-autorouter-0.5.2.tgz",
+          "bytes": 6007502,
+          "sha256": "0268e6dfcbd891dab1af2b8883e62d684f1d1787fa196f7bdf405537ebd8ede8"
+        },
+        "installed_checks": 78,
+        "suites": 7,
+        "passed": true
+      },
+      {
+        "distribution": "direct",
+        "archive": {
+          "path": "artifacts/rust-rewrite/cffec6c-host-20261014-1/direct/claude-autorouter-0.5.2-aarch64-apple-darwin.tar.gz",
+          "bytes": 5840665,
+          "sha256": "c2cb67c809b53ee7040c86826373e0189af47c7d3d5e05ecf4a515b39c1b8dac"
+        },
+        "installed_checks": 78,
+        "suites": 7,
+        "passed": true
+      }
+    ],
+    "qualification": "Current-host exact npm/direct archives with synthetic Claude/evaluator and no Node execution PATH. No oldestOS/otherCPU/corporateTLS/realprovider/release or fullmatrix approval.",
+    "evidence": {
+      "path": "artifacts/rust-rewrite/cffec6c-host-20261014-1/host-archives-independent-review.json",
+      "bytes": 6898,
+      "sha256": "57cb1c6fdaf2175d3e44a11a6cdf5b816ab10ac9e1b6d6a9ea2db30e38e052f5"
+    },
+    "source_transfer_historical": {
+      "expanded_bytes": 33551872,
+      "cap": 33554432,
+      "headroom_bytes": 2560,
+      "evidence": {
+        "path": "artifacts/rust-rewrite/cffec6c-host-20261014-1/transfer/transfer-manifest.json",
+        "bytes": 913,
+        "sha256": "a59c418b6df2e773135ba9412c6f133e87e6e9d5dae7c71cedd40449329e6d8b"
+      },
+      "qualification": "Exact earlier cffec transfer only. No qualification transfer to later larger source/new supplier/test batch."
+    }
+  },
+  "whole_connection": {
+    "completed": true,
+    "paired_rounds": 5,
+    "proof_rows": 22000,
+    "measured_samples": 20000,
+    "warmup_samples": 2000,
+    "all_proof_and_loopback_rows_match_between_engines": true,
+    "nearest_rank_percentiles_independently_recomputed": true,
+    "p95_ratios": [
+      0.48868944497055233,
+      0.490814255364924,
+      0.6389896896137041,
+      0.5690761936757278,
+      0.5039313933591572
+    ],
+    "interval": {
+      "median": 0.5039313933591572,
+      "low": 0.48868944497055233,
+      "high": 0.6389896896137041
+    },
+    "bootstrap_interval_scope": "Reported5000 seeded paired-bootstrap interval and earlier root recomputation agree; this peer independently recomputes each per-round percentile and median, not another seeded-bootstrap execution.",
+    "threshold": 0.5,
+    "status": "inconclusive",
+    "target_met": false,
+    "representative_hardware_accepted": false,
+    "shipping_artifact_qualified": false,
+    "conditions": "Normal-use16GiB AppleM4; recorded power/load/memory conditions, all samples retained. Controlled representative hardware and shipping artifact qualification remain open.",
+    "report": {
+      "path": "artifacts/rust-rewrite/cffec6c-whole-measurement-20261014-1/report.json",
+      "bytes": 41693673,
+      "sha256": "f95fa391dd4f7afca2218e211c373877c5b1146524da8e3b138f155609c0221c"
+    },
+    "preflight": {
+      "path": "artifacts/rust-rewrite/cffec6c-whole-measurement-20261014-1/preflight.json",
+      "bytes": 112013,
+      "sha256": "6c14c98d41fda8c33cd0e3db45a8a184ec7671306720fe2cc34a4328fc1a799c"
+    },
+    "earlier_root_review": {
+      "path": "artifacts/rust-rewrite/cffec6c-host-20261014-1/whole-independent-review.json",
+      "bytes": 1110,
+      "sha256": "13537fda84381a80d63e178f26ac5aa7860c3a182249f7b7003a20b6e3406080"
+    },
+    "execution": {
+      "path": "artifacts/rust-rewrite/cffec6c-host-20261014-1/whole-measurement-execution.json",
+      "bytes": 583,
+      "sha256": "ef493bbfe7d1c94755f9e9035cf86d9a25dde92a9f390da980c9738abd99cece"
+    },
+    "round_reports": [
+      {
+        "path": "artifacts/rust-rewrite/cffec6c-whole-measurement-20261014-1/round-1-node.json",
+        "bytes": 3894669,
+        "sha256": "ba631aa0186ff1c422ec608e3a4cd23b8b46a96960927a09cad6e91143d3ef7f"
+      },
+      {
+        "path": "artifacts/rust-rewrite/cffec6c-whole-measurement-20261014-1/round-1-rust.json",
+        "bytes": 3880795,
+        "sha256": "2e30de40e7902a2fc804e8282d9b461b982c7ced1b2840f203d01ab1eeae7282"
+      },
+      {
+        "path": "artifacts/rust-rewrite/cffec6c-whole-measurement-20261014-1/round-2-rust.json",
+        "bytes": 3881352,
+        "sha256": "408722d94fa9ecada923c197be60e0da14adcd82888e172718e88aff9c5e5715"
+      },
+      {
+        "path": "artifacts/rust-rewrite/cffec6c-whole-measurement-20261014-1/round-2-node.json",
+        "bytes": 3894669,
+        "sha256": "f8021217bd276dd403d480d7b7bd1964ee360c5ebba4b8b8e954dd6f7696859b"
+      },
+      {
+        "path": "artifacts/rust-rewrite/cffec6c-whole-measurement-20261014-1/round-3-node.json",
+        "bytes": 3894695,
+        "sha256": "9375be4b80ba583207a896a5c514f5e67ded7c6ddcec768391bf0e3bbd45a99d"
+      },
+      {
+        "path": "artifacts/rust-rewrite/cffec6c-whole-measurement-20261014-1/round-3-rust.json",
+        "bytes": 3881079,
+        "sha256": "17c967fe7de8cfa5df54309252ce02e39680aa9b3df6a0cedcadc3483ae3bf44"
+      },
+      {
+        "path": "artifacts/rust-rewrite/cffec6c-whole-measurement-20261014-1/round-4-rust.json",
+        "bytes": 3880957,
+        "sha256": "2dcaaf93c8e3452812e0eadc6385b5894b370c7b69b3de5b7fa41d90c6595a85"
+      },
+      {
+        "path": "artifacts/rust-rewrite/cffec6c-whole-measurement-20261014-1/round-4-node.json",
+        "bytes": 3894793,
+        "sha256": "673804dcdcf8713929f8f25307a85c0b85526d3eb9f9c966ef826243b76f5d2d"
+      },
+      {
+        "path": "artifacts/rust-rewrite/cffec6c-whole-measurement-20261014-1/round-5-node.json",
+        "bytes": 3895088,
+        "sha256": "e97dabcb077f494ed73cb0f2aa9e6dc0b8787f42fa0ebf3ea47c17e12d3aa88a"
+      },
+      {
+        "path": "artifacts/rust-rewrite/cffec6c-whole-measurement-20261014-1/round-5-rust.json",
+        "bytes": 3881086,
+        "sha256": "5844545f0bbd0e2a530f8704cb3c341f3bec9c20477463438bcab362fcfd0e85"
+      }
+    ],
+    "preview_activity": {
+      "path": "artifacts/rust-rewrite/cffec6c-host-20261014-1/preview-validation-during-measurement.json",
+      "bytes": 633,
+      "sha256": "c97e881e2158f03c7c8c1e1c7cfe9d33b8d73220ceeef4585ce927bb9dceca0e"
+    },
+    "preview_activity_correction": {
+      "path": "artifacts/rust-rewrite/cffec6c-host-20261014-1/preview-event-timing-review.json",
+      "sha256": "418c4959142197e8a36b0fce80b1a540be8dc57caff5a2219ee6cafd5d5b7ff7",
+      "bytes": 558,
+      "actual_overlap_proven": false,
+      "initial_observation_retained": true,
+      "all_samples_retained": true
+    }
+  },
+  "live_comparison": {
+    "complete": false,
+    "completed_admitted_pairs": 0,
+    "native_engine_admitted": false,
+    "execution_exit_code": 1,
+    "rejection_reason": "Actual frozen Node gateway identity differs",
+    "relative_gates_passed": false,
+    "absolute_quality_qualified": false,
+    "actual_provider_call_count": "unknown; planned invocations/cases are not actual billed calls",
+    "credentials_persisted": false,
+    "nested_abnormal_cleanup_verified": false,
+    "scope": "First Node helper spawned and returned bounded complete output, exit1; identity admission rejected its report and stopped further paid admissions. No accepted raw report, relative native comparison or completed-task/provider-quality proof. Subsequent tool correction cannot relabel this incomplete run.",
+    "comparison": {
+      "path": "artifacts/rust-rewrite/cffec6c-live-run-20261014-1/comparison.json",
+      "bytes": 614,
+      "sha256": "e36184781959ac63b7b938c6ffd8e2cd55a7d90cb1da499ee5e6f4769d2b1a05"
+    },
+    "rejection": {
+      "path": "artifacts/rust-rewrite/cffec6c-live-run-20261014-1/compatible-1-node-reference-rejected.json",
+      "bytes": 129,
+      "sha256": "9820ab795e2d0b235699792a69383210a1c31f7764005a09955f33c242e0f528"
+    },
+    "helper_execution": {
+      "path": "artifacts/rust-rewrite/cffec6c-live-run-20261014-1/compatible-1-node-reference-execution.json",
+      "bytes": 471,
+      "sha256": "a617bd3337ffd8015b78c7c54e3cd22901c5a148771d3d6b5f42d940a81fa4bb"
+    },
+    "run_execution": {
+      "path": "artifacts/rust-rewrite/cffec6c-host-20261014-1/live-run-execution.json",
+      "bytes": 1109,
+      "sha256": "f2fdd833446051e37e1377ceb893f188f1d052f996d8dd94bb305d58760b2914"
+    }
+  },
+  "remaining_gates": [
+    "Current source/new supplier full combined checks, actual musl rerun and protected preview/source identities",
+    "Original partial parity/API migrations under specific evidence; no area-wide promotion",
+    "Full declared11-target plus unresolvedbaseline support disposition, minimumOS/kernel/libc/CPU/WSL/DNS/corporateTLS/PTy/fullinstalled and exactaggregate artifact caps",
+    "Current complete source transfer under unchanged32MiB with every original input present",
+    "Unchanged controlled performance/resource/soak/allocation/retained-state workloads; whole0.5 gate stillunmet",
+    "Identity-valid complete paired realClaude/Jev relative/task/per-tier coverage and actual cleanup evidence",
+    "LargerMac local-model trial deferred byuser, noresult",
+    "License/provenance/reproduction and reviewed upgrade/rollback/release/defaultcutover; shippingNodeversion unchanged"
+  ],
+  "promotions": {
+    "later_source_qualified": false,
+    "complete_platform_matrix": false,
+    "full_rust_goal_complete": false,
+    "npm_published": false,
+    "default_cutover": false
+  },
+  "discrepancies": [],
+  "root_readback": {
+    "candidate_sha256": "0b106b675728c652fd8240ae60b80603248e28b99c402a4446e8061fa8371e23",
+    "bound_files_checked": 33,
+    "later_source_qualification": false
+  }
+}

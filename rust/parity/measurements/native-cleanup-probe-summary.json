@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "kind": "native_cleanup_probe_containment_resume_checkpoint",
+  "date": "2026-10-13",
+  "source_uncommitted": true,
+  "release_approved": false,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "correction": "Contain an ordinary public liveness-probe panic and skip only that directory, matching the frozen source catch/continue. A failed probe is not a dead-process verdict, even with a stale heartbeat.",
+  "tests": {
+    "existing_cleanup_library_tests_passed": 7,
+    "new_subprocess_parent_regression_passed": true,
+    "isolated_child_regression_executed": true,
+    "default_ignored_child_not_counted_as_skipped_coverage": true,
+    "native_and_source_callback_order": [
+      1,
+      2,
+      3
+    ],
+    "native_and_source_removed": 1,
+    "native_and_source_directory_existence": [
+      true,
+      false,
+      true
+    ],
+    "failed_probe_settings_unchanged": true,
+    "private_panic_payload_absent_from_child_stdout_stderr": true,
+    "previous_host_hook_delegation_occurrences": 1,
+    "historical_safe_pid_rows_unchanged": 34,
+    "focused_strict_clippy_passed": true,
+    "owned_sources_unchanged_during_checks": true
+  },
+  "artifacts": {
+    "original_throw_continuation": {
+      "path": "artifacts/rust-rewrite/status-cleanup-probe-20261013/frozen-original-control.json",
+      "sha256": "3e5c0b1739f8c411c51501e1cc071cf56f7ae3461a3c2b023cf75290dfaf602a",
+      "original_source_sha256": "2f0c08c4b6aef4070c0105c3a87b68a412f448ca90be4ce8859e1b74662f3aea"
+    },
+    "native_execution": {
+      "path": "artifacts/rust-rewrite/status-cleanup-probe-20261013/execution-report.json",
+      "sha256": "f83eb76aef234961d271d47588c1e5a3344c754905cc92d8d1f3e85817bb445e"
+    },
+    "pre_probe_native_source": {
+      "path": "artifacts/rust-rewrite/status-cleanup-probe-20261013/before-status_cleanup.rs",
+      "sha256": "f9fd79858bb6de4ebbc04a5fce8cb2611d80a81ab0edcc4d572c961379f2093a"
+    },
+    "fresh_safe_pid_matrix": {
+      "path": "artifacts/rust-rewrite/status-cleanup-probe-20261013/after-safe-pid-matrix.json",
+      "sha256": "42492635bf6ec2727ea438eddbe86aa12a86f9dfabd31bc021d54fe5950d63a9"
+    },
+    "preserved_historical_safe_pid_matrix": {
+      "path": "artifacts/rust-rewrite/status-cleanup-safe-pid-native-20261013.json",
+      "sha256": "42492635bf6ec2727ea438eddbe86aa12a86f9dfabd31bc021d54fe5950d63a9"
+    }
+  },
+  "source_inputs": [
+    {
+      "path": "rust/crates/autorouter-runtime/src/status_cleanup.rs",
+      "sha256": "ba083c4840241585de721778d082b904d315327c00b7fefbdc118aa142a0d94c",
+      "snapshot": "artifacts/rust-rewrite/status-cleanup-probe-20261013/sources/rust/crates/autorouter-runtime/src/status_cleanup.rs"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/status_cleanup_probe.rs",
+      "sha256": "2993ae386c1d6e7c3002843053d4c5c4895a2dbaede9542aacabc3f9f17884a3",
+      "snapshot": "artifacts/rust-rewrite/status-cleanup-probe-20261013/sources/rust/crates/autorouter-runtime/tests/status_cleanup_probe.rs"
+    }
+  ],
+  "conditions": {
+    "now_ms": 1800000000000,
+    "directory_age_ms": 30000,
+    "failed_probe_heartbeat_age_ms": 86400001,
+    "directory_mode": "0700",
+    "snapshot_and_settings_mode": "0600",
+    "actual_private_files": true,
+    "provider_calls_performed": false,
+    "keychain_calls_performed": false
+  },
+  "validation_environment": {
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0"
+  },
+  "scope_limits": [
+    "Ordinary unwinding callback panics only. Explicit initialize_observer_privacy before workers is still required to suppress the host panic hook; the CLI already initializes it. Abort/replaced hooks or panic-payload destructor panics remain outside containment.",
+    "The callback u64 migration, safe-number ceiling, signed OS PID check, UID/mode/symlink checks, grace/heartbeat thresholds and scan limits remain unchanged.",
+    "No central ledger,configuration,Keychain,provider,evaluator,publication,platform-matrix or numerical-performance operation/qualification.",
+    "The earlier safe-PID reports remain historical and byte-for-byte preserved; this new checkpoint qualifies the additional failed-probe branch on dirty source. Root owns the combined fixed-source build/check and release provenance."
+  ]
+}

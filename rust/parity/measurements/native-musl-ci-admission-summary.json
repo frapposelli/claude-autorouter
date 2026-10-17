@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "kind": "native_additive_musl_ci_tooling_admission",
+  "date": "2026-10-14",
+  "checkpoint_base": "0af8f08e4bf2c5ebb3f76911734043ff6abb043a",
+  "tooling_preparation_passed": true,
+  "actual_ci_execution_qualified": false,
+  "release_approved": false,
+  "default_cutover_approved": false,
+  "files": [
+    {
+      "path": ".github/workflows/rust-musl.yml",
+      "bytes": 9190,
+      "sha256": "805d553558254b23dc08a18d85e05cee5f234cdb30a9e8bb119c23185fafdf17"
+    },
+    {
+      "path": "rust/distribution/ci/check-musl.sh",
+      "bytes": 7402,
+      "sha256": "fa0ce8bad5a6c10b0c968d669d508c34bc190c610c5ebeb87a9862683908a5ca"
+    },
+    {
+      "path": "rust/distribution/ci/musl.Dockerfile",
+      "bytes": 2441,
+      "sha256": "ce57c279cf34f2fa6470a16b67b78910f9a704c447a2d09c37d5bbe871b28933"
+    },
+    {
+      "path": "rust/distribution/musl-builder-pins.json",
+      "bytes": 3400,
+      "sha256": "530867c60f16aed9c58249514c408399911ce2681a91653f50a8a1f5df0e1294"
+    },
+    {
+      "path": "rust/parity/check-localhost-transport.mjs",
+      "bytes": 3535,
+      "sha256": "99a713db2489da5a45a07e28f127ae78011b44c8515c596db3a001abfb553a36"
+    },
+    {
+      "path": "rust/parity/check-musl-dispatcher.mjs",
+      "bytes": 10717,
+      "sha256": "4d35395a1100b555ed28a30b1ca2c304e0b6082d45c32423953b04c411e1591f"
+    }
+  ],
+  "initial_reviewed_snapshot": {
+    "path": "artifacts/rust-rewrite/musl-ci-draft-20261014/manifest-4.json",
+    "bytes": 7037,
+    "sha256": "ea64aaec30c367a493e29b2339d357d1cf90f42132d71f4dc7fe961e9e9803cf"
+  },
+  "root_initial_admission": {
+    "path": "artifacts/rust-rewrite/musl-ci-draft-20261014/root-admission.json",
+    "bytes": 1524,
+    "sha256": "389a56a37c8a9286e20e4709a25d6a9b9eb15d99f0c9c8ee64a2214e5c8fcbed"
+  },
+  "peer_initial_review": {
+    "path": "artifacts/rust-rewrite/musl-ci-draft-20261014/peer-review-5.json",
+    "bytes": 9079,
+    "sha256": "4ecc4da293ae05f1a401f45856ff9db4a2742a2d9efec1c91f58a4b1a4444153"
+  },
+  "bounded_admission_race_controls": {
+    "path": "artifacts/rust-rewrite/musl-ci-draft-20261014/admission-race-controls-2.json",
+    "bytes": 2217,
+    "sha256": "20a80bf38822da140dde78e95f7042c3da8ef1534c0dd41df40222af198fc052"
+  },
+  "static_checks": {
+    "path": "artifacts/rust-rewrite/context-processing-checkpoint-20261014-1/musl-static-checks.json",
+    "bytes": 2415,
+    "sha256": "a13d43a101c6c5005902eea38a4e230b1e2fefb7694b52cf5e4731805959c13d"
+  },
+  "final_shell_check": {
+    "exit_code": 0,
+    "log": {
+      "path": "artifacts/rust-rewrite/context-processing-checkpoint-20261014-1/musl-final-shell.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "post_admission_corrections": {
+    "status_metadata": "Only pins status changes from private draft to ci_execution_pending; package/image/toolchain pins retain identical values.",
+    "explicit_cargo_target": "CARGO_BUILD_TARGET selects the actual musl triple so static shipping flags remain off host proc macros; all four artifact copy paths follow the target layout. The fetch branch and every audit/static/repro/installed check are retained.",
+    "manifest": {
+      "path": "artifacts/rust-rewrite/musl-explicit-target-correction-20261014/manifest-1.json",
+      "bytes": 925,
+      "sha256": "363fdd1f0cb71aa660de02034a908392ccd8fddb4fbe5cccbd01ed3bb6cc1767"
+    },
+    "source_review": {
+      "path": "artifacts/rust-rewrite/musl-explicit-target-correction-20261014/review.json",
+      "bytes": 4069,
+      "sha256": "a6fa31f8480efeca03709590a239e7af425d9e96e713fdb56c078ebd5c153acc"
+    },
+    "primary_sources": [
+      "https://doc.rust-lang.org/cargo/reference/config.html#buildrustflags",
+      "https://raw.githubusercontent.com/rust-lang/rust/1.99.0/compiler/rustc_session/src/session.rs",
+      "https://raw.githubusercontent.com/rust-lang/rust/1.99.0/compiler/rustc_session/src/output.rs"
+    ]
+  },
+  "declared_execution": [
+    "Native x86_64/ARM64 Alpine3.21 SDKs on separate architecture runners; pinned per-platform Node image and Rust archive identities.",
+    "Signed SHA-pinned APK indexes, named versions, retained fetched package byte hashes and offline installed build dependencies.",
+    "Empty image build context, source mounted at the genuine workspace path, disposable child state, no provider credentials and offline synthetic execution.",
+    "Ordinary CLI built and audited separately from development helper; second empty compiler-output build must match exact bytes; ELF has no interpreter or dynamic dependencies.",
+    "Original checks, exact npm/direct installed suites, transport/TLS/IPv4/IPv6/dual localhost controls and same-archive GNU-host checks.",
+    "Mixed genuine musl/GNU npm archive with actual owned process /proc/PID/exe hash proving dispatcher selection."
+  ],
+  "existing_workflows_changed": false,
+  "existing_required_checks_removed": false,
+  "new_ci_jobs": 2,
+  "runtime_source_changes_from_ci": false,
+  "benchmark_transfer_inputs_added": false,
+  "limitations": [
+    "These files have source/syntax/mock admission proof only. Actual Linux Docker/build/process/network/platform results remain pending until CI executes.",
+    "Mock admission-race controls do not prove Linux process cleanup; own-child TERM/KILL and escaped descendants retain their documented scope.",
+    "Alpine3.21 userland and current GNU runners do not qualify oldest OS/kernel/CPU, corporate CA, WSL, the other required architectures or the complete approved release matrix.",
+    "CI failure, pinned-index drift, reproducibility mismatch or unavailable upstream bytes remain failed/unavailable outcomes; the workflow cannot fall back or relax gates."
+  ],
+  "provider_calls": 0,
+  "model_downloads": 0
+}

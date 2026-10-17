@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "kind": "original_release_check_cli_root_per_assertion_migration",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "only_definition": "test/release-check.test.mjs#6",
+  "prior_partial_mapping": {
+    "path": "rust/parity/assertion-mappings/release-remaining-contracts.json",
+    "bytes": 69128,
+    "sha256": "4c6c3efa7ca4c3b8357f80e4f04d0579d9191187556989ea037d04e28f2120e5",
+    "open_gap": "The earlier subprocess supplied an explicit fixture root to the production parser, while the built xtask executable selected its compile-time checkout."
+  },
+  "frozen_original": {
+    "path": "artifacts/rust-rewrite/reference/test/release-check.test.mjs",
+    "bytes": 13064,
+    "sha256": "55c3112868355e94aeb3240d1d06116145a50689a878e8cfbf4b236feab5eb30",
+    "byte_equal_to_baseline_git_blob": true,
+    "definition_line": 160,
+    "definition_sha256": "70603ef59cb66b7925a49dce03363689ad74c3300ffc63e7103b5a9d373a3bfa",
+    "definition_hash_scope": "exact TypeScript CallExpression, excluding enclosing await and trailing semicolon",
+    "statement_sha256": "58fc04cd4ffd84699724fc009bd7daefb68618ed33e006d7a1d85acb86fa09c9",
+    "assertion_sites": 4
+  },
+  "native_source_bindings": [
+    {
+      "path": "rust/xtask/src/main.rs",
+      "bytes": 5216,
+      "sha256": "70167507b160dc44f2033a8c45057133fbfc2ca30b2b44b33115c32b4e72f0cc"
+    },
+    {
+      "path": "rust/xtask/src/release.rs",
+      "bytes": 42404,
+      "sha256": "0237dfc3a9b5f0a4f1a37684602ce1538dcee97dd6d49d5ac882e75f81f79cb1"
+    },
+    {
+      "path": "rust/xtask/tests/release_cli.rs",
+      "bytes": 5177,
+      "sha256": "9a72d69baef8bcf274a513eb68040a3139dff79cf84883437713d549c52e4541"
+    },
+    {
+      "path": "rust/xtask/src/release_archive_contracts.rs",
+      "bytes": 25006,
+      "sha256": "30a23087fe1b1d05d9f8d1a3a2c59ac6c16c3ce94d1ea7be7fd4b59422c1b46e"
+    }
+  ],
+  "per_assertion": [
+    {
+      "id": "test/release-check.test.mjs#6:assert-1",
+      "source_line": 165,
+      "source_expression_sha256": "ee6d9cd3bc04715540619e04ebce9dcb15d1333e131ca66f9521ca294185becf",
+      "native_test": "built_xtask_checks_the_invoking_checkout_and_only_appends_validated_outputs",
+      "native_line": 128,
+      "native_predicate": "The actual built xtask executable exits successfully and stdout contains Verified source release for a separate clean, tagged checkout whose root is named rust inside a conflicting parent npm project."
+    },
+    {
+      "id": "test/release-check.test.mjs#6:assert-2",
+      "source_line": 166,
+      "source_expression_sha256": "d781379c02b0935fb2e659a05c94d917c56486c4e72395ce9c61ff68959388f8",
+      "native_test": "built_xtask_checks_the_invoking_checkout_and_only_appends_validated_outputs",
+      "native_line": 129,
+      "native_predicate": "Immediately after the first successful invocation from the separate checkout root named rust, GITHUB_OUTPUT is byte-equal to version=1.2.3, archive=dist/claude-autorouter-1.2.3.tgz and dist_tag=latest in the original order with final newlines."
+    },
+    {
+      "id": "test/release-check.test.mjs#6:assert-3",
+      "source_line": 168,
+      "source_expression_sha256": "8d566294861ba84320b507620fed22105655a4f603071ee11ed7d0ca3a0804c7",
+      "native_test": "built_xtask_checks_the_invoking_checkout_and_only_appends_validated_outputs",
+      "native_line": 138,
+      "native_predicate": "A second built-binary invocation with the original newline-plus-archive=malicious tag exits unsuccessfully; native test also checks the strict SemVer diagnostic."
+    },
+    {
+      "id": "test/release-check.test.mjs#6:assert-4",
+      "source_line": 169,
+      "source_expression_sha256": "1c6b0e4b8e6c561046f1d8d286c384ec9aeba3631b493e5bd5fc72d19e16959d",
+      "native_test": "built_xtask_checks_the_invoking_checkout_and_only_appends_validated_outputs",
+      "native_line": 140,
+      "native_predicate": "The GITHUB_OUTPUT bytes are unchanged after rejection. An additional successful invocation from the checkout's rust directory has its own immediate exact-output assertion."
+    }
+  ],
+  "actual_executions": {
+    "frozen_original": {
+      "command": "node --test --test-name-pattern='^CLI writes only validated release metadata to GITHUB_OUTPUT$' artifacts/rust-rewrite/reference/test/release-check.test.mjs",
+      "node_version": "v22.17.1",
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "stdout": {
+        "path": "artifacts/rust-rewrite/release-check6-promotion-20261015-2/source.stdout",
+        "bytes": 310,
+        "sha256": "8698fbbc88c2d9658692fff92af01219255e82769b77cc424d5327cf04f32ed7"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/release-check6-promotion-20261015-2/source.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "native": {
+      "command": "../artifacts/dev-environment/run cargo test --offline --locked -p xtask --test release_cli built_xtask_checks_the_invoking_checkout_and_only_appends_validated_outputs",
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "stdout": {
+        "path": "artifacts/rust-rewrite/release-check6-promotion-20261015-2/native.stdout",
+        "bytes": 200,
+        "sha256": "ceee519a8c29db30475bb7b1c6dc8e95c8f90b38f6673a416f4c2e08e7278043"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/release-check6-promotion-20261015-2/native.stderr",
+        "bytes": 697,
+        "sha256": "67909595f56d8be1314c0cd98e0ad96447a8522101c476cc69cbc9005d535804"
+      },
+      "test_binary": {
+        "path": "artifacts/rust-rewrite/release-check6-promotion-20261015-2/release_cli-39fd050dc22ca275",
+        "bytes": 1100848,
+        "sha256": "ef972209e4acf6709b742aca49d8f6f3c634e4e41d1e4a5061d6b8f8f68b864c"
+      },
+      "xtask_binary": {
+        "path": "artifacts/rust-rewrite/release-check6-promotion-20261015-2/xtask",
+        "bytes": 51005664,
+        "sha256": "a6d7e36d0f9e480b1d81e9bf647551f60812a590b90cc75f41d7e2b9eb9fd57e"
+      },
+      "strict_clippy": {
+        "command": "../artifacts/dev-environment/run cargo clippy --offline --locked --package xtask --all-targets -- -D warnings",
+        "exit_code": 0,
+        "stderr": {
+          "path": "artifacts/rust-rewrite/release-check6-promotion-20261015-2/clippy.stderr",
+          "bytes": 637,
+          "sha256": "17495ec2f5389c8d24a6612e8195d83ae4cd0bdce30b37aec5ed171d18a0f7d1"
+        }
+      }
+    }
+  },
+  "native_API_review": {
+    "preserved": "A standalone executable checks the invoking clean checkout and emits exact validated source-release output; a malicious tag cannot append output.",
+    "migration": "Node process.execPath plus JavaScript source script is replaced by the built native xtask executable. The invoked checkout is selected from cwd. A local package.json takes precedence even if the root itself is named rust inside another npm project; only a missing local manifest permits the documented rust-directory parent adaptation for cargo xtask. The executable, not a test helper supplying the root, performs that selection.",
+    "scope_limit": "Only frozen release-check definition #6 is promoted. Synthetic Git fixtures and GitHub output do not establish native archive qualification, registry publication, platform support or the full release gate."
+  },
+  "coverage_effect": {
+    "before": {
+      "covered": 529,
+      "partial_assertion_mapping": 59
+    },
+    "after": {
+      "covered": 530,
+      "partial_assertion_mapping": 58
+    }
+  }
+}

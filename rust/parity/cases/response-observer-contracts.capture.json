@@ -1,0 +1,374 @@
+{
+  "schema_version": 1,
+  "kind": "frozen_response_observer_contract_capture",
+  "passed": true,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_path": "test/response-observer.test.mjs",
+  "source_sha256": "483ad1776bfe740ec88e8df07ec85a300e18623486fe46da89eae49e8aa61561",
+  "generator_sha256": "1c144aca42f80b557c424bce8d0b98ea1913306ac9877f0286b376c8bf6a4742",
+  "node_version": "v22.14.0",
+  "cases": 98,
+  "cases_sha256": "c9833a7f743165f201e0a7b5c314cc34c125c0ae5460a5a4e1c6913d5e88c2d3",
+  "tests": [
+    {
+      "id": "test/response-observer.test.mjs#1",
+      "name": "forwards an incomplete SSE frame immediately and reports the actual provider model once",
+      "case_ids": [],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#2",
+      "name": "handles ping, malformed frames, multiline data, split UTF-8 and CRLF without changing bytes",
+      "case_ids": [
+        "baseline-observer-2-1"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#3",
+      "name": "skips an oversized frame while forwarding bytes and observing subsequent frames",
+      "case_ids": [
+        "baseline-observer-3-1"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#4",
+      "name": "many small ping frames do not consume the per-frame observation budget",
+      "case_ids": [
+        "baseline-observer-4-1"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#5",
+      "name": "observes bounded nonstream JSON across chunks and ignores oversized or malformed JSON",
+      "case_ids": [
+        "baseline-observer-5-1",
+        "baseline-observer-5-2",
+        "baseline-observer-5-3"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#6",
+      "name": "unrecognized content types and callback failures cannot interfere with response delivery",
+      "case_ids": [
+        "baseline-observer-6-1",
+        "baseline-observer-6-2"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#7",
+      "name": "reports an SSE error after model confirmation and an oversized content delta without exposing error messages",
+      "case_ids": [
+        "baseline-observer-7-1"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#8",
+      "name": "only allowlisted error categories escape observation, including bounded JSON errors",
+      "case_ids": [
+        "baseline-observer-8-1",
+        "baseline-observer-8-2",
+        "baseline-observer-8-3"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#9",
+      "name": "reports final cumulative usage once with mixed cache TTLs and only allowed metadata",
+      "case_ids": [
+        "baseline-observer-9-1"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#10",
+      "name": "collects bounded JSON usage together with the provider model and isolates callback failures",
+      "case_ids": [
+        "baseline-observer-10-1",
+        "baseline-observer-10-2",
+        "baseline-observer-10-4"
+      ],
+      "skipped_calls": [
+        {
+          "baseline_test": "test/response-observer.test.mjs#10",
+          "call": 3,
+          "callbacks": [
+            "onUsage"
+          ],
+          "reason": "Rust observation callbacks are synchronous; a rejected JavaScript Promise is an explicit API migration boundary."
+        }
+      ]
+    },
+    {
+      "id": "test/response-observer.test.mjs#11",
+      "name": "clean EOF after a final stop reason supports gateways that omit message_stop",
+      "case_ids": [
+        "baseline-observer-11-1"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#12",
+      "name": "incomplete, errored, malformed and invalid usage streams never publish savings telemetry",
+      "case_ids": [
+        "baseline-observer-12-1",
+        "baseline-observer-12-2",
+        "baseline-observer-12-3",
+        "baseline-observer-12-4",
+        "baseline-observer-12-5",
+        "baseline-observer-12-6",
+        "baseline-observer-12-7",
+        "baseline-observer-12-8",
+        "baseline-observer-12-9",
+        "baseline-observer-12-10",
+        "baseline-observer-12-11",
+        "baseline-observer-12-12",
+        "baseline-observer-12-13",
+        "baseline-observer-12-14",
+        "baseline-observer-12-15",
+        "baseline-observer-12-16",
+        "baseline-observer-12-17",
+        "baseline-observer-12-18",
+        "baseline-observer-12-19"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#13",
+      "name": "destroying a stream after its final delta does not report a completed response",
+      "case_ids": [],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#14",
+      "name": "oversized content does not lose final usage while oversized metadata is excluded",
+      "case_ids": [
+        "baseline-observer-14-1",
+        "baseline-observer-14-2",
+        "baseline-observer-14-3"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#15",
+      "name": "null cache details with zero writes are valid while model changes make accounting unsupported",
+      "case_ids": [
+        "baseline-observer-15-1",
+        "baseline-observer-15-2",
+        "baseline-observer-15-3"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#16",
+      "name": "unsupported compaction, advisor, fallback and refusal accounting is marked without storing response text",
+      "case_ids": [
+        "baseline-observer-16-1",
+        "baseline-observer-16-2",
+        "baseline-observer-16-3",
+        "baseline-observer-16-4"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#17",
+      "name": "ordinary message iterations use cumulative top-level totals once, including metadata-only starts",
+      "case_ids": [
+        "baseline-observer-17-1",
+        "baseline-observer-17-2"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#18",
+      "name": "iteration type, shape and model mismatches remain unsupported",
+      "case_ids": [
+        "baseline-observer-18-1",
+        "baseline-observer-18-2",
+        "baseline-observer-18-3",
+        "baseline-observer-18-4",
+        "baseline-observer-18-5",
+        "baseline-observer-18-6",
+        "baseline-observer-18-7",
+        "baseline-observer-18-8",
+        "baseline-observer-18-9",
+        "baseline-observer-18-10",
+        "baseline-observer-18-11"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#19",
+      "name": "unavailable or nullable response geography is preserved without accepting unknown pricing values",
+      "case_ids": [
+        "baseline-observer-19-1",
+        "baseline-observer-19-2"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#20",
+      "name": "execution observation is immediate but continuation evidence waits for clean EOF",
+      "case_ids": [],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#21",
+      "name": "before-output and sticky fallbacks report the model actually serving the response",
+      "case_ids": [
+        "baseline-observer-21-1",
+        "baseline-observer-21-2"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#22",
+      "name": "midstream fallback preserves all bytes and assigns only post-boundary client tools to the new model",
+      "case_ids": [
+        "baseline-observer-22-1"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#23",
+      "name": "multiple fallback boundaries retain only the last serving model and its actionable tools",
+      "case_ids": [
+        "baseline-observer-23-1"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#24",
+      "name": "final fallback iterations identify serving model without retroactively reassigning tools",
+      "case_ids": [
+        "baseline-observer-24-1",
+        "baseline-observer-24-2"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#25",
+      "name": "JSON completion uses returned model and final-boundary tool ownership without changing content",
+      "case_ids": [
+        "baseline-observer-25-1"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#26",
+      "name": "JSON multiple fallbacks retain only final-boundary tool ownership, while malformed history stays unknown",
+      "case_ids": [
+        "baseline-observer-26-1",
+        "baseline-observer-26-2",
+        "baseline-observer-26-3",
+        "baseline-observer-26-4"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#27",
+      "name": "refusal and unknown terminal reasons never provide a successful continuation pin",
+      "case_ids": [
+        "baseline-observer-27-1",
+        "baseline-observer-27-2"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#28",
+      "name": "errors, malformed or incomplete protocol and open tools never report completed execution",
+      "case_ids": [
+        "baseline-observer-28-1",
+        "baseline-observer-28-2",
+        "baseline-observer-28-3",
+        "baseline-observer-28-4",
+        "baseline-observer-28-5",
+        "baseline-observer-28-6",
+        "baseline-observer-28-7",
+        "baseline-observer-28-8",
+        "baseline-observer-28-9",
+        "baseline-observer-28-10",
+        "baseline-observer-28-11",
+        "baseline-observer-28-12",
+        "baseline-observer-28-13",
+        "baseline-observer-28-14",
+        "baseline-observer-28-15",
+        "baseline-observer-28-16"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#29",
+      "name": "server tools are not client continuation work and missing tool evidence is never invented",
+      "case_ids": [
+        "baseline-observer-29-1",
+        "baseline-observer-29-2"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#30",
+      "name": "bounded execution metadata rejects duplicate, malformed and excessive actionable tools",
+      "case_ids": [
+        "baseline-observer-30-1",
+        "baseline-observer-30-2",
+        "baseline-observer-30-3"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#31",
+      "name": "oversized ordinary output is forwardable but skipped ownership metadata cannot confirm a turn",
+      "case_ids": [
+        "baseline-observer-31-1",
+        "baseline-observer-31-2"
+      ],
+      "skipped_calls": []
+    },
+    {
+      "id": "test/response-observer.test.mjs#32",
+      "name": "execution callback throws and rejections cannot interfere with original response bytes",
+      "case_ids": [
+        "baseline-observer-32-1"
+      ],
+      "skipped_calls": [
+        {
+          "baseline_test": "test/response-observer.test.mjs#32",
+          "call": 2,
+          "callbacks": [
+            "onModel",
+            "onExecution",
+            "onComplete"
+          ],
+          "reason": "Rust observation callbacks are synchronous; a rejected JavaScript Promise is an explicit API migration boundary."
+        }
+      ]
+    }
+  ],
+  "migration_boundaries": [
+    {
+      "baseline_test": "test/response-observer.test.mjs#10",
+      "call": 3,
+      "callbacks": [
+        "onUsage"
+      ],
+      "reason": "Rust observation callbacks are synchronous; a rejected JavaScript Promise is an explicit API migration boundary."
+    },
+    {
+      "baseline_test": "test/response-observer.test.mjs#32",
+      "call": 2,
+      "callbacks": [
+        "onModel",
+        "onExecution",
+        "onComplete"
+      ],
+      "reason": "Rust observation callbacks are synchronous; a rejected JavaScript Promise is an explicit API migration boundary."
+    }
+  ],
+  "limits": "All32 baseline definitions and their assertions execute. Helper schedules capture real Node stream output. Direct stream timing/destruction definitions1/13/20 have separate native tests. Async callback API cases are skipped explicitly. Capture alone is not native parity evidence."
+}

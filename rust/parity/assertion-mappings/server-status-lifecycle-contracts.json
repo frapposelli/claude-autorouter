@@ -1,0 +1,971 @@
+{
+  "schema_version": 1,
+  "kind": "complete_original_server_status_lifecycle_assertion_mapping",
+  "status": "reviewed_original_contracts_focused_pass",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "worktree_base_commit": "da51574ec1a895286c0379db1623d715e986be7e",
+  "production_changes": false,
+  "shared_support_changes": false,
+  "central_ledger_edits": false,
+  "counts": {
+    "baseline_definitions": 4,
+    "static_assertion_sites": 34,
+    "expanded_original_assertions": 64,
+    "expanded_native_assertions": 64,
+    "native_tests": 4,
+    "downstream_http_operations": 10,
+    "actual_provider_requests": 7,
+    "inference_provider_requests": 5,
+    "provider_model_discovery_requests": 1,
+    "provider_token_count_requests": 1,
+    "route_calls": 5,
+    "source_complete_callbacks": 11,
+    "native_complete_callbacks": 6,
+    "source_emitted_status_events": 26,
+    "native_emitted_status_events": 26,
+    "source_request_event_groups": 6,
+    "native_request_event_groups": 6
+  },
+  "capture": {
+    "path": "rust/parity/cases/server-status-lifecycle-contracts.capture.json",
+    "bytes": 22984,
+    "sha256": "c2fe30663633294e63949f49a4cf7f1bec98e43928eba48adda02dcdf263877f"
+  },
+  "corpus": {
+    "path": "rust/parity/cases/server-status-lifecycle-contracts.jsonl",
+    "bytes": 32930,
+    "sha256": "0f74c4f4763f78f03c66eae953de2bb12c65a36053b9e43ffca96ea964f639df"
+  },
+  "native_validation": {
+    "path": "artifacts/rust-rewrite/server-status-lifecycle-native-20261013-4/report.json",
+    "bytes": 12102,
+    "sha256": "c21405e116052fecd53d40793628ecb18dce8c2c03aff5bbdcd5662dd4544b62"
+  },
+  "rows": [
+    {
+      "id": "test/server.test.mjs#21",
+      "name": "status lifecycle correlates gateway identities and distinguishes requested, selected and provider models",
+      "statement": "test('status lifecycle correlates gateway identities and distinguishes requested, selected and provider models', async t => {\n  const selected = 'claude-sonnet-5';\n  const actual = 'claude-sonnet-5-provider-revision';\n  const f = await fixture(t, (req, res) => {\n    res.writeHead(200, { 'content-type': 'text/event-stream' });\n    res.end(`event: message_start\\ndata: {\"message\":{\"model\":\"${actual}\"}}\\n\\nevent: message_stop\\ndata: {}\\n\\n`);\n  }, {}, () => ({ model: selected, source: 'jev', tier: 'haiku', reason: 'tool_turn_pinned', latency_ms: 42, private_debug: 'PRIVATE_DETAIL' }));\n  const payload = { ...body, model: 'claude-haiku-4-5-20251001' };\n  const response = await f.call('/v1/messages', { method: 'POST', headers: {\n    'x-claude-code-session-id': 'session-1', 'x-claude-code-agent-id': 'agent-1',\n    'x-claude-code-prompt-id': 'prompt-1', 'x-claude-code-request-class': 'main',\n  }, body: JSON.stringify(payload) });\n  await response.text();\n  await waitForStatus(f, 'request_complete');\n  assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'route', 'upstream_response', 'upstream_model', 'request_complete']);\n  const requestId = f.statuses[0].request_id;\n  assert.match(requestId, /^[a-f0-9-]{36}$/);\n  for (const entry of f.statuses) {\n    assert.equal(entry.request_id, requestId);\n    assert.equal(entry.session_id, 'session-1');\n    assert.equal(entry.agent_id, 'agent-1');\n    assert.equal(entry.prompt_id, 'prompt-1');\n    assert.equal(entry.request_class, 'main');\n    assert.equal(entry.tier, undefined);\n  }\n  const route = f.statuses.find(entry => entry.event === 'route');\n  assert.equal(route.requested_model, payload.model);\n  assert.equal(route.model, selected);\n  assert.equal(route.reason, 'tool_turn_pinned');\n  assert.equal(route.latency_ms, 42);\n  assert.equal(f.statuses.find(entry => entry.event === 'upstream_model').model, actual);\n  for (const privateValue of ['PRIVATE_DETAIL', 'Fix a typo', token, 'upstream-secret', 'classifier-secret']) {\n    assert.ok(!JSON.stringify(f.statuses).includes(privateValue));\n  }\n});",
+      "sha256": "2f45b829473db3bc93770c9c6bf17365f6d15fcd8c08e142418fef0390780c42",
+      "previous_status": "pending_assertion_mapping",
+      "proposed_status": "covered",
+      "static_assertions": 14,
+      "expanded_assertions": 42,
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_21_correlated_status_identity_and_model_roles"
+      ],
+      "shared_cases": [
+        "server-status-lifecycle-21"
+      ],
+      "assertions": [
+        {
+          "id": "test/server.test.mjs#21:assert-1",
+          "expression": "assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'route', 'upstream_response', 'upstream_model', 'request_complete'])",
+          "sha256": "16ac224c714412f824edba8c619b544456f37af829de6256bfb64c29d4c270ec",
+          "line": 886,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_21_correlated_status_identity_and_model_roles"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_21_correlated_status_identity_and_model_roles",
+              "line": 668,
+              "fragment": "a.check(\n        1,\n        event_names(&seen.statuses)\n            == [\n                \"request_start\",\n                \"route\",\n                \"upstream_response\",\n                \"upstream_model\",\n                \"request_complete\",\n            ],\n    );",
+              "fragment_sha256": "21c8ad4f2f40cc3700a00fc30659b380977f8599ca6b265a895fe39479674556",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#21:assert-2",
+          "expression": "assert.match(requestId, /^[a-f0-9-]{36}$/)",
+          "sha256": "a131c4026283707bbce85950dda1501aefa3edf0a18f90978d33f631dfe592fd",
+          "line": 888,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_21_correlated_status_identity_and_model_roles"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_21_correlated_status_identity_and_model_roles",
+              "line": 680,
+              "fragment": "a.check(\n        2,\n        regex::Regex::new(\"^[a-f0-9-]{36}$\")\n            .unwrap()\n            .is_match(request_id),\n    );",
+              "fragment_sha256": "c1ffaeae45c45c1559db16f8b04e1193384ca9236632ef24b4deae5d0444dbab",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#21:assert-3",
+          "expression": "assert.equal(entry.request_id, requestId)",
+          "sha256": "6bd45a3f2d5ae97234b80c1bfbbb49fae48a1ed74a1932d8d2159bac32d5dc22",
+          "line": 890,
+          "expanded_executions": 5,
+          "native_executions": 5,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_21_correlated_status_identity_and_model_roles"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_21_correlated_status_identity_and_model_roles",
+              "line": 687,
+              "fragment": "a.check(3, entry[\"request_id\"] == request_id);",
+              "fragment_sha256": "31e525d51e140d9df94926e2a0233d34c172be14e0d0e559df962ae4588a2634",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#21:assert-4",
+          "expression": "assert.equal(entry.session_id, 'session-1')",
+          "sha256": "9ddd15ea120a0affbf00f5c6908e991a04e6142aecf95f3690b217db172aba36",
+          "line": 891,
+          "expanded_executions": 5,
+          "native_executions": 5,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_21_correlated_status_identity_and_model_roles"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_21_correlated_status_identity_and_model_roles",
+              "line": 688,
+              "fragment": "a.check(4, entry[\"session_id\"] == \"session-1\");",
+              "fragment_sha256": "d8749c865bc837b4a5c9d75819f4d5cbad54aa05c9d41af20291f511f5aa28cd",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#21:assert-5",
+          "expression": "assert.equal(entry.agent_id, 'agent-1')",
+          "sha256": "660774bc2fa8e8d824626f87b8d1e57a46d4d14fa1fb96fc2bef04da306631e1",
+          "line": 892,
+          "expanded_executions": 5,
+          "native_executions": 5,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_21_correlated_status_identity_and_model_roles"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_21_correlated_status_identity_and_model_roles",
+              "line": 689,
+              "fragment": "a.check(5, entry[\"agent_id\"] == \"agent-1\");",
+              "fragment_sha256": "6a0013f58dfdea32f79ca92f197d72493dc277ffa0d0dd00a6d72965125f2808",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#21:assert-6",
+          "expression": "assert.equal(entry.prompt_id, 'prompt-1')",
+          "sha256": "724f453aa362b816263329eb42e715ddcb818f65968059d2bb9cd6ddefb1bcff",
+          "line": 893,
+          "expanded_executions": 5,
+          "native_executions": 5,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_21_correlated_status_identity_and_model_roles"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_21_correlated_status_identity_and_model_roles",
+              "line": 690,
+              "fragment": "a.check(6, entry[\"prompt_id\"] == \"prompt-1\");",
+              "fragment_sha256": "ee0512837540ffa9b2437706e49aa2116c6e6a739a9e5db9ed6232a27ab18d13",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#21:assert-7",
+          "expression": "assert.equal(entry.request_class, 'main')",
+          "sha256": "b8dcec4098d38614bc9393f3fdbc71b71553ca2db38b85c001f73601667572f0",
+          "line": 894,
+          "expanded_executions": 5,
+          "native_executions": 5,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_21_correlated_status_identity_and_model_roles"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_21_correlated_status_identity_and_model_roles",
+              "line": 691,
+              "fragment": "a.check(7, entry[\"request_class\"] == \"main\");",
+              "fragment_sha256": "b5d9f2915384d083059820e58938da923963b60558be9be38731362446d0a0a6",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#21:assert-8",
+          "expression": "assert.equal(entry.tier, undefined)",
+          "sha256": "ef71cc69624aaff3cb0bafbba03d1cbd560133a79d3d547495b68f69cc941def",
+          "line": 895,
+          "expanded_executions": 5,
+          "native_executions": 5,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_21_correlated_status_identity_and_model_roles"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_21_correlated_status_identity_and_model_roles",
+              "line": 692,
+              "fragment": "a.check(8, !entry.as_object().unwrap().contains_key(\"tier\"));",
+              "fragment_sha256": "daa1f2bb67ea15da21b34b8aed6bcba5fdb5c4fd43736898171f54d3795c040d",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#21:assert-9",
+          "expression": "assert.equal(route.requested_model, payload.model)",
+          "sha256": "14f82f167deaaa3592b3bb64d6dd869ec6f7306606883ac7df917721474710d2",
+          "line": 898,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_21_correlated_status_identity_and_model_roles"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_21_correlated_status_identity_and_model_roles",
+              "line": 695,
+              "fragment": "a.check(9, route[\"requested_model\"] == \"claude-haiku-4-5-20251001\");",
+              "fragment_sha256": "08d1f249f4745b585a43f32fb14df1afa4dc7cfceffadcc48436579ede5b9989",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#21:assert-10",
+          "expression": "assert.equal(route.model, selected)",
+          "sha256": "2a4108a00b5ae2e7de6f4c76a76b957755d2d20785728ae25d62b9483c8612bb",
+          "line": 899,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_21_correlated_status_identity_and_model_roles"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_21_correlated_status_identity_and_model_roles",
+              "line": 696,
+              "fragment": "a.check(10, route[\"model\"] == \"claude-sonnet-5\");",
+              "fragment_sha256": "6cbbee5e01a622bd1dc771f6e39c0d54b7498b23e0d037e85ed873c8304b111b",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#21:assert-11",
+          "expression": "assert.equal(route.reason, 'tool_turn_pinned')",
+          "sha256": "43ca41262b86a4422d302a31fe2007272374d52aeafc01177b7187dbf2572dd0",
+          "line": 900,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_21_correlated_status_identity_and_model_roles"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_21_correlated_status_identity_and_model_roles",
+              "line": 697,
+              "fragment": "a.check(11, route[\"reason\"] == \"tool_turn_pinned\");",
+              "fragment_sha256": "d7c4d389c950f43df71c404bcf4b50b8ce0dcd25c76ac46669efd2ff874922dc",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#21:assert-12",
+          "expression": "assert.equal(route.latency_ms, 42)",
+          "sha256": "5153daee135f4121da9d4b75677f7c25f333a0900a3df674b7c09e3ec3d98edc",
+          "line": 901,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_21_correlated_status_identity_and_model_roles"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_21_correlated_status_identity_and_model_roles",
+              "line": 700,
+              "fragment": "a.check(12, route[\"latency_ms\"].as_f64() == Some(42.0));",
+              "fragment_sha256": "f39afbb1815d8d13910f490d1c9ffc46f3896e0f9bb08a92e93a3bf18c995bcd",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": "Compare actual f64 numeric value using JavaScript Number equality. Native raw metadata keeps its f64 representation; no event or provider payload is rewritten."
+        },
+        {
+          "id": "test/server.test.mjs#21:assert-13",
+          "expression": "assert.equal(f.statuses.find(entry => entry.event === 'upstream_model').model, actual)",
+          "sha256": "5627b8245e07d7ea86541ec01f91c85e1ab9a58c01bf7d722d970ef7586d2a42",
+          "line": 902,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_21_correlated_status_identity_and_model_roles"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_21_correlated_status_identity_and_model_roles",
+              "line": 701,
+              "fragment": "a.check(\n        13,\n        events(&seen.statuses, \"upstream_model\")[0][\"model\"] == \"claude-sonnet-5-provider-revision\",\n    );",
+              "fragment_sha256": "806e68263be26e414e2f7adc774349ab8fc15533d46e9103c3737391593ced4b",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#21:assert-14",
+          "expression": "assert.ok(!JSON.stringify(f.statuses).includes(privateValue))",
+          "sha256": "3a3da17fb7691257efcf7b84506299ffddf1f929143dda9feb5570970e511e06",
+          "line": 904,
+          "expanded_executions": 5,
+          "native_executions": 5,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_21_correlated_status_identity_and_model_roles"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_21_correlated_status_identity_and_model_roles",
+              "line": 712,
+              "fragment": "a.check(14, !json!(seen.statuses).to_string().contains(secret));",
+              "fragment_sha256": "4429a284a962a3f9c4f72cf984412a42bac13b63cc4b2ea9039efe27eb245344",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        }
+      ]
+    },
+    {
+      "id": "test/server.test.mjs#22",
+      "name": "status distinguishes overlapping sessions and ignores discovery, counting and unauthenticated traffic",
+      "statement": "test('status distinguishes overlapping sessions and ignores discovery, counting and unauthenticated traffic', async t => {\n  const f = await fixture(t, (req, res) => {\n    res.writeHead(200, { 'content-type': 'application/json' }); res.end('{}');\n  });\n  for (const [path, options] of [\n    ['/v1/models', {}], ['/health', {}],\n    ['/v1/messages/count_tokens', { method: 'POST', body: JSON.stringify(body) }],\n    ['/v1/messages', { method: 'POST', headers: { 'x-api-key': 'wrong' }, body: JSON.stringify(body) }],\n  ]) await (await f.call(path, options)).text();\n  assert.deepEqual(f.statuses, []);\n  await Promise.all(['first', 'second'].map(async session => {\n    const response = await f.call('/v1/messages', { method: 'POST', headers: { 'x-claude-code-session-id': session }, body: JSON.stringify(body) });\n    await response.text();\n  }));\n  const starts = f.statuses.filter(entry => entry.event === 'request_start');\n  assert.equal(starts.length, 2);\n  assert.notEqual(starts[0].request_id, starts[1].request_id);\n  for (const start of starts) {\n    assert.ok(f.statuses.filter(entry => entry.request_id === start.request_id).every(entry => entry.session_id === start.session_id));\n    assert.equal(start.agent_id, undefined);\n  }\n});",
+      "sha256": "971a090925198c670b13227da8e6a3ad1a4f3ae1eed2307a1acd22c9444ded1e",
+      "previous_status": "pending_assertion_mapping",
+      "proposed_status": "covered",
+      "static_assertions": 5,
+      "expanded_assertions": 7,
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_22_overlap_isolation_and_silent_non_inference_traffic"
+      ],
+      "shared_cases": [
+        "server-status-lifecycle-22"
+      ],
+      "assertions": [
+        {
+          "id": "test/server.test.mjs#22:assert-1",
+          "expression": "assert.deepEqual(f.statuses, [])",
+          "sha256": "f82b2eddfd70636dd2660473d8f16e0429e0d22650510fbd6f87d3ef899b45f9",
+          "line": 917,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_22_overlap_isolation_and_silent_non_inference_traffic"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_22_overlap_isolation_and_silent_non_inference_traffic",
+              "line": 727,
+              "fragment": "a.check(1, f.statuses.lock().unwrap().is_empty());",
+              "fragment_sha256": "78f27cc2ef989fa434fa03cf22b612c93cd92786b0638f734e0e44148e1be445",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#22:assert-2",
+          "expression": "assert.equal(starts.length, 2)",
+          "sha256": "ed106400f62753b25d2fe59759cebd94bf09db5c3f219bb1695873e43863011b",
+          "line": 923,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_22_overlap_isolation_and_silent_non_inference_traffic"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_22_overlap_isolation_and_silent_non_inference_traffic",
+              "line": 738,
+              "fragment": "a.check(2, starts.len() == 2);",
+              "fragment_sha256": "d006efe51d130a4fd7b8b59b4d0e18789a3718db472f6858ca08571d4917e8cb",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#22:assert-3",
+          "expression": "assert.notEqual(starts[0].request_id, starts[1].request_id)",
+          "sha256": "000d825100d46512296163d567ffdf90a4df65ff76557990efb5d8687337db71",
+          "line": 924,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_22_overlap_isolation_and_silent_non_inference_traffic"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_22_overlap_isolation_and_silent_non_inference_traffic",
+              "line": 739,
+              "fragment": "a.check(3, starts[0][\"request_id\"] != starts[1][\"request_id\"]);",
+              "fragment_sha256": "f4ee172a56dd8f8100de0041c5f7bd9ef6f25cd840b2c4e895ed05a65768ee63",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#22:assert-4",
+          "expression": "assert.ok(f.statuses.filter(entry => entry.request_id === start.request_id).every(entry => entry.session_id === start.session_id))",
+          "sha256": "fe41461447a841d5cfb5f55fd80aed4b08ca3bd5eda3c8dff3c2f2c339576b0e",
+          "line": 926,
+          "expanded_executions": 2,
+          "native_executions": 2,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_22_overlap_isolation_and_silent_non_inference_traffic"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_22_overlap_isolation_and_silent_non_inference_traffic",
+              "line": 741,
+              "fragment": "a.check(\n            4,\n            seen.statuses\n                .iter()\n                .filter(|row| row[\"request_id\"] == start[\"request_id\"])\n                .all(|row| row[\"session_id\"] == start[\"session_id\"]),\n        );",
+              "fragment_sha256": "2e2e15825b19c81cdfe45b118b68b8adaa964ff33c08dc5d62681d2ccfa980c4",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#22:assert-5",
+          "expression": "assert.equal(start.agent_id, undefined)",
+          "sha256": "bbb8bdbf0eaeb96927f4f6cebfdf3e1fdcaa4d87d06ebca7d34a8646fe4e1621",
+          "line": 927,
+          "expanded_executions": 2,
+          "native_executions": 2,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_22_overlap_isolation_and_silent_non_inference_traffic"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_22_overlap_isolation_and_silent_non_inference_traffic",
+              "line": 748,
+              "fragment": "a.check(5, !start.as_object().unwrap().contains_key(\"agent_id\"));",
+              "fragment_sha256": "2fffc283f8add40963a9786e32b8a7353d4ed89ee631accf721da1287cb58e68",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        }
+      ]
+    },
+    {
+      "id": "test/server.test.mjs#23",
+      "name": "SSE errors remain observable after HTTP success and model confirmation with only a safe error category",
+      "statement": "test('SSE errors remain observable after HTTP success and model confirmation with only a safe error category', async t => {\n  const sse = 'event: message_start\\ndata: {\"message\":{\"model\":\"claude-haiku-4-5-20251001\"}}\\n\\n'\n    + 'event: error\\ndata: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"PRIVATE_REQUEST\"}}\\n\\n';\n  const f = await fixture(t, (req, res) => {\n    res.writeHead(200, { 'content-type': 'text/event-stream' }); res.end(sse);\n  });\n  const response = await f.call('/v1/messages', { method: 'POST', body: JSON.stringify(body) });\n  assert.equal(response.status, 200);\n  assert.equal(await response.text(), sse);\n  await waitForStatus(f, 'request_complete');\n  assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'route', 'upstream_response', 'upstream_model', 'upstream_error', 'request_complete']);\n  assert.equal(f.statuses.find(entry => entry.event === 'upstream_error').error_type, 'overloaded_error');\n  assert.ok(!JSON.stringify(f.statuses).includes('PRIVATE_REQUEST'));\n  assert.ok(!JSON.stringify(f.logs).includes('PRIVATE_REQUEST'));\n});",
+      "sha256": "9ac925158efd87f46809d694ad3945fce29a9153190fe1be28b94ffb696ac021",
+      "previous_status": "pending_assertion_mapping",
+      "proposed_status": "covered",
+      "static_assertions": 6,
+      "expanded_assertions": 6,
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_23_sse_error_preserves_bytes_and_safe_error_metadata"
+      ],
+      "shared_cases": [
+        "server-status-lifecycle-23"
+      ],
+      "assertions": [
+        {
+          "id": "test/server.test.mjs#23:assert-1",
+          "expression": "assert.equal(response.status, 200)",
+          "sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "line": 938,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_23_sse_error_preserves_bytes_and_safe_error_metadata"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_23_sse_error_preserves_bytes_and_safe_error_metadata",
+              "line": 766,
+              "fragment": "a.check(1, reply.status == 200);",
+              "fragment_sha256": "28ad50dd3d7ca9c6d1da9f4efb89f2e8d4258e58028fc8d2cc488c1bb69e7608",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#23:assert-2",
+          "expression": "assert.equal(await response.text(), sse)",
+          "sha256": "2ea7182638dc4138320b589385d5e5e693c947f0075cb1e4009ce7e213ec6fa6",
+          "line": 939,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_23_sse_error_preserves_bytes_and_safe_error_metadata"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_23_sse_error_preserves_bytes_and_safe_error_metadata",
+              "line": 767,
+              "fragment": "a.check(2, reply.bytes == response_bytes(&upstream_rows(&row)[0]));",
+              "fragment_sha256": "67242342cff2fe2549bcb93eec531c426ca049b9b9e7791a083bdf24ddc41521",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#23:assert-3",
+          "expression": "assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'route', 'upstream_response', 'upstream_model', 'upstream_error', 'request_complete'])",
+          "sha256": "34a24227fceb9bebbc030ea9c5001ce0b328e491eafd8304274db2707400a008",
+          "line": 941,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_23_sse_error_preserves_bytes_and_safe_error_metadata"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_23_sse_error_preserves_bytes_and_safe_error_metadata",
+              "line": 768,
+              "fragment": "a.check(\n        3,\n        event_names(&seen.statuses)\n            == [\n                \"request_start\",\n                \"route\",\n                \"upstream_response\",\n                \"upstream_model\",\n                \"upstream_error\",\n                \"request_complete\",\n            ],\n    );",
+              "fragment_sha256": "33c8851721fd48cafcf82e79a68d1199bd693d30fab1223000dc768dce9822ef",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#23:assert-4",
+          "expression": "assert.equal(f.statuses.find(entry => entry.event === 'upstream_error').error_type, 'overloaded_error')",
+          "sha256": "8004634c58b1de93ac0c5607e0c7f9e7b8216d373fa3745ce90535db54d90fcf",
+          "line": 942,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_23_sse_error_preserves_bytes_and_safe_error_metadata"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_23_sse_error_preserves_bytes_and_safe_error_metadata",
+              "line": 780,
+              "fragment": "a.check(\n        4,\n        events(&seen.statuses, \"upstream_error\")[0][\"error_type\"] == \"overloaded_error\",\n    );",
+              "fragment_sha256": "34ed79cd4c77136ade7c9232bf78950c2aa56cba6f200b984b3468fb1250185c",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#23:assert-5",
+          "expression": "assert.ok(!JSON.stringify(f.statuses).includes('PRIVATE_REQUEST'))",
+          "sha256": "cba702c6dfcd4ddb37dc6fbc7155aa2a41bfd8a4b873a283300034189c33fcb3",
+          "line": 943,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_23_sse_error_preserves_bytes_and_safe_error_metadata"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_23_sse_error_preserves_bytes_and_safe_error_metadata",
+              "line": 784,
+              "fragment": "a.check(\n        5,\n        !json!(seen.statuses).to_string().contains(\"PRIVATE_REQUEST\"),\n    );",
+              "fragment_sha256": "55b62a1f2cea123e9808c1d09bce51eb627fd903319d9ef972b56a9df3c4d80f",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#23:assert-6",
+          "expression": "assert.ok(!JSON.stringify(f.logs).includes('PRIVATE_REQUEST'))",
+          "sha256": "5cf99bca358d143fd766629a9c0b1e07c0bd5d06597a6d2e0c83d75fd5afebc9",
+          "line": 944,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_23_sse_error_preserves_bytes_and_safe_error_metadata"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_23_sse_error_preserves_bytes_and_safe_error_metadata",
+              "line": 788,
+              "fragment": "a.check(6, !json!(seen.logs).to_string().contains(\"PRIVATE_REQUEST\"));",
+              "fragment_sha256": "ad769bbb96ffccf5f4ca396846e924b8c5028ee76a89c94898d37b8bf28cce0e",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        }
+      ]
+    },
+    {
+      "id": "test/server.test.mjs#24",
+      "name": "status surfaces rejected request shapes and HTTP errors, and preserves fallback metadata",
+      "statement": "test('status surfaces rejected request shapes and HTTP errors, and preserves fallback metadata', async t => {\n  const f = await fixture(t, (req, res) => {\n    res.writeHead(429, { 'content-type': 'application/json' });\n    res.end(JSON.stringify({ type: 'error', error: { type: 'rate_limit_error', message: 'PRIVATE_REQUEST' } }));\n  }, {}, () => ({ model: 'claude-sonnet-5', source: 'fallback', reason: 'classifier_unavailable', classifier_error: 'http_error', classifier_status: 503, latency_ms: 33 }));\n  const bad = await f.call('/v1/messages', { method: 'POST', body: '{bad' });\n  assert.equal(bad.status, 400);\n  await bad.text();\n  assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'request_error']);\n  assert.equal(f.statuses[1].status, 400);\n  f.statuses.length = 0;\n  const response = await f.call('/v1/messages', { method: 'POST', body: JSON.stringify(body) });\n  assert.equal(response.status, 429);\n  await response.text();\n  await waitForStatus(f, 'request_complete');\n  const route = f.statuses.find(entry => entry.event === 'route');\n  assert.equal(route.source, 'fallback');\n  assert.equal(route.classifier_error, 'http_error');\n  assert.equal(route.classifier_status, 503);\n  assert.equal(f.statuses.find(entry => entry.event === 'upstream_response').status, 429);\n  assert.equal(f.statuses.find(entry => entry.event === 'upstream_error').error_type, 'rate_limit_error');\n});",
+      "sha256": "3b91fa023824c1ffec9862f8035f8fc8947333ff06817319f5a4cabf0b2185e1",
+      "previous_status": "pending_assertion_mapping",
+      "proposed_status": "covered",
+      "static_assertions": 9,
+      "expanded_assertions": 9,
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_24_local_request_error_and_provider_fallback_metadata"
+      ],
+      "shared_cases": [
+        "server-status-lifecycle-24"
+      ],
+      "assertions": [
+        {
+          "id": "test/server.test.mjs#24:assert-1",
+          "expression": "assert.equal(bad.status, 400)",
+          "sha256": "8e08874b68e29e73a00170824e3087f5ec49c32abbe6736e8df51ec9dad6ea59",
+          "line": 953,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_24_local_request_error_and_provider_fallback_metadata"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_24_local_request_error_and_provider_fallback_metadata",
+              "line": 799,
+              "fragment": "a.check(1, bad.status == 400);",
+              "fragment_sha256": "9a084c21a6c3890c0b5fc3de8c2934250aa84cba93155a6aaa5efd081f79571d",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#24:assert-2",
+          "expression": "assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'request_error'])",
+          "sha256": "d003fa0de8f2248090eedde6b40fd3a3b76e9a05a0509a6950b3ac401de666d1",
+          "line": 955,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_24_local_request_error_and_provider_fallback_metadata"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_24_local_request_error_and_provider_fallback_metadata",
+              "line": 801,
+              "fragment": "a.check(\n            2,\n            event_names(&before) == [\"request_start\", \"request_error\"],\n        );",
+              "fragment_sha256": "b938b172703fd60a51c8d7c0215010b067476ad533b7e022ea67906603878a98",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#24:assert-3",
+          "expression": "assert.equal(f.statuses[1].status, 400)",
+          "sha256": "87a533ca9738a1994f9ce99fd4fe48e35a10fe4c3704b443fc615655ca4ab0fc",
+          "line": 956,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_24_local_request_error_and_provider_fallback_metadata"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_24_local_request_error_and_provider_fallback_metadata",
+              "line": 805,
+              "fragment": "a.check(3, before[1][\"status\"].as_f64() == Some(400.0));",
+              "fragment_sha256": "12ebfceae4a360b947c78b4dcdfe9103e81eee9a39b4573d584aba8a95a95d21",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": "Compare actual f64 numeric value using JavaScript Number equality. Native raw metadata keeps its f64 representation; no event or provider payload is rewritten."
+        },
+        {
+          "id": "test/server.test.mjs#24:assert-4",
+          "expression": "assert.equal(response.status, 429)",
+          "sha256": "2cde139a350256177b81ce7b0a36d01bf156edeb95bba8dc88c2ebc36976be68",
+          "line": 959,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_24_local_request_error_and_provider_fallback_metadata"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_24_local_request_error_and_provider_fallback_metadata",
+              "line": 808,
+              "fragment": "a.check(4, response.status == 429);",
+              "fragment_sha256": "3dd702b94b6b656eee9234be0251c4bfeb439888f0fabd596743893ad6fd57c5",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#24:assert-5",
+          "expression": "assert.equal(route.source, 'fallback')",
+          "sha256": "90eeb0707c78ae5febe68d9a3462de76d447ae1502ea9e27cd3e77487a3fcf4a",
+          "line": 963,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_24_local_request_error_and_provider_fallback_metadata"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_24_local_request_error_and_provider_fallback_metadata",
+              "line": 816,
+              "fragment": "a.check(5, route[\"source\"] == \"fallback\");",
+              "fragment_sha256": "4102d5922f50ab7724d74e8b8b525f814b4f020d129b4b783511d1a5639d2f82",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#24:assert-6",
+          "expression": "assert.equal(route.classifier_error, 'http_error')",
+          "sha256": "2ca2977ead532ee85954bbf6a14df4af980fae9dd49a8e1c5012ed0f1c301f0d",
+          "line": 964,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_24_local_request_error_and_provider_fallback_metadata"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_24_local_request_error_and_provider_fallback_metadata",
+              "line": 817,
+              "fragment": "a.check(6, route[\"classifier_error\"] == \"http_error\");",
+              "fragment_sha256": "4ea58eb3bf17fe2d12dd7f3be4b3dcb0a0b868f52340e6fc745ebcd0107832b1",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        },
+        {
+          "id": "test/server.test.mjs#24:assert-7",
+          "expression": "assert.equal(route.classifier_status, 503)",
+          "sha256": "f268b36e676fb282f520cba116b865c19e1c583dbca5f3e3be61b0e330073eb6",
+          "line": 965,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_24_local_request_error_and_provider_fallback_metadata"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_24_local_request_error_and_provider_fallback_metadata",
+              "line": 818,
+              "fragment": "a.check(7, route[\"classifier_status\"].as_f64() == Some(503.0));",
+              "fragment_sha256": "f3db5eef1a3880c3ae73a1a0b94ccc951e38d3a599f142b812cbe0981a0187a9",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": "Compare actual f64 numeric value using JavaScript Number equality. Native raw metadata keeps its f64 representation; no event or provider payload is rewritten."
+        },
+        {
+          "id": "test/server.test.mjs#24:assert-8",
+          "expression": "assert.equal(f.statuses.find(entry => entry.event === 'upstream_response').status, 429)",
+          "sha256": "34a0ee7ef1166665b3938cdc6175f2380960fd970ee2e29788baa3f82d53182e",
+          "line": 966,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_24_local_request_error_and_provider_fallback_metadata"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_24_local_request_error_and_provider_fallback_metadata",
+              "line": 819,
+              "fragment": "a.check(\n        8,\n        events(&seen.statuses, \"upstream_response\")[0][\"status\"].as_f64() == Some(429.0),\n    );",
+              "fragment_sha256": "84badcf883ba39df05e24c01db5a3ca89c49d25b747dd8dc5aff32d36ed87e87",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": "Compare actual f64 numeric value using JavaScript Number equality. Native raw metadata keeps its f64 representation; no event or provider payload is rewritten."
+        },
+        {
+          "id": "test/server.test.mjs#24:assert-9",
+          "expression": "assert.equal(f.statuses.find(entry => entry.event === 'upstream_error').error_type, 'rate_limit_error')",
+          "sha256": "0326d5e95419a87464b5fa26fcb5bea55fc6ad0228d6cc09e124e0f0d0f4c4b7",
+          "line": 967,
+          "expanded_executions": 1,
+          "native_executions": 1,
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs#original_24_local_request_error_and_provider_fallback_metadata"
+          ],
+          "native_anchors": [
+            {
+              "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+              "function": "original_24_local_request_error_and_provider_fallback_metadata",
+              "line": 823,
+              "fragment": "a.check(\n        9,\n        events(&seen.statuses, \"upstream_error\")[0][\"error_type\"] == \"rate_limit_error\",\n    );",
+              "fragment_sha256": "46a73ffa4a28215f551536bd16f180573a48ff655526ba287f7752343786e8a7",
+              "file_sha256": "2954df385749ac700d8a2c2f3694c35942c977f6214099c8073187ae40ab3583"
+            }
+          ],
+          "native_check": "Complete original predicate through ordinary native Gateway, injected original routing decisions and actual bounded synthetic HTTP peers. Each original dynamic site count is pinned to the frozen callback capture.",
+          "api_adaptation": null
+        }
+      ]
+    }
+  ],
+  "supplemental_native_anchors": [
+    {
+      "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+      "function": "supplemental_transcripts"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+      "function": "compare_metadata"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/server_status_lifecycle_contracts.rs",
+      "function": "javascript_number_equality"
+    }
+  ],
+  "comparison_boundaries": [
+    "Native metadata numbers originate as f64; predicates compare their actual numeric value to the original JavaScript Number. No raw numeric observations are rewritten. Exact injected decision/routing latency remains 42 or 33, never projected to zero.",
+    "Actual generated UUIDs differ across executions. Native per-request metadata is correlated through exact session/agent/prompt/class fields and event sequence, and actual IDs remain in raw transcripts.",
+    "JavaScript undefined metadata must correspond to absent native fields, not null. Optional typed RouteOptions identifiers use empty Strings; forwarded HTTP header absence is compared separately.",
+    "Only first_response_ms and total_latency_ms are actual measured timings without equal-value comparison; presence and finite nonnegative values are checked. Source timing stability projections have an exact retained ledger.",
+    "The source mocked complete callback returns undefined and is called redundantly on successful cleanup; native GatewayRouter returns false and consumes its lease once. All actual source/native calls remain separately retained; callback identity/cardinality equality is not claimed.",
+    "Source callbacks intentionally do not read provider requests. Capturing delegates IncomingMessage.push without draining or changing its return value. Native bounded peer reads complete finite synthetic request bytes before responding; original unread-stream API/timing equivalence is not claimed."
+  ],
+  "bundle_fixed_paths": [
+    "rust/parity/cases/server-status-lifecycle-contracts.jsonl",
+    "rust/parity/cases/server-status-lifecycle-contracts.capture.json"
+  ],
+  "bundle_large_corpus_additions": [],
+  "bundle_cap_changes": false,
+  "limits": [
+    "Four complete original definitions only; no wholesale gateway suite or rewrite qualification.",
+    "Mocked routing callback scope is unchanged from original baseline; no evaluator quality, real provider, numerical performance or production cutover claim.",
+    "No general socket/chunk partition equivalence or original unread IncomingMessage API identity is claimed."
+  ],
+  "independent_review": {
+    "reviewed_at": "2026-10-13",
+    "scope": "All four original callbacks/predicates, 34 exact source and native anchors/hashes, 64 execution counts, genuine HTTP overlap and full per-request safe event field comparison. Typed callback cardinality and unread-stream API differences remain explicit; no generic socket schedule equivalence is claimed."
+  }
+}

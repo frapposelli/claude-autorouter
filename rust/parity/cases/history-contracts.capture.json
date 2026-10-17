@@ -1,0 +1,1088 @@
+{
+  "schema_version": 1,
+  "kind": "frozen_history_contract_execution",
+  "baseline": {
+    "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+    "files_verified": 111
+  },
+  "source": {
+    "path": "test/session-history.test.mjs",
+    "sha256": "1cc2c2ab57b15ace914f881658bf6e47a5e44dbceb8d2f0021c4c4b7f3e65f33"
+  },
+  "capture_source_sha256": "bc2b231fa22ac1d4eb1002eb77a5e8a963d05b256fc8f88f7279a2d225f59eff",
+  "node": {
+    "version": "v22.14.0",
+    "sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0"
+  },
+  "selected_definitions": 10,
+  "static_assertions": 88,
+  "expanded_assertions": 100,
+  "direct_reader_calls": 21,
+  "command_calls": 7,
+  "transformations": "Unselected definitions are removed; selected definitions have import wiring and source-assertion result counters only. Complete original selected helpers, inputs, callbacks, loops, filesystem operations, assertion expressions and cleanup remain unchanged. Public-call facades count invocations and delegate to exact frozen exports.",
+  "adaptations": [
+    "Private temporary path identities are omitted from metadata; directory roles and original ID/limit arguments remain.",
+    "Assertions returning promises retain the exact promise. Complete callback completion proves those awaited assertions resolved. No source assertion is omitted or replaced."
+  ],
+  "exclusions": "Only definitions1 through10. No provider, model, performance, total-memory, current pricing or complete project claim.",
+  "definitions": [
+    {
+      "id": "test/session-history.test.mjs#1",
+      "number": 1,
+      "name": "history correlates selections and confirmed outcomes and prices only covered usage",
+      "source_line": 29,
+      "statement": "test('history correlates selections and confirmed outcomes and prices only covered usage', async t => {\n  const f = await fixture(t);\n  await f.write([decision('success'), outcome('success'), decision('failed'), outcome('failed', { status: 'error', http_status: 429, completion_confirmed: false }),\n    decision('pending', { source: 'fallback', classifier_error: 'timeout', reason: 'classifier_error', selected_model: 'claude-sonnet-5-5', decision_latency_ms: 1500 }),\n    decision('legacy', { schema_version: 1 }), outcome('invalid', { status: 'error', http_status: 400, completion_confirmed: false, confirmed_model: undefined }),\n    decision('unfinished'), outcome('unfinished', { completion_confirmed: false }), outcome('cancelled', { status: 'cancelled', completion_confirmed: false })]);\n  const { summary, records } = await readSessionHistory(f.directory, { id });\n  assert.equal(summary.id, id);\n  assert.equal(summary.session_id, 'session-a');\n  assert.deepEqual([summary.requests, summary.decisions, summary.outcomes, summary.completed, summary.failed, summary.cancelled, summary.pending, summary.unconfirmed, summary.outcome_only], [7, 5, 5, 1, 2, 1, 2, 1, 2]);\n  assert.equal(summary.fallbacks, 1);\n  assert.equal(summary.fallback_rate, .2);\n  assert.deepEqual(summary.classifier_errors, { timeout: 1 });\n  assert.deepEqual(summary.decision_latency_ms, { samples: 5, p50: 12, p95: 1500, max: 1500 });\n  assert.equal(summary.savings.priced_requests, 1);\n  assert.equal(summary.savings.unpriced_requests, 6);\n  assert.equal(summary.savings.saved_usd, .0045);\n  assert.equal(summary.savings.unpriced_reasons.missing_outcome, 2);\n  assert.deepEqual(summary.pricing_versions, [PRICING_VERSION]);\n  assert.equal(summary.mixed_pricing_versions, false);\n  assert.equal(summary.unversioned_outcomes, 0);\n  assert.equal(summary.coverage.legacy_decisions, 1);\n  assert.equal(summary.coverage.partial, false);\n  assert.equal(records.find(row => row.request_id === 'legacy').schema_version, 1);\n});",
+      "statement_sha256": "6d6622770c4b272c448b839231ecd75beb4d6fedebf3a6686e7a3a2e3943bd68",
+      "call_sha256": "e3c7a4d225c5667937832c4bea0680c92dbd646c7c19ece9b7868df263ad698d",
+      "selected": true,
+      "execution": "complete_unchanged_callback",
+      "assertions": [
+        {
+          "id": "test/session-history.test.mjs#1:assert-1",
+          "line": 36,
+          "expression": "assert.equal(summary.id, id)",
+          "sha256": "6f4764533f57598351534323d75e767e9bba867295e95ae72dc1b2c18081a70f",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-2",
+          "line": 37,
+          "expression": "assert.equal(summary.session_id, 'session-a')",
+          "sha256": "8db973c8a7327cd379aef893f0aae0036464fd1408d872691d3d0095feef7072",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-3",
+          "line": 38,
+          "expression": "assert.deepEqual([summary.requests, summary.decisions, summary.outcomes, summary.completed, summary.failed, summary.cancelled, summary.pending, summary.unconfirmed, summary.outcome_only], [7, 5, 5, 1, 2, 1, 2, 1, 2])",
+          "sha256": "84349bd1887d50569abd3dcbac4154ddedd137857e94b8f68ba9a14721d78cc3",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-4",
+          "line": 39,
+          "expression": "assert.equal(summary.fallbacks, 1)",
+          "sha256": "ef8961defa8b2c7022df2520ec06b280675ef94545e3a9d551fdecdad3e9bbee",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-5",
+          "line": 40,
+          "expression": "assert.equal(summary.fallback_rate, .2)",
+          "sha256": "b12dbb0af139f7c345f2c494aa2c029f458bfe75341b7071308d8758bce9e201",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-6",
+          "line": 41,
+          "expression": "assert.deepEqual(summary.classifier_errors, { timeout: 1 })",
+          "sha256": "8063c278cdf296a44173e96a4a71b93616c6750383827a34f712f34cf5ce547d",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-7",
+          "line": 42,
+          "expression": "assert.deepEqual(summary.decision_latency_ms, { samples: 5, p50: 12, p95: 1500, max: 1500 })",
+          "sha256": "11c79eadeac079e8848ff5ce2163aef1fd26bcae02971ca2511e6f74465168d0",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-8",
+          "line": 43,
+          "expression": "assert.equal(summary.savings.priced_requests, 1)",
+          "sha256": "2308ef446f7e1f13535558b118f93e68074b10c25013aad25f122e4fecb8074f",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-9",
+          "line": 44,
+          "expression": "assert.equal(summary.savings.unpriced_requests, 6)",
+          "sha256": "a41840d0508135a0753db104eb899e1b2b58f4fa60901579521f6a85887ee40d",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-10",
+          "line": 45,
+          "expression": "assert.equal(summary.savings.saved_usd, .0045)",
+          "sha256": "8f7ab20e403a725797a2d99f9463b0aeac814dcf196074c699b1ba6bab9c4d1e",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-11",
+          "line": 46,
+          "expression": "assert.equal(summary.savings.unpriced_reasons.missing_outcome, 2)",
+          "sha256": "6ac45984a0fdf4352b5210933ec5c88a46e769be28ba83c66ea1ba16f22dea82",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-12",
+          "line": 47,
+          "expression": "assert.deepEqual(summary.pricing_versions, [PRICING_VERSION])",
+          "sha256": "6b4ae02d2227c623fc97fce72b618ce7c47cdc461e4901e009c5396cdf847178",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-13",
+          "line": 48,
+          "expression": "assert.equal(summary.mixed_pricing_versions, false)",
+          "sha256": "a42505382b61a2240e12f88747d6924c36594ce7e35bc5fa16352ea8c9aa6b0a",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-14",
+          "line": 49,
+          "expression": "assert.equal(summary.unversioned_outcomes, 0)",
+          "sha256": "5d1ab8130cad8aa56fc8a297adaef78ec75005d2e432fbcf795f84096e9e828f",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-15",
+          "line": 50,
+          "expression": "assert.equal(summary.coverage.legacy_decisions, 1)",
+          "sha256": "381f557967856173681f564c9d93b7edc22d41e7ca4396ba857c9ed41fb16b18",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-16",
+          "line": 51,
+          "expression": "assert.equal(summary.coverage.partial, false)",
+          "sha256": "e722fec4840408f7052c5d3c2f38b2706f3557f626b2097aecd97de0c621499d",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#1:assert-17",
+          "line": 52,
+          "expression": "assert.equal(records.find(row => row.request_id === 'legacy').schema_version, 1)",
+          "sha256": "37b4221b7925494634b50cd0dba9d33e33beaeae565f4d4d6a930148b63fb835",
+          "expanded_executions": 1
+        }
+      ]
+    },
+    {
+      "id": "test/session-history.test.mjs#2",
+      "number": 2,
+      "name": "unknown pricing versions and mixed recorded baselines stay explicit, duplicate rows do not double count",
+      "source_line": 55,
+      "statement": "test('unknown pricing versions and mixed recorded baselines stay explicit, duplicate rows do not double count', async t => {\n  const f = await fixture(t);\n  const one = outcome('one');\n  await f.write([decision('one'), one, one, outcome('two', { baseline_model: 'claude-opus-5' }),\n    outcome('future', { pricing_version: 'future.9' }), outcome('missing-baseline', { baseline_model: undefined })]);\n  const { summary } = await readSessionHistory(f.directory, { id });\n  assert.equal(summary.requests, 4);\n  assert.equal(summary.savings.priced_requests, 2);\n  assert.equal(summary.savings.unpriced_reasons.unknown_pricing_version, 1);\n  assert.equal(summary.savings.unpriced_reasons.unknown_baseline, 1);\n  assert.deepEqual(summary.baseline_models, ['claude-opus-5', 'claude-opus-5-5']);\n  assert.equal(summary.mixed_baselines, true);\n  assert.deepEqual(summary.pricing_versions, [PRICING_VERSION, 'future.9']);\n  assert.equal(summary.mixed_pricing_versions, true);\n  assert.equal(summary.coverage.duplicate_records, 1);\n  assert.equal(summary.coverage.partial, true);\n});",
+      "statement_sha256": "bc3c2f6792bdd4cfba17c59134358b3b18945ed7a9f6969fb259356453f1b077",
+      "call_sha256": "a67cd371be31ca877a08441086b4cfe8f3c719cecc3c4c7f31c31fe9145a768d",
+      "selected": true,
+      "execution": "complete_unchanged_callback",
+      "assertions": [
+        {
+          "id": "test/session-history.test.mjs#2:assert-1",
+          "line": 61,
+          "expression": "assert.equal(summary.requests, 4)",
+          "sha256": "82502265a54fe7e8ace84dd14a229ce1fbd20a5e801f15ceaee3446832583378",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#2:assert-2",
+          "line": 62,
+          "expression": "assert.equal(summary.savings.priced_requests, 2)",
+          "sha256": "6a901ae015599116e424645c8c56f22e20960c409bbda505c2fa5b0a7dadb6fb",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#2:assert-3",
+          "line": 63,
+          "expression": "assert.equal(summary.savings.unpriced_reasons.unknown_pricing_version, 1)",
+          "sha256": "68813a4c3d8caa393db1f6356f0e1fb7e789c772e4abeee21a502cb6ceabe560",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#2:assert-4",
+          "line": 64,
+          "expression": "assert.equal(summary.savings.unpriced_reasons.unknown_baseline, 1)",
+          "sha256": "409212b3980adf66521ee45494b791139d94130cac2fd003b2445f8efc82e030",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#2:assert-5",
+          "line": 65,
+          "expression": "assert.deepEqual(summary.baseline_models, ['claude-opus-5', 'claude-opus-5-5'])",
+          "sha256": "5adeb762d89878a8af8ef90009c59d03aa05200a31911bae8da913358c7cc316",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#2:assert-6",
+          "line": 66,
+          "expression": "assert.equal(summary.mixed_baselines, true)",
+          "sha256": "a25324a0c7cf14ca701c6f5fd6548b5339be80e1d27fe82d4eb9b672d8f011ec",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#2:assert-7",
+          "line": 67,
+          "expression": "assert.deepEqual(summary.pricing_versions, [PRICING_VERSION, 'future.9'])",
+          "sha256": "53488d95049cc6547adf3972aca0ee4e4d6bfda762bdc7803934244fa1496af6",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#2:assert-8",
+          "line": 68,
+          "expression": "assert.equal(summary.mixed_pricing_versions, true)",
+          "sha256": "fbb7990bb295857657afc439d8b62230f00b90b1955f1a48cbe91b4635efadb4",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#2:assert-9",
+          "line": 69,
+          "expression": "assert.equal(summary.coverage.duplicate_records, 1)",
+          "sha256": "9693a853209538ab6305d39463b8fc68fa18945fc3e815e7ee423998da1bd9fc",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#2:assert-10",
+          "line": 70,
+          "expression": "assert.equal(summary.coverage.partial, true)",
+          "sha256": "d209373d54d7a43772f7b608348f49d6437a63e5bafb6f97ba5744951cbe5eac",
+          "expanded_executions": 1
+        }
+      ]
+    },
+    {
+      "id": "test/session-history.test.mjs#3",
+      "number": 3,
+      "name": "list and show report pricing versions and missing provenance in human and JSON summaries",
+      "source_line": 73,
+      "statement": "test('list and show report pricing versions and missing provenance in human and JSON summaries', async t => {\n  const f = await fixture(t);\n  saveUserConfig({ AUTOROUTER_SESSION_LOG_DIR: f.directory }, { env: f.env });\n  await f.write([decision('current'), outcome('current'), outcome('future', { pricing_version: 'future.9' }),\n    outcome('unversioned', { pricing_version: undefined })]);\n  for (const operation of [['list'], ['show', id]]) {\n    const text = [];\n    await sessionsCommand(operation, { env: f.env, write: line => text.push(line) });\n    assert.ok(text.some(line => line.includes(`Recorded pricing versions (mixed): ${PRICING_VERSION}, future.9`)));\n    assert.match(text.join('\\n'), /1 outcomes without a recorded version/);\n    assert.match(text.join('\\n'), /unknown_pricing_version \\(2\\)/);\n    assert.ok(text.some(line => line.includes(`reviewed ${PRICING_DATE}: ${PRICING_SOURCE}`)));\n    const json = [];\n    await sessionsCommand([...operation, '--json'], { env: f.env, write: line => json.push(line) });\n    const report = JSON.parse(json[0]);\n    const summary = report.summary ?? report.sessions[0];\n    assert.deepEqual(summary.pricing_versions, [PRICING_VERSION, 'future.9']);\n    assert.equal(summary.mixed_pricing_versions, true);\n    assert.equal(summary.unversioned_outcomes, 1);\n    assert.deepEqual(summary.pricing_facts, [{ version: PRICING_VERSION, date: PRICING_DATE, source: PRICING_SOURCE }]);\n    assert.equal(summary.savings.priced_requests, 1);\n  }\n});",
+      "statement_sha256": "f443aaa56ff2a15523d4395f3b96633270a3c311ecafff6c97771643f650de44",
+      "call_sha256": "df3b2c283295117ea6a6586efddc2481cd1fafafcb2f57bbfd97d451a230afb3",
+      "selected": true,
+      "execution": "complete_unchanged_callback",
+      "assertions": [
+        {
+          "id": "test/session-history.test.mjs#3:assert-1",
+          "line": 81,
+          "expression": "assert.ok(text.some(line => line.includes(`Recorded pricing versions (mixed): ${PRICING_VERSION}, future.9`)))",
+          "sha256": "91721588a97eca1780aab6d6af7bc105ac788fb03b3f735de57d436d9b44972e",
+          "expanded_executions": 2
+        },
+        {
+          "id": "test/session-history.test.mjs#3:assert-2",
+          "line": 82,
+          "expression": "assert.match(text.join('\\n'), /1 outcomes without a recorded version/)",
+          "sha256": "5e44547bb29c8543a254cab9fe7aab1d979ff69a8f2523a5bd09ed1bad85e3f0",
+          "expanded_executions": 2
+        },
+        {
+          "id": "test/session-history.test.mjs#3:assert-3",
+          "line": 83,
+          "expression": "assert.match(text.join('\\n'), /unknown_pricing_version \\(2\\)/)",
+          "sha256": "61125228b8b0adfeb63d685fad9432b7b152a4e4dc43296c677f7e29214b2365",
+          "expanded_executions": 2
+        },
+        {
+          "id": "test/session-history.test.mjs#3:assert-4",
+          "line": 84,
+          "expression": "assert.ok(text.some(line => line.includes(`reviewed ${PRICING_DATE}: ${PRICING_SOURCE}`)))",
+          "sha256": "b29df70390a02f54cf47d445c6078167fd8f9c924f4f1a79cc8243fd5ab7abb8",
+          "expanded_executions": 2
+        },
+        {
+          "id": "test/session-history.test.mjs#3:assert-5",
+          "line": 89,
+          "expression": "assert.deepEqual(summary.pricing_versions, [PRICING_VERSION, 'future.9'])",
+          "sha256": "53488d95049cc6547adf3972aca0ee4e4d6bfda762bdc7803934244fa1496af6",
+          "expanded_executions": 2
+        },
+        {
+          "id": "test/session-history.test.mjs#3:assert-6",
+          "line": 90,
+          "expression": "assert.equal(summary.mixed_pricing_versions, true)",
+          "sha256": "fbb7990bb295857657afc439d8b62230f00b90b1955f1a48cbe91b4635efadb4",
+          "expanded_executions": 2
+        },
+        {
+          "id": "test/session-history.test.mjs#3:assert-7",
+          "line": 91,
+          "expression": "assert.equal(summary.unversioned_outcomes, 1)",
+          "sha256": "e52f2f53bc421147e013662f085689e95289ee252be645ea8e07b3d46683f1e1",
+          "expanded_executions": 2
+        },
+        {
+          "id": "test/session-history.test.mjs#3:assert-8",
+          "line": 92,
+          "expression": "assert.deepEqual(summary.pricing_facts, [{ version: PRICING_VERSION, date: PRICING_DATE, source: PRICING_SOURCE }])",
+          "sha256": "23332b49da0cc5b47eedaf80e26d649f62eba7b8f8741df6e1de57bda43c36ee",
+          "expanded_executions": 2
+        },
+        {
+          "id": "test/session-history.test.mjs#3:assert-9",
+          "line": 93,
+          "expression": "assert.equal(summary.savings.priced_requests, 1)",
+          "sha256": "2308ef446f7e1f13535558b118f93e68074b10c25013aad25f122e4fecb8074f",
+          "expanded_executions": 2
+        }
+      ]
+    },
+    {
+      "id": "test/session-history.test.mjs#4",
+      "number": 4,
+      "name": "fallback rates use observed selections including legacy/pending records, not HTTP failures or outcomes",
+      "source_line": 97,
+      "statement": "test('fallback rates use observed selections including legacy/pending records, not HTTP failures or outcomes', async t => {\n  const f = await fixture(t);\n  saveUserConfig({ AUTOROUTER_SESSION_LOG_DIR: f.directory }, { env: f.env });\n  await f.write([decision('legacy-pending', { schema_version: 1, source: 'fallback' }),\n    decision('fallback-completed', { source: 'fallback' }), outcome('fallback-completed'),\n    decision('evaluator-success'), outcome('evaluator-success', { status: 'error', http_status: 429, completion_confirmed: false }),\n    outcome('unselected-http-error', { status: 'error', http_status: 500, completion_confirmed: false })]);\n  let report = await readSessionHistory(f.directory, { id });\n  assert.equal(report.summary.fallbacks, 2);\n  assert.equal(report.summary.decisions, 3);\n  assert.equal(report.summary.failed, 2);\n  assert.equal(report.summary.fallback_rate, 2 / 3);\n  const text = [];\n  await sessionsCommand(['show', id], { env: f.env, write: line => text.push(line) });\n  assert.match(text.join('\\n'), /Fallbacks: 2 of 3 selections \\(66\\.7%\\)/);\n  await f.write([outcome('only-outcome', { pricing_version: 'future.9', status: 'error', completion_confirmed: false })]);\n  report = await readSessionHistory(f.directory, { id });\n  assert.equal(report.summary.fallback_rate, 0);\n  assert.equal(report.summary.fallbacks, 0);\n  assert.deepEqual(report.summary.pricing_facts, []);\n});",
+      "statement_sha256": "0e345af235c5eda8227e2f6c2e76c7e9590d0b3f3d0b7b1b7cffa66e2caaf0d0",
+      "call_sha256": "2a7fb3a67a9a7d1aea1585ca9c5454379fc765fffacf2e03af132028765a965c",
+      "selected": true,
+      "execution": "complete_unchanged_callback",
+      "assertions": [
+        {
+          "id": "test/session-history.test.mjs#4:assert-1",
+          "line": 105,
+          "expression": "assert.equal(report.summary.fallbacks, 2)",
+          "sha256": "76e6a006ffaa9c0d1aebe46c2353f9210d58a693d8aef248e56231502fb7c913",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#4:assert-2",
+          "line": 106,
+          "expression": "assert.equal(report.summary.decisions, 3)",
+          "sha256": "101d90f1ec2e78efca8659a4deb4ff6ad1a1e6a591d5a192be600f139a4f9baf",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#4:assert-3",
+          "line": 107,
+          "expression": "assert.equal(report.summary.failed, 2)",
+          "sha256": "6f22850be06a2960580069c4ee69ccff204e54827d7914d4d3af25e8cc93f010",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#4:assert-4",
+          "line": 108,
+          "expression": "assert.equal(report.summary.fallback_rate, 2 / 3)",
+          "sha256": "be9dfeea4a5554c3a7f0d19016d128d009e304e6c9cce1cfb4bf66401a04e77c",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#4:assert-5",
+          "line": 111,
+          "expression": "assert.match(text.join('\\n'), /Fallbacks: 2 of 3 selections \\(66\\.7%\\)/)",
+          "sha256": "aca5d7c572d5e38afa0b3933e105cb1e4fbd19c0aa61de44768e364f744858a7",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#4:assert-6",
+          "line": 114,
+          "expression": "assert.equal(report.summary.fallback_rate, 0)",
+          "sha256": "e78dff8feb2343a72ded591c4656072f9252f9f48a575dda520a2f1e77a1d71e",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#4:assert-7",
+          "line": 115,
+          "expression": "assert.equal(report.summary.fallbacks, 0)",
+          "sha256": "3e7cd19ae3cef0ed12217598539d751ef47c861fc380305d25e86c0f5b26323f",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#4:assert-8",
+          "line": 116,
+          "expression": "assert.deepEqual(report.summary.pricing_facts, [])",
+          "sha256": "a94291c1f0cfaca6a42f0b7a52775630b5e17a061fecd91ba0781ad423fc7108",
+          "expanded_executions": 1
+        }
+      ]
+    },
+    {
+      "id": "test/session-history.test.mjs#5",
+      "number": 5,
+      "name": "legacy records and metadata-only sessions never invent successful responses or reveal private fields",
+      "source_line": 119,
+      "statement": "test('legacy records and metadata-only sessions never invent successful responses or reveal private fields', async t => {\n  const f = await fixture(t);\n  await f.write([decision('legacy', { schema_version: 1, body: { private: 'PRIVATE_BODY' }, headers: { authorization: 'PRIVATE_AUTH' } }),\n    decision('metadata', { prompt_excerpt: undefined })]);\n  const result = await readSessionHistory(f.directory, { id });\n  assert.equal(result.summary.completed, 0);\n  assert.equal(result.summary.pending, 2);\n  assert.deepEqual(result.summary.confirmed_models, {});\n  assert.equal(result.summary.savings.priced_requests, 0);\n  assert.ok(!JSON.stringify(result).includes('PRIVATE_'));\n});",
+      "statement_sha256": "53f737d55d2795307b2fd76aa070225a519dd6b60963bc526fabc3a7a3db343b",
+      "call_sha256": "2f33da133aa66981188de49f7825ed13b17302612487aa2ab2fbfed79010d495",
+      "selected": true,
+      "execution": "complete_unchanged_callback",
+      "assertions": [
+        {
+          "id": "test/session-history.test.mjs#5:assert-1",
+          "line": 124,
+          "expression": "assert.equal(result.summary.completed, 0)",
+          "sha256": "658fd22dfbe90d2c0b85d4c724de66cd92d8c37d8a7e4d78eea9f6b2e5cc064c",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#5:assert-2",
+          "line": 125,
+          "expression": "assert.equal(result.summary.pending, 2)",
+          "sha256": "8761f57b4a84b51f056ef002071ecab0b9ef1f910f17c9aea749d88dbfa5846e",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#5:assert-3",
+          "line": 126,
+          "expression": "assert.deepEqual(result.summary.confirmed_models, {})",
+          "sha256": "60058c7516727284f2bc74ea56dd58e0213964688403855dc28a48d6722dd9e7",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#5:assert-4",
+          "line": 127,
+          "expression": "assert.equal(result.summary.savings.priced_requests, 0)",
+          "sha256": "647f192a73ee577147dd6e687e53e4894f85daf998aa6b253ca86188d2636205",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#5:assert-5",
+          "line": 128,
+          "expression": "assert.ok(!JSON.stringify(result).includes('PRIVATE_'))",
+          "sha256": "07c384ef395ef3739a2df0555b057833a2cac52c07e6a0e7dac679730508cffe",
+          "expanded_executions": 1
+        }
+      ]
+    },
+    {
+      "id": "test/session-history.test.mjs#6",
+      "number": 6,
+      "name": "human show sanitizes terminal controls and JSON retains only bounded prompt excerpts",
+      "source_line": 131,
+      "statement": "test('human show sanitizes terminal controls and JSON retains only bounded prompt excerpts', async t => {\n  const f = await fixture(t), lines = [];\n  saveUserConfig({ AUTOROUTER_SESSION_LOG_DIR: f.directory, AUTOROUTER_JEV_URL: 'invalid-inactive-settings', AUTOROUTER_EVALUATOR: 'ollama' }, { env: f.env });\n  await f.write([decision('prompt', { prompt_excerpt: '\\u001b[31m\\u202eSECRET\\n😀'.repeat(100), prompt_truncated: true })]);\n  assert.equal(await sessionsCommand(['show', id], { env: f.env, write: line => lines.push(line) }), true);\n  assert.ok(lines.some(line => line === `ID: ${id}`));\n  assert.ok(!lines.join('\\n').includes('\\u001b'));\n  assert.ok(!lines.join('\\n').includes('\\u202e'));\n  assert.match(lines.join('\\n'), /0 confirmed completed/);\n  lines.length = 0;\n  await sessionsCommand(['show', id, '--json'], { env: f.env, write: line => lines.push(line) });\n  assert.equal(lines.length, 1);\n  const report = JSON.parse(lines[0]);\n  assert.equal([...report.records[0].prompt_excerpt].length, 500);\n  assert.ok(report.records[0].prompt_excerpt.includes('\\u001b'));\n});",
+      "statement_sha256": "1fa73f0ca9045244130498a4bea28735c7137096983b46f8200b6e193d0f96db",
+      "call_sha256": "d3001f32f054e9294ad1b3221771dc2e91f2e58c0fd1669545dc7565377c0b0f",
+      "selected": true,
+      "execution": "complete_unchanged_callback",
+      "assertions": [
+        {
+          "id": "test/session-history.test.mjs#6:assert-1",
+          "line": 135,
+          "expression": "assert.equal(await sessionsCommand(['show', id], { env: f.env, write: line => lines.push(line) }), true)",
+          "sha256": "8576b972439f3e98db452d69163843155176aef81eb8ee0fe01e727898bb992f",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#6:assert-2",
+          "line": 136,
+          "expression": "assert.ok(lines.some(line => line === `ID: ${id}`))",
+          "sha256": "7ebaadfaa7901902bc2816fbc77769b71876b23a0a5020d8fc1c46edb919d957",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#6:assert-3",
+          "line": 137,
+          "expression": "assert.ok(!lines.join('\\n').includes('\\u001b'))",
+          "sha256": "82cecc560a03df9c36224de9a44e25bcea8dcae79cb3028790a94f727c731c5a",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#6:assert-4",
+          "line": 138,
+          "expression": "assert.ok(!lines.join('\\n').includes('\\u202e'))",
+          "sha256": "5a84adc67e47102cc6acb94791de475f671c4f6528e6f9aa8e7a9790fa921102",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#6:assert-5",
+          "line": 139,
+          "expression": "assert.match(lines.join('\\n'), /0 confirmed completed/)",
+          "sha256": "758bc33912499a287f2c577429b8e3aa298d1f20354aac6df8af7df3f936c9ec",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#6:assert-6",
+          "line": 142,
+          "expression": "assert.equal(lines.length, 1)",
+          "sha256": "f1ef7af707333bb16339938816792b85f38d41e2174e7b10b81b35e20808080a",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#6:assert-7",
+          "line": 144,
+          "expression": "assert.equal([...report.records[0].prompt_excerpt].length, 500)",
+          "sha256": "b53bea8d4cfcee87f63bfe61703f92ad94d9d0af5341330c5e7a41549c5b6960",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#6:assert-8",
+          "line": 145,
+          "expression": "assert.ok(report.records[0].prompt_excerpt.includes('\\u001b'))",
+          "sha256": "d31eab991922c9ce816b7f1bf5ee4892ff74492961ed05443c4861859c3fa132",
+          "expanded_executions": 1
+        }
+      ]
+    },
+    {
+      "id": "test/session-history.test.mjs#7",
+      "number": 7,
+      "name": "bounded reads report partial coverage for bytes, records, lines, and incomplete tails",
+      "source_line": 148,
+      "statement": "test('bounded reads report partial coverage for bytes, records, lines, and incomplete tails', async t => {\n  const f = await fixture(t);\n  await f.write([decision('one'), decision('two'), outcome('one')]);\n  let result = await readSessionHistory(f.directory, { id, limits: { maxRecords: 1 } });\n  assert.equal(result.records.length, 1);\n  assert.equal(result.summary.coverage.truncated, true);\n  result = await readSessionHistory(f.directory, { id, limits: { maxLines: 1 } });\n  assert.equal(result.summary.coverage.partial, true);\n  result = await readSessionHistory(f.directory, { id, limits: { maxFileBytes: 30 } });\n  assert.equal(result.summary.coverage.bytes_read, 30);\n  assert.equal(result.summary.coverage.truncated, true);\n  assert.equal(result.records.length, 0);\n  await fs.appendFile(join(f.directory, `${id}.jsonl`), '{\"unfinished\":');\n  result = await readSessionHistory(f.directory, { id });\n  assert.equal(result.records.length, 3);\n  assert.equal(result.summary.coverage.incomplete_tail, true);\n  assert.equal(result.summary.coverage.partial, true);\n});",
+      "statement_sha256": "d53f24396972de1e187a50ede290225c631ed83339b61e27af8162a19551e3ad",
+      "call_sha256": "a689ae13de2f2d303949328fff253f0955b1122babd6b626c2d64a81e444520c",
+      "selected": true,
+      "execution": "complete_unchanged_callback",
+      "assertions": [
+        {
+          "id": "test/session-history.test.mjs#7:assert-1",
+          "line": 152,
+          "expression": "assert.equal(result.records.length, 1)",
+          "sha256": "0257b25c3d163037cd3a16e2d2f327aa10c42f89019205d4338868b44d24a80e",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#7:assert-2",
+          "line": 153,
+          "expression": "assert.equal(result.summary.coverage.truncated, true)",
+          "sha256": "647e98b08384272a5d1a77bfaa4fc5b540280839a904aa4f8adb05d853266ba1",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#7:assert-3",
+          "line": 155,
+          "expression": "assert.equal(result.summary.coverage.partial, true)",
+          "sha256": "6133d05a817e0608d40301ce0856794386b774e8d7ca8afe0c55046b0d236a1a",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#7:assert-4",
+          "line": 157,
+          "expression": "assert.equal(result.summary.coverage.bytes_read, 30)",
+          "sha256": "7c66374bb7b682d1beb087dce1f7b2acb8b76eef96710eabe875536ce9b096eb",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#7:assert-5",
+          "line": 158,
+          "expression": "assert.equal(result.summary.coverage.truncated, true)",
+          "sha256": "647e98b08384272a5d1a77bfaa4fc5b540280839a904aa4f8adb05d853266ba1",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#7:assert-6",
+          "line": 159,
+          "expression": "assert.equal(result.records.length, 0)",
+          "sha256": "5e76d1f0c38a0c5944bb54b535ee1eb96beb7c2a2f495514f187efbdb66535e4",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#7:assert-7",
+          "line": 162,
+          "expression": "assert.equal(result.records.length, 3)",
+          "sha256": "d8454e027b8f667f7aedf297f04df7608481324557b2f7fc0c23f3caa1875366",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#7:assert-8",
+          "line": 163,
+          "expression": "assert.equal(result.summary.coverage.incomplete_tail, true)",
+          "sha256": "03f938a48aee50b3ef3f93806070c06c468369ba8c223b09478c7ded3e5d2f34",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#7:assert-9",
+          "line": 164,
+          "expression": "assert.equal(result.summary.coverage.partial, true)",
+          "sha256": "6133d05a817e0608d40301ce0856794386b774e8d7ca8afe0c55046b0d236a1a",
+          "expanded_executions": 1
+        }
+      ]
+    },
+    {
+      "id": "test/session-history.test.mjs#8",
+      "number": 8,
+      "name": "oversized, malformed, foreign-session, and unknown-version records are skipped with coverage counts",
+      "source_line": 167,
+      "statement": "test('oversized, malformed, foreign-session, and unknown-version records are skipped with coverage counts', async t => {\n  const f = await fixture(t);\n  await f.write([decision('good'), decision('foreign', { session_id: 'session-other' }), decision('future', { schema_version: 99 })]);\n  await fs.appendFile(join(f.directory, `${id}.jsonl`), `${'x'.repeat(17000)}\\nPRIVATE_MALFORMED_JSON\\n`);\n  const result = await readSessionHistory(f.directory, { id });\n  assert.equal(result.records.length, 1);\n  assert.equal(result.summary.coverage.mixed_session_records, 1);\n  assert.equal(result.summary.coverage.invalid_records, 2);\n  assert.equal(result.summary.coverage.oversized_lines, 1);\n  assert.equal(result.summary.coverage.partial, true);\n  assert.ok(!JSON.stringify(result).includes('PRIVATE_'));\n});",
+      "statement_sha256": "3f61895fdc10209a7064ba2a4f557e53257ea8d6fda279ee849167d502ac4b0f",
+      "call_sha256": "42aec51ca7c8948da5cab4f3af8deeb48580b3cef7065fb478a6d763c2389fd1",
+      "selected": true,
+      "execution": "complete_unchanged_callback",
+      "assertions": [
+        {
+          "id": "test/session-history.test.mjs#8:assert-1",
+          "line": 172,
+          "expression": "assert.equal(result.records.length, 1)",
+          "sha256": "0257b25c3d163037cd3a16e2d2f327aa10c42f89019205d4338868b44d24a80e",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#8:assert-2",
+          "line": 173,
+          "expression": "assert.equal(result.summary.coverage.mixed_session_records, 1)",
+          "sha256": "9e095314e7ca49ef9edc7a2996b4f1d6e2e949d1a42f260c77ba79e436b4aca0",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#8:assert-3",
+          "line": 174,
+          "expression": "assert.equal(result.summary.coverage.invalid_records, 2)",
+          "sha256": "dfd96bb37a0c786ce09f562f3c97c13d72aed54ee7a030d8a6725a1cad45739a",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#8:assert-4",
+          "line": 175,
+          "expression": "assert.equal(result.summary.coverage.oversized_lines, 1)",
+          "sha256": "59a8a92a185cf4e0d774edafcd4c0a013863f0aaccfcc6d3e1fc8df5e67632aa",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#8:assert-5",
+          "line": 176,
+          "expression": "assert.equal(result.summary.coverage.partial, true)",
+          "sha256": "6133d05a817e0608d40301ce0856794386b774e8d7ca8afe0c55046b0d236a1a",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#8:assert-6",
+          "line": 177,
+          "expression": "assert.ok(!JSON.stringify(result).includes('PRIVATE_'))",
+          "sha256": "07c384ef395ef3739a2df0555b057833a2cac52c07e6a0e7dac679730508cffe",
+          "expanded_executions": 1
+        }
+      ]
+    },
+    {
+      "id": "test/session-history.test.mjs#9",
+      "number": 9,
+      "name": "list chooses bounded newest IDs deterministically and limits total bytes without deleting files",
+      "source_line": 180,
+      "statement": "test('list chooses bounded newest IDs deterministically and limits total bytes without deleting files', async t => {\n  const f = await fixture(t);\n  for (const suffix of ['a', 'b', 'c']) await f.write([decision(suffix)], `autorouter-session-${suffix}`);\n  let result = await readSessionHistory(f.directory, { limits: { maxFiles: 2 } });\n  assert.deepEqual(result.sessions.map(session => session.id), ['autorouter-session-c', 'autorouter-session-b']);\n  assert.equal(result.coverage.partial, true);\n  assert.equal(result.coverage.skipped_files, 1);\n  result = await readSessionHistory(f.directory, { limits: { maxTotalBytes: 100 } });\n  assert.equal(result.coverage.bytes_read, 100);\n  assert.equal(result.coverage.byte_limit_reached, true);\n  assert.equal(result.coverage.partial, true);\n  result = await readSessionHistory(f.directory, { limits: { maxDirectoryEntries: 1 } });\n  assert.equal(result.coverage.directory_scan_truncated, true);\n  assert.deepEqual((await fs.readdir(f.directory)).sort(), ['autorouter-session-a.jsonl', 'autorouter-session-b.jsonl', 'autorouter-session-c.jsonl']);\n});",
+      "statement_sha256": "10d95348c0fab27410d65ee6baacecd6fdf50a2f32abe2c69f3077465f93a2be",
+      "call_sha256": "5a49ec666bce324d5fb381c54e4ef38e0ce373bab461451b2b3fd27188892a4b",
+      "selected": true,
+      "execution": "complete_unchanged_callback",
+      "assertions": [
+        {
+          "id": "test/session-history.test.mjs#9:assert-1",
+          "line": 184,
+          "expression": "assert.deepEqual(result.sessions.map(session => session.id), ['autorouter-session-c', 'autorouter-session-b'])",
+          "sha256": "9d897df4975700295d078200a972c926fa7b6163e0f4440a2defa00e29c49bcf",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#9:assert-2",
+          "line": 185,
+          "expression": "assert.equal(result.coverage.partial, true)",
+          "sha256": "6a29885083cc570b6a4eaaa2b4fa7acaacce933e1722309ec7162c0bb96a7414",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#9:assert-3",
+          "line": 186,
+          "expression": "assert.equal(result.coverage.skipped_files, 1)",
+          "sha256": "55e1ea5e1233e092c74b4fed85587256dfc0d7f01219cbb8545a671e034738f6",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#9:assert-4",
+          "line": 188,
+          "expression": "assert.equal(result.coverage.bytes_read, 100)",
+          "sha256": "a9f07a70755df683688fd26c8c5a488c2669b980b5dadd855187fd5ddcfe1a74",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#9:assert-5",
+          "line": 189,
+          "expression": "assert.equal(result.coverage.byte_limit_reached, true)",
+          "sha256": "56d49869ec49d80b9586929dd707b62164638af9b2cc67cb916f6ffbfd1af656",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#9:assert-6",
+          "line": 190,
+          "expression": "assert.equal(result.coverage.partial, true)",
+          "sha256": "6a29885083cc570b6a4eaaa2b4fa7acaacce933e1722309ec7162c0bb96a7414",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#9:assert-7",
+          "line": 192,
+          "expression": "assert.equal(result.coverage.directory_scan_truncated, true)",
+          "sha256": "17cbf21fbbd32e8e4bf77d925abf70d60e31a379c31099c98511f173d012020c",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#9:assert-8",
+          "line": 193,
+          "expression": "assert.deepEqual((await fs.readdir(f.directory)).sort(), ['autorouter-session-a.jsonl', 'autorouter-session-b.jsonl', 'autorouter-session-c.jsonl'])",
+          "sha256": "99602bf93309a1f758d83c5c08cc8911d6be4532ae5d56c1f67318545743f8dc",
+          "expanded_executions": 1
+        }
+      ]
+    },
+    {
+      "id": "test/session-history.test.mjs#10",
+      "number": 10,
+      "name": "history rejects traversal, directory or file symlinks, and hardlinks without reading their targets",
+      "source_line": 196,
+      "statement": "test('history rejects traversal, directory or file symlinks, and hardlinks without reading their targets', async t => {\n  const f = await fixture(t);\n  const target = join(f.root, 'PRIVATE_TARGET.jsonl');\n  await fs.writeFile(target, JSON.stringify(decision('private', { prompt_excerpt: 'PRIVATE_TARGET_CONTENT' })) + '\\n');\n  await fs.symlink(target, join(f.directory, `${id}.jsonl`));\n  await assert.rejects(readSessionHistory(f.directory, { id }), error => !error.message.includes('PRIVATE'));\n  let result = await readSessionHistory(f.directory);\n  assert.equal(result.sessions.length, 0);\n  assert.equal(result.coverage.skipped_files, 1);\n  const link = join(f.root, 'directory-link');\n  await fs.symlink(f.directory, link);\n  await assert.rejects(readSessionHistory(link), /symbolic link/);\n  for (const attempted of ['../PRIVATE_TARGET', '/PRIVATE_TARGET', `${id}.jsonl`, 'x\\nPRIVATE_TARGET']) {\n    await assert.rejects(readSessionHistory(f.directory, { id: attempted }), error => !error.message.includes('PRIVATE'));\n  }\n  await fs.unlink(join(f.directory, `${id}.jsonl`));\n  await fs.link(target, join(f.directory, `${id}.jsonl`));\n  result = await readSessionHistory(f.directory);\n  assert.equal(result.sessions.length, 0);\n  assert.equal(result.coverage.unreadable_files, 1);\n  assert.match(await fs.readFile(target, 'utf8'), /PRIVATE_TARGET_CONTENT/);\n});",
+      "statement_sha256": "c91fa9ba2947591889ec616029442f2d5499dc08b45472413372744321fb3dd3",
+      "call_sha256": "af651d90f017effd31ba80bbb256f386479d0dc3f9dc437196e6f5c05e11fa4b",
+      "selected": true,
+      "execution": "complete_unchanged_callback",
+      "assertions": [
+        {
+          "id": "test/session-history.test.mjs#10:assert-1",
+          "line": 201,
+          "expression": "assert.rejects(readSessionHistory(f.directory, { id }), error => !error.message.includes('PRIVATE'))",
+          "sha256": "39a0727f0b3edae0880b83d1a2e262f2614196ef61c5ebb9b71fba8f5153e1f6",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#10:assert-2",
+          "line": 203,
+          "expression": "assert.equal(result.sessions.length, 0)",
+          "sha256": "18c59e60a9701e4df50d3dd0ab0f77f84eae2e6cd8c9cd1c866696195c72251f",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#10:assert-3",
+          "line": 204,
+          "expression": "assert.equal(result.coverage.skipped_files, 1)",
+          "sha256": "55e1ea5e1233e092c74b4fed85587256dfc0d7f01219cbb8545a671e034738f6",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#10:assert-4",
+          "line": 207,
+          "expression": "assert.rejects(readSessionHistory(link), /symbolic link/)",
+          "sha256": "3d416fc21adee751fc8fa7cbc9fa320d4a1258c80feaf9223ba4ba031b45a965",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#10:assert-5",
+          "line": 209,
+          "expression": "assert.rejects(readSessionHistory(f.directory, { id: attempted }), error => !error.message.includes('PRIVATE'))",
+          "sha256": "e1327aa0f24c0f9119e43e094f95c92a2dc3878fcc92aabd1ecbf9fdb8e428d2",
+          "expanded_executions": 4
+        },
+        {
+          "id": "test/session-history.test.mjs#10:assert-6",
+          "line": 214,
+          "expression": "assert.equal(result.sessions.length, 0)",
+          "sha256": "18c59e60a9701e4df50d3dd0ab0f77f84eae2e6cd8c9cd1c866696195c72251f",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#10:assert-7",
+          "line": 215,
+          "expression": "assert.equal(result.coverage.unreadable_files, 1)",
+          "sha256": "7ba6341a7486770c54cd39fc1a42820d0b7231281a67482399a63000b2fd63c7",
+          "expanded_executions": 1
+        },
+        {
+          "id": "test/session-history.test.mjs#10:assert-8",
+          "line": 216,
+          "expression": "assert.match(await fs.readFile(target, 'utf8'), /PRIVATE_TARGET_CONTENT/)",
+          "sha256": "af20e4df7d4795ded54043492d682a34ef169481747b2ba1cacfa6815b888be0",
+          "expanded_executions": 1
+        }
+      ]
+    }
+  ],
+  "assertion_calls": [
+    "test/session-history.test.mjs#1:assert-1",
+    "test/session-history.test.mjs#1:assert-2",
+    "test/session-history.test.mjs#1:assert-3",
+    "test/session-history.test.mjs#1:assert-4",
+    "test/session-history.test.mjs#1:assert-5",
+    "test/session-history.test.mjs#1:assert-6",
+    "test/session-history.test.mjs#1:assert-7",
+    "test/session-history.test.mjs#1:assert-8",
+    "test/session-history.test.mjs#1:assert-9",
+    "test/session-history.test.mjs#1:assert-10",
+    "test/session-history.test.mjs#1:assert-11",
+    "test/session-history.test.mjs#1:assert-12",
+    "test/session-history.test.mjs#1:assert-13",
+    "test/session-history.test.mjs#1:assert-14",
+    "test/session-history.test.mjs#1:assert-15",
+    "test/session-history.test.mjs#1:assert-16",
+    "test/session-history.test.mjs#1:assert-17",
+    "test/session-history.test.mjs#2:assert-1",
+    "test/session-history.test.mjs#2:assert-2",
+    "test/session-history.test.mjs#2:assert-3",
+    "test/session-history.test.mjs#2:assert-4",
+    "test/session-history.test.mjs#2:assert-5",
+    "test/session-history.test.mjs#2:assert-6",
+    "test/session-history.test.mjs#2:assert-7",
+    "test/session-history.test.mjs#2:assert-8",
+    "test/session-history.test.mjs#2:assert-9",
+    "test/session-history.test.mjs#2:assert-10",
+    "test/session-history.test.mjs#3:assert-1",
+    "test/session-history.test.mjs#3:assert-2",
+    "test/session-history.test.mjs#3:assert-3",
+    "test/session-history.test.mjs#3:assert-4",
+    "test/session-history.test.mjs#3:assert-5",
+    "test/session-history.test.mjs#3:assert-6",
+    "test/session-history.test.mjs#3:assert-7",
+    "test/session-history.test.mjs#3:assert-8",
+    "test/session-history.test.mjs#3:assert-9",
+    "test/session-history.test.mjs#3:assert-1",
+    "test/session-history.test.mjs#3:assert-2",
+    "test/session-history.test.mjs#3:assert-3",
+    "test/session-history.test.mjs#3:assert-4",
+    "test/session-history.test.mjs#3:assert-5",
+    "test/session-history.test.mjs#3:assert-6",
+    "test/session-history.test.mjs#3:assert-7",
+    "test/session-history.test.mjs#3:assert-8",
+    "test/session-history.test.mjs#3:assert-9",
+    "test/session-history.test.mjs#4:assert-1",
+    "test/session-history.test.mjs#4:assert-2",
+    "test/session-history.test.mjs#4:assert-3",
+    "test/session-history.test.mjs#4:assert-4",
+    "test/session-history.test.mjs#4:assert-5",
+    "test/session-history.test.mjs#4:assert-6",
+    "test/session-history.test.mjs#4:assert-7",
+    "test/session-history.test.mjs#4:assert-8",
+    "test/session-history.test.mjs#5:assert-1",
+    "test/session-history.test.mjs#5:assert-2",
+    "test/session-history.test.mjs#5:assert-3",
+    "test/session-history.test.mjs#5:assert-4",
+    "test/session-history.test.mjs#5:assert-5",
+    "test/session-history.test.mjs#6:assert-1",
+    "test/session-history.test.mjs#6:assert-2",
+    "test/session-history.test.mjs#6:assert-3",
+    "test/session-history.test.mjs#6:assert-4",
+    "test/session-history.test.mjs#6:assert-5",
+    "test/session-history.test.mjs#6:assert-6",
+    "test/session-history.test.mjs#6:assert-7",
+    "test/session-history.test.mjs#6:assert-8",
+    "test/session-history.test.mjs#7:assert-1",
+    "test/session-history.test.mjs#7:assert-2",
+    "test/session-history.test.mjs#7:assert-3",
+    "test/session-history.test.mjs#7:assert-4",
+    "test/session-history.test.mjs#7:assert-5",
+    "test/session-history.test.mjs#7:assert-6",
+    "test/session-history.test.mjs#7:assert-7",
+    "test/session-history.test.mjs#7:assert-8",
+    "test/session-history.test.mjs#7:assert-9",
+    "test/session-history.test.mjs#8:assert-1",
+    "test/session-history.test.mjs#8:assert-2",
+    "test/session-history.test.mjs#8:assert-3",
+    "test/session-history.test.mjs#8:assert-4",
+    "test/session-history.test.mjs#8:assert-5",
+    "test/session-history.test.mjs#8:assert-6",
+    "test/session-history.test.mjs#9:assert-1",
+    "test/session-history.test.mjs#9:assert-2",
+    "test/session-history.test.mjs#9:assert-3",
+    "test/session-history.test.mjs#9:assert-4",
+    "test/session-history.test.mjs#9:assert-5",
+    "test/session-history.test.mjs#9:assert-6",
+    "test/session-history.test.mjs#9:assert-7",
+    "test/session-history.test.mjs#9:assert-8",
+    "test/session-history.test.mjs#10:assert-1",
+    "test/session-history.test.mjs#10:assert-2",
+    "test/session-history.test.mjs#10:assert-3",
+    "test/session-history.test.mjs#10:assert-4",
+    "test/session-history.test.mjs#10:assert-5",
+    "test/session-history.test.mjs#10:assert-5",
+    "test/session-history.test.mjs#10:assert-5",
+    "test/session-history.test.mjs#10:assert-5",
+    "test/session-history.test.mjs#10:assert-6",
+    "test/session-history.test.mjs#10:assert-7",
+    "test/session-history.test.mjs#10:assert-8"
+  ],
+  "reads": [
+    {
+      "source_test": "test/session-history.test.mjs#1",
+      "directory_role": "logs",
+      "options": {
+        "id": "autorouter-session-20261005T120000Z-run-a"
+      }
+    },
+    {
+      "source_test": "test/session-history.test.mjs#2",
+      "directory_role": "logs",
+      "options": {
+        "id": "autorouter-session-20261005T120000Z-run-a"
+      }
+    },
+    {
+      "source_test": "test/session-history.test.mjs#4",
+      "directory_role": "logs",
+      "options": {
+        "id": "autorouter-session-20261005T120000Z-run-a"
+      }
+    },
+    {
+      "source_test": "test/session-history.test.mjs#4",
+      "directory_role": "logs",
+      "options": {
+        "id": "autorouter-session-20261005T120000Z-run-a"
+      }
+    },
+    {
+      "source_test": "test/session-history.test.mjs#5",
+      "directory_role": "logs",
+      "options": {
+        "id": "autorouter-session-20261005T120000Z-run-a"
+      }
+    },
+    {
+      "source_test": "test/session-history.test.mjs#7",
+      "directory_role": "logs",
+      "options": {
+        "id": "autorouter-session-20261005T120000Z-run-a",
+        "limits": {
+          "maxRecords": 1
+        }
+      }
+    },
+    {
+      "source_test": "test/session-history.test.mjs#7",
+      "directory_role": "logs",
+      "options": {
+        "id": "autorouter-session-20261005T120000Z-run-a",
+        "limits": {
+          "maxLines": 1
+        }
+      }
+    },
+    {
+      "source_test": "test/session-history.test.mjs#7",
+      "directory_role": "logs",
+      "options": {
+        "id": "autorouter-session-20261005T120000Z-run-a",
+        "limits": {
+          "maxFileBytes": 30
+        }
+      }
+    },
+    {
+      "source_test": "test/session-history.test.mjs#7",
+      "directory_role": "logs",
+      "options": {
+        "id": "autorouter-session-20261005T120000Z-run-a"
+      }
+    },
+    {
+      "source_test": "test/session-history.test.mjs#8",
+      "directory_role": "logs",
+      "options": {
+        "id": "autorouter-session-20261005T120000Z-run-a"
+      }
+    },
+    {
+      "source_test": "test/session-history.test.mjs#9",
+      "directory_role": "logs",
+      "options": {
+        "limits": {
+          "maxFiles": 2
+        }
+      }
+    },
+    {
+      "source_test": "test/session-history.test.mjs#9",
+      "directory_role": "logs",
+      "options": {
+        "limits": {
+          "maxTotalBytes": 100
+        }
+      }
+    },
+    {
+      "source_test": "test/session-history.test.mjs#9",
+      "directory_role": "logs",
+      "options": {
+        "limits": {
+          "maxDirectoryEntries": 1
+        }
+      }
+    },
+    {
+      "source_test": "test/session-history.test.mjs#10",
+      "directory_role": "logs",
+      "options": {
+        "id": "autorouter-session-20261005T120000Z-run-a"
+      }
+    },
+    {
+      "source_test": "test/session-history.test.mjs#10",
+      "directory_role": "logs",
+      "options": {}
+    },
+    {
+      "source_test": "test/session-history.test.mjs#10",
+      "directory_role": "directory-link",
+      "options": {}
+    },
+    {
+      "source_test": "test/session-history.test.mjs#10",
+      "directory_role": "logs",
+      "options": {
+        "id": "../PRIVATE_TARGET"
+      }
+    },
+    {
+      "source_test": "test/session-history.test.mjs#10",
+      "directory_role": "logs",
+      "options": {
+        "id": "/PRIVATE_TARGET"
+      }
+    },
+    {
+      "source_test": "test/session-history.test.mjs#10",
+      "directory_role": "logs",
+      "options": {
+        "id": "autorouter-session-20261005T120000Z-run-a.jsonl"
+      }
+    },
+    {
+      "source_test": "test/session-history.test.mjs#10",
+      "directory_role": "logs",
+      "options": {
+        "id": "x\nPRIVATE_TARGET"
+      }
+    },
+    {
+      "source_test": "test/session-history.test.mjs#10",
+      "directory_role": "logs",
+      "options": {}
+    }
+  ],
+  "commands": [
+    {
+      "source_test": "test/session-history.test.mjs#3",
+      "args": [
+        "list"
+      ]
+    },
+    {
+      "source_test": "test/session-history.test.mjs#3",
+      "args": [
+        "list",
+        "--json"
+      ]
+    },
+    {
+      "source_test": "test/session-history.test.mjs#3",
+      "args": [
+        "show",
+        "autorouter-session-20261005T120000Z-run-a"
+      ]
+    },
+    {
+      "source_test": "test/session-history.test.mjs#3",
+      "args": [
+        "show",
+        "autorouter-session-20261005T120000Z-run-a",
+        "--json"
+      ]
+    },
+    {
+      "source_test": "test/session-history.test.mjs#4",
+      "args": [
+        "show",
+        "autorouter-session-20261005T120000Z-run-a"
+      ]
+    },
+    {
+      "source_test": "test/session-history.test.mjs#6",
+      "args": [
+        "show",
+        "autorouter-session-20261005T120000Z-run-a"
+      ]
+    },
+    {
+      "source_test": "test/session-history.test.mjs#6",
+      "args": [
+        "show",
+        "autorouter-session-20261005T120000Z-run-a",
+        "--json"
+      ]
+    }
+  ]
+}

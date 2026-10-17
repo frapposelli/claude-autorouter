@@ -1,0 +1,708 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_savings_capacity_contracts_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_head": "01bdbeac22e363ad38ed9bdeadb758bfd3526631",
+  "scope": "Two complete original capacity callbacks, two trackers,1127updates, nine original full snapshots and nine assertions. Exact1000request/100session boundaries and late-work identity; no RSS/timing or general lifecycle qualification.",
+  "counts": {
+    "definitions": 2,
+    "static_assertions": 9,
+    "expanded_original_assertions": 9,
+    "trackers": 2,
+    "updates": 1127,
+    "original_snapshots": 9,
+    "steps": 1136,
+    "cases": 2,
+    "native_tests": 6,
+    "frozen_control_tests": 2,
+    "covered": 2,
+    "partial": 0
+  },
+  "capture_method": {
+    "source": {
+      "path": "rust/parity/capture-savings-capacity-contracts.mjs",
+      "sha256": "d246d2d3655a1bf80fd7002cc7c81c75d6399822464b735e7a31ac0028d91e71",
+      "bytes": 11543
+    },
+    "capture": {
+      "path": "rust/parity/cases/savings-capacity-contracts.capture.json",
+      "sha256": "925e234c15acd6919cac7c735ebba3bee01212a40927a116e9d486a1ddf8056b",
+      "bytes": 5629
+    },
+    "cases": {
+      "path": "rust/parity/cases/savings-capacity-contracts.jsonl",
+      "sha256": "e626ef908777de02de8f61a4ca431d6fa140667cbc0802e43e59862b8cec9a55",
+      "bytes": 292585
+    },
+    "repeat": {
+      "path": "artifacts/rust-rewrite/savings-capacity-1/capture-checks.json",
+      "sha256": "f5a46a53e24aa90ac349e16de7ba5f8906b5ccaa1f1b53888436e23aebd9cbbb",
+      "bytes": 963
+    },
+    "frozen_manifest_checked_files": 111,
+    "transformations": "Imports wired to exact frozen exports/observing facades. Original source helpers, callbacks, inputs, loop bounds, event order and assertion expressions unchanged; assertions wrapped only to count and associate exact original snapshot IDs. No snapshot read occurs in update facade.",
+    "limits": {
+      "trackers": 2,
+      "steps_per_tracker": 2048,
+      "total_steps": 4096,
+      "value_bytes": 65536,
+      "corpus_bytes": 1048576,
+      "depth": 32,
+      "value_nodes": 4096
+    },
+    "adaptations": [
+      "All original updates and only original snapshot calls are captured. Complete snapshots remain attached to the exact original assertion that requested them; no post-update snapshots are added.",
+      "JavaScript Number values compare to native JSON numbers by exact f64 value, accepting 6 and 6.0 with no tolerance, rounding, missing keys or reordered arrays.",
+      "Only own undefined object fields are omitted at the native JSON boundary and every omitted path is retained. Neither selected definition asserts own-property identity.",
+      "Original missing session access yields undefined; the complete native snapshot must omit that session key. Native maps do not implement JavaScript prototypes or ESM embedding."
+    ],
+    "own_undefined_fields": {
+      "count": 4,
+      "paths": [
+        [
+          "pricing_context"
+        ]
+      ],
+      "source_equivalence": {
+        "path": "artifacts/rust-rewrite/savings-capacity-1/undefined-replay.json",
+        "sha256": "8a58bc739f33ecccd71c5195bf097060a0f4f54f3af2bd4f59f4ea4f0c861a13",
+        "bytes": 511
+      },
+      "source_replay_program": {
+        "path": "/private/tmp/autorouter-savings-capacity-undefined-replay.mjs",
+        "sha256": "1da8ebcd8b0d86bb0d362736a96f619b3f3b84381c973ec7b0bb10387707dae1",
+        "bytes": 1935
+      }
+    }
+  },
+  "native_method": {
+    "source": {
+      "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+      "sha256": "9e4122ad06f423805b7c7c5cb9e61aaf8ec8f480657fe0933e1957de643d5d9d",
+      "bytes": 13021
+    },
+    "public_operations": [
+      "SavingsTracker::default",
+      "SavingsTracker::update",
+      "SavingsTracker::snapshot"
+    ],
+    "comparison": "Full exact source snapshot at every original assertion boundary, including all100 session keys where present. Exact f64 equality permits integral/floating JSON spelling only, without numeric tolerance or shape/type/key/array omission.",
+    "inventory": "Pinned corpus SHA e626ef908777de02de8f61a4ca431d6fa140667cbc0802e43e59862b8cec9a55, exact2schedules/1127updates/9original snapshots/1136steps, exactcase/source/assertion order and snapshot cardinality.",
+    "source_snapshot_counts": {
+      "test/savings.test.mjs#14": 4,
+      "test/savings.test.mjs#15": 5
+    },
+    "new_boundary_check": "Separate native public API regression observes1000inflight before/1001after eviction,100sessions before/101after eviction, without claiming process memory limits.",
+    "negative_controls": [
+      "Forged earlier unpriced snapshot rejects even though all later expected snapshots remain correct; first mismatch cannot be overwritten by later equality.",
+      "An ignored first start substitutes a missing event while preserving step cardinality; original complete snapshot rejects.",
+      "Swapped usage and completion for newest request rejects actual temporal behavior.",
+      "Swapped first/last initial session starts retains the same events but changes eviction identity; full snapshot rejects.",
+      "Changed old late request identity to a fresh identity rejects unexpected returned session before its original snapshot.",
+      "Missing/duplicate schedule, missing update/snapshot and self-consistent ignored-field replacement with recomputed metadata SHA reject by independent inventory/pin.",
+      "Corpus1MiB+1, near-zero nonzero number, extra null-valued session key, array reorder and string/number mismatch reject."
+    ],
+    "production_changes": false,
+    "anchors": {
+      "validate_corpus": {
+        "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+        "function": "validate_corpus",
+        "line": 14
+      },
+      "inventory": {
+        "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+        "function": "inventory",
+        "line": 32
+      },
+      "same_json": {
+        "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+        "function": "same_json",
+        "line": 94
+      },
+      "replay": {
+        "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+        "function": "replay",
+        "line": 109
+      },
+      "original": {
+        "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+        "function": "original",
+        "line": 125
+      },
+      "original_inflight_capacity_preserves_eviction_and_late_request_identity": {
+        "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+        "function": "original_inflight_capacity_preserves_eviction_and_late_request_identity",
+        "line": 138
+      },
+      "original_session_capacity_ignores_old_work_and_marks_returning_session_partial": {
+        "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+        "function": "original_session_capacity_ignores_old_work_and_marks_returning_session_partial",
+        "line": 143
+      },
+      "snapshot_and_assertion_inventory_are_exactly_the_original_calls": {
+        "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+        "function": "snapshot_and_assertion_inventory_are_exactly_the_original_calls",
+        "line": 148
+      },
+      "exact_public_boundaries_do_not_evict_before_the_limit": {
+        "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+        "function": "exact_public_boundaries_do_not_evict_before_the_limit",
+        "line": 214
+      },
+      "forged_snapshots_missing_and_reordered_events_cannot_pass": {
+        "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+        "function": "forged_snapshots_missing_and_reordered_events_cannot_pass",
+        "line": 251
+      },
+      "inventory_and_fixed_capture_pin_reject_self_consistent_replacements": {
+        "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+        "function": "inventory_and_fixed_capture_pin_reject_self_consistent_replacements",
+        "line": 307
+      }
+    }
+  },
+  "current_sources": [
+    {
+      "path": "rust/parity/capture-savings-capacity-contracts.mjs",
+      "sha256": "d246d2d3655a1bf80fd7002cc7c81c75d6399822464b735e7a31ac0028d91e71",
+      "bytes": 11543
+    },
+    {
+      "path": "rust/parity/cases/savings-capacity-contracts.jsonl",
+      "sha256": "e626ef908777de02de8f61a4ca431d6fa140667cbc0802e43e59862b8cec9a55",
+      "bytes": 292585
+    },
+    {
+      "path": "rust/parity/cases/savings-capacity-contracts.capture.json",
+      "sha256": "925e234c15acd6919cac7c735ebba3bee01212a40927a116e9d486a1ddf8056b",
+      "bytes": 5629
+    },
+    {
+      "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+      "sha256": "9e4122ad06f423805b7c7c5cb9e61aaf8ec8f480657fe0933e1957de643d5d9d",
+      "bytes": 13021
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/savings.rs",
+      "sha256": "412da2b6cc87f7b0bcf85f29be57948b2e097064c8128902666123392aa8492c",
+      "bytes": 34419
+    }
+  ],
+  "preserved_completed_sources": [
+    {
+      "path": "rust/crates/autorouter-core/src/savings.rs",
+      "sha256": "412da2b6cc87f7b0bcf85f29be57948b2e097064c8128902666123392aa8492c",
+      "bytes": 34419
+    },
+    {
+      "path": "rust/parity/capture-savings-finite-contracts.mjs",
+      "sha256": "fee5ba81a2e460e9d30b77a22f28fe35fd1dc61b8427ffe819e4a24cbc8a81d0",
+      "bytes": 11426
+    },
+    {
+      "path": "rust/parity/cases/savings-finite-contracts.jsonl",
+      "sha256": "a21e7d67a339695afaa9ed792e4888d750964f53f524f9c509596236d3357789",
+      "bytes": 293769
+    },
+    {
+      "path": "rust/parity/cases/savings-finite-contracts.capture.json",
+      "sha256": "c2dbd0b1bdd14a06362b8fd3d429e7f9bad538c70861cabb46c283c7f002823b",
+      "bytes": 30151
+    },
+    {
+      "path": "rust/crates/autorouter-core/tests/savings_finite_contracts.rs",
+      "sha256": "eee837a994bff7748a78988068abd19c02734151e095e0806d1c6b0cfabe8385",
+      "bytes": 13539
+    }
+  ],
+  "evidence": {
+    "validation": {
+      "path": "artifacts/rust-rewrite/evidence/0546ded902c1c2e462ba09479b8cdccfd3463033e1c4d147031f369febb689ac.json",
+      "sha256": "0546ded902c1c2e462ba09479b8cdccfd3463033e1c4d147031f369febb689ac",
+      "bytes": 3462,
+      "original_path": "/private/tmp/autorouter-savings-capacity-validation.json"
+    },
+    "native": {
+      "path": "artifacts/rust-rewrite/evidence/2b3b7c61a80d46c2d687a8fb483f51be1f369b0e6056189fdf458d8b88f6e63c.log",
+      "sha256": "2b3b7c61a80d46c2d687a8fb483f51be1f369b0e6056189fdf458d8b88f6e63c",
+      "bytes": 866,
+      "original_path": "artifacts/rust-rewrite/savings-capacity-1/native.log"
+    },
+    "frozen_controls": {
+      "path": "artifacts/rust-rewrite/evidence/f1d99e2ff9f71bf58c65f1cc24e721f8afa68805ac5e434b79171c8ec44322b3.log",
+      "sha256": "f1d99e2ff9f71bf58c65f1cc24e721f8afa68805ac5e434b79171c8ec44322b3",
+      "bytes": 532,
+      "original_path": "artifacts/rust-rewrite/savings-capacity-1/frozen-controls.log"
+    },
+    "clippy": {
+      "path": "artifacts/rust-rewrite/evidence/df0acbbd87a507eac301677ac14e28c36caf801f57cc79bc6a2ec1625fc1ac22.log",
+      "sha256": "df0acbbd87a507eac301677ac14e28c36caf801f57cc79bc6a2ec1625fc1ac22",
+      "bytes": 172,
+      "original_path": "artifacts/rust-rewrite/savings-capacity-1/clippy.log"
+    },
+    "static_checks": {
+      "path": "artifacts/rust-rewrite/evidence/32acc975ebf47552ec2159feeb78dfa38030e6ad85f8c50a243fc08bfd7112e5.json",
+      "sha256": "32acc975ebf47552ec2159feeb78dfa38030e6ad85f8c50a243fc08bfd7112e5",
+      "bytes": 856,
+      "original_path": "artifacts/rust-rewrite/savings-capacity-1/static-checks.json"
+    },
+    "capture_repeat": {
+      "path": "artifacts/rust-rewrite/evidence/f5a46a53e24aa90ac349e16de7ba5f8906b5ccaa1f1b53888436e23aebd9cbbb.json",
+      "sha256": "f5a46a53e24aa90ac349e16de7ba5f8906b5ccaa1f1b53888436e23aebd9cbbb",
+      "bytes": 963,
+      "original_path": "artifacts/rust-rewrite/savings-capacity-1/capture-checks.json"
+    },
+    "native_invocation": {
+      "path": "artifacts/rust-rewrite/evidence/1f12e9e9639523bcdccaec99022a2b62c93dd517a4de25c5a43d462dd40632df.json",
+      "sha256": "1f12e9e9639523bcdccaec99022a2b62c93dd517a4de25c5a43d462dd40632df",
+      "bytes": 379,
+      "original_path": "artifacts/rust-rewrite/savings-capacity-1/native-run.json"
+    },
+    "clippy_invocation": {
+      "path": "artifacts/rust-rewrite/evidence/a656d87dcdc26e8d20abdc35487de6e027921c660e844ba46f3079eb6e2dd2ee.json",
+      "sha256": "a656d87dcdc26e8d20abdc35487de6e027921c660e844ba46f3079eb6e2dd2ee",
+      "bytes": 362,
+      "original_path": "artifacts/rust-rewrite/savings-capacity-1/clippy-check.json"
+    }
+  },
+  "retained_failures": [],
+  "rows": [
+    {
+      "id": "test/savings.test.mjs#14",
+      "file": "test/savings.test.mjs",
+      "name": "bounds in-flight work and marks evicted requests as unpriced and partial",
+      "baseline_file_sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd",
+      "definition_sha256": "8b44efd7a9999dc91852f19dbc34a84674de6a77c8dc6a1830fa9aaa98138679",
+      "statement_sha256": "e40cf9defccad0bdef9df334ef3f954cb04623c8683301ead9afc8b094028eff",
+      "hash_scope": "Exact frozen AST call in definition_sha256, full statement including semicolon in statement_sha256, unchanged assertion call hashes/lines.",
+      "previous_status": "partial_assertion_mapping",
+      "previous_row": {
+        "id": "test/savings.test.mjs#14",
+        "file": "test/savings.test.mjs",
+        "name": "bounds in-flight work and marks evicted requests as unpriced and partial",
+        "parameterized": false,
+        "status": "partial_assertion_mapping",
+        "rust_tests": [
+          "rust/crates/autorouter-core/src/savings.rs#savings::tests::bounded_inflight_and_duplicate_history_report_partial_coverage"
+        ],
+        "shared_cases": [
+          "accounting-7721",
+          "accounting-7722"
+        ],
+        "evidence": {
+          "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+          "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+          "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+          "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+          "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+          "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        },
+        "related_components": [
+          "telemetry_savings_history"
+        ],
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "remaining_assertions": [
+          "Native test exercises 1001 in-flight starts and replays evicted/newest requests; full post-replay unpriced count and exact completion duplication assertions are not all asserted."
+        ]
+      },
+      "status": "covered",
+      "execution_scope": "complete_unchanged_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs#original_inflight_capacity_preserves_eviction_and_late_request_identity"
+      ],
+      "shared_cases": [
+        "savings-capacity-14-1"
+      ],
+      "updates": 1013,
+      "original_snapshots": 4,
+      "assertions": [
+        {
+          "id": "test/savings.test.mjs#14:assert-1",
+          "line": 243,
+          "expression": "assert.equal(current(tracker).unpriced_requests, 1)",
+          "sha256": "792fae5a0cc8d02e2d94445d293f11dbe4405bfe596eeb3ecc83a30ab8bb1f2a",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs#original_inflight_capacity_preserves_eviction_and_late_request_identity",
+            "shared_cases": [
+              "savings-capacity-14-1"
+            ],
+            "snapshot_step_index": 1001,
+            "source_assertion": "test/savings.test.mjs#14:assert-1",
+            "comparison": "After1001 original distinct request starts, complete snapshot records exactly one unpriced request with request_evicted reason; original count assertion remains unchanged."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+            "line": 115,
+            "anchor": "if !same_json(&tracker.snapshot(), &step[\"expected_snapshot\"]) {"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/savings.test.mjs#14:assert-2",
+          "line": 244,
+          "expression": "assert.equal(current(tracker).partial, true)",
+          "sha256": "78b8b7afb0f989c843f4661a7951fb8e313bbc7df39dcfb27015bc90d48b5811",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs#original_inflight_capacity_preserves_eviction_and_late_request_identity",
+            "shared_cases": [
+              "savings-capacity-14-1"
+            ],
+            "snapshot_step_index": 1002,
+            "source_assertion": "test/savings.test.mjs#14:assert-2",
+            "comparison": "Same full snapshot records partial=true after eviction; preceding source snapshot and this source snapshot execute separately without injecting additional reads."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+            "line": 115,
+            "anchor": "if !same_json(&tracker.snapshot(), &step[\"expected_snapshot\"]) {"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/savings.test.mjs#14:assert-3",
+          "line": 247,
+          "expression": "assert.equal(current(tracker).unpriced_requests, 1)",
+          "sha256": "792fae5a0cc8d02e2d94445d293f11dbe4405bfe596eeb3ecc83a30ab8bb1f2a",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs#original_inflight_capacity_preserves_eviction_and_late_request_identity",
+            "shared_cases": [
+              "savings-capacity-14-1"
+            ],
+            "snapshot_step_index": 1015,
+            "source_assertion": "test/savings.test.mjs#14:assert-3",
+            "comparison": "All six original events for the evicted request-0 and all six for request-1000 execute in original order. Final full snapshot retains unpriced_requests=1, proving late evicted work does not add another estimate."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+            "line": 115,
+            "anchor": "if !same_json(&tracker.snapshot(), &step[\"expected_snapshot\"]) {"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/savings.test.mjs#14:assert-4",
+          "line": 248,
+          "expression": "assert.equal(current(tracker).requests, 1)",
+          "sha256": "03d97051c43cc537e57433f73b710a49c7be27d93f2406e9cc14eb2f753f8d33",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs#original_inflight_capacity_preserves_eviction_and_late_request_identity",
+            "shared_cases": [
+              "savings-capacity-14-1"
+            ],
+            "snapshot_step_index": 1016,
+            "source_assertion": "test/savings.test.mjs#14:assert-4",
+            "comparison": "Newest original request completes once; final full snapshot records requests=1 with exact aggregate costs/provenance. Earlier evicted request remains unpriced despite its complete late sequence."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+            "line": 115,
+            "anchor": "if !same_json(&tracker.snapshot(), &step[\"expected_snapshot\"]) {"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    },
+    {
+      "id": "test/savings.test.mjs#15",
+      "file": "test/savings.test.mjs",
+      "name": "bounds sessions, ignores late evicted work and marks returning sessions partial",
+      "baseline_file_sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd",
+      "definition_sha256": "18c0a0d057fa28ddb960a464e848f00e684a8d88e5e3dcaa041d6ce82aa24bfc",
+      "statement_sha256": "6d9eb9100f7237354a161c18109e1bc36bfe89ab9c56f7c25e75490eae612c0e",
+      "hash_scope": "Exact frozen AST call in definition_sha256, full statement including semicolon in statement_sha256, unchanged assertion call hashes/lines.",
+      "previous_status": "partial_assertion_mapping",
+      "previous_row": {
+        "id": "test/savings.test.mjs#15",
+        "file": "test/savings.test.mjs",
+        "name": "bounds sessions, ignores late evicted work and marks returning sessions partial",
+        "parameterized": false,
+        "status": "partial_assertion_mapping",
+        "rust_tests": [
+          "rust/crates/autorouter-core/src/savings.rs#savings::tests::evicted_sessions_ignore_old_requests_and_mark_returning_sessions_partial"
+        ],
+        "shared_cases": [
+          "accounting-7719",
+          "accounting-7720"
+        ],
+        "evidence": {
+          "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+          "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+          "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+          "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+          "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+          "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+        },
+        "related_components": [
+          "telemetry_savings_history"
+        ],
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "remaining_assertions": [
+          "Native test covers 102 sessions, ignored old start and returning new request marked partial. Missing old completion sequence and explicit final capacity assertion after recreation."
+        ]
+      },
+      "status": "covered",
+      "execution_scope": "complete_unchanged_callback",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs#original_session_capacity_ignores_old_work_and_marks_returning_session_partial"
+      ],
+      "shared_cases": [
+        "savings-capacity-15-1"
+      ],
+      "updates": 114,
+      "original_snapshots": 5,
+      "assertions": [
+        {
+          "id": "test/savings.test.mjs#15:assert-1",
+          "line": 254,
+          "expression": "assert.equal(Object.keys(tracker.snapshot()).length, 100)",
+          "sha256": "374570cfa0701fcbc675910d31af4fc98de9eac8100bf6afab2a35e3d08bfac9",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs#original_session_capacity_ignores_old_work_and_marks_returning_session_partial",
+            "shared_cases": [
+              "savings-capacity-15-1"
+            ],
+            "snapshot_step_index": 102,
+            "source_assertion": "test/savings.test.mjs#15:assert-1",
+            "comparison": "All102 original distinct session starts execute, then full snapshot contains exactly100 session keys and complete values; no row projection hides an evicted/extra session."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+            "line": 115,
+            "anchor": "if !same_json(&tracker.snapshot(), &step[\"expected_snapshot\"]) {"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/savings.test.mjs#15:assert-2",
+          "line": 256,
+          "expression": "assert.equal(tracker.snapshot()['session-0'], undefined)",
+          "sha256": "9ab278163aa434c04712c915b29d34e78497207e1c9a0c78463ea11474698126",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs#original_session_capacity_ignores_old_work_and_marks_returning_session_partial",
+            "shared_cases": [
+              "savings-capacity-15-1"
+            ],
+            "snapshot_step_index": 109,
+            "source_assertion": "test/savings.test.mjs#15:assert-2",
+            "comparison": "Complete original six-event late sequence for session-0/request-1 executes. Full snapshot omits session-0 exactly, matching original undefined property access through an explicit native-map absence adaptation."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+            "line": 115,
+            "anchor": "if !same_json(&tracker.snapshot(), &step[\"expected_snapshot\"]) {"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/savings.test.mjs#15:assert-3",
+          "line": 258,
+          "expression": "assert.equal(tracker.snapshot()['session-0'].requests, 1)",
+          "sha256": "50c33e1fbce76c444e81eab5df1dabccf298d616a664a6861d3d9af29376a443",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs#original_session_capacity_ignores_old_work_and_marks_returning_session_partial",
+            "shared_cases": [
+              "savings-capacity-15-1"
+            ],
+            "snapshot_step_index": 116,
+            "source_assertion": "test/savings.test.mjs#15:assert-3",
+            "comparison": "Complete original six-event return sequence uses session-0/new-request. Full snapshot contains that session with requests=1 and exact costs/provenance; the new identity cannot be replaced by late old work."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+            "line": 115,
+            "anchor": "if !same_json(&tracker.snapshot(), &step[\"expected_snapshot\"]) {"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/savings.test.mjs#15:assert-4",
+          "line": 259,
+          "expression": "assert.equal(tracker.snapshot()['session-0'].partial, true)",
+          "sha256": "ba7fbca9a2f6817f19d4c1c67e22885f6aa21c5d458f099b3be49ca3fa9a99ea",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs#original_session_capacity_ignores_old_work_and_marks_returning_session_partial",
+            "shared_cases": [
+              "savings-capacity-15-1"
+            ],
+            "snapshot_step_index": 117,
+            "source_assertion": "test/savings.test.mjs#15:assert-4",
+            "comparison": "Returning session-0 is partial=true in its complete snapshot, including all other current sessions."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+            "line": 115,
+            "anchor": "if !same_json(&tracker.snapshot(), &step[\"expected_snapshot\"]) {"
+          },
+          "remaining": []
+        },
+        {
+          "id": "test/savings.test.mjs#15:assert-5",
+          "line": 260,
+          "expression": "assert.equal(Object.keys(tracker.snapshot()).length, 100)",
+          "sha256": "374570cfa0701fcbc675910d31af4fc98de9eac8100bf6afab2a35e3d08bfac9",
+          "expanded_executions": 1,
+          "status": "covered",
+          "evidence": {
+            "native_test": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs#original_session_capacity_ignores_old_work_and_marks_returning_session_partial",
+            "shared_cases": [
+              "savings-capacity-15-1"
+            ],
+            "snapshot_step_index": 118,
+            "source_assertion": "test/savings.test.mjs#15:assert-5",
+            "comparison": "Final complete snapshot still has exactly100 sessions after recreation; native does not only assert the returning row."
+          },
+          "native_source": {
+            "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+            "line": 115,
+            "anchor": "if !same_json(&tracker.snapshot(), &step[\"expected_snapshot\"]) {"
+          },
+          "remaining": []
+        }
+      ],
+      "remaining_assertions": []
+    }
+  ],
+  "preserved_boundaries": [
+    "Existing completed finite capture/pin/native support and production savings source remain byte-identical to01bdbea.",
+    "Only definitions14/15 are proposed covered; duplicate-history16, hostile accessor/clear17 and pricing-fact immutability18 remain separate.",
+    "Finite capacity observations do not qualify RSS, peak memory, performance, every workload, operating systems or real-provider behavior.",
+    "Frozen historical prices and recorded provenance unchanged; no pricing update or inferred successful provider execution.",
+    "Native JSON maps and omitted own-undefined fields are explicit API adaptations, not JavaScript prototype/ESM embedding or arbitrary numeric parity."
+  ],
+  "retained_sources": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/d246d2d3655a1bf80fd7002cc7c81c75d6399822464b735e7a31ac0028d91e71.mjs",
+      "sha256": "d246d2d3655a1bf80fd7002cc7c81c75d6399822464b735e7a31ac0028d91e71",
+      "bytes": 11543,
+      "original_path": "rust/parity/capture-savings-capacity-contracts.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/e626ef908777de02de8f61a4ca431d6fa140667cbc0802e43e59862b8cec9a55.jsonl",
+      "sha256": "e626ef908777de02de8f61a4ca431d6fa140667cbc0802e43e59862b8cec9a55",
+      "bytes": 292585,
+      "original_path": "rust/parity/cases/savings-capacity-contracts.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/925e234c15acd6919cac7c735ebba3bee01212a40927a116e9d486a1ddf8056b.json",
+      "sha256": "925e234c15acd6919cac7c735ebba3bee01212a40927a116e9d486a1ddf8056b",
+      "bytes": 5629,
+      "original_path": "rust/parity/cases/savings-capacity-contracts.capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/9e4122ad06f423805b7c7c5cb9e61aaf8ec8f480657fe0933e1957de643d5d9d.rs",
+      "sha256": "9e4122ad06f423805b7c7c5cb9e61aaf8ec8f480657fe0933e1957de643d5d9d",
+      "bytes": 13021,
+      "original_path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/412da2b6cc87f7b0bcf85f29be57948b2e097064c8128902666123392aa8492c.rs",
+      "sha256": "412da2b6cc87f7b0bcf85f29be57948b2e097064c8128902666123392aa8492c",
+      "bytes": 34419,
+      "original_path": "rust/crates/autorouter-core/src/savings.rs"
+    }
+  ],
+  "input_coverage": {
+    "path": "artifacts/rust-rewrite/evidence/973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816.json",
+    "sha256": "973b924bab637ad444edd697cf27cc2c0ac8f6c99201da12f2b7044b15c45816",
+    "bytes": 1565701,
+    "original_path": "rust/parity/coverage.json"
+  },
+  "status": "Reviewed finite assertion mapping; complete rewrite qualification remains open.",
+  "review": {
+    "proposal": {
+      "path": "artifacts/rust-rewrite/evidence/61ecedbe88599580654429c5c4b31bf0eda2927b4766f3db24bd0ac56fc93f80.json",
+      "sha256": "61ecedbe88599580654429c5c4b31bf0eda2927b4766f3db24bd0ac56fc93f80",
+      "bytes": 28734,
+      "original_path": "/private/tmp/autorouter-savings-capacity-mapping-proposal.json"
+    },
+    "review": {
+      "path": "artifacts/rust-rewrite/evidence/f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239.json",
+      "sha256": "f738b26c09a33f1b7b7f30941796d64b1d9e2fe1ffafba21bf5ac80106c6a239",
+      "bytes": 6643,
+      "original_path": "/private/tmp/autorouter-twelfth-contracts-root-review.json"
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/evidence/6b20e4747dac867f01277040b2f1af5a8257eee8a11f5f4266e84165f228cd6d.json",
+      "sha256": "6b20e4747dac867f01277040b2f1af5a8257eee8a11f5f4266e84165f228cd6d",
+      "bytes": 8796,
+      "original_path": "/private/tmp/autorouter-savings-capacity-independent-review.json"
+    }
+  },
+  "previous_coverage_rows": [
+    {
+      "id": "test/savings.test.mjs#14",
+      "file": "test/savings.test.mjs",
+      "name": "bounds in-flight work and marks evicted requests as unpriced and partial",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/savings.rs#savings::tests::bounded_inflight_and_duplicate_history_report_partial_coverage"
+      ],
+      "shared_cases": [
+        "accounting-7721",
+        "accounting-7722"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Native test exercises 1001 in-flight starts and replays evicted/newest requests; full post-replay unpriced count and exact completion duplication assertions are not all asserted."
+      ]
+    },
+    {
+      "id": "test/savings.test.mjs#15",
+      "file": "test/savings.test.mjs",
+      "name": "bounds sessions, ignores late evicted work and marks returning sessions partial",
+      "parameterized": false,
+      "status": "partial_assertion_mapping",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/savings.rs#savings::tests::evicted_sessions_ignore_old_requests_and_mark_returning_sessions_partial"
+      ],
+      "shared_cases": [
+        "accounting-7719",
+        "accounting-7720"
+      ],
+      "evidence": {
+        "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+        "suite": "artifacts/rust-rewrite/parity-all-final-1/suite.json",
+        "suite_sha256": "551b6272523c5009cc00debb77bab19594d52ee0702b5056fa171f3b5439e168",
+        "native_test_log": "artifacts/rust-rewrite/rust-workspace-checkpoint.log",
+        "native_test_log_sha256": "3d597185a7eecac5c1d7cdc9c5be4c92716b79d5d6f7fc32eb4313323b5a4be3",
+        "scope": "Only mapped assertions; family totals do not establish whole-definition coverage."
+      },
+      "related_components": [
+        "telemetry_savings_history"
+      ],
+      "assertion_mapping": "rust/parity/assertion-mappings/storage-status-history.json",
+      "remaining_assertions": [
+        "Native test covers 102 sessions, ignored old start and returning new request marked partial. Missing old completion sequence and explicit final capacity assertion after recreation."
+      ]
+    }
+  ]
+}

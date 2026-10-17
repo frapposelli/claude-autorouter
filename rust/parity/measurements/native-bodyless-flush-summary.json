@@ -1,0 +1,157 @@
+{
+  "schema_version": 1,
+  "kind": "bodyless_final_flush_and_direct_constructor_tls_regressions",
+  "date": "2026-10-17",
+  "source_base": "2d5defafe43b49f4e36ff12f9d82bf8f79b23d31",
+  "source_state": "two_test_only_files_changed",
+  "declaration": {
+    "path": "artifacts/rust-rewrite/bodyless-flush-validation-20261017-1/declaration.json",
+    "bytes": 3097,
+    "sha256": "a9a4ebb8b80a2e75f1420c65c3e9156c1594b4e4a65af0a6152d8036ad8bb1ea"
+  },
+  "sources": {
+    "rust/crates/autorouter-runtime/src/server_failed_flush_contracts.rs": {
+      "bytes": 36785,
+      "sha256": "f60425f1f633ae75efc77072fb6a606a885f8530f65006d5ad1836483ea90671"
+    },
+    "rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/raw_pool_buffered_tests.rs": {
+      "bytes": 19054,
+      "sha256": "a00aadabb957db09311e383f715c94996e5b3dd6c7c283e78de29a1fe35eb336"
+    }
+  },
+  "source_inputs": {
+    "path": "artifacts/rust-rewrite/bodyless-flush-validation-20261017-1/source-inputs-before-build.json",
+    "bytes": 116692,
+    "sha256": "13693ab9e71d9c6cba7ab4a362ceff5369630f5424461e676aba85d3101ad240"
+  },
+  "source_review": {
+    "path": "artifacts/rust-rewrite/bodyless-flush-validation-20261017-1/final-source-review.json",
+    "bytes": 4990,
+    "sha256": "785ce70ff9080f2a9dd297058ddfc25dde6e0c8e786ba1c231e7c3c8ee07b0e8"
+  },
+  "oracle_review": {
+    "path": "artifacts/rust-rewrite/bodyless-flush-validation-20261017-1/oracle-review.json",
+    "bytes": 12578,
+    "sha256": "d2b147c5efff419bbd8361a9127d354382e382770d8b8c27ebac9c75234d0bfb"
+  },
+  "actual_native_binary": {
+    "actual_compiler_executable": "/Users/fabio.rapposelli/AI/autorouter/rust/target/debug/deps/autorouter_runtime-f3deea33ddaadfcc",
+    "retained_executable": "artifacts/rust-rewrite/bodyless-flush-validation-20261017-1/autorouter-runtime-test",
+    "bytes": 99116592,
+    "sha256": "f71a3bb83b5287ccc2209037b2e73cf0e4db8f7276883701bca92eaf0da15ff8"
+  },
+  "gateway_schedules": {
+    "new_bodyless": 72,
+    "retained_nonempty": 24,
+    "statuses": [
+      200,
+      204,
+      304
+    ],
+    "protocols": [
+      "HTTP",
+      "TLS1.2",
+      "TLS1.3"
+    ],
+    "ownership": [
+      "ordinary",
+      "attached_terminal"
+    ],
+    "outcomes": [
+      "success",
+      "flush_error",
+      "cancelled",
+      "deadline"
+    ],
+    "provider_socket_held_independently_of_clean_body_eof": true,
+    "final_flush_held_after_complete_framing": true,
+    "empty_success_releases_once_without_execution_confirmation_or_owner_replacement": true,
+    "failure_cancellation_deadline_preserve_owner": true,
+    "exact_status_zero_payload_hop_header_filter_and_cleanup_verified": true
+  },
+  "direct_constructor_controls": {
+    "after": 12,
+    "retained_http": 4,
+    "added_tls": 8,
+    "shapes": [
+      "GET Content-Length0",
+      "HEAD representation Content-Length1000000",
+      "GET204",
+      "GET304 representation Content-Length1000000"
+    ],
+    "protocols": [
+      "HTTP",
+      "TLS1.2",
+      "TLS1.3"
+    ],
+    "negotiated_tls_and_exact_method_status_length_verified": true,
+    "clean_source_and_free_pool_before_held_peer_closure_without_body_poll": true,
+    "gateway_method_allowlist_unchanged": true
+  },
+  "checks": {
+    "focused_final_flush_tests_passed": 9,
+    "focused_exact_direct_constructor_tests_passed": 1,
+    "workspace": {
+      "passed": 1339,
+      "failed": 0,
+      "ignored": 10,
+      "groups": 66
+    },
+    "format": "passed",
+    "strict_clippy": "passed",
+    "node_check": "passed",
+    "node_tests_passed": 596,
+    "package_smoke": "passed",
+    "package_archive_files": 58,
+    "native_receipts": {
+      "path": "artifacts/rust-rewrite/bodyless-flush-validation-20261017-1/native-progress.json",
+      "bytes": 5855,
+      "sha256": "20e78f990997f7cfe50cd4bc9e64947d2953b0498df4ee820cb0cda3399bfad5"
+    },
+    "node_receipts": {
+      "path": "artifacts/rust-rewrite/bodyless-flush-validation-20261017-1/node-progress.json",
+      "bytes": 2693,
+      "sha256": "f518a205fcbd19e881bdb7dee0f37a5d0f74fa64caaf200d56fd2d742f7109e0"
+    },
+    "numerical_samples_retained": false,
+    "real_provider_calls": 0
+  },
+  "source_transfer": {
+    "actual_inspection": {
+      "path": "artifacts/rust-rewrite/bodyless-flush-export-evidence-20261017-1/inspection.json",
+      "bytes": 1893,
+      "sha256": "9dd3ead409ea8f8dbc87a79f9c70a8330448926aac75b78255c2c907d7422092"
+    },
+    "source_inputs": 694,
+    "frozen_files": 111,
+    "logical_reference_files": 113,
+    "carrier_bytes": 33517568,
+    "logical_bytes": 33483160,
+    "each_limit_bytes": 33554432,
+    "helper": "retained previously Cargo-bound6ab8 helper, no fresh helper compilation or receiver rebuild",
+    "source_to_shipping_binary_provenance": "unverified_prebuilt"
+  },
+  "coverage": {
+    "covered": 536,
+    "partial": 52,
+    "original_definitions": 588,
+    "original_rows_unchanged": true,
+    "all_limit_and_config_rows_unchanged": true,
+    "all_area_statuses_partial": true,
+    "only_test_inventory_append": true,
+    "post_metadata_proof": {
+      "path": "artifacts/rust-rewrite/bodyless-flush-validation-20261017-1/post-metadata-verification.json",
+      "bytes": 528,
+      "sha256": "331e3650d54d8f0dc49bdb841c106a1adfb31fbad6b8d7b350873a2a5524ff9d"
+    }
+  },
+  "scope": "New regression evidence only. No product logic, routing policy, dependency, deadline, cap or shipping transport changes. Actual-constructor final-data end hints, delayed trailers, close-delimited EOF and broader reuse remain unqualified. Complete protocol/TLS/platform, numerical/hardware, real-task, final-artifact provenance, rollback, stabilization and cutover gates remain open.",
+  "source_ci": "Requires fresh CI;2d5 workflows belong to the prior source and have a separately retained ARM musl SDK setup failure.",
+  "shipping_default": "JavaScript0.5.2; ordinary native transport remains Rustls",
+  "release_or_goal_approved": false,
+  "independent_actual_proof_review": {
+    "path": "artifacts/rust-rewrite/bodyless-flush-validation-20261017-1/actual-proof-review.json",
+    "bytes": 7442,
+    "sha256": "f7fc7da34d5eb9ad09f9abc808067eb249a4e8be6a6a79a6b3b9dde4b84bde62"
+  }
+}

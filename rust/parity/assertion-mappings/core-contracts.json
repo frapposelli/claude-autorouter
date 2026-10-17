@@ -1,0 +1,474 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "scope": "26 frozen model-catalog, request-preparation, request-validation and pure turn-state definitions; four router-integrated turn-state definitions remain separately unmapped.",
+  "native_evidence": {
+    "log": "artifacts/rust-rewrite/core-contracts-2.log",
+    "sha256": "37f458eb5435dba78f061bc41bc57757d1abb4a30c9a1e4f79982c9dbf2350d8",
+    "passed": 111
+  },
+  "differential_evidence": {
+    "report": "artifacts/rust-rewrite/parity-all-final-1/core.report.json",
+    "sha256": "a93795b8c88fbdbc937a746bd300cabb9f33cf362e6320aaf5c72775e228fc02",
+    "cases": 209,
+    "matched": 209
+  },
+  "semantics": "A passing wire/value comparison does not close JS-only object-alias or undefined-property migration contracts; those rows remain partial.",
+  "counts": {
+    "covered": 23,
+    "partial": 3
+  },
+  "mappings": [
+    {
+      "baseline_test": "test/model-request.test.mjs#1",
+      "name": "upgrading a compatible request to Opus enables its required adaptive thinking",
+      "baseline_file_sha256": "84d45ed8cb9468b8b573ba57ca0071ad769d2129ac0ac21c6146362253b6f47b",
+      "baseline_definition_sha256": "ba32e0e33f9f84bc797d55c8084eebd8951bd707b5a5295d637cd1d85ac5cdf1",
+      "baseline_line": 5,
+      "reviewed_assertion_calls": 5,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/model_request_contracts.rs#opus_adaptation_preserves_the_complete_source_request"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Every assertion and local parameter scenario was reviewed. Native tests assert the complete result and unchanged authoritative input where the baseline does."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/model-request.test.mjs#2",
+      "name": "Sonnet 5.5 maps disabled thinking to its lowest supported setting without changing the source request",
+      "baseline_file_sha256": "84d45ed8cb9468b8b573ba57ca0071ad769d2129ac0ac21c6146362253b6f47b",
+      "baseline_definition_sha256": "7660da57f3b96fa2bfe1b940ac38c850a30d5e47250aebc3e1952ac5db7a3868",
+      "baseline_line": 16,
+      "reviewed_assertion_calls": 3,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/model_request_contracts.rs#sonnet_lowest_setting_covers_missing_low_medium_and_high_effort"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Every assertion and local parameter scenario was reviewed. Native tests assert the complete result and unchanged authoritative input where the baseline does."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/model-request.test.mjs#3",
+      "name": "Sonnet 5.5 retains high effort and per-message effort changes by using adaptive thinking",
+      "baseline_file_sha256": "84d45ed8cb9468b8b573ba57ca0071ad769d2129ac0ac21c6146362253b6f47b",
+      "baseline_definition_sha256": "a135765ffa5b0904cc676edaad3b3f46bc8d237aeb11bb3733f61c49d7a349d0",
+      "baseline_line": 29,
+      "reviewed_assertion_calls": 4,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/model_request_contracts.rs#sonnet_effort_transitions_retain_all_messages_and_adjustments"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Every assertion and local parameter scenario was reviewed. Native tests assert the complete result and unchanged authoritative input where the baseline does."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/model-request.test.mjs#4",
+      "name": "other models, existing adaptive settings and explicitly requested models pass through",
+      "baseline_file_sha256": "84d45ed8cb9468b8b573ba57ca0071ad769d2129ac0ac21c6146362253b6f47b",
+      "baseline_definition_sha256": "6b5516430b347dbb77019397a5762c70155f67c44c39bc47cf5541686544674d",
+      "baseline_line": 48,
+      "reviewed_assertion_calls": 2,
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/model_request_contracts.rs#unchanged_contracts_cover_every_original_source_target_and_setting"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Every assertion and local parameter scenario was reviewed. Native tests assert the complete result and unchanged authoritative input where the baseline does."
+      ],
+      "remaining": [
+        "The JSON/native path omits thinking when the JavaScript value is undefined. Wire behavior is covered; the JS-only own-property-with-undefined library contract still needs migration review."
+      ]
+    },
+    {
+      "baseline_test": "test/model-request.test.mjs#5",
+      "name": "a Sonnet 5.5 between_tools request upgrades to adaptive Opus without altering signed history or safeguards",
+      "baseline_file_sha256": "84d45ed8cb9468b8b573ba57ca0071ad769d2129ac0ac21c6146362253b6f47b",
+      "baseline_definition_sha256": "a78b5976972f3768f542f47133bc59919ebb20fad0e688fb4e7abebeb89eb162",
+      "baseline_line": 69,
+      "reviewed_assertion_calls": 4,
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/model_request_contracts.rs#signed_history_safeguards_and_each_opaque_subtree_survive_both_opus_targets"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Every assertion and local parameter scenario was reviewed. Native tests assert the complete result and unchanged authoritative input where the baseline does."
+      ],
+      "remaining": [
+        "JavaScript shallow-reference identity is replaced by owned Rust values. Complete subtree and input equality are tested; the language/API migration of alias identity still needs explicit review."
+      ]
+    },
+    {
+      "baseline_test": "test/model-request.test.mjs#6",
+      "name": "between_tools adaptation does not guess aliases, source models or extended thinking contracts",
+      "baseline_file_sha256": "84d45ed8cb9468b8b573ba57ca0071ad769d2129ac0ac21c6146362253b6f47b",
+      "baseline_definition_sha256": "90287c1b235e301500d390b87c385f234d03234ac20d9cc0fef163a539b6ae52",
+      "baseline_line": 100,
+      "reviewed_assertion_calls": 3,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/model_request_contracts.rs#aliases_source_models_and_extended_between_tools_contracts_never_adapt"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Every assertion and local parameter scenario was reviewed. Native tests assert the complete result and unchanged authoritative input where the baseline does."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/model-request.test.mjs#7",
+      "name": "disabled-thinking extensions are never discarded during adaptation",
+      "baseline_file_sha256": "84d45ed8cb9468b8b573ba57ca0071ad769d2129ac0ac21c6146362253b6f47b",
+      "baseline_definition_sha256": "13bbaa9bc0b5e88a2da3c7f854abcb14445740a6d2e18dd5e7b73271e8bcc8eb",
+      "baseline_line": 128,
+      "reviewed_assertion_calls": 2,
+      "status": "partial",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/model_request_contracts.rs#disabled_thinking_extensions_remain_intact_for_sonnet_and_opus"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Every assertion and local parameter scenario was reviewed. Native tests assert the complete result and unchanged authoritative input where the baseline does."
+      ],
+      "remaining": [
+        "JavaScript shallow-reference identity is replaced by owned Rust values. Complete subtree and input equality are tested; the language/API migration of alias identity still needs explicit review."
+      ]
+    },
+    {
+      "baseline_test": "test/request-validation.test.mjs#1",
+      "name": "consumed request containers reject malformed shapes with bounded, content-free errors",
+      "baseline_file_sha256": "be2329889ab41770662769500b00d234f0c82ba06db54099cc5c2ab6c571ea2a",
+      "baseline_definition_sha256": "dd4bc2367fc88705455cf2347a1a1a0515a9a029748b81f18e23661401976d24",
+      "baseline_line": 7,
+      "reviewed_assertion_calls": 3,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/request_validation_contracts.rs#malformed_consumed_containers_return_bounded_private_diagnostics"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Every assertion and local parameter scenario was reviewed. Native tests assert the complete result and unchanged authoritative input where the baseline does."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/request-validation.test.mjs#2",
+      "name": "cache-population requests permit max_tokens zero without altering the request",
+      "baseline_file_sha256": "be2329889ab41770662769500b00d234f0c82ba06db54099cc5c2ab6c571ea2a",
+      "baseline_definition_sha256": "f60922b7d4bf950e9d60d1df0f3f20dd022ff28d3a23ab7d790a10e197701866",
+      "baseline_line": 28,
+      "reviewed_assertion_calls": 2,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/request_validation_contracts.rs#cache_population_accepts_zero_output_without_mutation"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Every assertion and local parameter scenario was reviewed. Native tests assert the complete result and unchanged authoritative input where the baseline does."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/request-validation.test.mjs#3",
+      "name": "documented nullable context, message output and custom tool type stay intact",
+      "baseline_file_sha256": "be2329889ab41770662769500b00d234f0c82ba06db54099cc5c2ab6c571ea2a",
+      "baseline_definition_sha256": "a963b05f3d4b1be8d88a4fdfd1d8b85c1ca4521d7b1844536e8618e5009f1c8b",
+      "baseline_line": 35,
+      "reviewed_assertion_calls": 2,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/request_validation_contracts.rs#nullable_context_message_output_and_custom_tool_type_stay_intact"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Every assertion and local parameter scenario was reviewed. Native tests assert the complete result and unchanged authoritative input where the baseline does."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/request-validation.test.mjs#4",
+      "name": "unknown provider extensions, tool contracts and signed content are preserved",
+      "baseline_file_sha256": "be2329889ab41770662769500b00d234f0c82ba06db54099cc5c2ab6c571ea2a",
+      "baseline_definition_sha256": "1fbf7b6c6f3cbfeec067ad514fe7de06fa47a4b2429d9a88ab4e6cad5c5d7eab",
+      "baseline_line": 46,
+      "reviewed_assertion_calls": 2,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/request_validation_contracts.rs#unknown_provider_contracts_and_signed_content_are_preserved"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Every assertion and local parameter scenario was reviewed. Native tests assert the complete result and unchanged authoritative input where the baseline does."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/request-validation.test.mjs#5",
+      "name": "nested tool results are checked without interpreting tool input or schemas",
+      "baseline_file_sha256": "be2329889ab41770662769500b00d234f0c82ba06db54099cc5c2ab6c571ea2a",
+      "baseline_definition_sha256": "57e26503fd3f9c40279a1c54193d42a00eea2099ae45f19c65944f0c8b1af435",
+      "baseline_line": 66,
+      "reviewed_assertion_calls": 4,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/tests/request_validation_contracts.rs#nested_results_are_checked_but_tool_inputs_and_schemas_remain_opaque"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Every assertion and local parameter scenario was reviewed. Native tests assert the complete result and unchanged authoritative input where the baseline does."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/model-catalog.test.mjs#1",
+      "name": "catalog uses exact native identities and exposes immutable, dated capability facts",
+      "baseline_file_sha256": "f27af38fe5b1cc1fb98e535a0e283034839000bf265b15ffd0efda488bdfee99",
+      "baseline_definition_sha256": "1611bc9f4cf71a3b914aac2c7b31268035c9a43d7942fa3ac3ca6d04e59c3dc1",
+      "baseline_line": 6,
+      "reviewed_assertion_calls": 12,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/model_catalog.rs#catalog_uses_exact_reviewed_ids_and_shared_alias_facts",
+        "rust/crates/autorouter-core/src/model_catalog.rs#nonstring_fixture_models_have_no_catalog_capabilities"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Every assertion and local parameter scenario was reviewed. Native tests assert the complete result and unchanged authoritative input where the baseline does.",
+        "Rust catalog facts and ID slices are static immutable references; this is the type-level counterpart to Object.isFrozen. The Haiku aliases also have an explicit pointer-equality assertion."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/model-catalog.test.mjs#2",
+      "name": "subscription-sensitive context does not become an unconditional 1M promise",
+      "baseline_file_sha256": "f27af38fe5b1cc1fb98e535a0e283034839000bf265b15ffd0efda488bdfee99",
+      "baseline_definition_sha256": "548206d7135fe8162d4949f1b711140069d257b008a6a30ccff559e5600811ae",
+      "baseline_line": 27,
+      "reviewed_assertion_calls": 9,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/model_catalog.rs#subscription_sensitive_context_is_not_an_unconditional_million"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "Every assertion and local parameter scenario was reviewed. Native tests assert the complete result and unchanged authoritative input where the baseline does.",
+        "Rust catalog facts and ID slices are static immutable references; this is the type-level counterpart to Object.isFrozen. The Haiku aliases also have an explicit pointer-equality assertion."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/turn-state.test.mjs#1",
+      "name": "pending tools survive elapsed TTL and cache pressure without evicting active tasks",
+      "baseline_file_sha256": "b45c17653af3a172537d1f7dc62ff4acc5b4ddb7103a221e606ab74979cbffcb",
+      "baseline_definition_sha256": "c90f4abf25932742eb67b93b0e705e23e0e1d4e72efb65994408be0546d20b45",
+      "baseline_line": 10,
+      "reviewed_assertion_calls": 6,
+      "status": "covered",
+      "rust_tests": [],
+      "shared_cases": [
+        "turn-active-ttl-capacity"
+      ],
+      "review_notes": [
+        "The retained native/shared schedule includes each asserted selection/completion/read/capacity outcome. Synthetic task/scope names may differ; expiry checks remain strictly beyond the same idle TTL."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/turn-state.test.mjs#2",
+      "name": "only idle retired tasks expire; active task and tool ownership remain scoped",
+      "baseline_file_sha256": "b45c17653af3a172537d1f7dc62ff4acc5b4ddb7103a221e606ab74979cbffcb",
+      "baseline_definition_sha256": "8f7f3a24c5ac71f5fe18993ae17924ed36ac68f64793f4c708b8d4057d4bbb1e",
+      "baseline_line": 25,
+      "reviewed_assertion_calls": 2,
+      "status": "covered",
+      "rust_tests": [],
+      "shared_cases": [
+        "turn-retired-only-expiry"
+      ],
+      "review_notes": [
+        "The retained native/shared schedule includes each asserted selection/completion/read/capacity outcome. Synthetic task/scope names may differ; expiry checks remain strictly beyond the same idle TTL."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/turn-state.test.mjs#3",
+      "name": "failed and superseded attempts never replace a confirmed model",
+      "baseline_file_sha256": "b45c17653af3a172537d1f7dc62ff4acc5b4ddb7103a221e606ab74979cbffcb",
+      "baseline_definition_sha256": "394420e408d1be6653cd63f84ea6ad889e9be7e176b8b51bf2f9f39114cf4d55",
+      "baseline_line": 37,
+      "reviewed_assertion_calls": 4,
+      "status": "covered",
+      "rust_tests": [],
+      "shared_cases": [
+        "turn-superseded-and-failed"
+      ],
+      "review_notes": [
+        "The retained native/shared schedule includes each asserted selection/completion/read/capacity outcome. Synthetic task/scope names may differ; expiry checks remain strictly beyond the same idle TTL."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/turn-state.test.mjs#4",
+      "name": "unconfirmed cancelled work and ambiguous tool ownership are discarded",
+      "baseline_file_sha256": "b45c17653af3a172537d1f7dc62ff4acc5b4ddb7103a221e606ab74979cbffcb",
+      "baseline_definition_sha256": "3c0a83d0293d879b687c03e874f0a2ee17710848384d316e319041d3ec808189",
+      "baseline_line": 52,
+      "reviewed_assertion_calls": 4,
+      "status": "covered",
+      "rust_tests": [],
+      "shared_cases": [
+        "turn-cancelled-and-invalid-tools"
+      ],
+      "review_notes": [
+        "The retained native/shared schedule includes each asserted selection/completion/read/capacity outcome. Synthetic task/scope names may differ; expiry checks remain strictly beyond the same idle TTL."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/turn-state.test.mjs#7",
+      "name": "out-of-order task completion cannot retire a newer active human task",
+      "baseline_file_sha256": "b45c17653af3a172537d1f7dc62ff4acc5b4ddb7103a221e606ab74979cbffcb",
+      "baseline_definition_sha256": "d5621c4500f9653917d16adf0a09b7c938d6a68c7584ba65c663f0d5b3e378d9",
+      "baseline_line": 116,
+      "reviewed_assertion_calls": 2,
+      "status": "covered",
+      "rust_tests": [],
+      "shared_cases": [
+        "turn-old-completion-new-task"
+      ],
+      "review_notes": [
+        "The retained native/shared schedule includes each asserted selection/completion/read/capacity outcome. Synthetic task/scope names may differ; expiry checks remain strictly beyond the same idle TTL."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/turn-state.test.mjs#8",
+      "name": "rejected admission cannot supersede accepted work or install aliases",
+      "baseline_file_sha256": "b45c17653af3a172537d1f7dc62ff4acc5b4ddb7103a221e606ab74979cbffcb",
+      "baseline_definition_sha256": "a27b78d4a3c731e40290cedbc8b5675e88894e8869ce5eeab0b78ece21792f1d",
+      "baseline_line": 128,
+      "reviewed_assertion_calls": 5,
+      "status": "covered",
+      "rust_tests": [],
+      "shared_cases": [
+        "turn-capacity-rejected-alias"
+      ],
+      "review_notes": [
+        "The retained native/shared schedule includes each asserted selection/completion/read/capacity outcome. Synthetic task/scope names may differ; expiry checks remain strictly beyond the same idle TTL."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/turn-state.test.mjs#9",
+      "name": "failed old retries release idle retention after a newer task commits",
+      "baseline_file_sha256": "b45c17653af3a172537d1f7dc62ff4acc5b4ddb7103a221e606ab74979cbffcb",
+      "baseline_definition_sha256": "be2dff117cddb9a919f1c2eac329d7ebdfcf90adf336a4e04ceecb3f392b8170",
+      "baseline_line": 139,
+      "reviewed_assertion_calls": 2,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/turn_state.rs#failed_old_retry_releases_retired_task_after_newer_task_commits"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "The retained native/shared schedule includes each asserted selection/completion/read/capacity outcome. Synthetic task/scope names may differ; expiry checks remain strictly beyond the same idle TTL."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/turn-state.test.mjs#10",
+      "name": "completion rejects malformed or inconsistent tool ownership without throwing",
+      "baseline_file_sha256": "b45c17653af3a172537d1f7dc62ff4acc5b4ddb7103a221e606ab74979cbffcb",
+      "baseline_definition_sha256": "721bd3b7e1f1d825f9a154825979b26733b9ed753f51d6e46f8a344b0d6ab4c3",
+      "baseline_line": 153,
+      "reviewed_assertion_calls": 2,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/turn_state.rs#failed_same_content_attempt_retains_prior_alias"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "The retained native/shared schedule includes each asserted selection/completion/read/capacity outcome. Synthetic task/scope names may differ; expiry checks remain strictly beyond the same idle TTL."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/turn-state.test.mjs#11",
+      "name": "identical task content cannot merge different prompt identities or overwrite pending tools",
+      "baseline_file_sha256": "b45c17653af3a172537d1f7dc62ff4acc5b4ddb7103a221e606ab74979cbffcb",
+      "baseline_definition_sha256": "fc8dc1f3df02e4512863875af6ac71c481e2c11bbce056c502b3c5840b9c20ea",
+      "baseline_line": 163,
+      "reviewed_assertion_calls": 3,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/turn_state.rs#different_prompt_identity_cannot_replace_pending_same_content_tools"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "The retained native/shared schedule includes each asserted selection/completion/read/capacity outcome. Synthetic task/scope names may differ; expiry checks remain strictly beyond the same idle TTL."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/turn-state.test.mjs#12",
+      "name": "tool discovery aliases are bounded and never displace the primary task identity",
+      "baseline_file_sha256": "b45c17653af3a172537d1f7dc62ff4acc5b4ddb7103a221e606ab74979cbffcb",
+      "baseline_definition_sha256": "4ba684735a020bb46299a7ae937882bd7d10c24ce99b536d230fa95944f67750",
+      "baseline_line": 174,
+      "reviewed_assertion_calls": 4,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/turn_state.rs#aliases_are_bounded_and_unexecuted_selections_are_unconfirmed"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "The retained native/shared schedule includes each asserted selection/completion/read/capacity outcome. Synthetic task/scope names may differ; expiry checks remain strictly beyond the same idle TTL."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/turn-state.test.mjs#13",
+      "name": "an old tool continuation arriving later cannot retire the newer human task",
+      "baseline_file_sha256": "b45c17653af3a172537d1f7dc62ff4acc5b4ddb7103a221e606ab74979cbffcb",
+      "baseline_definition_sha256": "5d9b7311a8f598b54928d662d5973fce05bf0a2db6d59a662c7a2e890c6a078e",
+      "baseline_line": 185,
+      "reviewed_assertion_calls": 2,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/turn_state.rs#old_late_tool_completion_cannot_retire_newer_task"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "The retained native/shared schedule includes each asserted selection/completion/read/capacity outcome. Synthetic task/scope names may differ; expiry checks remain strictly beyond the same idle TTL."
+      ],
+      "remaining": []
+    },
+    {
+      "baseline_test": "test/turn-state.test.mjs#14",
+      "name": "failed same-content tasks do not destroy an earlier confirmed content alias",
+      "baseline_file_sha256": "b45c17653af3a172537d1f7dc62ff4acc5b4ddb7103a221e606ab74979cbffcb",
+      "baseline_definition_sha256": "fb97253aca64cc7acb682bf83cb6840f537b8eb8c4f1b708c5af41908fb69db0",
+      "baseline_line": 199,
+      "reviewed_assertion_calls": 1,
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-core/src/turn_state.rs#failed_same_content_attempt_retains_prior_alias"
+      ],
+      "shared_cases": [],
+      "review_notes": [
+        "The retained native/shared schedule includes each asserted selection/completion/read/capacity outcome. Synthetic task/scope names may differ; expiry checks remain strictly beyond the same idle TTL."
+      ],
+      "remaining": []
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "kind": "declared_real_local_evaluator_language_port_comparison",
+  "declared_before_inference": "2026-10-13",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "fixture": "test/fixtures/ollama-routing.json",
+  "small_host_model": {
+    "tag": "tev1:0.8b",
+    "digest": "d6e7bb9bfe0feda2548249c5fe9dde6113cf62d4a7eb0f95f5612573c2f2146e",
+    "ollama_version": "0.40.0",
+    "download_bytes": 796578566
+  },
+  "engines": ["frozen Node evaluate-ollama", "native xtask evaluate-ollama"],
+  "matched_pairs": 5,
+  "order": "Alternate engine order between pairs, finish each engine's complete candidate unload before launching the other.",
+  "arguments": {
+    "split": "heldout",
+    "rounds": 3,
+    "stress_rounds": 8,
+    "warm_timeout_ms": 1500,
+    "cold_timeout_ms": 60000,
+    "min_agreement": 1,
+    "max_under_route_rate": 0
+  },
+  "preconditions": [
+    "Verified unchanged baseline source and fixture hashes; exact native tool/build/source identity retained.",
+    "Same local endpoint, model digest, runtime, rubric, excerpt budget and server settings for both engines.",
+    "No resident model before each engine; leave unrelated model state unchanged and abort on conflicting use.",
+    "Pause agent builds and tests during model timing; user applications remain in normal use as explicitly requested.",
+    "Retain machine/RAM/power/load/pressure snapshots and model residency/context metadata."
+  ],
+  "comparison": {
+    "absolute_model_quality": "Preserve each report's original strict agreement, under-routing, tier coverage, timeout and stress acceptance; inherited failures remain visible.",
+    "language_port": "Compare complete case/round outcomes under matched conditions; no unexplained native-only availability, protocol, cancellation or cleanup failure. Any policy/label differences stay unresolved until investigated; never relabel held-out fixtures or tune rubrics after seeing results.",
+    "variability": "Five paired reports retain every cold/warm/stress sample and failure. Model variability or timing under normal background load cannot be projected away or called bit-identical deterministic classification.",
+    "cleanup": "Unload only the explicitly tested candidate and verify no test-owned inference/transport/model worker remains."
+  },
+  "separate_gates": [
+    "Evaluator label quality is not downstream Claude task completion.",
+    "Normal-use 16GiB evidence does not approve controlled gateway performance targets.",
+    "A larger-than-24GiB Mac requires its own matched model/digest/condition reports.",
+    "Actual routing/profile/cancellation and real Claude task trials remain distinct from this evaluator benchmark.",
+    "No platform, archive, cutover or publication approval follows from completing this protocol."
+  ]
+}

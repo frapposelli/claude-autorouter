@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "kind": "committed_native_ci_checkpoint_with_retained_musl_sdk_failure",
+  "date": "2026-10-14",
+  "source_commit": "2887f2cfd5aecc2bb17f970358386a3cfc8d8c33",
+  "existing_ten_jobs_passed": true,
+  "new_musl_jobs_passed": false,
+  "complete_ci_matrix_passed": false,
+  "passed_job_count": 10,
+  "failed_job_count": 2,
+  "workflows": [
+    {
+      "workflow": "main",
+      "run_url": "https://github.com/frapposelli/claude-autorouter/actions/runs/38549931510",
+      "run_id": 38549931510,
+      "status": "completed",
+      "conclusion": "success",
+      "raw_record": {
+        "path": "artifacts/rust-rewrite/2887f2c-host-20261014-1/ci-main-poll-3.json",
+        "bytes": 52979,
+        "sha256": "adf480dedc4d9535d2f3e9871610e1f2a2af605bad7a9e7aa5e15739785ff16c"
+      },
+      "jobs": [
+        {
+          "name": "Node 22 / macos-latest",
+          "job_id": 115805135821,
+          "status": "completed",
+          "conclusion": "success",
+          "failed_steps": []
+        },
+        {
+          "name": "Node 22 / ubuntu-latest",
+          "job_id": 115805136102,
+          "status": "completed",
+          "conclusion": "success",
+          "failed_steps": []
+        },
+        {
+          "name": "Rust / macos-15",
+          "job_id": 115805136133,
+          "status": "completed",
+          "conclusion": "success",
+          "failed_steps": []
+        },
+        {
+          "name": "Node 24 / macos-latest",
+          "job_id": 115805136137,
+          "status": "completed",
+          "conclusion": "success",
+          "failed_steps": []
+        },
+        {
+          "name": "Rust / ubuntu-24.04-arm",
+          "job_id": 115805136214,
+          "status": "completed",
+          "conclusion": "success",
+          "failed_steps": []
+        },
+        {
+          "name": "Rust / ubuntu-24.04",
+          "job_id": 115805136231,
+          "status": "completed",
+          "conclusion": "success",
+          "failed_steps": []
+        },
+        {
+          "name": "Node 24 / ubuntu-latest",
+          "job_id": 115805136284,
+          "status": "completed",
+          "conclusion": "success",
+          "failed_steps": []
+        },
+        {
+          "name": "Rust / macos-15-intel",
+          "job_id": 115805136314,
+          "status": "completed",
+          "conclusion": "success",
+          "failed_steps": []
+        }
+      ]
+    },
+    {
+      "workflow": "gnu",
+      "run_url": "https://github.com/frapposelli/claude-autorouter/actions/runs/38549931509",
+      "run_id": 38549931509,
+      "status": "completed",
+      "conclusion": "success",
+      "raw_record": {
+        "path": "artifacts/rust-rewrite/2887f2c-host-20261014-1/ci-gnu-poll-3.json",
+        "bytes": 24076,
+        "sha256": "d175f69bbd9871d788fff9a67c4d1386673c8d475fe5c9963a97e34a9ee605eb"
+      },
+      "jobs": [
+        {
+          "name": "GNU glibc 2.28 / x86_64-unknown-linux-gnu",
+          "job_id": 115805135762,
+          "status": "completed",
+          "conclusion": "success",
+          "failed_steps": []
+        },
+        {
+          "name": "GNU glibc 2.28 / aarch64-unknown-linux-gnu",
+          "job_id": 115805136152,
+          "status": "completed",
+          "conclusion": "success",
+          "failed_steps": []
+        }
+      ]
+    },
+    {
+      "workflow": "musl",
+      "run_url": "https://github.com/frapposelli/claude-autorouter/actions/runs/38549931597",
+      "run_id": 38549931597,
+      "status": "completed",
+      "conclusion": "failure",
+      "raw_record": {
+        "path": "artifacts/rust-rewrite/2887f2c-host-20261014-1/ci-musl-poll-3.json",
+        "bytes": 7836,
+        "sha256": "4219f0345ce95abd33a68907823da946eba904bdcf4ce685dfef62f204fec20e"
+      },
+      "jobs": [
+        {
+          "name": "musl / aarch64-unknown-linux-musl",
+          "job_id": 115805136420,
+          "status": "completed",
+          "conclusion": "failure",
+          "failed_steps": [
+            "Freeze source identity and build-only SDK"
+          ]
+        },
+        {
+          "name": "musl / x86_64-unknown-linux-musl",
+          "job_id": 115805136556,
+          "status": "completed",
+          "conclusion": "failure",
+          "failed_steps": [
+            "Freeze source identity and build-only SDK"
+          ]
+        }
+      ]
+    }
+  ],
+  "qualification": "Actual required Node22/24 macOS/Linux checks, native macOS/Linux host checks, and GNU glibc2.28 x86_64/ARM64 jobs passed for the exact recorded commit. Both additive musl jobs failed in SDK archive extraction before product compilation or testing. All full-plan minimum-platform, performance, real-task, release and cutover gates remain separate.",
+  "sdk_failure_summary": "rust/parity/measurements/native-musl-tar-correction-summary.json",
+  "later_sources_qualified": false,
+  "provider_calls": 0,
+  "model_downloads": 0,
+  "release_approved": false,
+  "default_cutover_approved": false
+}

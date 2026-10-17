@@ -1,0 +1,855 @@
+{
+  "schema_version": 1,
+  "kind": "native_storage_tooling_summary",
+  "status": "deterministic_tooling_validation_passed",
+  "scope": "Native contributor benchmark-storage tool for synthetic status/session-log public APIs, frozen-reference comparison and read-only historical status reports. No production storage change, original coverage promotion or performance qualification.",
+  "qualification": {
+    "deterministic_native_validation": true,
+    "frozen_reference_semantic_comparison": true,
+    "historical_formula_compatibility": true,
+    "original_test_coverage_promoted": false,
+    "numerical_measurement_performed": false,
+    "performance_acceptance": false,
+    "representative_hardware_acceptance": false,
+    "overall_plan_performance_gate": "incomplete",
+    "full_workspace_source_to_binary_provenance": false,
+    "provider_calls": 0,
+    "model_downloads": 0,
+    "user_configuration_changes": 0
+  },
+  "interface": {
+    "validation": [
+      "cargo",
+      "xtask",
+      "benchmark-storage",
+      "--validate",
+      "--output",
+      "NEW_DIRECTORY"
+    ],
+    "paired_option": [
+      "--implementation",
+      "paired"
+    ],
+    "legacy_comparison": [
+      "cargo",
+      "xtask",
+      "benchmark-storage",
+      "--compare-status-legacy",
+      "REPORT.json",
+      "--label",
+      "LABEL"
+    ],
+    "measurement_available_but_not_run": [
+      "cargo",
+      "xtask",
+      "benchmark-storage",
+      "--measure",
+      "--implementation",
+      "paired",
+      "--output",
+      "NEW_DIRECTORY"
+    ],
+    "migration": "The old arbitrary --module import is replaced by --native XTASK_EXECUTABLE and verified --node NODE_EXECUTABLE --reference FROZEN_DIRECTORY. Native-only validation requires no Node."
+  },
+  "source_freeze": {
+    "descriptor": {
+      "path": "artifacts/rust-rewrite/evidence/6ff66387720a64f00ad4704f783f94225f8bf85b6159649cbe8d889740903ddc.json",
+      "bytes": 3370,
+      "sha256": "6ff66387720a64f00ad4704f783f94225f8bf85b6159649cbe8d889740903ddc",
+      "original_path": "artifacts/rust-rewrite/storage-final-snapshot-2/sources.json"
+    },
+    "owned_files": 11,
+    "current_and_retained_hashes_match": true,
+    "inputs": [
+      {
+        "current": {
+          "path": "rust/xtask/src/benchmark_storage.rs",
+          "bytes": 48578,
+          "sha256": "40ea64ed5573c5fdbef938615c723827018f18db9aebcc512cab700ae332437a"
+        },
+        "retained": {
+          "path": "artifacts/rust-rewrite/evidence/40ea64ed5573c5fdbef938615c723827018f18db9aebcc512cab700ae332437a.rs",
+          "bytes": 48578,
+          "sha256": "40ea64ed5573c5fdbef938615c723827018f18db9aebcc512cab700ae332437a",
+          "original_path": "rust/xtask/src/benchmark_storage.rs"
+        }
+      },
+      {
+        "current": {
+          "path": "rust/xtask/src/benchmark_storage_child.rs",
+          "bytes": 37005,
+          "sha256": "67fb7b1e9c9e18488a36305c717e504803a48b21ec3af5770a36f2974f643ec9"
+        },
+        "retained": {
+          "path": "artifacts/rust-rewrite/evidence/67fb7b1e9c9e18488a36305c717e504803a48b21ec3af5770a36f2974f643ec9.rs",
+          "bytes": 37005,
+          "sha256": "67fb7b1e9c9e18488a36305c717e504803a48b21ec3af5770a36f2974f643ec9",
+          "original_path": "rust/xtask/src/benchmark_storage_child.rs"
+        }
+      },
+      {
+        "current": {
+          "path": "rust/xtask/src/benchmark_storage_legacy.rs",
+          "bytes": 9217,
+          "sha256": "2f6f6a3e503e3e2d790ebd0d4833fce6ebbeea1b33a705d446433ff3271b2ccf"
+        },
+        "retained": {
+          "path": "artifacts/rust-rewrite/evidence/2f6f6a3e503e3e2d790ebd0d4833fce6ebbeea1b33a705d446433ff3271b2ccf.rs",
+          "bytes": 9217,
+          "sha256": "2f6f6a3e503e3e2d790ebd0d4833fce6ebbeea1b33a705d446433ff3271b2ccf",
+          "original_path": "rust/xtask/src/benchmark_storage_legacy.rs"
+        }
+      },
+      {
+        "current": {
+          "path": "rust/xtask/tests/benchmark_storage.rs",
+          "bytes": 8216,
+          "sha256": "f0573f19ef94db8993a511e8be5b7d544b155deb9efd505756bad12f4c967389"
+        },
+        "retained": {
+          "path": "artifacts/rust-rewrite/evidence/f0573f19ef94db8993a511e8be5b7d544b155deb9efd505756bad12f4c967389.rs",
+          "bytes": 8216,
+          "sha256": "f0573f19ef94db8993a511e8be5b7d544b155deb9efd505756bad12f4c967389",
+          "original_path": "rust/xtask/tests/benchmark_storage.rs"
+        }
+      },
+      {
+        "current": {
+          "path": "rust/parity/storage-reference.mjs",
+          "bytes": 19640,
+          "sha256": "8827fd89fae3fce296530d1c9c6968bd36e505c74e37e4c24e5ad52dc12b420e"
+        },
+        "retained": {
+          "path": "artifacts/rust-rewrite/evidence/8827fd89fae3fce296530d1c9c6968bd36e505c74e37e4c24e5ad52dc12b420e.mjs",
+          "bytes": 19640,
+          "sha256": "8827fd89fae3fce296530d1c9c6968bd36e505c74e37e4c24e5ad52dc12b420e",
+          "original_path": "rust/parity/storage-reference.mjs"
+        }
+      },
+      {
+        "current": {
+          "path": "rust/parity/storage-benchmark-v1.json",
+          "bytes": 3911,
+          "sha256": "2aded28c2436047f2845193d8ea88a7e2a94cecd7a7869e431e23f8597f5a709"
+        },
+        "retained": {
+          "path": "artifacts/rust-rewrite/evidence/2aded28c2436047f2845193d8ea88a7e2a94cecd7a7869e431e23f8597f5a709.json",
+          "bytes": 3911,
+          "sha256": "2aded28c2436047f2845193d8ea88a7e2a94cecd7a7869e431e23f8597f5a709",
+          "original_path": "rust/parity/storage-benchmark-v1.json"
+        }
+      },
+      {
+        "current": {
+          "path": "rust/parity/storage-contracts.capture.json",
+          "bytes": 9487,
+          "sha256": "e900b763342ee16aadcb8cabb7eaacbfde1171f4e754443b1c02c7806acf82b9"
+        },
+        "retained": {
+          "path": "artifacts/rust-rewrite/evidence/e900b763342ee16aadcb8cabb7eaacbfde1171f4e754443b1c02c7806acf82b9.capture.json",
+          "bytes": 9487,
+          "sha256": "e900b763342ee16aadcb8cabb7eaacbfde1171f4e754443b1c02c7806acf82b9",
+          "original_path": "rust/parity/storage-contracts.capture.json"
+        }
+      },
+      {
+        "current": {
+          "path": "rust/docs/storage-benchmark.md",
+          "bytes": 3923,
+          "sha256": "567124e9018df2ee15cdb835251b3dd69e40747a8df382a6935bbe655a7dad38"
+        },
+        "retained": {
+          "path": "artifacts/rust-rewrite/evidence/567124e9018df2ee15cdb835251b3dd69e40747a8df382a6935bbe655a7dad38.md",
+          "bytes": 3923,
+          "sha256": "567124e9018df2ee15cdb835251b3dd69e40747a8df382a6935bbe655a7dad38",
+          "original_path": "rust/docs/storage-benchmark.md"
+        }
+      },
+      {
+        "current": {
+          "path": "rust/xtask/src/main.rs",
+          "bytes": 4344,
+          "sha256": "3951678f999460b1f7a09b341583aa5e766d84725c199a2f1872a1964d9b9397"
+        },
+        "retained": {
+          "path": "artifacts/rust-rewrite/evidence/3951678f999460b1f7a09b341583aa5e766d84725c199a2f1872a1964d9b9397.rs",
+          "bytes": 4344,
+          "sha256": "3951678f999460b1f7a09b341583aa5e766d84725c199a2f1872a1964d9b9397",
+          "original_path": "rust/xtask/src/main.rs"
+        }
+      },
+      {
+        "current": {
+          "path": "rust/xtask/src/bundle.rs",
+          "bytes": 26566,
+          "sha256": "d5d814bd53f8bea31df5867048c839425ebabcbdaa1d1bc4a4e1cd4e02c93a9b"
+        },
+        "retained": {
+          "path": "artifacts/rust-rewrite/evidence/d5d814bd53f8bea31df5867048c839425ebabcbdaa1d1bc4a4e1cd4e02c93a9b.rs",
+          "bytes": 26566,
+          "sha256": "d5d814bd53f8bea31df5867048c839425ebabcbdaa1d1bc4a4e1cd4e02c93a9b",
+          "original_path": "rust/xtask/src/bundle.rs"
+        }
+      },
+      {
+        "current": {
+          "path": "rust/README.md",
+          "bytes": 12283,
+          "sha256": "4878062ca4ab2bb8239bb9051a7572a6b12e0cf8e5676f3f0370454d3494d149"
+        },
+        "retained": {
+          "path": "artifacts/rust-rewrite/evidence/4878062ca4ab2bb8239bb9051a7572a6b12e0cf8e5676f3f0370454d3494d149.md",
+          "bytes": 12283,
+          "sha256": "4878062ca4ab2bb8239bb9051a7572a6b12e0cf8e5676f3f0370454d3494d149",
+          "original_path": "rust/README.md"
+        }
+      }
+    ],
+    "production_storage_unchanged_from_head": [
+      {
+        "path": "rust/crates/autorouter-runtime/src/status_store.rs",
+        "bytes": 46072,
+        "sha256": "9f0f88e35f5b16914cc23b41c110a94628f67c1b7b58755bf1ad0f1ae20e4bbd"
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/src/session_log.rs",
+        "bytes": 25241,
+        "sha256": "86c7b1e7c10583f1477bcba7370dccc822b6dd97ab084578276febcef1beb8ce"
+      },
+      {
+        "path": "rust/crates/autorouter-core/src/status_state.rs",
+        "bytes": 19198,
+        "sha256": "228c1e2b31683c9fbb554e0421825d8d10bb7cf475f3382c96fed2673496fcf6"
+      },
+      {
+        "path": "rust/crates/autorouter-core/src/telemetry_event.rs",
+        "bytes": 30138,
+        "sha256": "9ecd66bb91b416a0a5435a134d307aaf8bb2488f02dfc04df3fca3f0bab92640"
+      }
+    ],
+    "scope": "These 11 owned inputs were frozen before focused checks and reverified unchanged for this summary. This is an owned-subset freeze, not complete workspace compilation provenance. Existing storage documentation remains unchanged."
+  },
+  "candidate": {
+    "binary": {
+      "path": "artifacts/rust-rewrite/storage-final-snapshot-2/xtask",
+      "bytes": 51155000,
+      "sha256": "0fc19c7053970af4698d6736181df0d5f86aec218e17564baffeb50ae8ff7491"
+    },
+    "descriptor": {
+      "path": "artifacts/rust-rewrite/evidence/279517419e4e4f8deda5a46f71cfa86f2d7f6e6c0ae20d096552b8ce3335bc51.json",
+      "bytes": 727,
+      "sha256": "279517419e4e4f8deda5a46f71cfa86f2d7f6e6c0ae20d096552b8ce3335bc51",
+      "original_path": "artifacts/rust-rewrite/storage-final-snapshot-2/binary.json"
+    },
+    "profile": "debug",
+    "toolchain": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "CARGO_INCREMENTAL": "0",
+    "build_scope": "Exact retained executable; owned subset frozen before and unchanged after focused Cargo checks. No complete workspace compilation provenance claim."
+  },
+  "protocol": {
+    "current": {
+      "path": "rust/parity/storage-benchmark-v1.json",
+      "bytes": 3911,
+      "sha256": "2aded28c2436047f2845193d8ea88a7e2a94cecd7a7869e431e23f8597f5a709"
+    },
+    "retained": {
+      "path": "artifacts/rust-rewrite/evidence/2aded28c2436047f2845193d8ea88a7e2a94cecd7a7869e431e23f8597f5a709.json",
+      "bytes": 3911,
+      "sha256": "2aded28c2436047f2845193d8ea88a7e2a94cecd7a7869e431e23f8597f5a709",
+      "original_path": "rust/parity/storage-benchmark-v1.json"
+    },
+    "semantic_expectations": {
+      "path": "rust/parity/storage-contracts.capture.json",
+      "bytes": 9487,
+      "sha256": "e900b763342ee16aadcb8cabb7eaacbfde1171f4e754443b1c02c7806acf82b9"
+    },
+    "expectations_retained": {
+      "path": "artifacts/rust-rewrite/evidence/e900b763342ee16aadcb8cabb7eaacbfde1171f4e754443b1c02c7806acf82b9.capture.json",
+      "bytes": 9487,
+      "sha256": "e900b763342ee16aadcb8cabb7eaacbfde1171f4e754443b1c02c7806acf82b9",
+      "original_path": "rust/parity/storage-contracts.capture.json"
+    },
+    "limits": {
+      "control_bytes": 65536,
+      "fixture_bytes": 1048576,
+      "child_report_bytes": 8388608,
+      "legacy_report_bytes": 16777216,
+      "run_evidence_bytes": 67108864,
+      "scenario_seconds": 15,
+      "measurement_child_seconds": 60,
+      "cleanup_seconds": 5,
+      "validation_seconds": 600,
+      "measurement_seconds": 1800,
+      "max_snapshots_retained": 1,
+      "max_log_rows": 3000,
+      "max_log_bytes": 2097152
+    },
+    "fixed_validation_event_clock": 1760000000000,
+    "normalization": "Validate raw PID, safe integer clocks and fixed log timestamp before projection; sort object keys and use exact ECMAScript Number/JSON semantics. No numerical tolerance, model/usage/pricing/warning omission or sequence reordering."
+  },
+  "validation_results": {
+    "focused_rust_unit_tests": 17,
+    "process_tests": 4,
+    "actual_source_bundle_control_tests": 1,
+    "frozen_original_node_tests": 40,
+    "final_native_only_scenarios": 16,
+    "independent_paired_executions": 32,
+    "independent_paired_cases": 16,
+    "exact_semantic_hashes": 16,
+    "raw_projection_negative_controls": 4,
+    "legacy_formula_fixtures": 6,
+    "frozen_reference_files_verified_before_after": 111,
+    "reference_repeatability": "All 16 final reports are byte-identical across captures 4 and 5.",
+    "observed_log_admissions": {
+      "escaped_queue": 309,
+      "session_capacity": 128,
+      "continuous_arrivals": 800
+    },
+    "counts_scope": "Focused test results and execution counts are separate evidence categories, not an aggregate original-assertion coverage total."
+  },
+  "executions": {
+    "path_notation": "<repo-root> replaces only the recorded absolute checkout prefix; <node> is the independently hash-bound Node executable. Argument order and flags remain exact.",
+    "cargo_checks": [
+      {
+        "argv": [
+          "cargo",
+          "test",
+          "--locked",
+          "--offline",
+          "-p",
+          "xtask",
+          "benchmark_storage",
+          "--",
+          "--nocapture"
+        ],
+        "cwd": "rust/",
+        "environment_overrides": {
+          "CARGO_INCREMENTAL": "0"
+        },
+        "exit_code": 0,
+        "log": {
+          "path": "artifacts/rust-rewrite/evidence/ba0288d84dd995483b79a0da522f930c45f46992db77e137fdd983850a1460e9.log",
+          "bytes": 3118,
+          "sha256": "ba0288d84dd995483b79a0da522f930c45f46992db77e137fdd983850a1460e9",
+          "original_path": "artifacts/rust-rewrite/storage-native-tests-3.log"
+        }
+      },
+      {
+        "argv": [
+          "cargo",
+          "test",
+          "--locked",
+          "--offline",
+          "-p",
+          "xtask",
+          "--test",
+          "benchmark_storage",
+          "--",
+          "--nocapture"
+        ],
+        "cwd": "rust/",
+        "environment_overrides": {
+          "CARGO_INCREMENTAL": "0"
+        },
+        "exit_code": 0,
+        "log": {
+          "path": "artifacts/rust-rewrite/evidence/12f428dd428e50f0a9cd5ded702b1f3607ff2a6e973a22987b4d4fcc93ef820d.log",
+          "bytes": 1043,
+          "sha256": "12f428dd428e50f0a9cd5ded702b1f3607ff2a6e973a22987b4d4fcc93ef820d",
+          "original_path": "artifacts/rust-rewrite/storage-process-tests-2.log"
+        }
+      },
+      {
+        "argv": [
+          "cargo",
+          "clippy",
+          "--locked",
+          "--offline",
+          "-p",
+          "xtask",
+          "--all-targets",
+          "--",
+          "-D",
+          "warnings"
+        ],
+        "cwd": "rust/",
+        "environment_overrides": {
+          "CARGO_INCREMENTAL": "0"
+        },
+        "exit_code": 0,
+        "log": {
+          "path": "artifacts/rust-rewrite/evidence/d89f9272a4cacc84e6efe658f297d6b9073a8c03adbb08fff7177cd3c5031895.log",
+          "bytes": 751,
+          "sha256": "d89f9272a4cacc84e6efe658f297d6b9073a8c03adbb08fff7177cd3c5031895",
+          "original_path": "artifacts/rust-rewrite/storage-clippy-1.log"
+        }
+      },
+      {
+        "argv": [
+          "cargo",
+          "test",
+          "--locked",
+          "--offline",
+          "-p",
+          "xtask",
+          "actual_bundle_checks_every_hash_excludes_canary_and_refuses_overwrite",
+          "--",
+          "--nocapture"
+        ],
+        "cwd": "rust/",
+        "environment_overrides": {
+          "CARGO_INCREMENTAL": "0"
+        },
+        "exit_code": 0,
+        "log": {
+          "path": "artifacts/rust-rewrite/evidence/52eeb678a27725d8d97baa88a5cb3437fc5e91e695e11e29e31aa15b100a7df2.log",
+          "bytes": 1258,
+          "sha256": "52eeb678a27725d8d97baa88a5cb3437fc5e91e695e11e29e31aa15b100a7df2",
+          "original_path": "artifacts/rust-rewrite/storage-bundle-test-1.log"
+        }
+      }
+    ],
+    "native_only": {
+      "argv": [
+        "<repo-root>/artifacts/rust-rewrite/storage-final-snapshot-2/xtask",
+        "benchmark-storage",
+        "--validate",
+        "--output",
+        "<repo-root>/artifacts/rust-rewrite/storage-native-validation-2",
+        "--native",
+        "<repo-root>/artifacts/rust-rewrite/storage-final-snapshot-2/xtask"
+      ],
+      "cwd": "<repo-root>",
+      "environment_cleared": true,
+      "environment": {
+        "PATH": ""
+      },
+      "exit_code": 0,
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/b941460664491e9c2c1b679f0b6660556cef29194d845d2876ead6ad67b3863f.json",
+        "bytes": 3392,
+        "sha256": "b941460664491e9c2c1b679f0b6660556cef29194d845d2876ead6ad67b3863f",
+        "original_path": "artifacts/rust-rewrite/storage-native-validation-2/report.json"
+      },
+      "preflight": {
+        "path": "artifacts/rust-rewrite/evidence/282a6d0751bf9a8e4ec6529c1b701d76cd06de4877127a3f289d125e6e92cd41.json",
+        "bytes": 6544,
+        "sha256": "282a6d0751bf9a8e4ec6529c1b701d76cd06de4877127a3f289d125e6e92cd41",
+        "original_path": "artifacts/rust-rewrite/storage-native-validation-2/preflight.json"
+      },
+      "postflight": {
+        "path": "artifacts/rust-rewrite/evidence/d04fe93fc674c624e1ea1e10226585c1abbc032cc6ae771671fea9516c62b098.json",
+        "bytes": 1490,
+        "sha256": "d04fe93fc674c624e1ea1e10226585c1abbc032cc6ae771671fea9516c62b098",
+        "original_path": "artifacts/rust-rewrite/storage-native-validation-2/postflight.json"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/evidence/6632ee86c937bb600ea175d587b67b5b9445f82be1e5885b8c96d64f47b51a49.log",
+        "bytes": 171,
+        "sha256": "6632ee86c937bb600ea175d587b67b5b9445f82be1e5885b8c96d64f47b51a49",
+        "original_path": "artifacts/rust-rewrite/storage-native-validation-2.log"
+      },
+      "scratch_removed": 16
+    },
+    "independent_paired": {
+      "argv": [
+        "<repo-root>/artifacts/rust-rewrite/storage-final-snapshot-2/xtask",
+        "benchmark-storage",
+        "--validate",
+        "--implementation",
+        "paired",
+        "--native",
+        "<repo-root>/artifacts/rust-rewrite/storage-final-snapshot-2/xtask",
+        "--node",
+        "<node>",
+        "--reference",
+        "<repo-root>/artifacts/rust-rewrite/reference",
+        "--output",
+        "<repo-root>/artifacts/rust-rewrite/storage-independent-2/paired"
+      ],
+      "environment_cleared": true,
+      "environment": {
+        "PATH": "",
+        "HOME": "<repo-root>/artifacts/rust-rewrite/storage-independent-2",
+        "TMPDIR": "<repo-root>/artifacts/rust-rewrite/storage-independent-2"
+      },
+      "exit_code": 0,
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/86a21c7f53cd234d6d38694622ea6749318409aac6dab639d09ae97ee05368b3.json",
+        "bytes": 7803,
+        "sha256": "86a21c7f53cd234d6d38694622ea6749318409aac6dab639d09ae97ee05368b3",
+        "original_path": "artifacts/rust-rewrite/storage-independent-2/paired/report.json"
+      },
+      "execution_and_negative_controls": {
+        "path": "artifacts/rust-rewrite/evidence/42edafbe8b4857f8fa775cf209a2b13f3d7bc46f5dc808d4a6f623228e854d62.json",
+        "bytes": 18708,
+        "sha256": "42edafbe8b4857f8fa775cf209a2b13f3d7bc46f5dc808d4a6f623228e854d62",
+        "original_path": "artifacts/rust-rewrite/storage-independent-2/report.json"
+      },
+      "preflight": {
+        "path": "artifacts/rust-rewrite/evidence/a74486496e72725c96a91227bf83015cfdbd176dc9833492664addbc81d96dc9.json",
+        "bytes": 6698,
+        "sha256": "a74486496e72725c96a91227bf83015cfdbd176dc9833492664addbc81d96dc9",
+        "original_path": "artifacts/rust-rewrite/storage-independent-2/paired/preflight.json"
+      },
+      "postflight": {
+        "path": "artifacts/rust-rewrite/evidence/6fc6447cceb5455d5dc066b90782508b80aa1829f9243696e1e84154c61685c8.json",
+        "bytes": 1567,
+        "sha256": "6fc6447cceb5455d5dc066b90782508b80aa1829f9243696e1e84154c61685c8",
+        "original_path": "artifacts/rust-rewrite/storage-independent-2/paired/postflight.json"
+      },
+      "scratch_removed": 32
+    },
+    "frozen_original_tests": {
+      "argv": [
+        "node",
+        "--test",
+        "artifacts/rust-rewrite/reference/test/status-state.test.mjs",
+        "artifacts/rust-rewrite/reference/test/session-log.test.mjs"
+      ],
+      "cwd": "<repo-root>",
+      "exit_code": 0,
+      "passed": 40,
+      "log": {
+        "path": "artifacts/rust-rewrite/evidence/1057e590bb2f4e21641ce63dac365977273a02277817711540d4d5b13e2d7b0b.log",
+        "bytes": 9235,
+        "sha256": "1057e590bb2f4e21641ce63dac365977273a02277817711540d4d5b13e2d7b0b",
+        "original_path": "artifacts/rust-rewrite/storage-frozen-original-tests-1.log"
+      }
+    },
+    "reference_captures": [
+      {
+        "path": "artifacts/rust-rewrite/evidence/dd42a6779a677e28c9420df1d4db36d15ce12530a961ad975c0e8d8b3474af01.json",
+        "bytes": 3513,
+        "sha256": "dd42a6779a677e28c9420df1d4db36d15ce12530a961ad975c0e8d8b3474af01",
+        "original_path": "artifacts/rust-rewrite/storage-reference-capture-4/capture.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/dd42a6779a677e28c9420df1d4db36d15ce12530a961ad975c0e8d8b3474af01.json",
+        "bytes": 3513,
+        "sha256": "dd42a6779a677e28c9420df1d4db36d15ce12530a961ad975c0e8d8b3474af01",
+        "original_path": "artifacts/rust-rewrite/storage-reference-capture-5/capture.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/f9086ccdf143cbf0a2bd3b13ac5b3ea9aaa35c5b18ad4c3fe28b05390be391bb.json",
+        "bytes": 3036,
+        "sha256": "f9086ccdf143cbf0a2bd3b13ac5b3ea9aaa35c5b18ad4c3fe28b05390be391bb",
+        "original_path": "artifacts/rust-rewrite/storage-reference-repeatability-2.json"
+      }
+    ],
+    "static_checks": {
+      "scoped_rustfmt": {
+        "argv": [
+          "rustfmt",
+          "--check",
+          "--edition",
+          "2024",
+          "--config",
+          "skip_children=true",
+          "xtask/src/benchmark_storage.rs",
+          "xtask/src/benchmark_storage_child.rs",
+          "xtask/src/benchmark_storage_legacy.rs",
+          "xtask/tests/benchmark_storage.rs",
+          "xtask/src/main.rs",
+          "xtask/src/bundle.rs"
+        ],
+        "cwd": "rust/",
+        "exit_code": 0,
+        "log": {
+          "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "original_path": "artifacts/rust-rewrite/storage-fmt-1.log"
+        }
+      },
+      "doc_links_and_whitespace": {
+        "path": "artifacts/rust-rewrite/evidence/5e9d835004ebf5dbf2cfe6a3b8744df0b3b69800772379d0215a92db784de486.json",
+        "bytes": 426,
+        "sha256": "5e9d835004ebf5dbf2cfe6a3b8744df0b3b69800772379d0215a92db784de486",
+        "original_path": "artifacts/rust-rewrite/storage-doc-checks-1.json"
+      },
+      "git_diff_check": {
+        "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "original_path": "artifacts/rust-rewrite/storage-diff-check-1.log"
+      },
+      "all_exit_zero": true
+    }
+  },
+  "ownership_and_bounds": [
+    "Actual first-poll flush future retained; measurement flush/progress tasks remain in Owners-held JoinSets across scenario cancellation and are aborted/joined before joined=true",
+    "Close futures admitted before release in held validation; all store/log owners joined; actual backend active counter zero and scratch removed",
+    "Positive private held-I/O marker precedes owner EOF control; child deadline, parent whole-run cancellation, bounded child output, symlink/FIFO rejection and newline-inclusive aggregate limit",
+    "Full semantic hashes preserve original model/usage/pricing/warnings/order; required raw identity/timestamps validated before projection",
+    "Measurement schema and exact sample cardinality tested synthetically; overflow cancels instead of silently truncating; cancellation latched before cleanup"
+  ],
+  "api_adaptations": [
+    "Only validated PID/heartbeat/session clocks and fixed log timestamp are projected; file launch suffix is represented by original session identity with duplicate-file rejection.",
+    "Exact sorted-object ECMAScript JSON hashes permit Number spelling 1 versus 1.0 without tolerance or numerical rounding. Synthetic fixture keys are ASCII; this is finite captured output equivalence.",
+    "Concurrent JS close Promise identity maps to polled Rust close/flush futures sharing the same owned drain; no object-identity equivalence claim.",
+    "Native aggregate SessionSink.close count and Node per-file handle closes are both checked before representing one logical writer close.",
+    "Injected native append-boundary failure is aligned with Node first-open failure, preserving zero-file/error cleanup. This does not test kernel write failures."
+  ],
+  "resolved_findings": [
+    {
+      "finding": "Legacy /10 was replaced by multiplication by 0.1, changing an IEEE754 boundary verdict.",
+      "resolution": "Preserves exact original /4, /10, *1.25 and *2 operators; baseline 0.21/candidate 0.021 is rejected before display rounding."
+    },
+    {
+      "finding": "floor(x*1000+0.5) could differ from Math.round at large integral scaled values.",
+      "resolution": "Uses floor plus fractional comparison; independent 4503599627370.497 and subnormal controls agree with frozen Node formulas."
+    },
+    {
+      "finding": "Replacing volatile fields before validation could conceal missing/invalid raw values.",
+      "resolution": "Checks exact process PID, safe integer clocks and fixed validation event clock, plus exact original log timestamp, before finite projections; independent missing PID/heartbeat/session time and wrong log timestamp all fail with clean teardown."
+    },
+    {
+      "finding": "Source-copy 2 MiB cap accidentally applied to retained executable paths within artifacts.",
+      "resolution": "Exact native/Node executable paths excluded from source-copy loop; independent validation invokes retained 51,155,000-byte candidate from artifact path successfully."
+    },
+    {
+      "finding": "Measurement report parser accepted absent metrics, wrong profile/cardinality or empty raw maps.",
+      "resolution": "Checks six exact metric names, profile/warmup/bursts/delay, expected counts, finite nonnegative samples, final 20-session snapshot and false qualification; synthetic unit controls only."
+    },
+    {
+      "finding": "Cancelled measurement future could detach flush/progress tasks yet claim joined.",
+      "resolution": "Owners retains JoinSets, aborts and joins during cleanup; held-work unit control exercises cancellation without numerical collection. Pre-cleanup cancellation is captured and prevents success."
+    },
+    {
+      "finding": "Native timer sample cap silently truncated retained samples.",
+      "resolution": "Cap cancels the owner and forces failure; small synthetic cap control verifies no silent successful truncation."
+    },
+    {
+      "finding": "Owner-loss integration test used a sleep instead of observing held I/O and outer process waits were unbounded.",
+      "resolution": "Positive held-io.json barrier, deadline/byte-bound capture and kill/reap ownership guards are present."
+    },
+    {
+      "finding": "Protocol prose declared 500 NUL code points while fixture uses 499 plus emoji.",
+      "resolution": "New pre-run frozen declaration states actual 499; previous freeze remains retained. Fixture/semantic data unchanged."
+    }
+  ],
+  "reviews": {
+    "author": {
+      "path": "artifacts/rust-rewrite/evidence/b0c6201375ab62b7978af6b7f52f8377fe796361e665380332ff691402bd3a16.json",
+      "bytes": 21643,
+      "sha256": "b0c6201375ab62b7978af6b7f52f8377fe796361e665380332ff691402bd3a16",
+      "original_path": "/private/tmp/autorouter-storage-implementation-report.json"
+    },
+    "independent": {
+      "path": "artifacts/rust-rewrite/evidence/7213e49f26122c26d8a6163f2a278924d920d75217c7ad14d25f42c5a72aaa4a.json",
+      "bytes": 14942,
+      "sha256": "7213e49f26122c26d8a6163f2a278924d920d75217c7ad14d25f42c5a72aaa4a",
+      "original_path": "/private/tmp/autorouter-storage-tooling-independent-review.json"
+    },
+    "independent_passed": true,
+    "blockers": [],
+    "external_report_and_helper_dependencies": [
+      {
+        "path": "artifacts/rust-rewrite/evidence/4124430d50444eb0a723eb8f584e9570e9e98f2ae6d04960bc8a81438f7327bc.md",
+        "bytes": 16199,
+        "sha256": "4124430d50444eb0a723eb8f584e9570e9e98f2ae6d04960bc8a81438f7327bc",
+        "original_path": "/private/tmp/autorouter-next-nontransport-implementation-plan.md"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/c5509aab6d29e508bed8bf93f3ad827871ab83685b842d7316e89df5014a3397.py",
+        "bytes": 9802,
+        "sha256": "c5509aab6d29e508bed8bf93f3ad827871ab83685b842d7316e89df5014a3397",
+        "original_path": "/private/tmp/review-storage-tooling.py"
+      }
+    ]
+  },
+  "retained_iterations": {
+    "explanations": {
+      "storage-check-1.log": "Initial E0596 mutable stdin File reference compile failure; fixed local mutable reference",
+      "storage-paired-validation-1": "All 32 child executions passed pinned semantics, but 5 paired comparisons rejected serde integer/f64 spelling differences; final comparison uses existing exact ECMAScript stringify canonicalization, with no numeric tolerance",
+      "storage-legacy-counterexample-1.log": "Mis-targeted exact test filter executed zero tests; retained, not credited as a meaningful test",
+      "storage-legacy-counterexample-2.log": "Actual retained failing original /10 versus draft *0.1 IEEE754 counterexample; fixed exact original operators and regression now passes",
+      "storage-legacy-review-counterexamples.json": "Original versus draft floating division and display rounding counterexamples; pure formula evaluation, no numerical benchmark",
+      "storage-process-tests-1.log": "Earlier passing owner-loss test used a delay; superseded by positive held-I/O marker and bounded test-side process ownership",
+      "storage-protocol-frozen-3": "Corrected prose from 500 to actual 499 NUL code points plus emoji; schedules, fixtures and thresholds unchanged; previous protocol and expectation pins retained"
+    },
+    "evidence": [
+      {
+        "path": "artifacts/rust-rewrite/evidence/d5db72bd753645a2ee2f0a5645b35462a8a2b9ff118f67a0cbda2b6a7e75d598.log",
+        "bytes": 1378,
+        "sha256": "d5db72bd753645a2ee2f0a5645b35462a8a2b9ff118f67a0cbda2b6a7e75d598",
+        "original_path": "artifacts/rust-rewrite/storage-check-1.log"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/ae1106c967ef0a15919018c11f9d00c053445c5d6d128868bf8684f8a753baa2.log",
+        "bytes": 2495,
+        "sha256": "ae1106c967ef0a15919018c11f9d00c053445c5d6d128868bf8684f8a753baa2",
+        "original_path": "artifacts/rust-rewrite/storage-native-tests-1.log"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/388d7b1ba50687086dac7658e68acc04a9ff25fd816423e3edef47b8bd8c94cc.log",
+        "bytes": 2696,
+        "sha256": "388d7b1ba50687086dac7658e68acc04a9ff25fd816423e3edef47b8bd8c94cc",
+        "original_path": "artifacts/rust-rewrite/storage-native-tests-2.log"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/2d56cf5f997e228ab1ef5aef96cc40e3c2edae9a46505a61c71db5219dc589b4.log",
+        "bytes": 967,
+        "sha256": "2d56cf5f997e228ab1ef5aef96cc40e3c2edae9a46505a61c71db5219dc589b4",
+        "original_path": "artifacts/rust-rewrite/storage-process-tests-1.log"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/436b256a1fc7ec2916555d91b7872fb6a562ca4c5448264c40a30a71a42ae4cd.json",
+        "bytes": 3392,
+        "sha256": "436b256a1fc7ec2916555d91b7872fb6a562ca4c5448264c40a30a71a42ae4cd",
+        "original_path": "artifacts/rust-rewrite/storage-native-validation-1/report.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/64de675bb6d902a38e124a4a152ea7eca3b473a2e81c8708222ae48c43e63789.json",
+        "bytes": 6511,
+        "sha256": "64de675bb6d902a38e124a4a152ea7eca3b473a2e81c8708222ae48c43e63789",
+        "original_path": "artifacts/rust-rewrite/storage-paired-validation-1/preflight.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/232733baa79fab8dbe560c8aadd4d9ee271128684343185f9ed69c77a25ff893.json",
+        "bytes": 1453,
+        "sha256": "232733baa79fab8dbe560c8aadd4d9ee271128684343185f9ed69c77a25ff893",
+        "original_path": "artifacts/rust-rewrite/storage-paired-validation-1/postflight.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/cdcd4915cc6594f172054ef4c775b680452dabab2182205086abe85f188e8621.json",
+        "bytes": 6689,
+        "sha256": "cdcd4915cc6594f172054ef4c775b680452dabab2182205086abe85f188e8621",
+        "original_path": "artifacts/rust-rewrite/storage-paired-validation-1/report.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/5dc52c7c0fbcef145c2e46e3adc28964922b5b69d552ff177043fba0ba0d722e.log",
+        "bytes": 1235,
+        "sha256": "5dc52c7c0fbcef145c2e46e3adc28964922b5b69d552ff177043fba0ba0d722e",
+        "original_path": "artifacts/rust-rewrite/storage-legacy-counterexample-1.log"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/237eb7332da3bdcb3597de0df9ee9cf3fb59a85e3b5b60be9134f26b693d1ab1.log",
+        "bytes": 1620,
+        "sha256": "237eb7332da3bdcb3597de0df9ee9cf3fb59a85e3b5b60be9134f26b693d1ab1",
+        "original_path": "artifacts/rust-rewrite/storage-legacy-counterexample-2.log"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/478a2c22ffa0d2100aab878c8eeaf2932245bbf40d9c422043d446ae14546ec3.json",
+        "bytes": 354,
+        "sha256": "478a2c22ffa0d2100aab878c8eeaf2932245bbf40d9c422043d446ae14546ec3",
+        "original_path": "artifacts/rust-rewrite/storage-legacy-review-counterexamples.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/ead4951352ab1920fcdd9e08dd7431e9b2f6b2e23104530da12d85043f33aa22.json",
+        "bytes": 3259,
+        "sha256": "ead4951352ab1920fcdd9e08dd7431e9b2f6b2e23104530da12d85043f33aa22",
+        "original_path": "artifacts/rust-rewrite/storage-final-snapshot/sources.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/806a79b533e258865baed6bdf531c618e36a61eeb7495dd2bbf1ff9c54928fef.json",
+        "bytes": 3513,
+        "sha256": "806a79b533e258865baed6bdf531c618e36a61eeb7495dd2bbf1ff9c54928fef",
+        "original_path": "artifacts/rust-rewrite/storage-reference-capture-1/capture.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/65274461734ef6fead45e768ab288cfac1cc9103c20470c6160bcb46791ab6d8.json",
+        "bytes": 3513,
+        "sha256": "65274461734ef6fead45e768ab288cfac1cc9103c20470c6160bcb46791ab6d8",
+        "original_path": "artifacts/rust-rewrite/storage-reference-capture-2/capture.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/65274461734ef6fead45e768ab288cfac1cc9103c20470c6160bcb46791ab6d8.json",
+        "bytes": 3513,
+        "sha256": "65274461734ef6fead45e768ab288cfac1cc9103c20470c6160bcb46791ab6d8",
+        "original_path": "artifacts/rust-rewrite/storage-reference-capture-3/capture.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/c6379be06bf3593eb518d215f6cb6e0baf3030efd66ef6b008fae64b16e50f24.json",
+        "bytes": 9487,
+        "sha256": "c6379be06bf3593eb518d215f6cb6e0baf3030efd66ef6b008fae64b16e50f24",
+        "original_path": "artifacts/rust-rewrite/storage-reference-capture-3/expectations.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/7223cdf99bcd19182935f9f718c1fe6a60f88ac5e81f8e9f6f2c0483d669e594.json",
+        "bytes": 2682,
+        "sha256": "7223cdf99bcd19182935f9f718c1fe6a60f88ac5e81f8e9f6f2c0483d669e594",
+        "original_path": "artifacts/rust-rewrite/storage-reference-repeatability.json"
+      }
+    ],
+    "reviewer_harness_failure": {
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/4c605a2c4da4ecde494e595503274c0d4a94faf0cafd557bcfeda66ce0afb7a2.json",
+        "bytes": 489,
+        "sha256": "4c605a2c4da4ecde494e595503274c0d4a94faf0cafd557bcfeda66ce0afb7a2",
+        "original_path": "artifacts/rust-rewrite/storage-independent-1/review-harness-failure.json"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/evidence/4d625237a0d208acb8d749625d5b52adf1ac7aa002e1b242d730559967548bbb.stderr",
+        "bytes": 752,
+        "sha256": "4d625237a0d208acb8d749625d5b52adf1ac7aa002e1b242d730559967548bbb",
+        "original_path": "artifacts/rust-rewrite/storage-independent-1/missing_pid.stderr"
+      },
+      "script": {
+        "path": "artifacts/rust-rewrite/evidence/21d791bc66a37c102603a3ed2e82f6231a5cd3e66dd808d79da2978dcdc00261.py",
+        "bytes": 9792,
+        "sha256": "21d791bc66a37c102603a3ed2e82f6231a5cd3e66dd808d79da2978dcdc00261",
+        "original_path": "artifacts/rust-rewrite/storage-independent-1/review-script.py"
+      },
+      "scope": "Initial private-helper path failed module lookup before scenario execution; paired validation had passed. Corrected reviewer run is independent-2. This was not a candidate defect."
+    },
+    "protocol_freezes": [
+      {
+        "path": "artifacts/rust-rewrite/evidence/4a90d42359c7f5bd9c4b7608140d1e7144d5c838f64fa3f22d7e5602f9368d53.json",
+        "bytes": 273,
+        "sha256": "4a90d42359c7f5bd9c4b7608140d1e7144d5c838f64fa3f22d7e5602f9368d53",
+        "original_path": "artifacts/rust-rewrite/storage-protocol-frozen-1/freeze.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/fede919bda0cb96fd89cdcea2dfe3c0a7fac6945244b94822f6c9925dded792b.json",
+        "bytes": 3878,
+        "sha256": "fede919bda0cb96fd89cdcea2dfe3c0a7fac6945244b94822f6c9925dded792b",
+        "original_path": "artifacts/rust-rewrite/storage-protocol-frozen-1/storage-benchmark-v1.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/29c5e45eeeeeeec4714040d35fc01e3b25ba32e6ac56b16368008e8841d5886f.json",
+        "bytes": 392,
+        "sha256": "29c5e45eeeeeeec4714040d35fc01e3b25ba32e6ac56b16368008e8841d5886f",
+        "original_path": "artifacts/rust-rewrite/storage-protocol-frozen-2/freeze.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/060f6f58da29f8622df0e439a41a6dd37de25893fe6e483e92a2efd5cd01cc1b.json",
+        "bytes": 3911,
+        "sha256": "060f6f58da29f8622df0e439a41a6dd37de25893fe6e483e92a2efd5cd01cc1b",
+        "original_path": "artifacts/rust-rewrite/storage-protocol-frozen-2/storage-benchmark-v1.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/098afd9d3f13133d913bef96b7e090f5e6d6579be57bf3c161c74226eada2dbf.json",
+        "bytes": 320,
+        "sha256": "098afd9d3f13133d913bef96b7e090f5e6d6579be57bf3c161c74226eada2dbf",
+        "original_path": "artifacts/rust-rewrite/storage-protocol-frozen-3/freeze.json"
+      },
+      {
+        "path": "artifacts/rust-rewrite/evidence/2aded28c2436047f2845193d8ea88a7e2a94cecd7a7869e431e23f8597f5a709.json",
+        "bytes": 3911,
+        "sha256": "2aded28c2436047f2845193d8ea88a7e2a94cecd7a7869e431e23f8597f5a709",
+        "original_path": "artifacts/rust-rewrite/storage-protocol-frozen-3/storage-benchmark-v1.json"
+      }
+    ]
+  },
+  "portability": {
+    "descriptor_paths": "All operational descriptor paths in this summary are repository-relative. External reports/helpers have content-addressed copies under artifacts/rust-rewrite/evidence.",
+    "historical_paths": "Retained report bytes preserve original host-path metadata. Within those records, the original checkout prefix is historical; repository-relative retained paths and this summary remain authoritative.",
+    "runtime_identity": {
+      "node_version": "v22.14.0",
+      "node_sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0",
+      "node_binary_redistributed": false
+    },
+    "artifact_availability": "This checked-in summary binds locally retained evidence; artifacts and binaries are not added to the public source bundle or claimed as installed/release artifacts."
+  },
+  "limits": [
+    "No numerical workload was run; measurement execution remains opt-in and descriptive, with no ratified native performance threshold or performance acceptance",
+    "Synthetic public storage API schedules and 40 original tests do not claim complete original assertion mapping or alter central parity coverage",
+    "No HTTP/gateway interference, installed status polling, long resource soak, representative hardware, allocations, CPU, OS descriptor or true peak-RSS qualification",
+    "Backend failure injection is not a kernel write-error proof; wrapper active counters are not an OS descriptor audit",
+    "Promise identity and Rust retained-future shared-drain behavior are declared API adaptations; warning panic versus rejected Promise is not an identical runtime mechanism",
+    "Existing debug executable/source subset hashes are retained, not claimed as complete workspace build provenance; root owns broad CI/source-bundle/host qualification",
+    "No product storage implementation, logging defaults, privacy policy, live service, evaluator or user configuration changed"
+  ]
+}

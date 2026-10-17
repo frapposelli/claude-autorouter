@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "kind": "native_keychain_actual_subprocess_bounds_resume_checkpoint",
+  "date": "2026-10-13",
+  "source_uncommitted": true,
+  "release_approved": false,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "correction": "Enforce the original spawnSync aggregate 65536-byte stdout/stderr ceiling, rather than two independent pipe ceilings. Retain the fixed system executable, stdin-only secret transport, generic errors and production 15-second deadline.",
+  "tests": {
+    "old_combined_65537_budget_expected_failure_retained": true,
+    "native_existing_tests_passed": 3,
+    "native_actual_subprocess_tests_passed": 5,
+    "native_owned_synthetic_children": 11,
+    "stdout_boundaries": [
+      65536,
+      65537
+    ],
+    "stderr_boundaries": [
+      65536,
+      65537
+    ],
+    "combined_output_boundaries": [
+      [
+        32768,
+        32768
+      ],
+      [
+        32768,
+        32769
+      ]
+    ],
+    "deadline_clock": "Tokio paused clock with real OS children; exact production timer, not mock runner outputs",
+    "deadline_pending_ms": 14999,
+    "deadline_failed_ms": 15000,
+    "blocked_stdin_bytes": 1048576,
+    "awaited_timeout_and_overflow_cleanup": "direct owned child already reaped before error returned; waitpid(WNOHANG)==ECHILD, kill(pid,0)==ESRCH",
+    "cancellation_cleanup": "drop is nonblocking; eventual direct child kill/reap while runtime remains live, without advancing the paused 15-second clock",
+    "stdin_eof_and_child_nonzero_status_preserved": true,
+    "private_child_stderr_never_in_error": true,
+    "strict_focused_clippy_passed": true,
+    "source_files_verified": 111,
+    "frozen_source_actual_subprocess_controls_passed": 6,
+    "frozen_source_security_path_and_exact_options_asserted": true,
+    "actual_security_executions": 0,
+    "security_account_operations": 0,
+    "provider_calls": 0
+  },
+  "artifacts": {
+    "before_budget_failure": {
+      "path": "artifacts/rust-rewrite/keychain-process-bounds-20261013/before-combined-boundary.json",
+      "sha256": "34bef8a691ea06439f4d8e2f064dd6f56881bb4ea0e79692638a9109d58bd9e4"
+    },
+    "before_budget_failure_log": {
+      "path": "artifacts/rust-rewrite/keychain-process-bounds-20261013/before-combined-boundary.log",
+      "sha256": "d852de40ff3e66dbe83f72446dc13e43f0e3610e908700e8540dace1eefc508d"
+    },
+    "native_final_validation": {
+      "path": "artifacts/rust-rewrite/keychain-process-bounds-20261013/final-validation.json",
+      "sha256": "b6360a4eb0488480cbad3761971df035a486b830339e9a1792a4fb3f8850f314"
+    },
+    "frozen_source_output_boundaries": {
+      "path": "artifacts/rust-rewrite/keychain-process-bounds-20261013/frozen-original-output-controls.json",
+      "sha256": "7739f8b4f53e01016a5f8d7e07d2148591fdbd8a65e0309ca21c7296f6c1073d"
+    }
+  },
+  "source_inputs": [
+    {
+      "path": "rust/crates/autorouter-runtime/src/keychain.rs",
+      "sha256": "0ed061cbe63315ae67131a2d30012f2dd509c1c43e1206accfaa35f2f068570b",
+      "snapshot": "artifacts/rust-rewrite/keychain-process-bounds-20261013/sources/rust/crates/autorouter-runtime/src/keychain.rs"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/keychain_process_contracts.rs",
+      "sha256": "1f49f81955103fbf43c020fd89328d404b16b1f615df3c7834bcb487fc9a98cf",
+      "snapshot": "artifacts/rust-rewrite/keychain-process-bounds-20261013/sources/rust/crates/autorouter-runtime/src/keychain_process_contracts.rs"
+    },
+    {
+      "path": "artifacts/dev-environment/capture-keychain-process-bounds.mjs",
+      "sha256": "2ed03d74bdb151cc9496462c38712a9989bfc0cdf968fb433df8da70c8975cc5",
+      "snapshot": "artifacts/rust-rewrite/keychain-process-bounds-20261013/sources/artifacts/dev-environment/capture-keychain-process-bounds.mjs"
+    }
+  ],
+  "primary_source": {
+    "url": "https://github.com/nodejs/node/blob/v22.14.0/src/spawn_sync.cc#L601-L607",
+    "review_date": "2026-10-13",
+    "behavior": "SyncProcessStdioPipe::OnRead charges all output pipes through the same buffered_output_size_ counter; overflow occurs when aggregate captured bytes exceed max_buffer_."
+  },
+  "scope_limits": [
+    "Production spawning remains hardcoded to /usr/bin/security; the executable selection seam is private and tests only invoke owned /bin/sh builtins, with private FIFO gates and no descendants.",
+    "The 15-second body covers stdin writes and closure, both output pipes and child wait. The clock assertions use the actual production duration under a paused Tokio clock, not 15 seconds of elapsed wall time or a mocked SecurityRunner. Process-spawn latency and abnormal uninterruptible OS cleanup are not newly qualified by this slice.",
+    "Awaited timeout/overflow kills and joins the direct child. Future drop retains Tokio kill_on_drop behavior; safe Drop cannot await, so only eventual cleanup on a live runtime is qualified, not synchronous cancellation joining or descendant-group cleanup.",
+    "No actual Keychain/security-account/provider calls, user settings, Cargo feature changes, central ledger edits, release/tag/publish actions or numerical performance/platform qualification. Earlier release artifacts and limit-audit reports remain historical; root owns the combined fresh candidate validation."
+  ],
+  "validation_environment": {
+    "CARGO_INCREMENTAL": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0"
+  }
+}

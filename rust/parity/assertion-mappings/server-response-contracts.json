@@ -1,0 +1,784 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_server_response_contracts_assertion_mapping",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_head": "ab068b006953627486afe42477ea8f52b4855324",
+  "production_changes": false,
+  "counts": {
+    "definitions": 3,
+    "direct_static_assertions": 22,
+    "source_http_scenarios": 9,
+    "additional_native_sensitivity_scenarios": 2,
+    "native_http_scenarios": 11,
+    "native_tests": 3,
+    "unchanged_frozen_tests_passed": 3,
+    "original_callbacks_executed_by_input_extraction": 0,
+    "baseline_files_verified_by_generator": 111,
+    "covered": 3,
+    "partial": 0
+  },
+  "current_sources": [
+    {
+      "path": "rust/parity/capture-server-response-contracts.mjs",
+      "bytes": 6845,
+      "sha256": "90560670f4407091b5e6e7e7ad648b9280faaee104301380da3cafd56681be2b"
+    },
+    {
+      "path": "rust/parity/cases/server-response-contracts.jsonl",
+      "bytes": 2039,
+      "sha256": "7c158c333972674c503b3a8767fa5077ec775369998894a72bde8609bcd3e217"
+    },
+    {
+      "path": "rust/parity/cases/server-response-contracts.capture.json",
+      "bytes": 6651,
+      "sha256": "d82b4fc02ebc8cd2db77023cea25038c8374712c73a772d31d04cef20f5cda1d"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+      "bytes": 15458,
+      "sha256": "580670c10b7ea58bf01927018e3443e01308db41d76dd91c81ce2c336f5ec0c3"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/server.rs",
+      "bytes": 40751,
+      "sha256": "cbfad8c006b2eec1f889a30b34ed370b4e5f7ddd80967670726a59bd770a55e3"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/http_client.rs",
+      "bytes": 16711,
+      "sha256": "c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1"
+    }
+  ],
+  "evidence": {
+    "0-ninth-server-response-frozen-control.log": {
+      "path": "artifacts/rust-rewrite/evidence/73a6239b3c79d9def222907f5426e795f4d21940d79ca768cf366333804578f7.log",
+      "sha256": "73a6239b3c79d9def222907f5426e795f4d21940d79ca768cf366333804578f7",
+      "bytes": 793,
+      "original_path": "artifacts/rust-rewrite/ninth-server-response-frozen-control.log"
+    },
+    "1-ninth-server-response-native-1.log": {
+      "path": "artifacts/rust-rewrite/evidence/0eff54f6d941c933f6a5abaff7493adf82742e4785a168f991628cd664346aea.log",
+      "sha256": "0eff54f6d941c933f6a5abaff7493adf82742e4785a168f991628cd664346aea",
+      "bytes": 2686,
+      "original_path": "artifacts/rust-rewrite/ninth-server-response-native-1.log"
+    },
+    "2-ninth-server-response-native-2.log": {
+      "path": "artifacts/rust-rewrite/evidence/de8c4a41455a35bbeb869f3d76f387beac5ed6d7512326751fc5d0a4c586576a.log",
+      "sha256": "de8c4a41455a35bbeb869f3d76f387beac5ed6d7512326751fc5d0a4c586576a",
+      "bytes": 1122,
+      "original_path": "artifacts/rust-rewrite/ninth-server-response-native-2.log"
+    },
+    "3-ninth-server-response-clippy-1.log": {
+      "path": "artifacts/rust-rewrite/evidence/1b9a29dbd731922cf2a60dc2a7138c0b049b2850b573cd7581d880513ba640fb.log",
+      "sha256": "1b9a29dbd731922cf2a60dc2a7138c0b049b2850b573cd7581d880513ba640fb",
+      "bytes": 678,
+      "original_path": "artifacts/rust-rewrite/ninth-server-response-clippy-1.log"
+    },
+    "4-ninth-server-response-inputs-initial-failure.json": {
+      "path": "artifacts/rust-rewrite/evidence/2b78e6f14df6ae7001c63551e205b9278c90ab1e897243394016d135532b89e4.json",
+      "sha256": "2b78e6f14df6ae7001c63551e205b9278c90ab1e897243394016d135532b89e4",
+      "bytes": 479,
+      "original_path": "artifacts/rust-rewrite/ninth-server-response-inputs-initial-failure.json"
+    },
+    "5-7bdec990e4a9402f3f08eac49725873902c2339701da63ca721164337420df05.mjs": {
+      "path": "artifacts/rust-rewrite/evidence/7bdec990e4a9402f3f08eac49725873902c2339701da63ca721164337420df05.mjs",
+      "sha256": "7bdec990e4a9402f3f08eac49725873902c2339701da63ca721164337420df05",
+      "bytes": 6330,
+      "original_path": "artifacts/rust-rewrite/evidence/7bdec990e4a9402f3f08eac49725873902c2339701da63ca721164337420df05.mjs"
+    },
+    "6-cases.jsonl": {
+      "path": "artifacts/rust-rewrite/evidence/7c158c333972674c503b3a8767fa5077ec775369998894a72bde8609bcd3e217.jsonl",
+      "sha256": "7c158c333972674c503b3a8767fa5077ec775369998894a72bde8609bcd3e217",
+      "bytes": 2039,
+      "original_path": "artifacts/rust-rewrite/server-response-inputs-2/cases.jsonl"
+    },
+    "7-capture.json": {
+      "path": "artifacts/rust-rewrite/evidence/4049af5a6ec3b22e484be2710d6d5f903dea1b6204d548468ead85fb0e7944e3.json",
+      "sha256": "4049af5a6ec3b22e484be2710d6d5f903dea1b6204d548468ead85fb0e7944e3",
+      "bytes": 6556,
+      "original_path": "artifacts/rust-rewrite/server-response-inputs-2/capture.json"
+    },
+    "8-cases.jsonl": {
+      "path": "artifacts/rust-rewrite/evidence/7c158c333972674c503b3a8767fa5077ec775369998894a72bde8609bcd3e217.jsonl",
+      "sha256": "7c158c333972674c503b3a8767fa5077ec775369998894a72bde8609bcd3e217",
+      "bytes": 2039,
+      "original_path": "artifacts/rust-rewrite/server-response-inputs-3/cases.jsonl"
+    },
+    "9-capture.json": {
+      "path": "artifacts/rust-rewrite/evidence/d82b4fc02ebc8cd2db77023cea25038c8374712c73a772d31d04cef20f5cda1d.json",
+      "sha256": "d82b4fc02ebc8cd2db77023cea25038c8374712c73a772d31d04cef20f5cda1d",
+      "bytes": 6651,
+      "original_path": "artifacts/rust-rewrite/server-response-inputs-3/capture.json"
+    },
+    "10-cases.jsonl": {
+      "path": "artifacts/rust-rewrite/evidence/7c158c333972674c503b3a8767fa5077ec775369998894a72bde8609bcd3e217.jsonl",
+      "sha256": "7c158c333972674c503b3a8767fa5077ec775369998894a72bde8609bcd3e217",
+      "bytes": 2039,
+      "original_path": "artifacts/rust-rewrite/server-response-inputs-4/cases.jsonl"
+    },
+    "11-capture.json": {
+      "path": "artifacts/rust-rewrite/evidence/d82b4fc02ebc8cd2db77023cea25038c8374712c73a772d31d04cef20f5cda1d.json",
+      "sha256": "d82b4fc02ebc8cd2db77023cea25038c8374712c73a772d31d04cef20f5cda1d",
+      "bytes": 6651,
+      "original_path": "artifacts/rust-rewrite/server-response-inputs-4/capture.json"
+    }
+  },
+  "capture_method": {
+    "method": "Hash-verified frozen AST initializer and gzip expression extraction; no original callbacks run by extraction",
+    "node_version": "v22.14.0",
+    "typescript_version": "6.0.3",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "zlib_version": "1.3.0.1-motley-82a5fec",
+    "cases_sha256": "7c158c333972674c503b3a8767fa5077ec775369998894a72bde8609bcd3e217",
+    "original_callback_controls": "Three unchanged frozen definitions executed separately and passed; no executed-assertion counter was installed.",
+    "independent_ast_audit": {
+      "path": "artifacts/rust-rewrite/evidence/43f62d4e73dfc183d73e4e58b716c72474d3f234c015991dfbfe1b0666a28c5e.json",
+      "sha256": "43f62d4e73dfc183d73e4e58b716c72474d3f234c015991dfbfe1b0666a28c5e",
+      "bytes": 9657,
+      "original_path": "/private/tmp/autorouter-server-response-independent-ast.json"
+    }
+  },
+  "failure_evidence": [
+    {
+      "path": "artifacts/rust-rewrite/ninth-server-response-inputs-initial-failure.json",
+      "classification": "Generator-only initial definition-numbering error; no corpus produced. Frozen definitions inside loops were initially missed; corrected traversal and canonical hashes now validated."
+    },
+    {
+      "path": "artifacts/rust-rewrite/ninth-server-response-native-1.log",
+      "classification": "Sandbox denied initial loopback bind before fixture setup. Rerun with authorized loopback passed all three tests; not classified as a product regression."
+    }
+  ],
+  "limits": {
+    "whole_native_test_seconds": 5,
+    "scope": "Tokio timeout bounds each complete asynchronous test schedule; it is not a process-level watchdog for arbitrary blocking code.",
+    "upstream_response_bytes": 4096,
+    "upstream_request_body_bytes": 4096,
+    "downstream_response_body_bytes": 65536,
+    "event_rows_per_sink": 128,
+    "active_upstream_connections": 8,
+    "upstream_requests_per_fixture": 16,
+    "capture_expression_bytes": 4096,
+    "capture_expression_execution_ms": 100,
+    "capture_output_bytes": 16384,
+    "provider_calls": 0,
+    "subprocesses_or_process_signals_in_native_fixture": 0
+  },
+  "negative_controls": [
+    {
+      "test": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_gzip_bytes_are_opaque_and_encoding_controls_observation",
+      "input": "parseable uncompressed SSE labelled Content-Encoding:gzip",
+      "expected": "exact bytes forwarded and no upstream_model event"
+    },
+    {
+      "test": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_gzip_bytes_are_opaque_and_encoding_controls_observation",
+      "input": "identical SSE without Content-Encoding",
+      "expected": "exact bytes forwarded and upstream_model event present"
+    }
+  ],
+  "boundaries": [
+    "The extraction evaluates only verified frozen literal body/token/error initializers and the original gzip constructor expression. It executes zero original test callbacks. The separately retained Node control log records three unchanged original callback tests passing.",
+    "The 22 number counts static assertion expressions (7 + 11 + 4). It is not an executed-assertion count: the fail-on-upstream expression must never execute, and the native encoding controls repeat checks.",
+    "Capture 2 used an earlier generator revision; captures 3 and 4 bind the current generator and reproduce identical JSONL bytes. All reports remain retained with distinct hashes.",
+    "All observed network traffic is synthetic loopback HTTP with fake credentials and an injected router. This does not qualify actual Jev, Ollama, provider TLS, general response-stream cancellation, performance, or other server definitions.",
+    "Header lookup, parsed JSON and byte-vector assertions are typed Rust equivalents of the original JS operations. No JS callback/object-identity claim is needed by these three definitions.",
+    "Normal Fixture::close drops the shared client, closes/joins the gateway, asserts router shutdown, cancels/joins upstream tasks and asserts zero active connections. Fixture::Drop cancels gateway and aborts its peer task after failure; Tokio runtime teardown is the final fallback. No adversarial setup-failure or timeout cleanup regression is claimed by these tests.",
+    "The first native run reached no fixture traffic: loopback bind failed with PermissionDenied on all three tests. The escalated rerun passed; no product mismatch was inferred from that environment failure."
+  ],
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/evidence/ef1bb3e605c1995cc9a7d3d503e4b6b45b3a126f9680d61d7884a6de5a355cd0.json",
+    "sha256": "ef1bb3e605c1995cc9a7d3d503e4b6b45b3a126f9680d61d7884a6de5a355cd0",
+    "bytes": 7924,
+    "original_path": "/private/tmp/autorouter-server-response-contracts-review.json"
+  },
+  "rows": [
+    {
+      "id": "test/server.test.mjs#2",
+      "file": "test/server.test.mjs",
+      "name": "token counting bypasses Jev and upstream errors pass through unchanged",
+      "line": 72,
+      "baseline_file_sha256": "b82681e2383f3466d66f9801745d4e62fb45d20065f136804f677089f2d41809",
+      "definition_statement": "test('token counting bypasses Jev and upstream errors pass through unchanged', async t => {\n  const decisions = [];\n  const error = JSON.stringify({ type: 'error', error: { type: 'rate_limit_error', message: 'Wait' } });\n  const f = await fixture(t, async (req, res) => {\n    let text = ''; for await (const chunk of req) text += chunk;\n    assert.deepEqual(JSON.parse(text), body);\n    res.writeHead(429, { 'retry-after': '7', 'content-type': 'application/json' }); res.end(error);\n  }, {}, undefined, undefined, entry => decisions.push(entry));\n  const response = await f.call('/v1/messages/count_tokens', { method: 'POST', body: JSON.stringify(body) });\n  assert.equal(response.status, 429);\n  assert.equal(response.headers.get('retry-after'), '7');\n  assert.equal(await response.text(), error);\n  assert.equal(f.evaluations(), 0);\n  assert.deepEqual(f.statuses, []);\n  assert.deepEqual(decisions, []);\n});",
+      "definition_sha256": "f23d766a139beb036659bec0668e0b62700676288082ce908798ef6a2d067374",
+      "definition_call_sha256": "e8f9efbe6b6ee62779ebd685836d4e37b8176f03cabd04a19929a77513797bb8",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments and whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_token_count_error_preserves_body_status_headers_and_bypasses_evaluation"
+      ],
+      "shared_cases": [
+        "baseline-server-response-2"
+      ],
+      "scenarios": 1,
+      "additional_native_sensitivity_scenarios": 0,
+      "static_assertion_count": 7,
+      "assertions": [
+        {
+          "line": 77,
+          "expression": "assert.deepEqual(JSON.parse(text), body)",
+          "sha256": "5f789651c34dd95ebb754a8b1104722af2298c7823370d950bee401c7e5ead5d",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_token_count_error_preserves_body_status_headers_and_bypasses_evaluation"
+          ],
+          "shared_cases": [
+            "baseline-server-response-2"
+          ],
+          "native_check": "Actual upstream request body parses to the complete original captured body; additionally exact POST/path and one upstream request are required.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 310,
+            "anchor": "serde_json::from_slice::<Value>(&seen[0].body).unwrap()"
+          }
+        },
+        {
+          "line": 81,
+          "expression": "assert.equal(response.status, 429)",
+          "sha256": "2cde139a350256177b81ce7b0a36d01bf156edeb95bba8dc88c2ebc36976be68",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_token_count_error_preserves_body_status_headers_and_bypasses_evaluation"
+          ],
+          "shared_cases": [
+            "baseline-server-response-2"
+          ],
+          "native_check": "Exact downstream upstream-error status is 429.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 298,
+            "anchor": "assert_eq!(status, 429);"
+          }
+        },
+        {
+          "line": 82,
+          "expression": "assert.equal(response.headers.get('retry-after'), '7')",
+          "sha256": "affc8d3a180ed93369072ce65e891f38ba4f0e3bea50185c8aa1dd3c94aa98e3",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_token_count_error_preserves_body_status_headers_and_bypasses_evaluation"
+          ],
+          "shared_cases": [
+            "baseline-server-response-2"
+          ],
+          "native_check": "Exact downstream Retry-After value is 7.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 299,
+            "anchor": "assert_eq!(headers[\"retry-after\"], \"7\");"
+          }
+        },
+        {
+          "line": 83,
+          "expression": "assert.equal(await response.text(), error)",
+          "sha256": "9f24cb4621a0afa7e72cd82d9e472209adf111c4500ca734c64ae26a71c3be49",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_token_count_error_preserves_body_status_headers_and_bypasses_evaluation"
+          ],
+          "shared_cases": [
+            "baseline-server-response-2"
+          ],
+          "native_check": "Every response byte equals the original JSON.stringify error initializer; no reconstruction or decompression is accepted.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 300,
+            "anchor": "assert_eq!(bytes.as_ref(), expected);"
+          }
+        },
+        {
+          "line": 84,
+          "expression": "assert.equal(f.evaluations(), 0)",
+          "sha256": "b483891e8e71725fc2a96f39c496d0c12e39d964366915d9a976f02610786fc6",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_token_count_error_preserves_body_status_headers_and_bypasses_evaluation"
+          ],
+          "shared_cases": [
+            "baseline-server-response-2"
+          ],
+          "native_check": "Injected router invocation count stays zero, matching the original injected route boundary (not an actual Jev call).",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 301,
+            "anchor": "assert_eq!(fixture.router.calls.load(Ordering::SeqCst), 0);"
+          }
+        },
+        {
+          "line": 85,
+          "expression": "assert.deepEqual(f.statuses, [])",
+          "sha256": "f82b2eddfd70636dd2660473d8f16e0429e0d22650510fbd6f87d3ef899b45f9",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_token_count_error_preserves_body_status_headers_and_bypasses_evaluation"
+          ],
+          "shared_cases": [
+            "baseline-server-response-2"
+          ],
+          "native_check": "No status callback is emitted by count_tokens.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 302,
+            "anchor": "assert!(fixture.statuses.lock().unwrap().is_empty());"
+          }
+        },
+        {
+          "line": 86,
+          "expression": "assert.deepEqual(decisions, [])",
+          "sha256": "ad518870f1b16ab6f89dc48c76dc059263d1d3e7bfe373c02113bc2e8e8f7fa6",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_token_count_error_preserves_body_status_headers_and_bypasses_evaluation"
+          ],
+          "shared_cases": [
+            "baseline-server-response-2"
+          ],
+          "native_check": "No decision callback is emitted by count_tokens.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 303,
+            "anchor": "assert!(fixture.decisions.lock().unwrap().is_empty());"
+          }
+        }
+      ],
+      "review_notes": [
+        "The router is injected as in the original fixture. Counting bypass, full request-body preservation, exact 429/body/header and absence of status/decision callbacks are observed over real HTTP."
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/server.test.mjs#3",
+      "file": "test/server.test.mjs",
+      "name": "rejects missing auth, browser origins, malformed JSON, unsupported paths and oversized input locally",
+      "line": 89,
+      "baseline_file_sha256": "b82681e2383f3466d66f9801745d4e62fb45d20065f136804f677089f2d41809",
+      "definition_statement": "test('rejects missing auth, browser origins, malformed JSON, unsupported paths and oversized input locally', async t => {\n  const decisions = [];\n  const f = await fixture(t, () => assert.fail('Must not reach upstream'), { maxBodyBytes: 1000 }, undefined, undefined, entry => decisions.push(entry));\n  assert.equal((await f.call('/v1/messages', { method: 'POST', headers: { 'x-api-key': 'wrong' } })).status, 401);\n  assert.equal((await f.call('/health', { headers: { origin: 'https://example.com' } })).status, 403);\n  assert.equal((await f.call('/v1/messages', { method: 'POST', body: '{bad' })).status, 400);\n  assert.equal((await f.call('/v1/messages', { method: 'POST', body: JSON.stringify({ ...body, messages: [null] }) })).status, 400);\n  assert.equal((await f.call('/unexpected')).status, 404);\n  const oversized = await f.call('/v1/messages', { method: 'POST', body: 'x'.repeat(1001) });\n  assert.equal(oversized.status, 413);\n  assert.equal(oversized.headers.get('connection'), 'close', 'An oversized body is not drained on a kept-alive socket');\n  assert.equal((await f.call('/health')).status, 200);\n  assert.equal(f.evaluations(), 0);\n  assert.deepEqual(decisions, []);\n});",
+      "definition_sha256": "f8585b20e14d7addb6a09741b6a56f2ba815193887e33e5f4f4195cbd0d924a0",
+      "definition_call_sha256": "bfa9aa903d9db6874dd0b28d5856a94a0e7ef7fd8a4a38689a5eb8d7e57f115e",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments and whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_local_rejections_never_contact_upstream_or_emit_decisions"
+      ],
+      "shared_cases": [
+        "baseline-server-response-3"
+      ],
+      "scenarios": 7,
+      "additional_native_sensitivity_scenarios": 0,
+      "static_assertion_count": 11,
+      "assertions": [
+        {
+          "line": 91,
+          "expression": "assert.fail('Must not reach upstream')",
+          "sha256": "fc761ec4108f8ae31dcc63ae767e4fee134ebef5f261e8d3f6313ed21a1e7c86",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_local_rejections_never_contact_upstream_or_emit_decisions"
+          ],
+          "shared_cases": [
+            "baseline-server-response-3"
+          ],
+          "native_check": "The actual loopback upstream request transcript stays empty across the entire rejection matrix.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 362,
+            "anchor": "assert!(fixture.seen.lock().unwrap().is_empty());"
+          }
+        },
+        {
+          "line": 92,
+          "expression": "assert.equal((await f.call('/v1/messages', { method: 'POST', headers: { 'x-api-key': 'wrong' } })).status, 401)",
+          "sha256": "678fc98753b6ecf7b824466c48893a4f5e6c70121a732f18817b49ee9df5e4a0",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_local_rejections_never_contact_upstream_or_emit_decisions"
+          ],
+          "shared_cases": [
+            "baseline-server-response-3"
+          ],
+          "native_check": "POST /v1/messages, empty body, wrong local x-api-key returns 401; original POST method retained after review correction.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 331,
+            "anchor": "vec![(\"x-api-key\", \"wrong\")],"
+          }
+        },
+        {
+          "line": 93,
+          "expression": "assert.equal((await f.call('/health', { headers: { origin: 'https://example.com' } })).status, 403)",
+          "sha256": "c9b766e53cb4686a53def7322aaea04dcfba8719431d62a0e0669890a66b47cd",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_local_rejections_never_contact_upstream_or_emit_decisions"
+          ],
+          "shared_cases": [
+            "baseline-server-response-3"
+          ],
+          "native_check": "GET /health with the original browser Origin returns 403.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 338,
+            "anchor": "vec![(\"origin\", \"https://example.com\")],"
+          }
+        },
+        {
+          "line": 94,
+          "expression": "assert.equal((await f.call('/v1/messages', { method: 'POST', body: '{bad' })).status, 400)",
+          "sha256": "396e2cd5c0495872f4743cf73ab95c681ae78718ddfd2856ea345e3f391f65a7",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_local_rejections_never_contact_upstream_or_emit_decisions"
+          ],
+          "shared_cases": [
+            "baseline-server-response-3"
+          ],
+          "native_check": "POST /v1/messages with literal malformed JSON returns 400.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 341,
+            "anchor": "(\"/v1/messages\", \"POST\", \"{bad\".into(), vec![], 400),"
+          }
+        },
+        {
+          "line": 95,
+          "expression": "assert.equal((await f.call('/v1/messages', { method: 'POST', body: JSON.stringify({ ...body, messages: [null] }) })).status, 400)",
+          "sha256": "e6b282a99772910f0737930e39c4dde317ea4ae87d35b17f90491e4830e48b5f",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_local_rejections_never_contact_upstream_or_emit_decisions"
+          ],
+          "shared_cases": [
+            "baseline-server-response-3"
+          ],
+          "native_check": "POST original body with messages=[null] returns 400.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 342,
+            "anchor": "(\"/v1/messages\", \"POST\", malformed.to_string(), vec![], 400),"
+          }
+        },
+        {
+          "line": 96,
+          "expression": "assert.equal((await f.call('/unexpected')).status, 404)",
+          "sha256": "ee6a5623c9f62bd6c8c3807e82126bf813de0de40333a0df2f6f07c2e5944957",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_local_rejections_never_contact_upstream_or_emit_decisions"
+          ],
+          "shared_cases": [
+            "baseline-server-response-3"
+          ],
+          "native_check": "GET /unexpected returns 404.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 343,
+            "anchor": "(\"/unexpected\", \"GET\", String::new(), vec![], 404),"
+          }
+        },
+        {
+          "line": 98,
+          "expression": "assert.equal(oversized.status, 413)",
+          "sha256": "2e608563f293049eba5b20c1bd46cce1f775104b29dfb813bcb1145736d7be1a",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_local_rejections_never_contact_upstream_or_emit_decisions"
+          ],
+          "shared_cases": [
+            "baseline-server-response-3"
+          ],
+          "native_check": "POST exactly 1001 bytes under max_body_bytes=1000 returns 413.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 354,
+            "anchor": "assert_eq!(status, 413);"
+          }
+        },
+        {
+          "line": 99,
+          "expression": "assert.equal(oversized.headers.get('connection'), 'close', 'An oversized body is not drained on a kept-alive socket')",
+          "sha256": "3ec123badb825eba1648130800bd21aa34ab30a2e27c8d87fe93e940729204dc",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_local_rejections_never_contact_upstream_or_emit_decisions"
+          ],
+          "shared_cases": [
+            "baseline-server-response-3"
+          ],
+          "native_check": "Oversized response has exact Connection: close; this assertion alone does not claim a separate socket-level drain proof.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 355,
+            "anchor": "assert_eq!(headers[\"connection\"], \"close\");"
+          }
+        },
+        {
+          "line": 100,
+          "expression": "assert.equal((await f.call('/health')).status, 200)",
+          "sha256": "693f423088eb6e631319962f40fbf942953e49c6fc5360ebf4f89eda8965bf1e",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_local_rejections_never_contact_upstream_or_emit_decisions"
+          ],
+          "shared_cases": [
+            "baseline-server-response-3"
+          ],
+          "native_check": "GET /health still succeeds with 200 after preceding local rejections.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 357,
+            "anchor": "fixture.send(\"/health\", \"GET\", String::new(), &[]).await.0,"
+          }
+        },
+        {
+          "line": 101,
+          "expression": "assert.equal(f.evaluations(), 0)",
+          "sha256": "b483891e8e71725fc2a96f39c496d0c12e39d964366915d9a976f02610786fc6",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_local_rejections_never_contact_upstream_or_emit_decisions"
+          ],
+          "shared_cases": [
+            "baseline-server-response-3"
+          ],
+          "native_check": "Injected router invocation count remains zero over the full rejection matrix.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 360,
+            "anchor": "assert_eq!(fixture.router.calls.load(Ordering::SeqCst), 0);"
+          }
+        },
+        {
+          "line": 102,
+          "expression": "assert.deepEqual(decisions, [])",
+          "sha256": "ad518870f1b16ab6f89dc48c76dc059263d1d3e7bfe373c02113bc2e8e8f7fa6",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_local_rejections_never_contact_upstream_or_emit_decisions"
+          ],
+          "shared_cases": [
+            "baseline-server-response-3"
+          ],
+          "native_check": "No decision callback is emitted over the full rejection matrix.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 361,
+            "anchor": "assert!(fixture.decisions.lock().unwrap().is_empty());"
+          }
+        }
+      ],
+      "review_notes": [
+        "All seven original HTTP requests are represented including POST wrong-key, malformed JSON, null messages, unsupported path, one-byte-over-limit body and healthy recovery. The original fail-on-upstream callback is represented by an empty actual upstream transcript."
+      ],
+      "remaining": []
+    },
+    {
+      "id": "test/server.test.mjs#20",
+      "file": "test/server.test.mjs",
+      "name": "compressed upstream responses preserve their exact bytes and skip model observation",
+      "line": 847,
+      "baseline_file_sha256": "b82681e2383f3466d66f9801745d4e62fb45d20065f136804f677089f2d41809",
+      "definition_statement": "test('compressed upstream responses preserve their exact bytes and skip model observation', async t => {\n  const compressed = gzipSync('event: message_start\\ndata: {\"type\":\"message_start\",\"message\":{\"model\":\"compressed-provider-model\"}}\\n\\n');\n  const f = await fixture(t, (req, res) => {\n    assert.equal(req.headers['accept-encoding'], 'identity');\n    res.writeHead(200, { 'content-type': 'text/event-stream', 'content-encoding': 'gzip' });\n    res.end(compressed);\n  });\n  // Native HTTP deliberately avoids fetch's automatic response decompression.\n  const received = await new Promise((resolve, reject) => {\n    const request = http.request(`${f.baseUrl}/v1/messages`, {\n      method: 'POST', headers: { 'x-api-key': token, 'content-type': 'application/json' },\n    }, response => {\n      assert.equal(response.headers['content-encoding'], 'gzip');\n      const chunks = [];\n      response.on('data', chunk => chunks.push(chunk));\n      response.on('error', reject);\n      response.on('end', () => resolve(Buffer.concat(chunks)));\n    });\n    request.on('error', reject);\n    request.end(JSON.stringify(body));\n  });\n  assert.deepEqual(received, compressed);\n  assert.equal(f.logs.some(entry => entry.event === 'upstream_model'), false);\n});",
+      "definition_sha256": "87a13f54c21b1d30cba83fb34714da5e1adb804f08ac422d06ff77e886029c41",
+      "definition_call_sha256": "fab4eba9741bc162e2580b67755fd0814e1ccaeaa49be742182b1003f47ecbf7",
+      "hash_boundary": "AST statement includes trailing semicolon; call excludes it; leading comments and whitespace excluded",
+      "previous_status": "pending_assertion_mapping",
+      "status": "covered",
+      "rust_tests": [
+        "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_gzip_bytes_are_opaque_and_encoding_controls_observation"
+      ],
+      "shared_cases": [
+        "baseline-server-response-20"
+      ],
+      "scenarios": 1,
+      "additional_native_sensitivity_scenarios": 2,
+      "static_assertion_count": 4,
+      "assertions": [
+        {
+          "line": 850,
+          "expression": "assert.equal(req.headers['accept-encoding'], 'identity')",
+          "sha256": "d60ef811beb9076e32bcadaa3ca36b3b5d4604c1c8d042b29e750596d5fa03d1",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_gzip_bytes_are_opaque_and_encoding_controls_observation"
+          ],
+          "shared_cases": [
+            "baseline-server-response-20"
+          ],
+          "native_check": "Actual upstream request carries Accept-Encoding: identity; exactly one upstream request is required for each encoding schedule.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 418,
+            "anchor": "assert_eq!(seen[0].headers[\"accept-encoding\"], \"identity\");"
+          }
+        },
+        {
+          "line": 859,
+          "expression": "assert.equal(response.headers['content-encoding'], 'gzip')",
+          "sha256": "ac9bdca755f123f198c668357b51dd17dc8f9de60b440c164c225ab6402ca4d6",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_gzip_bytes_are_opaque_and_encoding_controls_observation"
+          ],
+          "shared_cases": [
+            "baseline-server-response-20"
+          ],
+          "native_check": "Original gzip schedule returns exact Content-Encoding: gzip; control schedules check the corresponding present/absent header.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 401,
+            "anchor": "headers.get(\"content-encoding\").map(|v| v.to_str().unwrap()),"
+          }
+        },
+        {
+          "line": 868,
+          "expression": "assert.deepEqual(received, compressed)",
+          "sha256": "526c7d29b73dfd70d224fc31e24d983df860c64fdb4e085c4f27fb41da9655a6",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_gzip_bytes_are_opaque_and_encoding_controls_observation"
+          ],
+          "shared_cases": [
+            "baseline-server-response-20"
+          ],
+          "native_check": "Exact downstream opaque body bytes equal the captured original gzip buffer, and independently equal both control inputs.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 404,
+            "anchor": "assert_eq!(received.as_ref(), bytes);"
+          }
+        },
+        {
+          "line": 869,
+          "expression": "assert.equal(f.logs.some(entry => entry.event === 'upstream_model'), false)",
+          "sha256": "bbd58a44c186c32624a32711daabe0ba72dece3b6fea1d848c764aec2cbf4f53",
+          "status": "covered",
+          "native_tests": [
+            "rust/crates/autorouter-runtime/tests/server_response_contracts.rs#frozen_gzip_bytes_are_opaque_and_encoding_controls_observation"
+          ],
+          "shared_cases": [
+            "baseline-server-response-20"
+          ],
+          "native_check": "After request_complete, upstream_model event is absent for original gzip and gzip-labelled parseable SSE; it is present for identical unencoded SSE.",
+          "native_source": {
+            "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+            "line": 412,
+            "anchor": ".any(|r| r[\"event\"] == \"upstream_model\"),"
+          }
+        }
+      ],
+      "review_notes": [
+        "The compressed response is the exact original gzip constructor output captured on Node 22.14.0/darwin-arm64/zlib 1.3.0.1-motley-82a5fec. Native replays fixed bytes; it does not require cross-platform compressors to produce identical bytes. Two extra schedules reject both always-observe and never-observe implementations."
+      ],
+      "remaining": []
+    }
+  ],
+  "retained_sources": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/90560670f4407091b5e6e7e7ad648b9280faaee104301380da3cafd56681be2b.mjs",
+      "sha256": "90560670f4407091b5e6e7e7ad648b9280faaee104301380da3cafd56681be2b",
+      "bytes": 6845,
+      "original_path": "rust/parity/capture-server-response-contracts.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/7c158c333972674c503b3a8767fa5077ec775369998894a72bde8609bcd3e217.jsonl",
+      "sha256": "7c158c333972674c503b3a8767fa5077ec775369998894a72bde8609bcd3e217",
+      "bytes": 2039,
+      "original_path": "rust/parity/cases/server-response-contracts.jsonl"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/d82b4fc02ebc8cd2db77023cea25038c8374712c73a772d31d04cef20f5cda1d.json",
+      "sha256": "d82b4fc02ebc8cd2db77023cea25038c8374712c73a772d31d04cef20f5cda1d",
+      "bytes": 6651,
+      "original_path": "rust/parity/cases/server-response-contracts.capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/580670c10b7ea58bf01927018e3443e01308db41d76dd91c81ce2c336f5ec0c3.rs",
+      "sha256": "580670c10b7ea58bf01927018e3443e01308db41d76dd91c81ce2c336f5ec0c3",
+      "bytes": 15458,
+      "original_path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/cbfad8c006b2eec1f889a30b34ed370b4e5f7ddd80967670726a59bd770a55e3.rs",
+      "sha256": "cbfad8c006b2eec1f889a30b34ed370b4e5f7ddd80967670726a59bd770a55e3",
+      "bytes": 40751,
+      "original_path": "rust/crates/autorouter-runtime/src/server.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1.rs",
+      "sha256": "c0f288edec66b720efaf02722bf5970b71e2a4956696b5ff05ff334b46a42eb1",
+      "bytes": 16711,
+      "original_path": "rust/crates/autorouter-runtime/src/http_client.rs"
+    }
+  ],
+  "input_coverage": {
+    "path": "artifacts/rust-rewrite/evidence/bf0b3beeb9a265f1e3513aa83b259090a8ac5c14aa687fa71ffe69766ec6f76f.json",
+    "sha256": "bf0b3beeb9a265f1e3513aa83b259090a8ac5c14aa687fa71ffe69766ec6f76f",
+    "bytes": 1125350,
+    "original_path": "rust/parity/coverage.json",
+    "source_commit": "ab068b006953627486afe42477ea8f52b4855324"
+  },
+  "scope": "Three covered original server definitions over actual synthetic downstream/upstream HTTP: token-count error, local rejections and compressed byte passthrough/observer bypass. Exact input extraction and original callback controls are separate evidence.",
+  "status": "Reviewed assertion mapping; full rewrite qualification remains incomplete.",
+  "review": {
+    "proposal": {
+      "path": "artifacts/rust-rewrite/evidence/3e7d1f41b9c8e451a00e7b8f7b25429f3543c9f00b2304a720c85331b156b9a0.json",
+      "sha256": "3e7d1f41b9c8e451a00e7b8f7b25429f3543c9f00b2304a720c85331b156b9a0",
+      "bytes": 35613,
+      "original_path": "/private/tmp/autorouter-server-response-contracts-mapping-proposal.json"
+    },
+    "review": {
+      "path": "artifacts/rust-rewrite/evidence/ef245f187510e0ea61e6003843dbaad33a6a95ae19e1a1c3589aa84c64b65c8c.json",
+      "sha256": "ef245f187510e0ea61e6003843dbaad33a6a95ae19e1a1c3589aa84c64b65c8c",
+      "bytes": 3072,
+      "original_path": "/private/tmp/autorouter-server-response-contracts-root-review.json"
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/evidence/ef1bb3e605c1995cc9a7d3d503e4b6b45b3a126f9680d61d7884a6de5a355cd0.json",
+      "sha256": "ef1bb3e605c1995cc9a7d3d503e4b6b45b3a126f9680d61d7884a6de5a355cd0",
+      "bytes": 7924,
+      "original_path": "/private/tmp/autorouter-server-response-contracts-review.json"
+    }
+  },
+  "previous_coverage_rows": [
+    {
+      "id": "test/server.test.mjs#2",
+      "file": "test/server.test.mjs",
+      "name": "token counting bypasses Jev and upstream errors pass through unchanged",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "gateway"
+      ]
+    },
+    {
+      "id": "test/server.test.mjs#3",
+      "file": "test/server.test.mjs",
+      "name": "rejects missing auth, browser origins, malformed JSON, unsupported paths and oversized input locally",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "gateway"
+      ]
+    },
+    {
+      "id": "test/server.test.mjs#20",
+      "file": "test/server.test.mjs",
+      "name": "compressed upstream responses preserve their exact bytes and skip model observation",
+      "parameterized": false,
+      "status": "pending_assertion_mapping",
+      "rust_tests": [],
+      "shared_cases": [],
+      "evidence": null,
+      "related_components": [
+        "gateway"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "kind": "declared_native_language_port_live_comparison",
+  "declared_before_runs": "2026-10-13",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_fixture": "rust/xtask/fixtures/live-cases-v2.json",
+  "engines": ["node-reference", "native"],
+  "preflight": {
+    "cases": ["simple"],
+    "matched_pairs": 1,
+    "scope": "Availability, authentication, isolated client invocation and routing preflight only; cannot approve full profile or model/task quality."
+  },
+  "qualification": {
+    "cases": ["simple", "medium", "difficult", "coding", "continuation", "thinking_continuation"],
+    "profiles": ["compatible", "auto"],
+    "matched_pairs_per_profile": 5,
+    "order": "Alternating engine order between pairs; finish a complete launch before starting the other engine.",
+    "maximum_native_only_transport_protocol_cleanup_failures": 0,
+    "maximum_native_only_permission_or_private_state_failures": 0,
+    "maximum_native_only_independent_coding_verifier_failures": 0,
+    "minimum_native_minus_baseline_task_completion_rate": 0.0,
+    "minimum_native_minus_baseline_rubric_acceptance_rate": 0.0,
+    "minimum_native_minus_baseline_tier_coverage_rate": 0.0,
+    "variability": "Retain every pair, exact task/profile outcomes and differences. Ratios/latencies are descriptive only for these finite live trials; five pairs do not establish general model-quality equivalence. Any unmatched fixture/model/rubric/client/evaluator condition prevents approval.",
+    "inherited_quality_failures": "Keep absolute original evaluator acceptance statuses and failures visible. A matched baseline/candidate failure is not a fixed model-quality issue."
+  },
+  "isolation": {
+    "projects": "Fresh disposable synthetic repair fixtures; original verifier files hashed before and after.",
+    "customizations": "Claude --safe-mode --restricted --setting-sources '' --strict-mcp-config with an empty MCP map; no unrelated startup/MCP/tool configuration.",
+    "permissions": "No tools for answer-only cases; narrowly scoped Read/Edit/Bash for the synthetic repair task, using the existing live tool's permission rules.",
+    "credentials": "Existing authenticated Claude client and evaluator settings; ephemeral gateway credentials; no credentials in reports or source fixtures.",
+    "state": "No production settings edits, persisted Claude session or shared temporary status ownership."
+  },
+  "required_identity": [
+    "source_commit",
+    "candidate_binary_or_tool_sha256",
+    "frozen_reference_identity",
+    "fixture_version",
+    "fixture_sha256",
+    "repair_source_test_manifest_sha256",
+    "claude_version",
+    "profile",
+    "evaluator_and_model_identity",
+    "rubric_and_policy",
+    "thinking_settings",
+    "timeout_and_allowed_tools",
+    "environment_and_machine_conditions"
+  ],
+  "separate_results": ["availability", "authentication", "transport", "classification", "policy", "tier_coverage", "independent_task_completion", "evaluator_call_counts", "provider_token_usage", "prompt_cache_usage", "cleanup"],
+  "limits": "This protocol covers the live language-port comparison. Local model residency/digest/cold-warm tests on 16GiB and larger systems, numerical gateway performance, supported-platform qualification and publication remain distinct requirements."
+}

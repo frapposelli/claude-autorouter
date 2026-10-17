@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "kind": "native_i686_ci_restrictive_umask_fixture_correction",
+  "date": "2026-10-15",
+  "base_commit": "4396f49ebe4636112ffe7d70a899c90f0b3b1776",
+  "failed_run": {
+    "source_commit": "4396f49ebe4636112ffe7d70a899c90f0b3b1776",
+    "run_id": 38742334273,
+    "job_id": 116446947035,
+    "failed_step_number": 10,
+    "completed_steps": [
+      "host-qualified Rust and ELF32 preflight",
+      "independent auditor",
+      "strict target Clippy",
+      "all runtime/CLI ELF32 test executables inspected"
+    ],
+    "test_log": {
+      "path": "artifacts/rust-rewrite/ci-4396f49-runtime32/runtime-tests.log",
+      "bytes": 53555,
+      "sha256": "c04cdff572287a6213d8cca19d909769980605b0a6e081af09fc91c5b07bf42e"
+    },
+    "unit_test_result": {
+      "runtime_unit_passed": 487,
+      "runtime_unit_failed": 1,
+      "cli_and_installed_archives": "not executed"
+    },
+    "failing_excerpt": "failures:\n\n---- status_cleanup::tests::removes_dead_and_reused_pids_but_keeps_live_and_untrusted_paths stdout ----\n\nthread 'status_cleanup::tests::removes_dead_and_reused_pids_but_keeps_live_and_untrusted_paths' (17887) panicked at crates/autorouter-runtime/src/status_cleanup.rs:368:9:\nassertion `left == right` failed\n  left: 3\n right: 2\n\n\nfailures:\n    status_cleanup::tests::removes_dead_and_reused_pids_but_keeps_live_and_untrusted_paths\n\ntest result: FAILED. 487 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.31s\n\nerror: test failed, to rerun pass `-p autorouter-runtime --lib`\n",
+    "cause": "Fixture DirBuilderExt::mode(0o755) is masked by CI umask 077 to 0700; test assumes loose directory stays world-readable but cleanup validly removes it as stale private directory."
+  },
+  "retained_failure": {
+    "path": "artifacts/rust-rewrite/ci-4396f49-runtime32/failure-summary.json",
+    "bytes": 1512,
+    "sha256": "572b30d23d6378d999e205900950c495e84da013bcdd788050494bfb148c5b71"
+  },
+  "genuine_failed_runtime_test_binary": {
+    "target": "i686-unknown-linux-gnu",
+    "class": "ELF32",
+    "machine": "EM_386",
+    "bytes": 99894912,
+    "sha256": "6413e73d0408cab0da710668aec99e70d2914151b21b82e0a6501121c9dbe26a"
+  },
+  "correction": {
+    "scope": "Test helper only; explicitly set requested fixture directory permissions after creation so umask077 does not turn the intended untrusted0755 directory into trusted0700. Production cleanup and assertions unchanged.",
+    "source": {
+      "path": "rust/crates/autorouter-runtime/src/status_cleanup.rs",
+      "bytes": 16556,
+      "sha256": "c031683d48c2586834c30d57fd074375d73707e68a1a06c53d07d0dc0f0eeedb"
+    }
+  },
+  "host_validation": {
+    "host": "macOS ARM",
+    "umask": "077",
+    "complete_runtime_and_cli": {
+      "passed": 768,
+      "failed": 0,
+      "ignored_opt_in": 2,
+      "groups": 46
+    },
+    "focused_cleanup_tests": 7,
+    "fmt": "passed",
+    "strict_runtime_cli_all_targets_clippy": "passed",
+    "logs": [
+      {
+        "path": "artifacts/rust-rewrite/runtime32-host-status-cleanup-umask077.log",
+        "bytes": 1544,
+        "sha256": "f0bd3c8f1cba15c2fe13ce163b4e0d1c0db705a3512a6d0031bd6b8b53560e34"
+      },
+      {
+        "path": "artifacts/rust-rewrite/runtime32-host-packages-umask077.log",
+        "bytes": 87832,
+        "sha256": "8adb50291d31447fbf8eb456760e5fafe5d5831102d1552d715d26dbf920c4e8"
+      },
+      {
+        "path": "artifacts/rust-rewrite/runtime32-host-umask-fix-clippy.log",
+        "bytes": 1038,
+        "sha256": "ec033c576da2375f8b11829f49750479eb464de6225318ce2e62014ac90c7c30"
+      }
+    ]
+  },
+  "provider_calls": 0,
+  "limits": [
+    "The original i686 run remains failed after 487successful runtime unit tests. Runtime integrations, CLI and archives did not execute.",
+    "The successful 768-test rerun is local macOS evidence under the same umask; genuine i686 execution needs fresh CI.",
+    "No production behavior/deadline/archive-cap change or platform/release/cutover qualification."
+  ],
+  "matched_source_transfer": {
+    "path": "artifacts/rust-rewrite/runtime32-transfer-evidence-20261015-2/inspection.json",
+    "sha256": "a782c9a11a3056a0125f5911091179840f28b3ba937af3c50ee7d1d50e04dbb8",
+    "result": {
+      "passed": true,
+      "transfer": "artifacts/rust-rewrite/handoff-runtime32-transfer-20261015-2",
+      "helper_sha256": "99485219c0f4f40aece59744e637895e8f1f6a53260596d3ab3e5797553bc742",
+      "rebuilds": 0,
+      "provider_calls": 0,
+      "source_to_binary_provenance": "unverified_prebuilt",
+      "current_allowlisted_files_verified": 687,
+      "native_files": 689,
+      "current_source_manifest_sha256": "b1f279c90c64dcc8180c07559590a5769779698e10bf5631feacd2b1def3e332",
+      "frozen_original_files_verified": 111,
+      "logical_reference_files_verified": 113,
+      "aggregate_expanded_carrier_bytes": 33412608,
+      "aggregate_expanded_limit": 33554432,
+      "aggregate_logical_file_bytes": 33279453,
+      "aggregate_logical_file_limit": 33554432,
+      "carrier_headroom_bytes": 141824,
+      "logical_headroom_bytes": 274979,
+      "independent_archive_hashes": {
+        "native-source.cpio.gz": "ab9b2e9c3481eeb37f8faef45c3b28c0d376531242a3ace74c7ba81744032a19",
+        "frozen-node-reference-delta.tar.gz": "796d69bfd5bfcfdd55fdd3afbdc0aeea4cb838e0f51c5683d402930d14ce56a2"
+      },
+      "receiver_restore": {
+        "schema_version": 1,
+        "kind": "paired_transfer_reference_restore",
+        "transfer_schema": 3,
+        "reference_files": 111,
+        "logical_files": 113,
+        "original_modes_bytes_verified": true,
+        "root_identity_verified": true,
+        "shared_fixture_files": 2,
+        "license_restored": true,
+        "provider_calls": 0,
+        "release_approved": false,
+        "performance_accepted": false
+      },
+      "owned_temporary_directory_removed": true,
+      "platform_qualification": "pending",
+      "release_approved": false
+    }
+  }
+}

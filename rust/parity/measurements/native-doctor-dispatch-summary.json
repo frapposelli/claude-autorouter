@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "kind": "native_original_local_diagnostic_cli_dispatch_review",
+  "date": "2026-10-14",
+  "passed": true,
+  "source_uncommitted_at_validation": true,
+  "mapping": {
+    "path": "rust/parity/assertion-mappings/doctor-dispatch-contracts.json",
+    "bytes": 35249,
+    "sha256": "cfd35d7f09698889248ef6ca47d100a9c13670c35de025e1a5388f2d95882c28"
+  },
+  "private_execution_report": {
+    "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/execution-report.json",
+    "bytes": 21319,
+    "sha256": "50f39a6806fead6a4366cd39bbcec32d1dde265d4c8f42e703cdcf4cd323d972"
+  },
+  "original_definitions": [
+    31,
+    32
+  ],
+  "source_counts": {
+    "callbacks": 2,
+    "doctor_calls": 3,
+    "static_assertions": 12,
+    "expanded_assertions": 9,
+    "dormant_fail_guards": 3,
+    "subprocess_calls": 0,
+    "fetch_calls": 0
+  },
+  "native_cli_tests_passed": 3,
+  "native_cli_scenarios": 15,
+  "synthetic_local_requests": 168,
+  "observed_stalled_connection_closures": 8,
+  "source_and_native_cloud_json_bytes_equal": true,
+  "full_onboarding_target_tests_passed": 27,
+  "checks": [
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/test.log",
+        "bytes": 1177,
+        "sha256": "327d8e3a5f6d538669196abbe1834fa7a728395e5de802e93963fad952494c0f"
+      },
+      "passed": 3,
+      "failed": 0
+    },
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/onboarding-full.log",
+        "bytes": 3281,
+        "sha256": "cf656c9846ee8f6fd6379c194316ce246826908557ea936ed6b5ce7f2a87f974"
+      },
+      "passed": 27,
+      "failed": 0
+    },
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/clippy.log",
+        "bytes": 668,
+        "sha256": "bb973a5b3aeac4b7c36539eaf7eb72982200e177ca5cd60e365cfc3cb00a891c"
+      },
+      "status": "passed"
+    },
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/doctor-dispatch-audit-20261014/native-1/fmt.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "status": "passed"
+    }
+  ],
+  "native_test_module": {
+    "path": "rust/crates/claude-autorouter/tests/support/doctor_dispatch_contracts.rs",
+    "bytes": 16444,
+    "sha256": "98b8202944575ff0a2cc39dd0215e1bd3e3ad2fc2d87c16009589651ca1841d6"
+  },
+  "native_target_include": {
+    "path": "rust/crates/claude-autorouter/tests/onboarding_local.rs",
+    "bytes": 54715,
+    "sha256": "7caf43dec86ac9c303610af7c03aed9f55354eafafb82b988ea91d1fac8f4d21",
+    "line": 2,
+    "fragment": "#[path = \"support/doctor_dispatch_contracts.rs\"]\nmod doctor_dispatch_contracts;",
+    "fragment_sha256": "834e27c918dc6c1327d840c0c9d02097b4a4e0880aa2c3627471de7c5c0d1635"
+  },
+  "api_migrations": {
+    "31": "Root accepts the executable/library-surface migration for this exact predicate. Source doctor(options) permits an arbitrary injected diagnosticRunner result; native private CLI has no such injection interface and emits the complete actual diagnostic report. Original injected four-field bytes remain recorded as Source behavior, not fabricated native equality. Actual native CLI tests prove singular full JSON despite progress, exact model/credential absence and exit derived from passed. Rust embedders use the public diagnostic operation and injected HttpTransport.",
+    "32": "Root accepts the cancellation-interface migration for this exact predicate. Source preserves the caller Error object through AbortSignal.reason and rejection; native CancellationToken/OS signal carries cancellation state without a caller Error object. Actual native CLI tests prove error propagation, exit1 and safe cancellation diagnostic, no final configuration_error/report, observed connection release and no subsequent work. Source identity/message remain recorded distinctly; hosts retain their own reason alongside the token."
+  },
+  "independent_review": {
+    "reviewer": "rust_distribution_audit",
+    "retained_hash_size_bindings": 44,
+    "fragment_bindings": 19,
+    "material_cli_defects_found": 0,
+    "source_injected_report_and_error_identity_verified": true,
+    "review_scope": "Read-only source/retained executed reports and logs; no rerun, binary reconstruction or installed/current-platform qualification."
+  },
+  "debug_cache_cleanup": {
+    "report": {
+      "path": "artifacts/rust-rewrite/compiler-cache-cleanup-20261014/cleanup-report.json",
+      "bytes": 1431,
+      "sha256": "9a925458ff317419ef80032c0e59ef8c0850cbf05e0a857b2bee1ce8a38323a5"
+    },
+    "cache_removed_at_user_request": true,
+    "previous_executed_debug_binary_is_now_unavailable": true,
+    "logs_reports_source_preserved": true
+  },
+  "installed_archive_seam": {
+    "runner_edited": false,
+    "original_target": "onboarding_local",
+    "module": "tests/support/doctor_dispatch_contracts.rs",
+    "include_anchor": "#[path = \"support/doctor_dispatch_contracts.rs\"]\nmod doctor_dispatch_contracts;",
+    "override": "Existing support::Home::command resolves AUTOROUTER_TEST_EXECUTABLE before compiled CARGO_BIN_EXE, and the raw record hashes that actual executable. Root final archive lifecycle run will discover all three additional tests under the existing target.",
+    "current_evidence_limit": "This report ran Cargo-built native CLI only; new installed archive execution remains pending root. Do not relabel older74-test archive runs as covering these new scenarios."
+  },
+  "release_approved": false,
+  "default_cutover_approved": false,
+  "scope_limits": [
+    "Exact original Source callbacks and actual native CLI dispatch with synthetic local services and isolated homes; no model/provider/Keychain/user-config calls.",
+    "Twelve original sites include nine actual assertion executions and three dormant zero-work fail guards; observed dependency counters prove no subprocess/fetch work in those Source branches.",
+    "Each original predicate has an explicit CLI or typed API-domain mapping. Arbitrary injected diagnosticRunner report and caller Error-object identity remain recorded Source operations, with per-assertion native interface migrations accepted rather than fake equal native calls.",
+    "Installed archives discover the new cases in the unchanged onboarding_local target; fresh installed execution is pending. Earlier74-test archives are not relabelled.",
+    "User requested removal of regenerable debug objects after execution; reports/source and small compiler fingerprint archive remain. Removed debug artifacts are unavailable historical paths, not failed tests or recovered binaries.",
+    "Combined final-source checks, exact native archives, minimum environments, full supported platforms, real evaluator/Claude task, numerical performance and release/cutover qualification remain separate."
+  ]
+}

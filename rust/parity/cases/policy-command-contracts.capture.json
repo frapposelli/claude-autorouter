@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "kind": "frozen_policy_command_whole_callback_capture",
+  "baseline": {
+    "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+    "files_verified": 111
+  },
+  "source": {
+    "path": "test/policy.test.mjs",
+    "sha256": "4a2367d03efa940b1da878bffb0ebfac49d48106e7766d9457231dfc32e555af"
+  },
+  "capture_source_sha256": "14dd4a54386df42baf1f14c6e2235549f09649bcf274bd6b7e38a3a4848bcaa4",
+  "node": {
+    "version": "v22.14.0",
+    "sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0"
+  },
+  "helpers": [
+    {
+      "text": "const uid = process.getuid();",
+      "sha256": "c3432eec6d48b5b7224533a3a4234cded185887b88cb2654418cedcc0b46eab6"
+    },
+    {
+      "text": "function fixture(t, policy, { mode = 0o644, directoryMode = 0o755 } = {}) {\n  const root = mkdtempSync(join(tmpdir(), 'autorouter-policy-'));\n  t.after(() => rmSync(root, { recursive: true, force: true }));\n  const directory = join(root, 'etc');\n  mkdirSync(directory, { mode: directoryMode });\n  chmodSync(directory, directoryMode);\n  const path = join(directory, 'policy.json');\n  if (policy !== undefined) {\n    writeFileSync(path, typeof policy === 'string' ? policy : JSON.stringify(policy), { mode });\n    chmodSync(path, mode);\n  }\n  return { root, directory, path, options: { path, trustedUid: uid } };\n}",
+      "sha256": "20ef7b775f88b2b99da607b69ac48a0f202e531ca1143383ea4f778ed47579c9"
+    }
+  ],
+  "definitions": [
+    {
+      "id": "test/policy.test.mjs#6",
+      "number": 6,
+      "name": "config show reports policy-locked settings and set refuses disallowed values",
+      "line": 92,
+      "statement": "test('config show reports policy-locked settings and set refuses disallowed values', async t => {\n  const f = fixture(t, { allowed_evaluators: ['ollama'], session_log_mode: 'metadata' });\n  const env = { AUTOROUTER_CONFIG: join(f.root, 'config.json') };\n  saveUserConfig({ AUTOROUTER_EVALUATOR: 'ollama' }, { env });\n  const lines = [];\n  assert.equal(await configCommand(['show', '--json'], { env, write: line => lines.push(line), policy: f.options }), true);\n  const report = JSON.parse(lines.join('\\n'));\n  assert.equal(report.settings.AUTOROUTER_SESSION_LOG_MODE.source, 'policy');\n  assert.equal(report.settings.AUTOROUTER_SESSION_LOG_MODE.value, 'metadata');\n  assert.equal(report.policy_path, f.path);\n  const before = readFileSync(env.AUTOROUTER_CONFIG, 'utf8');\n  await assert.rejects(configCommand(['set', 'AUTOROUTER_EVALUATOR', 'jev'], { env, write() {}, policy: f.options }), /not permitted/);\n  assert.equal(readFileSync(env.AUTOROUTER_CONFIG, 'utf8'), before);\n  assert.equal(await configCommand(['set', 'AUTOROUTER_PORT', '9001'], { env, write() {}, policy: f.options }), true);\n});",
+      "statement_sha256": "36dfd46254255a2afb76888002d5f7011e54132553ebe08816f130ca800f2fc0",
+      "selected": true,
+      "assertions": [
+        {
+          "id": "test/policy.test.mjs#6:assert-1",
+          "line": 97,
+          "expression": "assert.equal(await configCommand(['show', '--json'], { env, write: line => lines.push(line), policy: f.options }), true)",
+          "sha256": "ba26c9cbf217b9e8e500488c317f5443992fd537b6677d412b91c8071e049617",
+          "executions": 1
+        },
+        {
+          "id": "test/policy.test.mjs#6:assert-2",
+          "line": 99,
+          "expression": "assert.equal(report.settings.AUTOROUTER_SESSION_LOG_MODE.source, 'policy')",
+          "sha256": "7672c24d85e74f8be1c2a17c617e7ccbe5104aa6c04a7a33168185853be15037",
+          "executions": 1
+        },
+        {
+          "id": "test/policy.test.mjs#6:assert-3",
+          "line": 100,
+          "expression": "assert.equal(report.settings.AUTOROUTER_SESSION_LOG_MODE.value, 'metadata')",
+          "sha256": "bdaa4c4ecefc7ea4c5d248387f9bc356747676c3ea35b4cb512f97399734d02f",
+          "executions": 1
+        },
+        {
+          "id": "test/policy.test.mjs#6:assert-4",
+          "line": 101,
+          "expression": "assert.equal(report.policy_path, f.path)",
+          "sha256": "11e246ab881b154874ba993da02b315012e4e8f4a942676b7f67776eff3f6665",
+          "executions": 1
+        },
+        {
+          "id": "test/policy.test.mjs#6:assert-5",
+          "line": 103,
+          "expression": "assert.rejects(configCommand(['set', 'AUTOROUTER_EVALUATOR', 'jev'], { env, write() {}, policy: f.options }), /not permitted/)",
+          "sha256": "17760bde13f16833f0d1a6d555a2e895cd6adcb4c876aa1524d72da9207a2892",
+          "executions": 1
+        },
+        {
+          "id": "test/policy.test.mjs#6:assert-6",
+          "line": 104,
+          "expression": "assert.equal(readFileSync(env.AUTOROUTER_CONFIG, 'utf8'), before)",
+          "sha256": "29d635d57d81522925775f14e7354603b1a3d50118311cc53f271dc5e1b30818",
+          "executions": 1
+        },
+        {
+          "id": "test/policy.test.mjs#6:assert-7",
+          "line": 105,
+          "expression": "assert.equal(await configCommand(['set', 'AUTOROUTER_PORT', '9001'], { env, write() {}, policy: f.options }), true)",
+          "sha256": "fb8fe71550536b3394ff74050a8cca46d740b53346651e8eac0327876c23a3ff",
+          "executions": 1
+        }
+      ]
+    },
+    {
+      "id": "test/policy.test.mjs#7",
+      "number": 7,
+      "name": "a disallowed saved evaluator can still be repaired, and setup refuses to save one",
+      "line": 108,
+      "statement": "test('a disallowed saved evaluator can still be repaired, and setup refuses to save one', async t => {\n  const f = fixture(t, { allowed_evaluators: ['ollama'] });\n  const env = { AUTOROUTER_CONFIG: join(f.root, 'config.json') };\n  saveUserConfig({ AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'synthetic-jev-key' }, { env });\n  assert.throws(() => loadUserConfig(env, { policy: f.options }), /not permitted/, 'Launch refuses the disallowed setting');\n  assert.equal(await configCommand(['set', 'AUTOROUTER_EVALUATOR', 'ollama'], { env, write() {}, policy: f.options }), true);\n  assert.equal(loadUserConfig(env, { policy: f.options }).env.AUTOROUTER_EVALUATOR, 'ollama');\n  await assert.rejects(setup(['--evaluator', 'jev', '--force'], {\n    env: { ...env, TYPESAFE_API_KEY: 'synthetic-jev-key' }, write() {}, prompt: () => assert.fail('No prompt'), policy: f.options,\n  }), /not permitted/);\n});",
+      "statement_sha256": "82f08346f357b4df66be6bfaa4b90a1f892ce00ff6f7b93b06d571243ae97b78",
+      "selected": true,
+      "assertions": [
+        {
+          "id": "test/policy.test.mjs#7:assert-1",
+          "line": 112,
+          "expression": "assert.throws(() => loadUserConfig(env, { policy: f.options }), /not permitted/, 'Launch refuses the disallowed setting')",
+          "sha256": "0c2a375f7849fc4d46ef8dff129bd98d66be47b1e2d33128e9eec121cb4a5b8f",
+          "executions": 1
+        },
+        {
+          "id": "test/policy.test.mjs#7:assert-2",
+          "line": 113,
+          "expression": "assert.equal(await configCommand(['set', 'AUTOROUTER_EVALUATOR', 'ollama'], { env, write() {}, policy: f.options }), true)",
+          "sha256": "cec11539bd3916b4d9b8e3de80452bcdcea56afd7c91146668f4e8baa843a5e0",
+          "executions": 1
+        },
+        {
+          "id": "test/policy.test.mjs#7:assert-3",
+          "line": 114,
+          "expression": "assert.equal(loadUserConfig(env, { policy: f.options }).env.AUTOROUTER_EVALUATOR, 'ollama')",
+          "sha256": "157a9f050c84144ed12286b35d964d63ee508f9a24ff9a2ecad5f9936a12a833",
+          "executions": 1
+        },
+        {
+          "id": "test/policy.test.mjs#7:assert-4",
+          "line": 115,
+          "expression": "assert.rejects(setup(['--evaluator', 'jev', '--force'], {\n    env: { ...env, TYPESAFE_API_KEY: 'synthetic-jev-key' }, write() {}, prompt: () => assert.fail('No prompt'), policy: f.options,\n  }), /not permitted/)",
+          "sha256": "2993d1755987b34d709857c8140239106c9ae31d63d239b505ccbeb6776dfda4",
+          "executions": 1
+        },
+        {
+          "id": "test/policy.test.mjs#7:assert-5",
+          "line": 116,
+          "expression": "assert.fail('No prompt')",
+          "sha256": "f55c9a677e58510852df792c5e04a62d48ebcf10d17f2673c7e757bd9c6f5070",
+          "executions": 0
+        }
+      ]
+    }
+  ],
+  "static_assertions": 12,
+  "expanded_assertions": 11,
+  "untaken_prompt_guard": "test/policy.test.mjs#7:assert-5",
+  "operations": 9,
+  "command_calls": 4,
+  "setup_calls": 1,
+  "load_calls": 2,
+  "save_calls": 2,
+  "fetch_calls": 0,
+  "corpus": {
+    "bytes": 14594,
+    "sha256": "583db6243796f84bb540036a6f7e1f62d64ce7a816114cabe936d6ca316c8307",
+    "rows": 2
+  },
+  "transformations": "Complete original callbacks and fixture/uid helpers remain. Only imports, public-call recording facades and insertion-only assertion result counters change. Original assertion arguments and Promise return values remain; awaited callback completion proves awaited assertions settled.",
+  "adaptations": [
+    "Private fixture-root occurrences become <fixture-root>; trustedUid is validated against the actual fixture owner and recorded as fixture_uid. Raw reports retain actual paths separately.",
+    "Full config JSON output is retained as text; native comparison parses this JSON to ignore object insertion order and insignificant formatting. Actual config-file bytes, modes, absence, operation order, load fields, result values and error messages are compared.",
+    "JavaScript Error name/code are retained as reference-only metadata. Native errors use Result<String>; original predicates test message text. Prompt guard remains unexecuted in the original.",
+    "A global fetch rejection guard is installed only for selected execution and restored in finally; zero calls proves the complete selected callbacks performed no network access."
+  ],
+  "bounds": {
+    "operations_per_definition": 16,
+    "filesystem_entries": 16,
+    "filesystem_depth": 2,
+    "file_bytes": 65536,
+    "corpus_bytes": 1048576
+  },
+  "cleanup": {
+    "fixture_directories_removed": 2
+  },
+  "exclusions": [
+    "No system policy writes or user configuration",
+    "No live provider, Keychain or setup-success claim"
+  ]
+}

@@ -1,0 +1,368 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "kind": "complete_frozen_server_status_lifecycle_callbacks",
+  "baseline": {
+    "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+    "files_verified": 111
+  },
+  "node": {
+    "version": "v22.14.0",
+    "sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0"
+  },
+  "generator_sha256": "060310002669f39f143b19ba12f360cc5b46094c39fa655982bdc4b3f81592d2",
+  "baseline_file_sha256": "b82681e2383f3466d66f9801745d4e62fb45d20065f136804f677089f2d41809",
+  "helpers": [
+    {
+      "statement": "const token = 'local-test-token-123456789';",
+      "sha256": "5dda796ceeca0fea036443e6719fae79167ac2c6f02c7ece2059bf907bc150cd"
+    },
+    {
+      "statement": "const body = { model: 'claude-sonnet-5', stream: true, max_tokens: 1024, system: [{ type: 'text', text: 'system', cache_control: { type: 'ephemeral' } }], messages: [{ role: 'user', content: 'Fix a typo' }], tools: [{ name: 'Read', input_schema: { type: 'object' } }] };",
+      "sha256": "610c8e3e707dfd5cfc92d007659e4abd400be1c8ff9b4e561d97bea553cd8bd8"
+    },
+    {
+      "statement": "async function fixture(t, handler, overrides = {}, routeImpl, onStatus, onDecision, onRecord) {\n  const upstream = http.createServer(handler);\n  const address = await listen(upstream, 0);\n  let evaluations = 0;\n  const logs = [];\n  const statuses = [];\n  const config = { ...readConfig({ AUTOROUTER_EVALUATOR: 'jev', ANTHROPIC_API_KEY: 'upstream-secret', TYPESAFE_API_KEY: 'classifier-secret' }), localToken: token, upstream: `http://127.0.0.1:${address.port}`, ...overrides };\n  const server = createRouterServer(config, {\n    router: {\n      route: async (...args) => { evaluations++; return routeImpl?.route ? routeImpl.route(...args)\n        : routeImpl ? routeImpl(...args) : { model: config.models.haiku, source: 'test' }; },\n      complete: (...args) => routeImpl?.complete?.(...args),\n    },\n    log: entry => logs.push(entry), onStatus: entry => { statuses.push(entry); return onStatus?.(entry); },\n    onDecision, onRecord,\n  });\n  const local = await listen(server, 0);\n  t.after(() => { server.closeAllConnections(); server.close(); upstream.closeAllConnections(); upstream.close(); });\n  const localAuth = config.authMode === 'subscription' ? { 'x-autorouter-token': token } : { 'x-api-key': token };\n  const baseUrl = `http://127.0.0.1:${local.port}`;\n  const call = (path, options = {}) => fetch(`${baseUrl}${path}`, { ...options, headers: { ...localAuth, ...options.headers } });\n  return { call, baseUrl, logs, statuses, evaluations: () => evaluations };\n}",
+      "sha256": "7c78ac5d771adb4044bdb12dad87f158232592e41d5493a1ce8eb2ce730f8026"
+    },
+    {
+      "statement": "async function waitForStatus(f, event) {\n  for (let i = 0; i < 100; i++) {\n    if (f.statuses.some(entry => entry.event === event)) return;\n    await new Promise(resolve => setTimeout(resolve, 5));\n  }\n  assert.fail(`Missing status event: ${event}`);\n}",
+      "sha256": "f9600fd02bfdb90b814db6ccf0b988ae38555e7c1bcb5dc89e61ad122329d93d"
+    },
+    {
+      "statement": "const oauthHeaders = { authorization: 'Bearer fake-subscription-token', 'anthropic-beta': 'oauth-2025-04-20,future-capability', 'anthropic-version': '2023-06-01' };",
+      "sha256": "92aea0530edfe378aeb32dcf9e99196b8ccfa68fea2e0664cef1b25b93da3a17"
+    }
+  ],
+  "definitions": [
+    {
+      "number": 21,
+      "id": "test/server.test.mjs#21",
+      "name": "status lifecycle correlates gateway identities and distinguishes requested, selected and provider models",
+      "statement": "test('status lifecycle correlates gateway identities and distinguishes requested, selected and provider models', async t => {\n  const selected = 'claude-sonnet-5';\n  const actual = 'claude-sonnet-5-provider-revision';\n  const f = await fixture(t, (req, res) => {\n    res.writeHead(200, { 'content-type': 'text/event-stream' });\n    res.end(`event: message_start\\ndata: {\"message\":{\"model\":\"${actual}\"}}\\n\\nevent: message_stop\\ndata: {}\\n\\n`);\n  }, {}, () => ({ model: selected, source: 'jev', tier: 'haiku', reason: 'tool_turn_pinned', latency_ms: 42, private_debug: 'PRIVATE_DETAIL' }));\n  const payload = { ...body, model: 'claude-haiku-4-5-20251001' };\n  const response = await f.call('/v1/messages', { method: 'POST', headers: {\n    'x-claude-code-session-id': 'session-1', 'x-claude-code-agent-id': 'agent-1',\n    'x-claude-code-prompt-id': 'prompt-1', 'x-claude-code-request-class': 'main',\n  }, body: JSON.stringify(payload) });\n  await response.text();\n  await waitForStatus(f, 'request_complete');\n  assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'route', 'upstream_response', 'upstream_model', 'request_complete']);\n  const requestId = f.statuses[0].request_id;\n  assert.match(requestId, /^[a-f0-9-]{36}$/);\n  for (const entry of f.statuses) {\n    assert.equal(entry.request_id, requestId);\n    assert.equal(entry.session_id, 'session-1');\n    assert.equal(entry.agent_id, 'agent-1');\n    assert.equal(entry.prompt_id, 'prompt-1');\n    assert.equal(entry.request_class, 'main');\n    assert.equal(entry.tier, undefined);\n  }\n  const route = f.statuses.find(entry => entry.event === 'route');\n  assert.equal(route.requested_model, payload.model);\n  assert.equal(route.model, selected);\n  assert.equal(route.reason, 'tool_turn_pinned');\n  assert.equal(route.latency_ms, 42);\n  assert.equal(f.statuses.find(entry => entry.event === 'upstream_model').model, actual);\n  for (const privateValue of ['PRIVATE_DETAIL', 'Fix a typo', token, 'upstream-secret', 'classifier-secret']) {\n    assert.ok(!JSON.stringify(f.statuses).includes(privateValue));\n  }\n});",
+      "sha256": "2f45b829473db3bc93770c9c6bf17365f6d15fcd8c08e142418fef0390780c42",
+      "assertions": [
+        {
+          "id": "server#21:assert-1",
+          "expression": "assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'route', 'upstream_response', 'upstream_model', 'request_complete'])",
+          "sha256": "16ac224c714412f824edba8c619b544456f37af829de6256bfb64c29d4c270ec",
+          "line": 886,
+          "executions": 1
+        },
+        {
+          "id": "server#21:assert-2",
+          "expression": "assert.match(requestId, /^[a-f0-9-]{36}$/)",
+          "sha256": "a131c4026283707bbce85950dda1501aefa3edf0a18f90978d33f631dfe592fd",
+          "line": 888,
+          "executions": 1
+        },
+        {
+          "id": "server#21:assert-3",
+          "expression": "assert.equal(entry.request_id, requestId)",
+          "sha256": "6bd45a3f2d5ae97234b80c1bfbbb49fae48a1ed74a1932d8d2159bac32d5dc22",
+          "line": 890,
+          "executions": 5
+        },
+        {
+          "id": "server#21:assert-4",
+          "expression": "assert.equal(entry.session_id, 'session-1')",
+          "sha256": "9ddd15ea120a0affbf00f5c6908e991a04e6142aecf95f3690b217db172aba36",
+          "line": 891,
+          "executions": 5
+        },
+        {
+          "id": "server#21:assert-5",
+          "expression": "assert.equal(entry.agent_id, 'agent-1')",
+          "sha256": "660774bc2fa8e8d824626f87b8d1e57a46d4d14fa1fb96fc2bef04da306631e1",
+          "line": 892,
+          "executions": 5
+        },
+        {
+          "id": "server#21:assert-6",
+          "expression": "assert.equal(entry.prompt_id, 'prompt-1')",
+          "sha256": "724f453aa362b816263329eb42e715ddcb818f65968059d2bb9cd6ddefb1bcff",
+          "line": 893,
+          "executions": 5
+        },
+        {
+          "id": "server#21:assert-7",
+          "expression": "assert.equal(entry.request_class, 'main')",
+          "sha256": "b8dcec4098d38614bc9393f3fdbc71b71553ca2db38b85c001f73601667572f0",
+          "line": 894,
+          "executions": 5
+        },
+        {
+          "id": "server#21:assert-8",
+          "expression": "assert.equal(entry.tier, undefined)",
+          "sha256": "ef71cc69624aaff3cb0bafbba03d1cbd560133a79d3d547495b68f69cc941def",
+          "line": 895,
+          "executions": 5
+        },
+        {
+          "id": "server#21:assert-9",
+          "expression": "assert.equal(route.requested_model, payload.model)",
+          "sha256": "14f82f167deaaa3592b3bb64d6dd869ec6f7306606883ac7df917721474710d2",
+          "line": 898,
+          "executions": 1
+        },
+        {
+          "id": "server#21:assert-10",
+          "expression": "assert.equal(route.model, selected)",
+          "sha256": "2a4108a00b5ae2e7de6f4c76a76b957755d2d20785728ae25d62b9483c8612bb",
+          "line": 899,
+          "executions": 1
+        },
+        {
+          "id": "server#21:assert-11",
+          "expression": "assert.equal(route.reason, 'tool_turn_pinned')",
+          "sha256": "43ca41262b86a4422d302a31fe2007272374d52aeafc01177b7187dbf2572dd0",
+          "line": 900,
+          "executions": 1
+        },
+        {
+          "id": "server#21:assert-12",
+          "expression": "assert.equal(route.latency_ms, 42)",
+          "sha256": "5153daee135f4121da9d4b75677f7c25f333a0900a3df674b7c09e3ec3d98edc",
+          "line": 901,
+          "executions": 1
+        },
+        {
+          "id": "server#21:assert-13",
+          "expression": "assert.equal(f.statuses.find(entry => entry.event === 'upstream_model').model, actual)",
+          "sha256": "5627b8245e07d7ea86541ec01f91c85e1ab9a58c01bf7d722d970ef7586d2a42",
+          "line": 902,
+          "executions": 1
+        },
+        {
+          "id": "server#21:assert-14",
+          "expression": "assert.ok(!JSON.stringify(f.statuses).includes(privateValue))",
+          "sha256": "3a3da17fb7691257efcf7b84506299ffddf1f929143dda9feb5570970e511e06",
+          "line": 904,
+          "executions": 5
+        }
+      ],
+      "options": null,
+      "passed": true
+    },
+    {
+      "number": 22,
+      "id": "test/server.test.mjs#22",
+      "name": "status distinguishes overlapping sessions and ignores discovery, counting and unauthenticated traffic",
+      "statement": "test('status distinguishes overlapping sessions and ignores discovery, counting and unauthenticated traffic', async t => {\n  const f = await fixture(t, (req, res) => {\n    res.writeHead(200, { 'content-type': 'application/json' }); res.end('{}');\n  });\n  for (const [path, options] of [\n    ['/v1/models', {}], ['/health', {}],\n    ['/v1/messages/count_tokens', { method: 'POST', body: JSON.stringify(body) }],\n    ['/v1/messages', { method: 'POST', headers: { 'x-api-key': 'wrong' }, body: JSON.stringify(body) }],\n  ]) await (await f.call(path, options)).text();\n  assert.deepEqual(f.statuses, []);\n  await Promise.all(['first', 'second'].map(async session => {\n    const response = await f.call('/v1/messages', { method: 'POST', headers: { 'x-claude-code-session-id': session }, body: JSON.stringify(body) });\n    await response.text();\n  }));\n  const starts = f.statuses.filter(entry => entry.event === 'request_start');\n  assert.equal(starts.length, 2);\n  assert.notEqual(starts[0].request_id, starts[1].request_id);\n  for (const start of starts) {\n    assert.ok(f.statuses.filter(entry => entry.request_id === start.request_id).every(entry => entry.session_id === start.session_id));\n    assert.equal(start.agent_id, undefined);\n  }\n});",
+      "sha256": "971a090925198c670b13227da8e6a3ad1a4f3ae1eed2307a1acd22c9444ded1e",
+      "assertions": [
+        {
+          "id": "server#22:assert-1",
+          "expression": "assert.deepEqual(f.statuses, [])",
+          "sha256": "f82b2eddfd70636dd2660473d8f16e0429e0d22650510fbd6f87d3ef899b45f9",
+          "line": 917,
+          "executions": 1
+        },
+        {
+          "id": "server#22:assert-2",
+          "expression": "assert.equal(starts.length, 2)",
+          "sha256": "ed106400f62753b25d2fe59759cebd94bf09db5c3f219bb1695873e43863011b",
+          "line": 923,
+          "executions": 1
+        },
+        {
+          "id": "server#22:assert-3",
+          "expression": "assert.notEqual(starts[0].request_id, starts[1].request_id)",
+          "sha256": "000d825100d46512296163d567ffdf90a4df65ff76557990efb5d8687337db71",
+          "line": 924,
+          "executions": 1
+        },
+        {
+          "id": "server#22:assert-4",
+          "expression": "assert.ok(f.statuses.filter(entry => entry.request_id === start.request_id).every(entry => entry.session_id === start.session_id))",
+          "sha256": "fe41461447a841d5cfb5f55fd80aed4b08ca3bd5eda3c8dff3c2f2c339576b0e",
+          "line": 926,
+          "executions": 2
+        },
+        {
+          "id": "server#22:assert-5",
+          "expression": "assert.equal(start.agent_id, undefined)",
+          "sha256": "bbb8bdbf0eaeb96927f4f6cebfdf3e1fdcaa4d87d06ebca7d34a8646fe4e1621",
+          "line": 927,
+          "executions": 2
+        }
+      ],
+      "options": null,
+      "passed": true
+    },
+    {
+      "number": 23,
+      "id": "test/server.test.mjs#23",
+      "name": "SSE errors remain observable after HTTP success and model confirmation with only a safe error category",
+      "statement": "test('SSE errors remain observable after HTTP success and model confirmation with only a safe error category', async t => {\n  const sse = 'event: message_start\\ndata: {\"message\":{\"model\":\"claude-haiku-4-5-20251001\"}}\\n\\n'\n    + 'event: error\\ndata: {\"type\":\"error\",\"error\":{\"type\":\"overloaded_error\",\"message\":\"PRIVATE_REQUEST\"}}\\n\\n';\n  const f = await fixture(t, (req, res) => {\n    res.writeHead(200, { 'content-type': 'text/event-stream' }); res.end(sse);\n  });\n  const response = await f.call('/v1/messages', { method: 'POST', body: JSON.stringify(body) });\n  assert.equal(response.status, 200);\n  assert.equal(await response.text(), sse);\n  await waitForStatus(f, 'request_complete');\n  assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'route', 'upstream_response', 'upstream_model', 'upstream_error', 'request_complete']);\n  assert.equal(f.statuses.find(entry => entry.event === 'upstream_error').error_type, 'overloaded_error');\n  assert.ok(!JSON.stringify(f.statuses).includes('PRIVATE_REQUEST'));\n  assert.ok(!JSON.stringify(f.logs).includes('PRIVATE_REQUEST'));\n});",
+      "sha256": "9ac925158efd87f46809d694ad3945fce29a9153190fe1be28b94ffb696ac021",
+      "assertions": [
+        {
+          "id": "server#23:assert-1",
+          "expression": "assert.equal(response.status, 200)",
+          "sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735",
+          "line": 938,
+          "executions": 1
+        },
+        {
+          "id": "server#23:assert-2",
+          "expression": "assert.equal(await response.text(), sse)",
+          "sha256": "2ea7182638dc4138320b589385d5e5e693c947f0075cb1e4009ce7e213ec6fa6",
+          "line": 939,
+          "executions": 1
+        },
+        {
+          "id": "server#23:assert-3",
+          "expression": "assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'route', 'upstream_response', 'upstream_model', 'upstream_error', 'request_complete'])",
+          "sha256": "34a24227fceb9bebbc030ea9c5001ce0b328e491eafd8304274db2707400a008",
+          "line": 941,
+          "executions": 1
+        },
+        {
+          "id": "server#23:assert-4",
+          "expression": "assert.equal(f.statuses.find(entry => entry.event === 'upstream_error').error_type, 'overloaded_error')",
+          "sha256": "8004634c58b1de93ac0c5607e0c7f9e7b8216d373fa3745ce90535db54d90fcf",
+          "line": 942,
+          "executions": 1
+        },
+        {
+          "id": "server#23:assert-5",
+          "expression": "assert.ok(!JSON.stringify(f.statuses).includes('PRIVATE_REQUEST'))",
+          "sha256": "cba702c6dfcd4ddb37dc6fbc7155aa2a41bfd8a4b873a283300034189c33fcb3",
+          "line": 943,
+          "executions": 1
+        },
+        {
+          "id": "server#23:assert-6",
+          "expression": "assert.ok(!JSON.stringify(f.logs).includes('PRIVATE_REQUEST'))",
+          "sha256": "5cf99bca358d143fd766629a9c0b1e07c0bd5d06597a6d2e0c83d75fd5afebc9",
+          "line": 944,
+          "executions": 1
+        }
+      ],
+      "options": null,
+      "passed": true
+    },
+    {
+      "number": 24,
+      "id": "test/server.test.mjs#24",
+      "name": "status surfaces rejected request shapes and HTTP errors, and preserves fallback metadata",
+      "statement": "test('status surfaces rejected request shapes and HTTP errors, and preserves fallback metadata', async t => {\n  const f = await fixture(t, (req, res) => {\n    res.writeHead(429, { 'content-type': 'application/json' });\n    res.end(JSON.stringify({ type: 'error', error: { type: 'rate_limit_error', message: 'PRIVATE_REQUEST' } }));\n  }, {}, () => ({ model: 'claude-sonnet-5', source: 'fallback', reason: 'classifier_unavailable', classifier_error: 'http_error', classifier_status: 503, latency_ms: 33 }));\n  const bad = await f.call('/v1/messages', { method: 'POST', body: '{bad' });\n  assert.equal(bad.status, 400);\n  await bad.text();\n  assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'request_error']);\n  assert.equal(f.statuses[1].status, 400);\n  f.statuses.length = 0;\n  const response = await f.call('/v1/messages', { method: 'POST', body: JSON.stringify(body) });\n  assert.equal(response.status, 429);\n  await response.text();\n  await waitForStatus(f, 'request_complete');\n  const route = f.statuses.find(entry => entry.event === 'route');\n  assert.equal(route.source, 'fallback');\n  assert.equal(route.classifier_error, 'http_error');\n  assert.equal(route.classifier_status, 503);\n  assert.equal(f.statuses.find(entry => entry.event === 'upstream_response').status, 429);\n  assert.equal(f.statuses.find(entry => entry.event === 'upstream_error').error_type, 'rate_limit_error');\n});",
+      "sha256": "3b91fa023824c1ffec9862f8035f8fc8947333ff06817319f5a4cabf0b2185e1",
+      "assertions": [
+        {
+          "id": "server#24:assert-1",
+          "expression": "assert.equal(bad.status, 400)",
+          "sha256": "8e08874b68e29e73a00170824e3087f5ec49c32abbe6736e8df51ec9dad6ea59",
+          "line": 953,
+          "executions": 1
+        },
+        {
+          "id": "server#24:assert-2",
+          "expression": "assert.deepEqual(f.statuses.map(entry => entry.event), ['request_start', 'request_error'])",
+          "sha256": "d003fa0de8f2248090eedde6b40fd3a3b76e9a05a0509a6950b3ac401de666d1",
+          "line": 955,
+          "executions": 1
+        },
+        {
+          "id": "server#24:assert-3",
+          "expression": "assert.equal(f.statuses[1].status, 400)",
+          "sha256": "87a533ca9738a1994f9ce99fd4fe48e35a10fe4c3704b443fc615655ca4ab0fc",
+          "line": 956,
+          "executions": 1
+        },
+        {
+          "id": "server#24:assert-4",
+          "expression": "assert.equal(response.status, 429)",
+          "sha256": "2cde139a350256177b81ce7b0a36d01bf156edeb95bba8dc88c2ebc36976be68",
+          "line": 959,
+          "executions": 1
+        },
+        {
+          "id": "server#24:assert-5",
+          "expression": "assert.equal(route.source, 'fallback')",
+          "sha256": "90eeb0707c78ae5febe68d9a3462de76d447ae1502ea9e27cd3e77487a3fcf4a",
+          "line": 963,
+          "executions": 1
+        },
+        {
+          "id": "server#24:assert-6",
+          "expression": "assert.equal(route.classifier_error, 'http_error')",
+          "sha256": "2ca2977ead532ee85954bbf6a14df4af980fae9dd49a8e1c5012ed0f1c301f0d",
+          "line": 964,
+          "executions": 1
+        },
+        {
+          "id": "server#24:assert-7",
+          "expression": "assert.equal(route.classifier_status, 503)",
+          "sha256": "f268b36e676fb282f520cba116b865c19e1c583dbca5f3e3be61b0e330073eb6",
+          "line": 965,
+          "executions": 1
+        },
+        {
+          "id": "server#24:assert-8",
+          "expression": "assert.equal(f.statuses.find(entry => entry.event === 'upstream_response').status, 429)",
+          "sha256": "34a0ee7ef1166665b3938cdc6175f2380960fd970ee2e29788baa3f82d53182e",
+          "line": 966,
+          "executions": 1
+        },
+        {
+          "id": "server#24:assert-9",
+          "expression": "assert.equal(f.statuses.find(entry => entry.event === 'upstream_error').error_type, 'rate_limit_error')",
+          "sha256": "0326d5e95419a87464b5fa26fcb5bea55fc6ad0228d6cc09e124e0f0d0f4c4b7",
+          "line": 967,
+          "executions": 1
+        }
+      ],
+      "options": null,
+      "passed": true
+    }
+  ],
+  "static_assertions": 34,
+  "expanded_assertions": 64,
+  "assertion_execution_order_file": "assertion-executions.json",
+  "assertion_order_scope": "Raw successful assertion order retained separately. Per-site and per-callback counts are exact; no scheduling or chunk partition equivalence is inferred.",
+  "cases_sha256": "0f74c4f4763f78f03c66eae953de2bb12c65a36053b9e43ffca96ea964f639df",
+  "callbacks_executed": 4,
+  "network_scope": "Actual synthetic loopback HTTP only; the original injected routing callbacks remain supplied mocks; no evaluator calls.",
+  "capture_semantics": "Complete selected callbacks and five helper statements restored unchanged except successful assertion-result wrappers. Recording delegates actual HTTP and original return objects; no clone/drain, substituted verdict, timing threshold or source clock changes. Per-peer complete bodies preserve actual parser-delivered bytes; raw push chunks and chronological reads remain in raw observations. Provider request bodies remain unread by the original callbacks. Injected deterministic route latencies 42 and 33 remain unchanged; only measured first-response/total timings are projected. #24 keeps every emitted event in the independent recorder while its original statuses array is reset as written.",
+  "projection_kinds": [
+    "validated_observation_timing",
+    "generated_request_id",
+    "automatic_http_date",
+    "loopback_authority"
+  ],
+  "typed_observations": [
+    "Headers inputs are enumerated into their complete normalized field map.",
+    "Route signal observation records actual AbortSignal type and aborted state; no serialized object identity is claimed. countTokens is recorded as a function capability only.",
+    "Individual response chunks remain base64, including intentionally split UTF-8. Only complete request bodies use UTF-8 after exact roundtrip validation."
+  ],
+  "raw_observations_file": "raw-observations.json",
+  "projection_ledger_file": "projections.json",
+  "cleanup": [
+    {
+      "id": "server-status-lifecycle-21",
+      "servers": 2,
+      "all_closed": true,
+      "remaining_sockets": 0
+    },
+    {
+      "id": "server-status-lifecycle-22",
+      "servers": 2,
+      "all_closed": true,
+      "remaining_sockets": 0
+    },
+    {
+      "id": "server-status-lifecycle-23",
+      "servers": 2,
+      "all_closed": true,
+      "remaining_sockets": 0
+    },
+    {
+      "id": "server-status-lifecycle-24",
+      "servers": 2,
+      "all_closed": true,
+      "remaining_sockets": 0
+    }
+  ]
+}

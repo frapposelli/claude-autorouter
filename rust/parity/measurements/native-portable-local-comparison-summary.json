@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "kind": "portable_local_evaluator_orchestration_validation",
+  "date": "2026-10-14",
+  "checkpoint_base": "bdf6af19ae99a66dd0cd4d83f5343fec3e8e551d",
+  "source_uncommitted": true,
+  "passed": true,
+  "release_approved": false,
+  "default_cutover_approved": false,
+  "private_report": {
+    "path": "artifacts/rust-rewrite/completion-20261013-portable-local-focused-1/report.json",
+    "sha256": "ffd5c14b50d5dabbe3a9aa77689afbcab506a26b61a85d2b064bb9e7eaa7b189",
+    "bytes": 22768
+  },
+  "commands": [
+    "compare-local-evaluators prepare",
+    "compare-local-evaluators run"
+  ],
+  "source_inputs": [
+    {
+      "path": "rust/xtask/src/compare_local_evaluators.rs",
+      "bytes": 50379,
+      "sha256": "c8bbfeaabb37d2db49ec06617c6f615990345c5e8759e13ea40b9cf84749cc3e"
+    },
+    {
+      "path": "rust/xtask/src/compare_local_schema.rs",
+      "bytes": 21931,
+      "sha256": "c307dee39a4dbd04fed098e78583e89dba39c02e459ffce682807f2bcb07dfcd"
+    },
+    {
+      "path": "rust/xtask/src/compare_local_integration.rs",
+      "bytes": 14817,
+      "sha256": "ffc9f2957d77d1eaf11845d2f0db790041c8298972168bf7b6ecca195ea04452"
+    },
+    {
+      "path": "rust/xtask/src/process_owned.rs",
+      "bytes": 16371,
+      "sha256": "e8b6d93631e47dbdee48d2d4ace8783b6b91c1f9537899206b445d91d0cbc3b4"
+    },
+    {
+      "path": "rust/xtask/src/process.rs",
+      "bytes": 26805,
+      "sha256": "593bc3ade2edc68137f2accb08abebab0be1ae4fd26ad09a35468904056fb48d"
+    },
+    {
+      "path": "rust/xtask/src/main.rs",
+      "bytes": 4761,
+      "sha256": "42318c696424c8c97aaa6fe82623a7650661885d0cffbe4953db5dea7b4b568a"
+    },
+    {
+      "path": "rust/xtask/src/bundle.rs",
+      "bytes": 35002,
+      "sha256": "2d440342e67d1706e05887ad25839686ba020bc8b7e616faa3306af0dc392fbc"
+    },
+    {
+      "path": "rust/xtask/src/bundle_transfer.rs",
+      "bytes": 15875,
+      "sha256": "fbd36f12f297a3852cafade57fbde53ec4de96f47370232aa5ab0fccc834199c"
+    },
+    {
+      "path": "rust/parity/local-model-orchestration-v1.json",
+      "bytes": 5122,
+      "sha256": "8f8343aebd52b64b98c0942c2688e61ef58581df103aa39aed10ba701850643e"
+    },
+    {
+      "path": "rust/docs/local-model-comparison.md",
+      "bytes": 6630,
+      "sha256": "ca0a2e5a49d4a2fa10e44cf3aeb121f3cd1fae361c652fa0f1f493ff9deeebcb"
+    }
+  ],
+  "matching_immutable_helper": {
+    "path": "artifacts/rust-rewrite/completion-20261013-portable-local-focused-1/xtask",
+    "bytes": 49397744,
+    "sha256": "c510d4088acf1ce7adb079cb8b8be977fc84de284aba9c9ab1128bb0da3d32da"
+  },
+  "fixed_protocols_preserved": [
+    "rust/parity/local-model-comparison-v1.json",
+    "rust/parity/local-model-comparison-v2.json"
+  ],
+  "checks": {
+    "schema_and_metadata_units": 11,
+    "owned_child_controls": 7,
+    "ordinary_actual_cli_mock_complete_pairing": {
+      "tests": 1,
+      "synthetic_systemone_calls": 990,
+      "candidate_unloads": 10,
+      "complete_alternating_pairs": 5,
+      "create_only_output_and_identity_drift": true
+    },
+    "ordinary_actual_cli_mock_cancellation": {
+      "tests": 1,
+      "synthetic_systemone_calls": 1,
+      "candidate_unloads": 1,
+      "joined_cleanup": true,
+      "comparison_incomplete": true
+    },
+    "secret_input_exact_units": 6,
+    "strict_xtask_all_targets_clippy": true,
+    "strict_cli_all_targets_clippy_after_correction": true,
+    "final_fmt_check": true,
+    "help_without_network": true
+  },
+  "retained_initial_failures": [
+    {
+      "record": "strict-clippy-1.json",
+      "reason": "Two collapsible-if diagnostics plus audit binary test graph lacked tool_process::Scratch; corrected with shared audit_support::Scratch without production changes."
+    },
+    {
+      "record": "ordinary-cli-mock-1.json",
+      "reason": "Sandbox denied owned synthetic loopback listener before inference; later approved loopback mock regression passed."
+    },
+    {
+      "record": "secret-input-1.json",
+      "reason": "Broad filter also selected onboarding loopback tests denied by sandbox; prompt-order test raw F_GETFL comparison failed on Darwin internal FWASWRITTEN after PTY output. Root primary-source test-only correction preserves all public OFlag comparison; exact six tests passed."
+    }
+  ],
+  "thresholds": {
+    "agreement": 1,
+    "under_route_rate": 0,
+    "pairs": 5,
+    "warm_rounds": 3,
+    "heldout_cases": 30,
+    "stress_calls": 8,
+    "cold_timeout_ms": 60000,
+    "warm_timeout_ms_choices": [
+      1500,
+      0
+    ]
+  },
+  "child_bounds": {
+    "deadline_seconds": 900,
+    "term_to_kill_grace_seconds": 5,
+    "aggregate_retained_output_bytes": 2097152,
+    "parent_report_read_bytes": 2097152,
+    "child_report_file_growth_bounded": false
+  },
+  "independent_review": {
+    "reviewer": "rust_distribution_audit",
+    "blocking_issue": "Worker errors previously admitted cleanup even when spawn failed. Explicit Release/Acquire spawn witness + typed Failure now preserves admission on every joined result; admitted cleanup cannot be skipped by an evidence-write error.",
+    "delta_review": "Reviewer confirmed corrected no-spawn cleanup guard and accurate report-growth/leader/group/residency ownership limitations; no additional defect found. Reviewer did not compile or run tests.",
+    "historical_reviewed_snapshot": "artifacts/rust-rewrite/local-comparison-draft-20261013/reviewed-snapshot-1",
+    "historical_correction": {
+      "path": "artifacts/rust-rewrite/local-comparison-draft-20261013/correction-report.json",
+      "bytes": 2351,
+      "sha256": "5df3040c77809bd05c1aa8623bc5c0c00e873003b154023f0cbc5ddf3cb7b875"
+    }
+  },
+  "qualification": {
+    "real_model_calls": 0,
+    "downloads": 0,
+    "real_provider_calls": 0,
+    "numerical_performance_measurements": false,
+    "shipping_binary_built_or_qualified": false,
+    "controlled_hardware_qualified": false,
+    "actual_local_model_label_quality_qualified": false,
+    "completed_claude_task_quality_qualified": false,
+    "platform_release_or_cutover_approved": false,
+    "remaining_gates_unchanged": true
+  },
+  "scope_limits": [
+    "Prepare is explicit metadata-only; it downloads, loads or unloads no models. Run is separately opted in and freezes the installed model/runtime/fixture/rubric/reference/source and binary identity before inference.",
+    "Complete actual CLI pairing used990 synthetic /v1/systemone calls and10 exact candidate unloads; cancellation used1 synthetic call and1 observed candidate unload. These are orchestration tests, not local-model timing or label-quality results.",
+    "Parent retained pipes are bounded jointly at2MiB; parent evidence/report reads/writes are bounded separately. Unchanged evaluator child direct report-file growth has no new hard filesystem quota.",
+    "Owned process controls establish the direct leader reap, owned-group termination and explicit worker join. Daemon inference joining and arbitrary descendant reaping are not claimed.",
+    "The retained transfer check precedes later native test additions; a fresh combined32MiB source/reference budget check remains required.",
+    "Larger-Mac local-model measurement is user-deferred2026-10-14 with no result. Existing real16GiB Tev1 failures remain separate and unchanged.",
+    "No real model/provider call, download, user configuration change, runtime dependency, ordinary shipping binary, controlled-hardware, numerical-performance, task-quality, full-platform, release or default-cutover qualification follows from these tests."
+  ]
+}

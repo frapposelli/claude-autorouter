@@ -1,0 +1,369 @@
+{
+  "schema_version": 1,
+  "kind": "turn_routing_contracts_focused_qualification",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "source_head": "2166cdf4c845354cdd0e0a24079f8d6cc68b399a",
+  "passed": true,
+  "scope": "Complete async Router counterparts of frozen turn-state definitions5,6,15,16. Actual classifier, routing and completion implementations with original synthetic transport answers.",
+  "counts": {
+    "definitions": 4,
+    "static_assertions": 19,
+    "expanded_original_assertions": 19,
+    "native_tests_passed": 4,
+    "unchanged_frozen_tests_passed": 4,
+    "original_router_instances": 4,
+    "original_routes": 13,
+    "original_completions": 11,
+    "original_evaluator_requests": 9,
+    "core_regression_tests_passed": 177
+  },
+  "production_change": {
+    "contract": "RouterConfig::turn_entries: Option<usize>, the native equivalent of the existing optional JavaScript RouterConfig.turnEntries.",
+    "constructor": "PolicyRouter::new applies Some(limit) to actual task and pending-attempt capacity; None retains1000.",
+    "serialization": "None is omitted; Some uses camelCase turnEntries. CLI read_config initializes None and adds no environment/file setting.",
+    "regression": "Definition6 configures capacity1 through the actual RouterConfig and checks rejected admission, unchanged counters and retained confirmed tool owner."
+  },
+  "mapping": {
+    "path": "artifacts/rust-rewrite/evidence/6333a7e984cd456052c458a42c3787fed1eb39a1345e6c73d4ac22b48b00d3a6.json",
+    "sha256": "6333a7e984cd456052c458a42c3787fed1eb39a1345e6c73d4ac22b48b00d3a6",
+    "bytes": 44474,
+    "original_path": "rust/parity/assertion-mappings/turn-routing-contracts.json"
+  },
+  "review": {
+    "capture_author": {
+      "path": "artifacts/rust-rewrite/evidence/fa433ee04405fe8c31897ae3850a7d358ca18adddd976c9b881a19a74c1ba3f3.json",
+      "sha256": "fa433ee04405fe8c31897ae3850a7d358ca18adddd976c9b881a19a74c1ba3f3",
+      "bytes": 5333,
+      "original_path": "/private/tmp/autorouter-turn-routing-capture-report.json"
+    },
+    "independent": {
+      "path": "artifacts/rust-rewrite/evidence/60028931e70daa82563a1cc14cdce5ea38225dddb89e45767b0444a63eaf42a8.json",
+      "sha256": "60028931e70daa82563a1cc14cdce5ea38225dddb89e45767b0444a63eaf42a8",
+      "bytes": 16212,
+      "original_path": "/private/tmp/autorouter-turn-routing-independent-review.json"
+    },
+    "reviewed_draft": {
+      "path": "artifacts/rust-rewrite/evidence/a610c92a245ff00a6849228ca4403734d5885a32ad544d1c7a63ec1f4ebbbc45.json",
+      "sha256": "a610c92a245ff00a6849228ca4403734d5885a32ad544d1c7a63ec1f4ebbbc45",
+      "bytes": 44467,
+      "original_path": "rust/parity/assertion-mappings/turn-routing-contracts.json"
+    }
+  },
+  "current_sources": [
+    {
+      "path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs",
+      "sha256": "596825a2835e186321c22bc27f3bd7f3fc7cd6a184f66e0aeee3875d2bd79edc",
+      "bytes": 8740
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/router.rs",
+      "sha256": "0e631096ab7fc92fc6325aa04ee0ae06c873bee5a1ce4fec73f865f3da3225e3",
+      "bytes": 18716
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+      "sha256": "f5e9bf5f36969ec89ddf1a9b91b7e83d4b4a74b460f60f8ddddd576dbfaad899",
+      "bytes": 32670
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/evaluator.rs",
+      "sha256": "a44198f1c62c7b4d45d1427bf67b673f8b0b252f97244354a0cfc66eb9933527",
+      "bytes": 44305
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/router.rs",
+      "sha256": "b8a711cb54812620b9ff79f928f95546b34fb34901574e6b564b7bb058e684aa",
+      "bytes": 46202
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/turn_state.rs",
+      "sha256": "167f4f1907bda193015293472611e3b4e7eebabb7b5c9cc75080e4d82ef76978",
+      "bytes": 27407
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/config.rs",
+      "sha256": "2b0987bf04315f2c505a26a14ecee9a38509f8ce9f68d4438db9b9ce4b9e91be",
+      "bytes": 25747
+    },
+    {
+      "path": "rust/Cargo.toml",
+      "sha256": "b6c2f0616a99a80ccb980b338bf42a0cf5210c2f16356c0231c8277db0fa33bb",
+      "bytes": 1942
+    },
+    {
+      "path": "rust/Cargo.lock",
+      "sha256": "35b5acfe78c08826cdc247c91b61ef079eba0d4c6a020a600d491fbaffa80bc3",
+      "bytes": 38341
+    },
+    {
+      "path": "rust/rust-toolchain.toml",
+      "sha256": "2ad6f15416572b4836585087f1d4abc53b8fa2dbd616f8dacfaa587ed6714228",
+      "bytes": 86
+    },
+    {
+      "path": "rust/docs/embedding.md",
+      "sha256": "0209affa0aa70d291c8074d2244b5341c76e9b96adda67d60cef981df0613d70",
+      "bytes": 5648
+    },
+    {
+      "path": "rust/parity/capture-turn-routing-contracts.mjs",
+      "sha256": "8797380eec0c955b4834d0b0ea6ee26ba11b89865e6df7268d992a66d4e16d7e",
+      "bytes": 18380
+    },
+    {
+      "path": "rust/parity/cases/turn-routing-contracts.capture.json",
+      "sha256": "071ed1b1ba22c54021e61d0bca931fa8ad0baf9eac2ed1bc41c490c06db3fe18",
+      "bytes": 188769
+    }
+  ],
+  "retained_sources": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/596825a2835e186321c22bc27f3bd7f3fc7cd6a184f66e0aeee3875d2bd79edc.rs",
+      "sha256": "596825a2835e186321c22bc27f3bd7f3fc7cd6a184f66e0aeee3875d2bd79edc",
+      "bytes": 8740,
+      "original_path": "rust/crates/autorouter-runtime/src/router_turn_contracts.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/0e631096ab7fc92fc6325aa04ee0ae06c873bee5a1ce4fec73f865f3da3225e3.rs",
+      "sha256": "0e631096ab7fc92fc6325aa04ee0ae06c873bee5a1ce4fec73f865f3da3225e3",
+      "bytes": 18716,
+      "original_path": "rust/crates/autorouter-runtime/src/router.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/f5e9bf5f36969ec89ddf1a9b91b7e83d4b4a74b460f60f8ddddd576dbfaad899.rs",
+      "sha256": "f5e9bf5f36969ec89ddf1a9b91b7e83d4b4a74b460f60f8ddddd576dbfaad899",
+      "bytes": 32670,
+      "original_path": "rust/crates/autorouter-runtime/src/classifier.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/a44198f1c62c7b4d45d1427bf67b673f8b0b252f97244354a0cfc66eb9933527.rs",
+      "sha256": "a44198f1c62c7b4d45d1427bf67b673f8b0b252f97244354a0cfc66eb9933527",
+      "bytes": 44305,
+      "original_path": "rust/crates/autorouter-runtime/src/evaluator.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/b8a711cb54812620b9ff79f928f95546b34fb34901574e6b564b7bb058e684aa.rs",
+      "sha256": "b8a711cb54812620b9ff79f928f95546b34fb34901574e6b564b7bb058e684aa",
+      "bytes": 46202,
+      "original_path": "rust/crates/autorouter-core/src/router.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/167f4f1907bda193015293472611e3b4e7eebabb7b5c9cc75080e4d82ef76978.rs",
+      "sha256": "167f4f1907bda193015293472611e3b4e7eebabb7b5c9cc75080e4d82ef76978",
+      "bytes": 27407,
+      "original_path": "rust/crates/autorouter-core/src/turn_state.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/2b0987bf04315f2c505a26a14ecee9a38509f8ce9f68d4438db9b9ce4b9e91be.rs",
+      "sha256": "2b0987bf04315f2c505a26a14ecee9a38509f8ce9f68d4438db9b9ce4b9e91be",
+      "bytes": 25747,
+      "original_path": "rust/crates/autorouter-core/src/config.rs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/b6c2f0616a99a80ccb980b338bf42a0cf5210c2f16356c0231c8277db0fa33bb.toml",
+      "sha256": "b6c2f0616a99a80ccb980b338bf42a0cf5210c2f16356c0231c8277db0fa33bb",
+      "bytes": 1942,
+      "original_path": "rust/Cargo.toml"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/35b5acfe78c08826cdc247c91b61ef079eba0d4c6a020a600d491fbaffa80bc3.lock",
+      "sha256": "35b5acfe78c08826cdc247c91b61ef079eba0d4c6a020a600d491fbaffa80bc3",
+      "bytes": 38341,
+      "original_path": "rust/Cargo.lock"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/2ad6f15416572b4836585087f1d4abc53b8fa2dbd616f8dacfaa587ed6714228.toml",
+      "sha256": "2ad6f15416572b4836585087f1d4abc53b8fa2dbd616f8dacfaa587ed6714228",
+      "bytes": 86,
+      "original_path": "rust/rust-toolchain.toml"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/0209affa0aa70d291c8074d2244b5341c76e9b96adda67d60cef981df0613d70.md",
+      "sha256": "0209affa0aa70d291c8074d2244b5341c76e9b96adda67d60cef981df0613d70",
+      "bytes": 5648,
+      "original_path": "rust/docs/embedding.md"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/8797380eec0c955b4834d0b0ea6ee26ba11b89865e6df7268d992a66d4e16d7e.mjs",
+      "sha256": "8797380eec0c955b4834d0b0ea6ee26ba11b89865e6df7268d992a66d4e16d7e",
+      "bytes": 18380,
+      "original_path": "rust/parity/capture-turn-routing-contracts.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/071ed1b1ba22c54021e61d0bca931fa8ad0baf9eac2ed1bc41c490c06db3fe18.json",
+      "sha256": "071ed1b1ba22c54021e61d0bca931fa8ad0baf9eac2ed1bc41c490c06db3fe18",
+      "bytes": 188769,
+      "original_path": "rust/parity/cases/turn-routing-contracts.capture.json"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/rust-rewrite/evidence/ca12a7fb0f7de06a7c92b9491fc6922dabae001097c2c5d79d27886fb5b53485.json",
+      "sha256": "ca12a7fb0f7de06a7c92b9491fc6922dabae001097c2c5d79d27886fb5b53485",
+      "bytes": 1637,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-1/native-1-inputs.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/295cbeb5a32d1bd818d0306d1a377d67b22c9d00606a757739eb1f7953b7abaf.json",
+      "sha256": "295cbeb5a32d1bd818d0306d1a377d67b22c9d00606a757739eb1f7953b7abaf",
+      "bytes": 2196,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-1/native-1.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/f83bcfcde918960f2fe397b855e9b9970bba77126406e8394e369e9cd2055be4.log",
+      "sha256": "f83bcfcde918960f2fe397b855e9b9970bba77126406e8394e369e9cd2055be4",
+      "bytes": 1381,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-1/native-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/c7d8968c0fee0eb71fb440015fcd65c4c43bdb6b481908e46f16dc7432c9bf36.log",
+      "sha256": "c7d8968c0fee0eb71fb440015fcd65c4c43bdb6b481908e46f16dc7432c9bf36",
+      "bytes": 17717,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-1/core-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/f6580f08f29e5538eebbea963e6ec0de77a1ea7c5937eec01f69f6e6c4bf3dd3.log",
+      "sha256": "f6580f08f29e5538eebbea963e6ec0de77a1ea7c5937eec01f69f6e6c4bf3dd3",
+      "bytes": 2688,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-1/clippy-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/31b5a71b938f6e793a06a85ed2b33011d3f6ae6a4cd5865a7de0e6a2434e080b.json",
+      "sha256": "31b5a71b938f6e793a06a85ed2b33011d3f6ae6a4cd5865a7de0e6a2434e080b",
+      "bytes": 925,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-1/checks-1.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/170bb6e1ae27e6122a5d37a68f99b6693bfcf6918d25605451c6899dc8c1c88e.log",
+      "sha256": "170bb6e1ae27e6122a5d37a68f99b6693bfcf6918d25605451c6899dc8c1c88e",
+      "bytes": 678,
+      "original_path": "artifacts/rust-rewrite/buffered-clippy-draft-1.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/fa433ee04405fe8c31897ae3850a7d358ca18adddd976c9b881a19a74c1ba3f3.json",
+      "sha256": "fa433ee04405fe8c31897ae3850a7d358ca18adddd976c9b881a19a74c1ba3f3",
+      "bytes": 5333,
+      "original_path": "/private/tmp/autorouter-turn-routing-capture-report.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/cf0a5f31d510e011496765d1a9797c66f2564a63ed78016475516b9df3f8f82b.json",
+      "sha256": "cf0a5f31d510e011496765d1a9797c66f2564a63ed78016475516b9df3f8f82b",
+      "bytes": 2662,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-controls-1/report.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/3fb3c14630755b68cbe78fbdf03846c963fb423309016ab7fe5d3e62ae03d4a5.log",
+      "sha256": "3fb3c14630755b68cbe78fbdf03846c963fb423309016ab7fe5d3e62ae03d4a5",
+      "bytes": 1073,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-controls-1/stdout.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-controls-1/stderr.log"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/e6cd8ad39a194fca7ac99e9f8942a6cce74be7de495b59ef59d90baaae075523.mjs",
+      "sha256": "e6cd8ad39a194fca7ac99e9f8942a6cce74be7de495b59ef59d90baaae075523",
+      "bytes": 18083,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-capture-1/capture-source.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/9c8fc49349de331c05d4ddff025f45e17d3e557519f81a72b7955d197f9ffd91.json",
+      "sha256": "9c8fc49349de331c05d4ddff025f45e17d3e557519f81a72b7955d197f9ffd91",
+      "bytes": 188769,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-capture-1/turn-routing-contracts.capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/1717b48d2d0426f2ba2bcac513a239a33267ab90e2896a4050dafd4bb5913423.json",
+      "sha256": "1717b48d2d0426f2ba2bcac513a239a33267ab90e2896a4050dafd4bb5913423",
+      "bytes": 5096,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-capture-1/turn-routing-contracts.observations.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/8797380eec0c955b4834d0b0ea6ee26ba11b89865e6df7268d992a66d4e16d7e.mjs",
+      "sha256": "8797380eec0c955b4834d0b0ea6ee26ba11b89865e6df7268d992a66d4e16d7e",
+      "bytes": 18380,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-capture-2/capture-source.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/071ed1b1ba22c54021e61d0bca931fa8ad0baf9eac2ed1bc41c490c06db3fe18.json",
+      "sha256": "071ed1b1ba22c54021e61d0bca931fa8ad0baf9eac2ed1bc41c490c06db3fe18",
+      "bytes": 188769,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-capture-2/turn-routing-contracts.capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/96a61ab1952ac36fc17500b2afb51f6ceda96ef080fcbfb08348fbfa97a5c282.json",
+      "sha256": "96a61ab1952ac36fc17500b2afb51f6ceda96ef080fcbfb08348fbfa97a5c282",
+      "bytes": 5100,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-capture-2/turn-routing-contracts.observations.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/8797380eec0c955b4834d0b0ea6ee26ba11b89865e6df7268d992a66d4e16d7e.mjs",
+      "sha256": "8797380eec0c955b4834d0b0ea6ee26ba11b89865e6df7268d992a66d4e16d7e",
+      "bytes": 18380,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-capture-3/capture-source.mjs"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/071ed1b1ba22c54021e61d0bca931fa8ad0baf9eac2ed1bc41c490c06db3fe18.json",
+      "sha256": "071ed1b1ba22c54021e61d0bca931fa8ad0baf9eac2ed1bc41c490c06db3fe18",
+      "bytes": 188769,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-capture-3/turn-routing-contracts.capture.json"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evidence/361c52cef1be8716ac1d13e16da10e22cd88745f36ca6326b4302faf68353128.json",
+      "sha256": "361c52cef1be8716ac1d13e16da10e22cd88745f36ca6326b4302faf68353128",
+      "bytes": 5099,
+      "original_path": "artifacts/rust-rewrite/turn-routing-contracts-capture-3/turn-routing-contracts.observations.json"
+    }
+  ],
+  "native_binary": {
+    "path": "artifacts/rust-rewrite/turn-routing-contracts-1/native-tests",
+    "sha256": "9df8e0e3197eeed3b87a9342e456557bb911a016ca4136e18e91ddec2a55c812",
+    "bytes": 95580960,
+    "compiled_path": "rust/target/debug/deps/autorouter_runtime-ad757a078c452f8d",
+    "scope": "Copied focused unit-test executable; full unrelated source provenance not claimed."
+  },
+  "input_coverage": {
+    "path": "artifacts/rust-rewrite/evidence/ed045ec148b5981f756e92a6c2c8a511778d036d468514b13182928e6f705132.json",
+    "sha256": "ed045ec148b5981f756e92a6c2c8a511778d036d468514b13182928e6f705132",
+    "bytes": 1644683,
+    "original_path": "rust/parity/coverage.json"
+  },
+  "output_coverage": {
+    "path": "artifacts/rust-rewrite/evidence/04ce3058f3e1d9f6bff3a1b0f868fe49468465a5a66d7afc27b7244c37eac91f.json",
+    "sha256": "04ce3058f3e1d9f6bff3a1b0f868fe49468465a5a66d7afc27b7244c37eac91f",
+    "bytes": 1651223,
+    "original_path": "rust/parity/coverage.json"
+  },
+  "changed_baseline_ids": [
+    "test/turn-state.test.mjs#5",
+    "test/turn-state.test.mjs#6",
+    "test/turn-state.test.mjs#15",
+    "test/turn-state.test.mjs#16"
+  ],
+  "unrelated_baseline_rows_unchanged": 584,
+  "coverage_counts": {
+    "covered": 442,
+    "partial_assertion_mapping": 94,
+    "pending_assertion_mapping": 52
+  },
+  "adaptations": [
+    "Native cancellation-free route options use owned strings and Option request IDs; absent prompt IDs use the same empty-string identity and omitted completion evidence uses Value::Null.",
+    "Original JavaScript undefined configuration fields remain absent optional Rust fields. Default serialized configurations are checked by the existing core router-contract corpus.",
+    "The advanced clock value in definition5 is retained. The frozen Node schedule actually reads its injected clock zero times because tasks remain active or pending; native boundary clock-read counts differ and are not asserted equivalent.",
+    "Native mock implements the typed HTTP transport and returns the unchanged original confidence/tier JSON. No provider network calls, token-count function or classifier verdict stubs are used.",
+    "Original internal record/attempt/tool-owner observations use the equivalent core TurnState accessors through the native router policy lock."
+  ],
+  "limits": [
+    "Definition5 proves active continuity under its advanced-clock schedule; it does not exercise a retired-task expiration branch or establish timing parity.",
+    "The capture retains13 complete reference decisions and9 evaluator calls, but these additional fields are not all native differential assertions. Coverage rests on the19 original assertions and complete counterpart operation order.",
+    "Focused native checks bind10 relevant inputs and a copied executable, not a full-workspace source-to-binary freeze. Concurrent buffered transport edits are separate.",
+    "Initial scoped Clippy failed on two unrelated buffered-body style diagnostics. The failure is retained; subsequent strict runtime all-target Clippy passed after owner fixes.",
+    "Integer Option<usize> is the typed Rust embedding contract; arbitrary JavaScript values outside valid capacity counts are not newly qualified.",
+    "No full transport, provider, performance, platform, installed-archive or cutover gate is completed by this mapping."
+  ],
+  "release_approved": false,
+  "full_workspace_qualified": false
+}

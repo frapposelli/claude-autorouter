@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "kind": "native_efcbd66_ci_checkpoint",
+  "date": "2026-10-15",
+  "source_head": "efcbd66fe9c0071721489575d6fac3a555334534",
+  "status": "ten_success_two_failure_one_in_progress_at_observation",
+  "job_counts": { "jobs": 13, "success": 10, "failure": 2, "in_progress": 1 },
+  "workflows": [
+    { "name": "CI", "run_id": 38708905642, "status": "in_progress", "success_jobs": 7, "in_progress_jobs": ["Rust / macos-15-intel"], "url": "https://github.com/frapposelli/claude-autorouter/actions/runs/38708905642" },
+    { "name": "Rust GNU portability", "run_id": 38708905476, "status": "completed", "conclusion": "success", "url": "https://github.com/frapposelli/claude-autorouter/actions/runs/38708905476" },
+    { "name": "Rust 32-bit core arithmetic", "run_id": 38708905379, "status": "completed", "conclusion": "success", "url": "https://github.com/frapposelli/claude-autorouter/actions/runs/38708905379" },
+    { "name": "Rust musl portability", "run_id": 38708905632, "status": "completed", "conclusion": "failure", "url": "https://github.com/frapposelli/claude-autorouter/actions/runs/38708905632" }
+  ],
+  "private_workflow_observations": [
+    { "path": "artifacts/rust-rewrite/ci-efcbd66-audit/38708905642-checkpoint.json", "bytes": 36980, "sha256": "f3065051e0a55d0fdc4405307f62d36589146697e3e2f7203c643f6bf7c8bc57" },
+    { "path": "artifacts/rust-rewrite/ci-efcbd66-audit/38708905476-checkpoint.json", "bytes": 17046, "sha256": "64f048b5a763148d42b0712b04dbc0adb9b9de811b3f6e15222884c6c2dc1721" },
+    { "path": "artifacts/rust-rewrite/ci-efcbd66-audit/38708905379-checkpoint.json", "bytes": 2398, "sha256": "2f18d5ec5c5773de7e77d3756633c9b12d12e504cf63f4b48c63642558b40dd4" },
+    { "path": "artifacts/rust-rewrite/ci-efcbd66-audit/38708905632-checkpoint.json", "bytes": 5486, "sha256": "75151376c612b199058d3c36628c8d8180f2a822c9c3f9ea0d11ab6d755ba79b" }
+  ],
+  "passing_scope": [
+    "All four protected Node jobs, three of four ordinary Rust jobs, both GNU glibc 2.28 jobs and the i686 core-only job were terminal successes at this observation. The macOS Intel Rust job was still running its installed npm lifecycle.",
+    "Both musl jobs passed the previously failing Alpine package-index pin, the combined offline native build/static inspection/synthetic transport/installed lifecycle step and the separate genuine GNU-control audit. Their same-path reproduction checks are included in the passed combined step; this does not prove build-path independence.",
+    "Both GNU-host mixed npm archive smokes passed all seven installed launcher suites before the final independent mixed-dispatch probe failed."
+  ],
+  "musl_probe_failures": [
+    { "target": "aarch64-unknown-linux-musl", "job_id": 116335109462, "witness": { "path": "artifacts/rust-rewrite/ci-efcbd66-audit/38708905632-musl-arm-dispatch-failure.json", "bytes": 653, "sha256": "afb7691c208908a197e19d6da1854c599ddd2e4ddef447001208401568d9afc1" }, "mixed_archive_smoke": { "path": "artifacts/rust-rewrite/ci-efcbd66-audit/38708905632-musl-arm-mixed-npm-smoke.json", "bytes": 7131, "sha256": "d1ff1064ca8631863b48cb3a4140ba680343297bd38c1088c0b1af166d5c6044" } },
+    { "target": "x86_64-unknown-linux-musl", "job_id": 116335109952, "witness": { "path": "artifacts/rust-rewrite/ci-efcbd66-audit/38708905632-musl-x86-dispatch-failure.json", "bytes": 652, "sha256": "b1509ce7c621f11a96c03e247f6042a8af038e09ee9612beff27308a11571786" }, "mixed_archive_smoke": { "path": "artifacts/rust-rewrite/ci-efcbd66-audit/38708905632-musl-x86-mixed-npm-smoke.json", "bytes": 8798, "sha256": "435474a6c82a38f08a8fab6cc72fe0dc0a5e258c834e8f8340345cdb435184b6" } }
+  ],
+  "probe_diagnosis": "Both private witnesses record phase=serve_readiness, error_code=ERR_ASSERTION, serve_spawned=true, readiness_observed=false, child_exit_code=1, no signal or stderr overflow, and completed owned cleanup. The probe explicitly supplied AUTOROUTER_CONFIG pointing at a missing file. Product launch uses LoadOptions::default() with allow_missing=false and rejects that explicit missing path before serving. This is a test-environment defect, not evidence of incorrect mixed-artifact binary selection; that selection is still unproved by the failed independent probe. A later local correction omits the variable while fresh HOME and XDG_CONFIG_HOME isolate the default optional config; it requires fresh CI.",
+  "limits": "This is a timed checkpoint, not a terminal thirteen-job result: macOS Intel remained in progress. The two musl workflows remain failed despite their passing earlier steps. No current-source full matrix, minimum OS/kernel/CPU/WSL/corporate-CA qualification, numerical performance acceptance, real-provider/task-quality approval, final artifact/licensing/provenance approval or default cutover follows."
+}

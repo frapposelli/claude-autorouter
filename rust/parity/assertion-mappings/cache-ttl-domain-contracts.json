@@ -1,0 +1,535 @@
+{
+  "schema_version": 1,
+  "kind": "supplemental_extreme_cache_ttl_embedding_bound",
+  "status": "reviewed_supplemental_extreme_ttl_correctness",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "correction_base_commit": "1fec5492e9ca06837ed502ba739f9368e79ecd82",
+  "scope": "One observed direct-embedding TokenCounter arithmetic/poison defect and matching checked Classifier expiry representation. Supplemental resource/API-domain controls; no original-test assertion row is promoted by this mapping.",
+  "covered_original_tests": [],
+  "original_assertions_promoted": 0,
+  "problem": "Duration::MAX was accepted by public CacheOptions. Successful bounded count/body consumption then panicked on unchecked Instant addition while holding the cache mutex; identical second call panicked on the poisoned mutex. On this actual host, exact u64MAX milliseconds was representable and both APIs cached successfully.",
+  "change": "Store Option<Instant>; checked_add Some keeps exact expiry comparison, checked_add None retains the successful entry until normal capacity/touched-LRU eviction or owner lifetime ends. Do not refetch, clamp TTL, change provider timers or disable cancellation.",
+  "pre_fix": {
+    "summary": {
+      "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-pre-fix-summary.json",
+      "bytes": 12771,
+      "sha256": "f5429d74b73dc9659bd47e22f946f40a800b2c9af2a6c9e4b6b0e2ad6743df30"
+    },
+    "execution": {
+      "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-pre-fix-1/execution.json",
+      "bytes": 26423,
+      "sha256": "4ab6d1c1b212a0e612819e1ba6655e67498d60ba0dea8f3e49860bc6a4c4f8db"
+    },
+    "rejected_no_cache_candidate": {
+      "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/checked-cache-expiry.candidate.patch",
+      "bytes": 1903,
+      "sha256": "bc348e35f1692df84914939f40471e9bf15f7169350bbc39c70cf5e497c616ea"
+    },
+    "old_rejected_proposal_report": {
+      "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/audit-draft.json",
+      "bytes": 13484,
+      "sha256": "1af34351a8824fd1ee47e78ab19ed3aeb794e6e1f56488f567511efdd513e36e"
+    },
+    "reason_rejected": "No insertion on overflow would refetch same-body successful results and diverge from source availability/call/usage semantics."
+  },
+  "source_controls": {
+    "default_and_domain_cases": 26,
+    "public_calls": 78,
+    "synthetic_transport_calls": 40,
+    "large_ttl_lru_zero_cancellation_cases": 4,
+    "additional_public_calls": 20,
+    "additional_synthetic_transport_calls": 12,
+    "generators": [
+      {
+        "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/source-controls.mjs",
+        "bytes": 6033,
+        "sha256": "d26a45fda98f4afe0c3945a5ba09531d9d8c21b8803140cd32523b94db10c943"
+      },
+      {
+        "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/source-large-ttl-controls.mjs",
+        "bytes": 5912,
+        "sha256": "249692f6855094f9d8ae7c57e3a94905527067c63241ff0d5425974e846811eb"
+      }
+    ],
+    "results": [
+      {
+        "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/source-observations.json",
+        "bytes": 96363,
+        "sha256": "8663892596fd5aa95c2808f098160b74fd17424999509f6cbc0f427b65a112c2"
+      },
+      {
+        "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/source-controls.log",
+        "bytes": 203,
+        "sha256": "70a678666ff214e2639c88810c0caf4993e351ba9946af3da23d080955448f6d"
+      },
+      {
+        "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/source-large-ttl-observations.json",
+        "bytes": 27449,
+        "sha256": "3f9c55f0f874920b1d65cf3f8ef0e6b2dcb59c889e5d27ba15c3b9b4d8ddb94a"
+      },
+      {
+        "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/source-large-ttl-controls.log",
+        "bytes": 107,
+        "sha256": "2513b8011c6a02f99da3ad0fc2332caf1506f5a9581c58bce6e349ce4ac0a34e"
+      }
+    ],
+    "baseline_files_verified_before_after_each_capture": 111
+  },
+  "native_controls": {
+    "new_tests": 11,
+    "public_api_operations": 34,
+    "provider_wire_calls_exactly_compared": 21,
+    "body_destruction_witnesses": 21,
+    "successful_owned_classifier_closes": 5,
+    "actual_None_controls": 3,
+    "observed_host": "aarch64-apple-darwin with pinned rustc1.99.0 and Tokio1.53.2",
+    "compiler_debug_library_identity_limits": "Pre-fix private executable/debug libraries are hash-bound with actual Cargo dependency fingerprints and exact compiler identity. Existing library selection is not asserted to establish shipping source-to-binary linkage. Final guard target was freshly compiled by locked/offline Cargo from recorded source inputs.",
+    "tests": [
+      {
+        "id": "token_default",
+        "test": {
+          "path": "rust/crates/autorouter-runtime/tests/cache_ttl_domain_contracts.rs",
+          "bytes": 19585,
+          "sha256": "3a0975b7b6f7d3044d66d7fd7e6e3f03737dfe4337fb6230439e2b296a714d8d",
+          "line": 295,
+          "fragment": "async fn token_default()",
+          "fragment_sha256": "b8709b8b439bbfadafe72666ebc88b7db597ef0779e81349b6f79ae823fda974"
+        },
+        "checked_add_representable_on_observed_host": true,
+        "native_raw": {
+          "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-2/native-token_default.json",
+          "bytes": 2411,
+          "sha256": "ab4a54dca8cd32f85278edfa7a502ea1bcc066813f8622178706939cee70629e"
+        },
+        "provider_calls": 1,
+        "body_drop_witnesses": 1,
+        "complete_provider_wire_equal": true,
+        "source_input_domain_exact_equality_claim": true
+      },
+      {
+        "id": "token_zero_ttl",
+        "test": {
+          "path": "rust/crates/autorouter-runtime/tests/cache_ttl_domain_contracts.rs",
+          "bytes": 19585,
+          "sha256": "3a0975b7b6f7d3044d66d7fd7e6e3f03737dfe4337fb6230439e2b296a714d8d",
+          "line": 299,
+          "fragment": "async fn token_zero_ttl()",
+          "fragment_sha256": "1cedbb0a0d89d7379ae0e3897a7a069ab09c9e39e683b56f44cce725c03bf271"
+        },
+        "checked_add_representable_on_observed_host": true,
+        "native_raw": {
+          "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-2/native-token_zero_ttl.json",
+          "bytes": 3274,
+          "sha256": "abc7c4d31640216bd4fbb91ff566625b03966cb59d616c45f25ea8436b550205"
+        },
+        "provider_calls": 2,
+        "body_drop_witnesses": 2,
+        "complete_provider_wire_equal": true,
+        "source_input_domain_exact_equality_claim": true
+      },
+      {
+        "id": "token_duration_max",
+        "test": {
+          "path": "rust/crates/autorouter-runtime/tests/cache_ttl_domain_contracts.rs",
+          "bytes": 19585,
+          "sha256": "3a0975b7b6f7d3044d66d7fd7e6e3f03737dfe4337fb6230439e2b296a714d8d",
+          "line": 303,
+          "fragment": "async fn token_duration_max()",
+          "fragment_sha256": "d30c625dffb7830d66b63adfceec2648ee7357d6e14f16ac8a3b83236e10f83c"
+        },
+        "checked_add_representable_on_observed_host": false,
+        "native_raw": {
+          "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-2/native-token_duration_max.json",
+          "bytes": 2500,
+          "sha256": "9bb681463e2da2be6c151d702c1a18875ce8098a6368f1b85aaa3b02ae6da16a"
+        },
+        "provider_calls": 1,
+        "body_drop_witnesses": 1,
+        "complete_provider_wire_equal": true,
+        "source_input_domain_exact_equality_claim": false
+      },
+      {
+        "id": "token_u64_max_millis",
+        "test": {
+          "path": "rust/crates/autorouter-runtime/tests/cache_ttl_domain_contracts.rs",
+          "bytes": 19585,
+          "sha256": "3a0975b7b6f7d3044d66d7fd7e6e3f03737dfe4337fb6230439e2b296a714d8d",
+          "line": 307,
+          "fragment": "async fn token_u64_max_millis()",
+          "fragment_sha256": "0e235d3c49580f3c763f13aa2386866545f299a9205af1d5f4c9b30924fc5132"
+        },
+        "checked_add_representable_on_observed_host": true,
+        "native_raw": {
+          "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-2/native-token_u64_max_millis.json",
+          "bytes": 2440,
+          "sha256": "f8a327c0046fdf221fada688c0515edd1ee7ac7080453ec82a2d310e56000904"
+        },
+        "provider_calls": 1,
+        "body_drop_witnesses": 1,
+        "complete_provider_wire_equal": true,
+        "source_input_domain_exact_equality_claim": false
+      },
+      {
+        "id": "classifier_default",
+        "test": {
+          "path": "rust/crates/autorouter-runtime/tests/cache_ttl_domain_contracts.rs",
+          "bytes": 19585,
+          "sha256": "3a0975b7b6f7d3044d66d7fd7e6e3f03737dfe4337fb6230439e2b296a714d8d",
+          "line": 316,
+          "fragment": "async fn classifier_default()",
+          "fragment_sha256": "4bdd83a6fd6eea99e649deb24122123d9b14c2a33d61d60c8f1d8ab7f86463a6"
+        },
+        "checked_add_representable_on_observed_host": true,
+        "native_raw": {
+          "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-2/native-classifier_default.json",
+          "bytes": 6473,
+          "sha256": "b3a0ff3d8bf73b39db27e52fc1147369c8cda08964e2c9907a334782ddbf07c3"
+        },
+        "provider_calls": 1,
+        "body_drop_witnesses": 1,
+        "complete_provider_wire_equal": true,
+        "source_input_domain_exact_equality_claim": true
+      },
+      {
+        "id": "classifier_zero_ttl",
+        "test": {
+          "path": "rust/crates/autorouter-runtime/tests/cache_ttl_domain_contracts.rs",
+          "bytes": 19585,
+          "sha256": "3a0975b7b6f7d3044d66d7fd7e6e3f03737dfe4337fb6230439e2b296a714d8d",
+          "line": 320,
+          "fragment": "async fn classifier_zero_ttl()",
+          "fragment_sha256": "f181fa78f6a8cb8ed65785f7eb347e466ff9dcc610e1249785112d3ba3693872"
+        },
+        "checked_add_representable_on_observed_host": true,
+        "native_raw": {
+          "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-2/native-classifier_zero_ttl.json",
+          "bytes": 9466,
+          "sha256": "257011512c47e5e9689dde9e261e1aaef36a51a184174fd606c890de6e0dfdbd"
+        },
+        "provider_calls": 2,
+        "body_drop_witnesses": 2,
+        "complete_provider_wire_equal": true,
+        "source_input_domain_exact_equality_claim": true
+      },
+      {
+        "id": "classifier_u64_max_millis",
+        "test": {
+          "path": "rust/crates/autorouter-runtime/tests/cache_ttl_domain_contracts.rs",
+          "bytes": 19585,
+          "sha256": "3a0975b7b6f7d3044d66d7fd7e6e3f03737dfe4337fb6230439e2b296a714d8d",
+          "line": 324,
+          "fragment": "async fn classifier_u64_max_millis()",
+          "fragment_sha256": "72c30b4058cc529ca96982d246c1adfb2e545d16c28eca862d4a52c6446a6cea"
+        },
+        "checked_add_representable_on_observed_host": true,
+        "native_raw": {
+          "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-2/native-classifier_u64_max_millis.json",
+          "bytes": 6502,
+          "sha256": "44af436576ab778948eea16fe9d0c69db5e264a945803721900c84f0e62069ca"
+        },
+        "provider_calls": 1,
+        "body_drop_witnesses": 1,
+        "complete_provider_wire_equal": true,
+        "source_input_domain_exact_equality_claim": false
+      },
+      {
+        "id": "token_duration_max_capacity2_lru_and_cancellation",
+        "test": {
+          "path": "rust/crates/autorouter-runtime/tests/cache_ttl_domain_contracts.rs",
+          "bytes": 19585,
+          "sha256": "3a0975b7b6f7d3044d66d7fd7e6e3f03737dfe4337fb6230439e2b296a714d8d",
+          "line": 498,
+          "fragment": "async fn token_duration_max_capacity2_lru_and_cancellation()",
+          "fragment_sha256": "c0276b39c16917ceda1ab48495dee45d9b2308da6e81ebbfb503d0122730b4cc"
+        },
+        "checked_add_representable_on_observed_host": false,
+        "native_raw": {
+          "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-2/native-token_duration_max_capacity2_lru_and_cancellation.json",
+          "bytes": 15943,
+          "sha256": "8505837d6cfb9e8995a0b71f0504f3b2600c9a6f4c84341382d08c9e4a0adb0e"
+        },
+        "provider_calls": 4,
+        "body_drop_witnesses": 4,
+        "complete_provider_wire_equal": true,
+        "source_input_domain_exact_equality_claim": false
+      },
+      {
+        "id": "token_duration_max_zero_capacity",
+        "test": {
+          "path": "rust/crates/autorouter-runtime/tests/cache_ttl_domain_contracts.rs",
+          "bytes": 19585,
+          "sha256": "3a0975b7b6f7d3044d66d7fd7e6e3f03737dfe4337fb6230439e2b296a714d8d",
+          "line": 502,
+          "fragment": "async fn token_duration_max_zero_capacity()",
+          "fragment_sha256": "85b506c6d318ca4d116672187ab9a7ae3ba2529a598744b0f79485ca6ad92815"
+        },
+        "checked_add_representable_on_observed_host": false,
+        "native_raw": {
+          "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-2/native-token_duration_max_zero_capacity.json",
+          "bytes": 3804,
+          "sha256": "515e3b51da9dd8dc0ac64b71db4d796b0aee97be52f8cfbf5e3bf22e7f201533"
+        },
+        "provider_calls": 2,
+        "body_drop_witnesses": 2,
+        "complete_provider_wire_equal": true,
+        "source_input_domain_exact_equality_claim": false
+      },
+      {
+        "id": "classifier_u64_max_capacity2_lru_and_cancellation",
+        "test": {
+          "path": "rust/crates/autorouter-runtime/tests/cache_ttl_domain_contracts.rs",
+          "bytes": 19585,
+          "sha256": "3a0975b7b6f7d3044d66d7fd7e6e3f03737dfe4337fb6230439e2b296a714d8d",
+          "line": 506,
+          "fragment": "async fn classifier_u64_max_capacity2_lru_and_cancellation()",
+          "fragment_sha256": "4d6a65fb77624e1d36d0253fef35706c131d0f64837ca03224cc6bf4b688d70b"
+        },
+        "checked_add_representable_on_observed_host": true,
+        "native_raw": {
+          "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-2/native-classifier_u64_max_capacity2_lru_and_cancellation.json",
+          "bytes": 46855,
+          "sha256": "c8a4916e1a45c17f007c82addd3eddd7c2844b6691450388cff135cd23f99bd6"
+        },
+        "provider_calls": 4,
+        "body_drop_witnesses": 4,
+        "complete_provider_wire_equal": true,
+        "source_input_domain_exact_equality_claim": false
+      },
+      {
+        "id": "classifier_u64_max_zero_capacity",
+        "test": {
+          "path": "rust/crates/autorouter-runtime/tests/cache_ttl_domain_contracts.rs",
+          "bytes": 19585,
+          "sha256": "3a0975b7b6f7d3044d66d7fd7e6e3f03737dfe4337fb6230439e2b296a714d8d",
+          "line": 510,
+          "fragment": "async fn classifier_u64_max_zero_capacity()",
+          "fragment_sha256": "96ec7546771a710e9fefd23a67a0ea1bd16d7ec126dca4d2e77231bee2933260"
+        },
+        "checked_add_representable_on_observed_host": true,
+        "native_raw": {
+          "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-2/native-classifier_u64_max_zero_capacity.json",
+          "bytes": 9841,
+          "sha256": "28919d8447e8403dce36dfc27b4ad727766d24701685870dc6b339da4612b3ba"
+        },
+        "provider_calls": 2,
+        "body_drop_witnesses": 2,
+        "complete_provider_wire_equal": true,
+        "source_input_domain_exact_equality_claim": false
+      }
+    ]
+  },
+  "enforcement_anchors": [
+    {
+      "path": "artifacts/rust-rewrite/reference/src/router.mjs",
+      "bytes": 27898,
+      "sha256": "aebf10268348f00b6c8cdc82ef9ced2d60c8e1cc0ddeee7c3498bcaf100b9d56",
+      "line": 114,
+      "fragment": "    if (entry.expires <= Date.now()) { this.values.delete(key); return undefined; }\n    this.values.delete(key);\n    this.values.set(key, entry);",
+      "fragment_sha256": "1b6945127075619f94960cd2a52c7b035f63c4d0be285f72049a7d3a0336e2fa"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/src/router.mjs",
+      "bytes": 27898,
+      "sha256": "aebf10268348f00b6c8cdc82ef9ced2d60c8e1cc0ddeee7c3498bcaf100b9d56",
+      "line": 121,
+      "fragment": "    this.values.set(key, { value, expires: Date.now() + this.ttl });\n    while (this.values.size > this.limit) this.values.delete(this.values.keys().next().value);",
+      "fragment_sha256": "d9541c4ae0c996dd789678a8fdc667b649138f5123f3029d922e5bd5756903c1"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/src/token-counter.mjs",
+      "bytes": 6113,
+      "sha256": "2eb82afbfdd0677135f9e73fbf58692a2e78c7932c500602000b022a0fa3fb73",
+      "line": 76,
+      "fragment": "  const cacheEntries = config.tokenCountCacheEntries ?? 100;\n  const cacheTtlMs = config.tokenCountCacheTtlMs ?? 5 * 60 * 1000;",
+      "fragment_sha256": "bb49b7c92f4ba07354771e292efd34e8f4fc9df3453cbbd0b5d37071a5ef3bee"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/src/token-counter.mjs",
+      "bytes": 6113,
+      "sha256": "2eb82afbfdd0677135f9e73fbf58692a2e78c7932c500602000b022a0fa3fb73",
+      "line": 103,
+      "fragment": "        if (cached.expires > Date.now()) { cache.set(key, cached); return cached.count; }",
+      "fragment_sha256": "0b10e6cd67f37c747a91ff6575735320fc31658b51e68d7eb5c09242732460ff"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/src/token-counter.mjs",
+      "bytes": 6113,
+      "sha256": "2eb82afbfdd0677135f9e73fbf58692a2e78c7932c500602000b022a0fa3fb73",
+      "line": 118,
+      "fragment": "          cache.set(key, { count, expires: Date.now() + cacheTtlMs });\n          while (cache.size > cacheEntries) cache.delete(cache.keys().next().value);",
+      "fragment_sha256": "d47d6afa061c420b17c032f00e22729d4a69244da6ad9740a52efd7974f1c65a"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+      "bytes": 39996,
+      "sha256": "776837882cb925ab634c76e0470d9b94551de144f7bafa9acab28d65b72dfe2d",
+      "line": 87,
+      "fragment": "    expires: Option<Instant>,",
+      "fragment_sha256": "e5bf79c26f8ae345bec5a45769349929ca31f84676573a34c738ef95fe60693b"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+      "bytes": 39996,
+      "sha256": "776837882cb925ab634c76e0470d9b94551de144f7bafa9acab28d65b72dfe2d",
+      "line": 106,
+      "fragment": "        if cached\n            .expires\n            .is_some_and(|expires| expires <= Instant::now())\n        {\n            return None;\n        }",
+      "fragment_sha256": "a8fcddfe3813e0c3a5afd7a0d490ef7473ca4d5aa5f647a3472639d6d29bbd3a"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/classifier.rs",
+      "bytes": 39996,
+      "sha256": "776837882cb925ab634c76e0470d9b94551de144f7bafa9acab28d65b72dfe2d",
+      "line": 125,
+      "fragment": "                expires: Instant::now().checked_add(ttl),",
+      "fragment_sha256": "6b69df796a28180d9e29f8eedd6f2e61ca8ce74412c47470f290881d3d5ba03f"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/token_counter.rs",
+      "bytes": 44249,
+      "sha256": "1e47e6596ec9d230a2cacd0d4b9f9efc1e6a2f2195f963e33d2e9d350a31728e",
+      "line": 237,
+      "fragment": "    expires: Option<Instant>,",
+      "fragment_sha256": "e5bf79c26f8ae345bec5a45769349929ca31f84676573a34c738ef95fe60693b"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/token_counter.rs",
+      "bytes": 44249,
+      "sha256": "1e47e6596ec9d230a2cacd0d4b9f9efc1e6a2f2195f963e33d2e9d350a31728e",
+      "line": 248,
+      "fragment": "        if entry\n            .expires\n            .is_some_and(|expires| expires <= Instant::now())\n        {\n            return None;\n        }",
+      "fragment_sha256": "370c2d55132b9692d0a4f3abfbd54811c8661c92a9c0c4b52c046f5b7e5adbfe"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/token_counter.rs",
+      "bytes": 44249,
+      "sha256": "1e47e6596ec9d230a2cacd0d4b9f9efc1e6a2f2195f963e33d2e9d350a31728e",
+      "line": 265,
+      "fragment": "                expires: Instant::now().checked_add(options.ttl),",
+      "fragment_sha256": "180d6fe02e7efd3a3f8c6a67379376903cb8d0e4e2ef439c15f63a21b3178095"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/token_counter.rs",
+      "bytes": 44249,
+      "sha256": "1e47e6596ec9d230a2cacd0d4b9f9efc1e6a2f2195f963e33d2e9d350a31728e",
+      "line": 387,
+      "fragment": "        self.cache.lock().unwrap().insert(key, count, self.options);\n        Some(count)",
+      "fragment_sha256": "a87c3446a84e093f408ccaccf5c62936a2dc997783e43abc46f9a09ea1870fca"
+    }
+  ],
+  "preserved_boundary_controls": {
+    "mapping": {
+      "path": "rust/parity/assertion-mappings/cache-boundary-contracts.json",
+      "bytes": 41616,
+      "sha256": "bcc648981a4e0c4652dd86278cccb332ab039e6e1172f006bda5bfceaaf11c7b"
+    },
+    "target": {
+      "path": "rust/crates/autorouter-runtime/tests/cache_boundary_contracts.rs",
+      "bytes": 19415,
+      "sha256": "3b6cbb896898f4d991c78b55db6d77bb2fbb3af29cefacd98a9bc41df783b4ab"
+    },
+    "required": "Original default capacities1000/1001 classifier and100/101 count, touched-LRU,299999/300000 equality and just-after,zero TTL/capacity,active-human/tool ownership and confirmed state under unrelated churn. All five tests passed unchanged after guard."
+  },
+  "checks": [
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-2/test.log",
+        "bytes": 2180,
+        "sha256": "758cd8813b8d2a3f5ccedc2afb78da7ac71edb7636079877550932b7e9fce5c8"
+      },
+      "test_count": 11,
+      "phase": "final formatted source"
+    },
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-1/cache-boundary.log",
+        "bytes": 1222,
+        "sha256": "5ae39711fa7df701d79adc2402f5f77946835bd0fcf8ffafc09cd4f205cbe728"
+      },
+      "test_count": 5,
+      "phase": "pre-format equivalent guard source (only rustfmt layout changed afterward)"
+    },
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-1/classifier-unit.log",
+        "bytes": 3177,
+        "sha256": "da31ecbe9993b8dd6a5ff9446e41482359619505d3fdae0c80c9a0bc6a4c1284"
+      },
+      "test_count": 23,
+      "phase": "pre-format equivalent guard source (only rustfmt layout changed afterward)"
+    },
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-1/token-counter-unit-loopback.log",
+        "bytes": 2307,
+        "sha256": "40a1cdf7f4ac46c8c5784bf8f028118046314d0b6d057c9e2287f8cfdc2e3952"
+      },
+      "test_count": 15,
+      "phase": "pre-format equivalent guard source (only rustfmt layout changed afterward)"
+    },
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-2/clippy.log",
+        "bytes": 670,
+        "sha256": "ad5b95a464454efbce06769a00422a2b91efad906fdb245f438744511fee4980"
+      },
+      "status": "passed",
+      "phase": "final formatted source"
+    },
+    {
+      "log": {
+        "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-2/fmt.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "status": "passed",
+      "phase": "final formatted source"
+    }
+  ],
+  "preserved_prior_failures": [
+    {
+      "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-setup-failure-1.log",
+      "bytes": 247,
+      "sha256": "59f79c1f7ec04518bc2b0e16fa15c2d5a3352ed37b42b14ed3f5631f13e8e3a0"
+    },
+    {
+      "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-1/fmt.log",
+      "bytes": 1080,
+      "sha256": "195cb3dca838a1db7676b82a3caee773ee2de06d26f4cefb0dbbb0ed0326e3b0"
+    },
+    {
+      "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/native-postguard-1/token-counter-unit.log",
+      "bytes": 2978,
+      "sha256": "d28d219ca7d91e97ac32fe29ded90d166bac520afd7fdc55e38465cae9b9ee96"
+    }
+  ],
+  "private_execution_report": {
+    "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/execution-report.json",
+    "bytes": 10828,
+    "sha256": "de0530224fcf86395a50d52b2ed393fcb849426f08d211e38d38dafefc3e6a09"
+  },
+  "private_full_comparison": {
+    "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/source-native-comparison.json",
+    "bytes": 43431,
+    "sha256": "d3590fa1f6c3fe7e0e52d44594649bf4c08e4766ee1806b02306d331640fdaac"
+  },
+  "comparison_rules": [
+    "All overlapping provider URL/method/header values, request UTF8 bytes and response UTF8 bytes compare exactly. Provider bytes are never normalized.",
+    "All full successful decision/count results compare after finite scalar number tags validate original binary64 bits and safe integer round trips. TTL/expiry values stay raw and are not compared as equal across native/JS clock domains.",
+    "Original source13 TTL variants have three calls; the seven original native controls replay the first two. Source-only third1ms calls remain raw; complete fixed300000 expiry equality/before/after is separately qualified by the unchanged default cache boundary schedules.",
+    "Source already-cancelled count returns undefined; native returns Option::None. Source classifier rejects with DOMException AbortError fields; native returns EvaluationError::Cancelled. These exact API shapes stay separately recorded; both skip cache/network and leave the retained value for an uncancelled call.",
+    "Source JSDoc number TTL permits fractions,negatives,NaN,Infinity; native classifieru64 and countDuration have different nonnegative domains. Source rounded u64MAX decimal is2^64 as binary64, not exact nativeu64MAX. Undefined/null raw embedding violations and NaN classifier-vs-count expiry differences remain explicit.",
+    "CLI TTL defaults remain300000 and expose no TTL override keys; the None sentinel is an internal representability result, not a new unlimited user setting. Some/default/zero/LRU/count byte ceilings/deadlines/cancellation remain unchanged."
+  ],
+  "limits": "Focused synthetic correctness and source/native domain evidence only. Root and an independent reviewer verified realNone cache reuse, eviction, cancellation, file/fragment bindings and overlapping provider bytes. No original-definition promotion, full checkpoint, shipping archive, platform, real model/task or release qualification.",
+  "independent_review": {
+    "root": {
+      "path": "artifacts/rust-rewrite/cache-ttl-domain-audit-20261014/root-independent-review.json",
+      "bytes": 476,
+      "sha256": "fb384272138373239edaa2f2c9679935c86c1f554bb568c41d4189fe8f1cd326"
+    },
+    "peer": "rust_distribution_audit",
+    "peer_verified_file_bindings": 57,
+    "peer_verified_fragment_anchors": 23,
+    "material_defects_found": 0
+  }
+}

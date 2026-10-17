@@ -1,0 +1,223 @@
+{
+  "schema_version": 1,
+  "kind": "frozen_server_subscription_input_extraction",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "baseline_file": "test/server.test.mjs",
+  "baseline_file_sha256": "b82681e2383f3466d66f9801745d4e62fb45d20065f136804f677089f2d41809",
+  "generator_sha256": "1d97e87b3b67c6c18ffd0eb15a7776c551b56766764374b647b296f5c9daae24",
+  "node_version": "v22.14.0",
+  "typescript_version": "6.0.3",
+  "cases_sha256": "9ac909139dcbc8ff1cac25393e684f52ff4bf95d2dc6b2b0f77752c8693104da",
+  "cases": 4,
+  "original_callbacks_executed": 0,
+  "static_assertions": 24,
+  "definitions": [
+    {
+      "number": 11,
+      "id": "test/server.test.mjs#11",
+      "name": "subscription rejects missing local or OAuth credentials and API-key conflicts before evaluation",
+      "line": 357,
+      "definition_statement": "test('subscription rejects missing local or OAuth credentials and API-key conflicts before evaluation', async t => {\n  const f = await fixture(t, () => assert.fail('Must not reach upstream'), { authMode: 'subscription' });\n  for (const headers of [\n    {},\n    { ...oauthHeaders, 'x-autorouter-token': '' },\n    { ...oauthHeaders, 'x-autorouter-token': 'incorrect' },\n    { ...oauthHeaders, authorization: `Bearer ${token}`, 'x-autorouter-token': '' },\n    { ...oauthHeaders, 'x-api-key': 'billable-api-key' },\n    { ...oauthHeaders, 'anthropic-beta': 'unrelated-beta' },\n  ]) {\n    const response = await f.call('/v1/messages', { method: 'POST', headers, body: JSON.stringify(body) });\n    assert.equal(response.status, 401);\n    assert.ok(!(await response.text()).includes('billable-api-key'));\n  }\n  assert.equal((await f.call('/health')).status, 200);\n  assert.equal((await f.call('/api/hello', { method: 'HEAD' })).status, 200);\n  assert.equal(f.evaluations(), 0);\n});",
+      "definition_sha256": "f168ef81eb1df82d5c543e0cbd08bc2c85446ddb0ef4c1833ea32b2fcb482458",
+      "definition_call_sha256": "d98f9b75ad422688c49e3abb37f10e972b1054810e6a59ab8d36d98433959ae3",
+      "assertions": [
+        {
+          "line": 358,
+          "expression": "assert.fail('Must not reach upstream')",
+          "sha256": "fc761ec4108f8ae31dcc63ae767e4fee134ebef5f261e8d3f6313ed21a1e7c86"
+        },
+        {
+          "line": 368,
+          "expression": "assert.equal(response.status, 401)",
+          "sha256": "281eb815f41569cb19737dbd2c4e6c411fb0de45114a73325cec2f3a9c11cf5e"
+        },
+        {
+          "line": 369,
+          "expression": "assert.ok(!(await response.text()).includes('billable-api-key'))",
+          "sha256": "8d2e73e918af08283a83ce3abfd299a116d1a017ed0f3879f920adc993e33c54"
+        },
+        {
+          "line": 371,
+          "expression": "assert.equal((await f.call('/health')).status, 200)",
+          "sha256": "693f423088eb6e631319962f40fbf942953e49c6fc5360ebf4f89eda8965bf1e"
+        },
+        {
+          "line": 372,
+          "expression": "assert.equal((await f.call('/api/hello', { method: 'HEAD' })).status, 200)",
+          "sha256": "f226d9a376f47d13bcf17810397de99810eed9220360bc5fbd2014d39bbf47ef"
+        },
+        {
+          "line": 373,
+          "expression": "assert.equal(f.evaluations(), 0)",
+          "sha256": "b483891e8e71725fc2a96f39c496d0c12e39d964366915d9a976f02610786fc6"
+        }
+      ]
+    },
+    {
+      "number": 12,
+      "id": "test/server.test.mjs#12",
+      "name": "subscription forwards authentication failures and quota errors without retrying with an API key",
+      "line": 376,
+      "definition_statement": "test('subscription forwards authentication failures and quota errors without retrying with an API key', async t => {\n  const statuses = [401, 429];\n  let calls = 0;\n  const f = await fixture(t, (req, res) => {\n    assert.equal(req.headers.authorization, oauthHeaders.authorization);\n    assert.equal(req.headers['x-api-key'], undefined);\n    const status = statuses[calls++];\n    res.writeHead(status, { 'content-type': 'application/json', 'retry-after': '12', 'anthropic-ratelimit-unified-status': 'rejected' });\n    res.end(JSON.stringify({ type: 'error', error: { message: `Upstream ${status}` } }));\n  }, { authMode: 'subscription' });\n  for (const status of statuses) {\n    const response = await f.call('/v1/messages', { method: 'POST', headers: oauthHeaders, body: JSON.stringify(body) });\n    assert.equal(response.status, status);\n    assert.equal(response.headers.get('retry-after'), '12');\n    assert.equal(response.headers.get('anthropic-ratelimit-unified-status'), 'rejected');\n    assert.deepEqual(await response.json(), { type: 'error', error: { message: `Upstream ${status}` } });\n  }\n  assert.equal(calls, 2);\n});",
+      "definition_sha256": "17eb60ffef917605878bfec4c9bf5194707384d28a77cf90cf440d9d895fc066",
+      "definition_call_sha256": "251710d3c1af227aaae46db5a48ae192eb41f2c01ace1ccc6f09302ecdc34f06",
+      "assertions": [
+        {
+          "line": 380,
+          "expression": "assert.equal(req.headers.authorization, oauthHeaders.authorization)",
+          "sha256": "eef89dd65a86aa771879b9ddd8d8f1b5c29b07b68f9c316c45574f2436ac645e"
+        },
+        {
+          "line": 381,
+          "expression": "assert.equal(req.headers['x-api-key'], undefined)",
+          "sha256": "5504d8ffe0ed02a9300430e2c4ac9bfdd6cb9a7dc773e00a6f0d53bdc8432e95"
+        },
+        {
+          "line": 388,
+          "expression": "assert.equal(response.status, status)",
+          "sha256": "8cc90603a2f93f8507d6057697ee39c1f2c5ba167b64bd2ef4389c4a26d06b55"
+        },
+        {
+          "line": 389,
+          "expression": "assert.equal(response.headers.get('retry-after'), '12')",
+          "sha256": "2239661c6edcdb763a42a801a909f4387a5e8f36010ccf0bbf251c24dc6de759"
+        },
+        {
+          "line": 390,
+          "expression": "assert.equal(response.headers.get('anthropic-ratelimit-unified-status'), 'rejected')",
+          "sha256": "c8060bd82f6fe2c8ba9d3dcde6d7db588f085f461901bcd7e9608aecb3a3221b"
+        },
+        {
+          "line": 391,
+          "expression": "assert.deepEqual(await response.json(), { type: 'error', error: { message: `Upstream ${status}` } })",
+          "sha256": "5352ce4e42b3e304f12b1e019518b3e3ddf3660196026ac9da8ec40fb7389d34"
+        },
+        {
+          "line": 393,
+          "expression": "assert.equal(calls, 2)",
+          "sha256": "c8b851444fdd4f05a405c7747fa840311b10224c0e0db81fe1aec79a2d3d7382"
+        }
+      ]
+    },
+    {
+      "number": 13,
+      "id": "test/server.test.mjs#13",
+      "name": "subscription model discovery and token counting use the same OAuth forwarding without Jev",
+      "line": 396,
+      "definition_statement": "test('subscription model discovery and token counting use the same OAuth forwarding without Jev', async t => {\n  const f = await fixture(t, async (req, res) => {\n    assert.equal(req.headers.authorization, oauthHeaders.authorization);\n    assert.equal(req.headers['anthropic-beta'], oauthHeaders['anthropic-beta']);\n    assert.equal(req.headers['x-autorouter-token'], undefined);\n    if (req.method === 'POST') {\n      let text = ''; for await (const chunk of req) text += chunk;\n      assert.deepEqual(JSON.parse(text), body);\n    }\n    res.writeHead(200, { 'content-type': 'application/json' }); res.end('{}');\n  }, { authMode: 'subscription' });\n  assert.equal((await f.call('/v1/models', { headers: oauthHeaders })).status, 200);\n  assert.equal((await f.call('/v1/messages/count_tokens', { method: 'POST', headers: oauthHeaders, body: JSON.stringify(body) })).status, 200);\n  assert.equal(f.evaluations(), 0);\n});",
+      "definition_sha256": "c2c3aa22cf63da82ff3dbfe4bf26180963e74c2ad25e2c16c3b40ef534b1850c",
+      "definition_call_sha256": "03941c11f1deb809e60e0c2d8a064777aedb3ee292ad8ac3de9d229995f97a0c",
+      "assertions": [
+        {
+          "line": 398,
+          "expression": "assert.equal(req.headers.authorization, oauthHeaders.authorization)",
+          "sha256": "eef89dd65a86aa771879b9ddd8d8f1b5c29b07b68f9c316c45574f2436ac645e"
+        },
+        {
+          "line": 399,
+          "expression": "assert.equal(req.headers['anthropic-beta'], oauthHeaders['anthropic-beta'])",
+          "sha256": "0a84668b34b057e1b217ebeb847cf3c7a860e9229e3ea327d50afbdd4f264b95"
+        },
+        {
+          "line": 400,
+          "expression": "assert.equal(req.headers['x-autorouter-token'], undefined)",
+          "sha256": "0cd9ed0e32b31cec139db3b3d2368936faa1d892c452e24b5e562c3403862e78"
+        },
+        {
+          "line": 403,
+          "expression": "assert.deepEqual(JSON.parse(text), body)",
+          "sha256": "5f789651c34dd95ebb754a8b1104722af2298c7823370d950bee401c7e5ead5d"
+        },
+        {
+          "line": 407,
+          "expression": "assert.equal((await f.call('/v1/models', { headers: oauthHeaders })).status, 200)",
+          "sha256": "b480b46e9d8cda758bcb229c570c3b998d16ba050af6cb2c2cc419f1d3a8c63e"
+        },
+        {
+          "line": 408,
+          "expression": "assert.equal((await f.call('/v1/messages/count_tokens', { method: 'POST', headers: oauthHeaders, body: JSON.stringify(body) })).status, 200)",
+          "sha256": "a89ecb55b7cf300a8ea8261d90f7535883ef5d05aec41342fe2d98f41d86faf6"
+        },
+        {
+          "line": 409,
+          "expression": "assert.equal(f.evaluations(), 0)",
+          "sha256": "b483891e8e71725fc2a96f39c496d0c12e39d964366915d9a976f02610786fc6"
+        }
+      ]
+    },
+    {
+      "number": 14,
+      "id": "test/server.test.mjs#14",
+      "name": "subscription accepts and preserves Claude Code turn-scoped system messages",
+      "line": 412,
+      "definition_statement": "test('subscription accepts and preserves Claude Code turn-scoped system messages', async t => {\n  const payload = { ...body, messages: [...body.messages, { role: 'system', clear_at: 'next_user_message', content: [{ type: 'text', text: 'Turn instructions' }] }] };\n  const beta = `${oauthHeaders['anthropic-beta']},mid-conversation-system-clear-at-2026-08-21`;\n  const f = await fixture(t, async (req, res) => {\n    let text = ''; for await (const chunk of req) text += chunk;\n    assert.deepEqual(JSON.parse(text).messages, payload.messages);\n    assert.equal(req.headers['anthropic-beta'], beta);\n    res.writeHead(200, { 'content-type': 'application/json' }); res.end('{}');\n  }, { authMode: 'subscription' });\n  const response = await f.call('/v1/messages', { method: 'POST', headers: { ...oauthHeaders, 'anthropic-beta': beta }, body: JSON.stringify(payload) });\n  assert.equal(response.status, 200);\n  assert.equal(f.evaluations(), 1);\n});",
+      "definition_sha256": "70ffef1c7cbb39739c9c4fd4ed94890f52fe546b98166518738766358856dbf7",
+      "definition_call_sha256": "ce112901f9857b2fbb8f281c30877f0270a6d4a58e2d6e2126219cdef1ca51aa",
+      "assertions": [
+        {
+          "line": 417,
+          "expression": "assert.deepEqual(JSON.parse(text).messages, payload.messages)",
+          "sha256": "ade277b5013c3567020117788cb9cb2650eacd20da551dca001c55bab5ee48e3"
+        },
+        {
+          "line": 418,
+          "expression": "assert.equal(req.headers['anthropic-beta'], beta)",
+          "sha256": "cbe6bcb713e3425ac553532340cb3c6cbc95c21dd0e646a66605de2f15169e77"
+        },
+        {
+          "line": 422,
+          "expression": "assert.equal(response.status, 200)",
+          "sha256": "503d187ec7538afffb689abd4b4f76cae6e78a8e95575725ea858621ef9a8735"
+        },
+        {
+          "line": 423,
+          "expression": "assert.equal(f.evaluations(), 1)",
+          "sha256": "88921c6c6c505d4ccbf95e0985d6f2895f90272e41fbd81649eecbb4e55c38d3"
+        }
+      ]
+    }
+  ],
+  "evaluated_inputs": [
+    {
+      "expression": "'local-test-token-123456789'",
+      "sha256": "79a1c14600eb0844b1f53140dab94f6d5af81a96b9be0868a2e35acb08f01ae3"
+    },
+    {
+      "expression": "{ model: 'claude-sonnet-5', stream: true, max_tokens: 1024, system: [{ type: 'text', text: 'system', cache_control: { type: 'ephemeral' } }], messages: [{ role: 'user', content: 'Fix a typo' }], tools: [{ name: 'Read', input_schema: { type: 'object' } }] }",
+      "sha256": "b1eba69f1e9e96b2c2ff37dc34aa8fca4cc0bd63b7dbf4ef2ded244461f55a0f"
+    },
+    {
+      "expression": "{ authorization: 'Bearer fake-subscription-token', 'anthropic-beta': 'oauth-2025-04-20,future-capability', 'anthropic-version': '2023-06-01' }",
+      "sha256": "a686bc0a06c7efc8f6995604fea2a273990593360163cf3516846e1f12dee635"
+    },
+    {
+      "expression": "[\n    {},\n    { ...oauthHeaders, 'x-autorouter-token': '' },\n    { ...oauthHeaders, 'x-autorouter-token': 'incorrect' },\n    { ...oauthHeaders, authorization: `Bearer ${token}`, 'x-autorouter-token': '' },\n    { ...oauthHeaders, 'x-api-key': 'billable-api-key' },\n    { ...oauthHeaders, 'anthropic-beta': 'unrelated-beta' },\n  ]",
+      "sha256": "27ed6c812033cad5227a5357e8f59067522c740b26246015a9ba2d514959bf70"
+    },
+    {
+      "expression": "[401, 429]",
+      "sha256": "64c659c925b697cd2b0ec5006c238d2c8c20531a2f2893e00a49e6fd62b3ed65"
+    },
+    {
+      "expression": "{ 'content-type': 'application/json', 'retry-after': '12', 'anthropic-ratelimit-unified-status': 'rejected' }",
+      "sha256": "2d3fa970d4a892de8765d5b47434a4061d1ef9e3c0d6a2ed260abddad1674c46"
+    },
+    {
+      "expression": "JSON.stringify({ type: 'error', error: { message: `Upstream ${status}` } })",
+      "sha256": "06e34b64872d0cda65dd9020bd3f712a4e2d8a3de98c3ea07534c4747cdea387"
+    },
+    {
+      "expression": "JSON.stringify({ type: 'error', error: { message: `Upstream ${status}` } })",
+      "sha256": "06e34b64872d0cda65dd9020bd3f712a4e2d8a3de98c3ea07534c4747cdea387"
+    },
+    {
+      "expression": "{ ...body, messages: [...body.messages, { role: 'system', clear_at: 'next_user_message', content: [{ type: 'text', text: 'Turn instructions' }] }] }",
+      "sha256": "4c476625b1b2658392f5d7ca23ac16c37c112bfb1860849ad71a251c4c8e09ed"
+    },
+    {
+      "expression": "`${oauthHeaders['anthropic-beta']},mid-conversation-system-clear-at-2026-08-21`",
+      "sha256": "070ab36e70dbde04e1dafbdb3b990192aa6a448f0c8ac7ca09fc851af0ffcc7c"
+    }
+  ],
+  "scope": "Only verified source literal/spread initializers, the original six headers, two status values and response constructor expressions are evaluated. Complete callbacks and assertions remain hash-bound; run unchanged frozen controls separately. No HTTP, reference-test or native behavior is established by input extraction alone."
+}

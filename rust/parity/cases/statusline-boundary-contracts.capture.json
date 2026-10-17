@@ -1,0 +1,818 @@
+{
+  "schema_version": 1,
+  "kind": "frozen_statusline_boundary_contracts",
+  "passed": true,
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "generator_sha256": "f8d9c8b84d5d2da9fd55f3fb1c786bf83938b5b7d825f51a61e88f27ec435951",
+  "source": {
+    "path": "test/statusline.test.mjs",
+    "sha256": "92dccb21306336bce80b6a58d4be79916f5532d219ceac9f10e83e6e70ff36d9"
+  },
+  "node_version": "v22.14.0",
+  "bounds": {
+    "calls": 256,
+    "argument_bytes": 65536,
+    "nodes": 4096,
+    "depth": 32,
+    "corpus_bytes": 1048576
+  },
+  "cases": 124,
+  "corpus_sha256": "1e2c8f8e9b3a8fcc7075f37fc37f7b1f620b741339cb364f495f2c647053b7f0",
+  "definitions": [
+    {
+      "id": "test/statusline.test.mjs#5",
+      "number": 5,
+      "name": "Ollama routes, cache hits and fallbacks identify their evaluator while keeping Claude model confirmation separate",
+      "statement_sha256": "ef8439c5724778543eba9bb39cf7450cf3d80232beaeb53afec89562c4c204c7",
+      "call_sha256": "7758ce4028e7d28c6fcef99a801cc11b819321eca5969a077d057b0593a5f4b0",
+      "selected": true,
+      "assertions": [
+        {
+          "id": "test/statusline.test.mjs#5:assert-1",
+          "expression": "assert.match(render(state), /Sonnet 5 selected · connecting · Ollama 72ms/)",
+          "sha256": "3deb78dac370c2fe38528bd47f88b94d3e02d40ef0c0f240f85f49039e9ebf51",
+          "line": 82,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#5:assert-2",
+          "expression": "assert.ok(!render(state).includes('Jev'))",
+          "sha256": "e90e2b44bd26bce2fe39a58bd654b407dd4cec7b4fa9838942ccc85f5eeb9c76",
+          "line": 83,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#5:assert-3",
+          "expression": "assert.match(guarded, /Sonnet 5 selected · connecting · Ollama→Haiku 72ms · large context/)",
+          "sha256": "5d2b0e4a46b9460881cdf10f6c6a4f5b60fd539e3c5aa109f6d8f7f357d6e369",
+          "line": 85,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#5:assert-4",
+          "expression": "assert.match(cached, /Ollama cache 0ms/)",
+          "sha256": "3d9027d9eb3df159a212739b320299a2a186c0ebc86a2016c7290586b1040625",
+          "line": 87,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#5:assert-5",
+          "expression": "assert.ok(!cached.includes('Jev'))",
+          "sha256": "5ef154a1e2ac9bc6d727f16f9b6a37bed27f3a17b26db419b103d100f6cb9352",
+          "line": 88,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#5:assert-6",
+          "expression": "assert.match(fallback, /Ollama fallback 1500ms · timeout/)",
+          "sha256": "f6df85f059708ad2ae97b18663279160e00dec3e2e4cc5d62f08b8525b454200",
+          "line": 90,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#5:assert-7",
+          "expression": "assert.ok(!fallback.includes('Jev'))",
+          "sha256": "c02f4e0ef0758c0f4f05a0085d6152e7965853e4d1b76f66b767c174c98277d4",
+          "line": 91,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#5:assert-8",
+          "expression": "assert.match(render({ ...state, source: 'fallback', classifier_error: 'network_error' }, { color: true }), /\\x1b\\[33m/)",
+          "sha256": "bf7f9dd79fbdec6c12df185844f78a3cd82e4d14769314d0e00b96be6babf074",
+          "line": 92,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#5:assert-9",
+          "expression": "assert.match(render({ ...state, phase: 'ready', actual_model: 'claude-opus-5-5' }), /last Opus 5\\.5 · ready · Ollama/)",
+          "sha256": "8141f9741c8122820b4f4a253c229f0fd29e067159ea9593bd9f0d3d0f164eeb",
+          "line": 93,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#5:assert-10",
+          "expression": "assert.match(render({ ...state, source: 'cache', evaluator: 'jev' }), /Jev cache 72ms/)",
+          "sha256": "c24318f10178efb35d30eaac05e9d813e004ebb9ef91ac28f03f76af93a35a6c",
+          "line": 94,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#5:assert-11",
+          "expression": "assert.match(render({ ...state, source: 'fallback', evaluator: 'jev' }), /Jev fallback 72ms/)",
+          "sha256": "4be790b65b7e3241784e557d35059a9556b3abd98610231ea8eff64a658a37f1",
+          "line": 95,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#5:assert-12",
+          "expression": "assert.match(render({ ...state, evaluator: undefined }), /Ollama 72ms/)",
+          "sha256": "73eb533c9ad757ec6fdcff4b2e246d0d7fc16f6141c24ae01aed567a0b12eddf",
+          "line": 96,
+          "executions": 1
+        }
+      ],
+      "case_ids": [
+        "statusline-boundary-5-1",
+        "statusline-boundary-5-2",
+        "statusline-boundary-5-3",
+        "statusline-boundary-5-4",
+        "statusline-boundary-5-5",
+        "statusline-boundary-5-6",
+        "statusline-boundary-5-7",
+        "statusline-boundary-5-8",
+        "statusline-boundary-5-9",
+        "statusline-boundary-5-10"
+      ]
+    },
+    {
+      "id": "test/statusline.test.mjs#7",
+      "number": 7,
+      "name": "sessions are isolated, including absent session IDs, and malformed stdin awaits status",
+      "statement_sha256": "6a490b917a95ce640676d4622e1fb5821b2da731d58026ef4f1b8b54db6cbe4e",
+      "call_sha256": "274571c5578ef2068865532163ac5433e46cff1bd2144cba3fc9d5f02d076850",
+      "selected": true,
+      "assertions": [
+        {
+          "id": "test/statusline.test.mjs#7:assert-1",
+          "expression": "assert.match(renderStatusLine({ session_id: 'unrelated' }, saved, options), /awaiting request/)",
+          "sha256": "770acb4e8fb9643861e22126b18df42a8dc1be411c786b0cd41b4901bdb5334d",
+          "line": 112,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#7:assert-2",
+          "expression": "assert.ok(!renderStatusLine({ session_id: 'unrelated' }, saved, options).includes('Haiku'))",
+          "sha256": "f3fb74c758eb21b97ae271051b75217b439f61cfb5ca085d07947d6a151a2fb0",
+          "line": 113,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#7:assert-3",
+          "expression": "assert.match(renderStatusLine({}, saved, options), /last Haiku 4\\.5/)",
+          "sha256": "ce58b7c280c60f688cf965ee63e18e7e2b30581877f490bf9d93ce3fd2eeb9e2",
+          "line": 114,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#7:assert-4",
+          "expression": "assert.match(renderStatusLine(input, saved, options), /awaiting request/)",
+          "sha256": "da4b0f76bc7211e517a90b91adb09efedbe833f758b89954a6fef3017a4832e2",
+          "line": 116,
+          "executions": 5
+        },
+        {
+          "id": "test/statusline.test.mjs#7:assert-5",
+          "expression": "assert.match(renderStatusLine({ session_id: '__proto__' }, saved, options), /awaiting request/)",
+          "sha256": "6afd53380fda251faf0959d8c31918c73d69df2c23b95afacfe805e4a2ced9c1",
+          "line": 118,
+          "executions": 1
+        }
+      ],
+      "case_ids": [
+        "statusline-boundary-7-1",
+        "statusline-boundary-7-2",
+        "statusline-boundary-7-3",
+        "statusline-boundary-7-4",
+        "statusline-boundary-7-5",
+        "statusline-boundary-7-6",
+        "statusline-boundary-7-7",
+        "statusline-boundary-7-8",
+        "statusline-boundary-7-9"
+      ]
+    },
+    {
+      "id": "test/statusline.test.mjs#8",
+      "number": 8,
+      "name": "fallbacks, HTTP and SSE errors, cancellation, and dead or stale routers remain visible",
+      "statement_sha256": "4bbdf6b2d5c0b7c5a2ca482779625e1d155741b34138b044a914121ef4b20689",
+      "call_sha256": "60d57ba63a164bad677e6553e290fd207d0841552dda37dfb5c7b2800ad6aac8",
+      "selected": true,
+      "assertions": [
+        {
+          "id": "test/statusline.test.mjs#8:assert-1",
+          "expression": "assert.match(render({ phase: 'streaming', selected_model: 'claude-sonnet-5', source: 'fallback', classifier_error: 'timeout', latency_ms: 1501 }), /fallback 1501ms · timeout/)",
+          "sha256": "762c302486151af0c2a87012e48e967c8811ba1c77963b2f8058eff1ff4feefd",
+          "line": 122,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#8:assert-2",
+          "expression": "assert.match(failed, /Opus 5\\.5 selected · error 429 · rate_limit_error/)",
+          "sha256": "cb3c715c0da397aeefe8aca265319f0556f0a6ddb975d232e2ec512547784e92",
+          "line": 124,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#8:assert-3",
+          "expression": "assert.ok(!failed.includes('Sonnet'), 'A previous response must not conceal the selection that failed')",
+          "sha256": "cfa989116ab9988a9a7dde65cd847e78ebc329e1f5540ce2f7b23c5aa37168c8",
+          "line": 125,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#8:assert-4",
+          "expression": "assert.match(render({ phase: 'error', status: 200, error_type: 'overloaded_error' }), /error overloaded_error/)",
+          "sha256": "37b589f84666b0f816b87a18c5acc6a98550898aaa22452b137924c3285017d6",
+          "line": 126,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#8:assert-5",
+          "expression": "assert.match(render({ phase: 'cancelled', last_model: 'claude-haiku-4-5-20251001' }), /last Haiku 4\\.5 · cancelled/)",
+          "sha256": "3af0aa265a460e928e3e5dff04c0932c55f12678b63375c863c693f1421de8ff",
+          "line": 127,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#8:assert-6",
+          "expression": "assert.match(renderStatusLine({}, saved, { now, color: false }), /AutoRouter offline/)",
+          "sha256": "359b95d72dcbfdd137ae93f62d10b038a4820a5d32395f9418c94f6511dddc23",
+          "line": 130,
+          "executions": 5
+        },
+        {
+          "id": "test/statusline.test.mjs#8:assert-7",
+          "expression": "assert.match(renderStatusLine({}, current, { now, color: false, alive: () => false }), /offline/)",
+          "sha256": "aaba44fae570e1e3829748257d8cd4ba86468de532f1665dbfaa588754d0602c",
+          "line": 132,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#8:assert-8",
+          "expression": "assert.match(renderStatusLine({}, current, { now, color: false, alive: () => { throw new Error('gone'); } }), /offline/)",
+          "sha256": "9d2229dca686aa4226a3dcc3b5ee255aeba7410a30336f3357441162d5d5c427",
+          "line": 133,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#8:assert-9",
+          "expression": "assert.match(render({ phase: 'streaming', source: 'fallback' }, { color: true }), /\\x1b\\[33m/)",
+          "sha256": "bfa3ac5f7afdeb7ec2e10eaaf3bfb13377b6e50f04eec0164038bbf86a81e446",
+          "line": 134,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#8:assert-10",
+          "expression": "assert.match(render({ phase: 'error' }, { color: true }), /\\x1b\\[31m/)",
+          "sha256": "986ac30ffc7655c2625d1427dda865e08471a3e8ca34e2542d8df268b6771ca7",
+          "line": 135,
+          "executions": 1
+        }
+      ],
+      "case_ids": [
+        "statusline-boundary-8-1",
+        "statusline-boundary-8-2",
+        "statusline-boundary-8-3",
+        "statusline-boundary-8-4",
+        "statusline-boundary-8-5",
+        "statusline-boundary-8-6",
+        "statusline-boundary-8-7",
+        "statusline-boundary-8-8",
+        "statusline-boundary-8-9",
+        "statusline-boundary-8-10",
+        "statusline-boundary-8-11",
+        "statusline-boundary-8-12",
+        "statusline-boundary-8-13"
+      ]
+    },
+    {
+      "id": "test/statusline.test.mjs#9",
+      "number": 9,
+      "name": "narrow lines drop context and routine phase before the model guard",
+      "statement_sha256": "f8bc4bb7817ab2af49f8c55c25ffc324f5bec41a3c73b3d4176bc3fc40e6e3dc",
+      "call_sha256": "f5f591e4e597d24065f385db931c9885cc7b68aa2b69c560198db2d975b7ea06",
+      "selected": true,
+      "assertions": [
+        {
+          "id": "test/statusline.test.mjs#9:assert-1",
+          "expression": "assert.match(renderStatusLine(input, saved, { now, color: false, columns: 160 }), /ctx 24%/)",
+          "sha256": "f6346dd91ba346dc01a2a78809597007713c2223cfd4b37d6d9d478bfb143475",
+          "line": 141,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#9:assert-2",
+          "expression": "assert.ok(narrow.length <= 48)",
+          "sha256": "dd0bdaf615d3a07e2c74f4328a4c711a3cb76a4fa266bd906b0c41809710e942",
+          "line": 143,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#9:assert-3",
+          "expression": "assert.match(narrow, /Sonnet 5 · turn pinned/)",
+          "sha256": "110e5c56068d126ad007862e0443e282f8c934ebc04174535b4f2c07375a8705",
+          "line": 144,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#9:assert-4",
+          "expression": "assert.ok(!narrow.includes('ctx'))",
+          "sha256": "33462f5df9d2bd246249173bd727e85afd06ca27f6488c902c97e5960e472649",
+          "line": 145,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#9:assert-5",
+          "expression": "assert.ok(!narrow.includes('streaming'))",
+          "sha256": "e5502746842064b810d98eef6d78887d37809b8a5c5ab958bcc173bdfb6b921f",
+          "line": 146,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#9:assert-6",
+          "expression": "assert.ok(selected.length <= 32)",
+          "sha256": "73d269b53abeebb274e109d719700c1d5c57f7a7d4897f235fdc02a19a08b155",
+          "line": 148,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#9:assert-7",
+          "expression": "assert.match(selected, /unconfirmed/)",
+          "sha256": "6a20740228b0c53c2f34e05d2e98d6f9a52aebddfb980e26d094e7f9e133c002",
+          "line": 149,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#9:assert-8",
+          "expression": "assert.match(selected, /stream/)",
+          "sha256": "b406e65bd0663f19c127c5173ca91bc06d57cef9ad73a85305f8c298d7663b7c",
+          "line": 150,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#9:assert-9",
+          "expression": "assert.ok([...tiny].length <= columns, `${columns}: ${tiny}`)",
+          "sha256": "5d85af1fd94370def32244b4c4332400dbb25b2ee17731e49e30082cd34dfaea",
+          "line": 154,
+          "executions": 21
+        },
+        {
+          "id": "test/statusline.test.mjs#9:assert-10",
+          "expression": "assert.match(tiny, /selected|unconfirmed/)",
+          "sha256": "9e8a83566ac1a91deb681b272eba2837a9c4685e833abc940d0874a54010fd52",
+          "line": 155,
+          "executions": 0
+        },
+        {
+          "id": "test/statusline.test.mjs#9:assert-11",
+          "expression": "assert.match(tiny, /selected|unconfirmed/)",
+          "sha256": "9e8a83566ac1a91deb681b272eba2837a9c4685e833abc940d0874a54010fd52",
+          "line": 157,
+          "executions": 5
+        },
+        {
+          "id": "test/statusline.test.mjs#9:assert-12",
+          "expression": "assert.ok([...renderStatusLine({}, undefined, { now, color: false, columns })].length <= columns)",
+          "sha256": "4217a6847aec287a52bb8f386c27fa7ee1d1df19e14006512f73735ffa07b42c",
+          "line": 159,
+          "executions": 7
+        },
+        {
+          "id": "test/statusline.test.mjs#9:assert-13",
+          "expression": "assert.ok([...render({ phase: 'ready' }, { columns })].length <= columns)",
+          "sha256": "4c5d09594f34cae6942bc2077fe0a3cce1c58806f711a93d6e03892458b7097a",
+          "line": 160,
+          "executions": 7
+        }
+      ],
+      "case_ids": [
+        "statusline-boundary-9-1",
+        "statusline-boundary-9-2",
+        "statusline-boundary-9-3",
+        "statusline-boundary-9-4",
+        "statusline-boundary-9-5",
+        "statusline-boundary-9-6",
+        "statusline-boundary-9-7",
+        "statusline-boundary-9-8",
+        "statusline-boundary-9-9",
+        "statusline-boundary-9-10",
+        "statusline-boundary-9-11",
+        "statusline-boundary-9-12",
+        "statusline-boundary-9-13",
+        "statusline-boundary-9-14",
+        "statusline-boundary-9-15",
+        "statusline-boundary-9-16",
+        "statusline-boundary-9-17",
+        "statusline-boundary-9-18",
+        "statusline-boundary-9-19",
+        "statusline-boundary-9-20",
+        "statusline-boundary-9-21",
+        "statusline-boundary-9-22",
+        "statusline-boundary-9-23",
+        "statusline-boundary-9-24",
+        "statusline-boundary-9-25",
+        "statusline-boundary-9-26",
+        "statusline-boundary-9-27",
+        "statusline-boundary-9-28",
+        "statusline-boundary-9-29",
+        "statusline-boundary-9-30",
+        "statusline-boundary-9-31",
+        "statusline-boundary-9-32",
+        "statusline-boundary-9-33",
+        "statusline-boundary-9-34",
+        "statusline-boundary-9-35",
+        "statusline-boundary-9-36",
+        "statusline-boundary-9-37",
+        "statusline-boundary-9-38"
+      ]
+    },
+    {
+      "id": "test/statusline.test.mjs#12",
+      "number": 12,
+      "name": "unknown capacities and malformed or mismatched usage never imply API headroom",
+      "statement_sha256": "85c216f0dc147b2cdc9f8ef80516a03c195bfa8c5aab45b9757b1b5dd5ff8fb9",
+      "call_sha256": "ff10de6d2b195a241b43a43851a00d26c610c6c289ccee0aeeae5d57724bbb21",
+      "selected": true,
+      "assertions": [
+        {
+          "id": "test/statusline.test.mjs#12:assert-1",
+          "expression": "assert.ok(!render({ phase: 'ready', actual_model: model, context_usage: { model, input_tokens: 1000 } }).includes('API ctx'))",
+          "sha256": "c295afd9650f30e4995a98dd3ee654fe3d99e6fe2279051cf326f555d4ef2e33",
+          "line": 193,
+          "executions": 4
+        },
+        {
+          "id": "test/statusline.test.mjs#12:assert-2",
+          "expression": "assert.ok(!/API ctx|PRIVATE|Infinity/.test(line))",
+          "sha256": "943b1e2f0b91692c4ebd3db1176331ef0dc827746f8dbcbb808d36419d64d899",
+          "line": 198,
+          "executions": 4
+        },
+        {
+          "id": "test/statusline.test.mjs#12:assert-3",
+          "expression": "assert.match(line, /CLI ctx 10%\\/200K/)",
+          "sha256": "fbeb1efbf0bc8daf98ff9f9447d8cb88bdcf726c9d0d78157da02615e402f030",
+          "line": 203,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#12:assert-4",
+          "expression": "assert.ok(!line.includes('API ctx'))",
+          "sha256": "8c4ea879417052bd99b2e82429bcf563071228790c5c9a3b9e98525b84444cb9",
+          "line": 204,
+          "executions": 1
+        }
+      ],
+      "case_ids": [
+        "statusline-boundary-12-1",
+        "statusline-boundary-12-2",
+        "statusline-boundary-12-3",
+        "statusline-boundary-12-4",
+        "statusline-boundary-12-5",
+        "statusline-boundary-12-6",
+        "statusline-boundary-12-7",
+        "statusline-boundary-12-8",
+        "statusline-boundary-12-9"
+      ]
+    },
+    {
+      "id": "test/statusline.test.mjs#16",
+      "number": 16,
+      "name": "unpriced request counts are optional and never displace the selected model or guard",
+      "statement_sha256": "2707ae56db8a0ae0300faf7c44bb8d1faea01c29df3d3def029a3b14ab95e163",
+      "call_sha256": "7c940b419de8eb953c370aa11d751e9facfcd4a8b50773bcdd30689b3c39935f",
+      "selected": true,
+      "assertions": [
+        {
+          "id": "test/statusline.test.mjs#16:assert-1",
+          "expression": "assert.match(renderSavings(saved), /est saved .* partial · unpriced 2/)",
+          "sha256": "c8ab2c49b04b86d715849d52d2580e70d30d8bcac06d2863a8d0211daa304eb9",
+          "line": 254,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#16:assert-2",
+          "expression": "assert.match(renderSavings(withSavings(savingsFixture({ requests: 0, unpriced_requests: 3 }))), /savings unavailable · unpriced 3/)",
+          "sha256": "d034ecefb2c4458e25302710723fb8c8886f8cff6a1cb3b6c293b489b8423b5c",
+          "line": 255,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#16:assert-3",
+          "expression": "assert.ok(!renderSavings(withSavings()).includes('unpriced'))",
+          "sha256": "ab58ca9eec1c61ab12ed219b4e75613a46674d6fb14b24278135087e96e03b5a",
+          "line": 256,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#16:assert-4",
+          "expression": "assert.ok([...line].length <= columns, `${columns}: ${line}`)",
+          "sha256": "84cbcf2340f21b5886177b18488f21eb1c4b1b56591a8019fa4935b9c7aaee36",
+          "line": 259,
+          "executions": 4
+        },
+        {
+          "id": "test/statusline.test.mjs#16:assert-5",
+          "expression": "assert.match(line, /Sonnet 5\\.5 selected/)",
+          "sha256": "d01cab06a667e22e0443ab599926fa3a36c3271261a277a9f4dfd98ea9eb6999",
+          "line": 260,
+          "executions": 4
+        },
+        {
+          "id": "test/statusline.test.mjs#16:assert-6",
+          "expression": "assert.match(line, /Auto floor/)",
+          "sha256": "b61b9fb807876a32e2c6d04d568a6c1315065e3aade25f513f36d6ff810b4ceb",
+          "line": 261,
+          "executions": 4
+        },
+        {
+          "id": "test/statusline.test.mjs#16:assert-7",
+          "expression": "assert.match(line, /partial/)",
+          "sha256": "3e11611188ce1577ed70a6465b6a0374148d8fd0e047d9dbc867b69b7d5c5292",
+          "line": 262,
+          "executions": 1
+        }
+      ],
+      "case_ids": [
+        "statusline-boundary-16-1",
+        "statusline-boundary-16-2",
+        "statusline-boundary-16-3",
+        "statusline-boundary-16-4",
+        "statusline-boundary-16-5",
+        "statusline-boundary-16-6",
+        "statusline-boundary-16-7"
+      ]
+    },
+    {
+      "id": "test/statusline.test.mjs#18",
+      "number": 18,
+      "name": "savings are isolated by exact session, including anonymous and prototype names",
+      "statement_sha256": "6156b36cd86b0ca5c29a24163dccc2c7f2ae23a946baebe218c4eb1c87279744",
+      "call_sha256": "f4635f1d3ad89a8a63ffc039687e22e1a4bbe04d038d7a7b02e6bda23d291627",
+      "selected": true,
+      "assertions": [
+        {
+          "id": "test/statusline.test.mjs#18:assert-1",
+          "expression": "assert.match(renderSavings(saved), /\\$0\\.42/)",
+          "sha256": "0c3b8feea9b1ec501228fece7756fe051305a5dcd2ecd647499a4f43287fafd7",
+          "line": 282,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#18:assert-2",
+          "expression": "assert.match(renderSavings(saved, {}, {}), /\\$0\\.10/)",
+          "sha256": "8b945a62d71407d381144371293ba0d77fd822f60ff8eecb08b580f283c602fd",
+          "line": 283,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#18:assert-3",
+          "expression": "assert.ok(!result.includes('saving'), JSON.stringify(input))",
+          "sha256": "0b0839843462d29d8bd6b3e84d662cd3c25103fd211c1960a5dfd57e9724fea3",
+          "line": 287,
+          "executions": 8
+        },
+        {
+          "id": "test/statusline.test.mjs#18:assert-4",
+          "expression": "assert.ok(!result.includes('$'), JSON.stringify(input))",
+          "sha256": "5e9a076abc6c760f0715007a929e465bc558bcdc08a3e1280beee76dba68b781",
+          "line": 288,
+          "executions": 8
+        }
+      ],
+      "case_ids": [
+        "statusline-boundary-18-1",
+        "statusline-boundary-18-2",
+        "statusline-boundary-18-3",
+        "statusline-boundary-18-4",
+        "statusline-boundary-18-5",
+        "statusline-boundary-18-6",
+        "statusline-boundary-18-7",
+        "statusline-boundary-18-8",
+        "statusline-boundary-18-9",
+        "statusline-boundary-18-10"
+      ]
+    },
+    {
+      "id": "test/statusline.test.mjs#19",
+      "number": 19,
+      "name": "malformed savings cannot inject controls, dollar claims, NaN, or infinity",
+      "statement_sha256": "b4aaf36c0ba62dc96411a8ea5f252224bfc69d271cc326bcbcb27cccd4e919fe",
+      "call_sha256": "478f4285de441a89c0299a438067bce47b075229b2b7d74577920485d677dc63",
+      "selected": true,
+      "assertions": [
+        {
+          "id": "test/statusline.test.mjs#19:assert-1",
+          "expression": "assert.match(line, /savings unavailable/)",
+          "sha256": "c69d7de2a9149a45f70d7dd1d194c744a5c32ecad765f5f581e76ea16d6357fc",
+          "line": 298,
+          "executions": 6
+        },
+        {
+          "id": "test/statusline.test.mjs#19:assert-2",
+          "expression": "assert.ok(!/PRIVATE|NaN|Infinity|\\$|[\\x00-\\x1f\\x7f]/.test(line))",
+          "sha256": "9fa5137e1019c5e0c7ff938f9afd287d5001c6e0806eca753b0a0e787f700736",
+          "line": 299,
+          "executions": 6
+        },
+        {
+          "id": "test/statusline.test.mjs#19:assert-3",
+          "expression": "assert.match(labels, /est saved \\$0\\.42 vs Opus/)",
+          "sha256": "7359a48342e2e1d398ee77981211325a2660a3babb9607e24231d902550e1602",
+          "line": 302,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#19:assert-4",
+          "expression": "assert.ok(!/PRIVATE|[\\x00-\\x1f\\x7f]/.test(labels))",
+          "sha256": "ba5cd54947a6c8f77ac18b5ace85f79cef088e717885eecc020c6b3e3f4adc87",
+          "line": 303,
+          "executions": 1
+        }
+      ],
+      "case_ids": [
+        "statusline-boundary-19-1",
+        "statusline-boundary-19-2",
+        "statusline-boundary-19-3",
+        "statusline-boundary-19-4",
+        "statusline-boundary-19-5",
+        "statusline-boundary-19-6",
+        "statusline-boundary-19-7"
+      ]
+    },
+    {
+      "id": "test/statusline.test.mjs#23",
+      "number": 23,
+      "name": "HTTP fallback causes show safe classifier status separately from upstream errors",
+      "statement_sha256": "088b4f42bb76923919d3a35bc84d96e5bd0d392fd9db8178658003c112dbd67e",
+      "call_sha256": "c07ac600c8eb9fdf71bca6ad54fda8d9fb4454d37411b1b8e85f0f5d9417c0f3",
+      "selected": true,
+      "assertions": [
+        {
+          "id": "test/statusline.test.mjs#23:assert-1",
+          "expression": "assert.ok([...line].length <= columns, `${columns}: ${line}`)",
+          "sha256": "84cbcf2340f21b5886177b18488f21eb1c4b1b56591a8019fa4935b9c7aaee36",
+          "line": 370,
+          "executions": 3
+        },
+        {
+          "id": "test/statusline.test.mjs#23:assert-2",
+          "expression": "assert.match(line, /last Sonnet 5/)",
+          "sha256": "6377c12a2d277fa9780348d86de2a56ea4bd6a614169ae7f6cb81188870a02ff",
+          "line": 371,
+          "executions": 3
+        },
+        {
+          "id": "test/statusline.test.mjs#23:assert-3",
+          "expression": "assert.match(line, /fallback.*HTTP 503/)",
+          "sha256": "3a5fdd65359ac7aa84beecc82512092f2f34c9f0c02866138b529b3c275d8da1",
+          "line": 372,
+          "executions": 3
+        },
+        {
+          "id": "test/statusline.test.mjs#23:assert-4",
+          "expression": "assert.ok(!line.includes('error 503'))",
+          "sha256": "bb78851625e54a414b11c5e87554e06d94140b071aee665b60c9cf936286b44c",
+          "line": 373,
+          "executions": 3
+        },
+        {
+          "id": "test/statusline.test.mjs#23:assert-5",
+          "expression": "assert.ok([...failed].length <= columns, `${columns}: ${failed}`)",
+          "sha256": "f0408c6943d82df545bc2cfc982e047f5ee59c57e06864f5b5c9b6de10400120",
+          "line": 375,
+          "executions": 3
+        },
+        {
+          "id": "test/statusline.test.mjs#23:assert-6",
+          "expression": "assert.match(failed, /last Sonnet 5/)",
+          "sha256": "a630875618a2b7ac88607847bb319bf8fd243029cf9bb35c993e8bab5362994c",
+          "line": 376,
+          "executions": 3
+        },
+        {
+          "id": "test/statusline.test.mjs#23:assert-7",
+          "expression": "assert.match(failed, /error 429/)",
+          "sha256": "6043810b150167d55a046e12f8069ec1f13cb71a805d2f86bc97069910ba6836",
+          "line": 377,
+          "executions": 3
+        },
+        {
+          "id": "test/statusline.test.mjs#23:assert-8",
+          "expression": "assert.match(failed, /fallback.*HTTP 503/)",
+          "sha256": "a5921a61ab4a5bb98539d3548314ccfbf7ac46d4abee8d3e1c0ea5d17e874d87",
+          "line": 378,
+          "executions": 3
+        },
+        {
+          "id": "test/statusline.test.mjs#23:assert-9",
+          "expression": "assert.match(line, /fallback.*HTTP error/)",
+          "sha256": "bbd3cbc190acf1097ed77f1f6a85c51d1b82891701942b558a4061963561c93e",
+          "line": 382,
+          "executions": 5
+        },
+        {
+          "id": "test/statusline.test.mjs#23:assert-10",
+          "expression": "assert.ok(!/PRIVATE|Infinity|HTTP (?:503|600|-1|1\\.5)/.test(line))",
+          "sha256": "638634e55a6be7700adcd831d8a0d851f3ff482b03a1722cce08bfb50face598",
+          "line": 383,
+          "executions": 5
+        },
+        {
+          "id": "test/statusline.test.mjs#23:assert-11",
+          "expression": "assert.ok(!render({ ...state, classifier_error: 'timeout' }).includes('503'))",
+          "sha256": "ab44bd0c33bf50f55ed5f12bcc30b2bfd52e5e167873ff3ec9d0cc6e29e10870",
+          "line": 385,
+          "executions": 1
+        }
+      ],
+      "case_ids": [
+        "statusline-boundary-23-1",
+        "statusline-boundary-23-2",
+        "statusline-boundary-23-3",
+        "statusline-boundary-23-4",
+        "statusline-boundary-23-5",
+        "statusline-boundary-23-6",
+        "statusline-boundary-23-7",
+        "statusline-boundary-23-8",
+        "statusline-boundary-23-9",
+        "statusline-boundary-23-10",
+        "statusline-boundary-23-11",
+        "statusline-boundary-23-12"
+      ]
+    },
+    {
+      "id": "test/statusline.test.mjs#27",
+      "number": 27,
+      "name": "Auto floors retain selected model and explanation before savings, context and timing at common widths",
+      "statement_sha256": "99c7a693611b7ad0b95cbf8a85da96248900d34040d235a266b1e51a8c41cedc",
+      "call_sha256": "333ab262fcabcf0ddd3a531ca137908420cb79623d8766930fb45b25b6d04e16",
+      "selected": true,
+      "assertions": [
+        {
+          "id": "test/statusline.test.mjs#27:assert-1",
+          "expression": "assert.ok([...line].length <= columns, `${columns}: ${line}`)",
+          "sha256": "84cbcf2340f21b5886177b18488f21eb1c4b1b56591a8019fa4935b9c7aaee36",
+          "line": 447,
+          "executions": 8
+        },
+        {
+          "id": "test/statusline.test.mjs#27:assert-2",
+          "expression": "assert.match(line, /Sonnet 5\\.5 selected/)",
+          "sha256": "d01cab06a667e22e0443ab599926fa3a36c3271261a277a9f4dfd98ea9eb6999",
+          "line": 448,
+          "executions": 8
+        },
+        {
+          "id": "test/statusline.test.mjs#27:assert-3",
+          "expression": "assert.match(line, /Auto floor/)",
+          "sha256": "b61b9fb807876a32e2c6d04d568a6c1315065e3aade25f513f36d6ff810b4ceb",
+          "line": 449,
+          "executions": 8
+        },
+        {
+          "id": "test/statusline.test.mjs#27:assert-4",
+          "expression": "assert.match(line, /Auto floor from Haiku/)",
+          "sha256": "50efe62f58a04810ab87530ec56c319dfe9f1ddd6f3bc2a388e8bacf23d94b03",
+          "line": 450,
+          "executions": 6
+        },
+        {
+          "id": "test/statusline.test.mjs#27:assert-5",
+          "expression": "assert.ok(!/9999|ctx/.test(line))",
+          "sha256": "85f4fb8660b64637e1c92201b2fb89c5f443c4c9759d6539047336a270fa7328",
+          "line": 451,
+          "executions": 8
+        },
+        {
+          "id": "test/statusline.test.mjs#27:assert-6",
+          "expression": "assert.match(full, /Jev→Haiku 220ms · route 240ms/)",
+          "sha256": "3e3f198574f9df0f18f6563734dd7cfc0462d6d9efb3a1b79f0d16451eb7b839",
+          "line": 455,
+          "executions": 1
+        },
+        {
+          "id": "test/statusline.test.mjs#27:assert-7",
+          "expression": "assert.ok(!full.includes('9999'))",
+          "sha256": "5a95debbd66d2334a98b85890d88747fabf1f2b13f329e9d35738ceac8035b05",
+          "line": 456,
+          "executions": 1
+        }
+      ],
+      "case_ids": [
+        "statusline-boundary-27-1",
+        "statusline-boundary-27-2",
+        "statusline-boundary-27-3",
+        "statusline-boundary-27-4",
+        "statusline-boundary-27-5",
+        "statusline-boundary-27-6",
+        "statusline-boundary-27-7",
+        "statusline-boundary-27-8",
+        "statusline-boundary-27-9"
+      ]
+    }
+  ],
+  "counts": {
+    "direct_static_assertions": 77,
+    "expanded_assertions": 216,
+    "projection_replays": 124,
+    "adaptations": 145
+  },
+  "limits": [
+    "Complete unchanged callbacks execute; each complete output also matches a second frozen call with its explicit native JSON projection.",
+    "Own undefined fields omit; top-level undefined input/snapshot and nonfinite invalid-number examples map to null. Every path and original nonfinite value is recorded; no general JS/ESM value equivalence is claimed.",
+    "Native pure renderer accepts observed liveness as a boolean; original false/throw callbacks are invoked through a recording wrapper with original PID. Snapshot capture PID becomes positive synthetic1; this is not OS process-liveness evidence.",
+    "No CLI/filesystem or timing evidence; complete ANSI bytes, width behavior, session isolation, labels and privacy outputs are compared."
+  ]
+}

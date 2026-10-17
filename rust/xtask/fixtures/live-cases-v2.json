@@ -1,0 +1,81 @@
+{
+  "fixture_version": 2,
+  "historical_fixture_version": 1,
+  "historical_fixture_sha256": "30143bdf22cb1d10e47873444ad5f18521822512e63cf95487568d6fb9c21888",
+  "adaptation": "The coding repair case uses Rust and cargo instead of JavaScript and Node; all other prompts and expected labels are unchanged.",
+  "cases": {
+    "simple": {
+      "expectedClassifiedTier": "haiku",
+      "prompts": [
+        "What does the JavaScript expression [].length evaluate to? Reply with only the integer."
+      ]
+    },
+    "medium": {
+      "expectedClassifiedTier": "sonnet",
+      "prompts": [
+        "Review this JavaScript event-loop sequence and determine the output order: console.log(\"A\"); Promise.resolve().then(() => { console.log(\"B\"); queueMicrotask(() => console.log(\"C\")); }); console.log(\"D\"); Explain the ordering briefly, then finish with ORDER=A,D,B,C if that is correct, or ORDER= followed by the actual comma-separated order."
+      ]
+    },
+    "difficult": {
+      "expectedClassifiedTier": "opus",
+      "prompts": [
+        "Analyze a distributed locking design rigorously. A and B use a lease service with monotonically increasing fencing tokens. A obtains token 10 and starts a write, then pauses longer than its lease. B obtains token 11, writes the resource, and returns success. A resumes with token 10. The database validates only that the token was once issued by the lease service; it does not remember the largest token observed. Can the design guarantee that A cannot overwrite B? Give a concrete legal schedule, distinguish fencing from mere lease validity, and explain the minimum atomic resource-side check and state needed to repair it, including duplicate retries. Finish with exactly one verdict line: VERDICT=SAFE or VERDICT=UNSAFE."
+      ]
+    },
+    "coding": {
+      "expectedClassifiedTier": "sonnet",
+      "tools": true,
+      "prompts": [
+        "In this synthetic fixture, repair merge_intervals in merge-intervals.rs so that it sorts and merges overlapping or touching numeric intervals, handles nested intervals, and never changes the input. Use Read to inspect the source and its test, Edit to fix only merge-intervals.rs, and Bash to execute exactly: cargo test --offline --quiet. Do not change tests, Cargo.toml or any other files. After tests pass, summarize the fix briefly."
+      ]
+    },
+    "continuation": {
+      "expectedClassifiedTier": "haiku",
+      "prompts": [
+        "Remember this synthetic test marker for our next message: ROUTER_CONTINUATION_47. Reply exactly ACK.",
+        "What was the synthetic test marker I asked you to remember? Reply with only that marker."
+      ]
+    },
+    "large_context": {
+      "expectedClassifiedTier": "haiku",
+      "optIn": true,
+      "prompts": [
+        "What does the JavaScript expression [].length evaluate to? Reply with only the integer."
+      ]
+    },
+    "example_haiku": {
+      "optIn": true,
+      "syntheticReminder": true,
+      "expectedTier": "haiku",
+      "prompts": [
+        "What does the JavaScript expression `[].length` evaluate to? Reply with only the integer."
+      ]
+    },
+    "example_sonnet": {
+      "optIn": true,
+      "syntheticReminder": true,
+      "expectedTier": "sonnet",
+      "prompts": [
+        "Add pagination to this REST endpoint using `page` and `pageSize`. Validate the parameters, preserve existing filtering, and add tests for empty results and out-of-range pages."
+      ]
+    },
+    "example_opus": {
+      "optIn": true,
+      "syntheticReminder": true,
+      "expectedTier": "opus",
+      "prompts": [
+        "Review this distributed locking design: worker A’s lease expires while paused. Worker B acquires a newer fencing token and writes successfully. A resumes and writes using its old token. The database checks only whether a token was ever issued. Explain the failure sequence and design the minimum atomic database check that prevents stale writes, including duplicate retries."
+      ]
+    },
+    "thinking_continuation": {
+      "expectedClassifiedTiers": [
+        "opus",
+        "haiku"
+      ],
+      "prompts": [
+        "Analyze a distributed locking design rigorously. A and B use a lease service with monotonically increasing fencing tokens. A obtains token 10 and starts a write, then pauses longer than its lease. B obtains token 11, writes the resource, and returns success. A resumes with token 10. The database validates only that the token was once issued by the lease service; it does not remember the largest token observed. Can the design guarantee that A cannot overwrite B? Give a concrete legal schedule, distinguish fencing from mere lease validity, and explain the minimum atomic resource-side check and state needed to repair it, including duplicate retries. Finish with exactly one verdict line: VERDICT=SAFE or VERDICT=UNSAFE. Also remember the synthetic marker ROUTER_THINKING_83 for my next message. Keep your analysis concise.",
+        "What was the synthetic marker in my previous message? Reply with only that marker."
+      ]
+    }
+  }
+}
