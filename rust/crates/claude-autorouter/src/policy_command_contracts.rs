@@ -136,6 +136,7 @@ impl Fixture {
     }
     fn policy(&self) -> Result<Option<LoadedPolicy>, String> {
         load_policy_at(&self.policy_path(), fs::metadata(&self.root).unwrap().uid())
+            .map_err(|error| error.to_string())
     }
     fn env(&self) -> Environment {
         Environment::from([(

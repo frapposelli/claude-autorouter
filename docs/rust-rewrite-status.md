@@ -8,7 +8,7 @@ This checklist tracks the full [rewrite plan](rust-rewrite-plan.md), including i
 | --- | --- | --- |
 | One native executable, every product command, no JavaScript sidecar | Installed command/JSON/exit-code matrix, Node-free execution and binary/build feature inspection | Implemented experimental candidate; host tests pass. Complete supported-platform execution remains open. |
 | Keep package/command names, npm global installation and direct archives | Exact npm and per-target archive identities, scripts-disabled offline installation, installed byte/mode checks and lifecycle execution | Exact npm/direct host archives from clean `5ad9a76` each pass 78 installed lifecycle checks. Source-to-binary reproduction, other targets and the production release set remain open. |
-| Retain all thirteen behavior areas | Individual original-assertion mappings, shared fixtures, Rust tests and explained interface differences | Coverage ledger: 535 covered, 53 partial and no pending definitions after the per-route counter review. All 51 original Router definitions have individual mappings. Partial entries elsewhere still contain genuine missing behavior and explicit native API/format migrations; no whole area is blanket approved. Reviewed native API differences are recorded per assertion. Do not infer whole-area approval from fixture counts. |
+| Retain all thirteen behavior areas | Individual original-assertion mappings, shared fixtures, Rust tests and explained interface differences | Coverage ledger: 536 covered, 52 partial and no pending definitions after the per-route counter and policy-error reviews. All 51 original Router definitions have individual mappings. Partial entries elsewhere still contain genuine missing behavior and explicit native API/format migrations; no whole area is blanket approved. Reviewed native API differences are recorded per assertion. Do not infer whole-area approval from fixture counts. |
 | Transparent provider responses, signed history, safety and permissions | Actual HTTP/SSE/JSON/compression/framing comparisons, client disconnects, failed flushes and pipelined-response ownership | Substantial synthetic coverage; unresolved transport/TLS differences and unreviewed original HTTP schedules remain. |
 | Authentication, refreshed subscription credentials and custom-upstream restrictions | Request-scoped credential tests, API/OAuth/beta rejection matrix, conservative unsupported-contract behavior | Implemented and tested on synthetic transports; live canaries and supported-platform TLS qualification remain. |
 | Configuration, policy, Keychain and history without mandatory migration | Exact lexical identities, permissions/revision/fsync/no-follow checks, policy admission, isolated migration/rollback and existing schemas/prices | Isolated real macOS Keychain migration passes all 25 host assertions through both engines. Complete assertion review, failure/rollback and platform qualification remain. |
@@ -68,7 +68,7 @@ Update release verification and publishing around the exact qualified native set
 
 1. Finish the additive exact-archive upgrade/rollback CI checks on all current native packaging environments, retaining the successful and failed evidence separately.
 2. Extend execution coverage to remaining baseline architectures with pinned toolchains and real target userlands; emulated execution must remain separate from CPU/minimum-kernel qualification.
-3. Complete the remaining 53 original assertion definitions and configuration/limit audit, including explicit native API/format migration review rather than blanket suite approval.
+3. Complete the remaining 52 original assertion definitions and configuration/limit audit, including explicit native API/format migration review rather than blanket suite approval.
 4. Complete TLS/protocol/resource schedules and failed-startup, partial-write and ownership scenarios for rollback.
 5. Meet every unchanged numerical gate and declared workload/hardware requirement, complete real-task evidence and final source/build/license/installed-artifact qualification, then perform separately authorized stabilization and cutover.
 
@@ -459,8 +459,46 @@ private directories and public-file modes. Fourteen format/filesystem tests
 and the actual-export regression pass. Supplied-binary provenance remains
 unverified; these checks do not approve a shipping artifact.
 
-Coverage is now 535 covered/53 partial, with every original Router definition
-individually covered and all thirteen area statuses still partial. Historical
+At that checkpoint, coverage reached 535 covered/53 partial, with every original
+Router definition individually covered and all thirteen area statuses still partial. Historical
 mapping/evidence identities remain unchanged. The counter/transfer checkpoint
 needs fresh CI; full configuration/limits, transport/TLS/resource schedules,
 numerical/real-task/hardware/platform and final cutover gates remain open.
+
+
+## Stable policy-loader error category
+
+The [policy error supplement](../rust/parity/measurements/native-policy-error-category-summary.json)
+completes only original policy definition 3. Native policy loaders now return a
+privately constructed `PolicyError` whose `code()` preserves
+`AUTOROUTER_CONFIG_ERROR`. Safe messages remain unchanged; `Display`, `Debug`
+and the standard error interface retain no rejected policy data, path or raw
+I/O cause. Higher-level configuration and CLI adapters explicitly keep their
+existing string-error interfaces. Fixed system paths and owner, mode, type and
+symlink checks remain intact. The [embedding guide](../rust/docs/embedding.md)
+documents the typed error migration.
+
+The unchanged original callback passes three assertion sites across eleven
+rejection instances. A native regression repeats all nine original trust/schema
+cases, wrong ownership and an actual symlink through the filesystem loader,
+checking category and diagnostic privacy alongside input preservation controls.
+All three focused policy tests pass. The final workspace passes 1,334 tests with
+ten ignored tests or helper fixtures, strict Clippy and formatting. Node check,
+all 596 tests and the exact 58-file package smoke pass. Seventeen differential
+families and the whole-connection deterministic control pass without numerical
+samples or provider calls. The initial CLI callback type-check failure remains
+retained alongside the corrected, successful full run.
+
+Fresh schema 4 export/restore verifies all 694 public source inputs and 113
+logical reference files at 33,503,232 carrier and 33,468,628 logical bytes under
+each unchanged 33,554,432-byte cap. Independent review confirms archive hashes,
+exact donors, source bytes and receiver ownership/mode/cleanup checks. Supplied
+binary provenance remains unverified; these are local synthetic checks.
+
+Coverage is now 536 covered/52 partial, with all thirteen areas still partial.
+The original historical mapping and every other definition remain unchanged;
+in particular, user-config definitions 6 and 12 still lack their own structured
+error boundary. All configuration keys and limit rows retain their pending
+status. Fresh CI for this source, complete transport/platform/resource and
+performance/real-task/hardware evidence, final artifact provenance, rollback,
+stabilization and default cutover remain open.

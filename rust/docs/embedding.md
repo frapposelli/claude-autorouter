@@ -238,3 +238,14 @@ map; caller code must supply real OS strings or omit the key. The separate
 `read_config(&Value, ...)` JSON interface rejects malformed raw values rather
 than coercing them. [Setup migration evidence](../parity/assertion-mappings/onboarding-environment-contracts.json)
 keeps these input domains separate from historical executable CLI checks.
+
+`policy::load_policy()` and `load_policy_at()` return `PolicyError` on failure.
+Its `code()` is `AUTOROUTER_CONFIG_ERROR`; `message()` and `Display` preserve the
+safe policy diagnostic. `Debug` includes that code and message, with no underlying
+I/O cause, path or rejected policy data. Callers previously matching a `String`
+can use `message()` or `to_string()`. Rust typed errors replace JavaScript Error
+objects; they preserve the category value, without JavaScript object identity.
+The higher-level configuration loader retains its existing string-error API.
+Product commands still use the fixed, root-owned system-policy location;
+`load_policy_at()` is an explicit embedding/test boundary, with no environment
+override added by this migration.

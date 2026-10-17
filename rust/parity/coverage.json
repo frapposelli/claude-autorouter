@@ -229,7 +229,8 @@
         "rust/crates/autorouter-runtime/src/user_config.rs#paths_missing_files_and_environment_precedence_match_existing_behavior",
         "rust/crates/autorouter-runtime/src/user_config.rs#private_atomic_files_reject_stale_revisions_and_all_symlinks",
         "rust/crates/autorouter-runtime/src/user_config.rs#saved_utf16_survives_edits_and_environment_overrides_without_identity_aliases",
-        "rust/crates/autorouter-runtime/src/user_config.rs#unavailable_keychain_can_be_overridden_but_not_destructively_migrated"
+        "rust/crates/autorouter-runtime/src/user_config.rs#unavailable_keychain_can_be_overridden_but_not_destructively_migrated",
+        "rust/crates/autorouter-runtime/src/policy.rs#policy::tests::original_policy_rejections_preserve_stable_error_category_and_input_files"
       ],
       "evidence": [
         "config_auth_policy"
@@ -12016,23 +12017,46 @@
       "file": "test/policy.test.mjs",
       "name": "policy fails closed on untrusted, malformed or unknown content without echoing it",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
-        "rust/crates/autorouter-runtime/src/policy.rs#policy::tests::only_trusted_regular_files_and_directories_are_loaded"
+        "rust/crates/autorouter-runtime/src/policy.rs#policy::tests::only_trusted_regular_files_and_directories_are_loaded",
+        "rust/crates/autorouter-runtime/src/policy.rs#policy::tests::original_policy_rejections_preserve_stable_error_category_and_input_files"
       ],
       "shared_cases": [],
       "evidence": {
-        "native_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
-        "native_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
-        "scope": "Only the exact mapped native assertions; no actual system policy/Keychain interaction, cross-platform or installed-artifact qualification is implied."
+        "assertion_mapping": {
+          "path": "rust/parity/assertion-mappings/policy-error-category-contracts.json",
+          "bytes": 42152,
+          "sha256": "51f1699f519527a884a7e4123a8d4432fbb58886ec7e01fbd0a77facbf9e5499"
+        },
+        "original_execution": {
+          "path": "artifacts/rust-rewrite/policy-error-original-20261017-1/report.json",
+          "bytes": 3229,
+          "sha256": "529eb6050756db25b87dba369ab257765015893e587ef14c87a1342507db0c7b"
+        },
+        "focused_native": {
+          "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/focused-progress.json",
+          "bytes": 2940,
+          "sha256": "1cfe59744719a639c80f49b80959e6ba2cc962e581f3633e2f1f257f1d19bc52"
+        },
+        "final_native_binary": {
+          "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/runtime-final-binary.json",
+          "bytes": 1291,
+          "sha256": "6919d838690d834cfd9891ad809be3a8a17cd9243a65450b151a24e5f09bb287"
+        },
+        "full_local_review": {
+          "path": "artifacts/rust-rewrite/policy-error-validation-20261017-1/independent-full-local-review.json",
+          "bytes": 26338,
+          "sha256": "433c54390933a0b5da8f6350c0c29d8958738884c58c3ece77afc8f404c58cb2"
+        },
+        "previous_record_ref": "rust/parity/assertion-mappings/policy-error-category-contracts.json#/previous_coverage_row",
+        "scope": "Only policy definition3, all three assertion sites and eleven rejection instances, under the explicit typed PolicyError accessor migration. Other original definitions, configuration/limit/whole-area and CI/platform/performance/release gates are unchanged."
       },
       "related_components": [
         "config_auth_policy"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
-      "remaining_assertions": [
-        "The baseline also requires AUTOROUTER_CONFIG_ERROR on each JavaScript error; native load_policy_at returns String. Structured error-envelope migration remains unrepresented."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/policy-error-category-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/policy.test.mjs#4",

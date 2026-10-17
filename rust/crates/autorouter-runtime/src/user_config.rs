@@ -281,7 +281,7 @@ pub async fn load_user_config(
     keychain: &mut impl Keychain,
 ) -> Result<LoadedConfig, String> {
     // Policy trust is checked before reading config or consulting Keychain.
-    let policy = load_policy()?;
+    let policy = load_policy().map_err(|error| error.to_string())?;
     load_with_policy(context, options, keychain, policy.as_ref()).await
 }
 

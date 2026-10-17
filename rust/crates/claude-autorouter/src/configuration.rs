@@ -130,7 +130,10 @@ pub async fn command(
     context: &ConfigContext<'_>,
     keychain: &mut impl Keychain,
 ) -> Result<CommandOutput, String> {
-    command_with_policy_loader(args, context, keychain, load_policy).await
+    command_with_policy_loader(args, context, keychain, || {
+        load_policy().map_err(|error| error.to_string())
+    })
+    .await
 }
 
 // Keep the production policy location and trusted owner in load_policy. The

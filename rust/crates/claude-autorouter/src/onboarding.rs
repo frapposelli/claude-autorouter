@@ -110,7 +110,7 @@ async fn setup_with_prompt(
         macos,
         SetupDependencies {
             prompt,
-            policy_loader: load_policy,
+            policy_loader: || load_policy().map_err(|error| error.to_string()),
         },
     )
     .await
