@@ -8,7 +8,7 @@ This checklist tracks the full [rewrite plan](rust-rewrite-plan.md), including i
 | --- | --- | --- |
 | One native executable, every product command, no JavaScript sidecar | Installed command/JSON/exit-code matrix, Node-free execution and binary/build feature inspection | Implemented experimental candidate; host tests pass. Complete supported-platform execution remains open. |
 | Keep package/command names, npm global installation and direct archives | Exact npm and per-target archive identities, scripts-disabled offline installation, installed byte/mode checks and lifecycle execution | Exact npm/direct host archives from clean `5ad9a76` each pass 78 installed lifecycle checks. Source-to-binary reproduction, other targets and the production release set remain open. |
-| Retain all thirteen behavior areas | Individual original-assertion mappings, shared fixtures, Rust tests and explained interface differences | Coverage ledger: 532 covered, 56 partial and no pending definitions after the finite redaction timing review. Partial entries still contain genuine missing behavior and explicit native API/format migrations; none is blanket approved. Reviewed native API differences are recorded per assertion. Do not infer whole-area approval from fixture counts. |
+| Retain all thirteen behavior areas | Individual original-assertion mappings, shared fixtures, Rust tests and explained interface differences | Coverage ledger: 533 covered, 55 partial and no pending definitions after the real-clock Router deadline review. Partial entries still contain genuine missing behavior and explicit native API/format migrations; none is blanket approved. Reviewed native API differences are recorded per assertion. Do not infer whole-area approval from fixture counts. |
 | Transparent provider responses, signed history, safety and permissions | Actual HTTP/SSE/JSON/compression/framing comparisons, client disconnects, failed flushes and pipelined-response ownership | Substantial synthetic coverage; unresolved transport/TLS differences and unreviewed original HTTP schedules remain. |
 | Authentication, refreshed subscription credentials and custom-upstream restrictions | Request-scoped credential tests, API/OAuth/beta rejection matrix, conservative unsupported-contract behavior | Implemented and tested on synthetic transports; live canaries and supported-platform TLS qualification remain. |
 | Configuration, policy, Keychain and history without mandatory migration | Exact lexical identities, permissions/revision/fsync/no-follow checks, policy admission, isolated migration/rollback and existing schemas/prices | Isolated real macOS Keychain migration passes all 25 host assertions through both engines. Complete assertion review, failure/rollback and platform qualification remain. |
@@ -68,7 +68,7 @@ Update release verification and publishing around the exact qualified native set
 
 1. Finish the additive exact-archive upgrade/rollback CI checks on all current native packaging environments, retaining the successful and failed evidence separately.
 2. Extend execution coverage to remaining baseline architectures with pinned toolchains and real target userlands; emulated execution must remain separate from CPU/minimum-kernel qualification.
-3. Complete the remaining 56 original assertion definitions and configuration/limit audit, including explicit native API/format migration review rather than blanket suite approval.
+3. Complete the remaining 55 original assertion definitions and configuration/limit audit, including explicit native API/format migration review rather than blanket suite approval.
 4. Complete TLS/protocol/resource schedules and failed-startup, partial-write and ownership scenarios for rollback.
 5. Meet every unchanged numerical gate and declared workload/hardware requirement, complete real-task evidence and final source/build/license/installed-artifact qualification, then perform separately authorized stabilization and cutover.
 
@@ -375,3 +375,35 @@ installation guards remain enforced. Actual package resolution and execution
 require fresh CI; local signature verification and failed-step log inspection
 were not performed. Routine musl CI still depends on a moving repository index;
 freezing complete reviewed SDK images by immutable digest remains future work.
+
+## Original Router real-clock deadline
+
+The [narrow deadline supplement](../rust/parity/measurements/native-original-router-real-deadline-summary.json)
+completes only original Router definition 11. The unchanged frozen Node callback
+passes all four assertions. The new native real-clock replay uses the same
+20 ms evaluator timeout and strict elapsed-time predicate below 1,000 ms,
+checks the complete Sonnet fallback, and retries the same body through a fresh
+successful Haiku evaluation. The existing paused-clock control remains pending
+at 19 ms and completes after the final 1 ms advance. Each route checks cleared
+classifier waiters before an awaited close joins advisory work and confirms
+zero active synthetic requests.
+
+All eight Router contract tests pass, followed by 1,322 workspace tests with
+ten ignored tests or helper fixtures, strict Clippy and formatting. Node check,
+all 596 tests and the exact 58-file installed package smoke pass. The matching
+helper is byte-identical to the previous validated executable; the seventeen
+differential families and whole-connection controls retain identical inputs.
+The fresh source transfer verifies 693 public inputs and 113 logical reference
+files, using 33,550,336 carrier bytes and 33,416,326 logical bytes under the
+unchanged 32 MiB caps. Its supplied binary provenance remains unverified.
+
+The capture runner's original failed report remains retained: it expected TAP
+ordinal 11, while Node filtered the selected callback to ordinal 1. Independent
+inspection verifies the same successful execution without rerunning or changing
+the original callback. Neither process time nor TAP callback duration is the
+private first-route elapsed value. This is an original finite scheduling
+regression, with separate process ceilings; it does not qualify numerical
+performance, the complete configuration/limit audit, supported platforms or
+cutover. The historical main Router mapping is unchanged. Current coverage is
+533 covered/55 partial; Router definitions 49 and 50 still lack a native
+per-route counter boundary for the original callback and numeric outcomes.

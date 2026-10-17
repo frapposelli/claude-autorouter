@@ -183,7 +183,14 @@ impl HttpTransport for Replay {
     }
 }
 
-async fn replay(definitions: &[usize], timed: bool) -> (usize, usize) {
+enum ReplayClock {
+    Untimed,
+    PausedDeadline,
+    RealDeadline,
+}
+
+async fn replay(definitions: &[usize], clock_mode: ReplayClock) -> (usize, usize) {
+    let real_deadline = matches!(clock_mode, ReplayClock::RealDeadline);
     assert_eq!(digest(CASES.as_bytes()), CASES_SHA256);
     let mut lines = CASES.lines();
     let dictionary = Arc::new(serde_json::from_str::<Value>(lines.next().unwrap()).unwrap());
@@ -243,7 +250,7 @@ async fn replay(definitions: &[usize], timed: bool) -> (usize, usize) {
                 .unwrap()
                 .iter()
                 .any(|call| call["error_name"] == "TimeoutError");
-            let task = tokio::spawn(async move {
+            let route = async move {
                 task_router
                     .route(
                         task_body,
@@ -253,19 +260,37 @@ async fn replay(definitions: &[usize], timed: bool) -> (usize, usize) {
                         "",
                     )
                     .await
-            });
-            if timeout {
-                assert!(timed, "Timeout replay requires a paused clock");
-                while transport.started.load(Ordering::SeqCst) == started {
-                    transport.entered.notified().await;
+            };
+            let started_at = std::time::Instant::now();
+            let mut actual = if real_deadline {
+                // Caller-owned: a harness timeout drops the route rather than
+                // detaching a spawned caller while its classifier keeps running.
+                route.await
+            } else {
+                let task = tokio::spawn(route);
+                if timeout {
+                    assert!(
+                        matches!(clock_mode, ReplayClock::PausedDeadline),
+                        "Timeout replay requires an explicit clock mode"
+                    );
+                    while transport.started.load(Ordering::SeqCst) == started {
+                        transport.entered.notified().await;
+                    }
+                    assert!(!task.is_finished());
+                    tokio::time::advance(Duration::from_millis(19)).await;
+                    tokio::task::yield_now().await;
+                    assert!(!task.is_finished(), "20ms deadline fired early");
+                    tokio::time::advance(Duration::from_millis(1)).await;
                 }
-                assert!(!task.is_finished());
-                tokio::time::advance(Duration::from_millis(19)).await;
-                tokio::task::yield_now().await;
-                assert!(!task.is_finished(), "20ms deadline fired early");
-                tokio::time::advance(Duration::from_millis(1)).await;
+                task.await.unwrap()
             }
-            let mut actual = task.await.unwrap().unwrap();
+            .unwrap();
+            if timeout && real_deadline {
+                assert!(
+                    started_at.elapsed() < Duration::from_millis(1000),
+                    "20ms timeout did not return fallback before one second"
+                );
+            }
             actual.as_object_mut().unwrap().remove("latency_ms");
             actual
                 .as_object_mut()
@@ -277,8 +302,11 @@ async fn replay(definitions: &[usize], timed: bool) -> (usize, usize) {
                 step["body_after_sha256"]
             );
             transport.checked(step);
+            assert_eq!(router.classifier.pending_counts(), (0, 0));
         }
-        router.shutdown();
+        router.close().await;
+        assert_eq!(router.classifier.pending_counts(), (0, 0));
+        assert!(router.advisory_tasks.is_empty());
         assert_eq!(transport.active.load(Ordering::SeqCst), 0);
     }
     assert!(instances > 0 && routes > 0);
@@ -288,14 +316,14 @@ async fn replay(definitions: &[usize], timed: bool) -> (usize, usize) {
 #[tokio::test]
 async fn all_jev_tiers_guards_and_cache_use_exact_request_contracts() {
     assert_eq!(
-        replay(&[1, 2, 3, 8, 10, 14, 35, 47, 48], false).await,
+        replay(&[1, 2, 3, 8, 10, 14, 35, 47, 48], ReplayClock::Untimed).await,
         (23, 38)
     );
 }
 #[tokio::test]
 async fn bypass_review_and_large_context_preserve_exact_payloads_and_call_totals() {
     assert_eq!(
-        replay(&[4, 5, 6, 9, 24, 33, 36, 46], false).await,
+        replay(&[4, 5, 6, 9, 24, 33, 36, 46], ReplayClock::Untimed).await,
         (36, 108)
     );
 }
@@ -306,7 +334,7 @@ async fn full_continuity_schedules_and_actual_outages_retain_safe_model_ownershi
             &[
                 7, 12, 13, 15, 19, 20, 21, 22, 23, 25, 26, 27, 28, 29, 30, 31, 32, 34, 43, 44, 45
             ],
-            false
+            ReplayClock::Untimed
         )
         .await,
         (41, 94)
@@ -314,17 +342,30 @@ async fn full_continuity_schedules_and_actual_outages_retain_safe_model_ownershi
 }
 #[tokio::test(start_paused = true)]
 async fn twenty_ms_timeout_cleans_transport_and_same_body_retries_without_cached_failure() {
-    assert_eq!(replay(&[11], true).await, (1, 2));
+    assert_eq!(replay(&[11], ReplayClock::PausedDeadline).await, (1, 2));
+}
+#[tokio::test]
+async fn real_twenty_ms_timeout_returns_before_one_second_and_retries_without_cached_failure() {
+    // Cooperative ceiling for yielding route/cleanup waits; the pinned corpus
+    // bounds synchronous parsing. The first-call <1000ms assertion is separate.
+    tokio::time::timeout(Duration::from_secs(5), async {
+        assert_eq!(replay(&[11], ReplayClock::RealDeadline).await, (1, 2));
+    })
+    .await
+    .expect("real-clock router replay exceeded its finite harness ceiling");
 }
 #[tokio::test]
 async fn exact_count_requests_cover_both_source_models_and_invalid_count_adaptations() {
-    assert_eq!(replay(&[37, 38, 39, 41, 42, 49, 50], false).await, (18, 18));
+    assert_eq!(
+        replay(&[37, 38, 39, 41, 42, 49, 50], ReplayClock::Untimed).await,
+        (18, 18)
+    );
 }
 #[tokio::test]
 async fn small_and_large_hard_locked_requests_never_start_count_transport() {
     // Full captured decisions/count totals are checked. The source's callback
     // invocation order is not claimed from asynchronous transport arrival.
-    assert_eq!(replay(&[51], false).await, (2, 3));
+    assert_eq!(replay(&[51], ReplayClock::Untimed).await, (2, 3));
 }
 
 #[test]

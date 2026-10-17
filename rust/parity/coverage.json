@@ -736,7 +736,8 @@
         "rust/crates/autorouter-runtime/src/router.rs#dropping_route_aborts_advisory_count_and_last_classifier_waiter",
         "rust/crates/autorouter-runtime/src/router.rs#early_count_and_classification_run_concurrently_and_count_is_reused",
         "rust/crates/autorouter-runtime/src/router.rs#exact_auxiliary_model_reaches_request_preparation_without_unicode_repair",
-        "rust/crates/autorouter-runtime/src/router.rs#unused_early_count_retains_bounded_source_lifetime_and_request_cancellation"
+        "rust/crates/autorouter-runtime/src/router.rs#unused_early_count_retains_bounded_source_lifetime_and_request_cancellation",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::real_twenty_ms_timeout_returns_before_one_second_and_retries_without_cached_failure"
       ],
       "evidence": [
         "js_document",
@@ -1126,7 +1127,8 @@
         "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_auxiliary_tool_and_human_with_prompt_ids",
         "rust/crates/autorouter-runtime/tests/server_auto_goal_contracts.rs#original_19_goal_expanded_command_without_prompt_ids",
         "rust/crates/autorouter-runtime/tests/protocol_provenance_contracts.rs#original_synthetic_protocol_metadata_retains_every_provenance_boundary",
-        "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity"
+        "rust/crates/autorouter-runtime/tests/gateway.rs#protocol_v1_corpus_preserves_bytes_calls_policy_and_confirmed_continuity",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::real_twenty_ms_timeout_returns_before_one_second_and_retries_without_cached_failure"
       ],
       "evidence": [
         "model_guards",
@@ -18961,33 +18963,40 @@
       "file": "test/router.test.mjs",
       "name": "timeouts fall back promptly and failures are not cached",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
         "rust/crates/autorouter-core/tests/router_contracts.rs#frozen_router_instances_match_complete_policy_schedules_and_pure_calls",
-        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::twenty_ms_timeout_cleans_transport_and_same_body_retries_without_cached_failure"
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::twenty_ms_timeout_cleans_transport_and_same_body_retries_without_cached_failure",
+        "rust/crates/autorouter-runtime/src/router_contracts.rs#router::contracts::real_twenty_ms_timeout_returns_before_one_second_and_retries_without_cached_failure"
       ],
       "shared_cases": [
         "baseline-router-instance-48"
       ],
       "evidence": {
-        "assertion_mapping": "rust/parity/assertion-mappings/router-contracts.json",
-        "assertion_mapping_sha256": "6e1c2f8bd229c02fafe382ae618e20a89b6d2a43e49671401d06d50164eff2ab",
-        "capture": "artifacts/rust-rewrite/evidence/a2b40b92412bfe643f7cb2f256b2c995c103207211b7ec29fcc48991c3d2df7b.json",
-        "capture_sha256": "a2b40b92412bfe643f7cb2f256b2c995c103207211b7ec29fcc48991c3d2df7b",
-        "cases_sha256": "296f68fc81b50e6e24d277c43adb50d9613b4816a1b9d6a1e610299faa6126e3",
-        "native_core_log": "artifacts/rust-rewrite/evidence/360d690c0cfbee0d4d9a8b81b140b52631eecf07319ea7a0b8137966cad4dc7d.log",
-        "native_core_log_sha256": "360d690c0cfbee0d4d9a8b81b140b52631eecf07319ea7a0b8137966cad4dc7d",
-        "native_runtime_log": "artifacts/rust-rewrite/evidence/d6edbb3f5051e75431ebb14bd9e0bd2fcfce1de2f38a61fa8e31c3fa0dd6e5f4.log",
-        "native_runtime_log_sha256": "d6edbb3f5051e75431ebb14bd9e0bd2fcfce1de2f38a61fa8e31c3fa0dd6e5f4",
-        "scope": "All121 Router instances/263 routes and29 pure calls. Complete native policy decisions, actual classifier/cache/count execution and full captured synthetic transport requests. Four literal JavaScript API/clock boundaries remain partial."
+        "assertion_mapping": "rust/parity/assertion-mappings/router-real-deadline-contracts.json",
+        "assertion_mapping_sha256": "4216954498f89cee0c922860e6385136d4b10a038267b51a01747b53185ef521",
+        "qualification_summary": {
+          "path": "rust/parity/measurements/native-original-router-real-deadline-summary.json",
+          "bytes": 5418,
+          "sha256": "c6002764be18900c59e2ef7d1c015df700dab602716c7eb4f06fc25194710fc2"
+        },
+        "original_inspection": {
+          "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/original/execution-inspection.json",
+          "bytes": 6026,
+          "sha256": "00743b6e1a7e413ca6b984713c3cb0b4314a2346ae918ed4eb383afdf5ce77f3"
+        },
+        "native_execution": {
+          "path": "artifacts/rust-rewrite/router-real-deadline-20261017-1/native/progress.json",
+          "bytes": 2290,
+          "sha256": "d1a3129c562b8af5e0d098059acf53ccc79f2d396c4a5ac818df47c14baccace"
+        },
+        "scope": "All four unchanged original assertions, with actual native real-clock <1000 ms predicate, configured 20 ms timeout, complete fallback/Sonnet and uncached same-body Haiku decisions; full local checks and unchanged-cap source transfer pass. Historical evidence remains preserved separately in the supplement."
       },
       "related_components": [
         "router_continuity"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/router-contracts.json",
-      "remaining_assertions": [
-        "The original assertion performance.now()-start<1000 is a real-clock scheduling condition. Native replay proves a20ms virtual deadline (pending at19ms), dropped transport, fallback and uncached same-body retry; it does not measure host wall-clock scheduling."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/router-real-deadline-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/router.test.mjs#12",
