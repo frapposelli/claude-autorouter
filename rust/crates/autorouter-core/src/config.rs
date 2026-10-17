@@ -223,6 +223,17 @@ impl RouterConfig {
             CredentialValue::Source(document) => document.stringify(),
         })
     }
+    /// Materialize only at the OS boundary, without losing null or number types.
+    pub(crate) fn local_token_text(&self) -> Result<Option<Cow<'_, str>>, ()> {
+        self.credential_value(Credential::LocalToken)
+            .map(|value| match value {
+                CredentialValue::Text(text) => Ok(Cow::Borrowed(text)),
+                CredentialValue::Source(source) => {
+                    primitive_string(StringInput::Source(source, source.root()))
+                }
+            })
+            .transpose()
+    }
 }
 impl Serialize for RouterConfig {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
@@ -428,10 +439,10 @@ fn model_name(raw: Option<&Value>, default: &str, name: &str) -> Result<String, 
         .ok_or_else(|| format!("{name} must be a nonempty model name without control characters"))
 }
 
-// URL's JSON primitive conversion is distinct from enum/model validation.
-// Source nodes retain nonfinite numbers and UTF-16 until this URL boundary.
+// Primitive string conversion precedes URL validation or OS materialization.
+// Source nodes retain nonfinite numbers and UTF-16 until that boundary.
 #[derive(Clone, Copy)]
-enum UrlInput<'a> {
+enum StringInput<'a> {
     Json(&'a Value),
     Source(&'a JsDocument, NodeId),
 }
@@ -440,19 +451,19 @@ fn url_input<'a>(
     source: Option<&'a JsDocument>,
     key: &str,
     active: bool,
-) -> Option<UrlInput<'a>> {
+) -> Option<StringInput<'a>> {
     if !active {
         return None;
     }
     if let Some(source) = source {
         let node = source.get(source.root(), key)?;
         return (!matches!(source.node(node), Some(JsNode::Null)))
-            .then_some(UrlInput::Source(source, node));
+            .then_some(StringInput::Source(source, node));
     }
-    nullish(env, key).map(UrlInput::Json)
+    nullish(env, key).map(StringInput::Json)
 }
-fn url_string(input: UrlInput<'_>) -> Result<Cow<'_, str>, ()> {
-    if let UrlInput::Json(Value::String(text)) = input {
+fn primitive_string(input: StringInput<'_>) -> Result<Cow<'_, str>, ()> {
+    if let StringInput::Json(Value::String(text)) = input {
         return Ok(Cow::Borrowed(text));
     }
     let mut output = String::new();
@@ -464,8 +475,8 @@ fn url_string(input: UrlInput<'_>) -> Result<Cow<'_, str>, ()> {
             continue;
         };
         let numeric = match input {
-            UrlInput::Json(Value::Number(value)) => Some(value.as_f64().ok_or(())?),
-            UrlInput::Source(source, node) => match source.node(node).ok_or(())? {
+            StringInput::Json(Value::Number(value)) => Some(value.as_f64().ok_or(())?),
+            StringInput::Source(source, node) => match source.node(node).ok_or(())? {
                 JsNode::Number(value) => Some(*value),
                 _ => None,
             },
@@ -486,7 +497,7 @@ fn url_string(input: UrlInput<'_>) -> Result<Cow<'_, str>, ()> {
             continue;
         }
         match input {
-            UrlInput::Json(value) => match value {
+            StringInput::Json(value) => match value {
                 Value::Null => {
                     if !array_item {
                         output.push_str("null");
@@ -496,7 +507,7 @@ fn url_string(input: UrlInput<'_>) -> Result<Cow<'_, str>, ()> {
                 Value::String(value) => output.push_str(value),
                 Value::Array(values) => {
                     for (index, value) in values.iter().enumerate().rev() {
-                        pending.push((Some(UrlInput::Json(value)), true));
+                        pending.push((Some(StringInput::Json(value)), true));
                         if index != 0 {
                             pending.push((None, false));
                         }
@@ -510,7 +521,7 @@ fn url_string(input: UrlInput<'_>) -> Result<Cow<'_, str>, ()> {
                 }
                 Value::Number(_) => unreachable!("number handled above"),
             },
-            UrlInput::Source(source, node) => match source.node(node).ok_or(())? {
+            StringInput::Source(source, node) => match source.node(node).ok_or(())? {
                 JsNode::Null => {
                     if !array_item {
                         output.push_str("null");
@@ -520,7 +531,7 @@ fn url_string(input: UrlInput<'_>) -> Result<Cow<'_, str>, ()> {
                 JsNode::String(value) => output.push_str(&value.to_well_formed()),
                 JsNode::Array(values) => {
                     for (index, node) in values.iter().enumerate().rev() {
-                        pending.push((Some(UrlInput::Source(source, *node)), true));
+                        pending.push((Some(StringInput::Source(source, *node)), true));
                         if index != 0 {
                             pending.push((None, false));
                         }
@@ -538,9 +549,9 @@ fn url_string(input: UrlInput<'_>) -> Result<Cow<'_, str>, ()> {
     }
     Ok(Cow::Owned(output))
 }
-fn endpoint(raw: Option<UrlInput<'_>>, default: &str, name: &str) -> Result<String, String> {
+fn endpoint(raw: Option<StringInput<'_>>, default: &str, name: &str) -> Result<String, String> {
     let text = raw
-        .map(url_string)
+        .map(primitive_string)
         .transpose()
         .map_err(|_| format!("{name} must be a valid URL"))?;
     let url = Url::parse(text.as_deref().unwrap_or(default))
@@ -756,7 +767,7 @@ fn read_config_inner(
         "AUTOROUTER_OLLAMA_URL",
         evaluator == Evaluator::Ollama || validate_all,
     )
-    .map(url_string)
+    .map(primitive_string)
     .transpose()
     .map_err(|_| OLLAMA_ENDPOINT_ERROR.to_owned())?;
     let ollama_endpoint =

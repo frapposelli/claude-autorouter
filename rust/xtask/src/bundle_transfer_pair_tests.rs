@@ -231,6 +231,113 @@ fn schema5_binary_facts_preserve_payloads_and_reject_version_or_charge_downgrade
     }
 }
 
+#[test]
+fn schema6_binary_carrier_retains_every_fact_and_rejects_format_or_version_fallback() {
+    let f = Fixture::new();
+    for variant in [
+        "good",
+        "format",
+        "newc-body",
+        "downgrade",
+        "old-json",
+        "both",
+        "charge",
+        "unknown",
+    ] {
+        let directory = f.packet(variant, true, |_, _, _| {});
+        f.schema4(&directory, |native, reference, record| {
+            record["schema_version"] = json!(if variant == "newc-body" { 5 } else { 6 });
+            if variant != "old-json" {
+                let original = native.remove("source-manifest.json").unwrap();
+                let facts = metadata::parse(&original.bytes, FILE_LIMIT).unwrap();
+                native.insert(
+                    "source-manifest.bin".into(),
+                    Entry {
+                        bytes: metadata::encode_source(&facts, FILE_LIMIT).unwrap(),
+                        mode: original.mode,
+                    },
+                );
+                if variant == "both" {
+                    native.insert("source-manifest.json".into(), original);
+                }
+            }
+            let payload = sum(native
+                .values()
+                .map(|e| e.bytes.as_slice())
+                .chain(f.reference.values().map(|e| e.bytes.as_slice())))
+            .unwrap();
+            record["aggregate_logical_file_bytes"] =
+                json!(payload - usize::from(variant == "charge"));
+            let legacy = legacy_full(native, expanded_size(reference, SOURCE).unwrap(), 6).unwrap();
+            record["legacy_full_tar_bytes"] = json!(legacy);
+            record["legacy_full_tar_within_limit"] = json!(legacy <= SOURCE.expanded);
+        });
+        let mut record: Value =
+            serde_json::from_slice(&fs::read(directory.join("transfer-manifest.json")).unwrap())
+                .unwrap();
+        match variant {
+            "format" => record["archives"][CPIO_NAME]["format"] = json!("gzip-newc"),
+            "newc-body" => {
+                record["schema_version"] = json!(6);
+                record["archives"][CPIO_NAME]["format"] = json!("gzip-binary-cpio-be");
+            }
+            "downgrade" => {
+                record["schema_version"] = json!(5);
+                record["archives"][CPIO_NAME]["format"] = json!("gzip-newc");
+            }
+            "unknown" => record["schema_version"] = json!(7),
+            _ => {}
+        }
+        Fixture::v3_metadata(&directory, &record);
+        if variant != "good" {
+            f.reject(&directory, &format!("{variant}-output"));
+            continue;
+        }
+        let plan = load(&f.root, &directory).unwrap();
+        assert_eq!(plan.schema, 6);
+        assert_eq!(plan.record["aggregate_expanded_limit"], SOURCE.expanded);
+        assert_eq!(plan.record["aggregate_logical_file_limit"], SOURCE.expanded);
+        let paths: Vec<_> = plan
+            .native
+            .files
+            .keys()
+            .filter(|path| path.as_str() != "source-manifest.bin")
+            .map(String::as_str)
+            .collect();
+        assert_eq!(
+            metadata::decode_source(
+                &plan.native.files["source-manifest.bin"].bytes,
+                FILE_LIMIT,
+                &paths
+            )
+            .unwrap(),
+            metadata::parse(&f.native["source-manifest.json"].bytes, FILE_LIMIT).unwrap()
+        );
+        for (path, entry) in &f.native {
+            if path != "source-manifest.json" {
+                assert_eq!(plan.native.files[path].bytes, entry.bytes);
+                assert_eq!(plan.native.files[path].mode, entry.mode);
+            }
+        }
+        let output = f.scratch.0.join("binary6-restored");
+        assert_eq!(
+            restore(&f.root, &directory, &output).unwrap()["logical_files"],
+            113
+        );
+        for (path, entry) in &f.reference {
+            assert_eq!(fs::read(output.join(path)).unwrap(), entry.bytes);
+            assert_eq!(
+                fs::metadata(output.join(path))
+                    .unwrap()
+                    .permissions()
+                    .mode()
+                    & 0o777,
+                entry.mode
+            );
+        }
+    }
+}
+
 struct Fixture {
     scratch: Scratch,
     root: PathBuf,
@@ -436,14 +543,25 @@ impl Fixture {
         record["shared_inputs"] =
             shared(4, &self.reference["frozen-reference-manifest.json"].bytes);
         mutate(&mut native, &mut reference, &mut record);
-        let first = cpio::encode_root(NATIVE_ROOT, &native, SOURCE, source_limit).unwrap();
-        let first_size = cpio::expanded_size(NATIVE_ROOT, &native, SOURCE, source_limit).unwrap();
+        let binary = record["schema_version"] == 6;
+        let first = if binary {
+            cpio::binary_encode_root(NATIVE_ROOT, &native, SOURCE, source_limit)
+        } else {
+            cpio::encode_root(NATIVE_ROOT, &native, SOURCE, source_limit)
+        }
+        .unwrap();
+        let first_size = if binary {
+            cpio::binary_expanded_size(NATIVE_ROOT, &native, SOURCE, source_limit)
+        } else {
+            cpio::expanded_size(NATIVE_ROOT, &native, SOURCE, source_limit)
+        }
+        .unwrap();
         let policy = SOURCE.remaining(SOURCE.expanded - first_size);
         let second = encode_root(DELTA_ROOT, &reference, policy).unwrap();
         let second_size = expanded_size(&reference, policy).unwrap();
         record["aggregate_expanded_carrier_bytes"] = json!(first_size + second_size);
         record["archives"] = json!({
-            (CPIO_NAME):{"sha256":sha(&first),"expanded_carrier_bytes":first_size,"format":"gzip-newc"},
+            (CPIO_NAME):{"sha256":sha(&first),"expanded_carrier_bytes":first_size,"format":if binary{"gzip-binary-cpio-be"}else{"gzip-newc"}},
             (DELTA_NAME):{"sha256":sha(&second),"expanded_carrier_bytes":second_size,"format":"gzip-ustar"}});
         fs::write(directory.join(CPIO_NAME), first).unwrap();
         fs::write(directory.join(DELTA_NAME), second).unwrap();

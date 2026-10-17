@@ -279,9 +279,23 @@ and local credentials, and launcher/doctor replacements discard old source
 state. Effective Jev presence and JSON feed private cache identity. These
 configuration and snapshot contracts do not qualify malformed provider headers,
 local-token authentication or raw JavaScript object-to-OS environment output.
-In particular, null and non-string local-token values still lose the source's
-child-environment string conversion in the native launcher adapter; this is
-pending behavior, rather than an approved representation difference.
+`auth::build_claude_env()` returns `Result<Environment, ChildEnvironmentError>`
+and materializes effective local-token values into OS strings. Null becomes
+`"null"`, arrays use primitive joining, and source numbers retain their original
+type until conversion. Unpaired UTF-16 becomes replacement characters at this
+OS boundary. Absence removes API authentication fields and becomes `undefined`
+in subscription custom headers; an empty string remains present.
+
+This typed OS map is distinct from the JavaScript helper's raw object return.
+Conversion failure or a NUL in the converted token returns a fixed safe error;
+its `Debug`, `Display` and absent `Error::source()` contain no rejected value.
+Unrelated parent OS keys and values retain their original bytes. The adapter
+does not reproduce JavaScript exception identity, builder-versus-spawn phases,
+arbitrary parent-object insertion order or competing-error precedence. Other
+malformed parent environment entries remain the process launcher's concern.
+Callers must handle this result before acquiring resources or inside an owned
+cleanup scope. The launcher awaits its existing cleanup; diagnostic tools
+preflight the environment before creating transport or listeners.
 
 `policy::load_policy()` and `load_policy_at()` return `PolicyError` on failure.
 Its `code()` is `AUTOROUTER_CONFIG_ERROR`; `message()` and `Display` preserve the

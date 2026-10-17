@@ -3,6 +3,280 @@ use super::super::SOURCE;
 use super::*;
 use std::cell::Cell;
 
+fn binary_golden() -> Vec<u8> {
+    // Independent26-byte BE headers: inode1, regular0644, one link, root/a,
+    // size3; trailer inode/mode/size0. Neither product writer builds these.
+    let first = [
+        0x71, 0xc7, 0, 0, 0, 1, 0x81, 0xa4, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 3,
+    ];
+    let trailer = [
+        0x71, 0xc7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 0, 0,
+    ];
+    let mut bytes = [
+        first.as_slice(),
+        b"root/a\0\0abc\0",
+        &trailer,
+        b"TRAILER!!!\0\0",
+    ]
+    .concat();
+    assert_eq!(bytes.len(), 76);
+    bytes.resize(512, 0);
+    bytes
+}
+fn binary_reject(bytes: &[u8]) -> String {
+    let error = binary_decode_root(&gzip(bytes), "root", SOURCE, |_| 1024 * 1024).unwrap_err();
+    assert!(!error.contains("PRIVATE"));
+    error
+}
+#[test]
+fn binary_literal_golden_and_crossword_sizes_preserve_full_payloads_and_modes() {
+    let expected = binary_golden();
+    let encoded = binary_encode_root("root", &one(), SOURCE, |_| 1024 * 1024).unwrap();
+    assert_eq!(raw(&encoded), expected);
+    assert_eq!(
+        binary_encode_root("root", &one(), SOURCE, |_| 1024 * 1024).unwrap(),
+        encoded
+    );
+    let decoded = binary_decode_root(&encoded, "root", SOURCE, |_| 1024 * 1024).unwrap();
+    assert_eq!(
+        (
+            decoded.entries,
+            decoded.expanded_bytes,
+            decoded.files["a"].mode
+        ),
+        (1, 512, 0o644)
+    );
+    assert_eq!(decoded.files["a"].bytes, b"abc");
+    assert!(decode_root(&encoded, "root", SOURCE, |_| 1024 * 1024).is_err());
+    assert!(binary_decode_root(&gzip(&golden()), "root", SOURCE, |_| 1024 * 1024).is_err());
+    // Size65539 has unequal16-bit words1/3. This literal detects truncation or
+    // reversed word order, rather than merely roundtripping the same writer.
+    let header = [
+        0x71, 0xc7, 0, 0, 0, 1, 0x81, 0xa4, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 7, 0, 1, 0, 3,
+    ];
+    let payload = vec![0xa5; 65539];
+    let mut large = [
+        header.as_slice(),
+        b"root/a\0\0",
+        payload.as_slice(),
+        &[0],
+        &expected[38..76],
+    ]
+    .concat();
+    large.resize(super::super::padded(large.len()).unwrap(), 0);
+    let decoded = binary_decode_root(&gzip(&large), "root", SOURCE, |_| 1024 * 1024).unwrap();
+    assert_eq!(decoded.files["a"].bytes, payload);
+    let mut files = one();
+    files.get_mut("a").unwrap().bytes = payload;
+    assert_eq!(
+        raw(&binary_encode_root("root", &files, SOURCE, |_| 1024 * 1024).unwrap()),
+        large
+    );
+    // Name/data parity and exact UTF8 are independent of native word order.
+    files.insert(
+        "b".into(),
+        Entry {
+            bytes: b"xy".to_vec(),
+            mode: 0o644,
+        },
+    );
+    files.insert(
+        "é".into(),
+        Entry {
+            bytes: vec![],
+            mode: 0o644,
+        },
+    );
+    let encoded = binary_encode_root("root", &files, SOURCE, |_| 1024 * 1024).unwrap();
+    assert!(
+        binary_decode_root(
+            &encoded,
+            "root",
+            ArchivePolicy {
+                entries: 1,
+                ..SOURCE
+            },
+            |_| 1024 * 1024
+        )
+        .is_err()
+    );
+    assert!(
+        binary_encode_root(
+            "root",
+            &files,
+            ArchivePolicy {
+                entries: 1,
+                ..SOURCE
+            },
+            |_| 1024 * 1024
+        )
+        .is_err()
+    );
+    let decoded = binary_decode_root(&encoded, "root", SOURCE, |_| 1024 * 1024).unwrap();
+    for (path, entry) in files {
+        assert_eq!(decoded.files[&path].bytes, entry.bytes);
+        assert_eq!(decoded.files[&path].mode, entry.mode);
+    }
+}
+#[test]
+fn legacy_newc_ignored_metadata_acceptance_is_unchanged() {
+    let mut bytes = golden();
+    for offset in [6, 22, 30, 46, 62, 70] {
+        scalar(&mut bytes, offset, u32::MAX);
+    }
+    let decoded = decode_root(&gzip(&bytes), "root", SOURCE, |_| 1024 * 1024).unwrap();
+    assert_eq!(decoded.files["a"].bytes, b"abc");
+    assert_eq!(decoded.files["a"].mode, 0o644);
+}
+#[test]
+fn binary_fixed_metadata_byte_order_trailer_and_complete_gzip_are_strict() {
+    let original = binary_golden();
+    for offset in [0, 2, 4, 6, 8, 10, 12, 14, 16, 18] {
+        let mut bytes = original.clone();
+        bytes[offset..offset + 2].copy_from_slice(&2u16.to_be_bytes());
+        binary_reject(&bytes);
+    }
+    let mut little = original.clone();
+    for pair in little[..26].as_chunks_mut::<2>().0 {
+        pair.swap(0, 1);
+    }
+    assert!(binary_reject(&little).contains("magic"));
+    for offset in [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24] {
+        let mut bytes = original.clone();
+        bytes[38 + offset..40 + offset].copy_from_slice(&2u16.to_be_bytes());
+        binary_reject(&bytes);
+    }
+    for offset in [33, 37, 75] {
+        let mut bytes = original.clone();
+        bytes[offset] = 1;
+        assert!(binary_reject(&bytes).contains("padding"));
+    }
+    let mut tail = original.clone();
+    tail[76] = 1;
+    assert!(binary_reject(&tail).contains("after CPIO"));
+    for end in 0..original.len() {
+        binary_reject(&original[..end]);
+    }
+    let mut tail = original.clone();
+    tail.extend_from_slice(&[0; 512]);
+    assert!(binary_reject(&tail).contains("final block"));
+    let mut corrupt = gzip(&original);
+    let offset = corrupt.len() - 8;
+    corrupt[offset] ^= 1;
+    assert!(binary_decode_root(&corrupt, "root", SOURCE, |_| 1024 * 1024).is_err());
+    let compressed = gzip(&original);
+    assert!(
+        binary_decode_root(
+            &compressed[..compressed.len() - 4],
+            "root",
+            SOURCE,
+            |_| 1024 * 1024
+        )
+        .is_err()
+    );
+    assert!(
+        binary_decode_root(
+            &[compressed.as_slice(), compressed.as_slice()].concat(),
+            "root",
+            SOURCE,
+            |_| 1024 * 1024
+        )
+        .is_err()
+    );
+}
+#[test]
+fn binary_name_domain_duplicates_order_and_preallocation_limits_are_preserved() {
+    let original = binary_golden();
+    for name in [
+        b"../a/x".as_slice(),
+        b"/abs/a",
+        b"root//",
+        b"root/.",
+        b"root/\n",
+    ] {
+        let mut bytes = original.clone();
+        bytes[26..32].copy_from_slice(name);
+        binary_reject(&bytes);
+    }
+    for (offset, value) in [(26, 255), (27, 0), (32, b'x')] {
+        let mut bytes = original.clone();
+        bytes[offset] = value;
+        binary_reject(&bytes);
+    }
+    let mut duplicate = original[..38].to_vec();
+    let mut second = original[..38].to_vec();
+    second[4..6].copy_from_slice(&2u16.to_be_bytes());
+    duplicate.extend_from_slice(&second);
+    duplicate.extend_from_slice(&original[38..76]);
+    duplicate.resize(512, 0);
+    assert!(binary_reject(&duplicate).contains("Duplicate"));
+    let mut unordered = duplicate.clone();
+    unordered[31] = b'b';
+    assert!(binary_reject(&unordered).contains("Unordered"));
+    let mut namesize = original.clone();
+    namesize[20..22].copy_from_slice(&258u16.to_be_bytes());
+    assert!(binary_reject(&namesize).contains("pathname exceeds"));
+    let mut too_large = original.clone();
+    too_large[22..24].copy_from_slice(&0x8000u16.to_be_bytes());
+    let calls = Cell::new(0);
+    assert!(
+        binary_decode_root(&gzip(&too_large), "root", SOURCE, |_| {
+            calls.set(calls.get() + 1);
+            usize::MAX
+        })
+        .unwrap_err()
+        .contains("signed31")
+    );
+    assert_eq!(
+        calls.get(),
+        0,
+        "reject source size before trusted per-file lookup/allocation"
+    );
+    let mut too_large = original.clone();
+    too_large[22..24].copy_from_slice(&16u16.to_be_bytes());
+    assert!(binary_reject(&too_large).contains("Individual source"));
+    let encoded = gzip(&original);
+    for policy in [
+        ArchivePolicy {
+            compressed: encoded.len() - 1,
+            ..SOURCE
+        },
+        ArchivePolicy {
+            expanded: 511,
+            ..SOURCE
+        },
+        ArchivePolicy { file: 2, ..SOURCE },
+        ArchivePolicy {
+            entries: 0,
+            ..SOURCE
+        },
+    ] {
+        assert!(binary_decode_root(&encoded, "root", policy, |_| 1024 * 1024).is_err());
+        assert!(binary_encode_root("root", &one(), policy, |_| 1024 * 1024).is_err());
+    }
+    assert_eq!(
+        binary_expanded_size("root", &one(), SOURCE, |_| 1024 * 1024).unwrap(),
+        512
+    );
+    assert!(binary_decode_root(&encoded, "root", SOURCE.remaining(511), |_| 1024 * 1024).is_err());
+    assert!(binary_decode_root(&encoded, "else", SOURCE, |_| 1024 * 1024).is_err());
+    assert!(binary_decode_root(&encoded, "bad/root", SOURCE, |_| 1024 * 1024).is_err());
+    for path in ["../bad".to_owned(), "z".repeat(101)] {
+        let files = BTreeMap::from([(
+            path,
+            Entry {
+                bytes: vec![],
+                mode: 0o644,
+            },
+        )]);
+        assert!(binary_encode_root("root", &files, SOURCE, |_| 1024 * 1024).is_err());
+    }
+    let mut mode = one();
+    mode.get_mut("a").unwrap().mode = 0o755;
+    assert!(binary_encode_root("root", &mode, SOURCE, |_| 1024 * 1024).is_err());
+    assert!(binary_encode_root("root", &BTreeMap::new(), SOURCE, |_| 1024 * 1024).is_err());
+}
+
 fn one() -> BTreeMap<String, Entry> {
     BTreeMap::from([(
         "a".into(),

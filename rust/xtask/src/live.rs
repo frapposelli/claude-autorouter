@@ -680,6 +680,9 @@ async fn execute(
     if let Some(reference) = &reference {
         report["reference"] = reference.provenance.clone();
     }
+    // Validate child environment conversion before owning any transport or
+    // listener. Only the base URL depends on the eventual listener address.
+    let child_env = build_claude_env(&config, "http://127.0.0.1:0", &tool_process::environment())?;
     let transport =
         Arc::new(NativeHttpClient::new().map_err(|_| "Cannot construct HTTP transport")?);
     for name in options["cases"].as_array().unwrap() {
@@ -757,10 +760,10 @@ async fn execute(
             native = Some((gateway, router));
             address
         };
-        let mut env = build_claude_env(
-            &config,
-            &format!("http://{address}"),
-            &tool_process::environment(),
+        let mut env = child_env.clone();
+        env.insert(
+            "ANTHROPIC_BASE_URL".into(),
+            format!("http://{address}").into(),
         );
         if options["noThinking"] == true {
             env.insert("MAX_THINKING_TOKENS".into(), "0".into());

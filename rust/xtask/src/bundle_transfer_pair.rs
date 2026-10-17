@@ -121,7 +121,7 @@ fn sum<'a>(files: impl IntoIterator<Item = &'a [u8]>) -> Result<usize, String> {
     })
 }
 fn source(files: &BTreeMap<String, Entry>, schema: u64) -> Result<(), String> {
-    let (name, foreign) = if schema == 5 {
+    let (name, foreign) = if schema >= 5 {
         ("source-manifest.bin", "source-manifest.json")
     } else {
         ("source-manifest.json", "source-manifest.bin")
@@ -130,7 +130,7 @@ fn source(files: &BTreeMap<String, Entry>, schema: u64) -> Result<(), String> {
         return Err("Native source manifest format differs from transfer schema".into());
     }
     let manifest = files.get(name).ok_or("Missing source manifest")?;
-    let record = if schema == 5 {
+    let record = if schema >= 5 {
         let paths: Vec<_> = files
             .keys()
             .filter(|path| path.as_str() != name)
@@ -312,7 +312,7 @@ fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
     let record = metadata::parse(&raw, META_LIMIT)?;
     let schema = record["schema_version"]
         .as_u64()
-        .filter(|value| [1, 2, 3, 4, 5].contains(value))
+        .filter(|value| [1, 2, 3, 4, 5, 6].contains(value))
         .ok_or("Unknown paired transfer schema")?;
     let aggregate = if schema >= 3 {
         "aggregate_expanded_carrier_bytes"
@@ -405,7 +405,11 @@ fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
         if schema >= 3
             && fields["format"]
                 != if name == CPIO_NAME {
-                    "gzip-newc"
+                    if schema == 6 {
+                        "gzip-binary-cpio-be"
+                    } else {
+                        "gzip-newc"
+                    }
                 } else {
                     "gzip-ustar"
                 }
@@ -416,7 +420,9 @@ fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
         if metadata::digest(&fields["sha256"])? != sha(&bytes) {
             return Err("Paired transfer archive digest differs".into());
         }
-        let archive = if schema >= 3 && name == CPIO_NAME {
+        let archive = if schema == 6 && name == CPIO_NAME {
+            cpio::binary_decode_root(&bytes, archive_root, policy, source_limit)?
+        } else if schema >= 3 && name == CPIO_NAME {
             cpio::decode_root(&bytes, archive_root, policy, source_limit)?
         } else {
             decode_root(&bytes, archive_root, policy)?
@@ -650,12 +656,12 @@ pub(super) fn create(root: &Path, destination: &Path) -> Result<Value, String> {
     for path in ["LICENSE", "frozen-reference-manifest.json"] {
         delta.remove(path).ok_or("Missing original shared extra")?;
     }
-    let files = logical(&native, &delta, &baseline, 5)?;
+    let files = logical(&native, &delta, &baseline, 6)?;
     let payload = sum(native
         .values()
         .map(|entry| entry.bytes.as_slice())
         .chain(files.values().map(|(bytes, _)| *bytes)))?;
-    let native_expanded = cpio::expanded_size(NATIVE_ROOT, &native, SOURCE, source_limit)?;
+    let native_expanded = cpio::binary_expanded_size(NATIVE_ROOT, &native, SOURCE, source_limit)?;
     let remaining = SOURCE
         .expanded
         .checked_sub(native_expanded)
@@ -680,8 +686,8 @@ pub(super) fn create(root: &Path, destination: &Path) -> Result<Value, String> {
         }
         Ok(bytes)
     };
-    let native_bytes = cpio::encode_root(NATIVE_ROOT, &native, SOURCE, source_limit)?;
-    let verified = cpio::decode_root(&native_bytes, NATIVE_ROOT, SOURCE, source_limit)?;
+    let native_bytes = cpio::binary_encode_root(NATIVE_ROOT, &native, SOURCE, source_limit)?;
+    let verified = cpio::binary_decode_root(&native_bytes, NATIVE_ROOT, SOURCE, source_limit)?;
     if verified.expanded_bytes != native_expanded
         || verified.files.len() != native.len()
         || native.iter().any(|(path, entry)| {
@@ -697,18 +703,18 @@ pub(super) fn create(root: &Path, destination: &Path) -> Result<Value, String> {
     let stored = native_expanded
         .checked_add(delta_expanded)
         .ok_or("Paired transfer size overflow")?;
-    let legacy = legacy_full(&native, delta_expanded, 5)?;
+    let legacy = legacy_full(&native, delta_expanded, 6)?;
     let delta_baseline = baseline;
     let baseline = metadata::parse(&delta_baseline, FILE_LIMIT)?;
-    let record = json!({"schema_version":5,"kind":"matched_native_benchmark_transfer",
+    let record = json!({"schema_version":6,"kind":"matched_native_benchmark_transfer",
         "baseline_commit":baseline["baseline_commit"],"baseline_version":baseline["baseline_version"],"reference_files":111,
-        "archives":{(CPIO_NAME):{"sha256":sha(&native_bytes),"expanded_carrier_bytes":native_expanded,"format":"gzip-newc"},
+        "archives":{(CPIO_NAME):{"sha256":sha(&native_bytes),"expanded_carrier_bytes":native_expanded,"format":"gzip-binary-cpio-be"},
             (DELTA_NAME):{"sha256":sha(&delta_bytes),"expanded_carrier_bytes":delta_expanded,"format":"gzip-ustar"}},
         "aggregate_expanded_carrier_bytes":stored,"aggregate_expanded_limit":SOURCE.expanded,
         "node_runtime_required":"22.14.0 for temporary reference tests only","native_build_required":true,
         "private_material_included":false,"binaries_included":false,"dependencies_bundled":false,"provider_calls":0,
         "release_approved":false,"performance_accepted":false,"logical_reference_files":113,"reference_transport_files":109,
-        "shared_inputs":shared(5, &delta_baseline),"aggregate_logical_file_bytes":payload,"aggregate_logical_file_limit":SOURCE.expanded,
+        "shared_inputs":shared(6, &delta_baseline),"aggregate_logical_file_bytes":payload,"aggregate_logical_file_limit":SOURCE.expanded,
         "legacy_full_tar_bytes":legacy,"legacy_full_tar_within_limit":legacy<=SOURCE.expanded});
     let raw = serde_json::to_vec_pretty(&record).map_err(|_| "Cannot encode transfer metadata")?;
     let resume = super::transfer::README.as_bytes();

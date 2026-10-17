@@ -364,7 +364,7 @@ pub fn execute(fixture: &Value, cwd: &Path) -> Result<Value, String> {
         "build_claude_env" => {
             let config = crate::config::read_config(&input["config"], false, cwd)?;
             let parent = fixture_environment(&input["parent"]);
-            let child = crate::auth::build_claude_env(&config, "http://127.0.0.1:1234", &parent);
+            let child = crate::auth::build_claude_env(&config, "http://127.0.0.1:1234", &parent)?;
             let projected = |env: crate::auth::Environment| -> Value {
                 Value::Object(
                     env.into_iter()

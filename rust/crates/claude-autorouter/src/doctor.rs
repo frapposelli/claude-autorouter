@@ -272,7 +272,7 @@ pub(super) async fn doctor_for_platform(
     let mut child_env = if let Some(config) = &config {
         let mut config = config.clone();
         config.replace_credential(Credential::LocalToken, Some(String::new()));
-        build_claude_env(&config, "http://127.0.0.1:1", &effective)
+        build_claude_env(&config, "http://127.0.0.1:1", &effective)?
     } else {
         effective
     };

@@ -40,7 +40,9 @@ digest rows in that order. The decoder reconstructs every original manifest fact
 All raw source/reference bytes, modes and donors remain present and fully charged.
 The default source-only bundle retains its original JSON manifest.
 
-The native carrier is gzip newc CPIO. On macOS, the installed libarchive-based
+Schema6 uses canonical big-endian binary CPIO with indexed inodes and no links;
+schemas3-5 retain newc. Every header, pathname, payload and padding byte is charged.
+The native carrier is gzip CPIO. On macOS, the installed libarchive-based
 tar reads it; the command above requires that BSD/libarchive implementation.
 On Linux use an actual BSD/libarchive tar as above, or choose this GNUcpio
 alternative from the transfer directory (GNUtar alone is insufficient).
@@ -187,7 +189,7 @@ mod tests {
         assert_eq!(report["reference_files"], 111);
         assert_eq!(report["provider_calls"], 0);
         let native_bytes = fs::read(directory.join("native-source.cpio.gz")).unwrap();
-        let native = crate::package::archive::cpio::decode_root(
+        let native = crate::package::archive::cpio::binary_decode_root(
             &native_bytes,
             "autorouter-benchmark",
             SOURCE,
@@ -214,7 +216,7 @@ mod tests {
         );
         assert!(native.expanded_bytes + reference.expanded_bytes <= SOURCE.expanded);
         assert_eq!(reference.files.len(), 109);
-        assert_eq!(report["schema_version"], 5);
+        assert_eq!(report["schema_version"], 6);
         assert_eq!(report["shared_inputs"].as_array().unwrap().len(), 4);
         assert!(!reference.files.contains_key("LICENSE"));
         assert!(

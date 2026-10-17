@@ -596,6 +596,9 @@ async fn execute(options: Value) -> Result<bool, String> {
     if classify {
         require_keys(&config)?;
     }
+    // Fail before creating the router or listeners; filling the final base URL
+    // after listen is infallible and cannot bypass their owned cleanup.
+    let child_env = build_claude_env(&config, "http://127.0.0.1:0", &tool_process::environment())?;
     let transport =
         Arc::new(NativeHttpClient::new().map_err(|_| "Cannot construct HTTP transport")?);
     let requests = Arc::new(Mutex::new(Vec::new()));
@@ -655,10 +658,10 @@ async fn execute(options: Value) -> Result<bool, String> {
         stub = Some(handle);
         address
     };
-    let mut env = build_claude_env(
-        &config,
-        &format!("http://{address}"),
-        &tool_process::environment(),
+    let mut env = child_env;
+    env.insert(
+        "ANTHROPIC_BASE_URL".into(),
+        format!("http://{address}").into(),
     );
     if options["toolSearch"] == "unset" {
         env.remove(std::ffi::OsStr::new("ENABLE_TOOL_SEARCH"));

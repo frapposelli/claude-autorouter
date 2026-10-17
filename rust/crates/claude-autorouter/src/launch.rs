@@ -131,7 +131,7 @@ pub async fn run(
         if diagnostic {eprintln!("AutoRouter listening on {base_url} ({} authentication)",if config.auth_mode==AuthMode::Subscription{"subscription"}else{"api-key"});}
         if diagnostic && claude && config.client_profile==ClientProfile::Compatible {eprintln!("AutoRouter uses Haiku-compatible requests with client thinking disabled; {} selects the upstream model.",if config.evaluator==Evaluator::Ollama{"Ollama"}else{"Jev"});}
         if !claude {tokio::select!{_=interrupt.recv()=>{},_=terminate.recv()=>{}}return Ok(0)}
-        let mut env=build_claude_env(&config,&base_url,&loaded.env);env.remove(OsStr::new("AUTOROUTER_CONFIG"));env.remove(OsStr::new("AUTOROUTER_STATUS_FILE"));
+        let mut env=build_claude_env(&config,&base_url,&loaded.env)?;env.remove(OsStr::new("AUTOROUTER_CONFIG"));env.remove(OsStr::new("AUTOROUTER_STATUS_FILE"));
         if let Some(path)=status.as_ref().and_then(|store|store.path()){env.insert("AUTOROUTER_STATUS_FILE".into(),path.into_os_string());}
         let mut child=tokio::process::Command::new("claude").args(&forwarded).env_clear().envs(&env).stdin(Stdio::inherit()).stdout(Stdio::inherit()).stderr(Stdio::inherit()).kill_on_drop(true).spawn().map_err(|_|"Could not launch Claude Code. Ensure `claude` is installed and on PATH.")?;
         loop {
