@@ -186,7 +186,8 @@
         "rust/crates/autorouter-runtime/src/user_config.rs#paths_missing_files_and_environment_precedence_match_existing_behavior",
         "rust/crates/autorouter-runtime/src/user_config.rs#private_atomic_files_reject_stale_revisions_and_all_symlinks",
         "rust/crates/autorouter-runtime/src/user_config.rs#saved_utf16_survives_edits_and_environment_overrides_without_identity_aliases",
-        "rust/crates/autorouter-runtime/src/user_config.rs#unavailable_keychain_can_be_overridden_but_not_destructively_migrated"
+        "rust/crates/autorouter-runtime/src/user_config.rs#unavailable_keychain_can_be_overridden_but_not_destructively_migrated",
+        "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::typed_load_errors_cover_keychain_policy_and_override_boundaries"
       ],
       "evidence": [
         "config_auth_policy"
@@ -30145,23 +30146,40 @@
       "file": "test/user-config.test.mjs",
       "name": "unknown keys, non-string values, and malformed JSON fail without exposing their contents",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
         "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::invalid_content_and_hostile_paths_fail_without_secret_disclosure_or_side_effects"
       ],
       "shared_cases": [],
       "evidence": {
-        "native_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
-        "native_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
-        "scope": "Only the exact mapped native assertions; no actual system policy/Keychain interaction, cross-platform or installed-artifact qualification is implied."
+        "assertion_mapping": {
+          "path": "rust/parity/assertion-mappings/user-config-error-category-contracts.json",
+          "bytes": 46783,
+          "sha256": "06a08b71fabf4ef1dfb86a31ae48b996c6fb7e11389baf3c61a784d135cabcb9"
+        },
+        "qualification_summary": {
+          "path": "rust/parity/measurements/native-user-config-error-category-summary.json",
+          "bytes": 6679,
+          "sha256": "f6572b530272fe0f0b85eb57c92659e651a7adce33d9ff58cd18b804796358a2"
+        },
+        "original_execution": {
+          "path": "artifacts/rust-rewrite/config-error-original-20261017-1/report.json",
+          "bytes": 11709,
+          "sha256": "5c0bfd9a3220b6b80a4019ca7c89b960ad16f521331c557644db6cecb3f43aed"
+        },
+        "independent_full_local_review": {
+          "path": "artifacts/rust-rewrite/config-error-validation-20261017-1/independent-full-local-review.json",
+          "bytes": 7732,
+          "sha256": "677f6543e91175823a1d4c76d76c335188658ff5f3f3bc3262c9b8d750480b6d"
+        },
+        "previous_record_ref": "rust/parity/assertion-mappings/user-config-error-category-contracts.json#/mappings",
+        "scope": "Only user-config definitions6/12 under the explicit typed-error rendering/cause migration. Original callbacks pass; the declared two-trace wrapper criterion remains failed. No other definition, key, limit, area, platform, performance or release gate is promoted."
       },
       "related_components": [
         "config_auth_policy"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
-      "remaining_assertions": [
-        "The baseline additionally requires error.code = AUTOROUTER_CONFIG_ERROR. The native runtime API currently returns String, so this JavaScript library error-envelope migration has no exact structured counterpart."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/user-config-error-category-contracts.json",
+      "remaining_assertions": []
     },
     {
       "id": "test/user-config.test.mjs#7",
@@ -30273,23 +30291,40 @@
       "file": "test/user-config.test.mjs",
       "name": "a configuration path containing control or line-separator characters is rejected without echoing it",
       "parameterized": false,
-      "status": "partial_assertion_mapping",
+      "status": "covered",
       "rust_tests": [
         "rust/crates/autorouter-runtime/src/user_config.rs#user_config::tests::invalid_content_and_hostile_paths_fail_without_secret_disclosure_or_side_effects"
       ],
       "shared_cases": [],
       "evidence": {
-        "native_log": "artifacts/rust-rewrite/config-storage-policy-keychain-final-tests.log",
-        "native_log_sha256": "6f4cf222347ec4329cc2d5ad71a9ed87530aa6c8852f7351bfe17a68f33b5c0d",
-        "scope": "Only the exact mapped native assertions; no actual system policy/Keychain interaction, cross-platform or installed-artifact qualification is implied."
+        "assertion_mapping": {
+          "path": "rust/parity/assertion-mappings/user-config-error-category-contracts.json",
+          "bytes": 46783,
+          "sha256": "06a08b71fabf4ef1dfb86a31ae48b996c6fb7e11389baf3c61a784d135cabcb9"
+        },
+        "qualification_summary": {
+          "path": "rust/parity/measurements/native-user-config-error-category-summary.json",
+          "bytes": 6679,
+          "sha256": "f6572b530272fe0f0b85eb57c92659e651a7adce33d9ff58cd18b804796358a2"
+        },
+        "original_execution": {
+          "path": "artifacts/rust-rewrite/config-error-original-20261017-1/report.json",
+          "bytes": 11709,
+          "sha256": "5c0bfd9a3220b6b80a4019ca7c89b960ad16f521331c557644db6cecb3f43aed"
+        },
+        "independent_full_local_review": {
+          "path": "artifacts/rust-rewrite/config-error-validation-20261017-1/independent-full-local-review.json",
+          "bytes": 7732,
+          "sha256": "677f6543e91175823a1d4c76d76c335188658ff5f3f3bc3262c9b8d750480b6d"
+        },
+        "previous_record_ref": "rust/parity/assertion-mappings/user-config-error-category-contracts.json#/mappings",
+        "scope": "Only user-config definitions6/12 under the explicit typed-error rendering/cause migration. Original callbacks pass; the declared two-trace wrapper criterion remains failed. No other definition, key, limit, area, platform, performance or release gate is promoted."
       },
       "related_components": [
         "config_auth_policy"
       ],
-      "assertion_mapping": "rust/parity/assertion-mappings/config-storage-policy-keychain.json",
-      "remaining_assertions": [
-        "The baseline getConfigPath predicate additionally checks AUTOROUTER_CONFIG_ERROR on the JavaScript Error object; native errors are String. Exact error-envelope migration remains to be reviewed."
-      ]
+      "assertion_mapping": "rust/parity/assertion-mappings/user-config-error-category-contracts.json",
+      "remaining_assertions": []
     }
   ],
   "unmapped_test_files": [],

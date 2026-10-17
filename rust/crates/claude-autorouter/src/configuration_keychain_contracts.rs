@@ -240,17 +240,17 @@ async fn locked_store_environment_overrides_allow_loading_but_refuse_destructive
         .await;
     let before = fixture.bytes();
     keychain.locked = true;
-    assert_eq!(
-        load_user_config(
-            &fixture.context(&fixture.env),
-            &LoadOptions::default(),
-            &mut keychain
-        )
-        .await
-        .err()
-        .expect("Locked read must fail"),
-        LOCKED
-    );
+    let error = load_user_config(
+        &fixture.context(&fixture.env),
+        &LoadOptions::default(),
+        &mut keychain,
+    )
+    .await
+    .err()
+    .expect("Locked read must fail");
+    assert_eq!(error.code(), "AUTOROUTER_CONFIG_ERROR");
+    assert_eq!(error.message(), LOCKED);
+    assert!(std::error::Error::source(&error).is_none());
     let mut overridden = fixture.env.clone();
     for (key, value) in [
         ("ANTHROPIC_API_KEY", "env-a"),

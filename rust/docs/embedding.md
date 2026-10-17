@@ -250,7 +250,23 @@ safe policy diagnostic. `Debug` includes that code and message, with no underlyi
 I/O cause, path or rejected policy data. Callers previously matching a `String`
 can use `message()` or `to_string()`. Rust typed errors replace JavaScript Error
 objects; they preserve the category value, without JavaScript object identity.
-The higher-level configuration loader retains its existing string-error API.
+`user_config::get_config_path()`, `load_user_config()` and `load_with_policy()`
+return `UserConfigError` with the same code, a message-only `Display`, a
+code/message-only `Debug`, and no `Error::source()`. The path/JSON/filesystem
+checks and built-in Keychain/policy diagnostics retain their previous messages.
+`From<UserConfigError> for String` keeps `?` at higher-level String-error CLI
+boundaries compatible; direct Result returns and mixed-error branches must use
+`.map_err(String::from)`. Callers inspecting a failure use `code()` and
+`message()` rather than String methods. There is no public String-to-error
+constructor. Save, validation and secret-removal APIs retain their existing
+String errors in this narrow migration.
+
+An injected `Keychain` still returns arbitrary String messages. Configuration
+loading preserves those messages verbatim while assigning the native
+configuration category; it does not sanitize adapter content or preserve a
+foreign JavaScript error's identity or custom code. Trusted adapters must avoid
+including secrets in errors. No nested cause or JavaScript stack/object identity
+is retained. `load_with_policy()` remains the explicit injection boundary.
 Product commands still use the fixed, root-owned system-policy location;
 `load_policy_at()` is an explicit embedding/test boundary, with no environment
 override added by this migration.

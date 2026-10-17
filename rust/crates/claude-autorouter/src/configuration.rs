@@ -163,6 +163,7 @@ async fn command_with_policy_loader(
                 policy.as_ref(),
             )
             .await
+            .map_err(String::from)
         }
         .await;
         let report = match &loaded {

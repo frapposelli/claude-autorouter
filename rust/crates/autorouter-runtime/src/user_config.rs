@@ -9,6 +9,7 @@ use autorouter_core::policy::apply_policy;
 use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
 use std::ffi::OsStr;
+use std::fmt;
 use std::fs::{self, DirBuilder, OpenOptions};
 use std::io::{self, Write};
 use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt, PermissionsExt};
@@ -47,6 +48,48 @@ pub const SECRET_CONFIG_KEYS: [&str; 3] =
     ["ANTHROPIC_API_KEY", "TYPESAFE_API_KEY", "AUTOROUTER_TOKEN"];
 const EXISTS: &str = "AutoRouter configuration already exists; use overwrite to replace it.";
 const CHANGED: &str = "AutoRouter configuration changed while this operation was running. Retry with the current settings.";
+
+/// Stable category for saved-configuration path and load failures.
+/// Built-in diagnostics omit rejected contents and underlying filesystem causes.
+/// Injected Keychain adapters still own their messages: this wrapper preserves
+/// them verbatim and does not sanitize arbitrary adapter-provided strings.
+#[derive(Clone, PartialEq, Eq)]
+pub struct UserConfigError {
+    message: String,
+}
+impl UserConfigError {
+    fn new(message: impl Into<String>) -> Self {
+        Self {
+            message: message.into(),
+        }
+    }
+    pub const fn code(&self) -> &'static str {
+        "AUTOROUTER_CONFIG_ERROR"
+    }
+    pub fn message(&self) -> &str {
+        &self.message
+    }
+}
+impl fmt::Display for UserConfigError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(self.message())
+    }
+}
+impl fmt::Debug for UserConfigError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("UserConfigError")
+            .field("code", &self.code())
+            .field("message", &self.message())
+            .finish()
+    }
+}
+impl std::error::Error for UserConfigError {}
+impl From<UserConfigError> for String {
+    fn from(error: UserConfigError) -> Self {
+        error.message
+    }
+}
 
 // No Debug on environments, snapshots or save options: they contain secrets.
 pub struct ConfigContext<'a> {
@@ -175,7 +218,10 @@ fn unsafe_path(path: &Path) -> bool {
     path.to_string_lossy().chars().any(|c| matches!(c,
         '\u{0}'..='\u{1f}' | '\u{7f}'..='\u{9f}' | '\u{2028}'..='\u{202e}' | '\u{2066}'..='\u{2069}'))
 }
-pub fn get_config_path(context: &ConfigContext<'_>) -> Result<PathBuf, String> {
+pub fn get_config_path(context: &ConfigContext<'_>) -> Result<PathBuf, UserConfigError> {
+    get_config_path_message(context).map_err(UserConfigError::new)
+}
+fn get_config_path_message(context: &ConfigContext<'_>) -> Result<PathBuf, String> {
     let path = if let Some(value) = context.env.get(OsStr::new("AUTOROUTER_CONFIG")) {
         if js_trim(&value.to_string_lossy()).is_empty() {
             return Err("AUTOROUTER_CONFIG must be a non-empty path.".into());
@@ -279,10 +325,19 @@ pub async fn load_user_config(
     context: &ConfigContext<'_>,
     options: &LoadOptions,
     keychain: &mut impl Keychain,
+) -> Result<LoadedConfig, UserConfigError> {
+    load_user_config_message(context, options, keychain)
+        .await
+        .map_err(UserConfigError::new)
+}
+async fn load_user_config_message(
+    context: &ConfigContext<'_>,
+    options: &LoadOptions,
+    keychain: &mut impl Keychain,
 ) -> Result<LoadedConfig, String> {
     // Policy trust is checked before reading config or consulting Keychain.
     let policy = load_policy().map_err(|error| error.to_string())?;
-    load_with_policy(context, options, keychain, policy.as_ref()).await
+    load_with_policy_message(context, options, keychain, policy.as_ref()).await
 }
 
 /// Injected policy is an adapter boundary for isolated tests and embeddings.
@@ -293,8 +348,18 @@ pub async fn load_with_policy(
     options: &LoadOptions,
     keychain: &mut impl Keychain,
     policy: Option<&LoadedPolicy>,
+) -> Result<LoadedConfig, UserConfigError> {
+    load_with_policy_message(context, options, keychain, policy)
+        .await
+        .map_err(UserConfigError::new)
+}
+async fn load_with_policy_message(
+    context: &ConfigContext<'_>,
+    options: &LoadOptions,
+    keychain: &mut impl Keychain,
+    policy: Option<&LoadedPolicy>,
 ) -> Result<LoadedConfig, String> {
-    let path = get_config_path(context)?;
+    let path = get_config_path_message(context)?;
     let content = match fs::read(&path) {
         Ok(bytes) => Some(bytes),
         Err(error) if error.kind() == io::ErrorKind::NotFound => {
@@ -503,7 +568,7 @@ pub async fn save_user_config_document(
     for key in &keychain_keys {
         file_values.remove(*key);
     }
-    let path = get_config_path(context)?;
+    let path = get_config_path_message(context)?;
     if existing_file(&path)? && !options.overwrite {
         return Err(EXISTS.into());
     }
@@ -653,7 +718,9 @@ mod tests {
         context: &ConfigContext<'_>,
         keychain: &mut MemoryKeychain,
     ) -> Result<LoadedConfig, String> {
-        load_with_policy(context, &LoadOptions::default(), keychain, None).await
+        load_with_policy(context, &LoadOptions::default(), keychain, None)
+            .await
+            .map_err(String::from)
     }
 
     #[tokio::test]
@@ -724,6 +791,7 @@ mod tests {
         assert!(
             get_config_path(&directory.context(&env))
                 .unwrap_err()
+                .message()
                 .contains("non-empty")
         );
         env.remove(OsStr::new("AUTOROUTER_CONFIG"));
@@ -731,6 +799,7 @@ mod tests {
         assert!(
             get_config_path(&directory.context(&env))
                 .unwrap_err()
+                .message()
                 .contains("absolute path")
         );
         env.insert(
@@ -810,10 +879,10 @@ mod tests {
     trait ErrorMessage {
         fn unwrap_err_message(self) -> String;
     }
-    impl<T> ErrorMessage for Result<T, String> {
+    impl<T, E: fmt::Display> ErrorMessage for Result<T, E> {
         fn unwrap_err_message(self) -> String {
             match self {
-                Err(e) => e,
+                Err(e) => e.to_string(),
                 Ok(_) => panic!("Expected a content-free configuration error"),
             }
         }
@@ -1046,74 +1115,161 @@ mod tests {
         );
     }
 
+    fn assert_config_error(error: &UserConfigError, expected: &str, forbidden: &[&str]) {
+        assert_eq!(error.code(), "AUTOROUTER_CONFIG_ERROR");
+        assert_eq!(error.message(), expected);
+        let display = error.to_string();
+        assert_eq!(display, expected);
+        let debug = format!("{error:?}");
+        assert_eq!(
+            debug,
+            format!(
+                "UserConfigError {{ code: {:?}, message: {expected:?} }}",
+                error.code()
+            )
+        );
+        assert!(std::error::Error::source(error).is_none());
+        for rendered in [error.message(), display.as_str(), debug.as_str()] {
+            for &value in forbidden {
+                assert!(
+                    !rendered.contains(value),
+                    "configuration diagnostic disclosed input"
+                );
+            }
+        }
+        assert_eq!(String::from(error.clone()), expected);
+    }
+
     #[tokio::test]
     async fn invalid_content_and_hostile_paths_fail_without_secret_disclosure_or_side_effects() {
         let directory = Directory::new();
         let mut keychain = MemoryKeychain::default();
-        let mut env = Environment::from([(
-            "AUTOROUTER_CONFIG".into(),
-            directory.0.join("config.json").into_os_string(),
-        )]);
-        for content in [
-            "{\"PRIVATE_KEY_NAME\":\"x\"}",
-            "{\"TYPESAFE_API_KEY\":{\"PRIVATE_VALUE\":1}}",
-            "{\"TYPESAFE_API_KEY\":\"PRIVATE_VALUE\",}",
-            "[]",
-            "null",
-            "\"a string\"",
-            "{\"__proto__\":{\"polluted\":\"value\"}}",
+        let path = directory.0.join("config.json");
+        let mut env =
+            Environment::from([("AUTOROUTER_CONFIG".into(), path.clone().into_os_string())]);
+        let secret = "TEST_SECRET_MUST_NOT_APPEAR";
+        // The exact seven inputs in frozen user-config.test.mjs#6, including
+        // a secret as an unknown key rather than only as a value.
+        for (content, expected) in [
+            (
+                format!(r#"{{"{secret}":"unknown"}}"#),
+                "AutoRouter configuration contains an unsupported key.",
+            ),
+            (
+                format!(r#"{{"TYPESAFE_API_KEY":{{"private":"{secret}"}}}}"#),
+                "AutoRouter configuration values must be strings.",
+            ),
+            (
+                format!(r#"{{"TYPESAFE_API_KEY":"{secret}",}}"#),
+                "AutoRouter configuration must contain valid JSON.",
+            ),
+            (
+                "[]".into(),
+                "AutoRouter configuration must be a JSON object of string values.",
+            ),
+            (
+                "null".into(),
+                "AutoRouter configuration must be a JSON object of string values.",
+            ),
+            (
+                "\"a string\"".into(),
+                "AutoRouter configuration must be a JSON object of string values.",
+            ),
+            (
+                r#"{"__proto__":{"polluted":"value"}}"#.into(),
+                "AutoRouter configuration contains an unsupported key.",
+            ),
         ] {
-            fs::write(directory.0.join("config.json"), content).unwrap();
-            let error = load(&directory.context(&env), &mut keychain)
-                .await
-                .unwrap_err_message();
-            assert!(!error.contains("PRIVATE"));
+            fs::write(&path, &content).unwrap();
+            fs::set_permissions(&path, fs::Permissions::from_mode(0o640)).unwrap();
+            let parent_mode = fs::metadata(&directory.0).unwrap().mode();
+            let before_env = env.clone();
+            let error = load_with_policy(
+                &directory.context(&env),
+                &LoadOptions::default(),
+                &mut keychain,
+                None,
+            )
+            .await
+            .err()
+            .expect("malformed configuration must fail");
+            assert_config_error(
+                &error,
+                expected,
+                &[secret, "PRIVATE", &path.to_string_lossy()],
+            );
+            assert_eq!(fs::read(&path).unwrap(), content.as_bytes());
+            assert_eq!(fs::metadata(&path).unwrap().mode() & 0o777, 0o640);
+            assert_eq!(fs::metadata(&directory.0).unwrap().mode(), parent_mode);
+            assert_eq!(fs::read_dir(&directory.0).unwrap().count(), 1);
+            assert_eq!(env, before_env);
+            assert_eq!(keychain.calls, 0);
         }
+        let before_file = fs::read(&path).unwrap();
+        // Eight exact frozen hostile names, through both path variables and
+        // all three public operations. None may reach the Keychain adapter.
         for name in [
-            "x\ndelete-keychain",
-            "x\r",
-            "x\0",
-            "x\u{1b}",
-            "x\u{85}",
-            "x\u{2028}",
-            "x\u{2029}",
-            "x\u{202e}",
+            "config\ndelete-keychain /tmp/synthetic.keychain\n.json",
+            "config\r.json",
+            "config\u{1b}[2J.json",
+            "config\0.json",
+            "config\u{85}.json",
+            "config\u{2028}.json",
+            "config\u{2029}.json",
+            "config\u{202e}.json",
         ] {
             for key in ["AUTOROUTER_CONFIG", "XDG_CONFIG_HOME"] {
                 let hostile =
                     Environment::from([(key.into(), directory.0.join(name).into_os_string())]);
+                let before_env = hostile.clone();
                 let context = directory.context(&hostile);
+                let expected =
+                    "The AutoRouter configuration path must not contain control characters.";
                 let error = get_config_path(&context).unwrap_err();
-                assert!(error.contains("control characters"));
-                assert!(!error.contains(&directory.0.to_string_lossy().to_string()));
-                assert!(!error.contains("synthetic"));
-                assert!(
-                    load_with_policy(
-                        &context,
-                        &LoadOptions {
-                            allow_missing: true,
-                            ..Default::default()
-                        },
-                        &mut keychain,
-                        None
-                    )
-                    .await
-                    .unwrap_err_message()
-                    .contains("control characters")
+                assert_config_error(
+                    &error,
+                    expected,
+                    &["synthetic", &directory.0.to_string_lossy()],
                 );
-                assert!(save_user_config(
-                    &json!({"AUTOROUTER_SECRET_STORE":"keychain", "TYPESAFE_API_KEY":"synthetic"}),
+                let error = load_with_policy(
                     &context,
-                    &SaveOptions::default(),
-                    &mut keychain
+                    &LoadOptions {
+                        allow_missing: true,
+                        ..Default::default()
+                    },
+                    &mut keychain,
+                    None,
                 )
                 .await
-                .unwrap_err()
-                .contains("control characters")
+                .err()
+                .expect("hostile configuration path must fail");
+                assert_config_error(
+                    &error,
+                    expected,
+                    &["synthetic", &directory.0.to_string_lossy()],
                 );
+                // Saving intentionally remains a String-error API. Preserve
+                // both the source port-setting fixture and the secret-store
+                // side-effect guard from the broader native control.
+                for values in [
+                    json!({"AUTOROUTER_PORT":"1"}),
+                    json!({"AUTOROUTER_SECRET_STORE":"keychain", "TYPESAFE_API_KEY":"synthetic"}),
+                ] {
+                    let error =
+                        save_user_config(&values, &context, &SaveOptions::default(), &mut keychain)
+                            .await
+                            .unwrap_err();
+                    assert_eq!(error, expected);
+                    assert!(!error.contains("synthetic"));
+                    assert!(!error.contains(&directory.0.to_string_lossy().to_string()));
+                }
+                assert_eq!(hostile, before_env);
+                assert_eq!(keychain.calls, 0);
+                assert_eq!(fs::read(&path).unwrap(), before_file);
+                assert_eq!(fs::metadata(&path).unwrap().mode() & 0o777, 0o640);
+                assert_eq!(fs::read_dir(&directory.0).unwrap().count(), 1);
             }
         }
-        assert_eq!(keychain.calls, 0);
         let valid = directory.0.join("Müller 設定/config.json");
         let unicode =
             Environment::from([("AUTOROUTER_CONFIG".into(), valid.clone().into_os_string())]);
@@ -1126,24 +1282,24 @@ mod tests {
             directory.0.join("new/config.json").into_os_string(),
         )]);
         for values in [
-            json!({"PRIVATE_KEY":"value"}),
-            json!({"TYPESAFE_API_KEY":{"private":"PRIVATE_VALUE"}}),
+            json!({(secret):"value"}),
+            json!({"TYPESAFE_API_KEY":{"private":secret}}),
             json!([]),
             Value::Null,
         ] {
-            assert!(
-                !save_user_config(
-                    &values,
-                    &directory.context(&invalid),
-                    &SaveOptions::default(),
-                    &mut keychain
-                )
-                .await
-                .unwrap_err()
-                .contains("PRIVATE")
-            );
+            let error = save_user_config(
+                &values,
+                &directory.context(&invalid),
+                &SaveOptions::default(),
+                &mut keychain,
+            )
+            .await
+            .unwrap_err();
+            assert!(!error.contains(secret));
+            assert!(!error.contains("PRIVATE"));
         }
         assert!(!directory.0.join("new").exists());
+        assert_eq!(keychain.calls, 0);
         let private_path = directory.0.join("PRIVATE_PATH");
         fs::write(&private_path, "file").unwrap();
         env.insert(
@@ -1167,6 +1323,153 @@ mod tests {
             .unwrap_err()
             .contains("PRIVATE")
         );
+    }
+
+    #[tokio::test]
+    async fn typed_load_errors_cover_keychain_policy_and_override_boundaries() {
+        use crate::keychain::{MacKeychain, SecurityOutput, SecurityRunner};
+        use std::sync::{
+            Arc,
+            atomic::{AtomicUsize, Ordering},
+        };
+
+        struct DeniedRunner(Arc<AtomicUsize>);
+        impl SecurityRunner for DeniedRunner {
+            async fn run(&mut self, _: &[&str], _: Option<&str>) -> Result<SecurityOutput, String> {
+                self.0.fetch_add(1, Ordering::SeqCst);
+                Ok(SecurityOutput {
+                    status: Some(51),
+                    stdout: b"PRIVATE_TOOL_OUTPUT".to_vec(),
+                })
+            }
+        }
+        struct AdapterMessage;
+        impl Keychain for AdapterMessage {
+            fn available(&self) -> bool {
+                true
+            }
+            async fn read(&mut self, _: &str) -> Result<Option<String>, String> {
+                Err("ADAPTER_OWNED_MESSAGE".into())
+            }
+            async fn write(&mut self, _: &str, _: &str, _: &str) -> Result<(), String> {
+                panic!("load must not write a Keychain item")
+            }
+            async fn remove(&mut self, _: &str) -> Result<(), String> {
+                panic!("load must not remove a Keychain item")
+            }
+        }
+        let directory = Directory::new();
+        let path = directory.0.join("config.json");
+        let content = br#"{"AUTOROUTER_SECRET_STORE":"keychain"}"#;
+        fs::write(&path, content).unwrap();
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o640)).unwrap();
+        let mut env =
+            Environment::from([("AUTOROUTER_CONFIG".into(), path.clone().into_os_string())]);
+        let calls = Arc::new(AtomicUsize::new(0));
+        let mut unavailable = MacKeychain::with_runner(DeniedRunner(calls.clone()), false);
+        let error = load_with_policy(
+            &directory.context(&env),
+            &LoadOptions::default(),
+            &mut unavailable,
+            None,
+        )
+        .await
+        .err()
+        .expect("unavailable built-in Keychain must fail");
+        assert_config_error(&error, UNAVAILABLE, &["PRIVATE", &path.to_string_lossy()]);
+        assert_eq!(calls.load(Ordering::SeqCst), 0);
+        let mut denied = MacKeychain::with_runner(DeniedRunner(calls.clone()), true);
+        let error = load_with_policy(
+            &directory.context(&env),
+            &LoadOptions::default(),
+            &mut denied,
+            None,
+        )
+        .await
+        .err()
+        .expect("denied built-in Keychain must fail");
+        assert_config_error(
+            &error,
+            "Could not read an AutoRouter secret from the macOS Keychain. Unlock the login keychain, or set the key in the environment.",
+            &["PRIVATE_TOOL_OUTPUT", &path.to_string_lossy()],
+        );
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+        // The native Keychain trait already returns String: its arbitrary
+        // injected message is preserved, not silently relabeled as sanitized.
+        let error = load_with_policy(
+            &directory.context(&env),
+            &LoadOptions::default(),
+            &mut AdapterMessage,
+            None,
+        )
+        .await
+        .err()
+        .expect("injected Keychain must fail");
+        assert_config_error(&error, "ADAPTER_OWNED_MESSAGE", &[]);
+        for key in SECRET_CONFIG_KEYS {
+            env.insert(key.into(), format!("synthetic-environment-{key}").into());
+        }
+        let before_env = env.clone();
+        let loaded = load_with_policy(
+            &directory.context(&env),
+            &LoadOptions::default(),
+            &mut denied,
+            None,
+        )
+        .await
+        .unwrap();
+        assert_eq!(loaded.unavailable_secrets, SECRET_CONFIG_KEYS);
+        for key in SECRET_CONFIG_KEYS {
+            assert_eq!(loaded.env.get(OsStr::new(key)), env.get(OsStr::new(key)));
+        }
+        assert_eq!(calls.load(Ordering::SeqCst), 4);
+        let loaded = load_with_policy(
+            &directory.context(&env),
+            &LoadOptions {
+                read_secrets: false,
+                ..Default::default()
+            },
+            &mut denied,
+            None,
+        )
+        .await
+        .unwrap();
+        assert_eq!(calls.load(Ordering::SeqCst), 4);
+        for key in SECRET_CONFIG_KEYS {
+            assert!(!loaded.values.contains_key(key));
+        }
+        assert_eq!(env, before_env);
+        assert_eq!(fs::read(&path).unwrap(), content);
+        assert_eq!(fs::metadata(&path).unwrap().mode() & 0o777, 0o640);
+        assert_eq!(fs::read_dir(&directory.0).unwrap().count(), 1);
+
+        // The injected public load boundary must preserve policy rejection's
+        // category without retaining its private path or a source chain.
+        fs::write(&path, b"{}").unwrap();
+        env.insert("AUTOROUTER_EVALUATOR".into(), "jev".into());
+        let policy = LoadedPolicy {
+            path: directory.0.join("PRIVATE_POLICY_PATH"),
+            values: json!({"allowed_evaluators":["ollama"]}),
+        };
+        let mut no_secrets = MemoryKeychain::default();
+        let error = load_with_policy(
+            &directory.context(&env),
+            &LoadOptions::default(),
+            &mut no_secrets,
+            Some(&policy),
+        )
+        .await
+        .err()
+        .expect("disallowed evaluator must fail");
+        assert_config_error(
+            &error,
+            "AUTOROUTER_EVALUATOR is not permitted by the AutoRouter organization policy. Allowed: ollama.",
+            &["PRIVATE", &path.to_string_lossy()],
+        );
+        assert_eq!(no_secrets.calls, 0);
+        assert_eq!(fs::read(&path).unwrap(), b"{}");
+        assert_eq!(fs::metadata(&path).unwrap().mode() & 0o777, 0o640);
+        assert_eq!(fs::read_dir(&directory.0).unwrap().count(), 1);
     }
 
     #[tokio::test]

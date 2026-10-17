@@ -304,6 +304,7 @@ async fn replay(case: &Value) -> Vec<Value> {
                 )
                 .await
                 .map(loaded)
+                .map_err(String::from)
             }
             "config" => {
                 command_with_policy_for_test(&args(&input["args"]), &context, &mut keychain, || {
