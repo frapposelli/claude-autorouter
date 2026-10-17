@@ -15,9 +15,7 @@ async fn bounded_classification(
 #[tokio::test(flavor = "current_thread")]
 async fn cancelled_shared_or_distinct_tokens_prune_unpolled_peer_and_release_before_return() {
     for shared_token in [true, false] {
-        let mock = Arc::new(Mock::new(true));
-        let config = config();
-        let classifier = Classifier::new(mock.clone(), &config);
+        let (mock, config, classifier) = fixture(true);
         let body = document("shared-token");
         let token = CancellationToken::new();
         let peer = if shared_token {
@@ -53,9 +51,7 @@ async fn cancelled_shared_or_distinct_tokens_prune_unpolled_peer_and_release_bef
 }
 #[tokio::test(flavor = "current_thread")]
 async fn one_cancelled_peer_returns_without_waiting_for_the_live_shared_request() {
-    let mock = Arc::new(Mock::new(true));
-    let config = config();
-    let classifier = Classifier::new(mock.clone(), &config);
+    let (mock, config, classifier) = fixture(true);
     let body = document("live-peer");
     let token = CancellationToken::new();
     let live = CancellationToken::new();
@@ -78,9 +74,7 @@ async fn one_cancelled_peer_returns_without_waiting_for_the_live_shared_request(
 }
 #[tokio::test(flavor = "current_thread")]
 async fn shutdown_cancelled_result_waits_for_worker_with_uncancelled_caller() {
-    let mock = Arc::new(Mock::new(true));
-    let config = config();
-    let classifier = Classifier::new(mock.clone(), &config);
+    let (mock, config, classifier) = fixture(true);
     let body = document("shutdown-result");
     let token = CancellationToken::new();
     let mut pending = Box::pin(classifier.classify(&body, &config, &token));
@@ -101,9 +95,7 @@ async fn shutdown_cancelled_result_waits_for_worker_with_uncancelled_caller() {
 }
 #[tokio::test(flavor = "current_thread")]
 async fn dropping_cancel_cleanup_waiter_still_releases_the_exact_old_worker() {
-    let mock = Arc::new(Mock::new(true));
-    let config = config();
-    let classifier = Classifier::new(mock.clone(), &config);
+    let (mock, config, classifier) = fixture(true);
     let body = document("drop-cleanup");
     let token = CancellationToken::new();
     let mut pending = Box::pin(classifier.classify(&body, &config, &token));
@@ -124,9 +116,7 @@ async fn dropping_cancel_cleanup_waiter_still_releases_the_exact_old_worker() {
 #[tokio::test(flavor = "current_thread")]
 async fn old_cleanup_completion_cannot_cancel_or_remove_same_key_replacement() {
     for prune_before_old_poll in [false, true] {
-        let mock = Arc::new(Mock::new(true));
-        let config = config();
-        let classifier = Classifier::new(mock.clone(), &config);
+        let (mock, config, classifier) = fixture(true);
         let body = document("replacement-during-cleanup");
         let cancelled = CancellationToken::new();
         let live = CancellationToken::new();
@@ -213,9 +203,7 @@ async fn worker_guard_dropped_before_first_poll_completes_multiple_and_late_wait
 }
 #[tokio::test(flavor = "current_thread")]
 async fn finished_worker_without_result_retires_entry_and_returns_network_fallback() {
-    let mock = Arc::new(Mock::new(false));
-    let config = config();
-    let classifier = Classifier::new(mock.clone(), &config);
+    let (mock, config, classifier) = fixture(false);
     let body = document("finished-without-result");
     let key = settings_key(&body, &config);
     let (result, _) = watch::channel(None);
@@ -308,9 +296,7 @@ async fn evaluator_poll_panic_releases_request_before_fallback_and_retry() {
 
 #[tokio::test(flavor = "current_thread")]
 async fn shutdown_cancellation_wins_over_late_success_publication_and_waits_for_owner() {
-    let mock = Arc::new(Mock::new(true));
-    let config = config();
-    let classifier = Classifier::new(mock.clone(), &config);
+    let (mock, config, classifier) = fixture(true);
     let body = document("shutdown-late-publication");
     let token = CancellationToken::new();
     let mut pending = Box::pin(classifier.classify(&body, &config, &token));

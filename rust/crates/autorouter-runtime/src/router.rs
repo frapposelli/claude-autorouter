@@ -689,25 +689,27 @@ mod tests {
         assert_eq!(transport.counts.load(Ordering::SeqCst), 0);
         router.close().await;
     }
+    fn bounded<F: std::future::Future>(future: F) -> impl std::future::Future<Output = F::Output> {
+        let deadline = tokio::time::timeout(std::time::Duration::from_secs(2), future);
+        async move { deadline.await.unwrap() }
+    }
     async fn wait_requests(mock: &Mock) {
-        tokio::time::timeout(std::time::Duration::from_secs(2), async {
+        bounded(async {
             while mock.counts.load(Ordering::SeqCst) != 1
                 || mock.evaluations.load(Ordering::SeqCst) != 1
             {
                 tokio::task::yield_now().await;
             }
         })
-        .await
-        .unwrap();
+        .await;
     }
     async fn wait_idle(mock: &Mock) {
-        tokio::time::timeout(std::time::Duration::from_secs(2), async {
+        bounded(async {
             while mock.active.load(Ordering::SeqCst) != 0 {
                 tokio::task::yield_now().await;
             }
         })
-        .await
-        .unwrap();
+        .await;
     }
 
     #[cfg(feature = "development-probes")]
@@ -730,13 +732,12 @@ mod tests {
             )
             .unwrap()
             .unwrap();
-        tokio::time::timeout(std::time::Duration::from_secs(2), async {
+        bounded(async {
             while mock.counts.load(Ordering::SeqCst) == 0 {
                 tokio::task::yield_now().await;
             }
         })
-        .await
-        .unwrap();
+        .await;
         assert!(observed.lock().unwrap().is_empty());
         mock.count_permits.add_permits(1);
         assert_eq!(task.await.unwrap(), Some(1000));
@@ -826,9 +827,7 @@ mod tests {
                 )
                 .await
         });
-        tokio::time::timeout(std::time::Duration::from_secs(2), gate.wait_blocked())
-            .await
-            .unwrap();
+        bounded(gate.wait_blocked()).await;
         // Positively hold the admitted count before its first poll. Merely
         // spawning it must not let the evaluator overtake its actual start.
         assert_eq!(router.advisory_tasks.len(), 1);
@@ -843,23 +842,18 @@ mod tests {
         assert_eq!(*mock.started.lock().unwrap(), ["count", "evaluate"]);
         assert_eq!(mock.active.load(Ordering::SeqCst), 2);
         mock.evaluation_permits.add_permits(1);
-        tokio::time::timeout(std::time::Duration::from_secs(2), async {
+        bounded(async {
             while mock.active.load(Ordering::SeqCst) != 1 {
                 tokio::task::yield_now().await;
             }
         })
-        .await
-        .unwrap();
+        .await;
         assert!(
             !task.is_finished(),
             "count response must still be independently pending"
         );
         mock.count_permits.add_permits(1);
-        let decision = tokio::time::timeout(std::time::Duration::from_secs(2), task)
-            .await
-            .unwrap()
-            .unwrap()
-            .unwrap();
+        let decision = bounded(task).await.unwrap().unwrap();
         assert_eq!(decision["model"], haiku);
         assert_eq!(decision["source"], "jev");
         assert_eq!(decision["context_check"], "within_budget");
@@ -868,9 +862,7 @@ mod tests {
         assert_eq!(mock.evaluations.load(Ordering::SeqCst), 1);
         assert_eq!(document.stringify(), before);
         assert!(!router.complete("synthetic-request", &Value::Null));
-        tokio::time::timeout(std::time::Duration::from_secs(2), router.close())
-            .await
-            .unwrap();
+        bounded(router.close()).await;
         assert_eq!(mock.active.load(Ordering::SeqCst), 0);
         assert!(router.advisory_tasks.is_empty());
     }
@@ -890,22 +882,16 @@ mod tests {
                 .await
                 .is_pending()
         );
-        tokio::time::timeout(std::time::Duration::from_secs(2), gate.wait_blocked())
-            .await
-            .unwrap();
+        bounded(gate.wait_blocked()).await;
         assert_eq!(router.advisory_tasks.len(), 1);
         assert!(mock.started.lock().unwrap().is_empty());
         caller.cancel();
         assert!(matches!(
-            tokio::time::timeout(std::time::Duration::from_secs(2), &mut route)
-                .await
-                .unwrap(),
+            bounded(&mut route).await,
             Err(EvaluationError::Cancelled)
         ));
         drop(route);
-        tokio::time::timeout(std::time::Duration::from_secs(2), gate.wait_finished())
-            .await
-            .unwrap();
+        bounded(gate.wait_finished()).await;
         assert!(router.advisory_tasks.is_empty());
         assert!(mock.started.lock().unwrap().is_empty());
         assert_eq!(mock.counts.load(Ordering::SeqCst), 0);
@@ -915,26 +901,20 @@ mod tests {
         drop(release);
         *router.advisory_gate.lock().unwrap() = None;
         mock.block.store(false, Ordering::SeqCst);
-        let decision = tokio::time::timeout(
-            std::time::Duration::from_secs(2),
-            router.route(
-                document(true),
-                options(),
-                &headers,
-                &CancellationToken::new(),
-                "",
-            ),
-        )
+        let decision = bounded(router.route(
+            document(true),
+            options(),
+            &headers,
+            &CancellationToken::new(),
+            "",
+        ))
         .await
-        .unwrap()
         .unwrap();
         assert_eq!(decision["source"], "jev");
         assert_eq!(mock.counts.load(Ordering::SeqCst), 1);
         assert_eq!(mock.evaluations.load(Ordering::SeqCst), 1);
         assert!(!router.complete("synthetic-request", &Value::Null));
-        tokio::time::timeout(std::time::Duration::from_secs(2), router.close())
-            .await
-            .unwrap();
+        bounded(router.close()).await;
         assert!(router.advisory_tasks.is_empty());
     }
 
@@ -957,31 +937,16 @@ mod tests {
             )
             .unwrap()
             .unwrap();
-        tokio::time::timeout(std::time::Duration::from_secs(2), gate.wait_blocked())
-            .await
-            .unwrap();
+        bounded(gate.wait_blocked()).await;
         assert_eq!(router.advisory_tasks.len(), 1);
         router.advisory_stopping.cancel();
         drop(release);
-        assert_eq!(
-            tokio::time::timeout(std::time::Duration::from_secs(2), task)
-                .await
-                .unwrap()
-                .unwrap(),
-            None
-        );
-        assert!(
-            tokio::time::timeout(std::time::Duration::from_secs(2), ready)
-                .await
-                .unwrap()
-                .is_err()
-        );
+        assert_eq!(bounded(task).await.unwrap(), None);
+        assert!(bounded(ready).await.is_err());
         assert!(mock.started.lock().unwrap().is_empty());
         assert_eq!(mock.active.load(Ordering::SeqCst), 0);
         assert!(router.advisory_tasks.is_empty());
-        tokio::time::timeout(std::time::Duration::from_secs(2), router.close())
-            .await
-            .unwrap();
+        bounded(router.close()).await;
     }
 
     struct CallbackProbe {
@@ -1052,15 +1017,14 @@ mod tests {
     }
 
     async fn wait_callback(probe: &CallbackProbe, transport: &Mock) {
-        tokio::time::timeout(std::time::Duration::from_secs(2), async {
+        bounded(async {
             while probe.calls.load(Ordering::SeqCst) != 1
                 || transport.evaluations.load(Ordering::SeqCst) != 1
             {
                 tokio::task::yield_now().await;
             }
         })
-        .await
-        .unwrap();
+        .await;
     }
     fn callback_released(probe: &CallbackProbe, calls: usize) {
         assert_eq!(probe.calls.load(Ordering::SeqCst), calls);
@@ -1089,9 +1053,7 @@ mod tests {
         let cancellation = caller.clone();
         let owner = router.clone();
         let task = spawn_counter_route(owner, cancellation, counter);
-        tokio::time::timeout(std::time::Duration::from_secs(2), gate.wait_blocked())
-            .await
-            .unwrap();
+        bounded(gate.wait_blocked()).await;
         assert_eq!(probe.calls.load(Ordering::SeqCst), 0);
         assert_eq!(transport.evaluations.load(Ordering::SeqCst), 0);
         assert_eq!(router.advisory_tasks.len(), 1);
@@ -1104,11 +1066,7 @@ mod tests {
         wait_idle(&transport).await;
         assert!(!task.is_finished());
         probe.permits.add_permits(1);
-        let decision = tokio::time::timeout(std::time::Duration::from_secs(2), task)
-            .await
-            .unwrap()
-            .unwrap()
-            .unwrap();
+        let decision = bounded(task).await.unwrap().unwrap();
         let observed = decision.metadata.observation();
         assert_eq!(observed["model"], config().models.haiku);
         assert_eq!(observed["context_check"], "within_budget");
@@ -1192,14 +1150,10 @@ mod tests {
             match mode {
                 "cancel" => caller.cancel(),
                 "drop" => task.abort(),
-                "close" => tokio::time::timeout(std::time::Duration::from_secs(2), router.close())
-                    .await
-                    .unwrap(),
+                "close" => bounded(router.close()).await,
                 _ => unreachable!(),
             }
-            let result = tokio::time::timeout(std::time::Duration::from_secs(2), task)
-                .await
-                .unwrap();
+            let result = bounded(task).await;
             if mode == "drop" {
                 match result {
                     Err(error) => assert!(error.is_cancelled()),
@@ -1208,9 +1162,7 @@ mod tests {
             } else {
                 assert!(matches!(result.unwrap(), Err(EvaluationError::Cancelled)));
             }
-            tokio::time::timeout(std::time::Duration::from_secs(2), router.close())
-                .await
-                .unwrap();
+            bounded(router.close()).await;
             callback_released(&probe, 1);
             assert_eq!(transport.active.load(Ordering::SeqCst), 0);
             assert_eq!(transport.counts.load(Ordering::SeqCst), 0);
@@ -1243,16 +1195,11 @@ mod tests {
             assert_eq!(probe.active.load(Ordering::SeqCst), 1);
             assert_eq!(*transport.started.lock().unwrap(), ["evaluate", "callback"]);
             if close {
-                tokio::time::timeout(std::time::Duration::from_secs(2), router.close())
-                    .await
-                    .unwrap();
+                bounded(router.close()).await;
             } else {
                 caller.cancel();
             }
-            let result = tokio::time::timeout(std::time::Duration::from_secs(2), task)
-                .await
-                .unwrap()
-                .unwrap();
+            let result = bounded(task).await.unwrap();
             assert!(matches!(result, Err(EvaluationError::Cancelled)));
             router.close().await;
             callback_released(&probe, 1);
@@ -1314,9 +1261,7 @@ mod tests {
             let cancellation = caller.clone();
             let owner = router.clone();
             let task = spawn_counter_route(owner, cancellation, counter);
-            tokio::time::timeout(std::time::Duration::from_secs(2), gate.wait_blocked())
-                .await
-                .unwrap();
+            bounded(gate.wait_blocked()).await;
             assert_eq!(router.advisory_tasks.len(), 1);
             assert_eq!(probe.calls.load(Ordering::SeqCst), 0);
             assert_eq!(transport.evaluations.load(Ordering::SeqCst), 0);
@@ -1333,21 +1278,14 @@ mod tests {
                 assert!(router.advisory_tasks.is_closed());
                 assert_eq!(probe.calls.load(Ordering::SeqCst), 0);
                 drop(release.take());
-                tokio::time::timeout(std::time::Duration::from_secs(2), closing)
-                    .await
-                    .unwrap();
+                bounded(closing).await;
             } else {
                 caller.cancel();
             }
-            let result = tokio::time::timeout(std::time::Duration::from_secs(2), task)
-                .await
-                .unwrap()
-                .unwrap();
+            let result = bounded(task).await.unwrap();
             assert!(matches!(result, Err(EvaluationError::Cancelled)));
             drop(release.take());
-            tokio::time::timeout(std::time::Duration::from_secs(2), gate.wait_finished())
-                .await
-                .unwrap();
+            bounded(gate.wait_finished()).await;
             router.close().await;
             callback_released(&probe, 0);
             assert_eq!(transport.counts.load(Ordering::SeqCst), 0);

@@ -26,6 +26,13 @@ The routing interface is:
 
 Use `JsDocument` as the authoritative request representation and `JsString` for identities. The arena preserves unknown fields, UTF-16 string units, JavaScript number conversion, object order, and deep opaque data. `read_config_document` similarly retains saved custom model identities. Convert a string with `to_well_formed()` only at an explicit display or operating-system boundary. `to_serde_observation_lossy()` is for bounded metadata observation and cannot establish model compatibility, task identity, or forwarded bytes.
 
+`JsDocument::sha256_with_fragments(before, after)` hashes the document's exact
+canonical JSON between the supplied UTF-8 fragments and returns the 32-byte
+SHA-256 digest. Fragments are written verbatim, with no added separators or
+escaping. The classifier uses this to retain its existing cache-key preimage
+without allocating the complete serialized request. The sink uses a fixed
+4 KiB batch; the existing iterative traversal still allocates for pending nodes.
+
 The convenience `route()`/`complete()` adapters use `serde_json::Value` and serve scalar-string embeddings and historical fixtures. The product gateway uses the exact APIs. A displayed replacement character cannot stand in for an escaped lone surrogate when deciding which request or model owns a continuation.
 
 For a per-route equivalent of JavaScript's `countTokens(body, model)` option,

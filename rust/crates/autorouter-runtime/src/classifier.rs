@@ -16,7 +16,6 @@ use autorouter_core::contracts::{ClassifierError, DecisionSource};
 use autorouter_core::js_json::JsDocument;
 use autorouter_core::prompt_state::{build_ollama_state_document, build_state_document};
 use serde_json::json;
-use sha2::{Digest, Sha256};
 use tokio::sync::{Notify, watch};
 use tokio::time::Instant;
 use tokio_util::{sync::CancellationToken, task::TaskTracker};
@@ -370,15 +369,7 @@ fn settings_key(document: &JsDocument, config: &RouterConfig) -> Key {
             .expect("exact classifier model JSON");
     }
     let settings = settings.stringify();
-    let mut hash = Sha256::new();
-    hash.update(b"[");
-    hash.update(document.stringify().as_bytes());
-    hash.update(b",");
-    hash.update(settings.as_bytes());
-    hash.update(b",\"");
-    hash.update(rubric.as_bytes());
-    hash.update(b"\"]");
-    hash.finalize().into()
+    document.sha256_with_fragments(&["["], &[",", &settings, ",\"", rubric, "\"]"])
 }
 
 impl<T: HttpTransport + 'static> Classifier<T> {
@@ -826,6 +817,12 @@ mod tests {
     fn config() -> RouterConfig {
         read_config(&json!({"AUTOROUTER_EVALUATOR":"jev","TYPESAFE_API_KEY":"synthetic-jev-key","ANTHROPIC_API_KEY":"synthetic-claude-key"}),false,Path::new("/synthetic")).unwrap()
     }
+    fn fixture(block: bool) -> (Arc<Mock>, RouterConfig, Classifier<Mock>) {
+        let mock = Arc::new(Mock::new(block));
+        let config = config();
+        let classifier = Classifier::new(mock.clone(), &config);
+        (mock, config, classifier)
+    }
     fn document(task: &str) -> Arc<JsDocument> {
         Arc::new(JsDocument::parse(&serde_json::to_vec(&json!({"model":"claude-sonnet-5","messages":[{"role":"user","content":task}],"max_tokens":4096})).unwrap()).unwrap())
     }
@@ -872,9 +869,7 @@ mod tests {
 
     #[tokio::test]
     async fn identical_work_is_shared_but_a_waiters_cancel_does_not_cancel_others() {
-        let mock = Arc::new(Mock::new(true));
-        let config = config();
-        let classifier = Classifier::new(mock.clone(), &config);
+        let (mock, config, classifier) = fixture(true);
         let body = document("Synthetic identical task");
         let first = CancellationToken::new();
         let second = CancellationToken::new();
@@ -898,9 +893,7 @@ mod tests {
 
     #[tokio::test]
     async fn all_cancelled_work_cannot_cache_or_remove_a_replacement_entry() {
-        let mock = Arc::new(Mock::new(true));
-        let config = config();
-        let classifier = Classifier::new(mock.clone(), &config);
+        let (mock, config, classifier) = fixture(true);
         let body = document("Synthetic task");
         let cancel = CancellationToken::new();
         let a = start(&classifier, body.clone(), &config, cancel.clone());
@@ -1062,9 +1055,7 @@ mod tests {
 
     #[tokio::test]
     async fn cancellation_at_completion_and_future_drop_release_registry_without_caching() {
-        let mock = Arc::new(Mock::new(true));
-        let config = config();
-        let classifier = Classifier::new(mock.clone(), &config);
+        let (mock, config, classifier) = fixture(true);
         let body = document("Synthetic task");
         let cancel = CancellationToken::new();
         let first = start(&classifier, body.clone(), &config, cancel.clone());
@@ -1094,9 +1085,7 @@ mod tests {
 
     #[tokio::test]
     async fn already_cancelled_calls_skip_network_and_cached_decisions() {
-        let mock = Arc::new(Mock::new(false));
-        let config = config();
-        let classifier = Classifier::new(mock.clone(), &config);
+        let (mock, config, classifier) = fixture(false);
         let body = document("Synthetic task");
         let cancel = CancellationToken::new();
         cancel.cancel();
@@ -1416,9 +1405,7 @@ mod tests {
 
     #[tokio::test]
     async fn full_request_and_evaluator_settings_account_and_floor_are_cache_identity() {
-        let mock = Arc::new(Mock::new(false));
-        let config = config();
-        let classifier = Classifier::new(mock.clone(), &config);
+        let (mock, config, classifier) = fixture(false);
         let body = document("Synthetic task");
         let cancel = CancellationToken::new();
         classifier.classify(&body, &config, &cancel).await.unwrap();
@@ -1478,9 +1465,7 @@ mod tests {
 
     #[tokio::test]
     async fn bounded_excerpt_uses_exact_utf16_wire_and_retains_no_full_body_in_registry() {
-        let mock = Arc::new(Mock::new(false));
-        let config = config();
-        let classifier = Classifier::new(mock.clone(), &config);
+        let (mock, config, classifier) = fixture(false);
         let body=JsDocument::parse(br#"{"model":"claude-sonnet-5","messages":[{"role":"user","content":"Synthetic \ud800 task"}]}"#).unwrap();
         classifier
             .classify(&body, &config, &CancellationToken::new())
@@ -1496,9 +1481,7 @@ mod tests {
 
     #[tokio::test]
     async fn shutdown_cancels_all_subscribers_and_pending_transport() {
-        let mock = Arc::new(Mock::new(true));
-        let config = config();
-        let classifier = Classifier::new(mock.clone(), &config);
+        let (mock, config, classifier) = fixture(true);
         let first = start(
             &classifier,
             document("A"),
@@ -1525,10 +1508,24 @@ mod tests {
 
     #[test]
     fn settings_identity_distinguishes_effective_credential_presence_and_source_values() {
+        use sha2::{Digest, Sha256};
         let body = document("synthetic credential identity");
+        let checked = |config: &RouterConfig, credential: Option<&str>| {
+            let field = credential
+                .map(|json| format!(",\"jevKey\":{json}"))
+                .unwrap_or_default();
+            let legacy = format!(
+                r#"[{},{{"evaluator":"jev","jevEndpoint":"https://api.typesafe.ai/v1/systemone","jevModel":"jev-latest"{field},"jevTimeoutMs":1500,"minConfidence":0.75,"stateChars":12000}},"0188f45daca9a670c97197fc1726ce6fd2e8cbb646ca5773b15c68b73ace184d"]"#,
+                body.stringify()
+            );
+            let expected: Key = Sha256::digest(legacy.as_bytes()).into();
+            let actual = settings_key(&body, config);
+            assert_eq!(actual, expected);
+            actual
+        };
         let mut missing = config();
         missing.replace_credential(Credential::Jev, None);
-        let missing_key = settings_key(&body, &missing);
+        let missing_key = checked(&missing, None);
         let values = [
             serde_json::Value::Null,
             json!(false),
@@ -1542,7 +1539,7 @@ mod tests {
         for value in values {
             let mut settings = missing.clone();
             settings.replace_credential_value(Credential::Jev, Some(&value));
-            let key = settings_key(&body, &settings);
+            let key = checked(&settings, Some(&value.to_string()));
             assert_ne!(key, missing_key);
             assert!(!keys.contains(&key));
             keys.push(key);
@@ -1557,7 +1554,7 @@ mod tests {
             )
             .unwrap();
         // Source JSON.stringify hashes both overflow and null as null.
-        assert_eq!(settings_key(&body, &overflow), keys[0]);
+        assert_eq!(checked(&overflow, Some("null")), keys[0]);
         let mut exact = missing.clone();
         let mut replacement = missing.clone();
         for (settings, bytes) in [
@@ -1581,9 +1578,24 @@ mod tests {
         }
         assert_eq!(exact.jev_key, replacement.jev_key);
         assert_ne!(
-            settings_key(&body, &exact),
-            settings_key(&body, &replacement)
+            checked(&exact, Some(r#""synthetic-\ud800""#)),
+            checked(&replacement, Some(r#""synthetic-�""#))
         );
+        exact.replace_credential(Credential::Jev, Some("synthetic-new".into()));
+        assert_ne!(checked(&exact, Some(r#""synthetic-new""#)), missing_key);
+        exact.replace_credential(Credential::Jev, None);
+        assert_eq!(checked(&exact, None), missing_key);
+        let mut local = missing;
+        local.evaluator = Evaluator::Ollama;
+        local.ollama_model = "tev1:0.8b".into();
+        local.ollama_timeout_ms = 1500;
+        local.ollama_keep_alive = json!("5m");
+        let legacy = format!(
+            r#"[{},{{"evaluator":"ollama","ollamaEndpoint":"http://127.0.0.1:11434","ollamaModel":"tev1:0.8b","ollamaTimeoutMs":1500,"ollamaStateChars":3000,"ollamaKeepAlive":"5m"}},"be151cedb4de4b7ef3f7162d751f70ce7d9dd14efc66fae1835f73ffd04027be"]"#,
+            body.stringify()
+        );
+        let expected: Key = Sha256::digest(legacy.as_bytes()).into();
+        assert_eq!(settings_key(&body, &local), expected);
     }
 
     #[test]

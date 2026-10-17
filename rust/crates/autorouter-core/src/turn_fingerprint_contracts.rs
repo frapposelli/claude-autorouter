@@ -71,6 +71,7 @@ fn all_frozen_turn_preimages_and_keys_match_through_normalization_and_prefixes()
 
 #[test]
 fn buffered_turn_digest_preserves_every_fragment_across_fixed_batch_boundaries() {
+    let document = JsDocument::parse(b"null").unwrap();
     for prefix in [0, 1, 63, 64, 65, 4095, 4096, 4097] {
         for payload in [0, 1, 4095, 4096, 4097, 8192, 16385] {
             let mut expected = "p".repeat(prefix);
@@ -84,11 +85,17 @@ fn buffered_turn_digest_preserves_every_fragment_across_fixed_batch_boundaries()
             for fragment in ["", ",", "null", "\\ud800", "\n", "tail"] {
                 actual.push_str(fragment);
                 expected.push_str(fragment);
-                assert!(actual.used < actual.buffer.len());
+                let (used, capacity) = actual.buffered_state();
+                assert!(used < capacity);
             }
             assert_eq!(
                 actual.finish(),
                 format!("{:x}", Sha256::digest(expected.as_bytes()))
+            );
+            let legacy: [u8; 32] = Sha256::digest(format!("{expected}null|tail").as_bytes()).into();
+            assert_eq!(
+                document.sha256_with_fragments(&["", &expected], &["|", "", "tail"]),
+                legacy
             );
         }
     }

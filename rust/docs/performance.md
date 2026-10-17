@@ -302,3 +302,32 @@ The [source and evidence summary](../parity/measurements/native-turn-fingerprint
 retains the exact measured helpers and later validation separately. Neither
 experiment qualifies representative hardware, the final source or a shipping
 artifact, and the full performance gate remains incomplete.
+
+## Classifier request hashing
+
+The classifier now hashes the exact canonical request directly through the
+same buffered SHA-256 sink used by turn fingerprints. It retains the previous
+`[request, settings, rubric]` preimage, including exact credential identity,
+without allocating the complete serialized request. Settings construction,
+cache admission, cancellation, deadlines and routing policy are unchanged.
+Independent legacy-preimage comparisons cover the existing JSON goldens,
+deep data, buffer boundaries and credential replacement/removal controls.
+
+One fresh five-pair baseline preceded this change, followed by one fresh
+five-pair candidate run using the unchanged whole-connection protocol:
+
+| Recorded source/helper | Median native/reference p95 ratio | 95% interval | Observed 0.5 target |
+| --- | --- | --- | --- |
+| Credential checkpoint `e28499d` | 0.507 | 0.492–0.527 | Inconclusive |
+| Streamed classifier preimage | 0.442 | 0.438–0.444 | Met |
+
+Both runs retain all 20,000 measured samples, alternating order, complete
+responses, exact call counts and cleanup controls. Each used the normal-use
+16 GiB M4 with local builds and tests stopped during measurement. Changing
+background load prevents attributing the difference solely to the code change.
+The candidate's interval is below the unchanged threshold, but the full gate
+still requires representative hardware, remaining workloads and metrics, and
+shipping-artifact qualification. No provider calls were made.
+
+The [source and evidence summary](../parity/measurements/native-processing-hash-stream-summary.json)
+binds the raw reports, release helpers, tested source and bounded source transfer.

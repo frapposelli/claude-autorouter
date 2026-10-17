@@ -13,9 +13,7 @@ async fn bounded_owned_close(future: impl std::future::Future<Output = ()>) {
 
 #[tokio::test(flavor = "current_thread")]
 async fn close_waits_for_retired_worker_after_first_close_waiter_is_dropped() {
-    let mock = Arc::new(Mock::new(true));
-    let settings = config();
-    let classifier = Classifier::new(mock.clone(), &settings);
+    let (mock, settings, classifier) = fixture(true);
     let gate = Arc::new(shutdown_gate::WorkerPollGate::default());
     classifier.test_worker_poll_gate(gate.clone());
     let body = document("retired-owner-close");
@@ -52,9 +50,7 @@ async fn close_waits_for_retired_worker_after_first_close_waiter_is_dropped() {
 #[tokio::test(flavor = "current_thread")]
 async fn terminal_close_owns_reservation_before_spawn_and_drop_before_first_poll() {
     for drop_before_spawn in [false, true] {
-        let mock = Arc::new(Mock::new(true));
-        let settings = config();
-        let classifier = Classifier::new(mock.clone(), &settings);
+        let (mock, settings, classifier) = fixture(true);
         let gate = Arc::new(shutdown_gate::WorkerSpawnGate::default());
         *classifier.shared.test_spawn_gate.lock().unwrap() = Some(gate.clone());
         let body = document("reserved-before-spawn");

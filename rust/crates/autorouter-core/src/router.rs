@@ -7,13 +7,14 @@ use crate::contracts::{
     ClassifierDecision, ClassifierError, ContextCheck, ContinuityState, DecisionSource,
     RoutingDecision, Tier, TypedRouteDecision,
 };
-use crate::js_json::{JsDocument, JsNode, JsString, JsonWrite, NodeId};
+use crate::js_json::{JsDocument, JsNode, JsString, JsonDigest as TurnDigest, JsonWrite, NodeId};
 use crate::model_catalog::{
     can_upgrade_context, has_native_million_context, supports_tool_references,
 };
 use crate::prompt_state::goal_feedback_indexes_document;
 use crate::turn_state::{ContinuationEvidence, Pin, Selection, ToolOwner, TurnState};
 use serde_json::{Value, json};
+#[cfg(test)]
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 
@@ -68,48 +69,6 @@ fn needs_sonnet_document(doc: &JsDocument) -> bool {
         .get(root, "max_tokens")
         .and_then(|node| doc.node(node))
         .is_some_and(|value| matches!(value, JsNode::Number(number) if *number > 64000.0))
-}
-// This sink retains only one fixed-size batch and SHA state, never a catalog-
-// sized preimage. Large borrowed fragments go straight to SHA after a pending
-// batch drains; punctuation and short keys share a batch.
-struct TurnDigest {
-    hash: Sha256,
-    buffer: [u8; 4096],
-    used: usize,
-}
-impl TurnDigest {
-    fn new() -> Self {
-        Self {
-            hash: Sha256::new(),
-            buffer: [0; 4096],
-            used: 0,
-        }
-    }
-    fn finish(mut self) -> String {
-        self.hash.update(&self.buffer[..self.used]);
-        format!("{:x}", self.hash.finalize())
-    }
-}
-impl JsonWrite for TurnDigest {
-    fn push_str(&mut self, value: &str) {
-        let mut bytes = value.as_bytes();
-        if self.used > 0 {
-            let take = bytes.len().min(self.buffer.len() - self.used);
-            self.buffer[self.used..self.used + take].copy_from_slice(&bytes[..take]);
-            self.used += take;
-            bytes = &bytes[take..];
-            if self.used == self.buffer.len() {
-                self.hash.update(self.buffer.as_slice());
-                self.used = 0;
-            }
-        }
-        if bytes.len() >= self.buffer.len() {
-            self.hash.update(bytes);
-        } else if !bytes.is_empty() {
-            self.buffer[..bytes.len()].copy_from_slice(bytes);
-            self.used = bytes.len();
-        }
-    }
 }
 fn is_key(key: &JsString, value: &str) -> bool {
     key.units().iter().copied().eq(value.encode_utf16())

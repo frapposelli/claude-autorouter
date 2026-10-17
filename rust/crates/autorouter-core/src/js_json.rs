@@ -7,6 +7,7 @@
 //!
 //! This document is the authoritative wire representation. The explicitly
 //! lossy observation projection is never suitable for forwarding requests.
+use sha2::{Digest, Sha256};
 use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::fmt;
@@ -40,6 +41,59 @@ impl JsonWrite for String {
 
     fn push(&mut self, value: char) {
         String::push(self, value);
+    }
+}
+
+// This sink retains only one fixed-size batch and SHA state, never a catalog-
+// sized preimage. Large borrowed fragments go straight to SHA after a pending
+// batch drains; punctuation and short keys share a batch.
+pub(crate) struct JsonDigest {
+    hash: Sha256,
+    buffer: [u8; 4096],
+    used: usize,
+}
+impl JsonDigest {
+    pub(crate) fn new() -> Self {
+        Self {
+            hash: Sha256::new(),
+            buffer: [0; 4096],
+            used: 0,
+        }
+    }
+    fn finalized(mut self) -> sha2::digest::Output<Sha256> {
+        self.hash.update(&self.buffer[..self.used]);
+        self.hash.finalize()
+    }
+    pub(crate) fn finish(self) -> String {
+        format!("{:x}", self.finalized())
+    }
+    fn finish_bytes(self) -> [u8; 32] {
+        self.finalized().into()
+    }
+    #[cfg(test)]
+    pub(crate) fn buffered_state(&self) -> (usize, usize) {
+        (self.used, self.buffer.len())
+    }
+}
+impl JsonWrite for JsonDigest {
+    fn push_str(&mut self, value: &str) {
+        let mut bytes = value.as_bytes();
+        if self.used > 0 {
+            let take = bytes.len().min(self.buffer.len() - self.used);
+            self.buffer[self.used..self.used + take].copy_from_slice(&bytes[..take]);
+            self.used += take;
+            bytes = &bytes[take..];
+            if self.used == self.buffer.len() {
+                self.hash.update(self.buffer.as_slice());
+                self.used = 0;
+            }
+        }
+        if bytes.len() >= self.buffer.len() {
+            self.hash.update(bytes);
+        } else if !bytes.is_empty() {
+            self.buffer[..bytes.len()].copy_from_slice(bytes);
+            self.used = bytes.len();
+        }
     }
 }
 
@@ -856,6 +910,21 @@ impl JsDocument {
 
     pub fn stringify(&self) -> String {
         self.stringify_node(self.root)
+    }
+
+    /// SHA-256 of verbatim UTF-8 fragments before and after this document's
+    /// exact canonical JSON. No separator or escaping is added to fragments.
+    /// The writer retains only one fixed-size batch, not the serialized body.
+    pub fn sha256_with_fragments(&self, before: &[&str], after: &[&str]) -> [u8; 32] {
+        let mut output = JsonDigest::new();
+        for part in before {
+            output.push_str(part);
+        }
+        self.write_node(self.root, &mut output);
+        for part in after {
+            output.push_str(part);
+        }
+        output.finish_bytes()
     }
 
     /// Exact serialized byte charge with early limit rejection. Traversal uses
@@ -1836,6 +1905,11 @@ mod writer_tests {
             writer.push('|');
             JsString::from_scalar("after").write_json(writer);
             assert_eq!(sink.0, format!("prefix|{expected}|\"after\"").as_bytes());
+            let expected_hash: [u8; 32] = Sha256::digest(&sink.0).into();
+            assert_eq!(
+                document.sha256_with_fragments(&["prefix|"], &["|", "\"after\""]),
+                expected_hash
+            );
         }
     }
 
@@ -1931,5 +2005,7 @@ mod writer_tests {
         let mut sink = ByteSink::default();
         document.write_node(document.root(), &mut sink);
         assert_eq!(sink.0, input.as_bytes());
+        let expected_hash: [u8; 32] = Sha256::digest(input.as_bytes()).into();
+        assert_eq!(document.sha256_with_fragments(&[], &[]), expected_hash);
     }
 }
