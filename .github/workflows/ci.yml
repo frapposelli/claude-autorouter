@@ -81,7 +81,22 @@ jobs:
       - run: cargo test --package xtask --no-default-features --bin autorouter-audit --offline --locked
       - run: cargo fmt --check
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
-      - run: cargo test --workspace --locked
+      - name: Test Rust workspace
+        run: |
+          # Keep Cargo's command and status; diagnostics never replace either.
+          if autorouter_test_output=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/autorouter-rust-tests.XXXXXXXX"); then
+            trap 'rm -f -- "$autorouter_test_output"' EXIT
+            set +e
+            cargo test --workspace --locked 2>&1 | tee "$autorouter_test_output"
+            autorouter_test_status=${PIPESTATUS[0]}
+            set -e
+            if (( autorouter_test_status != 0 )); then
+              python3 distribution/ci/annotate-cargo-tests.py "$autorouter_test_output" || true
+            fi
+            exit "$autorouter_test_status"
+          else
+            cargo test --workspace --locked
+          fi
       - run: cargo xtask parity --all --output artifacts/rust-rewrite/parity-ci
       - run: node parity/capture-auto-routing-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/auto-routing-contracts
       - run: cargo xtask parity --cases artifacts/rust-rewrite/auto-routing-contracts/cases.jsonl --report artifacts/rust-rewrite/parity-auto-routing-contracts.json
