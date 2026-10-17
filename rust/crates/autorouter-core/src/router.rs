@@ -7,7 +7,7 @@ use crate::contracts::{
     ClassifierDecision, ClassifierError, ContextCheck, ContinuityState, DecisionSource,
     RoutingDecision, Tier, TypedRouteDecision,
 };
-use crate::js_json::{JsDocument, JsNode, JsString, NodeId};
+use crate::js_json::{JsDocument, JsNode, JsString, JsonWrite, NodeId};
 use crate::model_catalog::{
     can_upgrade_context, has_native_million_context, supports_tool_references,
 };
@@ -69,60 +69,198 @@ fn needs_sonnet_document(doc: &JsDocument) -> bool {
         .and_then(|node| doc.node(node))
         .is_some_and(|value| matches!(value, JsNode::Number(number) if *number > 64000.0))
 }
-fn hash(json: &str) -> String {
-    // Callers compose already serialized values and JS-ordered object fields.
-    // Parsing the complete catalog again cannot change their representation.
-    format!("{:x}", Sha256::digest(json.as_bytes()))
+// This sink retains only one fixed-size batch and SHA state, never a catalog-
+// sized preimage. Large borrowed fragments go straight to SHA after a pending
+// batch drains; punctuation and short keys share a batch.
+struct TurnDigest {
+    hash: Sha256,
+    buffer: [u8; 4096],
+    used: usize,
 }
-fn raw(doc: &JsDocument, node: Option<NodeId>) -> String {
-    node.map(|n| doc.stringify_node(n))
-        .unwrap_or_else(|| "null".into())
+impl TurnDigest {
+    fn new() -> Self {
+        Self {
+            hash: Sha256::new(),
+            buffer: [0; 4096],
+            used: 0,
+        }
+    }
+    fn finish(mut self) -> String {
+        self.hash.update(&self.buffer[..self.used]);
+        format!("{:x}", self.hash.finalize())
+    }
+}
+impl JsonWrite for TurnDigest {
+    fn push_str(&mut self, value: &str) {
+        let mut bytes = value.as_bytes();
+        if self.used > 0 {
+            let take = bytes.len().min(self.buffer.len() - self.used);
+            self.buffer[self.used..self.used + take].copy_from_slice(&bytes[..take]);
+            self.used += take;
+            bytes = &bytes[take..];
+            if self.used == self.buffer.len() {
+                self.hash.update(self.buffer.as_slice());
+                self.used = 0;
+            }
+        }
+        if bytes.len() >= self.buffer.len() {
+            self.hash.update(bytes);
+        } else if !bytes.is_empty() {
+            self.buffer[..bytes.len()].copy_from_slice(bytes);
+            self.used = bytes.len();
+        }
+    }
+}
+fn is_key(key: &JsString, value: &str) -> bool {
+    key.units().iter().copied().eq(value.encode_utf16())
 }
 
-fn object_without_cache(doc: &JsDocument, node: NodeId, nested: bool) -> String {
-    let entries: Vec<(JsString, NodeId)> = match doc.node(node) {
-        Some(JsNode::Object(object)) => object.ordered_entries().cloned().collect(),
-        Some(JsNode::Array(array)) => array
-            .iter()
-            .enumerate()
-            .map(|(i, n)| (JsString::from_scalar(&i.to_string()), *n))
-            .collect(),
-        _ => return doc.stringify_node(node),
-    };
-    let recurse = nested
-        && is(doc, property(doc, node, "type"), "tool_result")
-        && array(doc, property(doc, node, "content")).is_some();
-    let mut members = Vec::new();
-    for (key, child) in entries {
-        if key
-            .units()
-            .iter()
-            .copied()
-            .eq("cache_control".encode_utf16())
-        {
-            continue;
-        }
-        let value = if recurse && key.units().iter().copied().eq("content".encode_utf16()) {
-            turn_content(doc, Some(child))
-        } else {
-            doc.stringify_node(child)
-        };
-        members.push(format!("{}:{value}", key.stringify()));
-    }
-    format!("{{{}}}", members.join(","))
+enum TurnWrite<'a> {
+    Content(Option<NodeId>),
+    Block(NodeId, bool),
+    Raw(NodeId),
+    Key(&'a JsString),
+    Index(usize),
+    Punctuation(char),
 }
-fn turn_content(doc: &JsDocument, content: Option<NodeId>) -> String {
-    let Some(blocks) = array(doc, content) else {
-        return raw(doc, content);
-    };
-    format!(
-        "[{}]",
-        blocks
-            .iter()
-            .map(|n| object_without_cache(doc, *n, true))
-            .collect::<Vec<_>>()
-            .join(",")
-    )
+fn write_turn_part<'a, W: JsonWrite + ?Sized>(
+    doc: &'a JsDocument,
+    first: TurnWrite<'a>,
+    output: &mut W,
+) {
+    let mut stack = vec![first];
+    while let Some(part) = stack.pop() {
+        match part {
+            TurnWrite::Content(content) => {
+                if let Some(blocks) = array(doc, content) {
+                    output.push('[');
+                    stack.push(TurnWrite::Punctuation(']'));
+                    for (index, &block) in blocks.iter().enumerate().rev() {
+                        stack.push(TurnWrite::Block(block, true));
+                        if index != 0 {
+                            stack.push(TurnWrite::Punctuation(','));
+                        }
+                    }
+                } else if let Some(node) = content {
+                    doc.write_node(node, output);
+                } else {
+                    output.push_str("null");
+                }
+            }
+            TurnWrite::Block(node, nested) => match doc.node(node) {
+                Some(JsNode::Object(object)) => {
+                    let recurse = nested
+                        && is(doc, property(doc, node, "type"), "tool_result")
+                        && array(doc, property(doc, node, "content")).is_some();
+                    output.push('{');
+                    stack.push(TurnWrite::Punctuation('}'));
+                    let mut count = 0;
+                    for (key, child) in object.ordered_entries().rev() {
+                        if is_key(key, "cache_control") {
+                            continue;
+                        }
+                        if count != 0 {
+                            stack.push(TurnWrite::Punctuation(','));
+                        }
+                        stack.push(if recurse && is_key(key, "content") {
+                            TurnWrite::Content(Some(*child))
+                        } else {
+                            TurnWrite::Raw(*child)
+                        });
+                        stack.push(TurnWrite::Punctuation(':'));
+                        stack.push(TurnWrite::Key(key));
+                        count += 1;
+                    }
+                }
+                // Object spread of an array has enumerable decimal keys. Its
+                // elements are opaque values, not recursively normalized blocks.
+                Some(JsNode::Array(values)) => {
+                    output.push('{');
+                    stack.push(TurnWrite::Punctuation('}'));
+                    for (index, &child) in values.iter().enumerate().rev() {
+                        stack.push(TurnWrite::Raw(child));
+                        stack.push(TurnWrite::Punctuation(':'));
+                        stack.push(TurnWrite::Index(index));
+                        if index != 0 {
+                            stack.push(TurnWrite::Punctuation(','));
+                        }
+                    }
+                }
+                _ => doc.write_node(node, output),
+            },
+            TurnWrite::Raw(node) => doc.write_node(node, output),
+            TurnWrite::Key(key) => key.write_json(output),
+            TurnWrite::Index(index) => {
+                output.push('"');
+                output.push_str(&index.to_string());
+                output.push('"');
+            }
+            TurnWrite::Punctuation(value) => output.push(value),
+        }
+    }
+}
+fn write_turn_preimage<W: JsonWrite + ?Sized>(
+    doc: &JsDocument,
+    scope: &str,
+    messages: &[NodeId],
+    index: Option<usize>,
+    output: &mut W,
+) {
+    let root = doc.root();
+    output.push('[');
+    JsString::from_scalar(scope).write_json(output);
+    output.push(',');
+    write_turn_part(
+        doc,
+        TurnWrite::Content(property(doc, root, "system")),
+        output,
+    );
+    output.push(',');
+    if let Some(tools) = array(doc, property(doc, root, "tools")) {
+        output.push('[');
+        for (position, &tool) in tools.iter().enumerate() {
+            if position != 0 {
+                output.push(',');
+            }
+            write_turn_part(doc, TurnWrite::Block(tool, false), output);
+        }
+        output.push(']');
+    } else {
+        output.push_str("null");
+    }
+    output.push_str(",[");
+    let mut first = true;
+    for &message in &messages[..index.map_or(0, |value| value + 1)] {
+        let Some(JsNode::Object(object)) = doc.node(message) else {
+            continue;
+        };
+        if !first {
+            output.push(',');
+        }
+        first = false;
+        output.push('{');
+        for (position, (key, child)) in object.ordered_entries().enumerate() {
+            if position != 0 {
+                output.push(',');
+            }
+            key.write_json(output);
+            output.push(':');
+            if is_key(key, "content") {
+                write_turn_part(doc, TurnWrite::Content(Some(*child)), output);
+            } else {
+                doc.write_node(*child, output);
+            }
+        }
+        output.push('}');
+    }
+    output.push_str("]]");
+}
+fn write_prompt_preimage<W: JsonWrite + ?Sized>(scope: &str, prompt_id: &str, output: &mut W) {
+    output.push_str("[\"prompt\",");
+    JsString::from_scalar(scope).write_json(output);
+    output.push(',');
+    JsString::from_scalar(prompt_id).write_json(output);
+    output.push(']');
 }
 
 #[derive(Clone, Debug)]
@@ -162,51 +300,16 @@ fn turn_info_prefix(
                 }))
             .then_some(index)
         });
-    let tools = array(doc, property(doc, root, "tools"))
-        .map(|tools| {
-            format!(
-                "[{}]",
-                tools
-                    .iter()
-                    .map(|n| object_without_cache(doc, *n, false))
-                    .collect::<Vec<_>>()
-                    .join(",")
-            )
-        })
-        .unwrap_or_else(|| "null".into());
-    let mut history = Vec::new();
-    for &message in &messages[..index.map_or(0, |i| i + 1)] {
-        let Some(JsNode::Object(object)) = doc.node(message) else {
-            continue;
-        };
-        let members = object
-            .ordered_entries()
-            .map(|(key, child)| {
-                let value = if key.units().iter().copied().eq("content".encode_utf16()) {
-                    turn_content(doc, Some(*child))
-                } else {
-                    doc.stringify_node(*child)
-                };
-                format!("{}:{value}", key.stringify())
-            })
-            .collect::<Vec<_>>();
-        history.push(format!("{{{}}}", members.join(",")));
-    }
-    let content_key = hash(&format!(
-        "[{},{},{},[{}]]",
-        JsString::from_scalar(scope).stringify(),
-        turn_content(doc, property(doc, root, "system")),
-        tools,
-        history.join(",")
-    ));
+    // Preserve content aliases even when an explicit prompt identity exists.
+    let mut content = TurnDigest::new();
+    write_turn_preimage(doc, scope, messages, index, &mut content);
+    let content_key = content.finish();
     let key = if prompt_id.is_empty() {
         content_key.clone()
     } else {
-        hash(&format!(
-            "[\"prompt\",{},{}]",
-            JsString::from_scalar(scope).stringify(),
-            JsString::from_scalar(prompt_id).stringify()
-        ))
+        let mut prompt = TurnDigest::new();
+        write_prompt_preimage(scope, prompt_id, &mut prompt);
+        prompt.finish()
     };
     TurnInfo {
         index,
@@ -1647,3 +1750,7 @@ mod tests {
         );
     }
 }
+
+#[cfg(test)]
+#[path = "turn_fingerprint_contracts.rs"]
+mod turn_fingerprint_contracts;

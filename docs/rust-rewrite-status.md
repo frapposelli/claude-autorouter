@@ -1,6 +1,6 @@
 # Rust rewrite completion audit
 
-This checklist tracks the full [rewrite plan](rust-rewrite-plan.md), including its cutover phase. It does not redefine completion as an experimental candidate, four convenient platforms, or a passing subset of tests. The frozen baseline is `ea930c247626ce2af5ccdad721b5121417bf4ad8` / JavaScript 0.5.2. Status reviewed on 2026-10-15; changes in progress require fresh validation before approval.
+This checklist tracks the full [rewrite plan](rust-rewrite-plan.md), including its cutover phase. It does not redefine completion as an experimental candidate, four convenient platforms, or a passing subset of tests. The frozen baseline is `ea930c247626ce2af5ccdad721b5121417bf4ad8` / JavaScript 0.5.2. Status reviewed on 2026-10-17; changes in progress require fresh validation before approval.
 
 ## Completion criteria and authoritative evidence
 
@@ -13,10 +13,10 @@ This checklist tracks the full [rewrite plan](rust-rewrite-plan.md), including i
 | Authentication, refreshed subscription credentials and custom-upstream restrictions | Request-scoped credential tests, API/OAuth/beta rejection matrix, conservative unsupported-contract behavior | Implemented and tested on synthetic transports; live canaries and supported-platform TLS qualification remain. |
 | Configuration, policy, Keychain and history without mandatory migration | Exact lexical identities, permissions/revision/fsync/no-follow checks, policy admission, isolated migration/rollback and existing schemas/prices | Isolated real macOS Keychain migration passes all 25 host assertions through both engines. Complete assertion review, failure/rollback and platform qualification remain. |
 | Bounds, cancellation and state ownership | Full boundary/interleaving matrix; bounded retention, no uncancelled workers, clean shutdown, no false continuation confirmation | Many deterministic proofs exist. Every inventoried configuration key/limit and full failure/resource matrix must be reviewed. |
-| Predeclared speed and memory gates | Fresh matched five-round reports on representative hardware, unchanged thresholds, processing-only control, uncertainty and complete declared workload coverage | Exploratory v1 evidence exists. Three normal-use whole-processing five-pair runs retain complete parity; none qualifies the unchanged 0.5 p95 target. Numerical qualification, missing metrics/workloads and representative hardware remain open. |
+| Predeclared speed and memory gates | Fresh matched five-round reports on representative hardware, unchanged thresholds, processing-only control, uncertainty and complete declared workload coverage | Exploratory v1 evidence exists. Five separately retained normal-use whole-processing five-pair runs retain complete parity; none qualifies the unchanged 0.5 p95 target. Numerical qualification, missing metrics/workloads and representative hardware remain open. |
 | Real evaluator and task evidence | Explicit matched trials with fixed fixtures/rubrics/models and separately reported availability, transport, policy and task quality | Compatible and actual Auto simple Jev preflights pass. Two five-pair real Tev1 experiments retain identical warm classification failures, finite-deadline stress differences and matching zero-deadline outcomes. Full profile/task and larger-host evidence remain open. |
 | Rust contributor/release tools | Original tool behavior mappings, release state handling, immutable archives, registry verification, direct installation and source/build provenance | Most tooling exists; original tooling assertions and production release workflow/provenance remain incomplete. |
-| Native CI and supported platform matrix | Compiler/feature/license checks, installed native/npm/direct artifacts, minimum OS/libc/CPU/TLS/PTY/WSL evidence for every approved target | The latest [PR merge-tree observation for `5fa6ac8`](../rust/parity/measurements/native-5fa6ac8-ci-summary.json) passes all 14 configured jobs. It adds genuine i686 runtime/CLI and exact installed-archive execution to the four native hosts, GNU/musl pairs and core arithmetic job. Subsequent upgrade/rollback hooks and artifact-admission changes need fresh CI; complete supported-platform, minimum-OS/TLS/WSL and release qualification remain open. |
+| Native CI and supported platform matrix | Compiler/feature/license checks, installed native/npm/direct artifacts, minimum OS/libc/CPU/TLS/PTY/WSL evidence for every approved target | The [complete `d9e88e6` checkpoint](../rust/parity/measurements/native-d9e88e6-ci-summary.json) passes all fourteen jobs, including exact rollback rehearsals in nine packaging environments. The [following `19e3d2c` run](../rust/parity/measurements/native-19e3d2c-ci-timeout-summary.json) passes thirteen jobs and times out on Intel macOS. The targeted job allowance and current source need fresh CI; complete platform/minimum-OS/TLS/WSL and release qualification remain open. |
 | Default cutover and retirement | All preceding gates approved, separately authorized release, migration/help/contributor docs, retained rollback and defined stabilization period | JavaScript remains shipping default. This phase remains required for full completion. |
 
 The [assertion ledger](../rust/parity/coverage.json) and [evidence index](../rust/parity/evidence.json) retain individual test status. Existing report hashes refer to historical inputs; editing code or a manifest does not transfer old qualification to new bytes.
@@ -68,7 +68,7 @@ Update release verification and publishing around the exact qualified native set
 
 1. Finish the additive exact-archive upgrade/rollback CI checks on all current native packaging environments, retaining the successful and failed evidence separately.
 2. Extend execution coverage to remaining baseline architectures with pinned toolchains and real target userlands; emulated execution must remain separate from CPU/minimum-kernel qualification.
-3. Complete the remaining 58 original assertion definitions and configuration/limit audit, including explicit native API/format migration review rather than blanket suite approval.
+3. Complete the remaining 56 original assertion definitions and configuration/limit audit, including explicit native API/format migration review rather than blanket suite approval.
 4. Complete TLS/protocol/resource schedules and failed-startup, partial-write and ownership scenarios for rollback.
 5. Meet every unchanged numerical gate and declared workload/hardware requirement, complete real-task evidence and final source/build/license/installed-artifact qualification, then perform separately authorized stabilization and cutover.
 
@@ -335,3 +335,32 @@ families pass. The source/reference transfer verifies 690 public inputs and
 113 restored reference files at 33,484,800 carrier and 33,351,365 logical bytes
 under the unchanged 33,554,432-byte ceilings. Fresh CI is required for this new
 checkpoint; the full rewrite remains unqualified for release or default cutover.
+
+## Buffered fingerprints and Intel CI allowance
+
+The [fingerprint checkpoint](../rust/parity/measurements/native-turn-fingerprint-summary.json)
+shares exact JSON fragment serialization with a 4 KiB SHA-256 batch, removing
+catalog-sized preimage strings while preserving normalization and content aliases.
+All 26 complete frozen Node cases pass, including a 4,263-byte normalized
+composition and escaped scope/prompt identities. The full workspace passes
+1,321 Rust tests with ten ignored tests or helper fixtures, strict Clippy,
+formatting and the minimal auditor. All 596 JavaScript tests, contracts/style,
+the exact 58-file package smoke, seventeen differential families and fresh
+whole-connection deterministic validation pass. The matched source transfer
+verifies 693 public inputs and 113 reference files at 33,548,800 carrier and
+33,414,582 logical bytes under the unchanged 32 MiB limits.
+
+The before/candidate five-pair measurements retain complete functional parity,
+with native/reference p95 ratio estimates of 0.495 and 0.469. Both confidence
+intervals cross the unchanged 0.5 limit. These sequential normal-use M4 runs
+establish neither a causal improvement nor performance acceptance; the
+[performance notes](../rust/docs/performance.md#buffered-turn-fingerprints)
+retain their source and hardware limits. Coverage remains 532 covered/56 partial.
+
+The [terminal `19e3d2c` CI observation](../rust/parity/measurements/native-19e3d2c-ci-timeout-summary.json)
+records thirteen successful jobs and one cancelled Intel macOS job. GitHub's
+annotation confirms the 45-minute job limit; checks after configuration parity
+were skipped. The next native Intel job has a 60-minute allowance, with every
+step retained and the other job/product/test deadlines unchanged. Fresh CI
+must verify this source; neither the cancelled run nor local checks approve
+release, the complete platform matrix or default cutover.

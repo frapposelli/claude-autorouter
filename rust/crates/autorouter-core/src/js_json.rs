@@ -15,6 +15,34 @@ use std::sync::{Arc, OnceLock};
 
 pub type NodeId = usize;
 
+/// Infallible append-only JSON byte destination inside the core crate.
+/// Implementations must consume every UTF-8 fragment in order. `reserve` is
+/// only an allocation hint; bounded streaming destinations may ignore it.
+pub(crate) trait JsonWrite {
+    fn reserve(&mut self, _additional: usize) {}
+
+    fn push_str(&mut self, value: &str);
+
+    fn push(&mut self, value: char) {
+        let mut encoded = [0_u8; 4];
+        self.push_str(value.encode_utf8(&mut encoded));
+    }
+}
+
+impl JsonWrite for String {
+    fn reserve(&mut self, additional: usize) {
+        String::reserve(self, additional);
+    }
+
+    fn push_str(&mut self, value: &str) {
+        String::push_str(self, value);
+    }
+
+    fn push(&mut self, value: char) {
+        String::push(self, value);
+    }
+}
+
 #[derive(Clone)]
 pub struct JsString(Arc<StringData>);
 
@@ -67,8 +95,14 @@ impl JsString {
     }
     pub fn stringify(&self) -> String {
         let mut output = String::new();
-        quote(self, &mut output);
+        self.write_json(&mut output);
         output
+    }
+
+    /// Append this string's exact JSON representation without a temporary
+    /// string. The same scalar/UTF-16 writer serves `stringify` and fingerprints.
+    pub(crate) fn write_json<W: JsonWrite + ?Sized>(&self, output: &mut W) {
+        quote(self, output);
     }
 
     /// Exact JSON byte charge without allocating output or a lazy UTF-16 cache.
@@ -587,7 +621,7 @@ impl<'a> Parser<'a> {
     }
 }
 
-fn quote(value: &JsString, output: &mut String) {
+fn quote<W: JsonWrite + ?Sized>(value: &JsString, output: &mut W) {
     if let Some(scalar) = value.0.scalar.as_deref() {
         if value.0.needs_escape {
             quote_scalar(scalar, output);
@@ -616,8 +650,7 @@ fn quote(value: &JsString, output: &mut String) {
             92 => output.push_str("\\\\"),
             32..=127 => output.push(char::from(unit as u8)),
             0..=31 => {
-                use std::fmt::Write;
-                write!(output, "\\u{unit:04x}").expect("string writing");
+                write_unicode_escape(unit, output);
             }
             0xd800..=0xdbff
                 if units
@@ -630,13 +663,25 @@ fn quote(value: &JsString, output: &mut String) {
                 output.push(char::from_u32(scalar).expect("surrogate pair"));
             }
             0xd800..=0xdfff => {
-                use std::fmt::Write;
-                write!(output, "\\u{unit:04x}").expect("string writing");
+                write_unicode_escape(unit, output);
             }
             _ => output.push(char::from_u32(u32::from(unit)).expect("non-surrogate unit")),
         }
     }
     output.push('"');
+}
+
+fn write_unicode_escape<W: JsonWrite + ?Sized>(unit: u16, output: &mut W) {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let bytes = [
+        b'\\',
+        b'u',
+        HEX[usize::from((unit >> 12) & 15)],
+        HEX[usize::from((unit >> 8) & 15)],
+        HEX[usize::from((unit >> 4) & 15)],
+        HEX[usize::from(unit & 15)],
+    ];
+    output.push_str(std::str::from_utf8(&bytes).expect("ASCII JSON escape"));
 }
 
 fn needs_json_escape(value: &str) -> bool {
@@ -645,7 +690,7 @@ fn needs_json_escape(value: &str) -> bool {
         .any(|byte| matches!(byte, b'"' | b'\\' | 0..=31))
 }
 
-fn quote_scalar(value: &str, output: &mut String) {
+fn quote_scalar<W: JsonWrite + ?Sized>(value: &str, output: &mut W) {
     output.reserve(value.len().saturating_add(2));
     output.push('"');
     let mut start = 0;
@@ -659,9 +704,8 @@ fn quote_scalar(value: &str, output: &mut String) {
             34 => "\\\"",
             92 => "\\\\",
             0..=31 => {
-                use std::fmt::Write;
                 output.push_str(&value[start..index]);
-                write!(output, "\\u{byte:04x}").expect("string writing");
+                write_unicode_escape(u16::from(byte), output);
                 start = index + 1;
                 continue;
             }
@@ -845,11 +889,19 @@ impl JsDocument {
     }
     pub fn stringify_node(&self, root: NodeId) -> String {
         let mut output = String::new();
+        self.write_node(root, &mut output);
+        output
+    }
+
+    /// Append the authoritative JSON representation of one node. Iterative
+    /// traversal, exact number/string semantics and property order match
+    /// `stringify_node`; no lossy observation projection participates.
+    pub(crate) fn write_node<W: JsonWrite + ?Sized>(&self, root: NodeId, output: &mut W) {
         let mut stack = vec![WriteItem::Node(root)];
         let mut number = ryu_js::Buffer::new();
         while let Some(item) = stack.pop() {
             match item {
-                WriteItem::Key(key) => quote(key, &mut output),
+                WriteItem::Key(key) => key.write_json(output),
                 WriteItem::Punctuation(byte) => output.push(byte),
                 WriteItem::Node(node) => match &self.nodes[node] {
                     JsNode::Null => output.push_str("null"),
@@ -863,7 +915,7 @@ impl JsDocument {
                             output.push_str(number.format_finite(*value));
                         }
                     }
-                    JsNode::String(value) => quote(value, &mut output),
+                    JsNode::String(value) => value.write_json(output),
                     JsNode::Array(values) => {
                         output.push('[');
                         stack.push(WriteItem::Punctuation(']'));
@@ -890,7 +942,6 @@ impl JsDocument {
                 },
             }
         }
-        output
     }
 
     /// Transitional metadata-only projection. Replaces invalid surrogate
@@ -1508,5 +1559,153 @@ mod tests {
             document.stringify(),
             r#"{"model":"target","opaque":"\ud800","thinking":{"type":"adaptive"},"messages":[]}"#
         );
+    }
+}
+
+#[cfg(test)]
+mod writer_tests {
+    use super::*;
+
+    // Uses only the default reserve/push implementations: no String facade or
+    // serde projection can silently substitute for the generic writer path.
+    #[derive(Default)]
+    struct ByteSink(Vec<u8>);
+    impl JsonWrite for ByteSink {
+        fn push_str(&mut self, value: &str) {
+            self.0.extend_from_slice(value.as_bytes());
+        }
+    }
+
+    #[test]
+    fn string_and_fragment_writers_match_literal_json_and_append_without_reset() {
+        // Fixed expectations include the existing frozen Node ordering and
+        // surrogate cases; fresh parser/writer outputs are never their oracle.
+        let cases = [
+            (r#"null"#, r#"null"#),
+            (
+                r#"[true,false,null,-0,1e400,-1e400,1e21,1e-7]"#,
+                r#"[true,false,null,0,null,null,1e+21,1e-7]"#,
+            ),
+            (
+                r#"{"z":1,"2":2,"1":1,"z":3,"01":4,"4294967295":5}"#,
+                r#"{"1":1,"2":2,"z":3,"01":4,"4294967295":5}"#,
+            ),
+            (
+                r#"{"\ud800":"\udc00","pair":"\ud83e\udd80","n":9007199254740993}"#,
+                r#"{"\ud800":"\udc00","pair":"🦀","n":9007199254740992}"#,
+            ),
+            (
+                r#"{"__proto__":{"9":"nine","1":"one"},"escapes":"\u0000\u001f\b\t\n\f\r\"\\\/"}"#,
+                r#"{"__proto__":{"1":"one","9":"nine"},"escapes":"\u0000\u001f\b\t\n\f\r\"\\/"}"#,
+            ),
+        ];
+        for (input, expected) in cases {
+            let document = JsDocument::parse(input.as_bytes()).unwrap();
+            assert_eq!(document.stringify(), expected);
+            let mut string = String::from("prefix|");
+            document.write_node(document.root(), &mut string);
+            assert_eq!(string, format!("prefix|{expected}"));
+
+            let mut sink = ByteSink(b"prefix|".to_vec());
+            let writer: &mut dyn JsonWrite = &mut sink;
+            document.write_node(document.root(), writer);
+            writer.push('|');
+            JsString::from_scalar("after").write_json(writer);
+            assert_eq!(sink.0, format!("prefix|{expected}|\"after\"").as_bytes());
+        }
+    }
+
+    #[test]
+    fn scalar_and_utf16_string_writers_keep_control_and_surrogate_escapes() {
+        for (units, expected) in [
+            (vec![0xd800], r#""\ud800""#),
+            (vec![0xdc00], r#""\udc00""#),
+            (vec![0xdabc, 0x61, 0xdfff], r#""\udabca\udfff""#),
+            (vec![0xd83e, 0xdd80], "\"🦀\""),
+            (vec![0xd800, 0xdc00], "\"𐀀\""),
+            (
+                vec![0, 0x1f, 8, 9, 10, 12, 13, 34, 92],
+                r#""\u0000\u001f\b\t\n\f\r\"\\""#,
+            ),
+        ] {
+            let value = JsString::from_utf16(units);
+            let mut sink = ByteSink::default();
+            value.write_json(&mut sink);
+            assert_eq!(sink.0, expected.as_bytes());
+            assert_eq!(value.stringify(), expected);
+        }
+        for text in ["", "plain", "é水🦀", "\0\u{1f}\n\t\r\"\\🦀\u{2028}\u{2029}"] {
+            let scalar = JsString::from_scalar(text);
+            let utf16 = JsString::from_utf16(text.encode_utf16().collect());
+            let mut left = ByteSink::default();
+            let mut right = ByteSink::default();
+            scalar.write_json(&mut left);
+            utf16.write_json(&mut right);
+            assert_eq!(left.0, right.0);
+        }
+    }
+
+    #[test]
+    fn appending_to_reserved_string_preserves_existing_storage_and_prefix() {
+        let value = JsString::from_scalar(&"ordinary é水🦀 ".repeat(100));
+        let mut output = String::with_capacity(16 * 1024);
+        output.push_str("retained|");
+        let pointer = output.as_ptr();
+        let capacity = output.capacity();
+        value.write_json(&mut output);
+        assert_eq!(output, format!("retained|{}", value.stringify()));
+        assert_eq!(output.capacity(), capacity);
+        assert_eq!(output.as_ptr(), pointer);
+    }
+
+    #[test]
+    fn unescaped_scalar_keeps_bulk_writes_without_populating_utf16_cache() {
+        #[derive(Default)]
+        struct CountSink {
+            bytes: usize,
+            largest_fragment: usize,
+        }
+        impl JsonWrite for CountSink {
+            fn push_str(&mut self, value: &str) {
+                self.bytes += value.len();
+                self.largest_fragment = self.largest_fragment.max(value.len());
+            }
+        }
+        let text = "ordinary é水🦀 ".repeat(1024);
+        let value = JsString::from_scalar(&text);
+        assert!(value.0.units.get().is_none());
+        let mut sink = CountSink::default();
+        value.write_json(&mut sink);
+        assert_eq!(sink.bytes, text.len() + 2);
+        assert_eq!(sink.largest_fragment, text.len());
+        assert!(value.0.units.get().is_none());
+    }
+
+    #[test]
+    fn subtree_and_mutated_document_writes_keep_authoritative_order_and_values() {
+        let mut document = JsDocument::parse(
+            br#"{"before":true,"nested":{"9":"nine","2":"two","x":"\ud800"},"after":[-0,1e400]}"#,
+        )
+        .unwrap();
+        let nested = document.get(document.root(), "nested").unwrap();
+        let mut output = ByteSink::default();
+        document.write_node(nested, &mut output);
+        assert_eq!(output.0, br#"{"2":"two","9":"nine","x":"\ud800"}"#);
+        document.set_root_field_json("before", b"false").unwrap();
+        let mut updated = ByteSink::default();
+        document.write_node(document.root(), &mut updated);
+        assert_eq!(
+            updated.0,
+            br#"{"before":false,"nested":{"2":"two","9":"nine","x":"\ud800"},"after":[0,null]}"#
+        );
+    }
+
+    #[test]
+    fn fragment_writer_keeps_iterative_deep_data_traversal() {
+        let input = format!("{}0{}", "[".repeat(20_000), "]".repeat(20_000));
+        let document = JsDocument::parse(input.as_bytes()).unwrap();
+        let mut sink = ByteSink::default();
+        document.write_node(document.root(), &mut sink);
+        assert_eq!(sink.0, input.as_bytes());
     }
 }

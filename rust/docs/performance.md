@@ -276,3 +276,29 @@ The transfer contains no executables, Cargo cache, credentials or private
 reports; the destination builds the pinned release tools and uses Node only
 for the temporary reference comparison. Regenerate it from the final source
 checkpoint before collecting qualification evidence.
+
+## Buffered turn fingerprints
+
+The turn fingerprint writer now feeds exact JSON fragments into SHA-256 through
+a 4 KiB batch buffer instead of assembling a catalog-sized serialized preimage.
+It shares the authoritative JSON writer and preserves cache-control
+normalization, property order, prompt aliases and task history. Traversal stacks
+still allocate in proportion to structure; this is not a constant-memory claim.
+Twenty-six synthetic frozen Node cases retain complete preimages and keys,
+including a normalized preimage exceeding the batch size and escaped scope and
+prompt identities.
+
+Two fresh whole-connection experiments used the unchanged five-pair protocol:
+
+| Recorded helper | Median native/reference p95 ratio | 95% interval | Unchanged 0.5 gate |
+| --- | --- | --- | --- |
+| Before buffered fingerprints | 0.495 | 0.469–0.677 | Inconclusive |
+| Buffered fingerprints | 0.469 | 0.396–0.576 | Inconclusive |
+
+All functional, call, completion and cleanup controls match in both runs. They
+ran sequentially on the normal-use 16 GiB M4 with changing background load, so
+the difference does not establish an improvement caused by the code change.
+The [source and evidence summary](../parity/measurements/native-turn-fingerprint-summary.json)
+retains the exact measured helpers and later validation separately. Neither
+experiment qualifies representative hardware, the final source or a shipping
+artifact, and the full performance gate remains incomplete.

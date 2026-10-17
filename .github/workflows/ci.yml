@@ -37,9 +37,10 @@ jobs:
   rust:
     name: Rust / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    # Intel macOS's uncached debug + release OpenSSL builds exceed 15 minutes.
+    # Intel macOS reached config parity before the observed 45-minute job cap.
+    # Allow its uncached debug/release OpenSSL and bundle checks to finish.
     # Individual process/test deadlines remain enforced by their harnesses.
-    timeout-minutes: 45
+    timeout-minutes: ${{ matrix.os == 'macos-15-intel' && 60 || 45 }}
     strategy:
       fail-fast: false
       matrix:
