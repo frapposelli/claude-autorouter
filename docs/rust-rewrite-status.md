@@ -594,10 +594,44 @@ or shipping-provenance claim. No real provider calls or numerical samples are
 part of this evidence.
 
 The original-definition tally remains 536 covered/52 partial. No further limit,
-configuration or area status advances. Final-data end hints, delayed trailers,
-close-delimited EOF and broader reuse ownership remain among the actual-constructor
-lifecycle requirements; ordinary production transport still uses Rustls.
+configuration or area status advances. At that checkpoint, final-data end hints,
+delayed trailers, close-delimited EOF and broader reuse ownership remained among
+the actual-constructor lifecycle requirements; ordinary production transport still
+uses Rustls.
 The pushed `2d5defa` checkpoint has a separate ARM musl SDK-preparation failure
 before Rust compilation, with diagnosis pending. Its CI cannot qualify these
 later local tests. All other platform, performance, real-task, provenance,
 rollback, stabilization and cutover requirements remain open.
+
+## Consumer-owned pool return and retained data
+
+The [consumer/pool summary](../rust/parity/measurements/native-consumer-pool-handoff-summary.json)
+records six actual-constructor controls over HTTP, TLS 1.2 and TLS 1.3. After
+clean source-body EOF, an unread response keeps its raw connection reserved.
+Taking the final data frame returns that reservation using its end hint, without
+an extra EOF poll. Request B is then read on the same accepted provider socket.
+A retained clone of A's bytes remains charged through B and client/task/cache
+cleanup, and the last clone's drop releases the remaining buffer ownership.
+
+The abandonment control drops prefetched A without a body poll. Its reservation
+and socket retire before B uses a newly accepted peer. Both outcomes verify
+request methods, paths and marker headers, response status, length and payload,
+negotiated TLS, assignment identities and bounded task/socket/cache/buffer
+cleanup. Existing primitive and empty-response tests
+remain unchanged.
+
+Formatting, strict Clippy and the complete workspace pass 1,341 Rust tests, with
+ten ignored tests or helper fixtures. Node check, all 596 tests and the exact
+58-file package smoke pass. Fresh bounded export/restore verifies 694 public
+inputs and 113 logical reference files at 33,528,320 carrier and 33,493,812
+logical bytes, under each unchanged 33,554,432-byte cap. The retained helper has
+no fresh-build or shipping-provenance qualification; no numerical samples or
+real provider calls are collected.
+
+Only the gateway test inventory gains two references. All 588 original rows
+remain 536 covered/52 partial; all configuration/limit rows and partial area
+statuses are unchanged. Actual gateway final-data ownership, delayed trailers,
+close-delimited EOF and broader concurrent reuse remain open, along with the
+full platform, performance, task-quality, provenance, rollout and cutover gates.
+These later local sources receive no qualification from the separate `2d5defa`
+CI runs or their unresolved ARM musl SDK-preparation failure.
