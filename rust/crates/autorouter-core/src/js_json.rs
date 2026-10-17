@@ -757,6 +757,103 @@ impl JsDocument {
             _ => None,
         }
     }
+
+    /// Own only the selected reachable nodes, preserving source values rather
+    /// than JSON.stringify's nonfinite-to-null conversion. No environment-sized
+    /// clone, recursive traversal or inherited length memo participates.
+    pub(crate) fn compact_subtree(&self, root: NodeId) -> Option<Self> {
+        let mut remap = HashMap::new();
+        let mut reachable = Vec::new();
+        let mut pending = vec![root];
+        while let Some(node) = pending.pop() {
+            if remap.insert(node, 0).is_some() {
+                continue;
+            }
+            let value = self.nodes.get(node)?;
+            reachable.push(node);
+            match value {
+                JsNode::Array(children) => pending.extend(children.iter().copied()),
+                JsNode::Object(object) => {
+                    pending.extend(object.entries().iter().map(|(_, child)| *child));
+                }
+                _ => {}
+            }
+        }
+        reachable.sort_unstable();
+        for (index, node) in reachable.iter().enumerate() {
+            remap.insert(*node, index);
+        }
+        let mut nodes = Vec::with_capacity(reachable.len());
+        for node in reachable {
+            let mut value = self.nodes[node].clone();
+            match &mut value {
+                JsNode::Array(children) => {
+                    for child in children {
+                        *child = *remap.get(child)?;
+                    }
+                }
+                JsNode::Object(object) => {
+                    for (_, child) in &mut object.entries {
+                        *child = *remap.get(child)?;
+                    }
+                }
+                _ => {}
+            }
+            nodes.push(value);
+        }
+        Some(Self {
+            nodes,
+            root: *remap.get(&root)?,
+            serialized_len: OnceLock::new(),
+        })
+    }
+
+    /// Import a scalar JSON value directly into the arena. Numbers become JS
+    /// doubles; object insertion order survives without serializing, reparsing
+    /// or recursively cloning an arbitrarily nested serde Value.
+    pub(crate) fn from_serde_value(value: &serde_json::Value) -> Self {
+        use serde_json::Value;
+        let mut nodes = vec![JsNode::Null];
+        let mut pending = vec![(0, value)];
+        while let Some((index, value)) = pending.pop() {
+            let node =
+                match value {
+                    Value::Null => JsNode::Null,
+                    Value::Bool(value) => JsNode::Bool(*value),
+                    Value::Number(value) => JsNode::Number(value.as_f64().unwrap_or_else(|| {
+                        value.to_string().parse().expect("JSON number spelling")
+                    })),
+                    Value::String(value) => JsNode::String(JsString::from_scalar(value)),
+                    Value::Array(values) => {
+                        let mut children = Vec::with_capacity(values.len());
+                        for value in values {
+                            let child = nodes.len();
+                            nodes.push(JsNode::Null);
+                            children.push(child);
+                            pending.push((child, value));
+                        }
+                        JsNode::Array(children)
+                    }
+                    Value::Object(values) => {
+                        let mut object = JsObject::default();
+                        for (key, value) in values {
+                            let child = nodes.len();
+                            nodes.push(JsNode::Null);
+                            object.insert(JsString::from_scalar(key), child);
+                            pending.push((child, value));
+                        }
+                        JsNode::Object(object)
+                    }
+                };
+            nodes[index] = node;
+        }
+        Self {
+            nodes,
+            root: 0,
+            serialized_len: OnceLock::new(),
+        }
+    }
+
     pub fn stringify(&self) -> String {
         self.stringify_node(self.root)
     }
@@ -1019,6 +1116,133 @@ impl JsDocument {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn compact_subtree_owns_only_reachable_source_values_and_a_fresh_memo() {
+        let source = JsDocument::parse(br#"{"outside":"unrelated","credential":{"2":-0,"1":1e400,"utf":"\ud800","dup":"stale","dup":{"\udfff":[-1e400,true,null]}}}"#).unwrap();
+        let before = source.stringify();
+        exact_memo_limits(&source);
+        let original_memo = source.serialized_len.get().copied();
+        assert!(source.compact_subtree(usize::MAX).is_none());
+        let credential = source.get(source.root(), "credential").unwrap();
+        let mut owned = source.compact_subtree(credential).unwrap();
+        assert_eq!(owned.nodes.len(), 9);
+        assert!(owned.serialized_len.get().is_none());
+        let expected = r#"{"1":null,"2":0,"utf":"\ud800","dup":{"\udfff":[null,true,null]}}"#;
+        assert_eq!(owned.stringify(), expected);
+        let overflow = owned.get(owned.root(), "1").unwrap();
+        assert!(
+            matches!(owned.node(overflow), Some(JsNode::Number(value)) if *value == f64::INFINITY)
+        );
+        let zero = owned.get(owned.root(), "2").unwrap();
+        assert!(
+            matches!(owned.node(zero), Some(JsNode::Number(value)) if *value == 0.0 && value.is_sign_negative())
+        );
+        let utf = owned.get(owned.root(), "utf").unwrap();
+        assert_eq!(owned.string(utf).unwrap().units(), &[0xd800]);
+        let dup = owned.get(owned.root(), "dup").unwrap();
+        let JsNode::Object(object) = owned.node(dup).unwrap() else {
+            panic!("owned object");
+        };
+        let (key, array) = &object.entries()[0];
+        assert_eq!(key.units(), &[0xdfff]);
+        let JsNode::Array(children) = owned.node(*array).unwrap() else {
+            panic!("owned array");
+        };
+        assert!(
+            matches!(owned.node(children[0]), Some(JsNode::Number(value)) if *value == f64::NEG_INFINITY)
+        );
+        exact_memo_limits(&owned);
+        owned
+            .set_root_field_json("utf", br#""replacement""#)
+            .unwrap();
+        assert!(owned.serialized_len.get().is_none());
+        assert_eq!(source.stringify(), before);
+        assert_eq!(source.serialized_len.get().copied(), original_memo);
+        drop(source);
+        assert!(
+            matches!(owned.node(overflow), Some(JsNode::Number(value)) if *value == f64::INFINITY)
+        );
+        assert_eq!(
+            owned
+                .string(owned.get(owned.root(), "utf").unwrap())
+                .unwrap()
+                .to_scalar()
+                .as_deref(),
+            Some("replacement")
+        );
+    }
+
+    #[test]
+    fn serde_value_import_keeps_order_and_javascript_number_interpretation() {
+        let input: serde_json::Value = serde_json::from_str(r#"{"2":-0.0,"1":9007199254740993,"z":[true,false,null,"é😀"],"a":18446744073709551615}"#).unwrap();
+        let before = serde_json::to_string(&input).unwrap();
+        let document = JsDocument::from_serde_value(&input);
+        assert!(document.serialized_len.get().is_none());
+        let JsNode::Object(object) = document.node(document.root()).unwrap() else {
+            panic!("imported object");
+        };
+        assert_eq!(
+            object
+                .entries()
+                .iter()
+                .map(|(key, _)| key.to_scalar().unwrap())
+                .collect::<Vec<_>>(),
+            ["2", "1", "z", "a"]
+        );
+        assert_eq!(
+            document.stringify(),
+            r#"{"1":9007199254740992,"2":0,"z":[true,false,null,"é😀"],"a":18446744073709552000}"#
+        );
+        let zero = document.get(document.root(), "2").unwrap();
+        assert!(
+            matches!(document.node(zero), Some(JsNode::Number(value)) if *value == 0.0 && value.is_sign_negative())
+        );
+        assert_eq!(serde_json::to_string(&input).unwrap(), before);
+        exact_memo_limits(&document);
+    }
+
+    #[test]
+    fn source_subtree_and_serde_import_walk_deep_data_without_recursive_clones() {
+        // The fixture guard also dismantles iteratively during assertion unwind.
+        // A recursive Value drop must not obscure a conversion failure.
+        struct IterativeValue(serde_json::Value);
+        impl Drop for IterativeValue {
+            fn drop(&mut self) {
+                let mut pending = vec![std::mem::take(&mut self.0)];
+                while let Some(value) = pending.pop() {
+                    match value {
+                        serde_json::Value::Array(mut children) => pending.append(&mut children),
+                        serde_json::Value::Object(children) => {
+                            pending.extend(children.into_iter().map(|(_, value)| value));
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+        let depth = 20_000;
+        let mut input = IterativeValue(serde_json::Value::String("leaf".into()));
+        for _ in 0..depth {
+            input.0 = serde_json::Value::Array(vec![std::mem::take(&mut input.0)]);
+        }
+        let document = JsDocument::from_serde_value(&input.0);
+        drop(input);
+        assert_eq!(document.nodes.len(), depth + 1);
+        let expected = format!("{}\"leaf\"{}", "[".repeat(depth), "]".repeat(depth));
+        assert_eq!(document.stringify(), expected);
+        exact_memo_limits(&document);
+        let owned = document.compact_subtree(document.root()).unwrap();
+        assert_eq!(owned.nodes.len(), depth + 1);
+        assert!(owned.serialized_len.get().is_none());
+        drop(document);
+        assert_eq!(owned.stringify(), expected);
+        assert_eq!(owned.serialized_len_up_to(expected.len() - 1), None);
+        assert_eq!(
+            owned.serialized_len_up_to(expected.len()),
+            Some(expected.len())
+        );
+    }
 
     #[test]
     fn observer_byte_charge_matches_exact_unicode_numbers_and_duplicate_keys() {

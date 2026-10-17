@@ -120,11 +120,26 @@ fn sum<'a>(files: impl IntoIterator<Item = &'a [u8]>) -> Result<usize, String> {
             .ok_or_else(|| "Complete logical transfer exceeds 32 MiB".into())
     })
 }
-fn source(files: &BTreeMap<String, Entry>) -> Result<(), String> {
-    let manifest = files
-        .get("source-manifest.json")
-        .ok_or("Missing source manifest")?;
-    let record = metadata::parse(&manifest.bytes, FILE_LIMIT)?;
+fn source(files: &BTreeMap<String, Entry>, schema: u64) -> Result<(), String> {
+    let (name, foreign) = if schema == 5 {
+        ("source-manifest.bin", "source-manifest.json")
+    } else {
+        ("source-manifest.json", "source-manifest.bin")
+    };
+    if files.contains_key(foreign) {
+        return Err("Native source manifest format differs from transfer schema".into());
+    }
+    let manifest = files.get(name).ok_or("Missing source manifest")?;
+    let record = if schema == 5 {
+        let paths: Vec<_> = files
+            .keys()
+            .filter(|path| path.as_str() != name)
+            .map(String::as_str)
+            .collect();
+        metadata::decode_source(&manifest.bytes, FILE_LIMIT, &paths)?
+    } else {
+        metadata::parse(&manifest.bytes, FILE_LIMIT)?
+    };
     metadata::keys(
         &record,
         &[
@@ -150,11 +165,12 @@ fn source(files: &BTreeMap<String, Entry>) -> Result<(), String> {
         .ok_or("Missing native source file inventory")?;
     if declared.len().checked_add(1) != Some(files.len())
         || declared.contains_key("source-manifest.json")
+        || declared.contains_key("source-manifest.bin")
     {
         return Err("Native source manifest has missing or foreign files".into());
     }
     for (path, file) in files {
-        if path != "source-manifest.json" && (!super::allowed(path) && path != "README.native.md") {
+        if path != name && (!super::allowed(path) && path != "README.native.md") {
             return Err("Foreign native source member".into());
         }
         let maximum = if super::LARGE_SYNTHETIC_CORPORA.contains(&path.as_str()) {
@@ -165,7 +181,7 @@ fn source(files: &BTreeMap<String, Entry>) -> Result<(), String> {
         if file.mode != 0o644 || file.bytes.len() > maximum {
             return Err("Native source member violates mode or byte bounds".into());
         }
-        if path != "source-manifest.json"
+        if path != name
             && declared
                 .get(path)
                 .is_none_or(|hash| metadata::digest(hash).ok() != Some(sha(&file.bytes).as_str()))
@@ -185,7 +201,7 @@ fn logical<'a>(
     baseline: &[u8],
     schema: u64,
 ) -> Result<BTreeMap<String, (&'a [u8], u32)>, String> {
-    source(native)?;
+    source(native, schema)?;
     if native
         .get("rust/parity/baseline.json")
         .is_none_or(|entry| entry.bytes != baseline)
@@ -296,7 +312,7 @@ fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
     let record = metadata::parse(&raw, META_LIMIT)?;
     let schema = record["schema_version"]
         .as_u64()
-        .filter(|value| [1, 2, 3, 4].contains(value))
+        .filter(|value| [1, 2, 3, 4, 5].contains(value))
         .ok_or("Unknown paired transfer schema")?;
     let aggregate = if schema >= 3 {
         "aggregate_expanded_carrier_bytes"
@@ -610,7 +626,21 @@ fn reference(root: &Path) -> Result<(BTreeMap<String, Entry>, Vec<u8>), String> 
     Ok((files, baseline))
 }
 pub(super) fn create(root: &Path, destination: &Path) -> Result<Value, String> {
-    let native = collect(root)?;
+    let mut native = collect(root)?;
+    // Only generated metadata changes representation; collect/default tar and
+    // every raw source, fixture and mode retain their original bytes.
+    source(&native, 4)?;
+    let manifest = native
+        .remove("source-manifest.json")
+        .ok_or("Missing source manifest")?;
+    let record = metadata::parse(&manifest.bytes, FILE_LIMIT)?;
+    native.insert(
+        "source-manifest.bin".into(),
+        Entry {
+            bytes: metadata::encode_source(&record, FILE_LIMIT)?,
+            mode: manifest.mode,
+        },
+    );
     let (mut delta, baseline) = reference(root)?;
     for (path, _, _) in SHARED {
         delta
@@ -620,7 +650,7 @@ pub(super) fn create(root: &Path, destination: &Path) -> Result<Value, String> {
     for path in ["LICENSE", "frozen-reference-manifest.json"] {
         delta.remove(path).ok_or("Missing original shared extra")?;
     }
-    let files = logical(&native, &delta, &baseline, 4)?;
+    let files = logical(&native, &delta, &baseline, 5)?;
     let payload = sum(native
         .values()
         .map(|entry| entry.bytes.as_slice())
@@ -667,10 +697,10 @@ pub(super) fn create(root: &Path, destination: &Path) -> Result<Value, String> {
     let stored = native_expanded
         .checked_add(delta_expanded)
         .ok_or("Paired transfer size overflow")?;
-    let legacy = legacy_full(&native, delta_expanded, 4)?;
+    let legacy = legacy_full(&native, delta_expanded, 5)?;
     let delta_baseline = baseline;
     let baseline = metadata::parse(&delta_baseline, FILE_LIMIT)?;
-    let record = json!({"schema_version":4,"kind":"matched_native_benchmark_transfer",
+    let record = json!({"schema_version":5,"kind":"matched_native_benchmark_transfer",
         "baseline_commit":baseline["baseline_commit"],"baseline_version":baseline["baseline_version"],"reference_files":111,
         "archives":{(CPIO_NAME):{"sha256":sha(&native_bytes),"expanded_carrier_bytes":native_expanded,"format":"gzip-newc"},
             (DELTA_NAME):{"sha256":sha(&delta_bytes),"expanded_carrier_bytes":delta_expanded,"format":"gzip-ustar"}},
@@ -678,7 +708,7 @@ pub(super) fn create(root: &Path, destination: &Path) -> Result<Value, String> {
         "node_runtime_required":"22.14.0 for temporary reference tests only","native_build_required":true,
         "private_material_included":false,"binaries_included":false,"dependencies_bundled":false,"provider_calls":0,
         "release_approved":false,"performance_accepted":false,"logical_reference_files":113,"reference_transport_files":109,
-        "shared_inputs":shared(4, &delta_baseline),"aggregate_logical_file_bytes":payload,"aggregate_logical_file_limit":SOURCE.expanded,
+        "shared_inputs":shared(5, &delta_baseline),"aggregate_logical_file_bytes":payload,"aggregate_logical_file_limit":SOURCE.expanded,
         "legacy_full_tar_bytes":legacy,"legacy_full_tar_within_limit":legacy<=SOURCE.expanded});
     let raw = serde_json::to_vec_pretty(&record).map_err(|_| "Cannot encode transfer metadata")?;
     let resume = super::transfer::README.as_bytes();

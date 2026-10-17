@@ -1,7 +1,9 @@
 use autorouter_core::auth::{
     Environment, LOCAL_AUTH_HEADER, build_claude_env, conflicting_providers,
 };
-use autorouter_core::config::{AuthMode, Evaluator, js_trim, read_config_document, require_keys};
+use autorouter_core::config::{
+    AuthMode, Credential, Evaluator, js_trim, read_config_document, require_keys,
+};
 use autorouter_runtime::http_client::NativeHttpClient;
 use autorouter_runtime::keychain::Keychain;
 use autorouter_runtime::ollama_setup::inspect_ollama;
@@ -269,7 +271,7 @@ pub(super) async fn doctor_for_platform(
     }
     let mut child_env = if let Some(config) = &config {
         let mut config = config.clone();
-        config.local_token = Some(String::new());
+        config.replace_credential(Credential::LocalToken, Some(String::new()));
         build_claude_env(&config, "http://127.0.0.1:1", &effective)
     } else {
         effective

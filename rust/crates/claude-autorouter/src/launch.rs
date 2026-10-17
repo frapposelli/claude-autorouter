@@ -2,7 +2,8 @@
 //! gateway/status/history resources remain owned until child exit and cleanup.
 use autorouter_core::auth::{build_claude_env, client_profile_for_launch, conflicting_providers};
 use autorouter_core::config::{
-    AuthMode, ClientProfile, Evaluator, SessionLogMode, read_config_document, require_keys,
+    AuthMode, ClientProfile, Credential, Evaluator, SessionLogMode, read_config_document,
+    require_keys,
 };
 use autorouter_runtime::http_client::NativeHttpClient;
 use autorouter_runtime::keychain::MacKeychain;
@@ -61,7 +62,10 @@ pub async fn run(
         }
         let mut bytes = [0u8; 32];
         getrandom::fill(&mut bytes).map_err(|_| "Could not create the local router credential.")?;
-        config.local_token = Some(bytes.iter().map(|b| format!("{b:02x}")).collect());
+        config.replace_credential(
+            Credential::LocalToken,
+            Some(bytes.iter().map(|b| format!("{b:02x}")).collect()),
+        );
     }
     let mut interrupt =
         signal(SignalKind::interrupt()).map_err(|_| "Could not initialize the Claude launcher.")?;

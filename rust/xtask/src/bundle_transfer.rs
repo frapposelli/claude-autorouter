@@ -34,6 +34,12 @@ Stored carrier expansion and the full logical file payload, including both logic
 copies of reused files, each retain a separate32MiB cap. Legacy full-tar expansion
 is reported separately and may exceed that cap.
 
+Schema5 changes only generated source metadata to source-manifest.bin: a bounded
+JSON header committing the sorted payload path list and complete32-byte SHA256
+digest rows in that order. The decoder reconstructs every original manifest fact.
+All raw source/reference bytes, modes and donors remain present and fully charged.
+The default source-only bundle retains its original JSON manifest.
+
 The native carrier is gzip newc CPIO. On macOS, the installed libarchive-based
 tar reads it; the command above requires that BSD/libarchive implementation.
 On Linux use an actual BSD/libarchive tar as above, or choose this GNUcpio
@@ -85,7 +91,7 @@ After the helper build, restore the complete111-file frozen reference plus its
 original manifest and license before any reference operation. The receiver
 verifies both archives, every fixture/hash/mode, both budgets and checksums
 before creating a private destination. Existing destinations are never replaced.
-This command also reads historical schema1 full-reference, schema2 tar-delta and schema3 CPIO transfers:
+This command also reads historical schema1 full-reference, schema2 tar-delta and schema3/4 CPIO transfers:
 
     ./target/release/xtask benchmark-bundle --restore-reference TRANSFER_ABSOLUTE_PATH artifacts/rust-rewrite/reference
 
@@ -208,7 +214,7 @@ mod tests {
         );
         assert!(native.expanded_bytes + reference.expanded_bytes <= SOURCE.expanded);
         assert_eq!(reference.files.len(), 109);
-        assert_eq!(report["schema_version"], 4);
+        assert_eq!(report["schema_version"], 5);
         assert_eq!(report["shared_inputs"].as_array().unwrap().len(), 4);
         assert!(!reference.files.contains_key("LICENSE"));
         assert!(

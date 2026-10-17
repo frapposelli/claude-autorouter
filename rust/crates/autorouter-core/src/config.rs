@@ -4,12 +4,13 @@
 //! effective environment and working directory after storage/policy resolution.
 use crate::js_json::{JsDocument, JsNode, JsString, NodeId};
 use regex::Regex;
-use serde::Serialize;
+use serde::ser::{Error as _, SerializeMap};
+use serde::{Serialize, Serializer};
 use serde_json::Value;
 use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::path::{Component, Path, PathBuf};
-use std::sync::LazyLock;
+use std::sync::{Arc, LazyLock};
 use url::Url;
 
 pub const DEFAULT_OLLAMA_MODEL: &str = "nimble:9b-q4_K_M";
@@ -49,23 +50,20 @@ pub struct Models {
 }
 
 // Deliberately no Debug implementation: this contract contains credentials.
-#[derive(Clone, Serialize)]
-#[serde(rename_all = "camelCase")]
+#[derive(Clone)]
 pub struct RouterConfig {
     pub evaluator: Evaluator,
     pub auth_mode: AuthMode,
     pub client_profile: ClientProfile,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub session_log_dir: Option<String>,
     pub session_log_mode: SessionLogMode,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub stop_hook_block_cap: Option<u64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub anthropic_key: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub jev_key: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub local_token: Option<String>,
+    /// Captured values for the three credential fields only. Use replacement
+    /// methods to clear both this source state and the typed display fields.
+    pub source_credentials: SourceCredentials,
     pub upstream: String,
     pub jev_endpoint: String,
     pub jev_model: String,
@@ -77,9 +75,7 @@ pub struct RouterConfig {
     pub models: Models,
     /// Original UTF-16 identities from saved JSON. Scalar model fields remain
     /// suitable for display and catalog lookup, never identity comparison.
-    #[serde(skip)]
     pub exact_models: BTreeMap<String, JsString>,
-    #[serde(skip)]
     pub exact_jev_model: Option<JsString>,
     pub port: u16,
     pub jev_timeout_ms: u64,
@@ -92,9 +88,194 @@ pub struct RouterConfig {
     pub turn_ttl_ms: u64,
     /// Optional embedding limit, matching RouterConfig.turnEntries. CLI
     /// configuration leaves this absent and retains the 1,000-entry default.
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub turn_entries: Option<usize>,
     pub upstream_timeout_ms: u64,
+}
+
+/// Names of the credential fields retained by configuration parsing.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Credential {
+    Anthropic,
+    Jev,
+    LocalToken,
+}
+impl Credential {
+    fn index(self) -> usize {
+        match self {
+            Self::Anthropic => 0,
+            Self::Jev => 1,
+            Self::LocalToken => 2,
+        }
+    }
+    fn env_name(self) -> &'static str {
+        match self {
+            Self::Anthropic => "ANTHROPIC_API_KEY",
+            Self::Jev => "TYPESAFE_API_KEY",
+            Self::LocalToken => "AUTOROUTER_TOKEN",
+        }
+    }
+    fn json_name(self) -> &'static str {
+        match self {
+            Self::Anthropic => "anthropicKey",
+            Self::Jev => "jevKey",
+            Self::LocalToken => "localToken",
+        }
+    }
+}
+
+// No Debug/Serialize implementation: only RouterConfig may emit effective,
+// whitelisted values, and ordinary diagnostics must not expose source secrets.
+#[derive(Clone, Default)]
+pub struct SourceCredentials {
+    slots: [Option<CapturedCredential>; 3],
+}
+#[derive(Clone)]
+struct CapturedCredential {
+    document: Arc<JsDocument>,
+    projection: Option<String>,
+}
+
+enum CredentialValue<'a> {
+    Text(&'a str),
+    Source(&'a JsDocument),
+}
+impl Serialize for CredentialValue<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        match self {
+            Self::Text(value) => serializer.serialize_str(value),
+            Self::Source(document) => {
+                // This is an output view, never the source used by require_keys.
+                // JSON text retains UTF-16 escapes; Value observation may fail.
+                let raw = serde_json::value::RawValue::from_string(document.stringify())
+                    .map_err(|_| S::Error::custom("Credential JSON serialization failed"))?;
+                raw.serialize(serializer)
+            }
+        }
+    }
+}
+impl RouterConfig {
+    fn typed_credential(&self, key: Credential) -> &Option<String> {
+        match key {
+            Credential::Anthropic => &self.anthropic_key,
+            Credential::Jev => &self.jev_key,
+            Credential::LocalToken => &self.local_token,
+        }
+    }
+    fn credential_value(&self, key: Credential) -> Option<CredentialValue<'_>> {
+        let typed = self.typed_credential(key).as_deref();
+        if let Some(captured) = &self.source_credentials.slots[key.index()]
+            && typed == captured.projection.as_deref()
+        {
+            return Some(CredentialValue::Source(&captured.document));
+        }
+        typed.map(CredentialValue::Text)
+    }
+    /// Replace or remove a credential and erase its previously captured source.
+    /// Direct public field writes cannot communicate Some-to-None write history.
+    pub fn replace_credential(&mut self, key: Credential, value: Option<String>) {
+        self.source_credentials.slots[key.index()] = None;
+        match key {
+            Credential::Anthropic => self.anthropic_key = value,
+            Credential::Jev => self.jev_key = value,
+            Credential::LocalToken => self.local_token = value,
+        }
+    }
+    /// Preserve an explicitly supplied JSON null or non-string, without keeping
+    /// unrelated settings. None removes the credential; Some(null) retains null.
+    pub fn replace_credential_value(&mut self, key: Credential, value: Option<&Value>) {
+        self.replace_credential(key, value.and_then(Value::as_str).map(str::to_owned));
+        if let Some(value) = value.filter(|value| !value.is_string()) {
+            self.source_credentials.slots[key.index()] = Some(CapturedCredential {
+                document: Arc::new(JsDocument::from_serde_value(value)),
+                projection: None,
+            });
+        }
+    }
+    /// Capture only the selected source subtree. Invalid node IDs leave the
+    /// existing credential intact; numbers and UTF-16 are never reparsed from
+    /// their lossy JSON serialization.
+    pub fn replace_credential_document(
+        &mut self,
+        key: Credential,
+        source: &JsDocument,
+        node: NodeId,
+    ) -> Result<(), String> {
+        if let Some(text) = source.string(node).and_then(JsString::to_scalar) {
+            self.replace_credential(key, Some(text));
+            return Ok(());
+        }
+        let document = source
+            .compact_subtree(node)
+            .ok_or_else(|| "Invalid credential source".to_owned())?;
+        let projection = source.string(node).map(JsString::to_well_formed);
+        self.replace_credential(key, projection.clone());
+        self.source_credentials.slots[key.index()] = Some(CapturedCredential {
+            document: Arc::new(document),
+            projection,
+        });
+        Ok(())
+    }
+    /// Explicit sensitive JSON output used by configuration and private cache
+    /// identity. Absence stays distinct from serialized null. Never log it.
+    pub fn credential_json(&self, key: Credential) -> Option<String> {
+        self.credential_value(key).map(|value| match value {
+            CredentialValue::Text(text) => JsString::from_scalar(text).stringify(),
+            CredentialValue::Source(document) => document.stringify(),
+        })
+    }
+}
+impl Serialize for RouterConfig {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut map = serializer.serialize_map(None)?;
+        macro_rules! field {
+            ($field:ident, $name:literal) => {
+                map.serialize_entry($name, &self.$field)?
+            };
+        }
+        macro_rules! optional {
+            ($field:ident, $name:literal) => {
+                if let Some(value) = &self.$field {
+                    map.serialize_entry($name, value)?;
+                }
+            };
+        }
+        field!(evaluator, "evaluator");
+        field!(auth_mode, "authMode");
+        field!(client_profile, "clientProfile");
+        optional!(session_log_dir, "sessionLogDir");
+        field!(session_log_mode, "sessionLogMode");
+        optional!(stop_hook_block_cap, "stopHookBlockCap");
+        for key in [
+            Credential::Anthropic,
+            Credential::Jev,
+            Credential::LocalToken,
+        ] {
+            if let Some(value) = self.credential_value(key) {
+                map.serialize_entry(key.json_name(), &value)?;
+            }
+        }
+        field!(upstream, "upstream");
+        field!(jev_endpoint, "jevEndpoint");
+        field!(jev_model, "jevModel");
+        field!(ollama_endpoint, "ollamaEndpoint");
+        field!(ollama_model, "ollamaModel");
+        field!(ollama_timeout_ms, "ollamaTimeoutMs");
+        field!(ollama_state_chars, "ollamaStateChars");
+        field!(ollama_keep_alive, "ollamaKeepAlive");
+        field!(models, "models");
+        field!(port, "port");
+        field!(jev_timeout_ms, "jevTimeoutMs");
+        field!(token_count_timeout_ms, "tokenCountTimeoutMs");
+        field!(min_confidence, "minConfidence");
+        field!(state_chars, "stateChars");
+        field!(max_body_bytes, "maxBodyBytes");
+        field!(cache_entries, "cacheEntries");
+        field!(cache_ttl_ms, "cacheTtlMs");
+        field!(turn_ttl_ms, "turnTtlMs");
+        optional!(turn_entries, "turnEntries");
+        field!(upstream_timeout_ms, "upstreamTimeoutMs");
+        map.end()
+    }
 }
 
 // ECMAScript trim excludes U+0085 but includes the BOM; Rust str::trim differs.
@@ -606,7 +787,7 @@ fn read_config_inner(
         true,
     )? as u64;
     let min_confidence = number(jev_env, "AUTOROUTER_MIN_CONFIDENCE", 0.75, 0., 1., false)?;
-    Ok(RouterConfig {
+    let mut config = RouterConfig {
         evaluator,
         auth_mode,
         client_profile,
@@ -620,6 +801,7 @@ fn read_config_inner(
         },
         jev_key: text(env, "TYPESAFE_API_KEY"),
         local_token: text(env, "AUTOROUTER_TOKEN"),
+        source_credentials: SourceCredentials::default(),
         upstream,
         jev_endpoint,
         jev_model,
@@ -642,7 +824,25 @@ fn read_config_inner(
         turn_ttl_ms: 30 * 60 * 1000,
         turn_entries: None,
         upstream_timeout_ms: 10 * 60 * 1000,
-    })
+    };
+    for key in [
+        Credential::Anthropic,
+        Credential::Jev,
+        Credential::LocalToken,
+    ] {
+        // Match the source's initial capture, not the caller's later auth mode.
+        if key == Credential::Anthropic && auth_mode == AuthMode::Subscription {
+            continue;
+        }
+        if let Some(source) = source {
+            if let Some(node) = source.get(source.root(), key.env_name()) {
+                config.replace_credential_document(key, source, node)?;
+            }
+        } else {
+            config.replace_credential_value(key, env.get(key.env_name()));
+        }
+    }
+    Ok(config)
 }
 
 /// Saved JSON permits UTF-16 strings that cannot be represented in an OS
@@ -715,16 +915,28 @@ pub fn resolve_js_path(cwd: &Path, path: &JsString) -> JsString {
 }
 
 pub fn require_keys(config: &RouterConfig) -> Result<(), String> {
-    let mut keys = Vec::new();
-    if config.evaluator == Evaluator::Jev {
-        keys.push(("TYPESAFE_API_KEY", &config.jev_key));
-    }
-    if config.auth_mode == AuthMode::ApiKey {
-        keys.push(("ANTHROPIC_API_KEY", &config.anthropic_key));
-    }
-    for (key, value) in keys {
-        if value.as_deref().is_none_or(|v| js_trim(v).is_empty()) {
-            return Err(format!("Set {key} before starting the router"));
+    for (key, active) in [
+        (Credential::Jev, config.evaluator == Evaluator::Jev),
+        (Credential::Anthropic, config.auth_mode == AuthMode::ApiKey),
+    ] {
+        if !active {
+            continue;
+        }
+        let missing = match config.credential_value(key) {
+            None => true,
+            Some(CredentialValue::Text(value)) => js_trim(value).is_empty(),
+            Some(CredentialValue::Source(document)) => match document.node(document.root()) {
+                Some(JsNode::Null) => true,
+                Some(JsNode::String(value)) => value.units().iter().all(|unit| {
+                    matches!(*unit,
+                    0x0009..=0x000d | 0x0020 | 0x00a0 | 0x1680 | 0x2000..=0x200a |
+                    0x2028 | 0x2029 | 0x202f | 0x205f | 0x3000 | 0xfeff)
+                }),
+                _ => return Err("value?.trim is not a function".to_owned()),
+            },
+        };
+        if missing {
+            return Err(format!("Set {} before starting the router", key.env_name()));
         }
     }
     Ok(())
@@ -1028,5 +1240,335 @@ mod tests {
             checked += 1;
         }
         assert_eq!(checked, 6);
+    }
+
+    #[test]
+    fn credentials_keep_raw_presence_requirement_activation_and_safe_failures() {
+        let values = [
+            None,
+            Some(json!(null)),
+            Some(json!("synthetic-credential-value-123456789")),
+            Some(json!("")),
+            Some(json!(" \t\n")),
+            Some(json!(false)),
+            Some(json!(0)),
+            Some(json!(42)),
+            Some(json!(true)),
+            Some(json!(["synthetic-credential-value-123456789"])),
+            Some(json!([])),
+            Some(json!([["synthetic-credential-value-123456789"]])),
+            Some(json!({"synthetic":"credential-input"})),
+            Some(json!({"trim":null,"synthetic":"credential-input"})),
+        ];
+        let fields = [
+            ("ANTHROPIC_API_KEY", "anthropicKey"),
+            ("TYPESAFE_API_KEY", "jevKey"),
+            ("AUTOROUTER_TOKEN", "localToken"),
+        ];
+        let mut checked = 0;
+        for (target, _) in fields {
+            for mode in ["api-key", "subscription"] {
+                for evaluator in ["jev", "ollama"] {
+                    for raw in &values {
+                        let mut env = json!({"ANTHROPIC_API_KEY":"synthetic-anthropic-valid",
+                        "TYPESAFE_API_KEY":"synthetic-jev-valid", "AUTOROUTER_TOKEN":"synthetic-local-token-123456789",
+                        "AUTOROUTER_AUTH_MODE":mode,"AUTOROUTER_EVALUATOR":evaluator});
+                        if let Some(value) = raw {
+                            env[target] = value.clone();
+                        } else {
+                            env.as_object_mut().unwrap().remove(target);
+                        }
+                        let config = read_config(&env, false, Path::new("/synthetic"))
+                            .unwrap_or_else(|error| {
+                                panic!("Unexpected admission rejection: {error}")
+                            });
+                        let encoded = serde_json::to_string(&config).unwrap();
+                        let observed: Value = serde_json::from_str(&encoded).unwrap();
+                        for (key, field) in fields {
+                            let expected = if key == "ANTHROPIC_API_KEY" && mode == "subscription" {
+                                None
+                            } else {
+                                env.get(key)
+                            };
+                            assert_eq!(
+                                observed.get(field),
+                                expected,
+                                "{target}/{mode}/{evaluator}"
+                            );
+                            assert_eq!(
+                                encoded.matches(&format!("\"{field}\":")).count(),
+                                usize::from(expected.is_some())
+                            );
+                        }
+                        let required = (target == "ANTHROPIC_API_KEY" && mode == "api-key")
+                            || (target == "TYPESAFE_API_KEY" && evaluator == "jev");
+                        let expected = if !required {
+                            Ok(())
+                        } else {
+                            match raw {
+                                None | Some(Value::Null) => {
+                                    Err(format!("Set {target} before starting the router"))
+                                }
+                                Some(Value::String(value)) if value.trim().is_empty() => {
+                                    Err(format!("Set {target} before starting the router"))
+                                }
+                                Some(Value::String(_)) => Ok(()),
+                                _ => Err("value?.trim is not a function".to_owned()),
+                            }
+                        };
+                        let actual = require_keys(&config);
+                        if let Err(error) = &actual {
+                            assert!(!error.contains("synthetic-"));
+                        }
+                        assert_eq!(actual, expected, "{target}/{mode}/{evaluator}");
+                        checked += 1;
+                    }
+                }
+            }
+        }
+        assert_eq!(checked, 168); // Two observed contracts per original paired input.
+    }
+
+    #[test]
+    fn document_credentials_keep_source_types_and_exact_json_before_requirement_checks() {
+        // Original outcomes: source-supplement's nine forms over twelve profiles.
+        let cases = [
+            (None, None, 0),
+            (Some("null"), Some("null"), 0),
+            (Some("1e400"), Some("null"), 1),
+            (Some("-1e400"), Some("null"), 1),
+            (
+                Some(r#""synthetic-credential-\ud800""#),
+                Some(r#""synthetic-credential-\ud800""#),
+                2,
+            ),
+            (
+                Some(r#""synthetic-credential-\ud83d\ude00""#),
+                Some("\"synthetic-credential-😀\""),
+                2,
+            ),
+            (Some("[[1e400,null,-1e400]]"), Some("[[null,null,null]]"), 1),
+            (
+                Some(r#"[["synthetic-credential-value-123456789"]]"#),
+                Some(r#"[["synthetic-credential-value-123456789"]]"#),
+                1,
+            ),
+            (Some(r#"{"trim":null}"#), Some(r#"{"trim":null}"#), 1),
+        ];
+        let fields = [
+            ("ANTHROPIC_API_KEY", "anthropicKey"),
+            ("TYPESAFE_API_KEY", "jevKey"),
+            ("AUTOROUTER_TOKEN", "localToken"),
+        ];
+        let mut checked = 0;
+        for (target, _) in fields {
+            for mode in ["api-key", "subscription"] {
+                for evaluator in ["jev", "ollama"] {
+                    for (raw, serialized, kind) in cases {
+                        let mut members = vec![
+                            format!(r#""AUTOROUTER_AUTH_MODE":"{mode}""#),
+                            format!(r#""AUTOROUTER_EVALUATOR":"{evaluator}""#),
+                        ];
+                        for (key, _) in fields {
+                            if key == target {
+                                if let Some(raw) = raw {
+                                    members.push(format!("\"{key}\":{raw}"));
+                                }
+                            } else {
+                                members.push(format!(
+                                    r#""{key}":"synthetic-credential-value-123456789""#
+                                ));
+                            }
+                        }
+                        let input = format!("{{{}}}", members.join(","));
+                        let document = JsDocument::parse(input.as_bytes()).unwrap();
+                        let config =
+                            read_config_document(&document, false, Path::new("/synthetic"))
+                                .unwrap();
+                        let before = serde_json::to_string(&config).unwrap();
+                        let observed = JsDocument::parse(before.as_bytes()).unwrap();
+                        for (key, field) in fields {
+                            let expected = if key == "ANTHROPIC_API_KEY" && mode == "subscription" {
+                                None
+                            } else if key == target {
+                                serialized.map(str::to_owned)
+                            } else {
+                                Some(r#""synthetic-credential-value-123456789""#.to_owned())
+                            };
+                            let actual = observed
+                                .get(observed.root(), field)
+                                .map(|node| observed.stringify_node(node));
+                            assert_eq!(actual, expected, "{target}/{mode}/{evaluator}/{raw:?}");
+                            assert_eq!(
+                                before.matches(&format!("\"{field}\":")).count(),
+                                usize::from(expected.is_some())
+                            );
+                        }
+                        let required = (target == "ANTHROPIC_API_KEY" && mode == "api-key")
+                            || (target == "TYPESAFE_API_KEY" && evaluator == "jev");
+                        let expected = if !required || kind == 2 {
+                            Ok(())
+                        } else if kind == 1 {
+                            Err("value?.trim is not a function".to_owned())
+                        } else {
+                            Err(format!("Set {target} before starting the router"))
+                        };
+                        assert_eq!(
+                            require_keys(&config),
+                            expected,
+                            "{target}/{mode}/{evaluator}/{raw:?}"
+                        );
+                        assert_eq!(serde_json::to_string(&config).unwrap(), before);
+                        checked += 1;
+                    }
+                }
+            }
+        }
+        assert_eq!(checked, 108);
+    }
+
+    #[test]
+    fn credential_replacement_and_mode_changes_do_not_resurrect_captured_values() {
+        for key in [
+            Credential::Anthropic,
+            Credential::Jev,
+            Credential::LocalToken,
+        ] {
+            let mut config = config(
+                json!({"AUTOROUTER_EVALUATOR":"jev","ANTHROPIC_API_KEY":"synthetic-valid","TYPESAFE_API_KEY":"synthetic-valid"}),
+            );
+            config.replace_credential_value(key, Some(&json!(false)));
+            assert_eq!(config.credential_json(key).as_deref(), Some("false"));
+            config.replace_credential(key, Some("synthetic-new".into()));
+            assert_eq!(
+                config.credential_json(key).as_deref(),
+                Some(r#""synthetic-new""#)
+            );
+            config.replace_credential(key, None);
+            assert!(config.credential_json(key).is_none());
+            config.replace_credential_value(key, Some(&Value::Null));
+            assert_eq!(config.credential_json(key).as_deref(), Some("null"));
+            config.replace_credential(key, Some(String::new()));
+            assert_eq!(config.credential_json(key).as_deref(), Some(r#""""#));
+            config.replace_credential_value(key, None);
+            assert!(config.credential_json(key).is_none());
+            assert!(config.source_credentials.slots.iter().all(Option::is_none));
+        }
+        let mut api = config(
+            json!({"AUTOROUTER_EVALUATOR":"ollama","ANTHROPIC_API_KEY":false,"TYPESAFE_API_KEY":false}),
+        );
+        api.auth_mode = AuthMode::Subscription;
+        assert_eq!(
+            api.credential_json(Credential::Anthropic).as_deref(),
+            Some("false")
+        );
+        assert!(require_keys(&api).is_ok());
+        api.auth_mode = AuthMode::ApiKey;
+        assert_eq!(
+            require_keys(&api).unwrap_err(),
+            "value?.trim is not a function"
+        );
+        api.auth_mode = AuthMode::Subscription;
+        api.evaluator = Evaluator::Jev;
+        assert_eq!(
+            require_keys(&api).unwrap_err(),
+            "value?.trim is not a function"
+        );
+        let mut subscription =
+            config(json!({"AUTOROUTER_AUTH_MODE":"subscription","ANTHROPIC_API_KEY":false}));
+        subscription.auth_mode = AuthMode::ApiKey;
+        assert!(
+            subscription
+                .credential_json(Credential::Anthropic)
+                .is_none()
+        );
+        assert_eq!(
+            require_keys(&subscription).unwrap_err(),
+            "Set ANTHROPIC_API_KEY before starting the router"
+        );
+    }
+
+    #[test]
+    fn credential_requirements_preserve_first_active_key_failure() {
+        // Ten simultaneous-failure controls from the frozen oracle.
+        let cases = [
+            (
+                r#"{"AUTOROUTER_EVALUATOR":"jev","AUTOROUTER_AUTH_MODE":"api-key"}"#,
+                Some("Set TYPESAFE_API_KEY before starting the router"),
+            ),
+            (
+                r#"{"TYPESAFE_API_KEY":null,"ANTHROPIC_API_KEY":false,"AUTOROUTER_EVALUATOR":"jev","AUTOROUTER_AUTH_MODE":"api-key"}"#,
+                Some("Set TYPESAFE_API_KEY before starting the router"),
+            ),
+            (
+                r#"{"TYPESAFE_API_KEY":false,"ANTHROPIC_API_KEY":"synthetic-anthropic-valid","AUTOROUTER_EVALUATOR":"jev","AUTOROUTER_AUTH_MODE":"api-key"}"#,
+                Some("value?.trim is not a function"),
+            ),
+            (
+                r#"{"TYPESAFE_API_KEY":"synthetic-jev-valid","ANTHROPIC_API_KEY":false,"AUTOROUTER_EVALUATOR":"jev","AUTOROUTER_AUTH_MODE":"api-key"}"#,
+                Some("value?.trim is not a function"),
+            ),
+            (
+                r#"{"TYPESAFE_API_KEY":"","ANTHROPIC_API_KEY":false,"AUTOROUTER_EVALUATOR":"jev","AUTOROUTER_AUTH_MODE":"api-key"}"#,
+                Some("Set TYPESAFE_API_KEY before starting the router"),
+            ),
+            (
+                r#"{"TYPESAFE_API_KEY":false,"ANTHROPIC_API_KEY":"","AUTOROUTER_EVALUATOR":"jev","AUTOROUTER_AUTH_MODE":"api-key"}"#,
+                Some("value?.trim is not a function"),
+            ),
+            (
+                r#"{"TYPESAFE_API_KEY":"synthetic-jev-valid","ANTHROPIC_API_KEY":"synthetic-anthropic-valid","AUTOROUTER_EVALUATOR":"jev","AUTOROUTER_AUTH_MODE":"api-key"}"#,
+                None,
+            ),
+            (
+                r#"{"TYPESAFE_API_KEY":false,"ANTHROPIC_API_KEY":"synthetic-anthropic-valid","AUTOROUTER_EVALUATOR":"ollama","AUTOROUTER_AUTH_MODE":"api-key"}"#,
+                None,
+            ),
+            (
+                r#"{"TYPESAFE_API_KEY":false,"ANTHROPIC_API_KEY":false,"AUTOROUTER_EVALUATOR":"jev","AUTOROUTER_AUTH_MODE":"subscription"}"#,
+                Some("value?.trim is not a function"),
+            ),
+            (
+                r#"{"TYPESAFE_API_KEY":false,"ANTHROPIC_API_KEY":false,"AUTOROUTER_EVALUATOR":"ollama","AUTOROUTER_AUTH_MODE":"subscription"}"#,
+                None,
+            ),
+        ];
+        for (raw, expected) in cases {
+            let env: Value = serde_json::from_str(raw).unwrap();
+            let settings = config(env);
+            let before = serde_json::to_string(&settings).unwrap();
+            assert_eq!(require_keys(&settings).err().as_deref(), expected);
+            assert_eq!(serde_json::to_string(&settings).unwrap(), before);
+        }
+    }
+
+    #[test]
+    fn credential_text_serialization_is_exact_and_value_observation_is_fallible() {
+        let source = JsDocument::parse(br#"{"AUTOROUTER_EVALUATOR":"jev","TYPESAFE_API_KEY":"synthetic-\ud800","unrelated":"synthetic-unrelated-input"}"#).unwrap();
+        let mut config = read_config_document(&source, false, Path::new("/synthetic")).unwrap();
+        let text = serde_json::to_string(&config).unwrap();
+        assert!(text.contains(r#""jevKey":"synthetic-\ud800""#));
+        assert!(!text.contains("synthetic-unrelated-input"));
+        assert!(!text.contains('\u{fffd}'));
+        assert!(serde_json::to_value(&config).is_err());
+        let before = config.credential_json(Credential::Jev);
+        assert!(
+            config
+                .replace_credential_document(Credential::Jev, &source, usize::MAX)
+                .is_err()
+        );
+        assert_eq!(config.credential_json(Credential::Jev), before);
+        config.jev_key = Some("synthetic-typed-override".into());
+        assert_eq!(
+            config.credential_json(Credential::Jev).as_deref(),
+            Some(r#""synthetic-typed-override""#)
+        );
+        config.replace_credential(Credential::Jev, None);
+        assert!(config.credential_json(Credential::Jev).is_none());
+        config.jev_key = Some(String::new());
+        assert_eq!(
+            config.credential_json(Credential::Jev).as_deref(),
+            Some(r#""""#)
+        );
     }
 }

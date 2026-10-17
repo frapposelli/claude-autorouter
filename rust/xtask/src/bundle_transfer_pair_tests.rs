@@ -5,6 +5,232 @@ use std::fs;
 use std::os::unix::fs::{PermissionsExt, symlink};
 use std::path::PathBuf;
 
+#[test]
+fn binary_source_manifest_literal_rows_are_lossless_bounded_and_strict() {
+    // Independently authored bytes: SHA256 of UTF8 ["a","ab"], followed
+    // by two full digest rows. No product encoder constructs this oracle.
+    let header = br#"{"schema_version":4,"kind":"native_benchmark_public_source_bundle","fixture_sha256":"0000000000000000000000000000000000000000000000000000000000000000","build_requires":"synthetic","private_material_included":false,"live_calls_performed":false,"files_encoding":"indexed-native-paths-sha256-v1","paths_sha256":"d052ce3ea04741c5c4621d37e1df1ad56afa773955822ff3795cf4fa818d10f6"}"#;
+    let paths = ["a", "ab"];
+    let rows = [&[0; 32][..], &[0x11; 32]].concat();
+    let packet = |header: &[u8], rows: &[u8]| {
+        let mut bytes = b"ARSM\0\0\0\x04".to_vec();
+        bytes.extend_from_slice(&(header.len() as u32).to_be_bytes());
+        bytes.extend_from_slice(header);
+        bytes.extend_from_slice(&2u32.to_be_bytes());
+        bytes.extend_from_slice(rows);
+        bytes
+    };
+    let bytes = packet(header, &rows);
+    let decoded = metadata::decode_source(&bytes, FILE_LIMIT, &paths).unwrap();
+    assert_eq!(
+        decoded["files"],
+        json!({"a":"00".repeat(32),"ab":"11".repeat(32)})
+    );
+    assert_eq!(decoded["schema_version"], 2);
+    let encoded = metadata::encode_source(&decoded, FILE_LIMIT).unwrap();
+    assert_eq!(&encoded[encoded.len() - rows.len()..], &rows);
+    assert_eq!(
+        metadata::decode_source(&encoded, FILE_LIMIT, &paths).unwrap(),
+        decoded
+    );
+    let mut unicode = decoded.clone();
+    let unicode_paths = ["src/café\"a.rs", "src/cafê-b.rs"];
+    unicode["files"] = json!({unicode_paths[0]:"00".repeat(32),unicode_paths[1]:"11".repeat(32)});
+    let encoded_unicode = metadata::encode_source(&unicode, FILE_LIMIT).unwrap();
+    assert_eq!(
+        metadata::decode_source(&encoded_unicode, FILE_LIMIT, &unicode_paths).unwrap(),
+        unicode
+    );
+    let header_end = 12 + u32::from_be_bytes(encoded_unicode[8..12].try_into().unwrap()) as usize;
+    assert_eq!(
+        metadata::parse(&encoded_unicode[12..header_end], FILE_LIMIT).unwrap()["paths_sha256"],
+        "f3b350b3ce120e7a9cc7bc666cd6c78129c25c3b76947d2f0e10856c1f48b604"
+    );
+    for end in 0..bytes.len() {
+        assert!(metadata::decode_source(&bytes[..end], FILE_LIMIT, &paths).is_err());
+    }
+    assert!(metadata::decode_source(&bytes, bytes.len() - 1, &paths).is_err());
+    assert!(metadata::decode_source(&bytes, FILE_LIMIT, &["a", "ab", "c"]).is_err());
+    assert!(metadata::encode_source(&decoded, encoded.len() - 1).is_err());
+    let mut bad = bytes.clone();
+    bad.push(0);
+    assert!(metadata::decode_source(&bad, FILE_LIMIT, &paths).is_err());
+    let mut bad = bytes.clone();
+    bad[7] = 3;
+    assert!(metadata::decode_source(&bad, FILE_LIMIT, &paths).is_err());
+    let mut bad = bytes.clone();
+    bad[8..12].copy_from_slice(&u32::MAX.to_be_bytes());
+    assert!(metadata::decode_source(&bad, FILE_LIMIT, &paths).is_err());
+    for count in [0u32, 1, 3, u32::MAX] {
+        let mut bad = bytes.clone();
+        bad[12 + header.len()..16 + header.len()].copy_from_slice(&count.to_be_bytes());
+        assert!(metadata::decode_source(&bad, FILE_LIMIT, &paths).is_err());
+    }
+    let text = std::str::from_utf8(header).unwrap();
+    for altered in [
+        text.replace("sha256-v1", "sha256-v2"),
+        text.replace(
+            "indexed-native-paths-sha256-v1",
+            "sorted-utf8-prefix-sha256-binary-v1",
+        ),
+        text.replace("schema_version\":4", "schema_version\":3"),
+        text.replacen('{', "{\"schema_version\":4,", 1),
+        text.replacen('{', "{\"foreign\":0,", 1),
+        text.replace("d052ce3e", "D052ce3e"),
+        text.replace("paths_sha256", "missing_sha256"),
+    ] {
+        assert!(
+            metadata::decode_source(&packet(altered.as_bytes(), &rows), FILE_LIMIT, &paths)
+                .is_err()
+        );
+    }
+    for invalid in [
+        ["ab", "a"],
+        ["a", "a"],
+        ["", "ab"],
+        ["../a", "ab"],
+        ["/a", "ab"],
+        ["a\\b", "ab"],
+        ["a\n", "ab"],
+    ] {
+        assert!(
+            metadata::decode_source(&bytes, FILE_LIMIT, &invalid)
+                .unwrap_err()
+                .contains("Unsafe")
+        );
+    }
+    // Same count and sort position are insufficient: the committed names must match.
+    assert!(
+        metadata::decode_source(&bytes, FILE_LIMIT, &["a", "ac"])
+            .unwrap_err()
+            .contains("commitment")
+    );
+    let long = "a".repeat(257);
+    assert!(
+        metadata::decode_source(&bytes, FILE_LIMIT, &[&long, "b"])
+            .unwrap_err()
+            .contains("Unsafe")
+    );
+    let mut large = decoded.clone();
+    let long_paths = ["a".repeat(256), "b".repeat(256)];
+    large["files"] =
+        json!({long_paths[0].clone():"00".repeat(32),long_paths[1].clone():"11".repeat(32)});
+    let encoded_large = metadata::encode_source(&large, FILE_LIMIT).unwrap();
+    assert!(
+        metadata::decode_source(
+            &encoded_large,
+            encoded_large.len(),
+            &[&long_paths[0], &long_paths[1]]
+        )
+        .unwrap_err()
+        .contains("Decoded")
+    );
+    let mut bad_hash = decoded.clone();
+    bad_hash["files"]["a"] = json!("GG".repeat(32));
+    assert!(metadata::encode_source(&bad_hash, FILE_LIMIT).is_err());
+    let mut huge = decoded.clone();
+    huge["build_requires"] = json!("x".repeat(64 * 1024));
+    assert!(metadata::encode_source(&huge, FILE_LIMIT).is_err());
+}
+
+#[test]
+fn schema5_binary_facts_preserve_payloads_and_reject_version_or_charge_downgrades() {
+    let f = Fixture::new();
+    for variant in [
+        "good",
+        "old-json",
+        "downgrade",
+        "both",
+        "changed-hash",
+        "swapped-hashes",
+        "charge",
+    ] {
+        let directory = f.packet(variant, true, |_, _, _| {});
+        f.schema4(&directory, |native, reference, record| {
+            record["schema_version"] = json!(if variant == "downgrade" { 4 } else { 5 });
+            if variant != "old-json" {
+                let original = native.remove("source-manifest.json").unwrap();
+                let facts = metadata::parse(&original.bytes, FILE_LIMIT).unwrap();
+                let mut bytes = metadata::encode_source(&facts, FILE_LIMIT).unwrap();
+                if variant == "changed-hash" {
+                    *bytes.last_mut().unwrap() ^= 1;
+                }
+                if variant == "swapped-hashes" {
+                    let at = bytes.len() - 64;
+                    let (first, second) = bytes[at..].split_at_mut(32);
+                    first.swap_with_slice(second);
+                }
+                native.insert(
+                    "source-manifest.bin".into(),
+                    Entry {
+                        bytes,
+                        mode: original.mode,
+                    },
+                );
+                if variant == "both" {
+                    native.insert("source-manifest.json".into(), original);
+                }
+            }
+            let payload = sum(native
+                .values()
+                .map(|e| e.bytes.as_slice())
+                .chain(f.reference.values().map(|e| e.bytes.as_slice())))
+            .unwrap();
+            record["aggregate_logical_file_bytes"] =
+                json!(payload - usize::from(variant == "charge"));
+            let legacy = legacy_full(native, expanded_size(reference, SOURCE).unwrap(), 5).unwrap();
+            record["legacy_full_tar_bytes"] = json!(legacy);
+            record["legacy_full_tar_within_limit"] = json!(legacy <= SOURCE.expanded);
+        });
+        if variant != "good" {
+            f.reject(&directory, &format!("{variant}-output"));
+            continue;
+        }
+        let plan = load(&f.root, &directory).unwrap();
+        assert_eq!(plan.schema, 5);
+        assert_eq!(plan.record["aggregate_expanded_limit"], SOURCE.expanded);
+        assert_eq!(plan.record["aggregate_logical_file_limit"], SOURCE.expanded);
+        let facts = metadata::decode_source(
+            &plan.native.files["source-manifest.bin"].bytes,
+            FILE_LIMIT,
+            &plan
+                .native
+                .files
+                .keys()
+                .filter(|path| path.as_str() != "source-manifest.bin")
+                .map(String::as_str)
+                .collect::<Vec<_>>(),
+        )
+        .unwrap();
+        assert_eq!(
+            facts,
+            metadata::parse(&f.native["source-manifest.json"].bytes, FILE_LIMIT).unwrap()
+        );
+        for (path, entry) in &f.native {
+            if path != "source-manifest.json" {
+                assert_eq!(plan.native.files[path].bytes, entry.bytes);
+                assert_eq!(plan.native.files[path].mode, entry.mode);
+            }
+        }
+        let output = f.scratch.0.join("binary-restored");
+        assert_eq!(
+            restore(&f.root, &directory, &output).unwrap()["logical_files"],
+            113
+        );
+        for (path, entry) in &f.reference {
+            assert_eq!(fs::read(output.join(path)).unwrap(), entry.bytes);
+            assert_eq!(
+                fs::metadata(output.join(path))
+                    .unwrap()
+                    .permissions()
+                    .mode()
+                    & 0o777,
+                entry.mode
+            );
+        }
+    }
+}
+
 struct Fixture {
     scratch: Scratch,
     root: PathBuf,

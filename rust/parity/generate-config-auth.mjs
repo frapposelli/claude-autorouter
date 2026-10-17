@@ -122,6 +122,60 @@ for (const [label, raw] of [
 ]) urlBoundary('AUTOROUTER_UPSTREAM_URL', `subscription-${label}`, raw,
   { env: { AUTOROUTER_AUTH_MODE: 'subscription' } });
 
+// Additive credential-value API controls, appended after the existing 627 cases.
+// These preserve the retained public read_config controls and do not attribute
+// new assertions to any original test definition. The 16 build_claude_env cases
+// stay separate: 10 still expose genuine pending OS credential coercion gaps.
+const credentialControl = (id, input, control_group) => cases.push({ id, op: 'read_config', input,
+  source_tests: ['test/config.test.mjs', 'test/auth.test.mjs'],
+  source_basis: 'Additional public credential-value API control; no original assertion attribution', control_group });
+const credentialValueText = 'synthetic-credential-value-123456789';
+const credentialBaseEnv = { ANTHROPIC_API_KEY: 'synthetic-anthropic-valid',
+  TYPESAFE_API_KEY: 'synthetic-jev-valid', AUTOROUTER_TOKEN: 'synthetic-local-token-123456789' };
+const credentialValues = [
+  ['absent', undefined], ['null', null], ['string', credentialValueText],
+  ['empty-string', ''], ['blank-string', ' \t\n'], ['false', false],
+  ['zero', 0], ['number', 42], ['true', true], ['array', [credentialValueText]],
+  ['empty-array', []], ['nested-array', [[credentialValueText]]],
+  ['object', { synthetic: 'credential-input' }],
+  ['object-trim-null', { trim: null, synthetic: 'credential-input' }],
+];
+for (const key of ['ANTHROPIC_API_KEY', 'TYPESAFE_API_KEY', 'AUTOROUTER_TOKEN']) {
+  for (const mode of ['api-key', 'subscription']) for (const evaluator of ['jev', 'ollama']) {
+    for (const [label, raw] of credentialValues) {
+      const env = { ...credentialBaseEnv, AUTOROUTER_AUTH_MODE: mode, AUTOROUTER_EVALUATOR: evaluator };
+      if (raw === undefined) delete env[key]; else env[key] = raw;
+      for (const require_keys of [false, true]) credentialControl(
+        `credential-config-${key.toLowerCase()}-${mode}-${evaluator}-${label}-${require_keys ? 'require' : 'projection'}`,
+        { env, require_keys }, 'three-credential-context-matrix');
+    }
+  }
+}
+const credentialOrderCases = [
+  ['both-absent', {}],
+  ['jev-null-anthropic-false', { TYPESAFE_API_KEY: null, ANTHROPIC_API_KEY: false }],
+  ['jev-false-anthropic-valid', { TYPESAFE_API_KEY: false, ANTHROPIC_API_KEY: 'synthetic-anthropic-valid' }],
+  ['jev-valid-anthropic-false', { TYPESAFE_API_KEY: 'synthetic-jev-valid', ANTHROPIC_API_KEY: false }],
+  ['jev-empty-anthropic-false', { TYPESAFE_API_KEY: '', ANTHROPIC_API_KEY: false }],
+  ['jev-false-anthropic-empty', { TYPESAFE_API_KEY: false, ANTHROPIC_API_KEY: '' }],
+  ['both-valid', { TYPESAFE_API_KEY: 'synthetic-jev-valid', ANTHROPIC_API_KEY: 'synthetic-anthropic-valid' }],
+  ['inactive-jev-false', { TYPESAFE_API_KEY: false, ANTHROPIC_API_KEY: 'synthetic-anthropic-valid' }, 'ollama'],
+  ['subscription-jev-false-anthropic-false', { TYPESAFE_API_KEY: false, ANTHROPIC_API_KEY: false }, 'jev', 'subscription'],
+  ['subscription-ollama-both-false', { TYPESAFE_API_KEY: false, ANTHROPIC_API_KEY: false }, 'ollama', 'subscription'],
+];
+for (const [label, raw, evaluator = 'jev', mode = 'api-key'] of credentialOrderCases) {
+  const env = { ...raw, AUTOROUTER_EVALUATOR: evaluator, AUTOROUTER_AUTH_MODE: mode };
+  for (const require_keys of [false, true]) credentialControl(
+    `credential-order-${label}-${require_keys ? 'require' : 'projection'}`,
+    { env, require_keys }, 'active-requirement-order');
+}
+for (const mode of ['api-key', 'subscription']) for (const validate_all of [false, true]) {
+  const env = { ...credentialBaseEnv, TYPESAFE_API_KEY: false,
+    AUTOROUTER_EVALUATOR: 'ollama', AUTOROUTER_AUTH_MODE: mode };
+  credentialControl(`credential-validation-mask-${mode}-${validate_all}`,
+    { env, validate_all, require_keys: true }, 'validate-all-is-not-require-inactive');
+}
+
 const destination = process.argv[2] ?? resolve(import.meta.dirname, 'cases/config-auth.jsonl');
 writeFileSync(destination, cases.map(value => JSON.stringify(value)).join('\n') + '\n');
 console.log(`Wrote ${cases.length} config/auth/policy cases`);

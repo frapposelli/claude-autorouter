@@ -11,7 +11,7 @@ use std::sync::{
 };
 use std::time::Duration;
 
-use autorouter_core::config::{Evaluator, RouterConfig};
+use autorouter_core::config::{Credential, Evaluator, RouterConfig};
 use autorouter_core::contracts::{ClassifierError, DecisionSource};
 use autorouter_core::js_json::JsDocument;
 use autorouter_core::prompt_state::{build_ollama_state_document, build_state_document};
@@ -321,20 +321,47 @@ impl<T> Drop for Subscription<T> {
     }
 }
 
+fn evaluation_settings(config: &RouterConfig) -> RouterConfig {
+    let mut settings = config.clone();
+    settings.replace_credential(Credential::Anthropic, None);
+    settings.replace_credential(Credential::LocalToken, None);
+    settings.session_log_dir = None;
+    settings
+}
+
 fn settings_key(document: &JsDocument, config: &RouterConfig) -> Key {
+    let jev_key = (config.evaluator == Evaluator::Jev)
+        .then(|| config.credential_json(Credential::Jev))
+        .flatten();
     let (settings, rubric) = match config.evaluator {
         Evaluator::Ollama => (
             json!({"evaluator":"ollama","ollamaEndpoint":config.ollama_endpoint,"ollamaModel":config.ollama_model,"ollamaTimeoutMs":config.ollama_timeout_ms,"ollamaStateChars":config.ollama_state_chars,"ollamaKeepAlive":config.ollama_keep_alive}),
             "be151cedb4de4b7ef3f7162d751f70ce7d9dd14efc66fae1835f73ffd04027be",
         ),
-        Evaluator::Jev => (
-            json!({"evaluator":"jev","jevEndpoint":config.jev_endpoint,"jevModel":config.jev_model,"jevKey":config.jev_key,"jevTimeoutMs":config.jev_timeout_ms,"minConfidence":config.min_confidence,"stateChars":config.state_chars}),
-            "0188f45daca9a670c97197fc1726ce6fd2e8cbb646ca5773b15c68b73ace184d",
-        ),
+        Evaluator::Jev => {
+            let mut settings = json!({"evaluator":"jev","jevEndpoint":config.jev_endpoint,"jevModel":config.jev_model});
+            // Source JSON.stringify omits undefined but retains null. Reserve
+            // the original property position before replacing exact JSON.
+            if jev_key.is_some() {
+                settings["jevKey"] = serde_json::Value::Null;
+            }
+            settings["jevTimeoutMs"] = json!(config.jev_timeout_ms);
+            settings["minConfidence"] = json!(config.min_confidence);
+            settings["stateChars"] = json!(config.state_chars);
+            (
+                settings,
+                "0188f45daca9a670c97197fc1726ce6fd2e8cbb646ca5773b15c68b73ace184d",
+            )
+        }
     };
     let mut settings =
         JsDocument::parse(&serde_json::to_vec(&settings).expect("finite settings JSON"))
             .expect("serialized settings JSON");
+    if let Some(key) = jev_key {
+        settings
+            .set_root_field_json("jevKey", key.as_bytes())
+            .expect("exact classifier credential JSON");
+    }
     if config.evaluator == Evaluator::Jev
         && let Some(model) = &config.exact_jev_model
     {
@@ -485,10 +512,7 @@ impl<T: HttpTransport + 'static> Classifier<T> {
                         subscribers: HashMap::new(),
                     },
                 );
-                let mut settings = config.clone();
-                settings.anthropic_key = None;
-                settings.local_token = None;
-                settings.session_log_dir = None;
+                let settings = evaluation_settings(config);
                 // Register the whole unpolled future before admission unlocks.
                 // A concurrent close must also own work not yet spawned.
                 work = Some(self.shared.workers.track_future(self.worker(
@@ -1498,6 +1522,91 @@ mod tests {
         assert!(classifier.shared.state.lock().unwrap().pending.is_empty());
         assert_eq!(classifier.shared.state.lock().unwrap().subscribers, 0);
     }
+
+    #[test]
+    fn settings_identity_distinguishes_effective_credential_presence_and_source_values() {
+        let body = document("synthetic credential identity");
+        let mut missing = config();
+        missing.replace_credential(Credential::Jev, None);
+        let missing_key = settings_key(&body, &missing);
+        let values = [
+            serde_json::Value::Null,
+            json!(false),
+            json!(0),
+            json!(["synthetic-key"]),
+            json!({"synthetic":"key"}),
+            json!(""),
+            json!("synthetic-key"),
+        ];
+        let mut keys = Vec::new();
+        for value in values {
+            let mut settings = missing.clone();
+            settings.replace_credential_value(Credential::Jev, Some(&value));
+            let key = settings_key(&body, &settings);
+            assert_ne!(key, missing_key);
+            assert!(!keys.contains(&key));
+            keys.push(key);
+        }
+        let source = JsDocument::parse(br#"{"TYPESAFE_API_KEY":1e400}"#).unwrap();
+        let mut overflow = missing.clone();
+        overflow
+            .replace_credential_document(
+                Credential::Jev,
+                &source,
+                source.get(source.root(), "TYPESAFE_API_KEY").unwrap(),
+            )
+            .unwrap();
+        // Source JSON.stringify hashes both overflow and null as null.
+        assert_eq!(settings_key(&body, &overflow), keys[0]);
+        let mut exact = missing.clone();
+        let mut replacement = missing.clone();
+        for (settings, bytes) in [
+            (
+                &mut exact,
+                br#"{"TYPESAFE_API_KEY":"synthetic-\ud800"}"#.as_slice(),
+            ),
+            (
+                &mut replacement,
+                br#"{"TYPESAFE_API_KEY":"synthetic-\ufffd"}"#.as_slice(),
+            ),
+        ] {
+            let source = JsDocument::parse(bytes).unwrap();
+            settings
+                .replace_credential_document(
+                    Credential::Jev,
+                    &source,
+                    source.get(source.root(), "TYPESAFE_API_KEY").unwrap(),
+                )
+                .unwrap();
+        }
+        assert_eq!(exact.jev_key, replacement.jev_key);
+        assert_ne!(
+            settings_key(&body, &exact),
+            settings_key(&body, &replacement)
+        );
+    }
+
+    #[test]
+    fn evaluator_snapshot_erases_unrelated_source_credentials_and_keeps_jev() {
+        let source = JsDocument::parse(br#"{"AUTOROUTER_EVALUATOR":"jev","ANTHROPIC_API_KEY":{"synthetic":"private-provider"},"TYPESAFE_API_KEY":"synthetic-\ud800","AUTOROUTER_TOKEN":["synthetic-private-local"]}"#).unwrap();
+        let config =
+            autorouter_core::config::read_config_document(&source, false, Path::new("/synthetic"))
+                .unwrap();
+        let settings = evaluation_settings(&config);
+        assert!(settings.anthropic_key.is_none() && settings.local_token.is_none());
+        assert!(settings.credential_json(Credential::Anthropic).is_none());
+        assert!(settings.credential_json(Credential::LocalToken).is_none());
+        assert_eq!(
+            settings.credential_json(Credential::Jev),
+            config.credential_json(Credential::Jev)
+        );
+        let output = serde_json::to_string(&settings).unwrap();
+        assert!(!output.contains("private-provider") && !output.contains("private-local"));
+        assert!(output.contains(r#""jevKey":"synthetic-\ud800""#));
+        assert!(config.credential_json(Credential::Anthropic).is_some());
+        assert!(config.credential_json(Credential::LocalToken).is_some());
+    }
+
     include!("classifier_cancellation_contracts.rs");
     include!("classifier_shutdown_contracts.rs");
 }

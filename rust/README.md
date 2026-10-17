@@ -129,6 +129,17 @@ The [synthetic storage tool](docs/storage-benchmark.md) provides explicit native
 
 Native feasibility archives contain a POSIX dispatcher, prebuilt binaries, checksums, dependency licenses, and a source/build manifest. They install offline with `--ignore-scripts`, perform no download, and run without Node on `PATH`. `cargo xtask package --binary TARGET=PATH --output NEW_DIRECTORY --smoke` creates and tests a private candidate. The [reviewed native limits](distribution/expanded-cap-proposal.md) are 32 MiB compressed, 64 MiB expanded, 32 MiB per file and 256 entries. Historical JavaScript archives and source bundles retain 32 MiB expansion; the complete qualified target matrix must still fit.
 
+Matched source/reference transfers use `cargo xtask benchmark-bundle --transfer`
+with a fresh destination. Schema 5 encodes only the generated source manifest
+as a bounded binary index with a SHA-256 commitment to the complete sorted
+path list and a full SHA-256 digest for each file. Paths remain in the archive
+members and must match that commitment before their contents are checked.
+Raw source, fixtures, licenses, modes and both separate 32 MiB transfer caps
+remain intact. Use the matching current receiver to restore the reference;
+it also reads historical schemas 1–4. Default source-only bundles retain their
+JSON manifest. The generated `RESUME.md` includes verification and restore
+commands; these source transfers do not qualify shipping binaries.
+
 The [qualification and rollback guide](docs/rollout.md) describes the isolated `cargo xtask upgrade-rollback` rehearsal and the evidence needed for a later cutover.
 
 `cargo xtask release-pack` assembles qualified candidates, verifies per-target native archives, and records separate final authorization after exact installed-archive checks. The [release input schema](distribution/release-schema.md) specifies its commands and required evidence. Embedded candidate declarations cannot authorize publication; the current pending platform/performance evidence is insufficient for a production release.

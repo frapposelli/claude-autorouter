@@ -250,6 +250,39 @@ This URL behavior does not qualify raw credential values or other malformed
 configuration fields. [Setup migration evidence](../parity/assertion-mappings/onboarding-environment-contracts.json)
 keeps these input domains separate from historical executable CLI checks.
 
+`RouterConfig::source_credentials` owns compact source subtrees for only
+`anthropicKey`, `jevKey` and `localToken`. The public `Option<String>` fields
+retain their typed transport/display projections. Serialization uses captured
+source while that projection is unchanged, and emits each credential once.
+Use `replace_credential(Credential, Option<String>)` to replace or remove both
+representations. `replace_credential_value()` distinguishes `None` (remove)
+from `Some(&Value::Null)` (retain null); `replace_credential_document()` retains
+the selected node's original number types and UTF-16. An invalid node leaves
+the previous credential intact. Direct public field writes cannot express
+Some-to-None history or replacement with the same lossy display string, so use
+these methods for credential mutations.
+
+`serde_json::to_string()` preserves exact credential JSON, including escaped
+lone surrogates, through a checked temporary `RawValue`. That output view is
+not the stored authority: an overflowing number serializes as null but remains
+a number for `require_keys()`. `serde_json::to_value()` is a fallible scalar
+observation and rejects unpaired UTF-16. Required keys retain their source
+activation and order: Jev first when selected, then Anthropic in API-key mode;
+local tokens are never required by this helper. Null/absent/blank values use
+the existing missing-key diagnostic. Other non-string values use the source
+trim-call message through native `Result<(), String>`, without a JavaScript
+TypeError object or identity. Parsing masks Anthropic only at initial
+subscription capture. Later mode changes do not recapture or erase it.
+
+Classifier worker snapshots clear both representations of unrelated Anthropic
+and local credentials, and launcher/doctor replacements discard old source
+state. Effective Jev presence and JSON feed private cache identity. These
+configuration and snapshot contracts do not qualify malformed provider headers,
+local-token authentication or raw JavaScript object-to-OS environment output.
+In particular, null and non-string local-token values still lose the source's
+child-environment string conversion in the native launcher adapter; this is
+pending behavior, rather than an approved representation difference.
+
 `policy::load_policy()` and `load_policy_at()` return `PolicyError` on failure.
 Its `code()` is `AUTOROUTER_CONFIG_ERROR`; `message()` and `Display` preserve the
 safe policy diagnostic. `Debug` includes that code and message, with no underlying
