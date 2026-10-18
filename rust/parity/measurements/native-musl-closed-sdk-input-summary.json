@@ -1,0 +1,249 @@
+{
+  "schema_version": 1,
+  "kind": "native_musl_closed_sdk_input_checkpoint",
+  "status": "LOCAL_SYNTHETIC_DOWNLOADER_VALIDATION_REMOTE_SDK_PENDING",
+  "recorded_at_utc": "2026-10-18T16:31:48.781472+00:00",
+  "source": {
+    "path": "artifacts/rust-rewrite/exact-artifact-installed-lifecycle-validation-20261018-1/source-after-owned-npm-smoke.json",
+    "bytes": 119176,
+    "sha256": "747307ee0810dbd7ed7aba0a0a1b92d77b09096460e037df13921d44df6bea70",
+    "raw_inputs": 706,
+    "frozen_inputs": 111,
+    "raw_input_changes": 0,
+    "scope": "All SDK paths and the new contributor test are outside the unchanged native source allowlist; they are separately pinned. No source exclusion or archive-cap change."
+  },
+  "fix": {
+    "problem": "Both musl jobs at PR head 7ce3050 failed before Cargo because Alpine v3.21 main APKINDEX bytes changed. One current index also resolves a newer curl revision.",
+    "package_identity": "Preserve all 61 package filenames and 122 full SHA256 values from three retained actual builder records per architecture, with unchanged Node/Rust/base image/compiler/tool versions. Download exact filenames from the fixed official origin; do not resolve against a mutable index or select newer packages.",
+    "admission": "Stream-check each digest, then independently verify every file with sha256sum before offline APK installation. APK trusted-key signature checks remain enabled. Missing or changed packages fail closed.",
+    "bounds": {
+      "supplier_APK_bytes": 67108864,
+      "supplier_set_bytes": 268435456,
+      "per_file_ms": 60000,
+      "whole_set_ms": 600000
+    },
+    "bounds_preflight": "The unexecuted first draft proposed 32 MiB per APK. Official HEAD observations showed pinned GCC packages of 53,056,269 and 50,042,603 bytes, so a supplier-only 64 MiB bound was declared before adoption and testing. Native product, source and archive bounds are unchanged.",
+    "schema": "SDK pins schema 2; builder-input report schema 3 explicitly records closed APK selection and null package_index_sha256. Historical index identities are retained as history. No production release schema or authorization change."
+  },
+  "reviewed_inputs": {
+    "sdk_v2_handoff": {
+      "path": "artifacts/rust-rewrite/musl-closed-apk-package-set-draft-20261018-1/v2/handoff.json",
+      "bytes": 5839,
+      "sha256": "270647ac1374551f71e10e3b02cbe44a1ca825362ff0787e4adf3782504c70a5"
+    },
+    "canonical_122_hex_and_urls": {
+      "path": "artifacts/rust-rewrite/musl-closed-apk-package-set-draft-20261018-1/closed122-hex-and-urls.json",
+      "bytes": 28691,
+      "sha256": "d3881ba94c4f4cca0b3bfce4c4e8d987f5c43b9afcd72762baba1f5b478fb071"
+    },
+    "current_auxiliary": [
+      {
+        "path": ".github/workflows/ci.yml",
+        "bytes": 16160,
+        "sha256": "916a08071d98ba832bf485751e553cd4a7e6ade1035ca51c185ce3fb3144f6a6"
+      },
+      {
+        "path": ".github/workflows/rust-portability.yml",
+        "bytes": 24603,
+        "sha256": "ad883a5c6f180dca018a5a0dda9e7737dbe4eb5745ee9b307a78552cfad97044"
+      },
+      {
+        "path": ".github/workflows/rust-musl.yml",
+        "bytes": 15315,
+        "sha256": "da2f8a20fce3d9615ed05b038d1b083b4aa5bd44032e069d35e987b14de0c5d9"
+      },
+      {
+        "path": "rust/distribution/ci/check-musl.sh",
+        "bytes": 15851,
+        "sha256": "73e75cf6bfa2105ef5f84fecc8c4b9af7473ff0c9dc481114628f6fe866daedd"
+      },
+      {
+        "path": "rust/distribution/ci/runtime32-proof.py",
+        "bytes": 38033,
+        "sha256": "c4d465a1dd5cc2eb577ee50f639646737fdf2674e76978a8a09644a73edb7748"
+      },
+      {
+        "path": "rust/distribution/ci/upgrade-rollback-proof.mjs",
+        "bytes": 15487,
+        "sha256": "8bdb78a4bed358bf752457c29e78fc117db0f60eb4aeeb5988f60903cf0dda68"
+      },
+      {
+        "path": "rust/docs/rollout.md",
+        "bytes": 5996,
+        "sha256": "4f7c00b463d08e39d268b534cab2e2f46dedfa22aa522ca802cdeeb092cc3fc3"
+      },
+      {
+        "path": ".gitignore",
+        "bytes": 170,
+        "sha256": "bc135a3a675e98aad034cc39299327c0dddb960cf424ad91216bfaa462de48a7"
+      },
+      {
+        "path": "rust/distribution/musl-builder-pins.json",
+        "bytes": 12795,
+        "sha256": "d270fcc3fec40abc505e9441d21a159ba12fdd00aaa63a2d01c64f3fefc7d2ca"
+      },
+      {
+        "path": "rust/distribution/ci/musl.Dockerfile",
+        "bytes": 2669,
+        "sha256": "cea8946e299eb8f299960af639168bf2815f230e1f3c7ebe8a6acb40067ee2ad"
+      },
+      {
+        "path": "rust/distribution/ci/fetch-musl-apks.mjs",
+        "bytes": 5557,
+        "sha256": "e3e45b813830a4a0a766ba5c2b53445e3210fc53b8c0c7d9743a911d6e554db8"
+      },
+      {
+        "path": "test/musl-sdk.test.mjs",
+        "bytes": 16265,
+        "sha256": "4c649597681f4ca256dc2984395cf800c952158efbb64a3022e29760149830a2"
+      }
+    ],
+    "test_static_review": {
+      "path": "artifacts/rust-rewrite/musl-sdk-regression-draft-20261018-1/v2/independent-static-review.json",
+      "bytes": 6154,
+      "sha256": "f3879fc2869a26769fc1f347560f8b6216121191fea885cccb8fa48469b05f61"
+    },
+    "actual_review": {
+      "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/independent-local-sdk-actual-review.json",
+      "bytes": 14552,
+      "sha256": "9df29cf4d7cf838188d96e85d60be77367655737e6b905ce67e253baa216bae4"
+    }
+  },
+  "checks": {
+    "helper-syntax": {
+      "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/helper-syntax.json",
+      "bytes": 999,
+      "sha256": "52d123632cad2ffb4e058bbbde7f3959d18484c407c22fbf7c2df6a92038fda2",
+      "elapsed_seconds": 0.06235437490977347,
+      "stdout": {
+        "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/helper-syntax.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/helper-syntax.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "syntax": {
+      "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/syntax.json",
+      "bytes": 1197,
+      "sha256": "574601457f28f88035366e1c26693a2c4222d78ab5fdfae3e7ca3f56446e316e",
+      "elapsed_seconds": 0.35785958399999995,
+      "stdout": {
+        "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/syntax.stdout",
+        "bytes": 636,
+        "sha256": "92747339858b7530cc46d9250b5cfc5390b6c8262929de012d7ef1d9a9b08440"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/syntax.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "focused-sdk": {
+      "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/focused-sdk.json",
+      "bytes": 1105,
+      "sha256": "22df9105e8714c83e1ceaf6d205faad8716d327c02f3e865a644bab21ec85938",
+      "elapsed_seconds": 0.5976500411052257,
+      "stdout": {
+        "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/focused-sdk.stdout",
+        "bytes": 9219,
+        "sha256": "1a0aebf87e09a1cb409b7ecf45213311f5a3725944eff895e2565913884b0cbf"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/focused-sdk.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "node-check": {
+      "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/node-check.json",
+      "bytes": 1108,
+      "sha256": "568f400a924c1ec6f2439b585eb5877cbf9679b1350b8002747ebc03a258c77b",
+      "elapsed_seconds": 3.0698443751316518,
+      "stdout": {
+        "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/node-check.stdout",
+        "bytes": 153,
+        "sha256": "532c6103d0ae7485afac714e22851bbe915a0dfef35deddde4abf0e0db7f21a9"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/node-check.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "node-tests": {
+      "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/node-tests.json",
+      "bytes": 1098,
+      "sha256": "297d8b04678869a422ce1fa1d685818ea4289396425ae9ce82a8aab08e9d13c9",
+      "elapsed_seconds": 4.824690666981041,
+      "stdout": {
+        "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/node-tests.stdout",
+        "bytes": 144840,
+        "sha256": "d3e35420a0f2a08f64554e90fc5c30941b317ffe1d4f41a33c55f05553e0f59f"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/node-tests.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "node-package": {
+      "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/node-package.json",
+      "bytes": 1116,
+      "sha256": "473ebc302cc3cce045cf48cfaf1b45a71088a988325c953384f18817b2a81837",
+      "elapsed_seconds": 6.149855750147253,
+      "stdout": {
+        "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/node-package.stdout",
+        "bytes": 884,
+        "sha256": "03a5a91b3def0df2eba03614be17fb154ced476a05b68a73ad0fdd831f701707"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/musl-closed-sdk-validation-20261018-1/node-package.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  },
+  "results": {
+    "focused_injected_HTTPS_cases": 49,
+    "all_Node_tests": 645,
+    "old_Node_statuses_preserved": 596,
+    "new_Node_statuses": 49,
+    "syntax_JS_files": 98,
+    "shipping_package_files": 58,
+    "shipping_mock_lifecycle_scenarios": 17,
+    "parser_scope": "Six workflow Bash blocks, one workflow Node block, full musl Bash script and three Node heredocs, Docker RUN shell syntax and helper syntax. Controller/phase suffix unchanged; earlier67mockcontrols are historical evidence, not newly rerun."
+  },
+  "external_observations": {
+    "initial_failure_jobs": {
+      "path": "artifacts/rust-rewrite/exact-artifact-installed-lifecycle-validation-20261018-1/remote-musl-first-jobs.json",
+      "bytes": 5844,
+      "sha256": "7ff9bc4b4debd1a0d3bacf2d19d6343c3f509e15bf5bfb6092aabaf031ee61f3"
+    },
+    "initial_failure_logs": {
+      "path": "artifacts/rust-rewrite/exact-artifact-installed-lifecycle-validation-20261018-1/remote-musl-first-failed.log",
+      "bytes": 144461,
+      "sha256": "9f9f60feb05bd67a98d888a0f8d3fb8d3d9015a8de85053c6811f4fb27b12483"
+    },
+    "all122_HEAD": {
+      "path": "artifacts/rust-rewrite/exact-artifact-installed-lifecycle-validation-20261018-1/musl-index-observations/closed122-head-availability-and-sizes.json",
+      "bytes": 53692,
+      "sha256": "397063088af46056a30ce5d2d5dc8722567059446647ff9a9d16962618ace8b2"
+    },
+    "three_small_actual_GET_hashes": {
+      "path": "artifacts/rust-rewrite/exact-artifact-installed-lifecycle-validation-20261018-1/musl-index-observations/selected-old-apk-byte-verification.json",
+      "bytes": 1524,
+      "sha256": "4f053455f280624a342156d1fa1d3cd5f5ef003a260a48765fe240792bd711d8"
+    },
+    "scope": "HEAD is availability/size metadata only. Three actual download hashes match; no APK extraction/signature execution or full Docker SDK qualification locally."
+  },
+  "limits": [
+    "Mock streams exercise the actual downloader without opening sockets. Exact 64 MiB acceptance and one-byte excess rejection, aggregate 256 MiB excess, malformed manifests, inactive architecture hashes, missing or changed inputs, aborted responses, deadlines, exclusive creation and cleanup are covered.",
+    "Actual Docker SDK installation, all 122 payload hashes and signatures, new schema-3 report production and native musl rebuild require fresh CI.",
+    "Raw native source 747307ee retains its prior workspace result of 1,532 passes, one joint 32 MiB source-transfer failure and eleven ignored entries. No Rust sources changed and no new workspace execution is claimed here. The schema-7 joint 40 MiB proposal remains unapproved and unapplied.",
+    "Broader protocol, resource, TLS, platform, minimum environment, performance, live quality, provenance, license, full matrix, stabilization and cutover gates remain open. JavaScript 0.5.2 remains the shipping default. No merge, publication or version bump."
+  ]
+}

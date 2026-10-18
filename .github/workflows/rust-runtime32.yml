@@ -191,10 +191,10 @@ jobs:
           xtask="$CARGO_TARGET_DIR/i686-unknown-linux-gnu/release/xtask"
           version=$(cat "$out/cli-version.txt")
           [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
-          AUTOROUTER_RUNTIME32_PHASE=npm setarch i686 "$xtask" package \
+          AUTOROUTER_RUNTIME32_PHASE=npm setarch i686 /bin/sh -c 'umask 022; exec "$@"' runtime32-npm "$xtask" package \
             --binary "i686-unknown-linux-gnu=artifacts/rust-rewrite/runtime32/claude-autorouter-i686" \
             --output artifacts/rust-rewrite/runtime32/npm --smoke > "$out/npm-command.json"
-          AUTOROUTER_RUNTIME32_PHASE=direct setarch i686 "$xtask" package \
+          AUTOROUTER_RUNTIME32_PHASE=direct setarch i686 /bin/sh -c 'umask 022; exec "$@"' runtime32-direct "$xtask" package \
             --direct-from "artifacts/rust-rewrite/runtime32/npm/claude-autorouter-$version.tgz" \
             --target i686-unknown-linux-gnu --output artifacts/rust-rewrite/runtime32/direct --smoke > "$out/direct-command.json"
           setarch i686 "$xtask" upgrade-rollback \

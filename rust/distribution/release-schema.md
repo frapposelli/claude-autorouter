@@ -30,6 +30,25 @@ candidates. `verify-direct`, production assembly, final authorization and releas
 verification remain schema-2-only; passing a private smoke cannot authorize
 publication or provide trusted CI provenance.
 
+## Musl builder inputs
+
+The build-only musl SDK uses `musl-builder-pins.json` schema 2. Its closed APK
+manifest names 61 packages and records a full SHA256 for each architecture's
+payload. The downloader requests those exact filenames from the fixed Alpine
+repository; it does not resolve dependencies through the current APK index.
+Missing packages, changed bytes, redirects and deadline failures stop the build.
+Docker independently checks the downloaded hashes before offline installation,
+with APK trusted-key signature checks enabled and the existing tool versions
+still required.
+
+SDK downloads have separate supplier limits: 64 MiB per APK, 256 MiB for the set,
+60 seconds per file and ten minutes for the set. These limits do not change any
+source-transfer or product-archive limit. The builder-input report uses schema 3,
+records `package_selection: "closed_apk_sha256_manifest_v1"`, and sets
+`package_index_sha256` to null. It binds the pins, downloader and complete
+verified package set. Historical index hashes remain historical evidence;
+local downloader mocks do not qualify an actual SDK installation or release.
+
 ## Production build manifest
 
 A production archive contains `build-manifest.json` with:
