@@ -129,7 +129,6 @@ mod tests {
     use super::*;
     use crate::observer_tasks::{ObserverLimits, ObserverTasks};
     use std::sync::atomic::{AtomicUsize, Ordering};
-    use std::time::Duration;
 
     #[test]
     fn record_charge_matches_serializer_without_recursive_container_traversal() {
@@ -165,9 +164,7 @@ mod tests {
         });
         sink(JsDocument::parse(br#"{"model":"\ud800","event":"route"}"#).unwrap());
         assert_eq!(count.load(Ordering::SeqCst), 1);
-        tokio::time::timeout(Duration::from_secs(2), owner.close())
-            .await
-            .unwrap();
+        crate::bounded(owner.close()).await;
         assert_eq!(owner.snapshot().pending, 0);
         assert!(owner.snapshot().worker_finished);
     }
@@ -198,13 +195,12 @@ mod tests {
         event(JsDocument::parse(format!("\"{}\"", "x".repeat(1024)).as_bytes()).unwrap());
         assert_eq!(count.load(Ordering::SeqCst), 1);
         assert_eq!(owner.snapshot().declined_payload, 2);
-        tokio::time::timeout(Duration::from_secs(2), async {
+        crate::bounded(async {
             while owner.snapshot().pending != 0 {
                 tokio::task::yield_now().await;
             }
         })
-        .await
-        .unwrap();
+        .await;
         assert_eq!(owner.snapshot().rejected, 1);
         owner.close().await;
     }

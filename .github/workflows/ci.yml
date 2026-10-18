@@ -70,6 +70,7 @@ jobs:
       - run: cargo fetch --locked
       - run: cargo metadata --format-version 1 --locked --offline > /dev/null
       - name: Build independent native auditor before inspected dependencies
+        id: native_bootstrap
         run: |
           mkdir -p ../artifacts/rust-rewrite
           cargo build --package xtask --no-default-features --bin autorouter-audit --offline --locked --message-format=json > ../artifacts/rust-rewrite/auditor-bootstrap-build.jsonl
@@ -78,58 +79,99 @@ jobs:
           ../artifacts/rust-rewrite/autorouter-audit-bootstrap vendor > ../artifacts/rust-rewrite/vendor-audit.json
           ../artifacts/rust-rewrite/autorouter-audit-bootstrap production-features --self-test
       - run: cargo clippy --package xtask --no-default-features --all-targets --offline --locked -- -D warnings
+        id: audit_clippy
       - run: cargo test --package xtask --no-default-features --bin autorouter-audit --offline --locked
+        id: audit_tests
       - run: cargo fmt --check
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - name: Test Rust workspace
         run: |
-          # Keep Cargo's command and status; diagnostics never replace either.
-          if autorouter_test_output=$(mktemp "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/autorouter-rust-tests.XXXXXXXX"); then
-            trap 'rm -f -- "$autorouter_test_output"' EXIT
+          set -euo pipefail
+          autorouter_evidence_dir=../artifacts/rust-rewrite
+          mkdir -p "$autorouter_evidence_dir"
+          # Called only as a top-level command: do not put this function in an
+          # if/&&/|| condition, which would disable Bash errexit in its body.
+          autorouter_record_workspace() {
+            local autorouter_phase=$1
+            shift
+            local -a autorouter_pipeline_status
             set +e
-            cargo test --workspace --locked 2>&1 | tee "$autorouter_test_output"
-            autorouter_test_status=${PIPESTATUS[0]}
+            "$@" 2>&1 | tee "$autorouter_evidence_dir/workspace-$autorouter_phase.log"
+            autorouter_pipeline_status=("${PIPESTATUS[@]}")
             set -e
-            if (( autorouter_test_status != 0 )); then
-              python3 distribution/ci/annotate-cargo-tests.py "$autorouter_test_output" || true
+            local autorouter_metadata_status=0
+            printf '{"command_exit_code":%s,"log_exit_code":%s}\n' \
+              "${autorouter_pipeline_status[0]}" "${autorouter_pipeline_status[1]}" \
+              > "$autorouter_evidence_dir/workspace-$autorouter_phase-status.json" \
+              || autorouter_metadata_status=$?
+            if (( autorouter_pipeline_status[0] != 0 )); then
+              python3 distribution/ci/annotate-cargo-tests.py "$autorouter_evidence_dir/workspace-$autorouter_phase.log" || true
+              return "${autorouter_pipeline_status[0]}"
             fi
-            exit "$autorouter_test_status"
-          else
-            cargo test --workspace --locked
-          fi
-      - run: cargo xtask parity --all --output artifacts/rust-rewrite/parity-ci
-      - run: node parity/capture-auto-routing-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/auto-routing-contracts
-      - run: cargo xtask parity --cases artifacts/rust-rewrite/auto-routing-contracts/cases.jsonl --report artifacts/rust-rewrite/parity-auto-routing-contracts.json
+            if (( autorouter_pipeline_status[1] != 0 )); then
+              return "${autorouter_pipeline_status[1]}"
+            fi
+            return "$autorouter_metadata_status"
+          }
+          autorouter_record_workspace tests cargo test --workspace --locked --no-fail-fast
       - name: Build release and verify experimental features are absent
+        id: native_release
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' }}
         run: |
           mkdir -p ../artifacts/rust-rewrite
           cargo build --release --locked --package claude-autorouter --message-format=json > ../artifacts/rust-rewrite/production-build.jsonl
           ../artifacts/rust-rewrite/autorouter-audit-bootstrap production-features --build-report ../artifacts/rust-rewrite/production-build.jsonl > ../artifacts/rust-rewrite/production-features.json
+      - name: Freeze and verify the complete immutable reference
+        id: freeze_reference
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' }}
+        run: cargo xtask freeze-reference > ../artifacts/rust-rewrite/freeze-reference.json
+      - run: cargo xtask parity --all --output artifacts/rust-rewrite/parity-ci
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
+      - run: node parity/capture-auto-routing-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/auto-routing-contracts
+        id: capture_auto_routing
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
+      - run: cargo xtask parity --cases artifacts/rust-rewrite/auto-routing-contracts/cases.jsonl --report artifacts/rust-rewrite/parity-auto-routing-contracts.json
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' && steps.capture_auto_routing.outcome == 'success' }}
       - run: ./target/release/claude-autorouter --version
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' }}
       - name: Verify extracted executable benchmark bundle without receiver tooling
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' }}
         run: |
           cargo clippy --release --package xtask --locked --features executable-bundle-tests --test benchmark_bundle -- -D warnings
           cargo test --release --package xtask --locked --features executable-bundle-tests --test benchmark_bundle required_executable_bundle
       - run: node parity/check-config-commands.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
       - run: node parity/check-node-options-startup.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
       - run: node parity/check-gateway.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
       - run: node parity/check-gateway.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter --unicode
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
       - run: node parity/check-gateway-resources.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
       - run: node parity/check-http-parser.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
       - run: node parity/check-upstream-transport.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
       - run: node parity/check-upstream-security.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
       - run: node parity/check-tls-options.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
       - name: Verify exact native npm archive and installed lifecycle
+        id: native_npm
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' }}
         run: |
           autorouter_host_target=$(rustc -vV | awk '/^host:/ { print $2 }')
           cargo xtask package --binary "$autorouter_host_target=rust/target/release/claude-autorouter" --output artifacts/rust-rewrite/native-package-ci --smoke
       - name: Verify exact direct archive and installed lifecycle
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.native_npm.outcome == 'success' }}
         run: |
           autorouter_host_target=$(rustc -vV | awk '/^host:/ { print $2 }')
           autorouter_native_version=$(./target/release/claude-autorouter --version)
           cargo xtask package --direct-from "artifacts/rust-rewrite/native-package-ci/claude-autorouter-$autorouter_native_version.tgz" \
             --target "$autorouter_host_target" --output artifacts/rust-rewrite/native-direct-ci --smoke
       - name: Rehearse offline upgrade, rollback and re-upgrade with the exact native archive
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.native_npm.outcome == 'success' }}
         run: |
           set -euo pipefail
           autorouter_native_version=$(./target/release/claude-autorouter --version)
@@ -144,11 +186,16 @@ jobs:
           assert.equal(rehearsal.passed, true);
           assert.equal(rehearsal.native_archive_sha256, packed.sha256);
           NODE
+          node distribution/ci/upgrade-rollback-proof.mjs --self-test
+          node distribution/ci/upgrade-rollback-proof.mjs ../artifacts/rust-rewrite/upgrade-rollback-ci/report.json ../artifacts/rust-rewrite/native-package-ci/package-report.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: rust-parity-${{ matrix.os }}
           path: |
+            artifacts/rust-rewrite/freeze-reference.json
+            artifacts/rust-rewrite/workspace-*.log
+            artifacts/rust-rewrite/workspace-*-status.json
             artifacts/rust-rewrite/parity*.json
             artifacts/rust-rewrite/tls-*.json
             artifacts/rust-rewrite/parity-ci/*.json

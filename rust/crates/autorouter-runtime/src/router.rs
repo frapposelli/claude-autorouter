@@ -146,6 +146,13 @@ impl<T: HttpTransport + 'static> Router<T> {
         self.development_count_observer = Some(observer);
         self
     }
+    /// Apply evaluator settings to this instance between routing operations.
+    /// Continuity, staged attempts, caches, worker owners and closed state stay
+    /// owned by this Router. This does not reload an Arc-owned gateway config.
+    pub fn reconfigure_evaluator(&mut self, source: &RouterConfig) {
+        self.config.copy_evaluator_settings_from(source);
+    }
+
     pub fn complete(&self, request_id: &str, evidence: &Value) -> bool {
         self.policy
             .lock()
@@ -554,15 +561,12 @@ mod ollama_contracts;
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::bounded;
     use crate::http_client::HttpError;
-    use autorouter_core::config::read_config;
     use bytes::Bytes;
     use http_body_util::Full;
     use hyper::{Request, Response};
-    use std::{
-        path::Path,
-        sync::atomic::{AtomicBool, AtomicUsize, Ordering},
-    };
+    use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
     use tokio::sync::Semaphore;
 
     struct Mock {
@@ -633,7 +637,9 @@ mod tests {
         }
     }
     fn config() -> RouterConfig {
-        read_config(&json!({"AUTOROUTER_EVALUATOR":"jev","TYPESAFE_API_KEY":"synthetic-jev","ANTHROPIC_API_KEY":"synthetic-claude"}),false,Path::new("/synthetic")).unwrap()
+        crate::test_config(
+            &json!({"AUTOROUTER_EVALUATOR":"jev","TYPESAFE_API_KEY":"synthetic-jev","ANTHROPIC_API_KEY":"synthetic-claude"}),
+        )
     }
     fn document(large: bool) -> Arc<JsDocument> {
         Arc::new(JsDocument::parse(&serde_json::to_vec(&json!({"model":"claude-haiku-4-5-20251001","messages":[{"role":"user","content":if large{"a".repeat(160_000)}else{"Synthetic task".into()}}],"max_tokens":4096,"thinking":{"type":"disabled"}})).unwrap()).unwrap())
@@ -688,10 +694,6 @@ mod tests {
         assert_eq!(transport.evaluations.load(Ordering::SeqCst), 0);
         assert_eq!(transport.counts.load(Ordering::SeqCst), 0);
         router.close().await;
-    }
-    fn bounded<F: std::future::Future>(future: F) -> impl std::future::Future<Output = F::Output> {
-        let deadline = tokio::time::timeout(std::time::Duration::from_secs(2), future);
-        async move { deadline.await.unwrap() }
     }
     async fn wait_requests(mock: &Mock) {
         bounded(async {

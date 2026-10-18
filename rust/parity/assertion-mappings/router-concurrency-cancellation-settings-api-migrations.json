@@ -1,0 +1,589 @@
+{
+  "schema_version": 1,
+  "kind": "router_concurrency_cancellation_and_existing_instance_settings_native_API_migrations",
+  "status": "ACCEPTED_REVIEWED_NATIVE_API_MIGRATIONS",
+  "public_destination": "rust/parity/assertion-mappings/router-concurrency-cancellation-settings-api-migrations.json",
+  "preserved_definition9_document": {
+    "path": "rust/parity/assertion-mappings/router-concurrency-native-api-migrations.json",
+    "bytes": 10085,
+    "sha256": "424fbb67a377226d091695af93ceb5ece578634c9fc420453cca23dff3da973b"
+  },
+  "only_definitions": [
+    "test/router-concurrency.test.mjs#3",
+    "test/router-concurrency.test.mjs#4",
+    "test/router-concurrency.test.mjs#5",
+    "test/router-concurrency.test.mjs#7",
+    "test/router-concurrency.test.mjs#10"
+  ],
+  "assertion_sites": 26,
+  "capture_observations": 27,
+  "original_historical_mapping_unchanged": {
+    "path": "rust/parity/assertion-mappings/router-concurrency-contracts.json",
+    "bytes": 87589,
+    "sha256": "c4d1d98483c7011849dc0dac7923c710563861726446415cc1565fa070d0faa0"
+  },
+  "definitions": [
+    {
+      "id": "test/router-concurrency.test.mjs#3",
+      "source_statement_sha256": "941bb63f5a29618e2f3815916acd5b568510bd6b73fe67e22a2c9b811fa0789d",
+      "source_call_sha256": "377fc89589bdae5bd3ccc45071ebc134ea0ba24953d98fd192ba1fb8393e6719",
+      "status": "ACCEPTED_REVIEWED_NATIVE_API_MIGRATION",
+      "assertion_sites": 6,
+      "captured_observations": 6,
+      "rows": [
+        {
+          "id": "test/router-concurrency.test.mjs#3/assert-1",
+          "expression": "assert.rejects(first, error => error === reason)",
+          "expression_utf8_sha256": "afc2388a96330682098e9b32f9e7cdd98e89a00eecdf03e8c0ad0c251f6ee8da",
+          "observations": 1,
+          "disposition": "Typed cancellation API migration",
+          "contract": "The first actually admitted waiter returns EvaluationError::Cancelled after its CancellationToken is canceled. The enum carries no caller Error object or arbitrary reason identity; error===reason is not literally executed."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#3/assert-2",
+          "expression": "assert.equal(requests[0].signal.aborted, false)",
+          "expression_utf8_sha256": "75df5c15e431383b6b1447dc9a2ff74104a88a76f7715569f884e01e7ae64ec0",
+          "observations": 1,
+          "disposition": "Owned shared-work liveness migration",
+          "contract": "After first waiter cancellation, the held shared transport future is not dropped (mock.aborted(0)==false); the other admitted subscriber remains and obtains the same single request result. No exposed JS AbortSignal identity is claimed."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#3/assert-3",
+          "expression": "assert.equal(router.evaluationSubscribers, 1)",
+          "expression_utf8_sha256": "d188e6684c3f59d9bf8216fdd916a81455b84bab625b04e52fd40f3d8fa0ddb6",
+          "observations": 1,
+          "disposition": "Operational cardinality preserved",
+          "contract": "Both futures are first admitted with pending1/subscribers2 and one request. After only the first cancels, the subscriber count is1."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#3/assert-4",
+          "expression": "assert.equal((await second).tier, 'opus')",
+          "expression_utf8_sha256": "0419de4b01531eceddf38d5af95b71283a06e1c623d939c5e4cf90308c850b4f",
+          "observations": 1,
+          "disposition": "Operational result preserved",
+          "contract": "Release the still-shared response once; the second waiter obtains Opus, with no replacement request masking an aborted first generation."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#3/assert-5",
+          "expression": "assert.equal((await router.classify(body())).source, 'cache')",
+          "expression_utf8_sha256": "91cf91371bcf0e4f9327260cfc2ceb6dd4bc37f1ff5bbcc548d76d13daafeecc",
+          "observations": 1,
+          "disposition": "Operational cache result preserved",
+          "contract": "The same body after surviving success returns source Cache."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#3/assert-6",
+          "expression": "assert.equal(requests.length, 1)",
+          "expression_utf8_sha256": "e552988e63645f65d4c9c60fd6166e6fa1154dea9bb24775643b23e6245f0fd4",
+          "observations": 1,
+          "disposition": "Operational request identity preserved",
+          "contract": "Total evaluator requests remain exactly1 after cancellation, surviving success and cache hit."
+        }
+      ],
+      "native_tests": [
+        "router::concurrency_contracts::cancelled_subscriber_leaves_other_waiter_and_cached_answer_intact"
+      ],
+      "root_acceptance": {
+        "at_utc": "2026-10-18T06:07:32.730651+00:00",
+        "decision": "Adopt typed Cancelled and owned shared-future liveness instead of arbitrary Error/AbortSignal identities. Preserve admitted independent subscribers, surviving Opus/cache and exactly one request.",
+        "review": {
+          "path": "artifacts/rust-rewrite/router-concurrency-3-4-5-7-10-native-api-draft-20261018-1/v2/independent-five-definition-api-acceptance-review.json",
+          "bytes": 23074,
+          "sha256": "0dea9e0460c3c993703adfe68d8b693363f121951dd603815917b3348da98eb5"
+        }
+      }
+    },
+    {
+      "id": "test/router-concurrency.test.mjs#4",
+      "source_statement_sha256": "be9fed3c59d4661c85f5c1fd08853f0935dce1536e0b05ed1ea18ac2668d773a",
+      "source_call_sha256": "a14df4dcc70f3d2af235eebff9e5dabd6b5a57935ef94718dd10d602ac58ff2c",
+      "status": "ACCEPTED_REVIEWED_NATIVE_API_MIGRATION",
+      "assertion_sites": 7,
+      "captured_observations": 8,
+      "rows": [
+        {
+          "id": "test/router-concurrency.test.mjs#4/assert-1",
+          "expression": "assert.rejects(promise, /cancelled/)",
+          "expression_utf8_sha256": "b0ac196c1218a73a1bbcb63f9fc172576ee041a63aa255d824926813148994a8",
+          "observations": 2,
+          "disposition": "Typed cancellation and awaited teardown migration",
+          "contract": "Both admitted old waiters return typed Cancelled; the one Source assertion executes twice. Native last-owner cancellation waits for its owned worker destruction, rather than promising immediate rejection or arbitrary JS reason text."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#4/assert-2",
+          "expression": "assert.equal(requests[0].signal.aborted, true)",
+          "expression_utf8_sha256": "b81ab0f79c41d5f4326821da11349fd1722ac1487d90dfa94ee09013fa633a41",
+          "observations": 1,
+          "disposition": "Owned last-subscriber cancellation migration",
+          "contract": "Dropping the old owned request future records abandoned=true before old work can publish. This replaces exposed signal.aborted=true, not kernel/TCP teardown or arbitrary transport background-work confirmation."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#4/assert-3",
+          "expression": "assert.equal(router.pendingEvaluations.size, 0)",
+          "expression_utf8_sha256": "e06c8c245a07f21261f9adad18435a0300d1223475674909d61f73bcb537d9ee",
+          "observations": 1,
+          "disposition": "Operational registry removal preserved",
+          "contract": "After both old subscribers cancel, the old pending registry is empty; the retired generation no longer occupies the active pending registry. Worker capacity may remain reserved until owned teardown completes."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#4/assert-4",
+          "expression": "assert.equal(requests.length, 2)",
+          "expression_utf8_sha256": "12fdabf4ccc92f8d9c7525599baedb9f1c0e3e1e30675ef4b1703dc970aa7282",
+          "observations": 1,
+          "disposition": "Operational independent retry preserved",
+          "contract": "An independent same-key retry is actually admitted and makes evaluator request2."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#4/assert-5",
+          "expression": "assert.equal(router.pendingEvaluations.size, 1)",
+          "expression_utf8_sha256": "99e479334e9e0338ce034efcb55832db86ea802fda6c8ae0c55107989b01a596",
+          "observations": 1,
+          "disposition": "Operational replacement/publication guard preserved",
+          "contract": "The old oneshot delivery cannot enter the dropped old future; separately, a real successful Opus evaluation is held at production publication, canceled, and released after replacement admission. Replacement entry identity remains, pending1 and cache empty. The positive live-publication companion still caches success. This is the reachable native publication counterpart, not literal late JS Promise fulfillment."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#4/assert-6",
+          "expression": "assert.equal((await retry).tier, 'haiku')",
+          "expression_utf8_sha256": "73bce97ee690c0faba6bb2d59b8fdb1036d27bf235cff6f894d4742b3fd39566",
+          "observations": 1,
+          "disposition": "Operational replacement result preserved",
+          "contract": "Replacement request returns Haiku and its result survives the stale old success boundary."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#4/assert-7",
+          "expression": "assert.equal((await router.classify(body())).tier, 'haiku')",
+          "expression_utf8_sha256": "d82866377b5ff2500780e2ec4785a9cb65e85ed3c9af9f5a0d7173db909f0fa1",
+          "observations": 1,
+          "disposition": "Operational successful cache result preserved",
+          "contract": "The later same-body result remains cached Haiku with two total evaluator calls, never canceled old Opus."
+        }
+      ],
+      "native_tests": [
+        "router::concurrency_contracts::last_waiter_cancellation_cannot_cache_or_remove_replacement_work",
+        "classifier::tests::cancelled_successful_old_generation_cannot_publish_over_same_key_replacement",
+        "classifier::tests::live_success_at_publication_gate_still_populates_cache",
+        "classifier::tests::shutdown_cancellation_wins_over_late_success_publication_and_waits_for_owner"
+      ],
+      "root_acceptance": {
+        "at_utc": "2026-10-18T06:07:32.730651+00:00",
+        "decision": "Adopt typed last-owner cancellation and owned future destruction plus actual successful-old-result publication gate and positive control. Preserve independent same-key retry, pending removal, stale cache/registry isolation and Haiku cache. Retiring worker capacity remains reserved through owned teardown.",
+        "review": {
+          "path": "artifacts/rust-rewrite/router-concurrency-3-4-5-7-10-native-api-draft-20261018-1/v2/independent-five-definition-api-acceptance-review.json",
+          "bytes": 23074,
+          "sha256": "0dea9e0460c3c993703adfe68d8b693363f121951dd603815917b3348da98eb5"
+        }
+      }
+    },
+    {
+      "id": "test/router-concurrency.test.mjs#5",
+      "source_statement_sha256": "5918139b3b5ebc3fac730d89b487e4abe8f1ad5cc5d8be90fc0ad0f94e1f7a82",
+      "source_call_sha256": "af72932b6132948bce35a787766740e2291099368fa704919a8a229531c2581e",
+      "status": "ACCEPTED_REVIEWED_NATIVE_API_MIGRATION",
+      "assertion_sites": 4,
+      "captured_observations": 4,
+      "rows": [
+        {
+          "id": "test/router-concurrency.test.mjs#5/assert-1",
+          "expression": "assert.rejects(router.classify(body(), controller.signal), /already cancelled/)",
+          "expression_utf8_sha256": "a31367cfcd8655de5235d7b65ce0ca15ada86e9e92867a6781d641dc5a64e36b",
+          "observations": 1,
+          "disposition": "Typed pre-cancel API migration",
+          "contract": "With an existing ready result, already-canceled caller returns typed Cancelled before cache lookup can return a decision. Native does not preserve the arbitrary /already cancelled/ reason text."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#5/assert-2",
+          "expression": "assert.rejects(pending, /cancel now/)",
+          "expression_utf8_sha256": "b08bb82b46de0cc6b7be16919354b1b3a2627679144d796b22b80c6422d97cfe",
+          "observations": 1,
+          "disposition": "First-poll admission and awaited ownership migration",
+          "contract": "Constructing a Rust future does not execute it. Keep the old unpolled cancellation control, and separately first-poll a real classification to pending1/subscriber1/worker1 at WorkerPollGate before I/O. Cancel, prove the await remains Pending while held and no request exists, release, then await worker destruction and typed Cancelled. This replaces eager Promise/microtask and /cancel now/ reason timing, not every possible scheduling race."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#5/assert-3",
+          "expression": "assert.equal(calls, 1)",
+          "expression_utf8_sha256": "ec42f47942d2a67f361a8a69f69bf048a48c3ac0f490460b706344cd8ff4b228",
+          "observations": 1,
+          "disposition": "Operational no-extra-I/O preserved",
+          "contract": "The original primed-cache fixture retains exactly1 evaluator call after its two cancellation controls. The separate admitted-before-I/O fixture has0 calls through cancellation, then an independent successful retry makes1 call and cache hit adds none; counts are not conflated."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#5/assert-4",
+          "expression": "assert.equal(router.pendingEvaluations.size, 0)",
+          "expression_utf8_sha256": "e06c8c245a07f21261f9adad18435a0300d1223475674909d61f73bcb537d9ee",
+          "observations": 1,
+          "disposition": "Operational registry and owner cleanup preserved",
+          "contract": "Original cancellation controls end with pending0. Supplemental admitted-before-I/O case proves registry0 before release but worker1 until teardown; after release and close, workers/pending/subscribers/active/waiting are0."
+        }
+      ],
+      "native_tests": [
+        "router::concurrency_contracts::already_cancelled_cache_hits_and_unpolled_work_do_not_send",
+        "classifier::tests::admitted_pre_io_cancellation_waits_for_owned_worker_and_keeps_retry_usable"
+      ],
+      "root_acceptance": {
+        "at_utc": "2026-10-18T06:07:32.730651+00:00",
+        "decision": "Adopt first-polled native admission instead of eager Promise scheduling and typed cancellation instead of reason text. Require original cache/pre-cancel no-extra-call control plus actual admitted-before-I/O held worker, awaited teardown and usable retry/cache.",
+        "review": {
+          "path": "artifacts/rust-rewrite/router-concurrency-3-4-5-7-10-native-api-draft-20261018-1/v2/independent-five-definition-api-acceptance-review.json",
+          "bytes": 23074,
+          "sha256": "0dea9e0460c3c993703adfe68d8b693363f121951dd603815917b3348da98eb5"
+        }
+      }
+    },
+    {
+      "id": "test/router-concurrency.test.mjs#7",
+      "source_statement_sha256": "2223f93ffea94224d4fb39413440875cc66e9d53deccd0baf6d6d5333ea8cd07",
+      "source_call_sha256": "a1427f568abdc62348a4cc97ef06b87f08ddd387e0526ab43c3bdb34c38a82d2",
+      "status": "ACCEPTED_REVIEWED_NATIVE_API_MIGRATION",
+      "assertion_sites": 5,
+      "captured_observations": 5,
+      "rows": [
+        {
+          "id": "test/router-concurrency.test.mjs#7/assert-1",
+          "expression": "assert.equal((await router.classify(body())).tier, 'sonnet')",
+          "expression_utf8_sha256": "73a76d6749f34feed99f7c228574c4a704879a690d3c745b6d49d663213fd96d",
+          "observations": 1,
+          "disposition": "Operational full-body/confidence result preserved",
+          "contract": "Initial source profile returns Sonnet for Haiku confidence0.5 under minConfidence0.75. Existing direct Classifier mapping remains and same actual Router route test reproduces the observation using a fresh scope."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#7/assert-2",
+          "expression": "assert.equal((await router.classify({ ...body(), model: 'claude-opus-5-5' })).tier, 'opus')",
+          "expression_utf8_sha256": "8c61ae9f35a1010d72841218fa425f085acec4ea2181841cb9d16453f9b0adbd",
+          "observations": 1,
+          "disposition": "Operational requested-floor identity preserved",
+          "contract": "Changing the full request model to Opus forces separate evaluation and preserves the Opus floor. Opaque full-body changes are also separate work; excerpt-only keying is not accepted."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#7/assert-3",
+          "expression": "assert.equal((await router.classify(body())).tier, 'haiku')",
+          "expression_utf8_sha256": "d82866377b5ff2500780e2ec4785a9cb65e85ed3c9af9f5a0d7173db909f0fa1",
+          "observations": 1,
+          "disposition": "Exclusive existing-instance configuration API migration",
+          "contract": "Apply minConfidence0 with Router::reconfigure_evaluator(&mut self,&RouterConfig) on the same Router, then observe Haiku. The operation copies13 evaluator fields and exact Jev/keep_alive sources only, preserving cache/TurnState/attempt/counter/worker/closed owners. It replaces an external JS config alias, without reconstructing Router or promising Arc/Gateway concurrent hot reload."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#7/assert-4",
+          "expression": "assert.equal(calls, 9)",
+          "expression_utf8_sha256": "c60bbb971dde2d0bc6cc9511f9b227f59ed2f9bd3daa909d4c64372c74af5fc9",
+          "observations": 1,
+          "disposition": "Operational active-settings identity preserved",
+          "contract": "Sequential model, account, endpoint, deadline and state-budget updates use that same Router; total evaluator requests are exactly9. Additional controls restore profileA with no tenth call, retain staged attempts/confirmed opaque tool owners and keep a closed Router closed."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#7/assert-5",
+          "expression": "assert.equal((await router.classify(body())).source, 'cache')",
+          "expression_utf8_sha256": "91cf91371bcf0e4f9327260cfc2ceb6dd4bc37f1ff5bbcc548d76d13daafeecc",
+          "observations": 1,
+          "disposition": "Operational cache reuse preserved",
+          "contract": "The last unchanged active profile returns source Cache. Restoring the initial profile also returns cached Sonnet, proving no blanket cache reset or owner reconstruction."
+        }
+      ],
+      "native_tests": [
+        "router::concurrency_contracts::original_body_floor_and_mutated_evaluator_config_sequence_is_not_cached",
+        "router::concurrency_contracts::same_router_evaluator_updates_preserve_original_identity_sequence_and_old_cache",
+        "router::concurrency_contracts::evaluator_updates_keep_staged_attempts_and_confirmed_opaque_tool_continuity",
+        "router::concurrency_contracts::evaluator_updates_cannot_reopen_a_closed_router"
+      ],
+      "root_acceptance": {
+        "at_utc": "2026-10-18T06:07:32.730651+00:00",
+        "decision": "Adopt exclusive Router::reconfigure_evaluator on the SAME Router instead of external mutable configuration alias. Require original nine-call/full-body/floor/settings sequence, final cache, restored old-profile cache, staged/confirmed opaque-tool continuity, counter ownership and closed-state retention. Rebuilding Router is not equivalent.",
+        "review": {
+          "path": "artifacts/rust-rewrite/router-concurrency-3-4-5-7-10-native-api-draft-20261018-1/v2/independent-five-definition-api-acceptance-review.json",
+          "bytes": 23074,
+          "sha256": "0dea9e0460c3c993703adfe68d8b693363f121951dd603815917b3348da98eb5"
+        }
+      }
+    },
+    {
+      "id": "test/router-concurrency.test.mjs#10",
+      "source_statement_sha256": "de0056e466a1f9b90b00f56757ad6d50a031e66f310cc35ba80f73c5a6cc1941",
+      "source_call_sha256": "ae60bed885660b478f330dbc609039d568271c8c5189190b8b9147d31f945676",
+      "status": "ACCEPTED_REVIEWED_NATIVE_API_MIGRATION",
+      "assertion_sites": 4,
+      "captured_observations": 4,
+      "rows": [
+        {
+          "id": "test/router-concurrency.test.mjs#10/assert-1",
+          "expression": "assert.rejects(first, /cancelled/)",
+          "expression_utf8_sha256": "5aed47a53e285cab8308a1f6dd3aecff61d01994b49ceac0e2c8909cb3d64a3d",
+          "observations": 1,
+          "disposition": "Typed cancellation API migration",
+          "contract": "With zero evaluator deadline, cancel only the first actually admitted waiter and return typed Cancelled; arbitrary /cancelled/ JavaScript reason identity is outside this API."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#10/assert-2",
+          "expression": "assert.equal(evaluatorSignal.aborted, false)",
+          "expression_utf8_sha256": "8874fd2d7a7447a5067467108f9cf434a98f675b4f960c36915a633dc28cc513",
+          "observations": 1,
+          "disposition": "Owned shared-body liveness migration",
+          "contract": "Both waiters are admitted before cancel; the shared inference request future remains undropped (mock.aborted(1)==false) for the surviving waiter. No exposed AbortSignal identity or extra uncanceled foreign tasks are inferred."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#10/assert-3",
+          "expression": "assert.equal((await second).source, 'ollama')",
+          "expression_utf8_sha256": "e5e6898b609137a154c755f9858a0350df6364b62b8eadf8419675cee6148592",
+          "observations": 1,
+          "disposition": "Operational surviving backend result preserved",
+          "contract": "The surviving waiter receives source Ollama after shared local metadata verification and inference response."
+        },
+        {
+          "id": "test/router-concurrency.test.mjs#10/assert-4",
+          "expression": "assert.deepEqual(paths, ['/api/show', '/v1/systemone'])",
+          "expression_utf8_sha256": "5c7384972e2ee63238984f6cb663ab0af480bda072019a15b76206c98308dd3b",
+          "observations": 1,
+          "disposition": "Operational request sequence preserved",
+          "contract": "The complete call path sequence is exactly /api/show then /v1/systemone once each. Zero deadline disables the evaluator timer while independent cancellation and body/worker ownership remain enabled."
+        }
+      ],
+      "native_tests": [
+        "router::concurrency_contracts::zero_deadline_ollama_shares_metadata_without_merging_waiter_cancellation"
+      ],
+      "root_acceptance": {
+        "at_utc": "2026-10-18T06:07:32.730651+00:00",
+        "decision": "Adopt typed Cancelled and owned shared-body liveness instead of reason/AbortSignal identity. Preserve zero deadline, admitted independent waiters, surviving Ollama result and exact metadata/inference request sequence.",
+        "review": {
+          "path": "artifacts/rust-rewrite/router-concurrency-3-4-5-7-10-native-api-draft-20261018-1/v2/independent-five-definition-api-acceptance-review.json",
+          "bytes": 23074,
+          "sha256": "0dea9e0460c3c993703adfe68d8b693363f121951dd603815917b3348da98eb5"
+        }
+      }
+    }
+  ],
+  "initial_actual_focus": {
+    "code_source": {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/candidate-source.json",
+      "bytes": 116959,
+      "sha256": "876a76933c9e9272f74a1c01dfd1b19b77649a0e3e6f487c2e5e35995ecf7216"
+    },
+    "native_passes": 73,
+    "source_passes": 10,
+    "failed": 0,
+    "receipts": [
+      {
+        "stage": "core",
+        "passes": 24,
+        "receipt": {
+          "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/core.json",
+          "bytes": 1096,
+          "sha256": "f5b3d03259d5d1e19e424c8debf1911a05ac9c82b05b259b03f3e407942709aa"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/core.stdout",
+          "bytes": 2261,
+          "sha256": "af2f3e48dc9dfc45fd770e04ee479f6f1239b1967a0b87deaf4d0a41e8f55336"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/core.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      {
+        "stage": "native",
+        "passes": 16,
+        "receipt": {
+          "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/native.json",
+          "bytes": 1188,
+          "sha256": "22179e4200c959adea3c35a06a14b1ad7b70f38a9329462ce4dc2fd1fc808ef5"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/native.stdout",
+          "bytes": 1907,
+          "sha256": "2e9c54f1acbd5403e0bc8c0d692b9435e3124cb45b12061bf083c7ab47662864"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/native.stderr",
+          "bytes": 2773,
+          "sha256": "c283c09be438235a09a12018290b46ed1e5b6643eeccd02c61c4264bfb85c123"
+        }
+      },
+      {
+        "stage": "shutdown",
+        "passes": 33,
+        "receipt": {
+          "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/shutdown.json",
+          "bytes": 1233,
+          "sha256": "4ccb947611fde610cc49adef00aea199374888e33d3721996d12583c807ae1a4"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/shutdown.stdout",
+          "bytes": 3438,
+          "sha256": "4370d79dfacc33b51c5afa9209ca175407d23d44dfed7be3da9865ca2d2551c5"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/shutdown.stderr",
+          "bytes": 502,
+          "sha256": "06094ced00a33cc7fab56fc7b58f98be8b3881f1c3fb6c4d6c3df9774cc13684"
+        }
+      },
+      {
+        "stage": "source",
+        "passes": 10,
+        "receipt": {
+          "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/source.json",
+          "bytes": 1589,
+          "sha256": "3d868db303c96bc4181b9c90166c46ea34c423080299947623de704b6256391a"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/source.stdout",
+          "bytes": 2403,
+          "sha256": "62214cdba403293bb649c4cc1cf96463ce46b411ab8b39342cf51235e4bd8f17"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/source.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    ],
+    "scope": "24 core configuration tests +16 concurrency +33 classifier tests are execution entries, not73 original definitions; Source10 is fresh frozen file TAP, not a fresh captured assertion counter."
+  },
+  "current_source": {
+    "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/candidate-v2-source.json",
+    "bytes": 116959,
+    "sha256": "217b2ab7113fc6ea095d568ea5362c2fc876b13af34d9ed45946fb93fc5c7d86"
+  },
+  "current_delta": "Corrected217b differs from initial876a only by equivalent len()!=0 to !is_empty() in new cancellation test. Initial Clippy101 retained; corrected strict Clippy/fmt0; current runtime modules16+33pass and full workspace1463pass/1unchangedsourcecapfailure/11ignored. Initial73focused Rust/10Source remain separately bound historical executions.",
+  "required_before_publication": [
+    {
+      "requirement": "Root individual explicit adoption of these five API migrations after independent predicate/actual review.",
+      "satisfied": true
+    },
+    {
+      "requirement": "Final current-source test/result and ownership receipts verified, retaining known source-transfer cap failure and first Clippy failure.",
+      "satisfied": true
+    },
+    {
+      "requirement": "Historical mapping/captures and original site/statement/call hashes remain unchanged; no generic whole-area acceptance.",
+      "satisfied": true
+    }
+  ],
+  "review_evidence": [
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/independent-original-3-4-5-7-10-acceptance-checklist.json",
+      "bytes": 44108,
+      "sha256": "1b87389c591c7e9c85ed41c02891b7e9c29fb943a88790748a2b8d0bb98940dd"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-concurrency-5-7-native-trigger-draft-20261018-1/independent-typed-cancel-3-4-10-predicate-review.json",
+      "bytes": 26612,
+      "sha256": "b62e9439cc016fe6fb827808aaffa0fa85e3d734369f2a5b08f14d401a536af3"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/formatted-preservation-and-cache-review.json",
+      "bytes": 10898,
+      "sha256": "977a8a81edff1407862cb9767c254829b21806b0f824af2f32335238de71e821"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-concurrency-3-4-5-7-10-native-api-draft-20261018-1/v2/independent-five-definition-api-acceptance-review.json",
+      "bytes": 23074,
+      "sha256": "0dea9e0460c3c993703adfe68d8b693363f121951dd603815917b3348da98eb5"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/independent-workspace-actual-results-review.json",
+      "bytes": 9289,
+      "sha256": "584fa3a2a2a9ff8b245cb5f5f3687694978d1c75190b6039b3bfe48d8e88f59e"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/independent-focused-actual-results-review.json",
+      "bytes": 33508,
+      "sha256": "4652cb407d782ec27271f939767d202083a139fc8d7bc78d76c4b803a4a68b26"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/independent-corrected-strict-check-addendum.json",
+      "bytes": 3290,
+      "sha256": "843bdd1387de47bae556d10dcb52ed97ca9f741e1a43e711f367edbf557852ac"
+    }
+  ],
+  "root_acceptance": {
+    "at_utc": "2026-10-18T06:07:32.730651+00:00",
+    "decision": "Explicit individual adoption of the five recorded native API contracts and26 predicates/27 captured observations only. Other definitions, keys, limits and area gates remain unchanged.",
+    "only_definitions": [
+      "test/router-concurrency.test.mjs#3",
+      "test/router-concurrency.test.mjs#4",
+      "test/router-concurrency.test.mjs#5",
+      "test/router-concurrency.test.mjs#7",
+      "test/router-concurrency.test.mjs#10"
+    ],
+    "editorial_correction": {
+      "path": "definitions[id=test/router-concurrency.test.mjs#4].rows[id=test/router-concurrency.test.mjs#4/assert-3].contract",
+      "before": "After both old subscribers cancel, the old pending registry is empty; the retired generation cannot retain a live admission slot.",
+      "after": "After both old subscribers cancel, the old pending registry is empty; the retired generation no longer occupies the active pending registry. Worker capacity may remain reserved until owned teardown completes.",
+      "reason": "Pendingregistry count0 doesnot imply retiringworker semaphore capacity released. Existing native workerlimit/drain deliberately retainsreservedcapacity throughactualteardown. This is an operationally material distinction; clarify beforepublicadoption. Expectedpending0 and all26originalexpressions/27counts unchanged.",
+      "draft_mutated_by_reviewer": false
+    },
+    "code_source": {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/candidate-v2-source.json",
+      "bytes": 116959,
+      "sha256": "217b2ab7113fc6ea095d568ea5362c2fc876b13af34d9ed45946fb93fc5c7d86"
+    },
+    "raw_comparison": {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/root-outcome-comparison.json",
+      "bytes": 19136,
+      "sha256": "73492284b3a598b24140b2ade3058b74ff6f98f8be8879bf17d0dbd3630c07d7"
+    },
+    "independent_predicate_review": {
+      "path": "artifacts/rust-rewrite/router-concurrency-3-4-5-7-10-native-api-draft-20261018-1/v2/independent-five-definition-api-acceptance-review.json",
+      "bytes": 23074,
+      "sha256": "0dea9e0460c3c993703adfe68d8b693363f121951dd603815917b3348da98eb5"
+    }
+  },
+  "limitations": [
+    "Native Result/CancellationToken/first-polled Future/owned-body lifetime replace only the identified ESM reason/signal/Promise/alias interfaces. No arbitrary Error identity, asynchronous JS destructor execution, eager future identity or blocking destructor promise.",
+    "Normal awaited worker cleanup covers internally tracked classifier work only; foreign transport background tasks, exceptional cleanup, TCP/TLS/downstream delivery, live account/config operations, platforms and performance remain outside this review.",
+    "Synthetic confirmation in continuity regression is not real provider completion or downstream forwarding evidence.",
+    "Only five original definitions are promoted by Root. Keys, fixed limits, all thirteen area statuses and other definitions remain unchanged; no transport/TLS/source-cap/CI/release approval."
+  ],
+  "definition9_preservation": "Separate additive supplement: existing accepted definition9 document remains byte-identical; no conflicting only_definition root or historical value edits.",
+  "current_actual": {
+    "focused_current_runtime": {
+      "concurrency_passed": 16,
+      "classifier_passed": 33,
+      "receipts": [
+        {
+          "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/native-v2.json",
+          "bytes": 1191,
+          "sha256": "62174157301652fe8fac6fb56b1064aa4bbbb620022abbb3404b1bcae294b0d1"
+        },
+        {
+          "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/shutdown-v2.json",
+          "bytes": 1235,
+          "sha256": "9e5492ead20de3185cb1b57906dae323b3e5d0b1519332b9033c5dcdc9701037"
+        }
+      ]
+    },
+    "full_workspace": {
+      "passed": 1463,
+      "failed": 1,
+      "ignored": 11,
+      "filtered": 0,
+      "result_groups": 66,
+      "sole_failure": "Complete logical transfer exceeds32MiB",
+      "receipt": {
+        "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/workspace.json",
+        "bytes": 1330,
+        "sha256": "c01052d9c621754d5a3613cbcef876a533e9f42bc78fa62b271f2008904b21e0"
+      }
+    },
+    "frozen_Source": {
+      "passed": 10,
+      "receipt": {
+        "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/source.json",
+        "bytes": 1589,
+        "sha256": "3d868db303c96bc4181b9c90166c46ea34c423080299947623de704b6256391a"
+      },
+      "scope": "Executed on876a; all111 frozen files unchanged through corrected217b. TAP is not a new instrumented assertion counter."
+    },
+    "fmt": {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/fmt-v2.json",
+      "bytes": 912,
+      "sha256": "a8ac622c2728c34f465f15ca25349e0d8fcca1cc90f6032f75d88e4e6f2e1ff2"
+    },
+    "clippy": {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/clippy-v2.json",
+      "bytes": 1019,
+      "sha256": "76156422992ceeac936678edae06e30fc235c5d796d354f540421542f0287d63"
+    }
+  },
+  "embedding_note": "Extra1033B note remains unapplied: existing typed cancellation/ownership sections and new same-instance API documentation state these contracts."
+}

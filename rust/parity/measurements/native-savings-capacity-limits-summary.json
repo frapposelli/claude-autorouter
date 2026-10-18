@@ -1,0 +1,173 @@
+{
+  "kind": "native_individual_savings_logical_capacity_limits_acceptance",
+  "recorded_at_utc": "2026-10-18T00:54:55.566027+00:00",
+  "root_decision": "Accept only savings_inflight1000 and savings_sessions100 as fixed logical tracked-entry bounds with full/overflow/eviction/late-identity evidence. No savings_history10000, allocator/RSS or other resource limit is accepted.",
+  "author_recommendation": {
+    "path": "artifacts/rust-rewrite/resource-limit-savings-capacity-scout-20261018-1/formal-two-limit-recommendation.json",
+    "bytes": 15584,
+    "sha256": "5064db46eced1070cf36adb04a0491e403b2615cd77b296146dcac06abfcd148"
+  },
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/resource-limit-savings-capacity-scout-20261018-1/independent-two-limit-acceptance-review.json",
+    "bytes": 15801,
+    "sha256": "51b1efa7fa7417c10e7e37d86ba197612ef87ae55ca4ebf187ec48b80277bec2"
+  },
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/candidate-source.json",
+    "bytes": 116787,
+    "sha256": "c4def5e6a57efa4bd7da24524c7123e8a11bc32351a1925048378902918ff7ee"
+  },
+  "individual_limits": [
+    {
+      "id": "savings_inflight",
+      "baseline_value": 1000,
+      "verdict": "ELIGIBLE_FOR_INDIVIDUAL_FIXED_LOGICAL_COUNT_ACCEPTANCE",
+      "Source": "Original definition14 uses default tracker,1001 distinct starts then all six late request0 events and all six newest request1000 events. Four original complete snapshots assert exactly1 unpriced eviction, partial=true and exactly1 successful newest request. All1013 updates and original assertion order replay.",
+      "native_boundary": "Current exact_public_boundaries_do_not_evict_before_the_limit admits1000 distinct starts with zero unpriced/no partial, then1001st yields exactlyrequest_evicted1/partialtrue. Current original_inflight_capacity... compares every full original snapshot including unpriced1 after ignored late old completion and requests1 for newest.",
+      "enforcement": "Source evicts oldest Map key while inflight.size>=1000 BEFORE insertion. Native sequence BTreeMap chooses oldest and finish removes all inflight_keys/keys_by_sequence/inflight ownership before insertion; no stale active-tracker index is intentionally retained. This is a logical tracked-request count bound, not physical RSS/all telemetry memory.",
+      "necessary_missing_predicates_for_this_narrow_row": []
+    },
+    {
+      "id": "savings_sessions",
+      "baseline_value": 100,
+      "verdict": "ELIGIBLE_FOR_INDIVIDUAL_FIXED_LOGICAL_COUNT_ACCEPTANCE",
+      "Source": "Original definition15 admits102 distinct sessions and compares five complete snapshots including all100 resident keys, late evicted session0 ignored, returning new request counted once/partialtrue and finalcapacity100. All114 updates/order replay.",
+      "native_boundary": "Current exact_public_boundaries... observes100 sessions before overflow, all nonpartial and oldest0 present;101st retains100, excludes0 and containsnew100. Current original_session_capacity... then compares every original full snapshot, not only one returning row.",
+      "enforcement": "Source/native touch existing session and evict oldest only while sessions.len>100 after insertion. Session eviction retires matching active requests and remembers identities so old late work does not resurrect. Returning genuinely new work is partial and never grows session map beyond100 after update. The independently bounded history set is not accepted here.",
+      "necessary_missing_predicates_for_this_narrow_row": []
+    }
+  ],
+  "actual_current_native": {
+    "record": {
+      "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/workspace-loopback.json",
+      "bytes": 453,
+      "sha256": "c8e29f2c6b5fd108c32b3d477b091ab57c9a0046e80e7d3550fcc9ae2782786e"
+    },
+    "stdout": {
+      "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/workspace-loopback.stdout",
+      "bytes": 145896,
+      "sha256": "e653bb104224a5e5274222f33715e6cea261789c2dc83ae05694741ba02e5bea"
+    },
+    "six_passes": [
+      {
+        "test": "exact_public_boundaries_do_not_evict_before_the_limit",
+        "line": 236
+      },
+      {
+        "test": "snapshot_and_assertion_inventory_are_exactly_the_original_calls",
+        "line": 240
+      },
+      {
+        "test": "original_inflight_capacity_preserves_eviction_and_late_request_identity",
+        "line": 238
+      },
+      {
+        "test": "original_session_capacity_ignores_old_work_and_marks_returning_session_partial",
+        "line": 241
+      },
+      {
+        "test": "forged_snapshots_missing_and_reordered_events_cannot_pass",
+        "line": 237
+      },
+      {
+        "test": "inventory_and_fixed_capture_pin_reject_self_consistent_replacements",
+        "line": 239
+      }
+    ],
+    "scope": "All six capacity contract tests pass currently: full original schedules, exact1000/1001 and100/101 controls, full snapshot/inventory checks and forged/missing/reordered/tampered negatives. Mainworkspace still101 on source-transfer cap; no overallgreen claim."
+  },
+  "Source_evidence": {
+    "frozen_production": {
+      "path": "artifacts/rust-rewrite/reference/src/savings.mjs",
+      "bytes": 14067,
+      "sha256": "7902aa9656a3aa22ff69f60711b4a047895a63b6c9c824a9a009f7975b6f7d9e"
+    },
+    "frozen_test": {
+      "path": "artifacts/rust-rewrite/reference/test/savings.test.mjs",
+      "bytes": 19483,
+      "sha256": "e0fbfb074a8f06267efbca6d17cf7431577acbd373c376949b593e6a58e651cd"
+    },
+    "recent_node_record": {
+      "path": "artifacts/rust-rewrite/entropy-hex-sharing-validation-20261018-1/node-tests.json",
+      "bytes": 370,
+      "sha256": "31fbbf302016f4658836efd96873fe925acb58a71d4fcebbbcb63dbcddf58971"
+    },
+    "recent_node_stdout": {
+      "path": "artifacts/rust-rewrite/entropy-hex-sharing-validation-20261018-1/node-tests.stdout",
+      "bytes": 135699,
+      "sha256": "4d6155ad590b930e2e03f0170fecbccde764c8cade524ac705f3211196721a95"
+    },
+    "two_original_callback_passes": [
+      {
+        "definition": "bounds in-flight work and marks evicted requests as unpriced and partial",
+        "line": 2008
+      },
+      {
+        "definition": "bounds sessions, ignores late evicted work and marks returning sessions partial",
+        "line": 2013
+      }
+    ],
+    "corpus": {
+      "path": "rust/parity/cases/savings-capacity-contracts.jsonl",
+      "bytes": 292585,
+      "sha256": "e626ef908777de02de8f61a4ca431d6fa140667cbc0802e43e59862b8cec9a55"
+    },
+    "capture": {
+      "path": "rust/parity/cases/savings-capacity-contracts.capture.json",
+      "bytes": 5629,
+      "sha256": "925e234c15acd6919cac7c735ebba3bee01212a40927a116e9d486a1ddf8056b"
+    },
+    "capture_generator": {
+      "path": "rust/parity/capture-savings-capacity-contracts.mjs",
+      "bytes": 11543,
+      "sha256": "d246d2d3655a1bf80fd7002cc7c81c75d6399822464b735e7a31ac0028d91e71"
+    },
+    "counts": {
+      "updates": 1127,
+      "original_full_snapshots": 9,
+      "original_assertions": 9,
+      "steps": 1136
+    },
+    "composition": "The retained current-JavaScript Node run actually passes both unchanged original callbacks. Immutable complete corpus has1127updates/9full original snapshots/1136ordered steps. Current/frozen Source equality and generator/original-statement/assertion hashes are separately reviewed, composing with native replay. This is not a newly executed Source9snapshot capture, nor a per-Node-stage111-file snapshot. Eight missing older capture/replay/log receipts remain absent and receive no fresh-read credit.",
+    "adaptation": "Four explicitly recorded own undefined pricing_context fields omitted at JSON serialization; selected definitions do not assert own-property identity. Native exact-f64 comparison accepts Number6 versus6.0 only under the declared source Number policy, with full keys/types/array slots retained."
+  },
+  "current_implementation": {
+    "production": {
+      "path": "rust/crates/autorouter-core/src/savings.rs",
+      "bytes": 34419,
+      "sha256": "412da2b6cc87f7b0bcf85f29be57948b2e097064c8128902666123392aa8492c"
+    },
+    "native_contract": {
+      "path": "rust/crates/autorouter-core/tests/savings_capacity_contracts.rs",
+      "bytes": 12574,
+      "sha256": "060a7e0457f5f2391d8cd3b2bedb925bd84aea4e41607ec346ca3bba17f15b15"
+    },
+    "shared_macro": {
+      "path": "rust/crates/autorouter-core/src/json_compare_macros.rs",
+      "bytes": 2310,
+      "sha256": "8f6b3390db7ce015772de6653a0435519603e217b3b9acfa18c1730fc64c0c66"
+    },
+    "composition": "ProductionSavings matches actualc45/currentc4def snapshots; all replay and old test bytes from fnreplay onward match pre-sharing. Macro retains exact former source-f64 comparison/full objectkeys/orderedarrays/primitivekinds. It does not relax comparison tolerances or remove event order assertions."
+  },
+  "current_checks": {
+    "fmt": {
+      "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/fmt.json",
+      "bytes": 383,
+      "sha256": "b55dd426a080ebb1e8b7e3ee046b207db63e57e932e11579df882da7730434fe"
+    },
+    "strict_workspace_clippy": {
+      "path": "artifacts/rust-rewrite/json-comparison-sharing-validation-20261018-1/clippy.json",
+      "bytes": 477,
+      "sha256": "d9e14244438f80a67e3a988797c67c4d41ccf48cc4d03793d82bd85ffc8c9291"
+    },
+    "scope": "Both exit0 on696currentinputs; existingvendoredwarningretained. Current alltarget set acrossprimaryplus3deferredgroups is1398pass/1sourcecapfailure/11ignored; separateminimal29pass notaddedagain."
+  },
+  "coverage_effect": "Only these2of53limitrows change tocovered:14covered/39pending. Allother51limits,16covered/11pending configurationkeys,539covered/49partial originaldefinitions and13partialareas unchanged.",
+  "limitations": [
+    "Logical maps bounded after each synchronous update; no global memory/RSS/bytes or evaluator cancellation/transport/process lifecycle acceptance.",
+    "Settled and evicted-session identity histories have separate10000entry contract. Exact10000/10001 duplicate-retention/default-domain closure is not inferred from these two rows.",
+    "No unlimited event-lifetime sequence-overflow, arbitrary JSgetter/prototype or full malformed-value domain qualification.",
+    "Current-source caps remain73338logical/48128carrier bytes over33554432; no export/restore/archivefit/CI/platform/performance/provider/provenance/rollback/stabilization/cutover approval.",
+    "Thisreview adds no production/test behavior and performs no liveprovider/model/Keychain/userconfiguration operation. JavaScript0.5.2 remains shippingdefault; all fullrewrite gates remainactive."
+  ]
+}

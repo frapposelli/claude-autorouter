@@ -1,0 +1,279 @@
+{
+  "kind": "native_individual_four_fixed_cache_limits_acceptance",
+  "recorded_at_utc": "2026-10-18T00:19:59.349736+00:00",
+  "root_decision": "Accept only fixed classifier1000/token-count100 entry defaults and300000ms TTLs from retained exact controls, independently reconstructed schedules, current source enforcement and actual unchanged current-implementation tests.",
+  "accepted_limits": [
+    {
+      "limit_id": "decision_cache_entries",
+      "baseline_value": 1000,
+      "verdict": "eligible_for_individual_fixed_default_acceptance",
+      "executed_source_case_ids": [
+        "classifier-default-capacity",
+        "classifier-zero-capacity"
+      ],
+      "current_actual_named_tests": [
+        "classifier_default_1000_1001_and_touched_lru_eviction",
+        "classifier_default_300000_expiry_and_zero_embedding_options"
+      ],
+      "concrete_contract": "Fill all 1000 distinct results; read every resident value; touch0, overflow by1, prove victim1 then3 while2/0/new survive. Zero capacity repeats transport. Literal Source size and native eviction guard complement actual hits/misses; no private native size API fabricated.",
+      "necessary_missing_predicates_for_this_fixed_default": []
+    },
+    {
+      "limit_id": "decision_cache_ttl_ms",
+      "baseline_value": 300000,
+      "verdict": "eligible_for_individual_fixed_default_acceptance",
+      "executed_source_case_ids": [
+        "classifier-default-ttl",
+        "classifier-zero-ttl"
+      ],
+      "current_actual_named_tests": [
+        "classifier_default_300000_expiry_and_zero_embedding_options"
+      ],
+      "concrete_contract": "299999ms hit, exact300000ms miss; new entry299999ms hit,300001ms miss; near-expiry hits do not renew expiry. Zero TTL misses twice at the same explicit clock instant. Expiry is set after success and hit only refreshes LRU position.",
+      "necessary_missing_predicates_for_this_fixed_default": []
+    },
+    {
+      "limit_id": "count_cache_entries",
+      "baseline_value": 100,
+      "verdict": "eligible_for_individual_fixed_default_acceptance",
+      "executed_source_case_ids": [
+        "count-default-capacity",
+        "count-zero-capacity"
+      ],
+      "current_actual_named_tests": [
+        "count_default_100_101_and_touched_lru_eviction",
+        "count_default_300000_expiry_and_zero_embedding_options"
+      ],
+      "concrete_contract": "Fill all 100 distinct results; read every resident value; touch0, overflow by1, prove victim1 then3 while2/0/new survive. Zero capacity repeats transport. Literal Source size and native eviction guard complement actual hits/misses; no private native size API fabricated.",
+      "necessary_missing_predicates_for_this_fixed_default": []
+    },
+    {
+      "limit_id": "count_cache_ttl_ms",
+      "baseline_value": 300000,
+      "verdict": "eligible_for_individual_fixed_default_acceptance",
+      "executed_source_case_ids": [
+        "count-default-ttl",
+        "count-zero-ttl"
+      ],
+      "current_actual_named_tests": [
+        "count_default_300000_expiry_and_zero_embedding_options"
+      ],
+      "concrete_contract": "299999ms hit, exact300000ms miss; new entry299999ms hit,300001ms miss; near-expiry hits do not renew expiry. Zero TTL misses twice at the same explicit clock instant. Expiry is set after success and hit only refreshes LRU position.",
+      "necessary_missing_predicates_for_this_fixed_default": []
+    }
+  ],
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/cache-fixed-limits-review-20261018-1/independent-four-fixed-cache-limits-review.json",
+    "bytes": 25109,
+    "sha256": "972f77c6dd13c1a27239163455a23e4bcaae62f1282381b591a647aa14f80529"
+  },
+  "historical_boundary_summary": {
+    "path": "rust/parity/measurements/native-cache-boundaries-summary.json",
+    "bytes": 4838,
+    "sha256": "3da6569247b0304375c23506c12aebb076891f01166cd119a448b82f7dfc47e6"
+  },
+  "historical_final_mapping": {
+    "path": "rust/parity/assertion-mappings/cache-boundary-contracts.json",
+    "bytes": 41616,
+    "sha256": "bcc648981a4e0c4652dd86278cccb332ab039e6e1172f006bda5bfceaaf11c7b"
+  },
+  "actual_retained_reparse": {
+    "source_capture": {
+      "path": "artifacts/rust-rewrite/cache-boundary-source-20261013-4/cache-boundary-contracts.capture.json",
+      "bytes": 3618,
+      "sha256": "56cffa6b45599be71f44cbf75219388f0b06123718191800a4a013a8af3f3278"
+    },
+    "source_assertions_declared_and_successfully_completed": 24050,
+    "controls": 9,
+    "full_wire_calls_compared_exactly": 2126,
+    "ordered_steps_compared": 3248,
+    "expanded_public_calls": 3239,
+    "explicit_clock_advances": 9,
+    "actual_route_completion_records": 1007,
+    "case_results": [
+      {
+        "id": "classifier-default-capacity",
+        "wire_calls_exact": 1003,
+        "steps_exact_except_declared_observation_fields": 2007,
+        "native_raw": {
+          "path": "artifacts/rust-rewrite/cache-boundary-native-20261013-1/native-classifier-default-capacity.json",
+          "sha256": "de3a340592c19490451584cc28b98b563a6b845bbedcabab98170886e25ac261",
+          "bytes": 2669894
+        }
+      },
+      {
+        "id": "classifier-default-ttl",
+        "wire_calls_exact": 3,
+        "steps_exact_except_declared_observation_fields": 9,
+        "native_raw": {
+          "path": "artifacts/rust-rewrite/cache-boundary-native-20261013-1/native-classifier-default-ttl.json",
+          "sha256": "5859163c4aadaec6a520081ff60fdd77294b1c0c7564a1ba0ec472f44468032a",
+          "bytes": 8139
+        }
+      },
+      {
+        "id": "classifier-zero-ttl",
+        "wire_calls_exact": 2,
+        "steps_exact_except_declared_observation_fields": 2,
+        "native_raw": {
+          "path": "artifacts/rust-rewrite/cache-boundary-native-20261013-1/native-classifier-zero-ttl.json",
+          "sha256": "3e1d6f676ae844d979b4c24beaffc7a61818e644c211de4667cd9ae4a57459ef",
+          "bytes": 4538
+        }
+      },
+      {
+        "id": "classifier-zero-capacity",
+        "wire_calls_exact": 2,
+        "steps_exact_except_declared_observation_fields": 2,
+        "native_raw": {
+          "path": "artifacts/rust-rewrite/cache-boundary-native-20261013-1/native-classifier-zero-capacity.json",
+          "sha256": "7acfe16985fcbb422e5fb69faabbee69b326fb19172e2de55481d0f0f8df4550",
+          "bytes": 4543
+        }
+      },
+      {
+        "id": "count-default-capacity",
+        "wire_calls_exact": 103,
+        "steps_exact_except_declared_observation_fields": 207,
+        "native_raw": {
+          "path": "artifacts/rust-rewrite/cache-boundary-native-20261013-1/native-count-default-capacity.json",
+          "sha256": "fa7c87efba791cf5beacfa635a5f2b56930c04f56a9feeb78cdae92d5f8e2427",
+          "bytes": 148495
+        }
+      },
+      {
+        "id": "count-default-ttl",
+        "wire_calls_exact": 3,
+        "steps_exact_except_declared_observation_fields": 9,
+        "native_raw": {
+          "path": "artifacts/rust-rewrite/cache-boundary-native-20261013-1/native-count-default-ttl.json",
+          "sha256": "68ce1ba81ae7a63ef214316f1e763d8e5132bf96593a7c98b1618d16738a69e7",
+          "bytes": 4492
+        }
+      },
+      {
+        "id": "count-zero-ttl",
+        "wire_calls_exact": 2,
+        "steps_exact_except_declared_observation_fields": 2,
+        "native_raw": {
+          "path": "artifacts/rust-rewrite/cache-boundary-native-20261013-1/native-count-zero-ttl.json",
+          "sha256": "0155ff9df445b79410a5b3e278c913563f1ef645cfa6aee0e464b7b41347a215",
+          "bytes": 2268
+        }
+      },
+      {
+        "id": "count-zero-capacity",
+        "wire_calls_exact": 2,
+        "steps_exact_except_declared_observation_fields": 2,
+        "native_raw": {
+          "path": "artifacts/rust-rewrite/cache-boundary-native-20261013-1/native-count-zero-capacity.json",
+          "sha256": "01422025ff0bca4cbdfe3b9a755ad317fa7e0c27efea549374928aa4d174732d",
+          "bytes": 2273
+        }
+      },
+      {
+        "id": "active-ownership-survives-cache-pressure",
+        "wire_calls_exact": 1006,
+        "steps_exact_except_declared_observation_fields": 1008,
+        "native_raw": {
+          "path": "artifacts/rust-rewrite/cache-boundary-native-20261013-1/native-active-ownership-survives-cache-pressure.json",
+          "sha256": "90c7750e88f2524aa3d07bd756f29dce3ad7f414697d39a556039a9fa17a5adc",
+          "bytes": 2515474
+        }
+      }
+    ],
+    "comparison_rules": [
+      "All full wire URL/method/header/body/response/wall-clock facts compared exactly; no wire fields ignored.",
+      "All native/source ordered step fields compared with strict canonical JSON-kind equality, except Source-only private classifier cache size/empty continuity are independently checked rather than fabricated for native.",
+      "Only actual route decision latency_ms/evaluation_latency_ms values are excluded after each is independently finite/nonnegative; all ownership/model/completion facts compare exactly.",
+      "Independent finite OrderedDict model reproduced every8ordinary capacity/TTL/zero schedule, victim, source literal cache size and retained count. It was applied to retained JSON only; no product was invoked."
+    ]
+  },
+  "current_source_composition": {
+    "current_snapshot": {
+      "path": "artifacts/rust-rewrite/evaluator-operational-byte-boundary-validation-20261018-1/candidate-source.json",
+      "bytes": 116612,
+      "sha256": "71dc5df4d405c94ad8d44903e73c01b180b93bbbb2fd9a7a87dcd2592f41c3f2"
+    },
+    "native695_rehashed": true,
+    "frozen111_rehashed": true,
+    "historical_current_runtime_snapshot": {
+      "path": "artifacts/rust-rewrite/entropy-hex-sharing-validation-20261018-1/candidate-source.json",
+      "bytes": 116612,
+      "sha256": "c45dcebe8467a7a78c043c5a56917b9a6a9a2279849b5f30672f2e18f7c7c80b"
+    },
+    "only_whole_source_difference": [
+      "rust/crates/autorouter-runtime/src/evaluator.rs"
+    ],
+    "all_prior_evaluator_production_and_test_prefix_preserved": true,
+    "current_cache_integration_test_identical_to_20261013": {
+      "path": "rust/crates/autorouter-runtime/tests/cache_boundary_contracts.rs",
+      "bytes": 19415,
+      "sha256": "3b6cbb896898f4d991c78b55db6d77bb2fbb3af29cefacd98a9bc41df783b4ab"
+    },
+    "current_corpus_and_capture_identical": true,
+    "current_config_classifier_counter_router_turn_state_inputs_match_c45": true,
+    "actual_fresh_c45_workspace": {
+      "path": "artifacts/rust-rewrite/entropy-hex-sharing-validation-20261018-1/workspace.json",
+      "bytes": 463,
+      "sha256": "21a9ce0d80086b413621dd3bafce09232cf07774c5c0feca6a3c0db4b6255dfd"
+    },
+    "actual_raw_pass_lines": {
+      "path": "artifacts/rust-rewrite/entropy-hex-sharing-validation-20261018-1/workspace.stdout",
+      "bytes": 146669,
+      "sha256": "583fbfd1485ecd2d3c1e13cdfb8e639582f72f7048bfb1429a7b565d55690c8c"
+    },
+    "actual_named_cache_passes": [
+      "classifier_default_1000_1001_and_touched_lru_eviction",
+      "classifier_default_300000_expiry_and_zero_embedding_options",
+      "count_default_100_101_and_touched_lru_eviction",
+      "count_default_300000_expiry_and_zero_embedding_options",
+      "cache_eviction_and_expiry_preserve_confirmed_active_tasks_and_tool_ownership"
+    ],
+    "historical_workspace_failed": {
+      "exit_code": 101,
+      "passed": 1393,
+      "failed": 1,
+      "ignored": 11,
+      "groups": 64,
+      "failure": "source-transfer cap test"
+    },
+    "scope": "Five named tests were actually executed in c45 workspace with current cache implementations.71dc adds only evaluator test helpers/two tests. Full2126-wire transcripts are historical20261013, not a newly captured current-source wire run. Current default hit/miss/eviction/expiry assertions execute unchanged full programs."
+  },
+  "semantic_contract": [
+    "Both full capacities are filled and every resident entry read; touching0 changes victims to1then3 while0/2/new entries survive. Eviction removes old entries without changing active human-task/tool ownership.",
+    "TTL controls hit at299999, miss at300000, then demonstrate299999hit/300001miss for the new entry. Cache hits refresh LRU order but never extend expiry. Separate zero capacity/TTL controls repeat transport.",
+    "Insertion removes duplicate ordering, stores only successful results and evicts while resident entries exceed capacity. Native private cache/order counts are bounded by inspected production guards; literal private sizes or backing allocator capacity are not fabricated."
+  ],
+  "historical_review_identity_limit": {
+    "historical_summary": {
+      "path": "rust/parity/measurements/native-cache-boundaries-summary.json",
+      "bytes": 4838,
+      "sha256": "3da6569247b0304375c23506c12aebb076891f01166cd119a448b82f7dfc47e6"
+    },
+    "historical_mapping": {
+      "path": "rust/parity/assertion-mappings/cache-boundary-contracts.json",
+      "bytes": 41616,
+      "sha256": "bcc648981a4e0c4652dd86278cccb332ab039e6e1172f006bda5bfceaaf11c7b"
+    },
+    "old_independent_review": {
+      "path": "artifacts/rust-rewrite/cache-boundary-independent-review-20261013.json",
+      "bytes": 983,
+      "sha256": "15eab192e9c3586b51fc644fda8d319fc51f813ccae4aba5658f4dc875a7c366"
+    },
+    "old_review_mapping_sha256": "23f9df6356b580306836dd0d1afc6124b7294c0b3857e32fd263c00ab6aa199b",
+    "current_historical_mapping_sha256": "bcc648981a4e0c4652dd86278cccb332ab039e6e1172f006bda5bfceaaf11c7b",
+    "note": "Old independent receipt names an earlier mapping digest, not the final bcc648… mapping bytes. This audit does not reinterpret that as an exact-final-mapping approval: it independently rehashes final mapping/raw inputs and reparses every retained transcript, while preserving both historical hashes. Historical whole native code pins differ from current files; fresh c45 actual tests/current71dc semantic composition are used instead."
+  },
+  "counts_scope": "Nine retained controls,2126fullwirecalls/3248orderedsteps/3239publiccalls/9advances/1007actualcompletionrecords are historical20261013 evidence. Five exact unchanged integration tests also pass in c45 current-cache workspace. No new product execution or current wire recapture.",
+  "coverage_effect": "Only four of53limitrows change;12covered/41pending. Original588definitions,all27configurationkeys,13areas andother49limits unchanged by this review.",
+  "limitations": [
+    "Only fixed defaults and explicit zero embedding options. Malformed/fractional/negative/arbitrarily huge JS configuration or unchecked native mutation are not declared equal inputs.",
+    "Clock controls use safe nonnegative monotonic progression. Date.now vs Tokio Instant is an explicit language/runtime clock interface difference; discontinuous wall-clock jumps are not executed or claimed equivalent.",
+    "No new cache TTL task timing measurement, actual provider/network, process memory or concurrency stress execution. Full current wire transcripts were not recaptured.",
+    "HistoricalSource capture uses injected fetch callbacks; no newly instrumented network/subprocess attempt counter is inferred.",
+    "No public source, ledger, mapping or metadata edits; no product/test/compiler/provider/CI execution by reviewer.",
+    "Prior c45 workspace remains exit101 with1393pass/1source-cap-fail/11ignored; no current full-workspace green or publication qualification.",
+    "Source caps remain73496logical/48128expandedcarrier bytes over. FreshCI/platform/performance/provider/taskquality/provenance/rollback/stabilization/cutover remain open. JavaScript0.5.2 remains default."
+  ]
+}

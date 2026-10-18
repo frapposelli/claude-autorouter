@@ -6,12 +6,10 @@ use crate::http_client::HttpTransport;
 use bytes::Bytes;
 use http_body_util::{BodyExt, Full};
 use hyper::{Request, body::Body, http::Extensions};
-use hyper_openssl::SslStream;
-use hyper_util::{
-    client::legacy::connect::{Assignment, CaptureAssignment, capture_http1_assignment},
-    rt::TokioIo,
+use hyper_util::client::legacy::connect::{
+    Assignment, CaptureAssignment, capture_http1_assignment,
 };
-use openssl::ssl::{Ssl, SslVersion};
+use openssl::ssl::SslVersion;
 use std::{
     io,
     sync::{
@@ -22,7 +20,6 @@ use std::{
 };
 use tokio::{
     io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt},
-    net::TcpListener,
     sync::{mpsc, oneshot},
     task::JoinSet,
 };
@@ -48,7 +45,7 @@ struct RequestEvent {
     path: String,
     reply: oneshot::Sender<Reply>,
 }
-use super::loopback_peer::PeerLease;
+use super::loopback_peer::{ListenerPeers, bind_listener};
 
 async fn peer<S: AsyncRead + AsyncWrite + Unpin>(
     mut io: S,
@@ -152,51 +149,33 @@ impl Fixture {
     async fn new(version: Option<SslVersion>) -> Self {
         let (trust, tls) = isolated_tls(version);
         let client = Arc::new(SpikeHttpClient::with_snapshot_aborts(true, &trust, true).unwrap());
-        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
-        let origin = format!(
-            "{}://{}",
-            if version.is_some() { "https" } else { "http" },
-            listener.local_addr().unwrap()
-        );
+        let (listener, origin) = bind_listener(version.is_some()).await;
         let (send, events) = mpsc::channel(16);
         let (send_closed, closed) = mpsc::channel(16);
-        let active = Arc::new(AtomicUsize::new(0));
-        let peer_active = active.clone();
-        let stop = CancellationToken::new();
-        let shutdown = stop.clone();
-        let mut tasks = JoinSet::new();
-        tasks.spawn(async move {
-            let mut peers = JoinSet::new();
-            let mut accepted = 0;
-            let result = loop {
-                tokio::select! {
-                    biased;
-                    _ = shutdown.cancelled() => break Ok(()),
-                    result = peers.join_next(), if !peers.is_empty() => {
-                        if !matches!(result, Some(Ok(Ok(())))) { break Err(io::Error::other("fixture peer failed")); }
-                    }
-                    result = listener.accept() => {
-                        let (socket, _) = result?;
-                        if accepted == 16 { break Err(io::Error::other("fixture connection bound")); }
-                        let connection = accepted; accepted += 1;
-                        peer_active.fetch_add(1, Ordering::SeqCst);
-                        let lease = PeerLease(peer_active.clone());
-                        let context = tls.clone(); let send = send.clone(); let closed = send_closed.clone();
-                        peers.spawn(async move {
-                            let _lease = lease;
-                            if let Some(context) = context {
-                                let mut stream = SslStream::new(Ssl::new(&context)?, TokioIo::new(socket))?;
-                                std::pin::Pin::new(&mut stream).accept().await.map_err(|_| io::Error::other("fixture TLS failed"))?;
-                                let resumed = stream.ssl().session_reused();
-                                peer(TokioIo::new(stream), connection, resumed, send, closed).await
-                            } else { peer(socket, connection, false, send, closed).await }
-                        });
-                    }
+        let mut accepted = 0;
+        let ListenerPeers {
+            tasks,
+            stop,
+            active,
+            ..
+        } = ListenerPeers::spawn(
+            listener,
+            tls,
+            move |_| {
+                if accepted == 16 {
+                    return Err(io::Error::other("fixture connection bound"));
                 }
-            };
-            peers.abort_all(); while peers.join_next().await.is_some() {}
-            result
-        });
+                let connection = accepted;
+                accepted += 1;
+                Ok(connection)
+            },
+            "fixture peer failed",
+            "fixture TLS failed",
+            move |stream, connection| {
+                let resumed = stream.session_reused();
+                peer(stream, connection, resumed, send, send_closed)
+            },
+        );
         Self {
             client,
             origin,

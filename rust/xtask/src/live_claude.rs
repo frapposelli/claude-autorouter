@@ -284,7 +284,12 @@ impl<'a> Stream<'a> {
             }
         }
         process.as_object_mut().unwrap().remove("stdout_bytes");
-        for key in ["response_received", "controlled_stop", "spawn_error"] {
+        for key in [
+            "response_received",
+            "controlled_stop",
+            "spawn_error",
+            "spawn_error_kind",
+        ] {
             process.as_object_mut().unwrap().remove(key);
         }
         let mut report = json!({"result_count":self.results.len(),"assistant_models":self.assistant_models,"tools_used":self.tools,"permission_denials":self.denied,"parse_errors":self.parse_errors,"failures":self.failures,"tool_outcomes":outcomes,"provider_usage_shapes":self.shapes,"successful_tools":successful,"denied_tool_details":self.denials.into_iter().map(|(_,v)|v).collect::<Vec<_>>(),"client_model_usage_estimate":self.usage});
@@ -448,6 +453,34 @@ mod tests {
             assert!(args.contains(&format!("Edit(./{SOURCE})")));
             assert!(args.contains(&format!("Bash({TEST_COMMAND})")));
             assert!(!args.iter().any(|arg| arg.contains("bypassPermissions")));
+        }
+    }
+
+    #[test]
+    fn raw_spawn_cause_is_projected_out_of_strict_live_case_reports() {
+        for kind in ["not_found", "permission_denied", "other"] {
+            let stream = Stream::new(Path::new("/synthetic-owned-fixture"), &[]);
+            let (report, results) = stream.finish(json!({
+                "spawn_error":true, "spawn_error_kind":kind,
+                "exit_code":null, "exit_signal":null, "timed_out":false,
+                "output_limit_exceeded":false, "duration_ms":0,
+                "stdout_bytes":0, "stderr_bytes":0
+            }));
+            assert!(results.is_empty());
+            assert_eq!(
+                report,
+                json!({
+                    "result_count":0, "assistant_models":[], "tools_used":[],
+                    "permission_denials":0, "parse_errors":0,
+                    "failures":["claude_spawn_error"], "tool_outcomes":[],
+                    "provider_usage_shapes":[], "successful_tools":[],
+                    "denied_tool_details":[], "client_model_usage_estimate":{},
+                    "exit_code":null, "exit_signal":null, "timed_out":false,
+                    "output_limit_exceeded":false, "duration_ms":0, "stderr_bytes":0
+                })
+            );
+            assert!(report.get("spawn_error").is_none());
+            assert!(report.get("spawn_error_kind").is_none());
         }
     }
 }

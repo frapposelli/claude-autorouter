@@ -49,7 +49,10 @@ pub async fn evaluate_local(
     match result {
         Ok(report) => {
             if json_output {
-                write(report.to_string());
+                write(
+                    crate::json_output::compact(&report)
+                        .map_err(|_| "Could not format local evaluation report.")?,
+                );
             } else {
                 for line in format_local_diagnostic(&report) {
                     write(line);
@@ -62,7 +65,11 @@ pub async fn evaluate_local(
                 return Err(error);
             }
             if json_output {
-                write(serde_json::json!({"schema_version":1,"type":"local_evaluator_diagnostic","passed":false,"error":{"code":"configuration_error","message":error}}).to_string());
+                let report = serde_json::json!({"schema_version":1,"type":"local_evaluator_diagnostic","passed":false,"error":{"code":"configuration_error","message":error}});
+                write(
+                    crate::json_output::compact(&report)
+                        .map_err(|_| "Could not format local evaluation report.")?,
+                );
             } else {
                 write(format!("FAIL  {error}"));
             }

@@ -9,7 +9,6 @@ use contract::{
 #[allow(dead_code)] // Shared peer also supplies streaming interfaces to other targets.
 #[path = "support/server_streaming_routing.rs"]
 mod peer;
-use autorouter_core::config::read_config;
 use autorouter_runtime::{
     http_client::NativeHttpClient,
     server::{Gateway, GatewayHandle},
@@ -18,10 +17,8 @@ use autorouter_runtime::{
 use bytes::Bytes;
 use peer::{Observation, Peer, ResponsePlan, StreamGate};
 use serde_json::{Value, json};
-use sha2::{Digest, Sha256};
 use std::{
     collections::BTreeSet,
-    path::Path,
     sync::{
         Arc, Mutex,
         atomic::{AtomicBool, Ordering},
@@ -36,23 +33,16 @@ const LIMIT: usize = 2 * 1024 * 1024;
 const BOUND: Duration = Duration::from_secs(5);
 type Events = Arc<Mutex<Vec<Value>>>;
 fn case(number: usize) -> Value {
-    assert_eq!(
-        format!("{:x}", Sha256::digest(CORPUS.as_bytes())),
-        "0f74c4f4763f78f03c66eae953de2bb12c65a36053b9e43ffca96ea964f639df"
-    );
-    assert_eq!(
-        format!("{:x}", Sha256::digest(CAPTURE.as_bytes())),
-        "c2fe30663633294e63949f49a4cf7f1bec98e43928eba48adda02dcdf263877f"
-    );
-    let metadata: Value = serde_json::from_str(CAPTURE).unwrap();
-    assert_eq!(metadata["static_assertions"], 34);
-    assert_eq!(metadata["expanded_assertions"], 64);
-    assert_eq!(metadata["callbacks_executed"], 4);
-    CORPUS
-        .lines()
-        .map(|line| serde_json::from_str::<Value>(line).unwrap())
-        .find(|row| row["source_test"] == format!("test/server.test.mjs#{number}"))
-        .unwrap()
+    contract::captured_server_case(
+        number,
+        CORPUS,
+        CAPTURE,
+        [
+            "0f74c4f4763f78f03c66eae953de2bb12c65a36053b9e43ffca96ea964f639df",
+            "c2fe30663633294e63949f49a4cf7f1bec98e43928eba48adda02dcdf263877f",
+        ],
+        (34, 64, Some(4)),
+    )
 }
 use contract::MockRouter;
 struct Fixture {
@@ -118,12 +108,7 @@ impl Fixture {
         .await
         .unwrap();
         let client = Arc::new(NativeHttpClient::new().unwrap());
-        let mut config =
-            read_config(&row["config_arguments"][0][0], false, Path::new("/tmp")).unwrap();
-        config.local_token = row["gateway_config"]["localToken"]
-            .as_str()
-            .map(str::to_owned);
-        config.upstream = format!("http://{}", peer.address);
+        let config = contract::gateway_config(row, &row["config_arguments"][0][0], peer.address);
         let router = Arc::new(MockRouter {
             decisions: row["route_calls"]
                 .as_array()

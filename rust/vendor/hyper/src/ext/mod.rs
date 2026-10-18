@@ -268,6 +268,87 @@ impl OriginalHeaderOrder {
 #[derive(Clone, Copy, Debug)]
 pub struct NodeHttpResponsePolicy;
 
+/// Per-response preparation state for an opt-in Node HTTP server timer.
+///
+/// Preparation describes the first equivalent `send`, `end`, or `flushHeaders`
+/// operation, including while a response is queued. It is not delivery evidence.
+/// A clone is retained on the parsed request and supplied in its extensions.
+#[cfg(all(feature = "node-http1-compat", feature = "server", feature = "http1"))]
+#[derive(Clone, Debug, Default)]
+pub struct NodeHttpResponseTiming(std::sync::Arc<std::sync::atomic::AtomicBool>);
+
+#[cfg(all(feature = "node-http1-compat", feature = "server", feature = "http1"))]
+impl NodeHttpResponseTiming {
+    /// Construct an unprepared response marker.
+    pub fn new() -> Self { Self::default() }
+
+    /// Mark the first equivalent response-send operation.
+    pub fn mark_prepared(&self) {
+        self.0.store(true, std::sync::atomic::Ordering::Release);
+    }
+
+    /// Whether that response has performed an equivalent send operation.
+    pub fn is_prepared(&self) -> bool {
+        self.0.load(std::sync::atomic::Ordering::Acquire)
+    }
+}
+
+/// Atomic parser/response observations for an opt-in listener-owned timer.
+#[cfg(all(feature = "node-http1-compat", feature = "server", feature = "http1"))]
+#[derive(Clone, Debug)]
+pub enum NodeHttpServerTimingEvent {
+    /// First non-CR/LF request byte, before method validation.
+    MessageBegin,
+    /// A complete head, with immediate zero-body completion in the same batch.
+    HeadersComplete {
+        /// Whether receipt of this message is already complete.
+        message_complete: bool,
+        /// This request's response-preparation state, also in its extensions.
+        response: NodeHttpResponseTiming,
+    },
+    /// The decoder consumed the complete body or trailers.
+    MessageComplete,
+    /// EOF, parse/decode failure, or upgrade ended receive eligibility.
+    /// This does not reset the current response's preparation state.
+    ParserAborted,
+    /// At least one new byte was read from the underlying transport.
+    PositiveInput,
+    /// The current response finished, before promoting any queued response.
+    ResponseFinished {
+        /// Whether another parsed request is waiting for its ordered response.
+        queued_responses: bool,
+    },
+}
+
+/// A terminal decision already latched by the listener's timer owner.
+#[cfg(all(feature = "node-http1-compat", feature = "server", feature = "http1"))]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum NodeHttpServerTimeout {
+    /// Receipt expired; eligibility for the raw error was fixed at that scan.
+    Request {
+        /// Whether the current response permitted a raw request-timeout reply.
+        write_raw_408: bool,
+    },
+    /// Post-response idle expiry closes without a raw request-timeout reply.
+    Idle,
+}
+
+/// Listener-owned Node HTTP timing, with no clock or background task in Hyper.
+///
+/// `commit` must publish the entire batch atomically against scans, returning
+/// false after terminal expiry. It must not block on I/O, panic, or call back
+/// into this connection. `poll_timeout` must register the waker without losing
+/// an already-latched expiry. Before publishing expiry the owner must fail
+/// pending delivery records; timeout bytes are never a delivery acknowledgement.
+#[cfg(all(feature = "node-http1-compat", feature = "server", feature = "http1"))]
+pub trait NodeHttpServerTimingControl: std::fmt::Debug + Send + Sync {
+    /// Commit one buffered parser/response transition before exposing its result.
+    fn commit(&self, events: &[NodeHttpServerTimingEvent]) -> bool;
+
+    /// Poll an irreversible timeout decision, registering the connection waker.
+    fn poll_timeout(&self, cx: &mut std::task::Context<'_>) -> std::task::Poll<NodeHttpServerTimeout>;
+}
+
 /// Callback immediately before a response head is encoded, after ordered service
 /// dispatch. This only identifies submission; it does not prove a successful flush.
 #[cfg(all(feature = "node-http1-compat", feature = "server", feature = "http1"))]

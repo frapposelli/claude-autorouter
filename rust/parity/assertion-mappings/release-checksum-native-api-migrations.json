@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "kind": "SCOPED_RELEASE_CHECKSUM_AND_REGULAR_FILE_NATIVE_API_MIGRATION_SUPPLEMENT",
+  "author": "/root/checkpoint_ci",
+  "status": "ACCEPTED_ONLY_THREE_ORIGINAL_DEFINITIONS",
+  "only_definitions": [
+    "test/release-check.test.mjs#8",
+    "test/release-check.test.mjs#9",
+    "test/release-check.test.mjs#16"
+  ],
+  "counts": {
+    "original_assertion_sites": 3,
+    "original_observations": 3
+  },
+  "original_authority": {
+    "path": "artifacts/rust-rewrite/reference/test/release-check.test.mjs",
+    "bytes": 13064,
+    "sha256": "55c3112868355e94aeb3240d1d06116145a50689a878e8cfbf4b236feab5eb30"
+  },
+  "historical_mapping": {
+    "path": "rust/parity/assertion-mappings/release-remaining-contracts.json",
+    "bytes": 69128,
+    "sha256": "4c6c3efa7ca4c3b8357f80e4f04d0579d9191187556989ea037d04e28f2120e5",
+    "preservation": "Entire document and prior rows remain unchanged; add this supplement by reference only. Old private/tmp aliases and other historic artifacts are not claimed freshly available or reverified."
+  },
+  "actual_focused_review": {
+    "path": "artifacts/rust-rewrite/release-check-8-9-16-acceptance-review-20261018-1/actual-focused-binding-review.json",
+    "bytes": 10777,
+    "sha256": "895de473d698312ab1f3b81de5bbf3937f094ccc57a5e45da570003f0e2ccf19"
+  },
+  "detailed_author_analysis": {
+    "path": "artifacts/rust-rewrite/release-check-8-9-16-acceptance-review-20261018-1/proposal.json",
+    "bytes": 19993,
+    "sha256": "29892314b5cef2cd235db97b72ba7b8e3869b9faff8c574a35ec81b7f021d2b4"
+  },
+  "current_execution_snapshot": {
+    "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/candidate-source.json",
+    "sha256": "ab539f4ccd328890ad81f3b0c5826504c4b66bc6f8c73ad0a66beb4b295eb897",
+    "inputs": 701,
+    "frozen": 111
+  },
+  "actuals": {
+    "Source_originals": {
+      "pass": 16,
+      "fail": 0,
+      "skipped": 0,
+      "three_selected_names": "All three appear as actual ok nested tests; whole unchanged file executed, not fabricated subset."
+    },
+    "native_release": {
+      "pass": 53,
+      "fail": 0,
+      "ignored": 0,
+      "filtered": 261
+    },
+    "runtime_library_separate": {
+      "pass": 581,
+      "fail": 0,
+      "ignored": 0,
+      "filtered": 0
+    },
+    "fmt_exit": 0,
+    "strict_workspace_alltargets_clippy_exit": 0,
+    "pre_fix_RED": {
+      "pass": 0,
+      "fail": 2,
+      "exit": 101,
+      "causes": [
+        "Historical CRLF admitted.",
+        "Wrong-hash actual native command diagnostic was generic."
+      ]
+    },
+    "whole_workspace": {
+      "result_groups": 66,
+      "totals": {
+        "passed": 1503,
+        "failed": 1,
+        "ignored": 11,
+        "measured": 0,
+        "filtered_out": 0
+      },
+      "failed_names": [
+        "bundle::transfer::tests::transfer_has_only_verified_sources_a_shared_budget_and_create_only_evidence"
+      ]
+    }
+  },
+  "rows": [
+    {
+      "id": "test/release-check.test.mjs#8",
+      "name": "checksum tampering is rejected",
+      "status": "covered",
+      "original": {
+        "source_line": 179,
+        "end_line": 182,
+        "definition_sha256": "587165950085b89e511196c0cdf58bdf495efcd064fe97c92daf4d8eeb385fbb",
+        "statement_sha256": "293ff914434cbec0283089161a4af3e551187e9ebf9ead8703aff8161b48118b",
+        "assertion": {
+          "source_line": 181,
+          "expression": "assert.rejects(checkRelease('archive', TAG, { cwd, env: {} }), /SHA256 does not match/)",
+          "expression_sha256": "7084342220a1090a3995984af495d4482c18314a5a4d0542e50500092ce491e5",
+          "expanded_observations": 1
+        }
+      },
+      "exact_precondition": "checksum all-zero, exact archive filename",
+      "native": {
+        "test": "release_pack::tests::archive_contracts::checksum_sidecar_and_regular_file_failures_keep_safe_original_command_diagnostics",
+        "case": "hash",
+        "typed_error": {
+          "code": "invalid_archive",
+          "detail": {
+            "reason": "checksum_mismatch"
+          }
+        },
+        "command_exit": 1,
+        "complete_stderr": "Release check failed: Release archive SHA256 does not match\n",
+        "source_regex_preserved": true
+      },
+      "proof": "Actual named frozen Source pass in fresh full16; actual native named test pass in fresh release53; full mutation/assertion and parent fixture preparation traced from pinned files. Both native canonical positives remain; native sidecar/target/GITHUB_OUTPUT nonmutation and closed diagnostics checked by actual test.",
+      "predicate_detail": "Exact64zero lowercase hash + exactfilename passes grammar then fails digest."
+    },
+    {
+      "id": "test/release-check.test.mjs#9",
+      "name": "checksum filename cannot reference another path",
+      "status": "covered",
+      "original": {
+        "source_line": 183,
+        "end_line": 186,
+        "definition_sha256": "13507b2678492bf9deb4f1cf564d1f7a1fc5a38d0ce7d8f4d13f3ac80159cf97",
+        "statement_sha256": "27c0487a6a1798981e9108d72d7f98ad0451e342f7f15f90891a7c098961fb52",
+        "assertion": {
+          "source_line": 185,
+          "expression": "assert.rejects(checkRelease('archive', TAG, { cwd, env: {} }), /exact release archive/)",
+          "expression_sha256": "987a1fa20fbca8f3f0aa58dddfa7fec09de1114ddee5a169f2d1e79f85a629a8",
+          "expanded_observations": 1
+        }
+      },
+      "exact_precondition": "checksum all-zero AND ../canonical archive filename in the SAME sidecar",
+      "native": {
+        "test": "release_pack::tests::archive_contracts::checksum_sidecar_and_regular_file_failures_keep_safe_original_command_diagnostics",
+        "case": "hash-and-filename",
+        "typed_error": {
+          "code": "invalid_archive",
+          "detail": {
+            "reason": "checksum_filename_mismatch"
+          }
+        },
+        "command_exit": 1,
+        "complete_stderr": "Release check failed: SHA256 file must identify the exact release archive\n",
+        "source_regex_preserved": true
+      },
+      "proof": "Actual named frozen Source pass in fresh full16; actual native named test pass in fresh release53; full mutation/assertion and parent fixture preparation traced from pinned files. Both native canonical positives remain; native sidecar/target/GITHUB_OUTPUT nonmutation and closed diagnostics checked by actual test.",
+      "predicate_detail": "Exact64zero hash and ../filename coexist; filename/grammar fails before hash, matching original combined counterexample."
+    },
+    {
+      "id": "test/release-check.test.mjs#16",
+      "name": "symlinked artifacts are rejected before reading their targets",
+      "status": "covered",
+      "original": {
+        "source_line": 224,
+        "end_line": 232,
+        "definition_sha256": "c7e47d14c23a5f51a96d5f4f7ee698ca535d29c9738a8e89d8f4f5960cb6eb70",
+        "statement_sha256": "4076a90c6c3d18336b61426731618f716511e7b0ea81898c6be5f408631107ad",
+        "assertion": {
+          "source_line": 231,
+          "expression": "assert.rejects(checkRelease('archive', TAG, { cwd, env: {} }), /regular file/)",
+          "expression_sha256": "287c2c01a05339e2c7d7dfda96a56d20cff61477dc849febb367d09944d24181",
+          "expanded_observations": 1
+        }
+      },
+      "exact_precondition": "restore canonical archive, copy bytes to a distinct private target, remove archive pathname and replace it with a real owned symlink",
+      "native": {
+        "test": "release_pack::tests::archive_contracts::checksum_sidecar_and_regular_file_failures_keep_safe_original_command_diagnostics",
+        "case": "real-symlink",
+        "typed_error": {
+          "code": "invalid_archive",
+          "detail": {
+            "reason": "archive_not_regular_or_bounded"
+          }
+        },
+        "command_exit": 1,
+        "complete_stderr": "Release check failed: Release artifact must be a bounded regular file\n",
+        "source_regex_preserved": true
+      },
+      "proof": "Actual named frozen Source pass in fresh full16; actual native named test pass in fresh release53; full mutation/assertion and parent fixture preparation traced from pinned files. Both native canonical positives remain; native sidecar/target/GITHUB_OUTPUT nonmutation and closed diagnostics checked by actual test.",
+      "predicate_detail": "Real symlink target contains valid readable archive bytes. symlink_metadata rejects at regular() before read; static ordering supports before-target-read, without claiming an actual read-counter measurement."
+    }
+  ],
+  "proposed_native_contract": {
+    "error_interface": "These three original rejected Promises and Error regexes map individually to typed ReleaseError and actual release::run command exit1 with fixed exact safe stderr. No arbitrary JS Error identity or raw detail echo.",
+    "format_and_admission": "Source fixtures are actual JavaScript package archives at1.2.3; native fixtures are separately valid native archives at0.4.0 with native manifests/target set and synthetic authorization. Each version determines its own exact filename. Only shared pre-decode checksum/regular-file rejection is adopted; no identical archive bytes or legacy positive admission is claimed.",
+    "dispatch": "Isolated existing test entrypoint invokes production command parser with explicit fixture checkout; installed xtask compile-time root selection is not covered.",
+    "sidecar_scope": "Historical reader accepts optional singleLF. Native final authorization still independently requires canonical LF-terminated bytes and actual native eligibility. The native missing-LF negative remains; no authorization bypass was present/fixed.",
+    "source_diagnostic": "Safe literal reasons preserve original regex text. Unknown codes/reasons/nested detail stay fixed generic invalid_archive, with existing privacy contracts unchanged."
+  },
+  "nonclaims": "No release/publication/version/tag, real qualification/approval, entire package/release tool/parent assertion, fresh platform/CI/performance, source-cap fit or source40 approval. Repair author is not an independent implementation reviewer.",
+  "root_acceptance": {
+    "path": "artifacts/rust-rewrite/runtime-release-boundary-validation-20261018-1/root-scoped-acceptance.json",
+    "bytes": 5423,
+    "sha256": "ade5a4ec265640d7630127e1ed15269d1af9749c9640fab432001b903913973d"
+  },
+  "draft_provenance": {
+    "path": "artifacts/rust-rewrite/release-check-8-9-16-acceptance-review-20261018-1/supplement.draft.json",
+    "bytes": 10836,
+    "sha256": "68843b958b19c10e494f2ae3449afe41ac726e1772a2de19286c70716168776f"
+  },
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/release-check-8-9-16-acceptance-review-20261018-1/independent-three-definition-acceptance-review.json",
+    "bytes": 21479,
+    "sha256": "e4eb263cf4f11e3b084a89ce9e1dbbad667fbeeb98f72c7a050e57d8f545ac77"
+  },
+  "parent_annotation_review": {
+    "path": "artifacts/rust-rewrite/release-check-8-9-16-acceptance-review-20261018-1/independent-parent-derived-annotation-amendment.json",
+    "bytes": 2577,
+    "sha256": "03b8da67b493df47738946f8a015f4c31f2110af53e011fda3fde13ec7221953"
+  },
+  "published_updates_after_review": {
+    "coverage": "Published after explicit Root acceptance: only IDs#8/#9/#16 partial\u2192covered, with this mapping and the actual summary. Counts are 573 covered and 15 partial. Parent#7 remains partial with its derived remaining-child count corrected from nine to six. Other585 definition statuses remain unchanged. The separate summary records only four cleanup limit promotions; this mapping accepts no key or area.",
+    "evidence": "Published the scoped summary and this supplement while retaining all 226 old index values and historical mapping bytes.",
+    "embedding_note": {
+      "path": "artifacts/rust-rewrite/release-check-8-9-16-acceptance-review-20261018-1/embedding-note.draft.md",
+      "bytes": 751,
+      "sha256": "0646272ac85a48a8fcc9c90956e9e9a64198d8ba363f53b4b1dfcda43c12aa57"
+    },
+    "completed_requirements": "Independent per-assertion/actual review, Root explicit three-definition native format/API decision, completed broad-result audit retaining unchanged source-cap failure."
+  }
+}

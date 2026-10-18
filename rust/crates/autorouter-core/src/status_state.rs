@@ -225,43 +225,7 @@ pub fn run_fixture(input: &Value) -> Result<Value, String> {
 mod tests {
     use super::*;
 
-    fn equal_js_json(left: &Value, right: &Value) -> bool {
-        match (left, right) {
-            (Value::Number(a), Value::Number(b)) if a != b => {
-                if !a.is_f64() && !b.is_f64() {
-                    return false;
-                }
-                let (Some(a_float), Some(b_float)) = (a.as_f64(), b.as_f64()) else {
-                    return false;
-                };
-                if a_float != b_float {
-                    return false;
-                }
-                if a.is_f64() && b.is_f64() {
-                    return true;
-                }
-                let integer = if a.is_f64() { b } else { a };
-                if let Some(value) = integer.as_u64() {
-                    (0.0..18_446_744_073_709_551_616.0).contains(&a_float)
-                        && a_float as u64 == value
-                } else if let Some(value) = integer.as_i64() {
-                    (-9_223_372_036_854_775_808.0..9_223_372_036_854_775_808.0).contains(&a_float)
-                        && a_float as i64 == value
-                } else {
-                    false
-                }
-            }
-            (Value::Array(a), Value::Array(b)) => {
-                a.len() == b.len() && a.iter().zip(b).all(|(a, b)| equal_js_json(a, b))
-            }
-            (Value::Object(a), Value::Object(b)) => {
-                a.len() == b.len()
-                    && a.iter()
-                        .all(|(key, a)| b.get(key).is_some_and(|b| equal_js_json(a, b)))
-            }
-            _ => left == right,
-        }
-    }
+    use crate::test_support::equal_js_json;
 
     #[test]
     fn snapshot_comparison_rejects_lost_fields_types_and_adjacent_numbers() {

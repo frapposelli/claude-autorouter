@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "kind": "shared_audit_fixture_lifecycle_local_validation",
+  "recorded_at": "2026-10-17T20:50:56.157059+00:00",
+  "base_commit": "7b419cb5788a7f74698ce05a5e3789b38faf8534",
+  "status": "local_work_in_progress; unchanged logical source-transfer gate still fails",
+  "source": {
+    "path": "artifacts/rust-rewrite/source-sharing-20261017-4/candidate-source.json",
+    "bytes": 116611,
+    "sha256": "48b17eeccc2be01c60fb68aa013fc8f55e346f3d4f312511e74397a147ea0ed5",
+    "native_inputs": 695,
+    "changed_inputs": [
+      {
+        "path": "rust/crates/autorouter-runtime/tests/server_decision_lifecycle_contracts.rs",
+        "before_bytes": 25908,
+        "after_bytes": 22006,
+        "saved_bytes": 3902
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/tests/server_outcome_history_contracts.rs",
+        "before_bytes": 21501,
+        "after_bytes": 18053,
+        "saved_bytes": 3448
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/tests/support/server_audit_router.rs",
+        "before_bytes": 3439,
+        "after_bytes": 7945,
+        "saved_bytes": -4506
+      }
+    ],
+    "all_product_source_bytes_identical_to_previous_731f_checkpoint": true
+  },
+  "changes": {
+    "scope": "Share owned decision/outcome fixture fields and send/wait/finish methods in the existing audit support module. Keep specialized constructors and callback factories local.",
+    "raw_source_bytes_saved": 2844,
+    "source_or_fixture_files_removed": 0,
+    "new_files": 0,
+    "constructors_assertions_and_capture_suffixes_byte_identical": true,
+    "ownership": "Original field/drop order and continuity/observer/gateway/peer cleanup ordering remain. Decision witness checks retain original documents; outcome adds only inert internal None/empty fields absent from manual captures.",
+    "formatting": "Only shared-support import ordering differs from the independently reviewed draft."
+  },
+  "validation": {
+    "workspace": {
+      "groups": 66,
+      "passed": 1373,
+      "failed": 1,
+      "ignored": 11,
+      "failed_tests": [
+        "bundle::transfer::tests::transfer_has_only_verified_sources_a_shared_budget_and_create_only_evidence"
+      ],
+      "permission_denied_occurrences": 0,
+      "raw_exit_code": 101
+    },
+    "strict_workspace_all_target_clippy_exit_code": 0,
+    "format_exit_code": 0,
+    "provider_calls": 0,
+    "records": {
+      "strict-clippy": {
+        "path": "artifacts/rust-rewrite/source-sharing-20261017-4/strict-clippy.json",
+        "bytes": 477,
+        "sha256": "605ca94d35a45552ff6692b205c5c876e4c824da4a71bccd4a62a7b0bb794fbe"
+      },
+      "workspace": {
+        "path": "artifacts/rust-rewrite/source-sharing-20261017-4/workspace.json",
+        "bytes": 441,
+        "sha256": "754c1257971fbb239a8e0e09d03fd3cf78f6eef2ed9632bdc06923c7ad3261dc"
+      },
+      "format": {
+        "path": "artifacts/rust-rewrite/source-sharing-20261017-4/format.json",
+        "bytes": 384,
+        "sha256": "9566e4f981a4fbc7026f510f8461bb20a3c5a8ea9db0a05665a1470349316448"
+      },
+      "actual-transfer-retained-helper": {
+        "path": "artifacts/rust-rewrite/source-sharing-20261017-4/actual-transfer-retained-helper.json",
+        "bytes": 582,
+        "sha256": "04174517a2f4309f6c55c9dd2c6df77e76eace3d887aa9218b6736742cea65d7"
+      }
+    },
+    "prior_product_checks": "No product source changes in this increment. Seventeen differential families, deterministic whole-connection and Node checks remain explicitly bound to the previous731f checkpoint; they were not repeated or relabeled as current whole-source runs."
+  },
+  "capacity": {
+    "unchanged_carrier_limit_bytes": 33554432,
+    "unchanged_logical_limit_bytes": 33554432,
+    "minimum_logical_overage_before_metadata_growth_bytes": 9895,
+    "forecast_is_not_fit_proof": true,
+    "actual_export_exit_code": 1,
+    "actual_export_error": "Complete logical transfer exceeds32MiB",
+    "destination_created": false,
+    "carrier_fit_qualified": false,
+    "restore_qualified": false,
+    "helper": "Retained previously Cargo-bound helper; no fresh helper build or shipping provenance claim.",
+    "helper_bytes": 52745600,
+    "helper_sha256": "7432d30bf86197338affb5c0da7bf032cc12859d3f9d035395bb499da41ba5e3",
+    "observation": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-4/actual-transfer-observation.json",
+      "bytes": 567,
+      "sha256": "6507a2a7d137e83134e27b45b8809c3befb30b2272db1be42fa1e61468168bde"
+    }
+  },
+  "reviews": [
+    {
+      "path": "artifacts/rust-rewrite/audit-fixture-lifecycle-independent-review-20261017-1/review.json",
+      "bytes": 5676,
+      "sha256": "3d891485695682f631c0ed890f55a0cfd988fc776ded63f9651d303460e14021"
+    },
+    {
+      "path": "artifacts/rust-rewrite/audit-fixture-lifecycle-independent-review-20261017-1/applied-formatted-binding.json",
+      "bytes": 3326,
+      "sha256": "ceffb424f798817deffa1a350a30fefc45a1095954a691399faf72b176377f30"
+    }
+  ],
+  "scope_limits": {
+    "numerical_performance_measured": false,
+    "current_source_ci_qualified": false,
+    "real_provider_task_quality_qualified": false,
+    "native_release_provenance_qualified": false,
+    "cutover_approved": false
+  },
+  "ledger_unchanged": {
+    "original_definitions": 588,
+    "covered": 538,
+    "partial": 50,
+    "configuration_keys_pending": 27,
+    "limit_reviews_pending": 51,
+    "areas_partial": 13
+  },
+  "shipping_default": "JavaScript0.5.2; no commit/push/release/default cutover for this local increment."
+}

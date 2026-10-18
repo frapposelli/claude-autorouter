@@ -8,9 +8,7 @@ async fn poll_once(
 async fn bounded_classification(
     future: impl std::future::Future<Output = ResultValue>,
 ) -> ResultValue {
-    tokio::time::timeout(Duration::from_secs(2), future)
-        .await
-        .unwrap()
+    crate::bounded(future).await
 }
 #[tokio::test(flavor = "current_thread")]
 async fn cancelled_shared_or_distinct_tokens_prune_unpolled_peer_and_release_before_return() {
@@ -104,13 +102,11 @@ async fn dropping_cancel_cleanup_waiter_still_releases_the_exact_old_worker() {
     token.cancel();
     assert!(poll_once(pending.as_mut()).await.is_pending());
     drop(pending);
-    tokio::time::timeout(Duration::from_secs(2), async {
+    crate::bounded(async {
         while mock.active.load(Ordering::SeqCst) != 0 {
             tokio::task::yield_now().await;
         }
-    })
-    .await
-    .unwrap();
+    }).await;
     assert_eq!(classifier.pending_counts(), (0, 0));
 }
 #[tokio::test(flavor = "current_thread")]
@@ -193,13 +189,11 @@ async fn worker_guard_dropped_before_first_poll_completes_multiple_and_late_wait
     task.abort();
     assert!(task.await.unwrap_err().is_cancelled());
     assert!(!started.load(Ordering::SeqCst));
-    tokio::time::timeout(Duration::from_secs(2), async {
+    crate::bounded(async {
         first.await;
         second.await;
         completed.wait().await;
-    })
-    .await
-    .unwrap();
+    }).await;
 }
 #[tokio::test(flavor = "current_thread")]
 async fn finished_worker_without_result_retires_entry_and_returns_network_fallback() {
@@ -330,9 +324,7 @@ async fn shutdown_cancellation_wins_over_late_success_publication_and_waits_for_
         std::task::Poll::Pending => bounded_classification(pending).await,
     };
     // Preserve owned cleanup before the intended old-code failure assertion.
-    tokio::time::timeout(Duration::from_secs(2), entry.completed.wait())
-        .await
-        .unwrap();
+    crate::bounded(entry.completed.wait()).await;
     assert_eq!(mock.active.load(Ordering::SeqCst), 0);
     assert_eq!(classifier.pending_counts(), (0, 0));
     assert!(

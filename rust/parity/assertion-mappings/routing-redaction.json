@@ -2,7 +2,7 @@
   "schema_version": 1,
   "draft": false,
   "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
-  "scope": "Reviewed mappings for 45 frozen definitions and 138 static assertion calls. The 23 auto-routing definitions now include 372 captured JSON calls through authoritative document guards; two nonfinite API calls in definition 16 remain partial. The other 22 definitions retain the original audit statuses and gaps.",
+  "scope": "Reviewed mappings for 45 frozen definitions and 138 static assertion calls. The 23 auto-routing definitions now include 372 captured JSON calls through authoritative document guards; definition16 now has actual original Infinity evidence and an explicitly reviewed NaN native-API representation difference; both historical capture skips remain recorded. The other 22 definitions retain the original audit statuses and gaps.",
   "semantics": [
     "covered: complete relevant assertion and parameter cases have direct runtime/native or authoritative differential evidence.",
     "partial: related/subset evidence exists, but at least one assertion case or production-path bridge is missing.",
@@ -15,13 +15,13 @@
     "Shared opaque object references in baseline fixtures are not reference-identity assertions. Frozen Node objects and exact before/after document serialization cover the tested structural nonmutation contract; arbitrary JS getters/prototypes/symbol properties remain outside this capture's pinned scope."
   ],
   "counts": {
-    "covered": 24,
-    "partial": 17,
+    "covered": 25,
+    "partial": 16,
     "pending": 4
   },
   "assertion_counts": {
-    "covered": 79,
-    "partial": 46,
+    "covered": 80,
+    "partial": 45,
     "pending": 13
   },
   "source_hashes": {
@@ -4212,7 +4212,8 @@
             "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
             "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
             "rust/crates/autorouter-core/src/auto_routing.rs#output_thinking_effort_sampling_and_prefill_restrictions_have_exact_reasons",
-            "rust/crates/autorouter-core/src/auto_routing.rs#authoritative_guard_preserves_overflow_truthiness_and_optional_envelopes"
+            "rust/crates/autorouter-core/src/auto_routing.rs#authoritative_guard_preserves_overflow_truthiness_and_optional_envelopes",
+            "rust/parity/measurements/native-callback-auto-output-summary.json"
           ],
           "review_notes": [
             "The SHA-verified frozen definition executes unchanged, including every local loop and original assertion; wrapper calls retain exact result and before/after serialization.",
@@ -4236,21 +4237,21 @@
         {
           "line": 379,
           "expression": "assert.equal(canRouteAutoRequest(request({ max_tokens }), 'claude-opus-5-5'), false, String(max_tokens))",
-          "status": "partial",
+          "status": "covered",
           "evidence": [
             "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
             "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
             "rust/crates/autorouter-core/src/auto_routing.rs#output_thinking_effort_sampling_and_prefill_restrictions_have_exact_reasons",
-            "rust/crates/autorouter-core/src/auto_routing.rs#authoritative_guard_preserves_overflow_truthiness_and_optional_envelopes"
+            "rust/crates/autorouter-core/src/auto_routing.rs#authoritative_guard_preserves_overflow_truthiness_and_optional_envelopes",
+            "rust/parity/measurements/native-callback-auto-output-summary.json"
           ],
           "review_notes": [
             "The SHA-verified frozen definition executes unchanged, including every local loop and original assertion; wrapper calls retain exact result and before/after serialization.",
             "Each retained JSON case is replayed through guard_contract_json against the authoritative JsDocument guard and the frozen Node guard; all 372 match, and node_expected is enforced on rerun.",
-            "Structural nonmutation assertions are supported by exact before/after serialized documents. The baseline contains shared opaque references but no reference-identity assertion."
+            "Structural nonmutation assertions are supported by exact before/after serialized documents. The baseline contains shared opaque references but no reference-identity assertion.",
+            "Reviewed only for Auto output limits: current native JSON/document requests cannot represent NaN; no native NaN guard call or null projection is claimed. Actual original Infinity remains a Number and is rejected with output_limit. The fresh372-case differential covers all ten finite Auto16 calls; both historical non-JSON capture skips remain unchanged."
           ],
-          "remaining": [
-            "JavaScript API calls with max_tokens=NaN and max_tokens=Infinity are skipped rather than serialized to null. These two calls need explicit API-migration evidence; finite wire cases are covered."
-          ],
+          "remaining": [],
           "shared_cases": [
             "baseline-auto-16-1",
             "baseline-auto-16-2",
@@ -4277,10 +4278,11 @@
         "baseline-auto-16-9",
         "baseline-auto-16-10"
       ],
-      "status": "partial",
+      "status": "covered",
       "rust_tests": [
         "rust/crates/autorouter-core/src/auto_routing.rs#output_thinking_effort_sampling_and_prefill_restrictions_have_exact_reasons",
-        "rust/crates/autorouter-core/src/auto_routing.rs#authoritative_guard_preserves_overflow_truthiness_and_optional_envelopes"
+        "rust/crates/autorouter-core/src/auto_routing.rs#authoritative_guard_preserves_overflow_truthiness_and_optional_envelopes",
+        "rust/crates/autorouter-core/src/auto_routing.rs#public_document_output_guard_keeps_infinity_distinct_from_json_null"
       ],
       "related_corpora": [
         "compatibility",
@@ -4290,14 +4292,13 @@
       "review_notes": [
         "The SHA-verified frozen definition executes unchanged, including every local loop and original assertion; wrapper calls retain exact result and before/after serialization.",
         "Each retained JSON case is replayed through guard_contract_json against the authoritative JsDocument guard and the frozen Node guard; all 372 match, and node_expected is enforced on rerun.",
-        "Structural nonmutation assertions are supported by exact before/after serialized documents. The baseline contains shared opaque references but no reference-identity assertion."
+        "Structural nonmutation assertions are supported by exact before/after serialized documents. The baseline contains shared opaque references but no reference-identity assertion.",
+        "Reviewed only for Auto output limits: current native JSON/document requests cannot represent NaN; no native NaN guard call or null projection is claimed. Actual original Infinity remains a Number and is rejected with output_limit. The fresh372-case differential covers all ten finite Auto16 calls; both historical non-JSON capture skips remain unchanged."
       ],
-      "remaining": [
-        "JavaScript API calls with max_tokens=NaN and max_tokens=Infinity are skipped rather than serialized to null. These two calls need explicit API-migration evidence; finite wire cases are covered."
-      ],
+      "remaining": [],
       "native_source_hashes": {
-        "rust/crates/autorouter-core/src/auto_routing.rs": "fced8a4c7a32f297549103448369acc4335f4aea43a6e44dde1b3c02a1d76094",
-        "rust/crates/autorouter-core/src/fixture.rs": "4d64019c69a69c4bc03933ea4e0f871d94c4d1eb616a1e0f9a54a82fa3e69b12",
+        "rust/crates/autorouter-core/src/auto_routing.rs": "61fdb3ac02eaf480c430cac194fc5e2dcac403a5241801b5ff47c630625f95fe",
+        "rust/crates/autorouter-core/src/fixture.rs": "c5913cdde84a3d2af7f023f98fd6fcc34ab13276d8d3c68682d9a87d1321b7d4",
         "rust/xtask/src/parity.rs": "6de605778899df5db4be325c343804f6d21f4b3c852ee070cfa73dd16c971c64"
       },
       "initial_audit": {
@@ -4365,19 +4366,24 @@
       },
       "generator": "rust/parity/capture-auto-routing-contracts.mjs",
       "evidence": {
-        "capture": "artifacts/rust-rewrite/evidence/ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e.json",
+        "summary": "rust/parity/measurements/native-callback-auto-output-summary.json",
+        "capture": "artifacts/rust-rewrite/auto-output-original-number-proof-20261017-1/finite-capture/capture/capture.json",
         "capture_sha256": "ccfbaf37dc21dbe3d9f8bce83c20b451f7434b477925fcab674b50f88b5a953e",
-        "report": "artifacts/rust-rewrite/evidence/a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d.json",
-        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
-        "cases_file": "artifacts/rust-rewrite/evidence/23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28.jsonl",
+        "cases_file": "artifacts/rust-rewrite/auto-output-original-number-proof-20261017-1/finite-capture/capture/cases.jsonl",
         "cases_sha256": "23e20e76f2373366ba8d9cdee606ba3731c1aaa2293e65a10b3646bea9fa4a28",
+        "report": "artifacts/rust-rewrite/auto-output-original-number-proof-20261017-1/finite-capture/native-parity.json",
+        "report_sha256": "a56f1e217c9c920bc28938ac04eeb761d26e961e03a88c80ca462ae98507091d",
         "cases": 372,
         "matched": 372,
         "definition_cases": 10,
-        "native_log": "artifacts/rust-rewrite/evidence/41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf.log",
-        "native_log_sha256": "41f6c2ba2b4267cd87b637da2b5972553cd4463d5fd55c73b0759c87f4fe80cf",
-        "parity_execution_log": "artifacts/rust-rewrite/evidence/67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472.log",
-        "parity_execution_log_sha256": "67b1a2531c2ae1c86597f834191e745b496a3838d3f1dd378d452cc077a8e472"
+        "native_process": "artifacts/rust-rewrite/source-sharing-20261017-6/auto-original-372.json",
+        "native_infinity_unit": "artifacts/rust-rewrite/auto-output-original-number-proof-20261017-1/native-output-guard.json",
+        "formal_review": {
+          "path": "artifacts/rust-rewrite/auto-output-original-number-proof-20261017-1/independent-review/formal-api-migration-final-review.json",
+          "bytes": 22099,
+          "sha256": "835ec5c0f38481b74fa7379a01f62361e90c52c70cf2d8ba06a2de357f97b137"
+        },
+        "native_nan_guard_executed": false
       },
       "migration_boundaries": [
         {
@@ -4396,7 +4402,19 @@
             "$.max_tokens: non-finite number"
           ]
         }
-      ]
+      ],
+      "reviewed_native_api_migration": {
+        "status": "accepted_for_this_definition_only",
+        "difference": "Reviewed only for Auto output limits: current native JSON/document requests cannot represent NaN; no native NaN guard call or null projection is claimed. Actual original Infinity remains a Number and is rejected with output_limit. The fresh372-case differential covers all ten finite Auto16 calls; both historical non-JSON capture skips remain unchanged.",
+        "historical_non_json_skips_preserved": 2,
+        "native_nan_guard_executed": false,
+        "review": {
+          "path": "artifacts/rust-rewrite/auto-output-original-number-proof-20261017-1/independent-review/formal-api-migration-final-review.json",
+          "bytes": 22099,
+          "sha256": "835ec5c0f38481b74fa7379a01f62361e90c52c70cf2d8ba06a2de357f97b137"
+        },
+        "historical_complete_row_preserved_in": "rust/parity/measurements/native-callback-auto-output-summary.json"
+      }
     },
     {
       "baseline_test": "test/auto-routing.test.mjs#17",

@@ -37,6 +37,12 @@ pub(crate) struct Buffered<T, B> {
     node_headers: super::node_compat::Counter,
     #[cfg(feature = "node-http1-compat")]
     node_response_policy: bool,
+    #[cfg(feature = "node-http1-compat")]
+    node_server_timing: Option<std::sync::Arc<dyn crate::ext::NodeHttpServerTimingControl>>,
+    #[cfg(feature = "node-http1-compat")]
+    node_positive_input: bool,
+    #[cfg(feature = "node-http1-compat")]
+    node_timing_terminal: bool,
     read_blocked: bool,
     read_buf: BytesMut,
     read_buf_strategy: ReadStrategy,
@@ -75,6 +81,12 @@ where
             node_headers: super::node_compat::Counter::default(),
             #[cfg(feature = "node-http1-compat")]
             node_response_policy: false,
+            #[cfg(feature = "node-http1-compat")]
+            node_server_timing: None,
+            #[cfg(feature = "node-http1-compat")]
+            node_positive_input: false,
+            #[cfg(feature = "node-http1-compat")]
+            node_timing_terminal: false,
             read_blocked: false,
             read_buf: BytesMut::with_capacity(0),
             read_buf_strategy: ReadStrategy::default(),
@@ -89,6 +101,49 @@ where
         if enabled {
             self.set_write_strategy_flatten();
         }
+    }
+
+    #[cfg(feature = "node-http1-compat")]
+    pub(crate) fn set_node_server_timing(
+        &mut self,
+        control: std::sync::Arc<dyn crate::ext::NodeHttpServerTimingControl>,
+    ) {
+        self.node_server_timing = Some(control);
+    }
+
+    #[cfg(feature = "node-http1-compat")]
+    pub(crate) fn node_server_timing(
+        &self,
+    ) -> Option<&std::sync::Arc<dyn crate::ext::NodeHttpServerTimingControl>> {
+        self.node_server_timing.as_ref()
+    }
+
+    #[cfg(feature = "node-http1-compat")]
+    pub(crate) fn commit_node_timing(&mut self, events: &[crate::ext::NodeHttpServerTimingEvent]) -> bool {
+        if self.node_timing_terminal { return false; }
+        let Some(control) = &self.node_server_timing else { return true; };
+        let mut batch = smallvec::SmallVec::<[crate::ext::NodeHttpServerTimingEvent; 3]>::new();
+        if std::mem::take(&mut self.node_positive_input) {
+            batch.push(crate::ext::NodeHttpServerTimingEvent::PositiveInput);
+        }
+        batch.extend(events.iter().cloned());
+        if !control.commit(&batch) {
+            self.node_timing_terminal = true;
+            return false;
+        }
+        true
+    }
+
+    #[cfg(feature = "node-http1-compat")]
+    pub(crate) fn node_timing_terminal(&self) -> bool { self.node_timing_terminal }
+
+    #[cfg(feature = "node-http1-compat")]
+    pub(crate) fn poll_node_timeout_write(&mut self, cx: &mut Context<'_>) {
+        // Match write-then-destroy: one direct attempt, never an ordinary
+        // buffered flush, retry, shutdown wait, or delivery acknowledgement.
+        let _ = Pin::new(&mut self.io).poll_write(
+            cx, b"HTTP/1.1 408 Request Timeout\r\nConnection: close\r\n\r\n",
+        );
     }
 
     #[cfg(feature = "node-http1-compat")]
@@ -200,8 +255,11 @@ where
     {
         loop {
             #[cfg(feature = "node-http1-compat")]
+            let begun_before = self.node_headers.message_begun();
+            let parsed = (|| {
+            #[cfg(feature = "node-http1-compat")]
             if S::is_server() || self.node_response_policy { self.node_headers.observe(&mut self.read_buf)?; }
-            if let Some(msg) = super::role::parse_headers::<S>(
+            super::role::parse_headers::<S>(
                 &mut self.read_buf,
                 self.partial_len,
                 ParseContext {
@@ -219,7 +277,37 @@ where
                     #[cfg(feature = "client")]
                     on_informational: parse_ctx.on_informational,
                 },
-            )? {
+            )
+            })();
+            #[cfg(feature = "node-http1-compat")]
+            let mut parsed = parsed;
+            #[cfg(feature = "node-http1-compat")]
+            if S::is_server() && self.node_server_timing.is_some() {
+                let mut events = smallvec::SmallVec::<[crate::ext::NodeHttpServerTimingEvent; 2]>::new();
+                if !begun_before && self.node_headers.message_begun() {
+                    events.push(crate::ext::NodeHttpServerTimingEvent::MessageBegin);
+                }
+                if let Ok(Some(message)) = &mut parsed {
+                    let response = crate::ext::NodeHttpResponseTiming::new();
+                    message.head.extensions.insert(response.clone());
+                    events.push(crate::ext::NodeHttpServerTimingEvent::HeadersComplete {
+                        message_complete: message.decode == crate::body::DecodedLength::ZERO,
+                        response,
+                    });
+                    if message.wants_upgrade {
+                        events.push(crate::ext::NodeHttpServerTimingEvent::ParserAborted);
+                    }
+                } else if parsed.is_err() {
+                    events.push(crate::ext::NodeHttpServerTimingEvent::ParserAborted);
+                }
+                // Publish all phase changes before exposing a head or error.
+                // A scan that won first makes this progress terminal instead.
+                if !self.commit_node_timing(&events) {
+                    cx.waker().wake_by_ref();
+                    return Poll::Pending;
+                }
+            }
+            if let Some(msg) = parsed? {
                 debug!("parsed {} headers", msg.head.headers.len());
                 self.partial_len = None;
                 #[cfg(feature = "node-http1-compat")]
@@ -247,6 +335,11 @@ where
                 }
             }
             if ready!(self.poll_read_from_io(cx)).map_err(crate::Error::new_io)? == 0 {
+                #[cfg(feature = "node-http1-compat")]
+                if !self.commit_node_timing(&[crate::ext::NodeHttpServerTimingEvent::ParserAborted]) {
+                    cx.waker().wake_by_ref();
+                    return Poll::Pending;
+                }
                 trace!("parse eof");
                 return Poll::Ready(Err(crate::Error::new_incomplete()));
             }
@@ -282,6 +375,10 @@ where
                     self.read_buf.advance_mut(n);
                 }
                 self.read_buf_strategy.record(n);
+                #[cfg(feature = "node-http1-compat")]
+                if n > 0 && self.node_server_timing.is_some() {
+                    self.node_positive_input = true;
+                }
                 Poll::Ready(Ok(n))
             }
             Poll::Pending => {

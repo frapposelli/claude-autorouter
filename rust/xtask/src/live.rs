@@ -788,6 +788,16 @@ async fn execute(
         if let Some(gateway) = oracle {
             let closed = gateway.close().await?;
             gateway_cleanup = json!({"awaited":true,"reference_closed":closed["closed"],"reference_protocol_valid":closed["protocol_valid"],"reference_process_exit_code":closed["process"]["exit_code"],"reference_process_timed_out":closed["process"]["timed_out"],"reference_process_output_limit_exceeded":closed["process"]["output_limit_exceeded"]});
+            for key in [
+                "supervision",
+                "cleanup_confirmed",
+                "observed_exit_code",
+                "observed_exit_signal",
+            ] {
+                if let Some(value) = closed["process"].get(key) {
+                    gateway_cleanup[format!("reference_process_{key}")] = value.clone();
+                }
+            }
         }
         gateway_cleanup["listener_observation"] = json!(match tokio::time::timeout(
             Duration::from_millis(500),

@@ -41,44 +41,9 @@ fn save(name: &str, value: &Value) {
     }
 }
 // Same guarded numeric representation comparator as xtask/src/parity.rs.
-fn numeric_equal(a: &serde_json::Number, b: &serde_json::Number) -> bool {
-    if a == b {
-        return true;
-    }
-    if !a.is_f64() && !b.is_f64() {
-        return false;
-    }
-    let (Some(left), Some(right)) = (a.as_f64(), b.as_f64()) else {
-        return false;
-    };
-    if left != right {
-        return false;
-    }
-    if a.is_f64() && b.is_f64() {
-        return true;
-    }
-    let integer = if a.is_f64() { b } else { a };
-    if let Some(value) = integer.as_u64() {
-        (0.0..18_446_744_073_709_551_616.0).contains(&left) && left as u64 == value
-    } else if let Some(value) = integer.as_i64() {
-        (-9_223_372_036_854_775_808.0..9_223_372_036_854_775_808.0).contains(&left)
-            && left as i64 == value
-    } else {
-        false
-    }
-}
-fn equal(a: &Value, b: &Value) -> bool {
-    match (a, b) {
-        (Value::Number(a), Value::Number(b)) => numeric_equal(a, b),
-        (Value::Array(a), Value::Array(b)) => {
-            a.len() == b.len() && a.iter().zip(b).all(|(a, b)| equal(a, b))
-        }
-        (Value::Object(a), Value::Object(b)) => {
-            a.len() == b.len() && a.iter().all(|(k, a)| b.get(k).is_some_and(|b| equal(a, b)))
-        }
-        _ => a == b,
-    }
-}
+include!("../src/json_compare_macros.rs");
+contract_numeric_equal!(numeric_equal);
+contract_json_equal!(equal, a, b => numeric_equal(a, b));
 fn tagged_kind(value: &Value) -> Option<&str> {
     value.get("$js_type").and_then(Value::as_str)
 }

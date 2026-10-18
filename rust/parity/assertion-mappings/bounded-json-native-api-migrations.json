@@ -1,0 +1,803 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_bounded_json_native_api_migration_assertion_supplement",
+  "status": "ACCEPTED_REVIEWED_NATIVE_API_MIGRATION",
+  "recorded_at_utc": "2026-10-18T03:00:48.411909+00:00",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "scope": "Only original bounded-json#2\u2013#5;12staticassertions/21staticloop-expanded instances. Counts are structural, not instrumented assertion executions. Eight declared read schedules per engine are covered by actual original Node callbacks/native counterparts. No new product executions or public changes by author.",
+  "historical_mapping": {
+    "path": "rust/parity/assertion-mappings/bounded-json-contracts.json",
+    "bytes": 17755,
+    "sha256": "6cd278211b54c3e2221b39d5a2a8868266ed533ccad560f910ca0792d9936929"
+  },
+  "historical_mapping_unchanged": true,
+  "rows": [
+    {
+      "id": "test/bounded-json.test.mjs#2",
+      "source_name": "stream bytes override missing or inaccurate headers and oversized bodies are cancelled",
+      "source_definition_sha256": "68bac565d09205ef35685162ca45909fcf877db8b9df5fa776f9098784fed156",
+      "previous_mapping_row": {
+        "id": "test/bounded-json.test.mjs#2",
+        "name": "stream bytes override missing or inaccurate headers and oversized bodies are cancelled",
+        "baseline_file_sha256": "d31ef9d55dfdc07e236a5e9c305908343f4a488b04563a231d138c06560a33c4",
+        "line": 17,
+        "definition_sha256": "68bac565d09205ef35685162ca45909fcf877db8b9df5fa776f9098784fed156",
+        "definition_hash_scope": "Exact ExpressionStatement including terminating semicolon.",
+        "status": "partial_assertion_mapping",
+        "rust_tests": [
+          "rust/crates/autorouter-runtime/tests/bounded_json_contracts.rs#exact_65537_byte_overflow_releases_body_under_all_three_frozen_headers"
+        ],
+        "shared_cases": [],
+        "scenarios": [
+          "Original65537zero bytes and all3headers:absent,1,65537. Typed Oversized, stream actually polled under missing/low headers and zero polls under oversized early-rejection header."
+        ],
+        "assertions": [
+          {
+            "id": "test/bounded-json.test.mjs#2/assert-1",
+            "line": 22,
+            "expression": "assert.rejects(readBoundedJson(response), /classifier_invalid_response/)",
+            "sha256": "1e91987c2235b21324f089aa03564bd5ee165dd2e6307dabffba3374fdcb7e65"
+          },
+          {
+            "id": "test/bounded-json.test.mjs#2/assert-2",
+            "line": 23,
+            "expression": "assert.equal(cancelled, true)",
+            "sha256": "9d31057f08f6678980db9b13aafdf0e260b7d4325f227b62d44b8bd566f219e3"
+          },
+          {
+            "id": "test/bounded-json.test.mjs#2/assert-3",
+            "line": 24,
+            "expression": "assert.equal(response.body.locked, false)",
+            "sha256": "d7af3125cad90e4307010cbd1d4da5a1327d1b94cb440774bc6c2b8044258753"
+          }
+        ],
+        "native_ownership_adaptation": "Rust consumes an owned Body. Exactlyone Drop and no retained Arc body-state handles before return replace reader-release observations; no JavaScript reader-lock object is claimed.",
+        "remaining_assertions": [
+          "Native helper returns typed ReadError::Oversized, not the literal JavaScript classifier_invalid_response Error string. The evaluator adapter is separately tested; this direct helper mapping does not substitute that boundary."
+        ]
+      },
+      "previous_coverage_row": {
+        "id": "test/bounded-json.test.mjs#2",
+        "file": "test/bounded-json.test.mjs",
+        "name": "stream bytes override missing or inaccurate headers and oversized bodies are cancelled",
+        "parameterized": false,
+        "status": "partial_assertion_mapping",
+        "rust_tests": [
+          "rust/crates/autorouter-runtime/tests/bounded_json_contracts.rs#exact_65537_byte_overflow_releases_body_under_all_three_frozen_headers"
+        ],
+        "shared_cases": [],
+        "evidence": {
+          "assertion_mapping": "rust/parity/assertion-mappings/bounded-json-contracts.json",
+          "assertion_mapping_sha256": "6cd278211b54c3e2221b39d5a2a8868266ed533ccad560f910ca0792d9936929",
+          "input_coverage": {
+            "path": "artifacts/rust-rewrite/evidence/d2fff1c0986516787e60403abdfb670b3cb7c38bb4e804560c6eeec9d306273b.json",
+            "sha256": "d2fff1c0986516787e60403abdfb670b3cb7c38bb4e804560c6eeec9d306273b",
+            "bytes": 984107,
+            "original_path": "rust/parity/coverage.json",
+            "source_commit": "bf50b60fb702699f0c1cac5e62b8fecf28cb2209"
+          },
+          "review": {
+            "path": "artifacts/rust-rewrite/evidence/1d4b01c4a0c16870d116c8b54d776307bebeaebcaf5471532deb03b2c47d0e92.json",
+            "sha256": "1d4b01c4a0c16870d116c8b54d776307bebeaebcaf5471532deb03b2c47d0e92",
+            "original_path": "/private/tmp/autorouter-bounded-json-independent-review-3.json"
+          },
+          "execution": {
+            "native": {
+              "path": "artifacts/rust-rewrite/evidence/25d27c052d1cfa2cb832b16c851d84ff3da18f47732dc983c2136a1794e182dc.log",
+              "sha256": "25d27c052d1cfa2cb832b16c851d84ff3da18f47732dc983c2136a1794e182dc",
+              "bytes": 818,
+              "original_path": "artifacts/rust-rewrite/eighth-bounded-json-native-2.log"
+            },
+            "frozen_control": {
+              "path": "artifacts/rust-rewrite/evidence/5293cb4cc39b443c205dabf7481c6e87100b746636af3f18c8261344737ecde7.log",
+              "sha256": "5293cb4cc39b443c205dabf7481c6e87100b746636af3f18c8261344737ecde7",
+              "bytes": 1163,
+              "original_path": "artifacts/rust-rewrite/eighth-bounded-json-frozen-control.log"
+            },
+            "clippy": {
+              "path": "artifacts/rust-rewrite/evidence/9d9a19fdb0d56aba49cc053c8eed42a00fe7faa94029b9edfd8c35dcf0fe4af0.log",
+              "sha256": "9d9a19fdb0d56aba49cc053c8eed42a00fe7faa94029b9edfd8c35dcf0fe4af0",
+              "bytes": 178,
+              "original_path": "artifacts/rust-rewrite/eighth-bounded-json-clippy-1.log"
+            }
+          },
+          "scope": "One covered and four partial bounded JSON definitions. Native owned-body cleanup is proved; JavaScript reader, reason-identity and cancellation-promise boundaries remain explicit."
+        },
+        "related_components": [
+          "response_observer",
+          "evaluators"
+        ],
+        "remaining_assertions": [
+          "Native helper returns typed ReadError::Oversized, not the literal JavaScript classifier_invalid_response Error string. The evaluator adapter is separately tested; this direct helper mapping does not substitute that boundary."
+        ],
+        "assertion_mapping": "rust/parity/assertion-mappings/bounded-json-contracts.json"
+      },
+      "recommendation": "ACCEPT_ONLY_WITH_EXPLICIT_REVIEWED_NATIVE_API_MIGRATION",
+      "native_test": "exact_65537_byte_overflow_releases_body_under_all_three_frozen_headers",
+      "assertions": [
+        {
+          "id": "test/bounded-json.test.mjs#2/assert-1",
+          "line": 22,
+          "expression": "assert.rejects(readBoundedJson(response), /classifier_invalid_response/)",
+          "sha256": "1e91987c2235b21324f089aa03564bd5ee165dd2e6307dabffba3374fdcb7e65",
+          "classification": "reviewed_native_api_migration_with_actual_native_counterpart",
+          "native_counterpart": "typed invalid-response result",
+          "scope": "Three header profiles return fixed ReadError::Oversized rather than Promise rejection matching literal classifier_invalid_response. Same65,537zero bytes, no extra success path.",
+          "source_expression_itself_executed_in_native": false
+        },
+        {
+          "id": "test/bounded-json.test.mjs#2/assert-2",
+          "line": 23,
+          "expression": "assert.equal(cancelled, true)",
+          "sha256": "9d31057f08f6678980db9b13aafdf0e260b7d4325f227b62d44b8bd566f219e3",
+          "classification": "reviewed_native_api_migration_with_actual_native_counterpart",
+          "native_counterpart": "owned cleanup instead of JS callback",
+          "scope": "Source cancelled=true is actually observed in Node. Native exactly one Drop and Arc strongcount1 are actually observed; no JavaScript cancel function is supplied or executed.",
+          "source_expression_itself_executed_in_native": false
+        },
+        {
+          "id": "test/bounded-json.test.mjs#2/assert-3",
+          "line": 24,
+          "expression": "assert.equal(response.body.locked, false)",
+          "sha256": "d7af3125cad90e4307010cbd1d4da5a1327d1b94cb440774bc6c2b8044258753",
+          "classification": "reviewed_native_api_migration_with_actual_native_counterpart",
+          "native_counterpart": "owned release instead of reader.locked",
+          "scope": "Source reader unlocked=true is actually observed; native body/decoder ownership is gone before Result return. No fake lock object is invented.",
+          "source_expression_itself_executed_in_native": false
+        }
+      ]
+    },
+    {
+      "id": "test/bounded-json.test.mjs#3",
+      "source_name": "malformed JSON exposes only the stable category and releases the body",
+      "source_definition_sha256": "d37dffc61efaeda731255c33b0964dc9694497afbbf11cf8ebd99d480b9641f8",
+      "previous_mapping_row": {
+        "id": "test/bounded-json.test.mjs#3",
+        "name": "malformed JSON exposes only the stable category and releases the body",
+        "baseline_file_sha256": "d31ef9d55dfdc07e236a5e9c305908343f4a488b04563a231d138c06560a33c4",
+        "line": 28,
+        "definition_sha256": "d37dffc61efaeda731255c33b0964dc9694497afbbf11cf8ebd99d480b9641f8",
+        "definition_hash_scope": "Exact ExpressionStatement including terminating semicolon.",
+        "status": "partial_assertion_mapping",
+        "rust_tests": [
+          "rust/crates/autorouter-runtime/tests/bounded_json_contracts.rs#frozen_private_malformed_and_empty_bodies_return_payload_free_typed_errors"
+        ],
+        "shared_cases": [],
+        "scenarios": [
+          "Original private unterminated JSON and empty bytes. Payload-free InvalidJson enum; both owned bodies fully released."
+        ],
+        "assertions": [
+          {
+            "id": "test/bounded-json.test.mjs#3/assert-1",
+            "line": 30,
+            "expression": "assert.rejects(readBoundedJson(response), error => error.message === 'classifier_invalid_response')",
+            "sha256": "399fb7072233f53b6f32264946fc6444b96ca4310deb0a4abc4c8c21597668f7"
+          },
+          {
+            "id": "test/bounded-json.test.mjs#3/assert-2",
+            "line": 31,
+            "expression": "assert.equal(response.body.locked, false)",
+            "sha256": "d7af3125cad90e4307010cbd1d4da5a1327d1b94cb440774bc6c2b8044258753"
+          },
+          {
+            "id": "test/bounded-json.test.mjs#3/assert-3",
+            "line": 32,
+            "expression": "assert.rejects(readBoundedJson(new Response(null)), /classifier_invalid_response/)",
+            "sha256": "6cae6fe97109001c7e2aed4c7b7e635d93357844934b127c5cd0c45739b2cc87"
+          }
+        ],
+        "native_ownership_adaptation": "Rust consumes an owned Body. Exactlyone Drop and no retained Arc body-state handles before return replace reader-release observations; no JavaScript reader-lock object is claimed.",
+        "remaining_assertions": [
+          "Native returns typed ReadError::InvalidJson, not the literal classifier_invalid_response Error.message. Empty native Body represents empty response data, not a distinct Response(null) absent-body object."
+        ]
+      },
+      "previous_coverage_row": {
+        "id": "test/bounded-json.test.mjs#3",
+        "file": "test/bounded-json.test.mjs",
+        "name": "malformed JSON exposes only the stable category and releases the body",
+        "parameterized": false,
+        "status": "partial_assertion_mapping",
+        "rust_tests": [
+          "rust/crates/autorouter-runtime/tests/bounded_json_contracts.rs#frozen_private_malformed_and_empty_bodies_return_payload_free_typed_errors"
+        ],
+        "shared_cases": [],
+        "evidence": {
+          "assertion_mapping": "rust/parity/assertion-mappings/bounded-json-contracts.json",
+          "assertion_mapping_sha256": "6cd278211b54c3e2221b39d5a2a8868266ed533ccad560f910ca0792d9936929",
+          "input_coverage": {
+            "path": "artifacts/rust-rewrite/evidence/d2fff1c0986516787e60403abdfb670b3cb7c38bb4e804560c6eeec9d306273b.json",
+            "sha256": "d2fff1c0986516787e60403abdfb670b3cb7c38bb4e804560c6eeec9d306273b",
+            "bytes": 984107,
+            "original_path": "rust/parity/coverage.json",
+            "source_commit": "bf50b60fb702699f0c1cac5e62b8fecf28cb2209"
+          },
+          "review": {
+            "path": "artifacts/rust-rewrite/evidence/1d4b01c4a0c16870d116c8b54d776307bebeaebcaf5471532deb03b2c47d0e92.json",
+            "sha256": "1d4b01c4a0c16870d116c8b54d776307bebeaebcaf5471532deb03b2c47d0e92",
+            "original_path": "/private/tmp/autorouter-bounded-json-independent-review-3.json"
+          },
+          "execution": {
+            "native": {
+              "path": "artifacts/rust-rewrite/evidence/25d27c052d1cfa2cb832b16c851d84ff3da18f47732dc983c2136a1794e182dc.log",
+              "sha256": "25d27c052d1cfa2cb832b16c851d84ff3da18f47732dc983c2136a1794e182dc",
+              "bytes": 818,
+              "original_path": "artifacts/rust-rewrite/eighth-bounded-json-native-2.log"
+            },
+            "frozen_control": {
+              "path": "artifacts/rust-rewrite/evidence/5293cb4cc39b443c205dabf7481c6e87100b746636af3f18c8261344737ecde7.log",
+              "sha256": "5293cb4cc39b443c205dabf7481c6e87100b746636af3f18c8261344737ecde7",
+              "bytes": 1163,
+              "original_path": "artifacts/rust-rewrite/eighth-bounded-json-frozen-control.log"
+            },
+            "clippy": {
+              "path": "artifacts/rust-rewrite/evidence/9d9a19fdb0d56aba49cc053c8eed42a00fe7faa94029b9edfd8c35dcf0fe4af0.log",
+              "sha256": "9d9a19fdb0d56aba49cc053c8eed42a00fe7faa94029b9edfd8c35dcf0fe4af0",
+              "bytes": 178,
+              "original_path": "artifacts/rust-rewrite/eighth-bounded-json-clippy-1.log"
+            }
+          },
+          "scope": "One covered and four partial bounded JSON definitions. Native owned-body cleanup is proved; JavaScript reader, reason-identity and cancellation-promise boundaries remain explicit."
+        },
+        "related_components": [
+          "response_observer",
+          "evaluators"
+        ],
+        "remaining_assertions": [
+          "Native returns typed ReadError::InvalidJson, not the literal classifier_invalid_response Error.message. Empty native Body represents empty response data, not a distinct Response(null) absent-body object."
+        ],
+        "assertion_mapping": "rust/parity/assertion-mappings/bounded-json-contracts.json"
+      },
+      "recommendation": "ACCEPT_ONLY_WITH_EXPLICIT_REVIEWED_NATIVE_API_MIGRATION",
+      "native_test": "frozen_private_malformed_and_empty_bodies_return_payload_free_typed_errors",
+      "assertions": [
+        {
+          "id": "test/bounded-json.test.mjs#3/assert-1",
+          "line": 30,
+          "expression": "assert.rejects(readBoundedJson(response), error => error.message === 'classifier_invalid_response')",
+          "sha256": "399fb7072233f53b6f32264946fc6444b96ca4310deb0a4abc4c8c21597668f7",
+          "classification": "reviewed_native_api_migration_with_actual_native_counterpart",
+          "native_counterpart": "typed stable privacy category",
+          "scope": "Same PRIVATE_SECRET unterminated bytes yield unit InvalidJson, with fixed Debug lacking PRIVATE_. Source Error.message literal is represented by a richer typed diagnostic, not asserted text parity.",
+          "source_expression_itself_executed_in_native": false
+        },
+        {
+          "id": "test/bounded-json.test.mjs#3/assert-2",
+          "line": 31,
+          "expression": "assert.equal(response.body.locked, false)",
+          "sha256": "d7af3125cad90e4307010cbd1d4da5a1327d1b94cb440774bc6c2b8044258753",
+          "classification": "reviewed_native_api_migration_with_actual_native_counterpart",
+          "native_counterpart": "owned release instead of reader.locked",
+          "scope": "Native exactly one Body destruction/no retained lifetime handles; no JS reader-lock object.",
+          "source_expression_itself_executed_in_native": false
+        },
+        {
+          "id": "test/bounded-json.test.mjs#3/assert-3",
+          "line": 32,
+          "expression": "assert.rejects(readBoundedJson(new Response(null)), /classifier_invalid_response/)",
+          "sha256": "6cae6fe97109001c7e2aed4c7b7e635d93357844934b127c5cd0c45739b2cc87",
+          "classification": "reviewed_native_api_migration_with_actual_native_counterpart",
+          "native_counterpart": "mandatory Body instead of absent Response body",
+          "scope": "Native empty bytes ->InvalidJson and exactly one release. This is no-parseable-data behavior; a missing JavaScript Response.body object cannot be supplied to this API and is not labeled executed.",
+          "source_expression_itself_executed_in_native": false
+        }
+      ]
+    },
+    {
+      "id": "test/bounded-json.test.mjs#4",
+      "source_name": "caller cancellation interrupts stalled reads even when source cancellation never resolves",
+      "source_definition_sha256": "611f03514a0233d055f810c2b5e17989cbc059d39ea1c9074eae1843f74c5f2f",
+      "previous_mapping_row": {
+        "id": "test/bounded-json.test.mjs#4",
+        "name": "caller cancellation interrupts stalled reads even when source cancellation never resolves",
+        "baseline_file_sha256": "d31ef9d55dfdc07e236a5e9c305908343f4a488b04563a231d138c06560a33c4",
+        "line": 35,
+        "definition_sha256": "611f03514a0233d055f810c2b5e17989cbc059d39ea1c9074eae1843f74c5f2f",
+        "definition_hash_scope": "Exact ExpressionStatement including terminating semicolon.",
+        "status": "partial_assertion_mapping",
+        "rust_tests": [
+          "rust/crates/autorouter-runtime/tests/bounded_json_contracts.rs#cancellation_after_first_pending_poll_releases_exactly_one_native_body"
+        ],
+        "shared_cases": [],
+        "scenarios": [
+          "Empty pending Body; cancellation only after observed first Pending poll; exactlyone destruction and no retained strong body-state handles."
+        ],
+        "assertions": [
+          {
+            "id": "test/bounded-json.test.mjs#4/assert-1",
+            "line": 41,
+            "expression": "assert.rejects(pending, error => error === reason)",
+            "sha256": "c0065bee46960438cc173948a907f21ad99186544e72b6304b030d11497a5d0d"
+          },
+          {
+            "id": "test/bounded-json.test.mjs#4/assert-2",
+            "line": 44,
+            "expression": "assert.equal(cancelled, 1)",
+            "sha256": "2d682b1aa295c21729513321c91a9941beb083e69dc41e1aa8f583057ef39b19"
+          },
+          {
+            "id": "test/bounded-json.test.mjs#4/assert-3",
+            "line": 45,
+            "expression": "assert.equal(response.body.locked, false)",
+            "sha256": "d7af3125cad90e4307010cbd1d4da5a1327d1b94cb440774bc6c2b8044258753"
+          }
+        ],
+        "native_ownership_adaptation": "Rust consumes an owned Body. Exactlyone Drop and no retained Arc body-state handles before return replace reader-release observations; no JavaScript reader-lock object is claimed.",
+        "remaining_assertions": [
+          "Native CancellationToken has no caller-supplied Error reason identity. No JavaScript cancel callback returning an unresolved Promise or reader.locked object exists; exactlyonce body release and prompt cancellation are proven only in the native ownership model."
+        ]
+      },
+      "previous_coverage_row": {
+        "id": "test/bounded-json.test.mjs#4",
+        "file": "test/bounded-json.test.mjs",
+        "name": "caller cancellation interrupts stalled reads even when source cancellation never resolves",
+        "parameterized": false,
+        "status": "partial_assertion_mapping",
+        "rust_tests": [
+          "rust/crates/autorouter-runtime/tests/bounded_json_contracts.rs#cancellation_after_first_pending_poll_releases_exactly_one_native_body"
+        ],
+        "shared_cases": [],
+        "evidence": {
+          "assertion_mapping": "rust/parity/assertion-mappings/bounded-json-contracts.json",
+          "assertion_mapping_sha256": "6cd278211b54c3e2221b39d5a2a8868266ed533ccad560f910ca0792d9936929",
+          "input_coverage": {
+            "path": "artifacts/rust-rewrite/evidence/d2fff1c0986516787e60403abdfb670b3cb7c38bb4e804560c6eeec9d306273b.json",
+            "sha256": "d2fff1c0986516787e60403abdfb670b3cb7c38bb4e804560c6eeec9d306273b",
+            "bytes": 984107,
+            "original_path": "rust/parity/coverage.json",
+            "source_commit": "bf50b60fb702699f0c1cac5e62b8fecf28cb2209"
+          },
+          "review": {
+            "path": "artifacts/rust-rewrite/evidence/1d4b01c4a0c16870d116c8b54d776307bebeaebcaf5471532deb03b2c47d0e92.json",
+            "sha256": "1d4b01c4a0c16870d116c8b54d776307bebeaebcaf5471532deb03b2c47d0e92",
+            "original_path": "/private/tmp/autorouter-bounded-json-independent-review-3.json"
+          },
+          "execution": {
+            "native": {
+              "path": "artifacts/rust-rewrite/evidence/25d27c052d1cfa2cb832b16c851d84ff3da18f47732dc983c2136a1794e182dc.log",
+              "sha256": "25d27c052d1cfa2cb832b16c851d84ff3da18f47732dc983c2136a1794e182dc",
+              "bytes": 818,
+              "original_path": "artifacts/rust-rewrite/eighth-bounded-json-native-2.log"
+            },
+            "frozen_control": {
+              "path": "artifacts/rust-rewrite/evidence/5293cb4cc39b443c205dabf7481c6e87100b746636af3f18c8261344737ecde7.log",
+              "sha256": "5293cb4cc39b443c205dabf7481c6e87100b746636af3f18c8261344737ecde7",
+              "bytes": 1163,
+              "original_path": "artifacts/rust-rewrite/eighth-bounded-json-frozen-control.log"
+            },
+            "clippy": {
+              "path": "artifacts/rust-rewrite/evidence/9d9a19fdb0d56aba49cc053c8eed42a00fe7faa94029b9edfd8c35dcf0fe4af0.log",
+              "sha256": "9d9a19fdb0d56aba49cc053c8eed42a00fe7faa94029b9edfd8c35dcf0fe4af0",
+              "bytes": 178,
+              "original_path": "artifacts/rust-rewrite/eighth-bounded-json-clippy-1.log"
+            }
+          },
+          "scope": "One covered and four partial bounded JSON definitions. Native owned-body cleanup is proved; JavaScript reader, reason-identity and cancellation-promise boundaries remain explicit."
+        },
+        "related_components": [
+          "response_observer",
+          "evaluators"
+        ],
+        "remaining_assertions": [
+          "Native CancellationToken has no caller-supplied Error reason identity. No JavaScript cancel callback returning an unresolved Promise or reader.locked object exists; exactlyonce body release and prompt cancellation are proven only in the native ownership model."
+        ],
+        "assertion_mapping": "rust/parity/assertion-mappings/bounded-json-contracts.json"
+      },
+      "recommendation": "ACCEPT_ONLY_WITH_EXPLICIT_REVIEWED_NATIVE_API_MIGRATION",
+      "native_test": "cancellation_after_first_pending_poll_releases_exactly_one_native_body",
+      "assertions": [
+        {
+          "id": "test/bounded-json.test.mjs#4/assert-1",
+          "line": 41,
+          "expression": "assert.rejects(pending, error => error === reason)",
+          "sha256": "c0065bee46960438cc173948a907f21ad99186544e72b6304b030d11497a5d0d",
+          "classification": "reviewed_native_api_migration_with_actual_native_counterpart",
+          "native_counterpart": "unit cancellation instead of arbitrary Error identity",
+          "scope": "Source rejects with the exact caller Error reason. Native borrowed CancellationToken has no reason field and returns unit Cancelled; pointer/Error/message/stack identity is deliberately not represented.",
+          "source_expression_itself_executed_in_native": false
+        },
+        {
+          "id": "test/bounded-json.test.mjs#4/assert-2",
+          "line": 44,
+          "expression": "assert.equal(cancelled, 1)",
+          "sha256": "2d682b1aa295c21729513321c91a9941beb083e69dc41e1aa8f583057ef39b19",
+          "classification": "reviewed_native_api_migration_with_actual_native_counterpart",
+          "native_counterpart": "owned release instead of unresolved cancel Promise",
+          "scope": "Source unresolved cancel Promise is actually present and callbackcount1 observed. Native first Pending poll then cancellation returns Cancelled and one Drop; no async cleanup callback/promise exists or is awaited.",
+          "source_expression_itself_executed_in_native": false
+        },
+        {
+          "id": "test/bounded-json.test.mjs#4/assert-3",
+          "line": 45,
+          "expression": "assert.equal(response.body.locked, false)",
+          "sha256": "d7af3125cad90e4307010cbd1d4da5a1327d1b94cb440774bc6c2b8044258753",
+          "classification": "reviewed_native_api_migration_with_actual_native_counterpart",
+          "native_counterpart": "owned release instead of reader.locked",
+          "scope": "Native no remaining body-state lifetime handles proves consumed ownership released, not a JavaScript lock state.",
+          "source_expression_itself_executed_in_native": false
+        }
+      ]
+    },
+    {
+      "id": "test/bounded-json.test.mjs#5",
+      "source_name": "already aborted and oversized reads do not await uncooperative cancellation",
+      "source_definition_sha256": "3dc1424fbfba1fcf2f755dc6950ed7adcadbcf0c6ab4fb82f5707f206f383305",
+      "previous_mapping_row": {
+        "id": "test/bounded-json.test.mjs#5",
+        "name": "already aborted and oversized reads do not await uncooperative cancellation",
+        "baseline_file_sha256": "d31ef9d55dfdc07e236a5e9c305908343f4a488b04563a231d138c06560a33c4",
+        "line": 48,
+        "definition_sha256": "3dc1424fbfba1fcf2f755dc6950ed7adcadbcf0c6ab4fb82f5707f206f383305",
+        "definition_hash_scope": "Exact ExpressionStatement including terminating semicolon.",
+        "status": "partial_assertion_mapping",
+        "rust_tests": [
+          "rust/crates/autorouter-runtime/tests/bounded_json_contracts.rs#already_cancelled_overflow_is_not_polled_and_ordinary_overflow_is_released"
+        ],
+        "shared_cases": [],
+        "scenarios": [
+          "Original65537zero bytes under pre-cancelledfalse/true, respectively Oversized/Cancelled. Already-cancelled path does not poll body; both are released exactlyonce."
+        ],
+        "assertions": [
+          {
+            "id": "test/bounded-json.test.mjs#5/assert-1",
+            "line": 55,
+            "expression": "assert.rejects(readBoundedJson(response, { signal: controller.signal }), aborted ? /already stopped/ : /classifier_invalid_response/)",
+            "sha256": "8e2998177197bd0c541aa2ec190a9a4cd675eaba8425c7c2bf38ecacb25078fd"
+          },
+          {
+            "id": "test/bounded-json.test.mjs#5/assert-2",
+            "line": 56,
+            "expression": "assert.equal(cancelled, true)",
+            "sha256": "9d31057f08f6678980db9b13aafdf0e260b7d4325f227b62d44b8bd566f219e3"
+          },
+          {
+            "id": "test/bounded-json.test.mjs#5/assert-3",
+            "line": 57,
+            "expression": "assert.equal(response.body.locked, false)",
+            "sha256": "d7af3125cad90e4307010cbd1d4da5a1327d1b94cb440774bc6c2b8044258753"
+          }
+        ],
+        "native_ownership_adaptation": "Rust consumes an owned Body. Exactlyone Drop and no retained Arc body-state handles before return replace reader-release observations; no JavaScript reader-lock object is claimed.",
+        "remaining_assertions": [
+          "Native pre-cancellation has no arbitrary already stopped Error reason. Native synchronous Body destruction does not execute the frozen unresolved cancel Promise; source cancellation callback and reader.locked identity are not claimed."
+        ]
+      },
+      "previous_coverage_row": {
+        "id": "test/bounded-json.test.mjs#5",
+        "file": "test/bounded-json.test.mjs",
+        "name": "already aborted and oversized reads do not await uncooperative cancellation",
+        "parameterized": false,
+        "status": "partial_assertion_mapping",
+        "rust_tests": [
+          "rust/crates/autorouter-runtime/tests/bounded_json_contracts.rs#already_cancelled_overflow_is_not_polled_and_ordinary_overflow_is_released"
+        ],
+        "shared_cases": [],
+        "evidence": {
+          "assertion_mapping": "rust/parity/assertion-mappings/bounded-json-contracts.json",
+          "assertion_mapping_sha256": "6cd278211b54c3e2221b39d5a2a8868266ed533ccad560f910ca0792d9936929",
+          "input_coverage": {
+            "path": "artifacts/rust-rewrite/evidence/d2fff1c0986516787e60403abdfb670b3cb7c38bb4e804560c6eeec9d306273b.json",
+            "sha256": "d2fff1c0986516787e60403abdfb670b3cb7c38bb4e804560c6eeec9d306273b",
+            "bytes": 984107,
+            "original_path": "rust/parity/coverage.json",
+            "source_commit": "bf50b60fb702699f0c1cac5e62b8fecf28cb2209"
+          },
+          "review": {
+            "path": "artifacts/rust-rewrite/evidence/1d4b01c4a0c16870d116c8b54d776307bebeaebcaf5471532deb03b2c47d0e92.json",
+            "sha256": "1d4b01c4a0c16870d116c8b54d776307bebeaebcaf5471532deb03b2c47d0e92",
+            "original_path": "/private/tmp/autorouter-bounded-json-independent-review-3.json"
+          },
+          "execution": {
+            "native": {
+              "path": "artifacts/rust-rewrite/evidence/25d27c052d1cfa2cb832b16c851d84ff3da18f47732dc983c2136a1794e182dc.log",
+              "sha256": "25d27c052d1cfa2cb832b16c851d84ff3da18f47732dc983c2136a1794e182dc",
+              "bytes": 818,
+              "original_path": "artifacts/rust-rewrite/eighth-bounded-json-native-2.log"
+            },
+            "frozen_control": {
+              "path": "artifacts/rust-rewrite/evidence/5293cb4cc39b443c205dabf7481c6e87100b746636af3f18c8261344737ecde7.log",
+              "sha256": "5293cb4cc39b443c205dabf7481c6e87100b746636af3f18c8261344737ecde7",
+              "bytes": 1163,
+              "original_path": "artifacts/rust-rewrite/eighth-bounded-json-frozen-control.log"
+            },
+            "clippy": {
+              "path": "artifacts/rust-rewrite/evidence/9d9a19fdb0d56aba49cc053c8eed42a00fe7faa94029b9edfd8c35dcf0fe4af0.log",
+              "sha256": "9d9a19fdb0d56aba49cc053c8eed42a00fe7faa94029b9edfd8c35dcf0fe4af0",
+              "bytes": 178,
+              "original_path": "artifacts/rust-rewrite/eighth-bounded-json-clippy-1.log"
+            }
+          },
+          "scope": "One covered and four partial bounded JSON definitions. Native owned-body cleanup is proved; JavaScript reader, reason-identity and cancellation-promise boundaries remain explicit."
+        },
+        "related_components": [
+          "response_observer",
+          "evaluators"
+        ],
+        "remaining_assertions": [
+          "Native pre-cancellation has no arbitrary already stopped Error reason. Native synchronous Body destruction does not execute the frozen unresolved cancel Promise; source cancellation callback and reader.locked identity are not claimed."
+        ],
+        "assertion_mapping": "rust/parity/assertion-mappings/bounded-json-contracts.json"
+      },
+      "recommendation": "ACCEPT_ONLY_WITH_EXPLICIT_REVIEWED_NATIVE_API_MIGRATION",
+      "native_test": "already_cancelled_overflow_is_not_polled_and_ordinary_overflow_is_released",
+      "assertions": [
+        {
+          "id": "test/bounded-json.test.mjs#5/assert-1",
+          "line": 55,
+          "expression": "assert.rejects(readBoundedJson(response, { signal: controller.signal }), aborted ? /already stopped/ : /classifier_invalid_response/)",
+          "sha256": "8e2998177197bd0c541aa2ec190a9a4cd675eaba8425c7c2bf38ecacb25078fd",
+          "classification": "reviewed_native_api_migration_with_actual_native_counterpart",
+          "native_counterpart": "pre-cancellation versus oversized typed result",
+          "scope": "Native cancelledfalse ->Oversized after body poll; cancelledtrue ->Cancelled with zero polls. Source matching already-stopped Error text is an unsupported reason object rather than a silently fabricated native message.",
+          "source_expression_itself_executed_in_native": false
+        },
+        {
+          "id": "test/bounded-json.test.mjs#5/assert-2",
+          "line": 56,
+          "expression": "assert.equal(cancelled, true)",
+          "sha256": "9d31057f08f6678980db9b13aafdf0e260b7d4325f227b62d44b8bd566f219e3",
+          "classification": "reviewed_native_api_migration_with_actual_native_counterpart",
+          "native_counterpart": "owned release instead of unresolved cancel Promise",
+          "scope": "Both native cases release exactly one body without an async cleanup task; Source actual unresolved Promise/cancelledbool remains Source-only evidence.",
+          "source_expression_itself_executed_in_native": false
+        },
+        {
+          "id": "test/bounded-json.test.mjs#5/assert-3",
+          "line": 57,
+          "expression": "assert.equal(response.body.locked, false)",
+          "sha256": "d7af3125cad90e4307010cbd1d4da5a1327d1b94cb440774bc6c2b8044258753",
+          "classification": "reviewed_native_api_migration_with_actual_native_counterpart",
+          "native_counterpart": "owned release instead of reader.locked",
+          "scope": "Exactly one destruction and no retained strong lifetime handles on both native paths replace lock release in the native ownership API.",
+          "source_expression_itself_executed_in_native": false
+        }
+      ]
+    }
+  ],
+  "migration_note": {
+    "path": "artifacts/rust-rewrite/bounded-json-native-api-review-20261018-1/embedding-native-reader-note.draft.md",
+    "bytes": 1803,
+    "sha256": "f84681dd096f5b3b4a6055f91c52c8ba7b1d3bc3106be059d3a0784650c7feed"
+  },
+  "actual_evidence": {
+    "source_node_log": {
+      "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/npm-test-loopback.stdout",
+      "bytes": 135699,
+      "sha256": "769dfe1deb0e8048a6db1f0d630752116734c64c47cd23e3140f898452399ba2"
+    },
+    "source_node_receipt": {
+      "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/npm-test-loopback.json",
+      "bytes": 443,
+      "sha256": "3fbafd7368e8fb1e2a7a19ca5532d29a6aba2cbaac66d7d1f2f9497711c58506"
+    },
+    "native_workspace_log": {
+      "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/workspace-loopback.stdout",
+      "bytes": 148107,
+      "sha256": "43f26c66a56c3d1847ec600350aeba1f1ad7d5fbff17328585561091378ffc65"
+    },
+    "native_workspace_receipt": {
+      "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/workspace-loopback.json",
+      "bytes": 513,
+      "sha256": "ec9f1acc90b23ced24a8dc8597e2f9dea033d2202d40aeaa47c93f53ca266cb2"
+    },
+    "executed_named_controls": {
+      "test/bounded-json.test.mjs#2": {
+        "source_callback": "stream bytes override missing or inaccurate headers and oversized bodies are cancelled",
+        "native_test": "exact_65537_byte_overflow_releases_body_under_all_three_frozen_headers"
+      },
+      "test/bounded-json.test.mjs#3": {
+        "source_callback": "malformed JSON exposes only the stable category and releases the body",
+        "native_test": "frozen_private_malformed_and_empty_bodies_return_payload_free_typed_errors"
+      },
+      "test/bounded-json.test.mjs#4": {
+        "source_callback": "caller cancellation interrupts stalled reads even when source cancellation never resolves",
+        "native_test": "cancellation_after_first_pending_poll_releases_exactly_one_native_body"
+      },
+      "test/bounded-json.test.mjs#5": {
+        "source_callback": "already aborted and oversized reads do not await uncooperative cancellation",
+        "native_test": "already_cancelled_overflow_is_not_polled_and_ordinary_overflow_is_released"
+      }
+    },
+    "source_binding": "Current shipping bounded-json module/test byte-match frozen111 files; prior checkpoint confirms unchanged shipping36. This is actual ordinary Node original callback evidence plus static identity composition, not a newly executed isolated frozen control.",
+    "shipping_integrity": {
+      "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/shipping-integrity.json",
+      "bytes": 100,
+      "sha256": "f6773249c3b229e7dc4a3bb5609fa42f698b34b0e40aa13d243da83815420fcb"
+    },
+    "native_source_binding": "Relevant reader/test/evaluator/JsDocument bytes match executed9738289c snapshot; later token-counter test-only edits do not change these semantic modules.",
+    "snapshot": {
+      "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/final-source.json",
+      "bytes": 116787,
+      "sha256": "9738289c748ef9cee84f9f13bc1151e62ff493fedf4a9c5969181748a1bb8eee"
+    }
+  },
+  "genuinely_missing_native_tests": [],
+  "predicate_closure": {
+    "ordinary_values": "ExactUTF8 boundary already covered#1 and existing tinychunk tests remain; native private malformed/empty/oversized inputs are actual, not genericconstants.",
+    "headers": "All original absent/1/65537 profiles; actual zero poll early header rejection vs one underlying frame poll for streamed overflow.",
+    "cancellation": "Actual firstPending-poll trigger then Cancelled and one release; actual already-cancelled zero polls; borrowed token remains caller-owned by type.",
+    "cleanup": "Every original mapped native schedule checks Dropcount1 and Arc strongcount1, within independent1s fixture watchdog for yielding cases. Native reader creates no detached tasks.",
+    "privacy": "ReadError has only five fixed unit variants deriving Copy/Debug/Eq; no payload/header/Error/reason field, no custom formatter, no source chain. Debug returns fixed variant text. Tests actually assert malformed private marker absent; all-five-variant no-data property is static exhaustive enum review.",
+    "priority": "Actual72 native schedules on64-bit (36on32-bit) cover invalid limit before cancellation and valid cancellation before early header rejection across three public APIs. This is additional native ordering evidence, not additional original Source callbacks.",
+    "adapter": "Evaluator maps Cancelled->Cancelled, invalidresponse/oversized/invalidjson->InvalidResponse and transport->Network. Adapter literal classifier_invalid_response display is separate composition, not substituted for direct-helper Error.message identity."
+  },
+  "limitations": [
+    "Empty native body and absent SourceResponse body are distinct admitted interfaces; no same-object claim.",
+    "CancellationToken cannot carry the original Error reason and no asynchronous cancel callback/reader lock exists. These differences need Root explicit API-domain acceptance, not reclassifying absent JS operations as nativepasses.",
+    "Synchronous blocking destructor/non-yielding caller code is not covered by async fixture timeout; existing borrowed/owned trait contract must remain explicit. No general injected implementation or transport/TLS/descendant cleanup approval.",
+    "Main correct-access workspace remains failed on source-transfer cap; specific nativepasses and sourceNode596 are not overallRustgreen.",
+    "No source/new native test required solely to mirror the migration note. SourceError identity/cancelPromise are impossible operands of this public Rust API; do not invent an artificial API just to execute them.",
+    "No ledger/limit/key/area promotion, public patch, provider/compiler/probe execution by this author. Independent reviewer and Root publication decision still required."
+  ],
+  "source_pins": [
+    {
+      "path": "src/bounded-json.mjs",
+      "bytes": 2600,
+      "sha256": "4238d2aa402e21ca197580a92904043a93bab7f6b22cb01130c0534a5dae6874"
+    },
+    {
+      "path": "test/bounded-json.test.mjs",
+      "bytes": 3121,
+      "sha256": "d31ef9d55dfdc07e236a5e9c305908343f4a488b04563a231d138c06560a33c4"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+      "bytes": 23276,
+      "sha256": "f3a520f050e3415ede4b89091e6b3b21394bdb2013d34cd43cc9f66366a250b1"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/bounded_json_contracts.rs",
+      "bytes": 9629,
+      "sha256": "f69e9b66608c67c6d5a6d2ba2bb5b669273d20f83bf00972e6f548679cda7759"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/evaluator.rs",
+      "bytes": 62326,
+      "sha256": "e00d706dc5fd12de9ee9a6aad0885d0a06c90cfca1566378a9a678710084dd05"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/js_json.rs",
+      "bytes": 80904,
+      "sha256": "902279ca53c13e384596f6721e294988f6858d7feb14e1b8071765778e7fcf11"
+    },
+    {
+      "path": "docs/rust-rewrite-plan.md",
+      "bytes": 45398,
+      "sha256": "7ad1d36a97c56a8c952bf5bd9a3b9e34991fae53082c64e03c48c2110b68bb34"
+    },
+    {
+      "path": "rust/docs/embedding.md",
+      "bytes": 46058,
+      "sha256": "ae116121f0dcb23dcaca17b93620cb2dd17a095bb6aa27d76d1b4d7decc05c6e"
+    }
+  ],
+  "fresh_focused_validation": {
+    "source_snapshot": {
+      "path": "artifacts/rust-rewrite/bounded-json-native-api-validation-20261018-1/source-focused-source.json",
+      "bytes": 116787,
+      "sha256": "f40f56a5ce84042f5f9b98fe23b0cdfe7b4aa30eff4af69ccb895d81daba16ae"
+    },
+    "evidence": {
+      "source-focused": {
+        "json": {
+          "path": "artifacts/rust-rewrite/bounded-json-native-api-validation-20261018-1/source-focused.json",
+          "bytes": 466,
+          "sha256": "16495952ef633f79a9e12d9498184b5d63b817442a9acc642f37df1aa84041ff"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/bounded-json-native-api-validation-20261018-1/source-focused.stdout",
+          "bytes": 1163,
+          "sha256": "547e291997f497aaf4c95afad40df0aabd89aa5aa469af25ab30415225214ac3"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/bounded-json-native-api-validation-20261018-1/source-focused.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "native-focused": {
+        "json": {
+          "path": "artifacts/rust-rewrite/bounded-json-native-api-validation-20261018-1/native-focused.json",
+          "bytes": 573,
+          "sha256": "1951a1ea722065d1c2cb4c62d68799d173802ff56ce5b11f140d3777cb7cdf73"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/bounded-json-native-api-validation-20261018-1/native-focused.stdout",
+          "bytes": 630,
+          "sha256": "59d6231612badc156a364fa31952d034010abcb02e60b38e9fef60e588a8230b"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/bounded-json-native-api-validation-20261018-1/native-focused.stderr",
+          "bytes": 752,
+          "sha256": "96e266a8378cf03bb29e89e0c48ea10de22adcd376e22fa47911bee9bf6dd528"
+        }
+      }
+    },
+    "actual_results": "Frozen Source direct-file node:test:5 passed,0failed,0skipped. Native bounded_json_contracts:6 passed,0failed,0ignored. The4 proposed original rows have exact named counterparts. Both receipts verify696native and111frozen before/after.",
+    "schedule_counts": "Only original#2\u2013#5:8 declared read schedules per engine,12 static assertion sites,21 structural loop-expanded instances. No instrumented runtime assertion count is claimed. Native extra input-order matrix is separate.",
+    "ordinary_owner": {
+      "path": "artifacts/rust-rewrite/bounded-json-native-api-validation-20261018-1/run-check.py",
+      "bytes": 2499,
+      "sha256": "1b919c91e805f8be82e34364c79d06e5ad60a680d1dd09f9a431ff737048f033"
+    },
+    "owner_limits": "Unchanged ordinary Popen/wait with regular-file capture. No finite outer wall deadline, output byte cap or interrupt/kernel-wait guarantee; timed_out:false is not evidence of a supervisor timer.",
+    "source_composition": "Actual receipts bind f40 only. Later ee19 pipeline test additions are separate and did not execute in these focused runs. Relevant current reader/core bytes are unchanged.",
+    "relevant_current_files": {
+      "src/bounded-json.mjs": {
+        "path": "src/bounded-json.mjs",
+        "bytes": 2600,
+        "sha256": "4238d2aa402e21ca197580a92904043a93bab7f6b22cb01130c0534a5dae6874"
+      },
+      "test/bounded-json.test.mjs": {
+        "path": "test/bounded-json.test.mjs",
+        "bytes": 3121,
+        "sha256": "d31ef9d55dfdc07e236a5e9c305908343f4a488b04563a231d138c06560a33c4"
+      },
+      "rust/crates/autorouter-runtime/src/bounded_json.rs": {
+        "path": "rust/crates/autorouter-runtime/src/bounded_json.rs",
+        "bytes": 23276,
+        "sha256": "f3a520f050e3415ede4b89091e6b3b21394bdb2013d34cd43cc9f66366a250b1"
+      },
+      "rust/crates/autorouter-runtime/tests/bounded_json_contracts.rs": {
+        "path": "rust/crates/autorouter-runtime/tests/bounded_json_contracts.rs",
+        "bytes": 9629,
+        "sha256": "f69e9b66608c67c6d5a6d2ba2bb5b669273d20f83bf00972e6f548679cda7759"
+      },
+      "rust/crates/autorouter-core/src/js_json.rs": {
+        "path": "rust/crates/autorouter-core/src/js_json.rs",
+        "bytes": 80904,
+        "sha256": "902279ca53c13e384596f6721e294988f6858d7feb14e1b8071765778e7fcf11"
+      }
+    }
+  },
+  "current_scoped_api_note": {
+    "path": "artifacts/rust-rewrite/bounded-json-native-api-validation-20261018-1/embedding-native-reader-note-scoped.draft.md",
+    "bytes": 2183,
+    "sha256": "66b80df5a627bafb321c3774b91276580f8bdea52a62c689e6636b9667e9e44e"
+  },
+  "root_acceptance": {
+    "status": "ACCEPTED_AFTER_FRESH_FOCUSED_EVIDENCE_REVIEW",
+    "only_ids": [
+      "test/bounded-json.test.mjs#2",
+      "test/bounded-json.test.mjs#3",
+      "test/bounded-json.test.mjs#4",
+      "test/bounded-json.test.mjs#5"
+    ],
+    "decision": "Root explicitly accepts these4 native API migrations after per-assertion independent review9ad37cf and fresh Source5/native6 passes. No public row edited by this finalizer.",
+    "consuming_APIs": [
+      "read_bounded_document",
+      "read_response_document",
+      "read_bounded_json"
+    ],
+    "excluded": "DecodedResponseStream::read borrows an existing stream; ending/cancelling that future does not consume the stream or prove body destruction before return.",
+    "identity_limit": "Typed ReadError and owned Body/CancellationToken replace JS Error/reason identity, reader lock and unresolved cancel Promise observations; these JS expressions are not described as executed in Rust."
+  },
+  "additive_finalization": {
+    "immutable_predecessor": {
+      "path": "artifacts/rust-rewrite/bounded-json-native-api-review-20261018-1/assertion-migration-supplement.draft.json",
+      "bytes": 41393,
+      "sha256": "1c7ff3308cd0fa8c035e7c7d202285fd1b0c3be44395bca8693c2812e9ee38a1"
+    },
+    "all_original_fields_rows_hashes_and_nested_historical_evidence_unchanged": true,
+    "historical_mapping_file_unchanged": true,
+    "historical_note": "Old migration_note pin is preserved as historical draft. current_scoped_api_note is the precise proposed note now adopted by Root.",
+    "reviewer_action": "Read retained Root results and files; artifact writes only. No new product/compiler/test execution or public edit."
+  },
+  "historical_draft_metadata": {
+    "kind": "additive_bounded_json_native_api_migration_assertion_draft",
+    "status": "REVIEWED_DRAFT_ROOT_AND_INDEPENDENT_ACCEPTANCE_PENDING"
+  },
+  "root_publication": {
+    "recorded_at_utc": "2026-10-18T03:19:03.039089+00:00",
+    "immutable_finalization_candidate": {
+      "path": "artifacts/rust-rewrite/bounded-json-native-api-validation-20261018-1/assertion-migration-supplement.finalization-candidate.json",
+      "bytes": 47616,
+      "sha256": "eb110c36a5959f0242b7a71b14767d6570df50c677ebf2368e31a130f01572de"
+    },
+    "metadata_changes_only": "Primary kind/status and Rootacceptance status finalized. All four rows,12 assertion hashes,4 original definition hashes and nested historical evidence remain exact. additive_finalization describes its immutable candidate preparation.",
+    "current_embedding_note": {
+      "path": "rust/docs/embedding.md",
+      "bytes": 48242,
+      "sha256": "69ff7e5be26ed61bf5381f651bbdca170f78518cb4a4835c4e21eea074526e0b"
+    }
+  }
+}

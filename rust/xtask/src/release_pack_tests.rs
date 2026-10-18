@@ -1,6 +1,8 @@
 //! Synthetic declarations and executable headers test rejection, never qualification.
 use super::*;
 use crate::tool_process::Scratch;
+#[path = "release_native_fixture.rs"]
+mod cli_fixture;
 fn material(dir: &Scratch, name: &str, bytes: &[u8]) -> Value {
     dir.file(name, bytes).unwrap();
     json!({"path":name,"sha256":digest(bytes)})
@@ -22,76 +24,30 @@ impl Fixture {
         Self::with_source(source)
     }
     fn with_source(source: Value) -> Self {
+        let raw = cli_fixture::MaterialFixture::new(source);
         let dir = Scratch::new("release-pack-synthetic").unwrap();
-        let target = "aarch64-apple-darwin";
-        let baseline = json!({"baseline":{"package":"claude-autorouter@0.5.2","node":">=22","cpu_restriction":null},"targets":[{"target":target}],"unresolved_baseline_architectures":["synthetic unresolved platform"],"artifact_caps":{"compressed_bytes":archive::MAX_COMPRESSED,"expanded_tar_bytes":archive::MAX_NATIVE_EXPANDED,"file_bytes":archive::MAX_FILE,"entries":archive::NATIVE.entries}});
-        let evidence = material(
-            &dir,
-            "evidence.json",
-            b"synthetic fixture only, no qualification claim",
-        );
-        let platforms = json!({"schema_version":1,"status":"release_matrix_approved","baseline":baseline["baseline"],"artifact_caps":baseline["artifact_caps"],"unresolved_baseline_architectures":[],"targets":[{"target":target,"qualification":"passed"}],"baseline_resolutions":[{"architecture":"synthetic unresolved platform","result":"baseline_unavailable","reason":"synthetic unavailable baseline fixture","evidence_sha256":evidence["sha256"],"review_reference":"synthetic:test"}]});
-        let platform_descriptor = document(&dir, "platforms.json", &platforms);
-        let licenses = material(
-            &dir,
-            "licenses.txt",
-            b"Synthetic license fixture, not a real license inventory",
-        );
-        let mut public = BTreeMap::new();
-        for path in release::ROOT_FILES.iter().chain(release::DOCS) {
-            insert(
-                &mut public,
-                path,
-                b"synthetic public documentation\n".to_vec(),
-                0o644,
-            );
+        for (name, bytes) in &raw.materials {
+            dir.file(name, bytes).unwrap();
         }
-        insert(
-            &mut public,
-            "package.json",
-            json_bytes(
-                &json!({"name":PACKAGE,"version":"0.4.0","repository":{"url":format!("git+https://github.com/{}.git",release::REPOSITORY)},"publishConfig":{"access":"public","registry":format!("{}/",release::REGISTRY)},"bin":{PACKAGE:"bin/autorouter.mjs"},"engines":{"node":">=22"},"scripts":{"test":"node test.mjs"},"devDependencies":{"typescript":"synthetic"}}),
-            ),
-            0o644,
-        );
-        let public_sha = digest(&json_bytes(&declarations(&public)));
-        let mut qualification = json!({});
-        let mut report_hashes = json!({});
-        for gate in GATES {
-            let mut flags = json!({});
-            for key in checks(gate) {
-                flags[key] = json!(true);
-            }
-            let report = json!({"schema_version":1,"kind":"native_release_qualification","gate":gate,"source_commit":source["commit"],"cargo_lock_sha256":source["cargo_lock_sha256"],"passed":true,"complete":true,"checks":flags,"evidence":[evidence],"platforms_sha256":platform_descriptor["sha256"],"licenses_sha256":licenses["sha256"],"targets":[target]});
-            let desc = document(&dir, &format!("gate-{gate}.json"), &report);
-            report_hashes[gate] = desc["sha256"].clone();
-            qualification[gate] = desc;
-        }
-        let mut binary = vec![0u8; 32];
-        binary[..4].copy_from_slice(&[0xcf, 0xfa, 0xed, 0xfe]);
-        binary[4..8].copy_from_slice(&0x0100000cu32.to_le_bytes());
-        binary[12..16].copy_from_slice(&2u32.to_le_bytes());
-        let binary_desc = material(&dir, "binary", &binary);
-        let provenance = json!({"schema_version":1,"kind":"native_binary_provenance","provenance":"ci-source-build","source_commit":source["commit"],"cargo_lock_sha256":source["cargo_lock_sha256"],"target":target,"binary_sha256":binary_desc["sha256"],"repository":release::REPOSITORY,"profile":"release","portable_cpu":true,"rustc":"synthetic rustc","workflow_run":"synthetic:123","rustflags":[]});
-        let provenance_desc = document(&dir, "provenance.json", &provenance);
-        for gate in GATES {
-            let name = format!("gate-{gate}.json");
-            let mut report = json_read(&std::fs::read(dir.0.join(&name)).unwrap()).unwrap();
-            report["artifacts"] = json!({target:{"binary_sha256":binary_desc["sha256"],"provenance_sha256":provenance_desc["sha256"]}});
-            let desc = document(&dir, &name, &report);
-            report_hashes[gate] = desc["sha256"].clone();
-            qualification[gate] = desc;
-        }
-        let approval = json!({"schema_version":1,"kind":"native_release_approval","approved":true,"source_commit":source["commit"],"cargo_lock_sha256":source["cargo_lock_sha256"],"version":"0.4.0","platforms_sha256":platform_descriptor["sha256"],"licenses_sha256":licenses["sha256"],"public_files_sha256":public_sha,"qualification":report_hashes,"artifacts":{target:{"binary_sha256":binary_desc["sha256"],"provenance_sha256":provenance_desc["sha256"]}},"reviewer":"synthetic fixture","review_reference":"synthetic:test","reviewed":{"baseline_platform_scope":true,"runtime_documentation":true,"live_canaries":true,"license_review":true}});
-        let approval_desc = document(&dir, "approval.json", &approval);
-        let inputs = json!({"schema_version":1,"kind":"native_release_inputs","platforms":platform_descriptor,"licenses":licenses,"qualification":qualification,"approval":approval_desc,"artifacts":[{"target":target,"binary":binary_desc,"provenance":provenance_desc}]});
         Self {
             dir,
-            inputs,
-            source,
-            baseline,
-            public,
-            public_sha,
+            inputs: raw.inputs,
+            source: raw.source,
+            baseline: raw.baseline,
+            public: raw
+                .public
+                .into_iter()
+                .map(|(path, item)| {
+                    (
+                        path,
+                        Entry {
+                            bytes: item.bytes,
+                            mode: item.mode,
+                        },
+                    )
+                })
+                .collect(),
+            public_sha: raw.public_sha,
         }
     }
     fn qualified(&self) -> Result<Qualified, String> {
@@ -562,4 +518,189 @@ fn final_authorization_requires_exact_archive_bytes_and_all_distribution_checks(
     )
     .unwrap();
     assert!(verify_authorization(&npm).is_err());
+}
+
+// Independent contract names: preserve all named source materials selected by
+// the native producer, rather than deriving the missing-set oracle from the
+// admission helper being tested.
+const NAMED_PUBLIC_FILES_CONTRACT: [&str; 22] = [
+    "package.json",
+    "README.md",
+    "CONTRIBUTING.md",
+    "LICENSE",
+    ".env.example",
+    "SECURITY.md",
+    "SUPPORT.md",
+    "CODE_OF_CONDUCT.md",
+    "docs/reference.md",
+    "docs/development.md",
+    "docs/releasing.md",
+    "docs/ollama-evaluation.md",
+    "docs/subscription-integration.md",
+    "docs/router-performance.md",
+    "docs/router-performance.json",
+    "docs/status-performance.md",
+    "docs/status-performance.json",
+    "docs/hardware-benchmark.md",
+    "docs/hardware-results-16gb.md",
+    "docs/hardware-results-16gb.json",
+    "docs/hardware-comparison.md",
+    "docs/hardware-results-64gb.json",
+];
+
+fn remove_named_public_file_and_its_declaration(files: &mut BTreeMap<String, Entry>, path: &str) {
+    assert!(files.remove(path).is_some(), "missing fixture path {path}");
+    let manifest = files.get_mut("build-manifest.json").unwrap();
+    let mut build = json_read(&manifest.bytes).unwrap();
+    let declarations = build["files"].as_array_mut().unwrap();
+    let before = declarations.len();
+    declarations.retain(|row| row["path"] != path);
+    assert_eq!(declarations.len() + 1, before, "{path}");
+    manifest.bytes = json_bytes(&build);
+}
+
+#[test]
+fn native_named_public_set_rejects_every_self_consistent_missing_source_material() {
+    let f = Fixture::new();
+    let output = f.assembled();
+    let (files, _) = archive::decode(&output["claude-autorouter-0.4.0.tgz"], archive::NATIVE)
+        .unwrap()
+        .into_parts();
+    let manifest = json_read(&files["package.json"].bytes).unwrap();
+    release::native_files(&files, &manifest).unwrap();
+
+    // Retain the original LICENSE deletion without changing declarations as
+    // a separate control: the stale declaration must still fail first.
+    let mut unchanged_declaration = files.clone();
+    assert!(unchanged_declaration.remove("LICENSE").is_some());
+    assert_eq!(
+        release::native_files(&unchanged_declaration, &manifest)
+            .err()
+            .as_deref(),
+        Some("Declared release file missing")
+    );
+
+    let mut checked = 0;
+    for path in NAMED_PUBLIC_FILES_CONTRACT {
+        let mut changed = files.clone();
+        remove_named_public_file_and_its_declaration(&mut changed, path);
+        let expected = format!("Native runtime documentation or file missing: {path}");
+        assert_eq!(
+            release::native_files(&changed, &manifest).err().as_deref(),
+            Some(expected.as_str()),
+            "self-consistent omission {path}"
+        );
+        checked += 1;
+    }
+    assert_eq!(checked, 22);
+    release::native_files(&files, &manifest).unwrap();
+    eprintln!(
+        "native_named_public_set={{\"missing_cases\":22,\"original_license_case\":true,\"baseline_before_after\":true}}"
+    );
+}
+
+#[test]
+fn direct_named_public_set_rejects_every_self_consistent_missing_source_material() {
+    let f = Fixture::new();
+    let output = f.assembled();
+    let name = "claude-autorouter-0.4.0-aarch64-apple-darwin.tar.gz";
+    direct::verify_bytes(name, &output[name]).unwrap();
+    let (files, _) = archive::decode_root(&output[name], PACKAGE, archive::NATIVE)
+        .unwrap()
+        .into_parts();
+
+    // The direct verifier also retains its earlier declaration-first guard.
+    let mut unchanged_declaration = files.clone();
+    assert!(unchanged_declaration.remove("LICENSE").is_some());
+    let bytes = archive::encode_root(PACKAGE, &unchanged_declaration, archive::NATIVE).unwrap();
+    assert_eq!(
+        direct::verify_bytes(name, &bytes).err().as_deref(),
+        Some("Missing direct file")
+    );
+
+    let mut checked = 0;
+    for path in NAMED_PUBLIC_FILES_CONTRACT
+        .into_iter()
+        .filter(|path| *path != "package.json")
+    {
+        let mut changed = files.clone();
+        remove_named_public_file_and_its_declaration(&mut changed, path);
+        let bytes = archive::encode_root(PACKAGE, &changed, archive::NATIVE).unwrap();
+        assert_eq!(
+            direct::verify_bytes(name, &bytes).err().as_deref(),
+            Some("Direct runtime documentation baseline missing"),
+            "self-consistent omission {path}"
+        );
+        checked += 1;
+    }
+    assert_eq!(checked, 21);
+    direct::verify_bytes(name, &output[name]).unwrap();
+    eprintln!(
+        "direct_named_public_set={{\"missing_cases\":21,\"original_license_case\":true,\"baseline_before_after\":true}}"
+    );
+}
+
+#[test]
+fn shared_cli_fixture_preserves_complete_production_assembly_and_authorization() {
+    assert_eq!(cli_fixture::PACKAGE, PACKAGE);
+    assert_eq!(cli_fixture::REPOSITORY, release::REPOSITORY);
+    assert_eq!(cli_fixture::REGISTRY, release::REGISTRY);
+    assert_eq!(cli_fixture::ROOT_FILES, release::ROOT_FILES);
+    assert_eq!(cli_fixture::DOCS, release::DOCS);
+    assert_eq!(cli_fixture::GATES, GATES);
+    for gate in GATES {
+        assert_eq!(cli_fixture::checks(gate), checks(gate));
+    }
+    let fixture = Fixture::new();
+    let raw = cli_fixture::MaterialFixture::new(fixture.source.clone());
+    // The explicit-byte constructor must retain the complete old header case,
+    // including both independent archive encodings and final metadata.
+    let explicit = cli_fixture::MaterialFixture::with_binary(
+        fixture.source.clone(),
+        cli_fixture::TARGET,
+        raw.materials["binary"].clone(),
+        crate::package::binary::inspect(cli_fixture::TARGET, &raw.materials["binary"]).unwrap(),
+    );
+    assert_eq!(explicit.materials, raw.materials);
+    assert_eq!(explicit.inputs, raw.inputs);
+    assert_eq!(explicit.baseline, raw.baseline);
+    assert_eq!(explicit.public, raw.public);
+    assert_eq!(explicit.public_sha, raw.public_sha);
+    let old_archives = raw.assembled();
+    // Frozen actual prior-main observations fix the original header identity;
+    // this is independent of comparing two newly refactored constructors.
+    assert_eq!(digest(&old_archives["claude-autorouter-0.4.0.tgz"]), "2a55bca6c4516ef98dfd56e9a0744682f171cdb4590d561dacb485385909cf81");
+    assert_eq!(digest(&old_archives["claude-autorouter-0.4.0-aarch64-apple-darwin.tar.gz"]), "9e66cc15f3aaefc8d1eb6dba2bce5b1e6821810579a8201bb8747a93294cc371");
+    assert_eq!(digest(&old_archives["release-index.json"]), "4d4c6c459875c4b0cae9e297b972dcc6af9b793245c54993e41774aa3be80bcd");
+    assert_eq!(explicit.assembled(), old_archives);
+    let old_final = raw.final_materials(&old_archives);
+    assert_eq!(explicit.final_materials(&old_archives), old_final);
+    assert_eq!(
+        explicit.expected_authorization(&old_archives, &old_final),
+        raw.expected_authorization(&old_archives, &old_final)
+    );
+    assert_eq!(raw.inputs, fixture.inputs);
+    assert_eq!(raw.baseline, fixture.baseline);
+    assert_eq!(raw.public_sha, fixture.public_sha);
+    for (name, bytes) in &raw.materials {
+        assert_eq!(std::fs::read(fixture.dir.0.join(name)).unwrap(), *bytes);
+    }
+    let expected = raw.assembled();
+    assert_eq!(
+        fixture.assembled(),
+        expected,
+        "Every npm/direct/index/sidecar byte must stay identical"
+    );
+    let output = fixture.dir.0.join("complete-cli-fixture");
+    write_output(&output, &expected).unwrap();
+    let final_materials = raw.final_materials(&expected);
+    for (name, bytes) in &final_materials {
+        fixture.dir.file(name, bytes).unwrap();
+    }
+    let candidate = authorization::candidate(&output).unwrap();
+    let input = json_read(&final_materials["final-inputs.json"]).unwrap();
+    assert_eq!(
+        authorization::authorize(&fixture.dir.0, &input, &candidate).unwrap(),
+        raw.expected_authorization(&expected, &final_materials)
+    );
 }

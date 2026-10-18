@@ -1,0 +1,488 @@
+{
+  "schema_version": 1,
+  "kind": "RELEASE_VERIFICATION14_SAME_RUNNABLE_NATIVE_API_MIGRATION",
+  "status": "ACCEPTED_FOR_ORIGINAL14_ONLY",
+  "only_definition": "test/release-verification.test.mjs#14",
+  "root_acceptance": {
+    "accepted": true,
+    "reviewer": "/root",
+    "at_utc": "2026-10-18T13:20:42.611406+00:00",
+    "scope": "Only original release-verification14 and separately savings_history10000 numeric row. All broader gates stay open.",
+    "terminal_validation": {
+      "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/root-terminal-validation.json",
+      "bytes": 8531,
+      "sha256": "d74913118756a1deee93dbac86dab3d8b1f5c7d820ef69c8839ab9ebcbb80413"
+    }
+  },
+  "independent_mapping_review": {
+    "path": "artifacts/rust-rewrite/release-verification14-runnable-native-api-review-20261018-1/independent-mapping-admission-review.json",
+    "bytes": 13593,
+    "sha256": "49f7a70cbe726444e3f39d36f821daf591a8f3e296f93e98185c51b2c6a62a03"
+  },
+  "original_statement": {
+    "path": "artifacts/rust-rewrite/reference/test/release-verification.test.mjs",
+    "start_line": 207,
+    "end_line": 248,
+    "bytes": 3500,
+    "sha256": "8e0d9615da81ff67c20b30ab55e85b3b7a5ee45a25da6a39cbbba56c388c2c80",
+    "scope": "Exact trimmed full test(...) statement including terminal semicolon."
+  },
+  "original_definition": {
+    "bytes": 3499,
+    "sha256": "94f7558b51274409d41bc2222b769364212974e5ccd7b40c6f6e719deb58eeb9",
+    "scope": "TypeScript CallExpression token, excludes terminal semicolon."
+  },
+  "hash_scopes": "Statement is full trimmed test(...) including semicolon; definition is CallExpression excluding semicolon; each expression is exact assert call text, all bounded within original#14.",
+  "operator_sites": 10,
+  "expanded_Source_observations": 10,
+  "prior_coverage_row": {
+    "path": "artifacts/rust-rewrite/release-verification14-runnable-native-api-review-20261018-1/prior-coverage-row.json",
+    "bytes": 6907,
+    "sha256": "9f2c71b28e18f9412cedcfd73894a8092d984aa6b188b4e428669365e30c3e38"
+  },
+  "prior_primary_mapping": {
+    "path": "rust/parity/assertion-mappings/release-remaining-contracts.json",
+    "bytes": 69128,
+    "sha256": "4c6c3efa7ca4c3b8357f80e4f04d0579d9191187556989ea037d04e28f2120e5"
+  },
+  "historical_evidence": "All old row values retained in prior-coverage-row. Path-only/missing historical artifacts are not freshly reverified or required to manufacture these actuals. Fresh original1+native1 supply the same-identity proof previously absent.",
+  "independent_focused_actual_review": {
+    "path": "artifacts/rust-rewrite/release-verification14-runnable-native-api-review-20261018-1/independent-focused-actual-and-format-review.json",
+    "bytes": 12683,
+    "sha256": "2d32a61a405f63b3dda17b4b032c5abf7a373335c36ee2d07b3411c212407141"
+  },
+  "executed_source_snapshot": {
+    "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/source-composed.json",
+    "bytes": 119128,
+    "sha256": "6877019c8cf02980206aedd8d8080eeaf344959bd640e20eb6dd325a0bc93728"
+  },
+  "current_import_only_snapshot": {
+    "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/source-fixed.json",
+    "bytes": 118831,
+    "sha256": "12ba1490a213f3e6a9e3598fd2f0f0ec0e24ac6cabb3deedea4480b827894db7"
+  },
+  "native_test": "rust/xtask/tests/release_cli.rs#one_runnable_native_archive_inspects_installs_and_reports_through_built_main",
+  "unchanged_supporting_control": "rust/xtask/src/release_archive_contracts.rs#release_pack::tests::archive_contracts::submitted_report_preserves_checksum_failure_contract_and_native_admission_reason",
+  "assertions": [
+    {
+      "site": 1,
+      "source_line": 228,
+      "expression": "assert.equal(inspected.sha256, sha256)",
+      "expression_sha256": "82898a0fa56de2cd1c166430b5a4ecda50a613226e9c5eabd52479f6f2a42552",
+      "source_observations": 1,
+      "original_expected": {
+        "derived_from": "SHA256 of exact canonical archive bytes"
+      },
+      "fresh_Source_named_pass": {
+        "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/frozen-original-release14.stdout",
+        "bytes": 390,
+        "sha256": "a759739a20baa876c8fd70d3452b371e008a8a5b0bc850e6e0069e94978fde68"
+      },
+      "native_actual_selector": "/archive_sha256",
+      "native_observed": "46cf399d3ab2e85b69d30c1c6ae2467fcd44fe1c308c06500702e907349b1d6c",
+      "native_assertion_anchor": {
+        "executed_source": {
+          "path": "artifacts/rust-rewrite/release-verification14-runnable-native-api-review-20261018-1/executed-source/rust/xtask/tests/release_cli.rs",
+          "bytes": 42315,
+          "sha256": "64d6badc7f3c385765bc85d53dd203324e283685e366aa9946c2918df0d23347"
+        },
+        "nominal_path": "rust/xtask/tests/release_cli.rs",
+        "function": "one_runnable_native_archive_inspects_installs_and_reports_through_built_main",
+        "line": 975,
+        "exact_anchor": "assert_eq!(artifact.sha256, digest(&archives[archive_name]));"
+      },
+      "disposition": "SUPPORTED_UNDER_EXPLICIT_NATIVE_FORMAT_AND_API_ADOPTION",
+      "root_disposition": "accepted_under_the_three_explicit_native_contract_decisions"
+    },
+    {
+      "site": 2,
+      "source_line": 229,
+      "expression": "assert.equal(inspected.integrity, `sha512-${createHash('sha512').update(content).digest('base64')}`)",
+      "expression_sha256": "13edbe5a4592104dcf1695e2812530fdf4615c115afb391a45f15bcd80a93ed7",
+      "source_observations": 1,
+      "original_expected": {
+        "derived_from": "sha512-base64 of exact canonical archive bytes"
+      },
+      "fresh_Source_named_pass": {
+        "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/frozen-original-release14.stdout",
+        "bytes": 390,
+        "sha256": "a759739a20baa876c8fd70d3452b371e008a8a5b0bc850e6e0069e94978fde68"
+      },
+      "native_actual_selector": "/archive_integrity",
+      "native_observed": "sha512-b7aGcFq5mlGelaTRjsOdR0ocxSNuEkp/YYJ2ytuR6Bq5WC83G7LsHXyIzXqQUQ8dGCXBwkaeVkUfN3lqpOuuxQ==",
+      "native_assertion_anchor": {
+        "executed_source": {
+          "path": "artifacts/rust-rewrite/release-verification14-runnable-native-api-review-20261018-1/executed-source/rust/xtask/tests/release_cli.rs",
+          "bytes": 42315,
+          "sha256": "64d6badc7f3c385765bc85d53dd203324e283685e366aa9946c2918df0d23347"
+        },
+        "nominal_path": "rust/xtask/tests/release_cli.rs",
+        "function": "one_runnable_native_archive_inspects_installs_and_reports_through_built_main",
+        "line": 976,
+        "exact_anchor": "assert_eq!(artifact.integrity, integrity(&archives[archive_name]));"
+      },
+      "disposition": "SUPPORTED_UNDER_EXPLICIT_NATIVE_FORMAT_AND_API_ADOPTION",
+      "root_disposition": "accepted_under_the_three_explicit_native_contract_decisions"
+    },
+    {
+      "site": 3,
+      "source_line": 233,
+      "expression": "assert.equal(installed.version, '0.4.0', 'Real offline npm extraction matches canonical bytes and its executable runs')",
+      "expression_sha256": "2b9c7f9e1387519055080d933da164e31c063fe90ccf040380dcffa0e59545c8",
+      "source_observations": 1,
+      "original_expected": "0.4.0",
+      "fresh_Source_named_pass": {
+        "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/frozen-original-release14.stdout",
+        "bytes": 390,
+        "sha256": "a759739a20baa876c8fd70d3452b371e008a8a5b0bc850e6e0069e94978fde68"
+      },
+      "native_actual_selector": "/installed/version",
+      "native_observed": "0.4.0",
+      "native_assertion_anchor": {
+        "executed_source": {
+          "path": "artifacts/rust-rewrite/release-verification14-runnable-native-api-review-20261018-1/executed-source/rust/xtask/tests/release_cli.rs",
+          "bytes": 42315,
+          "sha256": "64d6badc7f3c385765bc85d53dd203324e283685e366aa9946c2918df0d23347"
+        },
+        "nominal_path": "rust/xtask/tests/release_cli.rs",
+        "function": "one_runnable_native_archive_inspects_installs_and_reports_through_built_main",
+        "line": 1005,
+        "exact_anchor": "json!({\"version\":\"0.4.0\",\"help\":true,\"isolated\":true,\"registry\":\"https://registry.npmjs.org\"})"
+      },
+      "disposition": "SUPPORTED_UNDER_EXPLICIT_NATIVE_FORMAT_AND_API_ADOPTION",
+      "root_disposition": "accepted_under_the_three_explicit_native_contract_decisions"
+    },
+    {
+      "site": 4,
+      "source_line": 240,
+      "expression": "assert.equal(report.state, 'submitted')",
+      "expression_sha256": "c3f362c7ffcf4016ecd6330e2c268a697c4ec5a8462d90b990153667acffb2e2",
+      "source_observations": 1,
+      "original_expected": "submitted",
+      "fresh_Source_named_pass": {
+        "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/frozen-original-release14.stdout",
+        "bytes": 390,
+        "sha256": "a759739a20baa876c8fd70d3452b371e008a8a5b0bc850e6e0069e94978fde68"
+      },
+      "native_actual_selector": "/submitted/state",
+      "native_observed": "submitted",
+      "native_assertion_anchor": {
+        "executed_source": {
+          "path": "artifacts/rust-rewrite/release-verification14-runnable-native-api-review-20261018-1/executed-source/rust/xtask/tests/release_cli.rs",
+          "bytes": 42315,
+          "sha256": "64d6badc7f3c385765bc85d53dd203324e283685e366aa9946c2918df0d23347"
+        },
+        "nominal_path": "rust/xtask/tests/release_cli.rs",
+        "function": "one_runnable_native_archive_inspects_installs_and_reports_through_built_main",
+        "line": 1042,
+        "exact_anchor": "assert_eq!(actual, expected);"
+      },
+      "disposition": "SUPPORTED_UNDER_EXPLICIT_NATIVE_FORMAT_AND_API_ADOPTION",
+      "root_disposition": "accepted_under_the_three_explicit_native_contract_decisions"
+    },
+    {
+      "site": 5,
+      "source_line": 241,
+      "expression": "assert.equal(report.sha256, sha256)",
+      "expression_sha256": "8814b7ef627fd69f01ff3aa8fb45b3eba8f670b4a29358ba8727549e8c360c09",
+      "source_observations": 1,
+      "original_expected": {
+        "derived_from": "same inspected canonical archive SHA256"
+      },
+      "fresh_Source_named_pass": {
+        "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/frozen-original-release14.stdout",
+        "bytes": 390,
+        "sha256": "a759739a20baa876c8fd70d3452b371e008a8a5b0bc850e6e0069e94978fde68"
+      },
+      "native_actual_selector": "/submitted/sha256",
+      "native_observed": "46cf399d3ab2e85b69d30c1c6ae2467fcd44fe1c308c06500702e907349b1d6c",
+      "native_assertion_anchor": {
+        "executed_source": {
+          "path": "artifacts/rust-rewrite/release-verification14-runnable-native-api-review-20261018-1/executed-source/rust/xtask/tests/release_cli.rs",
+          "bytes": 42315,
+          "sha256": "64d6badc7f3c385765bc85d53dd203324e283685e366aa9946c2918df0d23347"
+        },
+        "nominal_path": "rust/xtask/tests/release_cli.rs",
+        "function": "one_runnable_native_archive_inspects_installs_and_reports_through_built_main",
+        "line": 1041,
+        "exact_anchor": "\"sha256\":digest(&archives[archive_name])"
+      },
+      "disposition": "SUPPORTED_UNDER_EXPLICIT_NATIVE_FORMAT_AND_API_ADOPTION",
+      "root_disposition": "accepted_under_the_three_explicit_native_contract_decisions"
+    },
+    {
+      "site": 6,
+      "source_line": 242,
+      "expression": "assert.equal(await readFile(outputPath, 'utf8'), 'state=submitted\\n')",
+      "expression_sha256": "3291c3f3072a844bbf82f010e43a3f46348f8070a9ecdefd723c54a3baad2af9",
+      "source_observations": 1,
+      "original_expected": "state=submitted\n",
+      "fresh_Source_named_pass": {
+        "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/frozen-original-release14.stdout",
+        "bytes": 390,
+        "sha256": "a759739a20baa876c8fd70d3452b371e008a8a5b0bc850e6e0069e94978fde68"
+      },
+      "native_actual_selector": "/github_output",
+      "native_observed": "existing=retained\nstate=submitted\nstate=failed\n",
+      "native_assertion_anchor": {
+        "executed_source": {
+          "path": "artifacts/rust-rewrite/release-verification14-runnable-native-api-review-20261018-1/executed-source/rust/xtask/tests/release_cli.rs",
+          "bytes": 42315,
+          "sha256": "64d6badc7f3c385765bc85d53dd203324e283685e366aa9946c2918df0d23347"
+        },
+        "nominal_path": "rust/xtask/tests/release_cli.rs",
+        "function": "one_runnable_native_archive_inspects_installs_and_reports_through_built_main",
+        "line": 1047,
+        "exact_anchor": "b\"existing=retained\\nstate=submitted\\n\""
+      },
+      "disposition": "SUPPORTED_UNDER_EXPLICIT_NATIVE_FORMAT_AND_API_ADOPTION",
+      "precondition_composition": "Original absent output file requires exactly state=submitted+LF; new runnable test asserts unchanged existing prefix plus exact appended payload. Unchanged old submitted_report... asserts exact absent-file bytes and corrupt run with no GITHUB_OUTPUT. That unchanged old control passes in the current workspace.",
+      "root_disposition": "accepted_under_the_three_explicit_native_contract_decisions"
+    },
+    {
+      "site": 7,
+      "source_line": 244,
+      "expression": "assert.rejects(inspectReleaseArtifact(packed.archive, 'v0.4.0'), { code: 'invalid_archive' })",
+      "expression_sha256": "53157e79c0763ef43301333078316e0aab10b9bc890aab01faead68d1e1fbbc2",
+      "source_observations": 1,
+      "original_expected": {
+        "code": "invalid_archive"
+      },
+      "fresh_Source_named_pass": {
+        "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/frozen-original-release14.stdout",
+        "bytes": 390,
+        "sha256": "a759739a20baa876c8fd70d3452b371e008a8a5b0bc850e6e0069e94978fde68"
+      },
+      "native_actual_selector": "/corrupt_inspect/code",
+      "native_observed": "invalid_archive",
+      "native_assertion_anchor": {
+        "executed_source": {
+          "path": "artifacts/rust-rewrite/release-verification14-runnable-native-api-review-20261018-1/executed-source/rust/xtask/tests/release_cli.rs",
+          "bytes": 42315,
+          "sha256": "64d6badc7f3c385765bc85d53dd203324e283685e366aa9946c2918df0d23347"
+        },
+        "nominal_path": "rust/xtask/tests/release_cli.rs",
+        "function": "one_runnable_native_archive_inspects_installs_and_reports_through_built_main",
+        "line": 1056,
+        "exact_anchor": "assert_eq!(inspection_error.code, \"invalid_archive\");"
+      },
+      "disposition": "SUPPORTED_UNDER_EXPLICIT_NATIVE_FORMAT_AND_API_ADOPTION",
+      "error_boundary": "Source Promise/Error rejection maps to typed ReleaseError code/detail or actual built-main exit1; no arbitrary JS Error/prototype identity claim.",
+      "root_disposition": "accepted_under_the_three_explicit_native_contract_decisions"
+    },
+    {
+      "site": 8,
+      "source_line": 245,
+      "expression": "assert.rejects(execute(process.execPath, [script, 'submitted', 'v0.4.0', '--archive', packed.archive, '--report', reportPath], { env }), { code: 1 })",
+      "expression_sha256": "733956ed251cb264cb146749b1f82ba9575be66b32260d9d6468fe96168cfee1",
+      "source_observations": 1,
+      "original_expected": {
+        "exit_code": 1
+      },
+      "fresh_Source_named_pass": {
+        "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/frozen-original-release14.stdout",
+        "bytes": 390,
+        "sha256": "a759739a20baa876c8fd70d3452b371e008a8a5b0bc850e6e0069e94978fde68"
+      },
+      "native_actual_selector": "/corrupt_exit",
+      "native_observed": 1,
+      "native_assertion_anchor": {
+        "executed_source": {
+          "path": "artifacts/rust-rewrite/release-verification14-runnable-native-api-review-20261018-1/executed-source/rust/xtask/tests/release_cli.rs",
+          "bytes": 42315,
+          "sha256": "64d6badc7f3c385765bc85d53dd203324e283685e366aa9946c2918df0d23347"
+        },
+        "nominal_path": "rust/xtask/tests/release_cli.rs",
+        "function": "one_runnable_native_archive_inspects_installs_and_reports_through_built_main",
+        "line": 1062,
+        "exact_anchor": "assert_eq!(rejected.status.code(), Some(1));"
+      },
+      "disposition": "SUPPORTED_UNDER_EXPLICIT_NATIVE_FORMAT_AND_API_ADOPTION",
+      "error_boundary": "Source Promise/Error rejection maps to typed ReleaseError code/detail or actual built-main exit1; no arbitrary JS Error/prototype identity claim.",
+      "root_disposition": "accepted_under_the_three_explicit_native_contract_decisions"
+    },
+    {
+      "site": 9,
+      "source_line": 246,
+      "expression": "assert.equal(JSON.parse(await readFile(reportPath, 'utf8')).state, 'failed')",
+      "expression_sha256": "ed8c52c536c86a162f6017920b3c7ae44c9a2b8b7975ed04ce964047dcaf1361",
+      "source_observations": 1,
+      "original_expected": "failed",
+      "fresh_Source_named_pass": {
+        "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/frozen-original-release14.stdout",
+        "bytes": 390,
+        "sha256": "a759739a20baa876c8fd70d3452b371e008a8a5b0bc850e6e0069e94978fde68"
+      },
+      "native_actual_selector": "/corrupt_report/state",
+      "native_observed": "failed",
+      "native_assertion_anchor": {
+        "executed_source": {
+          "path": "artifacts/rust-rewrite/release-verification14-runnable-native-api-review-20261018-1/executed-source/rust/xtask/tests/release_cli.rs",
+          "bytes": 42315,
+          "sha256": "64d6badc7f3c385765bc85d53dd203324e283685e366aa9946c2918df0d23347"
+        },
+        "nominal_path": "rust/xtask/tests/release_cli.rs",
+        "function": "one_runnable_native_archive_inspects_installs_and_reports_through_built_main",
+        "line": 1066,
+        "exact_anchor": "assert_eq!(fs::read(&report).unwrap(), json_bytes(&failed));"
+      },
+      "disposition": "SUPPORTED_UNDER_EXPLICIT_NATIVE_FORMAT_AND_API_ADOPTION",
+      "root_disposition": "accepted_under_the_three_explicit_native_contract_decisions"
+    },
+    {
+      "site": 10,
+      "source_line": 247,
+      "expression": "assert.equal(JSON.parse(await readFile(reportPath, 'utf8')).reason, 'invalid_archive')",
+      "expression_sha256": "f5b6295c13d8016151e43b7d3c4e3ba8e7ba95bae6ddf3ef0d3eef7e0d8cd3b2",
+      "source_observations": 1,
+      "original_expected": "invalid_archive",
+      "fresh_Source_named_pass": {
+        "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/frozen-original-release14.stdout",
+        "bytes": 390,
+        "sha256": "a759739a20baa876c8fd70d3452b371e008a8a5b0bc850e6e0069e94978fde68"
+      },
+      "native_actual_selector": "/corrupt_report/reason",
+      "native_observed": "invalid_archive",
+      "native_assertion_anchor": {
+        "executed_source": {
+          "path": "artifacts/rust-rewrite/release-verification14-runnable-native-api-review-20261018-1/executed-source/rust/xtask/tests/release_cli.rs",
+          "bytes": 42315,
+          "sha256": "64d6badc7f3c385765bc85d53dd203324e283685e366aa9946c2918df0d23347"
+        },
+        "nominal_path": "rust/xtask/tests/release_cli.rs",
+        "function": "one_runnable_native_archive_inspects_installs_and_reports_through_built_main",
+        "line": 1064,
+        "exact_anchor": "\"reason\":\"invalid_archive\""
+      },
+      "disposition": "SUPPORTED_UNDER_EXPLICIT_NATIVE_FORMAT_AND_API_ADOPTION",
+      "root_disposition": "accepted_under_the_three_explicit_native_contract_decisions"
+    }
+  ],
+  "proposed_individual_API_decisions": [
+    {
+      "id": "native-canonical-release-format",
+      "root_decision": "accepted_for_original14_only",
+      "operators": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "source": "Historical JS0.4.0 npm archive with Node dummy executable is admitted implicitly and submitted by the Source script.",
+      "native": "Same0.4.0 harmless Cargo-built native payload inside canonical native manifest/dispatcher, bounded closed files and synthetic final authorization; exact same archive used for inspection, real offline installation and built-main submission. Historical JS stays explicit inspect-legacy/read-only and is not newly native-submittable.",
+      "retained_predicate": "One canonical content identity, independent hashes, actual installed version/help and unchanged corrupt-checksum public outcomes.",
+      "scope": "Only this original definition. Parser fixtures do not approve a release or change native qualification policy."
+    },
+    {
+      "id": "typed-owned-inspector-and-command-runner",
+      "root_decision": "accepted_for_original14_only",
+      "operators": [
+        1,
+        2,
+        3,
+        7
+      ],
+      "source": "inspectReleaseArtifact and installPublishedRelease Promises plus injected runCommand rewrite npm final package token to offline local archive.",
+      "native": "Actual library inspector and shared NativeInstaller canonical admission/install_with, typed Artifact/ReleaseError and strict CommandRunner delegating real NativeCommand; same offline package-token adaptation, bounded owner and private configuration.",
+      "retained_predicate": "Actual same bytes compared to installed tree before either executable; exact0.4.0 output, complete result and independent hash/integrity.",
+      "scope": "Completed operation/error projections; no equality of JS object/prototype/Promise identity, command callback chunks or all cancellation/process-group guarantees."
+    },
+    {
+      "id": "built-native-entrypoint-and-rejection",
+      "root_decision": "accepted_for_original14_only",
+      "operators": [
+        4,
+        5,
+        6,
+        8,
+        9,
+        10
+      ],
+      "source": "Node executes actual release-verify.mjs, rejects exit1 and persists failed JSON.",
+      "native": "Cargo-built real xtask main uses unchanged root policy and complete submitted/failed report serializer; actual exit0/1, same public state/reason and GITHUB_OUTPUT payload/order.",
+      "retained_predicate": "Full success and failure reports are checked, not merely a fabricated callable or a helper report.",
+      "scope": "Exact compile-checkout must exist; no relocated/absent-checkout claim. Existing-prefix append controls compose with unchanged absent-output/no-GITHUB negatives."
+    }
+  ],
+  "conditional_public_row_change": {
+    "only_id": "test/release-verification.test.mjs#14",
+    "status_after_explicit_adoption": "covered",
+    "append_rust_test_only": "rust/xtask/tests/release_cli.rs#one_runnable_native_archive_inspects_installs_and_reports_through_built_main",
+    "preserve_old_primary_mapping_and_all_old_row_values": true,
+    "wrap_entire_prior_evidence": true,
+    "new_supplement_and_summary_additive": true,
+    "remaining_assertions_after_adoption": [],
+    "all_other587_definitions_all53limits_27keys_13areas_unchanged": true
+  },
+  "final_gates": {
+    "Root_API_decisions": "Individually accepted three named native format/API decisions for original14 only.",
+    "independent_mapping_review": {
+      "path": "artifacts/rust-rewrite/release-verification14-runnable-native-api-review-20261018-1/independent-mapping-admission-review.json",
+      "bytes": 13593,
+      "sha256": "49f7a70cbe726444e3f39d36f821daf591a8f3e296f93e98185c51b2c6a62a03"
+    },
+    "old_header_equivalence_and_all_prior_release_controls": {
+      "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/old-fixture-goldens.json",
+      "bytes": 1217,
+      "sha256": "7d9c9bfef9cecdd828818c7b315af06d9ee844050198afd06b4a5a7107daaf9c"
+    },
+    "whole_workspace_and_known_source_cap_failure_retention": {
+      "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/workspace-status-comparison.json",
+      "bytes": 804,
+      "sha256": "5e50fe59f8024beabc517e366bd6306eeef12d28dd009aabecd9aec8c51e0b20"
+    },
+    "strict_Clippy_and_default_graph": [
+      {
+        "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/fmt-fixed.json",
+        "bytes": 994,
+        "sha256": "b3fe00e7cda8935ae7dd24393be19e9ff2f449d9790fe6e74fb01713bf1c3806"
+      },
+      {
+        "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/clippy-fixed.json",
+        "bytes": 1084,
+        "sha256": "6b7ce8a9de6a1fe212854b8d3cb5eaa03b8962fada05a3724c7ee6b28935de5f"
+      },
+      {
+        "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/default-cli-build-identity.json",
+        "bytes": 1879,
+        "sha256": "72df72786abdd6adca0467ee5a0f9700e4ea24502039c45618b07ba3d76ed70f"
+      }
+    ],
+    "required_Node_checks": [
+      {
+        "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/node-check-fixed.json",
+        "bytes": 2293,
+        "sha256": "5e875ac04811e41d627817d409c4f0b8776a81d0b99febb67de809be639b7d1f"
+      },
+      {
+        "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/node-test-fixed.json",
+        "bytes": 2282,
+        "sha256": "e9c22b19067fea696c9d1f7589977a975cd0bddb881c3a70dd6624091a7914ef"
+      },
+      {
+        "path": "artifacts/rust-rewrite/runnable-native-release-chain-validation-20261018-1/node-package-fixed.json",
+        "bytes": 2301,
+        "sha256": "0510a8bca4b914037c75f48ebb408556a91048dc8b4003c2e3fda527cb278971"
+      }
+    ]
+  },
+  "nonclaims": [
+    "No external network/syscall instrumentation: no-registry claim follows exact offline argv, clean/private npm config, no scripts/dependencies and reviewed entrypoints.",
+    "Actual helper/main identity uses built-in CARGO_BIN_EXE and actual Cargo test/Running line. Later CargoJSON/binary snapshots must remain labeled later observations, not the same execution.",
+    "Real test-owned archive/installed tree were removed after assertions. Reviewer checked complete retained outputs plus exact executed assertions; no fresh byte rehash of those now-absent files is claimed.",
+    "Native starts GITHUB_OUTPUT with a preserved prefix and retains it on corrupt append; original starts absent and omits GITHUB_OUTPUT on corrupt. Exact empty/no-GITHUB controls remain in unchanged submitted_report_preserves_checksum_failure_contract_and_native_admission_reason, freshly passing in the current workspace.",
+    "Synthetic native approvals/provenance are parser data, not real qualification or a shipping product run.",
+    "No all-platform/oldest-OS/group-cleanup/cancellation/benchmark/CI/release goal closure. Existing32MiB source cap remains unapproved/unchanged."
+  ],
+  "final_local_validation": {
+    "path": "artifacts/rust-rewrite/release-verification14-runnable-native-api-review-20261018-1/independent-final-local-checks-review.json",
+    "bytes": 15329,
+    "sha256": "b11a657f57b5a89476127a0829095893f0ef0c08e2735fc1d82668bfe8e2fae5"
+  }
+}

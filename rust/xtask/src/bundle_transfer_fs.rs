@@ -231,6 +231,29 @@ impl Directory {
         Ok(())
     }
 }
+/// Create and fully verify a new private0644 source tree without replacing it.
+pub type TreeFiles<'a> = BTreeMap<String, (&'a [u8], u32)>;
+pub fn create_tree(
+    destination: &Path,
+    files: &TreeFiles<'_>,
+    checkpoint: impl FnMut() -> Result<(), String>,
+) -> Result<Directory, String> {
+    let parent = Directory::open(destination.parent().ok_or("Missing restore parent")?)?;
+    let name = destination
+        .file_name()
+        .and_then(|name| name.to_str())
+        .ok_or("Invalid restore destination")?;
+    let owned = parent.create(name)?;
+    write_tree(
+        &owned,
+        files
+            .iter()
+            .map(|(path, (bytes, mode))| (path.as_str(), *bytes, *mode)),
+        checkpoint,
+    )?;
+    check_tree(&owned, files)?;
+    Ok(owned)
+}
 pub fn write_tree<'a>(
     root: &Directory,
     files: impl IntoIterator<Item = (&'a str, &'a [u8], u32)>,
@@ -259,14 +282,22 @@ pub fn write_tree<'a>(
     }
     root.attached()
 }
-pub fn check_tree(
+pub fn check_tree(root: &Directory, expected: &TreeFiles<'_>) -> Result<(), String> {
+    check_tree_modes(root, expected, false)
+}
+/// Combined outer artifacts additionally admit their one declared0755 helper.
+pub fn check_artifact_tree(root: &Directory, expected: &TreeFiles<'_>) -> Result<(), String> {
+    check_tree_modes(root, expected, true)
+}
+fn check_tree_modes(
     root: &Directory,
-    expected: &BTreeMap<String, (&[u8], u32)>,
+    expected: &TreeFiles<'_>,
+    executable: bool,
 ) -> Result<(), String> {
     fn walk(
         root: &Directory,
         path: &str,
-        expected: &BTreeMap<String, (&[u8], u32)>,
+        expected: &TreeFiles<'_>,
         files: &mut Vec<String>,
     ) -> Result<(), String> {
         root.attached()?;
@@ -321,7 +352,12 @@ pub fn check_tree(
         let (directory, name) = root.parent(path)?;
         let info = fstatat(&directory.fd, name.as_str(), AtFlags::AT_SYMLINK_NOFOLLOW)
             .map_err(|_| "Cannot inspect restored reference permissions")?;
-        if *mode != 0o644 || info.st_mode & 0o777 != 0o644 {
+        let valid = if executable {
+            matches!(*mode, 0o644 | 0o755) && u64::from(info.st_mode) & 0o7777 == u64::from(*mode)
+        } else {
+            *mode == 0o644 && info.st_mode & 0o777 == 0o644
+        };
+        if !valid {
             return Err("Restored reference mode differs".into());
         }
     }
@@ -384,6 +420,16 @@ mod tests {
             || Ok(()),
         )
         .unwrap();
+        check_tree(&root, &expected).unwrap();
+        // The artifact checker adds0755 without weakening this original0644 wrapper.
+        let mut executable = expected.clone();
+        executable.get_mut("b").unwrap().1 = 0o755;
+        fs::set_permissions(root.path.join("b"), fs::Permissions::from_mode(0o755)).unwrap();
+        assert!(check_tree(&root, &executable).is_err());
+        check_artifact_tree(&root, &executable).unwrap();
+        fs::set_permissions(root.path.join("b"), fs::Permissions::from_mode(0o4755)).unwrap();
+        assert!(check_artifact_tree(&root, &executable).is_err());
+        fs::set_permissions(root.path.join("b"), fs::Permissions::from_mode(0o644)).unwrap();
         check_tree(&root, &expected).unwrap();
         assert!(write_tree(&root, [("b", &b"replace"[..], 0o644)], || Ok(())).is_err());
         assert_eq!(fs::read(root.path.join("b")).unwrap(), b"d");

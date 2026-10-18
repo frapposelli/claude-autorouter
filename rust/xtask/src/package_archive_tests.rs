@@ -351,3 +351,45 @@ fn historical_non_block_aligned_zero_tail_remains_accepted() {
         assert_eq!(decoded.files["file"].bytes, b"x");
     }
 }
+
+#[test]
+fn valid_gzip_at_default_compressed_limit_preserves_complete_decoded_entry() {
+    // Empty members change compressed size while preserving the complete tar.
+    // Each comment remains inside the supplier's 65,535-byte header bound.
+    let base = gzip(&tar("package/file", b'0', b"synthetic boundary"));
+    let empty = gzip(&[]);
+    assert_eq!(empty[3], 0);
+    let remaining = MAX_COMPRESSED - base.len();
+    let maximum_member = empty.len() + usize::from(u16::MAX) + 1;
+    let members = remaining.div_ceil(maximum_member);
+    let even = remaining / members;
+    let extra = remaining % members;
+    let mut encoded = Vec::with_capacity(MAX_COMPRESSED + 1);
+    encoded.extend_from_slice(&base);
+    let first_comment = encoded.len() + 10;
+    for index in 0..members {
+        let size = even + usize::from(index < extra);
+        let padding = size - empty.len();
+        assert!(padding > 0 && padding <= usize::from(u16::MAX));
+        let offset = encoded.len();
+        encoded.extend_from_slice(&empty[..10]);
+        encoded[offset + 3] |= 0x10;
+        encoded.resize(encoded.len() + padding - 1, b'x');
+        encoded.push(0);
+        encoded.extend_from_slice(&empty[10..]);
+    }
+    assert_eq!(encoded.len(), MAX_COMPRESSED);
+    let decoded = decode(&encoded, NATIVE).unwrap();
+    assert_eq!(decoded.expanded_bytes, 2048);
+    assert_eq!(decoded.entries, 1);
+    assert_eq!(decoded.files.len(), 1);
+    assert_eq!(decoded.files["file"].bytes, b"synthetic boundary");
+    assert_eq!(decoded.files["file"].mode, 0o644);
+    // The first bounded comment has room for another byte. No tar bytes change.
+    encoded.insert(first_comment, b'x');
+    assert_eq!(encoded.len(), MAX_COMPRESSED + 1);
+    assert_eq!(
+        decode(&encoded, NATIVE).unwrap_err(),
+        "Compressed archive exceeds 32 MiB"
+    );
+}

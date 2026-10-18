@@ -192,6 +192,7 @@ jobs:
       - run: cargo fetch --locked
       - run: cargo metadata --format-version 1 --locked --offline > /dev/null
       - name: Build independent native auditor before inspected dependencies
+        id: native_bootstrap
         run: |
           set -euo pipefail
           cargo build --package xtask --no-default-features --bin autorouter-audit --offline --locked --message-format=json > ../artifacts/rust-rewrite/gnu-portability/auditor-bootstrap-build.jsonl
@@ -200,23 +201,62 @@ jobs:
           ../artifacts/rust-rewrite/gnu-portability/autorouter-audit-bootstrap vendor > ../artifacts/rust-rewrite/gnu-portability/vendor-audit.json
           ../artifacts/rust-rewrite/gnu-portability/autorouter-audit-bootstrap production-features --self-test
       - run: cargo clippy --package xtask --no-default-features --all-targets --offline --locked -- -D warnings
+        id: audit_clippy
       - run: cargo test --package xtask --no-default-features --bin autorouter-audit --offline --locked
+        id: audit_tests
       - run: cargo fmt --check
       - run: cargo clippy --workspace --all-targets --offline --locked -- -D warnings
       - name: Native tests in the pinned glibc 2.28 userland
         run: |
           set -euo pipefail
-          cargo test --workspace --offline --locked --no-run
-          env -u LD_LIBRARY_PATH -u LD_PRELOAD cargo test --workspace --offline --locked
-      - run: cargo xtask parity --all --output artifacts/rust-rewrite/parity-gnu-portability
-      - run: node parity/capture-auto-routing-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/auto-routing-contracts
-      - run: cargo xtask parity --cases artifacts/rust-rewrite/auto-routing-contracts/cases.jsonl --report artifacts/rust-rewrite/parity-auto-routing-contracts.json
+          autorouter_evidence_dir=../artifacts/rust-rewrite/gnu-portability
+          mkdir -p "$autorouter_evidence_dir"
+          # Called only as a top-level command: do not put this function in an
+          # if/&&/|| condition, which would disable Bash errexit in its body.
+          autorouter_record_workspace() {
+            local autorouter_phase=$1
+            shift
+            local -a autorouter_pipeline_status
+            set +e
+            "$@" 2>&1 | tee "$autorouter_evidence_dir/workspace-$autorouter_phase.log"
+            autorouter_pipeline_status=("${PIPESTATUS[@]}")
+            set -e
+            local autorouter_metadata_status=0
+            printf '{"command_exit_code":%s,"log_exit_code":%s}\n' \
+              "${autorouter_pipeline_status[0]}" "${autorouter_pipeline_status[1]}" \
+              > "$autorouter_evidence_dir/workspace-$autorouter_phase-status.json" \
+              || autorouter_metadata_status=$?
+            if (( autorouter_pipeline_status[0] != 0 )); then
+              python3 distribution/ci/annotate-cargo-tests.py "$autorouter_evidence_dir/workspace-$autorouter_phase.log" || true
+              return "${autorouter_pipeline_status[0]}"
+            fi
+            if (( autorouter_pipeline_status[1] != 0 )); then
+              return "${autorouter_pipeline_status[1]}"
+            fi
+            return "$autorouter_metadata_status"
+          }
+          autorouter_record_workspace compile cargo test --workspace --offline --locked --no-run
+          autorouter_record_workspace tests env -u LD_LIBRARY_PATH -u LD_PRELOAD cargo test --workspace --offline --locked --no-fail-fast
       - name: Build release and verify experimental features are absent
+        id: native_release
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' }}
         run: |
           set -euo pipefail
           cargo build --release --offline --locked --package claude-autorouter --message-format=json > ../artifacts/rust-rewrite/gnu-portability/production-build.jsonl
           ../artifacts/rust-rewrite/gnu-portability/autorouter-audit-bootstrap production-features --build-report ../artifacts/rust-rewrite/gnu-portability/production-build.jsonl > ../artifacts/rust-rewrite/gnu-portability/production-features.json
+      - name: Freeze and verify the complete immutable reference
+        id: freeze_reference
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' }}
+        run: cargo xtask freeze-reference > ../artifacts/rust-rewrite/gnu-portability/freeze-reference.json
+      - run: cargo xtask parity --all --output artifacts/rust-rewrite/parity-gnu-portability
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
+      - run: node parity/capture-auto-routing-contracts.mjs ../artifacts/rust-rewrite/reference ../artifacts/rust-rewrite/auto-routing-contracts
+        id: capture_auto_routing
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
+      - run: cargo xtask parity --cases artifacts/rust-rewrite/auto-routing-contracts/cases.jsonl --report artifacts/rust-rewrite/parity-auto-routing-contracts.json
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' && steps.capture_auto_routing.outcome == 'success' }}
       - name: Inspect actual ELF and enforce required GLIBC symbol versions
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' }}
         run: |
           set -euo pipefail
           cargo xtask package-inspect "$AUTOROUTER_BUILD_TARGET" rust/target/release/claude-autorouter \
@@ -237,21 +277,33 @@ jobs:
           NODE
           env -u LD_LIBRARY_PATH -u LD_PRELOAD ./target/release/claude-autorouter --version
       - run: node parity/check-config-commands.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
       - run: node parity/check-node-options-startup.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
       - run: node parity/check-gateway.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
       - run: node parity/check-gateway.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter --unicode
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
       - run: node parity/check-gateway-resources.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
       - run: node parity/check-http-parser.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
       - run: node parity/check-upstream-transport.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
       - run: node parity/check-upstream-security.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
       - run: node parity/check-tls-options.mjs ../artifacts/rust-rewrite/reference ./target/release/claude-autorouter
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.freeze_reference.outcome == 'success' }}
       - name: Install exact private archive offline and run the native lifecycle suites
+        id: native_npm
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' }}
         run: |
           set -euo pipefail
           env -u LD_LIBRARY_PATH -u LD_PRELOAD cargo xtask package \
             --binary "$AUTOROUTER_BUILD_TARGET=rust/target/release/claude-autorouter" \
             --output artifacts/rust-rewrite/native-package-glibc228 --smoke
       - name: Install exact direct archive and run the same native lifecycle suites
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.native_npm.outcome == 'success' }}
         run: |
           set -euo pipefail
           autorouter_native_version=$(env -u LD_LIBRARY_PATH -u LD_PRELOAD ./target/release/claude-autorouter --version)
@@ -259,6 +311,7 @@ jobs:
             --direct-from "artifacts/rust-rewrite/native-package-glibc228/claude-autorouter-$autorouter_native_version.tgz" \
             --target "$AUTOROUTER_BUILD_TARGET" --output artifacts/rust-rewrite/native-direct-glibc228 --smoke
       - name: Rehearse exact-archive upgrade and rollback in the pinned GNU userland
+        if: ${{ always() && !cancelled() && steps.native_bootstrap.outcome == 'success' && steps.audit_clippy.outcome == 'success' && steps.audit_tests.outcome == 'success' && steps.native_release.outcome == 'success' && steps.native_npm.outcome == 'success' }}
         run: |
           set -euo pipefail
           autorouter_native_version=$(env -u LD_LIBRARY_PATH -u LD_PRELOAD ./target/release/claude-autorouter --version)
@@ -273,12 +326,15 @@ jobs:
           assert.equal(rehearsal.passed, true);
           assert.equal(rehearsal.native_archive_sha256, packed.sha256);
           NODE
+          node distribution/ci/upgrade-rollback-proof.mjs --self-test
+          node distribution/ci/upgrade-rollback-proof.mjs ../artifacts/rust-rewrite/upgrade-rollback-glibc228/report.json ../artifacts/rust-rewrite/native-package-glibc228/package-report.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: rust-glibc228-${{ matrix.target }}
           path: |
             artifacts/rust-rewrite/gnu-portability/*
+            artifacts/rust-rewrite/gnu-portability/workspace-*.log
             artifacts/rust-rewrite/parity*.json
             artifacts/rust-rewrite/tls-*.json
             artifacts/rust-rewrite/evidence/*.json

@@ -3,6 +3,7 @@ use std::process::{ExitCode, Stdio};
 
 mod configuration;
 mod doctor;
+mod json_output;
 mod launch;
 mod onboarding;
 mod secret_input;

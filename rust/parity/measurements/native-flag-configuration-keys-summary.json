@@ -1,0 +1,317 @@
+{
+  "kind": "native_individual_flag_configuration_key_acceptance",
+  "recorded_at_utc": "2026-10-17T23:03:00.532966+00:00",
+  "accepted_keys": [
+    "AUTOROUTER_STATUSLINE",
+    "AUTOROUTER_DEBUG"
+  ],
+  "reviews": [
+    {
+      "path": "artifacts/rust-rewrite/configuration-key-review-20261018-1/flags-and-tool-search-acceptance-review.json",
+      "bytes": 28549,
+      "sha256": "92b53ba598aaccf82b264281abfc3f8b077b433f5808f9c2199040bfed9a2df6"
+    },
+    {
+      "path": "artifacts/rust-rewrite/configuration-key-review-20261018-1/independent-flags-and-tool-search-acceptance-review.json",
+      "bytes": 32693,
+      "sha256": "d0e8b714be59c2f98c88509f7da7f8b2ccc5074cb1bc3c8929a61679aee8015a"
+    }
+  ],
+  "acceptance_basis": "Specific original validation inputs and raw document errors, actual launcher/preference/privacy assertions, and explicit static composition of exact flag domains, report booleans and launcher branches. readConfig omits these flags, so its matching payloads do not prove effective enabled state.",
+  "current_source_snapshot": {
+    "path": "artifacts/rust-rewrite/runtime-config-fixture-sharing-validation-20261018-1/candidate-source.json",
+    "bytes": 116612,
+    "sha256": "cc996e5df66cfa77b5f3e4c9f7234044093f23d67454276c41c52366f104fc1d"
+  },
+  "current_semantic_source_bindings": [
+    {
+      "path": "rust/crates/autorouter-core/src/config.rs",
+      "bytes": 86916,
+      "sha256": "4d345ade8afb18ff828b45b768d3ca4cd4136dd8b6dce4fde5c96118bdc68cf4",
+      "current_cc996_and_historical24b_bytes_identical": true
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/auth.rs",
+      "bytes": 18863,
+      "sha256": "502f2bab65c8c58187ae767460cc15acbd04a47647413b068637054755556be2",
+      "current_cc996_and_historical24b_bytes_identical": true
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/fixture.rs",
+      "bytes": 18628,
+      "sha256": "c5913cdde84a3d2af7f023f98fd6fcc34ab13276d8d3c68682d9a87d1321b7d4",
+      "current_cc996_and_historical24b_bytes_identical": true
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/user_config.rs",
+      "bytes": 68820,
+      "sha256": "cc7da6cb330f864abe2512c788144d4a22201d02e4d6c1424fec6553b00790ea",
+      "current_cc996_and_historical24b_bytes_identical": true
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/status_settings.rs",
+      "bytes": 17827,
+      "sha256": "027c7b2c181d6d70905284a6417a7f60a045bfd3f67cd8067e2bd6b0ba88ff2c",
+      "current_cc996_and_historical24b_bytes_identical": true
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/configuration.rs",
+      "bytes": 21909,
+      "sha256": "f30a7fb052a9458451f78ce4bd42fc2bfe08c149628dd1c05d40b959b4138e95",
+      "current_cc996_and_historical24b_bytes_identical": true
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/launch.rs",
+      "bytes": 9142,
+      "sha256": "afbafa246b1a8bd994c2f2f2c3ea6a56ea1b35c8586735f0f157fb4e4239f0a6",
+      "current_cc996_and_historical24b_bytes_identical": true
+    },
+    {
+      "path": "rust/crates/claude-autorouter/tests/launcher_logging.rs",
+      "bytes": 19662,
+      "sha256": "6034726b30b322aeeb1189107b496a085d8654128ce500cd2c62c31eed94d1c0",
+      "current_cc996_and_historical24b_bytes_identical": true
+    }
+  ],
+  "historical_and_current_bindings": {
+    "actual_pure_corpus_and_consumer_workspace_snapshot": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/candidate-source.json",
+      "bytes": 116611,
+      "sha256": "24b774510c4270f631397480f795da5969ee1c4daded2066e29facdb394839b7"
+    },
+    "actual_raw_JSON_text_snapshot": {
+      "path": "artifacts/rust-rewrite/config-owned-values-20261017-1/candidate-source.json",
+      "bytes": 116611,
+      "sha256": "d043c474df1d3b72f3abbb8092e4f7bfc4f2de657dfc4b7ccc9932efca2b2f6e"
+    },
+    "actual_repeated_CLI_consumer_snapshot": {
+      "path": "artifacts/rust-rewrite/cli-fixture-sharing-validation-20261018-1/candidate-source.json",
+      "bytes": 116611,
+      "sha256": "1788e09a0bcf1e49704391b9b6c3578956102df6bf1dc471c7e85b49cf3418f9"
+    },
+    "later_runtime_test_only_source_review": {
+      "path": "artifacts/rust-rewrite/runtime-config-fixture-sharing-validation-20261018-1/independent-validation-review.json",
+      "bytes": 10273,
+      "sha256": "15cfc3b6616c912be420569506c00a83a2a195139d11606d27e260c31ce78e16"
+    },
+    "scope": "The eight listed flag semantic files are unchanged between executed24b and currentcc996. The raw-document proof executed d043; the existing reviewed config production prefix binds that parser. Subsequent1788 CLI fixture sharing and cc996 runtime/TLS test-only sharing retain their separate actual source and execution identities. No whole-current CLI or CI qualification is inferred."
+  },
+  "actual_validation_controls": {
+    "source_definition": "test/config.test.mjs#15",
+    "mapping": {
+      "path": "rust/parity/assertion-mappings/config-auth.json",
+      "bytes": 37647,
+      "sha256": "e0ba7e5ef1bc3c3ab6aab685650a014e7b8f4b748662b92c173a77b71c8d6bfb"
+    },
+    "cases": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/deterministic/parity-all/config-auth.jsonl",
+      "bytes": 362452,
+      "sha256": "df2b45067f723bdf1bcea56945a51aff925d3c86f2f52f162ae172f7aaf8de23"
+    },
+    "report": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/deterministic/parity-all/config-auth.report.json",
+      "bytes": 458,
+      "sha256": "84e58efca17c82be305dde388129f4b6e8c44ebc6d012ca7051ec409daa01020"
+    },
+    "specific_cases": {
+      "AUTOROUTER_STATUSLINE": [
+        {
+          "id": "config-15-261",
+          "raw_value": ""
+        },
+        {
+          "id": "config-15-262",
+          "raw_value": "false"
+        },
+        {
+          "id": "config-15-263",
+          "raw_value": "true"
+        },
+        {
+          "id": "config-15-264",
+          "raw_value": "2"
+        },
+        {
+          "id": "config-15-265",
+          "raw_value": false
+        },
+        {
+          "id": "config-15-266",
+          "raw_value": "0"
+        },
+        {
+          "id": "config-15-267",
+          "raw_value": "1"
+        }
+      ],
+      "AUTOROUTER_DEBUG": [
+        {
+          "id": "config-15-268",
+          "raw_value": ""
+        },
+        {
+          "id": "config-15-269",
+          "raw_value": "false"
+        },
+        {
+          "id": "config-15-270",
+          "raw_value": "true"
+        },
+        {
+          "id": "config-15-271",
+          "raw_value": "2"
+        },
+        {
+          "id": "config-15-272",
+          "raw_value": false
+        },
+        {
+          "id": "config-15-273",
+          "raw_value": "0"
+        },
+        {
+          "id": "config-15-274",
+          "raw_value": "1"
+        }
+      ]
+    },
+    "scope": "Each key has seven original cases: empty/false-string/true-string/2/booleanfalse reject, exact strings0/1 accept. The supplied full-corpus report has no failures, but only these identified cases support this predicate. Successful readConfig results do not contain the flags."
+  },
+  "actual_raw_document_controls": {
+    "native_process": {
+      "path": "artifacts/rust-rewrite/config-json-text-proof-20261017-1/native.json",
+      "bytes": 963,
+      "sha256": "3be84bfdbceae80bd15c73e36dd5da3463eecf42de1dacaba06bd0ec8b3c4518"
+    },
+    "source_process": {
+      "path": "artifacts/rust-rewrite/config-json-text-proof-20261017-1/source.json",
+      "bytes": 1076,
+      "sha256": "9c663ac32c5996bde3367cdff065bfececc1b598c5e16e94dcd4a7b0c1d688f4"
+    },
+    "native_stdout": {
+      "path": "artifacts/rust-rewrite/config-json-text-proof-20261017-1/native.stdout",
+      "bytes": 140831,
+      "sha256": "ad8643c513b49037f7d7669a8dc29bb06c02cb6ace6bb25bfabc7169cee3af55"
+    },
+    "source_stdout": {
+      "path": "artifacts/rust-rewrite/config-json-text-proof-20261017-1/source.stdout",
+      "bytes": 140891,
+      "sha256": "7c1d242a19571a1e361fc5bbf812a79600a01b48ebb3be05f91ce6de0e33f4bf"
+    },
+    "comparison": {
+      "path": "artifacts/rust-rewrite/config-json-text-proof-20261017-1/comparison.json",
+      "bytes": 48494,
+      "sha256": "a88a8580106527f6bd8facbc40ab87942e3b7b0d0d8b59c821a0bbab2b3ab82c"
+    },
+    "specific_errors": [
+      {
+        "id": "config-document-autorouter_statusline-positive-overflow",
+        "observed_exact_error": "AUTOROUTER_STATUSLINE must be 0 or 1",
+        "immutable_input_and_complete_outcome_equal": true
+      },
+      {
+        "id": "config-document-autorouter_statusline-negative-overflow",
+        "observed_exact_error": "AUTOROUTER_STATUSLINE must be 0 or 1",
+        "immutable_input_and_complete_outcome_equal": true
+      },
+      {
+        "id": "config-document-autorouter_debug-positive-overflow",
+        "observed_exact_error": "AUTOROUTER_DEBUG must be 0 or 1",
+        "immutable_input_and_complete_outcome_equal": true
+      },
+      {
+        "id": "config-document-autorouter_debug-negative-overflow",
+        "observed_exact_error": "AUTOROUTER_DEBUG must be 0 or 1",
+        "immutable_input_and_complete_outcome_equal": true
+      },
+      {
+        "id": "config-document-statusline-before-evaluator",
+        "observed_exact_error": "AUTOROUTER_STATUSLINE must be 0 or 1",
+        "immutable_input_and_complete_outcome_equal": true
+      }
+    ],
+    "scope": "Actual matching errors for both signs of Infinity per key plus STATUSLINE-before-evaluator precedence; source inputs remain unchanged. No other82-case result is credited to these flags."
+  },
+  "actual_consumer_evidence": {
+    "original_mappings": {
+      "path": "rust/parity/assertion-mappings/cli-tooling.json",
+      "bytes": 146642,
+      "sha256": "88872739c1beb3ac858ea06f37f1b752e80eb7fb2452dfaa4738f16245a45f02"
+    },
+    "historical24b_process": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/workspace.json",
+      "bytes": 442,
+      "sha256": "f1dfc6863a9d64cfe552a57ff62848aa3c06b3abbfacfdbd45b40d8aba69f1a8"
+    },
+    "historical24b_stdout": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/workspace.stdout",
+      "bytes": 146466,
+      "sha256": "75861c2eb975e1677a32f0541c378de622fa7100856e2f0c2e416c3395f1d7eb"
+    },
+    "historical24b_primary_passes": [
+      "launcher_keeps_default_stderr_empty_and_debug_events_private_while_status_savings_work",
+      "disabled_or_malformed_status_settings_keep_original_arguments_and_clear_stale_state",
+      "forced_ollama_updates_keep_all_unrelated_saved_settings_and_runtime_overrides_ephemeral"
+    ],
+    "shared_report_provenance_passes": [
+      "show_preserves_saved_bytes_and_reports_complete_redacted_provenance",
+      "show_without_saved_settings_and_inactive_full_checks_are_read_only"
+    ],
+    "actual1788_process": {
+      "path": "artifacts/rust-rewrite/cli-fixture-sharing-validation-20261018-1/cli-tests.json",
+      "bytes": 550,
+      "sha256": "22e711b41b7a27c204dea91d4ec884fc37f20488488397d9d7c81895bd38a4cc"
+    },
+    "actual1788_stdout": {
+      "path": "artifacts/rust-rewrite/cli-fixture-sharing-validation-20261018-1/cli-tests.stdout",
+      "bytes": 4216,
+      "sha256": "57d4bb0163ccd99fc3d78d79cda0abce53018b786ed246d0c19c2b78c95c6f90"
+    },
+    "actual1788_repeated_passes": [
+      "disabled_or_malformed_status_settings_keep_original_arguments_and_clear_stale_state",
+      "forced_ollama_updates_keep_all_unrelated_saved_settings_and_runtime_overrides_ephemeral",
+      "show_preserves_saved_bytes_and_reports_complete_redacted_provenance",
+      "show_without_saved_settings_and_inactive_full_checks_are_read_only"
+    ],
+    "scope": "The24b workspace failed its source-transfer cap test; these named consumer tests passed. The1788 focused three-target CLI run passed42 tests, including the identified opt-out, preference and report tests. Its scope does not include rerunning launcher_logging. Generic report tests support composition, not an invented direct assertion of every flag/value/provenance combination."
+  },
+  "per_key_review": [
+    {
+      "key": "AUTOROUTER_STATUSLINE",
+      "contract": "Absent defaults enabled for claude. Only exact strings0/1 are accepted; null, numbers, booleans, arrays, objects and other strings do not coerce. Validation follows session-log mode and precedes DEBUG/evaluator.",
+      "report_and_destination": "After readConfig validation the report projects envflag!=0 to a nonsecret, always-active boolean. Only claude && flag!=0 enters status cleanup/store/overlay setup; serve never does.",
+      "actual_consumer_behavior": "Default launcher status reaches ready with selected model/source and savings while ordinary stderr stays empty. STATUSLINE0 preserves custom settings and clears inherited status-file state without a remaining owned directory. STATUSLINE1 with malformed settings closes its owner, warns generically and passes original arguments.",
+      "static_composition": "The exact string-only ASCII/UTF16 comparison covers unexecuted raw classes. Source branch exclusion proves opt-out skips setup functions; actual final filesystem/env/argv assertions are not instrumentation of every transient function call. Report provenance and saved/runtime preference behavior compose through unchanged shared code.",
+      "unexecuted_extensions": [
+        "No direct null/true/numeric0-or1/array/object/lone-surrogate flag matrix.",
+        "No all-values-by-provenance report table, direct serve status matrix, or every conflicting-invalid-input pair.",
+        "No zero-filesystem/Keychain-read claim: configuration loading may precede flag validation."
+      ]
+    },
+    {
+      "key": "AUTOROUTER_DEBUG",
+      "contract": "Absent defaults quiet for claude. Only exact strings0/1 are accepted; the same strict guard applies before evaluator validation.",
+      "report_and_destination": "The report projects envflag==1. Claude receives routine diagnostics only for exact1. Serve always enables diagnostics, including DEBUG0; this command branch is source-reviewed.",
+      "actual_consumer_behavior": "Two actual claude launches cover absent and1: exact child stdout, empty default stderr, expected route/upstream/model diagnostics when enabled, and no provider key, evaluator key, prompt or response canaries in either stderr. Both retain working status/savings. Forced setup preserves saved DEBUG/STATUSLINE preferences while runtime overrides remain ephemeral.",
+      "static_composition": "DEBUG0 follows the same reviewed false branch as the observed absent case. Effective state comes from launcher/report predicates and the actual logging test, not readConfig output. Existing shared provenance assertions compose with the direct boolean field mapping.",
+      "unexecuted_extensions": [
+        "No third DEBUG0 quiet launch or actual serve DEBUG0/1/absent matrix is claimed.",
+        "No DEBUG-before-evaluator/STATUSLINE-versus-DEBUG conflict suite, exhaustive raw type matrix, or full report provenance Cartesian was executed.",
+        "Required warnings and independent opt-in session logging are not disabled by the routine diagnostics flag."
+      ]
+    }
+  ],
+  "tool_search_stays_pending": {
+    "key": "ENABLE_TOOL_SEARCH",
+    "status": "pending",
+    "reason": "Its18 actual original parent cases preserve strings and absence across three client profiles, including empty and auto:5. Raw null/nonstring parent values and Source pure-builder/report/final-OS differences need their own boundary evidence and explicit native API review. Native fixture filtering is not parity proof.",
+    "no_migration_transferred": "Neither Auto16 nor K3 LocalToken conversion is extended to this key; no new boolean validation is introduced."
+  },
+  "coverage_change": "Only STATUSLINE and DEBUG are accepted by this summary:5 to7 covered keys and22 to20 pending. The other25 key rows, all588 original definitions, all53 limit rows and all13 area objects retain their previous values. ENABLE_TOOL_SEARCH remains pending.",
+  "author_disclosure": "The first reviewer authored the earlier borrowed ConfigInput and CLI fixture drafts; root owned edits and executions. The second reviewer authored the per-key matrix and independently audited the other review and retained data. These are per-key acceptance/composition reviews, not a new independent implementation qualification or new product execution.",
+  "evidence_scope": [
+    "Only these two keys are accepted. All additional unexecuted predicates stay explicit; no exhaustive case-count inference or original-definition/API migration is made.",
+    "Historical24b full-workspace failure and later EOF/source-cap gates remain unresolved. Currentcc996 runtime529 passes include the197 TLS subset and do not replace the historical CLI execution or qualify full-workspace/CI.",
+    "No provider/model call, download, hardware/performance measurement, currentCI/platform, supplier/build/installed-binary provenance, native archive/export/restore/fit, release, rollback, stabilization or cutover claim."
+  ]
+}

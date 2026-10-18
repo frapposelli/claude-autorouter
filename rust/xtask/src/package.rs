@@ -8,22 +8,22 @@ pub(crate) mod binary;
 pub(crate) mod direct;
 #[path = "package_lifecycle.rs"]
 pub(crate) mod lifecycle;
+use crate::evaluation::digest as sha;
 use crate::process::{capture, read_bounded};
+#[cfg(test)]
+use crate::release::base64;
+use crate::release::integrity;
 use serde_json::{Value, json};
-use sha2::{Digest, Sha256, Sha512};
 use std::collections::{BTreeMap, HashSet};
 use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::os::unix::fs::{OpenOptionsExt, PermissionsExt, symlink};
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::Duration;
 const DISPATCHER: &str = include_str!("../../distribution/autorouter.sh");
 const PLATFORMS: &str = include_str!("../../distribution/platforms.json");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
-fn sha(bytes: &[u8]) -> String {
-    format!("{:x}", Sha256::digest(bytes))
-}
 fn put(path: &Path, bytes: &[u8], mode: u32) -> Result<(), String> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|_| "Cannot create native package directory")?;
@@ -447,28 +447,6 @@ fn assemble(
     )?;
     Ok(report)
 }
-fn base64(bytes: &[u8]) -> String {
-    const ALPHABET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    let mut text = String::new();
-    for chunk in bytes.chunks(3) {
-        let n = (chunk[0] as u32) << 16
-            | ((chunk.get(1).copied().unwrap_or(0) as u32) << 8)
-            | chunk.get(2).copied().unwrap_or(0) as u32;
-        text.push(ALPHABET[((n >> 18) & 63) as usize] as char);
-        text.push(ALPHABET[((n >> 12) & 63) as usize] as char);
-        text.push(if chunk.len() > 1 {
-            ALPHABET[((n >> 6) & 63) as usize] as char
-        } else {
-            '='
-        });
-        text.push(if chunk.len() > 2 {
-            ALPHABET[(n & 63) as usize] as char
-        } else {
-            '='
-        });
-    }
-    text
-}
 pub(crate) fn verify(path: &Path, expected: Option<&str>) -> Result<Value, String> {
     let bytes = read_bounded(path, archive::MAX_COMPRESSED as u64)?;
     let checksum = sha(&bytes);
@@ -590,28 +568,8 @@ pub(crate) fn verify_decoded(
         return Err("Native archive has undeclared executable targets".into());
     }
     Ok(
-        json!({"schema_version":1,"kind":"native_npm_feasibility","verified":true,"release_approved":false,"sha256":checksum,"integrity":format!("sha512-{}",base64(&Sha512::digest(bytes))),"compressed_bytes":bytes.len(),"expanded_tar_bytes":expanded,"files":files.len(),"artifacts":artifacts,"archive_caps":{"compressed_bytes":archive::MAX_COMPRESSED,"expanded_tar_bytes":archive::MAX_NATIVE_EXPANDED,"file_bytes":archive::MAX_FILE,"entries":archive::NATIVE.entries},"platform_qualification":"pending","full_supported_matrix":"pending","source_to_binary_provenance":"unverified","license_files_missing":build["license_files_missing"],"license_review":"pending"}),
+        json!({"schema_version":1,"kind":"native_npm_feasibility","verified":true,"release_approved":false,"sha256":checksum,"integrity":integrity(bytes),"compressed_bytes":bytes.len(),"expanded_tar_bytes":expanded,"files":files.len(),"artifacts":artifacts,"archive_caps":{"compressed_bytes":archive::MAX_COMPRESSED,"expanded_tar_bytes":archive::MAX_NATIVE_EXPANDED,"file_bytes":archive::MAX_FILE,"entries":archive::NATIVE.entries},"platform_qualification":"pending","full_supported_matrix":"pending","source_to_binary_provenance":"unverified","license_files_missing":build["license_files_missing"],"license_review":"pending"}),
     )
-}
-struct Temporary(PathBuf);
-impl Temporary {
-    fn new() -> Result<Self, String> {
-        let nonce = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .map_err(|_| "Invalid clock")?
-            .as_nanos();
-        let path = std::env::temp_dir().join(format!(
-            "autorouter-native-package-{}-{nonce}",
-            std::process::id()
-        ));
-        fresh(&path)?;
-        Ok(Self(path))
-    }
-}
-impl Drop for Temporary {
-    fn drop(&mut self) {
-        let _ = fs::remove_dir_all(&self.0);
-    }
 }
 fn utility_path(directory: &Path) -> Result<(), String> {
     fs::create_dir(directory).map_err(|_| "Cannot create utility-only PATH")?;
@@ -625,12 +583,53 @@ fn utility_path(directory: &Path) -> Result<(), String> {
     }
     Ok(())
 }
+fn smoke_input(path: &Path) -> Result<(PathBuf, Vec<u8>, archive::DecodedArchive, Value), String> {
+    let original = path.canonicalize().map_err(|_| "Cannot resolve archive")?;
+    let bytes = read_bounded(&original, archive::MAX_COMPRESSED as u64)?;
+    let decoded = archive::decode(&bytes, archive::NATIVE)?;
+    let verified = verify_decoded(&bytes, &decoded)?;
+    Ok((original, bytes, decoded, verified))
+}
+fn smoke_files(
+    root: &Path,
+    files: &BTreeMap<String, archive::Entry>,
+    launcher: &Path,
+) -> Result<(), String> {
+    crate::release_install::compare_installed(root, files)
+        .map_err(|_| "Installed npm archive differs from its verified payload")?;
+    for (name, entry) in files {
+        if fs::symlink_metadata(root.join(name))
+            .map_err(|_| "Cannot inspect installed npm permissions")?
+            .permissions()
+            .mode()
+            & 0o7777
+            != entry.mode
+        {
+            return Err("Installed npm permissions differ".into());
+        }
+    }
+    if !fs::symlink_metadata(launcher)
+        .map_err(|_| "npm did not install the command")?
+        .file_type()
+        .is_symlink()
+        || launcher
+            .canonicalize()
+            .map_err(|_| "Cannot resolve npm command")?
+            != root
+                .join("bin/autorouter")
+                .canonicalize()
+                .map_err(|_| "Cannot resolve npm dispatcher")?
+    {
+        return Err("npm command is not the expected symbolic link".into());
+    }
+    Ok(())
+}
 fn smoke(archive: &Path, root: &Path) -> Result<Value, String> {
-    let verified = verify(archive, None)?;
-    let archive = archive
-        .canonicalize()
-        .map_err(|_| "Cannot resolve archive")?;
-    let temporary = Temporary::new()?;
+    let (original, bytes, decoded, verified) = smoke_input(archive)?;
+    let temporary = crate::tool_process::Scratch::new("npm-smoke")?;
+    let archive = temporary.0.join("candidate.tgz");
+    put(&archive, &bytes, 0o600)?;
+    drop(bytes);
     let prefix = temporary.0.join("install path ' $ with spaces");
     let npm_env = temporary.0.join("npm");
     let mut install = npm_command(&npm_env)?;
@@ -650,6 +649,7 @@ fn smoke(archive: &Path, root: &Path) -> Result<Value, String> {
     capture(&mut install, b"", Duration::from_secs(120))?;
     let launcher = prefix.join("bin/claude-autorouter");
     let package_root = prefix.join("lib/node_modules/claude-autorouter");
+    smoke_files(&package_root, &decoded.files, &launcher)?;
     let host_arch = std::env::consts::ARCH;
     let host_os = std::env::consts::OS;
     let base_target = lifecycle::host_target()?;
@@ -677,13 +677,6 @@ fn smoke(archive: &Path, root: &Path) -> Result<Value, String> {
         .join(native_relative)
         .canonicalize()
         .map_err(|_| "Cannot resolve verified installed native executable")?;
-    if !fs::symlink_metadata(&launcher)
-        .map_err(|_| "npm did not install the command")?
-        .file_type()
-        .is_symlink()
-    {
-        return Err("npm command is not the expected symbolic link".into());
-    }
     let utilities = temporary.0.join("without-node");
     utility_path(&utilities)?;
     let cwd = temporary.0.join("unrelated");
@@ -711,7 +704,7 @@ fn smoke(archive: &Path, root: &Path) -> Result<Value, String> {
         root,
         &launcher,
         &native_executable,
-        &archive,
+        &original,
         &verified["sha256"],
     )?;
     Ok(
@@ -884,7 +877,7 @@ mod tests {
 
     #[test]
     fn dispatcher_forwards_literal_arguments_and_exit_status_without_node() {
-        let temporary = Temporary::new().unwrap();
+        let temporary = crate::tool_process::Scratch::new("native-package-test").unwrap();
         let root = temporary.0.join("package path ' $ x");
         put(&root.join("bin/autorouter"), DISPATCHER.as_bytes(), 0o755).unwrap();
         let native = format!(
@@ -947,7 +940,7 @@ mod tests {
     }
     #[test]
     fn missing_native_executable_fails_without_a_download_or_fallback() {
-        let temporary = Temporary::new().unwrap();
+        let temporary = crate::tool_process::Scratch::new("native-package-test").unwrap();
         put(
             &temporary.0.join("bin/autorouter"),
             DISPATCHER.as_bytes(),

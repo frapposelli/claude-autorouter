@@ -18,15 +18,8 @@ const NOW: u64 = 1_800_000_000_000;
 struct Root(PathBuf);
 impl Root {
     fn new() -> Self {
-        let mut random = [0; 12];
-        getrandom::fill(&mut random).unwrap();
-        let path = std::env::temp_dir().join(format!(
-            "autorouter-probe-{PRIVATE}-{}",
-            random
-                .iter()
-                .map(|byte| format!("{byte:02x}"))
-                .collect::<String>()
-        ));
+        let suffix = autorouter_runtime::random_hex::<12>().unwrap();
+        let path = std::env::temp_dir().join(format!("autorouter-probe-{PRIVATE}-{suffix}"));
         fs::DirBuilder::new().mode(0o700).create(&path).unwrap();
         Self(path)
     }

@@ -1,0 +1,357 @@
+{
+  "kind": "native_individual_request_and_turn_fixed_limits_acceptance",
+  "recorded_at_utc": "2026-10-18T02:09:03.976163+00:00",
+  "root_decision": "Accept only max_body_bytes33554432 as the default operational incoming entity-body byte ceiling, and turn_aliases8 as per-record primary-plus-seven retained keys. Both scopes were explicitly accepted by Root after source/result review; public publication follows final checkpoint review. No other limit, key, original definition or area is accepted here.",
+  "root_body_acceptance": {
+    "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/root-max-body-bytes-acceptance.json",
+    "bytes": 983,
+    "sha256": "971f32692a2cb3b7ae699f8c1711e195f590cc2ccd8e9a0d8c9b93387f528ba5"
+  },
+  "reviews": {
+    "body_author_and_independent_proposal": {
+      "path": "artifacts/rust-rewrite/max-body-bytes-limit-review-20261018-1/acceptance-proposal.json",
+      "bytes": 26201,
+      "sha256": "86d2076f69cb8a8b0b8af496b97b66ea35a7fd57fb1e1fc182a210d0d45a314e"
+    },
+    "alias_author_recommendation": {
+      "path": "artifacts/rust-rewrite/turn-state-fixed-limits-review-20261018-1/recommendation.json",
+      "bytes": 16554,
+      "sha256": "7c942c909cc93d72d58675453f8d016e01d1f77dccd23c1bce73fe8f12a8b537"
+    },
+    "alias_independent_review": {
+      "path": "artifacts/rust-rewrite/turn-state-fixed-limits-review-20261018-1/independent-alias-review.json",
+      "bytes": 22721,
+      "sha256": "e37d15e6d7f229ebfa2036c40df789d583d92af1dd5ccbc50ccfcae28f4078bd"
+    }
+  },
+  "source_identity_composition": {
+    "current_read_only_snapshot": {
+      "path": "artifacts/rust-rewrite/release-error-output-privacy-validation-20261018-1/green-source.json",
+      "bytes": 116787,
+      "sha256": "3590c9985986672ea23e36c5fb11184dbb87a524f30def8462b6d8a3fb335a68"
+    },
+    "retained_actual_native_snapshot": {
+      "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/candidate-source.json",
+      "bytes": 116787,
+      "sha256": "064a9a1848a5143b57f11e0058b0ccac030f475c381a30682c5ac83c1bf8c52b"
+    },
+    "current_inputs_verified": 696,
+    "frozen_inputs_verified": 111,
+    "only_current_change_after_retained_actual_native_run": "rust/xtask/src/release_verify.rs, separate release-output privacy repair. Every relevant body/alias implementation and native test byte is unchanged from the retained actual run.",
+    "scope": "Current-source hashes are verified; retained actual executions are composed through unchanged relevant files. This is not an assertion that all696 current files received a new complete passing native run. A separate Root-owned workspace may be in progress when this draft is prepared; no result is predicted."
+  },
+  "individual_limits": [
+    {
+      "id": "max_body_bytes",
+      "baseline_value": 33554432,
+      "accepted_contract": "Default maximum incoming inference/count-token entity body, after HTTP transfer framing is removed and before JSON parsing; equality is admitted, the next byte is rejected413. Headers/chunk framing are not counted; unsupported content encodings remain rejected by the existing separate guard.",
+      "default_proof": "Frozen Source and native read_config assign32*1024*1024. Two complete actual Source/native inactive-mask configurations each serialize maxBodyBytes33554432; their full9202-byte outputs are identical. The resource test explicitly sets the same LIMIT, so that test's override alone is not used as default proof.",
+      "actual_native_boundary": {
+        "test": "exact_32_mib_count_body_is_forwarded_and_one_extra_streamed_byte_is_rejected",
+        "accepted_count_body": {
+          "bytes": 33554432,
+          "sha256": "684db7c1ee1436ab2a950acbea9a98dcf34a7033ab70323d9b8497a231d6d69f"
+        },
+        "hash_scope": "Expected hash independently derived from the pinned114-byte JSON prefix plus spaces. Passing native assertion compares actual forwarded length/hash to it; no separate body/wire capture is claimed.",
+        "one_extra_streamed_byte": 33554433,
+        "rejected_status": 413,
+        "count_requests_after_acceptance_and_rejection": 1,
+        "evaluator_requests": 0,
+        "transport": "Real downstream loopback HTTP; injected synthetic provider/evaluator transport. Explicit transfer-encoding:chunked on the one-over request is honored by pinned Hyper, which removes content-length, forcing streamed counting."
+      },
+      "fresh_Source_inference_control": "Unchanged original test/server.test.mjs#3 actually passes with configured cap1000 and x.repeat(1001):413, connection:close, next health200, evaluations0, decisions[]. Registered upstream assert.fail is never entered. This is not exact1000 acceptance or a Source32MiB execution.",
+      "native_inference_composition": "Retained actual frozen_local_rejections_never_contact_upstream_or_emit_decisions replays SHA-bound baseline-server-response-3 with1000/1001 and asserts413/close/next health/zero router/zero decisions/zero upstream Seen. Supplemental local_rejections_never_call_router_or_upstream_and_hide_payloads also passes.",
+      "common_predicate": "Source increments Buffer chunk.length and rejects bytes>limit. Native checks chunk.len()>cap.saturating_sub(bytes.len()) before extending. Each implementation uses one common read loop for count and inference before JSON, routing or forwarding; native admitted Vec length cannot exceed cap by induction. This composes the actual32MiB count boundary with inference behavior; it is not exact32MiB inference execution.",
+      "ordinary_cleanup": "Native boundary test consumes both responses, awaits close and idle under5s each, asserts generated bodies created==dropped, active bodies0 and balanced event owners, then rebinds the released listener address. Count requests do not create inference start events. This is ordinary schedule/resource ownership evidence, not a general allocator/descriptor census or guaranteed cleanup under every failure.",
+      "override_scope": "Public native RouterConfig.max_body_bytes:usize and Source maxBodyBytes can intentionally be overridden by embedders. This accepts the parsed production default and its common predicate, not an unmodifiable ceiling or arbitrary overridden usize/domain behavior.",
+      "necessary_missing_predicates_for_this_narrow_row": []
+    },
+    {
+      "id": "turn_aliases",
+      "baseline_value": 8,
+      "accepted_contract": "Each admitted record retains its original primary key plus at most seven secondary discovery keys. A ninth distinct retained key removes index1 and preserves index0. This is a per-record key-vector bound; the global alias map can contain more than8 lookups across records.",
+      "insertion_order": "Source includes/native contains skip a key already retained; repeats do not refresh recency. An evicted key may later be newly appended. Pending secondary keys are private until a permitted commit, so not every record necessarily has8 public lookups.",
+      "actual_native_default_schedule": "Retained actual turn_state::tests::aliases_are_bounded_and_unexecuted_selections_are_unconfirmed runs100 default-state same-primary selections with distinct discovery0..99, asserting every admission, record_count1, alias_count8, primary/newest modelOpus and confirmedfalse.",
+      "Source_original_corroboration": "Unchanged test/turn-state.test.mjs#12 runs the100-selection schedule and asserts one record,8 aliases, primaryOpus and newestOpus. Retained named Node pass exists in a terminal596/596 suite. That wrapper did not separately snapshot frozen111 before/after its Node run; no such receipt is invented.",
+      "actual_frozen_differential": "Retained core case turn-bounded-aliases uses one primary plus alias0..11 in a single select, then reads primary/alias0/alias11 and counts. Complete core corpus217/217 matches, present both as retained report and raw17-family stdout. Source adapter verifies frozen111 before imports. Individual Source/native response streams were not retained, so exact survivor values are not described as separately observed raw outputs.",
+      "unchanged_semantic_files": "Current turn_state.rs, fixture.rs, js_json.rs and scripts/rust-reference.mjs are byte-identical to the historical24b774 differential snapshot. Current parity.rs differs only by the reviewed numeric comparator macro extraction; structural comparison and dispatch bodies match. Later process ownership changes are not called identical to the historical supervisor.",
+      "mutation_proof": "Shared Source/native logic skips duplicates, appends each new key, then removes index1 if length>8; induction preserves primary and at most7 secondaries. Trim/remove delete a lookup only if this record still owns it. Rejected admission precedes alias mutation; current unchanged reduced-capacity and failed-same-content native controls supply independent supporting schedules, without accepting default1000 capacity.",
+      "native_api_scope": "Typed admitted TurnState operations; no guarantee for direct mutation of Source's public internal records/aliases or arbitrary invalid dynamic input domain. No whole routing/ambiguity/collision/resource contract is promoted.",
+      "necessary_missing_predicates_for_this_narrow_row": []
+    }
+  ],
+  "fresh_Source_body_execution": {
+    "admission": {
+      "path": "artifacts/rust-rewrite/body-fixed-limit-validation-20261018-1/independent-source-stage-admission.json",
+      "bytes": 5024,
+      "sha256": "c83e2bb2520f54c22a140640338e35d8873430635e7e40a065e584b9baf12c8f"
+    },
+    "binding": {
+      "path": "artifacts/rust-rewrite/body-fixed-limit-validation-20261018-1/execution-binding.json",
+      "bytes": 2689,
+      "sha256": "c13fb64ec32259589c6e96a2ee95f5cf2fe7c314e5e3f16fe412a7d3c3164592"
+    },
+    "record": {
+      "path": "artifacts/rust-rewrite/body-fixed-limit-validation-20261018-1/source-server-3.json",
+      "bytes": 2244,
+      "sha256": "d8973f3af75176827c33e7aa797e886830da5ce79b67f517f15e1bfca0cbe88d"
+    },
+    "stdout": {
+      "path": "artifacts/rust-rewrite/body-fixed-limit-validation-20261018-1/source-server-3.stdout",
+      "bytes": 374,
+      "sha256": "ae777d684e12e52a9398d4b807881d681b7e2551860586b92bc605bef3733674"
+    },
+    "stderr": {
+      "path": "artifacts/rust-rewrite/body-fixed-limit-validation-20261018-1/source-server-3.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "result": {
+      "selected_original": "test/server.test.mjs#3",
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "exit_code": 0,
+      "error_count": 0,
+      "complete_eof": true,
+      "reaped": true,
+      "native_inputs_before_after": 696,
+      "frozen_inputs_before_after": 111
+    },
+    "raw_signals": "All3 direct-child SIGKILL attempts remain recorded before consuming wait; factual exit0 is preserved. No zero-signal, arbitrary descendant/group or cross-crash cleanup claim.",
+    "io_scope": "Fixed Node22.14.0 exact-name callback, isolationnone/concurrency1, explicit synthetic config, stub router, owned loopback servers; loopback is network IO. No real provider/evaluator/model/MCP/settings invocation."
+  },
+  "retained_actual_native": {
+    "record": {
+      "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/workspace.json",
+      "bytes": 513,
+      "sha256": "d9e455c52695d81483831f58332af413fae0d2eec92c7f7240a761cfd14f6f06"
+    },
+    "stdout": {
+      "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/workspace.stdout",
+      "bytes": 146797,
+      "sha256": "36c838b70432bd47062f3187a17171ade2a398f42c020519f42ec115c43edbb4"
+    },
+    "stderr": {
+      "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/workspace.stderr",
+      "bytes": 7626,
+      "sha256": "0fdb508a1b67b8ea6a8a97cc9c80b9a0fe654a25a4f2882fe9a85ef3d189a2b3"
+    },
+    "result": {
+      "groups": 61,
+      "passed": 1395,
+      "failed": 1,
+      "ignored": 10,
+      "exit_code": 101
+    },
+    "failure": "Only unchanged logical source-transfer cap failure. Body and alias tests above pass, but no green full-workspace claim or result for the later privacy candidate is made here."
+  },
+  "actual_default_capture": {
+    "Source_record": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/source.json",
+      "bytes": 2067,
+      "sha256": "5b8a8dd7262c099c5e9554c63d184d68180f3e5ff4769c9750051603760f3c37"
+    },
+    "native_record": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/native.json",
+      "bytes": 1953,
+      "sha256": "6386afeb98670173984ecead3766baa6af2b276e3d5029c129f7c4e0bfd71373"
+    },
+    "Source_stdout": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/source.stdout",
+      "bytes": 9202,
+      "sha256": "850c0570a0b9edd790d095eb88a2c86f80e09db54b2ab27118044c16149d9749"
+    },
+    "native_stdout": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/native.stdout",
+      "bytes": 9202,
+      "sha256": "850c0570a0b9edd790d095eb88a2c86f80e09db54b2ab27118044c16149d9749"
+    },
+    "comparison": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/comparison.json",
+      "bytes": 3871,
+      "sha256": "e9d8c41be4cb12f862d730664456cb60ae717c08eaeee42bf685f06f3d0e7681"
+    },
+    "independent_result_review": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/independent-actual-result-review.json",
+      "bytes": 15780,
+      "sha256": "f519da911a887a9138860ce384dfe03c9f900d8c7a625d1956cbc9feabfcda26"
+    }
+  },
+  "retained_alias_differential_and_Source_pass": {
+    "historical_snapshot": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/candidate-source.json",
+      "bytes": 116611,
+      "sha256": "24b774510c4270f631397480f795da5969ee1c4daded2066e29facdb394839b7"
+    },
+    "build": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/build-helper.json",
+      "bytes": 477,
+      "sha256": "b5f86466f10f53612f36ed824ca10fe66c141afd5725617ab847a75d5775f513"
+    },
+    "historical_helper_identity": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/helper-identity.json",
+      "bytes": 616,
+      "sha256": "6cdac1a999d9ab6ef6b8e0c254b5bf7d2425fd5b80f7c36eda21e42205006aea"
+    },
+    "execution": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/parity-all.json",
+      "bytes": 613,
+      "sha256": "7d4653247f53d956790f2e7087e64572cd1425fcc0ed5c521dce51fdc18e3144"
+    },
+    "stdout": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/parity-all.stdout",
+      "bytes": 7961,
+      "sha256": "e31d558016d48577977d68d24224d5b7ae1fcc679e9510179265412643138d64"
+    },
+    "core_report": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/deterministic/parity-all/core.report.json",
+      "bytes": 458,
+      "sha256": "b3d2c7e7a78adc7b0055c5b987259b4f0099504bd81ffe326b890f4be2708166"
+    },
+    "executed_core_corpus": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/deterministic/parity-all/core.jsonl",
+      "bytes": 56890,
+      "sha256": "6e0457c692f48897bd176205f95895290861f0a0b58e087e70a54cc55fd95cc7"
+    },
+    "Source_original_test_run": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/node-tests.json",
+      "bytes": 370,
+      "sha256": "cda56b2abd94894a7aa447c0ae51645447823d4e51f47375e524dddf1f4e2a15"
+    },
+    "Source_original_stdout": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/node-tests.stdout",
+      "bytes": 135711,
+      "sha256": "669fbde05ddbac2636de03bc512e0ce2bf344a3245383dd26df92cb5d4ad195f"
+    },
+    "executable_scope": "Historical Cargo-built helper identity is retained; today's overwritten target/debug/xtask is not relabeled that executable. Comparison is fixed-case behavior evidence, not current process cleanup or provider qualification."
+  },
+  "implementation_and_fixture_pins": [
+    {
+      "path": "rust/parity/baseline.json",
+      "bytes": 86691,
+      "sha256": "6722bd7a0109efb4d48e743412fbcc21affb0ceda1058d06726d03375113f588"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/src/config.mjs",
+      "bytes": 8055,
+      "sha256": "66ae50d078c2a3862dc0f6d85e939b08918d842843ed60797eac290a5fe0754e"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/src/server.mjs",
+      "bytes": 17919,
+      "sha256": "91df67483b2bf97a037ba7091b7fa5d008de0b733705813e00f874a6c240d8c0"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/test/server.test.mjs",
+      "bytes": 80425,
+      "sha256": "b82681e2383f3466d66f9801745d4e62fb45d20065f136804f677089f2d41809"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/config.rs",
+      "bytes": 90722,
+      "sha256": "e107056ddfe46af6ea04c5d8466934d11a74f5f3b2861b88622563280c2459ac"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/server.rs",
+      "bytes": 86203,
+      "sha256": "df7c30a751d892b35f5cdd5ecbe17c6ecd250442cd92b91bb2077edec4fb90f8"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/http_client.rs",
+      "bytes": 18159,
+      "sha256": "300f066f56a3f5e40b620baaa65322830b15baa7201eca9260c827c655d419b5"
+    },
+    {
+      "path": "rust/vendor/hyper/src/proto/h1/role.rs",
+      "bytes": 132533,
+      "sha256": "6efe5296f08d94b8ff4e5e21693dc36ea7560cdf460156dda68713e4ba412db1"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/gateway_resources.rs",
+      "bytes": 27191,
+      "sha256": "641691e5ae9d32bfad645f772b449594dc82047ba2012cd7a0ca62894a7f24a0"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/gateway_failures.rs",
+      "bytes": 16172,
+      "sha256": "2a43f1b8b003cb0ea762326c0efecf6146800cb3886da11308b4a7dc07e18143"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/server_response_contracts.rs",
+      "bytes": 9396,
+      "sha256": "c0a6a48bc963575cc4c64eb51dc63ffc784410ddff28fa44f07f11045591379c"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/tests/support/server_simple.rs",
+      "bytes": 7482,
+      "sha256": "98d0a4ab2fa0fe62ddfc16dd291719563dba751d62c796e09e3ebd13972bb3fc"
+    },
+    {
+      "path": "rust/parity/cases/server-response-contracts.jsonl",
+      "bytes": 2039,
+      "sha256": "7c158c333972674c503b3a8767fa5077ec775369998894a72bde8609bcd3e217"
+    },
+    {
+      "path": "rust/parity/cases/server-response-contracts.capture.json",
+      "bytes": 6651,
+      "sha256": "d82b4fc02ebc8cd2db77023cea25038c8374712c73a772d31d04cef20f5cda1d"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/src/turn-state.mjs",
+      "bytes": 5935,
+      "sha256": "c7f5881a2eebcbcf1843de052b0aacb65b772da166fafb96760b6b74445ef3f3"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/test/turn-state.test.mjs",
+      "bytes": 13684,
+      "sha256": "b45c17653af3a172537d1f7dc62ff4acc5b4ddb7103a221e606ab74979cbffcb"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/turn_state.rs",
+      "bytes": 27407,
+      "sha256": "167f4f1907bda193015293472611e3b4e7eebabb7b5c9cc75080e4d82ef76978"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/fixture.rs",
+      "bytes": 18628,
+      "sha256": "c5913cdde84a3d2af7f023f98fd6fcc34ab13276d8d3c68682d9a87d1321b7d4"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/js_json.rs",
+      "bytes": 79716,
+      "sha256": "12647019cc32a83a952f708e0769618fb7a01708d37b67a4b294220fb2bbc9f0"
+    },
+    {
+      "path": "scripts/rust-reference.mjs",
+      "bytes": 18800,
+      "sha256": "5744dd82040445879174bb9c17a0ce8a1543985f0dc355b2493984748677e388"
+    },
+    {
+      "path": "rust/parity/cases/core.jsonl",
+      "bytes": 56890,
+      "sha256": "6e0457c692f48897bd176205f95895290861f0a0b58e087e70a54cc55fd95cc7"
+    },
+    {
+      "path": "rust/xtask/src/parity.rs",
+      "bytes": 22977,
+      "sha256": "90f80c0c0e27a0a48d96a10427f7e948becacdd406c0ad748c7bed238423c60f"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/json_compare_macros.rs",
+      "bytes": 2310,
+      "sha256": "8f6b3390db7ce015772de6653a0435519603e217b3b9acfa18c1730fc64c0c66"
+    }
+  ],
+  "coverage_effect": "Only max_body_bytes and turn_aliases change pending\u2192covered in this limit increment:16covered/37pending limits. All other51 limits,18covered/9pending configuration keys and13partial areas are unchanged. Its prepublication539covered/49partial original-definition baseline receives no promotion from these limit decisions. The combined publication separately accepts release-verification#9 through its privacy supplement, producing540covered/48partial originals.",
+  "limitations": [
+    "No fresh Source32MiB request pair or exact32MiB inference execution; default/shared-loop composition is explicit.",
+    "No unmodifiable all-native-API body ceiling, global8-entry alias map cap, manual JS internal collection mutation or arbitrary custom configuration domain acceptance.",
+    "turn_records_attempts1000 and retired_turn_ttl_ms1800000 stay pending. Unexecuted author boundary schedules/checkpoints receive no execution credit.",
+    "Missing older referenced raw receipts remain uninspected and receive no proof credit; fresh Source body and available retained alias/core records are identified explicitly.",
+    "No physical memory/RSS/allocator/descriptor/performance guarantee, complete HTTP/framing/TLS/cancellation behavior, full gateway/task-state area, CI/platform/release/provider/cutover approval. Source-transfer cap remains separate and unchanged."
+  ]
+}

@@ -39,16 +39,19 @@ pub fn regular(path: &Path, maximum: u64) -> Result<Vec<u8>, String> {
     Ok(bytes)
 }
 
+/// Fresh lowercase hex with the caller's original entropy width and error policy.
+/// Filesystem naming, permissions, collision handling and cleanup stay local.
+pub fn random_hex<const N: usize>() -> Result<String, getrandom::Error> {
+    let mut bytes = [0; N];
+    getrandom::fill(&mut bytes)?;
+    Ok(bytes.iter().map(|byte| format!("{byte:02x}")).collect())
+}
+
 pub struct Scratch(pub PathBuf);
 impl Scratch {
     pub fn new(prefix: &str) -> Result<Self, String> {
-        let mut entropy = [0; 16];
-        getrandom::fill(&mut entropy)
-            .map_err(|_| "Cannot obtain private audit directory entropy")?;
-        let suffix = entropy
-            .iter()
-            .map(|byte| format!("{byte:02x}"))
-            .collect::<String>();
+        let suffix =
+            random_hex::<16>().map_err(|_| "Cannot obtain private audit directory entropy")?;
         let path = std::env::temp_dir().join(format!("autorouter-{prefix}-{suffix}"));
         fs::DirBuilder::new()
             .mode(0o700)

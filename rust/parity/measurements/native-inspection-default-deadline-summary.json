@@ -1,0 +1,323 @@
+{
+  "schema_version": 1,
+  "kind": "NATIVE_INSPECTION_DEFAULT5000_LIMIT_SUMMARY",
+  "only_numeric_row": {
+    "id": "inspect_ms",
+    "baseline_value": 5000,
+    "Source": "src/ollama-setup.mjs",
+    "tests": [
+      "test/ollama-setup.test.mjs"
+    ],
+    "recommendation": "Root accepts only the production default5000ms inspection budget shared by version, tags and show. This default is not an unmodifiable ceiling; explicit caller overrides and other setup phases remain outside this row.",
+    "root_acceptance": {
+      "path": "artifacts/rust-rewrite/inspection-and-release-layered-validation-20261018-1/root-scoped-acceptance.json",
+      "bytes": 8571,
+      "sha256": "765805fc268f257d0e3c122b3b6a9eccae45852cac79bc28a3d2b54ec7027bfc"
+    }
+  },
+  "authorship": "Summary drafter authored inherited bounded loader/read guards reused by the Source collector and performed a targeted preread; authored neither the new inspector collector logic nor native regression. Source-collector author independently reviews the native test; native-test author independently reviews Source actuals. Neither review is independent approval of its author's own implementation. This summary uses offline reads, hashes and JSON comparisons only, with no agent product/compiler execution or public edits.",
+  "default_binding": {
+    "Source": "Actual readConfig({}); setupOllama(config,{warm:false,fetchImpl,signal,write}) omits timeoutMs, pullTimeoutMs and warmTimeoutMs. Frozen inspect/setup defaults are 5000. No clock, timer or controller replacement.",
+    "native": "Actual core read_config(&json!({}),false,Path::new(\"/synthetic\")); SetupOptions {warm:false,..Default::default()} asserts inspect_timeout_ms==5000, without assigning a timer value. Public setup_ollama uses injected synthetic HttpTransport.",
+    "same_endpoint_model": {
+      "endpoint": "http://127.0.0.1:11434",
+      "model": "nimble:9b-q4_K_M",
+      "keep_alive": "5m"
+    },
+    "shared_operation": "One inspection deadline spans version, tags and show; the two late-show schedules consume 2000 ms for version plus 2000 ms for tags before their positive held head/body state. A later inspection after a pull would receive its own budget; pull/warm deadlines are separate and are not accepted here."
+  },
+  "observed_schedules": [
+    {
+      "id": "inspect-default-version-head",
+      "stall": {
+        "path": "/api/version",
+        "phase": "head"
+      },
+      "leading_delays_ms": {},
+      "first_elapsed_ms": 5002.757125,
+      "positive_stall_ready_ms": 0.4385420000000053,
+      "first_response_bodies": 0,
+      "requests_including_manual_retry": 4,
+      "response_records": 3,
+      "Source_predicates_true": 22
+    },
+    {
+      "id": "inspect-default-version-body",
+      "stall": {
+        "path": "/api/version",
+        "phase": "body"
+      },
+      "leading_delays_ms": {},
+      "first_elapsed_ms": 5002.985000000001,
+      "positive_stall_ready_ms": 0.6632499999996071,
+      "first_response_bodies": 1,
+      "requests_including_manual_retry": 4,
+      "response_records": 4,
+      "Source_predicates_true": 22
+    },
+    {
+      "id": "inspect-default-show-head",
+      "stall": {
+        "path": "/api/show",
+        "phase": "head"
+      },
+      "leading_delays_ms": {
+        "/api/version": 2000,
+        "/api/tags": 2000
+      },
+      "first_elapsed_ms": 5002.090292000001,
+      "positive_stall_ready_ms": 4006.199917,
+      "first_response_bodies": 2,
+      "requests_including_manual_retry": 6,
+      "response_records": 5,
+      "Source_predicates_true": 22
+    },
+    {
+      "id": "inspect-default-show-body",
+      "stall": {
+        "path": "/api/show",
+        "phase": "body"
+      },
+      "leading_delays_ms": {
+        "/api/version": 2000,
+        "/api/tags": 2000
+      },
+      "first_elapsed_ms": 5002.0335,
+      "positive_stall_ready_ms": 4005.3283329999995,
+      "first_response_bodies": 3,
+      "requests_including_manual_retry": 6,
+      "response_records": 6,
+      "Source_predicates_true": 22
+    }
+  ],
+  "Source_actual": {
+    "evidence": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/inspection-default-boundary-validation-20261018-1/source-inspection.json",
+        "bytes": 1697,
+        "sha256": "3edfefa2c4b38fcafd98f883b0f8a46aebb0398fee50fe5576aa966200df45de"
+      },
+      "invocation": {
+        "path": "artifacts/rust-rewrite/inspection-default-boundary-validation-20261018-1/source-inspection-invocation.json",
+        "bytes": 4392,
+        "sha256": "49af304cc3dca450cc21f15d04ba4b3d047989667fdff15911d96df8882f56e8"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/inspection-default-boundary-validation-20261018-1/source-inspection.stdout",
+        "bytes": 31951,
+        "sha256": "c29d9c33da404a359b5505bff356d0bfd27a5a0a59b354399924de7fd7804f62"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/inspection-default-boundary-validation-20261018-1/source-inspection.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit": 0,
+      "owner_failure": null,
+      "post_execution_mismatches": []
+    },
+    "handoff": {
+      "path": "artifacts/rust-rewrite/inspection-default-deadline-source-handoff-20261018-1/handoff.json",
+      "bytes": 1842,
+      "sha256": "88d230fe71840b9f88b3d04e659ab37d9d3cd3e8baaf5b52499c9ec601368e24"
+    },
+    "collector": {
+      "path": "artifacts/rust-rewrite/inspection-default-deadline-source-handoff-20261018-1/source-probe-v2.mjs",
+      "bytes": 24652,
+      "sha256": "f09f42bf0580b4733e9c0fe442b7016f53804511fc3407572ec6ed4ca8ca0aa2"
+    },
+    "recipe": {
+      "path": "artifacts/rust-rewrite/inspection-default-deadline-source-handoff-20261018-1/recipe.json",
+      "bytes": 7229,
+      "sha256": "8d3655d7594cf5dc9819298b7ed95e017dcdc44e288d0b15ad47707cb824e9d5"
+    },
+    "declaration": {
+      "path": "artifacts/rust-rewrite/inspection-default-deadline-source-handoff-20261018-1/declaration.json",
+      "bytes": 15509,
+      "sha256": "4f21aed672c4b07fe3d7c7ce7490842a25b99a41966ed512d869167db0c55799"
+    },
+    "independent_static_admission": {
+      "path": "artifacts/rust-rewrite/inspection-default-deadline-source-handoff-20261018-1/independent-v2-static-admission-review.json",
+      "bytes": 9144,
+      "sha256": "1a1c50ebc310b83578b0d0d68127ec676ee127ea403298bc3b99749364a2a4fd"
+    },
+    "full_observation_review": {
+      "path": "artifacts/rust-rewrite/inspection-default-boundary-validation-20261018-1/independent-source-inspection-actual-and-numeric-row-review.json",
+      "bytes": 11513,
+      "sha256": "76bcc071a97d174669979303103932bb113a401b90afe00c6e34ef7576d64adb"
+    },
+    "comparison": "All four complete retained rows, 20 full request projections, 18 response lifetime records, complete config before/after, whole timeout/retry results, progress and 88 scalar-type-sensitive predicates were checked by the separately independent Source review. This summary references those raw rows rather than duplicating them.",
+    "result": {
+      "cases": 4,
+      "predicates": 88,
+      "all_predicates_true": true,
+      "requests": 20,
+      "responses": 18,
+      "normal_provider_EOF_bodies": 16,
+      "stalled_bodies_cancelled_and_settled": 2,
+      "head_stalls_aborted_and_settled": 2,
+      "all_readers_unlocked": true,
+      "all_explicit_handlers_removed": true,
+      "all_descriptors_restored": true,
+      "denials": [],
+      "fatal": null
+    },
+    "real_clock_scope": "Observed first returns are about 5002 ms. The predeclared 4950 <= elapsed < 15000 ms range is an ordinary-clock validity band, not a performance threshold or exact timing edge. That band alone does not discriminate a hypothetical 9-second renewed late-show timer; the actual retained late-show observations, unchanged single-timer Source implementation and native exact boundary compose the shared-budget proof.",
+    "Source_cleanup_boundary": "Injected pending fetches honor the actual AbortSignal. Stream cancellation resolves, settles the pending pull/read and releases its reader lock; normal bodies reach provider EOF. Source operation awaits its action and readJson finally awaits reader.cancel(): this is not proof of prompt return for an arbitrary abort-ignoring fetch or a never-settling cancel Promise."
+  },
+  "native_actual": {
+    "evidence": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/inspection-default-boundary-validation-20261018-1/native-inspection.json",
+        "bytes": 1333,
+        "sha256": "6bff7ef9982fae6c16951265a94d8cafdf574a36f0c74b0c5a7a8e438f2778df"
+      },
+      "invocation": {
+        "path": "artifacts/rust-rewrite/inspection-default-boundary-validation-20261018-1/native-inspection-invocation.json",
+        "bytes": 3238,
+        "sha256": "cf68a17d05666fd506e5aad2d345ea7862d32603c8b8f08773937326313b216e"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/inspection-default-boundary-validation-20261018-1/native-inspection.stdout",
+        "bytes": 495,
+        "sha256": "58ea87abb43c2a3454a35cbaaf50b449470b085e7342c39860033fce165f1341"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/inspection-default-boundary-validation-20261018-1/native-inspection.stderr",
+        "bytes": 772,
+        "sha256": "982c4f88f1412184caad8a3a9c8c8fa82ed6c1a1d85713581c5aae8bb8858401"
+      },
+      "exit": 0,
+      "owner_failure": null,
+      "post_execution_mismatches": []
+    },
+    "build_identity": {
+      "path": "artifacts/rust-rewrite/inspection-default-boundary-validation-20261018-1/native-inspection-build-identity.json",
+      "bytes": 957,
+      "sha256": "a2b09466cfa791e1b025ff47a7c13435e67720b8210f72f15e018b4a42ed48e1"
+    },
+    "independent_native_review": {
+      "path": "artifacts/rust-rewrite/inspection-default-boundary-validation-20261018-1/independent-native-actual-and-inspect5000-composition-review.json",
+      "bytes": 7544,
+      "sha256": "d02030fecf343dcdd10ea3271c001b52d0d93209d86c1823062838a1f7d173e1"
+    },
+    "named_test": "default_inspection_deadline_spans_metadata_and_retries_after_owned_timeout",
+    "module_result": {
+      "passed": 4,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0
+    },
+    "new_test_status_entries": 1,
+    "schedules_inside_new_test": 4,
+    "boundary": "Manually poll the actual setup future with paused Tokio time. Every held request/body is positively polled, remains owned and pending at elapsed 4999 ms, then is ready with typed OLLAMA_TIMEOUT at elapsed 5000 ms. Late cases reach show after exactly 4000 ms spent on preceding metadata. No per-endpoint deadline reset can satisfy that boundary.",
+    "cleanup_and_retry": "At expiry the owned pending request lease or response body is dropped before return; the caller CancellationToken stays active. A second explicit setup call with that same caller succeeds using exactly version/tags/show, whole result {model,pulled:false,warmed:false}, no progress/pull/warm/systemone, unchanged config, exact full request array, consumed mock queue and all owned lifetimes dropped.",
+    "comparison_limits": "Native timeout code/message/no cause and whole retry result/request/config assertions are executed inside the passing test. It emits a named test result, not four full native JSON rows; do not imply raw Source/native outer-row equality. Drop/owned futures replace JS cancel/unlock mechanisms without executing JS callbacks or proving native real-wall performance."
+  },
+  "source_identity_composition": {
+    "actual_inspection_snapshot": {
+      "path": "artifacts/rust-rewrite/inspection-default-boundary-validation-20261018-1/candidate-source.json",
+      "bytes": 118327,
+      "sha256": "62f679d156eb4ac60e27efa417bdb1d7d4f5c643c051da7d72818c5673f06f23"
+    },
+    "final_current_snapshot": {
+      "path": "artifacts/rust-rewrite/inspection-and-release-layered-validation-20261018-1/candidate-source.json",
+      "bytes": 118305,
+      "sha256": "99f2babfc2f9894c45e53228f219f266c8b06be3c10fcc007c9dc2e5660ccc22"
+    },
+    "counts": {
+      "native_inputs": 701,
+      "frozen_inputs": 111
+    },
+    "early_to_final_changed_paths": [
+      "rust/xtask/src/release_archive_contracts.rs"
+    ],
+    "meaning": "Both focused inspection owners executed at 62f679. Final 99f2babf adds only the three layered release tests to release_archive_contracts.rs; the inspection production/test/helper files and all frozen sources are byte-identical. Final workspace separately executes the same inspection test. No fresh Source inspection rerun at final snapshot is claimed.",
+    "pins": [
+      {
+        "path": "rust/parity/baseline.json",
+        "bytes": 86691,
+        "sha256": "6722bd7a0109efb4d48e743412fbcc21affb0ceda1058d06726d03375113f588"
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/src/ollama_setup.rs",
+        "bytes": 33911,
+        "sha256": "be67b7d323ce7ee0e83f4935446e9f08b7c0700ad9a30526fc8d02b533d1f286"
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/tests/local_setup_diagnostic_contracts.rs",
+        "bytes": 16159,
+        "sha256": "569bd0175bbe45da142b0d20fd17d14b79e56c2f2eecc1b1a62bcc6702b07401"
+      },
+      {
+        "path": "rust/crates/autorouter-runtime/tests/support/local_ollama.rs",
+        "bytes": 7880,
+        "sha256": "b2cb5ec3936084bdb214436723289dd9a1d120eac17b91779f38d19c84902bef"
+      },
+      {
+        "path": "artifacts/rust-rewrite/reference/src/config.mjs",
+        "bytes": 8055,
+        "sha256": "66ae50d078c2a3862dc0f6d85e939b08918d842843ed60797eac290a5fe0754e"
+      },
+      {
+        "path": "artifacts/rust-rewrite/reference/src/ollama-setup.mjs",
+        "bytes": 11024,
+        "sha256": "4b6ea01482b0480935d0a6541146c79403f1b0eb2652ee9a3edd7a7627d8e958"
+      }
+    ],
+    "current_source_and_frozen_rehash": "Offline summary preparation verified every current 701 source input and every unchanged 111 frozen file. Actual owners separately recorded their own before/after checks with no mismatches."
+  },
+  "limits": [
+    "Synthetic injected in-memory transports/streams only: no actual socket, Ollama daemon, model download, warmup, paid provider, user configuration, Keychain, MCP or startup execution in these inspection controls.",
+    "Only default inspect_ms=5000 is accepted. Caller overrides, pull/warm/default-evaluator deadlines, arbitrary cancellation reasons, independent-waiter races and whole setup/API contracts remain separate.",
+    "Source ordinary-clock abort settlement and native paused-clock ownership/Drop are distinct mechanisms and clock domains. No latency, model accuracy, throughput, memory/RSS, universal cancellation or exceptional/crash/descendant cleanup claim.",
+    "Root owners bound wall/output and waited their direct child; cooperative Source flag is not an independent whole-process watchdog. No universal outer-cancellation/kernel-wait guarantee.",
+    "The workspace still has the genuine unchanged Source32MiB cap failure. No cap raise, input/fixture/vendor/license omission, source-fit, green CI, all-four-protected-job, platform, real release, publication or native cutover claim."
+  ],
+  "status": "ACCEPTED_ONLY_INSPECT_MS_5000_NUMERIC_ROW",
+  "root_acceptance": {
+    "path": "artifacts/rust-rewrite/inspection-and-release-layered-validation-20261018-1/root-scoped-acceptance.json",
+    "bytes": 8571,
+    "sha256": "765805fc268f257d0e3c122b3b6a9eccae45852cac79bc28a3d2b54ec7027bfc"
+  },
+  "publication": "Root condensed the retained author draft, recorded the individual decision and added complete-outcome review/current-check pointers. Original authorship and separate independent reviews remain explicit.",
+  "root_whole_outcome_comparison": {
+    "path": "artifacts/rust-rewrite/inspection-and-release-layered-validation-20261018-1/root-inspection-whole-outcome-comparison.json",
+    "bytes": 4512,
+    "sha256": "7aa5a9ae4fa68ea930c34be1ecfbd7128c976d26e3e3a862def1f1fef28de5c4"
+  },
+  "detailed_author_analysis": {
+    "path": "artifacts/rust-rewrite/inspect-ms5000-summary-draft-20261018-1/native-inspection-default-limit-summary.draft.json",
+    "bytes": 27319,
+    "sha256": "28f5bb53388b8b3c1dd804c6e9b48af735c465e6fc14f9394222d71114b7c9ab"
+  },
+  "independent_summary_review": {
+    "path": "artifacts/rust-rewrite/inspect-ms5000-summary-draft-20261018-1/independent-inspection-summary-review.json",
+    "bytes": 4783,
+    "sha256": "bed4609de0dce5cf2e00c89ad185a830474f9e01942ed9f872e17f2a83f95aab"
+  },
+  "current_broad_checks": {
+    "summary": {
+      "path": "rust/parity/measurements/native-layered-release-integrity-summary.json",
+      "bytes": 13724,
+      "sha256": "42c4126445e9f16734bb6a529c77fc69f3764bc3d2836b1c2e310a2f70f5c32b"
+    },
+    "source_snapshot": {
+      "path": "artifacts/rust-rewrite/inspection-and-release-layered-validation-20261018-1/candidate-source.json",
+      "bytes": 118305,
+      "sha256": "99f2babfc2f9894c45e53228f219f266c8b06be3c10fcc007c9dc2e5660ccc22"
+    },
+    "scope": "Same final99source checks, separate Source/native clock evidence. Known one source-size failure retained; no all-CI or native release qualification."
+  },
+  "published_numeric_counts": {
+    "before": {
+      "covered": 46,
+      "pending": 7
+    },
+    "after": {
+      "covered": 47,
+      "pending": 6
+    },
+    "only_changed_id": "inspect_ms"
+  }
+}

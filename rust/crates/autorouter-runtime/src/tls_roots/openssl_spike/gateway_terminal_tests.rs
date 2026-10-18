@@ -3,11 +3,8 @@ use std::future::poll_fn;
 use std::sync::Barrier;
 use std::time::Duration;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-const LIMIT: Duration = Duration::from_secs(2);
 async fn claimed(owner: &ConnectionTerminal) {
-    tokio::time::timeout(LIMIT, owner.claim_connection_failure())
-        .await
-        .unwrap();
+    crate::bounded(owner.claim_connection_failure()).await;
 }
 async fn not_claimed(owner: &ConnectionTerminal) {
     let future = owner.claim_connection_failure();

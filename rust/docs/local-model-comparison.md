@@ -63,6 +63,33 @@ decision model and choose a new report path:
 This is a native-only trial. It does not establish Node/native parity, downstream
 task quality, controlled-hardware performance or release readiness.
 
+## Include source in the executable archive
+
+Use `--source-executable` to include the complete allowlisted native source in
+the same ready-to-run archive:
+
+```sh
+./target/release/xtask benchmark-bundle --source-executable \
+  aarch64-apple-darwin=rust/target/release/xtask \
+  artifacts/autorouter-source-evaluator-aarch64-apple-darwin.tar.gz
+```
+
+After checksum verification and extraction as above, the helper also supports:
+
+```sh
+./evaluator-test/autorouter-benchmark/bin/autorouter-benchmark extract-sources /absolute/new/native-source
+```
+
+The destination must be new and outside the bundle. Extraction verifies every
+source byte, mode and canonical inventory before returning. The embedded source
+keeps its 32 MiB bounds; the distinct combined format also checks a 64 MiB
+complete-data/expansion budget and a 32 MiB compressed archive limit. Existing
+source-only, ready-only and matched-reference formats retain their policies.
+The helper needs no Node, Cargo or Git at runtime; rebuilding the source still
+needs the pinned toolchain and locked dependencies. Matched Node/native
+comparison additionally needs the separate frozen reference and Node. The
+manifest retains unverified prebuilt provenance and no release approval.
+
 ## Paired comparison from source
 
 Build the extracted source bundle with its pinned Rust toolchain, prerequisites

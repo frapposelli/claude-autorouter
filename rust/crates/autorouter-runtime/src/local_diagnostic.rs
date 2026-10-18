@@ -239,7 +239,8 @@ where
             return Err("invalid_configuration");
         }
         let keep_alive = config.ollama_keep_alive.as_str().unwrap_or("");
-        let keep_valid = keep_alive.len() >= 2
+        let keep_valid = config.ollama_keep_alive_is_string()
+            && keep_alive.len() >= 2
             && keep_alive.len() <= 5
             && matches!(keep_alive.as_bytes().last(), Some(b's' | b'm' | b'h'))
             && matches!(keep_alive.as_bytes().first(), Some(b'1'..=b'9'))

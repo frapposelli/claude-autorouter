@@ -255,3 +255,112 @@ async fn runtime_comparison_rejects_missing_auth_or_changed_task_even_on_expecte
     assert_eq!(mock.invalid.load(Ordering::SeqCst), count);
     assert!(!mock.verified(count));
 }
+
+#[tokio::test]
+async fn invalid_typed_policies_reject_before_nonempty_evaluator_admission() {
+    // Reuse unchanged nonempty cases and a complete expected outage report.
+    // This control admits three requests that return synthetic transport errors;
+    // it does not establish evaluator success. Empty cases cannot prove order.
+    let row = cases()
+        .into_iter()
+        .find(|row| row["id"] == "baseline-evaluation-report-16-1")
+        .unwrap();
+    let input = &row["input"];
+    let config = read_config(&input["env"], false, Path::new("/synthetic")).unwrap();
+    let config_before = serde_json::to_value(&config).unwrap();
+    let cases_before = input["cases"].clone();
+    assert_eq!(cases_before.as_array().unwrap().len(), 3);
+    let policy = create_evaluation_policy(Some(&input["policy"])).unwrap();
+    let policy_before = serde_json::to_value(&policy).unwrap();
+
+    // These are real typed f64 inputs, not JSON Null or the string "NaN".
+    let mut nan = policy.clone();
+    nan.min_agreement = f64::NAN;
+    assert!(nan.min_agreement.is_nan());
+    let mut infinity = policy.clone();
+    infinity.max_under_route_rate = f64::INFINITY;
+    assert!(infinity.max_under_route_rate.is_infinite());
+    assert!(infinity.max_under_route_rate.is_sign_positive());
+    let mut out_of_range = policy.clone();
+    out_of_range.min_agreement = 2.0;
+    // Native input policies are editable before transfer. The runner must
+    // revalidate a changed public Vec instead of trusting its constructor.
+    let mut changed_tiers = policy.clone();
+    changed_tiers.required_tiers.push("other".into());
+
+    for (name, invalid, expected_error) in [
+        ("typed_nan", nan, "minAgreement must be between 0 and 1"),
+        (
+            "typed_positive_infinity",
+            infinity,
+            "maxUnderRouteRate must be between 0 and 1",
+        ),
+        (
+            "finite_two",
+            out_of_range,
+            "minAgreement must be between 0 and 1",
+        ),
+        (
+            "changed_public_tiers",
+            changed_tiers,
+            "Invalid required tier coverage for evaluation profile",
+        ),
+    ] {
+        let mock = Arc::new(Replay {
+            expected: Mutex::new(VecDeque::new()),
+            calls: AtomicUsize::new(0),
+            invalid: AtomicUsize::new(0),
+        });
+        let result = crate::evaluation::run_evaluation(
+            mock.clone(),
+            &config,
+            &input["cases"],
+            invalid,
+            &CancellationToken::new(),
+        )
+        .await;
+        assert_eq!(result, Err(expected_error.to_owned()), "{name}");
+        assert!(
+            mock.verified(0),
+            "{name}: invalid policy admitted transport work"
+        );
+        assert_eq!(
+            Arc::strong_count(&mock),
+            1,
+            "{name}: retained transport owner"
+        );
+        assert_eq!(input["cases"], cases_before, "{name}");
+        assert_eq!(
+            serde_json::to_value(&config).unwrap(),
+            config_before,
+            "{name}"
+        );
+    }
+
+    // Mutating the clone must not change the original policy's actual report.
+    // This also proves the same cases/config would admit evaluator requests.
+    assert_eq!(serde_json::to_value(&policy).unwrap(), policy_before);
+    let requests = row["requests"].as_array().unwrap();
+    assert_eq!(requests.len(), 3);
+    let mock = Arc::new(Replay {
+        expected: Mutex::new(requests.iter().cloned().collect()),
+        calls: AtomicUsize::new(0),
+        invalid: AtomicUsize::new(0),
+    });
+    let result = crate::evaluation::run_evaluation(
+        mock.clone(),
+        &config,
+        &input["cases"],
+        policy,
+        &CancellationToken::new(),
+    )
+    .await;
+    let actual = outcome(result.map(strip_time));
+    assert!(
+        mock.verified(3),
+        "valid unchanged policy did not perform exact requests"
+    );
+    assert!(equal(&actual, &row["node_expected"]), "{actual}");
+    assert_eq!(input["cases"], cases_before);
+    assert_eq!(serde_json::to_value(&config).unwrap(), config_before);
+}

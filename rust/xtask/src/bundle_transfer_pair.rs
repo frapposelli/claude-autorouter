@@ -1,8 +1,8 @@
 //! Versioned paired carrier; only exact, explicitly versioned donor payloads are reused.
 #[path = "bundle_transfer_fs.rs"]
-mod disk;
+pub(super) mod disk;
 #[path = "bundle_transfer_json.rs"]
-mod metadata;
+pub(super) mod metadata;
 use super::{Entry, SOURCE, collect, sha};
 use crate::package::archive::{DecodedArchive, cpio, decode_root, encode_root, expanded_size};
 use serde_json::{Value, json};
@@ -11,7 +11,7 @@ use std::path::Path;
 
 const NATIVE_ROOT: &str = "autorouter-benchmark";
 const CPIO_NAME: &str = "native-source.cpio.gz";
-fn source_limit(path: &str) -> usize {
+pub(super) fn source_limit(path: &str) -> usize {
     if super::LARGE_SYNTHETIC_CORPORA.contains(&path) {
         4 * FILE_LIMIT
     } else {
@@ -120,7 +120,7 @@ fn sum<'a>(files: impl IntoIterator<Item = &'a [u8]>) -> Result<usize, String> {
             .ok_or_else(|| "Complete logical transfer exceeds 32 MiB".into())
     })
 }
-fn source(files: &BTreeMap<String, Entry>, schema: u64) -> Result<(), String> {
+pub(super) fn source(files: &BTreeMap<String, Entry>, schema: u64) -> Result<(), String> {
     let (name, foreign) = if schema >= 5 {
         ("source-manifest.bin", "source-manifest.json")
     } else {
@@ -200,7 +200,7 @@ fn logical<'a>(
     reference: &'a BTreeMap<String, Entry>,
     baseline: &[u8],
     schema: u64,
-) -> Result<BTreeMap<String, (&'a [u8], u32)>, String> {
+) -> Result<disk::TreeFiles<'a>, String> {
     source(native, schema)?;
     if native
         .get("rust/parity/baseline.json")
@@ -257,7 +257,7 @@ fn logical<'a>(
             return Err("Shared license differs from pinned original bytes or mode".into());
         }
     }
-    let mut files: BTreeMap<String, (&[u8], u32)> = BTreeMap::new();
+    let mut files: disk::TreeFiles<'_> = BTreeMap::new();
     for path in expected
         .keys()
         .copied()
@@ -553,20 +553,7 @@ fn restore_with(
         plan.schema,
     )?;
     checkpoint()?;
-    let parent = disk::Directory::open(destination.parent().ok_or("Missing restore parent")?)?;
-    let name = destination
-        .file_name()
-        .and_then(|name| name.to_str())
-        .ok_or("Invalid restore destination")?;
-    let owned = parent.create(name)?;
-    disk::write_tree(
-        &owned,
-        files
-            .iter()
-            .map(|(path, (bytes, mode))| (path.as_str(), *bytes, *mode)),
-        &mut checkpoint,
-    )?;
-    disk::check_tree(&owned, &files)?;
+    let owned = disk::create_tree(destination, &files, &mut checkpoint)?;
     before_verify(&owned.path)?;
     owned.attached()?;
     if crate::reference::verify(root, &owned.path)? != 111 {
@@ -604,7 +591,7 @@ fn reference(root: &Path) -> Result<(BTreeMap<String, Entry>, Vec<u8>), String> 
         if row["bytes"].as_u64() != Some(bytes.len() as u64)
             || row["sha256"] != sha(&bytes)
             || files
-                .insert(path.into(), Entry { bytes, mode: 0o644 })
+                .insert(path.into(), super::data_entry(bytes))
                 .is_some()
         {
             return Err("Frozen reference differs from its original inventory".into());
@@ -612,17 +599,11 @@ fn reference(root: &Path) -> Result<(BTreeMap<String, Entry>, Vec<u8>), String> 
     }
     files.insert(
         "frozen-reference-manifest.json".into(),
-        Entry {
-            bytes: baseline.clone(),
-            mode: 0o644,
-        },
+        super::data_entry(baseline.clone()),
     );
     files.insert(
         "LICENSE".into(),
-        Entry {
-            bytes: original.read("LICENSE", FILE_LIMIT)?,
-            mode: 0o644,
-        },
+        super::data_entry(original.read("LICENSE", FILE_LIMIT)?),
     );
     owner.attached()?;
     if crate::reference::verify(root, &owner.path)? != 111 {
@@ -631,7 +612,7 @@ fn reference(root: &Path) -> Result<(BTreeMap<String, Entry>, Vec<u8>), String> 
     owner.attached()?;
     Ok((files, baseline))
 }
-pub(super) fn create(root: &Path, destination: &Path) -> Result<Value, String> {
+pub(super) fn binary_source(root: &Path) -> Result<BTreeMap<String, Entry>, String> {
     let mut native = collect(root)?;
     // Only generated metadata changes representation; collect/default tar and
     // every raw source, fixture and mode retain their original bytes.
@@ -642,11 +623,49 @@ pub(super) fn create(root: &Path, destination: &Path) -> Result<Value, String> {
     let record = metadata::parse(&manifest.bytes, FILE_LIMIT)?;
     native.insert(
         "source-manifest.bin".into(),
-        Entry {
-            bytes: metadata::encode_source(&record, FILE_LIMIT)?,
-            mode: manifest.mode,
-        },
+        super::data_entry(metadata::encode_source(&record, FILE_LIMIT)?),
     );
+    Ok(native)
+}
+// Only the new combined kind requires exact original-order header identity.
+pub(super) fn canonical_source(
+    files: &BTreeMap<String, Entry>,
+    maximum: usize,
+) -> Result<Vec<u8>, String> {
+    source(files, 6)?;
+    let paths: Vec<_> = files
+        .keys()
+        .filter(|p| p.as_str() != "source-manifest.bin")
+        .map(String::as_str)
+        .collect();
+    let decoded = metadata::decode_source(&files["source-manifest.bin"].bytes, FILE_LIMIT, &paths)?;
+    let hashes: BTreeMap<String, String> = serde_json::from_value(decoded["files"].clone())
+        .map_err(|_| "Invalid canonical source inventory")?;
+    let record = super::source_record(&hashes);
+    let expected = record
+        .as_object()
+        .ok_or("Invalid canonical source record")?;
+    let actual = decoded.as_object().ok_or("Invalid decoded source record")?;
+    if actual.len() != expected.len()
+        || expected
+            .iter()
+            .any(|(key, value)| actual.get(key) != Some(value))
+    {
+        return Err("Source header differs from original canonical identity".into());
+    }
+    // Fixed-capacity standard writer cannot allocate past remaining materialized bytes.
+    let mut bytes = vec![0; maximum.min(FILE_LIMIT)];
+    let length = {
+        let mut output = std::io::Cursor::new(bytes.as_mut_slice());
+        serde_json::to_writer_pretty(&mut output, &record)
+            .map_err(|_| "Canonical source JSON exceeds remaining allowance")?;
+        usize::try_from(output.position()).map_err(|_| "Canonical source length overflow")?
+    };
+    bytes.truncate(length);
+    Ok(bytes)
+}
+pub(super) fn create(root: &Path, destination: &Path) -> Result<Value, String> {
+    let native = binary_source(root)?;
     let (mut delta, baseline) = reference(root)?;
     for (path, _, _) in SHARED {
         delta

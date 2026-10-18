@@ -1,0 +1,531 @@
+{
+  "schema_version": 1,
+  "kind": "native_doctor_json_number_fidelity_scoped_repair",
+  "recorded_at_utc": "2026-10-18T04:41:21.173071+00:00",
+  "status": "scoped_doctor_numeric_writer_and_shared_formatter_fix_accepted_by_root_and_independent_review",
+  "scope": "Repair native doctor --evaluate-local --json f64 number tokens using one private Value-only compact/pretty formatter shared with sessions. This is focused output compatibility and synthetic loopback evidence, not model accuracy or release qualification.",
+  "source": {
+    "before_fix_sha256": "93d71fafd6bfe91c934862b8542c9e8085e2b13fe00ed42a6396532dfd5e9eda",
+    "before_fix_inputs": 696,
+    "fixed_sha256": "27259d3dd0e8aeb7f06ab98dd59e968f91272d95cd432e5579df8be9f054dc24",
+    "fixed_inputs": 697,
+    "old_696_paths_retained": true,
+    "new_path": "rust/crates/claude-autorouter/src/json_output.rs",
+    "modified_existing_production_paths": [
+      "rust/crates/claude-autorouter/src/doctor.rs",
+      "rust/crates/claude-autorouter/src/main.rs",
+      "rust/crates/claude-autorouter/src/sessions.rs"
+    ],
+    "doctor_test_unchanged_red_to_green": true,
+    "frozen_reference_files": 111,
+    "shipping_JS_runtime_files_unchanged": 36
+  },
+  "problem_and_repair": {
+    "trigger": "The actual synthetic local diagnostic has five deterministic quality-gate number fields: agreement1,min_agreement1,under_routes0,under_route_rate0,max_under_route_rate0. Old native JSON emitted four Float fields as1.0/0.0; Source emits1/0. Strict integer consumers rejected the old native lexical category despite equal parsed numeric values.",
+    "actual_old_mismatches": [
+      "agreement: 1.0 != strict integer 1",
+      "min_agreement: 1.0 != strict integer 1",
+      "under_route_rate: 0.0 != strict integer 0",
+      "max_under_route_rate: 0.0 != strict integer 0"
+    ],
+    "implementation": "Private SourceNumberFormatter<F> overrides f64 spelling with existing RyuJS, normalizes both zero signs to0, and delegates all9pinned PrettyFormatter structural methods. Value-only pretty/compact APIs preserve exact native i64/u64 variants without casting/reparsing. sessions uses pretty; both doctor success/configuration-error JSON branches use compact. Existing strings, report values, human output, cancellation behavior and dependency versions remain unchanged.",
+    "integer_domain": "Preserving native exact u64 is deliberate. This does not establish Source integer-producer parity above2^53, including filesystem file_bytes.",
+    "private_defensive_branch": "Nonfinite f64 would write null, but serde_json::Value cannot retain nonfinite Number; this branch is not an executed NaN/Infinity API proof."
+  },
+  "actual_results": [
+    {
+      "stage": "native-red",
+      "exit_code": 101,
+      "passed": 0,
+      "failed": 1,
+      "ignored": 0,
+      "filtered": 27,
+      "marker": {
+        "fields": 5,
+        "mismatches": 4
+      }
+    },
+    {
+      "stage": "source-before-fix",
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 27,
+      "marker": {
+        "fields": 5,
+        "mismatches": 0
+      }
+    },
+    {
+      "stage": "native-fixed",
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 27,
+      "marker": {
+        "fields": 5,
+        "mismatches": 0
+      }
+    },
+    {
+      "stage": "source-fixed",
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 27,
+      "marker": {
+        "fields": 5,
+        "mismatches": 0
+      }
+    },
+    {
+      "stage": "doctor-error-fixed",
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 27,
+      "marker": null
+    },
+    {
+      "stage": "sessions-unit-fixed",
+      "exit_code": 0,
+      "passed": 6,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 34,
+      "marker": null
+    },
+    {
+      "stage": "compact-unit-fixed",
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 39,
+      "marker": null
+    },
+    {
+      "stage": "history-numeric-fixed",
+      "exit_code": 0,
+      "passed": 1,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 8,
+      "marker": {
+        "cases": 12,
+        "operations": 2,
+        "mismatches": 0
+      }
+    }
+  ],
+  "actual_result_scope": [
+    "Old native fails only the final accumulated lexical assertion after actual mock/semantic/default/config-immutability checks. Same exact regression passes frozen Source before repair and passes fixed native/frozen Source afterward. All28tests in the selected integration binary are not claimed run: each exact doctor filter executes1with27filtered.",
+    "Existing doctor configuration-error function passes and checks two Claude-trap variants, no mock requests, unchanged home/config and exact parsed error report. Fresh cancellation schedules are not claimed by this run.",
+    "Six sessions unit functions pass:4existing behavior functions and2existing number golden functions containing17float and6exactinteger rows. New compact golden is1function covering0/1,0.9,stringtext,negativezero,nesting,exponents andexactu64. Literal rows are not extra test functions.",
+    "One unchanged history numeric regression passes12inputtokens\u00d7show/list. It checks complete normalized records and selected summary fields, not full-summary equality. No fresh history-default matrix or all-CLI report equivalence is inferred.",
+    "Allsixfixedcommands are separately admitted. The2paired doctor commands each run1test, doctor-error1, sessions6, compact1, historynumeric1; these overlapping suites/Source repeats are not new unique coverage totals."
+  ],
+  "execution_provenance": {
+    "cargo": "Actual Cargo JSON: old CLIcached fresh:true, old doctor integration freshly compiled fresh:false. Fixed CLI/unit fresh:false; unchanged onboarding and launcher integrations fresh:true. Exact2fc0e99 integration binary reused for allfourdoctor RED/Source/GREEN lanes. Executables use debugopt0/assertions+overflowchecks, not shipping release builds.",
+    "retained_binaries": "Exact old605c CLI remains in prior history retention; old/red/current onboarding2fc0e99 retained unchanged; fixed CLIefc23a/unit e38f4176 and history integrationb6e687 retained with full hashes in the pinned retention receipt. Old mutable target path was legitimately overwritten; historical artifact evidence is not relabeled as current.",
+    "guards": "Red binding18andfixedbinding20auxiliarypins checked before/after. Stage records bind696/697native+111frozen bytes before/after; independent review rehashed all697current,111frozen and36shippingJS. No products were executed by the independent reviewer.",
+    "provider_scope": "Mock replies cover exactly startup+6packaged synthetic tasks,7inferences/7residencycalls and a closed metadata/decision endpoint set. Clearedenv/privateHOME/PATH/file store/explicit127loopback URL; Claude trap uninvoked. Wrapper provider_calls0 is a literal backed by static fixture reachability and endpoint checks, not measured network-guard telemetry.",
+    "owner_limits": "Ordinary owned waits have no finite outerwall/output/descendant/cancellation/crash guarantee. Existing15schildpoll/2MiBreader/5ssocket and HomeDrop/threadjoin exceptional limits remain. No zero-signals or always-joined claim."
+  },
+  "current_checks": {
+    "fmt_check": {
+      "exit_code": 0
+    },
+    "strict_workspace_all_targets_clippy": {
+      "exit_code": 0,
+      "warning_retained": "Existing vendored hyper-util unused timer warning remains in raw stderr; command succeeded."
+    },
+    "current_full_workspace_Node_CI_release": "Not run/qualified for this source; earlier broad results remain historical."
+  },
+  "source_transfer": {
+    "caps_unchanged": 33554432,
+    "offline_census": "Exact recorded schema6size arithmetic, not actual nativeexport/restore/archive/compressed-hash qualification. Excluded metadata hashes are historical after later publication.",
+    "logical_total": 33810184,
+    "logical_overage": 255752,
+    "expanded_carrier_total": 33785344,
+    "expanded_carrier_overage": 230912,
+    "all89fixed_corpora_and263vendor_inputs_preserved": true,
+    "fit": false
+  },
+  "coverage_effect": {
+    "promotions": [],
+    "baseline_definitions": {
+      "covered": 544,
+      "remaining": 44
+    },
+    "configuration_keys": {
+      "covered": 20,
+      "pending": 7
+    },
+    "fixed_limits": {
+      "covered": 22,
+      "pending": 31
+    },
+    "areas": {
+      "partial": 13
+    },
+    "meaning": "Evidence increment only; no original/configuration/limit/area promotion or full rewrite completion."
+  },
+  "qualification_limits": [
+    "No arbitrary whole-report equality, JSON key order, all Unicode/raw bytes, all CLI/report writers or general Serialize/f32/RawValue/arbitrary_precision admission. APIs remain private and Value-only.",
+    "No general local model quality, provider transport/account/permission, performance, platform, cancellation/descendant cleanup, full resource, packaging/release or cutover claim.",
+    "Native filesystem u64>2^53 producer semantics remain open; all unchanged32MiBsource-transfer ceilings still fail. Shipping ESM defaults remain unchanged.",
+    "The development-only SOURCE/paired-SOURCE40MiB proposal remains unapproved and unapplied. No commit, push, CI run, version, release or cutover occurred in this increment; JavaScript0.5.2 remains shipping default."
+  ],
+  "pins": [
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/independent-actual-results-review.json",
+      "bytes": 24406,
+      "sha256": "e4407f9392935e73c0f5f64fbe7506cdf304fc96e34117c24ccca6e508420bce"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/independent-retention-and-census-composition.json",
+      "bytes": 3369,
+      "sha256": "2920c3f61e19087094599ec5f7a91b3bacebc771a2d002f3fa6c7b653818fed0"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/candidate-red-source.json",
+      "bytes": 116788,
+      "sha256": "93d71fafd6bfe91c934862b8542c9e8085e2b13fe00ed42a6396532dfd5e9eda"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/candidate-fixed-source.json",
+      "bytes": 116957,
+      "sha256": "27259d3dd0e8aeb7f06ab98dd59e968f91272d95cd432e5579df8be9f054dc24"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/execution-binding-red.json",
+      "bytes": 7853,
+      "sha256": "b69d261e22aa8c8b08ce358482a38f1c2d691e55e34bfc30e3906e416d097bf4"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/execution-binding-fixed.json",
+      "bytes": 11633,
+      "sha256": "d49936486f7dd6aff45336be6dd6e70b7259b5bf724eb491ad43f19fe32523a7"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/fixed-artifact-preservation.json",
+      "bytes": 1364,
+      "sha256": "d2ed2b11b346b51b4f765861b029d9f1dd66850796b891a6ea0c43bb15e89daf"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/compile-red.json",
+      "bytes": 577,
+      "sha256": "6b2b4615bc6b77f7096f292cf191a0f204babfaec731fde507cfc8e0a15cf530"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/compile-fixed.json",
+      "bytes": 652,
+      "sha256": "6c37c8cecf5226e90ec353aa940da2448dbed068631d5376369dc7c6a9a9d246"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/native-red.stderr",
+      "bytes": 490,
+      "sha256": "bfe104a137634234e7c1670588d857102ffaf4afb685696c35e2d1d85396a619"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/tests/support/doctor_dispatch_contracts.rs",
+      "bytes": 18605,
+      "sha256": "261f46ff4f5baecd03cb271bd0076d1c6e1cb9f788fb05beb05250e1d67054f8"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/json_output.rs",
+      "bytes": 4032,
+      "sha256": "f7cfca192b9bb16bbd17e0535abb7e9957f662ab69840998a4bcc520d04c7820"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-cli-json-number-fidelity-draft-20261018-1/independent-static-review.json",
+      "bytes": 19930,
+      "sha256": "aa97b3058d8219fcd4d9acd78eaa112d7d1c1e3dfd02029ba63a8c67e1c2c0e4"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-cli-json-number-fidelity-draft-20261018-1/independent-real-service-and-oracle-followup.json",
+      "bytes": 7553,
+      "sha256": "f7d942e19a92249907706577abd5a76ada25e8498f93297b8c950bac59e8ae9d"
+    },
+    {
+      "path": "rust/parity/baseline.json",
+      "bytes": 86691,
+      "sha256": "6722bd7a0109efb4d48e743412fbcc21affb0ceda1058d06726d03375113f588"
+    },
+    {
+      "path": "artifacts/rust-rewrite/source-transfer-census-20261018-22/census.json",
+      "bytes": 13951,
+      "sha256": "e093fe250511383e4de651e4fe0294a7b039d9d75d75eed4efea5c4eafa8b689"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/native-red.json",
+      "bytes": 664,
+      "sha256": "5ec587820ecac8da34f877f921546a75776c96f7a38d2b567656167d665ab7ea"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/source-before-fix.json",
+      "bytes": 774,
+      "sha256": "afb9c838939fe65581431853fee6c1da36760557c6b4e96519e8ea464a949093"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/native-fixed.json",
+      "bytes": 662,
+      "sha256": "7bfb8175d5e70f222229b4ae6e46563f9b487c5781390e96cc1200adf337ef4a"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/source-fixed.json",
+      "bytes": 774,
+      "sha256": "85e25e14987358facb80f26c9a04939daddea73baa03ed82ab9e09cc4bcfce20"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/doctor-error-fixed.json",
+      "bytes": 674,
+      "sha256": "f83b9e2b64e079dc50c98fdb37a7c795b306f64df15a14ee9dbafa5d3b1edfc9"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/sessions-unit-fixed.json",
+      "bytes": 581,
+      "sha256": "4d8fba3acb2c02a4c17e95536a58bb5dfd7454b4ed931ce235d23c3e6f98d80c"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/compact-unit-fixed.json",
+      "bytes": 582,
+      "sha256": "52c4d75809db0a7caf2d505e0419cd71446d703d1a66d722faf79d77a79ac9b4"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/history-numeric-fixed.json",
+      "bytes": 643,
+      "sha256": "635e0dc147d47eadff06cbe2bd0bcb3293e3d87ba98e04ffed6057ea41726e39"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/fmt-fixed.json",
+      "bytes": 443,
+      "sha256": "a7fd8b514db111834e1296ce30f9dc9147a3ba360baface0b90fbedf7534af90"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/clippy-fixed.json",
+      "bytes": 537,
+      "sha256": "b36b9a6601188e8d1560b1f3d7f51291fd5166263759d1423481b5f2c079ce5c"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/root-number-writer-acceptance.json",
+      "bytes": 3431,
+      "sha256": "269f987c9ab04b3d53e26fd89e40e61487b7d90bc0bb216baeae3adab125b270"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/run-check.py",
+      "bytes": 2499,
+      "sha256": "1b919c91e805f8be82e34364c79d06e5ad60a680d1dd09f9a431ff737048f033"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/run-bound-red-stage.py",
+      "bytes": 1660,
+      "sha256": "e79f3622d181bacec48d5b40293d824096b69b2871887fdfa02abb06d7196963"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/run-bound-fixed-stage.py",
+      "bytes": 1722,
+      "sha256": "30839cb3db55a49620fd77f99eb4daef308473d2a30365a102403789bb6cbcfa"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/source-cli",
+      "bytes": 210,
+      "sha256": "8f0ca706ac76055303a5da7dc8de21d3c52b87fa7747b7536909735c75b0d88c"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/compile-red.stdout",
+      "bytes": 163791,
+      "sha256": "197396851a65aa40ff8ba8a0c049fb430fc938e794cbfd1e8fb7e99459a11533"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/compile-red.stderr",
+      "bytes": 169,
+      "sha256": "0b7d49676bab0b7925b466629b8eeba22c1981a4e5abe001fec3bb2a2c6e15bc"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/compile-fixed.stdout",
+      "bytes": 165413,
+      "sha256": "d889ed1e097dc1f7c094d0885225ca7fce2e549e198d9370c24c8f24fff66f88"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/compile-fixed.stderr",
+      "bytes": 169,
+      "sha256": "0a4445615dce69a176242762ea38128723c4ba6fb10cdcceae5806db1863cda9"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/shared-fix-applied.patch",
+      "bytes": 8936,
+      "sha256": "3e67d8ccdc382aefeb6f73a72b243c92608b2e01e1f3454eb2de1d2da40bc7dc"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/shared-fix-application.json",
+      "bytes": 1102,
+      "sha256": "db5453a59b9c130b67922c74bacfc025a75eab562c0f30b654d721c4cfaf93fd"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/retained-red-onboarding-local",
+      "bytes": 10011920,
+      "sha256": "2fc0e99a961628215825d5cc662812a6d13a9f92cbe43872cb03cdc6f068d62d"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/retained-fixed-native-cli",
+      "bytes": 35840976,
+      "sha256": "efc23a1449e64bee14aa21eb4d1088d6a349e26fd394af603fbcaee9d567455e"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/retained-fixed-cli-unit",
+      "bytes": 29998112,
+      "sha256": "e38f417690330d16c851f075d8b26aa54fa42b95c0a6adf73c0bd33616bc0c61"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/native-red.stdout",
+      "bytes": 337,
+      "sha256": "3a1da2354d84b56b047b5346b70da096c57f1b0ab326a986b3c5958e68d5e802"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/native-red-binding-check.json",
+      "bytes": 383,
+      "sha256": "bb06224b05c944fefc33a6bcd119a4a196c5d6abab5fc3c261cb31738b8066bb"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/source-before-fix.stdout",
+      "bytes": 214,
+      "sha256": "4ca73825996eae67b580c3db2ef2786055596b604d89fac54cd315d9630476b9"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/source-before-fix.stderr",
+      "bytes": 50,
+      "sha256": "cf2a2e9e4596b09dd4372907f3eba4e0f0b9b7df2b79bd0cd4f2585c2cc95802"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/source-before-fix-binding-check.json",
+      "bytes": 381,
+      "sha256": "4e443c57ca3e176b08ec3740c2ebf57a7c0b4e5cdb8e9b55fa7930eb01f035e9"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/native-fixed.stdout",
+      "bytes": 214,
+      "sha256": "18ee3154e69e96e7f801f1bbb23ba51bc8263bad540fa8db06db75e9798eeada"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/native-fixed.stderr",
+      "bytes": 50,
+      "sha256": "cf2a2e9e4596b09dd4372907f3eba4e0f0b9b7df2b79bd0cd4f2585c2cc95802"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/native-fixed-binding-check.json",
+      "bytes": 361,
+      "sha256": "19b77ec207391ca71c0c7c2adce4c66551dd3dbb69ccf18ae632b313b5bd44ee"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/source-fixed.stdout",
+      "bytes": 214,
+      "sha256": "47ee1bc77a29ca01ea603ae6001ed2e10a3c13af13066ac22409159d02d129a0"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/source-fixed.stderr",
+      "bytes": 50,
+      "sha256": "cf2a2e9e4596b09dd4372907f3eba4e0f0b9b7df2b79bd0cd4f2585c2cc95802"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/source-fixed-binding-check.json",
+      "bytes": 361,
+      "sha256": "c3cfa94db970cb56b392dfd1dd1c6d3cc547a4f9c6e5d9b17539da82db2ff60b"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/doctor-error-fixed.stdout",
+      "bytes": 226,
+      "sha256": "9bd522cfc07f1f4c603f633d5035b6b3b26c961c33faaaddd8180a9226d01b17"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/doctor-error-fixed.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/doctor-error-fixed-binding-check.json",
+      "bytes": 361,
+      "sha256": "2590a5ed4ae702c3a5439064a9ce5a2ea9a61b4d7e08ee6d3d87b81b16231ed3"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/sessions-unit-fixed.stdout",
+      "bytes": 727,
+      "sha256": "515a1fa8a6c03720ca2b4e91a6576f082741e2f4a2f4febcae320cb8b6093241"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/sessions-unit-fixed.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/sessions-unit-fixed-binding-check.json",
+      "bytes": 361,
+      "sha256": "cdcceeda73ce3c20fbec5fd0738e2e6f29fc8cd3f7f3160e76b75c1d1aa1da0e"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/compact-unit-fixed.stdout",
+      "bytes": 216,
+      "sha256": "a6e253112ffdd053b4fad5e9969d4f2fd812bbcb98453688f1be14c558cc3822"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/compact-unit-fixed.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/compact-unit-fixed-binding-check.json",
+      "bytes": 361,
+      "sha256": "33ac47831676aa8e1a597845126f325e43d62fb6cdcaed91840a1ec497a69fbd"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/history-numeric-fixed.stdout",
+      "bytes": 193,
+      "sha256": "2207527b91bed5f3fe51434d0b0bc350ad60b5c01b6976603fa143cfca2ad8e6"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/history-numeric-fixed.stderr",
+      "bytes": 66,
+      "sha256": "8c31a3192799152239b72700ddae952a7550ad481b08e0bc681acc4caf3b0888"
+    },
+    {
+      "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/history-numeric-fixed-binding-check.json",
+      "bytes": 361,
+      "sha256": "6cb8d1d8d1d312f812b2a56565ceb8706ee503134de2aacf0947399772581096"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/main.rs",
+      "bytes": 10627,
+      "sha256": "e909fcbdf888fdfa76f6e6244da9b18243c9989ffdda480f7cc7d998d1742e48"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/doctor.rs",
+      "bytes": 14640,
+      "sha256": "66a8af1d253bc1ca355d231f23f773c3c2fdc361dda46b8527806821c8dd88e7"
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/sessions.rs",
+      "bytes": 3060,
+      "sha256": "3fc9d067c6b9cb3cb4c8e075a6901fc596731b104e70e272e4a76623c4a61827"
+    },
+    {
+      "path": "artifacts/rust-rewrite/history-json-number-fidelity-validation-20261018-1/retained-fixed-native-cli",
+      "bytes": 35807472,
+      "sha256": "605c85187ad591ebdd548ab7c4c238b9fdfdfee04854ecbdc3aaa7931bf34915"
+    },
+    {
+      "path": "artifacts/rust-rewrite/history-json-number-fidelity-validation-20261018-1/retained-fixed-launcher-logging",
+      "bytes": 3731776,
+      "sha256": "b6e6879e5ec7b3be4caaba8ca664c31fdfaaa2f3b1a730695a5d7067ae2d77fe"
+    }
+  ],
+  "root_acceptance": {
+    "path": "artifacts/rust-rewrite/doctor-json-number-fidelity-validation-20261018-1/root-number-writer-acceptance.json",
+    "bytes": 3431,
+    "sha256": "269f987c9ab04b3d53e26fd89e40e61487b7d90bc0bb216baeae3adab125b270"
+  }
+}

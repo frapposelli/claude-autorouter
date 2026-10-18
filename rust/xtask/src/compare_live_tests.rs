@@ -830,3 +830,197 @@ fn actual_ready_projection_keeps_version_identity_without_rejecting_float_one() 
         assert!(admit(&projected, &declared, profile, "native").is_err());
     }
 }
+
+// Optional process diagnostics never turn task completion into cleanup proof.
+fn postexit_group_failure() -> Value {
+    json!({"observation_error":false,"wait_error":false,"ownership_lost":false,"read_error":false,
+        "signals":[{"target":"group","signal":"SIGKILL","outcome":"error","errno":1,"kind":null}]})
+}
+fn add_process_failure(item: &mut Value, gateway: bool) {
+    let (process, prefix) = if gateway {
+        (&mut item["gateway_cleanup"], "reference_process_")
+    } else {
+        (item, "")
+    };
+    process[format!("{prefix}supervision")] = postexit_group_failure();
+    process[format!("{prefix}cleanup_confirmed")] = json!(false);
+}
+#[test]
+fn optional_supervision_preserves_tasks_but_cannot_qualify_cleanup() {
+    let declared = declaration_stub();
+    for profile in PROFILES {
+        let baseline = synthetic(&declared, profile, "node-reference");
+        let native = synthetic(&declared, profile, "native");
+        // Older reports with no optional diagnostics remain readable.
+        assert!(admit(&baseline, &declared, profile, "node-reference").is_ok());
+        assert!(admit(&native, &declared, profile, "native").is_ok());
+        let mut native_error = native.clone();
+        add_process_failure(&mut native_error["cases"][0], false);
+        assert!(admit(&native_error, &declared, profile, "native").is_ok());
+        assert_eq!(native_error["cases"][0]["exit_code"], 0);
+        assert_eq!(native_error["cases"][0]["checks"]["claude_success"], true);
+        let result = schema::compare(
+            &json!({"node-reference":baseline,"native":native_error}),
+            profile,
+        );
+        assert_eq!(result["absolute_original_quality_passed"], true);
+        assert_eq!(result["native_only_transport_protocol_cleanup_failures"], 1);
+        assert_eq!(result["observed_normal_cleanup_complete"], false);
+        assert_eq!(result["relative_gates_passed"], false);
+        assert_eq!(result["nested_abnormal_group_cleanup_verified"], false);
+
+        let mut baseline_error = baseline.clone();
+        add_process_failure(&mut baseline_error["cases"][0], true);
+        assert!(admit(&baseline_error, &declared, profile, "node-reference").is_ok());
+        for candidate in [native, native_error] {
+            let result = schema::compare(
+                &json!({"node-reference":baseline_error,"native":candidate}),
+                profile,
+            );
+            // Correlated cleanup failures are never cancelled out as a pass.
+            assert_eq!(result["native_only_transport_protocol_cleanup_failures"], 0);
+            assert_eq!(result["absolute_original_quality_passed"], true);
+            assert_eq!(result["observed_normal_cleanup_complete"], false);
+            assert_eq!(result["relative_gates_passed"], false);
+        }
+    }
+}
+#[test]
+fn optional_supervision_rejects_unknown_unbounded_and_inconsistent_metadata() {
+    let declared = declaration_stub();
+    for gateway in [false, true] {
+        let engine = if gateway { "node-reference" } else { "native" };
+        let original = synthetic(&declared, "auto", engine);
+        for variant in 0..26 {
+            let mut report = original.clone();
+            add_process_failure(&mut report["cases"][0], gateway);
+            let (process, prefix) = if gateway {
+                (
+                    &mut report["cases"][0]["gateway_cleanup"],
+                    "reference_process_",
+                )
+            } else {
+                (&mut report["cases"][0], "")
+            };
+            let supervision = format!("{prefix}supervision");
+            match variant {
+                0 => process[&supervision]["private_payload"] = json!("synthetic-private-marker"),
+                1 => {
+                    process[&supervision]
+                        .as_object_mut()
+                        .unwrap()
+                        .remove("read_error");
+                }
+                2 => process[&supervision]["wait_error"] = json!("false"),
+                3 => process[&supervision]["signals"] = json!({}),
+                4 => {
+                    let row = process[&supervision]["signals"][0].clone();
+                    process[&supervision]["signals"] = json!([row, row, row, row]);
+                }
+                5 => process[&supervision]["signals"][0]["target"] = json!("unowned"),
+                6 => {
+                    process[&supervision]["signals"][0]["signal"] =
+                        json!("synthetic-private-marker")
+                }
+                7 => process[&supervision]["signals"][0]["outcome"] = json!("success"),
+                8 => {
+                    process[&supervision]["signals"][0]["errno"] = json!("synthetic-private-marker")
+                }
+                9 => process[&supervision]["signals"][0]["errno"] = json!(1.5),
+                10 => process[&supervision]["signals"][0]["errno"] = json!(2147483648i64),
+                11 => {
+                    process[&supervision]["signals"][0]["kind"] =
+                        json!("synthetic-private-marker".repeat(100))
+                }
+                12 => process[&supervision]["signals"][0]["argv"] = json!(["private"]),
+                13 => {
+                    process[&supervision]["signals"][0]["target"] = json!("child");
+                    process[&supervision]["signals"][0]["signal"] = json!("SIGTERM");
+                    process[&supervision]["signals"][0]["kind"] = json!("direct_kill_error");
+                }
+                14 => process[&supervision]["signals"][0]["outcome"] = json!("absent"),
+                15 => process[format!("{prefix}cleanup_confirmed")] = json!(true),
+                16 => process[format!("{prefix}cleanup_confirmed")] = Value::Null,
+                17 => process[format!("{prefix}observed_exit_code")] = json!("private"),
+                18 => process[format!("{prefix}observed_exit_signal")] = json!("private"),
+                19 => process[format!("{prefix}observed_exit_code")] = Value::Null,
+                20 => {
+                    process
+                        .as_object_mut()
+                        .unwrap()
+                        .remove(&format!("{prefix}cleanup_confirmed"));
+                }
+                21 => {
+                    process[format!("{prefix}observed_exit_code")] = json!(0);
+                    process[format!("{prefix}observed_exit_signal")] = Value::Null;
+                }
+                22 => process[&supervision]["signals"][0]["kind"] = json!("PermissionDenied"),
+                23 => process[&supervision]["observation_error"] = json!(true),
+                24 => process[format!("{prefix}timed_out")] = json!(true),
+                _ => {
+                    process[&supervision]["signals"][0]["target"] = json!("child");
+                    process[&supervision]["signals"][0]["kind"] = json!("direct_kill_error");
+                }
+            }
+            let error = admit(&report, &declared, "auto", engine).unwrap_err();
+            assert!(
+                !error.contains("synthetic-private-marker"),
+                "variant {variant}"
+            );
+        }
+    }
+}
+#[test]
+fn optional_failure_facts_and_bounded_absence_observations_remain_readable() {
+    let declared = declaration_stub();
+    let mut failed = synthetic(&declared, "auto", "native");
+    let item = &mut failed["cases"][0];
+    add_process_failure(item, false);
+    item["exit_code"] = Value::Null;
+    item["exit_signal"] = json!("SIGTERM");
+    item["observed_exit_code"] = Value::Null;
+    item["observed_exit_signal"] = json!("SIGTERM");
+    item["checks"]["claude_success"] = json!(false);
+    recompute(&mut failed);
+    assert!(admit(&failed, &declared, "auto", "native").is_ok());
+    assert_eq!(failed["cases"][0]["passed"], false);
+
+    for gateway in [false, true] {
+        let engine = if gateway { "node-reference" } else { "native" };
+        let mut absent = synthetic(&declared, "auto", engine);
+        let (process, prefix) = if gateway {
+            (
+                &mut absent["cases"][0]["gateway_cleanup"],
+                "reference_process_",
+            )
+        } else {
+            (&mut absent["cases"][0], "")
+        };
+        let errno = nix::libc::ESRCH;
+        process[format!("{prefix}supervision")] = json!({
+        "observation_error":false,"wait_error":false,"ownership_lost":false,"read_error":false,
+        "signals":[
+            {"target":"group","signal":"SIGTERM","outcome":"absent","errno":errno,"kind":null},
+            {"target":"group","signal":"SIGKILL","outcome":"absent","errno":errno,"kind":null},
+            {"target":"child","signal":"SIGKILL","outcome":"absent","errno":errno,"kind":"direct_kill_error"}
+        ]});
+        assert!(admit(&absent, &declared, "auto", engine).is_ok());
+        let supervision = format!("{prefix}supervision");
+        let process = if gateway {
+            &mut absent["cases"][0]["gateway_cleanup"]
+        } else {
+            &mut absent["cases"][0]
+        };
+        process[&supervision]["signals"][2]["kind"] = json!("synthetic-private-marker");
+        let error = schema::extract(
+            &wire(&absent),
+            &status(&absent),
+            &declared,
+            "auto",
+            engine,
+            &["synthetic-private-marker".into()],
+        )
+        .unwrap_err();
+        assert!(!error.contains("synthetic-private-marker"));
+    }
+}

@@ -165,9 +165,7 @@ async fn controlled_gateway_child() {
     let result = tokio::select! { biased; _ = signal => Ok(Ok(())), result = tokio::time::timeout(Duration::from_secs(12), work) => result };
     buffers.release_responses();
     intents.release_bodies();
-    tokio::time::timeout(Duration::from_secs(2), running.close())
-        .await
-        .unwrap();
+    crate::bounded(running.close()).await;
     let final_state = snapshot(&client, &intents, &terminal, &logs);
     drop(gateway);
     drop(client);

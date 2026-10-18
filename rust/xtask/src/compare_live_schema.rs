@@ -41,20 +41,8 @@ const FINAL_FIELDS: &[&str] = &[
     "model_changed",
 ];
 
-fn same_number(a: &Value, b: &Value) -> bool {
-    match (a, b) {
-        (Value::Number(a), Value::Number(b)) => a.as_f64() == b.as_f64(),
-        (Value::Array(a), Value::Array(b)) => {
-            a.len() == b.len() && a.iter().zip(b).all(|(a, b)| same_number(a, b))
-        }
-        (Value::Object(a), Value::Object(b)) => {
-            a.len() == b.len()
-                && a.iter()
-                    .all(|(k, a)| b.get(k).is_some_and(|b| same_number(a, b)))
-        }
-        _ => a == b,
-    }
-}
+include!("../../crates/autorouter-core/src/json_compare_macros.rs");
+contract_json_equal!(same_number, a, b => a.as_f64() == b.as_f64());
 fn keys(value: &Value, allowed: &[&str]) -> bool {
     value
         .as_object()
@@ -279,6 +267,10 @@ fn case(item: &Value, profile: &str, evaluator: &Value) -> Result<(), String> {
             "reference_process_exit_code",
             "reference_process_timed_out",
             "reference_process_output_limit_exceeded",
+            "reference_process_supervision",
+            "reference_process_cleanup_confirmed",
+            "reference_process_observed_exit_code",
+            "reference_process_observed_exit_signal",
         ],
     ) || !item["fixture_removed"].is_boolean()
     {
@@ -472,10 +464,15 @@ pub(super) fn extract(
                 "reference_process_output_limit_exceeded",
             ]
         };
-        if !keys(&item["gateway_cleanup"], cleanup_keys)
-            || cleanup_keys
-                .iter()
-                .any(|key| item["gateway_cleanup"].get(*key).is_none())
+        if !item["gateway_cleanup"].as_object().is_some_and(|object| {
+            object.keys().all(|key| {
+                cleanup_keys.contains(&key.as_str())
+                    || (engine == "node-reference"
+                        && shapes::REFERENCE_PROCESS_DIAGNOSTIC_FIELDS.contains(&key.as_str()))
+            })
+        }) || cleanup_keys
+            .iter()
+            .any(|key| item["gateway_cleanup"].get(*key).is_none())
         {
             return Err("Complete original engine cleanup fields are absent or mismatched".into());
         }
@@ -508,7 +505,9 @@ fn cleanup(item: &Value, engine: &str) -> bool {
     let value = &item["gateway_cleanup"];
     let common = value["awaited"] == true
         && value["listener_observation"] == "connection_refused"
-        && item["fixture_removed"] == true;
+        && item["fixture_removed"] == true
+        && item["cleanup_confirmed"] != false
+        && value["reference_process_cleanup_confirmed"] != false;
     common
         && if engine == "native" {
             value["router_close_returned"] == true && value["native_join_result_available"] == false

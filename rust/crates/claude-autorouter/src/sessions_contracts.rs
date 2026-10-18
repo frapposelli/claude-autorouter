@@ -267,12 +267,7 @@ impl Fixture {
             ErrorKind::NotFound,
             "Synthetic history command requires absent system policy"
         );
-        let mut random = [0u8; 12];
-        getrandom::fill(&mut random).unwrap();
-        let suffix = random
-            .iter()
-            .map(|byte| format!("{byte:02x}"))
-            .collect::<String>();
+        let suffix = autorouter_runtime::random_hex::<12>().unwrap();
         let path = std::env::temp_dir().join(format!("autorouter-session-inspection-{suffix}"));
         DirBuilder::new().mode(0o700).create(&path).unwrap();
         DirBuilder::new()
@@ -378,4 +373,374 @@ async fn disabled_and_missing_history_inspection_creates_no_files_or_credentials
         assert_eq!(metadata.mode() & 0o777, mode);
         assert_eq!(metadata.uid(), nix::unistd::geteuid().as_raw());
     }
+}
+
+#[test]
+fn history_json_float_tokens_follow_source_spelling() {
+    let cases: &[(f64, &str)] = &[
+        (0.0, "0"),
+        (-0.0, "0"),
+        (1.0, "1"),
+        (-1.0, "-1"),
+        (12.0, "12"),
+        (12.5, "12.5"),
+        (-12.5, "-12.5"),
+        (1e-6, "0.000001"),
+        (1e-7, "1e-7"),
+        (-1e-7, "-1e-7"),
+        (1e20, "100000000000000000000"),
+        (1e21, "1e+21"),
+        (f64::MAX, "1.7976931348623157e+308"),
+        (f64::from_bits(1), "5e-324"),
+        (2.2250738585072014e-308, "2.2250738585072014e-308"),
+        (f64::from_bits(0x4340000000000000), "9007199254740992"),
+        (4.708356024711512e18, "4708356024711512000"),
+    ];
+    for &(value, expected) in cases {
+        let report = json!({"value":value});
+        assert_eq!(
+            super::render_history_json(&report).unwrap(),
+            format!("{{\n  \"value\": {expected}\n}}"),
+            "f64 bits={:016x}",
+            value.to_bits()
+        );
+    }
+}
+
+#[test]
+fn history_json_keeps_exact_integer_variants_and_pretty_structure() {
+    // These are native integer-preservation guards, not JS arbitrary-integer claims.
+    let cases = [
+        (json!(9_007_199_254_740_991u64), "9007199254740991"),
+        (json!(9_007_199_254_740_992u64), "9007199254740992"),
+        (json!(9_007_199_254_740_993u64), "9007199254740993"),
+        (json!(i64::MAX), "9223372036854775807"),
+        (json!(u64::MAX), "18446744073709551615"),
+        (json!(i64::MIN), "-9223372036854775808"),
+    ];
+    for (value, expected) in cases {
+        assert_eq!(
+            super::render_history_json(&json!({"value":value})).unwrap(),
+            format!("{{\n  \"value\": {expected}\n}}")
+        );
+    }
+    let report = json!({"text":"2.0 12.0 1e+21 -0 é😀\n","empty_array":[],"empty_object":{},
+        "nested":[1.0,{"zero":-0.0,"flag":true,"nothing":null}]});
+    assert_eq!(
+        super::render_history_json(&report).unwrap(),
+        r#"{
+  "text": "2.0 12.0 1e+21 -0 é😀\n",
+  "empty_array": [],
+  "empty_object": {},
+  "nested": [
+    1,
+    {
+      "zero": 0,
+      "flag": true,
+      "nothing": null
+    }
+  ]
+}"#
+    );
+}
+
+// Synthetic caller-owned metadata; no huge/sparse files or filesystem I/O.
+// Source ordinary Stats.size is Number; the native parser API keeps exact u64.
+const HISTORY_SIZE_LOG_ID: &str = "autorouter-session-history-precision";
+const HISTORY_SIZE_ROW: &[u8] = br#"{"schema_version":2,"event":"decision","timestamp":"2026-10-18T00:00:00.000Z","request_id":"precision-row","session_id":"synthetic-history-precision","requested_model":"claude-opus-5-5","selected_model":"claude-sonnet-5-5"}
+"#;
+struct HistorySizeCase {
+    id: &'static str,
+    size: u64,
+    source_token: &'static str,
+    bits: u64,
+}
+const HISTORY_SIZE_CASES: &[HistorySizeCase] = &[
+    HistorySizeCase {
+        id: "small-actual-length",
+        size: 224u64,
+        source_token: "224",
+        bits: 0x406c000000000000,
+    },
+    HistorySizeCase {
+        id: "safe-max",
+        size: 9007199254740991u64,
+        source_token: "9007199254740991",
+        bits: 0x433fffffffffffff,
+    },
+    HistorySizeCase {
+        id: "two53",
+        size: 9007199254740992u64,
+        source_token: "9007199254740992",
+        bits: 0x4340000000000000,
+    },
+    HistorySizeCase {
+        id: "two53-plus-one",
+        size: 9007199254740993u64,
+        source_token: "9007199254740992",
+        bits: 0x4340000000000000,
+    },
+    HistorySizeCase {
+        id: "two53-plus-two",
+        size: 9007199254740994u64,
+        source_token: "9007199254740994",
+        bits: 0x4340000000000001,
+    },
+    HistorySizeCase {
+        id: "two53-plus-three",
+        size: 9007199254740995u64,
+        source_token: "9007199254740996",
+        bits: 0x4340000000000002,
+    },
+    HistorySizeCase {
+        id: "two54-minus-one",
+        size: 18014398509481983u64,
+        source_token: "18014398509481984",
+        bits: 0x4350000000000000,
+    },
+    HistorySizeCase {
+        id: "shortest-large-exact-binary",
+        size: 4708356024711512064u64,
+        source_token: "4708356024711512000",
+        bits: 0x43d055dc36f24000,
+    },
+    HistorySizeCase {
+        id: "signed64-max",
+        size: 9223372036854775807u64,
+        source_token: "9223372036854776000",
+        bits: 0x43e0000000000000,
+    },
+    HistorySizeCase {
+        id: "u64-max-api-only",
+        size: 18446744073709551615u64,
+        source_token: "18446744073709552000",
+        bits: 0x43f0000000000000,
+    },
+];
+
+// Literal full Source/core report oracle for this one declared valid record.
+// Only metadata size/partial change; no actual parser output supplies expectations.
+fn history_size_expected_parse(file_bytes: Value, partial: bool) -> Value {
+    // A fixed literal avoids json! macro recursion without raising crate limits.
+    let mut expected: Value = serde_json::from_str(
+        r#"{
+        "summary": {
+            "id": "autorouter-session-history-precision",
+            "session_id": "synthetic-history-precision",
+            "started_at": "2026-10-18T00:00:00.000Z",
+            "updated_at": "2026-10-18T00:00:00.000Z",
+            "requests": 1, "decisions": 1, "outcomes": 0,
+            "completed": 0, "failed": 0, "cancelled": 0,
+            "pending": 1, "unconfirmed": 0, "outcome_only": 0,
+            "selected_models": {"claude-sonnet-5-5": 1},
+            "confirmed_models": {}, "sources": {}, "routing_reasons": {},
+            "classifier_errors": {}, "fallbacks": 0, "fallback_rate": 0,
+            "decision_latency_ms": {"samples": 0},
+            "total_latency_ms": {"samples": 0},
+            "mixed_baselines": false, "baseline_models": [],
+            "mixed_pricing_versions": false, "pricing_versions": [],
+            "pricing_facts": [], "unversioned_outcomes": 0,
+            "savings": {
+                "basis": "API-equivalent estimate, not subscription charges",
+                "actual_usd": 0, "baseline_usd": 0, "saved_usd": 0,
+                "percent": 0, "priced_requests": 0, "unpriced_requests": 1,
+                "unpriced_reasons": {"missing_outcome": 1}
+            },
+            "coverage": {
+                "bytes_read": 224, "file_bytes": 224, "lines_read": 1,
+                "invalid_records": 0, "oversized_lines": 0,
+                "mixed_session_records": 0, "truncated": false,
+                "incomplete_tail": false, "partial": false,
+                "legacy_decisions": 0, "duplicate_records": 0,
+                "conflicting_requests": 0
+            }
+        },
+        "records": [{
+            "schema_version": 2, "event": "decision",
+            "timestamp": "2026-10-18T00:00:00.000Z",
+            "request_id": "precision-row", "session_id": "synthetic-history-precision",
+            "requested_model": "claude-opus-5-5", "selected_model": "claude-sonnet-5-5"
+        }]
+    }"#,
+    )
+    .unwrap();
+    expected["summary"]["coverage"]["file_bytes"] = file_bytes;
+    expected["summary"]["coverage"]["truncated"] = json!(partial);
+    expected["summary"]["coverage"]["partial"] = json!(partial);
+    expected
+}
+
+fn history_size_report(parsed: &Value, limits: &Value, show: bool, partial: bool) -> Value {
+    if show {
+        json!({"schema_version":1,"type":"session_history",
+            "summary":parsed["summary"],"records":parsed["records"],"limits":limits})
+    } else {
+        json!({"schema_version":1,"type":"session_history",
+            "sessions":[parsed["summary"]],"limits":limits,
+            "coverage":{"partial":partial,"directory_entries":1,"matching_files":1,
+                "skipped_files":0,"unreadable_files":0,"bytes_read":224,
+                "directory_scan_truncated":false,"byte_limit_reached":false}})
+    }
+}
+
+fn history_size_token(text: &str, show: bool) -> String {
+    use serde_json::value::RawValue;
+    use std::collections::BTreeMap;
+    type RawObject = BTreeMap<String, Box<RawValue>>;
+    let report: RawObject = serde_json::from_str(text).unwrap();
+    let summary: RawObject = if show {
+        serde_json::from_str(report["summary"].get()).unwrap()
+    } else {
+        let sessions: Vec<Box<RawValue>> = serde_json::from_str(report["sessions"].get()).unwrap();
+        assert_eq!(sessions.len(), 1);
+        serde_json::from_str(sessions[0].get()).unwrap()
+    };
+    let coverage: RawObject = serde_json::from_str(summary["coverage"].get()).unwrap();
+    coverage["file_bytes"].get().into()
+}
+
+#[test]
+fn history_file_byte_metadata_preserves_exact_native_u64_api() {
+    use autorouter_core::session_history::{HistoryLimits, parse_session_with_locale};
+    assert_eq!(HISTORY_SIZE_ROW.len(), 224);
+    let bytes = HISTORY_SIZE_ROW.to_vec();
+    let before = bytes.clone();
+    for case in HISTORY_SIZE_CASES {
+        let parsed = parse_session_with_locale(
+            &bytes,
+            case.size,
+            HISTORY_SIZE_LOG_ID,
+            &HistoryLimits::default(),
+            "en-US",
+        );
+        assert_eq!(
+            parsed["summary"]["coverage"]["file_bytes"].as_u64(),
+            Some(case.size),
+            "{}",
+            case.id
+        );
+        assert_eq!(
+            parsed["summary"]["coverage"]["file_bytes"]
+                .as_f64()
+                .unwrap()
+                .to_bits(),
+            case.bits,
+            "{}",
+            case.id
+        );
+        // Cross the unchanged generic writer, then use the same exact parser on
+        // both sides. No in-memory Float/integer tolerance is introduced.
+        let exact_text = super::render_history_json(&parsed).unwrap();
+        let exact: Value = serde_json::from_str(&exact_text).unwrap();
+        assert_eq!(
+            exact,
+            history_size_expected_parse(json!(case.size), case.size > 224),
+            "{}",
+            case.id
+        );
+        let raw = history_size_token(&exact_text, true);
+        assert_eq!(raw, case.size.to_string(), "{}", case.id);
+    }
+    assert_eq!(bytes, before);
+}
+
+#[test]
+fn history_file_byte_metadata_uses_source_tokens_only_in_enabled_reports() {
+    use autorouter_core::session_history::{HistoryLimits, parse_session_with_locale};
+    let limits = HistoryLimits::default();
+    let limits_json = serde_json::to_value(&limits).unwrap();
+    let expected_limits = json!({"maxFiles":100,"maxDirectoryEntries":10000,
+        "maxFileBytes":4194304,"maxTotalBytes":16777216,"maxLineBytes":16384,
+        "maxRecords":5000,"maxLines":10000});
+    assert_eq!(limits_json, expected_limits);
+    let mut failures = Vec::new();
+    let mut observations = 0;
+    for case in HISTORY_SIZE_CASES {
+        let partial = case.size > 224;
+        let parsed = parse_session_with_locale(
+            HISTORY_SIZE_ROW,
+            case.size,
+            HISTORY_SIZE_LOG_ID,
+            &limits,
+            "en-US",
+        );
+        assert_eq!(
+            parsed["summary"]["coverage"]["file_bytes"].as_u64(),
+            Some(case.size)
+        );
+        let source_size: Value = serde_json::from_str(case.source_token).unwrap();
+        let expected_parsed = history_size_expected_parse(source_size, partial);
+        for show in [true, false] {
+            let operation = if show { "show" } else { "list" };
+            let report = history_size_report(&parsed, &limits_json, show, partial);
+            let input_before = report.clone();
+            let text = super::render_enabled_history_json(report).unwrap();
+            assert!(text.is_ascii() && text.len() <= 16384);
+            let actual: Value = serde_json::from_str(&text).unwrap();
+            let mut expected =
+                history_size_report(&expected_parsed, &expected_limits, show, partial);
+            expected["logging_enabled"] = json!(true);
+            let token = history_size_token(&text, show);
+            let full_report_equal = actual == expected;
+            eprintln!(
+                "history_file_bytes_observation={}",
+                json!({
+                    "id":case.id,"operation":operation,"native_u64_decimal":parsed["summary"]["coverage"]["file_bytes"].as_u64().unwrap().to_string(),
+                    "report_json":text
+                })
+            );
+            observations += 1;
+            if token != case.source_token || !full_report_equal {
+                failures.push(format!(
+                    "{}/{operation}: {token} != {}; full_report_equal={full_report_equal}",
+                    case.id, case.source_token
+                ));
+            }
+            assert_eq!(
+                parsed["summary"]["coverage"]["file_bytes"].as_u64(),
+                Some(case.size)
+            );
+            assert!(input_before.get("logging_enabled").is_none());
+        }
+    }
+    assert_eq!(observations, 20);
+    eprintln!(
+        "history_file_bytes_result={}",
+        json!({"cases":10,"operations":2,"observations":20,"mismatches":failures.len()})
+    );
+    assert!(failures.is_empty(), "{}", failures.join("; "));
+}
+
+#[test]
+fn history_file_byte_projection_preserves_other_integer_paths_and_generic_writer() {
+    let size = 9_007_199_254_740_993u64;
+    let report = json!({"schema_version":1,"type":"session_history",
+        "summary":{"coverage":{"file_bytes":size,"bytes_read":size},"unrelated":size},
+        "records":[{"file_bytes":size,"coverage":{"file_bytes":size}}],
+        "file_bytes":size,"outside":[{"coverage":{"file_bytes":size}}]});
+    let original = report.clone();
+    let generic = super::render_history_json(&report).unwrap();
+    assert_eq!(serde_json::from_str::<Value>(&generic).unwrap(), original);
+    assert_eq!(history_size_token(&generic, true), "9007199254740993");
+    let projected = super::render_enabled_history_json(report).unwrap();
+    let mut expected = original.clone();
+    expected["logging_enabled"] = json!(true);
+    expected["summary"]["coverage"]["file_bytes"] = json!(9_007_199_254_740_992u64);
+    assert_eq!(serde_json::from_str::<Value>(&projected).unwrap(), expected);
+    assert_eq!(history_size_token(&projected, true), "9007199254740992");
+    assert_eq!(serde_json::from_str::<Value>(&generic).unwrap(), original);
+    // Aggregate list coverage is not per-file summary metadata.
+    let list = json!({"sessions":[{"coverage":{"file_bytes":size,"bytes_read":size}},
+        {"coverage":{"file_bytes":224}}],"coverage":{"file_bytes":size,"bytes_read":size}});
+    let before = list.clone();
+    let actual: Value =
+        serde_json::from_str(&super::render_enabled_history_json(list).unwrap()).unwrap();
+    let mut expected = before.clone();
+    expected["logging_enabled"] = json!(true);
+    expected["sessions"][0]["coverage"]["file_bytes"] = json!(9_007_199_254_740_992u64);
+    assert_eq!(actual, expected);
+    assert_eq!(
+        serde_json::from_str::<Value>(&super::render_history_json(&before).unwrap()).unwrap(),
+        before
+    );
 }

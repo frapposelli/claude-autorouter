@@ -1,0 +1,459 @@
+{
+  "kind": "MODEL_REQUEST_4_5_7_PER_ASSERTION_NATIVE_API_MIGRATION_RECOMMENDATION",
+  "recorded_at": "2026-10-18T07:33:30.495162+00:00",
+  "status": "ACCEPTED_FOR_ONLY_THREE_ORIGINAL_MODEL_REQUEST_DEFINITIONS_WITH_EXPLICIT_ABSENCE_AND_OWNERSHIP_MIGRATION",
+  "scope": "Only model-request definitions4,5,7. Static source review and retained actual evidence; no new product/compiler/provider execution or public edits.",
+  "current_source": {
+    "path": "artifacts/rust-rewrite/session-log-dir-key-validation-20261018-1/final-candidate-source.json",
+    "bytes": 116959,
+    "sha256": "1af44b2a5aa884b5749587e54d519fcc449fd0eb7076c5ba04e890590d879c2f"
+  },
+  "counts": {
+    "syntax_assertion_sites": 8,
+    "expanded_original_observations": 51,
+    "original_schedules": 19,
+    "each_native_schedule_runs_Value_and_exact_document": true
+  },
+  "definitions": [
+    {
+      "id": "test/model-request.test.mjs#4",
+      "name": "other models, existing adaptive settings and explicitly requested models pass through",
+      "original_definition_sha256": "6b5516430b347dbb77019397a5762c70155f67c44c39bc47cf5541686544674d",
+      "original_status": "partial_assertion_mapping",
+      "native_test": "rust/crates/autorouter-core/tests/model_request_contracts.rs#unchanged_contracts_cover_every_original_source_target_and_setting",
+      "original_schedules": 11,
+      "syntax_sites": 2,
+      "expanded_observations": 22,
+      "remaining_migration": "Two explicit own-undefined thinking properties map to absent optional native JSON fields, never null. The other nine object-valued thinking settings remain exact.",
+      "recommendation": "Root individually accepted under the explicitly documented native API migration; original JavaScript identity/presence assertions are not relabeled as native identity/presence executions."
+    },
+    {
+      "id": "test/model-request.test.mjs#5",
+      "name": "a Sonnet 5.5 between_tools request upgrades to adaptive Opus without altering signed history or safeguards",
+      "original_definition_sha256": "a78b5976972f3768f542f47133bc59919ebb20fad0e688fb4e7abebeb89eb162",
+      "original_status": "partial_assertion_mapping",
+      "native_test": "rust/crates/autorouter-core/tests/model_request_contracts.rs#signed_history_safeguards_and_each_opaque_subtree_survive_both_opus_targets",
+      "original_schedules": 2,
+      "syntax_sites": 4,
+      "expanded_observations": 17,
+      "remaining_migration": "Six JavaScript shallow subtree aliases across both targets become complete detached owned Value/JsDocument subtrees; all signed/opaque contents and the original input remain unchanged.",
+      "recommendation": "Root individually accepted under the explicitly documented native API migration; original JavaScript identity/presence assertions are not relabeled as native identity/presence executions."
+    },
+    {
+      "id": "test/model-request.test.mjs#7",
+      "name": "disabled-thinking extensions are never discarded during adaptation",
+      "original_definition_sha256": "13bbaa9bc0b5e88a2da3c7f854abcb14445740a6d2e18dd5e7b73271e8bcc8eb",
+      "original_status": "partial_assertion_mapping",
+      "native_test": "rust/crates/autorouter-core/tests/model_request_contracts.rs#disabled_thinking_extensions_remain_intact_for_sonnet_and_opus",
+      "original_schedules": 6,
+      "syntax_sites": 2,
+      "expanded_observations": 12,
+      "remaining_migration": "JavaScript thinking-object aliases become complete detached owned thinking. All three extensions and both targets preserve contents and no-adjustment behavior.",
+      "recommendation": "Root individually accepted under the explicitly documented native API migration; original JavaScript identity/presence assertions are not relabeled as native identity/presence executions."
+    }
+  ],
+  "assertions": [
+    {
+      "definition": "test/model-request.test.mjs#4",
+      "site": 1,
+      "line": 64,
+      "expression": "assert.deepEqual(result.request, { ...body, model: target });",
+      "expression_sha256": "af1b7d0232650df60158d83c09e09d79a0b41bfc26a00d4964c0a6802850bc0f",
+      "expanded_observations": 11,
+      "predicate": "Complete original fields plus exact target; own undefined in two cases has an explicit absence migration."
+    },
+    {
+      "definition": "test/model-request.test.mjs#4",
+      "site": 2,
+      "line": 65,
+      "expression": "assert.deepEqual(result.adjustments, []);",
+      "expression_sha256": "742c0e6d1c7a73c938e6c5d5ec8aa087e2c32d1d85de29d62768c6f255f1f9ad",
+      "expanded_observations": 11,
+      "predicate": "No adjustments in all eleven original combinations."
+    },
+    {
+      "definition": "test/model-request.test.mjs#5",
+      "site": 1,
+      "line": 91,
+      "expression": "assert.deepEqual(request, { ...before, model, thinking: { type: 'adaptive' } });",
+      "expression_sha256": "5253582f9c4fb18724c3e0be7b6a10ba1eed78c667bee9d9bd586aafa2fe4847",
+      "expanded_observations": 2,
+      "predicate": "Full original body except exact model and catalog-approved adaptive thinking, for both Opus targets."
+    },
+    {
+      "definition": "test/model-request.test.mjs#5",
+      "site": 2,
+      "line": 92,
+      "expression": "assert.deepEqual(adjustments, ['adaptive_thinking_required']);",
+      "expression_sha256": "ca8f0c3d920867357861dbf7c71f42bd83bb7f5155fe8732e3ef99875a57341d",
+      "expanded_observations": 2,
+      "predicate": "Exactly one adaptive adjustment for each target."
+    },
+    {
+      "definition": "test/model-request.test.mjs#5",
+      "site": 3,
+      "line": 94,
+      "expression": "assert.equal(request[key], body[key], `${key} must stay unchanged`);",
+      "expression_sha256": "5ba0ed94cedf79c3f9c7fe4a70650faf3163eb215ff1bc1a6bf40935103cc75d",
+      "expanded_observations": 12,
+      "predicate": "Original six-subtree strict reference identity across two targets; migrate to complete detached owned values."
+    },
+    {
+      "definition": "test/model-request.test.mjs#5",
+      "site": 4,
+      "line": 97,
+      "expression": "assert.deepEqual(body, before);",
+      "expression_sha256": "35585baa35845851253890204212e00249b79c9b6b84a823fba29fe38da36104",
+      "expanded_observations": 1,
+      "predicate": "Entire original body unchanged after both preparations."
+    },
+    {
+      "definition": "test/model-request.test.mjs#7",
+      "site": 1,
+      "line": 134,
+      "expression": "assert.deepEqual(result, { request: { ...body, model }, adjustments: [] });",
+      "expression_sha256": "a748ba4325960dbf7f8fb38f3226fa1adfc83fec64d47c6698eb134624ccc203",
+      "expanded_observations": 6,
+      "predicate": "Three exact extension objects by two targets retain complete request and no adjustments."
+    },
+    {
+      "definition": "test/model-request.test.mjs#7",
+      "site": 2,
+      "line": 135,
+      "expression": "assert.equal(result.request.thinking, thinking);",
+      "expression_sha256": "5df938f770040ebe885e3762c3b59a3f623c287fd56ac3c4ecb3c5e42d8144a5",
+      "expanded_observations": 6,
+      "predicate": "Original thinking object strict identity; migrate to complete detached owned thinking."
+    }
+  ],
+  "original_data": {
+    "path": "artifacts/rust-rewrite/model-request-4-5-7-native-api-review-20261018-1/original-data-reconciliation.json",
+    "bytes": 5601,
+    "sha256": "c06b96194837802f429a8f738b6b2da31db787a3c156af2e21489ab9fb582e8a"
+  },
+  "native_evidence_composition": {
+    "dual_API": "Mapped check helper compares whole Value wrapper, unchanged Value input, exact-document adjustments/full JSON text and unchanged authoritative document on all11/2/6 original schedules. It does not replace a lone-surrogate document with a scalar observation.",
+    "undefined": "JsNode and serde Value have no Undefined variant. Native11case table omits thinking for two None rows; original JavaScript constructs an own undefined field. This is a real API distinction, not a claim that native own-property assertion passed.",
+    "ownership": "Value prepare_request clones its source map; JsDocument derives Clone over owned Vec<JsNode> and owned object/array vectors. Approved setters mutate only the returned owned arena. Immutable JsString sharing does not expose JavaScript mutable object aliases; NodeIds across documents are not object identity.",
+    "actual_detachment": "The named current clone/mutator test replaces clone root fields and original nested text independently, retaining other clone contents. Coupled with exact preparation clone source and full mapped checks, this proves supported owned semantics. No original JS strict-identity assertion is reported as a native identity pass.",
+    "guard_count_inference": "auto_routing::View delegates to representation-specific thinking_adaptation(_document). Product inference uses prepare_request_document_exact. count_payload uses that same document adaptation after can_count and target_compatibility checks. Preparation is a transformation API, not route admission; no unknown extension or signed-content guard is waived.",
+    "full_original_data": "Definition5 includes system, tools/schema, safeguards/classifier permission context, context edits, output effort, all four messages/per-message effort, empty signed thinking, opaque signature and redacted data. Both targets compare complete outputs. Definition7 retains all three exact unknown/extended contracts under both targets."
+  },
+  "actual_original_Source": {
+    "record": {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test-v2.json",
+      "bytes": 1252,
+      "sha256": "6125b20f588f6e22fe3717ae0d79c26de7aa6e15c2f8ec595dc1c6c7ea4db345"
+    },
+    "invocation": {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test-v2-invocation.json",
+      "bytes": 24731,
+      "sha256": "360437187bd525d82d17fc1673f369a64c49e29c8f669505846e779cb3d6e010"
+    },
+    "stdout": {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test-v2.stdout",
+      "bytes": 135709,
+      "sha256": "98bc9868a0b398484895380c42b095c4f090aa2929510126431d58d0da8a95cf"
+    },
+    "named_passes": [
+      {
+        "definition": "test/model-request.test.mjs#4",
+        "line": 632,
+        "actual": "ok 126 - other models, existing adaptive settings and explicitly requested models pass through"
+      },
+      {
+        "definition": "test/model-request.test.mjs#5",
+        "line": 637,
+        "actual": "ok 127 - a Sonnet 5.5 between_tools request upgrades to adaptive Opus without altering signed history or safeguards"
+      },
+      {
+        "definition": "test/model-request.test.mjs#7",
+        "line": 647,
+        "actual": "ok 129 - disabled-thinking extensions are never discarded during adaptation"
+      }
+    ],
+    "suite": {
+      "passed": 596,
+      "failed": 0
+    },
+    "explicit_old_aux_bindings": [
+      {
+        "path": "test/model-request.test.mjs",
+        "bytes": 7922,
+        "sha256": "84d45ed8cb9468b8b573ba57ca0071ad769d2129ac0ac21c6146362253b6f47b"
+      },
+      {
+        "path": "src/model-request.mjs",
+        "bytes": 1598,
+        "sha256": "588f85ab4bf56d057a8f24813bf08ef91eb34db98512f5ee3a426d852187f0db"
+      },
+      {
+        "path": "src/model-catalog.mjs",
+        "bytes": 5345,
+        "sha256": "74dbf3364b6d699e58a77089facf1360d047e003625a19b12362ee06cc745866"
+      }
+    ],
+    "current_and_frozen_Source_match_old_aux_pins": true,
+    "meaning": "Original own-undefined deepEqual and strict subtree identity assertions actually executed in named original tests. No fresh Source replay required. Historical217b Rust checkpoint is not current qualification."
+  },
+  "actual_current_native": {
+    "record": {
+      "path": "artifacts/rust-rewrite/session-log-dir-key-validation-20261018-1/workspace.json",
+      "bytes": 1159,
+      "sha256": "dcb4f3731f59764d514db9ca4821677986c5dfad1a37e2651d4fd4d83251f843"
+    },
+    "stdout": {
+      "path": "artifacts/rust-rewrite/session-log-dir-key-validation-20261018-1/workspace.stdout",
+      "bytes": 155473,
+      "sha256": "222ef78e843e0bfe8c204641fcb802674eda9757038bf7b996f56e2b8659f7c6"
+    },
+    "named_passes": [
+      {
+        "name": "unchanged_contracts_cover_every_original_source_target_and_setting",
+        "line": 190,
+        "actual": "test unchanged_contracts_cover_every_original_source_target_and_setting ... ok"
+      },
+      {
+        "name": "signed_history_safeguards_and_each_opaque_subtree_survive_both_opus_targets",
+        "line": 193,
+        "actual": "test signed_history_safeguards_and_each_opaque_subtree_survive_both_opus_targets ... ok"
+      },
+      {
+        "name": "disabled_thinking_extensions_remain_intact_for_sonnet_and_opus",
+        "line": 192,
+        "actual": "test disabled_thinking_extensions_remain_intact_for_sonnet_and_opus ... ok"
+      },
+      {
+        "name": "js_json::tests::length_memo_clones_and_public_mutations_have_independent_identity",
+        "line": 58,
+        "actual": "test js_json::tests::length_memo_clones_and_public_mutations_have_independent_identity ... ok"
+      },
+      {
+        "name": "model_request::tests::document_preparation_preserves_opaque_utf16_and_original_unknown_model",
+        "line": 82,
+        "actual": "test model_request::tests::document_preparation_preserves_opaque_utf16_and_original_unknown_model ... ok"
+      },
+      {
+        "name": "token_counter::tests::every_baseline_thinking_target_preserves_complete_context_and_source",
+        "line": 836,
+        "actual": "test token_counter::tests::every_baseline_thinking_target_preserves_complete_context_and_source ... ok"
+      },
+      {
+        "name": "token_counter::tests::wire_projection_preserves_opaque_surrogates_deep_input_and_signed_history",
+        "line": 847,
+        "actual": "test token_counter::tests::wire_projection_preserves_opaque_surrogates_deep_input_and_signed_history ... ok"
+      }
+    ],
+    "scope": "Current1af697/native111frozen before-after bound.1474pass/1known32MiBsource-cap failure/11ignored across66groups; not whole-suite green."
+  },
+  "historical_differential": {
+    "owner": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/parity-all.json",
+      "bytes": 613,
+      "sha256": "7d4653247f53d956790f2e7087e64572cd1425fcc0ed5c521dce51fdc18e3144"
+    },
+    "cases": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/deterministic/parity-all/core.jsonl",
+      "bytes": 56890,
+      "sha256": "6e0457c692f48897bd176205f95895290861f0a0b58e087e70a54cc55fd95cc7"
+    },
+    "report": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/deterministic/parity-all/core.report.json",
+      "bytes": 458,
+      "sha256": "b3d2c7e7a78adc7b0055c5b987259b4f0099504bd81ffe326b890f4be2708166"
+    },
+    "matched": 217,
+    "selected_prepare_ids": [
+      "prepare-disabled-sonnet",
+      "prepare-disabled-opus",
+      "prepare-disabled-custom",
+      "prepare-extended-sonnet",
+      "prepare-extended-opus",
+      "prepare-extended-custom",
+      "prepare-disabled-extension-sonnet",
+      "prepare-disabled-extension-opus",
+      "prepare-disabled-extension-custom",
+      "prepare-between-tools-sonnet",
+      "prepare-between-tools-opus",
+      "prepare-between-tools-custom",
+      "prepare-adaptive-sonnet",
+      "prepare-adaptive-opus",
+      "prepare-adaptive-custom",
+      "prepare-xhigh-sonnet",
+      "prepare-xhigh-opus",
+      "prepare-xhigh-custom",
+      "prepare-per-message-sonnet",
+      "prepare-per-message-opus",
+      "prepare-per-message-custom",
+      "prepare-same-model"
+    ],
+    "selected_prepare_cases": 22,
+    "historical24b_current_semantic_files_identical": [
+      {
+        "path": "rust/crates/autorouter-core/src/model_request.rs",
+        "bytes": 15220,
+        "sha256": "fc781878d1d78b98ea87251d1f3f0848b800073a3ac18c066290e49dca1b9246"
+      },
+      {
+        "path": "rust/crates/autorouter-core/tests/model_request_contracts.rs",
+        "bytes": 9178,
+        "sha256": "54c618e400baf4026141b54efd83785e54c1bc504c2a55defa615268e8e74644"
+      },
+      {
+        "path": "rust/crates/autorouter-core/src/model_catalog.rs",
+        "bytes": 10069,
+        "sha256": "cc9e85de18ba9e4105eff5551466b156eb616f030bc003c7981d3ae20327a787"
+      }
+    ],
+    "limits": "Only input cases and passing aggregate comparison report retained, not individual Source/native result streams.217/217 implies selected22 finite JSON cases matched; not all original19 schedules, undefined ownership or alias identity. No fresh current217 execution claimed."
+  },
+  "old_missing_evidence": [
+    {
+      "path": "artifacts/rust-rewrite/core-contracts-2.log",
+      "currently_exists": false,
+      "treatment": "Original mapping remains immutable. Do not claim reread or reconstructed historical execution; fresh named actual bindings support this assessment."
+    },
+    {
+      "path": "artifacts/rust-rewrite/parity-all-final-1/core.report.json",
+      "currently_exists": false,
+      "treatment": "Original mapping remains immutable. Do not claim reread or reconstructed historical execution; fresh named actual bindings support this assessment."
+    }
+  ],
+  "policy_anchors": [
+    {
+      "path": "rust/crates/autorouter-core/src/model_request.rs",
+      "line": 58,
+      "purpose": "Exact catalog, same-model and one-own-field adaptation guards."
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/model_request.rs",
+      "line": 95,
+      "purpose": "Owned exact document preparation and model replacement."
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/model_request.rs",
+      "line": 190,
+      "purpose": "Owned Value preparation."
+    },
+    {
+      "path": "rust/crates/autorouter-core/tests/model_request_contracts.rs",
+      "line": 8,
+      "purpose": "Complete dual-API output and input controls."
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/js_json.rs",
+      "line": 1466,
+      "purpose": "Actual supported mutation independence controls."
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/auto_routing.rs",
+      "line": 283,
+      "purpose": "Separate representation-sensitive equality delegates."
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/token_counter.rs",
+      "line": 167,
+      "purpose": "Count safety/compatibility before shared adaptation."
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/server.rs",
+      "line": 1105,
+      "purpose": "Inference uses authoritative exact preparation."
+    }
+  ],
+  "relevant_pins": [
+    {
+      "path": "docs/rust-rewrite-plan.md",
+      "bytes": 45398,
+      "sha256": "7ad1d36a97c56a8c952bf5bd9a3b9e34991fae53082c64e03c48c2110b68bb34"
+    },
+    {
+      "path": "artifacts/rust-rewrite/local-token-wire-validation-20261018-1/pre-publication/coverage.json",
+      "bytes": 1791157,
+      "sha256": "96afb944baab267de609a852222e25482bf36e06f552248725530fcb6561e079",
+      "historical_public_path": "rust/parity/coverage.json",
+      "scope": "Immutable pre-adoption ledger; not a self-reference to the newly updated current ledger."
+    },
+    {
+      "path": "rust/parity/assertion-mappings/core-contracts.json",
+      "bytes": 24541,
+      "sha256": "20e840d1bb8ff4a7eb55ad3042e630d8372b2655ac8d6d7f808f0cd7c334e08c"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/test/model-request.test.mjs",
+      "bytes": 7922,
+      "sha256": "84d45ed8cb9468b8b573ba57ca0071ad769d2129ac0ac21c6146362253b6f47b"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/src/model-request.mjs",
+      "bytes": 1598,
+      "sha256": "588f85ab4bf56d057a8f24813bf08ef91eb34db98512f5ee3a426d852187f0db"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/model_request.rs",
+      "bytes": 15220,
+      "sha256": "fc781878d1d78b98ea87251d1f3f0848b800073a3ac18c066290e49dca1b9246"
+    },
+    {
+      "path": "rust/crates/autorouter-core/tests/model_request_contracts.rs",
+      "bytes": 9178,
+      "sha256": "54c618e400baf4026141b54efd83785e54c1bc504c2a55defa615268e8e74644"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/js_json.rs",
+      "bytes": 80904,
+      "sha256": "902279ca53c13e384596f6721e294988f6858d7feb14e1b8071765778e7fcf11"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/auto_routing.rs",
+      "bytes": 53845,
+      "sha256": "61fdb3ac02eaf480c430cac194fc5e2dcac403a5241801b5ff47c630625f95fe"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/model_catalog.rs",
+      "bytes": 10069,
+      "sha256": "cc9e85de18ba9e4105eff5551466b156eb616f030bc003c7981d3ae20327a787"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/server.rs",
+      "bytes": 86203,
+      "sha256": "df7c30a751d892b35f5cdd5ecbe17c6ecd250442cd92b91bb2077edec4fb90f8"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/token_counter.rs",
+      "bytes": 62945,
+      "sha256": "e398d809c710872519d48e2cb46c8ee38d2f8854c771d4b67169f9ac83eebd04"
+    }
+  ],
+  "proposed_embedding_note": {
+    "path": "artifacts/rust-rewrite/model-request-4-5-7-native-api-review-20261018-1/embedding-request-preparation-note.draft.md",
+    "bytes": 1245,
+    "sha256": "0a07cd02cac9d3723e4c11f856438dca0e95d8992e67da6fce58cdd6637a0c68"
+  },
+  "minimal_missing_behavioral_controls": [],
+  "remaining_decisions": [],
+  "historical_remaining_decisions": [
+    "Root explicitly adopts each own-undefined/alias predicate, independent reviewer checks this composition, and additive supplement preserves all8expressions/hashes/old mapping values.",
+    "No other baseline definitions, keys, limits, areas, transport/TLS/provider/performance/platform/release gates are approved. Existing source-cap failure remains."
+  ],
+  "Root_acceptance": {
+    "path": "artifacts/rust-rewrite/local-token-wire-validation-20261018-1/root-acceptance-decisions.json",
+    "bytes": 1662,
+    "sha256": "367ecaec92347ab8854b45b39694898d85b95ed614b784d7bbfc0d69ad3d483c"
+  },
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/model-request-4-5-7-native-api-review-20261018-1/independent-per-assertion-native-api-review.json",
+    "bytes": 18845,
+    "sha256": "17cbfc2ad8fb64440deb691b8003cd5ad5ed164e5efe1ae479b74b687c6a2dea"
+  },
+  "current_embedding": {
+    "path": "rust/docs/embedding.md",
+    "bytes": 56677,
+    "sha256": "110352ea5ad04ca7d988e7e7242a53c218754789235ad22003588072ea320939"
+  },
+  "original_draft": {
+    "path": "artifacts/rust-rewrite/model-request-4-5-7-native-api-review-20261018-1/recommendation.json",
+    "bytes": 21375,
+    "sha256": "37e34ee3f736ea2b8525e9bdc20f20455fdfa264cbda689ac984e6802d665c9b"
+  }
+}

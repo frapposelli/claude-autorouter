@@ -47,6 +47,7 @@ const METHODS: &[&str] = &[
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub(super) struct Counter {
+    message_begun: bool,
     offset: usize,
     bytes: usize,
     fields: usize,
@@ -97,6 +98,9 @@ impl Counter {
     pub(super) fn is_native_response(&self) -> bool {
         !self.fetch_response
     }
+    pub(super) fn message_begun(&self) -> bool {
+        self.message_begun
+    }
     pub(super) fn observe(&mut self, input: &mut BytesMut) -> Result<(), Parse> {
         let mut read = self.offset;
         let mut written = self.offset;
@@ -131,6 +135,9 @@ impl Counter {
                     if self.method_len == 0 && matches!(byte, b'\r' | b'\n') {
                         continue;
                     }
+                    // llhttp begins the message before validating the first
+                    // nonblank method byte, including an invalid one.
+                    self.message_begun = true;
                     if byte == b' ' {
                         if !METHODS
                             .iter()
@@ -272,6 +279,24 @@ pub(super) fn header_capacity(input: &[u8]) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn message_begin_skips_fragmented_leading_lines_and_precedes_invalid_method() {
+        let mut counter = Counter::default();
+        let mut buffered = BytesMut::new();
+        for byte in b"\r\n\n\r" {
+            buffered.extend_from_slice(&[*byte]);
+            counter.observe(&mut buffered).unwrap();
+            assert!(!counter.message_begun());
+        }
+        buffered.extend_from_slice(b"!");
+        assert!(counter.observe(&mut buffered).is_err());
+        assert!(counter.message_begun());
+
+        let mut counter = Counter::default();
+        let mut buffered = BytesMut::from(&b"\r\nG"[..]);
+        counter.observe(&mut buffered).unwrap();
+        assert!(counter.message_begun());
+    }
     #[test]
     fn counter_is_incremental_and_does_not_count_framing_or_leading_whitespace() {
         let input = b"POST /test HTTP/1.1\r\nx:\t  abc  \r\nz:\r\n\r\nBODY";

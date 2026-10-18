@@ -183,23 +183,36 @@ impl Installer for NativeInstaller {
         timeout: Duration,
         cancel: &CancellationToken,
     ) -> Result<Value, ReleaseError> {
-        let bytes = regular(&artifact.archive, archive::MAX_COMPRESSED as u64)
-            .map_err(|_| mismatch("canonical_archive_unavailable"))?;
-        if crate::evaluation::digest(&bytes) != artifact.sha256 || bytes.len() != artifact.bytes {
-            return Err(mismatch("canonical_archive_changed"));
-        }
-        let (files, _) = archive::decode(
-            &bytes,
-            if artifact.native {
-                archive::NATIVE
-            } else {
-                archive::HISTORICAL
-            },
-        )
-        .map_err(|_| mismatch("canonical_archive_invalid"))?
-        .into_parts();
-        install_with(artifact, &files, &NativeCommand, timeout, cancel).await
+        install_canonical_with(artifact, &NativeCommand, timeout, cancel).await
     }
+}
+// The real installer and strict offline contributor runner share admission.
+pub(crate) fn canonical_files(artifact: &Artifact) -> Result<BTreeMap<String, Entry>, ReleaseError> {
+    let bytes = regular(&artifact.archive, archive::MAX_COMPRESSED as u64)
+        .map_err(|_| mismatch("canonical_archive_unavailable"))?;
+    if crate::evaluation::digest(&bytes) != artifact.sha256 || bytes.len() != artifact.bytes {
+        return Err(mismatch("canonical_archive_changed"));
+    }
+    let (files, _) = archive::decode(
+        &bytes,
+        if artifact.native {
+            archive::NATIVE
+        } else {
+            archive::HISTORICAL
+        },
+    )
+    .map_err(|_| mismatch("canonical_archive_invalid"))?
+    .into_parts();
+    Ok(files)
+}
+pub(crate) async fn install_canonical_with<R: CommandRunner>(
+    artifact: &Artifact,
+    runner: &R,
+    timeout: Duration,
+    cancel: &CancellationToken,
+) -> Result<Value, ReleaseError> {
+    let files = canonical_files(artifact)?;
+    install_with(artifact, &files, runner, timeout, cancel).await
 }
 pub async fn install_with<R: CommandRunner>(
     artifact: &Artifact,

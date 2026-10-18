@@ -1,0 +1,308 @@
+{
+  "schema_version": 1,
+  "kind": "NATIVE_PROMPT_AND_STATUS_TIMER_DEFAULT_LIMITS_SUMMARY",
+  "status": "ACCEPTED_ONLY_THREE_NAMED_NUMERIC_DEFAULT_ROWS",
+  "root_acceptance": {
+    "path": "artifacts/rust-rewrite/local-setup-default-limits-adoption-20261018-1/root-individual-acceptance-decisions.json",
+    "bytes": 8209,
+    "sha256": "ad9c44320ebb1df2a48fabce9ecdeead99b4895c831425c6da30ff7bcbc9fce6"
+  },
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/prompt-status-timer-fixed-limits-review-20261018-1/formal-three-row-recommendation.json",
+    "bytes": 15880,
+    "sha256": "4fea0ac4a8287282b9d8d3d39469ee952f74914adb557bd9e38f19725fd72937"
+  },
+  "only_limits": [
+    "prompt_excerpt_codepoints",
+    "readiness_ms",
+    "heartbeat_ms"
+  ],
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/status-telemetry-native-validation-20261018-1/candidate-source.json",
+    "bytes": 117320,
+    "sha256": "2fe6d26fe54bfaef7413caf73e01baa3acaee916b9c0b03950f04754481b1ae8"
+  },
+  "individual_rows": [
+    {
+      "id": "prompt_excerpt_codepoints",
+      "baseline_value": 500,
+      "default_and_unit": "500 Unicode scalar/code-point positions after source-compatible repair and redaction. An astral character occupies one retained position, two UTF-16 units and four UTF-8 bytes; this is not a 500-byte or grapheme bound.",
+      "production_linkage": [
+        "Source promptExcerpt(body,maxChars=500) supplies the default. Source server requests501 as an overflow witness, then emits first500 and truncated=true if501st exists.",
+        "Rust public helper takes an explicit usize, so no fake immutable500 API ceiling is inferred. Native server_events typed and Value paths request501 then retain500; telemetry/log normalizer independently caps500.",
+        "Source for-of/toWellFormed and native decode_utf16 plus replacement/char iteration count astral pairs once and repair lone surrogates without retaining invalid UTF-16. Redaction occurs before final truncation."
+      ],
+      "actual_controls": [
+        "Source default600emoji\u2192500, explicit0/1/2/3/500/501, mixedA/astral/newline and lone-surrogate repair pass in original prompt-state test. Native matching concrete helper test passes on current2fe6.",
+        "Source session-log#4 writes501emoji+private tail, exact500emoji, already-truncated short text and auxiliary classes. Native original_04 checks complete real durable rows, retained500, flags and privacy against unchanged canonical case4.",
+        "Native core normalizer privacy test asserts redacted500code points, metadata omission and auxiliary omission; current server_events producer test also passes."
+      ],
+      "evidence_aliases": {
+        "Source": [
+          "excerpt",
+          "logging"
+        ],
+        "native": [
+          "excerpt",
+          "logging",
+          "normalizer",
+          "server_events"
+        ]
+      },
+      "unexecuted_or_outside": [
+        "Original invalid-JavaScript-argument/getter behavior is outside this numeric row and not newly accepted. Explicit caller limit501 returns501 and is not a violation of production default500.",
+        "No whole diagnostic/logging privacy/API, memory/RSS or grapheme-width qualification."
+      ],
+      "new_test_needed": false,
+      "historical_recommendation": "ELIGIBLE_ONLY_THIS_DEFAULT_PRODUCTION_NUMERIC_ROW",
+      "status": "accepted_only_this_default_numeric_row",
+      "Root_decision": "Accept only production default500 Unicode scalar/code-point excerpt after repair/redaction. Actual default/explicit helper and durable log500/501 controls plus exact production consumer linkage; helper may explicitly request501. Not bytes/graphemes or a global immutable API ceiling."
+    },
+    {
+      "id": "readiness_ms",
+      "baseline_value": 1000,
+      "default_and_unit": "1000 ms readiness deadline for optional status startup; actual storage work remains owned after timeout.",
+      "production_linkage": [
+        "Source constructs setTimeout1000 in the actual initialization Promise race and clears it on settlement. On timeout it disables UI/path; it does not abandon underlying initialization or close ownership.",
+        "Native StatusStore::create captures Instant::now()+1s; both readiness task and ready() use that same timeout_at deadline. StatusOptions can inject I/O/epoch clock but has no readiness-duration override.",
+        "Thus exact literal guard and its direct executable consumer establish the default value; no duration borrowed from classifier/config or reduced custom timer."
+      ],
+      "actual_controls": [
+        "Source original stalled-storage callback keeps initial real write held, observes no partial path, ticks mocked setTimeout1000, awaits ready with pathnull, ignores update, releases owned write and closes leaving empty parent with exactly1snapshot.",
+        "Native controlled-I/O paused-clock test holds write, ready() reaches its default deadline, close remains pending/removalfalse until gate releases, then removal occurs/pathNone.",
+        "Native storage-backed test pauses Tokio after actual initial write entry, advances1s, observes readyNone, ignored update, close pending and one directory until release; exactly1write/one removal/emptyparent afterward."
+      ],
+      "evidence_aliases": {
+        "Source": [
+          "readiness"
+        ],
+        "native": [
+          "readiness",
+          "readiness_native_io"
+        ]
+      },
+      "proof_composition": "Observed default timer crossing plus exact current scheduler expression/timeout_at linkage. No separate999ms pending observation exists or is claimed. That unexecuted checkpoint is not needed merely to mirror the reviewed fixed scheduler; a future duration/owner change requires renewed validation.",
+      "unexecuted_or_outside": [
+        "Native/Source timeout clocks are virtual in these tests; real storage operations are exercised but no actual1000ms wall latency/performance comparison is claimed.",
+        "No universal readiness success, denied-removal, arbitrary custom-I/O panic/cancellation or process-crash cleanup guarantee."
+      ],
+      "new_test_needed": false,
+      "historical_recommendation": "ELIGIBLE_ONLY_THIS_DEFAULT_OPTIONAL_UI_READINESS_TIMER",
+      "status": "accepted_only_this_default_numeric_row",
+      "Root_decision": "Accept only default1000ms status readiness. Source mock and native paused-clock held initial-write controls cross actual default, disable UI, retain writer ownership, and close/remove after writer completion. No999ms checkpoint, real-clock latency/performance or arbitrary shutdown guarantee claimed."
+    },
+    {
+      "id": "heartbeat_ms",
+      "baseline_value": 5000,
+      "default_and_unit": "5000 ms scheduled heartbeat for initialized optional status state, without inference traffic.",
+      "production_linkage": [
+        "Source starts setInterval(schedule,5000) only after successful initial publication; interval is unref and close clears it.",
+        "Native interval_at(now+5s,5s) starts only after owned initial write; missed ticks Skip. StatusOptions injected epoch clock changes heartbeat_at data, not scheduler period.",
+        "Both idle timer paths call the actual schedule/drain/serialized snapshot consumer; flush alone cannot fabricate a changed heartbeat when no scheduling occurred."
+      ],
+      "actual_controls": [
+        "Source mocked Date/setInterval begins at1000000; coalesced request/route update flushes connecting state, tick5000 then flush produces heartbeat_at1005000 without more inference.",
+        "Native paused-clock controlled-I/O starts with empty sessions, coalesces2updates into second write, asserts exactly2writes, advances5s with injected epoch1005000, requires actual third write and heartbeat_at1005000; close removes storage."
+      ],
+      "evidence_aliases": {
+        "Source": [
+          "heartbeat"
+        ],
+        "native": [
+          "heartbeat"
+        ]
+      },
+      "proof_composition": "Exact fixed5s first tick/period in current code plus actual pre-count2/post-third-write and complete heartbeat observation at default virtual crossing. No4999ms negative observation exists or is claimed.",
+      "unexecuted_or_outside": [
+        "Virtual scheduling and injected epoch values are not real-wall5s latency or timer-jitter/performance evidence.",
+        "No fixed-rate backlog/catch-up equivalence, arbitrary delayed-I/O behavior, universal heartbeat liveness, process/platform or whole-area approval."
+      ],
+      "new_test_needed": false,
+      "historical_recommendation": "ELIGIBLE_ONLY_THIS_DEFAULT_IDLE_HEARTBEAT_PERIOD",
+      "status": "accepted_only_this_default_numeric_row",
+      "Root_decision": "Accept only default5000ms idle status heartbeat from actual mock/paused-clock consumer crossing and exact scheduler linkage. Coalescing and full heartbeat snapshot preserved. No4999ms checkpoint, wall-clock precision or performance guarantee claimed."
+    }
+  ],
+  "actual_bindings": {
+    "historical_Source": {
+      "record": {
+        "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test-v2.json",
+        "bytes": 1252,
+        "sha256": "6125b20f588f6e22fe3717ae0d79c26de7aa6e15c2f8ec595dc1c6c7ea4db345"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test-v2.stdout",
+        "bytes": 135709,
+        "sha256": "98bc9868a0b398484895380c42b095c4f090aa2929510126431d58d0da8a95cf"
+      },
+      "scope": "Historical217b596/0; relevant Source/test inputs and all130shipping auxiliary files freshly match. No Source rerun."
+    },
+    "current_native": {
+      "record": {
+        "path": "artifacts/rust-rewrite/status-telemetry-native-validation-20261018-1/workspace.json",
+        "bytes": 1261,
+        "sha256": "4c3aab4d0c51da4fc20ccbf5c0fb9c36e82f239736f330026c73235875522f2c"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/status-telemetry-native-validation-20261018-1/workspace.stdout",
+        "bytes": 155770,
+        "sha256": "a1300d430f9c1b2dd11531692231fd27e4a74b380bf7090c3fd11705982956a2"
+      },
+      "scope": "Current2fe6unfiltered1477/1known32MiBcapfailure/11ignored. Specific successful names below, not total-pass coverage inference. Runtime includes development-probes feature union via xtask/runtime-tools."
+    },
+    "Source_named_passes": {
+      "excerpt": [
+        {
+          "line": 1072,
+          "text": "ok 214 - prompt excerpt limits count Unicode code points and never leave invalid surrogate pairs"
+        }
+      ],
+      "logging": [
+        {
+          "line": 2333,
+          "text": "ok 457 - prompt excerpts use at most 500 Unicode characters and auxiliary classes never retain prompt text"
+        }
+      ],
+      "readiness": [
+        {
+          "line": 2585,
+          "text": "ok 507 - readiness fails soft on stalled storage while close retains ownership of the late write"
+        }
+      ],
+      "heartbeat": [
+        {
+          "line": 2555,
+          "text": "ok 501 - coalesces updates and refreshes heartbeat without inference traffic"
+        }
+      ]
+    },
+    "native_named_passes": {
+      "excerpt": [
+        {
+          "line": 206,
+          "text": "test excerpt_limits_count_scalars_and_repair_lone_surrogates ... ok"
+        }
+      ],
+      "logging": [
+        {
+          "line": 569,
+          "text": "test session_log::contracts::original::original_04_unicode_and_auxiliary_prompt_bounds ... ok"
+        }
+      ],
+      "normalizer": [
+        {
+          "line": 142,
+          "text": "test telemetry_event::tests::metadata_omits_prompts_and_prompt_mode_redacts_before_unicode_truncation ... ok"
+        }
+      ],
+      "server_events": [
+        {
+          "line": 555,
+          "text": "test server_events::tests::metadata_omits_prompts_and_prompt_records_are_redacted ... ok"
+        }
+      ],
+      "readiness": [
+        {
+          "line": 613,
+          "text": "test status_store::tests::readiness_deadline_disables_ui_but_waits_for_writer_before_cleanup ... ok"
+        }
+      ],
+      "readiness_native_io": [
+        {
+          "line": 615,
+          "text": "test status_store::tests::stalled_initial_native_write_times_out_ignores_updates_and_leaves_empty_parent ... ok"
+        }
+      ],
+      "heartbeat": [
+        {
+          "line": 605,
+          "text": "test status_store::tests::coalesced_updates_and_idle_heartbeat_use_the_injected_clock ... ok"
+        }
+      ]
+    }
+  },
+  "code_and_test_inputs": [
+    {
+      "path": "src/prompt-state.mjs",
+      "bytes": 10457,
+      "sha256": "86ad4871975aa0256be3e5ef4e0ed319c820cdbe46ddfbc65250395dc41e1286"
+    },
+    {
+      "path": "test/prompt-state.test.mjs",
+      "bytes": 16481,
+      "sha256": "ea3cc66eeb4022258336f5b0ee7441c959d79de68904d500db6816b7045b5824"
+    },
+    {
+      "path": "src/telemetry-event.mjs",
+      "bytes": 11260,
+      "sha256": "de1daf60f0b7d978fdec3c66a145059b45be54c9d42a6012129eed77db27692a"
+    },
+    {
+      "path": "src/server.mjs",
+      "bytes": 17919,
+      "sha256": "91df67483b2bf97a037ba7091b7fa5d008de0b733705813e00f874a6c240d8c0"
+    },
+    {
+      "path": "test/session-log.test.mjs",
+      "bytes": 19428,
+      "sha256": "1c423cf1729cb5fc8bc0f15f7cc71e76f1992cfe5eb4aade5e66fea2f9fca795"
+    },
+    {
+      "path": "src/status-state.mjs",
+      "bytes": 9801,
+      "sha256": "5c3808362a5bbe6b6b14fd1c98938b1b8b02ad2c911830d9dd32be5903427392"
+    },
+    {
+      "path": "test/status-state.test.mjs",
+      "bytes": 29983,
+      "sha256": "a7706a35303d496ad452ed7d484ee3c3be7c05f42cbdf9d5e7f6b132b44f25aa"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/prompt_state.rs",
+      "bytes": 32687,
+      "sha256": "21f1c7714873f216af77372ac55408228332a3175f50ff828da05a57c1faedf9"
+    },
+    {
+      "path": "rust/crates/autorouter-core/tests/prompt_state_contracts.rs",
+      "bytes": 18764,
+      "sha256": "b16dba258b9f56f6b77a6d012ebffa5de23e0fad959c76b1402efd896b22673c"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/telemetry_event.rs",
+      "bytes": 33568,
+      "sha256": "f1cf7eb1d22b2b0ccb29453dbef65e08d536ac796fcd28d30d217d1e30b21626"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/server_events.rs",
+      "bytes": 42525,
+      "sha256": "e585ea17bd35236eaf2a4fcd9a252817079e11a831895309f018adf23d5a1dd9"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/session_log_original_contracts.rs",
+      "bytes": 49898,
+      "sha256": "5338d78357f05a6834e7f6807eaf80e9cdf2087ed33c2281ef03171b15c765da"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/status_store.rs",
+      "bytes": 46318,
+      "sha256": "c3e90514e168cccc0d95d53df453d31c1e51804f51b35a4c1065036d6acfb42f"
+    }
+  ],
+  "canonical_logging_input": {
+    "file_pin": {
+      "path": "rust/parity/cases/session-log-contracts.jsonl",
+      "bytes": 334098,
+      "sha256": "6a20c5285202fbd496d67f500a5b76405873d070aac5e0eba81f76f2132a4115"
+    },
+    "case_line": 4,
+    "line_with_LF_sha256": "afb9d15d515432e079c33a80ea1d7a9403eb453c0bcca647cfaff4a7ce39e7ee",
+    "scope": "Actual default500 durable unicode/auxiliary writer case; unchanged input and full-row oracle."
+  },
+  "scope_limits": [
+    "Numeric default rows only; no original definition/remaining assertion/API-domain adoption follows.",
+    "No need for mirror tests solely to repeat exact current default literals and already observed scheduler crossings; no absent999/4999 observations fabricated.",
+    "Readiness/heartbeat use mock or paused timers, not real-clock elapsed/performance proof.",
+    "Unchanged32MiBsourcecaps remain exceeded; no broaderresource/platform/TLS/CI/release/rewrite acceptance.",
+    "No product/compiler/Node/probe/provider/network/user-config or public edit by reviewer."
+  ]
+}

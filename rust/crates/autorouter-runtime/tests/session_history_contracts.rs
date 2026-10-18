@@ -45,15 +45,8 @@ struct Fixture {
 }
 impl Fixture {
     fn new() -> Self {
-        let mut random = [0; 12];
-        getrandom::fill(&mut random).unwrap();
-        let root = std::env::temp_dir().join(format!(
-            "autorouter-history-contract-{}",
-            random
-                .iter()
-                .map(|byte| format!("{byte:02x}"))
-                .collect::<String>()
-        ));
+        let suffix = autorouter_runtime::random_hex::<12>().unwrap();
+        let root = std::env::temp_dir().join(format!("autorouter-history-contract-{suffix}"));
         fs::DirBuilder::new().mode(0o700).create(&root).unwrap();
         let directory = root.join("logs");
         fs::DirBuilder::new()

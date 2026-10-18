@@ -34,7 +34,7 @@ const SPECS: &[Spec] = &[
         name: "hyper",
         version: "1.12.0",
         patch: "hyper-node-http1-compat.patch",
-        provenance_sha256: "ef24aeb5ede29d80d97b3bea3312b8138685feb55bd6a46882a548bd82818f9a",
+        provenance_sha256: "fd02f8b688f7edcf0c091f4ed127ee748ff98b1bbdc16fdd28ff353a87771e54",
         upstream_count: 68,
         patched_count: 70,
         changed: &[
@@ -49,6 +49,7 @@ const SPECS: &[Spec] = &[
             "src/proto/h1/mod.rs",
             "src/proto/h1/node_compat.rs",
             "src/proto/h1/role.rs",
+            "src/server/conn/http1.rs",
         ],
         feature_dependencies: &[
             ("node-http1-body-handoff", &["node-http1-compat"]),

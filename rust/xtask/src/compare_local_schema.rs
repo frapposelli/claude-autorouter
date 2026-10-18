@@ -7,20 +7,8 @@ use std::collections::BTreeSet;
 const TIERS: &[&str] = &["haiku", "sonnet", "opus"];
 // JSON's numeric value is the contract (Node writes1, serde may write1.0).
 // This does not introduce a tolerance or change any threshold/sample value.
-fn equivalent(a: &Value, b: &Value) -> bool {
-    match (a, b) {
-        (Value::Number(a), Value::Number(b)) => a.as_f64() == b.as_f64(),
-        (Value::Array(a), Value::Array(b)) => {
-            a.len() == b.len() && a.iter().zip(b).all(|(a, b)| equivalent(a, b))
-        }
-        (Value::Object(a), Value::Object(b)) => {
-            a.len() == b.len()
-                && a.iter()
-                    .all(|(k, a)| b.get(k).is_some_and(|b| equivalent(a, b)))
-        }
-        _ => a == b,
-    }
-}
+include!("../../crates/autorouter-core/src/json_compare_macros.rs");
+contract_json_equal!(equivalent, a, b => a.as_f64() == b.as_f64());
 pub(super) fn policy() -> Value {
     json!({"profile":"compatible","minAgreement":1,"maxUnderRouteRate":0,"requiredTiers":["haiku","sonnet","opus"]})
 }

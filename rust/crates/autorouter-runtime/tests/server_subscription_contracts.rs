@@ -3,25 +3,15 @@
 mod simple;
 const LOCAL_AUTH_HEADER: &str = "x-autorouter-token";
 use autorouter_core::config::{AuthMode, read_config};
-use autorouter_runtime::http_client::NativeHttpClient;
-use autorouter_runtime::server::Gateway;
-use autorouter_runtime::server_events::EventSinks;
 use bytes::Bytes;
 use http_body_util::{BodyExt, Full, Limited};
 use hyper::body::Incoming;
-use hyper::service::service_fn;
 use hyper::{HeaderMap, Request, Response};
-use hyper_util::rt::TokioIo;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::convert::Infallible;
-use std::sync::{
-    Arc, Mutex,
-    atomic::{AtomicUsize, Ordering},
-};
+use std::sync::{Arc, Mutex, atomic::Ordering};
 use std::time::Duration;
-use tokio::task::JoinSet;
-use tokio_util::sync::CancellationToken;
 
 const CASES: &str = include_str!("../../../parity/cases/server-subscription-contracts.jsonl");
 const CAPTURE: &str =
@@ -45,125 +35,65 @@ async fn bounded(future: impl std::future::Future<Output = ()>) {
         .await
         .expect("Complete synthetic server schedule exceeded deadline");
 }
-use simple::{Events, Fixture, PeerLease, Router, Seen, sink};
+use simple::{Fixture, Seen};
 impl Fixture {
     async fn new(row: &Value) -> Self {
-        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
-        let address = listener.local_addr().unwrap();
-        let stop = CancellationToken::new();
-        let peer_stop = stop.clone();
-        let active = Arc::new(AtomicUsize::new(0));
-        let peer_active = active.clone();
-        let seen = Arc::new(Mutex::new(Vec::new()));
-        let peer_seen = seen.clone();
-        let plans = row.get("responses").cloned().unwrap_or_else(|| {
-            json!([
-                {"status":200,"headers":{"content-type":"application/json"},"body_text":"{}"},
-                {"status":200,"headers":{"content-type":"application/json"},"body_text":"{}"}
-            ])
-        });
-        let replies: Vec<_> = plans
-            .as_array()
-            .unwrap()
-            .iter()
-            .map(|plan| {
-                let status = plan["status"].as_u64().unwrap() as u16;
-                let text = plan["body_text"].as_str().unwrap();
-                assert!(text.len() <= 4096);
-                let mut headers = HeaderMap::new();
-                for (key, value) in plan["headers"].as_object().unwrap() {
-                    headers.insert(
-                        hyper::header::HeaderName::from_bytes(key.as_bytes()).unwrap(),
-                        value.as_str().unwrap().parse().unwrap(),
-                    );
-                }
-                (status, headers, Bytes::copy_from_slice(text.as_bytes()))
-            })
-            .collect();
-        assert!(replies.len() <= 2);
-        let replies = Arc::new(replies);
-        let peer = tokio::spawn(async move {
-            let mut tasks = JoinSet::new();
-            loop {
-                tokio::select! {
-                    biased;
-                    _ = peer_stop.cancelled() => break,
-                    result = tasks.join_next(), if !tasks.is_empty() => { result.unwrap().unwrap(); },
-                    socket = listener.accept() => {
-                        let (socket, _) = socket.unwrap();
-                        assert!(peer_active.fetch_add(1, Ordering::SeqCst) < 8);
-                        let lease = PeerLease(peer_active.clone());
-                        let seen = peer_seen.clone();
-                        let replies = replies.clone();
-                        tasks.spawn(async move {
-                            let _lease = lease;
-                            let service = service_fn(move |request: Request<Incoming>| {
-                                let seen = seen.clone();
-                                let replies = replies.clone();
-                                async move {
-                                    let (parts, body) = request.into_parts();
-                                    let body = Limited::new(body, 4096).collect().await.unwrap().to_bytes();
-                                    let index = {
-                                        let mut calls = seen.lock().unwrap();
-                                        assert!(calls.len() < replies.len(), "Unexpected extra upstream request/retry");
-                                        let index = calls.len();
-                                        calls.push(Seen { method: parts.method.to_string(), path: parts.uri.to_string(), headers: parts.headers, body });
-                                        index
-                                    };
-                                    let (status, headers, bytes) = &replies[index];
-                                    let mut response = Response::builder().status(*status).body(Full::new(bytes.clone())).unwrap();
-                                    *response.headers_mut() = headers.clone();
-                                    Ok::<_, Infallible>(response)
-                                }
-                            });
-                            hyper::server::conn::http1::Builder::new()
-                                .serve_connection(TokioIo::new(socket), service).await.unwrap();
-                        });
+        Self::start(
+            || {
+                let plans = row.get("responses").cloned().unwrap_or_else(|| {
+                    json!([
+                        {"status":200,"headers":{"content-type":"application/json"},"body_text":"{}"},
+                        {"status":200,"headers":{"content-type":"application/json"},"body_text":"{}"}
+                    ])
+                });
+                let replies: Vec<_> = plans
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|plan| {
+                        let status = plan["status"].as_u64().unwrap() as u16;
+                        let text = plan["body_text"].as_str().unwrap();
+                        assert!(text.len() <= 4096);
+                        let mut headers = HeaderMap::new();
+                        for (key, value) in plan["headers"].as_object().unwrap() {
+                            headers.insert(
+                                hyper::header::HeaderName::from_bytes(key.as_bytes()).unwrap(),
+                                value.as_str().unwrap().parse().unwrap(),
+                            );
+                        }
+                        (status, headers, Bytes::copy_from_slice(text.as_bytes()))
+                    })
+                    .collect();
+                assert!(replies.len() <= 2);
+                let replies = Arc::new(replies);
+                move |request: Request<Incoming>, seen: Arc<Mutex<Vec<Seen>>>| {
+                    let replies = replies.clone();
+                    async move {
+                        let (parts, body) = request.into_parts();
+                        let body = Limited::new(body, 4096).collect().await.unwrap().to_bytes();
+                        let index = {
+                            let mut calls = seen.lock().unwrap();
+                            assert!(calls.len() < replies.len(), "Unexpected extra upstream request/retry");
+                            let index = calls.len();
+                            calls.push(Seen { method: parts.method.to_string(), path: parts.uri.to_string(), headers: parts.headers, body });
+                            index
+                        };
+                        let (status, headers, bytes) = &replies[index];
+                        let mut response = Response::builder().status(*status).body(Full::new(bytes.clone())).unwrap();
+                        *response.headers_mut() = headers.clone();
+                        Ok::<_, Infallible>(response)
                     }
                 }
-            }
-            tasks.abort_all();
-            while let Some(result) = tasks.join_next().await {
-                if let Err(error) = result {
-                    assert!(error.is_cancelled(), "Unexpected peer panic: {error}");
-                }
-            }
-        });
-        let token = row["token"].as_str().unwrap().to_owned();
-        let mut config = read_config(&json!({"AUTOROUTER_EVALUATOR":"jev","ANTHROPIC_API_KEY":"upstream-secret","TYPESAFE_API_KEY":"classifier-secret","AUTOROUTER_TOKEN":token}), false, std::path::Path::new("/tmp")).unwrap();
-        config.upstream = format!("http://{address}");
-        config.auth_mode = AuthMode::Subscription;
-        let client = Arc::new(NativeHttpClient::new().unwrap());
-        let router = Arc::new(Router::default());
-        let logs = Events::default();
-        let statuses = Events::default();
-        let decisions = Events::default();
-        let gateway = Gateway::with_router(
-            config,
-            client.clone(),
-            router.clone(),
-            EventSinks {
-                log: Some(sink(&logs)),
-                status: Some(sink(&statuses)),
-                decision: Some(sink(&decisions)),
-                ..Default::default()
+            },
+            |address| {
+                let token = row["token"].as_str().unwrap().to_owned();
+                let mut config = read_config(&json!({"AUTOROUTER_EVALUATOR":"jev","ANTHROPIC_API_KEY":"upstream-secret","TYPESAFE_API_KEY":"classifier-secret","AUTOROUTER_TOKEN":token}), false, std::path::Path::new("/tmp")).unwrap();
+                config.upstream = format!("http://{address}");
+                config.auth_mode = AuthMode::Subscription;
+                (config, token)
             },
         )
-        .unwrap();
-        let handle = gateway.listen(0).await.unwrap();
-        Self {
-            handle: Some(handle),
-            peer: Some(peer),
-            stop,
-            active,
-            seen,
-            logs,
-            statuses,
-            decisions,
-            router,
-            client: Some(client),
-            token,
-        }
+        .await
     }
     fn private_events(&self) {
         let text = json!({"logs":*self.logs.lock().unwrap(), "statuses":*self.statuses.lock().unwrap(), "decisions":*self.decisions.lock().unwrap()}).to_string();

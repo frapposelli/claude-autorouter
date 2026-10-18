@@ -1,4 +1,6 @@
 //! Explicit public-source transfer allowlist; never copies a checkout wholesale.
+#[path = "bundle_source_executable.rs"]
+mod combined;
 #[path = "bundle_executable.rs"]
 pub(crate) mod executable;
 #[path = "bundle_transfer_pair.rs"]
@@ -526,45 +528,57 @@ fn collect(root: &Path) -> Result<BTreeMap<String, Entry>, String> {
         }
         let bytes = regular(root, &path)?;
         manifest.insert(path.clone(), sha(&bytes));
-        files.insert(path, Entry { bytes, mode: 0o644 });
+        files.insert(path, data_entry(bytes));
     }
     let readme=b"# AutoRouter native benchmark source bundle\n\nPublic source and synthetic fixtures only. Install the pinned Rust toolchain, a C compiler, Make and Perl for the bundled OpenSSL build, and fetch the Cargo.lock dependencies (or provide an existing Cargo cache), then run from rust/:\n\n    cargo build --locked --release --package xtask\n    cargo xtask evaluate-ollama --help\n\nReading help makes no evaluator calls. Hardware evaluator runs are explicitly opt-in, do not download models, and must retain fixture hashes, model digest, residency, cold/warm conditions and the unchanged acceptance rubric. Existing experimental quality failures remain visible. The historical docs describe the original Node commands; use native xtask help for the replacement interface.\n\nThe locked Nix supplier is fetched at its reviewed immutable Git revision; its complete source/provenance stays in the Cargo cache. Run the no-default-features autorouter-audit vendor check before building ordinary CLI/helper code.\n\nThe runtime-neutral Node/Rust HTTP benchmark requires its separately verified frozen Node reference; no frozen Node product source/runtime, private reports, credentials, user configuration, Cargo cache or binaries are included here. This source bundle itself does not establish build provenance, platform qualification, task quality or performance acceptance.\n".to_vec();
     manifest.insert("README.native.md".into(), sha(&readme));
-    files.insert(
-        "README.native.md".into(),
-        Entry {
-            bytes: readme,
-            mode: 0o644,
-        },
-    );
-    let record = json!({"schema_version":2,"kind":"native_benchmark_public_source_bundle","fixture_sha256":manifest.get("test/fixtures/ollama-routing.json"),"files":manifest,"build_requires":"Pinned Rust toolchain and locked dependencies via network or prepopulated Cargo cache; no Node required for native evaluator tools.","private_material_included":false,"live_calls_performed":false});
+    files.insert("README.native.md".into(), data_entry(readme));
+    let record = source_record(&manifest);
     files.insert(
         "source-manifest.json".into(),
-        Entry {
-            bytes: serde_json::to_vec_pretty(&record)
-                .map_err(|_| "Cannot serialize bundle manifest")?,
-            mode: 0o644,
-        },
+        json_entry(&record, "Cannot serialize bundle manifest")?,
     );
     Ok(files)
 }
+// One original-order constructor for collect and strict source reconstruction.
+fn source_record(manifest: &BTreeMap<String, String>) -> Value {
+    json!({"schema_version":2,"kind":"native_benchmark_public_source_bundle","fixture_sha256":manifest.get("test/fixtures/ollama-routing.json"),"files":manifest,"build_requires":"Pinned Rust toolchain and locked dependencies via network or prepopulated Cargo cache; no Node required for native evaluator tools.","private_material_included":false,"live_calls_performed":false})
+}
+// Generated/source regular payloads share one explicit0644 constructor.
+fn data_entry(bytes: Vec<u8>) -> Entry {
+    Entry { bytes, mode: 0o644 }
+}
+fn file_bytes(files: &BTreeMap<String, Entry>) -> pair::disk::TreeFiles<'_> {
+    files
+        .iter()
+        .map(|(p, e)| (p.clone(), (e.bytes.as_slice(), e.mode)))
+        .collect()
+}
+fn json_entry(value: &impl serde::Serialize, error: &str) -> Result<Entry, String> {
+    Ok(data_entry(
+        serde_json::to_vec_pretty(value).map_err(|_| error)?,
+    ))
+}
 /// Exact public allowlist identity; never includes checkout-private material.
 pub(crate) fn source_identity(root: &Path) -> Result<Value, String> {
-    Ok(json!(collect(root)?.iter().map(|(path, entry)|json!({"path":path,"bytes":entry.bytes.len(),"sha256":sha(&entry.bytes),"mode":entry.mode})).collect::<Vec<_>>()))
+    serde_json::to_value(executable::declarations(&collect(root)?))
+        .map_err(|_| "Cannot serialize source declarations".into())
 }
 pub fn create(root: &Path, destination: &Path) -> Result<Value, String> {
     let sidecar = PathBuf::from(format!("{}.sha256", destination.display()));
     if fs::symlink_metadata(destination).is_ok() || fs::symlink_metadata(&sidecar).is_ok() {
         return Err("Refusing to overwrite an existing bundle or checksum".into());
     }
-    write_archive(ROOT, &collect(root)?, destination, SOURCE)
+    write_archive_verified(ROOT, &collect(root)?, destination, SOURCE, |_, _| Ok(()))
+        .map(|(report, ())| report)
 }
-fn write_archive(
+fn write_archive_verified<T>(
     archive_root: &str,
     files: &BTreeMap<String, Entry>,
     destination: &Path,
     policy: crate::package::archive::ArchivePolicy,
-) -> Result<Value, String> {
+    verify: impl FnOnce(BTreeMap<String, Entry>, usize) -> Result<T, String>,
+) -> Result<(Value, T), String> {
     let sidecar = PathBuf::from(format!("{}.sha256", destination.display()));
     if fs::symlink_metadata(destination).is_ok() || fs::symlink_metadata(&sidecar).is_ok() {
         return Err("Refusing to overwrite an existing bundle or checksum".into());
@@ -580,6 +594,7 @@ fn write_archive(
     {
         return Err("Bundle archive verification failed".into());
     }
+    let verified = verify(verified, expanded)?;
     if let Some(parent) = destination.parent() {
         fs::create_dir_all(parent).map_err(|_| "Cannot create bundle destination directory")?;
     }
@@ -606,17 +621,21 @@ fn write_archive(
             .ok_or("Invalid bundle destination filename")?
     )
     .map_err(|_| "Cannot write bundle checksum")?;
-    Ok(
+    Ok((
         json!({"bundle":destination.to_string_lossy(),"sha256":checksum,"files":files.len(),"compressed_bytes":bytes.len(),"expanded_tar_bytes":expanded,"source_only":true,"requires_node":false,"dependencies_bundled":false,"release_approved":false}),
-    )
+        verified,
+    ))
 }
 pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
+    if args.first().is_some_and(|arg| arg == "--source-executable") {
+        return combined::run(args, root);
+    }
     if args.first().is_some_and(|arg| arg == "--executable") {
         return executable::run(args, root);
     }
     if args == ["--help"] {
         println!(
-            "cargo xtask benchmark-bundle [NEW_DESTINATION.tar.gz]\ncargo xtask benchmark-bundle --executable TARGET=RELEASE_XTASK NEW_ARCHIVE.tar.gz\ncargo xtask benchmark-bundle --transfer NEW_DIRECTORY\ncargo xtask benchmark-bundle --restore-reference TRANSFER_DIRECTORY NEW_REFERENCE_DIRECTORY\nDefault creates an allowlisted public Rust source and synthetic-fixture bundle, without frozen Node product sources. --executable creates a separate target-specific ready-to-run evaluator with complete licenses; its receiver needs no Node/Cargo/source checkout and supports only evaluate-ollama. Prebuilt source-to-binary provenance and platform qualification remain unverified. --transfer creates a licensed reference delta sharing two exact fixtures, the license and frozen manifest with the native archive, plus checksum/resume files for matched larger-host benchmarks, without a Git checkout. Source and transfer modes exclude binaries; every mode excludes credentials, private reports and Cargo caches and performs no evaluator calls. Version 6 uses gzip binary big-endian CPIO source with an indexed binary generated manifest and licensed tar delta; both carrier and complete logical file-payload caps remain 32 MiB. Legacy full-tar size is separately reported. --restore-reference verifies schemas 1 through 6 then creates the full 113-file frozen reference before any reference operation. Requires pinned Rust/locked dependencies; matched reference runs need Node22.14.0."
+            "cargo xtask benchmark-bundle [NEW_DESTINATION.tar.gz]\ncargo xtask benchmark-bundle --executable TARGET=RELEASE_XTASK NEW_ARCHIVE.tar.gz\ncargo xtask benchmark-bundle --source-executable TARGET=FRESH_RELEASE_XTASK NEW_ARCHIVE.tar.gz\ncargo xtask benchmark-bundle --transfer NEW_DIRECTORY\ncargo xtask benchmark-bundle --restore-reference TRANSFER_DIRECTORY NEW_REFERENCE_DIRECTORY\n--source-executable creates a distinct native source+ready artifact: full SOURCE32 inner bytes, NATIVE32/64 outer and conservative complete64 accounting, with fresh source identity and no build/quality qualification inferred. Old formats remain unchanged. Default creates an allowlisted public Rust source and synthetic-fixture bundle, without frozen Node product sources. --executable creates a separate target-specific ready-to-run evaluator with complete licenses; its receiver needs no Node/Cargo/source checkout and supports only evaluate-ollama. Prebuilt source-to-binary provenance and platform qualification remain unverified. --transfer creates a licensed reference delta sharing two exact fixtures, the license and frozen manifest with the native archive, plus checksum/resume files for matched larger-host benchmarks, without a Git checkout. Source and transfer modes exclude binaries; every mode excludes credentials, private reports and Cargo caches and performs no evaluator calls. Version 6 uses gzip binary big-endian CPIO source with an indexed binary generated manifest and licensed tar delta; both carrier and complete logical file-payload caps remain 32 MiB. Legacy full-tar size is separately reported. --restore-reference verifies schemas 1 through 6 then creates the full 113-file frozen reference before any reference operation. Requires pinned Rust/locked dependencies; matched reference runs need Node22.14.0."
         );
         return Ok(true);
     }

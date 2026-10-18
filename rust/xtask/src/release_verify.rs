@@ -306,8 +306,9 @@ if order==Ordering::Less{return Err(unavailable("dist_tag_not_updated"));}let in
                 if cancel.is_cancelled() || err.code == "cancelled" {
                     return Err(error("cancelled", "cancelled"));
                 }
-                let mut row = json!({"state":if err.code=="registry_unavailable"{"validating_unavailable"}else{"failed"},"reason":err.detail.get("reason").cloned().unwrap_or(json!(err.code))});
-                if let Some(status) = err.detail.get("http_status") {
+                let (_, detail) = public_error_details(&err);
+                let mut row = json!({"state":if err.code=="registry_unavailable"{"validating_unavailable"}else{"failed"},"reason":detail["reason"]});
+                if let Some(status) = detail.get("http_status") {
                     row["http_status"] = status.clone();
                 }
                 row
@@ -552,6 +553,131 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
     let tag = &args[1];
     crate::evaluation::runtime()?.block_on(execute(mode, tag, options, root))
 }
+// ReleaseError is an open extension seam. Reports must only contain the
+// verifier's fixed public diagnostics, never caller-supplied error payloads.
+fn public_error_details(err: &ReleaseError) -> (&'static str, Value) {
+    let reasons: &[&str] = match err.code {
+        "registry_unavailable" => &[
+            "network_error",
+            "http_error",
+            "oversized_response",
+            "timeout",
+            "invalid_json",
+            "nonce_unavailable",
+            "invalid_package_metadata",
+            "package_metadata_unavailable",
+            "invalid_dist_tag",
+            "latest_is_not_stable",
+            "version_not_available",
+            "tarball_not_available",
+            "dist_tag_unavailable",
+            "dist_tag_not_updated",
+            "verification_deadline",
+            "isolated_install_timeout",
+            "isolated_install_unavailable",
+        ],
+        "release_mismatch" => &[
+            "metadata_identity",
+            "integrity",
+            "tarball_location",
+            "tarball_bytes",
+            "canonical_archive_unavailable",
+            "canonical_archive_changed",
+            "canonical_archive_invalid",
+            "installed_archive_structure",
+            "installed_archive_bytes",
+            "installed_cli_target",
+            "installed_cli_failed",
+            "installed_cli_identity",
+        ],
+        "invalid_archive" => &[
+            "filename_mismatch",
+            "archive_not_regular_or_bounded",
+            "checksum_not_regular_or_bounded",
+            "checksum_mismatch",
+            "checksum_filename_mismatch",
+            "unexpected_file",
+            "unexpected_release_artifacts",
+            "archive_format",
+            "missing_manifest",
+            "invalid_manifest",
+            "manifest_identity",
+            "archive_format_limits",
+            "native_release_not_qualified",
+            "native_final_authorization_required",
+            "legacy_archive_files",
+            "native_release_required",
+            "archive_path",
+        ],
+        "invalid_version" => &["release_tag_required", "strict_semver_required"],
+        "invalid_release_input" => &[
+            "artifact_identity",
+            "artifact_source_mismatch",
+            "tag_commit",
+            "main_ancestry",
+            "github_token_required",
+            "canonical_archive_required",
+            "release_notes_path_required",
+        ],
+        "historical_archive" => &["native_release_required_for_publication"],
+        "version_order" => &["version_order"],
+        "invalid_timeout" => &["invalid_timeout"],
+        "cancelled" => &["cancelled"],
+        "command_failed" => &["command_failed", "installed_cli_failed"],
+        "report_failed" => &["report_failed", "github_output", "release_notes"],
+        _ => &[],
+    };
+    let code = if reasons.is_empty() {
+        "verification_error"
+    } else {
+        err.code
+    };
+    let reason = err
+        .detail
+        .get("reason")
+        .and_then(Value::as_str)
+        .filter(|reason| reasons.contains(reason))
+        .unwrap_or(code);
+    let mut detail = json!({"reason":reason});
+    if code == "registry_unavailable"
+        && let Some(status) = err
+            .detail
+            .get("http_status")
+            .and_then(Value::as_u64)
+            .filter(|status| (100..=999).contains(status))
+    {
+        detail["http_status"] = json!(status);
+    }
+    if code == "version_order"
+        && let Some(latest) = err.detail.get("current_latest").filter(|latest| {
+            latest.is_null()
+                || latest
+                    .as_str()
+                    .is_some_and(|text| parse_version(text).is_ok())
+        })
+    {
+        detail["current_latest"] = latest.clone();
+    }
+    (code, detail)
+}
+fn failed_report(artifact: Option<&Artifact>, mode: &str, err: &ReleaseError) -> Value {
+    let (code, mut detail) = public_error_details(err);
+    // Preserve the historical corrupt-sidecar report while retaining the
+    // reader's typed checksum detail and all other admission reasons.
+    if code == "invalid_archive" && detail["reason"] == "checksum_mismatch" {
+        detail.as_object_mut().unwrap().remove("reason");
+    }
+    let mut row = merge(
+        artifact
+            .map(Artifact::report_base)
+            .unwrap_or(json!({"schema_version":1})),
+        json!({"state":"failed","phase":mode,"reason":code,"error_code":code}),
+    );
+    row.as_object_mut()
+        .unwrap()
+        .extend(detail.as_object().unwrap().clone());
+    row
+}
 async fn execute(mode: &str, tag: &str, options: Value, root: &Path) -> Result<bool, String> {
     let signals = crate::tool_process::Signals::new()?;
     let mut artifact = None;
@@ -567,25 +693,7 @@ println!("{}: {} (attempt {})",state["state"].as_str().unwrap(),state["reason"].
     let report = match action {
         Ok(None) => return Ok(true),
         Ok(Some(report)) => report,
-        Err(err) => {
-            let mut row = merge(
-                artifact
-                    .as_ref()
-                    .map(Artifact::report_base)
-                    .unwrap_or(json!({"schema_version":1})),
-                json!({"state":"failed","phase":mode,"reason":err.code,"error_code":err.code}),
-            );
-            let mut detail = err.detail.as_object().unwrap().clone();
-            // Preserve the historical corrupt-sidecar report while retaining the
-            // reader's typed checksum detail and all other admission reasons.
-            if err.code == "invalid_archive"
-                && detail.get("reason") == Some(&json!("checksum_mismatch"))
-            {
-                detail.remove("reason");
-            }
-            row.as_object_mut().unwrap().extend(detail);
-            row
-        }
+        Err(err) => failed_report(artifact.as_ref(), mode, &err),
     };
     persist(&options, &report).map_err(|e| e.to_string())?;
     let mut output = json!({"state":report["state"]});
@@ -961,5 +1069,431 @@ mod tests {
         let mut changed = artifact;
         changed["expired"] = json!(true);
         assert!(validate_artifact_source(&run, &changed, "123", "456", &commit, "v0.4.0").is_err());
+    }
+
+    struct ErrorInstall {
+        failure: ReleaseError,
+        calls: AtomicUsize,
+    }
+    impl Installer for ErrorInstall {
+        async fn install(
+            &self,
+            _: &Artifact,
+            _: Duration,
+            _: &CancellationToken,
+        ) -> Result<Value, ReleaseError> {
+            self.calls.fetch_add(1, AtomicOrdering::SeqCst);
+            Err(self.failure.clone())
+        }
+    }
+    #[tokio::test(start_paused = true)]
+    async fn private_installer_errors_are_projected_before_callbacks_events_and_report_files() {
+        let scratch = crate::tool_process::Scratch::new("release-error-privacy").unwrap();
+        let report_path = scratch.0.join("report.json");
+        let options = json!({"--report":report_path});
+        let private = "PRIVATE_INSTALL_ERROR_PAYLOAD";
+        let cases = [
+            (
+                "release_mismatch",
+                json!({"reason":private}),
+                "release_mismatch",
+            ),
+            (
+                "release_mismatch",
+                json!({"reason":{"nested":[private]}}),
+                "release_mismatch",
+            ),
+            (
+                "release_mismatch",
+                json!({"reason":[private]}),
+                "release_mismatch",
+            ),
+            (
+                "release_mismatch",
+                json!({"reason":true}),
+                "release_mismatch",
+            ),
+            ("release_mismatch", json!({"reason":37}), "release_mismatch"),
+            (
+                "release_mismatch",
+                json!({"reason":null}),
+                "release_mismatch",
+            ),
+            ("release_mismatch", json!([private]), "release_mismatch"),
+            (
+                "PRIVATE_ERROR_CODE",
+                json!({"private":private}),
+                "verification_error",
+            ),
+            ("PRIVATE_ERROR_CODE", json!([private]), "verification_error"),
+            (
+                "PRIVATE_ERROR_CODE",
+                json!({"reason":"installed_cli_failed","http_status":{"private":private}}),
+                "verification_error",
+            ),
+            (
+                "release_mismatch",
+                json!({"reason":"installed_cli_failed","private":private}),
+                "installed_cli_failed",
+            ),
+            (
+                "version_order",
+                json!({"reason":"version_order","current_latest":"0.3.7","private":private}),
+                "version_order",
+            ),
+        ];
+        for (code, detail, expected_reason) in cases {
+            let failure = ReleaseError { code, detail };
+            let original_detail = failure.detail.clone();
+            let installer = ErrorInstall {
+                failure,
+                calls: AtomicUsize::new(0),
+            };
+            let registry = Registry::new(Options::default());
+            let mut states = Vec::new();
+            let report = verify(
+                &registry,
+                &installer,
+                &artifact(),
+                5000,
+                &CancellationToken::new(),
+                &mut |state| {
+                    persist(&options, state)?;
+                    states.push(state.clone());
+                    Ok(())
+                },
+            )
+            .await
+            .unwrap();
+            assert_eq!(report["state"], "failed");
+            assert_eq!(report["reason"], expected_reason);
+            assert_eq!(report["attempts"], 1);
+            assert_eq!(report["events"].as_array().unwrap().len(), 1);
+            assert_eq!(report["events"][0]["reason"], expected_reason);
+            assert_eq!(states.len(), 1);
+            assert_eq!(states[0]["reason"], expected_reason);
+            assert!(states[0]["reason"].as_str().is_some());
+            assert_eq!(installer.calls.load(AtomicOrdering::SeqCst), 1);
+            assert_eq!(registry.paths.lock().unwrap().len(), 3);
+            assert_eq!(installer.failure.detail, original_detail);
+            let stored: Value =
+                serde_json::from_slice(&std::fs::read(&report_path).unwrap()).unwrap();
+            assert_eq!(stored, states[0]);
+            persist(&options, &report).unwrap();
+            let final_stored: Value =
+                serde_json::from_slice(&std::fs::read(&report_path).unwrap()).unwrap();
+            assert_eq!(final_stored, report);
+            for output in [&report, &states[0], &stored, &final_stored] {
+                assert!(!output.to_string().contains("PRIVATE"));
+                assert!(output.get("http_status").is_none());
+                assert!(output.get("current_latest").is_none());
+            }
+        }
+    }
+    #[tokio::test(start_paused = true)]
+    async fn unavailable_http_status_is_only_an_integer_in_the_supported_http_range() {
+        for status in [
+            json!(100),
+            json!(401),
+            json!(429),
+            json!(503),
+            json!(599),
+            Value::Null,
+            json!("PRIVATE_HTTP_STATUS"),
+            json!({"nested":"PRIVATE_HTTP_STATUS"}),
+            json!(-1),
+            json!(0),
+            json!(99),
+            json!(600),
+            json!(999),
+            json!(1000),
+            json!(65535),
+            json!(503.5),
+        ] {
+            let expected = status.as_u64().filter(|value| (100..=999).contains(value));
+            let installer = ErrorInstall {
+                failure: ReleaseError {
+                    code: "registry_unavailable",
+                    detail: json!({"reason":"http_error","http_status":status}),
+                },
+                calls: AtomicUsize::new(0),
+            };
+            let mut states = Vec::new();
+            let report = verify(
+                &Registry::new(Options::default()),
+                &installer,
+                &artifact(),
+                1,
+                &CancellationToken::new(),
+                &mut |state| {
+                    states.push(state.clone());
+                    Ok(())
+                },
+            )
+            .await
+            .unwrap();
+            assert_eq!(report["state"], "validating_unavailable");
+            assert_eq!(report["reason"], "http_error");
+            assert_eq!(report["pending"], true);
+            assert_eq!(report["elapsed_ms"], 1);
+            assert_eq!(report["attempts"], 1);
+            assert_eq!(installer.calls.load(AtomicOrdering::SeqCst), 1);
+            assert_eq!(states.len(), 1);
+            for row in [&report, &states[0]] {
+                assert_eq!(row.get("http_status").and_then(Value::as_u64), expected);
+                assert_eq!(row.get("http_status").is_some(), expected.is_some());
+                assert!(!row.to_string().contains("PRIVATE"));
+            }
+        }
+    }
+    #[test]
+    fn failed_cli_reports_use_only_known_error_fields_even_for_nonobject_details() {
+        let scratch = crate::tool_process::Scratch::new("release-failed-report-privacy").unwrap();
+        let report_path = scratch.0.join("report.json");
+        let options = json!({"--report":report_path});
+        for (code, detail, expected_code, expected_reason) in [
+            (
+                "release_mismatch",
+                json!({"reason":"PRIVATE_REASON","private":{"nested":"PRIVATE_PAYLOAD"},"state":"verified","phase":"PRIVATE_PHASE","error_code":"PRIVATE_CODE"}),
+                "release_mismatch",
+                "release_mismatch",
+            ),
+            (
+                "release_mismatch",
+                json!({"reason":{"nested":"PRIVATE_REASON"}}),
+                "release_mismatch",
+                "release_mismatch",
+            ),
+            (
+                "release_mismatch",
+                json!("PRIVATE_DETAIL"),
+                "release_mismatch",
+                "release_mismatch",
+            ),
+            (
+                "release_mismatch",
+                json!(["PRIVATE_DETAIL"]),
+                "release_mismatch",
+                "release_mismatch",
+            ),
+            (
+                "release_mismatch",
+                Value::Null,
+                "release_mismatch",
+                "release_mismatch",
+            ),
+            (
+                "PRIVATE_ERROR_CODE",
+                json!({"reason":"installed_cli_failed","http_status":503}),
+                "verification_error",
+                "verification_error",
+            ),
+            (
+                "release_mismatch",
+                json!({"reason":"installed_cli_failed","private":"PRIVATE_PAYLOAD"}),
+                "release_mismatch",
+                "installed_cli_failed",
+            ),
+        ] {
+            let failure = ReleaseError { code, detail };
+            let original_detail = failure.detail.clone();
+            let report = failed_report(None, "verify", &failure);
+            assert_eq!(
+                report,
+                json!({"schema_version":1,"state":"failed","phase":"verify","reason":expected_reason,"error_code":expected_code})
+            );
+            assert_eq!(failure.detail, original_detail);
+            persist(&options, &report).unwrap();
+            let stored: Value =
+                serde_json::from_slice(&std::fs::read(&report_path).unwrap()).unwrap();
+            assert_eq!(stored, report);
+            assert!(!stored.to_string().contains("PRIVATE"));
+        }
+    }
+    #[test]
+    fn known_release_failures_keep_their_diagnostics_without_copying_extra_fields() {
+        for (code, reason) in [
+            ("registry_unavailable", "network_error"),
+            ("registry_unavailable", "http_error"),
+            ("registry_unavailable", "oversized_response"),
+            ("registry_unavailable", "timeout"),
+            ("registry_unavailable", "invalid_json"),
+            ("registry_unavailable", "nonce_unavailable"),
+            ("registry_unavailable", "invalid_package_metadata"),
+            ("registry_unavailable", "package_metadata_unavailable"),
+            ("registry_unavailable", "invalid_dist_tag"),
+            ("registry_unavailable", "latest_is_not_stable"),
+            ("registry_unavailable", "version_not_available"),
+            ("registry_unavailable", "tarball_not_available"),
+            ("registry_unavailable", "dist_tag_unavailable"),
+            ("registry_unavailable", "dist_tag_not_updated"),
+            ("registry_unavailable", "verification_deadline"),
+            ("registry_unavailable", "isolated_install_timeout"),
+            ("registry_unavailable", "isolated_install_unavailable"),
+            ("release_mismatch", "metadata_identity"),
+            ("release_mismatch", "integrity"),
+            ("release_mismatch", "tarball_location"),
+            ("release_mismatch", "tarball_bytes"),
+            ("release_mismatch", "canonical_archive_unavailable"),
+            ("release_mismatch", "canonical_archive_changed"),
+            ("release_mismatch", "canonical_archive_invalid"),
+            ("release_mismatch", "installed_archive_structure"),
+            ("release_mismatch", "installed_archive_bytes"),
+            ("release_mismatch", "installed_cli_target"),
+            ("release_mismatch", "installed_cli_failed"),
+            ("release_mismatch", "installed_cli_identity"),
+            ("invalid_archive", "filename_mismatch"),
+            ("invalid_archive", "archive_not_regular_or_bounded"),
+            ("invalid_archive", "checksum_not_regular_or_bounded"),
+            ("invalid_archive", "checksum_filename_mismatch"),
+            ("invalid_archive", "unexpected_file"),
+            ("invalid_archive", "unexpected_release_artifacts"),
+            ("invalid_archive", "archive_format"),
+            ("invalid_archive", "missing_manifest"),
+            ("invalid_archive", "invalid_manifest"),
+            ("invalid_archive", "manifest_identity"),
+            ("invalid_archive", "archive_format_limits"),
+            ("invalid_archive", "native_release_not_qualified"),
+            ("invalid_archive", "native_final_authorization_required"),
+            ("invalid_archive", "legacy_archive_files"),
+            ("invalid_archive", "native_release_required"),
+            ("invalid_archive", "archive_path"),
+            ("invalid_version", "release_tag_required"),
+            ("invalid_version", "strict_semver_required"),
+            ("invalid_release_input", "artifact_identity"),
+            ("invalid_release_input", "artifact_source_mismatch"),
+            ("invalid_release_input", "tag_commit"),
+            ("invalid_release_input", "main_ancestry"),
+            ("invalid_release_input", "github_token_required"),
+            ("invalid_release_input", "canonical_archive_required"),
+            ("invalid_release_input", "release_notes_path_required"),
+            (
+                "historical_archive",
+                "native_release_required_for_publication",
+            ),
+            ("invalid_timeout", "invalid_timeout"),
+            ("cancelled", "cancelled"),
+            ("command_failed", "command_failed"),
+            ("command_failed", "installed_cli_failed"),
+            ("report_failed", "report_failed"),
+            ("report_failed", "github_output"),
+            ("report_failed", "release_notes"),
+        ] {
+            let failure = ReleaseError {
+                code,
+                detail: json!({"reason":reason,"private":"PRIVATE_PAYLOAD"}),
+            };
+            let report = failed_report(Some(&artifact()), "verify", &failure);
+            let expected = merge(
+                artifact().report_base(),
+                json!({"state":"failed","phase":"verify","reason":reason,"error_code":code}),
+            );
+            assert_eq!(report, expected);
+        }
+        let corrupt = failed_report(
+            None,
+            "submitted",
+            &error("invalid_archive", "checksum_mismatch"),
+        );
+        assert_eq!(
+            corrupt,
+            json!({"schema_version":1,"state":"failed","phase":"submitted","reason":"invalid_archive","error_code":"invalid_archive"})
+        );
+        for latest in [Value::Null, json!("0.3.7"), json!("0.4.0-beta.1")] {
+            let failure = ReleaseError {
+                code: "version_order",
+                detail: json!({"current_latest":latest}),
+            };
+            assert_eq!(
+                failed_report(None, "preflight", &failure)["current_latest"],
+                latest
+            );
+        }
+        for latest in [
+            json!("PRIVATE_NOT_A_VERSION"),
+            json!({"private":"PRIVATE_PAYLOAD"}),
+            json!(7),
+        ] {
+            let failure = ReleaseError {
+                code: "version_order",
+                detail: json!({"current_latest":latest}),
+            };
+            let report = failed_report(None, "preflight", &failure);
+            assert_eq!(report["reason"], "version_order");
+            assert!(report.get("current_latest").is_none());
+        }
+    }
+
+    struct CancellationInstall {
+        cancel_during: bool,
+        code: &'static str,
+        calls: AtomicUsize,
+    }
+    impl Installer for CancellationInstall {
+        async fn install(
+            &self,
+            _: &Artifact,
+            _: Duration,
+            cancel: &CancellationToken,
+        ) -> Result<Value, ReleaseError> {
+            self.calls.fetch_add(1, AtomicOrdering::SeqCst);
+            if self.cancel_during {
+                cancel.cancel();
+            }
+            Err(ReleaseError {
+                code: self.code,
+                detail: json!({"reason":{"private":"PRIVATE_CANCEL_ERROR"}}),
+            })
+        }
+    }
+    #[tokio::test(start_paused = true)]
+    async fn cancellation_precedes_private_error_projection_and_all_report_callbacks() {
+        let scratch = crate::tool_process::Scratch::new("release-error-cancellation").unwrap();
+        // The final case preserves the native typed-control API: a cancelled
+        // error remains cancellation even without an aborted token. This is
+        // not equivalence to arbitrary JavaScript Error inputs.
+        for (index, (before, during, code, expected_calls, expected_requests)) in [
+            (true, false, "PRIVATE_ERROR_CODE", 0, 0),
+            (false, true, "PRIVATE_ERROR_CODE", 1, 3),
+            (false, false, "cancelled", 1, 3),
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            let token = CancellationToken::new();
+            if before {
+                token.cancel();
+            }
+            let installer = CancellationInstall {
+                cancel_during: during,
+                code,
+                calls: AtomicUsize::new(0),
+            };
+            let registry = Registry::new(Options::default());
+            let report_path = scratch.0.join(format!("report-{index}.json"));
+            let options = json!({"--report":report_path});
+            let mut callbacks = 0;
+            let failure = verify(
+                &registry,
+                &installer,
+                &artifact(),
+                5000,
+                &token,
+                &mut |state| {
+                    callbacks += 1;
+                    persist(&options, state)
+                },
+            )
+            .await
+            .unwrap_err();
+            assert_eq!(failure.code, "cancelled");
+            assert_eq!(failure.detail, json!({"reason":"cancelled"}));
+            assert!(!failure.to_string().contains("PRIVATE"));
+            assert_eq!(token.is_cancelled(), before || during);
+            assert_eq!(callbacks, 0);
+            assert!(!report_path.exists());
+            assert_eq!(installer.calls.load(AtomicOrdering::SeqCst), expected_calls);
+            assert_eq!(registry.paths.lock().unwrap().len(), expected_requests);
+        }
     }
 }

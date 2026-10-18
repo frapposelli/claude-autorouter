@@ -23,7 +23,7 @@
  
 --- a/src/ext/mod.rs
 +++ b/src/ext/mod.rs
-@@ -261,3 +261,107 @@
+@@ -261,3 +261,188 @@
          self.entry_order.iter()
      }
  }
@@ -33,6 +33,87 @@
 +#[cfg(all(feature = "node-http1-compat", feature = "client", feature = "http1"))]
 +#[derive(Clone, Copy, Debug)]
 +pub struct NodeHttpResponsePolicy;
++
++/// Per-response preparation state for an opt-in Node HTTP server timer.
++///
++/// Preparation describes the first equivalent `send`, `end`, or `flushHeaders`
++/// operation, including while a response is queued. It is not delivery evidence.
++/// A clone is retained on the parsed request and supplied in its extensions.
++#[cfg(all(feature = "node-http1-compat", feature = "server", feature = "http1"))]
++#[derive(Clone, Debug, Default)]
++pub struct NodeHttpResponseTiming(std::sync::Arc<std::sync::atomic::AtomicBool>);
++
++#[cfg(all(feature = "node-http1-compat", feature = "server", feature = "http1"))]
++impl NodeHttpResponseTiming {
++    /// Construct an unprepared response marker.
++    pub fn new() -> Self { Self::default() }
++
++    /// Mark the first equivalent response-send operation.
++    pub fn mark_prepared(&self) {
++        self.0.store(true, std::sync::atomic::Ordering::Release);
++    }
++
++    /// Whether that response has performed an equivalent send operation.
++    pub fn is_prepared(&self) -> bool {
++        self.0.load(std::sync::atomic::Ordering::Acquire)
++    }
++}
++
++/// Atomic parser/response observations for an opt-in listener-owned timer.
++#[cfg(all(feature = "node-http1-compat", feature = "server", feature = "http1"))]
++#[derive(Clone, Debug)]
++pub enum NodeHttpServerTimingEvent {
++    /// First non-CR/LF request byte, before method validation.
++    MessageBegin,
++    /// A complete head, with immediate zero-body completion in the same batch.
++    HeadersComplete {
++        /// Whether receipt of this message is already complete.
++        message_complete: bool,
++        /// This request's response-preparation state, also in its extensions.
++        response: NodeHttpResponseTiming,
++    },
++    /// The decoder consumed the complete body or trailers.
++    MessageComplete,
++    /// EOF, parse/decode failure, or upgrade ended receive eligibility.
++    /// This does not reset the current response's preparation state.
++    ParserAborted,
++    /// At least one new byte was read from the underlying transport.
++    PositiveInput,
++    /// The current response finished, before promoting any queued response.
++    ResponseFinished {
++        /// Whether another parsed request is waiting for its ordered response.
++        queued_responses: bool,
++    },
++}
++
++/// A terminal decision already latched by the listener's timer owner.
++#[cfg(all(feature = "node-http1-compat", feature = "server", feature = "http1"))]
++#[derive(Clone, Copy, Debug, Eq, PartialEq)]
++pub enum NodeHttpServerTimeout {
++    /// Receipt expired; eligibility for the raw error was fixed at that scan.
++    Request {
++        /// Whether the current response permitted a raw request-timeout reply.
++        write_raw_408: bool,
++    },
++    /// Post-response idle expiry closes without a raw request-timeout reply.
++    Idle,
++}
++
++/// Listener-owned Node HTTP timing, with no clock or background task in Hyper.
++///
++/// `commit` must publish the entire batch atomically against scans, returning
++/// false after terminal expiry. It must not block on I/O, panic, or call back
++/// into this connection. `poll_timeout` must register the waker without losing
++/// an already-latched expiry. Before publishing expiry the owner must fail
++/// pending delivery records; timeout bytes are never a delivery acknowledgement.
++#[cfg(all(feature = "node-http1-compat", feature = "server", feature = "http1"))]
++pub trait NodeHttpServerTimingControl: std::fmt::Debug + Send + Sync {
++    /// Commit one buffered parser/response transition before exposing its result.
++    fn commit(&self, events: &[NodeHttpServerTimingEvent]) -> bool;
++
++    /// Poll an irreversible timeout decision, registering the connection waker.
++    fn poll_timeout(&self, cx: &mut std::task::Context<'_>) -> std::task::Poll<NodeHttpServerTimeout>;
++}
 +
 +/// Callback immediately before a response head is encoded, after ordered service
 +/// dispatch. This only identifies submission; it does not prove a successful flush.
@@ -133,7 +214,7 @@
 +}
 --- a/src/proto/h1/conn.rs
 +++ b/src/proto/h1/conn.rs
-@@ -51,6 +51,12 @@
+@@ -51,6 +51,16 @@
          Conn {
              io: Buffered::new(io),
              state: State {
@@ -143,10 +224,53 @@
 +                node_read_keep_alive: true,
 +                #[cfg(feature = "node-http1-compat")]
 +                node_write_active: false,
++                #[cfg(feature = "node-http1-compat")]
++                node_response_timing: None,
++                #[cfg(feature = "node-http1-compat")]
++                node_timed_out: false,
                  allow_half_close: false,
                  cached_headers: None,
                  error: None,
-@@ -220,6 +226,16 @@
+@@ -148,7 +158,38 @@
+ 
+     #[cfg(feature = "server")]
+     pub(crate) fn set_http1_header_read_timeout(&mut self, val: Duration) {
++        #[cfg(feature = "node-http1-compat")]
++        if self.io.node_server_timing().is_some() { return; }
+         self.state.h1_header_read_timeout = Some(val);
++    }
++
++    #[cfg(feature = "node-http1-compat")]
++    pub(crate) fn set_node_server_timing(
++        &mut self,
++        control: std::sync::Arc<dyn crate::ext::NodeHttpServerTimingControl>,
++    ) {
++        self.io.set_node_server_timing(control);
++        self.state.h1_header_read_timeout = None;
++    }
++
++    #[cfg(feature = "node-http1-compat")]
++    pub(crate) fn node_timed_out(&self) -> bool { self.state.node_timed_out }
++
++    #[cfg(feature = "node-http1-compat")]
++    pub(crate) fn poll_node_timeout(&mut self, cx: &mut Context<'_>) -> bool {
++        if self.state.node_timed_out { return true; }
++        let Some(control) = self.io.node_server_timing() else { return false; };
++        let timeout = match control.poll_timeout(cx) {
++            Poll::Ready(timeout) => Some(timeout),
++            Poll::Pending if self.io.node_timing_terminal() => None,
++            Poll::Pending => return false,
++        };
++        if matches!(timeout, Some(crate::ext::NodeHttpServerTimeout::Request { write_raw_408: true })) {
++            self.io.poll_node_timeout_write(cx);
++        }
++        self.state.node_timed_out = true;
++        self.state.close();
++        true
+     }
+ 
+     #[cfg(feature = "server")]
+@@ -220,6 +261,16 @@
          debug_assert!(self.can_read_head());
          trace!("Conn::read_head");
  
@@ -156,14 +280,14 @@
 +            // not while an earlier pipelined response is still running.
 +            match self.io.poll_read_from_io(cx) {
 +                Poll::Pending => return Poll::Pending,
-+                Poll::Ready(Err(error)) => return self.on_read_head_error(crate::Error::new_io(error)),
++                Poll::Ready(Err(error)) => return self.on_read_head_error(cx, crate::Error::new_io(error)),
 +                Poll::Ready(Ok(_)) => {}
 +            }
 +        }
          #[cfg(feature = "server")]
          if !self.state.h1_header_read_timeout_running {
              if let Some(h1_header_read_timeout) = self.state.h1_header_read_timeout {
-@@ -239,10 +255,17 @@
+@@ -239,10 +290,17 @@
              }
          }
  
@@ -181,7 +305,16 @@
                  req_method: &mut self.state.method,
                  h1_parser_config: self.state.h1_parser_config.clone(),
                  h1_max_headers: self.state.h1_max_headers,
-@@ -297,8 +320,24 @@
+@@ -256,7 +314,7 @@
+             },
+         ) {
+             Poll::Ready(Ok(msg)) => msg,
+-            Poll::Ready(Err(e)) => return self.on_read_head_error(e),
++            Poll::Ready(Err(e)) => return self.on_read_head_error(cx, e),
+             Poll::Pending => {
+                 #[cfg(feature = "server")]
+                 if self.state.h1_header_read_timeout_running {
+@@ -297,8 +355,25 @@
          }
  
          self.state.busy();
@@ -191,6 +324,7 @@
 +        if T::is_server() {
 +            self.state.node_read_keep_alive = msg.keep_alive && !msg.wants_upgrade;
 +            self.state.node_requests.push_back(NodeRequest {
++                response_timing: msg.head.extensions.get::<crate::ext::NodeHttpResponseTiming>().cloned(),
 +                method: node_method,
 +                version: msg.head.version,
 +                keep_alive: msg.keep_alive,
@@ -208,7 +342,7 @@
  
          let mut wants = if msg.wants_upgrade {
              Wants::UPGRADE
-@@ -331,7 +370,17 @@
+@@ -331,12 +406,29 @@
              ));
          }
  
@@ -227,7 +361,49 @@
  
          Poll::Ready(Some(Ok((msg.head, msg.decode, wants))))
      }
-@@ -409,6 +458,10 @@
+ 
+-    fn on_read_head_error<Z>(&mut self, e: crate::Error) -> Poll<Option<crate::Result<Z>>> {
++    fn on_read_head_error<Z>(&mut self, cx: &mut Context<'_>, e: crate::Error) -> Poll<Option<crate::Result<Z>>> {
++        #[cfg(not(feature = "node-http1-compat"))]
++        let _ = cx;
++        #[cfg(feature = "node-http1-compat")]
++        if !self.io.commit_node_timing(&[crate::ext::NodeHttpServerTimingEvent::ParserAborted]) {
++            cx.waker().wake_by_ref();
++            return Poll::Pending;
++        }
+         // If we are currently waiting on a message, then an empty
+         // message should be reported as an error. If not, it is just
+         // the connection closing gracefully.
+@@ -370,7 +462,27 @@
+ 
+         let (reading, ret) = match &mut self.state.reading {
+             Reading::Body(decoder) => {
+-                match ready!(decoder.decode(cx, &mut self.io)) {
++                let decoded = decoder.decode(cx, &mut self.io);
++                #[cfg(feature = "node-http1-compat")]
++                if T::is_server() && self.io.node_server_timing().is_some() {
++                    let complete = match &decoded {
++                        Poll::Ready(Ok(frame)) => decoder.is_eof() || frame.is_trailers(),
++                        _ => false,
++                    };
++                    let aborted = matches!(&decoded, Poll::Ready(Err(_)));
++                    let events = if aborted {
++                        &[crate::ext::NodeHttpServerTimingEvent::ParserAborted][..]
++                    } else if complete {
++                        &[crate::ext::NodeHttpServerTimingEvent::MessageComplete][..]
++                    } else { &[][..] };
++                    // Commit receipt completion before returning the frame to
++                    // the service or advancing to a buffered pipelined head.
++                    if !self.io.commit_node_timing(events) {
++                        cx.waker().wake_by_ref();
++                        return Poll::Pending;
++                    }
++                }
++                match ready!(decoded) {
+                     Ok(frame) => {
+                         if frame.is_data() {
+                             let slice = frame.data_ref().unwrap_or_else(|| unreachable!());
+@@ -409,6 +521,10 @@
                  }
              }
              Reading::Continue(decoder) => {
@@ -238,7 +414,47 @@
                  // Write the 100 Continue if not already responded...
                  if let Writing::Init = self.state.writing {
                      trace!("automatically sending 100 Continue");
-@@ -568,6 +621,14 @@
+@@ -513,6 +629,13 @@
+         debug_assert!(!self.state.is_read_closed());
+ 
+         let result = ready!(self.io.poll_read_from_io(cx));
++        #[cfg(feature = "node-http1-compat")]
++        if !self.io.commit_node_timing(if matches!(&result, Ok(0) | Err(_)) {
++            &[crate::ext::NodeHttpServerTimingEvent::ParserAborted][..]
++        } else { &[][..] }) {
++            cx.waker().wake_by_ref();
++            return Poll::Pending;
++        }
+         Poll::Ready(result.map_err(|e| {
+             trace!(error = %e, "force_io_read; io error");
+             self.state.close();
+@@ -542,6 +665,13 @@
+             if self.io.read_buf().is_empty() {
+                 match self.io.poll_read_from_io(cx) {
+                     Poll::Ready(Ok(n)) => {
++                        #[cfg(feature = "node-http1-compat")]
++                        if !self.io.commit_node_timing(if n == 0 {
++                            &[crate::ext::NodeHttpServerTimingEvent::ParserAborted][..]
++                        } else { &[][..] }) {
++                            cx.waker().wake_by_ref();
++                            return;
++                        }
+                         if n == 0 {
+                             trace!("maybe_notify; read eof");
+                             if self.state.is_idle() {
+@@ -557,6 +687,11 @@
+                         return;
+                     }
+                     Poll::Ready(Err(e)) => {
++                        #[cfg(feature = "node-http1-compat")]
++                        if !self.io.commit_node_timing(&[crate::ext::NodeHttpServerTimingEvent::ParserAborted]) {
++                            cx.waker().wake_by_ref();
++                            return;
++                        }
+                         trace!("maybe_notify; read_from_io error: {}", e);
+                         self.state.close();
+                         self.state.error = Some(crate::Error::new_io(e));
+@@ -568,6 +703,14 @@
      }
  
      fn try_keep_alive(&mut self, cx: &mut Context<'_>) {
@@ -253,13 +469,14 @@
          self.state.try_keep_alive::<T>();
          self.maybe_notify(cx);
      }
-@@ -600,6 +661,19 @@
+@@ -600,6 +743,20 @@
      }
  
      pub(crate) fn write_head(&mut self, head: MessageHead<T::Outgoing>, body: Option<BodyLength>) {
 +        #[cfg(feature = "node-http1-compat")]
 +        if T::is_server() {
 +            if let Some(request) = self.state.node_requests.pop_front() {
++                self.state.node_response_timing = request.response_timing;
 +                self.state.method = request.method;
 +                self.state.version = request.version;
 +                self.state.keep_alive = if request.keep_alive { KA::Busy } else { KA::Disabled };
@@ -273,7 +490,21 @@
          if let Some(encoder) = self.encode_head(head, body) {
              self.state.writing = if !encoder.is_eof() {
                  Writing::Body(encoder)
-@@ -631,6 +705,16 @@
+@@ -617,6 +774,13 @@
+         body: Option<BodyLength>,
+     ) -> Option<Encoder> {
+         debug_assert!(self.can_write_head());
++        #[cfg(feature = "node-http1-compat")]
++        if T::is_server() {
++            if !self.io.commit_node_timing(&[]) { return None; }
++            if let Some(response) = &self.state.node_response_timing {
++                response.mark_prepared();
++            }
++        }
+ 
+         if !T::should_read_first() {
+             self.state.busy();
+@@ -631,6 +795,16 @@
              }
          }
  
@@ -290,33 +521,47 @@
          self.enforce_version(&mut head);
  
          let buf = self.io.headers_buf();
-@@ -854,6 +938,20 @@
+@@ -854,6 +1028,33 @@
  
      pub(crate) fn poll_flush(&mut self, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
          ready!(Pin::new(&mut self.io).poll_flush(cx))?;
 +        #[cfg(feature = "node-http1-compat")]
 +        if T::is_server() {
-+            if matches!(self.state.writing, Writing::Closed) {
-+                self.state.close();
-+            } else if self.state.node_write_active && matches!(self.state.writing, Writing::KeepAlive) {
++            if self.state.node_write_active && matches!(self.state.writing, Writing::KeepAlive | Writing::Closed) {
++                if !self.io.commit_node_timing(&[
++                    crate::ext::NodeHttpServerTimingEvent::ResponseFinished {
++                        queued_responses: !self.state.node_requests.is_empty(),
++                    },
++                ]) {
++                    cx.waker().wake_by_ref();
++                    return Poll::Pending;
++                }
++                self.state.node_response_timing = self.state.node_requests.front()
++                    .and_then(|request| request.response_timing.clone());
 +                self.state.node_write_active = false;
-+                self.state.writing = Writing::Init;
-+                if self.state.node_requests.is_empty() && matches!(self.state.reading, Reading::Init) {
-+                    self.state.keep_alive.idle();
++                if !matches!(self.state.writing, Writing::Closed) {
++                    self.state.writing = Writing::Init;
++                    if self.state.node_requests.is_empty() && matches!(self.state.reading, Reading::Init) {
++                        self.state.keep_alive.idle();
++                    }
 +                }
 +                self.state.notify_read = true;
 +                cx.waker().wake_by_ref();
++            }
++            if matches!(self.state.writing, Writing::Closed) {
++                self.state.close();
 +            }
 +        }
          self.try_keep_alive(cx);
          trace!("flushed({}): {:?}", T::LOG, self.state);
          Poll::Ready(Ok(()))
-@@ -936,7 +1034,21 @@
+@@ -936,7 +1137,26 @@
  // B and T are never pinned
  impl<I: Unpin, B, T> Unpin for Conn<I, B, T> {}
  
 +#[cfg(feature = "node-http1-compat")]
 +struct NodeRequest {
++    response_timing: Option<crate::ext::NodeHttpResponseTiming>,
 +    method: Option<Method>,
 +    version: Version,
 +    keep_alive: bool,
@@ -330,9 +575,180 @@
 +    node_read_keep_alive: bool,
 +    #[cfg(feature = "node-http1-compat")]
 +    node_write_active: bool,
++    #[cfg(feature = "node-http1-compat")]
++    node_response_timing: Option<crate::ext::NodeHttpResponseTiming>,
++    #[cfg(feature = "node-http1-compat")]
++    node_timed_out: bool,
      allow_half_close: bool,
      /// Re-usable `HeaderMap` to reduce allocating new ones.
      cached_headers: Option<HeaderMap>,
+@@ -1454,3 +1674,166 @@
+         });
+     }
+ }
++
++#[cfg(all(test, feature = "node-http1-compat"))]
++mod node_server_timing_tests {
++    use super::*;
++    use crate::common::io::Compat;
++    use crate::ext::{NodeHttpServerTimeout, NodeHttpServerTimingControl, NodeHttpServerTimingEvent};
++    use std::sync::{Arc, Mutex};
++    use std::sync::atomic::{AtomicUsize, Ordering};
++
++    #[derive(Debug, Default)]
++    struct Timing {
++        batches: Mutex<Vec<Vec<NodeHttpServerTimingEvent>>>,
++        timeout: Mutex<Option<NodeHttpServerTimeout>>,
++        reject_headers: bool,
++    }
++    impl NodeHttpServerTimingControl for Timing {
++        fn commit(&self, events: &[NodeHttpServerTimingEvent]) -> bool {
++            self.batches.lock().unwrap().push(events.to_vec());
++            let mut timeout = self.timeout.lock().unwrap();
++            if self.reject_headers && events.iter().any(|event| matches!(event, NodeHttpServerTimingEvent::HeadersComplete { .. })) {
++                *timeout = Some(NodeHttpServerTimeout::Request { write_raw_408: true });
++            }
++            timeout.is_none()
++        }
++        fn poll_timeout(&self, _cx: &mut Context<'_>) -> Poll<NodeHttpServerTimeout> {
++            self.timeout.lock().unwrap().map_or(Poll::Pending, Poll::Ready)
++        }
++    }
++
++    #[tokio::test]
++    async fn zero_body_head_commits_begin_and_completion_with_one_response_marker() {
++        let io = Compat(tokio_test::io::Builder::new()
++            .read(b"\r\nGET / HTTP/1.1\r\nHost: example.test\r\n\r\n").build());
++        let timing = Arc::new(Timing::default());
++        let mut conn = Conn::<_, Bytes, crate::proto::h1::ServerTransaction>::new(io);
++        conn.set_node_server_timing(timing.clone());
++        let (head, length, _) = futures_util::future::poll_fn(|cx| conn.poll_read_head(cx)).await.unwrap().unwrap();
++        assert_eq!(length, DecodedLength::ZERO);
++        let batches = timing.batches.lock().unwrap();
++        let batch = batches.iter().find(|batch| batch.iter().any(|event| matches!(event, NodeHttpServerTimingEvent::HeadersComplete { .. }))).unwrap();
++        assert!(matches!(batch.as_slice(), [NodeHttpServerTimingEvent::PositiveInput, NodeHttpServerTimingEvent::MessageBegin, NodeHttpServerTimingEvent::HeadersComplete { message_complete: true, .. }]));
++        let NodeHttpServerTimingEvent::HeadersComplete { response, .. } = &batch[2] else { unreachable!() };
++        let from_request = head.extensions.get::<crate::ext::NodeHttpResponseTiming>().unwrap();
++        assert!(!response.is_prepared());
++        from_request.mark_prepared();
++        assert!(response.is_prepared());
++        assert!(conn.state.node_requests.front().unwrap().response_timing.as_ref().unwrap().is_prepared());
++    }
++
++    #[tokio::test]
++    async fn final_body_frame_commits_message_completion_before_exposure() {
++        let io = Compat(tokio_test::io::Builder::new()
++            .read(b"POST / HTTP/1.1\r\nHost: example.test\r\nContent-Length: 1\r\n\r\nx").build());
++        let timing = Arc::new(Timing::default());
++        let mut conn = Conn::<_, Bytes, crate::proto::h1::ServerTransaction>::new(io);
++        conn.set_node_server_timing(timing.clone());
++        let (_, length, _) = futures_util::future::poll_fn(|cx| conn.poll_read_head(cx)).await.unwrap().unwrap();
++        assert_eq!(length.danger_len(), 1);
++        assert!(!timing.batches.lock().unwrap().iter().flatten().any(|event| matches!(event, NodeHttpServerTimingEvent::MessageComplete)));
++        let frame = futures_util::future::poll_fn(|cx| conn.poll_read_body(cx)).await.unwrap().unwrap();
++        assert_eq!(frame.data_ref().unwrap().as_ref(), b"x");
++        assert!(matches!(timing.batches.lock().unwrap().last().unwrap().as_slice(), [NodeHttpServerTimingEvent::MessageComplete]));
++    }
++
++    #[tokio::test]
++    async fn rejected_header_commit_cannot_invoke_service_and_uses_raw_timeout_only() {
++        let io = Compat(tokio_test::io::Builder::new()
++            .read(b"GET / HTTP/1.1\r\nHost: example.test\r\n\r\n")
++            .write(b"HTTP/1.1 408 Request Timeout\r\nConnection: close\r\n\r\n").build());
++        let timing = Arc::new(Timing { reject_headers: true, ..Timing::default() });
++        let calls = Arc::new(AtomicUsize::new(0));
++        let service_calls = calls.clone();
++        let service = crate::service::service_fn(move |_| {
++            service_calls.fetch_add(1, Ordering::SeqCst);
++            async { Ok::<_, std::convert::Infallible>(http::Response::new(http_body_util::Empty::<Bytes>::new())) }
++        });
++        let mut builder = crate::server::conn::http1::Builder::new();
++        builder.node_http_server_timing(timing);
++        builder.serve_connection(io, service).await.unwrap();
++        assert_eq!(calls.load(Ordering::SeqCst), 0);
++    }
++
++    #[tokio::test]
++    async fn timeout_latched_during_service_error_wins_before_generic_error_return() {
++        let io = Compat(tokio_test::io::Builder::new()
++            .read(b"GET / HTTP/1.1\r\nHost: example.test\r\n\r\n")
++            .write(b"HTTP/1.1 408 Request Timeout\r\nConnection: close\r\n\r\n").build());
++        let timing = Arc::new(Timing::default());
++        let service_timing = timing.clone();
++        let calls = Arc::new(AtomicUsize::new(0));
++        let service_calls = calls.clone();
++        let service = crate::service::service_fn(move |_| {
++            let timing = service_timing.clone();
++            let calls = service_calls.clone();
++            async move {
++                calls.fetch_add(1, Ordering::SeqCst);
++                *timing.timeout.lock().unwrap() = Some(NodeHttpServerTimeout::Request { write_raw_408: true });
++                Err::<http::Response<http_body_util::Empty<Bytes>>, _>(io::Error::from(io::ErrorKind::ConnectionAborted))
++            }
++        });
++        let mut builder = crate::server::conn::http1::Builder::new();
++        builder.node_http_server_timing(timing);
++        builder.serve_connection(io, service).await.unwrap();
++        assert_eq!(calls.load(Ordering::SeqCst), 1);
++    }
++
++    #[derive(Clone, Copy, Debug)]
++    enum WriteResult { Pending, Partial, Error }
++    #[derive(Debug, Default)]
++    struct Counts { reads: AtomicUsize, writes: AtomicUsize, flushes: AtomicUsize, shutdowns: AtomicUsize }
++    #[derive(Debug)]
++    struct PendingIo { result: WriteResult, counts: Arc<Counts> }
++    impl crate::rt::Read for PendingIo {
++        fn poll_read(self: Pin<&mut Self>, _cx: &mut Context<'_>, _buf: crate::rt::ReadBufCursor<'_>) -> Poll<io::Result<()>> {
++            self.counts.reads.fetch_add(1, Ordering::SeqCst);
++            Poll::Pending
++        }
++    }
++    impl crate::rt::Write for PendingIo {
++        fn poll_write(self: Pin<&mut Self>, _cx: &mut Context<'_>, bytes: &[u8]) -> Poll<io::Result<usize>> {
++            self.counts.writes.fetch_add(1, Ordering::SeqCst);
++            assert_eq!(bytes, b"HTTP/1.1 408 Request Timeout\r\nConnection: close\r\n\r\n");
++            match self.result {
++                WriteResult::Pending => Poll::Pending,
++                WriteResult::Partial => Poll::Ready(Ok(1)),
++                WriteResult::Error => Poll::Ready(Err(io::ErrorKind::BrokenPipe.into())),
++            }
++        }
++        fn poll_flush(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<io::Result<()>> {
++            self.counts.flushes.fetch_add(1, Ordering::SeqCst);
++            Poll::Pending
++        }
++        fn poll_shutdown(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<io::Result<()>> {
++            self.counts.shutdowns.fetch_add(1, Ordering::SeqCst);
++            Poll::Pending
++        }
++    }
++
++    #[test]
++    fn terminal_timeout_never_waits_for_write_flush_or_shutdown() {
++        for result in [WriteResult::Pending, WriteResult::Partial, WriteResult::Error] {
++            for timeout in [NodeHttpServerTimeout::Request { write_raw_408: true }, NodeHttpServerTimeout::Request { write_raw_408: false }, NodeHttpServerTimeout::Idle] {
++                let timing = Arc::new(Timing { timeout: Mutex::new(Some(timeout)), ..Timing::default() });
++                let counts = Arc::new(Counts::default());
++                let io = PendingIo { result, counts: counts.clone() };
++                let service = crate::service::service_fn(|_| async {
++                    panic!("an expired connection must not invoke its service");
++                    #[allow(unreachable_code)]
++                    Ok::<_, std::convert::Infallible>(http::Response::new(http_body_util::Empty::<Bytes>::new()))
++                });
++                let mut builder = crate::server::conn::http1::Builder::new();
++                builder.node_http_server_timing(timing);
++                let mut connection = Box::pin(builder.serve_connection(io, service));
++                let polled = tokio_test::task::spawn(()).enter(|cx, _| connection.as_mut().poll(cx));
++                assert!(matches!(polled, Poll::Ready(Ok(()))));
++                assert_eq!(counts.reads.load(Ordering::SeqCst), 0);
++                assert_eq!(counts.writes.load(Ordering::SeqCst), usize::from(matches!(timeout, NodeHttpServerTimeout::Request { write_raw_408: true })));
++                assert_eq!(counts.flushes.load(Ordering::SeqCst), 0);
++                assert_eq!(counts.shutdowns.load(Ordering::SeqCst), 0);
++            }
++        }
++    }
++}
 --- a/src/proto/h1/decode.rs
 +++ b/src/proto/h1/decode.rs
 @@ -46,6 +46,8 @@
@@ -427,7 +843,7 @@
  }
  
  pub(crate) trait Dispatch {
-@@ -40,13 +42,19 @@
+@@ -40,13 +42,21 @@
          -> crate::Result<()>;
      fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), ()>>;
      fn should_poll(&self) -> bool;
@@ -440,6 +856,8 @@
      use crate::service::HttpService;
  
      pub(crate) struct Server<S: HttpService<B>, B> {
++        #[cfg(feature = "node-http1-compat")]
++        node_server_timing: Option<std::sync::Arc<dyn crate::ext::NodeHttpServerTimingControl>>,
 +        #[cfg(not(feature = "node-http1-compat"))]
          in_flight: Pin<Box<Option<S::Future>>>,
 +        #[cfg(feature = "node-http1-compat")]
@@ -447,7 +865,7 @@
          pub(crate) service: S,
      }
  }
-@@ -84,6 +92,8 @@
+@@ -84,6 +94,8 @@
              body_tx: SenderDropGuard::none(),
              body_rx: Box::pin(None),
              is_closing: false,
@@ -456,17 +874,101 @@
          }
      }
  
-@@ -171,6 +181,9 @@
+@@ -126,6 +138,8 @@
+         should_shutdown: bool,
+     ) -> Poll<crate::Result<Dispatched>> {
+         Poll::Ready(ready!(self.poll_inner(cx, should_shutdown)).or_else(|e| {
++            #[cfg(feature = "node-http1-compat")]
++            if self.conn.poll_node_timeout(cx) { return Ok(Dispatched::Shutdown); }
+             // Be sure to alert a streaming body of the failure with a
+             // more specific error than the drop guard would provide.
+             if let Some(mut body) = self.body_tx.take() {
+@@ -147,7 +161,20 @@
+     ) -> Poll<crate::Result<Dispatched>> {
+         T::update_date();
+ 
+-        ready!(self.poll_loop(cx))?;
++        let loop_result = ready!(self.poll_loop(cx));
++
++        #[cfg(feature = "node-http1-compat")]
++        if self.conn.poll_node_timeout(cx) {
++            return Poll::Ready(Ok(Dispatched::Shutdown));
++        }
++        loop_result?;
++
++        #[cfg(feature = "node-http1-compat")]
++        if self.conn.node_timed_out() {
++            // Source destroys after its one best-effort error write. Do not
++            // enter ordinary flush or a potentially pending IO shutdown.
++            return Poll::Ready(Ok(Dispatched::Shutdown));
++        }
+ 
+         if self.is_done() {
+             if let Some(pending) = self.conn.pending_upgrade() {
+@@ -170,9 +197,26 @@
+         // 16 was chosen arbitrarily, as that is number of pipelined requests
          // benchmarks often use. Perhaps it should be a config option instead.
          for _ in 0..16 {
-             let _ = self.poll_read(cx)?;
-+            self.dispatch.poll_pending(cx)?;
+-            let _ = self.poll_read(cx)?;
+-            let write_ready = self.poll_write(cx)?.is_ready();
+-            let flush_ready = self.poll_flush(cx)?.is_ready();
++            #[cfg(feature = "node-http1-compat")]
++            if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
++            let read_result = self.poll_read(cx);
++            #[cfg(feature = "node-http1-compat")]
++            if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
++            let _ = read_result?;
++            let pending_result = self.dispatch.poll_pending(cx);
++            #[cfg(feature = "node-http1-compat")]
++            if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
++            pending_result?;
 +            #[cfg(feature = "node-http1-body-handoff")]
 +            self.dispatch.observe_pending(self.body_rx.is_none() && self.conn.can_write_head());
-             let write_ready = self.poll_write(cx)?.is_ready();
-             let flush_ready = self.poll_flush(cx)?.is_ready();
++            let write_result = self.poll_write(cx);
++            #[cfg(feature = "node-http1-compat")]
++            if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
++            let write_ready = write_result?.is_ready();
++            let flush_result = self.poll_flush(cx);
++            #[cfg(feature = "node-http1-compat")]
++            if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
++            let flush_ready = flush_result?.is_ready();
  
-@@ -250,6 +263,12 @@
+             // If we can write more body and the connection is ready, we should
+             // write again. If we return `Ready(Ok(())` here, we will yield
+@@ -204,7 +248,10 @@
+                 // Write was previously pending, but may have become ready since polling flush, so
+                 // we need to check it again. If it is still pending, it is safe to yield and rely
+                 // on wake-up from the connection futures.
+-                if self.poll_write(cx)?.is_pending() {
++                let write_result = self.poll_write(cx);
++                #[cfg(feature = "node-http1-compat")]
++                if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
++                if write_result?.is_pending() {
+                     // That write can have buffered bytes before going pending: a body that
+                     // reached end-of-stream between the two write polls buffers the end of the
+                     // message here, and then the write goes pending on the *next* message.
+@@ -212,7 +259,10 @@
+                     // until the peer gives up, since the wake-ups we then rely on are for
+                     // reads. Flush what was just buffered before yielding.
+                     if self.conn.has_buffered_write() {
+-                        let _ = self.poll_flush(cx)?;
++                        let flush_result = self.poll_flush(cx);
++                        #[cfg(feature = "node-http1-compat")]
++                        if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
++                        let _ = flush_result?;
+                     }
+                     return Poll::Ready(Ok(()));
+                 }
+@@ -224,6 +274,8 @@
+ 
+     fn poll_read(&mut self, cx: &mut Context<'_>) -> Poll<crate::Result<()>> {
+         loop {
++            #[cfg(feature = "node-http1-compat")]
++            if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
+             if self.is_closing {
+                 return Poll::Ready(Ok(()));
+             } else if self.conn.can_read_head() {
+@@ -250,6 +302,12 @@
                                  let chunk = frame.into_data().unwrap_or_else(|_| unreachable!());
                                  match body.try_send_data(chunk) {
                                      Ok(()) => {
@@ -479,7 +981,7 @@
                                          self.body_tx.set(body);
                                      }
                                      Err(_canceled) => {
-@@ -264,6 +283,12 @@
+@@ -264,6 +322,12 @@
                                      frame.into_trailers().unwrap_or_else(|_| unreachable!());
                                  match body.try_send_trailers(trailers) {
                                      Ok(()) => {
@@ -492,7 +994,25 @@
                                          self.body_tx.set(body);
                                      }
                                      Err(_canceled) => {
-@@ -363,6 +388,19 @@
+@@ -310,6 +374,8 @@
+         // dispatch is ready for a message, try to read one
+         match ready!(self.conn.poll_read_head(cx)) {
+             Some(Ok((mut head, body_len, wants))) => {
++                #[cfg(feature = "node-http1-compat")]
++                if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
+                 let body = match body_len {
+                     DecodedLength::ZERO => IncomingBody::empty(),
+                     other => {
+@@ -355,6 +421,8 @@
+ 
+     fn poll_write(&mut self, cx: &mut Context<'_>) -> Poll<crate::Result<()>> {
+         loop {
++            #[cfg(feature = "node-http1-compat")]
++            if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
+             if self.is_closing {
+                 return Poll::Ready(Ok(()));
+             } else if self.body_rx.is_none()
+@@ -363,6 +431,19 @@
              {
                  if let Some(msg) = ready!(Pin::new(&mut self.dispatch).poll_msg(cx)) {
                      let (head, body) = msg.map_err(crate::Error::new_user_service)?;
@@ -512,7 +1032,7 @@
  
                      let body_type = if body.is_end_stream() {
                          self.body_rx.set(None);
-@@ -407,6 +445,8 @@
+@@ -407,6 +488,8 @@
  
                          if frame.is_data() {
                              let chunk = frame.into_data().unwrap_or_else(|_| unreachable!());
@@ -521,7 +1041,7 @@
                              let eos = body.is_end_stream();
                              if eos {
                                  *clear_body = true;
-@@ -423,6 +463,17 @@
+@@ -423,6 +506,17 @@
                                  }
                                  self.conn.write_body(chunk);
                              }
@@ -539,11 +1059,13 @@
                          } else if frame.is_trailers() {
                              *clear_body = true;
                              self.conn.write_trailers(
-@@ -448,10 +499,25 @@
+@@ -448,10 +542,27 @@
      }
  
      fn poll_flush(&mut self, cx: &mut Context<'_>) -> Poll<crate::Result<()>> {
 -        self.conn.poll_flush(cx).map_err(|err| {
++        #[cfg(feature = "node-http1-compat")]
++        if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
 +        #[cfg(feature = "node-http1-body-handoff")]
 +        let handoff = self.body_handoff.clone();
 +        let result = self.conn.poll_flush(cx).map_err(|err| {
@@ -567,10 +1089,12 @@
      }
  
      fn close(&mut self) {
-@@ -570,7 +636,10 @@
+@@ -570,13 +681,26 @@
      {
          pub(crate) fn new(service: S) -> Server<S, B> {
              Server {
++                #[cfg(feature = "node-http1-compat")]
++                node_server_timing: None,
 +                #[cfg(not(feature = "node-http1-compat"))]
                  in_flight: Box::pin(None),
 +                #[cfg(feature = "node-http1-compat")]
@@ -578,7 +1102,21 @@
                  service,
              }
          }
-@@ -598,6 +667,19 @@
+ 
+         pub(crate) fn into_service(self) -> S {
+             self.service
++        }
++
++        #[cfg(feature = "node-http1-compat")]
++        pub(crate) fn set_node_server_timing(
++            &mut self,
++            control: std::sync::Arc<dyn crate::ext::NodeHttpServerTimingControl>,
++        ) {
++            self.node_server_timing = Some(control);
+         }
+     }
+ 
+@@ -598,6 +722,19 @@
              mut self: Pin<&mut Self>,
              cx: &mut Context<'_>,
          ) -> Poll<Option<Result<(Self::PollItem, Self::PollBody), Self::PollError>>> {
@@ -598,7 +1136,7 @@
              let mut this = self.as_mut();
              let ret = if let Some(fut) = &mut this.in_flight.as_mut().as_pin_mut() {
                  let resp = ready!(fut.as_mut().poll(cx)?);
-@@ -616,6 +698,7 @@
+@@ -616,10 +753,15 @@
              // Since in_flight finished, remove it
              this.in_flight.set(None);
              ret
@@ -606,7 +1144,15 @@
          }
  
          fn recv_msg(&mut self, msg: crate::Result<(Self::RecvItem, IncomingBody)>) -> crate::Result<()> {
-@@ -627,20 +710,52 @@
+             let (msg, body) = msg?;
++            #[cfg(feature = "node-http1-compat")]
++            if self.node_server_timing.as_ref().is_some_and(|control| !control.commit(&[])) {
++                return Ok(());
++            }
+             let mut req = Request::new(body);
+             *req.method_mut() = msg.subject.0;
+             *req.uri_mut() = msg.subject.1;
+@@ -627,20 +769,55 @@
              *req.version_mut() = msg.version;
              *req.extensions_mut() = msg.extensions;
              let fut = self.service.call(req);
@@ -654,6 +1200,9 @@
 +        fn poll_pending(&mut self, cx: &mut Context<'_>) -> crate::Result<()> {
 +            for (future, result) in &mut self.in_flight {
 +                if result.is_none() {
++                    if self.node_server_timing.as_ref().is_some_and(|control| !control.commit(&[])) {
++                        break;
++                    }
 +                    match future.as_mut().poll(cx) {
 +                        Poll::Ready(Ok(value)) => { *result = Some(Ok(value)); }
 +                        Poll::Ready(Err(error)) => return Err(crate::Error::new_user_service(error)),
@@ -665,7 +1214,7 @@
          }
      }
  }
-@@ -871,3 +986,7 @@
+@@ -871,3 +1048,7 @@
          assert!(dispatcher.poll().is_pending());
      }
  }
@@ -1321,7 +1870,7 @@
 +}
 --- a/src/proto/h1/io.rs
 +++ b/src/proto/h1/io.rs
-@@ -33,6 +33,10 @@
+@@ -33,6 +33,16 @@
      flush_pipeline: bool,
      io: T,
      partial_len: Option<usize>,
@@ -1329,10 +1878,16 @@
 +    node_headers: super::node_compat::Counter,
 +    #[cfg(feature = "node-http1-compat")]
 +    node_response_policy: bool,
++    #[cfg(feature = "node-http1-compat")]
++    node_server_timing: Option<std::sync::Arc<dyn crate::ext::NodeHttpServerTimingControl>>,
++    #[cfg(feature = "node-http1-compat")]
++    node_positive_input: bool,
++    #[cfg(feature = "node-http1-compat")]
++    node_timing_terminal: bool,
      read_blocked: bool,
      read_buf: BytesMut,
      read_buf_strategy: ReadStrategy,
-@@ -67,6 +71,10 @@
+@@ -67,6 +77,16 @@
              flush_pipeline: false,
              io,
              partial_len: None,
@@ -1340,13 +1895,62 @@
 +            node_headers: super::node_compat::Counter::default(),
 +            #[cfg(feature = "node-http1-compat")]
 +            node_response_policy: false,
++            #[cfg(feature = "node-http1-compat")]
++            node_server_timing: None,
++            #[cfg(feature = "node-http1-compat")]
++            node_positive_input: false,
++            #[cfg(feature = "node-http1-compat")]
++            node_timing_terminal: false,
              read_blocked: false,
              read_buf: BytesMut::with_capacity(0),
              read_buf_strategy: ReadStrategy::default(),
-@@ -81,6 +89,17 @@
+@@ -81,6 +101,60 @@
          if enabled {
              self.set_write_strategy_flatten();
          }
++    }
++
++    #[cfg(feature = "node-http1-compat")]
++    pub(crate) fn set_node_server_timing(
++        &mut self,
++        control: std::sync::Arc<dyn crate::ext::NodeHttpServerTimingControl>,
++    ) {
++        self.node_server_timing = Some(control);
++    }
++
++    #[cfg(feature = "node-http1-compat")]
++    pub(crate) fn node_server_timing(
++        &self,
++    ) -> Option<&std::sync::Arc<dyn crate::ext::NodeHttpServerTimingControl>> {
++        self.node_server_timing.as_ref()
++    }
++
++    #[cfg(feature = "node-http1-compat")]
++    pub(crate) fn commit_node_timing(&mut self, events: &[crate::ext::NodeHttpServerTimingEvent]) -> bool {
++        if self.node_timing_terminal { return false; }
++        let Some(control) = &self.node_server_timing else { return true; };
++        let mut batch = smallvec::SmallVec::<[crate::ext::NodeHttpServerTimingEvent; 3]>::new();
++        if std::mem::take(&mut self.node_positive_input) {
++            batch.push(crate::ext::NodeHttpServerTimingEvent::PositiveInput);
++        }
++        batch.extend(events.iter().cloned());
++        if !control.commit(&batch) {
++            self.node_timing_terminal = true;
++            return false;
++        }
++        true
++    }
++
++    #[cfg(feature = "node-http1-compat")]
++    pub(crate) fn node_timing_terminal(&self) -> bool { self.node_timing_terminal }
++
++    #[cfg(feature = "node-http1-compat")]
++    pub(crate) fn poll_node_timeout_write(&mut self, cx: &mut Context<'_>) {
++        // Match write-then-destroy: one direct attempt, never an ordinary
++        // buffered flush, retry, shutdown wait, or delivery acknowledgement.
++        let _ = Pin::new(&mut self.io).poll_write(
++            cx, b"HTTP/1.1 408 Request Timeout\r\nConnection: close\r\n\r\n",
++        );
 +    }
 +
 +    #[cfg(feature = "node-http1-compat")]
@@ -1361,13 +1965,17 @@
      }
  
      pub(crate) fn set_max_buf_size(&mut self, max: usize) {
-@@ -180,10 +199,14 @@
+@@ -180,10 +254,17 @@
          S: Http1Transaction,
      {
          loop {
+-            if let Some(msg) = super::role::parse_headers::<S>(
++            #[cfg(feature = "node-http1-compat")]
++            let begun_before = self.node_headers.message_begun();
++            let parsed = (|| {
 +            #[cfg(feature = "node-http1-compat")]
 +            if S::is_server() || self.node_response_policy { self.node_headers.observe(&mut self.read_buf)?; }
-             if let Some(msg) = super::role::parse_headers::<S>(
++            super::role::parse_headers::<S>(
                  &mut self.read_buf,
                  self.partial_len,
                  ParseContext {
@@ -1376,8 +1984,42 @@
                      cached_headers: parse_ctx.cached_headers,
                      req_method: parse_ctx.req_method,
                      h1_parser_config: parse_ctx.h1_parser_config.clone(),
-@@ -199,6 +222,8 @@
-             )? {
+@@ -196,9 +277,41 @@
+                     #[cfg(feature = "client")]
+                     on_informational: parse_ctx.on_informational,
+                 },
+-            )? {
++            )
++            })();
++            #[cfg(feature = "node-http1-compat")]
++            let mut parsed = parsed;
++            #[cfg(feature = "node-http1-compat")]
++            if S::is_server() && self.node_server_timing.is_some() {
++                let mut events = smallvec::SmallVec::<[crate::ext::NodeHttpServerTimingEvent; 2]>::new();
++                if !begun_before && self.node_headers.message_begun() {
++                    events.push(crate::ext::NodeHttpServerTimingEvent::MessageBegin);
++                }
++                if let Ok(Some(message)) = &mut parsed {
++                    let response = crate::ext::NodeHttpResponseTiming::new();
++                    message.head.extensions.insert(response.clone());
++                    events.push(crate::ext::NodeHttpServerTimingEvent::HeadersComplete {
++                        message_complete: message.decode == crate::body::DecodedLength::ZERO,
++                        response,
++                    });
++                    if message.wants_upgrade {
++                        events.push(crate::ext::NodeHttpServerTimingEvent::ParserAborted);
++                    }
++                } else if parsed.is_err() {
++                    events.push(crate::ext::NodeHttpServerTimingEvent::ParserAborted);
++                }
++                // Publish all phase changes before exposing a head or error.
++                // A scan that won first makes this progress terminal instead.
++                if !self.commit_node_timing(&events) {
++                    cx.waker().wake_by_ref();
++                    return Poll::Pending;
++                }
++            }
++            if let Some(msg) = parsed? {
                  debug!("parsed {} headers", msg.head.headers.len());
                  self.partial_len = None;
 +                #[cfg(feature = "node-http1-compat")]
@@ -1385,7 +2027,30 @@
                  return Poll::Ready(Ok(msg));
              } else {
                  let curr_len = self.read_buf.len();
-@@ -700,6 +725,8 @@
+@@ -222,6 +335,11 @@
+                 }
+             }
+             if ready!(self.poll_read_from_io(cx)).map_err(crate::Error::new_io)? == 0 {
++                #[cfg(feature = "node-http1-compat")]
++                if !self.commit_node_timing(&[crate::ext::NodeHttpServerTimingEvent::ParserAborted]) {
++                    cx.waker().wake_by_ref();
++                    return Poll::Pending;
++                }
+                 trace!("parse eof");
+                 return Poll::Ready(Err(crate::Error::new_incomplete()));
+             }
+@@ -257,6 +375,10 @@
+                     self.read_buf.advance_mut(n);
+                 }
+                 self.read_buf_strategy.record(n);
++                #[cfg(feature = "node-http1-compat")]
++                if n > 0 && self.node_server_timing.is_some() {
++                    self.node_positive_input = true;
++                }
+                 Poll::Ready(Ok(n))
+             }
+             Poll::Pending => {
+@@ -700,6 +822,8 @@
          // Rather, this `poll_fn` will wrap the `Poll` result.
          futures_util::future::poll_fn(|cx| {
              let parse_ctx = ParseContext {
@@ -1416,7 +2081,7 @@
      h1_parser_config: ParserConfig,
 --- /dev/null
 +++ b/src/proto/h1/node_compat.rs
-@@ -0,0 +1,390 @@
+@@ -0,0 +1,415 @@
 +//! AutoRouter's opt-in Node 22/24 server header policy. This is not a second
 +//! HTTP decoder: httparse still validates grammar and Hyper still frames bodies.
 +//! The incremental counter mirrors Node's on_url/on_header_field/on_header_value
@@ -1466,6 +2131,7 @@
 +
 +#[derive(Default, Debug, Clone, PartialEq)]
 +pub(super) struct Counter {
++    message_begun: bool,
 +    offset: usize,
 +    bytes: usize,
 +    fields: usize,
@@ -1516,6 +2182,9 @@
 +    pub(super) fn is_native_response(&self) -> bool {
 +        !self.fetch_response
 +    }
++    pub(super) fn message_begun(&self) -> bool {
++        self.message_begun
++    }
 +    pub(super) fn observe(&mut self, input: &mut BytesMut) -> Result<(), Parse> {
 +        let mut read = self.offset;
 +        let mut written = self.offset;
@@ -1550,6 +2219,9 @@
 +                    if self.method_len == 0 && matches!(byte, b'\r' | b'\n') {
 +                        continue;
 +                    }
++                    // llhttp begins the message before validating the first
++                    // nonblank method byte, including an invalid one.
++                    self.message_begun = true;
 +                    if byte == b' ' {
 +                        if !METHODS
 +                            .iter()
@@ -1691,6 +2363,24 @@
 +#[cfg(test)]
 +mod tests {
 +    use super::*;
++    #[test]
++    fn message_begin_skips_fragmented_leading_lines_and_precedes_invalid_method() {
++        let mut counter = Counter::default();
++        let mut buffered = BytesMut::new();
++        for byte in b"\r\n\n\r" {
++            buffered.extend_from_slice(&[*byte]);
++            counter.observe(&mut buffered).unwrap();
++            assert!(!counter.message_begun());
++        }
++        buffered.extend_from_slice(b"!");
++        assert!(counter.observe(&mut buffered).is_err());
++        assert!(counter.message_begun());
++
++        let mut counter = Counter::default();
++        let mut buffered = BytesMut::from(&b"\r\nG"[..]);
++        counter.observe(&mut buffered).unwrap();
++        assert!(counter.message_begun());
++    }
 +    #[test]
 +    fn counter_is_incremental_and_does_not_count_framing_or_leading_whitespace() {
 +        let input = b"POST /test HTTP/1.1\r\nx:\t  abc  \r\nz:\r\n\r\nBODY";
@@ -2202,3 +2892,84 @@
                      cached_headers: &mut headers,
                      req_method: &mut None,
                      h1_parser_config: Default::default(),
+--- a/src/server/conn/http1.rs
++++ b/src/server/conn/http1.rs
+@@ -70,6 +70,8 @@
+ /// to bind the built connection to a service.
+ #[derive(Clone, Debug)]
+ pub struct Builder {
++    #[cfg(feature = "node-http1-compat")]
++    node_server_timing: Option<Arc<dyn crate::ext::NodeHttpServerTimingControl>>,
+     h1_parser_config: ParserConfig,
+     timer: Time,
+     h1_half_close: bool,
+@@ -242,6 +244,8 @@
+     /// Create a new connection builder.
+     pub fn new() -> Self {
+         Self {
++            #[cfg(feature = "node-http1-compat")]
++            node_server_timing: None,
+             h1_parser_config: ParserConfig::default(),
+             timer: Time::Empty,
+             h1_half_close: false,
+@@ -267,6 +271,20 @@
+     /// Default is `false`.
+     pub fn half_close(&mut self, val: bool) -> &mut Self {
+         self.h1_half_close = val;
++        self
++    }
++
++    /// Install listener-owned Node HTTP receive and idle timing.
++    ///
++    /// Only this opt-in connection disables the legacy per-head timeout. The
++    /// owner supplies atomic parser observations and terminal wakeups; Hyper
++    /// creates neither a clock nor a task for this policy.
++    #[cfg(feature = "node-http1-compat")]
++    pub fn node_http_server_timing(
++        &mut self,
++        control: Arc<dyn crate::ext::NodeHttpServerTimingControl>,
++    ) -> &mut Self {
++        self.node_server_timing = Some(control);
+         self
+     }
+ 
+@@ -478,6 +496,10 @@
+         let mut conn = proto::Conn::new(io);
+         conn.set_h1_parser_config(self.h1_parser_config.clone());
+         conn.set_timer(self.timer.clone());
++        #[cfg(feature = "node-http1-compat")]
++        if let Some(control) = &self.node_server_timing {
++            conn.set_node_server_timing(control.clone());
++        }
+         if !self.h1_keep_alive {
+             conn.disable_keep_alive();
+         }
+@@ -496,9 +518,14 @@
+         if let Some(max_header_size) = self.h1_max_header_size {
+             conn.set_http1_max_header_size(max_header_size);
+         }
++        let header_timeout = self.h1_header_read_timeout;
++        #[cfg(feature = "node-http1-compat")]
++        let header_timeout = if self.node_server_timing.is_some() {
++            Dur::Configured(None)
++        } else { header_timeout };
+         if let Some(dur) = self
+             .timer
+-            .check(self.h1_header_read_timeout, "header_read_timeout")
++            .check(header_timeout, "header_read_timeout")
+         {
+             conn.set_http1_header_read_timeout(dur);
+         }
+@@ -517,6 +544,12 @@
+             conn.disable_date_header();
+         }
+         let sd = proto::h1::dispatch::Server::new(service);
++        #[cfg(feature = "node-http1-compat")]
++        let mut sd = sd;
++        #[cfg(feature = "node-http1-compat")]
++        if let Some(control) = &self.node_server_timing {
++            sd.set_node_server_timing(control.clone());
++        }
+         let proto = proto::h1::Dispatcher::new(sd, conn);
+         Connection { conn: proto }
+     }

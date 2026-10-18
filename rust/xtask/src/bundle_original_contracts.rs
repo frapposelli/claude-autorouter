@@ -1,6 +1,6 @@
-//! Original benchmark-bundle archive assertions. Native schema2/source-build
-//! prerequisites are explicit adaptations; dependency-free execution remains
-//! an unresolved assertion and is not inferred from archive verification.
+//! Source-only archive assertions. Native schema2/source-build prerequisites
+//! are explicit adaptations. The combined executable integration separately
+//! checks complete sources and dependency-free help in one artifact.
 use super::*;
 use crate::tool_process::Scratch;
 

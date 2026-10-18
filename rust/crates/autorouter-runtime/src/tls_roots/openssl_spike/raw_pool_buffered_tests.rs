@@ -1,6 +1,8 @@
 //! Actual gateway controls preserve the original held-body stimuli. These are
 //! bounded local synthetic schedules, not complete transport qualification.
-use super::super::super::{gateway_intent, gateway_terminal, lifecycle_tests::isolated_tls};
+use super::super::super::{
+    gateway_intent, gateway_terminal, lifecycle_tests::isolated_tls, loopback_peer::bind_listener,
+};
 use super::*;
 use crate::{server::Gateway, server_events::EventSinks};
 use openssl::ssl::SslVersion;
@@ -63,12 +65,7 @@ enum Schedule {
     BeforeAttachment,
 }
 async fn actual(schedule: Schedule, version: Option<SslVersion>) {
-    let provider = TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let origin = format!(
-        "{}://{}",
-        if version.is_some() { "https" } else { "http" },
-        provider.local_addr().unwrap()
-    );
+    let (provider, origin) = bind_listener(version.is_some()).await;
     let config = autorouter_core::config::read_config(
         &serde_json::json!({
             "AUTOROUTER_EVALUATOR":"jev", "TYPESAFE_API_KEY":"synthetic-evaluator",
@@ -169,9 +166,7 @@ async fn actual(schedule: Schedule, version: Option<SslVersion>) {
     while tasks.join_next().await.is_some() {}
     buffers.release_responses();
     intents.release_bodies();
-    tokio::time::timeout(BARRIER, running.close())
-        .await
-        .unwrap();
+    crate::bounded(running.close()).await;
     drop(gateway);
     drop(client);
     until(|| {
@@ -518,12 +513,7 @@ fn consumer_peer_version(
 async fn actual_consumer_pool_handoff(version: Option<SslVersion>, consume: bool) {
     use http_body_util::BodyExt;
 
-    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let origin = format!(
-        "{}://{}",
-        if version.is_some() { "https" } else { "http" },
-        listener.local_addr().unwrap()
-    );
+    let (listener, origin) = bind_listener(version.is_some()).await;
     let (trust, tls) = isolated_tls(version);
     let client = Arc::new(BufferedRawPoolClient::new(&trust).unwrap());
     let buffers = client.probe.clone();
@@ -706,4 +696,619 @@ async fn actual_constructor_abandoned_prefetch_retires_peer_before_replacement()
     for version in [None, Some(SslVersion::TLS1_2), Some(SslVersion::TLS1_3)] {
         actual_consumer_pool_handoff(version, false).await;
     }
+}
+
+// Actual buffered raw A/B plus fetch C and another-origin raw D. No inferred
+// TLS-session survival: error-close eviction deliberately remains origin-keyed.
+struct SiblingRequest {
+    origin: usize,
+    connection: usize,
+    path: String,
+    reply: tokio::sync::oneshot::Sender<super::super::super::loopback_peer::Reply>,
+}
+fn sibling_peers(
+    listener: TcpListener,
+    tls: Option<openssl::ssl::SslContext>,
+    version: Option<SslVersion>,
+    origin: usize,
+    send: tokio::sync::mpsc::Sender<SiblingRequest>,
+) -> super::super::super::loopback_peer::ListenerPeers {
+    use super::super::super::loopback_peer::{ListenerPeers, Peer, read_head, write_reply};
+    ListenerPeers::spawn(
+        listener,
+        tls,
+        |accepted| {
+            let id = accepted.fetch_add(1, Ordering::SeqCst) + 1;
+            if id > 8 {
+                return Err(io::Error::other("sibling peer admission bound"));
+            }
+            Ok(id)
+        },
+        "sibling provider task failed",
+        "sibling TLS handshake failed",
+        move |mut stream, connection| async move {
+            match (&stream, version) {
+                (Peer::Tcp(_), None) => {}
+                (Peer::Tls(stream), Some(version)) => {
+                    let expected = if version == SslVersion::TLS1_2 {
+                        "TLSv1.2"
+                    } else {
+                        "TLSv1.3"
+                    };
+                    if stream.inner().ssl().version_str() != expected {
+                        return Err(io::Error::other("sibling negotiated protocol mismatch"));
+                    }
+                }
+                _ => return Err(io::Error::other("sibling protocol mismatch")),
+            }
+            for _ in 0..4 {
+                let Some(bytes) = read_head(&mut stream).await? else {
+                    return Ok(());
+                };
+                let text = std::str::from_utf8(&bytes)
+                    .map_err(|_| io::Error::other("sibling header encoding"))?;
+                let mut line = text
+                    .lines()
+                    .next()
+                    .unwrap_or_default()
+                    .split_ascii_whitespace();
+                if line.next() != Some("GET") {
+                    return Err(io::Error::other("sibling method"));
+                }
+                let path = line.next().unwrap_or_default().to_owned();
+                if line.next() != Some("HTTP/1.1")
+                    || line.next().is_some()
+                    || !matches!(
+                        path.as_str(),
+                        "/v1/models/pool-0"
+                            | "/v1/models/pool-1"
+                            | "/v1/models/fetch-2"
+                            | "/v1/models/pool-3"
+                            | "/v1/models/pool-4"
+                            | "/v1/models/pool-5"
+                    )
+                {
+                    return Err(io::Error::other("sibling request target"));
+                }
+                if text.to_ascii_lowercase().contains("connection: close\r\n") {
+                    return Err(io::Error::other("downstream close must not reach provider"));
+                }
+                let (reply, receive) = tokio::sync::oneshot::channel();
+                send.send(SiblingRequest {
+                    origin,
+                    connection,
+                    path,
+                    reply,
+                })
+                .await
+                .map_err(|_| io::Error::other("sibling receiver closed"))?;
+                if !write_reply(&mut stream, receive).await? {
+                    return Ok(());
+                }
+            }
+            Err(io::Error::other("sibling request-per-peer bound"))
+        },
+    )
+}
+async fn sibling_downstream(address: std::net::SocketAddr, label: usize) -> TcpStream {
+    let mut stream = TcpStream::connect(address).await.unwrap();
+    stream.write_all(format!("GET /v1/models/pool-{label} HTTP/1.1\r\nHost: synthetic\r\nX-Api-Key: {TOKEN}\r\nConnection: close\r\n\r\n").as_bytes()).await.unwrap();
+    stream
+}
+// Decode this finite fixture's downstream HTTP/1 entity, not upstream CL.
+// Gateway clean_headers removes CL/TE; the native encoder owns chunk framing.
+struct SiblingWire {
+    stream: TcpStream,
+    expected: usize,
+    decoded: usize,
+    chunk_remaining: usize,
+    chunks: usize,
+    wire_bytes: usize,
+    entity_ended: bool,
+    socket_end: Option<&'static str>,
+}
+impl SiblingWire {
+    async fn new(mut stream: TcpStream, owner: &str, expected: usize) -> Self {
+        let bytes = head(&mut stream).await;
+        let text = std::str::from_utf8(&bytes).unwrap();
+        let mut lines = text.strip_suffix("\r\n\r\n").unwrap().split("\r\n");
+        assert!(lines.next().unwrap().starts_with("HTTP/1.1 200 "));
+        let mut headers = hyper::HeaderMap::new();
+        for line in lines {
+            let (name, value) = line.split_once(':').expect("downstream header separator");
+            let name = hyper::header::HeaderName::from_bytes(name.as_bytes()).unwrap();
+            assert!(!headers.contains_key(&name), "duplicate downstream header");
+            let value =
+                hyper::header::HeaderValue::from_str(value.trim_matches([' ', '\t'])).unwrap();
+            headers.insert(name, value);
+        }
+        assert!(!headers.contains_key("content-length"));
+        assert_eq!(headers["transfer-encoding"], "chunked");
+        assert_eq!(headers["connection"], "close");
+        assert_eq!(headers["x-owner"], owner);
+        assert!(matches!(expected, 6 | 11));
+        Self {
+            stream,
+            expected,
+            decoded: 0,
+            chunk_remaining: 0,
+            chunks: 0,
+            wire_bytes: bytes.len(),
+            entity_ended: false,
+            socket_end: None,
+        }
+    }
+    async fn raw_exact(&mut self, count: usize) -> Vec<u8> {
+        assert!(
+            count <= 65_536 - self.wire_bytes,
+            "downstream cumulative wire bound"
+        );
+        let mut bytes = vec![0; count];
+        self.stream.read_exact(&mut bytes).await.unwrap();
+        self.wire_bytes += count;
+        bytes
+    }
+    async fn line(&mut self) -> Vec<u8> {
+        let mut bytes = Vec::new();
+        loop {
+            assert!(bytes.len() < 4096, "downstream chunk line bound");
+            bytes.extend_from_slice(&self.raw_exact(1).await);
+            if bytes.ends_with(b"\r\n") {
+                bytes.truncate(bytes.len() - 2);
+                return bytes;
+            }
+        }
+    }
+    async fn next_chunk(&mut self) {
+        assert!(!self.entity_ended && self.chunk_remaining == 0);
+        let line = self.line().await;
+        assert!(
+            (1..=8).contains(&line.len()) && line.iter().all(u8::is_ascii_hexdigit),
+            "unexpected downstream chunk size or extension"
+        );
+        let count = usize::from_str_radix(std::str::from_utf8(&line).unwrap(), 16).unwrap();
+        assert!(
+            count <= self.expected - self.decoded,
+            "excess downstream entity"
+        );
+        if count == 0 {
+            assert!(
+                self.line().await.is_empty(),
+                "unexpected downstream trailers"
+            );
+            self.entity_ended = true;
+        } else {
+            self.chunk_remaining = count;
+            self.chunks += 1;
+            assert!(self.chunks <= self.expected, "downstream chunk count bound");
+        }
+    }
+    async fn take(&mut self, count: usize) -> Vec<u8> {
+        assert!(count <= self.expected - self.decoded);
+        let mut bytes = Vec::with_capacity(count);
+        while bytes.len() < count {
+            if self.chunk_remaining == 0 {
+                self.next_chunk().await;
+            }
+            assert!(!self.entity_ended, "early downstream entity end");
+            let read = self.chunk_remaining.min(count - bytes.len());
+            bytes.extend_from_slice(&self.raw_exact(read).await);
+            self.chunk_remaining -= read;
+            self.decoded += read;
+            if self.chunk_remaining == 0 {
+                assert_eq!(self.raw_exact(2).await, b"\r\n");
+            }
+        }
+        bytes
+    }
+    async fn rest(&mut self) -> Vec<u8> {
+        let mut bytes = Vec::new();
+        while !self.entity_ended {
+            if self.chunk_remaining == 0 {
+                self.next_chunk().await;
+            }
+            if !self.entity_ended {
+                bytes.extend_from_slice(&self.take(self.chunk_remaining).await);
+            }
+        }
+        assert_eq!(self.decoded, self.expected);
+        let mut trailing = [0u8; 1];
+        // Preserve the old closed() helper's accepted physical-close outcomes,
+        // after independently requiring the real terminal chunk and trailers.
+        match self.stream.read(&mut trailing).await {
+            Ok(0) => self.socket_end = Some("eof"),
+            Ok(count) => {
+                self.wire_bytes += count;
+                assert!(self.wire_bytes <= 65_536);
+                panic!("trailing downstream wire bytes");
+            }
+            Err(error)
+                if matches!(
+                    error.kind(),
+                    io::ErrorKind::ConnectionReset
+                        | io::ErrorKind::BrokenPipe
+                        | io::ErrorKind::UnexpectedEof
+                ) =>
+            {
+                self.socket_end = Some("reset_after_entity");
+            }
+            Err(error) => panic!("unexpected downstream close error: {error}"),
+        }
+        bytes
+    }
+    fn framing(&self) -> serde_json::Value {
+        serde_json::json!({
+            "content_length":null,"transfer_encoding":"chunked","connection":"close",
+            "expected_entity_bytes":self.expected,"decoded_bytes":self.decoded,
+            "chunks":self.chunks,"wire_bytes":self.wire_bytes,
+            "clean_entity_end":self.entity_ended,"socket_end":self.socket_end,
+        })
+    }
+}
+async fn sibling_prefix(stream: TcpStream, owner: &str) -> (SiblingWire, Vec<u8>) {
+    let mut wire = SiblingWire::new(stream, owner, 11).await;
+    let prefix = wire.take(7).await;
+    assert_eq!(prefix.as_slice(), format!("{owner}-first").as_bytes());
+    assert_eq!(
+        wire.chunk_remaining, 0,
+        "held seven-byte prefix ends at an actual chunk delimiter"
+    );
+    assert!(!wire.entity_ended);
+    (wire, prefix)
+}
+async fn sibling_catch<F: Future>(future: F) -> Result<F::Output, Box<dyn std::any::Any + Send>> {
+    let mut future = Box::pin(future);
+    std::future::poll_fn(move |cx| {
+        match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| future.as_mut().poll(cx))) {
+            Ok(Poll::Pending) => Poll::Pending,
+            Ok(Poll::Ready(result)) => Poll::Ready(Ok(result)),
+            Err(error) => Poll::Ready(Err(error)),
+        }
+    })
+    .await
+}
+// RequestOwner::claim_delivery removes the record and marks it retired before
+// publishing delivery. Retired is the alternative owner-Drop event, not an
+// extra event that successful or failed delivery callbacks must also emit.
+fn sibling_assert_callbacks(events: &[gateway_terminal::Event], expected: usize, failed: bool) {
+    use super::super::super::gateway_terminal::Event;
+    use crate::transport_completion::Delivery;
+    let registered: Vec<_> = events
+        .iter()
+        .filter_map(|event| match event {
+            Event::Registered(identity) => Some(*identity),
+            _ => None,
+        })
+        .collect();
+    assert_eq!(registered.len(), expected);
+    for (index, identity) in registered.iter().enumerate() {
+        assert!(
+            !registered[..index].contains(identity),
+            "duplicate registered identity"
+        );
+    }
+    for event in events {
+        match event {
+            Event::DeliveryClaimed(identity, delivery) => {
+                assert!(registered.contains(identity), "foreign delivery identity");
+                if failed {
+                    assert!(
+                        matches!(delivery, Delivery::Failed(_)),
+                        "A cannot claim successful delivery"
+                    );
+                } else {
+                    assert_eq!(*delivery, Delivery::Flushed);
+                }
+            }
+            Event::CallbackFinished(identity) => {
+                assert!(
+                    registered.contains(identity),
+                    "foreign completed callback identity"
+                );
+            }
+            Event::CallbackAbandoned(_) => panic!("sibling callback abandoned"),
+            Event::Failed(identity, _) => {
+                assert!(
+                    registered.contains(identity),
+                    "foreign terminal failure identity"
+                );
+            }
+            _ => {}
+        }
+    }
+    for identity in registered {
+        assert_eq!(
+            events
+                .iter()
+                .filter(
+                    |event| matches!(event, Event::DeliveryClaimed(found, _) if *found == identity)
+                )
+                .count(),
+            1
+        );
+        assert_eq!(
+            events
+                .iter()
+                .filter(
+                    |event| matches!(event, Event::CallbackFinished(found) if *found == identity)
+                )
+                .count(),
+            1
+        );
+    }
+}
+async fn buffered_sibling_isolation(version: Option<SslVersion>) {
+    use super::super::super::gateway_terminal::{Event, FailureCause};
+    use super::super::super::loopback_peer::Reply;
+    use http_body_util::BodyExt;
+    let (trust, tls) = isolated_tls(version);
+    let client = Arc::new(BufferedRawPoolClient::new(&trust).unwrap());
+    let raw = client.inner.raw_counts.clone();
+    let fetch = client.inner.fetch_counts.clone();
+    let buffers = client.probe.clone();
+    let cache = Arc::downgrade(&client.inner.raw_sessions);
+    let (listener, origin) = bind_listener(version.is_some()).await;
+    let (other_listener, other_origin) = bind_listener(version.is_some()).await;
+    let (send, mut receive) = tokio::sync::mpsc::channel(8);
+    let mut peers = vec![
+        sibling_peers(listener, tls.clone(), version, 0, send.clone()),
+        sibling_peers(other_listener, tls, version, 1, send),
+    ];
+    let mut gateways = Vec::new();
+    let mut running = Vec::new();
+    let mut terminals = Vec::new();
+    let mut intents = Vec::new();
+    for upstream in [&origin, &origin, &other_origin] {
+        let config = autorouter_core::config::read_config(&serde_json::json!({
+            "AUTOROUTER_EVALUATOR":"jev", "TYPESAFE_API_KEY":"synthetic-evaluator",
+            "ANTHROPIC_API_KEY":"synthetic-provider", "AUTOROUTER_TOKEN":TOKEN,
+            "AUTOROUTER_UPSTREAM_URL":upstream, "AUTOROUTER_JEV_URL":format!("{origin}/v1/systemone"),
+        }), true, std::path::Path::new("/synthetic")).unwrap();
+        let terminal = gateway_terminal::Probe::default();
+        let intent = gateway_intent::Probe::default();
+        let gateway = Gateway::with_test_terminal(
+            Gateway::with_test_intent(
+                Gateway::new(config, client.clone(), EventSinks::default()).unwrap(),
+                intent.clone(),
+            ),
+            terminal.clone(),
+        );
+        running.push(gateway.listen(0).await.unwrap());
+        gateways.push(gateway);
+        terminals.push(terminal);
+        intents.push(intent);
+    }
+    let addresses = [running[0].address, running[1].address, running[2].address];
+    let stage = std::sync::Mutex::new("initial_held_responses");
+    let result = tokio::time::timeout(Duration::from_secs(15), sibling_catch(async {
+        let a = sibling_downstream(addresses[0], 0).await;
+        let b = sibling_downstream(addresses[1], 1).await;
+        let d = sibling_downstream(addresses[2], 3).await;
+        let request = Request::get(format!("{origin}/v1/models/fetch-2")).body(Full::new(Bytes::new())).unwrap();
+        let fetch_response = client.request(request);
+        tokio::pin!(fetch_response);
+        let mut fetched = None;
+        let mut ownership = std::collections::BTreeMap::new();
+        let mut release = std::collections::BTreeMap::new();
+        while ownership.len() < 4 {
+            tokio::select! {
+                row = receive.recv() => {
+                    let row = row.unwrap();
+                    let (label, expected_origin, wire): (&str, usize, &'static [u8]) = match row.path.as_str() {
+                        "/v1/models/pool-0" => ("A", 0, b"HTTP/1.1 200 OK\r\nContent-Length: 11\r\nConnection: keep-alive\r\nX-Owner: A\r\n\r\nA-first"),
+                        "/v1/models/pool-1" => ("B", 0, b"HTTP/1.1 200 OK\r\nContent-Length: 11\r\nConnection: keep-alive\r\nX-Owner: B\r\n\r\nB-first"),
+                        "/v1/models/fetch-2" => ("C", 0, b"HTTP/1.1 200 OK\r\nContent-Length: 11\r\nConnection: keep-alive\r\nX-Owner: C\r\n\r\nC-first"),
+                        "/v1/models/pool-3" => ("D", 1, b"HTTP/1.1 200 OK\r\nContent-Length: 11\r\nConnection: keep-alive\r\nX-Owner: D\r\n\r\nD-first"),
+                        _ => panic!("unexpected initial sibling request"),
+                    };
+                    assert_eq!(row.origin, expected_origin);
+                    assert!(ownership.insert(label, (row.origin, row.connection)).is_none());
+                    let (send, remainder) = tokio::sync::oneshot::channel();
+                    assert!(row.reply.send(Reply { first: wire, remainder: Some(remainder) }).is_ok());
+                    assert!(release.insert(label, send).is_none());
+                },
+                value = &mut fetch_response, if fetched.is_none() => fetched = Some(value.unwrap()),
+            }
+        }
+        let fetched = match fetched { Some(value) => value, None => fetch_response.await.unwrap() };
+        assert_eq!(fetched.status(), 200);
+        assert_eq!(fetched.headers()["content-length"], "11");
+        assert_eq!(fetched.headers()["x-owner"], "C");
+        let (a, a_prefix) = sibling_prefix(a, "A").await;
+        let (mut b, mut b_bytes) = sibling_prefix(b, "B").await;
+        let (mut d, mut d_bytes) = sibling_prefix(d, "D").await;
+        assert_ne!(ownership["A"], ownership["B"]);
+        assert_ne!(ownership["A"], ownership["C"]);
+        assert_ne!(ownership["B"], ownership["C"]);
+        assert_eq!(raw.attempts.load(Ordering::SeqCst), 3);
+        assert_eq!(fetch.attempts.load(Ordering::SeqCst), 1);
+        assert!(client.inner.snapshot()["free"].as_array().unwrap().is_empty());
+        for terminal in &terminals {
+            assert_eq!(terminal.events().iter().filter(|event| matches!(event, Event::Registered(_))).count(), 1);
+            assert!(!terminal.events().iter().any(|event| matches!(event, Event::Failed(..) | Event::DeliveryClaimed(..))));
+        }
+        // Only A's real downstream is reset. Its provider remains held, as do
+        // B/C/D; no peer closure is used to manufacture client retirement.
+        *stage.lock().unwrap() = "A_reset_retirement_raw_active2";
+        let a_framing = a.framing();
+        a.stream.set_zero_linger().unwrap();
+        drop(a);
+        until(|| terminals[0].events().iter().filter(|event| matches!(event, Event::CallbackFinished(_))).count() == 1
+            && raw.active.load(Ordering::SeqCst) == 2).await;
+        let a_events = terminals[0].events();
+        sibling_assert_callbacks(&a_events, 1, true);
+        assert_eq!(a_events.iter().filter(|event| matches!(event, Event::Failed(_, FailureCause::Downstream(_)))).count(), 1);
+        assert!(!a_events.iter().any(|event| matches!(event, Event::DeliveryClaimed(_, crate::transport_completion::Delivery::Flushed))));
+        assert_eq!(fetch.active.load(Ordering::SeqCst), 1);
+        for terminal in &terminals[1..] {
+            assert!(!terminal.events().iter().any(|event| matches!(event, Event::Failed(..) | Event::DeliveryClaimed(..))));
+        }
+        assert_eq!(raw.shutdown_calls.load(Ordering::SeqCst), 1);
+        if version.is_some() { assert_eq!(raw.session_error_closes.load(Ordering::SeqCst), 1); }
+        // The deliberately uncompleted A peer can now end its fixture wait.
+        drop(release.remove("A").unwrap());
+        for label in ["B", "C", "D"] { release.remove(label).unwrap().send(b"-end").unwrap(); }
+        assert!(release.is_empty());
+        let b_tail = b.rest().await;
+        let d_tail = d.rest().await;
+        assert_eq!(b_tail, b"-end"); assert_eq!(d_tail, b"-end");
+        b_bytes.extend_from_slice(&b_tail); d_bytes.extend_from_slice(&d_tail);
+        let mut body = fetched.into_body();
+        let mut bytes = Vec::new();
+        while let Some(frame) = body.frame().await {
+            let frame = frame.unwrap();
+            assert!(frame.trailers_ref().is_none());
+            if let Ok(data) = frame.into_data() { bytes.extend_from_slice(&data); }
+            assert!(bytes.len() <= 11);
+        }
+        assert_eq!(bytes, b"C-first-end");
+        drop(body);
+        *stage.lock().unwrap() = "B_D_raw_free_after_all_entities";
+        until(|| client.inner.snapshot()["free"].as_array().unwrap().iter()
+            .map(|ids| ids.as_array().unwrap().len()).sum::<usize>() == 2).await;
+        let mut followups = Vec::new();
+        for (index, label, path, expected_owner, wire) in [
+            (1usize, 4usize, "/v1/models/pool-4", "B", b"HTTP/1.1 200 OK\r\nContent-Length: 6\r\nConnection: keep-alive\r\nX-Owner: B\r\n\r\nB-next".as_slice()),
+            (2, 5, "/v1/models/pool-5", "D", b"HTTP/1.1 200 OK\r\nContent-Length: 6\r\nConnection: keep-alive\r\nX-Owner: D\r\n\r\nD-next".as_slice()),
+        ] {
+            let downstream = sibling_downstream(addresses[index], label).await;
+            let row = receive.recv().await.unwrap();
+            assert_eq!(row.path, path);
+            assert_eq!((row.origin, row.connection), ownership[expected_owner]);
+            assert!(row.reply.send(Reply { first: wire, remainder: None }).is_ok());
+            let mut downstream = SiblingWire::new(downstream, expected_owner, 6).await;
+            let next_body = downstream.rest().await;
+            assert_eq!(next_body, format!("{expected_owner}-next").as_bytes());
+            followups.push(serde_json::json!({"path":path,"status":200,"owner":expected_owner,"body":next_body,"framing":downstream.framing(),"provider_connection":[row.origin,row.connection]}));
+        }
+        *stage.lock().unwrap() = "B_D_followup_terminal_retirement";
+        until(|| terminals[1..].iter().all(|terminal|
+            terminal.events().iter().filter(|event| matches!(event, Event::CallbackFinished(_))).count() == 2)).await;
+        for terminal in &terminals[1..] {
+            let events = terminal.events();
+            sibling_assert_callbacks(&events, 2, false);
+            assert_eq!(events.iter().filter(|event| matches!(event, Event::Registered(_))).count(), 2);
+            assert_eq!(events.iter().filter(|event| matches!(event, Event::DeliveryClaimed(_, crate::transport_completion::Delivery::Flushed))).count(), 2);
+            assert!(!events.iter().any(|event| matches!(event, Event::Failed(..))));
+        }
+        assert_eq!(raw.attempts.load(Ordering::SeqCst), 3);
+        assert_eq!(fetch.attempts.load(Ordering::SeqCst), 1);
+        assert_eq!(raw.shutdown_calls.load(Ordering::SeqCst), 1);
+        let state = client.inner.snapshot();
+        assert_eq!(state["requests"], 5);
+        let assigned: Vec<_> = state["rows"].as_array().unwrap().iter().filter(|row| row["event"] == "assigned").collect();
+        assert_eq!(assigned.len(), 5);
+        for (old, new) in [(1usize, 4usize), (3, 5)] {
+            let first = assigned.iter().find(|row| row["request"] == old).unwrap();
+            let later = assigned.iter().find(|row| row["request"] == new).unwrap();
+            assert_eq!(first["connection"], later["connection"]);
+            assert_eq!(later["reused"], true);
+        }
+        assert_eq!(peers[0].accepted.load(Ordering::SeqCst), 3);
+        assert_eq!(peers[1].accepted.load(Ordering::SeqCst), 1);
+        assert!(receive.try_recv().is_err());
+        eprintln!("buffered_sibling_isolation={}", serde_json::json!({
+            "version":format!("{version:?}"),"A":{"status":200,"prefix":a_prefix,"framing":a_framing,"deliberately_abandoned":true},
+            "B":{"status":200,"body":b_bytes,"framing":b.framing()},"C":{"status":200,"body":bytes},"D":{"status":200,"body":d_bytes,"framing":d.framing()},
+            "followups":followups,"provider_ownership":ownership,"raw":state,
+            "raw_attempts":raw.attempts.load(Ordering::SeqCst),"fetch_attempts":fetch.attempts.load(Ordering::SeqCst),
+            "A_events":format!("{:?}", terminals[0].events()),"B_events":format!("{:?}",terminals[1].events()),
+            "D_events":format!("{:?}",terminals[2].events()),"no_resumption_claim":true}));
+    })).await;
+    if !matches!(&result, Ok(Ok(()))) {
+        eprintln!(
+            "buffered_sibling_failure={}",
+            serde_json::json!({
+                "version":format!("{version:?}"), "stage":*stage.lock().unwrap(),
+                "raw":client.inner.snapshot(), "raw_active":raw.active.load(Ordering::SeqCst),
+                "raw_tasks":raw.tasks.load(Ordering::SeqCst),
+                "raw_shutdown_calls":raw.shutdown_calls.load(Ordering::SeqCst),
+                "fetch_active":fetch.active.load(Ordering::SeqCst),
+                "fetch_tasks":fetch.tasks.load(Ordering::SeqCst),
+                "buffer":format!("{:?}", buffers.snapshot()),
+                "terminals":terminals.iter().map(|p| format!("{:?}",p.events())).collect::<Vec<_>>(),
+                "intents":intents.iter().map(|p| format!("{:?}",p.rows())).collect::<Vec<_>>(),
+            })
+        );
+    }
+    // Cleanup precedes verdict, including panic/deadline paths. Existing peer
+    // owner joins its nested tasks; no cleanup-success claim if a bound fails.
+    let mut cleanup_failed = false;
+    for handle in running {
+        cleanup_failed |= tokio::time::timeout(Duration::from_secs(5), handle.close())
+            .await
+            .is_err();
+    }
+    drop(gateways);
+    drop(client);
+    let clients_closed = tokio::time::timeout(Duration::from_secs(5), async {
+        while raw.active.load(Ordering::SeqCst) != 0
+            || raw.tasks.load(Ordering::SeqCst) != 0
+            || fetch.active.load(Ordering::SeqCst) != 0
+            || fetch.tasks.load(Ordering::SeqCst) != 0
+            || buffers.snapshot().producer_tasks != 0
+            || buffers.snapshot().allocated_blocks != 0
+        {
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .is_ok();
+    for peer in &peers {
+        peer.stop.cancel();
+    }
+    for peer in &mut peers {
+        let joined = tokio::time::timeout(Duration::from_secs(5), async {
+            while let Some(value) = peer.tasks.join_next().await {
+                if !matches!(value, Ok(Ok(()))) {
+                    cleanup_failed = true;
+                }
+            }
+        })
+        .await;
+        if joined.is_err() {
+            cleanup_failed = true;
+            peer.tasks.abort_all();
+            if tokio::time::timeout(Duration::from_secs(5), async {
+                while peer.tasks.join_next().await.is_some() {}
+            })
+            .await
+            .is_err()
+            {
+                cleanup_failed = true;
+            }
+        }
+        cleanup_failed |= peer.active.load(Ordering::SeqCst) != 0;
+    }
+    assert!(
+        !cleanup_failed && clients_closed,
+        "sibling cleanup exceeded declared bounds"
+    );
+    assert_eq!(raw.shutdown_handles.load(Ordering::SeqCst), 0);
+    assert_eq!(fetch.shutdown_handles.load(Ordering::SeqCst), 0);
+    assert!(cache.upgrade().is_none());
+    for terminal in &terminals {
+        assert_eq!(terminal.tasks(), 0);
+        assert!(!terminal.observer_failed());
+    }
+    for intent in &intents {
+        assert_eq!(intent.live(), 0);
+    }
+    match result {
+        Ok(Ok(())) => {}
+        Ok(Err(error)) => std::panic::resume_unwind(error),
+        Err(_) => panic!("15s buffered sibling scenario deadline"),
+    }
+}
+#[tokio::test]
+async fn actual_buffered_http_cancel_preserves_same_origin_sibling_fetch_and_other_origin() {
+    buffered_sibling_isolation(None).await;
+}
+#[tokio::test]
+async fn actual_buffered_tls12_cancel_preserves_same_origin_sibling_fetch_and_other_origin() {
+    buffered_sibling_isolation(Some(SslVersion::TLS1_2)).await;
+}
+#[tokio::test]
+async fn actual_buffered_tls13_cancel_preserves_same_origin_sibling_fetch_and_other_origin() {
+    buffered_sibling_isolation(Some(SslVersion::TLS1_3)).await;
 }

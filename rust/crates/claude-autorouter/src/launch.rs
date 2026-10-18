@@ -60,12 +60,9 @@ pub async fn run(
                 "Unset {key}; this router supports the Anthropic Messages API"
             ));
         }
-        let mut bytes = [0u8; 32];
-        getrandom::fill(&mut bytes).map_err(|_| "Could not create the local router credential.")?;
-        config.replace_credential(
-            Credential::LocalToken,
-            Some(bytes.iter().map(|b| format!("{b:02x}")).collect()),
-        );
+        let token = autorouter_runtime::random_hex::<32>()
+            .map_err(|_| "Could not create the local router credential.")?;
+        config.replace_credential(Credential::LocalToken, Some(token));
     }
     let mut interrupt =
         signal(SignalKind::interrupt()).map_err(|_| "Could not initialize the Claude launcher.")?;

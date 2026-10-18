@@ -3,8 +3,8 @@
 #[path = "support/server_contract.rs"]
 mod contract;
 use contract::{
-    Reply, chunks, compare_request, decode, event_names, events, fixture_case, headers,
-    javascript_number_equality, parsed, response_bytes, sink, upstream_rows,
+    Reply, decode, event_names, events, fixture_case, headers, javascript_number_equality, parsed,
+    response_bytes, sink, upstream_rows,
 };
 #[path = "support/server_audit_router.rs"]
 mod audit;
@@ -14,18 +14,15 @@ mod peer;
 #[path = "support/server_outcome_history.rs"]
 mod real;
 use audit::RouterImpl;
-use autorouter_core::config::read_config;
 use autorouter_runtime::{
     http_client::NativeHttpClient,
     observer_tasks::{ObserverFuture, ObserverLimits, ObserverRejected, ObserverTasks},
-    server::{Gateway, GatewayHandle},
+    server::Gateway,
     server_events::{EventSink, EventSinks, RecordSink},
 };
-use peer::{Observation, Peer, ResponsePlan};
+use peer::{Peer, ResponsePlan};
 use serde_json::{Value, json};
-use sha2::{Digest, Sha256};
 use std::{
-    path::Path,
     sync::{
         Arc, Mutex,
         atomic::{AtomicBool, Ordering},
@@ -40,90 +37,27 @@ const LIMIT: usize = 2 * 1024 * 1024;
 const BOUND: Duration = Duration::from_secs(5);
 type Events = Arc<Mutex<Vec<Value>>>;
 fn case(number: usize) -> Value {
-    assert_eq!(
-        format!("{:x}", Sha256::digest(CORPUS.as_bytes())),
-        "17c1ea2763c1477c69dfebc49f7613e8e691931f228b43b83ab34464f49d4223"
-    );
-    assert_eq!(
-        format!("{:x}", Sha256::digest(CAPTURE.as_bytes())),
-        "fe5253ff62631aba8a64753e5b12211edf93c531de4fc1bfbf1d8461de95abcb"
-    );
-    let metadata: Value = serde_json::from_str(CAPTURE).unwrap();
-    assert_eq!(metadata["static_assertions"], 33);
-    assert_eq!(metadata["expanded_assertions"], 55);
-    assert_eq!(metadata["callbacks_executed"], 5);
-    CORPUS
-        .lines()
-        .map(|line| serde_json::from_str::<Value>(line).unwrap())
-        .find(|row| row["source_test"] == format!("test/server.test.mjs#{number}"))
-        .unwrap()
+    contract::captured_server_case(
+        number,
+        CORPUS,
+        CAPTURE,
+        [
+            "17c1ea2763c1477c69dfebc49f7613e8e691931f228b43b83ab34464f49d4223",
+            "fe5253ff62631aba8a64753e5b12211edf93c531de4fc1bfbf1d8461de95abcb",
+        ],
+        (33, 55, Some(5)),
+    )
 }
 type AuditRouter = audit::AuditRouter<()>;
-struct Fixture {
-    client: Arc<NativeHttpClient>,
-    router: Arc<AuditRouter>,
-    gateway: Option<GatewayHandle>,
-    peer: Option<Peer>,
-    statuses: Events,
-    history: Events,
-    logs: Events,
-    log_history: Events,
-    decisions: Events,
-    records: Events,
-    callback_outcomes: Events,
-    real: bool,
-    observer_owner: Option<ObserverTasks>,
-    never_polled: Arc<std::sync::atomic::AtomicUsize>,
-    never_dropped: Arc<std::sync::atomic::AtomicUsize>,
-}
-struct Seen {
-    requests: Vec<Observation>,
-    routes: Vec<Value>,
-    completions: Vec<Value>,
-    statuses: Vec<Value>,
-    history: Vec<Value>,
-    logs: Vec<Value>,
-    decisions: Vec<Value>,
-    records: Vec<Value>,
-    callback_outcomes: Vec<Value>,
-    evaluator_calls: Vec<Value>,
-    real: bool,
-    continuity_before_close: Option<Value>,
-    observer_before_close: Option<Value>,
-    observer_after_close: Option<Value>,
-    never_polled_before_close: usize,
-    never_dropped_after_close: usize,
-}
+type Fixture = audit::Fixture<()>;
+use audit::Seen;
 impl Fixture {
     async fn new(number: usize, row: &Value, fixture_index: usize) -> Self {
-        let script = upstream_rows(row);
-        let peer = Peer::start(move |request, index| {
-            let wanted = script.get(index).ok_or("unregistered peer request")?;
-            compare_request(request, wanted)?;
-            Ok(ResponsePlan::chunks(
-                wanted["response_status"].as_u64().unwrap() as u16,
-                headers(&wanted["response_headers"]),
-                chunks(wanted),
-            ))
-        })
-        .await
-        .unwrap();
+        let peer = Peer::start(contract::indexed_responder(row, ResponsePlan::chunks))
+            .await
+            .unwrap();
         let client = Arc::new(NativeHttpClient::new().unwrap());
-        let mut config = read_config(
-            &row["config_arguments"].as_array().unwrap().last().unwrap()[0],
-            false,
-            Path::new("/tmp"),
-        )
-        .unwrap();
-        config.local_token = row["gateway_config"]["localToken"]
-            .as_str()
-            .map(str::to_owned);
-        config.upstream = format!("http://{}", peer.address);
-        config.session_log_mode = if row["gateway_config"]["sessionLogMode"] == "prompts" {
-            autorouter_core::config::SessionLogMode::Prompts
-        } else {
-            autorouter_core::config::SessionLogMode::Metadata
-        };
+        let config = contract::history_gateway_config(row, peer.address);
         let inner = if number == 33 {
             RouterImpl::Real(Box::new(real::OriginalRouter::new(row)))
         } else {
@@ -227,60 +161,8 @@ impl Fixture {
             never_dropped,
         }
     }
-    async fn send(&self, row: &Value) -> Result<Reply, String> {
-        contract::send_buffered(&self.client, self.gateway.as_ref(), row).await
-    }
-    async fn wait_for_status(&self, event: &str) -> Result<(), String> {
-        contract::wait_for_status(&self.statuses, event).await
-    }
-    async fn finish(mut self) -> Result<Seen, String> {
-        let continuity_before_close = match &self.router.inner {
-            RouterImpl::Real(real) => Some(real.continuity()),
-            RouterImpl::Mock(_) => None,
-        };
-        let observer_before_close = self
-            .observer_owner
-            .as_ref()
-            .map(|owner| real::snapshot(owner.snapshot()));
-        let never_polled_before_close = self.never_polled.load(Ordering::SeqCst);
-        let requests = contract::close_gateway(&mut self.gateway, &mut self.peer, BOUND).await?;
-        if let Some(owner) = &self.observer_owner {
-            tokio::time::timeout(BOUND, owner.close())
-                .await
-                .map_err(|_| "observer owner close timed out")?;
-        }
-        let observer_after_close = self
-            .observer_owner
-            .as_ref()
-            .map(|owner| real::snapshot(owner.snapshot()));
-        let never_dropped_after_close = self.never_dropped.load(Ordering::SeqCst);
-        if !self.router.closed.load(Ordering::SeqCst) {
-            return Err("mock router closure not observed".into());
-        }
-        contract::check_recorders([&self.statuses, &self.history, &self.logs, &self.log_history])?;
-        Ok(Seen {
-            requests,
-            routes: self.router.calls.lock().unwrap().clone(),
-            completions: self.router.completions.lock().unwrap().clone(),
-            statuses: self.statuses.lock().unwrap().clone(),
-            history: self.history.lock().unwrap().clone(),
-            logs: self.logs.lock().unwrap().clone(),
-            decisions: self.decisions.lock().unwrap().clone(),
-            records: self.records.lock().unwrap().clone(),
-            callback_outcomes: self.callback_outcomes.lock().unwrap().clone(),
-            evaluator_calls: match &self.router.inner {
-                RouterImpl::Real(r) => r.calls(),
-                RouterImpl::Mock(_) => Vec::new(),
-            },
-            real: self.real,
-            continuity_before_close,
-            observer_before_close,
-            observer_after_close,
-            never_polled_before_close,
-            never_dropped_after_close,
-        })
-    }
 }
+
 use contract::SharedAssertions as Assertions;
 fn supplemental_transcripts(row: &Value, replies: &[Reply], seen: &Seen) {
     contract::verify_transcript(

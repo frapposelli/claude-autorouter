@@ -49,6 +49,7 @@ impl Drop for MockBody {
 }
 pub enum Step {
     Error,
+    PendingHead(Arc<Lifetime>),
     Reply {
         status: u16,
         headers: Vec<(String, String)>,
@@ -118,7 +119,9 @@ impl Mock {
         let lifetimes = steps
             .iter()
             .filter_map(|step| match step {
-                Step::Reply { lifetime, .. } => Some(lifetime.clone()),
+                Step::Reply { lifetime, .. } | Step::PendingHead(lifetime) => {
+                    Some(lifetime.clone())
+                }
                 _ => None,
             })
             .collect();
@@ -174,14 +177,29 @@ impl HttpTransport for Mock {
             json!({"url":parts.uri.to_string(),"method":parts.method.as_str(),"headers":headers,
             "body":if bytes.is_empty(){Value::Null}else{serde_json::from_slice(&bytes).unwrap()}}),
         );
-        match self
+        let step = self
             .steps
             .lock()
             .unwrap()
             .pop_front()
-            .expect("unexpected request/redirect/retry")
-        {
+            .expect("unexpected request/redirect/retry");
+        match step {
             Step::Error => Err(HttpError::Network),
+            Step::PendingHead(lifetime) => {
+                struct HeadLease(Arc<Lifetime>);
+                impl Drop for HeadLease {
+                    fn drop(&mut self) {
+                        self.0.dropped.store(true, Ordering::SeqCst);
+                    }
+                }
+                let _lease = HeadLease(lifetime.clone());
+                std::future::poll_fn(|_| {
+                    lifetime.polled.store(true, Ordering::SeqCst);
+                    lifetime.ready.notify_one();
+                    Poll::<Result<Response<MockBody>, HttpError>>::Pending
+                })
+                .await
+            }
             Step::Reply {
                 status,
                 headers,

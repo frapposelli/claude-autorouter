@@ -2,7 +2,6 @@
 use super::*;
 use crate::evaluator::{ClassifierDecision, EvaluationError};
 use crate::http_client::HttpError;
-use autorouter_core::config::read_config;
 use autorouter_core::contracts::{ClassifierError, DecisionSource};
 use bytes::Bytes;
 use http_body_util::{BodyExt, Full};
@@ -10,7 +9,6 @@ use hyper::body::{Body, Frame};
 use hyper::{Request, Response};
 use sha2::{Digest, Sha256};
 use std::collections::{BTreeMap, VecDeque};
-use std::path::Path;
 use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::task::{Context, Poll};
@@ -267,7 +265,9 @@ impl HttpTransport for Mock {
     }
 }
 fn config() -> RouterConfig {
-    read_config(&json!({"AUTOROUTER_EVALUATOR":"jev","TYPESAFE_API_KEY":"synthetic-key","AUTOROUTER_AUTH_MODE":"subscription"}), false, Path::new("/synthetic")).unwrap()
+    crate::test_config(
+        &json!({"AUTOROUTER_EVALUATOR":"jev","TYPESAFE_API_KEY":"synthetic-key","AUTOROUTER_AUTH_MODE":"subscription"}),
+    )
 }
 fn body(text: &str) -> Arc<JsDocument> {
     Arc::new(JsDocument::parse(&serde_json::to_vec(&json!({"model":"claude-haiku-4-5-20251001","max_tokens":16,"messages":[{"role":"user","content":text}]})).unwrap()).unwrap())
@@ -289,13 +289,12 @@ async fn bounded(schedule: impl std::future::Future<Output = ()>) {
 }
 
 async fn ready(mut predicate: impl FnMut() -> bool) {
-    tokio::time::timeout(Duration::from_secs(2), async {
+    crate::bounded(async {
         while !predicate() {
             tokio::task::yield_now().await;
         }
     })
-    .await
-    .unwrap();
+    .await;
 }
 
 #[tokio::test]
@@ -487,7 +486,7 @@ async fn shared_classification_keeps_each_agents_confirmed_tool_model() {
 async fn zero_deadline_ollama_shares_metadata_without_merging_waiter_cancellation() {
     bounded(async {
     let mut observed = Observations::new(10);
-    let config = read_config(&json!({"AUTOROUTER_EVALUATOR":"ollama","AUTOROUTER_AUTH_MODE":"subscription","AUTOROUTER_OLLAMA_TIMEOUT_MS":"0"}), false, Path::new("/synthetic")).unwrap();
+    let config = crate::test_config(&json!({"AUTOROUTER_EVALUATOR":"ollama","AUTOROUTER_AUTH_MODE":"subscription","AUTOROUTER_OLLAMA_TIMEOUT_MS":"0"}));
     assert_eq!(config.ollama_timeout_ms, 0);
     let mock = Arc::new(Mock::default());
     let classifier = Classifier::new(mock.clone(), &config);
@@ -931,4 +930,293 @@ async fn real_jev_deadline_after_headers_drops_stalled_bodies_and_allows_retry()
     })
     .await
     .expect("real Jev timeout and retry exceeded frozen two-second bound");
+}
+
+#[tokio::test]
+async fn real_clock_all_original_jev_body_failures_retry_cleanly_and_cache_only_success() {
+    // Replay every original mode with the real 20 ms timer under the original
+    // two-second whole-case bound; the captured paused-clock test stays intact.
+    tokio::time::timeout(Duration::from_secs(2), async {
+        let mut observed = Observations::new(9);
+        for mode in ["oversize", "malformed", "stalled", "http_error"] {
+            let mut config = config();
+            config.jev_timeout_ms = 20;
+            let mock = Arc::new(Mock::default());
+            *mock.automatic.lock().unwrap() = Some(match mode {
+                "oversize" => Reply {
+                    status: 200,
+                    bytes: Bytes::from(vec![0; 65537]),
+                    stalled: true,
+                },
+                "malformed" => Reply {
+                    status: 200,
+                    bytes: Bytes::from_static(b"PRIVATE malformed JSON"),
+                    stalled: false,
+                },
+                "stalled" => Reply {
+                    status: 200,
+                    bytes: Bytes::new(),
+                    stalled: true,
+                },
+                _ => Reply {
+                    status: 503,
+                    bytes: Bytes::new(),
+                    stalled: true,
+                },
+            });
+            let classifier = Classifier::new(mock.clone(), &config);
+            let document = body("Synthetic task");
+            let caller = CancellationToken::new();
+            for index in 0..2 {
+                let result = classifier
+                    .classify(&document, &config, &caller)
+                    .await
+                    .unwrap();
+                observed.value(1, json!(result.source));
+                observed.value(2, json!(result.classifier_error));
+                observed.value(
+                    3,
+                    json!(!serde_json::to_string(&result).unwrap().contains("PRIVATE")),
+                );
+                assert_eq!(mock.count(), index + 1);
+                assert_eq!(mock.body_polled(index), mode != "http_error");
+                if mode != "malformed" {
+                    assert!(
+                        mock.aborted(index),
+                        "unfinished {mode} body was not dropped"
+                    );
+                }
+                assert!(!caller.is_cancelled());
+                assert_eq!(classifier.pending_counts(), (0, 0));
+                assert_eq!(mock.active.load(Ordering::SeqCst), 0);
+            }
+            observed.value(4, json!(mock.count()));
+            observed.value(5, json!(classifier.pending_counts().0));
+            if mode != "malformed" {
+                observed.value(6, json!((0..mock.count()).all(|index| mock.aborted(index))));
+            }
+            // A failed result must neither poison nor fill the successful cache.
+            *mock.automatic.lock().unwrap() = Some(Reply::answer("haiku", 1.0));
+            let retry = classifier
+                .classify(&document, &config, &caller)
+                .await
+                .unwrap();
+            assert_eq!(retry.source, DecisionSource::Jev);
+            assert_eq!(json!(retry.tier), json!("haiku"));
+            assert_eq!(retry.classifier_error, None);
+            assert_eq!(mock.count(), 3);
+            let cached = classifier
+                .classify(&document, &config, &caller)
+                .await
+                .unwrap();
+            assert_eq!(cached.source, DecisionSource::Cache);
+            assert_eq!(cached.tier, retry.tier);
+            assert_eq!(cached.classifier_error, None);
+            assert_eq!(mock.count(), 3);
+            assert!(!caller.is_cancelled());
+            classifier.close().await;
+            assert_eq!(classifier.pending_counts(), (0, 0));
+            assert_eq!(mock.active.load(Ordering::SeqCst), 0);
+            eprintln!(
+                "router_real_body_modes={}",
+                json!({"mode":mode,"failed_attempts":2,
+                "requests":mock.count(),"caller_cancelled":caller.is_cancelled(),
+                "first_body_polled":mock.body_polled(0),"second_body_polled":mock.body_polled(1),
+                "first_body_dropped_unfinished":mock.aborted(0),
+                "second_body_dropped_unfinished":mock.aborted(1),"pending":[0,0],
+                "retry_source":retry.source,"cache_source":cached.source})
+            );
+        }
+        observed.finish();
+    })
+    .await
+    .expect("all original real-clock Jev body modes exceeded frozen two-second bound");
+}
+
+#[tokio::test]
+async fn same_router_evaluator_updates_preserve_original_identity_sequence_and_old_cache() {
+    async fn routed(router: &Router<Mock>, document: Arc<JsDocument>, index: usize) -> Value {
+        router
+            .route(
+                document,
+                RouteOptions {
+                    scope: format!("reconfigure-{index}"),
+                    prompt_id: format!("reconfigure-{index}"),
+                    ..RouteOptions::default()
+                },
+                &HeaderMap::new(),
+                &CancellationToken::new(),
+                "",
+            )
+            .await
+            .unwrap()
+    }
+    bounded(async {
+        let mut observed = Observations::new(7);
+        let mock = Arc::new(Mock::default());
+        *mock.automatic.lock().unwrap() = Some(Reply::answer("haiku", 0.5));
+        let original = config();
+        let mut settings = original.clone();
+        let mut router = Router::new(mock.clone(), original.clone());
+        let counter = router.counter.clone();
+        let document = body("Synthetic task");
+        observed.value(
+            1,
+            routed(&router, document.clone(), 0).await["tier"].clone(),
+        );
+        let mut opus = document.as_ref().clone();
+        opus.set_root_field_json("model", br#""claude-opus-5-5""#)
+            .unwrap();
+        observed.value(2, routed(&router, Arc::new(opus), 1).await["tier"].clone());
+        let mut opaque = document.as_ref().clone();
+        opaque
+            .set_root_field_json("opaque_provider_field", br#""new context""#)
+            .unwrap();
+        routed(&router, Arc::new(opaque), 2).await;
+        settings.min_confidence = 0.0;
+        let state = router.continuity_snapshot();
+        router.reconfigure_evaluator(&settings);
+        assert_eq!(router.continuity_snapshot(), state);
+        observed.value(
+            3,
+            routed(&router, document.clone(), 3).await["tier"].clone(),
+        );
+        for index in 0..5 {
+            match index {
+                0 => settings.replace_jev_model("other-synthetic-model".into()),
+                1 => settings.replace_credential(
+                    autorouter_core::config::Credential::Jev,
+                    Some("other-synthetic-key".into()),
+                ),
+                2 => settings.jev_endpoint = "https://example.invalid/v1/systemone".into(),
+                3 => settings.jev_timeout_ms = 900,
+                _ => settings.state_chars = 1000,
+            }
+            let state = router.continuity_snapshot();
+            router.reconfigure_evaluator(&settings);
+            assert_eq!(router.continuity_snapshot(), state);
+            routed(&router, document.clone(), index + 4).await;
+        }
+        observed.value(4, json!(mock.count()));
+        let cached = routed(&router, document.clone(), 9).await;
+        observed.value(5, cached["source"].clone());
+        assert_eq!(cached["tier"], "haiku");
+        assert_eq!(mock.count(), 9);
+        observed.finish();
+        // Retaining the same cache allows restoration of A after B, without a
+        // new evaluator call or a new Router/TurnState owner.
+        let state = router.continuity_snapshot();
+        router.reconfigure_evaluator(&original);
+        assert_eq!(router.continuity_snapshot(), state);
+        let restored = routed(&router, document, 10).await;
+        assert_eq!(restored["source"], "cache");
+        assert_eq!(restored["tier"], "sonnet");
+        assert_eq!(mock.count(), 9);
+        assert!(Arc::ptr_eq(&counter, &router.counter));
+        router.close().await;
+        assert_eq!(router.classifier.pending_counts(), (0, 0));
+        assert_eq!(mock.active.load(Ordering::SeqCst), 0);
+        eprintln!(
+            "router_reconfiguration_identity={}",
+            json!({"original_calls":9,
+            "last_source":cached["source"],"restored_source":restored["source"],
+            "restored_tier":restored["tier"],"counter_owner_retained":true,"pending":[0,0]})
+        );
+    })
+    .await;
+}
+
+#[tokio::test]
+async fn evaluator_updates_keep_staged_attempts_and_confirmed_opaque_tool_continuity() {
+    bounded(async {
+        let mock = Arc::new(Mock::default());
+        *mock.automatic.lock().unwrap() = Some(Reply::answer("haiku", 0.5));
+        let mut settings = config();
+        let mut router = Router::new(mock.clone(), settings.clone());
+        let counter = router.counter.clone();
+        let task = body("Continue the synthetic task");
+        router.route(task, RouteOptions {
+            scope:"continuous".into(), prompt_id:"same-task".into(),
+            request_id:Some("held-attempt".into()), ..RouteOptions::default()
+        }, &HeaderMap::new(), &CancellationToken::new(), "").await.unwrap();
+        let staged = router.continuity_snapshot();
+        assert_eq!(staged.attempts, 1);
+        settings.min_confidence = 0.0;
+        router.reconfigure_evaluator(&settings);
+        assert_eq!(router.continuity_snapshot(), staged);
+        let tool = "read:\u{0000}:\u{202e}:\u{1f980}";
+        // Embedding evidence is synthetic; this checks state ownership, not
+        // provider completion or downstream flushing.
+        assert!(router.complete("held-attempt", &json!({"continuation_model":"claude-opus-5-5",
+            "tool_uses":[{"id":tool,"model":"claude-opus-5-5"}]})));
+        let confirmed = router.continuity_snapshot();
+        assert_eq!(confirmed.attempts, 0);
+        assert_eq!(confirmed.records, 1);
+        settings.state_chars = 1000;
+        router.reconfigure_evaluator(&settings);
+        assert_eq!(router.continuity_snapshot(), confirmed);
+        let continuation = Arc::new(JsDocument::parse(&serde_json::to_vec(&json!({
+            "model":"claude-haiku-4-5-20251001","max_tokens":16,"messages":[
+                {"role":"user","content":"Continue the synthetic task"},
+                {"role":"assistant","content":[{"type":"tool_use","id":tool,"name":"Read","input":{}}]},
+                {"role":"user","content":[{"type":"tool_result","tool_use_id":tool,"content":"Synthetic result"}]}]
+        })).unwrap()).unwrap());
+        let continued = router.route(continuation, RouteOptions {
+            scope:"continuous".into(), prompt_id:"same-task".into(), ..RouteOptions::default()
+        }, &HeaderMap::new(), &CancellationToken::new(), "").await.unwrap();
+        assert_eq!(continued["model"], "claude-opus-5-5");
+        assert_eq!(continued["reason"], "tool_turn_pinned");
+        let fresh = router.route(body("A different human task"), RouteOptions {
+            scope:"fresh-task".into(), prompt_id:"fresh-task".into(), ..RouteOptions::default()
+        }, &HeaderMap::new(), &CancellationToken::new(), "").await.unwrap();
+        assert_eq!(fresh["tier"], "haiku");
+        assert_eq!(fresh["source"], "jev");
+        assert_eq!(fresh["reason"], "classified");
+        assert!(Arc::ptr_eq(&counter, &router.counter));
+        router.close().await;
+        assert_eq!(router.classifier.pending_counts(), (0, 0));
+        assert_eq!(router.continuity_snapshot().attempts, 0);
+        assert_eq!(mock.active.load(Ordering::SeqCst), 0);
+        eprintln!("router_reconfiguration_continuity={}", json!({"staged_attempt_retained":true,
+            "completion_accepted":true,"continued_model":continued["model"],
+            "continued_reason":continued["reason"],"fresh_tier":fresh["tier"],
+            "counter_owner_retained":true,"pending":[0,0]}));
+    }).await;
+}
+
+#[tokio::test]
+async fn evaluator_updates_cannot_reopen_a_closed_router() {
+    bounded(async {
+        let mock = Arc::new(Mock::default());
+        *mock.automatic.lock().unwrap() = Some(Reply::answer("haiku", 1.0));
+        let mut settings = config();
+        let mut router = Router::new(mock.clone(), settings.clone());
+        let counter = router.counter.clone();
+        router.close().await;
+        let snapshot = router.continuity_snapshot();
+        settings.min_confidence = 0.0;
+        settings.jev_endpoint = "https://example.invalid/v1/systemone".into();
+        router.reconfigure_evaluator(&settings);
+        assert_eq!(router.continuity_snapshot(), snapshot);
+        let result = router
+            .route(
+                body("Must stay closed"),
+                RouteOptions::default(),
+                &HeaderMap::new(),
+                &CancellationToken::new(),
+                "",
+            )
+            .await;
+        assert!(matches!(result, Err(EvaluationError::Cancelled)));
+        assert_eq!(mock.count(), 0);
+        assert!(Arc::ptr_eq(&counter, &router.counter));
+        router.close().await;
+        assert_eq!(router.classifier.pending_counts(), (0, 0));
+        assert_eq!(mock.active.load(Ordering::SeqCst), 0);
+        eprintln!(
+            "router_reconfiguration_closed={}",
+            json!({"requests":0,"cancelled":true,"pending":[0,0]})
+        );
+    })
+    .await;
 }

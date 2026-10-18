@@ -104,20 +104,8 @@ fn inputs(row: &Value, writer: usize) -> Vec<Option<Value>> {
         .map(input)
         .collect()
 }
-fn number_equal(a: &Value, b: &Value) -> bool {
-    match (a, b) {
-        (Value::Number(a), Value::Number(b)) => a.as_f64() == b.as_f64(),
-        (Value::Array(a), Value::Array(b)) => {
-            a.len() == b.len() && a.iter().zip(b).all(|(a, b)| number_equal(a, b))
-        }
-        (Value::Object(a), Value::Object(b)) => {
-            a.len() == b.len()
-                && a.iter()
-                    .all(|(k, v)| b.get(k).is_some_and(|b| number_equal(v, b)))
-        }
-        _ => a == b,
-    }
-}
+include!("../../autorouter-core/src/json_compare_macros.rs");
+contract_json_equal!(number_equal, a, b => a.as_f64() == b.as_f64());
 #[derive(Clone, Debug)]
 struct FileRows {
     name: String,

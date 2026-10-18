@@ -174,7 +174,7 @@ use std::{
 };
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
-    net::{TcpListener, TcpStream},
+    net::TcpStream,
     task::JoinSet,
 };
 const LIMIT: Duration = Duration::from_secs(4);
@@ -237,12 +237,7 @@ async fn actual(scenario: Scenario) {
     actual_version(scenario, None).await;
 }
 async fn actual_version(scenario: Scenario, version: Option<openssl::ssl::SslVersion>) {
-    let provider = TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let origin = format!(
-        "{}://{}",
-        if version.is_some() { "https" } else { "http" },
-        provider.local_addr().unwrap()
-    );
+    let (provider, origin) = super::loopback_peer::bind_listener(version.is_some()).await;
     let mut config = autorouter_core::config::read_config(
         &serde_json::json!({
             "AUTOROUTER_EVALUATOR":"jev", "TYPESAFE_API_KEY":"synthetic-evaluator",

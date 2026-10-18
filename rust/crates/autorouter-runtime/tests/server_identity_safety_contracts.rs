@@ -21,7 +21,6 @@ use http_body_util::{BodyExt, Full, Limited};
 use hyper::{HeaderMap, Request};
 use peer::{Observation, Peer, ResponsePlan, StreamGate};
 use serde_json::{Value, json};
-use sha2::{Digest, Sha256};
 use std::{
     collections::BTreeMap,
     path::Path,
@@ -39,22 +38,16 @@ const LIMIT: usize = 2 * 1024 * 1024;
 type Events = Arc<Mutex<Vec<Value>>>;
 
 fn case(number: usize) -> Value {
-    assert_eq!(
-        format!("{:x}", Sha256::digest(CORPUS.as_bytes())),
-        "ac6c53b34fe8dbb551d5fa6ae135339e93fd45e61008f0407fb2f2e634f805fc"
-    );
-    assert_eq!(
-        format!("{:x}", Sha256::digest(CAPTURE.as_bytes())),
-        "cd11f8f0704901ad7cd56582daebccefbc24c27e836256f3ad3eaae2b599a813"
-    );
-    let metadata: Value = serde_json::from_str(CAPTURE).unwrap();
-    assert_eq!(metadata["static_assertions"], 52);
-    assert_eq!(metadata["expanded_assertions"], 82);
-    CORPUS
-        .lines()
-        .map(|line| serde_json::from_str::<Value>(line).unwrap())
-        .find(|row| row["source_test"] == format!("test/server.test.mjs#{number}"))
-        .unwrap()
+    contract::captured_server_case(
+        number,
+        CORPUS,
+        CAPTURE,
+        [
+            "ac6c53b34fe8dbb551d5fa6ae135339e93fd45e61008f0407fb2f2e634f805fc",
+            "cd11f8f0704901ad7cd56582daebccefbc24c27e836256f3ad3eaae2b599a813",
+        ],
+        (52, 82, None),
+    )
 }
 fn response_bytes(row: &Value) -> Vec<u8> {
     writes(row)

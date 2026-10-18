@@ -92,10 +92,7 @@ async fn tiny_ready_frames_coalesce_at_the_actual_logical_threshold() {
     assert_eq!(polls.load(Ordering::SeqCst), HIGH_WATER);
     assert_eq!(state.end, None);
     drop(body);
-    tokio::time::timeout(LIMIT, producer.shutdown())
-        .await
-        .unwrap()
-        .unwrap();
+    crate::bounded(producer.shutdown()).await.unwrap();
     clean(&probe).await;
 }
 
@@ -108,7 +105,7 @@ async fn oversized_input_is_copied_incrementally_without_a_total_body_cap() {
     until(&probe, |state| state.queued_bytes == HIGH_WATER).await;
     assert_eq!(probe.snapshot().end, None);
     let mut received = 0;
-    while let Some(frame) = tokio::time::timeout(LIMIT, body.frame()).await.unwrap() {
+    while let Some(frame) = crate::bounded(body.frame()).await {
         let data = frame.unwrap().into_data().unwrap();
         assert!(data.iter().all(|byte| *byte == 3));
         received += data.len();
@@ -128,9 +125,8 @@ async fn final_bytes_clone_owns_credit_after_dequeue_and_consumer_drop() {
     let (mut body, producer, probe) = start(generated(2 * 1024 * 1024, BLOCK_BYTES, true), |_| {});
     let mut retained = Vec::new();
     for _ in 0..BLOCKS {
-        let data = tokio::time::timeout(LIMIT, body.frame())
+        let data = crate::bounded(body.frame())
             .await
-            .unwrap()
             .unwrap()
             .unwrap()
             .into_data()
@@ -193,13 +189,7 @@ async fn source_failure_is_reported_without_consumer_demand_and_follows_accepted
             signal.send(end).unwrap();
         },
     );
-    assert_eq!(
-        tokio::time::timeout(LIMIT, observed)
-            .await
-            .unwrap()
-            .unwrap(),
-        End::SourceError
-    );
+    assert_eq!(crate::bounded(observed).await.unwrap(), End::SourceError);
     assert!(!body.is_end_stream());
     assert_eq!(
         body.frame().await.unwrap().unwrap().into_data().unwrap(),
@@ -326,10 +316,7 @@ async fn consumer_wake_runs_outside_the_queue_lock() {
             .is_pending()
     );
     ready.store(true, Ordering::SeqCst);
-    tokio::time::timeout(LIMIT, producer.join())
-        .await
-        .unwrap()
-        .unwrap();
+    crate::bounded(producer.join()).await.unwrap();
     assert_eq!(body.frame().await.unwrap().unwrap_err(), End::SourceError);
     drop(body);
     clean(&probe).await;
@@ -396,10 +383,7 @@ async fn consumer_waker_panic_cannot_suppress_independent_terminal_publication()
             .is_pending()
     );
     ready.store(true, Ordering::SeqCst);
-    assert_eq!(
-        tokio::time::timeout(LIMIT, receive).await.unwrap().unwrap(),
-        End::SourceError
-    );
+    assert_eq!(crate::bounded(receive).await.unwrap(), End::SourceError);
     producer.join().await.unwrap();
     assert_eq!(probe.snapshot().waker_panics, 1);
     assert_eq!(body.frame().await.unwrap().unwrap_err(), End::SourceError);
@@ -413,10 +397,7 @@ async fn abort_before_first_poll_still_publishes_cancellation_once() {
         send.send(end).unwrap();
     });
     drop(producer);
-    assert_eq!(
-        tokio::time::timeout(LIMIT, receive).await.unwrap().unwrap(),
-        End::Cancelled
-    );
+    assert_eq!(crate::bounded(receive).await.unwrap(), End::Cancelled);
     drop(body);
     clean(&probe).await;
 }

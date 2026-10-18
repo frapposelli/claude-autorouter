@@ -53,36 +53,8 @@ pub fn parse_lines(bytes: &[u8], inputs: bool) -> Result<Vec<Value>, String> {
     Ok(rows)
 }
 
-fn numeric_equal(a: &serde_json::Number, b: &serde_json::Number) -> bool {
-    if a == b {
-        return true;
-    }
-    // JSON numbers such as 1 and 1.0 denote the same value. Do not round two
-    // distinct large integers through f64 and hide a safe-integer regression.
-    if !a.is_f64() && !b.is_f64() {
-        return false;
-    }
-    let (Some(left), Some(right)) = (a.as_f64(), b.as_f64()) else {
-        return false;
-    };
-    if left != right {
-        return false;
-    }
-    if a.is_f64() && b.is_f64() {
-        return true;
-    }
-    // Exactly representable integers can have different JSON number encodings.
-    // Require an exact round-trip and reject saturating conversion boundaries.
-    let integer = if a.is_f64() { b } else { a };
-    if let Some(value) = integer.as_u64() {
-        (0.0..18_446_744_073_709_551_616.0).contains(&left) && left as u64 == value
-    } else if let Some(value) = integer.as_i64() {
-        (-9_223_372_036_854_775_808.0..9_223_372_036_854_775_808.0).contains(&left)
-            && left as i64 == value
-    } else {
-        false
-    }
-}
+include!("../../crates/autorouter-core/src/json_compare_macros.rs");
+contract_numeric_equal!(numeric_equal);
 
 fn difference(expected: &Value, actual: &Value, path: &str) -> Option<String> {
     match (expected, actual) {

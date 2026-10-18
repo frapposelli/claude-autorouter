@@ -211,3 +211,57 @@ async fn reusable_shutdown_keeps_new_generation_and_coalescing_at_worker_capacit
     ));
     assert_eq!(mock.calls(), 2);
 }
+
+
+#[tokio::test(flavor = "current_thread")]
+async fn admitted_pre_io_cancellation_waits_for_owned_worker_and_keeps_retry_usable() {
+    bounded_owned_close(async {
+        let (mock, settings, classifier) = fixture(true);
+        let gate = Arc::new(shutdown_gate::WorkerPollGate::default());
+        let release = gate.hold();
+        classifier.test_worker_poll_gate(gate.clone());
+        let body = document("admitted-before-io");
+        let caller = CancellationToken::new();
+        let mut request = Box::pin(classifier.classify(&body, &settings, &caller));
+        assert!(poll_once(request.as_mut()).await.is_pending());
+        assert_eq!(classifier.pending_counts(), (1, 1));
+        assert_eq!(classifier.shared.workers.len(), 1);
+        assert_eq!(mock.calls(), 0);
+        gate.wait_blocked().await;
+        assert_eq!(mock.calls(), 0);
+        assert_eq!(mock.active.load(Ordering::SeqCst), 0);
+        assert_eq!(mock.waiting.load(Ordering::SeqCst), 0);
+        caller.cancel();
+        assert!(poll_once(request.as_mut()).await.is_pending(), "must await held worker teardown");
+        assert_eq!(classifier.pending_counts(), (0, 0));
+        assert_eq!(classifier.shared.workers.len(), 1);
+        assert_eq!(mock.calls(), 0);
+        drop(release);
+        assert!(matches!(request.await, Err(EvaluationError::Cancelled)));
+        gate.wait_finished().await;
+        while !classifier.shared.workers.is_empty() {
+            tokio::task::yield_now().await;
+        }
+        assert_eq!(mock.calls(), 0);
+        assert_eq!(mock.active.load(Ordering::SeqCst), 0);
+        assert_eq!(mock.waiting.load(Ordering::SeqCst), 0);
+        mock.blocked.store(false, Ordering::SeqCst);
+        let independent = CancellationToken::new();
+        let retry = classifier.classify(&body, &settings, &independent).await.unwrap();
+        assert_eq!(retry.source, DecisionSource::Jev);
+        assert_eq!(retry.tier, autorouter_core::contracts::Tier::Haiku);
+        assert_eq!(mock.calls(), 1);
+        let cached = classifier.classify(&body, &settings, &independent).await.unwrap();
+        assert_eq!(cached.source, DecisionSource::Cache);
+        assert_eq!(cached.tier, retry.tier);
+        assert_eq!(mock.calls(), 1);
+        classifier.close().await;
+        assert_eq!(classifier.pending_counts(), (0, 0));
+        assert_eq!(classifier.shared.workers.len(), 0);
+        assert_eq!(mock.active.load(Ordering::SeqCst), 0);
+        assert_eq!(mock.waiting.load(Ordering::SeqCst), 0);
+        eprintln!("router_admitted_cancel={}", json!({"admitted_before_cancel":true,
+            "calls_before_worker_release":0,"calls_after_cancel":0,"retry_source":retry.source,
+            "cache_source":cached.source,"requests":mock.calls(),"pending":[0,0],"workers":0}));
+    }).await;
+}

@@ -18,15 +18,8 @@ const PRIVATE: &str = "synthetic-private-security-pipe-marker-271828";
 struct Root(PathBuf);
 impl Root {
     fn new() -> Self {
-        let mut random = [0; 12];
-        getrandom::fill(&mut random).unwrap();
-        let path = std::env::temp_dir().join(format!(
-            "autorouter-security-process-{}",
-            random
-                .iter()
-                .map(|byte| format!("{byte:02x}"))
-                .collect::<String>()
-        ));
+        let suffix = crate::random_hex::<12>().unwrap();
+        let path = std::env::temp_dir().join(format!("autorouter-security-process-{suffix}"));
         std::fs::DirBuilder::new()
             .mode(0o700)
             .create(&path)

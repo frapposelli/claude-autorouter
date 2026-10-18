@@ -91,20 +91,8 @@ fn inventory(rows: &[Value]) -> Result<(), &'static str> {
 
 // The source has one Number type; compare exact f64 values while retaining all
 // object keys, array slots and other primitive types. No tolerance or rounding.
-fn same_json(actual: &Value, expected: &Value) -> bool {
-    match (actual, expected) {
-        (Value::Number(a), Value::Number(b)) => a.as_f64() == b.as_f64(),
-        (Value::Array(a), Value::Array(b)) => {
-            a.len() == b.len() && a.iter().zip(b).all(|(a, b)| same_json(a, b))
-        }
-        (Value::Object(a), Value::Object(b)) => {
-            a.len() == b.len()
-                && a.iter()
-                    .all(|(key, value)| b.get(key).is_some_and(|other| same_json(value, other)))
-        }
-        _ => actual == expected,
-    }
-}
+include!("../src/json_compare_macros.rs");
+contract_json_equal!(same_json, a, b => a.as_f64() == b.as_f64());
 
 fn replay(row: &Value) -> Result<(), &'static str> {
     let mut tracker = SavingsTracker::default();

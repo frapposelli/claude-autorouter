@@ -158,6 +158,8 @@ async fn resident_models<T: HttpTransport>(
     };
     tokio::select! {biased;_=cancel.cancelled()=>Err("Routing test cancelled.".into()),_=tokio::time::sleep(Duration::from_secs(5))=>Err("Cannot inspect resident models on local Ollama.".into()),r=action=>r}
 }
+/// Checked compatibility adapter for callers requiring serde Value. Exact
+/// reports can contain accepted values that this recursive type cannot hold.
 pub async fn run_tests<T: HttpTransport + 'static>(
     transport: Arc<T>,
     config: &RouterConfig,
@@ -165,6 +167,31 @@ pub async fn run_tests<T: HttpTransport + 'static>(
     cancel: &CancellationToken,
     write: &mut impl FnMut(String),
 ) -> Result<Value, RoutingTestError> {
+    checked_report_value(&run_tests_document(transport, config, fixture, cancel, write).await?)
+}
+fn checked_report_value(document: &JsDocument) -> Result<Value, RoutingTestError> {
+    serde_json::from_str(&document.stringify()).map_err(|_| {
+        "Routing report cannot be represented as a JSON Value; use run_tests_document.".into()
+    })
+}
+fn report_document(report: &Value, config: &RouterConfig) -> JsDocument {
+    let mut document =
+        JsDocument::parse(&serde_json::to_vec(report).expect("finite routing report"))
+            .expect("routing report JSON");
+    document
+        .set_root_field_json("keep_alive", config.ollama_keep_alive_json().as_bytes())
+        .expect("exact keep_alive JSON");
+    document
+}
+/// Exact arena-backed report. The keep_alive field retains its accepted JSON
+/// identity and depth without building an intermediate recursive Value tree.
+pub async fn run_tests_document<T: HttpTransport + 'static>(
+    transport: Arc<T>,
+    config: &RouterConfig,
+    fixture: &[u8],
+    cancel: &CancellationToken,
+    write: &mut impl FnMut(String),
+) -> Result<JsDocument, RoutingTestError> {
     if config.evaluator != Evaluator::Ollama {
         return Err("This test requires the local Ollama evaluator.".into());
     }
@@ -187,7 +214,7 @@ pub async fn run_tests<T: HttpTransport + 'static>(
         write,
     )
     .await?;
-    let mut report = json!({"type":"ollama_router_integration","timestamp":autorouter_runtime::server_events::timestamp(),"evaluator_model":config.ollama_model,"timeout_ms":config.ollama_timeout_ms,"protocol":"/v1/systemone","fixture_sha256":digest(fixture),"questions_sha256":digest(ollama_questions().to_string().as_bytes()),"resident_before":!resident.is_empty(),"warmup_ms":start.elapsed().as_millis(),"paid_provider_calls":0,"downloads":0,"model_unloaded_by_test":false,"keep_alive":config.ollama_keep_alive,"rows":[]});
+    let mut report = json!({"type":"ollama_router_integration","timestamp":autorouter_runtime::server_events::timestamp(),"evaluator_model":config.ollama_model,"timeout_ms":config.ollama_timeout_ms,"protocol":"/v1/systemone","fixture_sha256":digest(fixture),"questions_sha256":digest(ollama_questions().to_string().as_bytes()),"resident_before":!resident.is_empty(),"warmup_ms":start.elapsed().as_millis(),"paid_provider_calls":0,"downloads":0,"model_unloaded_by_test":false,"keep_alive":null,"rows":[]});
     for item in cases.as_array().unwrap() {
         if cancel.is_cancelled() {
             return Err("Routing test cancelled.".into());
@@ -269,7 +296,7 @@ pub async fn run_tests<T: HttpTransport + 'static>(
     let passed = missing.is_empty() && rows.iter().all(|r| r["result"] == "pass");
     report["missing_tiers"] = json!(missing);
     report["passed"] = json!(passed);
-    Ok(report)
+    Ok(report_document(&report, config))
 }
 pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
     let options = parse_args(args)?;
@@ -345,6 +372,44 @@ mod tests {
             "nimble:latest"
         );
     }
+    #[test]
+    fn exact_report_retains_deep_keep_alive_and_value_adapter_refuses_it() {
+        let report =
+            json!({"passed":true,"rows":[{"case":"synthetic","result":"pass"}],"keep_alive":null});
+        let before = report.to_string();
+        let keep_alive = format!("{}\"5m\"{}", "[".repeat(256), "]".repeat(256));
+        let source = JsDocument::parse(
+            format!(r#"{{"AUTOROUTER_OLLAMA_KEEP_ALIVE":{keep_alive}}}"#).as_bytes(),
+        )
+        .unwrap();
+        let mut config =
+            autorouter_core::config::read_config_document(&source, false, Path::new("/tmp"))
+                .unwrap();
+        let exact = report_document(&report, &config);
+        assert_eq!(
+            exact.stringify_node(exact.get(exact.root(), "keep_alive").unwrap()),
+            keep_alive
+        );
+        assert_eq!(
+            exact.stringify_node(exact.get(exact.root(), "rows").unwrap()),
+            report["rows"].to_string()
+        );
+        assert_eq!(report.to_string(), before);
+        let error = checked_report_value(&exact).unwrap_err();
+        assert_eq!(error.code, "ROUTING_TEST_ERROR");
+        assert_eq!(
+            error.message,
+            "Routing report cannot be represented as a JSON Value; use run_tests_document."
+        );
+        for value in [json!(0), json!("0"), json!([0]), json!("5m")] {
+            config.replace_ollama_keep_alive(value.clone());
+            let adapted = checked_report_value(&report_document(&report, &config)).unwrap();
+            assert_eq!(adapted["keep_alive"], value);
+            assert_eq!(adapted["rows"], report["rows"]);
+            assert_eq!(adapted["passed"], report["passed"]);
+        }
+    }
+
     #[test]
     fn synthetic_wrapper_extracts_exact_task() {
         let config = read_config(&json!({}), false, Path::new("/tmp")).unwrap();

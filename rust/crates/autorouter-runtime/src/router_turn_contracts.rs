@@ -2,11 +2,9 @@
 //! 15 and 16. Transport answers are the original synthetic classifier responses;
 //! actual classification, task discovery, selection and completion run natively.
 use super::*;
-use autorouter_core::config::read_config;
 use bytes::Bytes;
 use http_body_util::Full;
 use hyper::{Request, Response};
-use std::path::Path;
 use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 
 struct Evaluator {
@@ -31,12 +29,7 @@ impl HttpTransport for Evaluator {
 }
 
 fn configuration() -> RouterConfig {
-    read_config(
-        &json!({"AUTOROUTER_EVALUATOR":"jev"}),
-        false,
-        Path::new("/synthetic"),
-    )
-    .unwrap()
+    crate::test_config(&json!({"AUTOROUTER_EVALUATOR":"jev"}))
 }
 
 fn evaluator(tier: &'static str) -> Arc<Evaluator> {

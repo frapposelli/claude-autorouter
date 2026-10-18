@@ -42,8 +42,31 @@ at response head encoding, allowing the runtime completion registry to distingui
 queued responses from responses actually submitted to the writer. Each completed
 response must flush before the next response begins. Read errors, service errors,
 write failures and connection drop cancel queued futures and release their bodies.
-Header receipt timers start when message bytes are available, not during idle time
-while an earlier pipelined service is still running.
+Without an installed listener timing control, the existing per-head receipt timer
+starts when message bytes are available, not during idle time while an earlier
+pipelined service is still running.
+
+The optional `Builder::node_http_server_timing` control supplies a separate
+listener-owned receive policy. Hyper atomically commits buffered parser/body
+progress before exposing a request or frame, and rejects progress after a terminal
+decision. Message-begin, header/body completion, positive input, parser abort and
+ordered response-finish events let the runtime retain Node's receive and idle
+phases. Only an installed control disables Hyper's legacy per-head timer; client
+parsing and servers without the control keep their existing behavior. Hyper adds
+no scanner task. The runtime owns its shared 30-second scan, strict 10-second
+header/30-second request-age checks, and 5-second keep-alive plus 1-second buffer.
+
+Each request carries a separate `NodeHttpResponseTiming` marker for its first
+equivalent send/end/flushHeaders operation, including while queued. This is not
+`NodeHttpResponseSubmission` or successful delivery. The runtime prepares streamed
+responses only after their first nonempty frame or clean EOF, and keeps the
+current response's marker separate from later queued responses. It latches
+pending delivery failure and timeout reply eligibility before waking the driver.
+A terminal receive timeout makes at most one direct raw 408 write attempt when
+that latched decision permits it, then returns without waiting for write retry,
+ordinary flush or shutdown; the connection owner drops the I/O. Partial writes
+and writer errors do not become successful-delivery evidence. Parser/decode
+errors retire receive eligibility without resetting current response preparation.
 
 The source contract is Node 22.14.0's `src/node_http_parser.cc` (`TrackHeader`,
 `on_url`, `on_status`, `on_header_field`, `on_header_value`) and `lib/_http_common.js`
@@ -59,6 +82,7 @@ Sources:
 - https://github.com/hyperium/hyper/tree/v1.12.0
 - https://github.com/nodejs/node/blob/v22.14.0/src/node_http_parser.cc
 - https://github.com/nodejs/node/blob/v22.14.0/lib/_http_common.js
+- https://github.com/nodejs/node/blob/v22.14.0/lib/_http_server.js
 - https://github.com/nodejs/node/blob/v22.14.0/deps/undici/src/lib/dispatcher/client-h1.js
 
 Updating Hyper requires regenerating the exact patch and hashes, reviewing

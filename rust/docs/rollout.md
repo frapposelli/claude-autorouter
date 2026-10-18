@@ -28,12 +28,22 @@ bytes. CI checks the rehearsal's archive identity against the previously tested
 package and retains the candidate, frozen baseline archive and report. i686
 also binds those files and their checksums in its bounded execution evidence.
 
-This covers successful npm upgrade, rollback and re-upgrade with synthetic
-file credentials and history. It does not cover failed startup, partial storage
-writes, concurrent status ownership, direct-archive rollback or real Keychain
-migration. The baseline archive is reconstructed and checked against frozen Git
-sources; it is not the originally published registry archive. Those separate
-rollout requirements remain pending.
+The rehearsal also checks two installed launch failures before rollback. An
+owned synthetic Claude child copies the live status snapshot and settings
+overlay, then exits with a nonzero status; a second launch uses an empty PATH
+and cannot find Claude. Both schedules check gateway closure, return-time
+absence of temporary resources, unchanged complete configuration/history bytes
+and metadata, and unchanged history directory entries. A positively checked
+loopback sentinel receives no queued or accepted evaluator/upstream connection.
+The live copies witness allocation only for the synthetic-child schedule.
+
+This covers successful npm upgrade, rollback and re-upgrade, plus those two
+failure schedules, with synthetic file credentials and history. Other startup
+failures, partial storage writes, concurrent status ownership, direct-archive
+rollback and real Keychain migration remain pending. The baseline archive is
+reconstructed and checked against frozen Git sources; it is not the originally
+published registry archive. No real Claude task, provider, model or user
+configuration is involved.
 
 ## Release evidence
 

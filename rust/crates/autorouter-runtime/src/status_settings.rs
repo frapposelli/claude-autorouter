@@ -454,4 +454,122 @@ mod tests {
         );
         fs::remove_dir_all(directory).unwrap();
     }
+
+    #[test]
+    fn default_settings_file_bytes_preserve_security_fields_at_the_bound_and_reject_only_larger_files()
+     {
+        use std::os::unix::fs::{MetadataExt, PermissionsExt};
+        const CAP: usize = 2 * 1024 * 1024;
+        const ORIGINAL: &str = r#"{"permissions":{"allow":["Read(/public/**)"],"ask":["Edit(/review/**)"],"deny":["Read(/secrets/**)"],"defaultMode":"dontAsk"},"env":{"SYNTHETIC_CANARY":"PRIVATE_SETTINGS_BOUNDARY"},"opaque":{"values":["retained",0,true]},"statusLine":{"type":"command","command":"old"}}"#;
+        const PREVIOUS: &[u8] = b"PREVIOUS_SYNTHETIC_OVERLAY\n";
+        let original_value: serde_json::Value = serde_json::from_str(ORIGINAL).unwrap();
+        for (delta, inline) in [(-1isize, false), (0, false), (1, false), (1, true)] {
+            let directory = TestDirectory::new();
+            fs::set_permissions(&directory.0, fs::Permissions::from_mode(0o700)).unwrap();
+            let source_directory = directory.0.join("source[literal]*?");
+            let output_directory = directory.0.join("overlay");
+            for path in [&source_directory, &output_directory] {
+                fs::create_dir(path).unwrap();
+                fs::set_permissions(path, fs::Permissions::from_mode(0o700)).unwrap();
+            }
+            let mut original = ORIGINAL.as_bytes().to_vec();
+            original.resize(CAP.checked_add_signed(delta).unwrap(), b' ');
+            assert_eq!(original.len(), CAP.checked_add_signed(delta).unwrap());
+            assert_eq!(
+                serde_json::from_slice::<serde_json::Value>(&original).unwrap(),
+                original_value
+            );
+            let source = source_directory.join("original.json");
+            fs::write(&source, &original).unwrap();
+            fs::set_permissions(&source, fs::Permissions::from_mode(0o600)).unwrap();
+            let overlay = output_directory.join("claude-settings.json");
+            fs::write(&overlay, PREVIOUS).unwrap();
+            fs::set_permissions(&overlay, fs::Permissions::from_mode(0o600)).unwrap();
+            let identity = |path: &Path| {
+                let value = fs::symlink_metadata(path).unwrap();
+                assert!(value.is_file());
+                assert_eq!(value.nlink(), 1);
+                assert_eq!(value.permissions().mode() & 0o777, 0o600);
+                (
+                    value.dev(),
+                    value.ino(),
+                    value.len(),
+                    value.modified().unwrap(),
+                )
+            };
+            let source_before = identity(&source);
+            let overlay_before = identity(&overlay);
+            let supplied = if inline {
+                String::from_utf8(original.clone()).unwrap()
+            } else {
+                source.to_string_lossy().into_owned()
+            };
+            let args = [
+                "--settings".into(),
+                supplied,
+                "--literal".into(),
+                "forwarded".into(),
+                "--".into(),
+                "--settings=literal".into(),
+            ];
+            let result = add_status_line_settings(
+                &args,
+                &output_directory,
+                &directory.0,
+                Path::new("/synthetic/autorouter"),
+            );
+            let accepted = inline || delta <= 0;
+            if accepted {
+                let forwarded = result.unwrap();
+                assert_eq!(&forwarded[2..], &args[2..]);
+                assert_eq!(forwarded[0], "--settings");
+                assert_eq!(Path::new(&forwarded[1]), overlay);
+                assert!(!forwarded.join(" ").contains("PRIVATE_SETTINGS_BOUNDARY"));
+                let actual: serde_json::Value =
+                    serde_json::from_slice(&fs::read(&overlay).unwrap()).unwrap();
+                let anchor = if inline {
+                    &directory.0
+                } else {
+                    &source_directory
+                };
+                let escaped = anchor
+                    .to_str()
+                    .unwrap()
+                    .replace('\\', "\\\\")
+                    .replace('*', "\\*")
+                    .replace('?', "\\?")
+                    .replace('[', "\\[")
+                    .replace(']', "\\]");
+                let mut expected = original_value.clone();
+                expected["permissions"]["allow"] =
+                    serde_json::json!([format!("Read(/{escaped}/public/**)")]);
+                expected["permissions"]["ask"] =
+                    serde_json::json!([format!("Edit(/{escaped}/review/**)")]);
+                expected["permissions"]["deny"] =
+                    serde_json::json!([format!("Read(/{escaped}/secrets/**)")]);
+                expected["statusLine"] = serde_json::json!({"type":"command",
+                    "command":"'/synthetic/autorouter' statusline","padding":0,"refreshInterval":1});
+                assert_eq!(actual, expected);
+                let after = identity(&overlay);
+                assert_eq!((after.0, after.1), (overlay_before.0, overlay_before.1));
+            } else {
+                let error = result.unwrap_err();
+                assert_eq!(error, SETTINGS_ERROR);
+                assert!(!error.contains("PRIVATE_SETTINGS_BOUNDARY"));
+                assert!(!error.contains(source.to_str().unwrap()));
+                assert_eq!(fs::read(&overlay).unwrap(), PREVIOUS);
+                assert_eq!(identity(&overlay), overlay_before);
+            }
+            assert_eq!(fs::read(&source).unwrap(), original);
+            assert_eq!(identity(&source), source_before);
+            assert_eq!(fs::read_dir(&source_directory).unwrap().count(), 1);
+            assert_eq!(fs::read_dir(&output_directory).unwrap().count(), 1);
+            eprintln!(
+                "settings_file_boundary={}",
+                serde_json::json!({"bytes":original.len(),
+                "inline_API_control":inline,"accepted":accepted,"source_unchanged":true,
+                "permission_fields_preserved_or_previous_overlay_unchanged":true})
+            );
+        }
+    }
 }

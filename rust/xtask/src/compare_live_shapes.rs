@@ -30,6 +30,10 @@ pub(super) const CASE_FIELDS: &[&str] = &[
     "client_model_usage_estimate",
     "exit_code",
     "exit_signal",
+    "supervision",
+    "cleanup_confirmed",
+    "observed_exit_code",
+    "observed_exit_signal",
     "timed_out",
     "output_limit_exceeded",
     "cancelled",
@@ -39,6 +43,161 @@ pub(super) const CASE_FIELDS: &[&str] = &[
     "gateway_cleanup",
     "fixture_removed",
 ];
+
+pub(super) const PROCESS_DIAGNOSTIC_FIELDS: &[&str] = &[
+    "supervision",
+    "cleanup_confirmed",
+    "observed_exit_code",
+    "observed_exit_signal",
+];
+pub(super) const REFERENCE_PROCESS_DIAGNOSTIC_FIELDS: &[&str] = &[
+    "reference_process_supervision",
+    "reference_process_cleanup_confirmed",
+    "reference_process_observed_exit_code",
+    "reference_process_observed_exit_signal",
+];
+// Union of the pinned nix Signal debug variants, so saved reports remain
+// readable across supported macOS/Linux hosts without allowing free text.
+const EXIT_SIGNALS: &[&str] = &[
+    "SIGHUP",
+    "SIGINT",
+    "SIGQUIT",
+    "SIGILL",
+    "SIGTRAP",
+    "SIGABRT",
+    "SIGBUS",
+    "SIGFPE",
+    "SIGKILL",
+    "SIGUSR1",
+    "SIGSEGV",
+    "SIGUSR2",
+    "SIGPIPE",
+    "SIGALRM",
+    "SIGTERM",
+    "SIGSTKFLT",
+    "SIGCHLD",
+    "SIGCONT",
+    "SIGSTOP",
+    "SIGTSTP",
+    "SIGTTIN",
+    "SIGTTOU",
+    "SIGURG",
+    "SIGXCPU",
+    "SIGXFSZ",
+    "SIGVTALRM",
+    "SIGPROF",
+    "SIGWINCH",
+    "SIGIO",
+    "SIGPWR",
+    "SIGSYS",
+    "SIGEMT",
+    "SIGINFO",
+];
+fn signal_observation(v: &Value) -> bool {
+    keys(v, &["target", "signal", "outcome", "errno", "kind"])
+        && v.as_object().is_some_and(|o| o.len() == 5)
+        && enums(&v["target"], &["group", "child"])
+        && enums(&v["signal"], &["SIGTERM", "SIGKILL"])
+        && (v["target"] != "child" || v["signal"] == "SIGKILL")
+        && enums(&v["outcome"], &["absent", "error"])
+        && (v["errno"].is_null()
+            || v["errno"]
+                .as_i64()
+                .is_some_and(|n| i32::try_from(n).is_ok()))
+        && nullable_enum(&v["kind"], &["direct_kill_error"])
+        && (if v["target"] == "group" {
+            v["errno"].is_i64() && v["kind"].is_null()
+        } else {
+            v["kind"] == "direct_kill_error"
+        })
+        && ((v["outcome"] == "absent")
+            == (v["errno"].as_i64() == Some(i64::from(nix::libc::ESRCH))))
+}
+fn supervision_error(v: &Value) -> bool {
+    [
+        "observation_error",
+        "wait_error",
+        "ownership_lost",
+        "read_error",
+    ]
+    .iter()
+    .any(|key| v[*key] == true)
+        || v["signals"]
+            .as_array()
+            .is_some_and(|rows| rows.iter().any(|row| row["outcome"] == "error"))
+}
+fn supervision(v: &Value) -> bool {
+    keys(
+        v,
+        &[
+            "observation_error",
+            "wait_error",
+            "ownership_lost",
+            "read_error",
+            "signals",
+        ],
+    ) && [
+        "observation_error",
+        "wait_error",
+        "ownership_lost",
+        "read_error",
+    ]
+    .iter()
+    .all(|key| v[*key].is_boolean())
+        && v["signals"].as_array().is_some_and(|rows| {
+            rows.len() <= 3
+                && rows.iter().all(signal_observation)
+                && (supervision_error(v) || !rows.is_empty())
+        })
+}
+fn process_diagnostics(v: &Value, prefix: &str) -> bool {
+    let field = |name| v.get(format!("{prefix}{name}"));
+    let observed_code = field("observed_exit_code");
+    let observed_signal = field("observed_exit_signal");
+    if !field("supervision").is_none_or(supervision)
+        || !field("cleanup_confirmed").is_none_or(|value| *value == false)
+        || !observed_code.is_none_or(|value| value.is_null() || integer(value))
+        || !observed_signal.is_none_or(|value| nullable_enum(value, EXIT_SIGNALS))
+    {
+        return false;
+    }
+    let error = field("supervision").is_some_and(supervision_error);
+    if error && !field("cleanup_confirmed").is_some_and(|value| *value == false) {
+        return false;
+    }
+    if error && field("exit_code").is_some_and(|value| !value.is_null()) {
+        let supervision = field("supervision").unwrap();
+        if [
+            "observation_error",
+            "wait_error",
+            "ownership_lost",
+            "read_error",
+        ]
+        .iter()
+        .any(|key| supervision[*key] == true)
+            || !supervision["signals"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|row| {
+                    row["outcome"] != "error"
+                        || (row["target"] == "group" && row["signal"] == "SIGKILL")
+                })
+            || ["timed_out", "output_limit_exceeded", "cancelled"]
+                .iter()
+                .any(|key| field(key).is_some_and(|value| *value == true))
+        {
+            return false;
+        }
+    }
+    if observed_code.is_some() || observed_signal.is_some() {
+        return observed_code.is_some()
+            && observed_signal.is_some()
+            && error
+            && field("exit_code").is_some_and(Value::is_null);
+    }
+    true
+}
 
 fn integer(v: &Value) -> bool {
     v.as_f64()
@@ -351,11 +510,10 @@ fn savings(v: &Value) -> bool {
         && v.get("partial").is_none_or(|v| *v == true)
 }
 pub(super) fn case(v: &Value) -> bool {
-    for key in CASE_FIELDS
-        .iter()
-        .copied()
-        .filter(|key| !["case", "cancelled", "stdin_error"].contains(key))
-    {
+    for key in CASE_FIELDS.iter().copied().filter(|key| {
+        !["case", "cancelled", "stdin_error"].contains(key)
+            && !PROCESS_DIAGNOSTIC_FIELDS.contains(key)
+    }) {
         if v.get(key).is_none() {
             return false;
         }
@@ -387,6 +545,9 @@ pub(super) fn case(v: &Value) -> bool {
         return false;
     }
     if !v["exit_signal"].is_null() && !text(&v["exit_signal"]) {
+        return false;
+    }
+    if !process_diagnostics(v, "") {
         return false;
     }
     if !v.get("stdin_error").is_none_or(Value::is_boolean)
@@ -499,4 +660,5 @@ pub(super) fn case(v: &Value) -> bool {
     cleanup
         .get("reference_process_exit_code")
         .is_none_or(|v| v.is_null() || integer(v))
+        && process_diagnostics(cleanup, "reference_process_")
 }

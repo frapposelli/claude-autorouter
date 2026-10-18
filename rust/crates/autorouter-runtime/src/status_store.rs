@@ -25,9 +25,7 @@ pub trait StatusIo: Send + Sync {
 }
 pub struct NativeStatusIo;
 fn random_name() -> io::Result<String> {
-    let mut random = [0u8; 8];
-    getrandom::fill(&mut random).map_err(|_| io::Error::other("randomness unavailable"))?;
-    Ok(random.iter().map(|b| format!("{b:02x}")).collect())
+    crate::random_hex::<8>().map_err(|_| io::Error::other("randomness unavailable"))
 }
 fn joined<T>(result: Result<io::Result<T>, tokio::task::JoinError>) -> io::Result<T> {
     result.map_err(io::Error::other)?

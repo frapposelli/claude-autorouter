@@ -1,0 +1,570 @@
+{
+  "schema_version": 1,
+  "kind": "native_same_router_evaluator_reconfiguration_and_cancellation_checkpoint",
+  "recorded_at_utc": "2026-10-18T06:07:32.730651+00:00",
+  "status": "FIVE_INDIVIDUAL_API_MIGRATIONS_ACCEPTED; KNOWN_SOURCE_CAP_FAILURE; FULL_REWRITE_INCOMPLETE",
+  "source": {
+    "current": {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/candidate-v2-source.json",
+      "bytes": 116959,
+      "sha256": "217b2ab7113fc6ea095d568ea5362c2fc876b13af34d9ed45946fb93fc5c7d86"
+    },
+    "native_inputs": 697,
+    "frozen_inputs": 111,
+    "production_change": "Exclusive library same-Router update of13 evaluator fields and exact Jev/keep_alive sources. Continuity, attempts, cache/worker/counter ownership and closed state retained. Other settings unchanged; no Arc/Gateway hot reload.",
+    "preservation": {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/formatted-preservation-and-cache-review.json",
+      "bytes": 10898,
+      "sha256": "977a8a81edff1407862cb9767c254829b21806b0f824af2f32335238de71e821"
+    },
+    "extra_uncharged_embedding": {
+      "path": "rust/docs/embedding.md",
+      "bytes": 53268,
+      "sha256": "89ddf16c53c08927abeb21245459c302747e7c7914ef8a49dbc7d8fe5a390b0d"
+    },
+    "shipping": "JavaScript0.5.2 unchanged; current ordinary checks rerun."
+  },
+  "definition_acceptance": {
+    "ids": [
+      "test/router-concurrency.test.mjs#3",
+      "test/router-concurrency.test.mjs#4",
+      "test/router-concurrency.test.mjs#5",
+      "test/router-concurrency.test.mjs#7",
+      "test/router-concurrency.test.mjs#10"
+    ],
+    "sites": 26,
+    "capture_observations": 27,
+    "supplement": {
+      "path": "rust/parity/assertion-mappings/router-concurrency-cancellation-settings-api-migrations.json",
+      "bytes": 35561,
+      "sha256": "37fd877290c40adc63f5c10e9b6a27efa9e3df59e6437c8240e7e9cb3d052b3d"
+    },
+    "before": {
+      "covered": 545,
+      "partial": 43
+    },
+    "after": {
+      "covered": 550,
+      "partial": 38
+    },
+    "unchanged": "Other583 definitions; config keys20covered/7pending; limits27covered/26pending; all13areas partial; accepted#9 and historical mapping/capture unchanged."
+  },
+  "validation": {
+    "workspace": {
+      "command": "cargo test --workspace --locked --offline --no-fail-fast -j2",
+      "umask": "022",
+      "passed": 1463,
+      "failed": 1,
+      "ignored": 11,
+      "filtered": 0,
+      "groups": 66,
+      "new_regressions_passed": 8,
+      "sole_failure": "Complete logical transfer exceeds32MiB",
+      "review": {
+        "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/independent-workspace-actual-results-review.json",
+        "bytes": 9289,
+        "sha256": "584fa3a2a2a9ff8b245cb5f5f3687694978d1c75190b6039b3bfe48d8e88f59e"
+      }
+    },
+    "corrected_current_focused_runtime": {
+      "concurrency": 16,
+      "classifier": 33,
+      "failed": 0,
+      "scope": "Two separately bound modules; never added to workspace totals."
+    },
+    "initial_focus": {
+      "code_source": {
+        "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/candidate-source.json",
+        "bytes": 116959,
+        "sha256": "876a76933c9e9272f74a1c01dfd1b19b77649a0e3e6f487c2e5e35995ecf7216"
+      },
+      "native_passes": 73,
+      "source_passes": 10,
+      "failed": 0,
+      "receipts": [
+        {
+          "stage": "core",
+          "passes": 24,
+          "receipt": {
+            "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/core.json",
+            "bytes": 1096,
+            "sha256": "f5b3d03259d5d1e19e424c8debf1911a05ac9c82b05b259b03f3e407942709aa"
+          },
+          "stdout": {
+            "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/core.stdout",
+            "bytes": 2261,
+            "sha256": "af2f3e48dc9dfc45fd770e04ee479f6f1239b1967a0b87deaf4d0a41e8f55336"
+          },
+          "stderr": {
+            "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/core.stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        {
+          "stage": "native",
+          "passes": 16,
+          "receipt": {
+            "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/native.json",
+            "bytes": 1188,
+            "sha256": "22179e4200c959adea3c35a06a14b1ad7b70f38a9329462ce4dc2fd1fc808ef5"
+          },
+          "stdout": {
+            "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/native.stdout",
+            "bytes": 1907,
+            "sha256": "2e9c54f1acbd5403e0bc8c0d692b9435e3124cb45b12061bf083c7ab47662864"
+          },
+          "stderr": {
+            "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/native.stderr",
+            "bytes": 2773,
+            "sha256": "c283c09be438235a09a12018290b46ed1e5b6643eeccd02c61c4264bfb85c123"
+          }
+        },
+        {
+          "stage": "shutdown",
+          "passes": 33,
+          "receipt": {
+            "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/shutdown.json",
+            "bytes": 1233,
+            "sha256": "4ccb947611fde610cc49adef00aea199374888e33d3721996d12583c807ae1a4"
+          },
+          "stdout": {
+            "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/shutdown.stdout",
+            "bytes": 3438,
+            "sha256": "4370d79dfacc33b51c5afa9209ca175407d23d44dfed7be3da9865ca2d2551c5"
+          },
+          "stderr": {
+            "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/shutdown.stderr",
+            "bytes": 502,
+            "sha256": "06094ced00a33cc7fab56fc7b58f98be8b3881f1c3fb6c4d6c3df9774cc13684"
+          }
+        },
+        {
+          "stage": "source",
+          "passes": 10,
+          "receipt": {
+            "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/source.json",
+            "bytes": 1589,
+            "sha256": "3d868db303c96bc4181b9c90166c46ea34c423080299947623de704b6256391a"
+          },
+          "stdout": {
+            "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/source.stdout",
+            "bytes": 2403,
+            "sha256": "62214cdba403293bb649c4cc1cf96463ce46b411ab8b39342cf51235e4bd8f17"
+          },
+          "stderr": {
+            "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/source.stderr",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        }
+      ],
+      "scope": "24 core configuration tests +16 concurrency +33 classifier tests are execution entries, not73 original definitions; Source10 is fresh frozen file TAP, not a fresh captured assertion counter."
+    },
+    "fmt": "pass",
+    "strict_workspace_all_targets_clippy": "pass; existing vendored hyper-util timer warning retained",
+    "shipping": {
+      "syntax_files": 97,
+      "contracts": "pass",
+      "tests": 596,
+      "failures": 0,
+      "safe_archive_files": 58,
+      "package_lifecycle": "pass; isolated offline scripts-disabled install and synthetic local services. No publication or real provider/model inference.",
+      "review": {
+        "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/independent-shipping-census-addendum.json",
+        "bytes": 10534,
+        "sha256": "683a1045293641e0ba67b433872f6b38571f83659c243379aabc2d2d921a083e"
+      }
+    },
+    "retained_failures": [
+      "Initial Clippy len_zero; equivalent new-test loop spelling corrected without assertion changes.",
+      "Initial npm test595/1 fixture0600vs0644 under evidence ownerumask077; child-only ordinary022 rerun596/0, no product/source changes.",
+      "Fullworkspace32MiB source-transfer cap failure remains;40MiB proposal unanswered/unapplied."
+    ]
+  },
+  "actual_markers": {
+    "router_reconfiguration_closed": [
+      {
+        "requests": 0,
+        "cancelled": true,
+        "pending": [
+          0,
+          0
+        ]
+      }
+    ],
+    "router_reconfiguration_continuity": [
+      {
+        "staged_attempt_retained": true,
+        "completion_accepted": true,
+        "continued_model": "claude-opus-5-5",
+        "continued_reason": "tool_turn_pinned",
+        "fresh_tier": "haiku",
+        "counter_owner_retained": true,
+        "pending": [
+          0,
+          0
+        ]
+      }
+    ],
+    "router_real_body_modes": [
+      {
+        "mode": "oversize",
+        "failed_attempts": 2,
+        "requests": 3,
+        "caller_cancelled": false,
+        "first_body_polled": true,
+        "second_body_polled": true,
+        "first_body_dropped_unfinished": true,
+        "second_body_dropped_unfinished": true,
+        "pending": [
+          0,
+          0
+        ],
+        "retry_source": "jev",
+        "cache_source": "cache"
+      },
+      {
+        "mode": "malformed",
+        "failed_attempts": 2,
+        "requests": 3,
+        "caller_cancelled": false,
+        "first_body_polled": true,
+        "second_body_polled": true,
+        "first_body_dropped_unfinished": false,
+        "second_body_dropped_unfinished": false,
+        "pending": [
+          0,
+          0
+        ],
+        "retry_source": "jev",
+        "cache_source": "cache"
+      },
+      {
+        "mode": "stalled",
+        "failed_attempts": 2,
+        "requests": 3,
+        "caller_cancelled": false,
+        "first_body_polled": true,
+        "second_body_polled": true,
+        "first_body_dropped_unfinished": true,
+        "second_body_dropped_unfinished": true,
+        "pending": [
+          0,
+          0
+        ],
+        "retry_source": "jev",
+        "cache_source": "cache"
+      },
+      {
+        "mode": "http_error",
+        "failed_attempts": 2,
+        "requests": 3,
+        "caller_cancelled": false,
+        "first_body_polled": false,
+        "second_body_polled": false,
+        "first_body_dropped_unfinished": true,
+        "second_body_dropped_unfinished": true,
+        "pending": [
+          0,
+          0
+        ],
+        "retry_source": "jev",
+        "cache_source": "cache"
+      }
+    ],
+    "router_reconfiguration_identity": [
+      {
+        "original_calls": 9,
+        "last_source": "cache",
+        "restored_source": "cache",
+        "restored_tier": "sonnet",
+        "counter_owner_retained": true,
+        "pending": [
+          0,
+          0
+        ]
+      }
+    ],
+    "router_admitted_cancel": [
+      {
+        "admitted_before_cancel": true,
+        "calls_before_worker_release": 0,
+        "calls_after_cancel": 0,
+        "retry_source": "jev",
+        "cache_source": "cache",
+        "requests": 1,
+        "pending": [
+          0,
+          0
+        ],
+        "workers": 0
+      }
+    ]
+  },
+  "source_transfer": {
+    "census": {
+      "path": "artifacts/rust-rewrite/source-transfer-census-20261018-29/census.json",
+      "bytes": 13946,
+      "sha256": "5bf6c3fe97a4939142296ab4dba47892d054a04c8eeb80dd3a56555efd4ce443"
+    },
+    "logical_bytes": 33891268,
+    "logical_overage": 336836,
+    "expanded_carrier_bytes": 33866240,
+    "expanded_carrier_overage": 311808,
+    "unchanged_cap_bytes": 33554432,
+    "scope": "Read-only exact size arithmetic; no successful export/restore claimed; fixed corpora/vendor retained."
+  },
+  "cleanup": {
+    "verification": {
+      "path": "artifacts/rust-rewrite/disk-cleanup-20261018-1/final-cleanup-verification.json",
+      "bytes": 1051,
+      "sha256": "3b692377326299f8c65cada3d5b814fc4541f4bc120145c942e41816fa0620a6"
+    },
+    "allocated_bytes_reclaimed": 5134389248,
+    "scope": "Before this implementation: remove stale rebuildable libraries and transparently compress retained executable files with logical bytes/modes/paths preserved. Source/work/evidence verified unchanged at cleanup. New implementation follows cleanup."
+  },
+  "limits": [
+    "Evaluator transports mocked, embedding completion synthetic; no provider delivery/task-quality/TLS/platform/performance qualification.",
+    "Normal tracked worker drain does not establish foreign transport-background-task, blocking-destructor, outer-cancellation or crash cleanup.",
+    "Earlier14green jobs qualify HEAD7b419cb only. No new commit/push/CI/release/default cutover.",
+    "JavaScript remains shipping default; full rewrite goal stays active/incomplete."
+  ],
+  "evidence": [
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/compile-v2.json",
+      "bytes": 1098,
+      "sha256": "29450d0b2402c6faceee11443b131b782f0e5178d4292e8f2327febb5761bd7b"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/compile-v2.stdout",
+      "bytes": 165136,
+      "sha256": "599b84f4b758e4cfed232dcde0e917f2e031e16f69cd10704c6caa963854027c"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/compile-v2.stderr",
+      "bytes": 172,
+      "sha256": "1e13dc49a6add99159aae250fd56557ac8175a08aab9a29c45a33ed4c4015ce8"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/native-v2.json",
+      "bytes": 1191,
+      "sha256": "62174157301652fe8fac6fb56b1064aa4bbbb620022abbb3404b1bcae294b0d1"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/native-v2.stdout",
+      "bytes": 1907,
+      "sha256": "961b6d3a96443cc0142b28ec40e31a1916b210bd241e4b123a229bb1c2f7c8e0"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/native-v2.stderr",
+      "bytes": 2773,
+      "sha256": "0ec89c5674b3cbe2c505250844ce4c6af3dee13ada49c804b452bfbde62beda9"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/shutdown-v2.json",
+      "bytes": 1235,
+      "sha256": "9e5492ead20de3185cb1b57906dae323b3e5d0b1519332b9033c5dcdc9701037"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/shutdown-v2.stdout",
+      "bytes": 3438,
+      "sha256": "910b4fe06912cd15a2418f424bd1db3d8b4dd98d6a7cdaa9899ede057bcb999b"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/shutdown-v2.stderr",
+      "bytes": 502,
+      "sha256": "94cb3219000bb01976291a6af737c0713cdde8127acccef6b78cb86fbf91dd33"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/fmt-v2.json",
+      "bytes": 912,
+      "sha256": "a8ac622c2728c34f465f15ca25349e0d8fcca1cc90f6032f75d88e4e6f2e1ff2"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/fmt-v2.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/fmt-v2.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/clippy.json",
+      "bytes": 1022,
+      "sha256": "c308687a39b25a988dc7f16de0baf771424c259d0b634b5b08d846e61d468757"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/clippy.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/clippy.stderr",
+      "bytes": 5661,
+      "sha256": "5e76eefa02348e7baa10ffa8e60e493c7197ecf269a6a8054672530e94838de8"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/clippy-v2.json",
+      "bytes": 1019,
+      "sha256": "76156422992ceeac936678edae06e30fc235c5d796d354f540421542f0287d63"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/clippy-v2.stdout",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/clippy-v2.stderr",
+      "bytes": 959,
+      "sha256": "265bb79e491e9cc7a0b35c9bb8f40a6c1a014562832f50ae970d198af6c3ce58"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/workspace.json",
+      "bytes": 1330,
+      "sha256": "c01052d9c621754d5a3613cbcef876a533e9f42bc78fa62b271f2008904b21e0"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/workspace.stdout",
+      "bytes": 154310,
+      "sha256": "83badfec4ac84e2d48e084267fbbeac6bdb00ef44f6f056ef92d3d2adc745416"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/workspace.stderr",
+      "bytes": 8184,
+      "sha256": "e67bde4b9c06f6fe21e73154e3f02bba6dfa9e749df0d56fff42250c9f674eec"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/core.json",
+      "bytes": 1096,
+      "sha256": "f5b3d03259d5d1e19e424c8debf1911a05ac9c82b05b259b03f3e407942709aa"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/core.stdout",
+      "bytes": 2261,
+      "sha256": "af2f3e48dc9dfc45fd770e04ee479f6f1239b1967a0b87deaf4d0a41e8f55336"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/core.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/source.json",
+      "bytes": 1589,
+      "sha256": "3d868db303c96bc4181b9c90166c46ea34c423080299947623de704b6256391a"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/source.stdout",
+      "bytes": 2403,
+      "sha256": "62214cdba403293bb649c4cc1cf96463ce46b411ab8b39342cf51235e4bd8f17"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/source.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-check.json",
+      "bytes": 1121,
+      "sha256": "cc19ef8741eed0b69af84921ad8cd631ad5add89389f04448af1dd204d3ed560"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-check.stdout",
+      "bytes": 153,
+      "sha256": "4882654ddbf9853bf4f185dc398c36b83eaa63b59fbb76d525b746ce417b768f"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-check.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test.json",
+      "bytes": 1111,
+      "sha256": "d249bbbe31a2d19f1bb51de225261fdb3378bbf5265be060641a5360862ea8f7"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test.stdout",
+      "bytes": 136256,
+      "sha256": "79668389da6bbe37e92e202735eb64a6462c7312533b69b75ef943e6dc0098c2"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test-v2.json",
+      "bytes": 1252,
+      "sha256": "6125b20f588f6e22fe3717ae0d79c26de7aa6e15c2f8ec595dc1c6c7ea4db345"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test-v2.stdout",
+      "bytes": 135709,
+      "sha256": "98bc9868a0b398484895380c42b095c4f090aa2929510126431d58d0da8a95cf"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test-v2.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-package.json",
+      "bytes": 1272,
+      "sha256": "574ec87d2e35d91222336bd8e8036a32294f2d884b681f73c7447ba9580277a1"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-package.stdout",
+      "bytes": 885,
+      "sha256": "35cbf1f6fafd2377825a6093a9b52395792e67af598c52c98c2c1350a1e9b6ba"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-package.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/execution-v2-binding.json",
+      "bytes": 4320,
+      "sha256": "6be7aae187864121d386fa6225fc03ba06f0511b72e7bd83940c5b46797ca1b4"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/root-outcome-comparison.json",
+      "bytes": 19136,
+      "sha256": "73492284b3a598b24140b2ade3058b74ff6f98f8be8879bf17d0dbd3630c07d7"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/independent-focused-actual-results-review.json",
+      "bytes": 33508,
+      "sha256": "4652cb407d782ec27271f939767d202083a139fc8d7bc78d76c4b803a4a68b26"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/independent-workspace-actual-results-review.json",
+      "bytes": 9289,
+      "sha256": "584fa3a2a2a9ff8b245cb5f5f3687694978d1c75190b6039b3bfe48d8e88f59e"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/independent-corrected-strict-check-addendum.json",
+      "bytes": 3290,
+      "sha256": "843bdd1387de47bae556d10dcb52ed97ca9f741e1a43e711f367edbf557852ac"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/independent-shipping-census-addendum.json",
+      "bytes": 10534,
+      "sha256": "683a1045293641e0ba67b433872f6b38571f83659c243379aabc2d2d921a083e"
+    },
+    {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/shipping-invocation-correction.json",
+      "bytes": 644,
+      "sha256": "6410624104f247820c408e7aa5904a3ed2eaf8d612996720b1d110b80cfa2742"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-concurrency-3-4-5-7-10-native-api-draft-20261018-1/v2/independent-five-definition-api-acceptance-review.json",
+      "bytes": 23074,
+      "sha256": "0dea9e0460c3c993703adfe68d8b693363f121951dd603815917b3348da98eb5"
+    }
+  ]
+}

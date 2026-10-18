@@ -57,6 +57,10 @@ where
                 node_read_keep_alive: true,
                 #[cfg(feature = "node-http1-compat")]
                 node_write_active: false,
+                #[cfg(feature = "node-http1-compat")]
+                node_response_timing: None,
+                #[cfg(feature = "node-http1-compat")]
+                node_timed_out: false,
                 allow_half_close: false,
                 cached_headers: None,
                 error: None,
@@ -154,7 +158,38 @@ where
 
     #[cfg(feature = "server")]
     pub(crate) fn set_http1_header_read_timeout(&mut self, val: Duration) {
+        #[cfg(feature = "node-http1-compat")]
+        if self.io.node_server_timing().is_some() { return; }
         self.state.h1_header_read_timeout = Some(val);
+    }
+
+    #[cfg(feature = "node-http1-compat")]
+    pub(crate) fn set_node_server_timing(
+        &mut self,
+        control: std::sync::Arc<dyn crate::ext::NodeHttpServerTimingControl>,
+    ) {
+        self.io.set_node_server_timing(control);
+        self.state.h1_header_read_timeout = None;
+    }
+
+    #[cfg(feature = "node-http1-compat")]
+    pub(crate) fn node_timed_out(&self) -> bool { self.state.node_timed_out }
+
+    #[cfg(feature = "node-http1-compat")]
+    pub(crate) fn poll_node_timeout(&mut self, cx: &mut Context<'_>) -> bool {
+        if self.state.node_timed_out { return true; }
+        let Some(control) = self.io.node_server_timing() else { return false; };
+        let timeout = match control.poll_timeout(cx) {
+            Poll::Ready(timeout) => Some(timeout),
+            Poll::Pending if self.io.node_timing_terminal() => None,
+            Poll::Pending => return false,
+        };
+        if matches!(timeout, Some(crate::ext::NodeHttpServerTimeout::Request { write_raw_408: true })) {
+            self.io.poll_node_timeout_write(cx);
+        }
+        self.state.node_timed_out = true;
+        self.state.close();
+        true
     }
 
     #[cfg(feature = "server")]
@@ -232,7 +267,7 @@ where
             // not while an earlier pipelined response is still running.
             match self.io.poll_read_from_io(cx) {
                 Poll::Pending => return Poll::Pending,
-                Poll::Ready(Err(error)) => return self.on_read_head_error(crate::Error::new_io(error)),
+                Poll::Ready(Err(error)) => return self.on_read_head_error(cx, crate::Error::new_io(error)),
                 Poll::Ready(Ok(_)) => {}
             }
         }
@@ -279,7 +314,7 @@ where
             },
         ) {
             Poll::Ready(Ok(msg)) => msg,
-            Poll::Ready(Err(e)) => return self.on_read_head_error(e),
+            Poll::Ready(Err(e)) => return self.on_read_head_error(cx, e),
             Poll::Pending => {
                 #[cfg(feature = "server")]
                 if self.state.h1_header_read_timeout_running {
@@ -324,6 +359,7 @@ where
         if T::is_server() {
             self.state.node_read_keep_alive = msg.keep_alive && !msg.wants_upgrade;
             self.state.node_requests.push_back(NodeRequest {
+                response_timing: msg.head.extensions.get::<crate::ext::NodeHttpResponseTiming>().cloned(),
                 method: node_method,
                 version: msg.head.version,
                 keep_alive: msg.keep_alive,
@@ -385,7 +421,14 @@ where
         Poll::Ready(Some(Ok((msg.head, msg.decode, wants))))
     }
 
-    fn on_read_head_error<Z>(&mut self, e: crate::Error) -> Poll<Option<crate::Result<Z>>> {
+    fn on_read_head_error<Z>(&mut self, cx: &mut Context<'_>, e: crate::Error) -> Poll<Option<crate::Result<Z>>> {
+        #[cfg(not(feature = "node-http1-compat"))]
+        let _ = cx;
+        #[cfg(feature = "node-http1-compat")]
+        if !self.io.commit_node_timing(&[crate::ext::NodeHttpServerTimingEvent::ParserAborted]) {
+            cx.waker().wake_by_ref();
+            return Poll::Pending;
+        }
         // If we are currently waiting on a message, then an empty
         // message should be reported as an error. If not, it is just
         // the connection closing gracefully.
@@ -419,7 +462,27 @@ where
 
         let (reading, ret) = match &mut self.state.reading {
             Reading::Body(decoder) => {
-                match ready!(decoder.decode(cx, &mut self.io)) {
+                let decoded = decoder.decode(cx, &mut self.io);
+                #[cfg(feature = "node-http1-compat")]
+                if T::is_server() && self.io.node_server_timing().is_some() {
+                    let complete = match &decoded {
+                        Poll::Ready(Ok(frame)) => decoder.is_eof() || frame.is_trailers(),
+                        _ => false,
+                    };
+                    let aborted = matches!(&decoded, Poll::Ready(Err(_)));
+                    let events = if aborted {
+                        &[crate::ext::NodeHttpServerTimingEvent::ParserAborted][..]
+                    } else if complete {
+                        &[crate::ext::NodeHttpServerTimingEvent::MessageComplete][..]
+                    } else { &[][..] };
+                    // Commit receipt completion before returning the frame to
+                    // the service or advancing to a buffered pipelined head.
+                    if !self.io.commit_node_timing(events) {
+                        cx.waker().wake_by_ref();
+                        return Poll::Pending;
+                    }
+                }
+                match ready!(decoded) {
                     Ok(frame) => {
                         if frame.is_data() {
                             let slice = frame.data_ref().unwrap_or_else(|| unreachable!());
@@ -566,6 +629,13 @@ where
         debug_assert!(!self.state.is_read_closed());
 
         let result = ready!(self.io.poll_read_from_io(cx));
+        #[cfg(feature = "node-http1-compat")]
+        if !self.io.commit_node_timing(if matches!(&result, Ok(0) | Err(_)) {
+            &[crate::ext::NodeHttpServerTimingEvent::ParserAborted][..]
+        } else { &[][..] }) {
+            cx.waker().wake_by_ref();
+            return Poll::Pending;
+        }
         Poll::Ready(result.map_err(|e| {
             trace!(error = %e, "force_io_read; io error");
             self.state.close();
@@ -595,6 +665,13 @@ where
             if self.io.read_buf().is_empty() {
                 match self.io.poll_read_from_io(cx) {
                     Poll::Ready(Ok(n)) => {
+                        #[cfg(feature = "node-http1-compat")]
+                        if !self.io.commit_node_timing(if n == 0 {
+                            &[crate::ext::NodeHttpServerTimingEvent::ParserAborted][..]
+                        } else { &[][..] }) {
+                            cx.waker().wake_by_ref();
+                            return;
+                        }
                         if n == 0 {
                             trace!("maybe_notify; read eof");
                             if self.state.is_idle() {
@@ -610,6 +687,11 @@ where
                         return;
                     }
                     Poll::Ready(Err(e)) => {
+                        #[cfg(feature = "node-http1-compat")]
+                        if !self.io.commit_node_timing(&[crate::ext::NodeHttpServerTimingEvent::ParserAborted]) {
+                            cx.waker().wake_by_ref();
+                            return;
+                        }
                         trace!("maybe_notify; read_from_io error: {}", e);
                         self.state.close();
                         self.state.error = Some(crate::Error::new_io(e));
@@ -664,6 +746,7 @@ where
         #[cfg(feature = "node-http1-compat")]
         if T::is_server() {
             if let Some(request) = self.state.node_requests.pop_front() {
+                self.state.node_response_timing = request.response_timing;
                 self.state.method = request.method;
                 self.state.version = request.version;
                 self.state.keep_alive = if request.keep_alive { KA::Busy } else { KA::Disabled };
@@ -691,6 +774,13 @@ where
         body: Option<BodyLength>,
     ) -> Option<Encoder> {
         debug_assert!(self.can_write_head());
+        #[cfg(feature = "node-http1-compat")]
+        if T::is_server() {
+            if !self.io.commit_node_timing(&[]) { return None; }
+            if let Some(response) = &self.state.node_response_timing {
+                response.mark_prepared();
+            }
+        }
 
         if !T::should_read_first() {
             self.state.busy();
@@ -940,16 +1030,29 @@ where
         ready!(Pin::new(&mut self.io).poll_flush(cx))?;
         #[cfg(feature = "node-http1-compat")]
         if T::is_server() {
-            if matches!(self.state.writing, Writing::Closed) {
-                self.state.close();
-            } else if self.state.node_write_active && matches!(self.state.writing, Writing::KeepAlive) {
+            if self.state.node_write_active && matches!(self.state.writing, Writing::KeepAlive | Writing::Closed) {
+                if !self.io.commit_node_timing(&[
+                    crate::ext::NodeHttpServerTimingEvent::ResponseFinished {
+                        queued_responses: !self.state.node_requests.is_empty(),
+                    },
+                ]) {
+                    cx.waker().wake_by_ref();
+                    return Poll::Pending;
+                }
+                self.state.node_response_timing = self.state.node_requests.front()
+                    .and_then(|request| request.response_timing.clone());
                 self.state.node_write_active = false;
-                self.state.writing = Writing::Init;
-                if self.state.node_requests.is_empty() && matches!(self.state.reading, Reading::Init) {
-                    self.state.keep_alive.idle();
+                if !matches!(self.state.writing, Writing::Closed) {
+                    self.state.writing = Writing::Init;
+                    if self.state.node_requests.is_empty() && matches!(self.state.reading, Reading::Init) {
+                        self.state.keep_alive.idle();
+                    }
                 }
                 self.state.notify_read = true;
                 cx.waker().wake_by_ref();
+            }
+            if matches!(self.state.writing, Writing::Closed) {
+                self.state.close();
             }
         }
         self.try_keep_alive(cx);
@@ -1036,6 +1139,7 @@ impl<I: Unpin, B, T> Unpin for Conn<I, B, T> {}
 
 #[cfg(feature = "node-http1-compat")]
 struct NodeRequest {
+    response_timing: Option<crate::ext::NodeHttpResponseTiming>,
     method: Option<Method>,
     version: Version,
     keep_alive: bool,
@@ -1049,6 +1153,10 @@ struct State {
     node_read_keep_alive: bool,
     #[cfg(feature = "node-http1-compat")]
     node_write_active: bool,
+    #[cfg(feature = "node-http1-compat")]
+    node_response_timing: Option<crate::ext::NodeHttpResponseTiming>,
+    #[cfg(feature = "node-http1-compat")]
+    node_timed_out: bool,
     allow_half_close: bool,
     /// Re-usable `HeaderMap` to reduce allocating new ones.
     cached_headers: Option<HeaderMap>,
@@ -1564,5 +1672,168 @@ mod tests {
         tokio_test::task::spawn(()).enter(|cx, _| {
             assert!(conn.poll_flush(cx).is_ready());
         });
+    }
+}
+
+#[cfg(all(test, feature = "node-http1-compat"))]
+mod node_server_timing_tests {
+    use super::*;
+    use crate::common::io::Compat;
+    use crate::ext::{NodeHttpServerTimeout, NodeHttpServerTimingControl, NodeHttpServerTimingEvent};
+    use std::sync::{Arc, Mutex};
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    #[derive(Debug, Default)]
+    struct Timing {
+        batches: Mutex<Vec<Vec<NodeHttpServerTimingEvent>>>,
+        timeout: Mutex<Option<NodeHttpServerTimeout>>,
+        reject_headers: bool,
+    }
+    impl NodeHttpServerTimingControl for Timing {
+        fn commit(&self, events: &[NodeHttpServerTimingEvent]) -> bool {
+            self.batches.lock().unwrap().push(events.to_vec());
+            let mut timeout = self.timeout.lock().unwrap();
+            if self.reject_headers && events.iter().any(|event| matches!(event, NodeHttpServerTimingEvent::HeadersComplete { .. })) {
+                *timeout = Some(NodeHttpServerTimeout::Request { write_raw_408: true });
+            }
+            timeout.is_none()
+        }
+        fn poll_timeout(&self, _cx: &mut Context<'_>) -> Poll<NodeHttpServerTimeout> {
+            self.timeout.lock().unwrap().map_or(Poll::Pending, Poll::Ready)
+        }
+    }
+
+    #[tokio::test]
+    async fn zero_body_head_commits_begin_and_completion_with_one_response_marker() {
+        let io = Compat(tokio_test::io::Builder::new()
+            .read(b"\r\nGET / HTTP/1.1\r\nHost: example.test\r\n\r\n").build());
+        let timing = Arc::new(Timing::default());
+        let mut conn = Conn::<_, Bytes, crate::proto::h1::ServerTransaction>::new(io);
+        conn.set_node_server_timing(timing.clone());
+        let (head, length, _) = futures_util::future::poll_fn(|cx| conn.poll_read_head(cx)).await.unwrap().unwrap();
+        assert_eq!(length, DecodedLength::ZERO);
+        let batches = timing.batches.lock().unwrap();
+        let batch = batches.iter().find(|batch| batch.iter().any(|event| matches!(event, NodeHttpServerTimingEvent::HeadersComplete { .. }))).unwrap();
+        assert!(matches!(batch.as_slice(), [NodeHttpServerTimingEvent::PositiveInput, NodeHttpServerTimingEvent::MessageBegin, NodeHttpServerTimingEvent::HeadersComplete { message_complete: true, .. }]));
+        let NodeHttpServerTimingEvent::HeadersComplete { response, .. } = &batch[2] else { unreachable!() };
+        let from_request = head.extensions.get::<crate::ext::NodeHttpResponseTiming>().unwrap();
+        assert!(!response.is_prepared());
+        from_request.mark_prepared();
+        assert!(response.is_prepared());
+        assert!(conn.state.node_requests.front().unwrap().response_timing.as_ref().unwrap().is_prepared());
+    }
+
+    #[tokio::test]
+    async fn final_body_frame_commits_message_completion_before_exposure() {
+        let io = Compat(tokio_test::io::Builder::new()
+            .read(b"POST / HTTP/1.1\r\nHost: example.test\r\nContent-Length: 1\r\n\r\nx").build());
+        let timing = Arc::new(Timing::default());
+        let mut conn = Conn::<_, Bytes, crate::proto::h1::ServerTransaction>::new(io);
+        conn.set_node_server_timing(timing.clone());
+        let (_, length, _) = futures_util::future::poll_fn(|cx| conn.poll_read_head(cx)).await.unwrap().unwrap();
+        assert_eq!(length.danger_len(), 1);
+        assert!(!timing.batches.lock().unwrap().iter().flatten().any(|event| matches!(event, NodeHttpServerTimingEvent::MessageComplete)));
+        let frame = futures_util::future::poll_fn(|cx| conn.poll_read_body(cx)).await.unwrap().unwrap();
+        assert_eq!(frame.data_ref().unwrap().as_ref(), b"x");
+        assert!(matches!(timing.batches.lock().unwrap().last().unwrap().as_slice(), [NodeHttpServerTimingEvent::MessageComplete]));
+    }
+
+    #[tokio::test]
+    async fn rejected_header_commit_cannot_invoke_service_and_uses_raw_timeout_only() {
+        let io = Compat(tokio_test::io::Builder::new()
+            .read(b"GET / HTTP/1.1\r\nHost: example.test\r\n\r\n")
+            .write(b"HTTP/1.1 408 Request Timeout\r\nConnection: close\r\n\r\n").build());
+        let timing = Arc::new(Timing { reject_headers: true, ..Timing::default() });
+        let calls = Arc::new(AtomicUsize::new(0));
+        let service_calls = calls.clone();
+        let service = crate::service::service_fn(move |_| {
+            service_calls.fetch_add(1, Ordering::SeqCst);
+            async { Ok::<_, std::convert::Infallible>(http::Response::new(http_body_util::Empty::<Bytes>::new())) }
+        });
+        let mut builder = crate::server::conn::http1::Builder::new();
+        builder.node_http_server_timing(timing);
+        builder.serve_connection(io, service).await.unwrap();
+        assert_eq!(calls.load(Ordering::SeqCst), 0);
+    }
+
+    #[tokio::test]
+    async fn timeout_latched_during_service_error_wins_before_generic_error_return() {
+        let io = Compat(tokio_test::io::Builder::new()
+            .read(b"GET / HTTP/1.1\r\nHost: example.test\r\n\r\n")
+            .write(b"HTTP/1.1 408 Request Timeout\r\nConnection: close\r\n\r\n").build());
+        let timing = Arc::new(Timing::default());
+        let service_timing = timing.clone();
+        let calls = Arc::new(AtomicUsize::new(0));
+        let service_calls = calls.clone();
+        let service = crate::service::service_fn(move |_| {
+            let timing = service_timing.clone();
+            let calls = service_calls.clone();
+            async move {
+                calls.fetch_add(1, Ordering::SeqCst);
+                *timing.timeout.lock().unwrap() = Some(NodeHttpServerTimeout::Request { write_raw_408: true });
+                Err::<http::Response<http_body_util::Empty<Bytes>>, _>(io::Error::from(io::ErrorKind::ConnectionAborted))
+            }
+        });
+        let mut builder = crate::server::conn::http1::Builder::new();
+        builder.node_http_server_timing(timing);
+        builder.serve_connection(io, service).await.unwrap();
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+    }
+
+    #[derive(Clone, Copy, Debug)]
+    enum WriteResult { Pending, Partial, Error }
+    #[derive(Debug, Default)]
+    struct Counts { reads: AtomicUsize, writes: AtomicUsize, flushes: AtomicUsize, shutdowns: AtomicUsize }
+    #[derive(Debug)]
+    struct PendingIo { result: WriteResult, counts: Arc<Counts> }
+    impl crate::rt::Read for PendingIo {
+        fn poll_read(self: Pin<&mut Self>, _cx: &mut Context<'_>, _buf: crate::rt::ReadBufCursor<'_>) -> Poll<io::Result<()>> {
+            self.counts.reads.fetch_add(1, Ordering::SeqCst);
+            Poll::Pending
+        }
+    }
+    impl crate::rt::Write for PendingIo {
+        fn poll_write(self: Pin<&mut Self>, _cx: &mut Context<'_>, bytes: &[u8]) -> Poll<io::Result<usize>> {
+            self.counts.writes.fetch_add(1, Ordering::SeqCst);
+            assert_eq!(bytes, b"HTTP/1.1 408 Request Timeout\r\nConnection: close\r\n\r\n");
+            match self.result {
+                WriteResult::Pending => Poll::Pending,
+                WriteResult::Partial => Poll::Ready(Ok(1)),
+                WriteResult::Error => Poll::Ready(Err(io::ErrorKind::BrokenPipe.into())),
+            }
+        }
+        fn poll_flush(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<io::Result<()>> {
+            self.counts.flushes.fetch_add(1, Ordering::SeqCst);
+            Poll::Pending
+        }
+        fn poll_shutdown(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<io::Result<()>> {
+            self.counts.shutdowns.fetch_add(1, Ordering::SeqCst);
+            Poll::Pending
+        }
+    }
+
+    #[test]
+    fn terminal_timeout_never_waits_for_write_flush_or_shutdown() {
+        for result in [WriteResult::Pending, WriteResult::Partial, WriteResult::Error] {
+            for timeout in [NodeHttpServerTimeout::Request { write_raw_408: true }, NodeHttpServerTimeout::Request { write_raw_408: false }, NodeHttpServerTimeout::Idle] {
+                let timing = Arc::new(Timing { timeout: Mutex::new(Some(timeout)), ..Timing::default() });
+                let counts = Arc::new(Counts::default());
+                let io = PendingIo { result, counts: counts.clone() };
+                let service = crate::service::service_fn(|_| async {
+                    panic!("an expired connection must not invoke its service");
+                    #[allow(unreachable_code)]
+                    Ok::<_, std::convert::Infallible>(http::Response::new(http_body_util::Empty::<Bytes>::new()))
+                });
+                let mut builder = crate::server::conn::http1::Builder::new();
+                builder.node_http_server_timing(timing);
+                let mut connection = Box::pin(builder.serve_connection(io, service));
+                let polled = tokio_test::task::spawn(()).enter(|cx, _| connection.as_mut().poll(cx));
+                assert!(matches!(polled, Poll::Ready(Ok(()))));
+                assert_eq!(counts.reads.load(Ordering::SeqCst), 0);
+                assert_eq!(counts.writes.load(Ordering::SeqCst), usize::from(matches!(timeout, NodeHttpServerTimeout::Request { write_raw_408: true })));
+                assert_eq!(counts.flushes.load(Ordering::SeqCst), 0);
+                assert_eq!(counts.shutdowns.load(Ordering::SeqCst), 0);
+            }
+        }
     }
 }

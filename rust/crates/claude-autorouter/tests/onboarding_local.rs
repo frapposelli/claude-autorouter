@@ -14,43 +14,15 @@ use support::{
 };
 
 fn diagnostic_reply(request: &Request, model: &str, collapsed: bool) -> Response {
-    for header in ["authorization", "x-api-key", "x-autorouter-token"] {
-        assert!(!request.headers.contains_key(header));
-    }
-    let body = match request.path.as_str() {
-        "/api/version" => json!({"version":"0.35.0"}),
-        "/api/tags" | "/api/ps" => json!({"models":[{"name":model}]}),
-        "/api/show" => {
-            assert_eq!(request.json()["model"], model);
-            json!({"details":{"parameter_size":"0.8B"}})
-        }
-        "/v1/systemone" => {
-            let body = request.json();
-            assert_eq!(body["model"], model);
-            assert_eq!(body["keep_alive"], "5m");
-            let cases = autorouter_runtime::local_diagnostic::local_diagnostic_cases();
-            let tier = if body["state"]["current_task"] == "Return the literal word ready." {
-                "haiku"
-            } else {
-                let fixture = cases
-                    .as_array()
-                    .unwrap()
-                    .iter()
-                    .find(|item| item["prompt"] == body["state"]["current_task"])
-                    .expect("Only packaged synthetic tasks may reach local diagnosis");
-                if collapsed {
-                    "sonnet"
-                } else {
-                    fixture["expected"].as_str().unwrap()
-                }
-            };
-            json!({"model":model,"answers":{"tier":{"type":"choice","choice":tier,"confidence":1,
-                "probabilities":{"haiku":u8::from(tier=="haiku"),"sonnet":u8::from(tier=="sonnet"),"opus":u8::from(tier=="opus")}}},
-                "usage":{"input_tokens":900,"output_tokens":1}})
-        }
-        _ => panic!("Local diagnosis reached an unexpected endpoint"),
-    };
-    Response::json(body)
+    support::diagnostic_reply(
+        request,
+        model,
+        collapsed,
+        false,
+        "Return the literal word ready.",
+        "Only packaged synthetic tasks may reach local diagnosis",
+        "Local diagnosis reached an unexpected endpoint",
+    )
 }
 
 fn diagnostic_home(model: &str) -> Home {
@@ -67,7 +39,7 @@ fn diagnostic_home(model: &str) -> Home {
 fn local_diagnostic_cli_bypasses_cloud_keys_and_claude_auth_and_emits_one_json_record() {
     for collapsed in [false, true] {
         let home = diagnostic_home("tev1:0.8b");
-        let before = fs::read(home.config()).unwrap();
+        let before = home.saved_bytes();
         let server = Server::new(move |request| diagnostic_reply(request, "tev1:0.8b", collapsed));
         let result = output(
             home.command()
@@ -140,7 +112,7 @@ fn local_diagnostic_cli_bypasses_cloud_keys_and_claude_auth_and_emits_one_json_r
             7
         );
         assert!(!home.0.join("unexpected-claude").exists());
-        assert_eq!(fs::read(home.config()).unwrap(), before);
+        assert_eq!(home.saved_bytes(), before);
         server.assert_clean();
     }
 }
@@ -149,7 +121,7 @@ fn local_diagnostic_cli_bypasses_cloud_keys_and_claude_auth_and_emits_one_json_r
 fn local_diagnostic_cli_rejects_jev_without_io_or_claude_authentication() {
     let home = diagnostic_home("tev1:0.8b");
     home.save(&json!({"AUTOROUTER_EVALUATOR":"jev"}));
-    let before = fs::read(home.config()).unwrap();
+    let before = home.saved_bytes();
     let server = Server::new(|_| panic!("Rejected Jev diagnosis must perform no HTTP requests"));
     let result = output(
         home.command()
@@ -175,7 +147,7 @@ fn local_diagnostic_cli_rejects_jev_without_io_or_claude_authentication() {
     );
     assert!(server.calls().is_empty());
     assert!(!home.0.join("unexpected-claude").exists());
-    assert_eq!(fs::read(home.config()).unwrap(), before);
+    assert_eq!(home.saved_bytes(), before);
 }
 
 #[test]
@@ -186,7 +158,7 @@ fn local_diagnostic_cli_cancellation_after_request_closes_transport_without_a_re
     for signal in [Signal::SIGINT, Signal::SIGTERM] {
         for json_output in [false, true] {
             let home = diagnostic_home("tev1:0.8b");
-            let before = fs::read(home.config()).unwrap();
+            let before = home.saved_bytes();
             let (ready_tx, ready_rx) = mpsc::channel();
             let (closed_tx, closed_rx) = mpsc::channel();
             let server = Server::with_connection(move |request, stream| {
@@ -234,7 +206,7 @@ fn local_diagnostic_cli_cancellation_after_request_closes_transport_without_a_re
                 ]
             );
             assert!(!home.0.join("unexpected-claude").exists());
-            assert_eq!(fs::read(home.config()).unwrap(), before);
+            assert_eq!(home.saved_bytes(), before);
             server.assert_clean();
         }
     }
@@ -354,7 +326,7 @@ fn ollama_subscription_setup_preloads_before_saving_and_doctor_is_read_only() {
     for call in local.server.calls() {
         assert!(!String::from_utf8_lossy(&call.body).contains("unused-"));
     }
-    let before = fs::read(local.home.config()).unwrap();
+    let before = local.home.saved_bytes();
     local.reset();
     let result = output(local.command().arg("doctor"));
     let text = success(&result);
@@ -367,7 +339,7 @@ fn ollama_subscription_setup_preloads_before_saving_and_doctor_is_read_only() {
     assert!(text.contains("routing deadline 30000 ms per request"));
     assert!(text.contains("classification speed and accuracy are not tested"));
     assert!(!text.contains("PRIVATE"));
-    assert_eq!(fs::read(local.home.config()).unwrap(), before);
+    assert_eq!(local.home.saved_bytes(), before);
     local.reset();
     local.state.lock().unwrap().installed = false;
     let result = output(local.command().arg("doctor"));
@@ -375,7 +347,7 @@ fn ollama_subscription_setup_preloads_before_saving_and_doctor_is_read_only() {
     assert!(result.stderr.is_empty());
     assert!(String::from_utf8_lossy(&result.stdout).contains("--pull"));
     assert_eq!(local.server.paths(), ["/api/version", "/api/tags"]);
-    assert_eq!(fs::read(local.home.config()).unwrap(), before);
+    assert_eq!(local.home.saved_bytes(), before);
 }
 #[test]
 fn ollama_api_setup_prompts_only_anthropic_preserves_keepalive_and_accepts_custom_model() {
@@ -493,7 +465,7 @@ fn forced_model_deadlines_and_doctor_runtime_overrides_preserve_saved_values() {
             ])
             .env("AUTOROUTER_OLLAMA_TIMEOUT_MS", "7000"),
     ));
-    let before = fs::read(local.home.config()).unwrap();
+    let before = local.home.saved_bytes();
     local.reset();
     let result = output(
         local
@@ -509,7 +481,7 @@ fn forced_model_deadlines_and_doctor_runtime_overrides_preserve_saved_values() {
     );
     assert_eq!(local.auth_calls(), ["--version", "auth status --json"]);
     assert_eq!(local.home.saved()["AUTOROUTER_OLLAMA_TIMEOUT_MS"], "7000");
-    assert_eq!(fs::read(local.home.config()).unwrap(), before);
+    assert_eq!(local.home.saved_bytes(), before);
 }
 #[test]
 fn explicit_zero_deadline_overrides_environment_and_doctor_never_warms() {
@@ -580,7 +552,7 @@ fn failed_ollama_setup_and_custom_model_repair_leave_existing_configuration_inta
     let local = Local::new(DEFAULT_OLLAMA_MODEL);
     let original = json!({"AUTOROUTER_AUTH_MODE":"subscription","AUTOROUTER_CLIENT_PROFILE":"compatible","AUTOROUTER_EVALUATOR":"jev","TYPESAFE_API_KEY":"original-key","AUTOROUTER_SECRET_STORE":"file"});
     local.home.save(&original);
-    let before = fs::read(local.home.config()).unwrap();
+    let before = local.home.saved_bytes();
     local.state.lock().unwrap().installed = false;
     let result = output(
         local
@@ -590,7 +562,7 @@ fn failed_ollama_setup_and_custom_model_repair_leave_existing_configuration_inta
     assert!(!result.status.success());
     assert!(String::from_utf8_lossy(&result.stderr).contains("--pull"));
     assert_eq!(local.server.paths(), ["/api/version", "/api/tags"]);
-    assert_eq!(fs::read(local.home.config()).unwrap(), before);
+    assert_eq!(local.home.saved_bytes(), before);
     for args in [
         vec!["--pull"],
         vec!["--evaluator", "unknown"],
@@ -608,7 +580,7 @@ fn failed_ollama_setup_and_custom_model_repair_leave_existing_configuration_inta
         assert!(!result.status.success());
         assert!(fresh.server.calls().is_empty());
         assert!(!fresh.home.config().exists());
-        assert_eq!(fs::read(local.home.config()).unwrap(), before);
+        assert_eq!(local.home.saved_bytes(), before);
     }
     let custom = json!({"AUTOROUTER_AUTH_MODE":"subscription","AUTOROUTER_EVALUATOR":"ollama","AUTOROUTER_OLLAMA_MODEL":"team/router:v2","AUTOROUTER_OLLAMA_URL":local.server.url(),"AUTOROUTER_SECRET_STORE":"file"});
     local.home.save(&custom);
@@ -647,7 +619,7 @@ fn forced_ollama_updates_keep_all_unrelated_saved_settings_and_runtime_overrides
     let saved = json!({"AUTOROUTER_AUTH_MODE":"api-key","AUTOROUTER_CLIENT_PROFILE":"native","AUTOROUTER_EVALUATOR":"ollama","ANTHROPIC_API_KEY":"saved-anthropic","TYPESAFE_API_KEY":"saved-jev","AUTOROUTER_TOKEN":"saved-private-token","AUTOROUTER_OLLAMA_MODEL":"tev1:4b-q4_K_M","AUTOROUTER_OLLAMA_TIMEOUT_MS":"0","AUTOROUTER_OLLAMA_URL":local.server.url(),"AUTOROUTER_SECRET_STORE":"file","AUTOROUTER_PORT":"8123","AUTOROUTER_DEBUG":"0","AUTOROUTER_STATUSLINE":"1","AUTOROUTER_SESSION_LOG_MODE":"metadata"});
     local.home.save(&saved);
     local.reset();
-    let before = fs::read(local.home.config()).unwrap();
+    let before = local.home.saved_bytes();
     let text = success(&output(
         local
             .command()
@@ -869,7 +841,7 @@ fn stop_cap_cli_precedence_normalization_and_doctor_overrides_work_for_both_eval
             Some(0)
         );
         assert!(text.contains("Claude Stop/SubagentStop cap: 2 continuations without tool use"));
-        let before = fs::read(local.home.config()).unwrap();
+        let before = local.home.saved_bytes();
         let text = success(&output(
             local
                 .command()
@@ -877,7 +849,7 @@ fn stop_cap_cli_precedence_normalization_and_doctor_overrides_work_for_both_eval
                 .env("CLAUDE_CODE_STOP_HOOK_BLOCK_CAP", "0"),
         ));
         assert!(text.contains("Claude Stop/SubagentStop continuation cap disabled (0)"));
-        assert_eq!(fs::read(local.home.config()).unwrap(), before);
+        assert_eq!(local.home.saved_bytes(), before);
         let text = success(&output(command().args([
             "setup",
             "--force",
@@ -936,7 +908,7 @@ fn stop_cap_doctor_reports_absent_saved_and_runtime_values_without_inference() {
             .args(["setup", "--force", "--stop-hook-block-cap", "2"])
             .env("TYPESAFE_API_KEY", "synthetic-jev-key"),
     ));
-    let saved = fs::read(local.home.config()).unwrap();
+    let saved = local.home.saved_bytes();
     let text = success(&output(local.command().arg("doctor")));
     assert!(text.contains("Claude Stop/SubagentStop cap: 2 continuations without tool use"));
     let text = success(&output(
@@ -946,7 +918,7 @@ fn stop_cap_doctor_reports_absent_saved_and_runtime_values_without_inference() {
             .env("CLAUDE_CODE_STOP_HOOK_BLOCK_CAP", "0"),
     ));
     assert!(text.contains("Claude Stop/SubagentStop continuation cap disabled (0)"));
-    assert_eq!(fs::read(local.home.config()).unwrap(), saved);
+    assert_eq!(local.home.saved_bytes(), saved);
     assert_eq!(
         local.auth_calls(),
         [
@@ -1006,7 +978,7 @@ fn jev_auto_doctor_reports_routing_profile_without_permission_eligibility_claims
             .args(["setup", "--evaluator", "jev", "--client-profile", "auto"])
             .env("TYPESAFE_API_KEY", "synthetic-jev-key"),
     ));
-    let before = fs::read(local.home.config()).unwrap();
+    let before = local.home.saved_bytes();
     let text = success(&output(local.command().arg("doctor")));
     assert!(text.contains("Auto-compatible profile: Sonnet/Opus task routing"));
     assert!(text.contains("Claude controls permission-mode availability and safety checks"));
@@ -1023,7 +995,7 @@ fn jev_auto_doctor_reports_routing_profile_without_permission_eligibility_claims
         assert!(!text.to_ascii_lowercase().contains(claim));
     }
     assert_eq!(local.auth_calls(), ["--version", "auth status --json"]);
-    assert_eq!(fs::read(local.home.config()).unwrap(), before);
+    assert_eq!(local.home.saved_bytes(), before);
     assert!(local.server.calls().is_empty());
 }
 
@@ -1036,7 +1008,7 @@ fn saved_subscription_doctor_scrubs_all_credentials_and_uses_the_exact_auth_sequ
             .args(["setup", "--evaluator", "jev"])
             .env("TYPESAFE_API_KEY", "jev-secret"),
     ));
-    let before = fs::read(local.home.config()).unwrap();
+    let before = local.home.saved_bytes();
     let result = output(
         local
             .command()
@@ -1059,7 +1031,7 @@ fn saved_subscription_doctor_scrubs_all_credentials_and_uses_the_exact_auth_sequ
         assert!(!text.contains(secret));
     }
     assert!(local.server.calls().is_empty());
-    assert_eq!(fs::read(local.home.config()).unwrap(), before);
+    assert_eq!(local.home.saved_bytes(), before);
 }
 
 #[test]
@@ -1152,7 +1124,7 @@ fn logging_setup_resolves_cli_directory_and_disables_without_creating_history() 
             .collect::<Vec<_>>(),
         environment
     );
-    let before = fs::read(local.home.config()).unwrap();
+    let before = local.home.saved_bytes();
     let saved = local.home.saved();
     assert_eq!(saved["AUTOROUTER_SESSION_LOG_DIR"], json!(directory));
     assert_eq!(saved["AUTOROUTER_SESSION_LOG_MODE"], "prompts");
@@ -1180,7 +1152,7 @@ fn logging_setup_resolves_cli_directory_and_disables_without_creating_history() 
     assert_eq!(local.auth_calls(), ["--version", "auth status --json"]);
     assert!(local.server.calls().is_empty());
     assert!(!directory.exists());
-    assert_eq!(fs::read(local.home.config()).unwrap(), before);
+    assert_eq!(local.home.saved_bytes(), before);
     let text = success(&output(
         local
             .home
@@ -1189,7 +1161,7 @@ fn logging_setup_resolves_cli_directory_and_disables_without_creating_history() 
             .env("AUTOROUTER_SESSION_LOG_DIR", ""),
     ));
     assert!(!text.contains("Session decision logs enabled"));
-    assert_eq!(fs::read(local.home.config()).unwrap(), before);
+    assert_eq!(local.home.saved_bytes(), before);
 
     success(&output(
         local
@@ -1334,14 +1306,14 @@ fn invalid_setup_settings_fail_before_keys_and_cancelled_replacement_preserves_b
         "TYPESAFE_API_KEY":"preserved-secret",
         "AUTOROUTER_PORT":"8123"
     }));
-    let before = fs::read(local.home.config()).unwrap();
+    let before = local.home.saved_bytes();
     let result = hidden_inputs(
         command().args(["setup", "--replace"]),
         &[("TYPESAFE_API_KEY", HiddenInput::Cancel)],
     );
     assert!(!result.status.success());
     assert!(String::from_utf8_lossy(&result.stderr).contains("Setup cancelled"));
-    assert_eq!(fs::read(local.home.config()).unwrap(), before);
+    assert_eq!(local.home.saved_bytes(), before);
     assert!(local.server.calls().is_empty());
     assert!(local.auth_calls().is_empty());
 }

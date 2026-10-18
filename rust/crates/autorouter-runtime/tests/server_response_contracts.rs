@@ -3,25 +3,15 @@
 mod simple;
 const LOCAL_AUTH_HEADER: &str = "x-api-key";
 use autorouter_core::config::read_config;
-use autorouter_runtime::http_client::NativeHttpClient;
-use autorouter_runtime::server::Gateway;
-use autorouter_runtime::server_events::EventSinks;
 use bytes::Bytes;
 use http_body_util::{BodyExt, Full, Limited};
 use hyper::body::Incoming;
-use hyper::service::service_fn;
 use hyper::{HeaderMap, Request, Response};
-use hyper_util::rt::TokioIo;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::convert::Infallible;
-use std::sync::{
-    Arc, Mutex,
-    atomic::{AtomicUsize, Ordering},
-};
+use std::sync::{Arc, Mutex, atomic::Ordering};
 use std::time::Duration;
-use tokio::task::JoinSet;
-use tokio_util::sync::CancellationToken;
 
 const CASES: &str = include_str!("../../../parity/cases/server-response-contracts.jsonl");
 const CAPTURE: &str = include_str!("../../../parity/cases/server-response-contracts.capture.json");
@@ -44,116 +34,55 @@ async fn bounded(future: impl std::future::Future<Output = ()>) {
         .await
         .expect("Complete synthetic server schedule exceeded deadline");
 }
-use simple::{Events, Fixture, PeerLease, Router, Seen, sink};
+use simple::{Fixture, Seen};
 impl Fixture {
     async fn new(row: &Value, response_bytes: Vec<u8>, encoding: Option<&str>) -> Self {
         assert!(response_bytes.len() <= 4096);
-        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
-        let address = listener.local_addr().unwrap();
-        let stop = CancellationToken::new();
-        let peer_stop = stop.clone();
-        let active = Arc::new(AtomicUsize::new(0));
-        let peer_active = active.clone();
-        let seen = Arc::new(Mutex::new(Vec::new()));
-        let peer_seen = seen.clone();
-        let status = row["response_status"].as_u64().unwrap_or(500) as u16;
-        let mut headers = HeaderMap::new();
-        if let Some(fields) = row["response_headers"].as_object() {
-            for (key, value) in fields {
-                headers.insert(
-                    hyper::header::HeaderName::from_bytes(key.as_bytes()).unwrap(),
-                    value.as_str().unwrap().parse().unwrap(),
-                );
-            }
-        }
-        headers.remove("content-encoding");
-        if let Some(encoding) = encoding {
-            headers.insert("content-encoding", encoding.parse().unwrap());
-        }
-        let bytes = Bytes::from(response_bytes);
-        let peer = tokio::spawn(async move {
-            let mut tasks = JoinSet::new();
-            loop {
-                tokio::select! {
-                    biased;
-                    _ = peer_stop.cancelled() => break,
-                    result = tasks.join_next(), if !tasks.is_empty() => { result.unwrap().unwrap(); },
-                    socket = listener.accept() => {
-                        let (socket, _) = socket.unwrap();
-                        assert!(peer_active.fetch_add(1, Ordering::SeqCst) < 8);
-                        let lease = PeerLease(peer_active.clone());
-                        let seen = peer_seen.clone();
-                        let headers = headers.clone();
-                        let bytes = bytes.clone();
-                        tasks.spawn(async move {
-                            let _lease = lease;
-                            let service = service_fn(move |request: Request<Incoming>| {
-                                let seen = seen.clone();
-                                let headers = headers.clone();
-                                let bytes = bytes.clone();
-                                async move {
-                                    let (parts, body) = request.into_parts();
-                                    let body = Limited::new(body, 4096).collect().await.unwrap().to_bytes();
-                                    {
-                                        let mut calls = seen.lock().unwrap();
-                                        assert!(calls.len() < 16);
-                                        calls.push(Seen { method: parts.method.to_string(), path: parts.uri.to_string(), headers: parts.headers, body });
-                                    }
-                                    let mut response = Response::builder().status(status).body(Full::new(bytes)).unwrap();
-                                    *response.headers_mut() = headers;
-                                    Ok::<_, Infallible>(response)
-                                }
-                            });
-                            hyper::server::conn::http1::Builder::new()
-                                .serve_connection(TokioIo::new(socket), service).await.unwrap();
-                        });
+        Self::start(
+            || {
+                let status = row["response_status"].as_u64().unwrap_or(500) as u16;
+                let mut headers = HeaderMap::new();
+                if let Some(fields) = row["response_headers"].as_object() {
+                    for (key, value) in fields {
+                        headers.insert(
+                            hyper::header::HeaderName::from_bytes(key.as_bytes()).unwrap(),
+                            value.as_str().unwrap().parse().unwrap(),
+                        );
                     }
                 }
-            }
-            tasks.abort_all();
-            while let Some(result) = tasks.join_next().await {
-                if let Err(error) = result {
-                    assert!(error.is_cancelled(), "Unexpected peer panic: {error}");
+                headers.remove("content-encoding");
+                if let Some(encoding) = encoding {
+                    headers.insert("content-encoding", encoding.parse().unwrap());
                 }
-            }
-        });
-        let token = row["token"].as_str().unwrap().to_owned();
-        let mut config = read_config(&json!({"AUTOROUTER_EVALUATOR":"jev","ANTHROPIC_API_KEY":"upstream-secret","TYPESAFE_API_KEY":"classifier-secret","AUTOROUTER_TOKEN":token}), false, std::path::Path::new("/tmp")).unwrap();
-        config.upstream = format!("http://{address}");
-        if let Some(maximum) = row["maximum_body_bytes"].as_u64() {
-            config.max_body_bytes = maximum as usize;
-        }
-        let client = Arc::new(NativeHttpClient::new().unwrap());
-        let router = Arc::new(Router::default());
-        let logs = Events::default();
-        let statuses = Events::default();
-        let decisions = Events::default();
-        let gateway = Gateway::with_router(
-            config,
-            client.clone(),
-            router.clone(),
-            EventSinks {
-                log: Some(sink(&logs)),
-                status: Some(sink(&statuses)),
-                decision: Some(sink(&decisions)),
-                ..Default::default()
+                let bytes = Bytes::from(response_bytes);
+                move |request: Request<Incoming>, seen: Arc<Mutex<Vec<Seen>>>| {
+                    let headers = headers.clone();
+                    let bytes = bytes.clone();
+                    async move {
+                        let (parts, body) = request.into_parts();
+                        let body = Limited::new(body, 4096).collect().await.unwrap().to_bytes();
+                        {
+                            let mut calls = seen.lock().unwrap();
+                            assert!(calls.len() < 16);
+                            calls.push(Seen { method: parts.method.to_string(), path: parts.uri.to_string(), headers: parts.headers, body });
+                        }
+                        let mut response = Response::builder().status(status).body(Full::new(bytes)).unwrap();
+                        *response.headers_mut() = headers;
+                        Ok::<_, Infallible>(response)
+                    }
+                }
+            },
+            |address| {
+                let token = row["token"].as_str().unwrap().to_owned();
+                let mut config = read_config(&json!({"AUTOROUTER_EVALUATOR":"jev","ANTHROPIC_API_KEY":"upstream-secret","TYPESAFE_API_KEY":"classifier-secret","AUTOROUTER_TOKEN":token}), false, std::path::Path::new("/tmp")).unwrap();
+                config.upstream = format!("http://{address}");
+                if let Some(maximum) = row["maximum_body_bytes"].as_u64() {
+                    config.max_body_bytes = maximum as usize;
+                }
+                (config, token)
             },
         )
-        .unwrap();
-        let handle = gateway.listen(0).await.unwrap();
-        Self {
-            handle: Some(handle),
-            peer: Some(peer),
-            stop,
-            active,
-            seen,
-            logs,
-            statuses,
-            decisions,
-            router,
-            client: Some(client),
-            token,
-        }
+        .await
     }
     async fn completed(&self) {
         while !self

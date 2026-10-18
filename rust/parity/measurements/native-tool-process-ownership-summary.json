@@ -1,0 +1,312 @@
+{
+  "kind": "native_tool_process_ownership_correctness_checkpoint",
+  "recorded_at_utc": "2026-10-18T01:39:10.964919+00:00",
+  "root_decision": "Retain the scoped subprocess ownership repair, four ownership regressions and strict optional report readers with three regressions. No original-definition, configuration-key, resource-limit or area promotion. The source-transfer cap still fails; JavaScript0.5.2 remains shipping default.",
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/candidate-source.json",
+    "bytes": 116787,
+    "sha256": "064a9a1848a5143b57f11e0058b0ccac030f475c381a30682c5ac83c1bf8c52b"
+  },
+  "source_delta_from_numeric_checkpoint": [
+    {
+      "path": "rust/xtask/src/compare_live_schema.rs",
+      "before": {
+        "bytes": 24961,
+        "sha256": "2bb0b8cc506fc870d8163c43dab6ac9eaf33e20e260cbd450ab381e7375896b2"
+      },
+      "after": {
+        "bytes": 25532,
+        "sha256": "1ce143bd77e0f614461a7cb19bab77c777fc376ffb5f11910250c48623fe7dd8"
+      }
+    },
+    {
+      "path": "rust/xtask/src/compare_live_shapes.rs",
+      "before": {
+        "bytes": 14515,
+        "sha256": "42f410100c49dd3768dcd673280a53e04a56108bc5632a397d326939d1849ae7"
+      },
+      "after": {
+        "bytes": 19474,
+        "sha256": "37e512af01d88f4131a3f47ea324c146c6894a511fce49b74e068825eb01a7a8"
+      }
+    },
+    {
+      "path": "rust/xtask/src/compare_live_tests.rs",
+      "before": {
+        "bytes": 36457,
+        "sha256": "af6e248075fb7e0c6bfd813d5405fdeb4f3f1039950c0bfab2f9447e53cf0a34"
+      },
+      "after": {
+        "bytes": 45861,
+        "sha256": "fddfdf8e5e9a8e38a650fb733478d8304cdd1dd4dfb6afa76d7fee61bc77ca3b"
+      }
+    },
+    {
+      "path": "rust/xtask/src/context_probe.rs",
+      "before": {
+        "bytes": 35166,
+        "sha256": "f4b1900dddd72bff680f1e53f66ae3af7049a128de96dc1b9e8983d846918250"
+      },
+      "after": {
+        "bytes": 35409,
+        "sha256": "f2c48cf92c4bce40a588fc82a61a912051e224e6e72c0b2090dce341f345904e"
+      }
+    },
+    {
+      "path": "rust/xtask/src/live.rs",
+      "before": {
+        "bytes": 43314,
+        "sha256": "7c0c208bea8b5009286d8d39630b7940486e560c9fe86ac40162aec7dec63c05"
+      },
+      "after": {
+        "bytes": 43688,
+        "sha256": "c2175f8ca957ac3c0ca76b40975eb93db995458df17ddb572a9b2f2dc723da9d"
+      }
+    },
+    {
+      "path": "rust/xtask/src/process.rs",
+      "before": {
+        "bytes": 30942,
+        "sha256": "6e0c9e97a240177b9a57694deea61c3d5fe6e5c3e46f7498556243e2e709c648"
+      },
+      "after": {
+        "bytes": 31614,
+        "sha256": "6fbaf9024740448cf2a9585079a235bd6fa33a1fc7243b111646755f3badc422"
+      }
+    },
+    {
+      "path": "rust/xtask/src/tool_process.rs",
+      "before": {
+        "bytes": 34009,
+        "sha256": "716dbaf078993a08f6201758329438eeead236f7f2469954650b0dc809473bf9"
+      },
+      "after": {
+        "bytes": 58370,
+        "sha256": "ba142b11de77a08f907187426db16d9206368557e5ffb586b107a23b8ee1137f"
+      }
+    }
+  ],
+  "problem": "The async contributor-tool runner previously retained a numeric process-group guard after a consuming child wait. That allowed a later group signal after the leader reservation had ended. This is a statically established ordering defect; PID reuse or an unrelated process receiving a signal was not reproduced.",
+  "repair": [
+    "ToolChild owns the Tokio child and group lease. Nonconsuming exit observation precedes final synchronous group cleanup and direct-child fallback. The group lease retires before the first consuming wait, including Drop ordering; Linux ownership loss retires it without an explicit final wait.",
+    "Observed leader exit remains separate from both pipe EOFs. Same-group descendant tails are drained under existing time/output/cancellation bounds rather than discarded immediately at leader exit.",
+    "Only normal observed exit with both actual EOFs and no stop/read/observation/wait/ownership failure may retain a factual task exit code after solely a final group SIGKILL error. Raw error remains and cleanup_confirmed:false prevents cleanup qualification. Other supervision errors clear the task exit code but retain observed exit facts and factual failure signal; controlled_stop becomes false.",
+    "Exceptional signal observations are bounded to three rows, contain only closed target/signal/outcome/kind codes and nullable integer errno, and preserve EPERM as error. ESRCH alone is recorded as absent. Successful signal delivery is not an exhaustive descendant census.",
+    "Context and reference-gateway projections forward optional diagnostics. Strict live-report readers preserve legacy absent fields, validate exact bounded shapes/error correlations, reject free text and forged success, and prevent either engine cleanup_confirmed:false from passing cleanup or relative gates. Functional task quality stays separately reported."
+  ],
+  "new_ownership_regressions": [
+    "terminate_retires_the_group_before_independent_waitpid_consumes_status: actual production finalization seam and consuming-observer negative control",
+    "leader_exit_does_not_discard_later_same_group_pipe_tails: gated descendant stdout/stderr tails after independent leader exit observation",
+    "cancellation_after_observed_leader_exit_forces_the_term_ignoring_descendant: cancellation after ready/exit barrier with joined direct child",
+    "dropping_boxed_run_future_cleans_group_and_reaps_before_or_after_leader_exit: actual future Drop on a live Tokio runtime"
+  ],
+  "new_reader_regressions": [
+    "optional_supervision_preserves_tasks_but_cannot_qualify_cleanup",
+    "optional_supervision_rejects_unknown_unbounded_and_inconsistent_metadata:26 variants at both diagnostic locations",
+    "optional_failure_facts_and_bounded_absence_observations_remain_readable"
+  ],
+  "checks": {
+    "reader-contracts": {
+      "receipt": {
+        "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/reader-contracts.json",
+        "bytes": 582,
+        "sha256": "8ded76bd7ee8efc4b79d5143322361d07cd7cef59174f5e853169a223ee3c1b7"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/reader-contracts.stdout",
+        "bytes": 1657,
+        "sha256": "502af488d5d142a41ad51ec5f62f4e22da2aa1aa972dc3fb2737f8e20b42ebaa"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/reader-contracts.stderr",
+        "bytes": 692,
+        "sha256": "9c7a10f3d18deebf982f3dc2b46ce218027e926df7e1070f8eb9622321289de8"
+      },
+      "exit_code": 0
+    },
+    "clippy": {
+      "receipt": {
+        "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/clippy.json",
+        "bytes": 536,
+        "sha256": "04daa716dff86a5d6f112828b0ed1f31bc63b23a834d01db5b1e9234bd5bcf5f"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/clippy.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/clippy.stderr",
+        "bytes": 637,
+        "sha256": "efb07896b29b29b15419e2d08157407837742733065d98a408edd282bbf59c25"
+      },
+      "exit_code": 0
+    },
+    "fmt": {
+      "receipt": {
+        "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/fmt.json",
+        "bytes": 444,
+        "sha256": "d261fec52eafceb2e2be845b0df20c6ae7aff1a81a3bdb476022909aff173ba1"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/fmt.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/fmt.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit_code": 0
+    },
+    "workspace": {
+      "receipt": {
+        "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/workspace.json",
+        "bytes": 513,
+        "sha256": "d9e455c52695d81483831f58332af413fae0d2eec92c7f7240a761cfd14f6f06"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/workspace.stdout",
+        "bytes": 146797,
+        "sha256": "36c838b70432bd47062f3187a17171ade2a398f42c020519f42ec115c43edbb4"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/workspace.stderr",
+        "bytes": 7626,
+        "sha256": "0fdb508a1b67b8ea6a8a97cc9c80b9a0fe654a25a4f2882fe9a85ef3d189a2b3"
+      },
+      "exit_code": 101
+    },
+    "remaining-xtask": {
+      "receipt": {
+        "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/remaining-xtask.json",
+        "bytes": 651,
+        "sha256": "f4e044ff9d04966737a632c873c28135e909ed830d539ae49734ecfc667555fe"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/remaining-xtask.stdout",
+        "bytes": 1298,
+        "sha256": "220007297e2f0695a27c687e05bb51041e84ede66a4969e1fe7286f37ce7767b"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/remaining-xtask.stderr",
+        "bytes": 891,
+        "sha256": "d8d112b887ec0f0925c7b8b25ebe3d775c0deee4eb5738c39ffd4502ba453816"
+      },
+      "exit_code": 0
+    }
+  },
+  "actual_results": {
+    "primary_workspace": {
+      "groups": 61,
+      "passed": 1395,
+      "failed": 1,
+      "ignored": 10
+    },
+    "three_deferred_xtask_groups": {
+      "groups": 3,
+      "passed": 11,
+      "failed": 0,
+      "ignored": 1
+    },
+    "aggregate_two_commands": {
+      "groups": 64,
+      "passed": 1406,
+      "failed": 1,
+      "ignored": 11
+    },
+    "focused_reader": {
+      "groups": 1,
+      "passed": 11,
+      "failed": 0,
+      "ignored": 2
+    },
+    "aggregate_scope": "The primary command stops at the unchanged logical source-transfer cap. The three deferred default-feature integration suites run separately on the same696inputs. Focused reader and earlier process passes are not added again. Feature-gated release executable-bundle tests, ignored opt-in controls and doc tests not reached by the failed workspace command are not qualified by this aggregate.",
+    "formatting": "pass",
+    "strict_workspace_all_targets_clippy": "pass, existing vendored hyper-util unused timer warning retained",
+    "current_workspace_new_and_original_tests": "All four new ownership regressions, all three new reader regressions and the unchanged original deadline test pass in current workspace output.",
+    "earlier_process_target": {
+      "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-1/process-contracts.json",
+      "bytes": 578,
+      "sha256": "a0a1ed27bac1fd394b9f3e4a81d33babf4f3386310bacc39dad2085d3b7bf588"
+    },
+    "earlier_process_scope": "41pass/0fail/1ignored on prior d9e2 snapshot before test-helper lint amendment and bounded reader projection. Historical receipt retained without transferring its source identity.",
+    "retained_failed_controls": [
+      {
+        "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-1/original-deadline-control.json",
+        "bytes": 582,
+        "sha256": "a76b5e4a03490134e89857141492f6f3ee4fc8fab4bb7d4deadd86fc9cd6d26f"
+      },
+      {
+        "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-1/clippy.json",
+        "bytes": 538,
+        "sha256": "cb749398e392eb729b79973ef34d0d3af94a53155d75cdbd7f1a528e4dbd3eda"
+      }
+    ],
+    "failed_control_explanation": "First owner draft cleared a factual SIGTERM and the unchanged deadline test failed. Root changed signal take to clone while keeping failure code cleared. A later new test-helper Clippy lint failed; Root rewrote its observation loop retaining the Linux ownership-loss assertion. Both failures remain retained; current checks pass those concerns."
+  },
+  "reviews": [
+    {
+      "path": "artifacts/rust-rewrite/tool-process-pgid-ownership-review-20261018-1/review.json",
+      "bytes": 14211,
+      "sha256": "9c1fa88dca0d7c50d6c7d34fbc2d1cd4c0dfd4fbcf0161b9ecc8ed9d1bd15b48"
+    },
+    {
+      "path": "artifacts/rust-rewrite/tool-process-exit-observer-review-20261018-1/review.json",
+      "bytes": 15295,
+      "sha256": "8231f153fce0e1958a257aed2f18a0a19402c0fc7b0affe3773d5150414a0769"
+    },
+    {
+      "path": "artifacts/rust-rewrite/tool-process-owner-draft-20261018-1/v3/independent-static-admission-review.json",
+      "bytes": 8201,
+      "sha256": "9390b318b101c35a09a35996912d7160d37e92beb0a268febf8d32cd70356ae4"
+    },
+    {
+      "path": "artifacts/rust-rewrite/tool-process-ownership-regressions-20261018-1/v2/independent-amendment-and-regression-review.json",
+      "bytes": 7233,
+      "sha256": "4e283e858ffd96430bc71c9fc5cd386e15f083286c205992aa04df31af141514"
+    },
+    {
+      "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-1/independent-targeted-actual-review.json",
+      "bytes": 7641,
+      "sha256": "9b179ad86a3821fe22901a3c323f286f86b5144010fe87bcfa4df81847070827"
+    },
+    {
+      "path": "artifacts/rust-rewrite/tool-process-reader-draft-20261018-1/v3/independent-static-admission-review.json",
+      "bytes": 9241,
+      "sha256": "4d51318865d469bbf4ae60142f9ecb61920170ce5f47c92bd44bff96de62e660"
+    },
+    {
+      "path": "artifacts/rust-rewrite/tool-process-owner-validation-20261018-2/independent-reader-actual-and-census-review.json",
+      "bytes": 9322,
+      "sha256": "0e5d9b6270fd47a1b71b6857c1a064a34823036666286b8ff9a318f3bb4daf5c"
+    }
+  ],
+  "size_gate": {
+    "census": {
+      "path": "artifacts/rust-rewrite/source-transfer-census-20261018-11/census.json",
+      "bytes": 13935,
+      "sha256": "69324bf1d9d747cd0ddef9d4e1f421f97fbbadcb1dae370162f094a4e3b552ce"
+    },
+    "logical_bytes": 33672160,
+    "logical_cap_bytes": 33554432,
+    "logical_overage_bytes": 117728,
+    "expanded_bytes": 33647104,
+    "expanded_cap_bytes": 33554432,
+    "expanded_overage_bytes": 92672,
+    "scope": "Offline exact arithmetic plus actual primary-workspace logical-cap rejection, not archive/export/restore/gzip admission. No fixture, source, vendor, license, workload, allowlist, schema, manifest or cap concession."
+  },
+  "limits_and_remaining_work": [
+    "Normal ownership assumes a sole consuming reaper. Darwin NOTE_EXIT is not an external-reaper identity check. Linux ECHILD retires the explicit signal lease, but Tokio Drop may still try_wait or orphan-reap; foreign-reaper interoperability is not qualified.",
+    "If both group and direct-child SIGKILL fail while the leader remains alive, final wait can outlive the tool budget. This checkpoint does not qualify that exceptional bounded-termination path.",
+    "Drop cleanup is nonblocking best effort; eventual Tokio orphan reaping requires a live runtime. No crash-proof, cross-runtime, cross-platform or finite-kernel-wait cleanup guarantee is made.",
+    "Direct children must be absent/reaped in regressions; a grandchild may be inactive zombie under a nonreaping PID1. No arbitrary PID reuse or unrelated-process signal was exercised.",
+    "Older stdout-only command readers qualify their parsed command results rather than exhaustive process-group cleanup. Strict live readers do not turn shared cleanup failure into relative success.",
+    "macOS synthetic execution does not qualify Linux behavior, minimum OS/kernel, TLS, resource/performance gates, provider tasks, supported-platform CI or release cutover.",
+    "Coverage remains539covered/49partial original definitions,17covered/10pending configuration keys,14covered/39pending fixed limits and13partial areas. Fresh CI and source-cap correction remain required; no commit, push or release approval."
+  ],
+  "provider_calls": 0,
+  "user_configuration_edits": 0,
+  "coverage_promotions": 0
+}

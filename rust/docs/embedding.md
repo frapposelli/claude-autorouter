@@ -26,6 +26,53 @@ The routing interface is:
 
 Use `JsDocument` as the authoritative request representation and `JsString` for identities. The arena preserves unknown fields, UTF-16 string units, JavaScript number conversion, object order, and deep opaque data. `read_config_document` similarly retains saved custom model identities. Convert a string with `to_well_formed()` only at an explicit display or operating-system boundary. `to_serde_observation_lossy()` is for bounded metadata observation and cannot establish model compatibility, task identity, or forwarded bytes.
 
+Configuration model sidecars preserve execution identity. Effective configuration
+JSON-text serialization has its own
+[82-case parser and serialization checkpoint](../parity/measurements/native-config-owned-values-summary.json),
+which fixes the historically reproduced selector, timeout, keep-alive and UTF-16
+output differences for that corpus. Typed display projections remain bounded;
+`serde_json::Value` is not a lossless observer for unpaired strings or deep data.
+Original nonfinite numbers serialize as null, matching JavaScript serialization,
+while validation and request construction retain their effective original kind.
+
+`AUTOROUTER_MIN_CONFIDENCE` is validated by `read_config()` and
+`read_config_document()` as a finite number from zero through one. It applies to
+Jev; an inactive Ollama configuration retains the default unless full validation
+is requested. Ordinary decimal/type/range and conversion-error ordering remain
+part of this parsed-setting contract.
+
+The [individual confidence-setting review](../parity/measurements/native-min-confidence-configuration-key-summary.json)
+records two native embedding boundaries. JSON-backed input cannot admit NaN;
+invalid JSON rejection and a null projection do not execute the numeric guard
+with NaN. `RouterConfig::min_confidence` is a public `f64` and can represent NaN,
+infinity or an invalid range after direct mutation. Such edits bypass the reader;
+this review gives them no parsed-setting validation guarantee. Parse settings
+through the configuration reader before using them.
+
+For rejected nonnumeric JSON values, the native conversion uses an iterative
+walk. The reviewed migration permits host resource-exhaustion diagnostics to
+differ from recursive JavaScript array conversion. It does not reproduce a
+V8-specific stack threshold or promise equal allocation-failure behavior.
+Ordinary conversion errors still precede numeric type errors where the source
+requires that order, opaque object properties stay opaque, and arrays/objects
+remain invalid numeric settings. No new supported-input depth ceiling is added.
+The actual depth-64 and depth-256 controls are ordinary bounded observations,
+not an execution of extreme-depth stack exhaustion. JavaScript getters, custom
+prototypes, error identities and mutable object aliases remain outside this
+JSON-backed input interface.
+
+With the supported JSON features, native request representations cannot contain
+NaN. Literal `NaN` is invalid JSON and is rejected during document admission;
+that rejection is not execution of an Auto compatibility guard with a NaN
+argument. Valid JSON numeric
+overflow can retain Infinity as an original Number, which the output-cap guard
+rejects before any projection to null. The
+[reviewed Auto output-limit migration](../parity/measurements/native-callback-auto-output-summary.json)
+covers this specific difference from the ESM object API, with separate actual
+Infinity evidence. Callers must handle unrepresentable values when migrating;
+this review does not accept arbitrary JavaScript getter, prototype or object
+identity differences. An API that later admits NaN needs its own guard regression.
+
 `JsDocument::sha256_with_fragments(before, after)` hashes the document's exact
 canonical JSON between the supplied UTF-8 fragments and returns the 32-byte
 SHA-256 digest. Fragments are written verbatim, with no added separators or
@@ -34,6 +81,43 @@ without allocating the complete serialized request. The sink uses a fixed
 4 KiB batch; the existing iterative traversal still allocates for pending nodes.
 
 The convenience `route()`/`complete()` adapters use `serde_json::Value` and serve scalar-string embeddings and historical fixtures. The product gateway uses the exact APIs. A displayed replacement character cannot stand in for an escaped lone surrogate when deciding which request or model owns a continuation.
+
+Native request preparation takes a borrowed `serde_json::Value` or an
+authoritative `JsDocument` and returns an owned request. Use
+`prepare_request_document_exact` with a `JsString` model when preserving UTF-16
+identities and opaque request data. Only the selected model and a
+catalog-approved thinking setting change; all other fields and the input
+remain intact. These operations do not select a route or bypass compatibility
+checks.
+
+These JSON interfaces have no JavaScript `undefined` node. A JavaScript own
+`thinking: undefined` property maps to an absent optional field, matching its
+JSON wire representation; it does not map to `null`. Returned Rust values and
+documents do not preserve JavaScript shallow object aliases. Their subtrees
+retain complete values, while subsequent supported mutations affect only the
+owned document being changed. Embeddings relying on shared JavaScript
+`thinking`, signed-history, safeguards or other object identity must retain
+that state separately. Document node IDs are meaningful only within their
+own arena and are not cross-document object identities. This migration does
+not permit dropping unfamiliar extensions, changing signed content or
+inferring model compatibility from a display projection.
+
+Direct `TurnState::select()` accepts every JSON value as pin metadata and copies
+its enumerable properties using JavaScript object-spread semantics. Strings
+spread by UTF-16 code unit. `get_metadata_exact()` returns the committed
+`JsDocument`, preserving even surrogate units generated by spreading a valid
+supplementary character. It applies the same expiry and ambiguous-alias checks
+as `get_exact()`. The `get()` and `Pin::value` observations repair those units
+to U+FFFD; they preserve opaque object members without a new depth limit.
+
+Construct native pins with `Pin::new()` and set their public exact identity and
+tool fields before passing ownership to `select_exact()`. Those fields control
+native selection retention; display metadata cannot replace them. The Value
+adapter preserves the original raw `toolModels.length` truthiness for selected
+pins, including unusual JSON metadata. Neither selection path confirms execution.
+`Pin::is_confirmed()` reports private state set by a validated completion;
+editing display `confirmed` does not establish it. Failed or superseded attempts
+preserve the previous exact metadata, confirmation and tool owner.
 
 For a per-route equivalent of JavaScript's `countTokens(body, model)` option,
 construct a `route_counter::RouteTokenCounter` and call
@@ -139,6 +223,50 @@ Do not layer another buffered writer around this completion adapter or enable a 
 
 `HttpTransport::request` provides the fetch-style evaluator/count/setup boundary. `request_raw` provides the provider-forwarding boundary corresponding to the original Node HTTP client. Custom transports may share their implementation through the default method, but their tests must still retain byte limits, absolute deadlines, disconnect propagation, redirect behavior, and header policy for each consumer. Use local synthetic services to validate integrations; the workspace's ordinary tests do not contact a provider.
 
+The three consuming functions `read_bounded_document`,
+`read_response_document` and `read_bounded_json` return `Result<_, ReadError>` and consume an owned native
+`Body`. Match `InvalidResponse`, `Oversized` or `InvalidJson` for invalid response
+data, and `Cancelled` for caller cancellation. These fixed unit variants carry
+no response text, arbitrary abort reason or JavaScript `Error` identity; their
+`Debug` output is the variant name, not `classifier_invalid_response`. The
+evaluator adapter maps the invalid-response variants to its existing public
+classifier category. The direct reader does not expose a JavaScript
+`Response`, `.body.locked` object or asynchronous `.cancel()` callback.
+
+Supply a borrowed `CancellationToken`; cancellation does not consume the caller's
+token or preserve a caller-supplied error object. Reader work begins when the
+Rust future is polled. Pre-cancellation rejects without polling the body, while
+in-flight cancellation interrupts a yielding pending read. Success and error
+paths release the owned body before returning; the finite regression bodies
+verify exactly one destruction and no retained body-state references. This is
+native ownership evidence, not execution of JavaScript's unresolved cancel
+Promise. No detached cleanup task is started by the reader.
+
+An empty native body represents no parseable response bytes and returns
+`InvalidJson`. It is not a distinct JavaScript `Response(null)` absent-body
+object. Valid streamed bytes remain authoritative over missing or inaccurate
+length hints; a valid oversized hint can reject before polling. Invalid limits
+are checked before cancellation, and valid pre-cancellation precedes header
+rejection. Synchronous blocking destructors, non-yielding injected code,
+arbitrary JavaScript getters/prototypes and general transport shutdown remain
+outside these finite asynchronous ownership controls.
+
+This consuming-reader guarantee does not apply to the incremental
+`DecodedResponseStream`. Its `read(&mut self, ...)` borrows an existing stream;
+returning from or cancelling one read future does not consume that stream. The
+stream keeps its owned body state until the stream itself is dropped.
+
+For Jev body failures, `Classifier::classify` preserves the fallback category and
+keeps its deadline active after response headers. Oversized, timed-out and
+non-success responses release their owned body before the worker publishes its
+result; failures do not populate the successful-result cache. Rust does not
+expose a JavaScript `ReadableStream.cancel()` callback or await its potentially
+never-settling Promise. Owned body/future destruction is the native replacement
+for that observation. A normal completed `Classifier::close().await` drains its
+tracked workers, not arbitrary background work owned by a custom transport.
+These finite yielding-body controls do not bound blocking destructors, prove
+TCP/TLS teardown or change the other cancellation and configuration API limits.
+
 Evaluator operations and `Classifier::classify` accept a caller-owned `CancellationToken` and return `EvaluationError::Cancelled` for cancellation. An already-cancelled token prevents evaluator I/O. The Rust API does not carry an arbitrary JavaScript `AbortSignal.reason`, preserve an `Error` object's identity, or expose JavaScript signal identity. Embeddings that need a reason retain it alongside their token. The frozen JavaScript tests still assert the original reason identity; native tests cover the typed outcome and resource behavior, not identity equivalence.
 
 Identical classifier work may have several subscribers. Cancelling one subscriber returns promptly while another live subscriber retains the shared work. Cancelling the last live subscriber waits for that exact worker to release its evaluator request future and response body before returning `Cancelled`; a cancelled, unpolled subscriber does not count as live. A replacement request for the same input owns a different worker and cannot be cancelled or removed by the old one. Shutdown cancellation keeps precedence over a late result, and a shutdown notification alone is not proof of worker cleanup. Callers still await their request tasks after `shutdown()`. Dropping a classification future propagates cancellation but cannot synchronously join the worker; transport background tasks remain the transport owner's responsibility.
@@ -227,6 +355,36 @@ Session logging accepts `serde_json::Value`, which has no property getters, `und
 
 `read_session_history()` validates every `HistoryLimits` field before starting its filesystem worker, including fields constructed directly by Rust callers. Zero values and values above the original reader ceilings return `Invalid session-history read limit.` before ID or path errors. Defaults and smaller positive limits retain their existing behavior. The pure parser APIs accept caller-owned data separately; they do not perform filesystem admission.
 
+The native history metadata APIs retain exact byte lengths. `parse_session()`
+and `parse_session_with_locale()` take caller-supplied `file_bytes: u64`;
+`read_session_history()` obtains that value from native filesystem metadata.
+Their returned `summary.coverage.file_bytes` values, including summaries in a
+list, retain the exact unsigned integer. This is an explicit typed API
+difference from JavaScript's ordinary `Stats.size` and `readSessionHistory()`,
+which expose a binary64 Number. Exact native metadata above
+`9_007_199_254_740_991` must not be described as the same JavaScript numeric
+operation. A caller-supplied `u64::MAX` control does not establish that an
+operating system can report a regular file of that length.
+
+The `sessions list/show --json` CLI instead projects only the known
+`summary.coverage.file_bytes` and `sessions[i].coverage.file_bytes` fields to
+binary64 when they exceed that safe-integer bound, before rendering them with
+the Source number formatter. This preserves the JavaScript outward Number
+value and shortest decimal spelling. Even an exactly representable binary64
+integer can have different shortest decimal text: native metadata
+`4708356024711512064` renders as `4708356024711512000` at that CLI boundary.
+Embeddings retaining the native Value can continue using the exact `u64`.
+Embeddings intentionally producing Source-shaped JSON must make this same
+field-specific projection; generic native JSON writers preserve integer
+variants and do not silently convert every `u64`.
+
+The projection does not change byte admission, read capacities, truncation,
+limits, log/config contents or native metadata. It does not reinterpret other
+numeric report fields, rewrite durable records or establish general CLI byte,
+key-order or Unicode equivalence. Synthetic stat seams and caller-provided
+metadata controls establish their declared API/producer behavior, not real
+huge-file, filesystem, memory, performance or platform qualification.
+
 `remove_stale_status_directories` uses the Tokio filesystem rather than JavaScript's injected `io` object. An unavailable directory returns zero; failed metadata reads skip that entry without exposing its path or error. Tests exercise real owned permission and disappearance faults. The injected filesystem-provider and JavaScript Error object identities are not part of the Rust API.
 
 `CleanupOptions::alive` receives a `u64` so it can observe every positive JavaScript safe-integer PID through `9_007_199_254_740_991`. Embeddings with an explicitly typed `u32` callback must update that argument type. The default callback checks the positive signed operating-system PID range before querying liveness; larger values return false without narrowing, wrapping or signalling a process group.
@@ -256,6 +414,85 @@ evaluator URLs remain masked, and URL conversion preserves validation order.
 This URL behavior does not qualify raw credential values or other malformed
 configuration fields. [Setup migration evidence](../parity/assertion-mappings/onboarding-environment-contracts.json)
 keeps these input domains separate from historical executable CLI checks.
+
+The historical raw-document comparison reproduced invalid-number defaults,
+changed first-error ordering, deep keep-alive rejection and scalar output
+substitutions. The corrected shared parser reads original kinds directly, and
+the separate exact JSON-text experiment matches all 82 declared inputs against
+the frozen JavaScript implementation. This is parser/serialization evidence;
+the historical Value-observer result remains separate and failed.
+
+`RouterConfig::source_values` owns compact arena subtrees for accepted keep-alive
+values and exact session-log paths. The public fields remain bounded typed
+projections. `ollama_keep_alive_json()` serializes the effective complete value;
+`ollama_keep_alive_is_string()` and `ollama_keep_alive_is_nullish()` inspect its
+original kind. In particular, a nonfinite number can serialize as null without
+becoming a nullish value for warmup fallback. Use `replace_ollama_keep_alive()`,
+`replace_ollama_keep_alive_document()` or `clear_ollama_keep_alive()` for explicit
+replacement. Consumed deep Value inputs are dismantled iteratively. A retained
+document contains only the selected subtree and remains valid after its source
+is dropped. Direct public projection changes take effect when they differ from
+the captured projection; use replacement methods to express changes to an
+identical lossy projection. `session_log_dir_exact()` and
+`replace_session_log_dir()` provide the equivalent path boundary.
+
+`replace_model()` and `replace_jev_model()` clear the corresponding explicit
+exact-string override. Existing public `exact_models` and `exact_jev_model`
+overrides retain authority until cleared, including after direct typed-field
+edits. JSON-text serialization preserves those overrides and exact paths.
+`serde_json::to_value()` can reject unpaired UTF-16 or deep data; it must not be
+used as a lossless configuration observer. The unchanged older probe now exits
+at the first unpaired-string serialization failure after 63 completed rows;
+this is a native API migration, not a passing rerun of the old Value experiment.
+
+Parsed keep-alive arrays use iterative primitive conversion and retain their
+complete original JSON value. This is a resource-behavior migration from the
+recursive JavaScript reader: a valid array can remain usable after JavaScript
+exhausts its host stack. The [parsed-depth comparison](../parity/measurements/native-ollama-configuration-keys-summary.json)
+records matching complete output at 63, 64, 80 and 2,048 array layers on pinned
+Node 22.14.0. At 20,000 layers, JavaScript parses the input but `readConfig`
+raises `RangeError`; the native reader retains and serializes the exact value
+after dropping the source document. This does not reproduce a V8-specific
+recursion threshold or promise equal allocation-failure diagnostics. Ordinary
+grammar, primitive conversion errors, validation order and input bounds are
+unchanged; no supported-input depth ceiling is added. The legacy Value adapters
+can still reject values they cannot represent. This comparison makes no
+evaluator/provider acceptance claim for nested array settings.
+
+Native JSON configuration APIs convert URL arrays iteratively after the parser
+admits the document. This permits a directly supplied array to normalize to a
+valid endpoint when Source returns a URL validation error during its host
+conversion. The accepted-input extension for `AUTOROUTER_UPSTREAM_URL`,
+`AUTOROUTER_JEV_URL` and `AUTOROUTER_OLLAMA_URL` is separate from keep-alive
+ownership and error-object identity. In the declared Node 22.14.0 controls, all
+three keys accepted 63, 64, 80 and 2,048 singleton-array layers; at 20,000 layers
+Source returned the existing safe URL error before config serialization. The
+inner constructor exception was caught, so these observations do not expose a
+RangeError or establish a fixed stack threshold. Native acceptance at 20,000
+layers must be recorded separately from the Source failures.
+
+Ordinary OS strings, nullish defaults, invalid-object conversion, validation
+order, inactive-provider masking and every endpoint safety/account guard remain
+unchanged. This extension changes no input bounds, adds no depth cap and makes
+no promise of arbitrary-depth or resource acceptance.
+
+Classifier snapshots preserve effective keep-alive values for cache identity
+and remove captured session-log paths when clearing that unrelated field.
+`build_evaluator_request_document()` accepts serialized state and returns an
+owned request arena; runtime inference uses that path. `build_ollama_request()`
+and `build_jev_request()` are checked `Result<Value, EvaluationError>` adapters
+and refuse data their Value boundary cannot represent. `evaluate_answer()`
+imports an existing Value state iteratively before serialization.
+`JsDocument::from_serde_value()` is public and imports a borrowed tree without
+recursive cloning; callers still own the input Value and its destruction.
+
+The Ollama routing tool exposes `run_tests_document()` for exact report output.
+Its original `run_tests()` is a checked Value adapter. The ordinary CLI still
+uses the existing private report writer; its environment inputs are strings.
+Configuration reports restore only their six selected nonsecret effective
+fields rather than serializing the complete credential-bearing configuration.
+These synthetic ownership/request/report regressions do not qualify real
+provider handling, OS path materialization or numerical performance.
 
 `RouterConfig::source_credentials` owns compact source subtrees for only
 `anthropicKey`, `jevKey` and `localToken`. The public `Option<String>` fields
@@ -292,6 +529,30 @@ arrays and objects use the source primitive-conversion rules. Conversion failure
 returns a fixed message without the rejected value. This is a conversion API,
 not permission to use its output as an OS string or HTTP header.
 
+The native gateway accepts a local authentication token only through
+`RouterConfig::local_token: Some(String)` and requires at least sixteen UTF-16
+units. `read_config_document()` still retains original non-string credential
+JSON for exact configuration observation, replacement and the separate child
+OS-environment contract. That retained value does not make a non-string local
+token admissible to `Gateway::new()` or `Gateway::with_router()`.
+
+This is a deliberately narrower Rust embedding boundary than the JavaScript
+constructor's runtime length check. The JavaScript helper can construct a server
+for some truthy non-string values whose `.length` is absent or at least sixteen;
+a later `Buffer.from(localToken)` may fail or may accept a numeric array. Native
+callers must not infer string-token usability or raw-value authentication parity
+from configuration-parser success. Choose an explicit string secret and call
+`replace_credential(Credential::LocalToken, Some(secret))` before constructing
+the gateway; this clears any earlier captured source. Do not treat primitive
+string conversion as an emulation of JavaScript `Buffer.from(array)`.
+
+The minimum check counts UTF-16 units rather than UTF-8 bytes. Constructor
+admission is separate from an actual authentication result, transport header
+encoding, saved-secret validation and the launcher's fresh-token replacement.
+This boundary does not relax constant-time credential comparison, subscription
+OAuth requirements, upstream credential isolation or any request limit. It does
+not qualify other credential keys or all arbitrary JavaScript object APIs.
+
 The Jev evaluator materializes that effective credential for each request, then
 applies the existing Fetch-style byte conversion, edge whitespace trimming and
 HTTP header validation. Explicit replacement or removal cannot restore an older
@@ -301,6 +562,37 @@ request is sent. Native `evaluate_serialized_answer()` validates its serialized
 state before credential conversion, so competing invalid state/credential inputs
 retain that native API error order rather than JavaScript options-object order.
 These controls do not qualify malformed Anthropic gateway authorization.
+
+Gateway forwarding and advisory token counting materialize Anthropic credentials
+separately. `credential_node_http_values()` returns sensitive ordered field values:
+absence is an error at the forwarding boundary, null becomes `"null"`, and a
+top-level array supplies repeated fields (an empty array omits the field).
+`upstream_headers()` validates those values as Latin1 HTTP bytes. `count_headers()`
+instead applies Fetch scalar conversion and whitespace trimming; absence becomes
+`"undefined"` and arrays join into one field. Both remove incoming local credentials
+and cookies. Subscription mode uses the current request's OAuth headers without
+reading the configured API key.
+
+The gateway rejects invalid forwarding credentials after request validation and
+inference routing/preparation. Unusable count headers supply an unavailable count
+callback, preserving classification and ordinary context policy. The additive
+`GatewayRouter::route_contract_exact_with_counter()` passes Fetch-form count
+headers and an optional `RouteTokenCounter`. Its default delegates to the existing
+route hook and ignores the override; adapters that own counting must override it
+to honor that callback. The product `Router` does so. Forwarding failures retain
+the generic safe 502 response and release staged attempts without confirmation.
+JavaScript exception identity is not a native API guarantee. A gateway owns its
+configuration; replacement methods apply before construction, without promising
+live mutation through an external configuration alias.
+
+For library-owned routing, `Router::reconfigure_evaluator(&mut self, &RouterConfig)`
+applies evaluator settings between route borrows on the same instance. It retains
+active task state, staged attempts, classifier and token caches, worker owners and
+closed state. Only evaluator fields and their exact Jev/keep-alive values are
+copied; authentication, inference models, resource limits and other settings stay
+owned by the existing router. The input has the same trusted typed configuration
+contract as construction; parse external settings with the existing configuration
+reader first. This method does not reload an `Arc`-owned gateway configuration.
 
 `auth::build_claude_env()` returns `Result<Environment, ChildEnvironmentError>`
 and materializes effective local-token values into OS strings. Null becomes
@@ -319,6 +611,38 @@ malformed parent environment entries remain the process launcher's concern.
 Callers must handle this result before acquiring resources or inside an owned
 cleanup scope. The launcher awaits its existing cleanup; diagnostic tools
 preflight the environment before creating transport or listeners.
+
+`ENABLE_TOOL_SEARCH` uses this existing `OsString` environment interface. Its
+absence defaults to the string `"true"` in every client profile; every explicit
+string, including `""`, `"false"` and `"auto:5"`, is preserved without boolean
+parsing. Embedders supply already materialized OS strings and preserve absence.
+The JavaScript helper can also return raw null, booleans, numbers, arrays or
+objects until Node converts the child environment. Those raw values and object
+aliases have no corresponding native parent-map input. In particular, raw null
+remains null in the JavaScript builder and reports as `"true"`, but reaches the
+child as `"null"`; the native string `"null"` reports and launches as `"null"`.
+A JavaScript object that cannot convert to a primitive raises a pre-spawn
+`TypeError`; it is outside the native typed-map API, rather than an equivalent
+native runtime rejection. Configuration reports use the typed string domain,
+including explicit empty values and saved/environment provenance. These API
+differences do not establish Claude's deferred tool invocation behavior.
+
+`CLAUDE_CODE_STOP_HOOK_BLOCK_CAP` is parsed into `Option<u64>`: absence stays
+unset, and every accepted value is a nonnegative JavaScript-safe integer through
+`9_007_199_254_740_991`. Zero disables the cap when it is the effective child
+setting; an explicit parent cap string still wins. The native JSON and Value
+inputs cannot contain JavaScript `NaN`. Rejecting the invalid JSON token `NaN`
+does not execute the cap guard. Separate numeric-overflow controls exercise
+Infinity rejection; this specific input-domain migration does not claim native
+execution of the original NaN assertion. A future input API that admits NaN
+needs a direct parser regression.
+
+`build_claude_env()` does not revalidate direct edits to the public cap field.
+Use `parse_stop_hook_block_cap()` or the configuration readers for external
+values. Its parent map accepts OS strings and omission; JavaScript raw null,
+objects and own `undefined` values are separate API inputs. The reviewed cap
+contract preserves explicit parent strings, parsed configuration, and parent
+nonmutation; it does not reproduce those raw-object values or aliases.
 
 `policy::load_policy()` and `load_policy_at()` return `PolicyError` on failure.
 Its `code()` is `AUTOROUTER_CONFIG_ERROR`; `message()` and `Display` preserve the
@@ -346,3 +670,73 @@ is retained. `load_with_policy()` remains the explicit injection boundary.
 Product commands still use the fixed, root-owned system-policy location;
 `load_policy_at()` is an explicit embedding/test boundary, with no environment
 override added by this migration.
+
+## Status and telemetry host boundaries
+
+`StatusStore` options and updates are typed values: `StatusOptions` contains an owned path and explicit I/O/clock adapters, while `StatusStore` updates consume borrowed `Value` data and telemetry normalizers consume `Value` or `JsDocument`. They do not accept JavaScript `Error` instances, executable properties, cyclic host objects, or a top-level `undefined` value. An own optional property whose value is `undefined` maps to an absent JSON field, never to null; normalizer `None` is the absent-result observation. Hosts convert their own objects before this boundary. Source getter/cycle/Error tests remain original Source evidence, not native executions or a promise that arbitrary custom I/O/clock panics are caught.
+
+`StatusStore::close().await` stops update admission when its future is first polled, drains the latest accepted state through its single writer, and awaits the owned worker and readiness task before returning. Separate close futures join the same drain/removal; they do not preserve JavaScript's shared Promise identity. Cancelling a close waiter retains those task handles for a later close. An unpolled future or dropping the store is not an awaited drain. Ordinary I/O errors are fail-soft; successful removal and no-recreation observations apply to the tested owned filesystem schedules, not to denied removal or a panicking custom adapter.
+
+## Diagnostic, setup and session-log input boundaries
+
+For the individually reviewed local-diagnostic tests 6, 12 and 13, `run_local_diagnostic` and `run_local_diagnostic_with_progress` use a typed `RouterConfig` and a borrowed `CancellationToken`. A `u64` timeout cannot contain JavaScript `NaN`: rejecting configuration text `NaN` is admission evidence, not execution of the original fifth `invalid_configuration` report. Cancellation returns `EvaluationError::Cancelled`; hosts retain arbitrary abort reasons and Error identities separately.
+
+For Ollama setup tests 9, 10 and 14, `setup_ollama` and `warm_ollama` retain their own deadlines when the evaluator runtime timeout is zero. Tokens carry cancellation state, and `SetupError` returns the safe `OLLAMA_CANCELLED` or `OLLAMA_TIMEOUT` code and message without a caller reason or error cause. `HttpTransport` does not expose a JavaScript `AbortSignal` object. Tested owned request/body release replaces the original signal-property and stream-cancel callback observations; it does not execute those JavaScript operations or await an arbitrary cancellation Promise. The six native regression schedules use paused Tokio time and also check a separate wall-clock bound; they do not establish provider performance or real-clock native deadlines.
+
+For session-log tests 3 and 6, `SessionLog::record` borrows `serde_json::Value`. Hosts supply inert metadata; the API has no property getters, host Error objects or nonfinite numeric inputs. Existing tests prove detached durable metadata and privacy for that data domain. Omitting an unknown accessor is not native getter non-invocation, and the selected-model getter operation remains one skipped input with two unexecuted native assertion sites. The old Infinity-to-null fixture projection proves finite-data latency omission only; it does not prove that native logging accepts Infinity. These are specific library migrations, not a general waiver for raw `JsDocument` consumers, callback behavior or other original tests. Existing filesystem, byte limits and owned-close obligations remain in force.
+
+## Gateway receive timers and response preparation
+
+`Gateway::listen` owns one 30,000 ms HTTP receive scanner. The first scan is scheduled from listener creation; later scans are scheduled from the actual callback start, without replaying missed ticks. The 10,000 ms header and 30,000 ms total-message limits are strict age thresholds evaluated by that scanner, rather than separate wall timers. A newly accepted blank connection is eligible. The first byte other than CR or LF starts that message's age, including an invalid method byte; leading CRLF alone does not reset it. Header completion clears header eligibility and complete body/trailer receipt clears total-message eligibility. Parser rejection clears receipt eligibility without claiming that a generic parse-error response is fully flushed or resource-bounded.
+
+The Gateway's opt-in Hyper control commits parser transitions before exposing an admitted request or final body frame. At timeout it first claims failure for pending delivery records and cancels request work, then makes at most one best-effort raw 408 write when the current final response has not been prepared. A blocked, partial or failed write is not retried or flushed; the connection ends. A prepared marker records the Gateway's equivalent of first send/end/flushHeaders, rather than response construction by writeHead alone or successful downstream forwarding. Prepared current responses suppress this raw 408. Earlier completed responses and later queued responses keep their own preparation markers. The existing first-positive-frame gate checks cancellation and deadline state before replaying staged provider bytes, preserving their contents and signed history.
+
+After a response finishes with no queued outgoing response, the separate 6,000 ms keep-alive timer may coexist with an incomplete next header. Positive parser input clears that idle timer; pending reads and EOF are separate events. The lower-level public `transport_completion::serve_http1` and its `RequestReceiveDeadline` retain their existing per-connection helper contract. They do not opt an arbitrary embedded server into the Gateway's shared listener scanner.
+
+The retained three-socket real-clock comparison qualifies the blank, late-header and late-body schedules. Paused-clock registry/Gateway tests and controlled parser/writer tests qualify their declared boundary and ordering controls separately. They do not establish a complete HTTP/TLS/platform or blocked generic-error cleanup contract, nor measure a delayed second actual listener callback or arbitrary callback overrun.
+
+## Cleanup bounds and release inspection errors
+
+The Gateway launcher retains only the lexical first 200 status-cleanup candidates while enumerating the directory. The same selection precedes ownership and permission checks; skipping an unsafe candidate does not admit an extra one. This bounds retained candidate names, without adding a scan, syscall or RSS ceiling. Snapshot limits count UTF-8 file bytes. Missing, malformed or invalid-PID snapshots require directory age strictly greater than ten minutes; a live PID is stale only after its heartbeat age strictly exceeds one day.
+
+For the three original release-check negative contracts covering checksum tampering, checksum filename identity and archive symlinks, the Rust tool uses its native archive fixture and explicit fixture checkout. The shared early-rejection rules preserve the exact filename-before-digest precedence, the regular-file gate and the original safe diagnostic text. A typed error and a failing command replace JavaScript Promise rejection. This scoped migration does not make historical JavaScript archives eligible for native release checks, approve synthetic authorization as release evidence, or change final qualification, platform, archive-size or publication gates. Native final authorization continues to require its canonical LF-terminated sidecars.
+
+## Native release material completeness
+
+The native npm and direct archive validators require the complete named public document set selected by the packager, alongside the existing generated/runtime files and integrity checks. Native npm includes `package.json`; direct archives retain their own manifest representation. Qualification and final authorization remain mandatory.
+
+Release-check preserves fixed safe diagnostics for extra release-directory artifacts and unexpected package members. Arbitrary error text and paths remain omitted. That material-completeness checkpoint individually accepted original release-check definitions 10 and 15. The separate migrations below cover definitions 11–14 and parent 7; stronger material admission alone did not establish those contracts. An incomplete authorization/checksum pair is an invalid artifact set; absence of the whole pair still requires final authorization.
+
+## Native archive integrity API
+
+The [individual archive mappings](../parity/assertion-mappings/release-layered-integrity-native-api-migrations.json) replace the historical JavaScript archive domain with a separately valid native release set. The complete positive result still contains exactly `version`, `archive` and `dist_tag`, with each fixture's version-derived filename. Archived manifest comparison uses the native manifest projection and retains the safe `package.json differs` diagnostic.
+
+Runtime integrity binds the selected executable through file declarations, artifact inspection/provenance and the independently retained candidate index and final authorization. It does not compare executable bytes with Rust source text. Re-declaring a modified executable or forging its inner artifact digest still fails; the native typed reasons and fixed safe command failure replace the JavaScript source-path diagnostic. The exact selected target matrix replaces npm wildcard inclusion followed by exact pack-list comparison. A known, well-formed but unselected target remains inadmissible. Mandatory named native materials replace npm optional-file list semantics, including `LICENSE`; the original file-list diagnostic is a distinct native API migration. Synthetic binary headers and approval records in these tests are parser fixtures, not runnable target binaries or real release authorization.
+
+## Default inspection budget
+
+`setup_ollama` gives the entire version/tags/show inspection one default 5,000 ms budget. It does not restart that budget at each endpoint. Caller overrides and the separate pull and warmup deadlines retain their own contracts. [Boundary checks](../parity/measurements/native-inspection-default-deadline-summary.json) hold early or late response heads and bodies, keep the caller token active after timeout, and then complete a fresh three-request inspection with that same caller.
+
+Native tests use paused time and assert pending ownership at 4,999 ms, timeout at 5,000 ms and request/body Drop before return. Frozen JavaScript observations use the real clock, cooperative abort-aware pending requests and stream cancellation that settles. These are separate cleanup and timing contracts; they do not establish prompt return from an arbitrary abort-ignoring fetch or a cancellation promise that never settles, or measure an Ollama model's speed.
+
+Pull progress counts every decoded response byte toward its 16 MiB total. The 65,536-byte checks apply to a pending buffer and a nonblank update line, excluding its LF delimiter. Completed whitespace-only lines are ignored before the line-length check; an oversized whitespace prefix split before its LF can still fail the pending-buffer check. This preserves the Source behavior. See the [individual default-limit evidence](../parity/measurements/native-count-and-pull-default-limits-summary.json).
+
+
+## Native contributor-tool API boundaries
+
+The [four individual tooling mappings](../parity/assertion-mappings/tooling-policy-preflight-native-api-migrations.json) document development-tool interfaces separately from runtime routing. A completed nonzero installed-lifecycle capture returns a safe error containing status and a recoverable private JSON report path. The report retains the synthetic stdout and stderr; it has mode 0600. This replaces the JavaScript helper's resolved result object. Incomplete timeout or overflow capture does not produce a completed report. Consumer injection and separate real process-capture tests compose; the injected consumer test does not execute the installed main command.
+
+Release preflight permits only native archives to become ready for new publication. Metadata checks, an identical existing version and an uncertain retry preserve their safe read-only behavior before that decision. Typed `HttpError::Network` has no arbitrary JavaScript Error message to sanitize; the original open-error input is an explicit interface migration, while safe diagnostics and all original status failures retain their tests.
+
+Evaluation policies are copied owned values and may be edited before transfer. `run_evaluation` takes ownership and revalidates before creating a router or admitting evaluator requests. The public `f64` fields can contain NaN or positive infinity, and actual tests reject both before work. Owned policy and immutable input borrows replace JavaScript freeze exceptions; zero invalid-policy transport calls and static constructor ordering replace injected factory identity. The valid three-request control returns the original complete outage report (`passed: false`, three fallbacks). It proves admission and policy isolation, without claiming a successful evaluator response or arbitrary mutable-alias protection.
+
+
+For the [individual stalled-child/missing-executable migration](../parity/assertion-mappings/package-lifecycle-spawn-cause-native-api-migration.json), the internal direct subprocess runner returns deadline failure metadata instead of a rejected JavaScript Promise. Failed spawn reports now include the closed `spawn_error_kind`: `not_found`, `permission_denied` or `other`. `not_found` categorizes the OS error without asserting which path or interpreter failed; invalid NUL arguments exercise the grouped `other` branch. Raw OS messages, paths, arguments and numeric spawn errno remain omitted. The live-report consumer removes this internal field, keeping its strict report schema unchanged.
+
+The configured 100 ms control observes direct termination and return, while the raw report retains `cleanup_confirmed: false` and its process-group signal diagnostic. This is a scoped deadline/cause contract; it does not establish successful whole-group cleanup, the cause of errno 1, arbitrary blocking-spawn bounds or equivalent APIs for the separate synchronous/owned capture helpers. Existing cancellation, output bounds and cleanup policy remain unchanged.
+
+### Contributor readiness and independent startup budgets
+
+`tool_process::capture_lifecycle` uses the same owned subprocess loop as ordinary captures. Its Source lifecycle mode retains complete readiness JSON and sends a caller-selected INT or TERM to its owned, unreaped leader at most once. Readiness output supplies no PID authority. The ordinary live-tool capture adapter retains its 100,000-byte aggregate ceiling and whole-buffer decoding; Source mode counts decoded UTF-16 per observed chunk. Tokio chunks need not match Node data-event boundaries. Structured native failure values and TERM plus grace differ explicitly from Source rejected Promises and immediate KILL. Observed child exit and pipe EOF do not prove successful group cleanup.
+
+The [default setup-budget evidence](../parity/measurements/native-default-setup-budget-limits-summary.json) accepts only the 900,000 ms pull and 60,000 ms warmup policy defaults. Eight controlled-clock schedules per engine cover held heads/bodies, late metadata, disabled routing deadlines and fresh retries. They measure policy boundaries, not model or wall-clock latency; Node's separate internal timeout primitive remains real and its private timers are not claimed joined. All broader qualification gates remain open.

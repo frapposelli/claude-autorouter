@@ -1,0 +1,217 @@
+{
+  "kind": "native_individual_keychain_fixed_resource_limits_acceptance",
+  "recorded_at_utc": "2026-10-17T23:54:24.033122+00:00",
+  "accepted_limits": [
+    {
+      "id": "keychain_output_bytes",
+      "baseline_value": 65536,
+      "eligible": true,
+      "scope": "Aggregate captured stdout+stderr byte budget; exact per-pipe/combined edges and generic overflow rejection. Not RSS/allocation/OS-pipe-buffer bounds."
+    },
+    {
+      "id": "keychain_timeout_ms",
+      "baseline_value": 15000,
+      "eligible": true,
+      "scope": "Fixed Source timeout option and native production timer over stdin write/closure, both reads and child wait;14999ms pending/15000ms rejection. Not15s total wall time or Source elapsed timeout proof."
+    }
+  ],
+  "root_decision": "Accept only these two fixed operational limits after source, exact-boundary and independent review; do not infer broader elapsed-time, cleanup, allocation or platform guarantees.",
+  "reviews": [
+    {
+      "path": "artifacts/rust-rewrite/resource-limit-keychain-review-20261018-1/recommendation.json",
+      "bytes": 7390,
+      "sha256": "736dfc51ee3d70d70aad9d9023e687e4c248f946312717eb882b2cd4050d9654"
+    },
+    {
+      "path": "artifacts/rust-rewrite/resource-limit-keychain-review-20261018-1/independent-recommendation.json",
+      "bytes": 1635,
+      "sha256": "f0a02437f684434a28891cd42e383cd8a749d1dd743d775d58472d70efff7630"
+    },
+    {
+      "path": "artifacts/rust-rewrite/resource-limit-keychain-review-20261018-1/independent-acceptance-review.json",
+      "bytes": 10151,
+      "sha256": "6d29d137e4b786ccd7615d4f21b42ef8c66e3a5384219ccc67ed02a131fa5157"
+    }
+  ],
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/owned-eof-tail-ordering-validation-20261018-1/candidate-source.json",
+    "bytes": 116612,
+    "sha256": "34d69cb6e5dd0ca5be58674baf92efb482ed8e82de91f02674f99fecd43c61d2"
+  },
+  "source_and_execution_pins": [
+    {
+      "path": "rust/parity/measurements/native-keychain-process-bounds-summary.json",
+      "bytes": 5369,
+      "sha256": "003f9712cf436178ee3d8f11ecb1c71c0bfd7d9fa0ec0ae98283c17ac7d04cbf"
+    },
+    {
+      "path": "artifacts/rust-rewrite/keychain-process-bounds-20261013/final-validation.json",
+      "bytes": 1397,
+      "sha256": "b6360a4eb0488480cbad3761971df035a486b830339e9a1792a4fb3f8850f314"
+    },
+    {
+      "path": "artifacts/rust-rewrite/keychain-process-bounds-20261013/final-keychain-tests.log",
+      "bytes": 1665,
+      "sha256": "2d1bbada2a5db1863567601568433dbaa82ac490057d2b75249087610089feb0"
+    },
+    {
+      "path": "artifacts/rust-rewrite/keychain-process-bounds-20261013/frozen-original-output-controls.json",
+      "bytes": 2317,
+      "sha256": "7739f8b4f53e01016a5f8d7e07d2148591fdbd8a65e0309ca21c7296f6c1073d"
+    },
+    {
+      "path": "artifacts/rust-rewrite/keychain-process-bounds-20261013/before-combined-boundary.json",
+      "bytes": 1391,
+      "sha256": "34bef8a691ea06439f4d8e2f064dd6f56881bb4ea0e79692638a9109d58bd9e4"
+    },
+    {
+      "path": "artifacts/rust-rewrite/keychain-process-bounds-20261013/before-combined-boundary.log",
+      "bytes": 1590,
+      "sha256": "d852de40ff3e66dbe83f72446dc13e43f0e3610e908700e8540dace1eefc508d"
+    },
+    {
+      "path": "artifacts/rust-rewrite/reference/src/keychain.mjs",
+      "bytes": 3002,
+      "sha256": "0c844fba460a941cb24f095ff95094bc86f36f956ec79b49c9796307cb3fc6e3"
+    },
+    {
+      "path": "artifacts/dev-environment/capture-keychain-process-bounds.mjs",
+      "bytes": 3349,
+      "sha256": "2ed03d74bdb151cc9496462c38712a9989bfc0cdf968fb433df8da70c8975cc5"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/keychain.rs",
+      "bytes": 17011,
+      "sha256": "0ed061cbe63315ae67131a2d30012f2dd509c1c43e1206accfaa35f2f068570b"
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/keychain_process_contracts.rs",
+      "bytes": 9627,
+      "sha256": "1f49f81955103fbf43c020fd89328d404b16b1f615df3c7834bcb487fc9a98cf"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-config-fixture-sharing-validation-20261018-1/candidate-source.json",
+      "bytes": 116612,
+      "sha256": "cc996e5df66cfa77b5f3e4c9f7234044093f23d67454276c41c52366f104fc1d"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-config-fixture-sharing-validation-20261018-1/runtime-tests.json",
+      "bytes": 510,
+      "sha256": "08b6503c4cc166ae530d2fae46a7f8ce76133bde6c83f0c0b321b44da9b8ab01"
+    },
+    {
+      "path": "artifacts/rust-rewrite/runtime-config-fixture-sharing-validation-20261018-1/runtime-tests.stdout",
+      "bytes": 56616,
+      "sha256": "875439093d801303fe3544d829eb9967c300bf5c2356082024bf07b845646ddf"
+    },
+    {
+      "path": "rust/parity/baseline.json",
+      "bytes": 86691,
+      "sha256": "6722bd7a0109efb4d48e743412fbcc21affb0ceda1058d06726d03375113f588"
+    }
+  ],
+  "actual_source_controls": {
+    "schema_version": 1,
+    "kind": "frozen_source_actual_child_keychain_output_bounds",
+    "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+    "files_verified": 111,
+    "source_sha256": "0c844fba460a941cb24f095ff95094bc86f36f956ec79b49c9796307cb3fc6e3",
+    "node": "v22.14.0",
+    "original_executable_asserted_but_not_spawned": "/usr/bin/security",
+    "actual_executable": "/bin/sh",
+    "synthetic_subprocesses": 6,
+    "security_account_operations": 0,
+    "provider_calls": 0,
+    "deadline_configuration_ms": 15000,
+    "deadline_elapsed_behavior_measured": false,
+    "combined_output_budget": 65536,
+    "passed": true,
+    "rows": [
+      {
+        "emitted_stdout_bytes": 65536,
+        "emitted_stderr_bytes": 0,
+        "accepted": true,
+        "returned_bytes": 65536,
+        "error": null,
+        "status": 0,
+        "error_code": null,
+        "stdout_bytes": 65536,
+        "stderr_bytes": 0
+      },
+      {
+        "emitted_stdout_bytes": 65537,
+        "emitted_stderr_bytes": 0,
+        "accepted": false,
+        "returned_bytes": null,
+        "error": "Could not run the macOS Keychain tool.",
+        "status": null,
+        "error_code": "ENOBUFS",
+        "stdout_bytes": 65537,
+        "stderr_bytes": 0
+      },
+      {
+        "emitted_stdout_bytes": 0,
+        "emitted_stderr_bytes": 65536,
+        "accepted": true,
+        "returned_bytes": 0,
+        "error": null,
+        "status": 0,
+        "error_code": null,
+        "stdout_bytes": 0,
+        "stderr_bytes": 65536
+      },
+      {
+        "emitted_stdout_bytes": 0,
+        "emitted_stderr_bytes": 65537,
+        "accepted": false,
+        "returned_bytes": null,
+        "error": "Could not run the macOS Keychain tool.",
+        "status": 0,
+        "error_code": "ENOBUFS",
+        "stdout_bytes": 0,
+        "stderr_bytes": 65537
+      },
+      {
+        "emitted_stdout_bytes": 32768,
+        "emitted_stderr_bytes": 32768,
+        "accepted": true,
+        "returned_bytes": 32768,
+        "error": null,
+        "status": 0,
+        "error_code": null,
+        "stdout_bytes": 32768,
+        "stderr_bytes": 32768
+      },
+      {
+        "emitted_stdout_bytes": 32768,
+        "emitted_stderr_bytes": 32769,
+        "accepted": false,
+        "returned_bytes": null,
+        "error": "Could not run the macOS Keychain tool.",
+        "status": 0,
+        "error_code": "ENOBUFS",
+        "stdout_bytes": 32768,
+        "stderr_bytes": 32769
+      }
+    ]
+  },
+  "actual_native_passes": [
+    "keychain::process_contracts::shared_output_boundary_is_65536_and_65537_across_both_pipes",
+    "keychain::process_contracts::each_pipe_has_exact_byte_boundary_and_overflow_kills_and_reaps",
+    "keychain::process_contracts::production_15_second_deadline_covers_wait_and_blocked_stdin_and_reaps",
+    "keychain::process_contracts::stdin_is_written_then_closed_and_child_status_is_preserved",
+    "keychain::process_contracts::dropped_future_eventually_kills_and_reaps_owned_child_on_live_runtime"
+  ],
+  "scope": "Output is shared captured-byte budget. Timeout is fixed Source option and actual native production timer edge under paused Tokio clock; Source elapsed behavior, spawn latency and uninterruptible cleanup are unmeasured. No whole Drop/descendant/platform/real-security-operation proof.",
+  "historical_binding": "Current keychain.rs17011B/0ed061... and process_contracts.rs9627B/1f49f8... are byte-identical20261013 retainedsources and actualcc996 snapshot inputs. Exact5namedpasses verified in original focusedexit0 log and latercc996runtime exit0 log, not inferred fromcounts.111frozenreferencefiles rehashed.",
+  "retained_adversarial_failure": "Original wrong independentpipebudget expectedfailure retained before correction; finalaggregate budget tests and Source6cases retained separately. No historical failure relabeledgreen.",
+  "excluded_or_pending": [
+    "Source elapsed15000ms timeout, ignoredSIGTERM/adversarialdescendants and interruptedkernelcleanup were not measured; no such wholelifecycleclaim.",
+    "NativefutureDrop onlyeventualkill/reap on liveTokio runtime, no synchronousDropjoin; no crosscrash/descendantgroup/generalPIDreuse proof. No actual /usr/bin/security account operations.",
+    "Current evidence is synthetic macOS-host subprocess testing, not additionalplatform/CLIworkflow/provider/performance/release/sourcecap qualification.",
+    "decision_response_bytes/model_metadata_bytes remain pending in this review: found actual65537 decisionrejection and100000metadataaccept/>1MiBrejection, but didnotlocate literal65536 accepted decision and1048576accepted/1048577rejected metadata controls. Tinycustomlimitacceptance/constants are not substituted for those operational edges.",
+    "No count_response_bytes or status/history/cache or otherlimitrow approval by analogy. All53rows inspected, only this2row family recommended."
+  ],
+  "count_scope": "Six Source boundary controls and five existing native tests are separate retained evidence, not new tests. Current34d workspace named passes compose despite its unrelated source-cap failure/exit101. No original-definition, configuration, whole-area or other51limit promotion.",
+  "remaining": "Source-transfer caps, current-source CI, full platform/protocol/resource/performance/provider/task-quality/provenance/rollback/stabilization/cutover qualification remain open. JavaScript0.5.2 remains default."
+}

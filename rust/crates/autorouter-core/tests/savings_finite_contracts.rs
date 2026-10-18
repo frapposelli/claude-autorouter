@@ -90,20 +90,8 @@ fn validate_inventory(rows: &[Value]) -> Result<(), &'static str> {
 // JavaScript has one Number type. Serde distinguishes integral and floating
 // JSON representations (6 versus 6.0), which are identical source numbers.
 // Compare exact f64 values without tolerance; preserve every key and array slot.
-fn same_json(actual: &Value, expected: &Value) -> bool {
-    match (actual, expected) {
-        (Value::Number(a), Value::Number(b)) => a.as_f64() == b.as_f64(),
-        (Value::Array(a), Value::Array(b)) => {
-            a.len() == b.len() && a.iter().zip(b).all(|(a, b)| same_json(a, b))
-        }
-        (Value::Object(a), Value::Object(b)) => {
-            a.len() == b.len()
-                && a.iter()
-                    .all(|(key, value)| b.get(key).is_some_and(|other| same_json(value, other)))
-        }
-        _ => actual == expected,
-    }
-}
+include!("../src/json_compare_macros.rs");
+contract_json_equal!(same_json, a, b => a.as_f64() == b.as_f64());
 
 fn verify_snapshot(tracker: &SavingsTracker, expected: &Value) -> Result<(), &'static str> {
     let mut detached = tracker.snapshot();

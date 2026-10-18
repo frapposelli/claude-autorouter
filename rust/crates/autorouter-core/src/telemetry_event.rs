@@ -724,43 +724,7 @@ mod tests {
         );
     }
 
-    fn equal_js_json(left: &Value, right: &Value) -> bool {
-        match (left, right) {
-            (Value::Number(a), Value::Number(b)) if a != b => {
-                if !a.is_f64() && !b.is_f64() {
-                    return false;
-                }
-                let (Some(a_float), Some(b_float)) = (a.as_f64(), b.as_f64()) else {
-                    return false;
-                };
-                if a_float != b_float {
-                    return false;
-                }
-                if a.is_f64() && b.is_f64() {
-                    return true;
-                }
-                let integer = if a.is_f64() { b } else { a };
-                if let Some(value) = integer.as_u64() {
-                    (0.0..18_446_744_073_709_551_616.0).contains(&a_float)
-                        && a_float as u64 == value
-                } else if let Some(value) = integer.as_i64() {
-                    (-9_223_372_036_854_775_808.0..9_223_372_036_854_775_808.0).contains(&a_float)
-                        && a_float as i64 == value
-                } else {
-                    false
-                }
-            }
-            (Value::Array(a), Value::Array(b)) => {
-                a.len() == b.len() && a.iter().zip(b).all(|(a, b)| equal_js_json(a, b))
-            }
-            (Value::Object(a), Value::Object(b)) => {
-                a.len() == b.len()
-                    && a.iter()
-                        .all(|(key, a)| b.get(key).is_some_and(|b| equal_js_json(a, b)))
-            }
-            _ => left == right,
-        }
-    }
+    use crate::test_support::equal_js_json;
 
     #[test]
     fn captured_json_comparison_matches_numbers_without_masking_distinct_values() {
@@ -834,5 +798,113 @@ mod tests {
             cases += 1;
         }
         assert_eq!(cases, 68, "Frozen capture inventory changed");
+    }
+
+    // JSON-visible fields from original telemetry-event#1. The foreign Error
+    // property below is inert JSON data, not an executed JavaScript Error.
+    fn original_route_evidence() -> Value {
+        json!({
+            "event": "route",
+            "timestamp": "2026-10-05T10:00:00.000Z",
+            "request_id": "request-1",
+            "session_id": "session-1",
+            "requested_model": "claude-haiku-4-5-20251001",
+            "selected_model": "claude-sonnet-5",
+            "model": "claude-sonnet-5",
+            "source": "jev",
+            "evaluator": "jev",
+            "classified_tier": "haiku",
+            "reason": "context_capacity",
+            "compatibility_reason": "context_limit",
+            "continuity_state": "confirmed",
+            "evaluation_latency_ms": 12.1,
+            "routing_latency_ms": 14,
+            "decision_latency_ms": 12.1,
+            "first_response_ms": 20,
+            "total_latency_ms": 50,
+            "context_check": "over_budget",
+            "counted_input_tokens": 210000
+        })
+    }
+
+    #[test]
+    fn original_route_allowlist_preserves_complete_evidence_and_input() {
+        let fixture = original_route_evidence();
+        let mut expected = fixture.clone();
+        expected["schema_version"] = json!(TELEMETRY_SCHEMA_VERSION);
+        let mut entry = fixture;
+        for (key, value) in [
+            ("authorization", json!("SECRET")),
+            ("headers", json!({"api_key": "SECRET"})),
+            ("body", json!({"text": "SECRET"})),
+            ("error", json!({"name": "Error", "message": "SECRET"})),
+            ("error_type", json!("SECRET")),
+            ("prompt_excerpt", json!("SECRET")),
+            ("unknown", json!("SECRET")),
+        ] {
+            entry[key] = value;
+        }
+        let before = entry.clone();
+        let document =
+            crate::js_json::JsDocument::parse(&serde_json::to_vec(&entry).unwrap()).unwrap();
+        let document_before = document.stringify();
+        for result in [
+            normalize_telemetry_event(&entry, NOW),
+            normalize_telemetry_document(&document, NOW),
+        ] {
+            let result = result.expect("complete original route evidence remains valid");
+            assert!(equal_js_json(&result, &expected));
+            assert!(!result.to_string().contains("SECRET"));
+        }
+        assert_eq!(entry, before);
+        assert_eq!(entry["body"]["text"], "SECRET");
+        assert_eq!(document.stringify(), document_before);
+    }
+
+    #[test]
+    fn absent_required_decision_model_and_outcome_status_are_rejected() {
+        // Own undefined has no JSON node. These native controls intentionally
+        // use absence; they neither substitute null nor execute undefined.
+        for (event, missing, restored) in [
+            ("decision", "selected_model", "claude-sonnet-5"),
+            ("outcome", "status", "completed"),
+        ] {
+            let mut entry = original_route_evidence();
+            entry["event"] = json!(event);
+            entry.as_object_mut().unwrap().remove(missing);
+            let before = entry.clone();
+            let document =
+                crate::js_json::JsDocument::parse(&serde_json::to_vec(&entry).unwrap()).unwrap();
+            let document_before = document.stringify();
+            assert!(normalize_session_record(&entry, true, NOW).is_none());
+            assert!(normalize_session_document(&document, true, NOW).is_none());
+            assert_eq!(entry, before);
+            assert_eq!(document.stringify(), document_before);
+
+            // Other valid route evidence, including model, must not make a
+            // missing required field valid. Restoring that field must work.
+            entry[missing] = json!(restored);
+            let document =
+                crate::js_json::JsDocument::parse(&serde_json::to_vec(&entry).unwrap()).unwrap();
+            let value = normalize_session_record(&entry, true, NOW).unwrap();
+            let exact = normalize_session_document(&document, true, NOW).unwrap();
+            assert!(equal_js_json(&value, &exact));
+            assert_eq!(value[missing], restored);
+            assert_eq!(value["event"], event);
+        }
+    }
+
+    #[test]
+    fn missing_event_json_object_has_no_normalized_result_or_mutation() {
+        // This tests real JSON data only. A host cycle, throwing property or
+        // top-level undefined cannot be constructed through these APIs.
+        let entry = json!({});
+        let document = crate::js_json::JsDocument::parse(b"{}").unwrap();
+        assert!(normalize_telemetry_event(&entry, NOW).is_none());
+        assert!(normalize_session_record(&entry, true, NOW).is_none());
+        assert!(normalize_telemetry_document(&document, NOW).is_none());
+        assert!(normalize_session_document(&document, true, NOW).is_none());
+        assert_eq!(entry, json!({}));
+        assert_eq!(document.stringify(), "{}");
     }
 }

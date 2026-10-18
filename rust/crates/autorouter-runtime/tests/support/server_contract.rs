@@ -1,6 +1,10 @@
 //! Exact shared server-contract helpers; distinct original metadata policies stay separate.
 use super::peer::Observation;
-use autorouter_core::{js_json::JsDocument, router::RouteOptions};
+use autorouter_core::{
+    config::{RouterConfig, SessionLogMode, read_config},
+    js_json::JsDocument,
+    router::RouteOptions,
+};
 use autorouter_runtime::{
     evaluator::EvaluationError,
     http_client::{HttpError, HttpTransport, NativeHttpClient},
@@ -12,8 +16,11 @@ use bytes::Bytes;
 use http_body_util::{BodyExt, Full, Limited, combinators::UnsyncBoxBody};
 use hyper::{HeaderMap, Request, Response};
 use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
 use std::{
     collections::{BTreeMap, BTreeSet},
+    net::SocketAddr,
+    path::Path,
     sync::{
         Arc, Mutex,
         atomic::{AtomicBool, Ordering},
@@ -27,6 +34,76 @@ type Body = UnsyncBoxBody<Bytes, Error>;
 
 const LIMIT: usize = 2 * 1024 * 1024;
 type Events = Arc<Mutex<Vec<Value>>>;
+
+// Admit immutable captured server cases before looking up the requested row.
+pub fn captured_server_case(
+    number: usize,
+    corpus: &str,
+    capture: &str,
+    hashes: [&str; 2],
+    counts: (u64, u64, Option<u64>),
+) -> Value {
+    assert_eq!(
+        format!("{:x}", Sha256::digest(corpus.as_bytes())),
+        hashes[0]
+    );
+    assert_eq!(
+        format!("{:x}", Sha256::digest(capture.as_bytes())),
+        hashes[1]
+    );
+    let metadata: Value = serde_json::from_str(capture).unwrap();
+    assert_eq!(metadata["static_assertions"], counts.0);
+    assert_eq!(metadata["expanded_assertions"], counts.1);
+    if let Some(callbacks) = counts.2 {
+        assert_eq!(metadata["callbacks_executed"], callbacks);
+    }
+    corpus
+        .lines()
+        .map(|line| serde_json::from_str::<Value>(line).unwrap())
+        .find(|row| row["source_test"] == format!("test/server.test.mjs#{number}"))
+        .unwrap()
+}
+
+// The caller supplies its peer's ordinary chunk constructor. This stays valid
+// in targets with a different peer API; no peer implementation is imported here.
+pub fn indexed_responder<P: 'static>(
+    row: &Value,
+    response: fn(u16, HeaderMap, Vec<Bytes>) -> P,
+) -> impl Fn(&Observation, usize) -> Result<P, String> + Send + Sync + 'static {
+    let script = upstream_rows(row);
+    move |request, index| {
+        let wanted = script.get(index).ok_or("unregistered peer request")?;
+        compare_request(request, wanted)?;
+        Ok(response(
+            wanted["response_status"].as_u64().unwrap() as u16,
+            headers(&wanted["response_headers"]),
+            chunks(wanted),
+        ))
+    }
+}
+
+pub fn gateway_config(row: &Value, arguments: &Value, address: SocketAddr) -> RouterConfig {
+    let mut config = read_config(arguments, false, Path::new("/tmp")).unwrap();
+    config.local_token = row["gateway_config"]["localToken"]
+        .as_str()
+        .map(str::to_owned);
+    config.upstream = format!("http://{address}");
+    config
+}
+
+pub fn history_gateway_config(row: &Value, address: SocketAddr) -> RouterConfig {
+    let mut config = gateway_config(
+        row,
+        &row["config_arguments"].as_array().unwrap().last().unwrap()[0],
+        address,
+    );
+    config.session_log_mode = if row["gateway_config"]["sessionLogMode"] == "prompts" {
+        SessionLogMode::Prompts
+    } else {
+        SessionLogMode::Metadata
+    };
+    config
+}
 
 pub fn parsed(bytes: &[u8]) -> Value {
     serde_json::from_slice(bytes).unwrap()
@@ -157,27 +234,8 @@ pub fn compare_request(observed: &Observation, wanted: &Value) -> Result<(), Str
     Ok(())
 }
 
-pub fn javascript_number_equality(wanted: &Value, got: &Value) -> bool {
-    match (wanted, got) {
-        (Value::Number(left), Value::Number(right)) => left.as_f64() == right.as_f64(),
-        (Value::Array(left), Value::Array(right)) => {
-            left.len() == right.len()
-                && left
-                    .iter()
-                    .zip(right)
-                    .all(|(a, b)| javascript_number_equality(a, b))
-        }
-        (Value::Object(left), Value::Object(right)) => {
-            left.len() == right.len()
-                && left.iter().all(|(key, value)| {
-                    right
-                        .get(key)
-                        .is_some_and(|got| javascript_number_equality(value, got))
-                })
-        }
-        _ => wanted == got,
-    }
-}
+include!("../../../autorouter-core/src/json_compare_macros.rs");
+contract_json_equal!(pub javascript_number_equality, a, b => a.as_f64() == b.as_f64());
 
 pub fn compare_metadata(wanted: &Value, got: &Value) {
     // This is a semantic comparison, not a rewritten observation. Undefined

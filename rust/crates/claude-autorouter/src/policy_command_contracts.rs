@@ -97,9 +97,7 @@ struct Fixture {
 }
 impl Fixture {
     fn new(initial: &Value) -> Self {
-        let mut random = [0u8; 12];
-        getrandom::fill(&mut random).unwrap();
-        let suffix: String = random.iter().map(|byte| format!("{byte:02x}")).collect();
+        let suffix = autorouter_runtime::random_hex::<12>().unwrap();
         let root = std::env::temp_dir().join(format!("autorouter-policy-command-{suffix}"));
         DirBuilder::new().mode(0o700).create(&root).unwrap();
         let fixture = Self { root };
@@ -232,23 +230,8 @@ fn loaded(value: LoadedConfig) -> Value {
         "unavailableSecrets":value.unavailable_secrets,"policy":value.policy,"policyPath":value.policy_path,"policyLocked":value.policy_locked})
 }
 // Exact finite JavaScript Number comparison; no tolerance or integer rounding.
-fn same(left: &Value, right: &Value) -> bool {
-    match (left, right) {
-        (Value::Number(a), Value::Number(b)) => a
-            .as_f64()
-            .zip(b.as_f64())
-            .is_some_and(|(a, b)| a.is_finite() && b.is_finite() && a == b),
-        (Value::Array(a), Value::Array(b)) => {
-            a.len() == b.len() && a.iter().zip(b).all(|(a, b)| same(a, b))
-        }
-        (Value::Object(a), Value::Object(b)) => {
-            a.len() == b.len()
-                && a.iter()
-                    .all(|(key, value)| b.get(key).is_some_and(|other| same(value, other)))
-        }
-        _ => left == right,
-    }
-}
+include!("../../autorouter-core/src/json_compare_macros.rs");
+contract_json_equal!(same, a, b => a.as_f64().zip(b.as_f64()).is_some_and(|(a, b)| a.is_finite() && b.is_finite() && a == b));
 fn comparable(mut row: Value, reference: bool) -> Value {
     if row["status"] == "error" && reference {
         assert_eq!(row["error"]["name"], "Error");

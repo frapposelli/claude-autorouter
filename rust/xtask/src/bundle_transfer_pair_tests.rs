@@ -5,6 +5,24 @@ use std::fs;
 use std::os::unix::fs::{PermissionsExt, symlink};
 use std::path::PathBuf;
 
+fn read_record(directory: &Path) -> Value {
+    serde_json::from_slice(&fs::read(directory.join("transfer-manifest.json")).unwrap()).unwrap()
+}
+
+fn assert_restored(output: &Path, entries: &BTreeMap<String, Entry>) {
+    for (path, entry) in entries {
+        assert_eq!(fs::read(output.join(path)).unwrap(), entry.bytes);
+        assert_eq!(
+            fs::metadata(output.join(path))
+                .unwrap()
+                .permissions()
+                .mode()
+                & 0o777,
+            entry.mode
+        );
+    }
+}
+
 #[test]
 fn binary_source_manifest_literal_rows_are_lossless_bounded_and_strict() {
     // Independently authored bytes: SHA256 of UTF8 ["a","ab"], followed
@@ -217,17 +235,7 @@ fn schema5_binary_facts_preserve_payloads_and_reject_version_or_charge_downgrade
             restore(&f.root, &directory, &output).unwrap()["logical_files"],
             113
         );
-        for (path, entry) in &f.reference {
-            assert_eq!(fs::read(output.join(path)).unwrap(), entry.bytes);
-            assert_eq!(
-                fs::metadata(output.join(path))
-                    .unwrap()
-                    .permissions()
-                    .mode()
-                    & 0o777,
-                entry.mode
-            );
-        }
+        assert_restored(&output, &f.reference);
     }
 }
 
@@ -272,9 +280,7 @@ fn schema6_binary_carrier_retains_every_fact_and_rejects_format_or_version_fallb
             record["legacy_full_tar_bytes"] = json!(legacy);
             record["legacy_full_tar_within_limit"] = json!(legacy <= SOURCE.expanded);
         });
-        let mut record: Value =
-            serde_json::from_slice(&fs::read(directory.join("transfer-manifest.json")).unwrap())
-                .unwrap();
+        let mut record: Value = read_record(&directory);
         match variant {
             "format" => record["archives"][CPIO_NAME]["format"] = json!("gzip-newc"),
             "newc-body" => {
@@ -324,17 +330,7 @@ fn schema6_binary_carrier_retains_every_fact_and_rejects_format_or_version_fallb
             restore(&f.root, &directory, &output).unwrap()["logical_files"],
             113
         );
-        for (path, entry) in &f.reference {
-            assert_eq!(fs::read(output.join(path)).unwrap(), entry.bytes);
-            assert_eq!(
-                fs::metadata(output.join(path))
-                    .unwrap()
-                    .permissions()
-                    .mode()
-                    & 0o777,
-                entry.mode
-            );
-        }
+        assert_restored(&output, &f.reference);
     }
 }
 
@@ -495,9 +491,7 @@ impl Fixture {
         .unwrap();
     }
     fn schema3(&self, directory: &Path) {
-        let mut record: Value =
-            serde_json::from_slice(&fs::read(directory.join("transfer-manifest.json")).unwrap())
-                .unwrap();
+        let mut record: Value = read_record(directory);
         let native = cpio::encode_root(NATIVE_ROOT, &self.native, SOURCE, source_limit).unwrap();
         let native_expanded =
             cpio::expanded_size(NATIVE_ROOT, &self.native, SOURCE, source_limit).unwrap();
@@ -524,9 +518,7 @@ impl Fixture {
         mutate: impl FnOnce(&mut BTreeMap<String, Entry>, &mut BTreeMap<String, Entry>, &mut Value),
     ) {
         self.schema3(directory);
-        let mut record: Value =
-            serde_json::from_slice(&fs::read(directory.join("transfer-manifest.json")).unwrap())
-                .unwrap();
+        let mut record: Value = read_record(directory);
         let mut native = self.native.clone();
         let mut reference = decode_root(
             &fs::read(directory.join(DELTA_NAME)).unwrap(),
@@ -619,17 +611,7 @@ fn legacy_and_shared_carriers_restore_all_original_113_bytes_modes_and_license()
         assert_eq!(report["reference_files"], 111);
         assert_eq!(report["provider_calls"], 0);
         assert_eq!(report["release_approved"], false);
-        for (path, entry) in &f.reference {
-            assert_eq!(fs::read(output.join(path)).unwrap(), entry.bytes);
-            assert_eq!(
-                fs::metadata(output.join(path))
-                    .unwrap()
-                    .permissions()
-                    .mode()
-                    & 0o777,
-                entry.mode
-            );
-        }
+        assert_restored(&output, &f.reference);
         let before = fs::read(output.join("LICENSE")).unwrap();
         assert!(restore(&f.root, &directory, &output).is_err());
         assert_eq!(fs::read(output.join("LICENSE")).unwrap(), before);
@@ -744,10 +726,7 @@ fn exact_json_fields_duplicate_keys_shared_labels_and_limits_are_enforced() {
             _ => {}
         });
         if ["missing_archive", "expansion", "legacy"].contains(&variant) {
-            let mut record: Value = serde_json::from_slice(
-                &fs::read(directory.join("transfer-manifest.json")).unwrap(),
-            )
-            .unwrap();
+            let mut record: Value = read_record(&directory);
             match variant {
                 "missing_archive" => {
                     record["archives"]
@@ -818,10 +797,7 @@ fn checksums_truncation_outer_bounds_and_input_links_fail_before_writes() {
             _ => unreachable!(),
         }
         if variant == "truncated" {
-            let mut record: Value = serde_json::from_slice(
-                &fs::read(directory.join("transfer-manifest.json")).unwrap(),
-            )
-            .unwrap();
+            let mut record: Value = read_record(&directory);
             record["archives"][DELTA_NAME]["sha256"] = json!(sha(&fs::read(&archive).unwrap()));
             Fixture::metadata(&directory, &record, DELTA_NAME);
             let error = load(&f.root, &directory)
@@ -906,9 +882,7 @@ fn archive_root_and_stream_failure_remain_rejected_with_recomputed_checksums() {
     let f = Fixture::new();
     for variant in ["wrong-root", "duplicate-member", "foreign-directory"] {
         let directory = f.packet(variant, true, |_, _, _| {});
-        let mut record: Value =
-            serde_json::from_slice(&fs::read(directory.join("transfer-manifest.json")).unwrap())
-                .unwrap();
+        let mut record: Value = read_record(&directory);
         let bytes = if variant == "wrong-root" {
             let mut files = f.reference.clone();
             for (path, _, _) in SHARED {
@@ -1000,9 +974,7 @@ fn legacy_native_fixture_identity_cannot_be_null_missing_or_non_digest() {
 fn schema3_complete_reference_restore_and_independent_legacy_tar_charge_are_exact() {
     let f = Fixture::new();
     let directory = f.packet("schema3", true, |_, _, _| {});
-    let old: Value =
-        serde_json::from_slice(&fs::read(directory.join("transfer-manifest.json")).unwrap())
-            .unwrap();
+    let old: Value = read_record(&directory);
     f.schema3(&directory);
     let plan = load(&f.root, &directory).unwrap();
     assert_eq!(plan.record["schema_version"], 3);
@@ -1024,17 +996,7 @@ fn schema3_complete_reference_restore_and_independent_legacy_tar_charge_are_exac
     assert_eq!(report["transfer_schema"], 3);
     assert_eq!(report["logical_files"], 113);
     assert_eq!(report["reference_files"], 111);
-    for (path, entry) in &f.reference {
-        assert_eq!(fs::read(output.join(path)).unwrap(), entry.bytes);
-        assert_eq!(
-            fs::metadata(output.join(path))
-                .unwrap()
-                .permissions()
-                .mode()
-                & 0o777,
-            entry.mode
-        );
-    }
+    assert_restored(&output, &f.reference);
     assert!(restore(&f.root, &directory, &output).is_err());
 }
 #[test]
@@ -1052,9 +1014,7 @@ fn schema3_format_names_dimensions_unknown_fields_and_legacy_fallback_are_reject
     ] {
         let directory = f.packet(variant, true, |_, _, _| {});
         f.schema3(&directory);
-        let mut record: Value =
-            serde_json::from_slice(&fs::read(directory.join("transfer-manifest.json")).unwrap())
-                .unwrap();
+        let mut record: Value = read_record(&directory);
         match variant {
             "format" => record["archives"][CPIO_NAME]["format"] = json!("gzip-ustar"),
             "old_dimension" => {
@@ -1097,9 +1057,7 @@ fn schema3_truncated_or_nonzero_after_trailer_inputs_fail_before_destination_cre
     for variant in ["truncated", "after-trailer"] {
         let directory = f.packet(variant, true, |_, _, _| {});
         f.schema3(&directory);
-        let mut record: Value =
-            serde_json::from_slice(&fs::read(directory.join("transfer-manifest.json")).unwrap())
-                .unwrap();
+        let mut record: Value = read_record(&directory);
         let bytes = if variant == "truncated" {
             b"gzip".to_vec()
         } else {
@@ -1180,17 +1138,7 @@ fn schema4_reuses_only_pinned_extras_preserving_every_logical_byte_mode_and_lega
     assert_eq!(report["logical_files"], 113);
     assert_eq!(report["reference_files"], 111);
     assert_eq!(report["transfer_schema"], 4);
-    for (path, entry) in &f.reference {
-        assert_eq!(fs::read(output.join(path)).unwrap(), entry.bytes);
-        assert_eq!(
-            fs::metadata(output.join(path))
-                .unwrap()
-                .permissions()
-                .mode()
-                & 0o777,
-            entry.mode
-        );
-    }
+    assert_restored(&output, &f.reference);
     assert!(restore(&f.root, &directory, &output).is_err());
 }
 #[test]

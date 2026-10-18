@@ -70,6 +70,8 @@ pin_project_lite::pin_project! {
 /// to bind the built connection to a service.
 #[derive(Clone, Debug)]
 pub struct Builder {
+    #[cfg(feature = "node-http1-compat")]
+    node_server_timing: Option<Arc<dyn crate::ext::NodeHttpServerTimingControl>>,
     h1_parser_config: ParserConfig,
     timer: Time,
     h1_half_close: bool,
@@ -242,6 +244,8 @@ impl Builder {
     /// Create a new connection builder.
     pub fn new() -> Self {
         Self {
+            #[cfg(feature = "node-http1-compat")]
+            node_server_timing: None,
             h1_parser_config: ParserConfig::default(),
             timer: Time::Empty,
             h1_half_close: false,
@@ -267,6 +271,20 @@ impl Builder {
     /// Default is `false`.
     pub fn half_close(&mut self, val: bool) -> &mut Self {
         self.h1_half_close = val;
+        self
+    }
+
+    /// Install listener-owned Node HTTP receive and idle timing.
+    ///
+    /// Only this opt-in connection disables the legacy per-head timeout. The
+    /// owner supplies atomic parser observations and terminal wakeups; Hyper
+    /// creates neither a clock nor a task for this policy.
+    #[cfg(feature = "node-http1-compat")]
+    pub fn node_http_server_timing(
+        &mut self,
+        control: Arc<dyn crate::ext::NodeHttpServerTimingControl>,
+    ) -> &mut Self {
+        self.node_server_timing = Some(control);
         self
     }
 
@@ -478,6 +496,10 @@ impl Builder {
         let mut conn = proto::Conn::new(io);
         conn.set_h1_parser_config(self.h1_parser_config.clone());
         conn.set_timer(self.timer.clone());
+        #[cfg(feature = "node-http1-compat")]
+        if let Some(control) = &self.node_server_timing {
+            conn.set_node_server_timing(control.clone());
+        }
         if !self.h1_keep_alive {
             conn.disable_keep_alive();
         }
@@ -496,9 +518,14 @@ impl Builder {
         if let Some(max_header_size) = self.h1_max_header_size {
             conn.set_http1_max_header_size(max_header_size);
         }
+        let header_timeout = self.h1_header_read_timeout;
+        #[cfg(feature = "node-http1-compat")]
+        let header_timeout = if self.node_server_timing.is_some() {
+            Dur::Configured(None)
+        } else { header_timeout };
         if let Some(dur) = self
             .timer
-            .check(self.h1_header_read_timeout, "header_read_timeout")
+            .check(header_timeout, "header_read_timeout")
         {
             conn.set_http1_header_read_timeout(dur);
         }
@@ -517,6 +544,12 @@ impl Builder {
             conn.disable_date_header();
         }
         let sd = proto::h1::dispatch::Server::new(service);
+        #[cfg(feature = "node-http1-compat")]
+        let mut sd = sd;
+        #[cfg(feature = "node-http1-compat")]
+        if let Some(control) = &self.node_server_timing {
+            sd.set_node_server_timing(control.clone());
+        }
         let proto = proto::h1::Dispatcher::new(sd, conn);
         Connection { conn: proto }
     }

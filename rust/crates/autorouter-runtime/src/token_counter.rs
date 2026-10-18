@@ -82,22 +82,9 @@ fn cache_key(url: &str, scope: &[Option<String>], serialized: &str) -> Option<[u
     Some(output.0.finalize().into())
 }
 
-fn field(document: &JsDocument, node: NodeId, key: &str) -> Option<NodeId> {
-    document.get(node, key)
-}
 fn text(document: &JsDocument, node: Option<NodeId>) -> Option<String> {
     document.string(node?).and_then(|value| value.to_scalar())
 }
-fn truthy(document: &JsDocument, node: Option<NodeId>) -> bool {
-    match node.and_then(|node| document.node(node)) {
-        None | Some(JsNode::Null) => false,
-        Some(JsNode::Bool(value)) => *value,
-        Some(JsNode::Number(value)) => *value != 0.0 && !value.is_nan(),
-        Some(JsNode::String(value)) => !value.units().is_empty(),
-        Some(JsNode::Array(_) | JsNode::Object(_)) => true,
-    }
-}
-
 /// Check count-endpoint support without descending opaque tool-input objects or
 /// forgetting remote attachments nested inside content/tool-result wrappers.
 pub fn can_count(document: &JsDocument) -> bool {
@@ -105,8 +92,9 @@ pub fn can_count(document: &JsDocument) -> bool {
     let Some(JsNode::Object(object)) = document.node(root) else {
         return false;
     };
-    let Some(JsNode::Array(messages)) =
-        field(document, root, "messages").and_then(|node| document.node(node))
+    let Some(JsNode::Array(messages)) = document
+        .get(root, "messages")
+        .and_then(|node| document.node(node))
     else {
         return false;
     };
@@ -117,16 +105,16 @@ pub fn can_count(document: &JsDocument) -> bool {
     }) {
         return false;
     }
-    if let Some(tools) = field(document, root, "tools") {
+    if let Some(tools) = document.get(root, "tools") {
         let Some(JsNode::Array(tools)) = document.node(tools) else {
             return false;
         };
         for &tool in tools {
-            if !truthy(document, Some(tool)) {
+            if !document.is_truthy(Some(tool)) {
                 return false;
             }
-            let tool_type = field(document, tool, "type");
-            if truthy(document, tool_type) {
+            let tool_type = document.get(tool, "type");
+            if document.is_truthy(tool_type) {
                 let Some(kind) = text(document, tool_type) else {
                     return false;
                 };
@@ -143,12 +131,13 @@ pub fn can_count(document: &JsDocument) -> bool {
             }
         }
     }
-    let mut pending: Vec<_> = field(document, root, "system")
+    let mut pending: Vec<_> = document
+        .get(root, "system")
         .into_iter()
         .chain(
             messages
                 .iter()
-                .filter_map(|&message| field(document, message, "content")),
+                .filter_map(|&message| document.get(message, "content")),
         )
         .collect();
     while let Some(content) = pending.pop() {
@@ -157,17 +146,17 @@ pub fn can_count(document: &JsDocument) -> bool {
         };
         for &block in blocks {
             if matches!(
-                text(document, field(document, block, "type")).as_deref(),
+                text(document, document.get(block, "type")).as_deref(),
                 Some("image" | "document")
-            ) && let Some(source) = field(document, block, "source")
+            ) && let Some(source) = document.get(block, "source")
             {
-                match text(document, field(document, source, "type")).as_deref() {
+                match text(document, document.get(source, "type")).as_deref() {
                     Some("url" | "file") => return false,
-                    Some("content") => pending.extend(field(document, source, "content")),
+                    Some("content") => pending.extend(document.get(source, "content")),
                     _ => {}
                 }
             }
-            pending.extend(field(document, block, "content"));
+            pending.extend(document.get(block, "content"));
         }
     }
     true
@@ -179,8 +168,9 @@ pub fn count_payload(document: &JsDocument, model: &str, auto_mode: bool) -> Opt
     if model.is_empty() || !can_count(document) {
         return None;
     }
-    let source_model =
-        field(document, document.root(), "model").and_then(|node| document.string(node));
+    let source_model = document
+        .get(document.root(), "model")
+        .and_then(|node| document.string(node));
     if source_model.is_some_and(|model| model.to_scalar().is_none()) {
         return None;
     }
@@ -418,14 +408,12 @@ impl<T: HttpTransport> TokenCounter<T> {
 mod tests {
     use super::*;
     use crate::http_client::HttpError;
-    use autorouter_core::config::read_config;
     use http_body_util::BodyExt;
     use hyper::Response;
     use hyper::body::{Body, Frame};
     use serde_json::Value;
     use std::{
         io,
-        path::Path,
         pin::Pin,
         sync::atomic::{AtomicUsize, Ordering},
         task::{Context, Poll},
@@ -637,12 +625,7 @@ mod tests {
         }
     }
     fn config() -> RouterConfig {
-        read_config(
-            &json!({"ANTHROPIC_API_KEY":"synthetic"}),
-            false,
-            Path::new("/synthetic"),
-        )
-        .unwrap()
+        crate::test_config(&json!({"ANTHROPIC_API_KEY":"synthetic"}))
     }
     fn document(value: Value) -> JsDocument {
         JsDocument::parse(&serde_json::to_vec(&value).unwrap()).unwrap()
@@ -862,6 +845,307 @@ mod tests {
         assert!(output.contains(&("[".repeat(150) + "null" + &"]".repeat(150))));
         assert!(!output.contains("max_tokens"));
         assert!(output.contains("input_schema"));
+    }
+
+    #[tokio::test]
+    async fn default_count_response_boundary_over_actual_loopback_identity_and_gzip() {
+        use crate::http_client::NativeHttpClient;
+        use hyper::body::Incoming;
+        use hyper::service::service_fn;
+        use hyper_util::rt::TokioIo;
+        use std::convert::Infallible;
+        type CountBoundaryProfile<'a> = (
+            &'a str,
+            &'a str,
+            usize,
+            &'a str,
+            usize,
+            &'a str,
+            Option<&'a [u8]>,
+        );
+        let profiles: &[CountBoundaryProfile<'_>] = &[
+            (
+                "count-response-identity-65535",
+                "identity",
+                65535usize,
+                "c344e948fdd08af8cecc87e1e4d7172dfe22ac98a4568e21909c26638101cbf6",
+                65535usize,
+                "c344e948fdd08af8cecc87e1e4d7172dfe22ac98a4568e21909c26638101cbf6",
+                None,
+            ),
+            (
+                "count-response-identity-65536",
+                "identity",
+                65536usize,
+                "623e97404a70526049547a75c55bc39f8b16f8a11bf4e5ba5f57d2a707154edd",
+                65536usize,
+                "623e97404a70526049547a75c55bc39f8b16f8a11bf4e5ba5f57d2a707154edd",
+                None,
+            ),
+            (
+                "count-response-identity-65537",
+                "identity",
+                65537usize,
+                "e762b74ee0a8a8643ff65047e664113803f3c201287fe0db2bd98be50efeae6f",
+                65537usize,
+                "e762b74ee0a8a8643ff65047e664113803f3c201287fe0db2bd98be50efeae6f",
+                None,
+            ),
+            (
+                "count-response-gzip-65535",
+                "gzip",
+                65535usize,
+                "c344e948fdd08af8cecc87e1e4d7172dfe22ac98a4568e21909c26638101cbf6",
+                145usize,
+                "c42f829364ce3f870df3dbba908d32da4897e3d2ebde388b444806ce59683039",
+                Some(
+                    &[
+                        31, 139, 8, 0, 0, 0, 0, 0, 0, 255, 237, 193, 187, 13, 64, 0, 20, 0, 192,
+                        85, 228, 213, 26, 116, 150, 17, 133, 66, 36, 62, 65, 37, 18, 99, 232, 212,
+                        230, 176, 144, 17, 236, 33, 119, 183, 69, 219, 143, 235, 82, 45, 67, 215,
+                        244, 115, 148, 89, 94, 164, 49, 140, 245, 180, 54, 81, 198, 123, 157, 199,
+                        115, 199, 158, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 240, 111, 31, 62, 57,
+                        233, 242, 255, 255, 0, 0,
+                    ][..],
+                ),
+            ),
+            (
+                "count-response-gzip-65536",
+                "gzip",
+                65536usize,
+                "623e97404a70526049547a75c55bc39f8b16f8a11bf4e5ba5f57d2a707154edd",
+                145usize,
+                "292d09436f9100ae6ede9f48e3d6eeff8aff0906194ae822a62a627ec182105a",
+                Some(
+                    &[
+                        31, 139, 8, 0, 0, 0, 0, 0, 0, 255, 237, 193, 187, 13, 64, 0, 20, 0, 192,
+                        85, 228, 213, 26, 116, 150, 17, 133, 66, 36, 62, 65, 37, 18, 99, 232, 212,
+                        230, 176, 144, 17, 236, 33, 119, 183, 69, 219, 143, 235, 82, 45, 67, 215,
+                        244, 115, 148, 89, 94, 164, 49, 140, 245, 180, 54, 81, 198, 123, 157, 199,
+                        115, 199, 158, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 240, 115, 31, 215,
+                        59, 255, 40, 0, 0, 1, 0,
+                    ][..],
+                ),
+            ),
+            (
+                "count-response-gzip-65537",
+                "gzip",
+                65537usize,
+                "e762b74ee0a8a8643ff65047e664113803f3c201287fe0db2bd98be50efeae6f",
+                145usize,
+                "516e55db4adfec84b04fd051b48c2e019e1c0e81faeb07b3c58b554bdd62d699",
+                Some(
+                    &[
+                        31, 139, 8, 0, 0, 0, 0, 0, 0, 255, 237, 193, 187, 13, 64, 0, 20, 0, 192,
+                        85, 228, 213, 26, 116, 150, 17, 133, 66, 36, 62, 65, 37, 18, 99, 232, 212,
+                        230, 176, 144, 17, 236, 33, 119, 183, 69, 219, 143, 235, 82, 45, 67, 215,
+                        244, 115, 148, 89, 94, 164, 49, 140, 245, 180, 54, 81, 198, 123, 157, 199,
+                        115, 199, 158, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 240, 119, 31, 9, 119,
+                        243, 241, 1, 0, 1, 0,
+                    ][..],
+                ),
+            ),
+        ];
+        for &(id, encoding, decoded_bytes, decoded_sha, wire_bytes, wire_sha, compressed) in
+            profiles
+        {
+            let mut decoded = "{\"input_tokens\":123,\"opaque\":\"😀é\"}"
+                .as_bytes()
+                .to_vec();
+            decoded.resize(decoded_bytes, b' ');
+            assert_eq!(decoded.len(), decoded_bytes);
+            assert_eq!(format!("{:x}", Sha256::digest(&decoded)), decoded_sha);
+            let parsed = JsDocument::parse(&decoded).unwrap();
+            assert!(parsed.get(parsed.root(), "input_tokens").is_some());
+            let wire = compressed.map_or_else(|| decoded.clone(), <[u8]>::to_vec);
+            assert_eq!(wire.len(), wire_bytes);
+            assert_eq!(format!("{:x}", Sha256::digest(&wire)), wire_sha);
+            let wire = Arc::new(wire);
+            let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+            let address = listener.local_addr().unwrap();
+            let observed = Arc::new(AtomicUsize::new(0));
+            let calls = observed.clone();
+            let stop = CancellationToken::new();
+            let shutdown = stop.clone();
+            let server = tokio::spawn(async move {
+                let mut children = tokio::task::JoinSet::new();
+                loop {
+                    let accepted = tokio::select! {
+                        biased;
+                        _ = shutdown.cancelled() => break,
+                        accepted = listener.accept() => accepted,
+                    };
+                    let (socket, _) = accepted.unwrap();
+                    let calls = calls.clone();
+                    let wire = wire.clone();
+                    let closed = shutdown.clone();
+                    children.spawn(async move {
+                        let service = service_fn(move |request: Request<Incoming>| {
+                            let wire = wire.clone();
+                            let calls = calls.clone();
+                            async move {
+                                assert_eq!(request.method(), hyper::Method::POST);
+                                assert_eq!(request.uri().path(), "/v1/messages/count_tokens");
+                                let mut body = request.into_body();
+                                let mut bytes = 0;
+                                while let Some(frame) = body.frame().await {
+                                    if let Ok(data) = frame.unwrap().into_data() {
+                                        bytes += data.len();
+                                        assert!(bytes <= 4096);
+                                    }
+                                }
+                                let first = calls.fetch_add(1, Ordering::SeqCst) == 0;
+                                let bytes: &[u8] = if first {
+                                    &wire
+                                } else {
+                                    br#"{"input_tokens":7}"#
+                                };
+                                let response_body = TestBody {
+                                    chunks: bytes.chunks(31).map(Bytes::copy_from_slice).collect(),
+                                    stall: false,
+                                    dropped: Arc::new(AtomicUsize::new(0)),
+                                };
+                                let mut response = Response::builder()
+                                    .status(200)
+                                    .header("content-type", "application/json");
+                                if first && encoding == "gzip" {
+                                    response = response.header("content-encoding", "gzip");
+                                }
+                                Ok::<_, Infallible>(response.body(response_body).unwrap())
+                            }
+                        });
+                        let connection = hyper::server::conn::http1::Builder::new()
+                            .serve_connection(TokioIo::new(socket), service);
+                        tokio::pin!(connection);
+                        tokio::select! {
+                            biased;
+                            _ = closed.cancelled() => {},
+                            result = &mut connection => {
+                                // A rejected oversized response may close the connection.
+                                // Count outcomes/byte hashes, not peer EOF, are the oracle.
+                                let _ = result;
+                            },
+                        }
+                    });
+                }
+                while let Some(child) = children.join_next().await {
+                    child.unwrap();
+                }
+            });
+            let mut cfg = config();
+            cfg.upstream = format!("http://{address}");
+            assert_eq!(cfg.token_count_timeout_ms, 1500);
+            let counter = TokenCounter::new(Arc::new(NativeHttpClient::new().unwrap()), &cfg);
+            let body = document(
+                json!({"model":"claude-sonnet-5","messages":[{"role":"user","content":"Synthetic byte bound"}]}),
+            );
+            let before = body.stringify();
+            let headers = HeaderMap::new();
+            let cancellation = CancellationToken::new();
+            let started = Instant::now();
+            let first = counter
+                .count(&body, HAIKU, &headers, &cancellation, "")
+                .await;
+            let first_elapsed = started.elapsed();
+            let started = Instant::now();
+            let retry = counter
+                .count(&body, HAIKU, &headers, &cancellation, "")
+                .await;
+            let retry_elapsed = started.elapsed();
+            let started = Instant::now();
+            let cached = counter
+                .count(&body, HAIKU, &headers, &cancellation, "")
+                .await;
+            let cached_elapsed = started.elapsed();
+            let requests = observed.load(Ordering::SeqCst);
+            drop(counter);
+            stop.cancel();
+            tokio::time::timeout(Duration::from_secs(2), server)
+                .await
+                .unwrap()
+                .unwrap();
+            // Same production clock/unchanged1500ms timer: a null count must
+            // not receive byte-boundary credit if it merely timed out.
+            let deadline = Duration::from_millis(cfg.token_count_timeout_ms);
+            for elapsed in [first_elapsed, retry_elapsed, cached_elapsed] {
+                assert!(
+                    elapsed < deadline,
+                    "Count stage reached its configured deadline"
+                );
+            }
+            let accepted = decoded_bytes <= 65_536;
+            assert_eq!(first, accepted.then_some(123));
+            assert_eq!(retry, Some(if accepted { 123 } else { 7 }));
+            assert_eq!(cached, retry);
+            assert_eq!(requests, if accepted { 1 } else { 2 });
+            assert!(!cancellation.is_cancelled());
+            assert_eq!(body.stringify(), before);
+            eprintln!(
+                "COUNT_BOUNDARY_TIMING {}",
+                json!({"id":id,"configured_timeout_ms":cfg.token_count_timeout_ms,
+                    "elapsed_us":[first_elapsed.as_micros(),retry_elapsed.as_micros(),cached_elapsed.as_micros()],
+                    "operation_deadline_excluded":true})
+            );
+            println!(
+                "\nCOUNT_BOUNDARY {}",
+                json!({"id":id,"encoding":encoding,"decoded_bytes":decoded_bytes,
+                "decoded_sha256":decoded_sha,"wire_bytes":wire_bytes,"wire_sha256":wire_sha,
+                "first":first,"retry":retry,"cached":cached,"requests":requests,"input_unchanged":true})
+            );
+        }
+    }
+
+    #[tokio::test]
+    async fn valid_count_responses_obey_exact_byte_limit_and_only_cache_success() {
+        for size in [65_535, 65_536, 65_537] {
+            let empty = r#"{"input_tokens":41,"padding":""}"#;
+            let bytes = format!(
+                r#"{{"input_tokens":41,"padding":"{}"}}"#,
+                "x".repeat(size - empty.len())
+            )
+            .into_bytes();
+            assert_eq!(bytes.len(), size);
+            let parsed = JsDocument::parse(&bytes).unwrap();
+            assert!(matches!(
+                parsed.node(parsed.get(parsed.root(), "input_tokens").unwrap()),
+                Some(JsNode::Number(41.0))
+            ));
+            let mock = Arc::new(Mock::new([
+                Step {
+                    bytes,
+                    ..Step::json(json!({}))
+                },
+                Step::json(json!({"input_tokens":7})),
+            ]));
+            let counter = TokenCounter::new(mock.clone(), &config());
+            let body = document(request());
+            let original = body.stringify();
+            let headers = headers();
+            let cancellation = CancellationToken::new();
+            let mut values = Vec::new();
+            for _ in 0..3 {
+                values.push(
+                    counter
+                        .count(&body, HAIKU, &headers, &cancellation, "")
+                        .await,
+                );
+            }
+            let (expected, calls) = if size <= 65_536 {
+                (vec![Some(41), Some(41), Some(41)], 1)
+            } else {
+                (vec![None, Some(7), Some(7)], 2)
+            };
+            assert_eq!(values, expected, "response bytes={size}");
+            assert_eq!(mock.calls(), calls);
+            assert_eq!(mock.dropped.load(Ordering::SeqCst), calls);
+            assert_eq!(body.stringify(), original);
+        }
     }
 
     #[tokio::test]
@@ -1330,5 +1614,108 @@ mod tests {
             *requests.lock().unwrap(),
             vec![(hyper::Method::POST, "/v1/messages/count_tokens".into())]
         );
+    }
+
+    // Two overlapping operations keep independent production-default deadlines.
+    #[tokio::test(start_paused = true)]
+    async fn default_count_deadline_expires_only_its_owner_and_both_keys_retry_privately() {
+        async fn pending_once<F: std::future::Future>(mut future: Pin<&mut F>) {
+            std::future::poll_fn(|cx| {
+                assert!(future.as_mut().poll(cx).is_pending());
+                Poll::Ready(())
+            })
+            .await;
+        }
+        for first_waits_for_headers in [true, false] {
+            let configuration = config();
+            assert_eq!(configuration.token_count_timeout_ms, 1500);
+            let mock = Arc::new(Mock::new([
+                Step {
+                    wait: first_waits_for_headers,
+                    stall: !first_waits_for_headers,
+                    ..Step::json(json!({"input_tokens":111}))
+                },
+                Step {
+                    wait: !first_waits_for_headers,
+                    stall: first_waits_for_headers,
+                    ..Step::json(json!({"input_tokens":222}))
+                },
+                Step::json(json!({"input_tokens":123})),
+                Step::json(json!({"input_tokens":456})),
+            ]));
+            let counter = TokenCounter::new(mock.clone(), &configuration);
+            let first = document(request());
+            let mut other = request();
+            other["messages"][0]["content"] = json!("Independent synthetic count key");
+            let second = document(other);
+            let before_first = first.stringify();
+            let before_second = second.stringify();
+            let headers = headers();
+            let first_cancel = CancellationToken::new();
+            let second_cancel = CancellationToken::new();
+            let started = tokio::time::Instant::now();
+            let mut first_count =
+                Box::pin(counter.count(&first, HAIKU, &headers, &first_cancel, ""));
+            pending_once(first_count.as_mut()).await;
+            assert_eq!(mock.calls(), 1);
+            tokio::time::advance(Duration::from_millis(1000)).await;
+            let mut second_count =
+                Box::pin(counter.count(&second, HAIKU, &headers, &second_cancel, ""));
+            pending_once(second_count.as_mut()).await;
+            assert_eq!(mock.calls(), 2);
+            tokio::time::advance(Duration::from_millis(499)).await;
+            pending_once(first_count.as_mut()).await;
+            pending_once(second_count.as_mut()).await;
+            assert_eq!(mock.dropped.load(Ordering::SeqCst), 0);
+            tokio::time::advance(Duration::from_millis(1)).await;
+            assert_eq!(first_count.await, None);
+            assert_eq!(started.elapsed(), Duration::from_millis(1500));
+            assert_eq!(mock.dropped.load(Ordering::SeqCst), 1);
+            pending_once(second_count.as_mut()).await;
+            assert!(!first_cancel.is_cancelled());
+            assert!(!second_cancel.is_cancelled());
+            second_cancel.cancel();
+            assert_eq!(second_count.await, None);
+            assert_eq!(mock.dropped.load(Ordering::SeqCst), 2);
+            assert_eq!(mock.calls(), 2);
+            assert_eq!(
+                counter
+                    .count(&first, HAIKU, &headers, &first_cancel, "")
+                    .await,
+                Some(123)
+            );
+            assert_eq!(
+                counter
+                    .count(&first, HAIKU, &headers, &first_cancel, "")
+                    .await,
+                Some(123)
+            );
+            // The cancelled second caller cannot consume even its eventual cache.
+            assert_eq!(
+                counter
+                    .count(&second, HAIKU, &headers, &second_cancel, "")
+                    .await,
+                None
+            );
+            let retry = CancellationToken::new();
+            assert_eq!(
+                counter.count(&second, HAIKU, &headers, &retry, "").await,
+                Some(456)
+            );
+            assert_eq!(
+                counter.count(&second, HAIKU, &headers, &retry, "").await,
+                Some(456)
+            );
+            assert_eq!(
+                counter
+                    .count(&second, HAIKU, &headers, &second_cancel, "")
+                    .await,
+                None
+            );
+            assert_eq!(mock.calls(), 4);
+            assert_eq!(first.stringify(), before_first);
+            assert_eq!(second.stringify(), before_second);
+            assert_eq!(mock.dropped.load(Ordering::SeqCst), 4);
+        }
     }
 }

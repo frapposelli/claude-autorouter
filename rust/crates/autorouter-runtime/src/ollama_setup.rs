@@ -75,24 +75,13 @@ async fn operation<T, F: Future<Output = Result<T, SetupError>>>(
         result = action(token) => if cancellation.is_cancelled() {Err(cancelled())} else {result},
     }
 }
-fn field(document: &JsDocument, node: NodeId, key: &str) -> Option<NodeId> {
-    document.get(node, key)
-}
 fn text(document: &JsDocument, node: Option<NodeId>) -> Option<String> {
     node.and_then(|node| document.string(node))
         .and_then(|s| s.to_scalar())
 }
-fn truthy(document: &JsDocument, node: Option<NodeId>) -> bool {
-    match node.and_then(|node| document.node(node)) {
-        None | Some(JsNode::Null | JsNode::Bool(false)) => false,
-        Some(JsNode::Number(value)) => *value != 0.0 && !value.is_nan(),
-        Some(JsNode::String(value)) => !value.units().is_empty(),
-        _ => true,
-    }
-}
 fn remote(document: &JsDocument, node: NodeId) -> bool {
-    truthy(document, field(document, node, "remote_model"))
-        || truthy(document, field(document, node, "remote_host"))
+    document.is_truthy(document.get(node, "remote_model"))
+        || document.is_truthy(document.get(node, "remote_host"))
 }
 
 async fn fetch_response<T: HttpTransport>(
@@ -189,22 +178,22 @@ pub async fn inspect_ollama<T: HttpTransport>(
         .map_err(|m| failure("INVALID_CONFIGURATION", m))?;
     operation(cancellation,timeout_ms,|token|async move{
         let version=fetch_json(transport,&format!("{endpoint}/api/version"),None,&token).await?;
-        if !supports_decisions(text(&version,field(&version,version.root(),"version"))) {return Err(failure("OLLAMA_VERSION",OLLAMA_VERSION_MESSAGE));}
+        if !supports_decisions(text(&version,version.get(version.root(),"version"))) {return Err(failure("OLLAMA_VERSION",OLLAMA_VERSION_MESSAGE));}
         let tags=fetch_json(transport,&format!("{endpoint}/api/tags"),None,&token).await?;
-        let models=field(&tags,tags.root(),"models").and_then(|node|tags.node(node));
+        let models=tags.get(tags.root(),"models").and_then(|node|tags.node(node));
         let Some(JsNode::Array(models))=models else{return Err(failure("OLLAMA_RESPONSE","Ollama returned an invalid model list."));};
         for item in models {
-            let name=field(&tags,*item,"name").filter(|node| !matches!(tags.node(*node),Some(JsNode::Null))).or_else(||field(&tags,*item,"model"));
-            if !truthy(&tags,Some(*item)) || !matches!(name.and_then(|node|tags.node(node)),Some(JsNode::String(_))) {return Err(failure("OLLAMA_RESPONSE","Ollama returned an invalid model list."));}
+            let name=tags.get(*item,"name").filter(|node| !matches!(tags.node(*node),Some(JsNode::Null))).or_else(||tags.get(*item,"model"));
+            if !tags.is_truthy(Some(*item)) || !matches!(name.and_then(|node|tags.node(node)),Some(JsNode::String(_))) {return Err(failure("OLLAMA_RESPONSE","Ollama returned an invalid model list."));}
         }
         let identity=model_identity(&model);
-        let entry=models.iter().find(|item|["name","model"].iter().any(|key|text(&tags,field(&tags,**item,key)).is_some_and(|name|model_identity(&name)==identity)));
+        let entry=models.iter().find(|item|["name","model"].iter().any(|key|text(&tags,tags.get(**item,key)).is_some_and(|name|model_identity(&name)==identity)));
         if let Some(entry)=entry {
             if remote(&tags,*entry){return Err(cloud());}
             let details=fetch_json(transport,&format!("{endpoint}/api/show"),Some(json!({"model":model})),&token).await?;
-            if !matches!(details.node(details.root()),Some(JsNode::Object(_))) || truthy(&details,field(&details,details.root(),"error")){return Err(failure("OLLAMA_RESPONSE","Ollama returned invalid model details."));}
+            if !matches!(details.node(details.root()),Some(JsNode::Object(_))) || details.is_truthy(details.get(details.root(),"error")){return Err(failure("OLLAMA_RESPONSE","Ollama returned invalid model details."));}
             if remote(&details,details.root()){return Err(cloud());}
-            let size=field(&details,details.root(),"details").and_then(|n|field(&details,n,"parameter_size"));
+            let size=details.get_path(details.root(), &["details", "parameter_size"]);
             // Any non-whitespace UTF-16 code unit, including a lone surrogate,
             // satisfies the source's string.trim() check without coercion.
             let identified=size.and_then(|n|details.string(n)).is_some_and(|s|!js_trim(&s.to_well_formed()).is_empty());
@@ -244,14 +233,14 @@ impl PullProgress {
             )
         })?;
         if !matches!(update.node(update.root()), Some(JsNode::Object(_)))
-            || truthy(&update, field(&update, update.root(), "error"))
+            || update.is_truthy(update.get(update.root(), "error"))
         {
             return Err(failure(
                 "OLLAMA_PULL",
                 "Ollama model download failed. Check Ollama and the selected model, then retry.",
             ));
         }
-        let status = text(&update, field(&update, update.root(), "status"));
+        let status = text(&update, update.get(update.root(), "status"));
         let message = match status.as_deref() {
             Some("success") => {
                 self.success = true;
@@ -262,7 +251,8 @@ impl PullProgress {
             Some("writing manifest") => Some("Ollama: saving model manifest.".into()),
             Some(status) if status.starts_with("pulling ") => {
                 let number = |key| {
-                    field(&update, update.root(), key)
+                    update
+                        .get(update.root(), key)
                         .and_then(|n| update.node(n))
                         .and_then(|node| match node {
                             JsNode::Number(n)
@@ -376,7 +366,7 @@ pub async fn warm_ollama<T: HttpTransport>(
     operation(cancellation,timeout_ms,|token|async move{
         let state=json!({"system":"","original_task":"Return the literal word ready.","current_task":"Return the literal word ready.","recent_messages":[],"message_count":1,"tool_count":0,"context_is_excerpt":true});
         let mut config=config.clone();config.evaluator=Evaluator::Ollama;config.ollama_timeout_ms=timeout_ms;
-        if config.ollama_keep_alive.is_null(){config.ollama_keep_alive=json!("5m");}
+        if config.ollama_keep_alive_is_nullish(){config.replace_ollama_keep_alive(json!("5m"));}
         evaluate_answer(transport,&config,&state,&token).await.map(|_|()).map_err(|error|match error{
             EvaluationError::Cancelled=>cancelled(),EvaluationError::Timeout=>timeout(),
             EvaluationError::Http{missing_systemone:true,..}=>failure("OLLAMA_VERSION",OLLAMA_VERSION_MESSAGE),
@@ -466,7 +456,6 @@ pub async fn setup_ollama<T: HttpTransport>(
 mod tests {
     use super::*;
     use crate::http_client::HttpError;
-    use autorouter_core::config::read_config;
     use http_body_util::BodyExt;
     use hyper::body::{Body, Frame};
     use std::collections::VecDeque;
@@ -564,13 +553,38 @@ mod tests {
         }
     }
     fn config() -> RouterConfig {
-        read_config(
-            &json!({"AUTOROUTER_AUTH_MODE":"subscription"}),
-            false,
-            std::path::Path::new("/synthetic"),
-        )
-        .unwrap()
+        crate::test_config(&json!({"AUTOROUTER_AUTH_MODE":"subscription"}))
     }
+
+    #[tokio::test]
+    async fn warmup_defaults_only_effective_null_and_retains_owned_array_values() {
+        let array = format!("{}\"5m\"{}", "[".repeat(80), "]".repeat(80));
+        for (raw, expected) in [
+            ("1e999", "null"),
+            ("null", "\"5m\""),
+            (array.as_str(), array.as_str()),
+        ] {
+            let mut config = config();
+            let source = autorouter_core::js_json::JsDocument::parse(raw.as_bytes()).unwrap();
+            config
+                .replace_ollama_keep_alive_document(&source, source.root())
+                .unwrap();
+            drop(source);
+            let before = config.ollama_keep_alive_json();
+            let mock = Mock::new(vec![details(), answer()]);
+            warm_ollama(&mock, &config, &CancellationToken::new(), 5000)
+                .await
+                .unwrap();
+            let calls = mock.calls.lock().unwrap();
+            assert_eq!(calls.len(), 2);
+            let request = autorouter_core::js_json::JsDocument::parse(&calls[1].3).unwrap();
+            let value = request.get(request.root(), "keep_alive").unwrap();
+            assert_eq!(request.stringify_node(value), expected, "{raw}");
+            assert_eq!(config.ollama_keep_alive_json(), before);
+            assert!(mock.responses.lock().unwrap().is_empty());
+        }
+    }
+
     fn paths(mock: &Mock) -> Vec<String> {
         mock.calls
             .lock()

@@ -14,6 +14,16 @@ use tokio::{
     sync::oneshot,
 };
 
+pub(super) async fn bind_listener(secure: bool) -> (TcpListener, String) {
+    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let origin = format!(
+        "{}://{}",
+        if secure { "https" } else { "http" },
+        listener.local_addr().unwrap()
+    );
+    (listener, origin)
+}
+
 pub(super) enum Peer {
     Tcp(TcpStream),
     Tls(hyper_util::rt::TokioIo<hyper_openssl::SslStream<hyper_util::rt::TokioIo<TcpStream>>>),
@@ -75,6 +85,94 @@ pub(super) struct PeerLease(pub(super) Arc<AtomicUsize>);
 impl Drop for PeerLease {
     fn drop(&mut self) {
         self.0.fetch_sub(1, Ordering::SeqCst);
+    }
+}
+
+// Each caller retains its admission/error and request/read/shutdown policy.
+// TLS stays in each spawned peer, after admission and active lease creation.
+pub(super) struct ListenerPeers {
+    pub(super) tasks: tokio::task::JoinSet<io::Result<()>>,
+    pub(super) stop: tokio_util::sync::CancellationToken,
+    pub(super) active: Arc<AtomicUsize>,
+    pub(super) accepted: Arc<AtomicUsize>,
+}
+impl ListenerPeers {
+    pub(super) fn spawn<F, Fut>(
+        listener: TcpListener,
+        tls: Option<openssl::ssl::SslContext>,
+        mut admit: impl FnMut(&AtomicUsize) -> io::Result<usize> + Send + 'static,
+        peer_error: &'static str,
+        handshake_error: &'static str,
+        exchange: F,
+    ) -> Self
+    where
+        F: FnOnce(Peer, usize) -> Fut + Clone + Send + 'static,
+        Fut: std::future::Future<Output = io::Result<()>> + Send + 'static,
+    {
+        let stop = tokio_util::sync::CancellationToken::new();
+        let shutdown = stop.clone();
+        let active = Arc::new(AtomicUsize::new(0));
+        let accepted = Arc::new(AtomicUsize::new(0));
+        let active_peer = active.clone();
+        let accepted_peer = accepted.clone();
+        let mut tasks = tokio::task::JoinSet::new();
+        tasks.spawn(async move {
+            let mut peers = tokio::task::JoinSet::new();
+            let result = loop {
+                tokio::select! {
+                    biased;
+                    _ = shutdown.cancelled() => break Ok(()),
+                    result = peers.join_next(), if !peers.is_empty() => {
+                        match result {
+                            Some(Ok(Ok(()))) => {},
+                            _ => break Err(io::Error::other(peer_error)),
+                        }
+                    },
+                    socket = listener.accept() => {
+                        let (socket, _) = socket?;
+                        let connection = match admit(&accepted_peer) {
+                            Ok(connection) => connection,
+                            Err(error) => break Err(error),
+                        };
+                        active_peer.fetch_add(1, Ordering::SeqCst);
+                        let lease = PeerLease(active_peer.clone());
+                        let context = tls.clone();
+                        // Clone the caller's sender(s) exactly once here, then
+                        // consume that clone into the request future below.
+                        let exchange = exchange.clone();
+                        peers.spawn(async move {
+                            let _lease = lease;
+                            if let Some(context) = context {
+                                let ssl = openssl::ssl::Ssl::new(&context)?;
+                                let mut stream = hyper_openssl::SslStream::new(ssl, hyper_util::rt::TokioIo::new(socket))?;
+                                Pin::new(&mut stream).accept().await
+                                    .map_err(|_| io::Error::other(handshake_error))?;
+                                exchange(Peer::Tls(hyper_util::rt::TokioIo::new(stream)), connection).await
+                            } else {
+                                exchange(Peer::Tcp(socket), connection).await
+                            }
+                        });
+                    }
+                }
+            };
+            peers.abort_all();
+            while peers.join_next().await.is_some() {}
+            result
+        });
+        Self {
+            tasks,
+            stop,
+            active,
+            accepted,
+        }
+    }
+}
+impl Peer {
+    pub(super) fn session_reused(&self) -> bool {
+        match self {
+            Self::Tcp(_) => false,
+            Self::Tls(stream) => stream.inner().ssl().session_reused(),
+        }
     }
 }
 

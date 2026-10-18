@@ -1,0 +1,499 @@
+{
+  "schema_version": 1,
+  "kind": "BENCHMARK_BUNDLE_ORIGINAL1_SAME_ARTIFACT_NATIVE_API_MIGRATION_ACCEPTANCE",
+  "status": "ACCEPTED_ONLY_FOR_THIS_ORIGINAL_UNDER_EXPLICIT_NATIVE_API_MIGRATIONS",
+  "at_utc": "2026-10-18T14:51:03.171149+00:00",
+  "author": "/root/checkpoint_ci",
+  "only_original": "test/benchmark-bundle.test.mjs#1",
+  "root_acceptance": {
+    "path": "artifacts/rust-rewrite/same-artifact-native-bundle-validation-20261018-1/original1-root-acceptance.json",
+    "bytes": 4577,
+    "sha256": "cad59a1f83782e56e2fff0278b72a2608b1c3d7f57abf32fc73b9e9330d96aa4"
+  },
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/benchmark-bundle-same-artifact-original1-acceptance-review-20261018-1/independent-retained-actual-review.json",
+    "bytes": 6050,
+    "sha256": "dc7d6defcf4ce62c108e3ca47d08464332f28b12e42245cd32b6981942bd9135"
+  },
+  "original_file": {
+    "path": "artifacts/rust-rewrite/reference/test/benchmark-bundle.test.mjs",
+    "bytes": 2158,
+    "sha256": "0b2a56a4f7deecd4e7a0e3382c0db5ebbcefbc2019e5e364d3bf5dde93f3d69a"
+  },
+  "original_statement": {
+    "path": "artifacts/rust-rewrite/reference/test/benchmark-bundle.test.mjs",
+    "start_line": 10,
+    "end_line": 32,
+    "bytes": 1793,
+    "sha256": "0820bfe9aa9776d6d6f7afd48532fdac916d0c0a25bcc884e34f25bdf9680b93",
+    "scope": "Exact trimmed full test(...) statement including terminalsemicolon"
+  },
+  "original_definition": {
+    "bytes": 1792,
+    "sha256": "d874b4b197d2833a8f931bef91a0f261c228227c28f61a98493591cd3e77e59a",
+    "scope": "Exact CallExpression excludes terminalsemicolon"
+  },
+  "hash_scopes": {
+    "statement": "Exact trimmed full test(...) statement including semicolon",
+    "definition": "Exact test(...) CallExpression without final semicolon",
+    "operators": "Exact original assert CallExpression text without terminal semicolon; all source_line positions bounded within this single test"
+  },
+  "operator_sites": 10,
+  "expanded_Source_assert_observations": 49,
+  "expanded_scope": "40 hashes in original loop+9 single assertions, independently derived exact Source40 inputs and actual unchanged full testPASS; no raw per-callback trace claim. every() internal iterations are not extra assert calls.",
+  "Source_original_binding": {
+    "original_test_unchanged": true,
+    "full_actual_pass": true,
+    "historical_actual_source": "12ba705 historical native snapshot; frozen111 code and exact original statement unchanged to current706",
+    "overlay": "Historical original executed from owned overlay111frozen exact plus3 pinned actual gitbaseline public docs absent from frozen inventory; initial ENOENT retained. No new Source test execution here.",
+    "three_public_docs": [
+      {
+        "path": "artifacts/rust-rewrite/remaining-limits-and-source-fit-validation-20261018-1/source-original-overlay/docs/hardware-benchmark.md",
+        "bytes": 3296,
+        "sha256": "391291138f5714faf4588392f0d619855972256b314ea0d0a657031b775679b6"
+      },
+      {
+        "path": "artifacts/rust-rewrite/remaining-limits-and-source-fit-validation-20261018-1/source-original-overlay/docs/hardware-results-16gb.md",
+        "bytes": 3220,
+        "sha256": "3a8b7590b0d430fa3d40dfdf86ab8a25df59933fc0346b0f07d6fafc3c985b0d"
+      },
+      {
+        "path": "artifacts/rust-rewrite/remaining-limits-and-source-fit-validation-20261018-1/source-original-overlay/docs/hardware-results-16gb.json",
+        "bytes": 111944,
+        "sha256": "9c79c65cdceb374f010e5d9d16c8908dff5faff1d4dfa23a63a028a3f1072edb"
+      }
+    ],
+    "declared_source_files": 40,
+    "source_manifest_schema": 1,
+    "archive_payload_files": 41
+  },
+  "preconditions_and_operations": [
+    {
+      "source_line": 11,
+      "expression": "const directory = await mkdtemp(join(tmpdir(), 'autorouter-benchmark-test-'));",
+      "expression_sha256": "9dec980ea1901d5111cab920d67fc66068dbeafc64dd269aecf6da2b800c4d6a",
+      "scope": "Original precondition/operation/cleanup statement, not an additional assert operator"
+    },
+    {
+      "source_line": 14,
+      "expression": "const created = await createBenchmarkBundle(archive);",
+      "expression_sha256": "82bb4239afd900700698a3919a79b1b7f8fbefdaed674e4ead37d131e4dd89af",
+      "scope": "Original precondition/operation/cleanup statement, not an additional assert operator"
+    },
+    {
+      "source_line": 18,
+      "expression": "const listing = (await run('tar', ['-tzf', archive])).stdout.split('\\n').filter(Boolean);",
+      "expression_sha256": "afd55b8f7d8e5db7691f3b2f28a9273e41ff2fe7d15adc6ca14c7318dd33d29b",
+      "scope": "Original precondition/operation/cleanup statement, not an additional assert operator"
+    },
+    {
+      "source_line": 21,
+      "expression": "await run('tar', ['-xzf', archive, '-C', directory]);",
+      "expression_sha256": "8813c95eb2493e59834be1cbbd3b3ae44c8fdb6b76aef09a3999d396de81b968",
+      "scope": "Original precondition/operation/cleanup statement, not an additional assert operator"
+    },
+    {
+      "source_line": 28,
+      "expression": "const { stdout } = await run(process.execPath, ['scripts/evaluate-ollama.mjs', '--help'], { cwd: root });",
+      "expression_sha256": "f730c41a1a7ad8257e68de6f40a15fe23b8ff81ec3275d175d7584bce89e28b2",
+      "scope": "Original precondition/operation/cleanup statement, not an additional assert operator"
+    },
+    {
+      "source_line": 31,
+      "expression": "} finally { await rm(directory, { recursive: true, force: true }); }",
+      "expression_sha256": "7018d0a41a8ad24c6c84f342ae2c162d5126e050622fd75646df7646fb8ff9d7",
+      "scope": "Original precondition/operation/cleanup statement, not an additional assert operator"
+    }
+  ],
+  "assertions": [
+    {
+      "site": 1,
+      "source_line": 16,
+      "expression": "assert.equal(created.sha256, sha256(await readFile(archive)))",
+      "expression_sha256": "fe41e8623a7d6ab8693401a11181fb241e790deadee4d63f86794f51a65aa7eb",
+      "Source_observations": 1,
+      "Source_observation_scope": "One assertion in the retained historical passing unchanged original test; no current Source rerun is fabricated.",
+      "original_predicate": "Compressed archive SHA256 equals returned result",
+      "native_actual_predicate": "Actual retained compressed archive10703652B SHA85eaf4\u2026 matches whole producer returned SHA; full archive unchanged after both receiver operations.",
+      "API_decisions_required": [
+        "single-native-artifact-format-schema-and-counts"
+      ],
+      "root_decision": "accepted_under_exact_listed_native_API_migrations",
+      "author_recommendation_before_root_decision": "SUPPORTED_UNDER_EXPLICIT_LISTED_NATIVE_API_MIGRATIONS_ROOT_DECISION_REQUIRED"
+    },
+    {
+      "site": 2,
+      "source_line": 17,
+      "expression": "assert.equal(await readFile(`${archive}.sha256`, 'utf8'), `${created.sha256}  benchmark.tar.gz\\n`)",
+      "expression_sha256": "c24375fde868a5046c43c45ca6124d1dc24a1d022de5d3e7184ebc1e79102c1f",
+      "Source_observations": 1,
+      "Source_observation_scope": "One assertion in the retained historical passing unchanged original test; no current Source rerun is fabricated.",
+      "original_predicate": "Exact64hex +two spaces+archivebasename+LF sidecar",
+      "native_actual_predicate": "Actual exact64hex +two spaces+benchmark.tar.gz+LF sidecar; full sidecar retained and unchanged.",
+      "API_decisions_required": [
+        "single-native-artifact-format-schema-and-counts"
+      ],
+      "root_decision": "accepted_under_exact_listed_native_API_migrations",
+      "author_recommendation_before_root_decision": "SUPPORTED_UNDER_EXPLICIT_LISTED_NATIVE_API_MIGRATIONS_ROOT_DECISION_REQUIRED"
+    },
+    {
+      "site": 3,
+      "source_line": 19,
+      "expression": "assert.ok(listing.every(path => path.startsWith('autorouter-benchmark/') && !path.includes('..')))",
+      "expression_sha256": "e7ffeb352c66cd499bd6d7c19b17038ab91f8a4ae3e31ab6c0dd68ef74755d94",
+      "Source_observations": 1,
+      "Source_observation_scope": "One assertion in the retained historical passing unchanged original test; no current Source rerun is fabricated.",
+      "original_predicate": "Every tar member is below exactroot and contains no parent traversal",
+      "native_actual_predicate": "System tar lists exactly8 safe outer regular names below autorouter-benchmark/no parent traversal; independent CPiO708 names have same safe root and match final706+generated2 inventory.",
+      "API_decisions_required": [
+        "single-native-artifact-format-schema-and-counts"
+      ],
+      "root_decision": "accepted_under_exact_listed_native_API_migrations",
+      "author_recommendation_before_root_decision": "SUPPORTED_UNDER_EXPLICIT_LISTED_NATIVE_API_MIGRATIONS_ROOT_DECISION_REQUIRED"
+    },
+    {
+      "site": 4,
+      "source_line": 20,
+      "expression": "assert.ok(listing.every(path => !/(?:^|\\/)(?:\\.env|\\.git|node_modules|artifacts|config\\.json|autorouter-session)/.test(path)))",
+      "expression_sha256": "a15f6b4f3d2b1c523b0c0807387e64bdc74af9cad789fec06d5ebb4fa47d4058",
+      "Source_observations": 1,
+      "Source_observation_scope": "One assertion in the retained historical passing unchanged original test; no current Source rerun is fabricated.",
+      "original_predicate": "Literal privacy regex over every source member",
+      "native_actual_predicate": "All8 outer names pass literal privacy regex; full materialized708 names have only the explicitly reviewed three legal vendor exceptions, hashes/bytes exact.",
+      "API_decisions_required": [
+        "three-exact-public-vendor-privacy-exceptions"
+      ],
+      "root_decision": "accepted_under_exact_listed_native_API_migrations",
+      "author_recommendation_before_root_decision": "SUPPORTED_UNDER_EXPLICIT_LISTED_NATIVE_API_MIGRATIONS_ROOT_DECISION_REQUIRED"
+    },
+    {
+      "site": 5,
+      "source_line": 24,
+      "expression": "assert.equal(manifest.schema_version, 1)",
+      "expression_sha256": "6213739df42020c8b9b141595415833d15c6e06c31748c0389759298d21996b5",
+      "Source_observations": 1,
+      "Source_observation_scope": "One assertion in the retained historical passing unchanged original test; no current Source rerun is fabricated.",
+      "original_predicate": "Original source-manifest schema_version1",
+      "native_actual_predicate": "Actual materialized canonical source-manifest is schema2; native outer/ready schema1 kinds are distinct. All schemas/types/counts bound to full bytes; format migration required.",
+      "API_decisions_required": [
+        "single-native-artifact-format-schema-and-counts"
+      ],
+      "root_decision": "accepted_under_exact_listed_native_API_migrations",
+      "author_recommendation_before_root_decision": "SUPPORTED_UNDER_EXPLICIT_LISTED_NATIVE_API_MIGRATIONS_ROOT_DECISION_REQUIRED"
+    },
+    {
+      "site": 6,
+      "source_line": 25,
+      "expression": "assert.equal(created.files, Object.keys(manifest.files).length + 1)",
+      "expression_sha256": "457c5ddbe471570ba1537929124829558f6d694f2f2534f7531e3bbd1880c979",
+      "Source_observations": 1,
+      "Source_observation_scope": "One assertion in the retained historical passing unchanged original test; no current Source rerun is fabricated.",
+      "original_predicate": "Manifest declares every payload plus one manifest member",
+      "native_actual_predicate": "Actual outer8=7declared+manifest; complete_source_files708=707canonical source hashes+manifest. Full706 raw inputs+README+JSON are physically present in this same archive, never only digests.",
+      "API_decisions_required": [
+        "single-native-artifact-format-schema-and-counts"
+      ],
+      "root_decision": "accepted_under_exact_listed_native_API_migrations",
+      "author_recommendation_before_root_decision": "SUPPORTED_UNDER_EXPLICIT_LISTED_NATIVE_API_MIGRATIONS_ROOT_DECISION_REQUIRED"
+    },
+    {
+      "site": 7,
+      "source_line": 26,
+      "expression": "assert.equal(sha256(await readFile(join(root, path))), hash, path)",
+      "expression_sha256": "ccd335e023889835813bbb11de6c999192c23fcb2ab09d64fff0ad25192462a2",
+      "Source_observations": 40,
+      "Source_observation_scope": "Deterministic loop count from exact40owned inputs+passing unchanged test",
+      "original_predicate": "SHA256 of every extracted file equals declared fullhash",
+      "native_actual_predicate": "Independent actual CPiO708/codec4 header and707digest rows; complete extracted708 files SHA/bytes/modes match, with full raw706 bytes additionally compared against current Root18107 snapshot.",
+      "API_decisions_required": [
+        "single-native-artifact-format-schema-and-counts"
+      ],
+      "root_decision": "accepted_under_exact_listed_native_API_migrations",
+      "author_recommendation_before_root_decision": "SUPPORTED_UNDER_EXPLICIT_LISTED_NATIVE_API_MIGRATIONS_ROOT_DECISION_REQUIRED"
+    },
+    {
+      "site": 8,
+      "source_line": 27,
+      "expression": "assert.equal(manifest.fixture_sha256, manifest.files['test/fixtures/ollama-routing.json'])",
+      "expression_sha256": "db1369a5373e21e86fd0afcfb61f5ecc5c123191b390448134293d7e42379b8a",
+      "Source_observations": 1,
+      "Source_observation_scope": "One assertion in the retained historical passing unchanged original test; no current Source rerun is fabricated.",
+      "original_predicate": "Frozen Ollama fixture hash equals exact manifest entry",
+      "native_actual_predicate": "Original frozen17198B Ollama fixture1ee6ab\u2026 matches inner materialized source, outer ready fixture and all four manifest declarations.",
+      "API_decisions_required": [
+        "single-native-artifact-format-schema-and-counts"
+      ],
+      "root_decision": "accepted_under_exact_listed_native_API_migrations",
+      "author_recommendation_before_root_decision": "SUPPORTED_UNDER_EXPLICIT_LISTED_NATIVE_API_MIGRATIONS_ROOT_DECISION_REQUIRED"
+    },
+    {
+      "site": 9,
+      "source_line": 29,
+      "expression": "assert.match(stdout, /Does not download models or contact Claude\\/Jev/)",
+      "expression_sha256": "788c2e25076b2819f3e6f99b3663c139c87c4d8e63d75e21053878c5a1893ad4",
+      "Source_observations": 1,
+      "Source_observation_scope": "One assertion in the retained historical passing unchanged original test; no current Source rerun is fabricated.",
+      "original_predicate": "Extracted dependency-free help has no-download/noClaudeJev message",
+      "native_actual_predicate": "Actual relocated same-archive helper has whole705B stdout; positive exact no-download/noClaude/Jev phrase asserted, env only PATH empty, unrelated cwd and no install.",
+      "API_decisions_required": [
+        "single-native-artifact-format-schema-and-counts",
+        "owned-native-evaluator-entrypoint-and-help-semantics"
+      ],
+      "root_decision": "accepted_under_exact_listed_native_API_migrations",
+      "author_recommendation_before_root_decision": "SUPPORTED_UNDER_EXPLICIT_LISTED_NATIVE_API_MIGRATIONS_ROOT_DECISION_REQUIRED"
+    },
+    {
+      "site": 10,
+      "source_line": 30,
+      "expression": "assert.match(stdout, /--timeout-ms 0 disables the warm timer/)",
+      "expression_sha256": "e4837b0a4039badbc82cc95ca0001c9e7936c1b193093432a0589d9a235a0464",
+      "Source_observations": 1,
+      "Source_observation_scope": "One assertion in the retained historical passing unchanged original test; no current Source rerun is fabricated.",
+      "original_predicate": "Warm timer disabling help text",
+      "native_actual_predicate": "Same whole actual stdout includes --timeout-ms 0 disables only the warm deadline; help interface migration explicit, no runtime timer proof added.",
+      "API_decisions_required": [
+        "single-native-artifact-format-schema-and-counts",
+        "owned-native-evaluator-entrypoint-and-help-semantics"
+      ],
+      "root_decision": "accepted_under_exact_listed_native_API_migrations",
+      "author_recommendation_before_root_decision": "SUPPORTED_UNDER_EXPLICIT_LISTED_NATIVE_API_MIGRATIONS_ROOT_DECISION_REQUIRED"
+    }
+  ],
+  "individual_API_decisions": [
+    {
+      "id": "single-native-artifact-format-schema-and-counts",
+      "root_decision": {
+        "decision": "accepted_scoped_native_migration",
+        "reason": "Accepted as a versioned native format migration: the actual same archive includes all706 raw inputs and both generated source files plus the runnable helper. Native inner schema2 and outer native-kind schema1 remain distinct from Source schema1. Full hashes, counts, modes, frozen fixture and unchanged nested/composed bounds are verified; no source-by-digest substitution."
+      },
+      "operators": [
+        1,
+        2,
+        3,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "Source": "One Node source tar contains40 files plus schema1 source-manifest; created.files41=40+1. Node is available; package dependency installation is unnecessary before extracted evaluator help.",
+      "Native": "One distinct combined tar contains8 outer files (7 declarations+outer manifest), including runnable helper AND full bounded inner SOURCE32 CPIO708. Inner replaces binary codec4 manifest by exact canonical schema2 JSON on extraction:706 raw source files+README+manifest=708, manifest707 hashes. created.files8 and complete_source_files708 are separate counts. Outer schema1 is a distinct native kind and does not masquerade as Source schema1.",
+      "retained_contract": "Same immutable archive, exact archive/sidecar SHA, safe root, full useful source byte/hash/count/modes and exact frozen fixture; extracted helper runs without dependency installation. Actual conjunction now proved, unlike preserved historical split proposal.",
+      "bounds": "New kind uses existing NATIVE32 compressed/64 expanded and complete raw/composed64 plus innerSOURCE32. Old source-only/ready-only/paired1..6joint32 unchanged. No Source7/joint40/cap increase or data omission.",
+      "fixture_cleanup": "Original test finally awaits private rm; native integration owns Scratch lifetimes while retained proof deliberately keeps Root-owned outputs. No cleanup/process-tree/crash equivalence is claimed; direct bounded child terminal records are actual."
+    },
+    {
+      "id": "three-exact-public-vendor-privacy-exceptions",
+      "root_decision": {
+        "decision": "accepted_scoped_native_migration",
+        "reason": "Accepted only for the exact three content-pinned legal hyper-util upstream files enumerated here. The original privacy predicate remains strict for every other actual inner/outer path; this does not allow arbitrary vendor metadata or private checkout material."
+      },
+      "operators": [
+        4
+      ],
+      "Source": "Literal privacy regex is false for every flat source archive path.",
+      "Native": "Same literal predicate holds over all8 outer names. Materialized full source applies it with exactly three pinned legal upstream hyper-util files; every other actual path remains strict.",
+      "exceptions": [
+        {
+          "path": "rust/vendor/hyper-util/.github/workflows/CI.yml",
+          "bytes": 3190,
+          "sha256": "7ad54078dafa6954c6281104d024013b70d6507f652b6cba6321fe3d16a395dd"
+        },
+        {
+          "path": "rust/vendor/hyper-util/.github/workflows/rustdoc-preview.yml",
+          "bytes": 3319,
+          "sha256": "41594e2b05d382d726793d81a4c9a391807d85cd425f234b994545e02aea44ba"
+        },
+        {
+          "path": "rust/vendor/hyper-util/.gitignore",
+          "bytes": 320,
+          "sha256": "b95521619d6ecdf500cd0e035fd4ddd9716147916ddd2ebf17f43213f357869d"
+        }
+      ],
+      "retained_contract": "Closed public allowlist/provenance remains; no .git metadata, credentials, settings, artifacts, node_modules or arbitrary adjacent prefixed files allowed.",
+      "nonclaim": "Not literal raw privacy-regex equality and not a blanket public-vendor exemption."
+    },
+    {
+      "id": "owned-native-evaluator-entrypoint-and-help-semantics",
+      "root_decision": {
+        "decision": "accepted_scoped_native_migration",
+        "reason": "Accepted native executable/CLI/help wording in place of Node process.execPath and JavaScript function identity. Actual relocated help from the same archive runs with empty PATH/unrelated cwd and promises no downloads/Claude/Jev and warm-only zero deadline semantics. No runtime timer, OS portability or universal cleanup proof is inferred."
+      },
+      "operators": [
+        9,
+        10
+      ],
+      "Source": "Node process.execPath runs extracted scripts/evaluate-ollama.mjs --help from extracted root; literal two regexes promise no model download/Claude/Jev and warm timer0 disabling.",
+      "Native": "Actual same-archive bin/autorouter-benchmark evaluate-ollama --help runs after relocation from unrelated cwd with env only PATH empty. Whole705B stdout contains Downloads nothing and does not contact Claude/Jev and --timeout-ms 0 disables only the warm deadline. No Node/Cargo/Git is found through PATH, no package installation.",
+      "retained_contract": "Help before provider/model execution, no downloads/Claude/Jev, warm-only zero semantics and fixture/full artifact validation before dispatch. Same artifact also contains every source byte.",
+      "nonclaim": "System loader/OS dependencies remain; no every-platform/static-link/performance/quality/actualtimer/cancellation/process callback identity or universal cleanup claim. Producer separately uses existing bounded offline Cargo metadata for complete licenses."
+    }
+  ],
+  "native_actual": {
+    "current706_frozen111_fresh_hashes": true,
+    "fresh_bc07_helper_whole_bytes_and_arm64_MachO": true,
+    "five_terminal_stages_whole_outputs_and_process_descriptors": true,
+    "same_archive_bytes": 10703652,
+    "same_archive_sha256": "85eaf4c3f718095de859eb835065d415963737fa4fd09c2c64c640cdbfc893d3",
+    "outer_files": 8,
+    "outer_expanded_bytes": 22500352,
+    "stored_source_files": 708,
+    "inner_expanded_bytes": 32986624,
+    "materialized_source_files": 708,
+    "all_raw706_byte_for_byte_root_equality": true,
+    "canonical_JSON86733_sha7be88948_exact": true,
+    "completeCPIO708_binaryindex707digests_independently_decoded": true,
+    "all_expected_modes_and700directories": true,
+    "native_complete_charges": {
+      "stored_logical_bytes": 55412098,
+      "materialized_logical_bytes": 55475694,
+      "composed_expanded_bytes": 55486976,
+      "outer_tar_charge_bytes": 22500352,
+      "limit": 67108864
+    },
+    "fixed_fixture_bytes_and_hash_equal": true,
+    "literal_outer_privacy_pass": true,
+    "exact_inner_vendor_exceptions": [
+      "rust/vendor/hyper-util/.github/workflows/CI.yml",
+      "rust/vendor/hyper-util/.github/workflows/rustdoc-preview.yml",
+      "rust/vendor/hyper-util/.gitignore"
+    ],
+    "no_download_Claude_Jev_and_warm_only_zero_help_assertions": true,
+    "archive_sidecar_and_outer_inputs_unchanged_after_operations": true
+  },
+  "fresh_helper_features": {
+    "xtask": [
+      "default",
+      "runtime-tools"
+    ],
+    "core": [],
+    "runtime": [
+      "default",
+      "development-probes"
+    ],
+    "scope": "Contributor helper only; separate required3 feature-enabled Cargo test binary and ordinary productCLI not conflated."
+  },
+  "evidence": {
+    "independent_actual": {
+      "path": "artifacts/rust-rewrite/benchmark-bundle-same-artifact-original1-acceptance-review-20261018-1/independent-retained-actual-review.json",
+      "bytes": 6050,
+      "sha256": "dc7d6defcf4ce62c108e3ca47d08464332f28b12e42245cd32b6981942bd9135"
+    },
+    "retained_owner": {
+      "path": "artifacts/rust-rewrite/same-artifact-native-bundle-validation-20261018-1/retained-combined.json",
+      "bytes": 1397,
+      "sha256": "f25fb934f478a90c188f045ba940311eb1a34df8e0035cde1b58409578148ec4"
+    },
+    "retained_result": {
+      "path": "artifacts/rust-rewrite/same-artifact-native-bundle-validation-20261018-1/retained-combined-artifact/result.json",
+      "bytes": 5231,
+      "sha256": "62bd41bfc8c085de7c63bb0925a79452567c8891fa5d59995baa9f0ffbe02c83"
+    },
+    "fresh_helper": {
+      "path": "artifacts/rust-rewrite/same-artifact-native-bundle-validation-20261018-1/fresh-helper-receipt.json",
+      "bytes": 1865,
+      "sha256": "bbfd6dadaa4184fe480d71d49bd446a50ba27ff7327aa3a6b686c5b0256a04ef"
+    },
+    "source706": {
+      "path": "artifacts/rust-rewrite/same-artifact-native-bundle-validation-20261018-1/source-composed-v5.json",
+      "bytes": 119421,
+      "sha256": "18107a0e9c2bfe855b9152b2f624fab4255bd75acd8391bdbf5bd3a8c9e41823"
+    },
+    "required_integration_owner": {
+      "path": "artifacts/rust-rewrite/same-artifact-native-bundle-validation-20261018-1/required-combined-bundle.json",
+      "bytes": 1233,
+      "sha256": "1f3b2be24bc960490c388eefee4fc40b5335fcc985258c63c5357ac20d4caf5a"
+    },
+    "required_integration_stdout": {
+      "path": "artifacts/rust-rewrite/same-artifact-native-bundle-validation-20261018-1/required-combined-bundle.stdout",
+      "bytes": 399,
+      "sha256": "6180300c02ba671e678a1f55904b6287a7517ee091110cd4007780cdae84a167"
+    },
+    "combined_unit": {
+      "path": "artifacts/rust-rewrite/same-artifact-native-bundle-validation-20261018-1/combined-unit.json",
+      "bytes": 1153,
+      "sha256": "bd4eff0f1aac76ff015a91b3f0452455d1aa334daff1d4971475e70735a355f1"
+    },
+    "fmt": {
+      "path": "artifacts/rust-rewrite/same-artifact-native-bundle-validation-20261018-1/composed-fmt.json",
+      "bytes": 1034,
+      "sha256": "decb11f1df0a125bd456e29b3258db708ce19af1da0fafb60d2e4e70fd415b02"
+    },
+    "strict_Clippy": {
+      "path": "artifacts/rust-rewrite/same-artifact-native-bundle-validation-20261018-1/composed-clippy.json",
+      "bytes": 1121,
+      "sha256": "9a6d86f9ee49eef4ad63888e45cfa39d25aab9e703bc2de2a4a29c1d97176dea"
+    },
+    "Source_original_owner": {
+      "path": "artifacts/rust-rewrite/remaining-limits-and-source-fit-validation-20261018-1/frozen-original-bundle-complete.json",
+      "bytes": 2498,
+      "sha256": "4a3ddc6b1cfd355e047a0c312f9109c57d06fbb521ba02fa08f3f4585f54db84"
+    },
+    "Source_original_invocation": {
+      "path": "artifacts/rust-rewrite/remaining-limits-and-source-fit-validation-20261018-1/frozen-original-bundle-complete-invocation.json",
+      "bytes": 32716,
+      "sha256": "8d7c50e7270a28c5b599b9ef76d98344ce0a92025d440c2f6f6a1391de66853c"
+    },
+    "Source_original_stdout": {
+      "path": "artifacts/rust-rewrite/remaining-limits-and-source-fit-validation-20261018-1/frozen-original-bundle-complete.stdout",
+      "bytes": 381,
+      "sha256": "6f7b2431165525fc61685655fcc1ca6449c7f5c90208db27b6a4847c59538fd6"
+    },
+    "Source_original_stderr": {
+      "path": "artifacts/rust-rewrite/remaining-limits-and-source-fit-validation-20261018-1/frozen-original-bundle-complete.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "Source_producer": {
+      "path": "artifacts/rust-rewrite/reference/scripts/benchmark-bundle.mjs",
+      "bytes": 2683,
+      "sha256": "9cc9431c9107fd73fd30fa616533b6f78e231e196e6a3fcde90b46fd1ba19e69"
+    },
+    "prior_partial_supplement": {
+      "path": "artifacts/rust-rewrite/benchmark-bundle-original1-native-api-review-20261018-1/partial-assertion-supplement.draft.json",
+      "bytes": 23815,
+      "sha256": "737b2f524e68bbf1d34666e2efe5f07970878a7aec47f4a8de9c01d6bf5e541c"
+    }
+  },
+  "final_broad_checks": {
+    "source_snapshot": {
+      "path": "artifacts/rust-rewrite/same-artifact-native-bundle-validation-20261018-1/source-composed-v5.json",
+      "bytes": 119421,
+      "sha256": "18107a0e9c2bfe855b9152b2f624fab4255bd75acd8391bdbf5bd3a8c9e41823"
+    },
+    "independent_current_checks": {
+      "path": "artifacts/rust-rewrite/same-artifact-native-bundle-validation-20261018-1/independent-composed-current-check-review-v2.json",
+      "bytes": 31895,
+      "sha256": "978d5d5390aac95cda600531c3f835ff4f80079c037a554c75a55f47d0e39823"
+    },
+    "workspace": {
+      "passed": 1531,
+      "failed": 1,
+      "ignored": 11,
+      "groups": 66,
+      "unchanged_failure": "bundle::transfer::tests::transfer_has_only_verified_sources_a_shared_budget_and_create_only_evidence"
+    },
+    "formatting_strict_Clippy_ordinary_CLI": "PASS",
+    "required_combined_archive_integrations": {
+      "passed": 3
+    },
+    "shipping_Node": {
+      "check": "PASS",
+      "tests": 596,
+      "safe_package_files": 58,
+      "mock_lifecycle_scenarios": 17
+    },
+    "initial_Node_umask077_failure": "Preserved; only child umask022 changed for the complete passing rerun/package check.",
+    "CI": "67 local synthetic controls; exact public workflow/script bytes pinned separately. No remote run.",
+    "whole_goal_approved": false
+  },
+  "recommendation": "Root accepted this individual original after actual same-artifact proof and explicit enumerated native migrations; all broader qualification remains pending.",
+  "preservation": "Preserve all prior partial supplements/primarymapping/history/failures byte-exact. This new one-archive proof supersedes only the missing-conjunction scope; no old split artifact, oldd918, historical707 identity or earlyfailed setup is relabeled current.",
+  "material_nonclaims": [
+    "Known ordinary schema6 joint32cap failure remains; Source7/joint40 unapproved.",
+    "All13broader areas/platform/oldestOS/performance/live-provider/largerMac/cutover/shipping/release gates remain pending; no global goal completion.",
+    "Source native-format/schema/count/three privacy exceptions and help entrypoint are explicit API decisions, not literal JavaScript object/function/Promise/Node runtime identity.",
+    "Root executes products serially; author only offline data/source/hash analysis and artifact writes. Prior originalSource actual is composed via unchanged code and pinned overlay; no rerun fabricated."
+  ]
+}

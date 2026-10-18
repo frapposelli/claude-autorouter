@@ -78,7 +78,7 @@ fn install(root: &Path, files: &BTreeMap<String, archive::Entry>) -> Result<(), 
             .map_err(|_| "Cannot inspect direct installation permissions")?
             .permissions()
             .mode()
-            & 0o777
+            & 0o7777
             != entry.mode
         {
             return Err("Installed direct archive permissions differ".into());

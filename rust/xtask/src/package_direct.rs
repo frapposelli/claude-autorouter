@@ -261,6 +261,69 @@ mod tests {
     }
 
     #[test]
+    fn npm_smoke_retains_admitted_bytes_and_rejects_install_mutations() {
+        use super::super::{put, smoke_files, smoke_input};
+        use std::os::unix::fs::{PermissionsExt, symlink};
+        let expected = npm_fixture();
+        for replace in [false, true] {
+            let scratch = Scratch::new("npm-smoke-input").unwrap();
+            let input = scratch.0.join("input.tgz");
+            put(&input, &expected, 0o600).unwrap();
+            let original = input.canonicalize().unwrap();
+            let (provenance, bytes, decoded, verified) = smoke_input(&input).unwrap();
+            fs::remove_file(&input).unwrap();
+            if replace {
+                put(&input, b"replacement", 0o600).unwrap();
+            }
+            let staged = scratch.0.join("candidate.tgz");
+            put(&staged, &bytes, 0o600).unwrap();
+            assert_eq!(provenance, original);
+            assert_ne!(provenance, staged);
+            assert_eq!(fs::read(&staged).unwrap(), expected);
+            assert_eq!(verified["sha256"], sha(&expected));
+            assert_eq!(
+                fs::metadata(&staged).unwrap().permissions().mode() & 0o7777,
+                0o600
+            );
+            for mutation in [
+                "bytes", "mode", "special", "extra", "link", "missing", "command",
+            ] {
+                let installed = scratch.0.join(mutation);
+                for (name, entry) in &decoded.files {
+                    put(&installed.join(name), &entry.bytes, entry.mode).unwrap();
+                }
+                let launcher = scratch.0.join(format!("{mutation}-command"));
+                symlink(installed.join("bin/autorouter"), &launcher).unwrap();
+                assert!(smoke_files(&installed, &decoded.files, &launcher).is_ok());
+                let path = installed.join("README.md");
+                match mutation {
+                    "bytes" => fs::write(&path, b"changed").unwrap(),
+                    "mode" | "special" => fs::set_permissions(
+                        &path,
+                        fs::Permissions::from_mode(if mutation == "mode" { 0o600 } else { 0o4644 }),
+                    )
+                    .unwrap(),
+                    "extra" => put(&installed.join("extra"), b"!", 0o644).unwrap(),
+                    "command" => {
+                        fs::remove_file(&launcher).unwrap();
+                        symlink(&staged, &launcher).unwrap();
+                    }
+                    _ => {
+                        fs::remove_file(&path).unwrap();
+                        if mutation == "link" {
+                            symlink(&staged, &path).unwrap();
+                        }
+                    }
+                }
+                assert!(
+                    smoke_files(&installed, &decoded.files, &launcher).is_err(),
+                    "{mutation}"
+                );
+            }
+        }
+    }
+
+    #[test]
     fn direct_feasibility_preserves_exact_npm_payload_and_cannot_become_a_release() {
         let npm = npm_fixture();
         let (filename, direct) =

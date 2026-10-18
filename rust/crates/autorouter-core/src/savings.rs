@@ -920,4 +920,130 @@ mod tests {
             );
         }
     }
+
+    #[test]
+    fn default_duplicate_history_boundary_preserves_totals_and_oldest_latest_keys() {
+        fn expected_row(requests: u64, partial: bool) -> Value {
+            let mut row = json!({
+                "baseline_model":"claude-opus-5-5",
+                "pricing_version":"2026-09-29.1","pricing_date":"2026-09-29",
+                "pricing_source":"https://platform.claude.com/docs/en/about-claude/pricing",
+                "actual_usd":6.0 * requests as f64,
+                "baseline_usd":24.0 * requests as f64,
+                "saved_usd":18.0 * requests as f64,"percent":75.0,
+                "requests":requests,"unpriced_requests":0,"unpriced_reasons":{}
+            });
+            if partial {
+                row["partial"] = true.into();
+            }
+            row
+        }
+        fn checkpoint(
+            tracker: &SavingsTracker,
+            id: &str,
+            expected: Value,
+            observations: &mut Vec<Value>,
+            comparisons: &mut Vec<(Value, Value)>,
+        ) {
+            let actual = tracker.snapshot();
+            observations.push(json!({"id":id,"snapshot":actual}));
+            comparisons.push((actual, expected));
+        }
+        let mut tracker = SavingsTracker::default();
+        let mut observations = Vec::new();
+        let mut comparisons = Vec::new();
+        let mut attempts = 0;
+        for index in 0..9999 {
+            complete(&mut tracker, &format!("r{index}"), HAIKU, usage());
+            attempts += 1;
+        }
+        checkpoint(
+            &tracker,
+            "below-9999",
+            json!({"session-a":expected_row(9999,false)}),
+            &mut observations,
+            &mut comparisons,
+        );
+        for (id, request, expected, partial) in [
+            ("below-oldest-duplicate", "r0", 9999, false),
+            ("below-latest-duplicate", "r9998", 9999, false),
+            ("exact-10000", "r9999", 10000, false),
+            ("exact-oldest-not-refreshed", "r0", 10000, false),
+            ("exact-latest-duplicate", "r9999", 10000, false),
+            ("overflow-10001", "r10000", 10001, true),
+            ("overflow-oldest-retained", "r1", 10001, true),
+            ("overflow-latest-retained", "r10000", 10001, true),
+            ("evicted-oldest-reaccepted", "r0", 10002, true),
+            ("latest-still-retained", "r10000", 10002, true),
+        ] {
+            complete(&mut tracker, request, HAIKU, usage());
+            attempts += 1;
+            checkpoint(
+                &tracker,
+                id,
+                json!({"session-a":expected_row(expected,partial)}),
+                &mut observations,
+                &mut comparisons,
+            );
+        }
+        // A settled request ID from another session is a different key.
+        for name in [
+            "request_start",
+            "upstream_model",
+            "upstream_usage",
+            "request_complete",
+        ] {
+            let mut observed = event(name, "r10000");
+            observed["session_id"] = "session-b".into();
+            if name == "upstream_model" {
+                observed["model"] = HAIKU.into();
+            }
+            if name == "upstream_usage" {
+                observed["usage"] = usage();
+            }
+            tracker.update(&observed);
+        }
+        attempts += 1;
+        checkpoint(
+            &tracker,
+            "same-request-other-session",
+            json!({
+                "session-a":expected_row(10002,true),"session-b":expected_row(1,true)
+            }),
+            &mut observations,
+            &mut comparisons,
+        );
+        tracker.clear();
+        checkpoint(
+            &tracker,
+            "cleared",
+            json!({}),
+            &mut observations,
+            &mut comparisons,
+        );
+        complete(&mut tracker, "r10000", HAIKU, usage());
+        attempts += 1;
+        checkpoint(
+            &tracker,
+            "clear-drops-duplicate-history",
+            json!({"session-a":expected_row(1,false)}),
+            &mut observations,
+            &mut comparisons,
+        );
+        // Emit every actual complete aggregate before deciding whether the
+        // independently declared totals/retention expectations all matched.
+        eprintln!(
+            "SAVINGS_HISTORY_BOUNDARY {}",
+            json!({
+                "completion_attempts":attempts,"updates":attempts*4,
+                "snapshot_calls":observations.len(),"clear_calls":1,
+                "observations":observations
+            })
+        );
+        assert_eq!(attempts, 10011);
+        assert_eq!(comparisons.len(), 14);
+        for (index, (actual, expected)) in comparisons.into_iter().enumerate() {
+            assert_eq!(actual, expected, "public savings checkpoint {index}");
+        }
+    }
 }

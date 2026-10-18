@@ -2028,4 +2028,251 @@ mod tests {
         assert_eq!(byte_predicates, 4);
         assert_eq!(direct_predicates, 3);
     }
+    // This is actual body forwarding, independent of the pure observation
+    // fixture adapter, whose forwarding field only repeats its fixture input.
+    fn limit_forwarded(
+        media: &str,
+        chunks: Vec<Vec<u8>>,
+        clean_eof: bool,
+    ) -> (Vec<Observation>, usize, usize) {
+        let expected = chunks.concat();
+        let chunks: Vec<Bytes> = chunks.into_iter().map(Bytes::from).collect();
+        let (observer, events) = observer(media, DEFAULT_BUFFER_BYTES);
+        let mut body = ObservedBody::new(ContractBody(chunks.iter().cloned().collect()), observer);
+        let (mut open_peak, mut tool_peak) = (0, 0);
+        let mut forwarded = Vec::new();
+        for chunk in &chunks {
+            let actual = poll_contract_frame(&mut body).expect("original frame");
+            assert_eq!(actual.as_ptr(), chunk.as_ptr());
+            assert_eq!(&actual, chunk);
+            forwarded.extend_from_slice(&actual);
+            assert!(body.observer.buffer.len() <= 65_536);
+            assert!(body.observer.open_blocks.len() <= 256);
+            assert!(body.observer.tool_uses.len() <= 256);
+            open_peak = open_peak.max(body.observer.open_blocks.len());
+            tool_peak = tool_peak.max(body.observer.tool_uses.len());
+            assert!(completion(&events.lock().unwrap()).is_none());
+            assert!(usage(&events.lock().unwrap()).is_none());
+            assert!(!body.is_end_stream());
+        }
+        assert_eq!(forwarded, expected);
+        if clean_eof {
+            assert!(poll_contract_frame(&mut body).is_none());
+            assert!(body.is_end_stream());
+            assert!(!body.observer.active);
+            assert!(body.observer.buffer.is_empty());
+            assert_eq!(body.observer.buffer.capacity(), 0);
+            assert!(body.observer.open_blocks.len() <= 256);
+            assert!(body.observer.tool_uses.len() <= 256);
+            tool_peak = tool_peak.max(body.observer.tool_uses.len());
+        }
+        drop(body);
+        // The body owns the sole callback capture. Teardown must release it,
+        // including when a terminal response is dropped before protocol EOF.
+        assert_eq!(Arc::strong_count(&events), 1);
+        let observed = events.lock().unwrap().clone();
+        if !clean_eof {
+            assert!(completion(&observed).is_none());
+            assert!(usage(&observed).is_none());
+        }
+        (observed, open_peak, tool_peak)
+    }
+
+    fn limit_packet(kind: &str, size: usize) -> Vec<u8> {
+        let (prefix, suffix): (&[u8], &[u8]) = match kind {
+            "json" => (br#"{"model":"opus","usage":{"input_tokens":100,"output_tokens":12},"stop_reason":"end_turn","content":[{"type":"text","text":""#, br#""}]}"#),
+            "metadata" => (b"event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"model\":\"opus\",\"usage\":{\"input_tokens\":100,\"output_tokens\":0}},\"padding\":\"", b"\"}\n\n"),
+            "opaque" => (b"event: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"delta\":{\"text\":\"", b"\"}}\n\n"),
+            _ => unreachable!(),
+        };
+        let mut bytes = prefix.to_vec();
+        bytes.extend_from_slice("😀éopaque-boundary-canary".as_bytes());
+        assert!(bytes.len() + suffix.len() <= size);
+        bytes.resize(size - suffix.len(), b'x');
+        bytes.extend_from_slice(suffix);
+        assert_eq!(bytes.len(), size);
+        bytes
+    }
+
+    fn limit_split(bytes: Vec<u8>, payload_offset: usize) -> Vec<Vec<u8>> {
+        let unicode = bytes.iter().position(|byte| *byte >= 0x80).unwrap() + 1;
+        let mut cuts = vec![
+            0,
+            1,
+            unicode,
+            payload_offset + 65_535,
+            payload_offset + 65_536,
+            payload_offset + 65_537,
+            bytes.len() - 1,
+            bytes.len(),
+        ];
+        cuts.retain(|cut| *cut <= bytes.len());
+        cuts.sort_unstable();
+        cuts.dedup();
+        cuts.windows(2)
+            .map(|pair| bytes[pair[0]..pair[1]].to_vec())
+            .collect()
+    }
+
+    fn limit_completion(events: &[Observation], allowed: bool, tools: usize) {
+        if !allowed {
+            assert!(completion(events).is_none());
+            return;
+        }
+        assert_eq!(
+            completion(events),
+            Some(&CompletionEvidence {
+                model: JsString::from_scalar("opus"),
+                continuation_model: Some(JsString::from_scalar("opus")),
+                stop_reason: if tools == 0 { "end_turn" } else { "tool_use" }.into(),
+                tool_uses: (0..tools)
+                    .map(|index| ToolUse {
+                        id: format!("t{index}"),
+                        model: JsString::from_scalar("opus"),
+                    })
+                    .collect(),
+            })
+        );
+    }
+
+    #[test]
+    fn default_observer_byte_boundaries_preserve_original_frames_and_clean_eof() {
+        assert_eq!(DEFAULT_BUFFER_BYTES, 65_536);
+        for kind in ["json", "metadata", "opaque"] {
+            for size in [65_536, 65_537] {
+                let packet = limit_packet(kind, size);
+                let mut packets = if kind == "opaque" {
+                    vec![start("opus"), open(0, json!({"type":"text","text":""}))]
+                } else {
+                    Vec::new()
+                };
+                let offset = packets.iter().map(Vec::len).sum();
+                packets.push(packet);
+                if kind == "opaque" {
+                    packets.push(close(0));
+                }
+                if kind != "json" {
+                    packets.push(end("end_turn"));
+                }
+                let bytes = packets.concat();
+                for fragmented in [false, true] {
+                    let chunks = if fragmented {
+                        limit_split(bytes.clone(), offset)
+                    } else {
+                        vec![bytes.clone()]
+                    };
+                    for clean_eof in [true, false] {
+                        let (events, _, _) = limit_forwarded(
+                            if kind == "json" {
+                                "application/json"
+                            } else {
+                                "text/event-stream"
+                            },
+                            chunks.clone(),
+                            clean_eof,
+                        );
+                        let observed = kind == "opaque" || size == 65_536;
+                        limit_completion(&events, observed && clean_eof, 0);
+                        assert_eq!(
+                            usage(&events).map(|value| (
+                                value["input_tokens"].as_u64(),
+                                value["output_tokens"].as_u64()
+                            )),
+                            (observed && clean_eof).then_some((Some(100), Some(12)))
+                        );
+                        assert_eq!(
+                            events
+                                .iter()
+                                .filter(|event| matches!(event, Observation::Model { .. }))
+                                .count(),
+                            usize::from(observed && (kind != "json" || clean_eof))
+                        );
+                        assert!(
+                            !serde_json::to_string(&events)
+                                .unwrap()
+                                .contains("opaque-boundary-canary")
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn tracked_block_boundaries_cover_open_and_completed_sse_and_json_tools() {
+        assert_eq!(MAX_TRACKED_BLOCKS, 256);
+        for count in [256, 257] {
+            for shape in [
+                "sequential",
+                "open_text",
+                "open_tools",
+                "json",
+                "sequential_text",
+                "json_text",
+            ] {
+                if count == 256 && matches!(shape, "sequential_text" | "json_text") {
+                    continue;
+                }
+                let tools = !matches!(shape, "open_text" | "sequential_text" | "json_text");
+                let block = |index| {
+                    if tools {
+                        json!({"type":"tool_use","id":format!("t{index}"),"name":"Read","input":{"opaque":"😀é"}})
+                    } else {
+                        json!({"type":"text","text":"😀é"})
+                    }
+                };
+                let mut packets = vec![start("opus")];
+                if shape.starts_with("json") {
+                    packets = vec![serde_json::to_vec(&json!({"model":"opus","usage":{"input_tokens":100,"output_tokens":12},
+                        "stop_reason":if tools { "tool_use" } else { "end_turn" },"content":(0..count).map(block).collect::<Vec<_>>()})).unwrap()];
+                    assert!(packets[0].len() < 65_536);
+                } else {
+                    for index in 0..count {
+                        packets.push(open(index as u64, block(index)));
+                        if shape.starts_with("sequential") {
+                            packets.push(close(index as u64));
+                        }
+                    }
+                    if !shape.starts_with("sequential") {
+                        for index in 0..count {
+                            packets.push(close(index as u64));
+                        }
+                    }
+                    packets.push(end(if tools { "tool_use" } else { "end_turn" }));
+                }
+                for per_frame in [true, false] {
+                    let chunks = if per_frame {
+                        if shape.starts_with("json") {
+                            limit_split(packets[0].clone(), 0)
+                        } else {
+                            packets.clone()
+                        }
+                    } else {
+                        vec![packets.concat()]
+                    };
+                    let (events, open_peak, tool_peak) = limit_forwarded(
+                        if shape.starts_with("json") {
+                            "application/json"
+                        } else {
+                            "text/event-stream"
+                        },
+                        chunks,
+                        true,
+                    );
+                    let allowed = count == 256 || matches!(shape, "sequential_text" | "json_text");
+                    limit_completion(&events, allowed, if tools { 256 } else { 0 });
+                    assert_eq!(usage(&events).unwrap()["input_tokens"], 100);
+                    assert_eq!(usage(&events).unwrap()["output_tokens"], 12);
+                    assert_eq!(tool_peak, if tools { 256 } else { 0 });
+                    if per_frame && shape.starts_with("open_") {
+                        assert_eq!(open_peak, 256);
+                    }
+                    if per_frame && shape == "sequential_text" {
+                        assert_eq!(open_peak, 1);
+                    }
+                    assert!(!serde_json::to_string(&events).unwrap().contains("opaque"));
+                }
+            }
+        }
+    }
 }

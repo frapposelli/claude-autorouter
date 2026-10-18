@@ -51,6 +51,8 @@ cfg_server! {
     use crate::service::HttpService;
 
     pub(crate) struct Server<S: HttpService<B>, B> {
+        #[cfg(feature = "node-http1-compat")]
+        node_server_timing: Option<std::sync::Arc<dyn crate::ext::NodeHttpServerTimingControl>>,
         #[cfg(not(feature = "node-http1-compat"))]
         in_flight: Pin<Box<Option<S::Future>>>,
         #[cfg(feature = "node-http1-compat")]
@@ -136,6 +138,8 @@ where
         should_shutdown: bool,
     ) -> Poll<crate::Result<Dispatched>> {
         Poll::Ready(ready!(self.poll_inner(cx, should_shutdown)).or_else(|e| {
+            #[cfg(feature = "node-http1-compat")]
+            if self.conn.poll_node_timeout(cx) { return Ok(Dispatched::Shutdown); }
             // Be sure to alert a streaming body of the failure with a
             // more specific error than the drop guard would provide.
             if let Some(mut body) = self.body_tx.take() {
@@ -157,7 +161,20 @@ where
     ) -> Poll<crate::Result<Dispatched>> {
         T::update_date();
 
-        ready!(self.poll_loop(cx))?;
+        let loop_result = ready!(self.poll_loop(cx));
+
+        #[cfg(feature = "node-http1-compat")]
+        if self.conn.poll_node_timeout(cx) {
+            return Poll::Ready(Ok(Dispatched::Shutdown));
+        }
+        loop_result?;
+
+        #[cfg(feature = "node-http1-compat")]
+        if self.conn.node_timed_out() {
+            // Source destroys after its one best-effort error write. Do not
+            // enter ordinary flush or a potentially pending IO shutdown.
+            return Poll::Ready(Ok(Dispatched::Shutdown));
+        }
 
         if self.is_done() {
             if let Some(pending) = self.conn.pending_upgrade() {
@@ -180,12 +197,26 @@ where
         // 16 was chosen arbitrarily, as that is number of pipelined requests
         // benchmarks often use. Perhaps it should be a config option instead.
         for _ in 0..16 {
-            let _ = self.poll_read(cx)?;
-            self.dispatch.poll_pending(cx)?;
+            #[cfg(feature = "node-http1-compat")]
+            if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
+            let read_result = self.poll_read(cx);
+            #[cfg(feature = "node-http1-compat")]
+            if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
+            let _ = read_result?;
+            let pending_result = self.dispatch.poll_pending(cx);
+            #[cfg(feature = "node-http1-compat")]
+            if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
+            pending_result?;
             #[cfg(feature = "node-http1-body-handoff")]
             self.dispatch.observe_pending(self.body_rx.is_none() && self.conn.can_write_head());
-            let write_ready = self.poll_write(cx)?.is_ready();
-            let flush_ready = self.poll_flush(cx)?.is_ready();
+            let write_result = self.poll_write(cx);
+            #[cfg(feature = "node-http1-compat")]
+            if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
+            let write_ready = write_result?.is_ready();
+            let flush_result = self.poll_flush(cx);
+            #[cfg(feature = "node-http1-compat")]
+            if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
+            let flush_ready = flush_result?.is_ready();
 
             // If we can write more body and the connection is ready, we should
             // write again. If we return `Ready(Ok(())` here, we will yield
@@ -217,7 +248,10 @@ where
                 // Write was previously pending, but may have become ready since polling flush, so
                 // we need to check it again. If it is still pending, it is safe to yield and rely
                 // on wake-up from the connection futures.
-                if self.poll_write(cx)?.is_pending() {
+                let write_result = self.poll_write(cx);
+                #[cfg(feature = "node-http1-compat")]
+                if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
+                if write_result?.is_pending() {
                     // That write can have buffered bytes before going pending: a body that
                     // reached end-of-stream between the two write polls buffers the end of the
                     // message here, and then the write goes pending on the *next* message.
@@ -225,7 +259,10 @@ where
                     // until the peer gives up, since the wake-ups we then rely on are for
                     // reads. Flush what was just buffered before yielding.
                     if self.conn.has_buffered_write() {
-                        let _ = self.poll_flush(cx)?;
+                        let flush_result = self.poll_flush(cx);
+                        #[cfg(feature = "node-http1-compat")]
+                        if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
+                        let _ = flush_result?;
                     }
                     return Poll::Ready(Ok(()));
                 }
@@ -237,6 +274,8 @@ where
 
     fn poll_read(&mut self, cx: &mut Context<'_>) -> Poll<crate::Result<()>> {
         loop {
+            #[cfg(feature = "node-http1-compat")]
+            if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
             if self.is_closing {
                 return Poll::Ready(Ok(()));
             } else if self.conn.can_read_head() {
@@ -335,6 +374,8 @@ where
         // dispatch is ready for a message, try to read one
         match ready!(self.conn.poll_read_head(cx)) {
             Some(Ok((mut head, body_len, wants))) => {
+                #[cfg(feature = "node-http1-compat")]
+                if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
                 let body = match body_len {
                     DecodedLength::ZERO => IncomingBody::empty(),
                     other => {
@@ -380,6 +421,8 @@ where
 
     fn poll_write(&mut self, cx: &mut Context<'_>) -> Poll<crate::Result<()>> {
         loop {
+            #[cfg(feature = "node-http1-compat")]
+            if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
             if self.is_closing {
                 return Poll::Ready(Ok(()));
             } else if self.body_rx.is_none()
@@ -499,6 +542,8 @@ where
     }
 
     fn poll_flush(&mut self, cx: &mut Context<'_>) -> Poll<crate::Result<()>> {
+        #[cfg(feature = "node-http1-compat")]
+        if self.conn.poll_node_timeout(cx) { return Poll::Ready(Ok(())); }
         #[cfg(feature = "node-http1-body-handoff")]
         let handoff = self.body_handoff.clone();
         let result = self.conn.poll_flush(cx).map_err(|err| {
@@ -636,6 +681,8 @@ cfg_server! {
     {
         pub(crate) fn new(service: S) -> Server<S, B> {
             Server {
+                #[cfg(feature = "node-http1-compat")]
+                node_server_timing: None,
                 #[cfg(not(feature = "node-http1-compat"))]
                 in_flight: Box::pin(None),
                 #[cfg(feature = "node-http1-compat")]
@@ -646,6 +693,14 @@ cfg_server! {
 
         pub(crate) fn into_service(self) -> S {
             self.service
+        }
+
+        #[cfg(feature = "node-http1-compat")]
+        pub(crate) fn set_node_server_timing(
+            &mut self,
+            control: std::sync::Arc<dyn crate::ext::NodeHttpServerTimingControl>,
+        ) {
+            self.node_server_timing = Some(control);
         }
     }
 
@@ -703,6 +758,10 @@ cfg_server! {
 
         fn recv_msg(&mut self, msg: crate::Result<(Self::RecvItem, IncomingBody)>) -> crate::Result<()> {
             let (msg, body) = msg?;
+            #[cfg(feature = "node-http1-compat")]
+            if self.node_server_timing.as_ref().is_some_and(|control| !control.commit(&[])) {
+                return Ok(());
+            }
             let mut req = Request::new(body);
             *req.method_mut() = msg.subject.0;
             *req.uri_mut() = msg.subject.1;
@@ -748,6 +807,9 @@ cfg_server! {
         fn poll_pending(&mut self, cx: &mut Context<'_>) -> crate::Result<()> {
             for (future, result) in &mut self.in_flight {
                 if result.is_none() {
+                    if self.node_server_timing.as_ref().is_some_and(|control| !control.commit(&[])) {
+                        break;
+                    }
                     match future.as_mut().poll(cx) {
                         Poll::Ready(Ok(value)) => { *result = Some(Ok(value)); }
                         Poll::Ready(Err(error)) => return Err(crate::Error::new_user_service(error)),

@@ -93,12 +93,7 @@ impl Fixture {
             Some(ErrorKind::NotFound),
             "Synthetic command contracts require an absent system policy"
         );
-        let mut random = [0u8; 12];
-        getrandom::fill(&mut random).unwrap();
-        let suffix = random
-            .iter()
-            .map(|byte| format!("{byte:02x}"))
-            .collect::<String>();
+        let suffix = autorouter_runtime::random_hex::<12>().unwrap();
         let directory = std::env::temp_dir().join(format!("autorouter-command-keychain-{suffix}"));
         DirBuilder::new().mode(0o700).create(&directory).unwrap();
         let path = directory.join("config.json");

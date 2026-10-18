@@ -49,6 +49,44 @@ fn successful(command: &mut Command) -> Vec<u8> {
     );
     result.stdout
 }
+fn rejected(command: &mut Command) -> process::CapturedProcess {
+    let result = run(command);
+    assert!(!result.status.success());
+    result
+}
+fn bundle_command(
+    helper: &Path,
+    flag: &str,
+    target: &str,
+    binary: &Path,
+    archive: &Path,
+) -> Command {
+    let mut command = Command::new(helper);
+    command
+        .args(["benchmark-bundle", flag])
+        .arg(format!("{target}={}", binary.display()))
+        .arg(archive);
+    command
+}
+fn write_private(path: &Path, bytes: &[u8]) {
+    fs::write(path, bytes).unwrap();
+    fs::set_permissions(path, fs::Permissions::from_mode(0o644)).unwrap();
+}
+fn row_mut<'a>(rows: &'a mut Value, path: &str) -> &'a mut Value {
+    rows.as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|row| row["path"] == path)
+        .unwrap()
+}
+fn verify_declarations(root: &Path, rows: &Value) {
+    for row in rows.as_array().unwrap() {
+        let path = root.join(row["path"].as_str().unwrap());
+        assert_eq!(row["sha256"], hash(&fs::read(&path).unwrap()));
+        assert_eq!(row["bytes"], fs::metadata(&path).unwrap().len());
+        assert_eq!(row["mode"], fs::metadata(path).unwrap().mode() & 0o7777);
+    }
+}
 fn target() -> &'static str {
     match (std::env::consts::OS, std::env::consts::ARCH) {
         ("macos", "aarch64") => "aarch64-apple-darwin",
@@ -64,9 +102,13 @@ struct Artifact {
     extracted: PathBuf,
     unrelated: PathBuf,
     archive: PathBuf,
+    report: Value,
 }
 impl Artifact {
     fn create() -> Self {
+        Self::create_with_source(false)
+    }
+    fn create_with_source(combined: bool) -> Self {
         let root = Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("../..")
             .canonicalize()
@@ -85,18 +127,28 @@ impl Artifact {
         fs::hard_link(&supplied, scratch.0.join("supplied-helper-deps-alias")).unwrap();
         assert_eq!(fs::metadata(&supplied).unwrap().nlink(), 2);
         let report = successful(
-            Command::new(helper)
-                .current_dir(&root)
-                .args(["benchmark-bundle", "--executable"])
-                .arg(format!("{}={}", target(), supplied.display()))
-                .arg(&archive),
+            bundle_command(
+                helper,
+                if combined {
+                    "--source-executable"
+                } else {
+                    "--executable"
+                },
+                target(),
+                &supplied,
+                &archive,
+            )
+            .current_dir(&root),
         );
         let report: Value = serde_json::from_slice(&report).unwrap();
         assert_eq!(report["source_only"], false);
         assert_eq!(report["requires_node"], false);
         assert_eq!(report["requires_cargo"], false);
         assert_eq!(report["source_to_binary_provenance"], "unverified_prebuilt");
-        assert!(report["expanded_tar_bytes"].as_u64().unwrap() <= 32 * 1024 * 1024);
+        assert!(
+            report["expanded_tar_bytes"].as_u64().unwrap()
+                <= (if combined { 64 } else { 32 }) * 1024 * 1024
+        );
         let checksum = hash(&fs::read(&archive).unwrap());
         assert_eq!(report["sha256"], checksum);
         assert_eq!(
@@ -105,17 +157,21 @@ impl Artifact {
         );
         let listing = successful(Command::new("/usr/bin/tar").args(["-tzf"]).arg(&archive));
         let names: BTreeSet<_> = std::str::from_utf8(&listing).unwrap().lines().collect();
-        let expected: BTreeSet<_> = [
+        let mut entries = vec![
             EXECUTABLE,
             FIXTURE,
             "LICENSE",
             "THIRD-PARTY-LICENSES.txt",
             "README.native.md",
             "executable-manifest.json",
-        ]
-        .into_iter()
-        .map(|name| format!("autorouter-benchmark/{name}"))
-        .collect();
+        ];
+        if combined {
+            entries.extend(["bundle-manifest.json", "source/native-source.cpio.gz"]);
+        }
+        let expected: BTreeSet<_> = entries
+            .into_iter()
+            .map(|name| format!("autorouter-benchmark/{name}"))
+            .collect();
         assert_eq!(names, expected.iter().map(String::as_str).collect());
         // Change only the extraction child umask; preserve the manifest modes
         // under ordinary private-shell conditions without mutating test globals.
@@ -137,7 +193,14 @@ impl Artifact {
             serde_json::from_slice(&fs::read(extracted.join("executable-manifest.json")).unwrap())
                 .unwrap();
         assert_eq!(manifest["schema_version"], 1);
-        assert_eq!(manifest["kind"], "native_benchmark_executable_bundle");
+        assert_eq!(
+            manifest["kind"],
+            if combined {
+                "native_benchmark_source_executable_ready"
+            } else {
+                "native_benchmark_executable_bundle"
+            }
+        );
         assert_eq!(manifest["target"], target());
         assert_eq!(manifest["private_material_included"], false);
         assert_eq!(manifest["live_calls_performed"], false);
@@ -149,16 +212,11 @@ impl Artifact {
                 .is_empty()
         );
         assert!(!manifest["dependencies"].as_array().unwrap().is_empty());
-        assert_eq!(manifest["files"].as_array().unwrap().len() + 1, names.len());
-        for declared in manifest["files"].as_array().unwrap() {
-            let file = extracted.join(declared["path"].as_str().unwrap());
-            assert_eq!(declared["sha256"], hash(&fs::read(&file).unwrap()));
-            assert_eq!(declared["bytes"], fs::metadata(&file).unwrap().len());
-            assert_eq!(
-                declared["mode"],
-                fs::metadata(&file).unwrap().mode() & 0o7777
-            );
-        }
+        assert_eq!(
+            manifest["files"].as_array().unwrap().len() + 1,
+            names.len() - if combined { 2 } else { 0 }
+        );
+        verify_declarations(&extracted, &manifest["files"]);
         assert_eq!(
             manifest["fixture_sha256"],
             hash(&fs::read(extracted.join(FIXTURE)).unwrap())
@@ -168,14 +226,13 @@ impl Artifact {
             fs::read(root.join(FIXTURE)).unwrap()
         );
         let before = fs::read(&archive).unwrap();
-        assert!(
-            !run(Command::new(helper)
-                .args(["benchmark-bundle", "--executable"])
-                .arg(format!("{}={}", target(), helper.display()))
-                .arg(&archive))
-            .status
-            .success()
-        );
+        rejected(&mut bundle_command(
+            helper,
+            "--executable",
+            target(),
+            helper,
+            &archive,
+        ));
         assert_eq!(fs::read(&archive).unwrap(), before);
         // Refuse incomplete existing outputs, wrong/unsupported target labels
         // and a symlinked binary at the public constructor boundary.
@@ -185,14 +242,13 @@ impl Artifact {
             b"synthetic-owned-checksum",
         )
         .unwrap();
-        assert!(
-            !run(Command::new(helper)
-                .args(["benchmark-bundle", "--executable"])
-                .arg(format!("{}={}", target(), helper.display()))
-                .arg(&checksum_only))
-            .status
-            .success()
-        );
+        rejected(&mut bundle_command(
+            helper,
+            "--executable",
+            target(),
+            helper,
+            &checksum_only,
+        ));
         assert!(!checksum_only.exists());
         assert_eq!(
             fs::read(scratch.0.join("checksum-only.tar.gz.sha256")).unwrap(),
@@ -204,35 +260,40 @@ impl Artifact {
             "aarch64-apple-darwin"
         };
         for label in [wrong, "unsupported-private-target"] {
-            let rejected = scratch.0.join(format!("rejected-{label}.tar.gz"));
-            assert!(
-                !run(Command::new(helper)
-                    .args(["benchmark-bundle", "--executable"])
-                    .arg(format!("{label}={}", helper.display()))
-                    .arg(&rejected))
-                .status
-                .success()
-            );
-            assert!(!rejected.exists());
+            let destination = scratch.0.join(format!("rejected-{label}.tar.gz"));
+            rejected(&mut bundle_command(
+                helper,
+                "--executable",
+                label,
+                helper,
+                &destination,
+            ));
+            assert!(!destination.exists());
         }
         let linked = scratch.0.join("symlinked-helper");
         std::os::unix::fs::symlink(helper, &linked).unwrap();
-        let rejected = scratch.0.join("rejected-link.tar.gz");
-        assert!(
-            !run(Command::new(helper)
-                .args(["benchmark-bundle", "--executable"])
-                .arg(format!("{}={}", target(), linked.display()))
-                .arg(&rejected))
-            .status
-            .success()
-        );
-        assert!(!rejected.exists());
+        let destination = scratch.0.join("rejected-link.tar.gz");
+        rejected(&mut bundle_command(
+            helper,
+            "--executable",
+            target(),
+            &linked,
+            &destination,
+        ));
+        assert!(!destination.exists());
         Self {
             _scratch: scratch,
             extracted,
             unrelated,
             archive,
+            report,
         }
+    }
+    fn help(&self) -> process::CapturedProcess {
+        run(self.command().args(["evaluate-ollama", "--help"]))
+    }
+    fn reject_help(&self) -> process::CapturedProcess {
+        rejected(self.command().args(["evaluate-ollama", "--help"]))
     }
     fn command(&self) -> Command {
         let mut command = Command::new(self.extracted.join(EXECUTABLE));
@@ -275,37 +336,19 @@ fn required_executable_bundle_extracts_relocates_and_help_needs_no_installed_too
     let fixture = artifact.extracted.join(FIXTURE);
     let receiver_alias = artifact.unrelated.join("fixture-alias");
     fs::hard_link(&fixture, &receiver_alias).unwrap();
-    assert!(
-        !run(artifact.command().args(["evaluate-ollama", "--help"]))
-            .status
-            .success()
-    );
+    artifact.reject_help();
     fs::remove_file(receiver_alias).unwrap();
     let original = fs::read(&fixture).unwrap();
     fs::remove_file(&fixture).unwrap();
-    assert!(
-        !run(artifact.command().args(["evaluate-ollama", "--help"]))
-            .status
-            .success()
-    );
+    artifact.reject_help();
     fs::write(&fixture, b"[]").unwrap();
-    assert!(
-        !run(artifact.command().args(["evaluate-ollama", "--help"]))
-            .status
-            .success()
-    );
-    fs::write(&fixture, &original).unwrap();
-    fs::set_permissions(&fixture, fs::Permissions::from_mode(0o644)).unwrap();
+    artifact.reject_help();
+    write_private(&fixture, &original);
     let manifest = artifact.extracted.join("executable-manifest.json");
     let original_manifest = fs::read(&manifest).unwrap();
     fs::remove_file(&manifest).unwrap();
-    assert!(
-        !run(artifact.command().args(["evaluate-ollama", "--help"]))
-            .status
-            .success()
-    );
-    fs::write(&manifest, &original_manifest).unwrap();
-    fs::set_permissions(&manifest, fs::Permissions::from_mode(0o644)).unwrap();
+    artifact.reject_help();
+    write_private(&manifest, &original_manifest);
     let executable = artifact.extracted.join(EXECUTABLE);
     let mut modified = fs::OpenOptions::new()
         .append(true)
@@ -313,11 +356,7 @@ fn required_executable_bundle_extracts_relocates_and_help_needs_no_installed_too
         .unwrap();
     std::io::Write::write_all(&mut modified, b"synthetic-appended-tamper").unwrap();
     drop(modified);
-    assert!(
-        !run(artifact.command().args(["evaluate-ollama", "--help"]))
-            .status
-            .success()
-    );
+    artifact.reject_help();
     assert!(artifact.archive.is_file());
 }
 
@@ -496,4 +535,158 @@ async fn required_executable_bundle_runs_frozen_heldout_evaluation_over_owned_lo
             .any(|path| path.contains("pull") || path.contains("messages"))
     );
     assert!(!*mock.resident.lock().unwrap());
+}
+
+#[test]
+fn required_executable_bundle_contains_full_source_bytes_and_runs_from_the_same_artifact() {
+    let artifact = Artifact::create_with_source(true);
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .unwrap();
+    let archive = &artifact.archive;
+    let extracted = &artifact.extracted;
+    let report = &artifact.report;
+    let bytes = fs::read(archive).unwrap();
+    assert_eq!(report["files"], 8);
+    for key in [
+        "stored_logical_bytes",
+        "materialized_logical_bytes",
+        "composed_expanded_bytes",
+    ] {
+        assert!(report["charges"][key].as_u64().unwrap() <= 64 * 1024 * 1024);
+    }
+    let outer_path = extracted.join("bundle-manifest.json");
+    let inner_path = extracted.join("source/native-source.cpio.gz");
+    let ready_path = extracted.join("executable-manifest.json");
+    let outer_bytes = fs::read(&outer_path).unwrap();
+    let inner_bytes = fs::read(&inner_path).unwrap();
+    let ready_bytes = fs::read(&ready_path).unwrap();
+    let outer: Value = serde_json::from_slice(&outer_bytes).unwrap();
+    let ready: Value = serde_json::from_slice(&ready_bytes).unwrap();
+    assert_eq!(outer["kind"], "native_benchmark_source_executable_bundle");
+    assert_eq!(ready["kind"], "native_benchmark_source_executable_ready");
+    assert_eq!(outer["schema_version"], 1); // A distinct native kind, not Source schema1.
+    assert_eq!(outer["files"].as_array().unwrap().len() + 1, 8);
+    verify_declarations(extracted, &outer["files"]);
+    assert_eq!(outer["source"]["sha256"], hash(&inner_bytes));
+    assert_eq!(outer["source"]["compressed_bytes"], inner_bytes.len());
+    assert!(outer["source"]["expanded_bytes"].as_u64().unwrap() <= 32 * 1024 * 1024);
+    let clean = |arguments: &[&str]| run(artifact.command().args(arguments));
+    let help = artifact.help();
+    assert!(help.status.success());
+    assert!(help.stderr.is_empty());
+    let help_text = String::from_utf8(help.stdout).unwrap();
+    assert!(help_text.contains("Downloads nothing and does not contact Claude/Jev"));
+    assert!(help_text.contains("--timeout-ms 0 disables only the warm"));
+    let source = artifact._scratch.0.join("actual extracted source");
+    let source_arg = source.to_str().unwrap();
+    let extraction = clean(&["extract-sources", source_arg]);
+    assert!(
+        extraction.status.success(),
+        "{}",
+        String::from_utf8_lossy(&extraction.stderr)
+    );
+    let extraction: Value = serde_json::from_slice(&extraction.stdout).unwrap();
+    let canonical_bytes = fs::read(source.join("source-manifest.json")).unwrap();
+    let canonical: Value = serde_json::from_slice(&canonical_bytes).unwrap();
+    assert_eq!(canonical["schema_version"], 2);
+    assert!(!source.join("source-manifest.bin").exists());
+    assert_eq!(
+        extraction["files"],
+        ready["source_identity"].as_array().unwrap().len()
+    );
+    assert_eq!(outer["source"]["stored_files"], extraction["files"]);
+    assert_eq!(
+        outer["source"]["canonical_manifest"]["sha256"],
+        hash(&canonical_bytes)
+    );
+    assert_eq!(
+        outer["source"]["canonical_manifest"]["bytes"],
+        canonical_bytes.len()
+    );
+    let forbidden = regex::Regex::new(
+        r"(?:^|/)(?:\.env|\.git|node_modules|artifacts|config\.json|autorouter-session)",
+    )
+    .unwrap();
+    let mut exceptions = Vec::new();
+    verify_declarations(&source, &ready["source_identity"]);
+    for row in ready["source_identity"].as_array().unwrap() {
+        let name = row["path"].as_str().unwrap();
+        let path = source.join(name);
+        let actual = fs::read(&path).unwrap();
+        assert_eq!(fs::metadata(path).unwrap().mode() & 0o7777, 0o644);
+        if !["README.native.md", "source-manifest.json"].contains(&name) {
+            assert_eq!(actual, fs::read(root.join(name)).unwrap(), "{name}");
+        }
+        if forbidden.is_match(name) {
+            exceptions.push(name);
+        }
+    }
+    assert_eq!(
+        exceptions,
+        [
+            "rust/vendor/hyper-util/.github/workflows/CI.yml",
+            "rust/vendor/hyper-util/.github/workflows/rustdoc-preview.yml",
+            "rust/vendor/hyper-util/.gitignore",
+        ]
+    );
+    assert_eq!(canonical["fixture_sha256"], canonical["files"][FIXTURE]);
+    assert_eq!(canonical["fixture_sha256"], ready["fixture_sha256"]);
+    assert_eq!(
+        fs::read(source.join(FIXTURE)).unwrap(),
+        fs::read(extracted.join(FIXTURE)).unwrap()
+    );
+    assert!(!clean(&["extract-sources", source_arg]).status.success()); // Create-only.
+    // New ready kind remains after either/both new files disappear: no old-six fallback.
+    fs::remove_file(&outer_path).unwrap();
+    artifact.reject_help();
+    fs::remove_file(&inner_path).unwrap();
+    artifact.reject_help();
+    write_private(&outer_path, &outer_bytes);
+    write_private(&inner_path, &inner_bytes);
+    let mut old_kind = ready.clone();
+    old_kind["kind"] = json!("native_benchmark_executable_bundle");
+    fs::write(&ready_path, serde_json::to_vec_pretty(&old_kind).unwrap()).unwrap();
+    artifact.reject_help(); // Mixed kinds.
+    // Self-consistent ready hash/declarations cannot replace the actual inner JSON.
+    let mut mismatched = ready.clone();
+    row_mut(&mut mismatched["source_identity"], "source-manifest.json")["sha256"] =
+        json!("0".repeat(64));
+    mismatched["source_identity_sha256"] = json!(hash(
+        &serde_json::to_vec(&mismatched["source_identity"]).unwrap()
+    ));
+    let changed = serde_json::to_vec_pretty(&mismatched).unwrap();
+    let mut changed_outer = outer.clone();
+    changed_outer["source_identity_sha256"] = mismatched["source_identity_sha256"].clone();
+    row_mut(&mut changed_outer["files"], "executable-manifest.json")["sha256"] =
+        json!(hash(&changed));
+    fs::write(&ready_path, changed).unwrap();
+    fs::write(
+        &outer_path,
+        serde_json::to_vec_pretty(&changed_outer).unwrap(),
+    )
+    .unwrap();
+    let rejected = artifact.reject_help();
+    assert!(
+        String::from_utf8_lossy(&rejected.stderr)
+            .contains("Ready identity differs from actual canonical source bytes")
+    );
+    fs::write(&ready_path, &ready_bytes).unwrap();
+    fs::write(&outer_path, outer_bytes).unwrap();
+    assert!(artifact.help().status.success());
+    let renamed = extracted.join("bin/renamed-helper");
+    fs::rename(extracted.join(EXECUTABLE), &renamed).unwrap();
+    fs::remove_file(&ready_path).unwrap();
+    let rejected = run(Command::new(&renamed)
+        .env_clear()
+        .env("PATH", "")
+        .current_dir(&artifact.unrelated)
+        .args(["evaluate-ollama", "--help"]));
+    assert!(!rejected.status.success());
+    assert!(String::from_utf8_lossy(&rejected.stderr).contains("Missing executable bundle input"));
+    fs::rename(renamed, extracted.join(EXECUTABLE)).unwrap();
+    write_private(&ready_path, &ready_bytes);
+    assert!(artifact.help().status.success());
+    assert_eq!(fs::read(archive).unwrap(), bytes);
 }

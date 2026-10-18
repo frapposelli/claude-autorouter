@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 //! Synthetic executable fixtures. No Node, real home, login or provider service.
-use serde_json::Value;
+use serde_json::{Value, json};
 use std::collections::BTreeMap;
 use std::fs;
 use std::io::{Read, Write};
@@ -14,22 +14,40 @@ use std::sync::{Arc, Mutex};
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
+/// The selected test executable is resolved before clearing child environment.
+pub fn executable() -> std::ffi::OsString {
+    std::env::var_os("AUTOROUTER_TEST_EXECUTABLE")
+        .unwrap_or_else(|| env!("CARGO_BIN_EXE_claude-autorouter").into())
+}
+
+/// Common root-command prefix; each fixture appends its original environment.
+pub fn root_command(home: &Path) -> Command {
+    let mut command = Command::new(executable());
+    command.current_dir(home).env_clear().env("HOME", home);
+    command
+}
+
+/// Keep every fixture's existing prefix and private disposable-directory policy.
+pub fn directory(prefix: &str) -> PathBuf {
+    static SEQUENCE: AtomicU64 = AtomicU64::new(0);
+    let stamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    let path = std::env::temp_dir().join(format!(
+        "{prefix}{}-{stamp}-{}",
+        std::process::id(),
+        SEQUENCE.fetch_add(1, Ordering::Relaxed)
+    ));
+    fs::create_dir(&path).unwrap();
+    fs::set_permissions(&path, fs::Permissions::from_mode(0o700)).unwrap();
+    path
+}
+
 pub struct Home(pub PathBuf);
 impl Home {
     pub fn new() -> Self {
-        static SEQUENCE: AtomicU64 = AtomicU64::new(0);
-        let nanos = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_nanos();
-        let path = std::env::temp_dir().join(format!(
-            "autorouter native integration {}-{nanos}-{}",
-            std::process::id(),
-            SEQUENCE.fetch_add(1, Ordering::Relaxed)
-        ));
-        fs::create_dir(&path).unwrap();
-        fs::set_permissions(&path, fs::Permissions::from_mode(0o700)).unwrap();
-        Self(path)
+        Self(directory("autorouter native integration "))
     }
     pub fn config(&self) -> PathBuf {
         self.0.join("config.json")
@@ -43,21 +61,20 @@ impl Home {
     pub fn save(&self, value: &Value) {
         self.write("config.json", serde_json::to_vec(value).unwrap());
     }
+    /// Exact saved bytes for before/after persistence assertions.
+    pub fn saved_bytes(&self) -> Vec<u8> {
+        fs::read(self.config()).unwrap()
+    }
     pub fn saved(&self) -> Value {
-        serde_json::from_slice(&fs::read(self.config()).unwrap()).unwrap()
+        serde_json::from_slice(&self.saved_bytes()).unwrap()
     }
     pub fn claude(&self, script: &str) {
         let path = self.write("claude", script);
         fs::set_permissions(path, fs::Permissions::from_mode(0o700)).unwrap();
     }
     pub fn command(&self) -> Command {
-        let executable = std::env::var_os("AUTOROUTER_TEST_EXECUTABLE")
-            .unwrap_or_else(|| env!("CARGO_BIN_EXE_claude-autorouter").into());
-        let mut command = Command::new(executable);
+        let mut command = root_command(&self.0);
         command
-            .current_dir(&self.0)
-            .env_clear()
-            .env("HOME", &self.0)
             .env("XDG_CONFIG_HOME", &self.0)
             .env("TMPDIR", &self.0)
             .env("PATH", &self.0)
@@ -136,6 +153,71 @@ pub fn success(output: &Output) -> String {
         String::from_utf8_lossy(&output.stderr)
     );
     String::from_utf8(output.stdout.clone()).unwrap()
+}
+
+// Same diagnosis protocol with each fixture's explicit assertion profile.
+pub fn diagnostic_reply(
+    request: &Request,
+    model: &str,
+    collapsed: bool,
+    check_methods: bool,
+    startup: &str,
+    missing_task: &str,
+    unexpected_endpoint: &str,
+) -> Response {
+    for header in ["authorization", "x-api-key", "x-autorouter-token"] {
+        assert!(!request.headers.contains_key(header));
+    }
+    let body = match request.path.as_str() {
+        "/api/version" => {
+            if check_methods {
+                assert_eq!(request.method, "GET");
+            }
+            json!({"version":"0.35.0"})
+        }
+        "/api/tags" | "/api/ps" => {
+            if check_methods {
+                assert_eq!(request.method, "GET");
+            }
+            json!({"models":[{"name":model}]})
+        }
+        "/api/show" => {
+            if check_methods {
+                assert_eq!(request.method, "POST");
+            }
+            assert_eq!(request.json()["model"], model);
+            json!({"details":{"parameter_size":"0.8B"}})
+        }
+        "/v1/systemone" => {
+            if check_methods {
+                assert_eq!(request.method, "POST");
+            }
+            let body = request.json();
+            assert_eq!(body["model"], model);
+            assert_eq!(body["keep_alive"], "5m");
+            let cases = autorouter_runtime::local_diagnostic::local_diagnostic_cases();
+            let tier = if body["state"]["current_task"] == startup {
+                "haiku"
+            } else {
+                let fixture = cases
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .find(|item| item["prompt"] == body["state"]["current_task"])
+                    .expect(missing_task);
+                if collapsed {
+                    "sonnet"
+                } else {
+                    fixture["expected"].as_str().unwrap()
+                }
+            };
+            json!({"model":model,"answers":{"tier":{"type":"choice","choice":tier,"confidence":1,
+                "probabilities":{"haiku":u8::from(tier=="haiku"),"sonnet":u8::from(tier=="sonnet"),"opus":u8::from(tier=="opus")}}},
+                "usage":{"input_tokens":900,"output_tokens":1}})
+        }
+        _ => panic!("{unexpected_endpoint}"),
+    };
+    Response::json(body)
 }
 
 #[derive(Clone, Debug)]

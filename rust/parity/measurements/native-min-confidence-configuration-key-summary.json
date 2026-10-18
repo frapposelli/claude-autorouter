@@ -1,0 +1,268 @@
+{
+  "kind": "individual_native_min_confidence_configuration_key_acceptance",
+  "recorded_at_utc": "2026-10-18T01:53:03.220509+00:00",
+  "root_decision": "Accept AUTOROUTER_MIN_CONFIDENCE as one parsed configuration key with the separately reviewed native JSON/NaN and host resource-diagnostic migration documented below. Other keys, definitions, fixed limits and areas retain their exact statuses. JavaScript0.5.2 remains shipping default; the source-transfer size gate still fails.",
+  "key": "AUTOROUTER_MIN_CONFIDENCE",
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/candidate-source.json",
+    "bytes": 116787,
+    "sha256": "064a9a1848a5143b57f11e0058b0ccac030f475c381a30682c5ac83c1bf8c52b"
+  },
+  "parsed_setting_contract": [
+    "Default0.75; selected Jev or validate_all validates a finite number in inclusive0..1. Inactive Ollama without full validation retains0.75 without converting the raw value. Numeric zero and negative zero remain valid; malformed/blank/coerced nonnumeric inputs remain rejected.",
+    "Ordinary decimal strings retain exact trim/decimal/type/range predicates. Number-like conversion failure occurs before later string/number type rejection where required by the frozen Source helper. Noncallable own toString can therefore produce Cannot convert object to primitive value. Ordinary object properties remain opaque.",
+    "Jev consumes the parsed threshold using confidence < minConfidence; uncertainty selects the existing requested-model floor, with Haiku promoted to the Sonnet floor where applicable. Cache identity includes the effective Jev threshold; Ollama policy has no Jev uncertainty threshold.",
+    "Settings persist through the existing nonsecret setting map; environment/file/default precedence, inactive reporting and edit validation remain. MIN is not an organization-policy lock. Exact MIN-specific active source-label permutations and endpoint/equality variants remain static shared-policy composition where not individually executed."
+  ],
+  "bounded_depth_observations": {
+    "comparison": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/comparison.json",
+      "bytes": 3871,
+      "sha256": "e9d8c41be4cb12f862d730664456cb60ae717c08eaeee42bf685f06f3d0e7681"
+    },
+    "original_declaration": {
+      "path": "artifacts/rust-rewrite/confidence-stop-key-review-20261018-1/unexecuted-min-confidence-bounded-depth-controls.jsonl",
+      "bytes": 7248,
+      "sha256": "6945b0dd62b807e4556e8c8498a07b77b99032937c3b85032712cea808de8de5"
+    },
+    "probe_declaration": {
+      "path": "artifacts/rust-rewrite/min-confidence-bounded-depth-probe-20261018-1/declaration-v2.json",
+      "bytes": 7021,
+      "sha256": "bba4b822b154fc0db3fa44cae866ba1dea0bd43103ede2a6815a02547a27085b"
+    },
+    "case_mapping": {
+      "path": "artifacts/rust-rewrite/min-confidence-bounded-depth-probe-20261018-1/case-mapping.json",
+      "bytes": 6522,
+      "sha256": "6e7a36e1c2d8ab5d5c42a43051407d316b31b892f60b4732a26b8eb2d708d1ca"
+    },
+    "cases": 8,
+    "depths": [
+      64,
+      256
+    ],
+    "matched": 8,
+    "mismatches": 0,
+    "complete_stdout_bytes_each": 9202,
+    "complete_stdout_byte_identical": true,
+    "outcomes": "At each depth: an ordinary nested array reaches the key type/range error; a nested object with own noncallable toString reaches the primitive-conversion error; an opaque object property is not traversed; inactive Ollama returns the complete unchanged default configuration. Four ordinary errors, two conversion errors and two full successes match the declared expectations.",
+    "input_preservation": "Every raw environment substring is copied byte-exact into a shallow JSONL string field, with original id/op/validate_all. The native input goes directly through JsDocument::parse/read_config_document; it never passes through a recursive serde Value environment parser or a depth96 input observer. Before/after canonical environments agree within and across engines.",
+    "cwd": "Both actual repository cwd. The earlier unused/synthetic field is fixture metadata; Source readConfig has no cwd option. These are not path-setting cases.",
+    "source_error_identity": "Source Error/TypeError names are retained separately in stderr. Native Result<String> does not fabricate JavaScript exception identity."
+  },
+  "earlier_evidence_composition": {
+    "independent_predicate_gap_review": {
+      "path": "artifacts/rust-rewrite/confidence-stop-key-review-20261018-1/independent-min-confidence-postrepair-gap-review.json",
+      "bytes": 44729,
+      "sha256": "002ca5dc3d51e09298e61ee24f119c9323ca9935332bfe0dd6c9d7cb1e574d25"
+    },
+    "historical_finite_selected_ids": [
+      "config-13-232",
+      "config-13-233",
+      "config-14-252",
+      "config-14-253",
+      "config-14-254",
+      "config-14-255",
+      "config-14-256",
+      "config-14-257",
+      "config-14-259",
+      "config-14-260"
+    ],
+    "historical_finite_scope": "Ten named same-hash finite comparison rows; two earlier multi-invalid URL failures compose masking/order but are not confidence-specific check-all errors. Individually retained finite streams are not invented.",
+    "isolated_backend_controls": 4,
+    "isolated_scope": "Value2 under Jev/Ollama and validate_all false/true proves key-specific range rejection, inactive default and full validation.",
+    "postrepair_min_rows": 11,
+    "postrepair_scope": "Eleven MIN rows selected from the existing25/25 numeric-correction comparison, not25 MIN-only cases. Includes ordinary/valueOf-only objects, own-toString errors, masking, full validation, upper1, negative number, trailing dot and earlier auth/port errors.",
+    "numeric_checkpoint": {
+      "path": "rust/parity/measurements/native-numeric-conversion-order-summary.json",
+      "bytes": 11654,
+      "sha256": "57b805dc2ff37cbcacc377a654525b3d798e0e5f321a8f36c5bdd1bc6cd8e0cb"
+    },
+    "raw_infinity_outcomes": 2,
+    "infinity_scope": "Actual retained raw positive/negative numeric overflow outcomes with unchanged input and complete envelopes. These are Infinity, not NaN.",
+    "consumer_binding": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/current-consumer-binding.json",
+      "bytes": 4300,
+      "sha256": "533a02e9a9785b07a09fe304eac6392b0ce0d48037f52d2fc9eed5edcb80248f"
+    },
+    "current_actual_named_passes": 9,
+    "consumer_scope": "Nine named test passes are re-bound to the existing current064a9a workspace log. They are not nine new executions or additional aggregate passes. Reviewed bodies cover confidence floor/request-owned auth, settings/cache identity, the full mutated-threshold nine-call sequence, Ollama three tiers/cache, selected-backend persistence, unrelated saved settings, generic report/provenance, inactive/check-all and invalid edit preservation. Generic report tests use other settings where disclosed; explicit MIN provider mapping composes the result.",
+    "predicates_and_known_gaps": [
+      {
+        "predicate": "Default and activation",
+        "static": "Source Jev env is selected when evaluator==jev or validateAll. Native uses the identical then_some gating. Missing key falls back0.75. InactiveOllama ignores supplied malformed MIN and returns0.75.",
+        "actual": "Default finite reports; four isolated2 controls; two postrepair own-toString inactive/check-all rows.",
+        "gap": "No new gap found."
+      },
+      {
+        "predicate": "Number conversion failure before type rejection",
+        "static": "Only unsupported nonnumeric/nontext raw goes through existing primitive_string to detect failure; successful conversion text is discarded. Plain JSON own valueOf/toString cannot be callable. Arrays join items left-to-right and recurse; ordinary object properties remain opaque. The raw original still goes through type/range checks.",
+        "actual": "Actual postrepair root/nested own-toString failure and plain/valueOf-only negative controls. Native unit has six own-toString kinds across four helper keys and both representations.",
+        "gap": "Ordinary finite-depth logic matches. Extreme recursive Source conversion failures remain an unaccepted operational domain, not covered by one-level control."
+      },
+      {
+        "predicate": "Allowed raw kinds and decimal grammar",
+        "static": "Only actual numbers and strings survive. Text uses exactly /^[0-9]+(?:\\.[0-9]+)?$|^\\.[0-9]+$/ semantics through equivalent grouped regex after exact25-unit trim; signs/exponents/hex/trailingdot/blank/controls/unpaired surrogate cannot pass. Raw nontext JSON kinds remain rejected even if coercible.",
+        "actual": "Historical blank/space/null/false/hex/exponent, .5 and0; postrepair plain objects/valueOf and trailingdot.",
+        "gap": "No additional concrete shallow mismatch found. Whitespace grammar is shared with accepted numeric helpers; no invented per-codepoint MIN execution claim."
+      },
+      {
+        "predicate": "Finite inclusive0..1 bound",
+        "static": "Source Number.isFinite plus <0 or>1 exactly matches native is_finite plus inclusive lower/upper; integer and safe-integer checks are disabled for MIN. Valid parsed doubles are retained unchanged; numericnegativezero remainszero for comparison.",
+        "actual": "0,.5,upper1,negative-0.1,isolatedupper2,+/-Infinity.",
+        "gap": "No runtime gap found. Near-rounding decimal strings and equality endpoints beyond these exact values are static reuse, not newly observed experiments."
+      },
+      {
+        "predicate": "Earlier errors and validation order",
+        "static": "Auth/log/model/endpoint fields precede PORT/Jevtimeout/counttimeout/MIN consistently; MIN prepass is not moved before masking or earlier settings. STOP and Ollama timeout retain separate type-first paths.",
+        "actual": "Postrepair earlier-auth and earlier-port MIN controls, plus STOP/Ollama countercontrols in the25 cohort.",
+        "gap": "No new gap found; not exhaustive all competing errors or JavaScript Error object identity."
+      },
+      {
+        "predicate": "Jev confidence floor",
+        "static": "Only Jev uncertainty uses confidence<min_confidence. Equality does not floor. Uncertain choice becomes max(requestedfloor,answerchoice), with requested Sonnet minimum and Opus protection; unchanged actual response parser ensures Jev confidence exists and isfinite0..1.",
+        "actual": "Defaultthreshold0.75/confidence0.2 explicit requestedHaiku/Opus/unknown floors; original concurrency schedule threshold0.75\u21920 at confidence0.5 produces Sonnet,Opus,thenHaiku and nine actual calls/cachehit.",
+        "gap": "Exact confidence==threshold and endpoint0/1 decision matrices have not been found as retained executions. Identical one-line comparisons and parsed-value composition support them statically; they are not a known bug or automatic demand for an implementation-mirroring test."
+      },
+      {
+        "predicate": "Ollama is unaffected",
+        "static": "Ollama has no Jev uncertainty threshold and its cache settings omit MIN.",
+        "actual": "Complete frozen Ollama three-tier schedules import minConfidence1 from each captured config and preserve alltiers/no confidence/output/request/cache observations. Actual named pass retained.",
+        "gap": "No gap found; transport/modelquality remain separate."
+      },
+      {
+        "predicate": "Cache identity and configuration ownership",
+        "static": "Jev settings key includes minConfidence; explicit changed config supplied to Classifier must not reuse old answer. Router owns its config, with no external mutable alias promise.",
+        "actual": "Seven-setting identity test includes MIN0.91. Original full sequence lowers MIN0 and proves changed decision, ninecalls and nextcachehit.",
+        "gap": "Original Router alias assertion remains partial; do not promote its baseline row. Individual parsed-key admission may use explicit-call settings semantics only."
+      },
+      {
+        "predicate": "Persistence and unrelated updates",
+        "static": "MIN is a nonsecret CONFIG_KEYS string entry; load overlays typed environment after saved values without parent mutation. Setup captures only selected backend keys; unrelated saved preferences persist.",
+        "actual": "Actual selected-backend setup saves MIN0.85; forcedOllama update retains savedMIN0.9 while changing timeout. Invalid config-set blankMIN preserves saved bytes.",
+        "gap": "MIN-specific environment-over-saved active report source labels are static shared-loop composition; do not say those exact label/value combinations were individually executed."
+      },
+      {
+        "predicate": "Report/provenance and edit validation",
+        "static": "provider(MIN)==jev, so inactive report value isnull but source provenance remains file/environment/default. Generic loop computes overrides_file. CLI set forces Jev validation before persistence even when selected runtime backend isOllama; MIN normalized ordinary strings are retained rather than canonicalized.",
+        "actual": "Named complete generic report/provenance and readonly inactive/check-all tests pass on PORT/JevURL controls; MIN blank edit and MIN0.85 save are actual named consumer controls.",
+        "gap": "Generic report behavior is composed with an explicit inspected MIN provider mapping; no fabricated per-MIN full report stream. MIN is not an organization-policy lock."
+      }
+    ]
+  },
+  "native_api_migration": {
+    "exact_embedding_note": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/min-confidence-migration-note.draft.md",
+      "bytes": 1715,
+      "sha256": "61a566c4d5f138dcf8cfc4398dd15c319998d9a02d83bcb6c1cbf692bae9ec48"
+    },
+    "nan_input": "JSON-backed Value/JsDocument configuration inputs cannot admit raw NaN. Invalid JSON rejection, a null projection or raw Infinity are not execution of a native NaN numeric guard. Source raw JavaScript NaN observations remain a distinct input interface.",
+    "manual_public_field": "RouterConfig::min_confidence is public f64 and CAN contain NaN, Infinity or an invalid range after direct mutation. This review gives direct mutation no parsed-setting validation guarantee. Use the configuration reader; do not claim every native configuration API excludes NaN.",
+    "root_resource_decision": "For invalid nonnumeric JSON settings, accept host resource-exhaustion diagnostic divergence between native iterative conversion and recursive JavaScript array conversion. Ordinary conversion/type/range/error precedence and rejection remain required. No valid numeric/string setting is made invalid, no arrays/objects become numeric settings, and no supported-input depth ceiling is introduced.",
+    "resource_nonclaims": "No V8-specific universal stack threshold, allocation-failure identity, actual extreme-depth RangeError reproduction, all-depth error fidelity or zero-allocation guarantee. Passing finite64/256 controls does not prove those properties. This is an explicit native embedding migration, not a silent waiver of ordinary error contracts.",
+    "other_js_interfaces": "Live getters, custom prototypes, error identities and mutable object aliases are not represented by the JSON-backed input API. Original config and router-alias assertion mappings remain unchanged; no whole-definition approval follows."
+  },
+  "execution_ownership": {
+    "binding": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/execution-binding.json",
+      "bytes": 6238,
+      "sha256": "13acc3a040f94d8f166488cc6f748a6252624c055ac907fea8467e6f84b6be5f"
+    },
+    "owner": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/run-stage.py",
+      "bytes": 18429,
+      "sha256": "d4c9bcac435f4c1df2e4e9e3d5734e22413a06d69bd5a74def9f424048e6a5c1"
+    },
+    "native_compile_context": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/native-compile-context.json",
+      "bytes": 1016,
+      "sha256": "f323b2c3da507885befb9583ee8ef4ba84ddc1e76b4f9594d935decbfc46e015"
+    },
+    "cargo_build_receipt": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/core-build.json",
+      "bytes": 536,
+      "sha256": "750c56f6d27c7cde2a80898edd8f787d22a60a03f37d2141631da78a16821b6b"
+    },
+    "native_compile_receipt": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/native-compile.json",
+      "bytes": 1100,
+      "sha256": "e8c45d84b45ba66fd7456468a043da3307063bfcef9b1e091066c5299df7d25d"
+    },
+    "build_provenance": "Cargo reports the current underlying core/serde artifacts fresh:true (cached); the standalone probe was newly compiled by rustc against those exact pinned outputs. This is not a newly recompiled core or release source-to-binary attestation.",
+    "source_receipt": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/source.json",
+      "bytes": 2067,
+      "sha256": "5b8a8dd7262c099c5e9554c63d184d68180f3e5ff4769c9750051603760f3c37"
+    },
+    "source_stdout": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/source.stdout",
+      "bytes": 9202,
+      "sha256": "850c0570a0b9edd790d095eb88a2c86f80e09db54b2ab27118044c16149d9749"
+    },
+    "source_stderr": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/source.stderr",
+      "bytes": 672,
+      "sha256": "10c9c6d17fdd6dd44ea8b74148c10ddd47a0e728295d4793763dfe65e5b63446"
+    },
+    "native_receipt": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/native.json",
+      "bytes": 1953,
+      "sha256": "6386afeb98670173984ecead3766baa6af2b276e3d5029c129f7c4e0bfd71373"
+    },
+    "native_stdout": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/native.stdout",
+      "bytes": 9202,
+      "sha256": "850c0570a0b9edd790d095eb88a2c86f80e09db54b2ab27118044c16149d9749"
+    },
+    "native_stderr": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/native.stderr",
+      "bytes": 144,
+      "sha256": "fc2c1e8035bdd9bc879c9023ba3fcd896dac019fbb9f31cad73eeb45ec807d2e"
+    },
+    "static_admission_review": {
+      "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/independent-pre-run-admission-v2.json",
+      "bytes": 20554,
+      "sha256": "bfa3c3b4ef1604924f4ead5e880a51b628ebd5ef030554cee70d3184848ebafb"
+    },
+    "scope": "Two fixed pure processes under30second/65536stdout/16384stderr bounds, both exit0 with completeEOF/reaping and zero recorded supervision errors. Current696 native and111 frozen files are checked before/after every observation. Each receipt retains three raw directPID SIGKILL attempts before the consuming wait. No zero-signal, arbitrary-descendant, process-group, syscall-tracing or cross-crash guarantee.",
+    "review_chronology": "Independent static-admission messages preceded runtime; the written static receipt was finalized afterward. It is not represented as an artifact written before execution.",
+    "source_isolation": "Source blocks known network/child-process APIs before importing frozen config and records zero attempts. Native pure core/no-network property is static source inspection, not a syscall trace. No providers, models, Keychain or user configuration used."
+  },
+  "independent_key_review": {
+    "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/independent-min-confidence-key-acceptance-review.json",
+    "bytes": 27831,
+    "sha256": "9237cf62bc8759298530a3bc287618f78fda61f922f56ddd0bb076a11ddf8dcd"
+  },
+  "root_acceptance_proposal": {
+    "path": "artifacts/rust-rewrite/min-confidence-depth-validation-20261018-1/root-key-acceptance-proposal.json",
+    "bytes": 3057,
+    "sha256": "a572d77aa0c9232bbe31199032fe2daafc5ea3c5d229f61fc82c53af6664f662"
+  },
+  "coverage_change": {
+    "configuration": {
+      "before": {
+        "covered": 17,
+        "pending": 10
+      },
+      "after": {
+        "covered": 18,
+        "pending": 9
+      }
+    },
+    "original_definitions": {
+      "covered": 539,
+      "partial": 49
+    },
+    "fixed_limits": {
+      "covered": 14,
+      "pending": 39
+    },
+    "areas": {
+      "partial": 13
+    },
+    "only_promoted_key": "AUTOROUTER_MIN_CONFIDENCE"
+  },
+  "remaining_gates": "Unchanged source snapshot064a9a still exceeds logical32MiB by117728B and expanded32MiB by92672B. Existing full checkpoint1406pass/1sourcecapfailure/11ignored remains bound to those exact inputs; no tests rerun solely for this documentation/ledger acceptance. Fresh CI, remaining key/assertion/limit, protocol/resource/platform/TLS/performance/live-task/release/stabilization/cutover gates remain open.",
+  "provider_calls": 0,
+  "user_configuration_edits": 0,
+  "runtime_source_edits": 0
+}

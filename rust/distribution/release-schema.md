@@ -101,6 +101,23 @@ Verification checks registry tarball length, SHA256 and SHA512 integrity, then c
 
 Unavailable metadata, delayed tags/tarballs and installation outages remain pending. Polling has a total deadline, capped backoff and a bounded timeline. A pending report preserves the original archive identity and instructs the operator to verify again rather than submit a duplicate release.
 
+Native verification reports project errors onto fixed code/reason pairs before
+calling state observers, retaining events or writing reports. Unknown codes
+become `verification_error`; unknown or nontext reasons fall back to the known
+code. Availability errors may retain an integer HTTP status from 100 through
+999. Attempt reports omit other error fields. The CLI's preflight failure report
+may additionally retain `version_order.current_latest` as null or a bounded,
+strict version string. Parsing that string establishes its shape, not its origin.
+Error detail cannot overwrite report state, phase, archive identity or code.
+
+This is a stricter native output policy than the JavaScript reference, which
+omits ordinary `Error.message` but forwards injected `ReleaseError.detail.reason`.
+The native `Installer` returns `Result<Value, ReleaseError>`; cancellation takes
+precedence over report callbacks, including the existing typed `cancelled` code.
+Successful custom installer values and manually constructed artifact metadata
+remain trusted inputs. This boundary does not sanitize their contents or direct
+caller formatting of the open `ReleaseError` type.
+
 `artifact-source TAG --run-id N --artifact-id N` checks the original tag-triggered publishing workflow, repository, commit, artifact identity and expiry. It requires `GH_TOKEN` only for that explicit read-only operation.
 
 ## Historical evidence

@@ -22,7 +22,6 @@ use hyper::body::Incoming;
 use hyper::{HeaderMap, Request};
 use peer::{Observation, Peer};
 use serde_json::{Value, json};
-use sha2::{Digest, Sha256};
 use std::{
     path::Path,
     sync::{
@@ -41,23 +40,16 @@ const LIMIT: usize = 2 * 1024 * 1024;
 const BOUND: Duration = Duration::from_secs(5);
 type Events = Arc<Mutex<Vec<Value>>>;
 fn case(number: usize) -> Value {
-    assert_eq!(
-        format!("{:x}", Sha256::digest(CORPUS.as_bytes())),
-        "93427d9e2bcb68304b4bd28af30974083a0238b97d305377725029bcef87a21f"
-    );
-    assert_eq!(
-        format!("{:x}", Sha256::digest(CAPTURE.as_bytes())),
-        "0eb917770f8b49a114ce914d9a31b6c24a987d2c980221b82305d9a3f3427332"
-    );
-    let metadata: Value = serde_json::from_str(CAPTURE).unwrap();
-    assert_eq!(metadata["static_assertions"], 13);
-    assert_eq!(metadata["expanded_assertions"], 12);
-    assert_eq!(metadata["callbacks_executed"], 4);
-    CORPUS
-        .lines()
-        .map(|line| serde_json::from_str::<Value>(line).unwrap())
-        .find(|row| row["source_test"] == format!("test/server.test.mjs#{number}"))
-        .unwrap()
+    contract::captured_server_case(
+        number,
+        CORPUS,
+        CAPTURE,
+        [
+            "93427d9e2bcb68304b4bd28af30974083a0238b97d305377725029bcef87a21f",
+            "0eb917770f8b49a114ce914d9a31b6c24a987d2c980221b82305d9a3f3427332",
+        ],
+        (13, 12, Some(4)),
+    )
 }
 struct MockRouter {
     decisions: Vec<Value>,

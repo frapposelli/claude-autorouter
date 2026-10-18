@@ -1,0 +1,106 @@
+{
+  "kind": "native_bounded_json_consuming_api_assertion_migration",
+  "status": "ACCEPTED_FOUR_REVIEWED_NATIVE_API_MIGRATIONS",
+  "only_original_definitions": [
+    "test/bounded-json.test.mjs#2",
+    "test/bounded-json.test.mjs#3",
+    "test/bounded-json.test.mjs#4",
+    "test/bounded-json.test.mjs#5"
+  ],
+  "root_decision": "Accept these4 original definitions as explicit reviewed native API migrations. No other definition, configuration key, resource limit or area is promoted.",
+  "contract": "Three consuming functions read_bounded_document/read_response_document/read_bounded_json return payload-free typed ReadError and release their owned Body on completion/error. Fixed native body destruction and no retained state references replace JS cancel-callback/reader-lock observations. Rust does not execute the unresolved JS cancel Promise or preserve caller Error/reason object identity. Empty native Body returns InvalidJson, not a distinct Response(null).",
+  "excluded": "DecodedResponseStream::read borrows an existing stream; return/cancellation does not consume it or imply body-drop-before-return. The stream retains body state until stream drop.",
+  "scoped_note": {
+    "path": "artifacts/rust-rewrite/bounded-json-native-api-validation-20261018-1/embedding-native-reader-note-scoped.draft.md",
+    "bytes": 2183,
+    "sha256": "66b80df5a627bafb321c3774b91276580f8bdea52a62c689e6636b9667e9e44e"
+  },
+  "assertion_supplement": {
+    "path": "rust/parity/assertion-mappings/bounded-json-native-api-migrations.json",
+    "bytes": 48614,
+    "sha256": "03600be5560c0c9e56168cd36cf46b02cf58acb0017a6d20dfadfa20a95ef067"
+  },
+  "historical_mapping": {
+    "path": "rust/parity/assertion-mappings/bounded-json-contracts.json",
+    "bytes": 17755,
+    "sha256": "6cd278211b54c3e2221b39d5a2a8868266ed533ccad560f910ca0792d9936929"
+  },
+  "fresh_validation": {
+    "evidence": {
+      "source-focused": {
+        "json": {
+          "path": "artifacts/rust-rewrite/bounded-json-native-api-validation-20261018-1/source-focused.json",
+          "bytes": 466,
+          "sha256": "16495952ef633f79a9e12d9498184b5d63b817442a9acc642f37df1aa84041ff"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/bounded-json-native-api-validation-20261018-1/source-focused.stdout",
+          "bytes": 1163,
+          "sha256": "547e291997f497aaf4c95afad40df0aabd89aa5aa469af25ab30415225214ac3"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/bounded-json-native-api-validation-20261018-1/source-focused.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "native-focused": {
+        "json": {
+          "path": "artifacts/rust-rewrite/bounded-json-native-api-validation-20261018-1/native-focused.json",
+          "bytes": 573,
+          "sha256": "1951a1ea722065d1c2cb4c62d68799d173802ff56ce5b11f140d3777cb7cdf73"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/bounded-json-native-api-validation-20261018-1/native-focused.stdout",
+          "bytes": 630,
+          "sha256": "59d6231612badc156a364fa31952d034010abcb02e60b38e9fef60e588a8230b"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/bounded-json-native-api-validation-20261018-1/native-focused.stderr",
+          "bytes": 752,
+          "sha256": "96e266a8378cf03bb29e89e0c48ea10de22adcd376e22fa47911bee9bf6dd528"
+        }
+      }
+    },
+    "snapshot": {
+      "path": "artifacts/rust-rewrite/bounded-json-native-api-validation-20261018-1/source-focused-source.json",
+      "bytes": 116787,
+      "sha256": "f40f56a5ce84042f5f9b98fe23b0cdfe7b4aa30eff4af69ccb895d81daba16ae"
+    },
+    "result": "Source5/0/0 direct original frozen test file, native integration6/0/0. Only original#2\u2013#5 are newly accepted:8 declared read schedules per engine,12 static assertions,21 structural loop-expanded instances. No instrumented assertion execution count.",
+    "integrity": "Both receipts verify696native/111frozen before and after at f40. Relevant current reader/core files unchanged; later ee19 pipeline additions are separate."
+  },
+  "reviews": {
+    "author": {
+      "path": "artifacts/rust-rewrite/bounded-json-native-api-review-20261018-1/formal-review.json",
+      "bytes": 5429,
+      "sha256": "c60620f85cc738a592f2b8725dcc90dbd74393fe3327dc44d2950e006eac5548"
+    },
+    "independent_assertion_review": {
+      "path": "artifacts/rust-rewrite/bounded-json-native-api-review-20261018-1/independent-static-assertion-review.json",
+      "bytes": 24705,
+      "sha256": "9ad37cf086e5eb02ae69a7a5f981bd47bacb226f1c8b6e4328f43dcbad189c33"
+    },
+    "finalization": {
+      "path": "artifacts/rust-rewrite/bounded-json-native-api-validation-20261018-1/additive-finalization-review.json",
+      "bytes": 1524,
+      "sha256": "fd8206f5a222e2212fc6cbe77571c3bd17dedfbf36da8da666a426be81b99e50"
+    }
+  },
+  "limits": "Ordinary run-check Popen/wait/file capture has no finite outer wall or output bound; timed_out:false is not a timer claim. Existing async fixture/test deadlines remain separate. No blocking-destructor, non-yielding code, general transport shutdown, arbitrary JS getter/prototype, OS cleanup, performance, platform or whole-workspace qualification.",
+  "preservation": "All original definition/assertion hashes, previous rows and historical evidence remain unchanged in the additive supplement. Old mapping stays byte-identical. The original historical unscoped note is retained; the new note names only3consumingAPIs. No missing historical log is fabricated.",
+  "current_embedding_document": {
+    "path": "rust/docs/embedding.md",
+    "bytes": 48242,
+    "sha256": "69ff7e5be26ed61bf5381f651bbdca170f78518cb4a4835c4e21eea074526e0b"
+  },
+  "coverage_after": {
+    "original_definitions_covered": 544,
+    "original_definitions_partial": 44,
+    "configuration_covered": 18,
+    "configuration_pending": 9,
+    "fixed_limits_covered": 19,
+    "fixed_limits_pending": 34,
+    "areas_partial": 13
+  }
+}

@@ -1,7 +1,6 @@
 //! Target-specific evaluator handoff. Receiver execution needs no source checkout,
 //! Node, Cargo, download hook or user configuration.
 use super::{Entry, ROOT, SOURCE, sha};
-use crate::package::archive::{decode_root, encode_root};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
@@ -11,22 +10,22 @@ use std::os::unix::fs::{MetadataExt, OpenOptionsExt};
 use std::path::{Component, Path};
 
 const EXECUTABLE: &str = "bin/autorouter-benchmark";
-const MANIFEST: &str = "executable-manifest.json";
+pub(super) const MANIFEST: &str = "executable-manifest.json";
 const FIXTURE: &str = super::pair::OLLAMA_ROUTING_FIXTURE.0;
 const MANIFEST_LIMIT: usize = 1024 * 1024;
-const FILES: &[(&str, u32, usize)] = &[
+pub(super) const FILES: &[(&str, u32, usize)] = &[
     (EXECUTABLE, 0o755, SOURCE.file),
     (FIXTURE, 0o644, 1024 * 1024),
     ("LICENSE", 0o644, 1024 * 1024),
     ("THIRD-PARTY-LICENSES.txt", 0o644, 4 * 1024 * 1024),
     ("README.native.md", 0o644, 64 * 1024),
 ];
-const KIND: &str = "native_benchmark_executable_bundle";
+pub(super) const KIND: &str = "native_benchmark_executable_bundle";
 const README: &str = "# AutoRouter executable evaluator bundle\n\nThis target-specific artifact runs with no Node, Cargo, Git, source checkout or dependency installation. Verify its authenticated archive checksum before extracting with tar -xzpf into a new 0700 directory; preserve the declared file modes even under a restrictive umask. It contains only the native evaluator helper, public license material and frozen synthetic fixture.\n\n    ./bin/autorouter-benchmark evaluate-ollama --help\n\nThe only supported command is evaluate-ollama. Reading help makes no network calls. Explicit evaluation requires an already-running local Ollama and an explicitly installed decision model; no models are downloaded. From any working directory:\n\n    /absolute/path/to/bundle/bin/autorouter-benchmark evaluate-ollama --models YOUR_INSTALLED_TAG --split heldout --rounds 3 --min-agreement 1 --max-under-route-rate 0 --output /absolute/path/to/new-report.json\n\nChoose thresholds before calling a model. Keep cold, warm, stress and quality evidence separate; --timeout-ms 0 disables only the warm timer. The evaluator refuses unrelated resident models and unloads only its admitted candidate afterward. Reports may fail strict quality acceptance. This artifact cannot run Node/native paired comparisons or other source tools.\n\nThe manifest binds every archive input, source identity, fixture and executable target/hash. Source-to-binary provenance is unverified for supplied prebuilt executables. Platform qualification, release approval and downstream task quality remain pending. The separate source and matched-reference transfer formats retain their own unchanged bounds and prerequisites. No private prompts, credentials, configuration, caches or reports are included.\n";
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-struct Declaration {
+pub(super) struct Declaration {
     path: String,
     bytes: usize,
     sha256: String,
@@ -56,7 +55,7 @@ struct Manifest {
     release_approved: bool,
     platform_qualification: String,
 }
-fn declarations(files: &BTreeMap<String, Entry>) -> Vec<Declaration> {
+pub(super) fn declarations(files: &BTreeMap<String, Entry>) -> Vec<Declaration> {
     files
         .iter()
         .map(|(path, entry)| Declaration {
@@ -73,7 +72,7 @@ fn hex(value: &str) -> bool {
             .bytes()
             .all(|c| c.is_ascii_hexdigit() && !c.is_ascii_uppercase())
 }
-fn read_file(path: &Path, limit: usize) -> Result<(Vec<u8>, u32), String> {
+pub(super) fn read_file(path: &Path, limit: usize) -> Result<(Vec<u8>, u32), String> {
     read_file_with_after_read(path, limit, || {})
 }
 fn read_file_with_after_read(
@@ -83,7 +82,7 @@ fn read_file_with_after_read(
 ) -> Result<(Vec<u8>, u32), String> {
     read_input(path, limit, true, after_read)
 }
-fn read_supplied_binary(path: &Path, limit: usize) -> Result<Vec<u8>, String> {
+pub(super) fn read_supplied_binary(path: &Path, limit: usize) -> Result<Vec<u8>, String> {
     // Cargo can hardlink release/xtask to its deps executable on Linux. This
     // explicitly named input may have stable aliases; sources/receivers may not.
     Ok(read_input(path, limit, false, || {})?.0)
@@ -167,6 +166,13 @@ fn same_file(a: &fs::Metadata, b: &fs::Metadata) -> bool {
         && a.ctime_nsec() == b.ctime_nsec()
 }
 fn validate(files: &BTreeMap<String, Entry>) -> Result<Manifest, String> {
+    validate_kind(files, KIND)
+}
+pub(super) fn ready_record(files: &BTreeMap<String, Entry>, kind: &str) -> Result<Value, String> {
+    serde_json::to_value(validate_kind(files, kind)?)
+        .map_err(|_| "Cannot serialize verified ready identity".into())
+}
+fn validate_kind(files: &BTreeMap<String, Entry>, kind: &str) -> Result<Manifest, String> {
     if files.len() != FILES.len() + 1
         || files
             .keys()
@@ -188,7 +194,7 @@ fn validate(files: &BTreeMap<String, Entry>) -> Result<Manifest, String> {
         .map(|(path, entry)| (path.clone(), entry.clone()))
         .collect();
     if manifest.schema_version != 1
-        || manifest.kind != KIND
+        || manifest.kind != kind
         || manifest.files != declarations(&inputs)
         || manifest.supported_commands != ["evaluate-ollama"]
         || manifest.source_to_binary_provenance != "unverified_prebuilt"
@@ -245,12 +251,31 @@ fn validate(files: &BTreeMap<String, Entry>) -> Result<Manifest, String> {
     crate::package::archive::expanded_size(files, SOURCE)?;
     Ok(manifest)
 }
-fn assemble(
+pub(super) fn assemble(
     root: &Path,
     target: &str,
     binary: Vec<u8>,
     licenses: Vec<u8>,
     dependencies: Vec<Value>,
+) -> Result<BTreeMap<String, Entry>, String> {
+    assemble_kind(
+        root,
+        target,
+        binary,
+        licenses,
+        dependencies,
+        KIND,
+        README.as_bytes(),
+    )
+}
+pub(super) fn assemble_kind(
+    root: &Path,
+    target: &str,
+    binary: Vec<u8>,
+    licenses: Vec<u8>,
+    dependencies: Vec<Value>,
+    kind: &str,
+    readme: &[u8],
 ) -> Result<BTreeMap<String, Entry>, String> {
     let source_identity: Vec<Declaration> = serde_json::from_value(super::source_identity(root)?)
         .map_err(|_| "Invalid public source identity")?;
@@ -260,13 +285,13 @@ fn assemble(
         (FIXTURE, super::regular(root, FIXTURE)?, 0o644),
         ("LICENSE", super::regular(root, "LICENSE")?, 0o644),
         ("THIRD-PARTY-LICENSES.txt", licenses, 0o644),
-        ("README.native.md", README.as_bytes().to_vec(), 0o644),
+        ("README.native.md", readme.to_vec(), 0o644),
     ] {
         files.insert(path.to_owned(), Entry { bytes, mode });
     }
     let manifest = Manifest {
         schema_version: 1,
-        kind: KIND.into(),
+        kind: kind.into(),
         target: target.into(),
         inspection: crate::package::binary::inspect(target, &files[EXECUTABLE].bytes)?,
         files: declarations(&files),
@@ -289,22 +314,27 @@ fn assemble(
     };
     files.insert(
         MANIFEST.into(),
-        Entry {
-            bytes: serde_json::to_vec_pretty(&manifest)
-                .map_err(|_| "Cannot serialize executable manifest")?,
-            mode: 0o644,
-        },
+        super::json_entry(&manifest, "Cannot serialize executable manifest")?,
     );
-    validate(&files)?;
+    validate_kind(&files, kind)?;
     Ok(files)
 }
-pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
+pub(super) struct Inputs {
+    pub target: String,
+    pub destination: std::path::PathBuf,
+    pub binary: Vec<u8>,
+    pub licenses: Vec<u8>,
+    pub dependencies: Vec<Value>,
+}
+pub(super) fn inputs(args: &[String], root: &Path, flag: &str) -> Result<Inputs, String> {
     if args.len() != 3 || args[2].starts_with("--") {
-        return Err("Usage: cargo xtask benchmark-bundle --executable TARGET=RELEASE_XTASK NEW_ARCHIVE.tar.gz".into());
+        return Err(format!(
+            "Usage: cargo xtask benchmark-bundle {flag} TARGET=RELEASE_XTASK NEW_ARCHIVE.tar.gz"
+        ));
     }
     let (target, binary) = args[1]
         .split_once('=')
-        .ok_or("--executable requires TARGET=RELEASE_XTASK")?;
+        .ok_or_else(|| format!("{flag} requires TARGET=RELEASE_XTASK"))?;
     let destination = root.join(&args[2]);
     let sidecar = std::path::PathBuf::from(format!("{}.sha256", destination.display()));
     if fs::symlink_metadata(&destination).is_ok() || fs::symlink_metadata(&sidecar).is_ok() {
@@ -316,17 +346,40 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
     let binary = read_supplied_binary(&root.join(binary), SOURCE.file)?;
     crate::package::binary::inspect(target, &binary)?;
     let (licenses, dependencies) = crate::package::complete_licenses(root)?;
-    let files = assemble(root, target, binary, licenses, dependencies)?;
-    // Verify the exact emitted representation with the unchanged source policy.
-    let encoded = encode_root(ROOT, &files, SOURCE)?;
-    let decoded = decode_root(&encoded, ROOT, SOURCE)?;
-    validate(&decoded.files)?;
-    let mut result = super::write_archive(ROOT, &files, &destination, SOURCE)?;
+    Ok(Inputs {
+        target: target.to_owned(),
+        destination,
+        binary,
+        licenses,
+        dependencies,
+    })
+}
+pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
+    let input = inputs(args, root, "--executable")?;
+    let target = input.target;
+    let destination = input.destination;
+    let (binary, licenses, dependencies) = (input.binary, input.licenses, input.dependencies);
+    let files = assemble(root, &target, binary, licenses, dependencies)?;
+    let (result, ()) =
+        super::write_archive_verified(ROOT, &files, &destination, SOURCE, |files, _| {
+            validate(&files).map(|_| ())
+        })?;
+    print_report(result, &target, KIND, [])
+}
+pub(super) fn print_report(
+    mut result: Value,
+    target: &str,
+    kind: &str,
+    extra: impl IntoIterator<Item = (&'static str, Value)>,
+) -> Result<bool, String> {
     result["source_only"] = json!(false);
-    result["kind"] = json!(KIND);
+    result["kind"] = json!(kind);
     result["target"] = json!(target);
     result["requires_cargo"] = json!(false);
     result["dependencies_bundled"] = json!(true);
+    for (key, value) in extra {
+        result[key] = value;
+    }
     result["source_to_binary_provenance"] = json!("unverified_prebuilt");
     println!(
         "{}",
@@ -345,7 +398,20 @@ fn receiver(root: &Path, args: &[String]) -> Result<bool, String> {
         let (bytes, mode) = read_file(&root.join(path), limit)?;
         files.insert(path.into(), Entry { bytes, mode });
     }
+    let marker: Value = serde_json::from_slice(&files[MANIFEST].bytes)
+        .map_err(|_| "Invalid executable bundle manifest")?;
+    match marker["kind"].as_str() {
+        Some(super::combined::READY_KIND) => return super::combined::receiver(root, files, args),
+        Some(KIND) if !super::combined::markers_present(root)? => {}
+        _ => return Err("Mixed, missing or unknown packaged artifact identity".into()),
+    }
     validate(&files)?;
+    dispatch(files, args)
+}
+pub(super) fn dispatch(
+    mut files: BTreeMap<String, Entry>,
+    args: &[String],
+) -> Result<bool, String> {
     match args.first().map(String::as_str) {
         None | Some("--help" | "help") => {
             println!(
@@ -391,7 +457,11 @@ pub fn run_packaged() -> Option<Result<bool, String>> {
         None => return None,
     };
     if !invoked && !named && fs::symlink_metadata(root.join(MANIFEST)).is_err() {
-        return None;
+        match super::combined::markers_present(root) {
+            Ok(false) => return None,
+            Ok(true) => {}
+            Err(error) => return Some(Err(error)),
+        }
     }
     if executable
         .parent()

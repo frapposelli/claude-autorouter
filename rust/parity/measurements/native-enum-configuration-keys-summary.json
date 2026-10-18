@@ -1,0 +1,384 @@
+{
+  "kind": "native_individual_configuration_enum_key_acceptance",
+  "recorded_at_utc": "2026-10-17T22:36:44.271313+00:00",
+  "accepted_keys": [
+    "AUTOROUTER_AUTH_MODE",
+    "AUTOROUTER_EVALUATOR",
+    "AUTOROUTER_SESSION_LOG_MODE"
+  ],
+  "acceptance_basis": "Individually composed actual Source/native controls, named executed consumers and explicit exact-string/nullish/source-order review; no exhaustive Cartesian execution claim.",
+  "reviews": [
+    {
+      "path": "artifacts/rust-rewrite/configuration-key-review-20261018-1/enum-key-acceptance-review.json",
+      "bytes": 40079,
+      "sha256": "4ad9dcf66a0d7ac848529bb97e2cf56e31ea7f6ca4bf696fcf8aed92e3c04b6f"
+    },
+    {
+      "path": "artifacts/rust-rewrite/configuration-key-review-20261018-1/independent-three-key-acceptance-review.json",
+      "bytes": 37624,
+      "sha256": "596b19c571f6a9d57c1fc7e1d32b76580c7669753834dd38fca07ee87465ddcf"
+    }
+  ],
+  "current_semantic_source_bindings": [
+    {
+      "path": "rust/crates/autorouter-core/src/config.rs",
+      "bytes": 86916,
+      "sha256": "4d345ade8afb18ff828b45b768d3ca4cd4136dd8b6dce4fde5c96118bdc68cf4",
+      "byte_identical_to_executed_24b_snapshot": true
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/auth.rs",
+      "bytes": 18863,
+      "sha256": "502f2bab65c8c58187ae767460cc15acbd04a47647413b068637054755556be2",
+      "byte_identical_to_executed_24b_snapshot": true
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/policy.rs",
+      "bytes": 5906,
+      "sha256": "2470f79731556af1d2ea5cf824ee709eb0b1fafdec7359d4b7db92016721e28d",
+      "byte_identical_to_executed_24b_snapshot": true
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/user_config.rs",
+      "bytes": 68820,
+      "sha256": "cc7da6cb330f864abe2512c788144d4a22201d02e4d6c1424fec6553b00790ea",
+      "byte_identical_to_executed_24b_snapshot": true
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/evaluator.rs",
+      "bytes": 55697,
+      "sha256": "5e46d2c313b00ecc13be5dbe6278c45749a6b4f01a2b829d0d9b515a6fb63b7b",
+      "byte_identical_to_executed_24b_snapshot": true
+    },
+    {
+      "path": "rust/crates/autorouter-runtime/src/session_log.rs",
+      "bytes": 25449,
+      "sha256": "f121856906422ed2c8d50f7f2db7fa21a104c336ca59dcfeeeb2dcbbcf71c2a6",
+      "byte_identical_to_executed_24b_snapshot": true
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/configuration.rs",
+      "bytes": 21909,
+      "sha256": "f30a7fb052a9458451f78ce4bd42fc2bfe08c149628dd1c05d40b959b4138e95",
+      "byte_identical_to_executed_24b_snapshot": true
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/launch.rs",
+      "bytes": 9142,
+      "sha256": "afbafa246b1a8bd994c2f2f2c3ea6a56ea1b35c8586735f0f157fb4e4239f0a6",
+      "byte_identical_to_executed_24b_snapshot": true
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/onboarding.rs",
+      "bytes": 20023,
+      "sha256": "d81df782ddccfc002c841151cccd99787180d3ff4b77f2f0708dfbcc06349a72",
+      "byte_identical_to_executed_24b_snapshot": true
+    },
+    {
+      "path": "rust/crates/claude-autorouter/src/policy_command_contracts.rs",
+      "bytes": 22976,
+      "sha256": "57f3f9b040569b804d5f122ffbcbe19ce154298c2226d61a93659a91e6689d4c",
+      "byte_identical_to_executed_24b_snapshot": true
+    }
+  ],
+  "selected_actual_raw_controls": [
+    {
+      "id": "config-document-autorouter_evaluator-positive-overflow",
+      "outcome_kind": "configuration_error",
+      "complete_outcome_and_input_match": true,
+      "error": "AUTOROUTER_EVALUATOR must be jev or ollama"
+    },
+    {
+      "id": "config-document-autorouter_evaluator-negative-overflow",
+      "outcome_kind": "configuration_error",
+      "complete_outcome_and_input_match": true,
+      "error": "AUTOROUTER_EVALUATOR must be jev or ollama"
+    },
+    {
+      "id": "config-document-autorouter_evaluator-null",
+      "outcome_kind": "serialized",
+      "complete_outcome_and_input_match": true,
+      "effective_selected_values": {
+        "authMode": "api-key",
+        "evaluator": "ollama",
+        "sessionLogMode": "metadata"
+      },
+      "sessionLogDir_present": false
+    },
+    {
+      "id": "config-document-autorouter_evaluator-zero",
+      "outcome_kind": "configuration_error",
+      "complete_outcome_and_input_match": true,
+      "error": "AUTOROUTER_EVALUATOR must be jev or ollama"
+    },
+    {
+      "id": "config-document-autorouter_auth_mode-positive-overflow",
+      "outcome_kind": "configuration_error",
+      "complete_outcome_and_input_match": true,
+      "error": "AUTOROUTER_AUTH_MODE must be api-key or subscription"
+    },
+    {
+      "id": "config-document-autorouter_auth_mode-negative-overflow",
+      "outcome_kind": "configuration_error",
+      "complete_outcome_and_input_match": true,
+      "error": "AUTOROUTER_AUTH_MODE must be api-key or subscription"
+    },
+    {
+      "id": "config-document-autorouter_auth_mode-null",
+      "outcome_kind": "serialized",
+      "complete_outcome_and_input_match": true,
+      "effective_selected_values": {
+        "authMode": "api-key",
+        "evaluator": "ollama",
+        "sessionLogMode": "metadata"
+      },
+      "sessionLogDir_present": false
+    },
+    {
+      "id": "config-document-autorouter_auth_mode-zero",
+      "outcome_kind": "configuration_error",
+      "complete_outcome_and_input_match": true,
+      "error": "AUTOROUTER_AUTH_MODE must be api-key or subscription"
+    },
+    {
+      "id": "config-document-autorouter_session_log_mode-positive-overflow",
+      "outcome_kind": "configuration_error",
+      "complete_outcome_and_input_match": true,
+      "error": "AUTOROUTER_SESSION_LOG_MODE must be metadata or prompts"
+    },
+    {
+      "id": "config-document-autorouter_session_log_mode-negative-overflow",
+      "outcome_kind": "configuration_error",
+      "complete_outcome_and_input_match": true,
+      "error": "AUTOROUTER_SESSION_LOG_MODE must be metadata or prompts"
+    },
+    {
+      "id": "config-document-session-mode-before-evaluator",
+      "outcome_kind": "configuration_error",
+      "complete_outcome_and_input_match": true,
+      "error": "AUTOROUTER_SESSION_LOG_MODE must be metadata or prompts"
+    },
+    {
+      "id": "config-document-evaluator-before-ollama-model",
+      "outcome_kind": "configuration_error",
+      "complete_outcome_and_input_match": true,
+      "error": "AUTOROUTER_EVALUATOR must be jev or ollama"
+    },
+    {
+      "id": "config-document-auth-before-numeric-timeout",
+      "outcome_kind": "configuration_error",
+      "complete_outcome_and_input_match": true,
+      "error": "AUTOROUTER_AUTH_MODE must be api-key or subscription"
+    },
+    {
+      "id": "config-document-keepalive-before-auth",
+      "outcome_kind": "configuration_error",
+      "complete_outcome_and_input_match": true,
+      "error": "AUTOROUTER_OLLAMA_KEEP_ALIVE must be 0 or a positive duration such as 5m"
+    }
+  ],
+  "named_historical_consumer_tests": [
+    "config::tests::defaults_and_selected_backend_validation",
+    "config::tests::paths_modes_profiles_and_required_credentials",
+    "config::tests::raw_configuration_numbers_do_not_become_nullish_defaults",
+    "config::tests::raw_timeout_preserves_numeric_gate_and_first_error_order",
+    "evaluator::tests::all_native_tiers_require_metadata_first_and_never_send_cloud_credentials",
+    "evaluator::tests::jev_confidence_floor_and_request_owned_auth_match_existing_policy",
+    "policy::tests::allowlists_cover_both_defaults_and_explicit_choices_while_locks_preserve_the_caller",
+    "user_config::tests::saved_and_environment_policy_locks_survive_allowlist_repair_mode",
+    "onboarding::policy_command_contracts::original_6_policy_report_and_rejected_edit_preserve_file",
+    "onboarding::policy_command_contracts::original_7_repair_and_setup_rejection_keep_original_choices",
+    "show_preserves_saved_bytes_and_reports_complete_redacted_provenance",
+    "show_without_saved_settings_and_inactive_full_checks_are_read_only",
+    "subscription_launch_uses_only_local_header_auth_and_cleans_its_listener_and_overlay",
+    "metadata_launcher_history_keeps_correlated_events_without_any_excerpt_fields",
+    "unset_logging_and_empty_override_create_no_history_files",
+    "session_log::contracts::original::original_16_metadata_mode_correlated_safe_outcome"
+  ],
+  "historical_consumer_source_snapshot": "24b774510c4270f631397480f795da5969ee1c4daded2066e29facdb394839b7",
+  "historical_workspace_scope": "These named consumers passed; that workspace exited101 on source-transfer size. No complete green run is inferred.",
+  "fresh_mask_controls": {
+    "cases": 12,
+    "receipt": {
+      "path": "artifacts/rust-rewrite/configuration-boundary-execution-20261018-1/native.json",
+      "bytes": 1037,
+      "sha256": "b52876ff4d7f8a87c3d27328a02f5937ca8daf45d04c415a40d3b9cf8a1a62df"
+    },
+    "summary": {
+      "path": "rust/parity/measurements/native-config-key-boundaries-summary.json",
+      "bytes": 4425,
+      "sha256": "cd6fa1194381595cc0f0265f4ba47d4f3ac8d9e2d14d7df1c95775ac427a4f35"
+    }
+  },
+  "per_key_review": [
+    {
+      "key": "AUTOROUTER_AUTH_MODE",
+      "source_contract": {
+        "anchors": "frozen src/config.mjs84-87,107-110,117,145-150; src/auth.mjs; current core config.rs992-996,1038,1106,1241",
+        "default": "missing or actual null -> api-key; empty/blank are invalid, no trim/coercion",
+        "accepted": [
+          "api-key",
+          "subscription"
+        ],
+        "gate": "subscription requires normalized exact https://api.anthropic.com, omits Anthropic source credentials; requireKeys orders active Jev then active Anthropic",
+        "error_phase": "after active Ollama model/timeout syntax/keepalive checks, before client/model/upstream/late numeric checks"
+      },
+      "actual_case_ids": [
+        "auth-2-331",
+        "auth-2-332",
+        "auth-2-333",
+        "auth-2-334",
+        "auth-2-335",
+        "auth-3-336",
+        "auth-3-337",
+        "auth-3-338",
+        "auth-3-339",
+        "auth-4-340",
+        "auth-5-341",
+        "auth-11-448",
+        "auth-11-449",
+        "auth-11-450",
+        "auth-11-451",
+        "auth-11-452",
+        "auth-11-453",
+        "auth-11-454",
+        "config-11-219",
+        "config-11-220",
+        "config-11-221",
+        "config-11-222",
+        "config-11-223"
+      ],
+      "consumer_proof": [
+        "Covered original auth4/5 pure child environment cases and auth11 subscription recognition; actual subscription-launch integration passed in24b workspace. Auth source remains byte-identical.",
+        "Actual auth-3-336..339 rejects four nonofficial upstream shapes; original auth2/default requireKeys cases and 360 credential-context source-derived rows do not get counted as a separate all-key proof.",
+        "Report directly serializes AuthMode; for these nonsecret nonprovider selectors active=true and provenance uses the same covered policy/environment/file/default loop. Setup defaultsubscription is a separate onboarding rule, not substituted for readConfig defaultapi-key."
+      ],
+      "unexecuted_regression_extensions": [
+        "Prepared64 selector supplement has no retained execution/report; do not label its empty/blank/bool/array/object/case-variant or both-backend selector permutations as passed.",
+        "No per-key Cartesian full config-show report for both modes \u00d7 all four provenances is retained; covered generic report loop and exact typed effective value compose to this key by source review.",
+        "Every possible pair of invalid inputs was not executed; ordering follows matching straight-line Source/native parser sequence, with actual auth-before-numeric-timeout and keepalive-before-auth witnesses."
+      ],
+      "shared_domain_review": {
+        "kind": "explicit_static_predicate_review_not_execution",
+        "facts": [
+          "ConfigInput::field borrows either Value object member or original JsDocument object member; no whole environment projection/sentinel.",
+          "ConfigValue::text only accepts actual string nodes; ConfigText::is compares exact scalar/UTF16 units to fixed ASCII accepted literals. Arrays, objects, booleans and numbers cannot be coerced to an accepted enum; empty/blank/case variants are rejected.",
+          "Auth/Evaluator enum_text removes only null/missing; SessionLogMode reads value directly and defaults only on missing. Exact accepted values are typed enums with source-identical serde names.",
+          "No getter/Proxy/JSundefined-property execution is claimed; native declared JSON/JsDocument API represents omission for undefined and cannot expose JS accessor identity. These facts do not authorize other original API migrations."
+        ]
+      }
+    },
+    {
+      "key": "AUTOROUTER_EVALUATOR",
+      "source_contract": {
+        "anchors": "frozen src/config.mjs66-83,120-128,145-150; current config.rs960-990,1048-1147,1195,1241; runtime evaluator.rs374-448",
+        "default": "missing or actual null -> ollama; no trim/coercion",
+        "accepted": [
+          "ollama",
+          "jev"
+        ],
+        "gate": "selected backend validates normally; inactive backend gets defaults unless validateAll=true; selection also chooses request endpoint/body/deadline and key requirement",
+        "error_phase": "after session-log-mode/status/debug, before any backend model or timeout validation"
+      },
+      "actual_case_ids": [
+        "config-7-114",
+        "config-7-115",
+        "config-7-116",
+        "config-11-219",
+        "config-11-220",
+        "config-11-221",
+        "config-11-222",
+        "config-11-223",
+        "config-12-224",
+        "config-12-225",
+        "config-12-226",
+        "config-12-227",
+        "config-12-228",
+        "config-12-229",
+        "config-13-230",
+        "config-13-231",
+        "config-13-232",
+        "config-13-233"
+      ],
+      "consumer_proof": [
+        "Actual config7 default/explicit Jev/custom Ollama cases, config11 active-key cases, config12 invalidselector auto and config13 both mask directions/fullchecks.",
+        "Fresh f17c41 controls individually isolate badJevmodel, timeout and confidence across evaluator\u00d7validateAll: all12 complete Source/native envelopes match, without invalidURL hiding later settings.",
+        "24b actual mock evaluator tests pass for selected Ollama metadata+all three tiers, no cloud headers, and Jev confidence/request-auth; these prove dispatch, not provider quality or account availability.",
+        "Current policy4 allowlists subject defaults and explicit choices; policy7 actual configrepair/Jev-to-Ollama and setup rejection, unchanged current policy-command source; report value/provenance composed through covered loop."
+      ],
+      "unexecuted_regression_extensions": [
+        "No retained direct finite evaluator empty/blank/bool/array/object/singleton-string-array/lone-surrogate selector matrix; static exact-string guard rejects these.",
+        "Prepared64 AUTH/CLIENT selector supplement does not add evaluator-invalid-domain evidence; evaluator is fixed to accepted values there.",
+        "No all-values\u00d7all-provenances complete config-show Cartesian table; existing actual report/active-provider cases plus exact shared report logic are the acceptance composition.",
+        "No local-model performance, download, real-provider or inactive-other-key whole coverage is inferred from evaluator selection."
+      ],
+      "shared_domain_review": {
+        "kind": "explicit_static_predicate_review_not_execution",
+        "facts": [
+          "ConfigInput::field borrows either Value object member or original JsDocument object member; no whole environment projection/sentinel.",
+          "ConfigValue::text only accepts actual string nodes; ConfigText::is compares exact scalar/UTF16 units to fixed ASCII accepted literals. Arrays, objects, booleans and numbers cannot be coerced to an accepted enum; empty/blank/case variants are rejected.",
+          "Auth/Evaluator enum_text removes only null/missing; SessionLogMode reads value directly and defaults only on missing. Exact accepted values are typed enums with source-identical serde names.",
+          "No getter/Proxy/JSundefined-property execution is claimed; native declared JSON/JsDocument API represents omission for undefined and cannot expose JS accessor identity. These facts do not authorize other original API migrations."
+        ]
+      }
+    },
+    {
+      "key": "AUTOROUTER_SESSION_LOG_MODE",
+      "source_contract": {
+        "anchors": "frozen src/config.mjs61-62,113-114; bin/autorouter.mjs115-116; current config.rs949-954; launch.rs125",
+        "default": "only absent -> metadata; actual null is invalid (unlike auth/evaluator)",
+        "accepted": [
+          "metadata",
+          "prompts"
+        ],
+        "gate": "mode never enables logging without directory; launcher creates a logger only for configured directory and passes include_prompts iff mode==prompts",
+        "error_phase": "first readConfig validation; invalid mode beats evaluator validation; error text does not echo input"
+      },
+      "actual_case_ids": [
+        "config-2-10",
+        "config-2-11",
+        "config-2-12",
+        "config-2-13",
+        "config-2-14",
+        "config-2-15",
+        "config-2-16",
+        "config-2-17"
+      ],
+      "consumer_proof": [
+        "Originalconfig2 eight complete parser cases cover absent, both accepted modes, no-directory result and invalidempty/blank/private-string/false/null; rawtext actual\u00b1Infinity and session-mode-before-evaluator preserve exact error and immutable input.",
+        "Current policy5 actual load preserves metadata policylock despite saved/environmentprompts, lock order/path and caller unchanged; policy6 actual config-show/set boundary includes lock provenance/refusal.",
+        "24b real synthetic launcher prompts path, metadata path and no-history paths all passed; metadata scan excludes prompt_excerpt/prompt_truncated and private canaries, while prompt-mode tests retain bounded excerpts.",
+        "SessionLogOptions standalone factory defaultinclude_prompts=true is not launcher default; explicit mode comparison at launch.rs125 supplies false for metadata. Modealone never creates history."
+      ],
+      "unexecuted_regression_extensions": [
+        "No separate direct array/object/true/case-variant/lone-surrogate SessionLogMode table; they all reach the same reviewed nonmatching text branch, not observed passes.",
+        "No every-mode\u00d7all-provenances full report Cartesian table; unchanged generic report/provider/secret classification and actual covered policy/default/file/environment consumers supply compositional proof.",
+        "Unrelated session-log getter/nonfinite/async-warning original partials remain open; no original session-log row is promoted by this key recommendation."
+      ],
+      "shared_domain_review": {
+        "kind": "explicit_static_predicate_review_not_execution",
+        "facts": [
+          "ConfigInput::field borrows either Value object member or original JsDocument object member; no whole environment projection/sentinel.",
+          "ConfigValue::text only accepts actual string nodes; ConfigText::is compares exact scalar/UTF16 units to fixed ASCII accepted literals. Arrays, objects, booleans and numbers cannot be coerced to an accepted enum; empty/blank/case variants are rejected.",
+          "Auth/Evaluator enum_text removes only null/missing; SessionLogMode reads value directly and defaults only on missing. Exact accepted values are typed enums with source-identical serde names.",
+          "No getter/Proxy/JSundefined-property execution is claimed; native declared JSON/JsDocument API represents omission for undefined and cannot expose JS accessor identity. These facts do not authorize other original API migrations."
+        ]
+      }
+    }
+  ],
+  "coverage_change": "Only these3 configuration keys become covered. Other24 keys,all588 original definitions,all53 limitrows and13areas stay unchanged.",
+  "author_disclosure": "Reviewer authored the earlier borrowed ConfigInput core draft and unapplied/later-applied CLI sharing draft, and prepared the unexecuted64 selector supplement. Root owned all product edits/executions. This is an independent per-key evidence/composition review of the new matrix, not an independent implementation review of reviewer-authored code.",
+  "global_limits": [
+    "Root must decide and apply only these3 configuration rows; this artifact makes no public edit.24other keys,588 original definitions,53limitrows and13area statuses are unchanged.",
+    "Acceptance is composed actual branch controls plus explicit shared-domain/source-order review, not a claim every finiteJSON/UTF16 or invalid-input-pair combination was executed. All additional missing regression permutations are named per row.",
+    "Current and historical Source/native input/binary receipts retain their own hashes. All111 frozen files were explicitly rehashed; helper build provenance is from retained actual Cargo receipts. Mutable target paths are not promised to retain historical bytes.",
+    "The 24b workspace was exit101:1389pass,1source-transfer-capfailure,11ignored,66groups. Exact selected consumer tests passed; no global green claim. Later ownedprocess EOF failure and source cap overage remain unresolved.",
+    "No provider calls, model downloads, performance measurements, release/cutover, platform/stabilization, currentCI or installed-binary provenance qualification.",
+    "Old Value observer UTF16 serialization failures remain separate; these three accepted ASCII enums do not create new UTF16 output capability and do not close unrelated original API partials."
+  ],
+  "current_source_snapshot": {
+    "path": "artifacts/rust-rewrite/cli-fixture-sharing-validation-20261018-1/candidate-source.json",
+    "bytes": 116611,
+    "sha256": "1788e09a0bcf1e49704391b9b6c3578956102df6bf1dc471c7e85b49cf3418f9"
+  }
+}

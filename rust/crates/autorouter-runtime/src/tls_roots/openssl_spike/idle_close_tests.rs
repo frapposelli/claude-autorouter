@@ -14,7 +14,6 @@ use hyper_openssl::SslStream;
 use hyper_util::rt::TokioIo;
 use openssl::ssl::{Ssl, SslVersion};
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
-use tokio::net::TcpListener;
 use tokio::sync::{mpsc, oneshot};
 use tokio::task::JoinSet;
 use tokio_util::sync::CancellationToken;
@@ -91,12 +90,7 @@ impl Fixture {
         let probe = Probe::default();
         let client =
             Arc::new(SpikeHttpClient::with_snapshot_idle(true, &trust, probe.clone()).unwrap());
-        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
-        let origin = format!(
-            "{}://{}",
-            if version.is_some() { "https" } else { "http" },
-            listener.local_addr().unwrap()
-        );
+        let (listener, origin) = super::loopback_peer::bind_listener(version.is_some()).await;
         let (send, requests) = mpsc::channel(16);
         let closes = Arc::new(Mutex::new(BTreeMap::new()));
         let active = Arc::new(AtomicUsize::new(0));
@@ -231,9 +225,8 @@ async fn complete(
     probe: &Probe,
     ordinal: usize,
 ) {
-    let result = tokio::time::timeout(BARRIER, tasks.join_next())
+    let result = crate::bounded(tasks.join_next())
         .await
-        .unwrap()
         .unwrap()
         .unwrap()
         .unwrap();

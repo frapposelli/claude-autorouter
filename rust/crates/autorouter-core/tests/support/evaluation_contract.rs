@@ -19,20 +19,8 @@ pub fn cases() -> Vec<Value> {
 }
 // JSON numbers are JavaScript doubles; spelling1 versus1.0 is not a policy
 // difference. No epsilon, missing-key relaxation or null/false coercion applies.
-pub fn equal(a: &Value, b: &Value) -> bool {
-    match (a, b) {
-        (Value::Number(a), Value::Number(b)) => a.as_f64() == b.as_f64(),
-        (Value::Array(a), Value::Array(b)) => {
-            a.len() == b.len() && a.iter().zip(b).all(|(a, b)| equal(a, b))
-        }
-        (Value::Object(a), Value::Object(b)) => {
-            a.len() == b.len()
-                && a.iter()
-                    .all(|(key, a)| b.get(key).is_some_and(|b| equal(a, b)))
-        }
-        _ => a == b,
-    }
-}
+include!("../../src/json_compare_macros.rs");
+contract_json_equal!(pub equal, a, b => a.as_f64() == b.as_f64());
 pub fn outcome(value: Result<Value, String>) -> Value {
     match value {
         Ok(result) => json!({"ok":true,"result":result}),

@@ -6,6 +6,7 @@ use crate::http_client::{HttpError, HttpTransport};
 use crate::response_observer::{
     CompletionEvidence, DEFAULT_BUFFER_BYTES, Observation, ObservedBody, ResponseObserver,
 };
+use crate::route_counter::RouteTokenCounter;
 use crate::router::Router;
 use crate::server_events::{
     EventSink, EventSinks, RequestEvents, emit, emit_document, event_document,
@@ -21,10 +22,10 @@ use crate::tls_roots::openssl_spike::gateway_terminal::{
     TerminalIo,
 };
 use crate::transport_completion::{
-    CompletionRegistry, Delivery, Failure, RequestReceiveDeadline, serve_http1,
+    CompletionRegistry, Delivery, Failure, RequestReceiveDeadline, serve_http1_scanned,
 };
 use autorouter_core::auth::{LOCAL_AUTH_HEADER, is_subscription_request};
-use autorouter_core::config::{AuthMode, RouterConfig, js_trim};
+use autorouter_core::config::{AuthMode, Credential, RouterConfig, js_trim};
 use autorouter_core::contracts::{
     BlockShape, DiagnosticEvent, DiagnosticName, ExactModelFields, InvalidRequestShape,
     LifecycleName, MessageShape, PricingContext, RequestContext, RouteLog, TelemetryFields,
@@ -122,6 +123,19 @@ pub trait GatewayRouter: Send + Sync + 'static {
                 .map(GatewayDecision::Legacy)
         }
     }
+    /// Optional per-route count override. Existing adapters keep their prior
+    /// contract; adapters that own counting can override this additive method.
+    fn route_contract_exact_with_counter(
+        &self,
+        document: Arc<JsDocument>,
+        options: RouteOptions,
+        headers: &HeaderMap,
+        cancellation: &CancellationToken,
+        search: &str,
+        _counter: Option<RouteTokenCounter>,
+    ) -> impl Future<Output = Result<GatewayDecision, EvaluationError>> + Send {
+        self.route_contract_exact(document, options, headers, cancellation, search)
+    }
     fn complete(&self, id: &str, evidence: &Value) -> bool;
     fn complete_exact(&self, id: &str, evidence: &CompletionEvidence) -> bool {
         // Older development adapters can only accept scalar JSON metadata.
@@ -180,6 +194,34 @@ where
             .await
             .map(GatewayDecision::Typed)
     }
+    async fn route_contract_exact_with_counter(
+        &self,
+        document: Arc<JsDocument>,
+        options: RouteOptions,
+        headers: &HeaderMap,
+        cancellation: &CancellationToken,
+        search: &str,
+        counter: Option<RouteTokenCounter>,
+    ) -> Result<GatewayDecision, EvaluationError> {
+        match counter {
+            Some(counter) => {
+                self.route_typed_exact_with_counter(
+                    document,
+                    options,
+                    headers,
+                    cancellation,
+                    search,
+                    counter,
+                )
+                .await
+            }
+            None => {
+                self.route_typed_exact(document, options, headers, cancellation, search)
+                    .await
+            }
+        }
+        .map(GatewayDecision::Typed)
+    }
     fn shutdown(&self) {
         self.shutdown();
     }
@@ -188,6 +230,10 @@ where
     }
 }
 type GatewayBody = UnsyncBoxBody<Bytes, io::Error>;
+#[derive(Clone)]
+struct ScannedReceive;
+#[derive(Clone)]
+struct PreheaderFailure;
 fn boxed<B: Body<Data = Bytes> + Send + 'static>(body: B) -> GatewayBody
 where
     B::Error: Send + Sync + 'static,
@@ -305,10 +351,7 @@ pub fn clean_headers(headers: &HeaderMap) -> HeaderMap {
     }
     result
 }
-pub fn upstream_headers(
-    incoming: &HeaderMap,
-    config: &RouterConfig,
-) -> Result<HeaderMap, HttpError> {
+fn upstream_header_base(incoming: &HeaderMap, config: &RouterConfig) -> HeaderMap {
     let mut headers = clean_headers(incoming);
     headers.remove(LOCAL_AUTH_HEADER);
     headers.remove("cookie");
@@ -316,13 +359,39 @@ pub fn upstream_headers(
         "accept-encoding",
         hyper::header::HeaderValue::from_static("identity"),
     );
-    if config.auth_mode == AuthMode::Subscription {
-        headers.remove("x-api-key");
-    } else {
+    headers.remove("x-api-key");
+    if config.auth_mode != AuthMode::Subscription {
         headers.remove("authorization");
+    }
+    headers
+}
+pub fn upstream_headers(
+    incoming: &HeaderMap,
+    config: &RouterConfig,
+) -> Result<HeaderMap, HttpError> {
+    let mut headers = upstream_header_base(incoming, config);
+    if config.auth_mode != AuthMode::Subscription {
+        let values = config
+            .credential_node_http_values(Credential::Anthropic)
+            .map_err(|_| HttpError::InvalidRequest)?
+            .ok_or(HttpError::InvalidRequest)?;
+        for value in values {
+            headers.append("x-api-key", js_header(&value)?);
+        }
+    }
+    Ok(headers)
+}
+/// Fetch count credentials have a separate scalar conversion/whitespace rule.
+/// Failure makes an advisory count unavailable; it must not reject routing.
+pub fn count_headers(incoming: &HeaderMap, config: &RouterConfig) -> Result<HeaderMap, HttpError> {
+    let mut headers = upstream_header_base(incoming, config);
+    if config.auth_mode != AuthMode::Subscription {
+        let value = config
+            .credential_text(Credential::Anthropic)
+            .map_err(|_| HttpError::InvalidRequest)?;
         headers.insert(
             "x-api-key",
-            js_header(config.anthropic_key.as_deref().unwrap_or("undefined"))?,
+            crate::http_client::fetch_header_value(value.as_deref().unwrap_or("undefined"))?,
         );
     }
     Ok(headers)
@@ -415,7 +484,6 @@ struct ForwardBody<B> {
     intent: Option<Arc<Intent>>,
     #[cfg(test)]
     terminal: Option<RequestTerminal>,
-    #[cfg(test)]
     prefix: Option<Frame<Bytes>>,
 }
 impl<B> ForwardBody<B> {
@@ -437,7 +505,6 @@ impl<B> ForwardBody<B> {
             intent: None,
             #[cfg(test)]
             terminal: None,
-            #[cfg(test)]
             prefix: None,
         }
     }
@@ -452,7 +519,6 @@ impl<B> ForwardBody<B> {
         self
     }
 }
-#[cfg(test)]
 impl<B: Body<Data = Bytes>> ForwardBody<B> {
     async fn stage_first(&mut self) -> Result<(), io::Error> {
         let frame = std::future::poll_fn(|cx| {
@@ -539,7 +605,6 @@ impl<B: Body<Data = Bytes>> Body for ForwardBody<B> {
         {
             return Poll::Pending;
         }
-        #[cfg(test)]
         if let Some(frame) = this.prefix.take() {
             // Replay runs after the same terminal/cancellation/deadline checks,
             // without polling or observing the upstream frame a second time.
@@ -676,16 +741,29 @@ where
         let cancellation = CancellationToken::new();
         let stopping = cancellation.clone();
         let gateway = self.clone();
+        let scans = crate::http_receive::ScanRegistry::new();
+        let first_scan = scans.next_scan();
         let task = tokio::spawn(async move {
+            let scan_timer = tokio::time::sleep_until(first_scan);
+            tokio::pin!(scan_timer);
             let mut connections = tokio::task::JoinSet::new();
             loop {
                 tokio::select! {
                     biased;_=stopping.cancelled()=>break,
+                    _=&mut scan_timer=>{
+                        let started = Instant::now();
+                        scans.scan_due(scan_timer.deadline(), started);
+                        scan_timer.as_mut().reset(started + crate::http_receive::SCAN_INTERVAL);
+                        tokio::task::yield_now().await;
+                    },
                     Some(_)=connections.join_next(),if !connections.is_empty()=>{},
                     incoming=listener.accept()=>{
-                        let Ok((stream,_))=incoming else{break};let gateway=gateway.clone();let token=stopping.child_token();
-                        connections.spawn(gateway.serve_connection(
-                            stream, CompletionRegistry::new(16), token,
+                        let Ok((stream,_))=incoming else{break};
+                        let gateway=gateway.clone();let token=stopping.child_token();
+                        let requests=token.child_token();let completion=CompletionRegistry::new(16);
+                        let registration=scans.register(completion.clone(),requests.clone());
+                        connections.spawn(gateway.serve_connection_with_receipt(
+                            stream, completion, token, registration, requests,
                         ));
                     }
                 }
@@ -717,6 +795,7 @@ where
     }
     // The listener and deterministic writer regression use this same connection
     // owner. It creates no tasks beyond the listener-owned connection task.
+    #[cfg(any(test, feature = "development-probes"))]
     async fn serve_connection<I>(
         self: Arc<Self>,
         stream: I,
@@ -725,8 +804,40 @@ where
     ) where
         I: tokio::io::AsyncRead + tokio::io::AsyncWrite + Unpin + Send + 'static,
     {
+        // A standalone developer/test connection owns its scanner inside this
+        // same future. Listening connections share the listener phase instead.
+        let scans = crate::http_receive::ScanRegistry::new();
+        let requests = token.child_token();
+        let registration = scans.register(registry.clone(), requests.clone());
+        let connection =
+            self.serve_connection_with_receipt(stream, registry, token, registration, requests);
+        tokio::pin!(connection);
+        let mut next = scans.next_scan();
+        loop {
+            tokio::select! {
+                biased;
+                _ = tokio::time::sleep_until(next) => {
+                    let started = Instant::now();
+                    scans.scan_due(next, started);
+                    next = started + crate::http_receive::SCAN_INTERVAL;
+                    tokio::task::yield_now().await;
+                },
+                _ = &mut connection => break,
+            }
+        }
+    }
+    async fn serve_connection_with_receipt<I>(
+        self: Arc<Self>,
+        stream: I,
+        registry: CompletionRegistry,
+        token: CancellationToken,
+        registration: crate::http_receive::Registration,
+        request_token: CancellationToken,
+    ) where
+        I: tokio::io::AsyncRead + tokio::io::AsyncWrite + Unpin + Send + 'static,
+    {
+        let control = registration.control();
         let for_service = registry.clone();
-        let request_token = token.clone();
         #[cfg(test)]
         let intent_registry = self
             .intent_probe
@@ -746,7 +857,12 @@ where
         #[cfg(test)]
         let stream = IntentIo::new(stream, intent_registry.clone());
         let gateway = self.clone();
-        let service = service_fn(move |request: Request<Incoming>| {
+        let service = service_fn(move |mut request: Request<Incoming>| {
+            request.extensions_mut().insert(ScannedReceive);
+            let timing = request
+                .extensions()
+                .get::<hyper::ext::NodeHttpResponseTiming>()
+                .cloned();
             #[cfg(test)]
             let request = {
                 let mut request = request;
@@ -775,7 +891,20 @@ where
                     }
                     request
                 };
-                Ok::<_, io::Error>(gateway.handle(request, registry, token).await)
+                let response = gateway.handle(request, registry, token).await;
+                if response.extensions().get::<PreheaderFailure>().is_some() {
+                    return Err(io::Error::other(
+                        "Upstream body failed before its first write",
+                    ));
+                }
+                // Local end/json responses send immediately. ForwardBody stages
+                // a stream's first send separately, before this future resolves.
+                if response.body().size_hint().exact().is_some()
+                    && let Some(timing) = timing
+                {
+                    timing.mark_prepared();
+                }
+                Ok::<_, io::Error>(response)
             }
         });
         let deadline_expired = registry.deadline_expired();
@@ -796,10 +925,10 @@ where
                     None => std::future::pending().await,
                 }
             };
-            tokio::select! {biased;_=terminal_failure=>{},_=token.cancelled()=>{},_=deadline_expired=>{},_=serve_http1(stream,registry.clone(),service)=>{}}
+            tokio::select! {biased;_=terminal_failure=>{},_=token.cancelled()=>{},_=deadline_expired=>{},_=serve_http1_scanned(stream,registry.clone(),service,control)=>{}}
         }
         #[cfg(not(test))]
-        tokio::select! {biased;_=token.cancelled()=>{},_=deadline_expired=>{},_=serve_http1(stream,registry.clone(),service)=>{}}
+        tokio::select! {biased;_=token.cancelled()=>{},_=deadline_expired=>{},_=serve_http1_scanned(stream,registry.clone(),service,control)=>{}}
         token.cancel();
         #[cfg(test)]
         if let Some(owner) = terminal_owner {
@@ -825,11 +954,21 @@ where
         };
         #[cfg(test)]
         let terminal = terminal_owner.as_ref().map(|owner| owner.publisher());
-        let receive_deadline = parts
+        let timing = parts
             .extensions
-            .get::<RequestReceiveDeadline>()
-            .map(|receipt| receipt.deadline)
-            .unwrap_or_else(|| Instant::now() + Duration::from_secs(30));
+            .get::<hyper::ext::NodeHttpResponseTiming>()
+            .cloned();
+        let receive_deadline = if parts.extensions.get::<ScannedReceive>().is_some() {
+            None
+        } else {
+            Some(
+                parts
+                    .extensions
+                    .get::<RequestReceiveDeadline>()
+                    .map(|bound| bound.deadline)
+                    .unwrap_or_else(|| Instant::now() + Duration::from_secs(30)),
+            )
+        };
         let headers = incoming_headers(&parts.headers);
         if header_text(&headers, "origin").is_some_and(|v| !v.is_empty()) {
             return json_error(403, "Browser requests are not supported");
@@ -936,10 +1075,6 @@ where
         {
             return reject(413, "Request body too large");
         }
-        let upstream_headers = match upstream_headers(&headers, &self.config) {
-            Ok(headers) => headers,
-            Err(_) => return reject(502, "Router could not complete the upstream request"),
-        };
         let mut body = Bytes::new();
         if inference || count {
             let reading = async {
@@ -956,7 +1091,14 @@ where
                 }
                 Ok::<_, u16>(Bytes::from(bytes))
             };
-            body = match tokio::select! {biased;_=cancellation.cancelled()=>Err(499),_=tokio::time::sleep_until(receive_deadline)=>Err(408),result=reading=>result}
+            let receive_expiry = async {
+                if let Some(deadline) = receive_deadline {
+                    tokio::time::sleep_until(deadline).await;
+                } else {
+                    std::future::pending::<()>().await;
+                }
+            };
+            body = match tokio::select! {biased;_=cancellation.cancelled()=>Err(499),_=receive_expiry=>Err(408),result=reading=>result}
             {
                 Ok(bytes) => bytes,
                 Err(499) => {
@@ -1007,14 +1149,22 @@ where
                     request_id: context["request_id"].as_str().map(str::to_owned),
                     count_tokens: true,
                 };
+                let (count_headers, counter) = match count_headers(&headers, &self.config) {
+                    Ok(headers) => (headers, None),
+                    Err(_) => (
+                        HeaderMap::new(),
+                        Some(RouteTokenCounter::new(|_, _, _| async { None })),
+                    ),
+                };
                 let decision = match self
                     .router
-                    .route_contract_exact(
+                    .route_contract_exact_with_counter(
                         document.clone(),
                         options,
-                        &upstream_headers,
+                        &count_headers,
                         &cancellation,
                         &search,
+                        counter,
                     )
                     .await
                 {
@@ -1130,6 +1280,12 @@ where
         if cancellation.is_cancelled() {
             return json_error(502, "Router could not complete the upstream request");
         }
+        // Match source forward: reject Node HTTP credentials only after body
+        // validation and inference routing/preparation have completed.
+        let upstream_headers = match upstream_headers(&headers, &self.config) {
+            Ok(headers) => headers,
+            Err(_) => return reject(502, "Router could not complete the upstream request"),
+        };
         let target = match url::Url::parse(&format!("{}{path}{search}", self.config.upstream)) {
             Ok(target) => target,
             Err(_) => return reject(502, "Router could not complete the upstream request"),
@@ -1278,6 +1434,7 @@ where
             // producer latched an error before the response could attach.
             owner.attach();
         }
+        let bodyless_method = parts.method == Method::HEAD;
         let (mut parts, body) = response.into_parts();
         let observe = header_text(&parts.headers, "content-encoding")
             .is_none_or(|v| v.is_empty() || v == "identity");
@@ -1382,11 +1539,38 @@ where
             self.sinks.log.clone(),
         );
         #[cfg(test)]
-        let mut forward = forward
+        let forward = forward
             .with_intent(intent.clone())
             .with_terminal(terminal.clone());
+        let mut forward = forward;
+        if let Some(timing) = &timing {
+            let bodyless = matches!(parts.status.as_u16(), 204 | 304) || bodyless_method;
+            let staged = if bodyless {
+                std::future::poll_fn(|cx| {
+                    for _ in 0..16 {
+                        match Pin::new(&mut forward).poll_frame(cx) {
+                            Poll::Ready(Some(Ok(_))) => {}
+                            Poll::Ready(Some(Err(error))) => return Poll::Ready(Err(error)),
+                            Poll::Ready(None) => return Poll::Ready(Ok(())),
+                            Poll::Pending => return Poll::Pending,
+                        }
+                    }
+                    cx.waker().wake_by_ref();
+                    Poll::Pending
+                })
+                .await
+            } else {
+                forward.stage_first().await
+            };
+            if staged.is_err() {
+                let mut failed = Response::new(full(Bytes::new()));
+                failed.extensions_mut().insert(PreheaderFailure);
+                return failed;
+            }
+            timing.mark_prepared();
+        }
         #[cfg(test)]
-        if terminal.is_some() && forward.stage_first().await.is_err() {
+        if terminal.is_some() && timing.is_none() && forward.stage_first().await.is_err() {
             // Headers were acquired and status recorded. A failure before the
             // first write remains a connection-owned close, not a new 502 head.
             // The retained request owner retires when serve_http1 is destroyed.
@@ -1632,6 +1816,56 @@ fn pricing_context(document: &JsDocument) -> PricingContext {
 mod forwarding_tests {
     use super::*;
     use std::collections::VecDeque;
+
+    pub(super) fn credential_config(raw: Option<&str>) -> RouterConfig {
+        let member = raw
+            .map(|raw| format!(",\"ANTHROPIC_API_KEY\":{raw}"))
+            .unwrap_or_default();
+        let document = JsDocument::parse(format!(
+            "{{\"AUTOROUTER_AUTH_MODE\":\"api-key\",\"AUTOROUTER_TOKEN\":\"synthetic-local-token\"{member}}}"
+        ).as_bytes()).unwrap();
+        crate::test_config_document(&document)
+    }
+
+    #[test]
+    fn node_http_credentials_preserve_absence_null_and_repeated_fields() {
+        let mut actual = Vec::new();
+        let cases = [
+            None,
+            Some("null"),
+            Some("[]"),
+            Some(r#"["synthetic-a","synthetic-b"]"#),
+        ];
+        for raw in cases {
+            let config = credential_config(raw);
+            let before = serde_json::to_string(&config).unwrap();
+            let mut incoming = HeaderMap::new();
+            incoming.insert("x-api-key", "synthetic-local-token".parse().unwrap());
+            incoming.insert(
+                "authorization",
+                "Bearer synthetic-local-token".parse().unwrap(),
+            );
+            let result = upstream_headers(&incoming, &config).map(|headers| {
+                assert!(!headers.contains_key("authorization"));
+                headers
+                    .get_all("x-api-key")
+                    .iter()
+                    .map(|v| v.as_bytes().to_vec())
+                    .collect::<Vec<_>>()
+            });
+            assert_eq!(serde_json::to_string(&config).unwrap(), before);
+            actual.push(result);
+        }
+        assert_eq!(
+            actual,
+            vec![
+                Err(HttpError::InvalidRequest),
+                Ok(vec![b"null".to_vec()]),
+                Ok(vec![]),
+                Ok(vec![b"synthetic-a".to_vec(), b"synthetic-b".to_vec()]),
+            ]
+        );
+    }
 
     // The connection writer proves that a final HTTP/1 framing write can fail
     // after a prior pipelined response was flushed. Exercise the request lease
@@ -1946,9 +2180,7 @@ mod forwarding_tests {
                 }
                 _ => unreachable!(),
             }
-            let frame = tokio::time::timeout(Duration::from_secs(2), body.frame())
-                .await
-                .unwrap();
+            let frame = crate::bounded(body.frame()).await;
             assert!(frame.unwrap().is_err(), "staged replay after {cause:?}");
             assert!(publisher.failed());
             assert_eq!(polls.load(Ordering::SeqCst), 1, "no second observation");
@@ -2032,3 +2264,11 @@ mod deadline_contracts;
 #[cfg(test)]
 #[path = "server_failed_flush_contracts.rs"]
 mod failed_flush_contracts;
+
+#[cfg(test)]
+#[path = "server_credential_contracts.rs"]
+mod credential_contracts;
+
+#[cfg(test)]
+#[path = "server_receive_timer_contracts.rs"]
+mod receive_timer_contracts;

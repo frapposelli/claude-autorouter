@@ -352,11 +352,11 @@ fn native_archive_admission_rejects_checksum_filename_stale_private_and_symlink_
                     &format!("{ARCHIVE}.sha256"),
                     format!("{}  ../{ARCHIVE}\n", digest(&original)).as_bytes(),
                 );
-                "checksum_mismatch"
+                "checksum_filename_mismatch"
             }
             "stale" => {
                 write(&output, "old.tgz", b"synthetic stale artifact");
-                "native_final_authorization_required"
+                "unexpected_release_artifacts"
             }
             "symlink" => {
                 write(&output, "other.tgz", &original);
@@ -403,7 +403,11 @@ fn native_archive_admission_rejects_checksum_filename_stale_private_and_symlink_
                     _ => unreachable!(),
                 }
                 replace_archive(&output, &changed);
-                "native_release_not_qualified"
+                if matches!(mutation, "additional" | "private") {
+                    "unexpected_file"
+                } else {
+                    "native_release_not_qualified"
+                }
             }
         };
         let error = release::inspect_artifact(&path, "v0.4.0", false)
@@ -411,11 +415,21 @@ fn native_archive_admission_rejects_checksum_filename_stale_private_and_symlink_
             .unwrap();
         assert_eq!(error.code, "invalid_archive", "{mutation}");
         assert_eq!(error.detail, json!({"reason":reason}), "{mutation}");
-        rejected(
-            &root.0,
-            &["archive", "v0.4.0"],
-            "Release check failed: invalid_archive",
-        );
+        let message = match mutation {
+            "checksum" => "Release check failed: Release archive SHA256 does not match",
+            "checksum-path" => {
+                "Release check failed: SHA256 file must identify the exact release archive"
+            }
+            "symlink" => "Release check failed: Release artifact must be a bounded regular file",
+            "additional" | "private" => {
+                "Release check failed: Unexpected file in native production package"
+            }
+            "stale" => {
+                "Release check failed: dist must contain only the expected native release archive set and authorization pair"
+            }
+            _ => "Release check failed: invalid_archive",
+        };
+        rejected(&root.0, &["archive", "v0.4.0"], message);
     }
     restore_native(&root.0, &f);
     checked(&root.0, &["archive", "v0.4.0"]);
@@ -505,6 +519,13 @@ fn submitted_report_preserves_checksum_failure_contract_and_native_admission_rea
     )
     .unwrap();
     std::fs::remove_file(root.0.join("dist/release-authorization.json")).unwrap();
+    let result = entry(&root.0, "verify", &args, None);
+    assert_eq!(result.status.code(), Some(1));
+    let value: Value = serde_json::from_slice(&std::fs::read(&report).unwrap()).unwrap();
+    assert_eq!(value["reason"], "unexpected_release_artifacts");
+    // A lone checksum is an invalid artifact set. With the whole pair absent,
+    // the separate final-authorization requirement still retains its category.
+    std::fs::remove_file(root.0.join("dist/release-authorization.json.sha256")).unwrap();
     let result = entry(&root.0, "verify", &args, None);
     assert_eq!(result.status.code(), Some(1));
     let value: Value = serde_json::from_slice(&std::fs::read(&report).unwrap()).unwrap();
@@ -648,4 +669,511 @@ async fn historical_canonical_npm_bytes_install_offline_but_cannot_be_submitted(
     assert_eq!(entry(&root, "verify", &args, None).status.code(), Some(1));
     let value: Value = serde_json::from_slice(&std::fs::read(report).unwrap()).unwrap();
     assert_eq!(value["reason"], "native_release_required");
+}
+
+#[test]
+fn checksum_sidecar_and_regular_file_failures_keep_safe_original_command_diagnostics() {
+    let (root, f) = native_source();
+    checked(&root.0, &["archive", "v0.4.0"]);
+    let output = root.0.join("dist");
+    let path = output.join(ARCHIVE);
+    let checksum_path = path.with_extension("tgz.sha256");
+    let original = std::fs::read(&path).unwrap();
+    let diagnostics = Scratch::new("PRIVATE_CHECKSUM_DIAGNOSTIC").unwrap();
+    let github = diagnostics.0.join("PRIVATE_OUTPUT");
+    for (name, checksum, reason, message) in [
+        (
+            "hash",
+            format!("{}  {ARCHIVE}\n", "0".repeat(64)),
+            "checksum_mismatch",
+            "Release check failed: Release archive SHA256 does not match",
+        ),
+        (
+            "hash-and-filename",
+            format!("{}  ../{ARCHIVE}\n", "0".repeat(64)),
+            "checksum_filename_mismatch",
+            "Release check failed: SHA256 file must identify the exact release archive",
+        ),
+        (
+            "filename",
+            format!("{}  ../PRIVATE_ARCHIVE.tgz\n", digest(&original)),
+            "checksum_filename_mismatch",
+            "Release check failed: SHA256 file must identify the exact release archive",
+        ),
+        (
+            "trailing-data",
+            format!("{}  {ARCHIVE}\r\n", digest(&original)),
+            "checksum_filename_mismatch",
+            "Release check failed: SHA256 file must identify the exact release archive",
+        ),
+    ] {
+        std::fs::write(&checksum_path, checksum.as_bytes()).unwrap();
+        std::fs::write(&github, b"unchanged\n").unwrap();
+        let failure = release::inspect_artifact(&path, "v0.4.0", false)
+            .err()
+            .unwrap();
+        assert_eq!(failure.code, "invalid_archive", "{name}");
+        assert_eq!(failure.detail, json!({"reason":reason}), "{name}");
+        let result = entry(&root.0, "check", &["archive", "v0.4.0"], Some(&github));
+        assert_eq!(result.status.code(), Some(1), "{name}");
+        assert_eq!(
+            String::from_utf8(result.stderr).unwrap(),
+            format!("{message}\n"),
+            "{name}"
+        );
+        assert!(
+            !String::from_utf8(result.stdout)
+                .unwrap()
+                .contains("Verified archive release")
+        );
+        assert_eq!(std::fs::read(&github).unwrap(), b"unchanged\n");
+        assert_eq!(std::fs::read(&checksum_path).unwrap(), checksum.as_bytes());
+        assert_eq!(std::fs::read(&path).unwrap(), original);
+    }
+    // Historical sidecar grammar allows an optional LF, but native final
+    // authorization deliberately still requires its canonical LF-terminated bytes.
+    restore_native(&root.0, &f);
+    std::fs::write(&checksum_path, format!("{}  {ARCHIVE}", digest(&original))).unwrap();
+    let failure = release::inspect_artifact(&path, "v0.4.0", false)
+        .err()
+        .unwrap();
+    assert_eq!(
+        failure.detail,
+        json!({"reason":"native_final_authorization_required"})
+    );
+    rejected(
+        &root.0,
+        &["archive", "v0.4.0"],
+        "Release check failed: invalid_archive",
+    );
+    restore_native(&root.0, &f);
+    let target = diagnostics.0.join("PRIVATE_TARGET.tgz");
+    std::fs::write(&target, &original).unwrap();
+    std::fs::remove_file(&path).unwrap();
+    #[cfg(unix)]
+    std::os::unix::fs::symlink(&target, &path).unwrap();
+    let failure = release::inspect_artifact(&path, "v0.4.0", false)
+        .err()
+        .unwrap();
+    assert_eq!(failure.code, "invalid_archive");
+    assert_eq!(
+        failure.detail,
+        json!({"reason":"archive_not_regular_or_bounded"})
+    );
+    let result = entry(&root.0, "check", &["archive", "v0.4.0"], Some(&github));
+    assert_eq!(result.status.code(), Some(1));
+    assert_eq!(
+        String::from_utf8(result.stderr).unwrap(),
+        "Release check failed: Release artifact must be a bounded regular file\n"
+    );
+    assert_eq!(std::fs::read(&github).unwrap(), b"unchanged\n");
+    assert_eq!(std::fs::read(&target).unwrap(), original);
+    assert!(
+        std::fs::symlink_metadata(&path)
+            .unwrap()
+            .file_type()
+            .is_symlink()
+    );
+    restore_native(&root.0, &f);
+    checked(&root.0, &["archive", "v0.4.0"]);
+}
+
+fn policy_dist_bytes(directory: &Path) -> BTreeMap<String, Vec<u8>> {
+    std::fs::read_dir(directory)
+        .unwrap()
+        .map(|entry| {
+            let entry = entry.unwrap();
+            let name = entry.file_name().into_string().unwrap();
+            let bytes = release::regular(&entry.path(), archive::MAX_COMPRESSED as u64).unwrap();
+            (name, bytes)
+        })
+        .collect()
+}
+
+fn policy_source_bytes(root: &Path, fixture: &Fixture) -> BTreeMap<String, Vec<u8>> {
+    fixture
+        .public
+        .keys()
+        .cloned()
+        .chain(
+            [
+                ".gitignore",
+                "rust/Cargo.lock",
+                "rust/distribution/platforms.json",
+                "rust/distribution/autorouter.sh",
+            ]
+            .into_iter()
+            .map(str::to_owned),
+        )
+        .map(|name| {
+            let bytes = release::regular(&root.join(&name), archive::MAX_FILE as u64).unwrap();
+            (name, bytes)
+        })
+        .collect()
+}
+
+fn policy_positive_metadata(root: &Path) {
+    let stdout = checked(root, &["archive", "v0.4.0"]);
+    let marker = "Verified archive release: ";
+    assert_eq!(stdout.matches(marker).count(), 1);
+    let (_, metadata) = stdout.split_once(marker).unwrap();
+    let metadata: Value = serde_json::from_str(metadata.trim_end()).unwrap();
+    assert_eq!(
+        metadata,
+        json!({"version":"0.4.0","archive":"dist/claude-autorouter-0.4.0.tgz","dist_tag":"latest"})
+    );
+}
+
+fn policy_command_observation(root: &Path, github: &Path, id: &str, origin: &str) -> String {
+    let failure = release::inspect_artifact(&root.join("dist").join(ARCHIVE), "v0.4.0", false)
+        .err()
+        .unwrap();
+    assert_eq!(failure.code, "invalid_archive");
+    assert_eq!(failure.detail.as_object().unwrap().len(), 1);
+    let reason = failure.detail["reason"].as_str().unwrap();
+    assert!(!reason.is_empty() && reason.len() <= 64);
+    assert!(reason.bytes().all(|b| b.is_ascii_lowercase() || b == b'_'));
+    let result = entry(root, "check", &["archive", "v0.4.0"], Some(github));
+    assert_eq!(result.status.code(), Some(1));
+    let stderr = String::from_utf8(result.stderr).unwrap();
+    assert!(stderr.len() <= 512);
+    for private in [
+        root.to_str().unwrap(),
+        "PRIVATE_",
+        "SYNTHETIC_SENTINEL",
+        "not-a-real-secret",
+        ".env",
+        "old.tgz",
+    ] {
+        assert!(!stderr.contains(private));
+    }
+    assert!(!String::from_utf8_lossy(&result.stdout).contains("Verified archive release"));
+    // Observe the current typed reason without freezing the old broad category.
+    // This is emitted before the desired command diagnostic assertion.
+    eprintln!(
+        "RELEASE_POLICY_OBSERVATION {}",
+        json!({"id":id,"origin":origin,"typed_error":{"code":failure.code,"detail":failure.detail},"exit_code":result.status.code(),"stderr":stderr,"stdout_bytes":result.stdout.len(),"stdout_sha256":digest(&result.stdout)})
+    );
+    stderr
+}
+
+#[test]
+fn original_file_rejections_private_file_keeps_safe_diagnostic() {
+    let (root, fixture) = native_source();
+    policy_positive_metadata(&root.0);
+    let output = root.0.join("dist");
+    let source_before = policy_source_bytes(&root.0, &fixture);
+    let artifacts_before = policy_dist_bytes(&output);
+    let diagnostics = Scratch::new("PRIVATE_POLICY_DIAGNOSTIC").unwrap();
+    let github = diagnostics.0.join("PRIVATE_OUTPUT");
+    std::fs::write(&github, b"unchanged\n").unwrap();
+    let mut changed = archive::decode(&artifacts_before[ARCHIVE], archive::NATIVE)
+        .unwrap()
+        .files;
+    changed.insert(
+        ".env".into(),
+        Entry {
+            bytes: b"SYNTHETIC_SENTINEL=not-a-real-secret\n".to_vec(),
+            mode: 0o644,
+        },
+    );
+    let manifest: Value = serde_json::from_slice(&changed["package.json"].bytes).unwrap();
+    let origin = release::native_files(&changed, &manifest).err().unwrap();
+    assert_eq!(origin, "Unexpected file in native production package");
+    replace_archive(&output, &changed);
+    let mutated = policy_dist_bytes(&output);
+    let actual = archive::decode(&mutated[ARCHIVE], archive::NATIVE).unwrap();
+    assert_eq!(
+        actual.files[".env"].bytes,
+        b"SYNTHETIC_SENTINEL=not-a-real-secret\n"
+    );
+    assert_eq!(actual.files[".env"].mode, 0o644);
+    let stderr = policy_command_observation(&root.0, &github, "private-file", &origin);
+    assert_eq!(policy_dist_bytes(&output), mutated);
+    assert_eq!(policy_source_bytes(&root.0, &fixture), source_before);
+    assert_eq!(std::fs::read(&github).unwrap(), b"unchanged\n");
+    restore_native(&root.0, &fixture);
+    policy_positive_metadata(&root.0);
+    assert_eq!(policy_dist_bytes(&output), artifacts_before);
+    assert_eq!(policy_source_bytes(&root.0, &fixture), source_before);
+    assert_eq!(std::fs::read(&github).unwrap(), b"unchanged\n");
+    assert_eq!(
+        stderr,
+        "Release check failed: Unexpected file in native production package\n"
+    );
+}
+
+#[test]
+fn original_file_rejections_stale_archive_keeps_safe_diagnostic() {
+    let (root, fixture) = native_source();
+    policy_positive_metadata(&root.0);
+    let output = root.0.join("dist");
+    let source_before = policy_source_bytes(&root.0, &fixture);
+    let artifacts_before = policy_dist_bytes(&output);
+    let diagnostics = Scratch::new("PRIVATE_POLICY_DIAGNOSTIC").unwrap();
+    let github = diagnostics.0.join("PRIVATE_OUTPUT");
+    std::fs::write(&github, b"unchanged\n").unwrap();
+    write(&output, "old.tgz", b"old");
+    let origin = authorization::candidate(&output).err().unwrap();
+    assert_eq!(
+        origin,
+        "Release directory must contain only the exact immutable archive set and authorization pair"
+    );
+    let mutated = policy_dist_bytes(&output);
+    assert_eq!(mutated["old.tgz"], b"old");
+    let stderr = policy_command_observation(&root.0, &github, "stale-archive", &origin);
+    assert_eq!(policy_dist_bytes(&output), mutated);
+    assert_eq!(policy_source_bytes(&root.0, &fixture), source_before);
+    assert_eq!(std::fs::read(&github).unwrap(), b"unchanged\n");
+    std::fs::remove_file(output.join("old.tgz")).unwrap();
+    policy_positive_metadata(&root.0);
+    assert_eq!(policy_dist_bytes(&output), artifacts_before);
+    assert_eq!(policy_source_bytes(&root.0, &fixture), source_before);
+    assert_eq!(std::fs::read(&github).unwrap(), b"unchanged\n");
+    assert_eq!(
+        stderr,
+        "Release check failed: dist must contain only the expected native release archive set and authorization pair\n"
+    );
+}
+
+// These controls isolate independent native integrity layers. All binary
+// headers and approvals are synthetic parser fixtures, never qualification.
+fn layered_file_declaration(files: &mut BTreeMap<String, Entry>, path: &str, inserted: bool) {
+    let actual = files.get(path).unwrap();
+    let declared = json!({"path":path,"sha256":digest(&actual.bytes),"bytes":actual.bytes.len(),"mode":actual.mode});
+    let mut build = json_read(&files["build-manifest.json"].bytes).unwrap();
+    let rows = build["files"].as_array_mut().unwrap();
+    let matches = rows.iter().filter(|row| row["path"] == path).count();
+    assert_eq!(matches, usize::from(!inserted));
+    if inserted {
+        rows.push(declared);
+    } else {
+        *rows.iter_mut().find(|row| row["path"] == path).unwrap() = declared;
+    }
+    files.get_mut("build-manifest.json").unwrap().bytes = json_bytes(&build);
+}
+
+#[test]
+fn layered_runtime_tamper_recomputes_file_hash_without_reauthorizing_artifact_or_index() {
+    let (root, fixture) = native_source();
+    policy_positive_metadata(&root.0);
+    let output = root.0.join("dist");
+    let original = policy_dist_bytes(&output);
+    let source = policy_source_bytes(&root.0, &fixture);
+    let diagnostics = Scratch::new("PRIVATE_LAYERED_RUNTIME").unwrap();
+    let github = diagnostics.0.join("PRIVATE_OUTPUT");
+    std::fs::write(&github, b"unchanged\n").unwrap();
+    let mut files = archive::decode(&original[ARCHIVE], archive::NATIVE)
+        .unwrap()
+        .files;
+    let manifest = json_read(&files["package.json"].bytes).unwrap();
+    let before = release::native_files(&files, &manifest).unwrap();
+    let target = "aarch64-apple-darwin";
+    let binary = "native/aarch64-apple-darwin/claude-autorouter";
+    let inspection = crate::package::binary::inspect(target, &files[binary].bytes).unwrap();
+    let old_binary_hash = digest(&files[binary].bytes);
+    files.get_mut(binary).unwrap().bytes.push(0);
+    assert_eq!(files[binary].mode, 0o755);
+    assert_ne!(digest(&files[binary].bytes), old_binary_hash);
+    assert_eq!(
+        crate::package::binary::inspect(target, &files[binary].bytes).unwrap(),
+        inspection
+    );
+    layered_file_declaration(&mut files, binary, false);
+    let after = json_read(&files["build-manifest.json"].bytes).unwrap();
+    for key in ["artifacts", "source", "qualification", "approval"] {
+        assert_eq!(
+            after[key], before[key],
+            "Untrusted file row must not rewrite {key}"
+        );
+    }
+    let cause = release::native_files(&files, &manifest).err().unwrap();
+    assert_eq!(cause, "Native artifact bytes, target or provenance differ");
+    replace_archive(&output, &files);
+    assert_eq!(
+        policy_command_observation(&root.0, &github, "runtime-file-redeclared", &cause),
+        "Release check failed: invalid_archive\n"
+    );
+    let public_failure = release::inspect_artifact(&output.join(ARCHIVE), "v0.4.0", false)
+        .err()
+        .unwrap();
+    assert_eq!(
+        public_failure.detail,
+        json!({"reason":"native_release_not_qualified"})
+    );
+
+    // Even a forged internal artifact hash cannot alter the already-reviewed
+    // outer candidate index. No index, approval or authorization is regenerated.
+    let mut forged = after;
+    let artifacts = forged["artifacts"].as_array_mut().unwrap();
+    assert_eq!(artifacts.len(), 1);
+    artifacts[0]["sha256"] = json!(digest(&files[binary].bytes));
+    files.get_mut("build-manifest.json").unwrap().bytes = json_bytes(&forged);
+    assert!(
+        release::native_files(&files, &manifest).is_ok(),
+        "Reach the independent immutable-index guard"
+    );
+    replace_archive(&output, &files);
+    let index_cause = authorization::candidate(&output).err().unwrap();
+    assert_eq!(index_cause, "Candidate archive changed after qualification");
+    assert_eq!(
+        policy_command_observation(
+            &root.0,
+            &github,
+            "runtime-artifact-forged-index-preserved",
+            &index_cause
+        ),
+        "Release check failed: invalid_archive\n"
+    );
+    let final_failure = release::inspect_artifact(&output.join(ARCHIVE), "v0.4.0", false)
+        .err()
+        .unwrap();
+    assert_eq!(
+        final_failure.detail,
+        json!({"reason":"native_final_authorization_required"})
+    );
+    let mutated = policy_dist_bytes(&output);
+    assert_eq!(
+        mutated.keys().collect::<Vec<_>>(),
+        original.keys().collect::<Vec<_>>()
+    );
+    for (name, bytes) in &original {
+        if name != ARCHIVE && name != &format!("{ARCHIVE}.sha256") {
+            assert_eq!(
+                mutated[name], *bytes,
+                "Immutable reviewed set member {name}"
+            );
+        }
+    }
+    assert_eq!(policy_source_bytes(&root.0, &fixture), source);
+    assert_eq!(std::fs::read(&github).unwrap(), b"unchanged\n");
+    restore_native(&root.0, &fixture);
+    policy_positive_metadata(&root.0);
+    assert_eq!(policy_dist_bytes(&output), original);
+    assert_eq!(policy_source_bytes(&root.0, &fixture), source);
+}
+
+#[test]
+fn layered_exact_plan_rejects_valid_known_native_target_outside_selected_matrix() {
+    let (root, fixture) = native_source();
+    policy_positive_metadata(&root.0);
+    let output = root.0.join("dist");
+    let original = policy_dist_bytes(&output);
+    let source = policy_source_bytes(&root.0, &fixture);
+    let diagnostics = Scratch::new("PRIVATE_LAYERED_TARGET").unwrap();
+    let github = diagnostics.0.join("PRIVATE_OUTPUT");
+    std::fs::write(&github, b"unchanged\n").unwrap();
+    let mut files = archive::decode(&original[ARCHIVE], archive::NATIVE)
+        .unwrap()
+        .files;
+    let manifest = json_read(&files["package.json"].bytes).unwrap();
+    let target = "x86_64-apple-darwin";
+    let path = "native/x86_64-apple-darwin/claude-autorouter";
+    let project_matrix = json_read(include_bytes!("../../distribution/platforms.json")).unwrap();
+    assert!(
+        project_matrix["targets"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|row| row["target"] == target)
+    );
+    let selected = json_read(&files["platforms.json"].bytes).unwrap();
+    assert!(
+        !selected["targets"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|row| row["target"] == target)
+    );
+    let mut executable = vec![0u8; 32];
+    executable[..4].copy_from_slice(&[0xcf, 0xfa, 0xed, 0xfe]);
+    executable[4..8].copy_from_slice(&0x01000007u32.to_le_bytes());
+    executable[12..16].copy_from_slice(&2u32.to_le_bytes());
+    assert_eq!(
+        crate::package::binary::inspect(target, &executable).unwrap()["target"],
+        target
+    );
+    assert!(
+        files
+            .insert(
+                path.into(),
+                Entry {
+                    bytes: executable,
+                    mode: 0o755
+                }
+            )
+            .is_none()
+    );
+    layered_file_declaration(&mut files, path, true);
+    let cause = release::native_files(&files, &manifest).err().unwrap();
+    assert_eq!(cause, "Unexpected file in native production package");
+    replace_archive(&output, &files);
+    assert_eq!(
+        policy_command_observation(&root.0, &github, "known-unselected-native-target", &cause),
+        "Release check failed: Unexpected file in native production package\n"
+    );
+    let mutated = policy_dist_bytes(&output);
+    assert_eq!(
+        mutated.keys().collect::<Vec<_>>(),
+        original.keys().collect::<Vec<_>>()
+    );
+    for (name, bytes) in &original {
+        if name != ARCHIVE && name != &format!("{ARCHIVE}.sha256") {
+            assert_eq!(
+                mutated[name], *bytes,
+                "Immutable reviewed set member {name}"
+            );
+        }
+    }
+    assert_eq!(policy_source_bytes(&root.0, &fixture), source);
+    assert_eq!(std::fs::read(&github).unwrap(), b"unchanged\n");
+    restore_native(&root.0, &fixture);
+    policy_positive_metadata(&root.0);
+    assert_eq!(policy_dist_bytes(&output), original);
+}
+
+#[test]
+fn layered_qualified_changed_archive_manifest_is_compared_to_unchanged_checkout() {
+    let (root, original_fixture) = native_source();
+    policy_positive_metadata(&root.0);
+    let original = policy_dist_bytes(&root.0.join("dist"));
+    let source = policy_source_bytes(&root.0, &original_fixture);
+    let diagnostics = Scratch::new("PRIVATE_LAYERED_MANIFEST").unwrap();
+    let github = diagnostics.0.join("PRIVATE_OUTPUT");
+    std::fs::write(&github, b"unchanged\n").unwrap();
+    let mut changed = Fixture::with_source(original_fixture.source.clone());
+    let mut manifest = json_read(&changed.public["package.json"].bytes).unwrap();
+    manifest["description"] = json!("Changed synthetic archive metadata");
+    changed.public.get_mut("package.json").unwrap().bytes = json_bytes(&manifest);
+    changed.public_sha = digest(&json_bytes(&declarations(&changed.public)));
+    let descriptor_path = changed.inputs["approval"]["path"].as_str().unwrap();
+    let mut approval =
+        json_read(&std::fs::read(changed.dir.0.join(descriptor_path)).unwrap()).unwrap();
+    approval["public_files_sha256"] = Value::String(changed.public_sha.clone());
+    changed.inputs["approval"] = document(&changed.dir, "changed-public-approval.json", &approval);
+    assert!(
+        changed.qualified().is_ok(),
+        "Synthetic admission fixture must be coherent before archive/check comparison"
+    );
+    restore_native(&root.0, &changed);
+    assert!(
+        release::inspect_artifact(&root.0.join("dist").join(ARCHIVE), "v0.4.0", false)
+            .unwrap()
+            .native
+    );
+    let altered = policy_dist_bytes(&root.0.join("dist"));
+    let result = entry(&root.0, "check", &["archive", "v0.4.0"], Some(&github));
+    assert_eq!(result.status.code(), Some(1));
+    assert_eq!(
+        String::from_utf8(result.stderr).unwrap(),
+        "Archive package.json differs from the checkout\n"
+    );
+    assert!(!String::from_utf8_lossy(&result.stdout).contains("Verified archive release"));
+    assert_eq!(policy_dist_bytes(&root.0.join("dist")), altered);
+    assert_eq!(policy_source_bytes(&root.0, &original_fixture), source);
+    assert_eq!(std::fs::read(&github).unwrap(), b"unchanged\n");
+    restore_native(&root.0, &original_fixture);
+    policy_positive_metadata(&root.0);
+    assert_eq!(policy_dist_bytes(&root.0.join("dist")), original);
+    assert_eq!(policy_source_bytes(&root.0, &original_fixture), source);
 }

@@ -3,12 +3,9 @@ use super::super::abort::{self, Cause, DialGate, Outcome};
 use super::super::lifecycle_tests::isolated_tls;
 use super::*;
 use http_body_util::BodyExt;
-use hyper_openssl::SslStream;
-use hyper_util::rt::TokioIo;
-use openssl::ssl::{Ssl, SslVersion};
+use openssl::ssl::SslVersion;
 use std::io;
 use tokio::io::{AsyncRead, AsyncWrite};
-use tokio::net::TcpListener;
 use tokio::sync::{mpsc, oneshot};
 use tokio::task::JoinSet;
 // Assertion unwind owns every request task; dropping a handle cancels it.
@@ -44,7 +41,7 @@ struct PeerRequest {
     head: String,
     reply: oneshot::Sender<Reply>,
 }
-use super::super::loopback_peer::PeerLease;
+use super::super::loopback_peer::{ListenerPeers, bind_listener};
 struct Fixture {
     client: Arc<RawPoolClient>,
     origin: String,
@@ -95,59 +92,25 @@ impl Fixture {
     async fn listen(client: Arc<RawPoolClient>, tls: Option<openssl::ssl::SslContext>) -> Self {
         let secure = tls.is_some();
         let server_tls = tls.clone();
-        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
-        let origin = format!(
-            "{}://{}",
-            if secure { "https" } else { "http" },
-            listener.local_addr().unwrap()
-        );
+        let (listener, origin) = bind_listener(secure).await;
         let (send, requests) = mpsc::channel(16);
-        let stop = CancellationToken::new();
-        let shutdown = stop.clone();
-        let active = Arc::new(AtomicUsize::new(0));
-        let accepted = Arc::new(AtomicUsize::new(0));
-        let active_peer = active.clone();
-        let accepted_peer = accepted.clone();
-        let mut tasks = JoinSet::new();
-        tasks.spawn(async move {
-            let mut peers = JoinSet::new();
-            let result = loop {
-                tokio::select! {
-                    biased;
-                    _ = shutdown.cancelled() => break Ok(()),
-                    result = peers.join_next(), if !peers.is_empty() => {
-                        match result {
-                            Some(Ok(Ok(()))) => {},
-                            _ => break Err(io::Error::other("fixture peer task failed")),
-                        }
-                    },
-                    socket = listener.accept() => {
-                        let (socket, _) = socket?;
-                        let connection = accepted_peer.fetch_add(1, Ordering::SeqCst);
-                        assert!(connection < 16, "raw adversarial peer bound");
-                        active_peer.fetch_add(1, Ordering::SeqCst);
-                        let lease = PeerLease(active_peer.clone());
-                        let context = tls.clone();
-                        let requests = send.clone();
-                        peers.spawn(async move {
-                            let _lease = lease;
-                            if let Some(context) = context {
-                                let ssl = Ssl::new(&context)?;
-                                let mut stream = SslStream::new(ssl, TokioIo::new(socket))?;
-                                std::pin::Pin::new(&mut stream).accept().await
-                                    .map_err(|_| io::Error::other("fixture handshake failed"))?;
-                                peer(TokioIo::new(stream), connection, requests).await
-                            } else {
-                                peer(socket, connection, requests).await
-                            }
-                        });
-                    }
-                }
-            };
-            peers.abort_all();
-            while peers.join_next().await.is_some() {}
-            result
-        });
+        let ListenerPeers {
+            tasks,
+            stop,
+            active,
+            accepted,
+        } = ListenerPeers::spawn(
+            listener,
+            tls,
+            |accepted| {
+                let connection = accepted.fetch_add(1, Ordering::SeqCst);
+                assert!(connection < 16, "raw adversarial peer bound");
+                Ok(connection)
+            },
+            "fixture peer task failed",
+            "fixture handshake failed",
+            move |stream, connection| peer(stream, connection, send),
+        );
         Self {
             client,
             origin,

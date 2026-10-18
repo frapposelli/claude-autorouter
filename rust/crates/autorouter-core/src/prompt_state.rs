@@ -27,10 +27,7 @@ fn empty() -> JsString {
 fn scalar(value: &str) -> JsString {
     JsString::from_scalar(value)
 }
-fn is(doc: &JsDocument, node: Option<NodeId>, text: &str) -> bool {
-    node.and_then(|n| doc.string(n))
-        .is_some_and(|v| v.units().iter().copied().eq(text.encode_utf16()))
-}
+#[cfg(test)]
 fn property(doc: &JsDocument, node: NodeId, key: &str) -> Option<NodeId> {
     doc.get(node, key)
 }
@@ -38,14 +35,6 @@ fn array(doc: &JsDocument, node: Option<NodeId>) -> Option<&[NodeId]> {
     match node.and_then(|n| doc.node(n)) {
         Some(JsNode::Array(values)) => Some(values),
         _ => None,
-    }
-}
-fn truthy(doc: &JsDocument, node: Option<NodeId>) -> bool {
-    match node.and_then(|n| doc.node(n)) {
-        None | Some(JsNode::Null | JsNode::Bool(false)) => false,
-        Some(JsNode::Number(n)) => *n != 0.0 && !n.is_nan(),
-        Some(JsNode::String(s)) => !s.units().is_empty(),
-        _ => true,
     }
 }
 fn string_coerce(doc: &JsDocument, node: Option<NodeId>) -> JsString {
@@ -131,8 +120,8 @@ fn content_text(doc: &JsDocument, node: Option<NodeId>, omit_reminders: bool) ->
                         if !matches!(doc.node(*block), Some(JsNode::Object(_) | JsNode::Array(_))) {
                             continue;
                         }
-                        if is(doc, property(doc, *block, "type"), "text") {
-                            let text = string_coerce(doc, property(doc, *block, "text"));
+                        if doc.string_is(doc.get(*block, "type"), "text") {
+                            let text = string_coerce(doc, doc.get(*block, "text"));
                             if omit && reminder(&text) {
                                 continue;
                             }
@@ -146,16 +135,14 @@ fn content_text(doc: &JsDocument, node: Option<NodeId>, omit_reminders: bool) ->
                 }
             }
             Work::Block(block) => {
-                let kind = property(doc, block, "type");
-                if is(doc, kind, "text") {
-                    output.extend_from_slice(
-                        string_coerce(doc, property(doc, block, "text")).units(),
-                    );
-                } else if is(doc, kind, "tool_result") {
+                let kind = doc.get(block, "type");
+                if doc.string_is(kind, "text") {
+                    output.extend_from_slice(string_coerce(doc, doc.get(block, "text")).units());
+                } else if doc.string_is(kind, "tool_result") {
                     output.extend(
                         format!(
                             "[tool result{}] ",
-                            if truthy(doc, property(doc, block, "is_error")) {
+                            if doc.is_truthy(doc.get(block, "is_error")) {
                                 " ERROR"
                             } else {
                                 ""
@@ -163,11 +150,11 @@ fn content_text(doc: &JsDocument, node: Option<NodeId>, omit_reminders: bool) ->
                         )
                         .encode_utf16(),
                     );
-                    work.push(Work::Content(property(doc, block, "content"), false));
-                } else if is(doc, kind, "tool_use") {
+                    work.push(Work::Content(doc.get(block, "content"), false));
+                } else if doc.string_is(kind, "tool_use") {
                     output.extend("[tool call: ".encode_utf16());
                     output.extend(
-                        string_coerce(doc, property(doc, block, "name"))
+                        string_coerce(doc, doc.get(block, "name"))
                             .units()
                             .iter()
                             .take(100),
@@ -175,7 +162,7 @@ fn content_text(doc: &JsDocument, node: Option<NodeId>, omit_reminders: bool) ->
                     output.extend("]".encode_utf16());
                 } else if let Some(kind) = ["image", "document", "thinking", "redacted_thinking"]
                     .into_iter()
-                    .find(|k| is(doc, kind, k))
+                    .find(|k| doc.string_is(kind, k))
                 {
                     output.extend(format!("[{kind} omitted]").encode_utf16());
                 } else {
@@ -187,14 +174,14 @@ fn content_text(doc: &JsDocument, node: Option<NodeId>, omit_reminders: bool) ->
     JsString::from_utf16(output)
 }
 fn human_task(doc: &JsDocument, message: NodeId) -> JsString {
-    if !is(doc, property(doc, message, "role"), "user") {
+    if !doc.string_is(doc.get(message, "role"), "user") {
         return empty();
     }
-    let content = property(doc, message, "content");
+    let content = doc.get(message, "content");
     if array(doc, content).is_some_and(|blocks| {
         blocks
             .iter()
-            .any(|b| is(doc, property(doc, *b, "type"), "tool_result"))
+            .any(|b| doc.string_is(doc.get(*b, "type"), "tool_result"))
     }) {
         return empty();
     }
@@ -205,10 +192,10 @@ fn standalone(doc: &JsDocument, content: Option<NodeId>) -> Option<&JsString> {
         return Some(text);
     }
     let blocks = array(doc, content)?;
-    if blocks.len() != 1 || !is(doc, property(doc, blocks[0], "type"), "text") {
+    if blocks.len() != 1 || !doc.string_is(doc.get(blocks[0], "type"), "text") {
         return None;
     }
-    property(doc, blocks[0], "text").and_then(|n| doc.string(n))
+    doc.get(blocks[0], "text").and_then(|n| doc.string(n))
 }
 
 pub fn goal_feedback_indexes_document(
@@ -223,7 +210,7 @@ pub fn goal_feedback_indexes_document(
     let mut short: Option<JsString> = None;
     let mut saw_full = false;
     for (index, &message) in messages.iter().enumerate() {
-        if !is(doc, property(doc, message, "role"), "user") {
+        if !doc.string_is(doc.get(message, "role"), "user") {
             continue;
         }
         let task = human_task(doc, message);
@@ -256,10 +243,10 @@ pub fn goal_feedback_indexes_document(
         let Some(condition) = condition.as_ref() else {
             continue;
         };
-        if index == 0 || !is(doc, property(doc, messages[index - 1], "role"), "assistant") {
+        if index == 0 || !doc.string_is(doc.get(messages[index - 1], "role"), "assistant") {
             continue;
         }
-        let Some(text) = standalone(doc, property(doc, message, "content")) else {
+        let Some(text) = standalone(doc, doc.get(message, "content")) else {
             continue;
         };
         let matches = |label: &JsString| {
@@ -454,7 +441,7 @@ pub fn build_ollama_state_document(doc: &JsDocument, limit: usize) -> PromptStat
 
 fn build_state_inner(doc: &JsDocument, limit: usize, include_system: bool) -> PromptState {
     let root = doc.root();
-    let messages_node = property(doc, root, "messages");
+    let messages_node = doc.get(root, "messages");
     let messages = array(doc, messages_node).unwrap_or_default();
     let feedback = goal_feedback_indexes_document(doc, messages_node);
     let mut first_task = empty();
@@ -474,12 +461,12 @@ fn build_state_inner(doc: &JsDocument, limit: usize, include_system: bool) -> Pr
         current_task = task;
         current_index = Some(index);
     }
-    let tools = property(doc, root, "tools");
+    let tools = doc.get(root, "tools");
     let tool_count_json = match tools.and_then(|n| doc.node(n)) {
         Some(JsNode::Array(values)) => values.len().to_string(),
         Some(JsNode::String(value)) => value.units().len().to_string(),
         Some(JsNode::Object(_)) => tools
-            .and_then(|n| property(doc, n, "length"))
+            .and_then(|n| doc.get(n, "length"))
             .filter(|n| !matches!(doc.node(*n), Some(JsNode::Null)))
             .map(|n| doc.stringify_node(n))
             .unwrap_or_else(|| "0".into()),
@@ -507,9 +494,7 @@ fn build_state_inner(doc: &JsDocument, limit: usize, include_system: bool) -> Pr
         &classifier_text(
             &content_text(
                 doc,
-                include_system
-                    .then(|| property(doc, root, "system"))
-                    .flatten(),
+                include_system.then(|| doc.get(root, "system")).flatten(),
                 true,
             ),
             limit,
@@ -523,11 +508,13 @@ fn build_state_inner(doc: &JsDocument, limit: usize, include_system: bool) -> Pr
         if current_index == Some(index) {
             continue;
         }
-        let text = content_text(doc, property(doc, message, "content"), true);
+        let text = content_text(doc, doc.get(message, "content"), true);
         if text.units().is_empty() {
             continue;
         }
-        let role = property(doc, message, "role").map(|node| doc.stringify_node(node));
+        let role = doc
+            .get(message, "role")
+            .map(|node| doc.stringify_node(node));
         let overhead = format!(
             "{{{}\"content\":\"\"}}",
             role.as_ref()
@@ -582,7 +569,7 @@ pub fn prompt_excerpt_document(
 
 fn excerpt_document(doc: &JsDocument, max_chars: usize) -> String {
     excerpt_document_with(doc, max_chars, |block| {
-        property(doc, block, "text").and_then(|n| doc.string(n))
+        doc.get(block, "text").and_then(|n| doc.string(n))
     })
 }
 
@@ -596,20 +583,20 @@ fn excerpt_document_with<'doc>(
     if max_chars == 0 {
         return String::new();
     }
-    let messages_node = property(doc, doc.root(), "messages");
+    let messages_node = doc.get(doc.root(), "messages");
     let Some(messages) = array(doc, messages_node) else {
         return String::new();
     };
     let mut feedback = None;
     for (index, &message) in messages.iter().enumerate().rev() {
-        if !is(doc, property(doc, message, "role"), "user") {
+        if !doc.string_is(doc.get(message, "role"), "user") {
             continue;
         }
-        let content = property(doc, message, "content");
+        let content = doc.get(message, "content");
         if array(doc, content).is_some_and(|blocks| {
             blocks
                 .iter()
-                .any(|b| is(doc, property(doc, *b, "type"), "tool_result"))
+                .any(|b| doc.string_is(doc.get(*b, "type"), "tool_result"))
         }) {
             continue;
         }
@@ -631,7 +618,7 @@ fn excerpt_document_with<'doc>(
                 .map(Some)
                 .into_iter()
                 .chain(array(doc, content).unwrap_or_default().iter().map(|block| {
-                    if is(doc, property(doc, *block, "type"), "text") {
+                    if doc.string_is(doc.get(*block, "type"), "text") {
                         text(*block)
                     } else {
                         None

@@ -50,16 +50,37 @@ cp "$CARGO_TARGET_DIR/$CARGO_BUILD_TARGET/debug/autorouter-audit" "$out/autorout
 "$out/autorouter-audit-bootstrap" bootstrap --build-report "$out/bootstrap-build.jsonl" > "$out/bootstrap-proof.json"
 "$out/autorouter-audit-bootstrap" vendor > "$out/vendor-audit.json"
 "$out/autorouter-audit-bootstrap" production-features --self-test
+sha256sum "$out/autorouter-audit-bootstrap" > "$out/bootstrap-binary.sha256"
+# Keep auditor trust separate from the collecting workspace phase.
+cargo clippy --package xtask --no-default-features --all-targets --offline --locked -- -D warnings
+cargo test --package xtask --no-default-features --bin autorouter-audit --offline --locked
 cargo fmt --check
 cargo clippy --workspace --all-targets --offline --locked -- -D warnings
-cargo test --workspace --offline --locked
+
+# Child interpreters enforce strict errors independently of parent capture.
+autorouter_musl_phase() {
+  local phase=$1
+  shift
+  local root=${AUTOROUTER_SOURCE_ROOT:?}
+  local out="$root/artifacts/rust-rewrite/musl-portability"
+  case "$phase" in
+    workspace)
+cargo test --workspace --offline --locked --no-fail-fast
+      ;;
+    production)
 cargo build --release --offline --locked --package claude-autorouter --message-format=json > "$out/production-build.jsonl"
 "$out/autorouter-audit-bootstrap" production-features --build-report "$out/production-build.jsonl" > "$out/production-features.json"
 cp "$CARGO_TARGET_DIR/$CARGO_BUILD_TARGET/release/claude-autorouter" "$out/claude-autorouter-musl"
+sha256sum "$out/claude-autorouter-musl" > "$out/production-binary.sha256"
+      ;;
+    helper)
 # Only after copying/auditing the ordinary shipping build may the development helper
 # unify its probe features. It never qualifies the ordinary CLI by itself.
 cargo build --release --offline --locked --package xtask --bin xtask
 cp "$CARGO_TARGET_DIR/$CARGO_BUILD_TARGET/release/xtask" "$out/xtask-musl"
+sha256sum "$out/xtask-musl" > "$out/helper-binary.sha256"
+      ;;
+    inspection)
 "$out/xtask-musl" package-inspect "$AUTOROUTER_BUILD_TARGET" "$out/claude-autorouter-musl" > "$out/static-inspection.json"
 readelf --file-header --program-headers --dynamic "$out/claude-autorouter-musl" > "$out/readelf.txt"
 node --input-type=module <<'NODE'
@@ -67,14 +88,33 @@ import {readFileSync}from'node:fs';
 const {inspection}=JSON.parse(readFileSync('../artifacts/rust-rewrite/musl-portability/static-inspection.json'));
 if(inspection.format!=='ELF'||inspection.target!==process.env.AUTOROUTER_BUILD_TARGET||inspection.interpreter!==null||inspection.dynamic_libraries.length!==0)throw Error('Musl artifact must have no interpreter or DT_NEEDED');
 NODE
+      ;;
+    freeze-reference)
+"$out/xtask-musl" freeze-reference > "$out/freeze-reference.json"
+      ;;
+    parity)
 "$out/xtask-musl" parity --all --output artifacts/rust-rewrite/musl-parity
-for check in check-config-commands check-node-options-startup check-gateway check-gateway-resources check-http-parser check-upstream-transport check-upstream-security check-tls-options check-localhost-transport; do
-  node "parity/$check.mjs" ../artifacts/rust-rewrite/reference "$out/claude-autorouter-musl"
-done
+      ;;
+    protocol)
+check=$1
+case "$check" in
+  check-config-commands|check-node-options-startup|check-gateway|check-gateway-resources|check-http-parser|check-upstream-transport|check-upstream-security|check-tls-options|check-localhost-transport) ;;
+  *) return 2 ;;
+esac
+node "parity/$check.mjs" ../artifacts/rust-rewrite/reference "$out/claude-autorouter-musl"
+      ;;
+    protocol-unicode)
 node parity/check-gateway.mjs ../artifacts/rust-rewrite/reference "$out/claude-autorouter-musl" --unicode
+      ;;
+    npm)
 "$out/xtask-musl" package --binary "$AUTOROUTER_BUILD_TARGET=$out/claude-autorouter-musl" --output artifacts/rust-rewrite/musl-package --smoke
+      ;;
+    direct)
 version=$("$out/claude-autorouter-musl" --version)
 "$out/xtask-musl" package --direct-from "artifacts/rust-rewrite/musl-package/claude-autorouter-$version.tgz" --target "$AUTOROUTER_BUILD_TARGET" --output artifacts/rust-rewrite/musl-direct --smoke
+      ;;
+    rollback)
+version=$("$out/claude-autorouter-musl" --version)
 "$out/xtask-musl" upgrade-rollback --native "artifacts/rust-rewrite/musl-package/claude-autorouter-$version.tgz" \
   --output artifacts/rust-rewrite/upgrade-rollback-musl
 node --input-type=module <<'NODE'
@@ -85,6 +125,10 @@ const rehearsal=JSON.parse(readFileSync('../artifacts/rust-rewrite/upgrade-rollb
 assert.equal(rehearsal.passed,true);
 assert.equal(rehearsal.native_archive_sha256,packed.sha256);
 NODE
+node distribution/ci/upgrade-rollback-proof.mjs --self-test
+node distribution/ci/upgrade-rollback-proof.mjs ../artifacts/rust-rewrite/upgrade-rollback-musl/report.json ../artifacts/rust-rewrite/musl-package/package-report.json
+      ;;
+    repro)
 # Preserve the already-built debug test artifacts until the installed
 # lifecycles and rollback rehearsal finish. OpenSSL embeds its absolute MODULESDIR build-output path
 # in the binary, so move the complete first compiler tree aside only now,
@@ -99,3 +143,116 @@ cargo build --release --offline --locked --package claude-autorouter --message-f
 cp "$CARGO_TARGET_DIR/$CARGO_BUILD_TARGET/release/claude-autorouter" "$out/claude-autorouter-musl-repro"
 sha256sum "$out/claude-autorouter-musl" "$out/claude-autorouter-musl-repro" > "$out/repro-sha256.txt"
 cmp "$out/claude-autorouter-musl" "$out/claude-autorouter-musl-repro"
+      ;;
+    *) return 2 ;;
+  esac
+}
+export -f autorouter_musl_phase
+
+# Do not start another phase if the controller itself receives cancellation.
+# Container/runner teardown remains external; no process-tree guarantee here.
+trap 'exit 130' INT
+trap 'exit 143' TERM
+: > "$out/phase-statuses.jsonl"
+autorouter_first_failure=0
+autorouter_last_status=0
+autorouter_phase_count=0
+autorouter_record_phase() {
+  local name=$1
+  shift
+  local -a codes
+  local metadata_status=0
+  set +e
+  /bin/bash -euo pipefail -c 'autorouter_musl_phase "$@"' -- "$@" 2>&1 | tee "$out/phase-$name.log"
+  codes=("${PIPESTATUS[@]}")
+  set -e
+  printf '{"phase":"%s","command_exit_code":%s,"log_exit_code":%s}\n' \
+    "$name" "${codes[0]}" "${codes[1]}" >> "$out/phase-statuses.jsonl" || metadata_status=$?
+  autorouter_last_status=${codes[0]}
+  if (( autorouter_last_status == 0 )); then autorouter_last_status=${codes[1]}; fi
+  if (( autorouter_last_status == 0 )); then autorouter_last_status=$metadata_status; fi
+  if (( autorouter_first_failure == 0 && autorouter_last_status != 0 )); then
+    autorouter_first_failure=$autorouter_last_status
+  fi
+  autorouter_phase_count=$((autorouter_phase_count + 1))
+  return 0
+}
+autorouter_skip_phase() {
+  local name=$1 reason=$2 metadata_status=0
+  printf '{"phase":"%s","skipped_for":"%s"}\n' "$name" "$reason" \
+    >> "$out/phase-statuses.jsonl" || metadata_status=$?
+  if (( autorouter_first_failure == 0 && metadata_status != 0 )); then
+    autorouter_first_failure=$metadata_status
+  fi
+  autorouter_phase_count=$((autorouter_phase_count + 1))
+  return 0
+}
+# Calls are ordinary commands/then-bodies, never tested shell functions.
+# Each child separately enables strict errors; the parent only captures status.
+autorouter_record_phase workspace workspace
+autorouter_record_phase production production
+autorouter_production_status=$autorouter_last_status
+if (( autorouter_production_status == 0 )); then
+  autorouter_record_phase helper helper
+  autorouter_helper_status=$autorouter_last_status
+else
+  autorouter_skip_phase helper production
+  autorouter_helper_status=1
+fi
+if (( autorouter_helper_status == 0 )); then
+  autorouter_record_phase inspection inspection
+  autorouter_inspection_status=$autorouter_last_status
+else
+  autorouter_skip_phase inspection helper
+  autorouter_inspection_status=1
+fi
+if (( autorouter_inspection_status == 0 )); then
+  autorouter_record_phase freeze-reference freeze-reference
+  autorouter_reference_status=$autorouter_last_status
+else
+  autorouter_skip_phase freeze-reference inspection
+  autorouter_reference_status=1
+fi
+if (( autorouter_reference_status == 0 )); then
+  autorouter_record_phase parity parity
+else
+  autorouter_skip_phase parity freeze-reference
+fi
+for check in check-config-commands check-node-options-startup check-gateway check-gateway-resources check-http-parser check-upstream-transport check-upstream-security check-tls-options check-localhost-transport; do
+  if (( autorouter_reference_status == 0 )); then
+    autorouter_record_phase "protocol-$check" protocol "$check"
+  else
+    autorouter_skip_phase "protocol-$check" freeze-reference
+  fi
+done
+if (( autorouter_reference_status == 0 )); then
+  autorouter_record_phase protocol-unicode protocol-unicode
+else
+  autorouter_skip_phase protocol-unicode freeze-reference
+fi
+if (( autorouter_inspection_status == 0 )); then
+  autorouter_record_phase npm npm
+  autorouter_npm_status=$autorouter_last_status
+else
+  autorouter_skip_phase npm inspection
+  autorouter_npm_status=1
+fi
+if (( autorouter_npm_status == 0 )); then
+  autorouter_record_phase direct direct
+  # Rollback consumes the verified npm archive, independently of direct success.
+  autorouter_record_phase rollback rollback
+else
+  autorouter_skip_phase direct npm
+  autorouter_skip_phase rollback npm
+fi
+# Every potential test/lifecycle consumer above has returned before moving the
+# first compiler tree. The exact-path/no-overwrite repro body remains unchanged.
+if (( autorouter_inspection_status == 0 )); then
+  autorouter_record_phase repro repro
+else
+  autorouter_skip_phase repro inspection
+fi
+printf '{"schema_version":1,"kind":"musl_ci_phase_summary","phase_count":%s,"exit_code":%s}\n' \
+  "$autorouter_phase_count" "$autorouter_first_failure" > "$out/phase-summary.json" \
+  || { autorouter_metadata_status=$?; if (( autorouter_first_failure == 0 )); then autorouter_first_failure=$autorouter_metadata_status; fi; }
+exit "$autorouter_first_failure"

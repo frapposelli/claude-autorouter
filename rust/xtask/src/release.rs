@@ -518,17 +518,11 @@ pub fn native_files(files: &BTreeMap<String, Entry>, manifest: &Value) -> Result
     if declarations.len() + 1 != files.len() || declarations.contains("build-manifest.json") {
         return Err("Native release contains undeclared files".into());
     }
-    for path in [
-        "package.json",
-        "README.md",
-        "LICENSE",
+    for path in ROOT_FILES.iter().chain(DOCS).copied().chain([
         "THIRD-PARTY-LICENSES.txt",
         "platforms.json",
         "bin/autorouter",
-    ]
-    .into_iter()
-    .chain(REQUIRED_DOCS.iter().copied())
-    {
+    ]) {
         if !declarations.contains(path) {
             return Err(format!(
                 "Native runtime documentation or file missing: {path}"
@@ -585,6 +579,26 @@ impl Artifact {
         json!({"schema_version":1,"package":PACKAGE,"version":self.version,"tag":self.tag,"dist_tag":self.dist_tag,"archive":self.filename,"sha256":self.sha256,"integrity":self.integrity})
     }
 }
+// These owned validation messages have fixed, reviewed producers. All other
+// messages retain their broad category without exposing their text.
+fn native_files_error(cause: String) -> ReleaseError {
+    let reason = if cause == "Unexpected file in native production package" {
+        "unexpected_file"
+    } else {
+        "native_release_not_qualified"
+    };
+    error("invalid_archive", reason)
+}
+fn final_authorization_error(cause: String) -> ReleaseError {
+    let reason = if cause
+        == "Release directory must contain only the exact immutable archive set and authorization pair"
+    {
+        "unexpected_release_artifacts"
+    } else {
+        "native_final_authorization_required"
+    };
+    error("invalid_archive", reason)
+}
 pub fn inspect_artifact(
     path: &Path,
     tag: &str,
@@ -609,8 +623,22 @@ fn inspect_artifact_decoded(
         .map_err(|_| error("invalid_archive", "archive_not_regular_or_bounded"))?;
     let checksum = regular(&path.with_extension("tgz.sha256"), 1024)
         .map_err(|_| error("invalid_archive", "checksum_not_regular_or_bounded"))?;
+    // Source checks the whole sidecar grammar and exact filename before the
+    // digest. Strip at most one LF; trimming would admit CRLF or trailing data.
+    let declared_hash = std::str::from_utf8(&checksum)
+        .ok()
+        .and_then(|text| text.strip_suffix('\n').unwrap_or(text).split_once("  "))
+        .filter(|(hash, name)| {
+            hash.len() == 64
+                && hash
+                    .bytes()
+                    .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+                && *name == filename.as_str()
+        })
+        .map(|(hash, _)| hash)
+        .ok_or_else(|| error("invalid_archive", "checksum_filename_mismatch"))?;
     let hash = digest(&bytes);
-    if String::from_utf8_lossy(&checksum).trim_end() != format!("{hash}  {filename}") {
+    if declared_hash != hash {
         return Err(error("invalid_archive", "checksum_mismatch"));
     }
     let envelope = if allow_historical {
@@ -642,10 +670,9 @@ fn inspect_artifact_decoded(
         })
         .map_err(|_| error("invalid_archive", "archive_format_limits"))?;
     if native {
-        native_files(files, &manifest)
-            .map_err(|_| error("invalid_archive", "native_release_not_qualified"))?;
+        native_files(files, &manifest).map_err(native_files_error)?;
         crate::release_pack::verify_authorization_decoded(path, &bytes, &decoded)
-            .map_err(|_| error("invalid_archive", "native_final_authorization_required"))?;
+            .map_err(final_authorization_error)?;
     } else if allow_historical {
         legacy_files(files).map_err(|_| error("invalid_archive", "legacy_archive_files"))?;
     } else {
@@ -691,14 +718,40 @@ pub fn github_output(values: &Value) -> Result<(), String> {
         .and_then(|mut f| f.write_all(text.as_bytes()))
         .map_err(|_| "Cannot persist GitHub output".into())
 }
+// A fixed projection for release-check only. Never format caller paths,
+// arbitrary reason values or error payloads into the command diagnostic.
+fn archive_check_diagnostic(error: &ReleaseError) -> &'static str {
+    match (
+        error.code,
+        error.detail.get("reason").and_then(Value::as_str),
+    ) {
+        ("invalid_archive", Some("checksum_mismatch")) => {
+            "Release check failed: Release archive SHA256 does not match"
+        }
+        ("invalid_archive", Some("checksum_filename_mismatch")) => {
+            "Release check failed: SHA256 file must identify the exact release archive"
+        }
+        (
+            "invalid_archive",
+            Some("archive_not_regular_or_bounded" | "checksum_not_regular_or_bounded"),
+        ) => "Release check failed: Release artifact must be a bounded regular file",
+        ("invalid_archive", Some("unexpected_file")) => {
+            "Release check failed: Unexpected file in native production package"
+        }
+        ("invalid_archive", Some("unexpected_release_artifacts")) => {
+            "Release check failed: dist must contain only the expected native release archive set and authorization pair"
+        }
+        _ => "Release check failed: invalid_archive",
+    }
+}
 fn check_archive(root: &Path, tag: &str, manifest: &Value, metadata: &Value) -> Result<(), String> {
     let dist = root.join("dist");
     if !std::fs::symlink_metadata(&dist).is_ok_and(|m| m.is_dir()) {
         return Err("dist must be a real directory".into());
     }
     let archive = root.join(metadata["archive"].as_str().unwrap());
-    let (artifact, decoded) =
-        inspect_artifact_decoded(&archive, tag, false).map_err(|e| e.to_string())?;
+    let (artifact, decoded) = inspect_artifact_decoded(&archive, tag, false)
+        .map_err(|error| archive_check_diagnostic(&error).to_owned())?;
     let files = decoded.files;
     let embedded = JsManifest::parse(&files["package.json"].bytes)?;
     if embedded
@@ -887,7 +940,7 @@ mod tests {
                 .err()
                 .unwrap()
                 .detail["reason"],
-            "checksum_mismatch"
+            "checksum_filename_mismatch"
         );
     }
     #[test]
@@ -1045,9 +1098,11 @@ mod tests {
         let lock = "b".repeat(64);
         let target = "aarch64-apple-darwin";
         let mut files = BTreeMap::new();
-        for path in ["README.md", "LICENSE", "THIRD-PARTY-LICENSES.txt"]
-            .into_iter()
-            .chain(REQUIRED_DOCS.iter().copied())
+        for path in ROOT_FILES
+            .iter()
+            .chain(DOCS)
+            .copied()
+            .chain(["THIRD-PARTY-LICENSES.txt"])
         {
             files.insert(
                 path.into(),
@@ -1153,6 +1208,250 @@ mod tests {
                 native_files(&changed, &manifest).is_err(),
                 "mutation {mutation} must not qualify"
             );
+        }
+    }
+    #[test]
+    fn checksum_sidecar_grammar_rejects_trailing_data_before_comparing_hashes() {
+        let dir = crate::tool_process::Scratch::new("checksum grammar").unwrap();
+        let mut manifest = manifest();
+        manifest["bin"] = json!({PACKAGE:"bin/autorouter.mjs"});
+        let mut files = BTreeMap::new();
+        for path in [
+            "README.md",
+            "LICENSE",
+            "bin/autorouter.mjs",
+            "bin/statusline.mjs",
+            "src/config.mjs",
+            "src/router.mjs",
+            "src/server.mjs",
+            "docs/reference.md",
+            "docs/development.md",
+            "docs/releasing.md",
+            "docs/ollama-evaluation.md",
+        ] {
+            files.insert(
+                path.into(),
+                Entry {
+                    bytes: b"synthetic public fixture\n".to_vec(),
+                    mode: 0o644,
+                },
+            );
+        }
+        files.insert(
+            "package.json".into(),
+            Entry {
+                bytes: manifest.to_string().into_bytes(),
+                mode: 0o644,
+            },
+        );
+        let bytes = archive::encode_root("package", &files, archive::HISTORICAL).unwrap();
+        let filename = "claude-autorouter-0.4.0.tgz";
+        let path = dir.file(filename, &bytes).unwrap();
+        let checksum_path = path.with_extension("tgz.sha256");
+        let canonical = format!("{}  {filename}", digest(&bytes));
+        for ending in ["", "\n"] {
+            std::fs::write(&checksum_path, format!("{canonical}{ending}")).unwrap();
+            let inspected = inspect_artifact(&path, "v0.4.0", true).unwrap();
+            assert!(!inspected.native);
+            assert_eq!(inspected.sha256, digest(&bytes));
+        }
+        let mut invalid_utf8 = format!("{canonical}\n").into_bytes();
+        invalid_utf8.push(0xff);
+        for (name, checksum) in [
+            ("crlf", format!("{canonical}\r\n").into_bytes()),
+            ("two-lf", format!("{canonical}\n\n").into_bytes()),
+            ("space", format!("{canonical} ").into_bytes()),
+            ("tab", format!("{canonical}\t").into_bytes()),
+            ("nbsp", format!("{canonical}\u{00a0}").into_bytes()),
+            ("leading-space", format!(" {canonical}\n").into_bytes()),
+            (
+                "one-delimiter",
+                format!("{} {filename}\n", digest(&bytes)).into_bytes(),
+            ),
+            (
+                "uppercase-hex",
+                format!("{}  {filename}\n", "F".repeat(64)).into_bytes(),
+            ),
+            (
+                "short-hex",
+                format!("{}  {filename}\n", "a".repeat(63)).into_bytes(),
+            ),
+            (
+                "correct-hash-other-path",
+                format!("{}  ../{filename}\n", digest(&bytes)).into_bytes(),
+            ),
+            (
+                "wrong-hash-other-path",
+                format!("{}  ../{filename}\n", "0".repeat(64)).into_bytes(),
+            ),
+            ("invalid-utf8", invalid_utf8),
+        ] {
+            std::fs::write(&checksum_path, &checksum).unwrap();
+            let failure = inspect_artifact(&path, "v0.4.0", true)
+                .err()
+                .unwrap_or_else(|| panic!("accepted invalid checksum: {name}"));
+            assert_eq!(failure.code, "invalid_archive", "{name}");
+            assert_eq!(
+                failure.detail,
+                json!({"reason":"checksum_filename_mismatch"}),
+                "{name}"
+            );
+            assert_eq!(std::fs::read(&checksum_path).unwrap(), checksum, "{name}");
+            assert_eq!(std::fs::read(&path).unwrap(), bytes, "{name}");
+        }
+        std::fs::write(&checksum_path, format!("{}  {filename}\n", "0".repeat(64))).unwrap();
+        let failure = inspect_artifact(&path, "v0.4.0", true).err().unwrap();
+        assert_eq!(failure.code, "invalid_archive");
+        assert_eq!(failure.detail, json!({"reason":"checksum_mismatch"}));
+    }
+    #[test]
+    fn archive_check_diagnostics_project_only_fixed_known_reasons() {
+        for (cause, reason) in [
+            (
+                "Unexpected file in native production package",
+                "unexpected_file",
+            ),
+            (
+                "Unexpected file in native production package PRIVATE_PAYLOAD",
+                "native_release_not_qualified",
+            ),
+            (
+                "unexpected file in native production package",
+                "native_release_not_qualified",
+            ),
+            (
+                "Release directory must contain only the exact immutable archive set and authorization pair",
+                "native_release_not_qualified",
+            ),
+            (
+                "Native release file checksum, mode or size mismatch",
+                "native_release_not_qualified",
+            ),
+        ] {
+            let failure = native_files_error(cause.into());
+            assert_eq!(failure.code, "invalid_archive");
+            assert_eq!(failure.detail, json!({"reason":reason}));
+            assert!(!failure.detail.to_string().contains("PRIVATE"));
+        }
+        for (cause, reason) in [
+            (
+                "Release directory must contain only the exact immutable archive set and authorization pair",
+                "unexpected_release_artifacts",
+            ),
+            (
+                "Release directory must contain only the exact immutable archive set and authorization pair PRIVATE_PAYLOAD",
+                "native_final_authorization_required",
+            ),
+            (
+                "Release directory must contain only the exact immutable archive set",
+                "native_final_authorization_required",
+            ),
+            (
+                "Unexpected file in native production package",
+                "native_final_authorization_required",
+            ),
+            (
+                "Final artifact sidecar mismatch",
+                "native_final_authorization_required",
+            ),
+        ] {
+            let failure = final_authorization_error(cause.into());
+            assert_eq!(failure.code, "invalid_archive");
+            assert_eq!(failure.detail, json!({"reason":reason}));
+            assert!(!failure.detail.to_string().contains("PRIVATE"));
+        }
+        for (code, detail, expected) in [
+            (
+                "invalid_archive",
+                json!({"reason":"checksum_mismatch","private":"PRIVATE_PAYLOAD"}),
+                "Release check failed: Release archive SHA256 does not match",
+            ),
+            (
+                "invalid_archive",
+                json!({"reason":"checksum_filename_mismatch","path":"PRIVATE_PATH"}),
+                "Release check failed: SHA256 file must identify the exact release archive",
+            ),
+            (
+                "invalid_archive",
+                json!({"reason":"archive_not_regular_or_bounded","private":["PRIVATE"]}),
+                "Release check failed: Release artifact must be a bounded regular file",
+            ),
+            (
+                "invalid_archive",
+                json!({"reason":"checksum_not_regular_or_bounded"}),
+                "Release check failed: Release artifact must be a bounded regular file",
+            ),
+            (
+                "invalid_archive",
+                json!({"reason":"unexpected_file","private":"PRIVATE_PAYLOAD"}),
+                "Release check failed: Unexpected file in native production package",
+            ),
+            (
+                "invalid_archive",
+                json!({"reason":"unexpected_release_artifacts","path":"PRIVATE_PATH"}),
+                "Release check failed: dist must contain only the expected native release archive set and authorization pair",
+            ),
+            (
+                "invalid_archive",
+                json!({"reason":"native_release_not_qualified","private":"PRIVATE_PAYLOAD"}),
+                "Release check failed: invalid_archive",
+            ),
+            (
+                "invalid_archive",
+                json!({"reason":"native_final_authorization_required","private":"PRIVATE_PAYLOAD"}),
+                "Release check failed: invalid_archive",
+            ),
+            (
+                "invalid_archive",
+                json!({"reason":"unexpected_file_PRIVATE"}),
+                "Release check failed: invalid_archive",
+            ),
+            (
+                "invalid_archive",
+                json!({"reason":"unexpected_release_artifacts "}),
+                "Release check failed: invalid_archive",
+            ),
+            (
+                "invalid_archive",
+                json!({"reason":false}),
+                "Release check failed: invalid_archive",
+            ),
+            (
+                "PRIVATE_CODE",
+                json!({"reason":"unexpected_file"}),
+                "Release check failed: invalid_archive",
+            ),
+            (
+                "PRIVATE_CODE",
+                json!({"reason":"unexpected_release_artifacts"}),
+                "Release check failed: invalid_archive",
+            ),
+            (
+                "invalid_archive",
+                json!({"reason":"PRIVATE_REASON"}),
+                "Release check failed: invalid_archive",
+            ),
+            (
+                "invalid_archive",
+                json!({"reason":{"private":"PRIVATE_PAYLOAD"}}),
+                "Release check failed: invalid_archive",
+            ),
+            (
+                "invalid_archive",
+                json!("PRIVATE_PAYLOAD"),
+                "Release check failed: invalid_archive",
+            ),
+            (
+                "PRIVATE_CODE",
+                json!({"reason":"checksum_mismatch"}),
+                "Release check failed: invalid_archive",
+            ),
+        ] {
+            let failure = ReleaseError { code, detail };
+            let before = failure.detail.clone();
+            assert_eq!(archive_check_diagnostic(&failure), expected);
+            assert_eq!(failure.detail, before);
+            assert!(!expected.contains("PRIVATE"));
         }
     }
 }

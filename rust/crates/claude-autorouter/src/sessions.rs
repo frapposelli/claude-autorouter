@@ -54,14 +54,13 @@ pub async fn command(
         return Ok(CommandOutput {
             success: operation == "list",
             lines: vec![if json {
-                serde_json::to_string_pretty(&report)
-                    .map_err(|_| "Could not format session history.")?
+                render_history_json(&report).map_err(|_| "Could not format session history.")?
             } else {
                 message.into()
             }],
         });
     };
-    let mut report = read_session_history(
+    let report = read_session_history(
         PathBuf::from(directory),
         HistoryOptions {
             id: if operation == "show" {
@@ -74,11 +73,7 @@ pub async fn command(
     )
     .await?;
     let lines = if json {
-        report["logging_enabled"] = json!(true);
-        vec![
-            serde_json::to_string_pretty(&report)
-                .map_err(|_| "Could not format session history.")?,
-        ]
+        vec![render_enabled_history_json(report).map_err(|_| "Could not format session history.")?]
     } else {
         report_lines(&report, operation == "show")
     };
@@ -86,4 +81,48 @@ pub async fn command(
         success: true,
         lines,
     })
+}
+
+fn render_history_json(report: &serde_json::Value) -> Result<String, String> {
+    crate::json_output::pretty(report).map_err(|_| "Could not format session history.".into())
+}
+
+// The enabled command already owns the report. Keep this distinct from the
+// generic writer and disabled-logging branch.
+fn render_enabled_history_json(mut report: serde_json::Value) -> Result<String, String> {
+    report["logging_enabled"] = json!(true);
+    project_history_file_bytes(&mut report);
+    render_history_json(&report)
+}
+
+// Native reader APIs keep exact u64 metadata. Only the owned outward report
+// uses Source's ordinary Stats.size Number and its shortest decimal spelling.
+fn project_history_file_bytes(report: &mut serde_json::Value) {
+    fn summary(summary: &mut serde_json::Value) {
+        let Some(field) = summary
+            .get_mut("coverage")
+            .and_then(|coverage| coverage.get_mut("file_bytes"))
+        else {
+            return;
+        };
+        if let Some(size) = field
+            .as_u64()
+            .filter(|size| *size > autorouter_core::config::MAX_SAFE_INTEGER)
+        {
+            // Every u64 is finite as f64, including u64::MAX rounding to 2^64.
+            // Casting back would saturate and restore the wrong outward token.
+            *field = json!(size as f64);
+        }
+    }
+    if let Some(value) = report.get_mut("summary") {
+        summary(value);
+    }
+    if let Some(values) = report
+        .get_mut("sessions")
+        .and_then(serde_json::Value::as_array_mut)
+    {
+        for value in values {
+            summary(value);
+        }
+    }
 }

@@ -191,6 +191,32 @@ impl Pipes {
         }
         false
     }
+
+    fn tail(
+        &mut self,
+        child: &mut OwnedChild,
+        stdout: &mut impl Read,
+        stderr: &mut impl Read,
+        mut done: (bool, bool),
+        limit: usize,
+    ) -> (bool, bool) {
+        // Keep the leader unreaped while any same-group writers may still own
+        // a pipe. Repeated signals cover descendants missed by an earlier pass.
+        for _ in 0..64 {
+            child.kill_group();
+            if !done.0 {
+                done.0 = self.drain(stdout, true, limit);
+            }
+            if !done.1 {
+                done.1 = self.drain(stderr, false, limit);
+            }
+            if done.0 && done.1 {
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(1));
+        }
+        done
+    }
 }
 fn capture(
     mut command: Command,
@@ -234,7 +260,7 @@ fn capture(
     let (mut out_done, mut err_done) = (false, false);
     let mut stopping = None;
     let (mut cancelled, mut timed_out, mut forced_kill) = (false, false, false);
-    let status = loop {
+    let reap_error = loop {
         if !out_done {
             out_done = pipes.drain(&mut stdout, true, bounds.output);
         }
@@ -246,10 +272,8 @@ fn capture(
         // Observe without reaping, then kill the still-owned group before wait.
         // This preserves the PID reservation even if the leader exits early.
         if observer.exited(&mut child)? {
-            child.cleanup();
-            break child
-                .wait()
-                .map_err(|_| "Cannot reap owned evaluator tool")?;
+            child.kill_group();
+            break "Cannot reap owned evaluator tool";
         }
         if stopping.is_none() && (cancelled || timed_out || pipes.overflow || pipes.read_error) {
             let _ = killpg(Pid::from_raw(child.id() as i32), Signal::SIGTERM);
@@ -257,27 +281,22 @@ fn capture(
         }
         if stopping.is_some_and(|at| at.elapsed() >= bounds.grace) {
             forced_kill = true;
-            child.cleanup();
-            break child
-                .wait()
-                .map_err(|_| "Cannot reap stopped evaluator tool")?;
+            child.kill_group();
+            break "Cannot reap stopped evaluator tool";
         }
         std::thread::sleep(Duration::from_millis(5));
     };
-    // Group cleanup has already happened, and both pipes are nonblocking.
-    // Retain remaining buffered output, bounded by the same aggregate quota.
-    for _ in 0..64 {
-        if !out_done {
-            out_done = pipes.drain(&mut stdout, true, bounds.output);
-        }
-        if !err_done {
-            err_done = pipes.drain(&mut stderr, false, bounds.output);
-        }
-        if out_done && err_done {
-            break;
-        }
-        std::thread::sleep(Duration::from_millis(1));
-    }
+    // Both pipes are nonblocking; keep the leader reserved through the same
+    // aggregate-quota EOF tail before final group cleanup retires ownership.
+    (out_done, err_done) = pipes.tail(
+        &mut child,
+        &mut stdout,
+        &mut stderr,
+        (out_done, err_done),
+        bounds.output,
+    );
+    child.cleanup();
+    let status = child.wait().map_err(|_| reap_error)?;
     let complete =
         out_done && err_done && !cancelled && !timed_out && !pipes.overflow && !pipes.read_error;
     Ok(Output {
@@ -356,10 +375,26 @@ mod tests {
             },
         );
         let output = owner.join().await.unwrap();
-        assert_eq!(output.status["timed_out"], true);
-        assert_eq!(output.status["forced_kill"], true);
-        assert_eq!(output.status["exit_signal"], 9);
-        assert_eq!(output.status["output_complete"], true);
+        assert_eq!(
+            output.status["timed_out"], true,
+            "owned timeout status: {}",
+            output.status
+        );
+        assert_eq!(
+            output.status["forced_kill"], true,
+            "owned timeout status: {}",
+            output.status
+        );
+        assert_eq!(
+            output.status["exit_signal"], 9,
+            "owned timeout status: {}",
+            output.status
+        );
+        assert_eq!(
+            output.status["output_complete"], true,
+            "owned timeout status: {}",
+            output.status
+        );
     }
     #[tokio::test]
     async fn cancelled_join_waiter_preserves_owner_for_explicit_joined_close() {
@@ -443,5 +478,48 @@ mod tests {
         std::fs::write(scratch.0.join("release"), b"released").unwrap();
         tokio::time::sleep(Duration::from_millis(100)).await;
         assert!(!scratch.0.join("escaped").exists());
+    }
+
+    #[test]
+    #[cfg(any(target_os = "macos", target_os = "linux"))]
+    fn eof_tail_keeps_real_leader_independently_waitable_until_signals_finish() {
+        use nix::sys::wait::WaitStatus;
+        let mut command = shell("printf tail-out; printf tail-err >&2; exit 23");
+        command
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .process_group(0);
+        let mut child = OwnedChild::new(command.spawn().unwrap());
+        let pid = Pid::from_raw(child.id() as i32);
+        let mut observer = ExitObserver::new(child.id()).unwrap();
+        let mut stdout = child.stdout.take().unwrap();
+        let mut stderr = child.stderr.take().unwrap();
+        nonblocking(&stdout).unwrap();
+        nonblocking(&stderr).unwrap();
+        let deadline = Instant::now() + Duration::from_secs(2);
+        while !observer.exited(&mut child).unwrap() {
+            assert!(Instant::now() < deadline, "real tail fixture exit deadline");
+            std::thread::sleep(Duration::from_millis(1));
+        }
+        child.kill_group();
+        let mut pipes = Pipes {
+            stdout: vec![],
+            stderr: vec![],
+            stdout_received: 0,
+            stderr_received: 0,
+            overflow: false,
+            read_error: false,
+        };
+        let done = pipes.tail(&mut child, &mut stdout, &mut stderr, (false, false), 1024);
+        // Only now consume an independent kernel wait. The shared witness
+        // disarms the guard before any assertion can unwind after ownership ends.
+        // Child's cached status would conceal an accidental reap in the tail.
+        let status = super::super::tests::independent_exit_status(&mut child, deadline);
+        assert_eq!(status.unwrap(), WaitStatus::Exited(pid, 23));
+        assert_eq!(done, (true, true));
+        assert_eq!(pipes.stdout, b"tail-out");
+        assert_eq!(pipes.stderr, b"tail-err");
+        assert_eq!((pipes.stdout_received, pipes.stderr_received), (8, 8));
+        assert!(!pipes.overflow && !pipes.read_error);
     }
 }

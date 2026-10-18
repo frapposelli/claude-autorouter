@@ -117,12 +117,51 @@ pub fn ollama_questions() -> Value {
     json!({"tier":{"type":"choice","instructions":instructions,"criteria":criteria}})
 }
 
-pub fn build_ollama_request(state: &Value, config: &RouterConfig) -> Value {
-    json!({"model":config.ollama_model,"state":state,"questions":ollama_questions(),"keep_alive":config.ollama_keep_alive})
+/// Checked scalar JSON adapter. Exact/deep callers use the document builder.
+pub fn build_ollama_request(
+    state: &Value,
+    config: &RouterConfig,
+) -> Result<Value, EvaluationError> {
+    let state = JsDocument::from_serde_value(state).stringify();
+    let document = build_evaluator_request_document(&state, config, Evaluator::Ollama)?;
+    serde_json::from_str(&document.stringify()).map_err(|_| EvaluationError::InvalidResponse)
 }
 
-pub fn build_jev_request(state: &Value, config: &RouterConfig) -> Value {
-    json!({"model":config.jev_model,"state":state,"questions":jev_questions()})
+/// Checked scalar JSON adapter; unpaired UTF-16 requires the document builder.
+pub fn build_jev_request(state: &Value, config: &RouterConfig) -> Result<Value, EvaluationError> {
+    let state = JsDocument::from_serde_value(state).stringify();
+    let document = build_evaluator_request_document(&state, config, Evaluator::Jev)?;
+    serde_json::from_str(&document.stringify()).map_err(|_| EvaluationError::InvalidResponse)
+}
+
+/// Build the selected evaluator's request without projecting state or settings.
+pub fn build_evaluator_request_document(
+    state: &str,
+    config: &RouterConfig,
+    evaluator: Evaluator,
+) -> Result<JsDocument, EvaluationError> {
+    let envelope = match evaluator {
+        Evaluator::Ollama => {
+            json!({"model":config.ollama_model,"state":null,"questions":ollama_questions(),"keep_alive":null})
+        }
+        Evaluator::Jev => {
+            json!({"model":config.jev_model,"state":null,"questions":jev_questions()})
+        }
+    };
+    let mut document = JsDocument::from_serde_value(&envelope);
+    if evaluator == Evaluator::Ollama {
+        document
+            .set_root_field_json("keep_alive", config.ollama_keep_alive_json().as_bytes())
+            .map_err(|_| EvaluationError::InvalidResponse)?;
+    } else if let Some(model) = &config.exact_jev_model {
+        document
+            .set_root_field_json("model", model.stringify().as_bytes())
+            .map_err(|_| EvaluationError::InvalidResponse)?;
+    }
+    document
+        .set_root_field_json("state", state.as_bytes())
+        .map_err(|_| EvaluationError::InvalidResponse)?;
+    Ok(document)
 }
 
 fn truthy(value: Option<&Value>) -> bool {
@@ -219,16 +258,6 @@ fn root_field<'a>(document: &'a JsDocument, key: &str) -> Option<&'a JsNode> {
         .and_then(|node| document.node(node))
 }
 
-fn js_truthy(value: Option<&JsNode>) -> bool {
-    match value {
-        None | Some(JsNode::Null) => false,
-        Some(JsNode::Bool(value)) => *value,
-        Some(JsNode::Number(value)) => *value != 0.0 && !value.is_nan(),
-        Some(JsNode::String(value)) => !value.units().is_empty(),
-        Some(JsNode::Array(_) | JsNode::Object(_)) => true,
-    }
-}
-
 fn parse_ollama_document(
     document: &JsDocument,
     model: &str,
@@ -236,7 +265,7 @@ fn parse_ollama_document(
     // Test original UTF-16 equality and number truthiness before making a
     // metadata projection: Infinity is truthy and a lone surrogate must never
     // compare equal to an actual replacement character in a configured model.
-    if js_truthy(root_field(document, "error"))
+    if root_field(document, "error").is_some_and(JsNode::is_truthy)
         || !matches!(root_field(document, "model"), Some(JsNode::String(value)) if *value == JsString::from_scalar(model))
     {
         return Err(EvaluationError::InvalidResponse);
@@ -318,12 +347,11 @@ pub async fn check_local_ollama_model<T: HttpTransport>(
     )
     .await?;
     let parameter_size = metadata
-        .get(metadata.root(), "details")
-        .and_then(|node| metadata.get(node, "parameter_size"))
+        .get_path(metadata.root(), &["details", "parameter_size"])
         .and_then(|node| metadata.string(node));
     if !matches!(metadata.node(metadata.root()), Some(JsNode::Object(_)))
-        || js_truthy(root_field(&metadata, "remote_host"))
-        || js_truthy(root_field(&metadata, "remote_model"))
+        || root_field(&metadata, "remote_host").is_some_and(JsNode::is_truthy)
+        || root_field(&metadata, "remote_model").is_some_and(JsNode::is_truthy)
         || parameter_size.is_none_or(|value| value.units().is_empty())
     {
         return Err(EvaluationError::InvalidResponse);
@@ -339,7 +367,7 @@ pub async fn evaluate_answer<T: HttpTransport>(
     state: &Value,
     cancellation: &CancellationToken,
 ) -> Result<EvaluationAnswer, EvaluationError> {
-    let serialized = serde_json::to_string(state).map_err(|_| EvaluationError::InvalidResponse)?;
+    let serialized = JsDocument::from_serde_value(state).stringify();
     evaluate_serialized_answer(transport, config, &serialized, cancellation).await
 }
 
@@ -347,22 +375,7 @@ fn request_with_serialized_state(
     state: &str,
     config: &RouterConfig,
 ) -> Result<Vec<u8>, EvaluationError> {
-    let envelope = match config.evaluator {
-        Evaluator::Ollama => build_ollama_request(&Value::Null, config),
-        Evaluator::Jev => build_jev_request(&Value::Null, config),
-    };
-    let bytes = serde_json::to_vec(&envelope).map_err(|_| EvaluationError::InvalidResponse)?;
-    let mut document = JsDocument::parse(&bytes).map_err(|_| EvaluationError::InvalidResponse)?;
-    if config.evaluator == Evaluator::Jev
-        && let Some(model) = &config.exact_jev_model
-    {
-        document
-            .set_root_field_json("model", model.stringify().as_bytes())
-            .map_err(|_| EvaluationError::InvalidResponse)?;
-    }
-    document
-        .set_root_field_json("state", state.as_bytes())
-        .map_err(|_| EvaluationError::InvalidResponse)?;
+    let document = build_evaluator_request_document(state, config, config.evaluator)?;
     Ok(document.stringify().into_bytes())
 }
 
@@ -556,14 +569,104 @@ fn decision_from_answer(
 mod tests {
     use super::*;
 
+    #[tokio::test]
+    async fn exact_owned_keep_alive_reaches_inference_without_recursive_value_conversion() {
+        struct WireTransport {
+            requests: std::sync::Mutex<Vec<Bytes>>,
+            replies: std::sync::Mutex<std::collections::VecDeque<Bytes>>,
+        }
+        impl HttpTransport for WireTransport {
+            type ResponseBody = Full<Bytes>;
+            async fn request(
+                &self,
+                request: Request<Full<Bytes>>,
+            ) -> Result<hyper::Response<Self::ResponseBody>, crate::http_client::HttpError>
+            {
+                use http_body_util::BodyExt;
+                let bytes = request.into_body().collect().await.unwrap().to_bytes();
+                self.requests.lock().unwrap().push(bytes);
+                Ok(hyper::Response::new(Full::new(
+                    self.replies
+                        .lock()
+                        .unwrap()
+                        .pop_front()
+                        .expect("declared synthetic response"),
+                )))
+            }
+        }
+        for depth in [80, 20_000] {
+            let keep = format!("{}\"5m\"{}", "[".repeat(depth), "]".repeat(depth));
+            let mut config = config("ollama");
+            // Depth80 has a separately executed Source control. Depth20,000
+            // stresses native arena ownership and stack safety only.
+            let source = JsDocument::parse(keep.as_bytes()).unwrap();
+            config
+                .replace_ollama_keep_alive_document(&source, source.root())
+                .unwrap();
+            drop(source);
+            let transport = WireTransport {
+                requests: std::sync::Mutex::new(Vec::new()),
+                replies: std::sync::Mutex::new(
+                    [
+                        Bytes::from(metadata().bytes),
+                        Bytes::from(answer(&config.ollama_model, Tier::Haiku).bytes),
+                    ]
+                    .into_iter()
+                    .collect(),
+                ),
+            };
+            let result = evaluate_answer(
+                &transport,
+                &config,
+                &json!({"current_task":"Synthetic owned keep-alive"}),
+                &CancellationToken::new(),
+            )
+            .await
+            .unwrap();
+            assert_eq!(result.choice, Tier::Haiku);
+            let requests = transport.requests.lock().unwrap();
+            assert_eq!(requests.len(), 2);
+            let document = JsDocument::parse(&requests[1]).unwrap();
+            let node = document.get(document.root(), "keep_alive").unwrap();
+            assert_eq!(document.stringify_node(node), keep);
+            assert!(transport.replies.lock().unwrap().is_empty());
+            let scalar = build_ollama_request(&json!({}), &config);
+            if depth == 80 {
+                assert_eq!(scalar.unwrap()["keep_alive"].to_string(), keep);
+            } else {
+                assert_eq!(scalar.unwrap_err(), EvaluationError::InvalidResponse);
+            }
+            config.replace_ollama_keep_alive(json!("10m"));
+            let replaced =
+                build_evaluator_request_document("{}", &config, Evaluator::Ollama).unwrap();
+            let value = replaced.get(replaced.root(), "keep_alive").unwrap();
+            assert_eq!(replaced.stringify_node(value), "\"10m\"");
+        }
+    }
+
+    #[test]
+    fn scalar_jev_request_adapter_reports_unpaired_model_while_document_retains_it() {
+        let mut config = config("jev");
+        config.exact_jev_model = Some(JsString::from_utf16(vec![0xd800]));
+        assert_eq!(
+            build_jev_request(&json!({}), &config).unwrap_err(),
+            EvaluationError::InvalidResponse
+        );
+        let document = build_evaluator_request_document("{}", &config, Evaluator::Jev).unwrap();
+        assert_eq!(
+            document
+                .string(document.get(document.root(), "model").unwrap())
+                .unwrap()
+                .units(),
+            &[0xd800]
+        );
+    }
+
     #[test]
     fn configured_jev_identity_is_serialized_without_repair() {
-        let mut config = autorouter_core::config::read_config(
+        let mut config = crate::test_config(
             &json!({"AUTOROUTER_EVALUATOR":"jev","TYPESAFE_API_KEY":"synthetic"}),
-            false,
-            std::path::Path::new("/synthetic"),
-        )
-        .unwrap();
+        );
         config.jev_model = "synthetic-\u{fffd}".into();
         config.exact_jev_model = Some(JsString::from_utf16(
             "synthetic-".encode_utf16().chain([0xd800]).collect(),
@@ -583,14 +686,12 @@ mod tests {
         );
     }
     use crate::http_client::HttpError;
-    use autorouter_core::config::read_config;
     use http_body_util::BodyExt;
     use hyper::body::{Body, Frame};
     use hyper::{HeaderMap, Response};
     use sha2::{Digest, Sha256};
     use std::collections::VecDeque;
     use std::io;
-    use std::path::Path;
     use std::pin::Pin;
     use std::sync::{
         Arc, Mutex,
@@ -711,7 +812,9 @@ mod tests {
     }
 
     fn config(evaluator: &str) -> RouterConfig {
-        read_config(&json!({"AUTOROUTER_EVALUATOR":evaluator,"TYPESAFE_API_KEY":"synthetic-jev-key","ANTHROPIC_API_KEY":"synthetic-claude-key"}),false,Path::new("/synthetic")).unwrap()
+        crate::test_config(
+            &json!({"AUTOROUTER_EVALUATOR":evaluator,"TYPESAFE_API_KEY":"synthetic-jev-key","ANTHROPIC_API_KEY":"synthetic-claude-key"}),
+        )
     }
     fn metadata() -> Step {
         Step::json(json!({"details":{"parameter_size":"9B"}}))
@@ -742,12 +845,7 @@ mod tests {
         let source = format!(
             r#"{{"AUTOROUTER_EVALUATOR":"jev","AUTOROUTER_AUTH_MODE":"subscription"{field}}}"#
         );
-        autorouter_core::config::read_config_document(
-            &JsDocument::parse(source.as_bytes()).unwrap(),
-            false,
-            Path::new("/synthetic"),
-        )
-        .unwrap()
+        crate::test_config_document(&JsDocument::parse(source.as_bytes()).unwrap())
     }
     async fn assert_jev_source_auth(
         config: &RouterConfig,
@@ -1007,7 +1105,10 @@ mod tests {
                 requests[1].uri,
                 format!("{}/v1/systemone", config.ollama_endpoint)
             );
-            assert_eq!(requests[1].payload, build_ollama_request(&state, &config));
+            assert_eq!(
+                requests[1].payload,
+                build_ollama_request(&state, &config).unwrap()
+            );
             assert!(
                 requests
                     .iter()
@@ -1312,5 +1413,155 @@ mod tests {
             Err(EvaluationError::InvalidResponse)
         );
         assert_eq!(mock.calls(), 1);
+    }
+
+    fn operational_bound_step(mut step: Step, bytes: usize, overflow: bool) -> Step {
+        assert!(step.bytes.len() < bytes);
+        serde_json::from_slice::<Value>(&step.bytes).unwrap();
+        step.bytes.resize(bytes, b' '); // Valid JSON plus trailing ASCII whitespace.
+        assert_eq!(step.bytes.len(), bytes);
+        serde_json::from_slice::<Value>(&step.bytes).unwrap();
+        // A rejected body cannot finish normally: overflow must terminate the read.
+        step.stall = overflow;
+        step
+    }
+
+    fn operational_bound_config(backend: &str) -> RouterConfig {
+        crate::test_config(&json!({
+            "AUTOROUTER_EVALUATOR": backend,
+            "AUTOROUTER_AUTH_MODE": "subscription",
+            "AUTOROUTER_OLLAMA_MODEL": "nimble:9b-q4_K_M",
+            "AUTOROUTER_OLLAMA_TIMEOUT_MS": "30000",
+            "AUTOROUTER_JEV_TIMEOUT_MS": "1500",
+            "TYPESAFE_API_KEY": "synthetic-boundary-key"
+        }))
+    }
+
+    fn operational_bound_expected(backend: &str, accepted: bool) -> Value {
+        if !accepted {
+            return json!({"tier":"opus","evaluator":backend,"source":"fallback",
+                "reason":"classifier_unavailable","classifier_error":"invalid_response"});
+        }
+        let mut value = json!({"tier":"haiku","classified_tier":"haiku",
+            "evaluator":backend,"source":backend,"reason":"classified"});
+        if backend == "jev" {
+            value["confidence"] = json!(0.9);
+        }
+        value
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn exact_operational_decision_bytes_accept_65536_reject_65537_for_both_evaluators() {
+        for backend in ["jev", "ollama"] {
+            for (size, accepted) in [(65_536_usize, true), (65_537, false)] {
+                let config = operational_bound_config(backend);
+                assert!(config.jev_timeout_ms > 0 && config.ollama_timeout_ms > 0);
+                let seed = if backend == "jev" {
+                    jev(Tier::Haiku, 0.9)
+                } else {
+                    answer(&config.ollama_model, Tier::Haiku)
+                };
+                let step = operational_bound_step(seed, size, !accepted);
+                let steps = if backend == "ollama" {
+                    vec![metadata(), step]
+                } else {
+                    vec![step]
+                };
+                let mock = MockTransport::new(steps);
+                let cancel = CancellationToken::new();
+                let began = tokio::time::Instant::now();
+                let decision = evaluate_state(
+                    &mock,
+                    &config,
+                    &json!({"current_task":"Synthetic bounds control"}),
+                    "claude-opus-5",
+                    &cancel,
+                )
+                .await
+                .unwrap();
+                let decision = serde_json::to_value(decision).unwrap();
+                assert_eq!(decision, operational_bound_expected(backend, accepted));
+                assert_eq!(tokio::time::Instant::now(), began);
+                assert!(!cancel.is_cancelled());
+                let expected_calls = if backend == "ollama" { 2 } else { 1 };
+                assert_eq!(mock.calls(), expected_calls);
+                assert_eq!(mock.dropped.load(Ordering::SeqCst), expected_calls);
+                assert!(mock.steps.lock().unwrap().is_empty());
+                let requests = mock.requests.lock().unwrap();
+                if backend == "ollama" {
+                    assert!(requests[0].uri.ends_with("/api/show"));
+                    assert_eq!(requests[0].payload, json!({"model":config.ollama_model}));
+                    assert!(
+                        requests
+                            .iter()
+                            .all(|r| !r.headers.contains_key("authorization")
+                                && !r.headers.contains_key("x-api-key"))
+                    );
+                }
+                assert!(requests.last().unwrap().uri.ends_with("/v1/systemone"));
+                assert_eq!(
+                    requests.last().unwrap().payload["state"],
+                    json!({"current_task":"Synthetic bounds control"})
+                );
+                eprintln!(
+                    "operational evaluator byte observation: {}",
+                    json!({
+                    "backend":backend,"phase":"decision","bytes":size,"accepted":accepted,
+                    "decision":decision,"request_count":expected_calls,"dropped_bodies":expected_calls})
+                );
+            }
+        }
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn exact_operational_metadata_bytes_accept_1048576_reject_1048577_before_inference() {
+        for (size, accepted) in [(1_048_576_usize, true), (1_048_577, false)] {
+            let config = operational_bound_config("ollama");
+            assert!(config.ollama_timeout_ms > 0);
+            let step = operational_bound_step(metadata(), size, !accepted);
+            let steps = if accepted {
+                vec![step, answer(&config.ollama_model, Tier::Haiku)]
+            } else {
+                vec![step]
+            };
+            let mock = MockTransport::new(steps);
+            let cancel = CancellationToken::new();
+            let began = tokio::time::Instant::now();
+            let decision = evaluate_state(
+                &mock,
+                &config,
+                &json!({"current_task":"Synthetic bounds control"}),
+                "claude-opus-5",
+                &cancel,
+            )
+            .await
+            .unwrap();
+            let decision = serde_json::to_value(decision).unwrap();
+            assert_eq!(decision, operational_bound_expected("ollama", accepted));
+            assert_eq!(tokio::time::Instant::now(), began);
+            assert!(!cancel.is_cancelled());
+            let expected_calls = if accepted { 2 } else { 1 };
+            assert_eq!(mock.calls(), expected_calls);
+            assert_eq!(mock.dropped.load(Ordering::SeqCst), expected_calls);
+            assert!(mock.steps.lock().unwrap().is_empty());
+            let requests = mock.requests.lock().unwrap();
+            assert!(requests[0].uri.ends_with("/api/show"));
+            assert_eq!(requests[0].payload, json!({"model":config.ollama_model}));
+            assert!(
+                requests
+                    .iter()
+                    .all(|r| !r.headers.contains_key("authorization")
+                        && !r.headers.contains_key("x-api-key"))
+            );
+            if accepted {
+                assert!(requests[1].uri.ends_with("/v1/systemone"));
+            }
+            eprintln!(
+                "operational evaluator byte observation: {}",
+                json!({
+                "backend":"ollama","phase":"metadata","bytes":size,"accepted":accepted,
+                "decision":decision,"request_count":expected_calls,"dropped_bodies":expected_calls})
+            );
+        }
     }
 }

@@ -33,12 +33,9 @@ pub fn rank(model: &str) -> i32 {
         -1
     }
 }
+#[cfg(test)]
 fn property(doc: &JsDocument, node: NodeId, key: &str) -> Option<NodeId> {
     doc.get(node, key)
-}
-fn is(doc: &JsDocument, node: Option<NodeId>, value: &str) -> bool {
-    node.and_then(|n| doc.string(n))
-        .is_some_and(|s| s.units().iter().copied().eq(value.encode_utf16()))
 }
 fn array(doc: &JsDocument, node: Option<NodeId>) -> Option<&[NodeId]> {
     match node.and_then(|n| doc.node(n)) {
@@ -46,29 +43,14 @@ fn array(doc: &JsDocument, node: Option<NodeId>) -> Option<&[NodeId]> {
         _ => None,
     }
 }
-fn document_truthy(doc: &JsDocument, node: Option<NodeId>) -> bool {
-    match node.and_then(|node| doc.node(node)) {
-        None | Some(JsNode::Null | JsNode::Bool(false)) => false,
-        Some(JsNode::Number(value)) => *value != 0.0 && !value.is_nan(),
-        Some(JsNode::String(value)) => !value.units().is_empty(),
-        _ => true,
-    }
-}
 fn needs_sonnet_document(doc: &JsDocument) -> bool {
     let root = doc.root();
-    is(
-        doc,
-        doc.get(root, "thinking")
-            .and_then(|node| doc.get(node, "type")),
-        "adaptive",
-    ) || document_truthy(
-        doc,
-        doc.get(root, "output_config")
-            .and_then(|node| doc.get(node, "effort")),
-    ) || doc
-        .get(root, "max_tokens")
-        .and_then(|node| doc.node(node))
-        .is_some_and(|value| matches!(value, JsNode::Number(number) if *number > 64000.0))
+    doc.string_is(doc.get_path(root, &["thinking", "type"]), "adaptive")
+        || doc.is_truthy(doc.get_path(root, &["output_config", "effort"]))
+        || doc
+            .get(root, "max_tokens")
+            .and_then(|node| doc.node(node))
+            .is_some_and(|value| matches!(value, JsNode::Number(number) if *number > 64000.0))
 }
 fn is_key(key: &JsString, value: &str) -> bool {
     key.units().iter().copied().eq(value.encode_utf16())
@@ -109,8 +91,8 @@ fn write_turn_part<'a, W: JsonWrite + ?Sized>(
             TurnWrite::Block(node, nested) => match doc.node(node) {
                 Some(JsNode::Object(object)) => {
                     let recurse = nested
-                        && is(doc, property(doc, node, "type"), "tool_result")
-                        && array(doc, property(doc, node, "content")).is_some();
+                        && doc.string_is(doc.get(node, "type"), "tool_result")
+                        && array(doc, doc.get(node, "content")).is_some();
                     output.push('{');
                     stack.push(TurnWrite::Punctuation('}'));
                     let mut count = 0;
@@ -169,13 +151,9 @@ fn write_turn_preimage<W: JsonWrite + ?Sized>(
     output.push('[');
     JsString::from_scalar(scope).write_json(output);
     output.push(',');
-    write_turn_part(
-        doc,
-        TurnWrite::Content(property(doc, root, "system")),
-        output,
-    );
+    write_turn_part(doc, TurnWrite::Content(doc.get(root, "system")), output);
     output.push(',');
-    if let Some(tools) = array(doc, property(doc, root, "tools")) {
+    if let Some(tools) = array(doc, doc.get(root, "tools")) {
         output.push('[');
         for (position, &tool) in tools.iter().enumerate() {
             if position != 0 {
@@ -240,22 +218,22 @@ fn turn_info_prefix(
     end: Option<usize>,
 ) -> TurnInfo {
     let root = doc.root();
-    let all_messages = array(doc, property(doc, root, "messages")).unwrap_or_default();
+    let all_messages = array(doc, doc.get(root, "messages")).unwrap_or_default();
     let messages = &all_messages[..end.unwrap_or(all_messages.len()).min(all_messages.len())];
     // Recognition only reads earlier messages; later feedback cannot affect a
     // prefix's recognition, so one full scan also serves prior-turn recovery.
-    let feedback = goal_feedback_indexes_document(doc, property(doc, root, "messages"));
+    let feedback = goal_feedback_indexes_document(doc, doc.get(root, "messages"));
     let index = messages
         .iter()
         .enumerate()
         .rev()
         .find_map(|(index, &message)| {
-            (is(doc, property(doc, message, "role"), "user")
+            (doc.string_is(doc.get(message, "role"), "user")
                 && !feedback.contains(&index)
-                && !array(doc, property(doc, message, "content")).is_some_and(|blocks| {
+                && !array(doc, doc.get(message, "content")).is_some_and(|blocks| {
                     blocks
                         .iter()
-                        .any(|b| is(doc, property(doc, *b, "type"), "tool_result"))
+                        .any(|b| doc.string_is(doc.get(*b, "type"), "tool_result"))
                 }))
             .then_some(index)
         });
@@ -278,7 +256,7 @@ fn turn_info_prefix(
         continuation: index.is_none()
             || messages[index.map_or(0, |i| i + 1)..]
                 .iter()
-                .any(|n| !is(doc, property(doc, *n, "role"), "system")),
+                .any(|n| !doc.string_is(doc.get(*n, "role"), "system")),
     }
 }
 
@@ -298,15 +276,18 @@ fn known_deferred_tool(doc: &JsDocument, tool: NodeId) -> bool {
         return false;
     };
     if !matches!(
-        property(doc, tool, "defer_loading").and_then(|n| doc.node(n)),
+        doc.get(tool, "defer_loading").and_then(|n| doc.node(n)),
         Some(JsNode::Bool(true))
-    ) || property(doc, tool, "type").is_some_and(|n| !is(doc, Some(n), "custom"))
-        || !property(doc, tool, "name")
+    ) || doc
+        .get(tool, "type")
+        .is_some_and(|n| !doc.string_is(Some(n), "custom"))
+        || !doc
+            .get(tool, "name")
             .and_then(|n| doc.string(n))
             .is_some_and(|s| !s.units().is_empty())
-        || !property(doc, tool, "input_schema").is_some_and(|n| {
+        || !doc.get(tool, "input_schema").is_some_and(|n| {
             matches!(doc.node(n), Some(JsNode::Object(_)))
-                && is(doc, property(doc, n, "type"), "object")
+                && doc.string_is(doc.get(n, "type"), "object")
         })
     {
         return false;
@@ -318,7 +299,7 @@ fn known_deferred_tool(doc: &JsDocument, tool: NodeId) -> bool {
         "input_examples",
         "allowed_callers",
     ] {
-        if let Some(node) = property(doc, tool, field) {
+        if let Some(node) = doc.get(tool, field) {
             let valid = match field {
                 "description" => matches!(doc.node(node), Some(JsNode::String(_))),
                 "strict" | "eager_input_streaming" => {
@@ -435,7 +416,7 @@ fn context_size_bytes_up_to(
     let Some(full) = doc.serialized_len_up_to(serialized_limit) else {
         return Err(ContextByteChargeUnavailable);
     };
-    let tools_node = property(doc, doc.root(), "tools");
+    let tools_node = doc.get(doc.root(), "tools");
     let Some(tools) = array(doc, tools_node) else {
         return Ok(ContextByteCharge(full as f64));
     };
@@ -444,7 +425,7 @@ fn context_size_bytes_up_to(
         || !tools.iter().any(|n| {
             matches!(doc.node(*n), Some(JsNode::Object(_)))
                 && !matches!(
-                    property(doc, *n, "defer_loading").and_then(|n| doc.node(n)),
+                    doc.get(*n, "defer_loading").and_then(|n| doc.node(n)),
                     Some(JsNode::Bool(true))
                 )
         })
@@ -456,21 +437,22 @@ fn context_size_bytes_up_to(
         reason = "JsString only caches immutable code units"
     )]
     let mut references: HashMap<JsString, f64> = HashMap::new();
-    let mut pending = array(doc, property(doc, doc.root(), "messages"))
+    let mut pending = array(doc, doc.get(doc.root(), "messages"))
         .unwrap_or_default()
         .to_vec();
     while let Some(node) = pending.pop() {
         match doc.node(node) {
             Some(JsNode::Array(items)) => pending.extend_from_slice(items),
             Some(JsNode::Object(object)) => {
-                let kind = property(doc, node, "type");
-                if is(doc, kind, "tool_reference") || is(doc, kind, "tool_use") {
-                    let field = if is(doc, kind, "tool_reference") {
+                let kind = doc.get(node, "type");
+                if doc.string_is(kind, "tool_reference") || doc.string_is(kind, "tool_use") {
+                    let field = if doc.string_is(kind, "tool_reference") {
                         "tool_name"
                     } else {
                         "name"
                     };
-                    let Some(name) = property(doc, node, field)
+                    let Some(name) = doc
+                        .get(node, field)
                         .and_then(|n| doc.string(n))
                         .filter(|s| !s.units().is_empty())
                     else {
@@ -487,7 +469,8 @@ fn context_size_bytes_up_to(
     let mut visible = Vec::new();
     for &tool in tools {
         if known_deferred_tool(doc, tool) {
-            let name = property(doc, tool, "name")
+            let name = doc
+                .get(tool, "name")
                 .and_then(|n| doc.string(n))
                 .expect("validated name");
             let occurrences = references.get(name).copied().unwrap_or_default();
@@ -514,10 +497,10 @@ fn context_size_bytes_up_to(
     )
 }
 fn has_content_block(doc: &JsDocument, types: &[&str]) -> bool {
-    let mut pending: Vec<_> = array(doc, property(doc, doc.root(), "messages"))
+    let mut pending: Vec<_> = array(doc, doc.get(doc.root(), "messages"))
         .unwrap_or_default()
         .iter()
-        .filter_map(|n| property(doc, *n, "content"))
+        .filter_map(|n| doc.get(*n, "content"))
         .collect();
     while let Some(content) = pending.pop() {
         let Some(blocks) = array(doc, Some(content)) else {
@@ -526,12 +509,12 @@ fn has_content_block(doc: &JsDocument, types: &[&str]) -> bool {
         for &block in blocks {
             if types
                 .iter()
-                .any(|kind| is(doc, property(doc, block, "type"), kind))
+                .any(|kind| doc.string_is(doc.get(block, "type"), kind))
             {
                 return true;
             }
-            if is(doc, property(doc, block, "type"), "tool_result")
-                && let Some(child) = property(doc, block, "content")
+            if doc.string_is(doc.get(block, "type"), "tool_result")
+                && let Some(child) = doc.get(block, "content")
             {
                 pending.push(child);
             }
@@ -733,29 +716,24 @@ impl Router {
             array(doc, doc.get(doc.root(), "messages")).is_some_and(|messages| {
                 messages
                     .iter()
-                    .any(|&message| is(doc, doc.get(message, "role"), "system"))
+                    .any(|&message| doc.string_is(doc.get(message, "role"), "system"))
             });
         start.unknown_model = rank(requested) < 0
             && !["haiku", "sonnet", "opus"]
                 .iter()
                 .any(|tier| self.tier_model_exact(tier) == requested_identity(doc));
-        start.model_specific_thinking = document_truthy(doc, doc.get(doc.root(), "thinking"))
-            && !["disabled", "adaptive"].iter().any(|kind| {
-                is(
-                    doc,
-                    doc.get(doc.root(), "thinking")
-                        .and_then(|node| doc.get(node, "type")),
-                    kind,
-                )
-            });
+        start.model_specific_thinking = doc.is_truthy(doc.get(doc.root(), "thinking"))
+            && !["disabled", "adaptive"]
+                .iter()
+                .any(|kind| doc.string_is(doc.get_path(doc.root(), &["thinking", "type"]), kind));
         start.model_specific_features = start.model_specific_thinking
             || ["context_management", "speed", "container", "mcp_servers"]
                 .iter()
-                .any(|key| document_truthy(doc, doc.get(doc.root(), key)))
+                .any(|key| doc.is_truthy(doc.get(doc.root(), key)))
             || array(doc, doc.get(doc.root(), "tools")).is_some_and(|tools| {
                 tools.iter().any(|&tool| {
-                    document_truthy(doc, doc.get(tool, "type"))
-                        && !is(doc, doc.get(tool, "type"), "custom")
+                    doc.is_truthy(doc.get(tool, "type"))
+                        && !doc.string_is(doc.get(tool, "type"), "custom")
                 })
             });
         start.thinking_history = has_content_block(doc, &["thinking", "redacted_thinking"]);
@@ -849,13 +827,13 @@ impl Router {
                 messages
                     .iter()
                     .rev()
-                    .find(|node| is(doc, doc.get(**node, "role"), "user"))
+                    .find(|node| doc.string_is(doc.get(**node, "role"), "user"))
             })
             .and_then(|message| array(doc, doc.get(*message, "content")))
             .map(|blocks| {
                 blocks
                     .iter()
-                    .filter(|block| is(doc, doc.get(**block, "type"), "tool_result"))
+                    .filter(|block| doc.string_is(doc.get(**block, "type"), "tool_result"))
                     .filter_map(|block| {
                         doc.get(*block, "tool_use_id")
                             .and_then(|id| doc.string(id))
@@ -919,12 +897,7 @@ impl Router {
         } else if start.unknown_model {
             chosen = Some((requested_exact.clone(), "unknown_model"));
         } else if start.model_specific_thinking
-            && !is(
-                doc,
-                doc.get(doc.root(), "thinking")
-                    .and_then(|node| doc.get(node, "type")),
-                "enabled",
-            )
+            && !doc.string_is(doc.get_path(doc.root(), &["thinking", "type"]), "enabled")
             && text_turn
             && !shared_auto_request
         {
@@ -1129,7 +1102,7 @@ impl Router {
             .turn_pin
             .as_ref()
             .map(|pin| {
-                if pin.value["confirmed"] == true {
+                if pin.is_confirmed() {
                     ContinuityState::Confirmed
                 } else {
                     ContinuityState::Selected

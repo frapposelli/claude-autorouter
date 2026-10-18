@@ -111,15 +111,8 @@ fn default_lowered_and_decoded_limits_share_the_exact_source_ceiling() {
 struct Fixture(PathBuf);
 impl Fixture {
     fn new() -> Self {
-        let mut bytes = [0; 12];
-        getrandom::fill(&mut bytes).unwrap();
-        let path = std::env::temp_dir().join(format!(
-            "autorouter-history-limits-{}",
-            bytes
-                .iter()
-                .map(|byte| format!("{byte:02x}"))
-                .collect::<String>()
-        ));
+        let suffix = autorouter_runtime::random_hex::<12>().unwrap();
+        let path = std::env::temp_dir().join(format!("autorouter-history-limits-{suffix}"));
         std::fs::DirBuilder::new()
             .mode(0o700)
             .create(&path)

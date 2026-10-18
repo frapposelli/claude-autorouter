@@ -3,7 +3,7 @@
 #[path = "support/server_contract.rs"]
 mod contract;
 use contract::{
-    Reply, chunks, compare_metadata, compare_request, decode, event_names, events, headers,
+    Reply, compare_metadata, compare_request, decode, event_names, events, headers,
     javascript_number_equality, parsed, response_bytes, sink, upstream_rows,
 };
 #[path = "support/server_ollama_usage.rs"]
@@ -20,7 +20,6 @@ use autorouter_runtime::{
 use bytes::Bytes;
 use peer::{Observation, Peer, ResponsePlan};
 use serde_json::{Value, json};
-use sha2::{Digest, Sha256};
 use std::{
     path::Path,
     sync::{
@@ -38,23 +37,16 @@ const LIMIT: usize = 2 * 1024 * 1024;
 const BOUND: Duration = Duration::from_secs(5);
 type Events = Arc<Mutex<Vec<Value>>>;
 fn case(number: usize) -> Value {
-    assert_eq!(
-        format!("{:x}", Sha256::digest(CORPUS.as_bytes())),
-        "4fb38321dcbf5b071841529ca25bdb3af0b077d888b4359718697885c4b02b9a"
-    );
-    assert_eq!(
-        format!("{:x}", Sha256::digest(CAPTURE.as_bytes())),
-        "360be4af55d128b570698731c9653f01e9e158548c966694942e154056d9905e"
-    );
-    let metadata: Value = serde_json::from_str(CAPTURE).unwrap();
-    assert_eq!(metadata["static_assertions"], 26);
-    assert_eq!(metadata["expanded_assertions"], 36);
-    assert_eq!(metadata["callbacks_executed"], 4);
-    CORPUS
-        .lines()
-        .map(|line| serde_json::from_str::<Value>(line).unwrap())
-        .find(|row| row["source_test"] == format!("test/server.test.mjs#{number}"))
-        .unwrap()
+    contract::captured_server_case(
+        number,
+        CORPUS,
+        CAPTURE,
+        [
+            "4fb38321dcbf5b071841529ca25bdb3af0b077d888b4359718697885c4b02b9a",
+            "360be4af55d128b570698731c9653f01e9e158548c966694942e154056d9905e",
+        ],
+        (26, 36, Some(4)),
+    )
 }
 use contract::MockRouter;
 struct Fixture {
@@ -77,25 +69,11 @@ struct Seen {
 }
 impl Fixture {
     async fn new(row: &Value) -> Self {
-        let script = upstream_rows(row);
-        let peer = Peer::start(move |request, index| {
-            let wanted = script.get(index).ok_or("unregistered peer request")?;
-            compare_request(request, wanted)?;
-            Ok(ResponsePlan::chunks(
-                wanted["response_status"].as_u64().unwrap() as u16,
-                headers(&wanted["response_headers"]),
-                chunks(wanted),
-            ))
-        })
-        .await
-        .unwrap();
+        let peer = Peer::start(contract::indexed_responder(row, ResponsePlan::chunks))
+            .await
+            .unwrap();
         let client = Arc::new(NativeHttpClient::new().unwrap());
-        let mut config =
-            read_config(&row["config_arguments"][0][0], false, Path::new("/tmp")).unwrap();
-        config.local_token = row["gateway_config"]["localToken"]
-            .as_str()
-            .map(str::to_owned);
-        config.upstream = format!("http://{}", peer.address);
+        let config = contract::gateway_config(row, &row["config_arguments"][0][0], peer.address);
         let router = Arc::new(MockRouter {
             decisions: row["route_calls"]
                 .as_array()

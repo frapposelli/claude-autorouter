@@ -1,0 +1,443 @@
+{
+  "schema_version": 1,
+  "kind": "native_turn_state_pin_metadata_continuity_repair",
+  "recorded_at_utc": "2026-10-18T02:49:56.011854+00:00",
+  "baseline_commit": "ea930c247626ce2af5ccdad721b5121417bf4ad8",
+  "base_commit": "7b419cb5788a7f74698ce05a5e3789b38faf8534",
+  "status": "validated_local_repair_and_two_scoped_fixed_limits_accepted",
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/final-source.json",
+    "bytes": 116787,
+    "sha256": "9738289c748ef9cee84f9f13bc1151e62ff493fedf4a9c5969181748a1bb8eee"
+  },
+  "source_inputs": 696,
+  "frozen_reference_files": 111,
+  "source_changes": [
+    {
+      "path": "rust/crates/autorouter-core/src/js_json.rs",
+      "bytes": 80904,
+      "sha256": "902279ca53c13e384596f6721e294988f6858d7feb14e1b8071765778e7fcf11"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/turn_state.rs",
+      "bytes": 43141,
+      "sha256": "f531ced4d9506da359b1f5dd02e6e3ab0931e3f883684ecfedb511701d81654e"
+    },
+    {
+      "path": "rust/crates/autorouter-core/src/router.rs",
+      "bytes": 66556,
+      "sha256": "3e2c692e5229f4469c7413fa4d52ef79c98c6506c292153c639609a4f658e035"
+    },
+    {
+      "path": "rust/docs/embedding.md",
+      "bytes": 46058,
+      "sha256": "ae116121f0dcb23dcaca17b93620cb2dd17a095bb6aa27d76d1b4d7decc05c6e"
+    }
+  ],
+  "problem": "Successful completion of nonobject Value pin could return true while confirmed metadata and exact tool-owner gate were absent; a newer task retired it and lazy TTL cleanup dropped confirmed tool ownership. Selected scalars/arrays also failed JavaScript object-spread semantics.",
+  "changes": [
+    "Normalize all JSON pin kinds at commit. Exact arena metadata retains UTF16 code-unit string properties, including generated lone surrogates; Value observation repairs only those units without truncating existing opaque members.",
+    "Expose immutable get_metadata_exact with the same lazy expiry and ambiguity policy as get_exact.",
+    "Keep a private confirmation flag on the owned Pin; both tool-owner lookup and Router continuity labeling read it. Selection resets it; only validated current completion sets it.",
+    "Separate raw Value selection retention (original toolModels.length truthiness) from exact native selection retention (typed tools). Completion replaces retention with validated exact evidence.",
+    "Retain exact-origin on staged attempts so completion restores requestedModel units for exact inputs while preserving arbitrary Value requestedModel metadata/absence."
+  ],
+  "api_boundaries": [
+    "Construct native Pin with Pin::new rather than a struct literal; the new private confirmation field prevents caller mutation from forging confirmation. Public exact identities/tools remain editable before ownership transfer.",
+    "get and Pin.value are explicitly lossy metadata observations for generated surrogate units. get_metadata_exact is the exact document; model/tool/request identities remain JsString, never reconstructed from repaired observations.",
+    "Value adapter supports JSON metadata, not JavaScript getters/prototypes/mutable object aliases. Typed tool evidence is not arbitrary JavaScript extension-object identity. No whole-API or whole-area parity approval is inferred."
+  ],
+  "regressions": {
+    "new_native_tests": 8,
+    "turn_state_module_tests_in_workspace": 17,
+    "red": {
+      "receipt": {
+        "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/red.json",
+        "bytes": 565,
+        "sha256": "32d37e8bc96e46c880f4f0c7a50982104bcf780ccf0ddf81b7a2d839e090a089"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/red.stdout",
+        "bytes": 3096,
+        "sha256": "4498b1c685101720c46f4954d3d1655cf2b4e0dc59bca033ef41e1500e54f8aa"
+      },
+      "totals": {
+        "passed": 9,
+        "failed": 4,
+        "ignored": 0,
+        "groups": 1
+      },
+      "original_tests_unchanged": true
+    },
+    "original_direct_counterexample": {
+      "comparison": {
+        "path": "artifacts/rust-rewrite/turn-state-pin-value-domain-validation-20261018-1/comparison.json",
+        "bytes": 6184,
+        "sha256": "bacc03defb322a08f82c5b470bfc6aabf9b16015fe18c9a16ab1808b1bb14c7b"
+      },
+      "independent_review": {
+        "path": "artifacts/rust-rewrite/turn-state-pin-value-domain-validation-20261018-1/independent-actual-results-review.json",
+        "bytes": 14525,
+        "sha256": "93e692f19648f483cfc8ffe46471878c1a67c1894cd5e8f5401143c63d556d4f"
+      },
+      "source_expected_matches": 48,
+      "source_native_mismatches": 11,
+      "retained_as_failure": true
+    },
+    "green": {
+      "cases": 14,
+      "observations_each": 4176,
+      "all_complete_rows_byte_equal": true,
+      "cohorts": [
+        {
+          "directory": "artifacts/rust-rewrite/turn-pin-value-green-validation-20261018-1",
+          "binding": {
+            "path": "artifacts/rust-rewrite/turn-pin-value-green-validation-20261018-1/execution-binding.json",
+            "bytes": 5341,
+            "sha256": "0705556d816c67b4d3d65593b1a216650037903e227940ac748618a53d85312f"
+          },
+          "native_compilation": {
+            "path": "artifacts/rust-rewrite/turn-pin-value-green-validation-20261018-1/native-compile.json",
+            "bytes": 1088,
+            "sha256": "ba36718dac9437d29cbaf001e1487838e0d6444322b6ce241aeb50e32890b034"
+          },
+          "comparison": {
+            "path": "artifacts/rust-rewrite/turn-pin-value-green-validation-20261018-1/comparison.json",
+            "bytes": 895,
+            "sha256": "95bc39a47240f5b1a922b7591b73538ffc495d4b7c4b27383a6147079b9569a2"
+          },
+          "source_receipt": {
+            "path": "artifacts/rust-rewrite/turn-pin-value-green-validation-20261018-1/source.json",
+            "bytes": 2093,
+            "sha256": "6ca2daf26aaf9e4497566163d0836ba7ee7cbd0dd177cb602f83ef474b9389e0"
+          },
+          "native_receipt": {
+            "path": "artifacts/rust-rewrite/turn-pin-value-green-validation-20261018-1/native.json",
+            "bytes": 1982,
+            "sha256": "8de7838d61476c210fa3fa4aed3cb1cd824cd3ebc77254c25b2d764656c87438"
+          },
+          "source_output": {
+            "path": "artifacts/rust-rewrite/turn-pin-value-green-validation-20261018-1/source.stdout",
+            "bytes": 2551,
+            "sha256": "cc5a6fd839746c84e648e522514facd1ed3b06166090fdd88a331b8c51f4e3c9"
+          },
+          "native_output": {
+            "path": "artifacts/rust-rewrite/turn-pin-value-green-validation-20261018-1/native.stdout",
+            "bytes": 2551,
+            "sha256": "cc5a6fd839746c84e648e522514facd1ed3b06166090fdd88a331b8c51f4e3c9"
+          },
+          "root_admission": {
+            "path": "artifacts/rust-rewrite/turn-pin-value-green-validation-20261018-1/root-pre-run-admission.json",
+            "bytes": 890,
+            "sha256": "9a4d09efae91172b6b1a4832cc28842e82f74081105d534bef0be5b55339a0d9"
+          },
+          "note": "Complete byte-identical result rows; all EOF/reap/zero-error and696+111 source guards checked. Direct-PID prewait raw SIGKILL attempts remain in receipts; no group/descendant/cross-crash guarantee."
+        },
+        {
+          "directory": "artifacts/rust-rewrite/turn-default-boundaries-green-validation-20261018-1",
+          "binding": {
+            "path": "artifacts/rust-rewrite/turn-default-boundaries-green-validation-20261018-1/execution-binding.json",
+            "bytes": 5462,
+            "sha256": "3df2f16b47dc350d213573c40a54e5f1a29977b3ae4679799b2c5b295f34d362"
+          },
+          "native_compilation": {
+            "path": "artifacts/rust-rewrite/turn-default-boundaries-green-validation-20261018-1/native-compile.json",
+            "bytes": 1112,
+            "sha256": "6e1df7820f717c5f4af49fdaf9e8bbee98b39276ab9050f987a7c190f668949b"
+          },
+          "comparison": {
+            "path": "artifacts/rust-rewrite/turn-default-boundaries-green-validation-20261018-1/comparison.json",
+            "bytes": 591,
+            "sha256": "a2c1eb0ecdb8ef9b9b47f7991ef998c2efda5f89ad989610569cd857ba2cbd20"
+          },
+          "source_receipt": {
+            "path": "artifacts/rust-rewrite/turn-default-boundaries-green-validation-20261018-1/source.json",
+            "bytes": 1942,
+            "sha256": "ed7b0af814eb9dca82144937813feba634b2cdb62cf924fc6edaaf9fa7feff9b"
+          },
+          "native_receipt": {
+            "path": "artifacts/rust-rewrite/turn-default-boundaries-green-validation-20261018-1/native.json",
+            "bytes": 1991,
+            "sha256": "15efdf31dad67758b5fc04b83bb82ab2f471a13a7a114b44d4b3c58537911a3c"
+          },
+          "source_output": {
+            "path": "artifacts/rust-rewrite/turn-default-boundaries-green-validation-20261018-1/source.stdout",
+            "bytes": 24024,
+            "sha256": "2b4f845fe64818e1e25006cb92ad792689eb49624ac9254172b760c5246f44a3"
+          },
+          "native_output": {
+            "path": "artifacts/rust-rewrite/turn-default-boundaries-green-validation-20261018-1/native.stdout",
+            "bytes": 24024,
+            "sha256": "2b4f845fe64818e1e25006cb92ad792689eb49624ac9254172b760c5246f44a3"
+          },
+          "root_admission": {
+            "path": "artifacts/rust-rewrite/turn-default-boundaries-green-validation-20261018-1/root-pre-run-admission.json",
+            "bytes": 890,
+            "sha256": "1786920a7fefb9a3754671afd190eb5570e0427a4e39318db342e531a3809dc8"
+          },
+          "note": "Complete byte-identical result rows; all EOF/reap/zero-error and696+111 source guards checked. Direct-PID prewait raw SIGKILL attempts remain in receipts; no group/descendant/cross-crash guarantee."
+        },
+        {
+          "directory": "artifacts/rust-rewrite/turn-inactive-pending-green-validation-20261018-1",
+          "binding": {
+            "path": "artifacts/rust-rewrite/turn-inactive-pending-green-validation-20261018-1/execution-binding.json",
+            "bytes": 5466,
+            "sha256": "1ab28980c41b942e87c73079a768891dc4573696d7481e4dc8f69ed0f167110f"
+          },
+          "native_compilation": {
+            "path": "artifacts/rust-rewrite/turn-inactive-pending-green-validation-20261018-1/native-compile.json",
+            "bytes": 1107,
+            "sha256": "0cba9b52ba2b0eb803fc40fe98ffaa789311fc7c93f421cbbfdcc13d7ecfa18a"
+          },
+          "comparison": {
+            "path": "artifacts/rust-rewrite/turn-inactive-pending-green-validation-20261018-1/comparison.json",
+            "bytes": 563,
+            "sha256": "158cd9a3a2f66fd46b3ef6fdd61b1d15ed0243de50875b8bcd98fb3e094dc8e0"
+          },
+          "source_receipt": {
+            "path": "artifacts/rust-rewrite/turn-inactive-pending-green-validation-20261018-1/source.json",
+            "bytes": 2099,
+            "sha256": "594b5adab4c371e19e54149e4df15dbc2e71e3acf22a6a4298d35f0559bb5ea4"
+          },
+          "native_receipt": {
+            "path": "artifacts/rust-rewrite/turn-inactive-pending-green-validation-20261018-1/native.json",
+            "bytes": 1984,
+            "sha256": "1b45ad4fcc65ebb9cc9af491b47df05d107027b2ae3304a50783ed484465ce13"
+          },
+          "source_output": {
+            "path": "artifacts/rust-rewrite/turn-inactive-pending-green-validation-20261018-1/source.stdout",
+            "bytes": 1871,
+            "sha256": "606e152beca25049d704bb9aea6954a5346f82cb360c68a1eb22a4f3cefbbf91"
+          },
+          "native_output": {
+            "path": "artifacts/rust-rewrite/turn-inactive-pending-green-validation-20261018-1/native.stdout",
+            "bytes": 1871,
+            "sha256": "606e152beca25049d704bb9aea6954a5346f82cb360c68a1eb22a4f3cefbbf91"
+          },
+          "root_admission": {
+            "path": "artifacts/rust-rewrite/turn-inactive-pending-green-validation-20261018-1/root-pre-run-admission.json",
+            "bytes": 890,
+            "sha256": "053c562f96c63633dfa8d9d782ecab1ca7351f8c7607ae880b7f3171b96a0008"
+          },
+          "note": "Complete byte-identical result rows; all EOF/reap/zero-error and696+111 source guards checked. Direct-PID prewait raw SIGKILL attempts remain in receipts; no group/descendant/cross-crash guarantee."
+        },
+        {
+          "directory": "artifacts/rust-rewrite/turn-exact-metadata-green-validation-20261018-1",
+          "binding": {
+            "path": "artifacts/rust-rewrite/turn-exact-metadata-green-validation-20261018-1/execution-binding.json",
+            "bytes": 4899,
+            "sha256": "eb9ec025cf2840d12c4f0dc18e043d9048c37ed7a735b6e3504f77b8aec464e4"
+          },
+          "native_compilation": {
+            "path": "artifacts/rust-rewrite/turn-exact-metadata-green-validation-20261018-1/native-compile.json",
+            "bytes": 1104,
+            "sha256": "f310aa75f427a6b4123efc69d571724546c033b0ba032d8c9d97c91351599bfb"
+          },
+          "comparison": {
+            "path": "artifacts/rust-rewrite/turn-exact-metadata-green-validation-20261018-1/comparison.json",
+            "bytes": 765,
+            "sha256": "6c82bda9517bf89fcab1938647022cdaf8f6ec29588a9831cf36781a9432002e"
+          },
+          "source_receipt": {
+            "path": "artifacts/rust-rewrite/turn-exact-metadata-green-validation-20261018-1/source.json",
+            "bytes": 2098,
+            "sha256": "6cf6ab5e245550e9d536e96a758fdf5543959ccce48cf2a9229f87b934073acf"
+          },
+          "native_receipt": {
+            "path": "artifacts/rust-rewrite/turn-exact-metadata-green-validation-20261018-1/native.json",
+            "bytes": 1982,
+            "sha256": "b4250232e0c092b1f4a27bdcbca288052a3e1cb7882b67873d76bd2b7b846ccc"
+          },
+          "source_output": {
+            "path": "artifacts/rust-rewrite/turn-exact-metadata-green-validation-20261018-1/source.stdout",
+            "bytes": 1147,
+            "sha256": "d2995aa5b1178c20b7d3e4bb096aeb014d42dea4d5a1f64e6f326d785b8ba3ea"
+          },
+          "native_output": {
+            "path": "artifacts/rust-rewrite/turn-exact-metadata-green-validation-20261018-1/native.stdout",
+            "bytes": 1147,
+            "sha256": "d2995aa5b1178c20b7d3e4bb096aeb014d42dea4d5a1f64e6f326d785b8ba3ea"
+          },
+          "root_admission": {
+            "path": "artifacts/rust-rewrite/turn-exact-metadata-green-validation-20261018-1/root-pre-run-admission.json",
+            "bytes": 890,
+            "sha256": "55ae64ceed0ea4f2826b3e8da8c0e4c825c36266eb3106b9f7a6a9da7b14f458"
+          },
+          "note": "Complete byte-identical result rows; all EOF/reap/zero-error and696+111 source guards checked. Direct-PID prewait raw SIGKILL attempts remain in receipts; no group/descendant/cross-crash guarantee."
+        }
+      ],
+      "native_typed_surrogate_schedule": "2cases24observations use exact typed identities/direct raw metadata serialization, never surrogate serde Value; Source uses the unchanged JSON fixture adapter."
+    }
+  },
+  "checks": {
+    "workspace": {
+      "receipt": {
+        "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/workspace-loopback.json",
+        "bytes": 513,
+        "sha256": "ec9f1acc90b23ced24a8dc8597e2f9dea033d2202d40aeaa47c93f53ca266cb2"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/workspace-loopback.stdout",
+        "bytes": 148107,
+        "sha256": "43f26c66a56c3d1847ec600350aeba1f1ad7d5fbff17328585561091378ffc65"
+      },
+      "totals": {
+        "passed": 1408,
+        "failed": 1,
+        "ignored": 10,
+        "groups": 61
+      }
+    },
+    "deferred_integrations": {
+      "receipt": {
+        "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/deferred-final.json",
+        "bytes": 629,
+        "sha256": "a5dc085a8e3c6380015329ce20dd31e4f7b3b41e9938b10d956fdf10080f3cf2"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/deferred-final.stdout",
+        "bytes": 1298,
+        "sha256": "5a4464f57374947294a2946e58ab268daf3d2ad1c3c05f10e45fd5e53a0ab00a"
+      },
+      "totals": {
+        "passed": 11,
+        "failed": 0,
+        "ignored": 1,
+        "groups": 3
+      }
+    },
+    "combined": {
+      "passed": 1419,
+      "failed": 1,
+      "ignored": 11,
+      "groups": 64,
+      "commands": 2,
+      "meaning": "Cargo execution counts, not unique tests; no doc-test or feature-gated final release qualification."
+    },
+    "format": {
+      "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/fmt-final.json",
+      "bytes": 444,
+      "sha256": "7df396eedffe3d05fcd6b55c6ed2913af909a70edae104c6f47b012f270f6b85"
+    },
+    "strict_workspace_all_targets_clippy": {
+      "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/clippy-final.json",
+      "bytes": 537,
+      "sha256": "a00f268677e3d61a49c433e7f1b24bc3152d56b02011dc8228ad49fea79e6891"
+    },
+    "node_check": {
+      "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/npm-check-final.json",
+      "bytes": 443,
+      "sha256": "65eaa014147d502e235f508115069c3c5faf30ebd4fd769a33d816e3ac092e3a"
+    },
+    "node_tests": {
+      "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/npm-test-loopback.json",
+      "bytes": 443,
+      "sha256": "3fbafd7368e8fb1e2a7a19ca5532d29a6aba2cbaac66d7d1f2f9497711c58506"
+    },
+    "node_test_result": {
+      "passed": 596,
+      "failed": 0
+    },
+    "installed_shipping_package": {
+      "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/npm-package-loopback.json",
+      "bytes": 447,
+      "sha256": "3168fc7357f35b5f324fa99e9f7c5b904439940133a5ff4ce84e6195dbf623bf"
+    },
+    "shipping_package_files": 58,
+    "ordinary_core_library_build": {
+      "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/core-build-final.json",
+      "bytes": 506,
+      "sha256": "ba73237e7adab5a912a60bae67e801e1ecfd9815e8305df16f7a5ea3592a8de2"
+    },
+    "build_scope": "Ordinary current-source cargo build and pinned rlib/consumer linkage, not clean release reproducibility, full compiler-artifact JSON attestation or platform qualification.",
+    "retained_initial_sandbox_failures": [
+      {
+        "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/workspace-final.json",
+        "bytes": 513,
+        "sha256": "f36b16049daadec730c689a15a9c0d8f0205d04ecc0e663ebb6c75ad69083656"
+      },
+      {
+        "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/npm-test-final.json",
+        "bytes": 443,
+        "sha256": "3d1a0f98629bb1aeae34a8543735d0813eb7e5e28f211b8bffc6dbc12d00b79a"
+      }
+    ],
+    "sandbox_retry_conditions": "Same696charged sources and111frozen files; retry allowed synthetic loopback listeners. Node test child umask0022 in both initial and retry; owner artifact files remain private. No assertions changed.",
+    "vendor_warning": "Existing hyper-util unused timer warning retained; strict workspace command exits0."
+  },
+  "source_transfer": {
+    "census": {
+      "path": "artifacts/rust-rewrite/source-transfer-census-20261018-13/census.json",
+      "bytes": 13929,
+      "sha256": "03f4cefca07760ec895861df6984c679e964307bc4fea2c9701b27200bfae5dc"
+    },
+    "logical_bytes": 33710273,
+    "logical_cap": 33554432,
+    "logical_overage": 155841,
+    "expanded_carrier_bytes": 33684992,
+    "expanded_cap": 33554432,
+    "expanded_overage": 130560,
+    "actual_test_result": "FAIL: logical cap rejected before encoding",
+    "scope": "Census is exact offline arithmetic. No successful actual export, gzip archive or restore is claimed. No cap, allowlist, manifest/schema representation, fixture, vendor, license or workload change."
+  },
+  "limits_acceptance": {
+    "decision": "Root accepts both fixed-limit rows following independent actual review; other51 limits unchanged.",
+    "proposed_ids": [
+      "turn_records_attempts",
+      "retired_turn_ttl_ms"
+    ],
+    "baseline_values": [
+      1000,
+      1800000
+    ],
+    "boundary_scope": "Independent full1000 record and1000 pending-attempt ceilings,1001rejection without sequence/alias poisoning, eligible retired pressure reclamation, defaultTTL-1/equality lazy expiry and non-sliding reads, active current/tool protection, already-inactive expired pending-attempt protection, failed-release timer restart, confirmed nonobject pin retention repair and exact UTF16 identity separation.",
+    "counts_before": {
+      "covered": 16,
+      "pending": 37
+    },
+    "counts_after": {
+      "covered": 18,
+      "pending": 35
+    },
+    "other_counts_unchanged": {
+      "original_definitions_covered": 540,
+      "original_definitions_partial": 48,
+      "configuration_covered": 18,
+      "configuration_pending": 9,
+      "areas_partial": 13
+    }
+  },
+  "nonclaims": [
+    "No real Claude/evaluator calls, downloads, Keychain access or user settings edited.",
+    "No current performance/RSS/hardware/minimum-platform/TLS/production archive/release/cutover qualification.",
+    "JavaScript0.5.2 remains shipping default. Previously recorded14greenCIjobs apply only to committed7b419cb; current local changes need freshCI after source-transfer gate is resolved.",
+    "No original588test-definition promotion, configuration-key promotion or whole-area approval from this supplemental boundary work."
+  ],
+  "independent_reviews": [
+    {
+      "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/independent-production-static-review.json",
+      "bytes": 9264,
+      "sha256": "b6bd6d47bf95e2be31939c296f9258926d5bd2d20f041e6998258fc6f3ed27b9"
+    },
+    {
+      "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/independent-final-tests-docs-review.json",
+      "bytes": 4970,
+      "sha256": "9560d5268937bd87df3e5fdb20df914b745a9be6250a04c326fc5dec6a2a83ac"
+    },
+    {
+      "path": "artifacts/rust-rewrite/turn-pin-repair-validation-20261018-1/independent-four-cohort-results-and-limits-review.json",
+      "bytes": 24896,
+      "sha256": "e4589f4ecfbc76241a9d7fa5458b6d8dfdfa6fef6467a4701d74c4b0f45c5374"
+    }
+  ],
+  "exact_consumer_review": {
+    "path": "artifacts/rust-rewrite/turn-state-exact-metadata-handoff-20261018-1/independent-consumer-static-review.json",
+    "bytes": 6369,
+    "sha256": "e9e38e4fad8618f81b8a5dd7404ee77212c41a0a98de70c6465695d28a912277"
+  },
+  "exact_consumer_owner_policy_clarification": {
+    "path": "artifacts/rust-rewrite/turn-state-exact-metadata-handoff-20261018-1/owner-policy-metadata-amendment.json",
+    "bytes": 1114,
+    "sha256": "9d4803be7b517de18729ad06bf9d06541a11f8b6e4e91ccc3db9dd2a11cc7f85"
+  }
+}

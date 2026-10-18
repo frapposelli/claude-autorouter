@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import re
 import stat
+import subprocess
 import sys
 import tomllib
 import uuid
@@ -124,6 +125,7 @@ def source_rows():
     fixed = [
         ".github/workflows/rust-runtime32.yml",
         "rust/distribution/ci/runtime32-proof.py",
+        "rust/distribution/ci/upgrade-rollback-proof.mjs",
         "rust/distribution/autorouter.sh",
         "rust/distribution/platforms.json",
         "rust/parity/baseline.json",
@@ -649,9 +651,24 @@ def upgrade_rollback(package_evidence, production):
         or baseline["sha256"] != report.get("baseline_archive_sha256")
     ):
         raise ValueError("Exact i686 offline upgrade/rollback evidence differs")
+    # Same fixed Node22 consumer as host/GNU/musl; no product/child invocation inside it.
+    validator = ROOT / "rust/distribution/ci/upgrade-rollback-proof.mjs"
+    for args, expected in [
+        (["--self-test"], b'{"passed":true,"positive_controls":1,"negative_controls":21}\n'),
+        ([str(output / "report.json"), str(OUT / "npm/package-report.json")],
+            b'{"passed":true,"schedules":2}\n'),
+    ]:
+        try:
+            proof = subprocess.run(["node", str(validator), *args],
+                stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                timeout=10, check=False)
+        except (OSError, subprocess.TimeoutExpired) as error:
+            raise ValueError("Bounded failed-startup consumer did not complete") from error
+        if proof.returncode != 0 or proof.stdout != expected or proof.stderr:
+            raise ValueError("Failed-startup consumer rejected current report")
     return {
         "passed": True,
-        "scope": "Synthetic same-prefix npm baseline/native/rollback/native rehearsal; no direct archive rollback, failed-startup or partial-write coverage",
+        "scope": "Synthetic same-prefix npm baseline/native/rollback/native rehearsal with fake-Claude nonzero and missing-Claude failures; no direct archive rollback, partial-write or concurrent-owner coverage",
         "report": report_file,
         "command": command_file,
         "original_npm": original,
@@ -779,7 +796,7 @@ def finish():
             "real Claude, Jev or Ollama provider/model calls",
             "performance and evaluator task quality",
             "aggregate release matrix and publication",
-            "direct archive rollback, failed-startup and partial-write rollback",
+            "direct archive rollback, other failed-startup modes and partial-write rollback",
         ],
     })
 

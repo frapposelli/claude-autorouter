@@ -1,0 +1,336 @@
+{
+  "schema_version": 1,
+  "kind": "INDIVIDUALLY_ACCEPTED_CONSUMED_CONTENT_NESTING_LIMIT_SUMMARY",
+  "status": "ROOT_ACCEPTED_ONE_FIXED_LIMIT_ON_INDEPENDENTLY_REVIEWED_ACTUAL_EVIDENCE",
+  "recorded_at_utc": "2026-10-18T07:57:30.818140+00:00",
+  "only_limit": {
+    "id": "consumed_content_nesting",
+    "baseline_value": 32,
+    "previous_status": "pending",
+    "accepted_status": "covered individually"
+  },
+  "contract": {
+    "metric": "Known content array nesting: top-level system/message content arrays have depth0; a recognized tool_result.content ARRAY increments one edge.",
+    "boundary": "depth32 allowed;depth33 rejected with exactly Invalid Messages API request shape: content nesting.",
+    "string_boundary": "String content terminates traversal and does not enqueue an additional depth. At depth32 a tool_result with string content is accepted; do not reinterpret this as a cap on raw JSON layers or tool_result wrapper count.",
+    "opaque_policy": "Unknown extensions, unknown block content, tools.input_schema and tool_use.input remain opaque. No new depth cap applies to them.",
+    "fixed_default": "Same literal32 in frozen Source and current native validator; no external configuration or native public field overrides this policy.",
+    "safe_ordering": "Both gateway endpoints validate after body read/JSON parse but before router/evaluator/token-counter/provider forwarding. Local request metadata/completion cleanup may already occur."
+  },
+  "actual_evidence": {
+    "retained_owner": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/parity-all.json",
+      "bytes": 613,
+      "sha256": "7d4653247f53d956790f2e7087e64572cd1425fcc0ed5c521dce51fdc18e3144"
+    },
+    "raw_corpus": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/deterministic/parity-all/validation-json.jsonl",
+      "bytes": 761292,
+      "sha256": "e51728c225a2d0b545e065dfbe65dab30cf201691ab69134ffb71eda498f82c6"
+    },
+    "raw_report": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/deterministic/parity-all/validation-json.report.json",
+      "bytes": 456,
+      "sha256": "058741e32940b872a3e24665bf3fb1e62679ab953f4df8847babc1ee5c6e47fd"
+    },
+    "raw_actual_total": 93,
+    "selected_raw_depth_and_opaque_witnesses": [
+      {
+        "case_id": "validation-json-83",
+        "line": 84,
+        "op": "validate_request_json",
+        "kind": "consumed_tool_result_array_content",
+        "depth": 31,
+        "raw_bytes": 1233,
+        "raw_sha256": "90bf0a44836db4aebd1fba072829552e47b4c80eedd064d813887569bc3bb0e4",
+        "predeclared_expected_from_exact_guard": {
+          "valid": true
+        },
+        "actual_evidence": "Exact original raw input is in retained93/93 Source/native comparison. Only aggregate comparison report retained; this is not an individually retained result or a new execution."
+      },
+      {
+        "case_id": "validation-json-84",
+        "line": 85,
+        "op": "validate_request_json",
+        "kind": "opaque_tool_input_schema",
+        "depth": 31,
+        "raw_bytes": 471,
+        "raw_sha256": "7ce947fdba589fb3c5402b92ecf6359b9b103d938c04b8ef67426272282b684c",
+        "predeclared_expected_from_exact_guard": {
+          "valid": true
+        },
+        "actual_evidence": "Exact original raw input is in retained93/93 Source/native comparison. Only aggregate comparison report retained; this is not an individually retained result or a new execution."
+      },
+      {
+        "case_id": "validation-json-85",
+        "line": 86,
+        "op": "validate_request_json",
+        "kind": "consumed_tool_result_array_content",
+        "depth": 32,
+        "raw_bytes": 1268,
+        "raw_sha256": "151dafc71fc56406823b25686b2135e44198b497543b821c8eec79c2eb121ddd",
+        "predeclared_expected_from_exact_guard": {
+          "valid": true
+        },
+        "actual_evidence": "Exact original raw input is in retained93/93 Source/native comparison. Only aggregate comparison report retained; this is not an individually retained result or a new execution."
+      },
+      {
+        "case_id": "validation-json-86",
+        "line": 87,
+        "op": "validate_request_json",
+        "kind": "opaque_tool_input_schema",
+        "depth": 32,
+        "raw_bytes": 482,
+        "raw_sha256": "165b43a94926165b00d81bdab3d83aec483a0b8d0900b812ea3858bbc2b23c94",
+        "predeclared_expected_from_exact_guard": {
+          "valid": true
+        },
+        "actual_evidence": "Exact original raw input is in retained93/93 Source/native comparison. Only aggregate comparison report retained; this is not an individually retained result or a new execution."
+      },
+      {
+        "case_id": "validation-json-87",
+        "line": 88,
+        "op": "validate_request_json",
+        "kind": "consumed_tool_result_array_content",
+        "depth": 33,
+        "raw_bytes": 1303,
+        "raw_sha256": "e269e80240fb8ce1563fe36af5b935c1ca3e0c3b54fa27106635b1f7ca4249d4",
+        "predeclared_expected_from_exact_guard": {
+          "valid": false,
+          "error": "Invalid Messages API request shape: content nesting"
+        },
+        "actual_evidence": "Exact original raw input is in retained93/93 Source/native comparison. Only aggregate comparison report retained; this is not an individually retained result or a new execution."
+      },
+      {
+        "case_id": "validation-json-88",
+        "line": 89,
+        "op": "validate_request_json",
+        "kind": "opaque_tool_input_schema",
+        "depth": 33,
+        "raw_bytes": 493,
+        "raw_sha256": "3f84c6769f16a08250be5196803629b60fddae933e553ec9f71d2ec954f68c9a",
+        "predeclared_expected_from_exact_guard": {
+          "valid": true
+        },
+        "actual_evidence": "Exact original raw input is in retained93/93 Source/native comparison. Only aggregate comparison report retained; this is not an individually retained result or a new execution."
+      },
+      {
+        "case_id": "validation-json-91",
+        "line": 92,
+        "op": "validate_request_json",
+        "kind": "consumed_tool_result_array_content",
+        "depth": 4096,
+        "raw_bytes": 143508,
+        "raw_sha256": "fa9d3408f0219a04ba8a4e7fb3d5d22febf294d0423aa384c146db5cc5d54f21",
+        "predeclared_expected_from_exact_guard": {
+          "valid": false,
+          "error": "Invalid Messages API request shape: content nesting"
+        },
+        "actual_evidence": "Exact original raw input is in retained93/93 Source/native comparison. Only aggregate comparison report retained; this is not an individually retained result or a new execution."
+      },
+      {
+        "case_id": "validation-json-92",
+        "line": 93,
+        "op": "validate_request_json",
+        "kind": "opaque_tool_input_schema",
+        "depth": 4096,
+        "raw_bytes": 45186,
+        "raw_sha256": "1c57c2a609ed8c2131cd113ad55fba386b06d4b535ddd9d80164a0395fb1010b",
+        "predeclared_expected_from_exact_guard": {
+          "valid": true
+        },
+        "actual_evidence": "Exact original raw input is in retained93/93 Source/native comparison. Only aggregate comparison report retained; this is not an individually retained result or a new execution."
+      }
+    ],
+    "raw_scope": "93/93 actual Source/native comparisons bind these exact inputs/identities. Native raw-document entrypoint calls validate_request_document; Source calls JSON.parse then validateRequestShape. Individual result streams not retained; aggregate actual report plus exact guard/current expected-value tests compose.",
+    "finite_corpus": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/deterministic/parity-all/core.jsonl",
+      "bytes": 56890,
+      "sha256": "6e0457c692f48897bd176205f95895290861f0a0b58e087e70a54cc55fd95cc7"
+    },
+    "finite_report": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/deterministic/parity-all/core.report.json",
+      "bytes": 458,
+      "sha256": "b3d2c7e7a78adc7b0055c5b987259b4f0099504bd81ffe326b890f4be2708166"
+    },
+    "finite_actual_total": 217,
+    "finite_selected_ids": [
+      "validate-depth-32",
+      "validate-depth-33"
+    ],
+    "current_native_record": {
+      "path": "artifacts/rust-rewrite/session-log-dir-key-validation-20261018-1/workspace.json",
+      "bytes": 1159,
+      "sha256": "dcb4f3731f59764d514db9ca4821677986c5dfad1a37e2651d4fd4d83251f843"
+    },
+    "current_native_stdout": {
+      "path": "artifacts/rust-rewrite/session-log-dir-key-validation-20261018-1/workspace.stdout",
+      "bytes": 155473,
+      "sha256": "222ef78e843e0bfe8c204641fcb802674eda9757038bf7b996f56e2b8659f7c6"
+    },
+    "Source_record": {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test-v2.json",
+      "bytes": 1252,
+      "sha256": "6125b20f588f6e22fe3717ae0d79c26de7aa6e15c2f8ec595dc1c6c7ea4db345"
+    },
+    "Source_stdout": {
+      "path": "artifacts/rust-rewrite/evaluator-reconfiguration-validation-20261018-1/js-test-v2.stdout",
+      "bytes": 135709,
+      "sha256": "98bc9868a0b398484895380c42b095c4f090aa2929510126431d58d0da8a95cf"
+    },
+    "named_current_and_original_passes": [
+      {
+        "engine": "native",
+        "line": 116,
+        "text": "test request_validation::tests::known_content_nesting_is_bounded_but_opaque_data_is_not_walked ... ok"
+      },
+      {
+        "engine": "native",
+        "line": 239,
+        "text": "test nested_results_are_checked_but_tool_inputs_and_schemas_remain_opaque ... ok"
+      },
+      {
+        "engine": "native",
+        "line": 237,
+        "text": "test unknown_provider_contracts_and_signed_content_are_preserved ... ok"
+      },
+      {
+        "engine": "native",
+        "line": 94,
+        "text": "test auto_routing::tests::arbitrary_depth_content_is_checked_while_opaque_payloads_stay_opaque ... ok"
+      },
+      {
+        "engine": "Source",
+        "line": 1443,
+        "text": "ok 279 - unknown provider extensions, tool contracts and signed content are preserved"
+      },
+      {
+        "engine": "Source",
+        "line": 1448,
+        "text": "ok 280 - nested tool results are checked without interpreting tool input or schemas"
+      }
+    ],
+    "key_current_predicates": "known_content_nesting_is_bounded_but_opaque_data_is_not_walked directly asserts32valid,33/100exacterror. nested_results... uses authoritative document validator and checks source serialization unchanged. unknown_provider... preserves complete opaque/signed finite content. Source original#5 actually asserts100exacterror; original#4 full input preservation actually passes.",
+    "distinct_guard_control_limit": "auto_routing arbitrary2048 test is only separate compatibility/opaque-preservation corroboration. It does not execute or override the gateway validation ceiling and is not counted as a >32 consumed admission."
+  },
+  "historical_to_current": {
+    "historical_executed_snapshot": {
+      "path": "artifacts/rust-rewrite/source-sharing-20261017-6/candidate-source.json",
+      "bytes": 116611,
+      "sha256": "24b774510c4270f631397480f795da5969ee1c4daded2066e29facdb394839b7"
+    },
+    "current_same_code_snapshot": {
+      "path": "artifacts/rust-rewrite/local-token-wire-validation-20261018-1/candidate-source.json",
+      "bytes": 116959,
+      "sha256": "1af44b2a5aa884b5749587e54d519fcc449fd0eb7076c5ba04e890590d879c2f"
+    },
+    "current697_inputs_rehashed": 697,
+    "entire_relevant_native_files_exactly_equal_historical_hashes": [
+      {
+        "path": "rust/crates/autorouter-core/src/request_validation.rs",
+        "bytes": 11651,
+        "sha256": "e6407753b6bcf1b440f932386f65517205cb3a7527ddc414b01059f6f416d4f6"
+      },
+      {
+        "path": "rust/crates/autorouter-core/tests/request_validation_contracts.rs",
+        "bytes": 5364,
+        "sha256": "ccbc85d229883b83af2f75b2dc3c7775a1f7fe78c0ca3102f5ec6c00fd22256a"
+      },
+      {
+        "path": "rust/crates/autorouter-core/src/fixture.rs",
+        "bytes": 18628,
+        "sha256": "c5913cdde84a3d2af7f023f98fd6fcc34ab13276d8d3c68682d9a87d1321b7d4"
+      }
+    ],
+    "current_function_spans": [
+      {
+        "path": "src/request-validation.mjs",
+        "start_line": 9,
+        "end_line_exclusive": 55,
+        "bytes": 2893,
+        "sha256": "974a7ef0ef814bd8001fd4e470fa5475cb064ead0791b05ffc6970692b104865"
+      },
+      {
+        "path": "rust/crates/autorouter-core/src/request_validation.rs",
+        "start_line": 26,
+        "end_line_exclusive": 173,
+        "bytes": 5371,
+        "sha256": "9d1e6473bc57a52449f9767a6ebb4443810bb471c1c636f9dd442c1db0aaaeaa"
+      },
+      {
+        "path": "rust/crates/autorouter-core/tests/request_validation_contracts.rs",
+        "start_line": 15,
+        "end_line_exclusive": 22,
+        "bytes": 273,
+        "sha256": "b2fdeac9eb83f973a624553393b6baf238c16a6c6c692993431565d3b7c7340a"
+      },
+      {
+        "path": "rust/crates/autorouter-core/src/fixture.rs",
+        "start_line": 60,
+        "end_line_exclusive": 63,
+        "bytes": 147,
+        "sha256": "952ba04368046769dd4337d7b0df7c013342ba09b34b00d9300b0ee10c0149e0"
+      }
+    ],
+    "Source_validator_frozen_byte_equal": true,
+    "what_changed": "Later js_json parser/memo and tooling files have different whole-file hashes; not broadly called unchanged. Current explicit boundary controls pass on current parser. Historical raw4096 remains historical actual, not a fabricated fresh current4096 execution.",
+    "no_API_migration": "No accepted-input extension, artificial depth cap or typed-domain waiver is needed for this fixed-limit row."
+  },
+  "before_IO_consumer_composition": {
+    "Source": {
+      "file": {
+        "path": "src/server.mjs",
+        "bytes": 17919,
+        "sha256": "91df67483b2bf97a037ba7091b7fa5d008de0b733705813e00f874a6c240d8c0"
+      },
+      "shape_before_route": true,
+      "shape_before_count_forward": true
+    },
+    "native": {
+      "file": {
+        "path": "rust/crates/autorouter-runtime/src/server.rs",
+        "bytes": 86203,
+        "sha256": "df7c30a751d892b35f5cdd5ecbe17c6ecd250442cd92b91bb2077edec4fb90f8"
+      },
+      "shape_before_transform_and_route": true,
+      "shape_before_count_forward": true
+    },
+    "classification": "Static call-order proof from unchanged current source, corroborated by existing actual general malformed-shape gateway controls. No retained depth33-specific socket run is claimed.",
+    "completion_fact": "An invalid inference request still legitimately invokes cleanup once: Source finally with undefined execution; native RequestLease Drop with Null. Count has no inference lease. This is not provider/evaluator I/O and does not falsify zero-backend policy.",
+    "scope": "Fixed numerical validation and its enforced placement only; no whole protocol/lifecycle/exceptional cleanup approval."
+  },
+  "minimal_new_test_requirement": {
+    "new_public_tests_or_probes_required_for_this_numeric_row": false,
+    "reason": "The exact below/at/above raw31/32/33 controls, opaque4096 negative traversal control, current32/33/100 expected-value tests and complete original input-preservation controls already exist. Adding mirror tables would grow the failing source payload without a new trigger.",
+    "if_Root_requests_additional_wire_observation": "Two negative depth33 POST controls, one per endpoint, can be collected artifact-only with injected never-backend adapters and separately tracked inference cleanup. This is additional corroboration, not an identified implementation repair."
+  },
+  "nonclaims": [
+    "No fresh Source/native/compiler/probe execution by this author; no new whole workspace run.",
+    "No numeric/parser/evaluator/config/bytes/deadline limit automatically promoted.",
+    "No general JSON nesting32 cap; deep opaque values remain valid for this validator.",
+    "No current4096 wire serialization, Source stack threshold, universal depth/memory/performance guarantee.",
+    "No complete HTTP/TLS/provider/account/permissions/cleanup/CI/platform/release/cutover qualification.",
+    "Current source still exceeds unchanged32MiB transfer bounds; all89corpora/263vendor inputs/licenses retained and40MiB proposal unanswered/unapplied."
+  ],
+  "supporting_inventory": {
+    "path": "artifacts/rust-rewrite/content-nesting-limit-scout-20261018-1/inventory.json",
+    "bytes": 27411,
+    "sha256": "6c897c05c1c07106b42e8632a9ee23a67136d26c9a7bb609a838698232e8ec44"
+  },
+  "Root_acceptance": {
+    "path": "artifacts/rust-rewrite/evaluator-state-limits-validation-20261018-1/root-consumed-limit-decision.json",
+    "bytes": 1462,
+    "sha256": "4d37f15dc2461304ceeb1eb8056fcdd7a80e07f4a5d9fe9dc38f1f396c586e39"
+  },
+  "proposal": {
+    "path": "artifacts/rust-rewrite/content-nesting-limit-scout-20261018-1/acceptance-proposal.json",
+    "bytes": 16924,
+    "sha256": "4fe50b98a6c1b8fdf18e862a7786967f265527a916b42c5925ca4409087dfd11"
+  },
+  "independent_review": {
+    "path": "artifacts/rust-rewrite/content-nesting-limit-scout-20261018-1/independent-consumed-nesting32-review.json",
+    "bytes": 12268,
+    "sha256": "bdbb891eed7eb038a517971d56bd18675020581b15da17d2f193741c9ce36c75"
+  },
+  "publication_scope": "Only limits[id=consumed_content_nesting] changes; no configuration/definition/area inference. Numerical32 unchanged; actual retained/current test composition, no freshdepthsocket or wholeparser/transport qualification."
+}

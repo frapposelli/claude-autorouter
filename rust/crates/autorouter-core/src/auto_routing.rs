@@ -5,7 +5,6 @@ use serde_json::{Value, json};
 
 use crate::model_catalog::model_capabilities;
 use crate::model_request::{sonnet_needs_adaptive, thinking_adaptation};
-use crate::request_validation::nonnegative_safe_integer;
 
 const CACHE_FIELDS: &[&str] = &["type", "ttl"];
 const REQUEST_FIELDS: &[&str] = &[
@@ -74,66 +73,6 @@ const EDITOR_TOOL_FIELDS: &[&str] = &[
     "max_characters",
 ];
 
-fn known_fields(value: &Value, fields: &[&str]) -> bool {
-    value
-        .as_object()
-        .is_some_and(|object| object.keys().all(|key| fields.contains(&key.as_str())))
-}
-
-fn optional_envelope(value: Option<&Value>, fields: &[&str]) -> bool {
-    value.is_none_or(|value| value.is_null() || known_fields(value, fields))
-}
-
-fn nonnull(value: Option<&Value>) -> Option<&Value> {
-    value.filter(|value| !value.is_null())
-}
-
-fn kind(value: &Value) -> Option<&str> {
-    value.get("type").and_then(Value::as_str)
-}
-
-fn in_list(value: Option<&Value>, list: &[&str]) -> bool {
-    value
-        .and_then(Value::as_str)
-        .is_some_and(|value| list.contains(&value))
-}
-
-fn shared_tool(tool: &Value) -> bool {
-    let tool_type = match tool.get("type") {
-        None | Some(Value::Null) => "custom",
-        Some(Value::String(value)) => value,
-        _ => return false,
-    };
-    let fields = match tool_type {
-        "custom" => CUSTOM_TOOL_FIELDS,
-        "bash_20250124" => BASH_TOOL_FIELDS,
-        "text_editor_20250728" => EDITOR_TOOL_FIELDS,
-        "tool_search_tool_regex_20251119" | "tool_search_tool_bm25_20251119" => SEARCH_TOOL_FIELDS,
-        _ => return false,
-    };
-    known_fields(tool, fields) && optional_envelope(tool.get("cache_control"), CACHE_FIELDS)
-}
-
-fn shared_edit(edit: &Value) -> bool {
-    let fields: &[&str] = match kind(edit) {
-        Some("clear_thinking_20251015") => &["type", "keep"],
-        Some("clear_tool_uses_20250919") => &[
-            "type",
-            "clear_at_least",
-            "clear_tool_inputs",
-            "exclude_tools",
-            "keep",
-            "trigger",
-        ],
-        _ => return false,
-    };
-    known_fields(edit, fields)
-        && ["keep", "trigger", "clear_at_least"].iter().all(|key| {
-            edit.get(key)
-                .is_none_or(|value| !value.is_object() || known_fields(value, &["type", "value"]))
-        })
-}
-
 fn content_fields(content_type: &str) -> Option<&'static [&'static str]> {
     Some(match content_type {
         "text" => &["type", "text", "cache_control", "citations"],
@@ -184,393 +123,129 @@ fn incompatible(reason: &str) -> Value {
 /// Only the reviewed outer safeguard contract is inspected. Versioned
 /// classifier context remains opaque permission-review data on the wire.
 pub fn has_routable_safeguards(body: &Value) -> bool {
-    body.get("model")
-        .and_then(Value::as_str)
-        .and_then(model_capabilities)
-        .is_some_and(|facts| facts.shared_auto)
-        && body
-            .get("safeguards")
-            .and_then(Value::as_array)
-            .is_some_and(|entries| {
-                !entries.is_empty()
-                    && entries.iter().all(|entry| {
-                        kind(entry) == Some("dangerous_tool_use")
-                            && known_fields(entry, &["type", "classifier_context"])
-                            && entry.get("classifier_context").is_some_and(|context| {
-                                context.is_object()
-                                    && context.get("v").and_then(Value::as_f64) == Some(1.0)
-                            })
-                    })
-            })
+    guard::has_safeguards(guard::View::Serde(body))
 }
 
 pub fn can_route_auto_request(body: &Value, target: &str) -> bool {
-    check_target(body, target, true)["compatible"] == true
+    guard::check(guard::View::Serde(body), target, true, false)["compatible"] == true
 }
 
 /// Same-model requests retain provider ownership even for unknown IDs and
 /// extensions. This is a routing guard, not the provider's full API validator.
 pub fn target_compatibility(body: &Value, target: &str, auto_mode: bool) -> Value {
-    if body.get("model").and_then(Value::as_str) == Some(target) {
-        return compatible();
-    }
-    check_target(body, target, auto_mode)
+    guard::check(guard::View::Serde(body), target, auto_mode, true)
 }
 
-fn check_target(body: &Value, target: &str, auto_mode: bool) -> Value {
-    let Some(source_facts) = body
-        .get("model")
-        .and_then(Value::as_str)
-        .and_then(model_capabilities)
-    else {
-        return incompatible("unknown_model");
-    };
-    let Some(target_facts) = model_capabilities(target) else {
-        return incompatible("unknown_model");
-    };
-    let Some(messages) = body.get("messages").and_then(Value::as_array) else {
-        return incompatible("invalid_request_shape");
-    };
-    if !body.is_object() {
-        return incompatible("invalid_request_shape");
-    }
-    if auto_mode && (!source_facts.shared_auto || !target_facts.shared_auto) {
-        return incompatible("auto_model");
-    }
-    if !known_fields(body, REQUEST_FIELDS)
-        || !optional_envelope(body.get("cache_control"), CACHE_FIELDS)
-    {
-        return incompatible("request_extension");
-    }
-    if body.get("safeguards").is_some()
-        && (!source_facts.shared_auto
-            || !target_facts.shared_auto
-            || !has_routable_safeguards(body))
-    {
-        return incompatible("safeguards");
-    }
-    if body.get("max_tokens").is_some_and(|value| {
-        nonnegative_safe_integer(value).is_none_or(|value| value > target_facts.max_output_tokens)
-    }) {
-        return incompatible("output_limit");
-    }
-    if body
-        .get("speed")
-        .is_some_and(|value| value.as_str() != Some("standard"))
-    {
-        return incompatible("speed");
-    }
-    if ["container", "mcp_servers", "compaction"]
-        .iter()
-        .any(|key| body.get(key).is_some())
-    {
-        return incompatible("execution_facility");
-    }
-    if body.get("tools").is_some_and(|tools| {
-        !tools
-            .as_array()
-            .is_some_and(|tools| tools.iter().all(shared_tool))
-    }) {
-        return incompatible("tool_type");
-    }
-    let mut contents: Vec<&[Value]> = Vec::new();
-    if let Some(system) = body.get("system").and_then(Value::as_array) {
-        contents.push(system);
-    }
-    for message in messages {
-        if !message.is_object() {
-            return incompatible("invalid_request_shape");
-        }
-        if !known_fields(message, MESSAGE_FIELDS) {
-            return incompatible("content_extension");
-        }
-        let is_system = message.get("role").and_then(Value::as_str) == Some("system");
-        if is_system && !target_facts.mid_conversation_system {
-            return incompatible("system_message");
-        }
-        if let Some(output) = nonnull(message.get("output_config"))
-            && (!target_facts.per_message_effort
-                || !known_fields(output, &["effort"])
-                || nonnull(output.get("effort"))
-                    .is_some_and(|value| !in_list(Some(value), target_facts.effort_levels)))
-        {
-            return incompatible("message_effort");
-        }
-        let Some(blocks) = message.get("content").and_then(Value::as_array) else {
-            continue;
-        };
-        contents.push(blocks);
-        if !is_system {
-            continue;
-        }
-        for block in blocks {
-            if !block.is_object() {
-                return incompatible("invalid_request_shape");
-            }
-            if !matches!(kind(block), Some("tool_addition" | "tool_removal")) {
-                continue;
-            }
-            let Some(tool) = block.get("tool") else {
-                return incompatible("inline_tool");
-            };
-            let valid = match kind(tool) {
-                Some("tool_reference") => known_fields(tool, &["type", "name"]),
-                Some("tool_definition") if kind(block) == Some("tool_addition") => {
-                    known_fields(tool, &["type", "definition"])
-                        && tool.get("definition").is_some_and(shared_tool)
-                }
-                _ => false,
-            };
-            if !valid {
-                return incompatible("inline_tool");
-            }
-        }
-    }
-    // Only known content containers are traversed. Inputs, schemas, citations
-    // and document/source payloads are opaque and may contain arbitrary data.
-    while let Some(blocks) = contents.pop() {
-        for block in blocks {
-            let Some(content_type) = kind(block) else {
-                return incompatible("content_extension");
-            };
-            let Some(fields) = content_fields(content_type) else {
-                return incompatible("content_extension");
-            };
-            // This type is valid as the nested tool-search result only.
-            if content_type == "tool_search_tool_result_error"
-                || !known_fields(block, fields)
-                || !optional_envelope(block.get("cache_control"), CACHE_FIELDS)
-            {
-                return incompatible("content_extension");
-            }
-            if content_type == "tool_use"
-                && let Some(caller) = block.get("caller")
-            {
-                let valid = match kind(caller) {
-                    Some("direct") => known_fields(caller, &["type"]),
-                    Some("code_execution_20250825" | "code_execution_20260120") => {
-                        known_fields(caller, &["type", "tool_id"])
-                    }
-                    _ => false,
-                };
-                if !valid {
-                    return incompatible("content_extension");
-                }
-            }
-            if content_type == "image"
-                && block.get("transformations").is_some_and(|value| {
-                    value.is_object() && !known_fields(value, &["oversized_image"])
-                })
-            {
-                return incompatible("content_extension");
-            }
-            if content_type == "tool_result"
-                && let Some(content) = block.get("content").and_then(Value::as_array)
-            {
-                contents.push(content);
-            }
-            if content_type == "tool_search_tool_result" {
-                let Some(result) = block.get("content") else {
-                    return incompatible("content_extension");
-                };
-                let Some(
-                    result_type @ ("tool_search_tool_search_result"
-                    | "tool_search_tool_result_error"),
-                ) = kind(result)
-                else {
-                    return incompatible("content_extension");
-                };
-                if !known_fields(result, content_fields(result_type).unwrap_or(&[])) {
-                    return incompatible("content_extension");
-                }
-                if result_type == "tool_search_tool_search_result" {
-                    contents.push(std::slice::from_ref(result));
-                }
-            }
-            if content_type == "tool_search_tool_search_result" {
-                let Some(references) = block.get("tool_references").and_then(Value::as_array)
-                else {
-                    return incompatible("content_extension");
-                };
-                contents.push(references);
-            }
-        }
-    }
-    if !target_facts.assistant_prefill
-        && messages
-            .last()
-            .and_then(|message| message.get("role"))
-            .and_then(Value::as_str)
-            == Some("assistant")
-    {
-        return incompatible("assistant_prefill");
-    }
-    if let Some(choice) = body.get("tool_choice") {
-        let Some(choice_type) = kind(choice) else {
-            return incompatible("tool_choice");
-        };
-        let fields: &[&str] = match choice_type {
-            "auto" | "any" => &["type", "disable_parallel_tool_use"],
-            "tool" => &["type", "name", "disable_parallel_tool_use"],
-            "none" => &["type"],
-            _ => return incompatible("tool_choice"),
-        };
-        if !known_fields(choice, fields) {
-            return incompatible("tool_choice");
-        }
-        if matches!(choice_type, "any" | "tool")
-            && (auto_mode
-                || !target_facts.forced_tool_choice
-                || body.get("thinking").and_then(kind) == Some("enabled"))
-        {
-            return incompatible("forced_tool_choice");
-        }
-    }
-    if let Some(context) = nonnull(body.get("context_management"))
-        && (!source_facts.shared_auto
-            || !target_facts.shared_auto
-            || !known_fields(context, &["edits"])
-            || !context
-                .get("edits")
-                .and_then(Value::as_array)
-                .is_some_and(|edits| edits.iter().all(shared_edit)))
-    {
-        return incompatible("context_management");
-    }
-    if let Some(thinking) = body.get("thinking") {
-        if !thinking.is_object()
-            || (auto_mode
-                && !matches!(
-                    kind(thinking),
-                    Some("adaptive" | "disabled" | "between_tools")
-                ))
-        {
-            return incompatible("thinking_mode");
-        }
-        let Some(thinking_type) = kind(thinking) else {
-            return incompatible("thinking_extension");
-        };
-        let fields: &[&str] = match thinking_type {
-            "enabled" => &["type", "budget_tokens", "display", "block_binding"],
-            "adaptive" => &["type", "display", "block_binding"],
-            "disabled" | "between_tools" => &["type"],
-            _ => return incompatible("thinking_extension"),
-        };
-        if !known_fields(thinking, fields)
-            || !optional_envelope(thinking.get("block_binding"), &["prefix_mismatch_behavior"])
-        {
-            return incompatible("thinking_extension");
-        }
-        if thinking_type == "between_tools"
-            && (body.get("model").and_then(Value::as_str) != Some("claude-sonnet-5-5")
-                || !known_fields(thinking, &["type"])
-                || target == "claude-sonnet-5")
-        {
-            return incompatible("thinking_mode");
-        }
-        let adapted_type =
-            thinking_adaptation(body, target).map_or(thinking_type, |(kind, _)| kind);
-        if !target_facts.thinking_types.contains(&adapted_type) {
-            return incompatible("thinking_mode");
-        }
-        if adapted_type == "between_tools" && sonnet_needs_adaptive(body) {
-            return incompatible("thinking_effort");
-        }
-        if target == "claude-opus-5"
-            && adapted_type == "disabled"
-            && in_list(
-                body.get("output_config")
-                    .and_then(|value| value.get("effort")),
-                &["xhigh", "max"],
-            )
-        {
-            return incompatible("thinking_effort");
-        }
-    }
-    if let Some(output) = body.get("output_config") {
-        if !known_fields(output, &["effort", "format", "task_budget"]) {
-            return incompatible("output_extension");
-        }
-        if !optional_envelope(output.get("format"), &["type", "schema"])
-            || nonnull(output.get("format")).is_some_and(|value| kind(value) != Some("json_schema"))
-        {
-            return incompatible("output_extension");
-        }
-        if !optional_envelope(output.get("task_budget"), &["type", "total", "remaining"])
-            || nonnull(output.get("task_budget")).is_some_and(|value| kind(value) != Some("tokens"))
-        {
-            return incompatible("task_budget");
-        }
-        if nonnull(output.get("effort"))
-            .is_some_and(|value| !in_list(Some(value), target_facts.effort_levels))
-        {
-            return incompatible("effort");
-        }
-        if nonnull(output.get("task_budget")).is_some() && !target_facts.task_budget {
-            return incompatible("task_budget");
-        }
-    }
-    if target_facts.default_sampling_only
-        && !source_facts.default_sampling_only
-        && (body
-            .get("temperature")
-            .is_some_and(|value| value.as_f64() != Some(1.0))
-            || body
-                .get("top_p")
-                .is_some_and(|value| value.as_f64() != Some(1.0))
-            || body.get("top_k").is_some())
-    {
-        return incompatible("sampling");
-    }
-    compatible()
-}
-
-/// Original-node guard: opaque data is never projected or recursively cloned.
-/// Content containers are walked iteratively without a semantic depth limit.
-mod document_guard {
+/// Both public representations borrow their original nodes. Opaque data is
+/// never projected or cloned; known content is walked without a depth limit.
+mod guard {
     use super::*;
     use crate::js_json::{JsDocument, JsNode, NodeId};
     use crate::model_catalog::{MODEL_IDS, ModelCapabilities};
     use crate::model_request::{sonnet_needs_adaptive_document, thinking_adaptation_document};
 
     #[derive(Clone, Copy)]
-    struct View<'a> {
-        doc: &'a JsDocument,
-        id: NodeId,
+    pub(super) enum View<'a> {
+        Serde(&'a Value),
+        Document { doc: &'a JsDocument, id: NodeId },
+    }
+    #[derive(Clone, Copy)]
+    enum Array<'a> {
+        Serde(&'a [Value]),
+        Document {
+            doc: &'a JsDocument,
+            ids: &'a [NodeId],
+        },
+    }
+    enum Values<'a> {
+        Serde(std::slice::Iter<'a, Value>),
+        Document {
+            doc: &'a JsDocument,
+            ids: std::slice::Iter<'a, NodeId>,
+        },
+        One(Option<View<'a>>),
+    }
+    impl<'a> Iterator for Values<'a> {
+        type Item = View<'a>;
+        fn next(&mut self) -> Option<Self::Item> {
+            match self {
+                Self::Serde(values) => values.next().map(View::Serde),
+                Self::Document { doc, ids } => ids.next().map(|&id| View::Document { doc, id }),
+                Self::One(value) => value.take(),
+            }
+        }
+    }
+    impl<'a> Array<'a> {
+        fn iter(self) -> Values<'a> {
+            match self {
+                Self::Serde(values) => Values::Serde(values.iter()),
+                Self::Document { doc, ids } => Values::Document {
+                    doc,
+                    ids: ids.iter(),
+                },
+            }
+        }
+        fn is_empty(self) -> bool {
+            match self {
+                Self::Serde(values) => values.is_empty(),
+                Self::Document { ids, .. } => ids.is_empty(),
+            }
+        }
+        fn last(self) -> Option<View<'a>> {
+            match self {
+                Self::Serde(values) => values.last().map(View::Serde),
+                Self::Document { doc, ids } => ids.last().map(|&id| View::Document { doc, id }),
+            }
+        }
     }
     impl<'a> View<'a> {
+        pub(super) fn document(doc: &'a JsDocument) -> Self {
+            Self::Document {
+                doc,
+                id: doc.root(),
+            }
+        }
         fn get(self, key: &str) -> Option<Self> {
-            self.doc
-                .get(self.id, key)
-                .map(|id| Self { doc: self.doc, id })
+            match self {
+                Self::Serde(value) => value.get(key).map(Self::Serde),
+                Self::Document { doc, id } => doc.get(id, key).map(|id| Self::Document { doc, id }),
+            }
         }
         fn object(self) -> bool {
-            matches!(self.doc.node(self.id), Some(JsNode::Object(_)))
+            match self {
+                Self::Serde(value) => value.is_object(),
+                Self::Document { doc, id } => matches!(doc.node(id), Some(JsNode::Object(_))),
+            }
         }
         fn null(self) -> bool {
-            matches!(self.doc.node(self.id), Some(JsNode::Null))
+            match self {
+                Self::Serde(value) => value.is_null(),
+                Self::Document { doc, id } => matches!(doc.node(id), Some(JsNode::Null)),
+            }
         }
-        fn is(self, value: &str) -> bool {
-            self.doc
-                .string(self.id)
-                .is_some_and(|actual| actual.units().iter().copied().eq(value.encode_utf16()))
+        fn is(self, expected: &str) -> bool {
+            match self {
+                Self::Serde(value) => value.as_str() == Some(expected),
+                Self::Document { doc, id } => doc.string_is(Some(id), expected),
+            }
         }
         fn number(self) -> Option<f64> {
-            if let Some(JsNode::Number(value)) = self.doc.node(self.id) {
-                Some(*value)
-            } else {
-                None
+            match self {
+                Self::Serde(value) => value.as_f64(),
+                Self::Document { doc, id } => match doc.node(id) {
+                    Some(JsNode::Number(number)) => Some(*number),
+                    _ => None,
+                },
             }
         }
-        fn array(self) -> Option<&'a [NodeId]> {
-            if let Some(JsNode::Array(values)) = self.doc.node(self.id) {
-                Some(values)
-            } else {
-                None
+        fn array(self) -> Option<Array<'a>> {
+            match self {
+                Self::Serde(value) => value.as_array().map(|values| Array::Serde(values)),
+                Self::Document { doc, id } => match doc.node(id) {
+                    Some(JsNode::Array(ids)) => Some(Array::Document { doc, ids }),
+                    _ => None,
+                },
             }
-        }
-        fn view(self, id: NodeId) -> Self {
-            Self { doc: self.doc, id }
         }
         fn in_list(self, values: &[&str]) -> bool {
             values.iter().any(|value| self.is(value))
@@ -580,21 +255,42 @@ mod document_guard {
             values.iter().copied().find(|value| kind.is(value))
         }
         fn known(self, fields: &[&str]) -> bool {
-            if let Some(JsNode::Object(object)) = self.doc.node(self.id) {
-                object.entries().iter().all(|(key, _)| {
-                    fields
-                        .iter()
-                        .any(|field| key.units().iter().copied().eq(field.encode_utf16()))
-                })
-            } else {
-                false
+            match self {
+                Self::Serde(value) => value
+                    .as_object()
+                    .is_some_and(|object| object.keys().all(|key| fields.contains(&key.as_str()))),
+                Self::Document { doc, id } => match doc.node(id) {
+                    Some(JsNode::Object(object)) => object.entries().iter().all(|(key, _)| {
+                        fields
+                            .iter()
+                            .any(|field| key.units().iter().copied().eq(field.encode_utf16()))
+                    }),
+                    _ => false,
+                },
             }
         }
         fn facts(self) -> Option<&'static ModelCapabilities> {
-            MODEL_IDS
-                .iter()
-                .find(|model| self.is(model))
-                .and_then(|model| model_capabilities(model))
+            match self {
+                Self::Serde(value) => value.as_str().and_then(model_capabilities),
+                Self::Document { .. } => MODEL_IDS
+                    .iter()
+                    .find(|model| self.is(model))
+                    .and_then(|model| model_capabilities(model)),
+            }
+        }
+        // These existing adapters deliberately retain each API's effort-value
+        // equality. Do not infer JS object identity from a serde projection.
+        fn adaptation(self, target: &str) -> Option<(&'static str, &'static str)> {
+            match self {
+                Self::Serde(value) => thinking_adaptation(value, target),
+                Self::Document { doc, .. } => thinking_adaptation_document(doc, target),
+            }
+        }
+        fn needs_adaptive(self) -> bool {
+            match self {
+                Self::Serde(value) => sonnet_needs_adaptive(value),
+                Self::Document { doc, .. } => sonnet_needs_adaptive_document(doc),
+            }
         }
     }
     fn is(value: Option<View<'_>>, expected: &str) -> bool {
@@ -685,8 +381,7 @@ mod document_guard {
                 .and_then(View::array)
                 .is_some_and(|entries| {
                     !entries.is_empty()
-                        && entries.iter().all(|&id| {
-                            let entry = body.view(id);
+                        && entries.iter().all(|entry| {
                             is(entry.get("type"), "dangerous_tool_use")
                                 && entry.known(&["type", "classifier_context"])
                                 && entry.get("classifier_context").is_some_and(|context| {
@@ -696,22 +391,10 @@ mod document_guard {
                         })
                 })
     }
-    pub(super) fn has_safeguards(doc: &JsDocument) -> bool {
-        safeguards(View {
-            doc,
-            id: doc.root(),
-        })
+    pub(super) fn has_safeguards(body: View<'_>) -> bool {
+        safeguards(body)
     }
-    pub(super) fn check(
-        doc: &JsDocument,
-        target: &str,
-        auto_mode: bool,
-        same_model: bool,
-    ) -> Value {
-        let body = View {
-            doc,
-            id: doc.root(),
-        };
+    pub(super) fn check(body: View<'_>, target: &str, auto_mode: bool, same_model: bool) -> Value {
         if same_model && is(body.get("model"), target) {
             return compatible();
         }
@@ -761,19 +444,19 @@ mod document_guard {
         if body.get("tools").is_some_and(|tools| {
             tools
                 .array()
-                .is_none_or(|tools| !tools.iter().all(|&tool| shared_tool(body.view(tool))))
+                .is_none_or(|tools| !tools.iter().all(shared_tool))
         }) {
             return incompatible("tool_type");
         }
         enum Contents<'a> {
-            Slice(&'a [NodeId]),
-            One(NodeId),
+            Slice(Array<'a>),
+            One(View<'a>),
         }
-        impl Contents<'_> {
-            fn ids(&self) -> &[NodeId] {
+        impl<'a> Contents<'a> {
+            fn iter(self) -> Values<'a> {
                 match self {
-                    Self::Slice(ids) => ids,
-                    Self::One(id) => std::slice::from_ref(id),
+                    Self::Slice(array) => array.iter(),
+                    Self::One(value) => Values::One(Some(value)),
                 }
             }
         }
@@ -781,8 +464,7 @@ mod document_guard {
         if let Some(system) = body.get("system").and_then(View::array) {
             contents.push(Contents::Slice(system));
         }
-        for &message in messages {
-            let message = body.view(message);
+        for message in messages.iter() {
             if !message.object() {
                 return incompatible("invalid_request_shape");
             }
@@ -808,8 +490,7 @@ mod document_guard {
             if !system {
                 continue;
             }
-            for &block in blocks {
-                let block = body.view(block);
+            for block in blocks.iter() {
                 if !block.object() {
                     return incompatible("invalid_request_shape");
                 }
@@ -833,8 +514,7 @@ mod document_guard {
             }
         }
         while let Some(blocks) = contents.pop() {
-            for &block in blocks.ids() {
-                let block = body.view(block);
+            for block in blocks.iter() {
                 let Some(content_type) = kind(block) else {
                     return incompatible("content_extension");
                 };
@@ -888,7 +568,7 @@ mod document_guard {
                         return incompatible("content_extension");
                     }
                     if result_type == "tool_search_tool_search_result" {
-                        contents.push(Contents::One(result.id));
+                        contents.push(Contents::One(result));
                     }
                 }
                 if content_type == "tool_search_tool_search_result" {
@@ -903,7 +583,7 @@ mod document_guard {
         if !target_facts.assistant_prefill
             && messages
                 .last()
-                .is_some_and(|&message| is(body.view(message).get("role"), "assistant"))
+                .is_some_and(|message| is(message.get("role"), "assistant"))
         {
             return incompatible("assistant_prefill");
         }
@@ -937,7 +617,7 @@ mod document_guard {
                 || context
                     .get("edits")
                     .and_then(View::array)
-                    .is_none_or(|edits| !edits.iter().all(|&edit| shared_edit(body.view(edit)))))
+                    .is_none_or(|edits| !edits.iter().all(shared_edit)))
         {
             return incompatible("context_management");
         }
@@ -972,12 +652,13 @@ mod document_guard {
             {
                 return incompatible("thinking_mode");
             }
-            let adapted =
-                thinking_adaptation_document(doc, target).map_or(thinking_type, |(kind, _)| kind);
+            let adapted = body
+                .adaptation(target)
+                .map_or(thinking_type, |(kind, _)| kind);
             if !target_facts.thinking_types.contains(&adapted) {
                 return incompatible("thinking_mode");
             }
-            if adapted == "between_tools" && sonnet_needs_adaptive_document(doc) {
+            if adapted == "between_tools" && body.needs_adaptive() {
                 return incompatible("thinking_effort");
             }
             if target == "claude-opus-5"
@@ -1032,13 +713,13 @@ mod document_guard {
 }
 
 pub fn has_routable_safeguards_document(document: &crate::js_json::JsDocument) -> bool {
-    document_guard::has_safeguards(document)
+    guard::has_safeguards(guard::View::document(document))
 }
 pub fn can_route_auto_request_document(
     document: &crate::js_json::JsDocument,
     target: &str,
 ) -> bool {
-    document_guard::check(document, target, true, false)["compatible"] == true
+    guard::check(guard::View::document(document), target, true, false)["compatible"] == true
 }
 pub fn target_compatibility_document_exact(
     doc: &crate::js_json::JsDocument,
@@ -1063,7 +744,7 @@ pub fn target_compatibility_document(
     target: &str,
     auto_mode: bool,
 ) -> Value {
-    document_guard::check(document, target, auto_mode, true)
+    guard::check(guard::View::document(document), target, auto_mode, true)
 }
 
 #[cfg(test)]
@@ -1636,5 +1317,42 @@ mod tests {
             compatible()
         );
         assert!(checked_auto_request(&native, "claude-opus-5-5"));
+    }
+    #[test]
+    fn public_document_output_guard_keeps_infinity_distinct_from_json_null() {
+        use crate::js_json::{JsDocument, JsNode};
+        for (raw, permitted) in [("0", true), ("128000", true), ("1e999", false)] {
+            let input = format!(
+                r#"{{"model":"claude-sonnet-5-5","max_tokens":{raw},"messages":[{{"role":"user","content":"Review the locking implementation."}}]}}"#
+            );
+            let document = JsDocument::parse(input.as_bytes()).unwrap();
+            let max_tokens = document.get(document.root(), "max_tokens").unwrap();
+            let before_bits = match document.node(max_tokens).unwrap() {
+                JsNode::Number(value) => {
+                    if raw == "1e999" {
+                        assert_eq!(*value, f64::INFINITY);
+                    }
+                    value.to_bits()
+                }
+                _ => panic!("original output cap must remain a Number"),
+            };
+            let before = document.stringify();
+            assert_eq!(
+                can_route_auto_request_document(&document, "claude-opus-5-5"),
+                permitted
+            );
+            assert_eq!(
+                target_compatibility_document(&document, "claude-opus-5-5", true),
+                if permitted {
+                    json!({"compatible":true})
+                } else {
+                    json!({"compatible":false,"reason":"output_limit"})
+                }
+            );
+            assert_eq!(document.stringify(), before);
+            assert!(
+                matches!(document.node(max_tokens), Some(JsNode::Number(value)) if value.to_bits() == before_bits)
+            );
+        }
     }
 }

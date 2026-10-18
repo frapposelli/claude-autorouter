@@ -1,6 +1,7 @@
 //! Native and installed-archive CLI regressions. Every path, credential,
 //! terminal and Claude executable belongs to a disposable synthetic home.
 #![cfg(unix)]
+mod support;
 use nix::fcntl::{FcntlArg, OFlag, fcntl};
 use nix::pty::openpty;
 use nix::sys::signal::{Signal, kill};
@@ -14,7 +15,6 @@ use std::os::unix::ffi::OsStringExt;
 use std::os::unix::fs::{MetadataExt, PermissionsExt, symlink};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, ExitStatus, Output, Stdio};
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 #[path = "support/job_control.rs"]
 mod job_control;
@@ -41,31 +41,14 @@ fn hidden_secret_real_stop_resume_preserves_private_unicode_editing_and_cancella
 struct Home(PathBuf);
 impl Home {
     fn new() -> Self {
-        static SEQUENCE: AtomicU64 = AtomicU64::new(0);
-        let stamp = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_nanos();
-        let path = std::env::temp_dir().join(format!(
-            "autorouter-native-edge-{}-{stamp}-{}",
-            std::process::id(),
-            SEQUENCE.fetch_add(1, Ordering::Relaxed)
-        ));
-        fs::create_dir(&path).unwrap();
-        fs::set_permissions(&path, fs::Permissions::from_mode(0o700)).unwrap();
-        Self(path)
+        Self(support::directory("autorouter-native-edge-"))
     }
     fn config(&self) -> PathBuf {
         self.0.join("config.json")
     }
     fn command(&self) -> Command {
-        let executable = std::env::var_os("AUTOROUTER_TEST_EXECUTABLE")
-            .unwrap_or_else(|| env!("CARGO_BIN_EXE_claude-autorouter").into());
-        let mut command = Command::new(executable);
+        let mut command = support::root_command(&self.0);
         command
-            .current_dir(&self.0)
-            .env_clear()
-            .env("HOME", &self.0)
             .env("PATH", &self.0)
             .env("AUTOROUTER_CONFIG", self.config())
             .env("AUTOROUTER_EVALUATOR", "jev")

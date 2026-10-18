@@ -1,0 +1,535 @@
+{
+  "schema_version": 1,
+  "kind": "SINGLE_PACKAGE_LIFECYCLE_THREE_NATIVE_SPAWN_CAUSE_AND_DEADLINE_API_MIGRATION",
+  "author": "/root/substantial_source_sharing",
+  "status": "ACCEPTED_INDIVIDUAL_TWO_ASSERTION_NATIVE_API_MIGRATION",
+  "authorship": "Authored scoped fix/regressions and mapping; not independent implementation/acceptance review. Offline Source/retained-result/hash analysis only, no compiler/test/product/provider/public edits by this author.",
+  "scope": {
+    "only_id": "test/package-lifecycle.test.mjs#3",
+    "static_sites": 2,
+    "expanded": 2,
+    "before": {
+      "covered": 584,
+      "partial": 4
+    },
+    "unchanged": "All other587 original rows,27acceptedkeys,47covered/6pending fixedlimits and13partial areas; old mapping/rules/frozen inputs/caps unchanged. Package#1 and release-verification#14 not promoted.",
+    "after_individual_adoption": {
+      "covered": 585,
+      "partial": 3
+    }
+  },
+  "original": {
+    "id": "test/package-lifecycle.test.mjs#3",
+    "name": "package lifecycle runner bounds a stalled child and rejects missing executables",
+    "test": {
+      "path": "artifacts/rust-rewrite/reference/test/package-lifecycle.test.mjs",
+      "bytes": 1484,
+      "sha256": "b97bad7a875b88151f2583395d13dcee65cee339304f6bbd575c9b65c92587ad"
+    },
+    "helper": {
+      "path": "artifacts/rust-rewrite/reference/scripts/package-lifecycle.mjs",
+      "bytes": 27849,
+      "sha256": "ee508ee079d60c208e0a52909a4085c68a28faedca717b03f1f15ba5561aa744"
+    },
+    "statement": {
+      "start_line": 25,
+      "end_line": 28,
+      "bytes": 374,
+      "sha256": "209e9116fa7599b52d6fefebba2983695e0b8155e3976f2b114240d7ab30eef4",
+      "scope": "Exact full externally trimmed top-level test(...) ExpressionStatement, including callback close and trailing semicolon."
+    },
+    "expression_scope": "Exact assertion expression UTF-8 excluding semicolon, no normalization;2sites/2observations.",
+    "inputs": "Stall: process.execPath,-e setInterval1000,env{},timeoutMs100. Missing: exact/nonexistent/synthetic-autorouter-executable,args[],env{},default10000. Frozen input bytes unchanged.",
+    "assertions": [
+      {
+        "line": 26,
+        "expression": "assert.rejects(runLifecycleChild(process.execPath, ['-e', 'setInterval(() => {}, 1000)'], { env: {}, timeoutMs: 100 }), /deadline/)",
+        "expression_sha256": "91af2d517056f64f26196618ca8b857238ed8d9c9a6179249daa2058b94eab72",
+        "expanded": 1,
+        "native_proof": "Actual configured100ms capture of /bin/sh exec /bin/sleep5 returns timed_out=true, cancelled=false, no outputlimit, empty streams/null exit/SIGTERM. Source rejected /deadline/ becomes structured failure metadata only by explicit decision below.",
+        "migration": "deadline"
+      },
+      {
+        "line": 27,
+        "expression": "assert.rejects(runLifecycleChild('/nonexistent/synthetic-autorouter-executable', [], { env: {} }), { code: 'ENOENT' })",
+        "expression_sha256": "a4d1013d47fa811e7fcaf63f00ddee5c47676aead8971b6a13a35ac7e4f8539f",
+        "expanded": 1,
+        "native_proof": "Actual missing child path of fresh owned private directory (valid cwd/env_clear) now retains closed not_found; actual0600nonexec yields permission_denied and NUL argument yields grouped other. Complete9field objects discriminate generic/bad constant cause labels.",
+        "migration": "closed_spawn_cause"
+      }
+    ]
+  },
+  "native_contracts": {
+    "deadline": {
+      "actual": "Initial permission-limited focusedGREEN uses configured100ms and observes109ms; later local-permission focusedGREEN observes102ms. These descriptive observations are separate from exact configureddeadline/pending metadata and do not qualify performance or default timers. Exit17 andtimeout both omit spawnkeys.",
+      "cleanup_limit": "Initial and local-permission focused postspawn reports retain cleanup_confirmed=false and raw groupSIGKILLerrorerrno1. Directexit17/SIGTERM and joinedreturn are observed; no successful whole-group cleanup or cause of errno1 is inferred.",
+      "accepted_contract": "Chosen direct native tooling run_child/capture interface resolves a failure Value with timed_out=true after its existing owned termination/wait path instead of rejecting a JavaScript Promise/Error matching /deadline/. SIGTERM plus grace differs from Source detached-group SIGKILL. Native timer begins after successful spawn; no arbitrary blocking-spawn bound inferred."
+    },
+    "closed_spawn_cause": {
+      "actual": "Controlled valid-cwd absent file isolates missing-executable fixture; NotFound elsewhere could mean cwd/interpreter. Other actual is ErrorKind::InvalidInput from PRIVATE NUL argument, not literal ErrorKind::Other or exhaustive errno execution. Return shape is structured Value, not Rust Result or full JS Error identity.",
+      "limits": "Native owned paths/shell fixture differ from exact frozen Node program/absolute missing path/env. No true ENOENT numeric errno or JS prototype/message/code identity claim. process::capture_result/process::owned APIs remain generic and are not repaired or promoted by this direct-runner contract.",
+      "accepted_contract": "Source SystemError/codeENOENT rejection maps only at chosen raw native runner to spawn_error=true + spawn_error_kind=not_found. Closed alternatives permission_denied/other preserve actual std::io::Error.kind distinction without OS display/debug/errno text or path/argv/env/payload. This repairs genuine cause loss, not a reason-only waiver."
+    },
+    "strict_consumer": "Necessary compatibility control for new raw field: actual Stream::finish removes spawn_error_kind with existing removed raw helper fields, retains claude_spawn_error and exact old17field report for all3labels. CASE_FIELDS/strict reader remain byte-identical. This direct in-memory consumer test is not live Claude/provider execution or a third original assertion."
+  },
+  "native_binding": {
+    "snapshot_ref": "source_snapshot",
+    "current_inputs_verified": 701,
+    "frozen_verified": 111,
+    "only_changed_vs895": "tool_process.rs/live_claude.rs; all other699 inputs unchanged. Production change only inline closed cause at spawn failure and existing live raw-field projection list; prior bounds/signals/normal cleanup policy unchanged. Old tests preserved.",
+    "files": [
+      {
+        "path": "rust/xtask/src/tool_process.rs",
+        "bytes": 64230,
+        "sha256": "f1a59c9ed7b4bd6c12386aef31dd421b1a7cca86ff1ab293a02ab1f06e07fdaf"
+      },
+      {
+        "path": "rust/xtask/src/live_claude.rs",
+        "bytes": 18715,
+        "sha256": "74d8b32839724a8ec275da634414128ac1258e21ec4d6433c2bcec1f863345ea"
+      },
+      {
+        "path": "rust/xtask/src/compare_live_shapes.rs",
+        "bytes": 19474,
+        "sha256": "37e512af01d88f4131a3f47ea324c146c6894a511fce49b74e068825eb01a7a8"
+      }
+    ],
+    "anchors": [
+      {
+        "file": "rust/xtask/src/tool_process.rs",
+        "function": "run_child",
+        "line": 281,
+        "end_line": 439,
+        "bytes": 9025,
+        "sha256": "3aa3cf7ac65f3b6a1ecb71e0afa16cfdae883f3111d64c214f43a6774f4e9f4b"
+      },
+      {
+        "file": "rust/xtask/src/tool_process.rs",
+        "function": "spawn_failures_preserve_closed_not_found_permission_denied_and_other_kinds",
+        "line": 1388,
+        "end_line": 1476,
+        "bytes": 3779,
+        "sha256": "465da842bd80188a1fc5ab5840a42ea9535aad1cd20d5cf2cb83eb413efa4a87"
+      },
+      {
+        "file": "rust/xtask/src/tool_process.rs",
+        "function": "postspawn_exit_and_original_hundred_ms_deadline_omit_spawn_causes",
+        "line": 1480,
+        "end_line": 1517,
+        "bytes": 1532,
+        "sha256": "a0547d4464375c890313209a8f1f02442a43ae141bfc34a3a2721592c0f7d739"
+      },
+      {
+        "file": "rust/xtask/src/live_claude.rs",
+        "function": "finish",
+        "line": 258,
+        "end_line": 301,
+        "bytes": 2000,
+        "sha256": "be2c17fe93b27fc9909f6463b0f7351267259ed2042de1f4f635e9213339c868"
+      },
+      {
+        "file": "rust/xtask/src/live_claude.rs",
+        "function": "raw_spawn_cause_is_projected_out_of_strict_live_case_reports",
+        "line": 460,
+        "end_line": 485,
+        "bytes": 1351,
+        "sha256": "a0e68254049343c59093a5b31a4e9da0f0273ba57da4b33487237348dd12880a"
+      }
+    ],
+    "anchor_scope": "Exact formatted bounded declaration from first nonwhitespace byte, INCLUDING pub/async qualifiers, through matching closing brace. Excludes attributes/finalLF. Text regions, not AST. Author draft wording corrected; hashes unchanged.",
+    "identity_limits": "Cargo actual Running path is in retained stderr. Root-owned cargo test may rewrite mutable target binary; no current/immutable shipping executable identity is fabricated. New owner300s/1MiB perstream is collector bound, not childdeadline.",
+    "focused_actual": {
+      "red": "Tests-only4eeb: exit101,3pass/2assertionfails/322filtered; missing-kind whole metadata and strict live projection are exact assertion failures, no compile/setup failure.",
+      "green": "Fixed9bca: exit0,5pass/0fail/322filtered. Three new testfunctions plus2existing process_owned controls, not5new tests.",
+      "source_before_after": "Each owner verifies701source/111frozen and auxiliary inputs beforeafter; no owner failure or mismatch.",
+      "markers": "All3 raw spawn failure objects differ from RED only by expected kind. Both postspawn full reports remain raw below, including cleanupfalse/errno1. Consumer3label whole report asserted in passed test, not separately emitted."
+    },
+    "completed_broader_actuals": {
+      "workspace": "1517/1/11/66groups at exact9bca via localtestpermissions; initial1250/268/11 sandboxfailure retained",
+      "fmt": "exit0",
+      "strict_clippy": "exit0;existingvendorwarning",
+      "default_build": "finalexit0/166fresh/Core[]Runtime[default]CLI[]/bare77c15b;mutable",
+      "Node_check": "exit0;208byte npmupdate notice retained",
+      "Node_test": "596pass0fail",
+      "Node_package": "58safe17mock"
+    }
+  },
+  "Source_actual_reuse": {
+    "refs": [
+      "Source_actual",
+      "Source_stdout"
+    ],
+    "actual": "Fresh B895 shipping Node596/0 callback203 passed; unchanged directtest/helper plus111frozen rehashed. Not a new isolated frozen run and not Source execution at9bca; currentNode checks pending.",
+    "missing_old_evidence": "Old cli-tooling CAS3d597185\u2026 and rust-workspace-checkpoint.log absent; no credit to missing aliases. Old mapping remains unchanged; present B/C actuals supply explicit binding.",
+    "fresh_current": "Current9bca shippingNode596/0 includes unchanged original packagecallback203 and helper; not an isolated frozenSource run. Historical B source actuals remain linked separately."
+  },
+  "evidence": {
+    "original_assessment": {
+      "path": "artifacts/rust-rewrite/package-lifecycle-original-three-review-20261018-1/independent-static-api-assessment.json",
+      "bytes": 12043,
+      "sha256": "b828d78acbed65d68bcf85d2d1aaeeddcf74c2a5d73a3f3d000ec5c8baa6f399"
+    },
+    "old_mapping": {
+      "path": "rust/parity/assertion-mappings/cli-tooling.json",
+      "bytes": 146642,
+      "sha256": "88872739c1beb3ac858ea06f37f1b752e80eb7fb2452dfaa4738f16245a45f02"
+    },
+    "source_snapshot": {
+      "path": "artifacts/rust-rewrite/native-spawn-failure-validation-20261018-1/source-fixed.json",
+      "bytes": 118312,
+      "sha256": "9bca0e49e749cbf0a52c1d822c37c4f7dbc58685555b3fa780a7a23f985be2fd"
+    },
+    "tests_snapshot": {
+      "path": "artifacts/rust-rewrite/native-spawn-failure-validation-20261018-1/source-tests-only.json",
+      "bytes": 118359,
+      "sha256": "4eeb1c9877dc9da60aa32fab95cb379e9b48f427cbfbfb004ac1195ae3ed74db"
+    },
+    "tests_adoption": {
+      "path": "artifacts/rust-rewrite/native-spawn-failure-validation-20261018-1/tests-adoption-and-format.json",
+      "bytes": 2369,
+      "sha256": "643a3dac71755fb5266b9482ef4276f9abc2b1860a73bd7d7c0b3e2664045e45"
+    },
+    "fix_adoption": {
+      "path": "artifacts/rust-rewrite/native-spawn-failure-validation-20261018-1/fix-adoption-and-format.json",
+      "bytes": 2396,
+      "sha256": "ffcfe58ebb2b94e758babd35b2bb605369ca4b1ddfd0febffdab2ccf6e5112dc"
+    },
+    "red_owner": {
+      "path": "artifacts/rust-rewrite/native-spawn-failure-validation-20261018-1/red.json",
+      "bytes": 1208,
+      "sha256": "f03a3be3430bd54102a7a6c11321a015524774073136c0bf9621c2daf6d99cf3"
+    },
+    "red_stdout": {
+      "path": "artifacts/rust-rewrite/native-spawn-failure-validation-20261018-1/red.stdout",
+      "bytes": 831,
+      "sha256": "5cbf010084249832e5b5d75725364aee94eeef9ac0e27d735d8149f00bdbe19a"
+    },
+    "red_stderr": {
+      "path": "artifacts/rust-rewrite/native-spawn-failure-validation-20261018-1/red.stderr",
+      "bytes": 4472,
+      "sha256": "e528c18baedada5156be06155f58951d2d9bd07dab26710950a78e7701cdd0ae"
+    },
+    "green_owner": {
+      "path": "artifacts/rust-rewrite/native-spawn-failure-validation-20261018-1/green.json",
+      "bytes": 1176,
+      "sha256": "4d73a2df60c4252b482c9024d769fd35cad56e78ad1edac5cf1473ad9220fec9"
+    },
+    "green_stdout": {
+      "path": "artifacts/rust-rewrite/native-spawn-failure-validation-20261018-1/green.stdout",
+      "bytes": 612,
+      "sha256": "ff7ab4c79ac7da9f3e6953294b7aff2149d0094a4ba10dc9fcd7db789e5a5f4c"
+    },
+    "green_stderr": {
+      "path": "artifacts/rust-rewrite/native-spawn-failure-validation-20261018-1/green.stderr",
+      "bytes": 2459,
+      "sha256": "95e45daa5b1fccb42973d6a06628a0ad78e8968d071ad0120145fbb6505f5878"
+    },
+    "draft_static_admission": {
+      "path": "artifacts/rust-rewrite/package-lifecycle-three-spawn-kind-next-draft-20261018-1/v3/independent-static-admission-review.json",
+      "bytes": 6432,
+      "sha256": "1d061be92212720e351b8731c1a0f1f6b9ac46ce004b81873297bfe2011ac307"
+    },
+    "Source_actual": {
+      "path": "artifacts/rust-rewrite/package-lifecycle-and-preflight-validation-20261018-1/node-test-v2.json",
+      "bytes": 2471,
+      "sha256": "0bc5104f6406b9a9df09e9a02edfe0bc107993262f2aa04def33f869a763964f"
+    },
+    "Source_stdout": {
+      "path": "artifacts/rust-rewrite/package-lifecycle-and-preflight-validation-20261018-1/node-test-v2.stdout",
+      "bytes": 135713,
+      "sha256": "923c7b728f11129abeb43cc2025516c5c63156bd79944037b56d46977004b476"
+    },
+    "census41": {
+      "path": "artifacts/rust-rewrite/source-transfer-census-20261018-41/census.json",
+      "bytes": 13917,
+      "sha256": "454affe31853feff3011603d37129ffb78ef35bdc332b47df0866d950714466e"
+    },
+    "current_Node_owner": {
+      "path": "artifacts/rust-rewrite/native-spawn-failure-validation-20261018-1/node-test.json",
+      "bytes": 2208,
+      "sha256": "3eb20fdba613cd534045ac57ed7390d8f1aef2a8529c45aebd7e58688c9b7c79"
+    },
+    "current_Node_stdout": {
+      "path": "artifacts/rust-rewrite/native-spawn-failure-validation-20261018-1/node-test.stdout",
+      "bytes": 135692,
+      "sha256": "5b47247fbc375dc023a34f679a373981607fef0eaa5b7c99569409b548916ba3"
+    },
+    "independent_RED_GREEN": {
+      "path": "artifacts/rust-rewrite/native-spawn-failure-validation-20261018-1/independent-actual-red-green-and-preservation-review.json",
+      "bytes": 7863,
+      "sha256": "09146ab102811c1238d43d9a6584c66c5043365e5304f1307d3f1de236abc4cf"
+    },
+    "independent_current_checks": {
+      "path": "artifacts/rust-rewrite/native-spawn-failure-validation-20261018-1/independent-workspace-default-node-and-census41-review.json",
+      "bytes": 18973,
+      "sha256": "d0fdb280bec08b58707699be55f3d1a27bb38f3546a5426c5440cf3ad2bff42e"
+    },
+    "local_focused_owner": {
+      "path": "artifacts/rust-rewrite/native-spawn-failure-validation-20261018-1/green-local-permissions.json",
+      "bytes": 1380,
+      "sha256": "8ebc4bf97a2474b49e9ec9a2acd66bf350f31281a81967c3179f854133b84b25"
+    },
+    "local_focused_stdout": {
+      "path": "artifacts/rust-rewrite/native-spawn-failure-validation-20261018-1/green-local-permissions.stdout",
+      "bytes": 612,
+      "sha256": "07276687372701ebf3ccc9915f0e08bca6b07f3b3786bba42d806cf86f6b26af"
+    },
+    "local_focused_stderr": {
+      "path": "artifacts/rust-rewrite/native-spawn-failure-validation-20261018-1/green-local-permissions.stderr",
+      "bytes": 2382,
+      "sha256": "6c82f68d5e104554c3ef4506116714b08fc761e716ace6204b3418c195872c6f"
+    }
+  },
+  "Root_decision": {
+    "acceptance": {
+      "path": "artifacts/rust-rewrite/native-spawn-failure-validation-20261018-1/root-scoped-acceptance.json",
+      "bytes": 14590,
+      "sha256": "e8373033691d7344b601e1cfce41824157c7d10f002e09cc179588dc1925de1c"
+    },
+    "individual": {
+      "id": "test/package-lifecycle.test.mjs#3",
+      "decision": "ACCEPTED_SCOPED_TWO_ASSERTION_NATIVE_API_MIGRATION",
+      "deadline": "ACCEPT: configured100ms actually reaches the direct native tool runner and returns structured timed_out failure after its existing termination/wait path. This replaces the original rejected Promise/Error matching /deadline/ and its SIGKILL behavior with a typed report and unchanged native TERM/grace policy. It does not bound a blocking spawn or guarantee group cleanup.",
+      "closed_spawn_cause": "ACCEPT: actual valid-cwd missing executable retains not_found; actual0600nonexecutingfile and invalidNULargument retain permission_denied and groupedother. This repairs real cause loss. Structured closed metadata replaces JavaScript SystemError/codeENOENT identity only for this runner. No numericerrno/path-origin or otherprocessAPI equivalence is asserted.",
+      "compatibility": "Existing exit/deadline/success/cancellation/bounds remain; liveconsumer removes the new internalfield, preserving exact oldpublicreport for all3labels and unchanged strict CASE_FIELDS. All3newtestbodies retained from actualRED throughGREEN.",
+      "cleanup_limit": "Initial and local-permission focused postspawn reports retain cleanup_confirmed=false and raw groupSIGKILLerrorerrno1. Directexit17/SIGTERM and joinedreturn are observed; no successful whole-group cleanup or cause of errno1 is inferred."
+    }
+  },
+  "independent_final_review": {
+    "path": "artifacts/rust-rewrite/package-lifecycle-three-native-api-migration-draft-20261018-1/independent-two-assertion-conditional-mapping-review.json",
+    "bytes": 4358,
+    "sha256": "3ce73440abdc3421536c8d58e148e7190c4f78cd60d71c710c60518bb05cea5e"
+  },
+  "acceptance_conditions": "Satisfied for original#3 only by twoexplicitRootAPIdecisions and independentlyreviewed actuals. Otheroriginals/limits/fullCI/resource/platform/release/cutover/goal remain open.",
+  "nonclaims": "No provider, model/download, user configuration, liveClaude, actual package command/install/mainstderr, arbitrary typed host error identity, group cleanup success, all-platform/errno matrix, or separate process_owned/capture_result API qualification.",
+  "initial_focused_observations": {
+    "spawn": [
+      {
+        "expected_kind": "not_found",
+        "actual": {
+          "spawn_error": true,
+          "spawn_error_kind": "not_found",
+          "exit_code": null,
+          "exit_signal": null,
+          "timed_out": false,
+          "output_limit_exceeded": false,
+          "duration_ms": 0,
+          "stdout_bytes": 0,
+          "stderr_bytes": 0
+        }
+      },
+      {
+        "expected_kind": "permission_denied",
+        "actual": {
+          "spawn_error": true,
+          "spawn_error_kind": "permission_denied",
+          "exit_code": null,
+          "exit_signal": null,
+          "timed_out": false,
+          "output_limit_exceeded": false,
+          "duration_ms": 0,
+          "stdout_bytes": 0,
+          "stderr_bytes": 0
+        }
+      },
+      {
+        "expected_kind": "other",
+        "actual": {
+          "spawn_error": true,
+          "spawn_error_kind": "other",
+          "exit_code": null,
+          "exit_signal": null,
+          "timed_out": false,
+          "output_limit_exceeded": false,
+          "duration_ms": 0,
+          "stdout_bytes": 0,
+          "stderr_bytes": 0
+        }
+      }
+    ],
+    "postspawn": [
+      {
+        "timeout_ms": 3000,
+        "report": {
+          "exit_code": 17,
+          "exit_signal": null,
+          "timed_out": false,
+          "output_limit_exceeded": false,
+          "cancelled": false,
+          "duration_ms": 15,
+          "stdout_bytes": 0,
+          "stderr_bytes": 0,
+          "response_received": false,
+          "controlled_stop": false,
+          "cleanup_confirmed": false,
+          "supervision": {
+            "observation_error": false,
+            "wait_error": false,
+            "ownership_lost": false,
+            "read_error": false,
+            "signals": [
+              {
+                "target": "group",
+                "signal": "SIGKILL",
+                "outcome": "error",
+                "errno": 1,
+                "kind": null
+              }
+            ]
+          }
+        }
+      },
+      {
+        "timeout_ms": 100,
+        "report": {
+          "exit_code": null,
+          "exit_signal": "SIGTERM",
+          "timed_out": true,
+          "output_limit_exceeded": false,
+          "cancelled": false,
+          "duration_ms": 109,
+          "stdout_bytes": 0,
+          "stderr_bytes": 0,
+          "response_received": false,
+          "controlled_stop": false,
+          "cleanup_confirmed": false,
+          "observed_exit_code": null,
+          "observed_exit_signal": "SIGTERM",
+          "supervision": {
+            "observation_error": false,
+            "wait_error": false,
+            "ownership_lost": false,
+            "read_error": false,
+            "signals": [
+              {
+                "target": "group",
+                "signal": "SIGKILL",
+                "outcome": "error",
+                "errno": 1,
+                "kind": null
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "local_permission_focused_observations": {
+    "spawn": [
+      {
+        "expected_kind": "not_found",
+        "actual": {
+          "spawn_error": true,
+          "spawn_error_kind": "not_found",
+          "exit_code": null,
+          "exit_signal": null,
+          "timed_out": false,
+          "output_limit_exceeded": false,
+          "duration_ms": 0,
+          "stdout_bytes": 0,
+          "stderr_bytes": 0
+        }
+      },
+      {
+        "expected_kind": "permission_denied",
+        "actual": {
+          "spawn_error": true,
+          "spawn_error_kind": "permission_denied",
+          "exit_code": null,
+          "exit_signal": null,
+          "timed_out": false,
+          "output_limit_exceeded": false,
+          "duration_ms": 0,
+          "stdout_bytes": 0,
+          "stderr_bytes": 0
+        }
+      },
+      {
+        "expected_kind": "other",
+        "actual": {
+          "spawn_error": true,
+          "spawn_error_kind": "other",
+          "exit_code": null,
+          "exit_signal": null,
+          "timed_out": false,
+          "output_limit_exceeded": false,
+          "duration_ms": 0,
+          "stdout_bytes": 0,
+          "stderr_bytes": 0
+        }
+      }
+    ],
+    "postspawn": [
+      {
+        "timeout_ms": 3000,
+        "report": {
+          "exit_code": 17,
+          "exit_signal": null,
+          "timed_out": false,
+          "output_limit_exceeded": false,
+          "cancelled": false,
+          "duration_ms": 22,
+          "stdout_bytes": 0,
+          "stderr_bytes": 0,
+          "response_received": false,
+          "controlled_stop": false,
+          "cleanup_confirmed": false,
+          "supervision": {
+            "observation_error": false,
+            "wait_error": false,
+            "ownership_lost": false,
+            "read_error": false,
+            "signals": [
+              {
+                "target": "group",
+                "signal": "SIGKILL",
+                "outcome": "error",
+                "errno": 1,
+                "kind": null
+              }
+            ]
+          }
+        }
+      },
+      {
+        "timeout_ms": 100,
+        "report": {
+          "exit_code": null,
+          "exit_signal": "SIGTERM",
+          "timed_out": true,
+          "output_limit_exceeded": false,
+          "cancelled": false,
+          "duration_ms": 102,
+          "stdout_bytes": 0,
+          "stderr_bytes": 0,
+          "response_received": false,
+          "controlled_stop": false,
+          "cleanup_confirmed": false,
+          "observed_exit_code": null,
+          "observed_exit_signal": "SIGTERM",
+          "supervision": {
+            "observation_error": false,
+            "wait_error": false,
+            "ownership_lost": false,
+            "read_error": false,
+            "signals": [
+              {
+                "target": "group",
+                "signal": "SIGKILL",
+                "outcome": "error",
+                "errno": 1,
+                "kind": null
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "observation_scope": "Initial default-permission and later local-permission raw observations remain distinct and unchanged; cleanupfalse/errno1 retained in both. No inferred cause or whole-group cleanup success.",
+  "author_predecessor": {
+    "path": "artifacts/rust-rewrite/package-lifecycle-three-native-api-migration-draft-20261018-1/assertion-migration-supplement.draft.json",
+    "bytes": 17678,
+    "sha256": "c9a06587b2eaa15dea9947cae32c2a660cb32b2a6fbafb03fb172e9dd1141541"
+  }
+}

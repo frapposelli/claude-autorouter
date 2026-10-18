@@ -282,14 +282,23 @@ impl CompletionRegistry {
     }
 
     fn close(&self, reason: Failure) {
+        self.close_take(reason)();
+    }
+
+    // Receipt timeout scanning takes the failure claim under its own phase
+    // mutex. Emission is deferred until both phase/delivery locks are released.
+    pub(crate) fn close_take(&self, reason: Failure) -> impl FnOnce() + Send + 'static {
         let records = {
             let mut state = self.lock();
             state.closed = true;
             std::mem::take(&mut state.records)
         };
-        self.0.changed.notify_one();
-        for record in records {
-            emit(record.callback, Delivery::Failed(reason));
+        let shared = self.0.clone();
+        move || {
+            shared.changed.notify_one();
+            for record in records {
+                emit(record.callback, Delivery::Failed(reason));
+            }
         }
     }
 
@@ -609,6 +618,37 @@ where
             inner: service,
             header_phase,
         },
+    )
+}
+
+/// The actual Gateway path uses listener-owned Node receipt scans. The public
+/// standalone helper above intentionally retains its documented hard timer.
+pub(crate) fn serve_http1_scanned<I, S, B>(
+    io: I,
+    registry: CompletionRegistry,
+    service: S,
+    control: Arc<dyn hyper::ext::NodeHttpServerTimingControl>,
+) -> impl Future<Output = Result<(), hyper::Error>>
+where
+    I: AsyncRead + AsyncWrite + Unpin + 'static,
+    S: Service<Request<Incoming>, Response = Response<B>>,
+    S::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
+    B: Body + 'static,
+    B::Data: Buf,
+    B::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
+{
+    let mut builder = hyper::server::conn::http1::Builder::new();
+    builder
+        .pipeline_flush(false)
+        .half_close(false)
+        .timer(TokioTimer::new())
+        .node_http_server_timing(control);
+    builder.serve_connection(
+        TokioIo::new(CompletionIo {
+            inner: io,
+            registry,
+        }),
+        service,
     )
 }
 
@@ -1615,4 +1655,6 @@ mod tests {
             }
         }
     }
+    include!("transport_receive_timer_contracts.rs");
+    include!("transport_parser_timing_contracts.rs");
 }

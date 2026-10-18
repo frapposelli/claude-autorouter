@@ -555,8 +555,7 @@ pub fn check(scenario: &str) {
     fs::write(home.config(), ORIGINAL).unwrap();
     fs::set_permissions(home.config(), fs::Permissions::from_mode(0o600)).unwrap();
     let terminal = Terminal::new();
-    let target = std::env::var_os("AUTOROUTER_TEST_EXECUTABLE")
-        .unwrap_or_else(|| env!("CARGO_BIN_EXE_claude-autorouter").into());
+    let target = crate::support::executable();
     let diagnostic_path = home.0.join("supervisor.stderr");
     let diagnostic = File::create(&diagnostic_path).unwrap();
     let mut command = Command::new(std::env::current_exe().unwrap());

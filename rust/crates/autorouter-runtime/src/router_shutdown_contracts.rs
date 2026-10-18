@@ -102,18 +102,13 @@ async fn gateway_retired_owner_schedule(cancel_close_waiter: bool) {
             entered: Arc::new(Semaphore::new(0)),
             calls: AtomicUsize::new(0),
         });
-        let settings = autorouter_core::config::read_config(
-            &json!({
-                "AUTOROUTER_EVALUATOR": "jev",
-                "TYPESAFE_API_KEY": "synthetic-evaluator",
-                "ANTHROPIC_API_KEY": "synthetic-provider",
-                "AUTOROUTER_TOKEN": "synthetic-shutdown-regression-token",
-                "AUTOROUTER_JEV_TIMEOUT_MS": "10000"
-            }),
-            false,
-            std::path::Path::new("/synthetic"),
-        )
-        .unwrap();
+        let settings = crate::test_config(&json!({
+            "AUTOROUTER_EVALUATOR": "jev",
+            "TYPESAFE_API_KEY": "synthetic-evaluator",
+            "ANTHROPIC_API_KEY": "synthetic-provider",
+            "AUTOROUTER_TOKEN": "synthetic-shutdown-regression-token",
+            "AUTOROUTER_JEV_TIMEOUT_MS": "10000"
+        }));
         let router = Arc::new(Router::new(transport.clone(), settings.clone()));
         let gate = Arc::new(WorkerPollGate::default());
         router.classifier.test_worker_poll_gate(gate.clone());
@@ -318,10 +313,9 @@ fn advisory_options(label: &str) -> RouteOptions {
     }
 }
 fn advisory_router(transport: Arc<AdvisoryTransport>) -> Router<AdvisoryTransport> {
-    let config = autorouter_core::config::read_config(
+    let config = crate::test_config(
         &json!({"AUTOROUTER_EVALUATOR":"jev","TYPESAFE_API_KEY":"synthetic-evaluator","ANTHROPIC_API_KEY":"synthetic-provider","AUTOROUTER_JEV_TIMEOUT_MS":"10000","AUTOROUTER_TOKEN_COUNT_TIMEOUT_MS":"10000"}),
-        false, std::path::Path::new("/synthetic")
-    ).unwrap();
+    );
     Router::with_clock_and_limits(
         transport,
         config,

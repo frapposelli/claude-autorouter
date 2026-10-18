@@ -45,7 +45,7 @@ fn local_reply(request: &Request) -> Response {
 fn default_ollama_launcher_warms_before_claude_and_preserves_saved_configuration() {
     let home = Home::new();
     home.save(&json!({"AUTOROUTER_PORT":"8123"}));
-    let before = fs::read(home.config()).unwrap();
+    let before = home.saved_bytes();
     let warmed = home.0.join("warm-complete");
     let launched = home.0.join("claude-started");
     let marker = warmed.clone();
@@ -90,7 +90,7 @@ fn default_ollama_launcher_warms_before_claude_and_preserves_saved_configuration
             "/v1/systemone"
         ]
     );
-    assert_eq!(fs::read(home.config()).unwrap(), before);
+    assert_eq!(home.saved_bytes(), before);
     no_status(&home);
     local.assert_clean();
 }
@@ -99,7 +99,7 @@ fn default_ollama_launcher_warms_before_claude_and_preserves_saved_configuration
 fn default_ollama_preparation_failure_still_launches_with_conservative_fallback() {
     let home = Home::new();
     home.save(&json!({"AUTOROUTER_PORT":"8123"}));
-    let before = fs::read(home.config()).unwrap();
+    let before = home.saved_bytes();
     let local = Server::disconnecting();
     let upstream = Server::new(|request| {
         assert_eq!(request.path, "/v1/messages");
@@ -143,7 +143,7 @@ fn default_ollama_preparation_failure_still_launches_with_conservative_fallback(
     assert_eq!(rows.len(), 2);
     closed(rows[0]);
     assert!(!Path::new(rows[1]).exists());
-    assert_eq!(fs::read(home.config()).unwrap(), before);
+    assert_eq!(home.saved_bytes(), before);
     no_status(&home);
     upstream.assert_clean();
 }
@@ -154,7 +154,7 @@ fn default_ollama_preparation_cancellation_does_not_launch_or_allocate_resources
         for (signal, code) in [(Signal::SIGINT, 130), (Signal::SIGTERM, 143)] {
             let home = Home::new();
             home.save(&json!({"AUTOROUTER_PORT":"8123"}));
-            let before = fs::read(home.config()).unwrap();
+            let before = home.saved_bytes();
             let launched = home.0.join("claude-started");
             home.claude(&format!(
                 "#!/bin/sh\nprintf unexpected > {}\nexit 93\n",
@@ -204,7 +204,7 @@ fn default_ollama_preparation_cancellation_does_not_launch_or_allocate_resources
                 ]
             );
             assert!(!launched.exists());
-            assert_eq!(fs::read(home.config()).unwrap(), before);
+            assert_eq!(home.saved_bytes(), before);
             assert_eq!(home.names(), ["claude", "config.json"]);
             local.assert_clean();
         }
@@ -529,7 +529,7 @@ fn spawn_failures_remove_allocated_status_resources_and_leave_saved_configuratio
     for failure in ["missing", "permission", "interpreter"] {
         let home = Home::new();
         save_jev(&home);
-        let original = fs::read(home.config()).unwrap();
+        let original = home.saved_bytes();
         if failure == "permission" {
             home.write("claude", b"#!/bin/sh\nexit 0\n");
         }
@@ -543,7 +543,7 @@ fn spawn_failures_remove_allocated_status_resources_and_leave_saved_configuratio
             result.stderr,
             b"Could not launch Claude Code. Ensure `claude` is installed and on PATH.\n"
         );
-        assert_eq!(fs::read(home.config()).unwrap(), original);
+        assert_eq!(home.saved_bytes(), original);
         no_status(&home);
         assert!(!home.names().iter().any(|name| name.contains("settings")));
     }

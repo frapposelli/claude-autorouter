@@ -1,6 +1,6 @@
 //! Finite request replay with independent mismatch/call/body ownership checks.
 use crate::http_client::{HttpError, HttpTransport};
-use autorouter_core::config::{RouterConfig, read_config};
+use autorouter_core::config::RouterConfig;
 use autorouter_core::js_json::JsDocument;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -39,12 +39,9 @@ pub fn wire(value: &Value) -> Value {
 }
 pub fn settings(row: &Value) -> RouterConfig {
     let source = &row["config"];
-    let mut config = read_config(
+    let mut config = crate::test_config(
         &json!({"AUTOROUTER_EVALUATOR":"ollama","AUTOROUTER_AUTH_MODE":"subscription"}),
-        false,
-        std::path::Path::new("/synthetic"),
-    )
-    .unwrap();
+    );
     // Original config() spreads overrides after readConfig's model defaults.
     config.min_confidence = source["minConfidence"].as_f64().unwrap();
     config.ollama_timeout_ms = source["ollamaTimeoutMs"].as_u64().unwrap();

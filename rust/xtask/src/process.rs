@@ -34,26 +34,47 @@ impl OwnedChild {
         }
     }
 
+    // Signal only while the unreaped leader still reserves this numeric group.
+    // Unlike cleanup, this leaves ownership armed for bounded pipe draining.
+    fn kill_group(&mut self) {
+        if self.cleaned {
+            return;
+        }
+        #[cfg(unix)]
+        if let Some(group) = self.group {
+            let _ = nix::sys::signal::killpg(group, nix::sys::signal::Signal::SIGKILL);
+        }
+        let _ = self.child.kill();
+    }
+
     fn cleanup(&mut self) {
         if self.cleaned {
             return;
         }
-        self.cleaned = true;
         // The leader may already have exited while fixture descendants still
         // own output files or sockets. End the owned group on every path,
         // including successful completion, before returning captured bytes.
+        self.kill_group();
+        self.cleaned = true;
         #[cfg(unix)]
-        if let Some(group) = self.group.take() {
-            let _ = nix::sys::signal::killpg(group, nix::sys::signal::Signal::SIGKILL);
+        {
+            self.group = None;
         }
-        let _ = self.child.kill();
         let _ = self.child.wait();
     }
 }
 
 // Observe completion without reaping the leader. Keeping its PID reserved
 // until after killpg prevents signaling a reused process-group identifier.
-struct ExitObserver {
+#[cfg(unix)]
+pub(crate) enum ExitObservation {
+    Pending,
+    Exited,
+    #[cfg(target_os = "linux")]
+    OwnershipLost,
+}
+
+pub(crate) struct ExitObserver {
     #[cfg(target_os = "macos")]
     queue: nix::sys::event::Kqueue,
     #[cfg(target_os = "macos")]
@@ -61,7 +82,7 @@ struct ExitObserver {
 }
 
 impl ExitObserver {
-    fn new(pid: u32) -> Result<Self, String> {
+    pub(crate) fn new(pid: u32) -> Result<Self, String> {
         #[cfg(target_os = "macos")]
         {
             use nix::sys::event::{EvFlags, EventFilter, FilterFlag, KEvent, Kqueue};
@@ -90,15 +111,16 @@ impl ExitObserver {
         }
     }
 
-    fn exited(&mut self, child: &mut OwnedChild) -> Result<bool, String> {
+    #[cfg(unix)]
+    pub(crate) fn observe_pid(&mut self, pid: u32) -> Result<ExitObservation, String> {
         #[cfg(target_os = "macos")]
         {
             use nix::sys::event::{EvFlags, EventFilter, FilterFlag, KEvent};
             if self.exited {
-                return Ok(true);
+                return Ok(ExitObservation::Exited);
             }
             let mut events = [KEvent::new(
-                child.id() as usize,
+                pid as usize,
                 EventFilter::EVFILT_PROC,
                 EvFlags::empty(),
                 FilterFlag::empty(),
@@ -113,14 +135,14 @@ impl ExitObserver {
                     tv_nsec: 0,
                 }),
             ) {
-                Ok(0) | Err(nix::errno::Errno::EINTR) => Ok(false),
+                Ok(0) | Err(nix::errno::Errno::EINTR) => Ok(ExitObservation::Pending),
                 Ok(1)
                     if !events[0].flags().contains(EvFlags::EV_ERROR)
-                        && events[0].ident() == child.id() as usize
+                        && events[0].ident() == pid as usize
                         && events[0].fflags().contains(FilterFlag::NOTE_EXIT) =>
                 {
                     self.exited = true;
-                    Ok(true)
+                    Ok(ExitObservation::Exited)
                 }
                 _ => Err("Cannot wait for fixture executable".into()),
             }
@@ -129,19 +151,39 @@ impl ExitObserver {
         {
             use nix::sys::wait::{Id, WaitPidFlag, WaitStatus, waitid};
             match waitid(
-                Id::Pid(nix::unistd::Pid::from_raw(child.id() as i32)),
+                Id::Pid(nix::unistd::Pid::from_raw(pid as i32)),
                 WaitPidFlag::WEXITED | WaitPidFlag::WNOHANG | WaitPidFlag::WNOWAIT,
             ) {
-                Ok(WaitStatus::Exited(_, _) | WaitStatus::Signaled(_, _, _)) => Ok(true),
-                Ok(WaitStatus::StillAlive) | Err(nix::errno::Errno::EINTR) => Ok(false),
-                Err(nix::errno::Errno::ECHILD) => {
-                    // An unexpected external reaper has ended our ownership.
-                    // Do not signal a numeric PID/group that can now be reused.
+                Ok(WaitStatus::Exited(_, _) | WaitStatus::Signaled(_, _, _)) => {
+                    Ok(ExitObservation::Exited)
+                }
+                Ok(WaitStatus::StillAlive) | Err(nix::errno::Errno::EINTR) => {
+                    Ok(ExitObservation::Pending)
+                }
+                Err(nix::errno::Errno::ECHILD) => Ok(ExitObservation::OwnershipLost),
+                _ => Err("Cannot wait for fixture executable".into()),
+            }
+        }
+        #[cfg(all(unix, not(any(target_os = "macos", target_os = "linux"))))]
+        {
+            let _ = pid;
+            Err("Fixture process observation is supported only on macOS and Linux".into())
+        }
+    }
+
+    fn exited(&mut self, child: &mut OwnedChild) -> Result<bool, String> {
+        #[cfg(unix)]
+        {
+            match self.observe_pid(child.id())? {
+                ExitObservation::Pending => Ok(false),
+                ExitObservation::Exited => Ok(true),
+                #[cfg(target_os = "linux")]
+                ExitObservation::OwnershipLost => {
+                    // Preserve the existing std owner side effect and error.
                     child.cleaned = true;
                     child.group = None;
                     Err("Cannot wait for fixture executable".into())
                 }
-                _ => Err("Cannot wait for fixture executable".into()),
             }
         }
         #[cfg(not(unix))]
@@ -150,11 +192,6 @@ impl ExitObserver {
                 .try_wait()
                 .map(|status| status.is_some())
                 .map_err(|_| "Cannot wait for fixture executable".into())
-        }
-        #[cfg(all(unix, not(any(target_os = "macos", target_os = "linux"))))]
-        {
-            let _ = child;
-            Err("Fixture process observation is supported only on macOS and Linux".into())
         }
     }
 }
@@ -731,7 +768,7 @@ mod tests {
     }
 
     #[cfg(any(target_os = "macos", target_os = "linux"))]
-    fn independent_exit_status(
+    pub(super) fn independent_exit_status(
         child: &mut OwnedChild,
         deadline: Instant,
     ) -> nix::Result<nix::sys::wait::WaitStatus> {

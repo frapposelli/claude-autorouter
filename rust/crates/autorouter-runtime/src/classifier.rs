@@ -324,7 +324,7 @@ fn evaluation_settings(config: &RouterConfig) -> RouterConfig {
     let mut settings = config.clone();
     settings.replace_credential(Credential::Anthropic, None);
     settings.replace_credential(Credential::LocalToken, None);
-    settings.session_log_dir = None;
+    settings.replace_session_log_dir(None);
     settings
 }
 
@@ -334,7 +334,7 @@ fn settings_key(document: &JsDocument, config: &RouterConfig) -> Key {
         .flatten();
     let (settings, rubric) = match config.evaluator {
         Evaluator::Ollama => (
-            json!({"evaluator":"ollama","ollamaEndpoint":config.ollama_endpoint,"ollamaModel":config.ollama_model,"ollamaTimeoutMs":config.ollama_timeout_ms,"ollamaStateChars":config.ollama_state_chars,"ollamaKeepAlive":config.ollama_keep_alive}),
+            json!({"evaluator":"ollama","ollamaEndpoint":config.ollama_endpoint,"ollamaModel":config.ollama_model,"ollamaTimeoutMs":config.ollama_timeout_ms,"ollamaStateChars":config.ollama_state_chars,"ollamaKeepAlive":null}),
             "be151cedb4de4b7ef3f7162d751f70ce7d9dd14efc66fae1835f73ffd04027be",
         ),
         Evaluator::Jev => {
@@ -356,6 +356,14 @@ fn settings_key(document: &JsDocument, config: &RouterConfig) -> Key {
     let mut settings =
         JsDocument::parse(&serde_json::to_vec(&settings).expect("finite settings JSON"))
             .expect("serialized settings JSON");
+    if config.evaluator == Evaluator::Ollama {
+        settings
+            .set_root_field_json(
+                "ollamaKeepAlive",
+                config.ollama_keep_alive_json().as_bytes(),
+            )
+            .expect("exact classifier keep-alive JSON");
+    }
     if let Some(key) = jev_key {
         settings
             .set_root_field_json("jevKey", key.as_bytes())
@@ -712,13 +720,72 @@ mod tests {
     use super::*;
 
     #[test]
+    fn exact_keep_alive_cache_keys_match_four_actual_frozen_source_controls() {
+        let document = JsDocument::parse(br#"{"model":"claude-sonnet-5","messages":[{"role":"user","content":"Synthetic exact keep-alive task"}]}"#).unwrap();
+        // Recorded by the actual frozen Router.classify with injected transport;
+        // these are not generated from the native settings implementation.
+        let cases = [
+            (
+                format!("{}\"5m\"{}", "[".repeat(64), "]".repeat(64)),
+                "badcc8cd8259dbe3d3e081f6294b5814973e5826696c2296c8d8ed85c24f0222",
+            ),
+            (
+                format!("{}\"5m\"{}", "[".repeat(80), "]".repeat(80)),
+                "a9b30187ee8637382ae392a5a31dfae444f688171337cf9dea93fae86d298748",
+            ),
+            (
+                "\"5m\"".into(),
+                "e0306a2a8ae5ab8dbaa42254147af892d1baa6a6d2be9b37304b54dc41279f01",
+            ),
+            (
+                "0".into(),
+                "9d75f52d05c2d04a94526b21b5f6f34354c218beb79592e9f8ffc286db3ae498",
+            ),
+        ];
+        for (raw, expected) in cases {
+            let config = crate::test_config_document(
+                &JsDocument::parse(
+                    format!(r#"{{"AUTOROUTER_OLLAMA_KEEP_ALIVE":{raw}}}"#).as_bytes(),
+                )
+                .unwrap(),
+            );
+            let key = settings_key(&document, &config);
+            let hex: String = key.iter().map(|byte| format!("{byte:02x}")).collect();
+            assert_eq!(hex, expected);
+            let snapshot = evaluation_settings(&config);
+            assert_eq!(snapshot.ollama_keep_alive_json(), raw);
+            assert_eq!(settings_key(&document, &snapshot), key);
+        }
+    }
+
+    #[test]
+    fn exact_worker_settings_erase_captured_paths_and_replace_cache_identity() {
+        let raw = format!(
+            r#"{{"AUTOROUTER_SESSION_LOG_DIR":"synthetic\ud800","AUTOROUTER_OLLAMA_KEEP_ALIVE":{}"5m"{}}}"#,
+            "[".repeat(80),
+            "]".repeat(80)
+        );
+        let mut config = crate::test_config_document(&JsDocument::parse(raw.as_bytes()).unwrap());
+        let document = JsDocument::parse(br#"{"model":"claude-sonnet-5","messages":[]}"#).unwrap();
+        let original = settings_key(&document, &config);
+        let snapshot = evaluation_settings(&config);
+        assert!(snapshot.session_log_dir.is_none());
+        assert!(snapshot.session_log_dir_exact().is_none());
+        assert!(config.session_log_dir_exact().is_some());
+        assert_eq!(
+            snapshot.ollama_keep_alive_json(),
+            config.ollama_keep_alive_json()
+        );
+        config.replace_ollama_keep_alive(json!("5m"));
+        assert_ne!(settings_key(&document, &config), original);
+        assert_eq!(settings_key(&document, &snapshot), original);
+    }
+
+    #[test]
     fn evaluator_cache_identity_distinguishes_unpaired_configured_model_units() {
-        let mut first = autorouter_core::config::read_config(
+        let mut first = crate::test_config(
             &json!({"AUTOROUTER_EVALUATOR":"jev","TYPESAFE_API_KEY":"synthetic"}),
-            false,
-            std::path::Path::new("/synthetic"),
-        )
-        .unwrap();
+        );
         first.jev_model = "synthetic-\u{fffd}".into();
         first.exact_jev_model = Some(autorouter_core::js_json::JsString::from_utf16(vec![0xd800]));
         let mut second = first.clone();
@@ -731,14 +798,10 @@ mod tests {
         );
     }
     use crate::http_client::HttpError;
-    use autorouter_core::config::read_config;
     use bytes::Bytes;
     use http_body_util::{BodyExt, Full};
     use hyper::{Request, Response};
-    use std::{
-        path::Path,
-        sync::atomic::{AtomicBool, AtomicU16, AtomicUsize, Ordering},
-    };
+    use std::sync::atomic::{AtomicBool, AtomicU16, AtomicUsize, Ordering};
     use tokio::sync::Semaphore;
 
     struct Mock {
@@ -815,7 +878,9 @@ mod tests {
         }
     }
     fn config() -> RouterConfig {
-        read_config(&json!({"AUTOROUTER_EVALUATOR":"jev","TYPESAFE_API_KEY":"synthetic-jev-key","ANTHROPIC_API_KEY":"synthetic-claude-key"}),false,Path::new("/synthetic")).unwrap()
+        crate::test_config(
+            &json!({"AUTOROUTER_EVALUATOR":"jev","TYPESAFE_API_KEY":"synthetic-jev-key","ANTHROPIC_API_KEY":"synthetic-claude-key"}),
+        )
     }
     fn fixture(block: bool) -> (Arc<Mock>, RouterConfig, Classifier<Mock>) {
         let mock = Arc::new(Mock::new(block));
@@ -837,7 +902,7 @@ mod tests {
         tokio::spawn(async move { classifier.classify(&body, &config, &cancel).await })
     }
     async fn wait_subscribers(classifier: &Classifier<Mock>, subscribers: usize) {
-        tokio::time::timeout(Duration::from_secs(2), async {
+        crate::bounded(async {
             loop {
                 if classifier.shared.state.lock().unwrap().subscribers == subscribers {
                     break;
@@ -845,26 +910,23 @@ mod tests {
                 tokio::task::yield_now().await;
             }
         })
-        .await
-        .unwrap();
+        .await;
     }
     async fn wait_pending(classifier: &Classifier<Mock>, counts: (usize, usize)) {
-        tokio::time::timeout(Duration::from_secs(2), async {
+        crate::bounded(async {
             while classifier.pending_counts() != counts {
                 tokio::task::yield_now().await;
             }
         })
-        .await
-        .unwrap();
+        .await;
     }
     async fn wait_calls(mock: &Mock, count: usize) {
-        tokio::time::timeout(Duration::from_secs(2), async {
+        crate::bounded(async {
             while mock.calls() < count {
                 tokio::task::yield_now().await;
             }
         })
-        .await
-        .unwrap();
+        .await;
     }
 
     #[tokio::test]
@@ -1601,9 +1663,7 @@ mod tests {
     #[test]
     fn evaluator_snapshot_erases_unrelated_source_credentials_and_keeps_jev() {
         let source = JsDocument::parse(br#"{"AUTOROUTER_EVALUATOR":"jev","ANTHROPIC_API_KEY":{"synthetic":"private-provider"},"TYPESAFE_API_KEY":"synthetic-\ud800","AUTOROUTER_TOKEN":["synthetic-private-local"]}"#).unwrap();
-        let config =
-            autorouter_core::config::read_config_document(&source, false, Path::new("/synthetic"))
-                .unwrap();
+        let config = crate::test_config_document(&source);
         let settings = evaluation_settings(&config);
         assert!(settings.anthropic_key.is_none() && settings.local_token.is_none());
         assert!(settings.credential_json(Credential::Anthropic).is_none());

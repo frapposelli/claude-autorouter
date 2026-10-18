@@ -12,15 +12,8 @@ const TIME: &str = "2026-10-01T12:00:00.000Z";
 struct Directory(PathBuf);
 impl Directory {
     fn new() -> Self {
-        let mut nonce = [0u8; 12];
-        getrandom::fill(&mut nonce).unwrap();
-        let path = std::env::temp_dir().join(format!(
-            "autorouter-session-contract-{}",
-            nonce
-                .iter()
-                .map(|byte| format!("{byte:02x}"))
-                .collect::<String>()
-        ));
+        let suffix = crate::random_hex::<12>().unwrap();
+        let path = std::env::temp_dir().join(format!("autorouter-session-contract-{suffix}"));
         std::fs::DirBuilder::new()
             .mode(0o700)
             .create(&path)

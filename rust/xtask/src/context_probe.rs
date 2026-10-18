@@ -754,6 +754,16 @@ async fn execute(options: Value) -> Result<bool, String> {
     if result["spawn_error"] == true {
         report["spawn_error"] = json!(true);
     }
+    for key in [
+        "supervision",
+        "cleanup_confirmed",
+        "observed_exit_code",
+        "observed_exit_signal",
+    ] {
+        if let Some(value) = result.get(key) {
+            report[key] = value.clone();
+        }
+    }
     if interactive {
         report["response_received"] = result["response_received"].clone();
         report["controlled_stop"] = result["controlled_stop"].clone();

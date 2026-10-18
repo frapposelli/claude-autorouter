@@ -505,48 +505,9 @@ fn compare_logs(actual: &[Value], row: &Value, index: usize) {
 }
 // Exact numeric_equal semantics from xtask/src/parity.rs. This only compares
 // parsed diagnostic values; raw JSON spelling and provider bytes stay intact.
-fn numeric_equal(a: &serde_json::Number, b: &serde_json::Number) -> bool {
-    if a == b {
-        return true;
-    }
-    if !a.is_f64() && !b.is_f64() {
-        return false;
-    }
-    let (Some(left), Some(right)) = (a.as_f64(), b.as_f64()) else {
-        return false;
-    };
-    if left != right {
-        return false;
-    }
-    if a.is_f64() && b.is_f64() {
-        return true;
-    }
-    let integer = if a.is_f64() { b } else { a };
-    if let Some(value) = integer.as_u64() {
-        (0.0..18_446_744_073_709_551_616.0).contains(&left) && left as u64 == value
-    } else if let Some(value) = integer.as_i64() {
-        (-9_223_372_036_854_775_808.0..9_223_372_036_854_775_808.0).contains(&left)
-            && left as i64 == value
-    } else {
-        false
-    }
-}
-fn diagnostic_equal(wanted: &Value, actual: &Value) -> bool {
-    match (wanted, actual) {
-        (Value::Number(a), Value::Number(b)) => numeric_equal(a, b),
-        (Value::Array(a), Value::Array(b)) => {
-            a.len() == b.len() && a.iter().zip(b).all(|(a, b)| diagnostic_equal(a, b))
-        }
-        (Value::Object(a), Value::Object(b)) => {
-            a.len() == b.len()
-                && a.iter().all(|(key, value)| {
-                    b.get(key)
-                        .is_some_and(|other| diagnostic_equal(value, other))
-                })
-        }
-        _ => wanted == actual,
-    }
-}
+include!("../../autorouter-core/src/json_compare_macros.rs");
+contract_numeric_equal!(numeric_equal);
+contract_json_equal!(diagnostic_equal, a, b => numeric_equal(a, b));
 #[test]
 fn supplemental_diagnostic_number_comparison_rejects_lossy_and_saturating_integers() {
     for (a, b, equal) in [

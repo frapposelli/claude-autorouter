@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "kind": "reviewed_router_concurrency9_native_body_ownership_API_migration",
+  "status": "ACCEPTED_REVIEWED_NATIVE_API_MIGRATION",
+  "only_definition": "test/router-concurrency.test.mjs#9",
+  "historical_mapping_unchanged": {
+    "path": "rust/parity/assertion-mappings/router-concurrency-contracts.json",
+    "bytes": 87589,
+    "sha256": "c4d1d98483c7011849dc0dac7923c710563861726446415cc1565fa070d0faa0"
+  },
+  "source_statement_sha256": "50bd884f0e8f6eceb380315d8b177e89c5e93fd8b7cc20d223f3e5fc61913f5b",
+  "source_call_sha256": "69c64f16214e76975fd5bd34f267e064efef003a5830c9e23119262cb0ccc39d",
+  "expression_hash_scope": "Verbatimunchangedhistoricalexpressiontext,notnewASThash.",
+  "rows": [
+    {
+      "id": "test/router-concurrency.test.mjs#9/assert-1",
+      "expression": "assert.equal(result.source, 'fallback')",
+      "expression_utf8_sha256": "64e7df5a38be91c34b2116c09b023534843f434e92a9add18b8dab64ebef0fd5",
+      "observations": 8,
+      "disposition": "Operational result preserved",
+      "contract": "Each of8 failedattemptsreturns serialized source fallback. Closed nativeDecisionSource::Fallbackisnot an arbitraryJSobject API."
+    },
+    {
+      "id": "test/router-concurrency.test.mjs#9/assert-2",
+      "expression": "assert.equal(result.classifier_error, mode === 'stalled' ? 'timeout' : mode === 'http_error' ? 'http_error' : 'invalid_response')",
+      "expression_utf8_sha256": "9f89445fa88c4dc20ff14eff6707deb0678255ae0ea00cba3b4ca37e7cac0085",
+      "observations": 8,
+      "disposition": "Operational category preserved with new real-clock evidence",
+      "contract": "Oversize/malformed map invalid_response,stalled maps timeout,and503maps http_error,each twice.20msstarts before request and stays active duringownedbodyread;thewhole4mode schedulehasone2sbound."
+    },
+    {
+      "id": "test/router-concurrency.test.mjs#9/assert-3",
+      "expression": "assert.ok(!JSON.stringify(result).includes('PRIVATE'))",
+      "expression_utf8_sha256": "66ccea5741653684186f0210b1e11695b7ee4301615403185ab7ce32e343b3ac",
+      "observations": 8,
+      "disposition": "Operational privacy predicate preserved",
+      "contract": "SerializeddecisionsomitPRIVATEfor8attempts,includingactualprivate-malformedbytes. NoarbitrarysourceErrorpayloadisintroducedbynativefixedclassifiers."
+    },
+    {
+      "id": "test/router-concurrency.test.mjs#9/assert-4",
+      "expression": "assert.equal(calls, 2)",
+      "expression_utf8_sha256": "c8b851444fdd4f05a405c7747fa840311b10224c0e0db81fe1aec79a2d3d7382",
+      "observations": 4,
+      "disposition": "Operational failure-not-cached predicate preserved",
+      "contract": "Exactly2HTTPcallsafter2failedclassifyattemptsforeachmode. AdditionalnativesuccessfulretrythenCachehitprovesrecoveryandcache-only-success,withoutalteringSourcecounts."
+    },
+    {
+      "id": "test/router-concurrency.test.mjs#9/assert-5",
+      "expression": "assert.equal(router.pendingEvaluations.size, 0)",
+      "expression_utf8_sha256": "e06c8c245a07f21261f9adad18435a0300d1223475674909d61f73bcb537d9ee",
+      "observations": 4,
+      "disposition": "Operational registry cardinality preserved",
+      "contract": "Pendingregistrycount0foreachmode; nativealsoassertssubscribers0, activeMockrequestfutures0andawaitsClassifier::close. NoJSMap/referenceidentityclaimexistsinthisSourceassertion."
+    },
+    {
+      "id": "test/router-concurrency.test.mjs#9/assert-6",
+      "expression": "assert.equal(cancelled, true)",
+      "expression_utf8_sha256": "9d31057f08f6678980db9b13aafdf0e260b7d4325f227b62d44b8bd566f219e3",
+      "observations": 3,
+      "disposition": "Accepted explicit native ownership API migration",
+      "contract": "SourceReadableStream.cancel()sets cancelled=trueandreturnsanever-settlingPromise. NativeconsumesownedBody/requestfutureandabandonmentdropsitbeforefallbackpublication;thereisnoJSasynccancelcallbackorPromisetoawait. ThreeSourcebooleanobservationsmaptoexplicitunfinishedBodyDropforbothattemptsinemodesoversize/stalled/503. MalformedfullyconsumesEOFandhasnoSourcecancelassertion."
+    }
+  ],
+  "actual": "Rootnative13/0/0(538filtered),Source10/0/0;697native+111frozenverifiedbefore/after;3885ced136374d1c5e8149cb1a78656eb1e9d63a4f6fc7dc2349cdbb13ae268f;noownerfailure/mismatches. Newtestconsumesall35existingcaptureobservations;SourceTAPisnotanewinstrumentedassertioncounter.",
+  "evidence": [
+    {
+      "path": "artifacts/rust-rewrite/router-concurrency-four-mode-real-clock-validation-20261018-1/native.json",
+      "bytes": 1149,
+      "sha256": "bf7a57729221612d245e72eeee5b2eb18eb45cc5f7c30e078aea942a75d14352"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-concurrency-four-mode-real-clock-validation-20261018-1/native.stdout",
+      "bytes": 1574,
+      "sha256": "1814621dfca41363809b8f3056fa68be05777242d0b151fde63dd8ae5eb6f54a"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-concurrency-four-mode-real-clock-validation-20261018-1/native.stderr",
+      "bytes": 2288,
+      "sha256": "3cc8afc766cbd60456bf6770d0447a5c4523510d47fa33f70e412cc095238c21"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-concurrency-four-mode-real-clock-validation-20261018-1/source.json",
+      "bytes": 1659,
+      "sha256": "0de04569b211bae09ad9b2274a21db527fe10f0b051233a2c23319e5b99d16c7"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-concurrency-four-mode-real-clock-validation-20261018-1/source.stdout",
+      "bytes": 2401,
+      "sha256": "edde79494686427acb1d190ccfe67e64a758a5cbb1f366e61d6f196a7eeaa1df"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-concurrency-four-mode-real-clock-validation-20261018-1/source.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-concurrency-four-mode-real-clock-validation-20261018-1/candidate-source.json",
+      "bytes": 116957,
+      "sha256": "3885ced136374d1c5e8149cb1a78656eb1e9d63a4f6fc7dc2349cdbb13ae268f"
+    },
+    {
+      "path": "artifacts/rust-rewrite/router-concurrency-four-mode-real-clock-validation-20261018-1/execution-binding.json",
+      "bytes": 1908,
+      "sha256": "9ee9cc891d36462be3ded7c218d9bc80eec6e11780db6b8432af076b28985575"
+    }
+  ],
+  "note": {
+    "path": "artifacts/rust-rewrite/router-concurrency-9-native-api-review-20261018-1/embedding-note.draft.md",
+    "bytes": 785,
+    "sha256": "9528edd421a6d53d23c86c665a420c6b0daa2d8c9b646f6dfb30aab0ac6089ca"
+  },
+  "root_acceptance": {
+    "at_utc": "2026-10-18T05:36:13.993311+00:00",
+    "only_definition": "test/router-concurrency.test.mjs#9",
+    "decision": "Accept six predicates under explicit ownedBody abandonment API migration. Preserve operational categories/privacy/retries/pending counts and live20ms/2s protocol; native Drop replaces Source asynchronous cancelcallback observation, without Promiseidentity/generaltransport claims.",
+    "current_code_source": {
+      "path": "artifacts/rust-rewrite/router-concurrency-four-mode-real-clock-validation-20261018-1/candidate-source.json",
+      "bytes": 116957,
+      "sha256": "3885ced136374d1c5e8149cb1a78656eb1e9d63a4f6fc7dc2349cdbb13ae268f"
+    },
+    "extra_embedding_documentation": {
+      "path": "rust/docs/embedding.md",
+      "bytes": 52614,
+      "sha256": "f265d30c26fc89108a771102ae9575ca0a5d549563776be065f424621374dbaa"
+    },
+    "documentation_only_delta": {
+      "path": "artifacts/rust-rewrite/router-concurrency-four-mode-real-clock-validation-20261018-1/documentation-only-delta.json",
+      "bytes": 1481,
+      "sha256": "9f0ecb8322f20b8fe473fffd045e13283b5e217ea96940d3e0503eae74f8f9a9"
+    },
+    "independent_binding_review": {
+      "path": "artifacts/rust-rewrite/router-concurrency-four-mode-real-clock-validation-20261018-1/independent-actual-binding-review.json",
+      "bytes": 12475,
+      "sha256": "3e38f9bb903e5c851dc9a3fe5a4634920fe67bf9e157d765b8e9da03cbb51dda"
+    },
+    "independent_six_predicate_review": {
+      "path": "artifacts/rust-rewrite/router-concurrency-9-native-api-review-20261018-1/independent-six-assertion-api-acceptance-review.json",
+      "bytes": 9472,
+      "sha256": "b4f82dda03ae3a9d5378d6ad6f105705f77cf6d51ab79171a12fd837cb01edaf"
+    },
+    "Root_full_outcome_comparison": {
+      "path": "artifacts/rust-rewrite/router-concurrency-four-mode-real-clock-validation-20261018-1/root-observation-comparison.json",
+      "bytes": 2358,
+      "sha256": "1daea687fdcb05ce2506ad3a9b75e6585f58488e0099fa761a01aa26c09e09b1"
+    },
+    "fmt": {
+      "path": "artifacts/rust-rewrite/router-concurrency-four-mode-real-clock-validation-20261018-1/fmt.json",
+      "bytes": 951,
+      "sha256": "67b666ce4f256da7554898b7010a47124ecbc30c3e8a0edc2ac0fd736709f284"
+    },
+    "clippy": {
+      "path": "artifacts/rust-rewrite/router-concurrency-four-mode-real-clock-validation-20261018-1/clippy.json",
+      "bytes": 1055,
+      "sha256": "6eabe604f3e798ece4e6dee06337c3ed56e902a16209857d3cb609e10d8e80de"
+    },
+    "full_workspace": "1455pass/1knownsourcecapfailure/11ignored,66reportgroups,no-fail-fast. It does not change this per-definition migration into wholeworkspace green or platform/TLS/release approval."
+  },
+  "authorship": "Author checkpoint_ci; independent actual/API review by substantial_source_sharing; Root scoped acceptance below. Historical mapping/capture and immutable author drafts retained.",
+  "scope_limits": "Nativeownedrequest/bodyfuturedropsbeforeworkerpublication;noasynccancelcallbackorPromisetoawait. AwaitednormalcloseownsonlyclassifierTaskTrackerworkers. Generaltransportbackgroundtasks,blockingdestructors,exceptionalcleanup,TCP/TLS/gateway,other5concurrencyrows,CI/platform/performance remainunqualified.",
+  "previous_author_proposal": "Publishadditivesupplement;oldmappingandcapture/definitionhashesunchanged. Onlybaseline#9partial\u2192covered(544/44\u2192545/43ifnootherdefinitionchanges);other587rows/config/limits/areasunchanged. Bindlaterdocs-onlysnapshotseparatelyfrom3885codeexecution.",
+  "note_is_outside_charged697": true
+}

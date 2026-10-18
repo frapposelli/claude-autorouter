@@ -5,10 +5,6 @@ use serde_json::{Map, Value, json};
 use crate::js_json::{JsDocument, JsNode, NodeId};
 use crate::model_catalog::model_capabilities;
 
-fn document_string_is(document: &JsDocument, node: Option<NodeId>, expected: &str) -> bool {
-    node.and_then(|node| document.string(node))
-        .is_some_and(|value| value.units().iter().copied().eq(expected.encode_utf16()))
-}
 fn document_nonnull(document: &JsDocument, node: Option<NodeId>) -> Option<NodeId> {
     node.filter(|&node| !matches!(document.node(node), Some(JsNode::Null)))
 }
@@ -30,13 +26,11 @@ pub(crate) fn sonnet_needs_adaptive_document(document: &JsDocument) -> bool {
     let root = document.root();
     let effort = document_nonnull(
         document,
-        document
-            .get(root, "output_config")
-            .and_then(|node| document.get(node, "effort")),
+        document.get_path(root, &["output_config", "effort"]),
     );
     if ["xhigh", "max"]
         .iter()
-        .any(|level| document_string_is(document, effort, level))
+        .any(|level| document.string_is(effort, level))
     {
         return true;
     }
@@ -48,13 +42,12 @@ pub(crate) fn sonnet_needs_adaptive_document(document: &JsDocument) -> bool {
     };
     messages.iter().any(|&message| {
         document
-            .get(message, "output_config")
-            .and_then(|node| document.get(node, "effort"))
+            .get_path(message, &["output_config", "effort"])
             .is_some_and(|value| {
                 if let Some(effort) = effort {
                     !document_equal(document, value, effort)
                 } else {
-                    !document_string_is(document, Some(value), "high")
+                    !document.string_is(Some(value), "high")
                 }
             })
     })
@@ -67,7 +60,7 @@ pub fn thinking_adaptation_document(
     model: &str,
 ) -> Option<(&'static str, &'static str)> {
     let root = document.root();
-    if document_string_is(document, document.get(root, "model"), model) {
+    if document.string_is(document.get(root, "model"), model) {
         return None;
     }
     let adaptation = model_capabilities(model)?.disabled_thinking_adaptation?;
@@ -79,13 +72,13 @@ pub fn thinking_adaptation_document(
         return None;
     }
     let kind = document.get(thinking, "type");
-    if document_string_is(document, kind, "between_tools")
-        && document_string_is(document, document.get(root, "model"), "claude-sonnet-5-5")
+    if document.string_is(kind, "between_tools")
+        && document.string_is(document.get(root, "model"), "claude-sonnet-5-5")
         && adaptation == "adaptive"
     {
         return Some(("adaptive", "adaptive_thinking_required"));
     }
-    if !document_string_is(document, kind, "disabled") {
+    if !document.string_is(kind, "disabled") {
         return None;
     }
     match adaptation {

@@ -1,7 +1,7 @@
 use autorouter_core::auth::Environment;
 use autorouter_core::config::{
-    ClientProfile, js_trim, parse_session_log_dir, parse_stop_hook_block_cap, read_config,
-    read_config_document,
+    ClientProfile, RouterConfig, js_trim, parse_session_log_dir, parse_stop_hook_block_cap,
+    read_config, read_config_document,
 };
 use autorouter_core::model_catalog::model_capabilities;
 use autorouter_core::policy::apply_policy;
@@ -118,11 +118,68 @@ fn config_report(
     if let Some(path) = &loaded.policy_path {
         report["policy_path"] = json!(path);
     }
-    if check_all && let Err(error) = read_config(&env, true, cwd) {
+    if check_all && let Err(error) = read_config_document(&loaded.env_document, true, cwd) {
         report["valid"] = json!(false);
         report["error"] = json!(error);
     }
     Ok(report)
+}
+
+// Keep exact report restoration separate from full RouterConfig serialization:
+// that serialization intentionally includes credentials. Only active, public
+// settings named here may receive an exact value.
+fn restore_effective_report_values(
+    document: &mut autorouter_core::js_json::JsDocument,
+    report: &Value,
+    config: &RouterConfig,
+) {
+    let Some(settings) = document.get(document.root(), "settings") else {
+        return;
+    };
+    let mut restore = |key: &str, json: String| {
+        if report["settings"][key]["active"] == true
+            && let Some(setting) = document.get(settings, key)
+        {
+            document
+                .set_field_json(setting, "value", json.as_bytes())
+                .expect("exact public configuration value");
+        }
+    };
+    for (tier, key, value) in [
+        ("haiku", "AUTOROUTER_HAIKU_MODEL", &config.models.haiku),
+        ("sonnet", "AUTOROUTER_SONNET_MODEL", &config.models.sonnet),
+        ("opus", "AUTOROUTER_OPUS_MODEL", &config.models.opus),
+    ] {
+        restore(
+            key,
+            config
+                .exact_models
+                .get(tier)
+                .map(|value| value.stringify())
+                .unwrap_or_else(|| serde_json::to_string(value).expect("model string")),
+        );
+    }
+    restore(
+        "AUTOROUTER_JEV_MODEL",
+        config
+            .exact_jev_model
+            .as_ref()
+            .map(|value| value.stringify())
+            .unwrap_or_else(|| serde_json::to_string(&config.jev_model).expect("model string")),
+    );
+    restore(
+        "AUTOROUTER_OLLAMA_KEEP_ALIVE",
+        config.ollama_keep_alive_json(),
+    );
+    restore(
+        "AUTOROUTER_SESSION_LOG_DIR",
+        config
+            .session_log_dir_exact()
+            .map(|value| value.stringify())
+            .unwrap_or_else(|| {
+                serde_json::to_string(&config.session_log_dir).expect("optional path string")
+            }),
+    );
 }
 
 pub async fn command(
@@ -199,6 +256,11 @@ async fn command_with_policy_loader(
                             .set_field_json(setting, "value", value.stringify().as_bytes())
                             .expect("exact configuration string");
                     }
+                }
+                // Pure validation of the same loaded document; no file, policy
+                // or Keychain reads occur while restoring report values.
+                if let Ok(config) = read_config_document(&loaded.env_document, false, context.cwd) {
+                    restore_effective_report_values(&mut exact_report, &report, &config);
                 }
             }
             lines.push(pretty_document(&exact_report));
@@ -424,4 +486,192 @@ pub(crate) async fn command_with_policy_for_test(
     policy_loader: impl FnMut() -> Result<Option<LoadedPolicy>, String>,
 ) -> Result<CommandOutput, String> {
     command_with_policy_loader(args, context, keychain, policy_loader).await
+}
+
+#[cfg(test)]
+mod exact_report_tests {
+    use super::*;
+    use autorouter_core::js_json::JsDocument;
+
+    #[test]
+    fn public_report_restoration_is_exact_private_and_replacement_aware() {
+        let keep_alive = format!("{}\"5m\"{}", "[".repeat(256), "]".repeat(256));
+        let source = JsDocument::parse(format!(r#"{{"AUTOROUTER_OLLAMA_KEEP_ALIVE":{keep_alive},"AUTOROUTER_HAIKU_MODEL":"synthetic-\ud800","AUTOROUTER_SESSION_LOG_DIR":"./logs-\udfff","TYPESAFE_API_KEY":"private-source-key"}}"#).as_bytes()).unwrap();
+        let mut config = read_config_document(&source, false, Path::new("/tmp")).unwrap();
+        let report = json!({"settings":{
+            "AUTOROUTER_HAIKU_MODEL":{"active":true,"value":"display"},
+            "AUTOROUTER_JEV_MODEL":{"active":false,"value":null},
+            "AUTOROUTER_OLLAMA_KEEP_ALIVE":{"active":true,"value":null},
+            "AUTOROUTER_SESSION_LOG_DIR":{"active":true,"value":"display"},
+            "TYPESAFE_API_KEY":{"active":false,"secret":true,"present":true}
+        }});
+        let restore = |config: &RouterConfig| {
+            let mut result = scalar_document(&report);
+            restore_effective_report_values(&mut result, &report, config);
+            result
+        };
+        let exact = restore(&config);
+        let settings = exact.get(exact.root(), "settings").unwrap();
+        let value = |key: &str| {
+            exact
+                .get(exact.get(settings, key).unwrap(), "value")
+                .unwrap()
+        };
+        assert_eq!(
+            exact.stringify_node(value("AUTOROUTER_OLLAMA_KEEP_ALIVE")),
+            keep_alive
+        );
+        assert_eq!(
+            exact.stringify_node(value("AUTOROUTER_HAIKU_MODEL")),
+            r#""synthetic-\ud800""#
+        );
+        assert_eq!(
+            exact.stringify_node(value("AUTOROUTER_SESSION_LOG_DIR")),
+            r#""/tmp/logs-\udfff""#
+        );
+        assert_eq!(exact.stringify_node(value("AUTOROUTER_JEV_MODEL")), "null");
+        let secret = exact.get(settings, "TYPESAFE_API_KEY").unwrap();
+        assert_eq!(
+            exact.stringify_node(secret),
+            report["settings"]["TYPESAFE_API_KEY"].to_string()
+        );
+        assert!(!exact.stringify().contains("private-source-key"));
+        config.replace_ollama_keep_alive(json!(0));
+        config.replace_model("haiku", "replacement".into()).unwrap();
+        config.replace_session_log_dir(None);
+        let replaced = restore(&config).stringify();
+        assert!(replaced.contains(r#""value":0"#));
+        assert!(replaced.contains(r#""value":"replacement""#));
+        assert!(!replaced.contains("\\ud800"));
+        assert!(!replaced.contains("logs-"));
+    }
+
+    #[test]
+    fn tool_search_report_preserves_typed_empty_values_and_precedence_without_io() {
+        const KEY: &str = "ENABLE_TOOL_SEARCH";
+        for (parent_value, effective, saved, locked, expected) in [
+            (
+                None,
+                None,
+                None,
+                false,
+                json!({"source":"default","active":true,"value":"true"}),
+            ),
+            (
+                Some(""),
+                Some(""),
+                None,
+                false,
+                json!({"source":"environment","active":true,"value":""}),
+            ),
+            (
+                Some("null"),
+                Some("null"),
+                None,
+                false,
+                json!({"source":"environment","active":true,"value":"null"}),
+            ),
+            (
+                Some("false"),
+                Some("false"),
+                None,
+                false,
+                json!({"source":"environment","active":true,"value":"false"}),
+            ),
+            (
+                Some("0"),
+                Some("0"),
+                None,
+                false,
+                json!({"source":"environment","active":true,"value":"0"}),
+            ),
+            (
+                Some("[object Object]"),
+                Some("[object Object]"),
+                None,
+                false,
+                json!({"source":"environment","active":true,"value":"[object Object]"}),
+            ),
+            (
+                None,
+                Some(""),
+                Some(""),
+                false,
+                json!({"source":"file","active":true,"value":""}),
+            ),
+            (
+                Some("false"),
+                Some("false"),
+                Some("auto:5"),
+                false,
+                json!({"source":"environment","active":true,"overrides_file":true,"value":"false"}),
+            ),
+            (
+                Some("false"),
+                Some("auto:5"),
+                Some("auto"),
+                true,
+                json!({"source":"policy","active":true,"value":"auto:5"}),
+            ),
+        ] {
+            let parent: Environment = parent_value
+                .into_iter()
+                .map(|value| (KEY.into(), value.into()))
+                .collect();
+            let mut env = Environment::from([
+                ("AUTOROUTER_AUTH_MODE".into(), "subscription".into()),
+                (
+                    "AUTOROUTER_TOKEN".into(),
+                    "synthetic-tool-search-token".into(),
+                ),
+            ]);
+            if let Some(value) = effective {
+                env.insert(KEY.into(), value.into());
+            }
+            let values: Map<String, Value> = saved
+                .into_iter()
+                .map(|value| (KEY.into(), json!(value)))
+                .collect();
+            let loaded = LoadedConfig {
+                env_document: scalar_document(&environment_json(&env)),
+                values_document: scalar_document(&Value::Object(values.clone())),
+                env,
+                values,
+                path: "/synthetic/tool-search-config.json".into(),
+                exists: saved.is_some(),
+                revision: None,
+                secret_store: "file".into(),
+                keychain_secrets: Vec::new(),
+                unavailable_secrets: Vec::new(),
+                policy: None,
+                policy_path: None,
+                policy_locked: if locked { vec![KEY.into()] } else { Vec::new() },
+            };
+            let parent_before = parent.clone();
+            let env_before = loaded.env.clone();
+            let values_before = loaded.values.clone();
+            let document_before = loaded.env_document.stringify();
+            let values_document_before = loaded.values_document.stringify();
+            let locked_before = loaded.policy_locked.clone();
+            for check_all in [false, true] {
+                let report = config_report(&loaded, &parent, Path::new("."), check_all).unwrap();
+                assert_eq!(report["valid"], true);
+                assert_eq!(report["settings"][KEY], expected);
+                assert_eq!(
+                    report["checked"],
+                    if check_all {
+                        "all_evaluators"
+                    } else {
+                        "active_evaluator"
+                    }
+                );
+                assert_eq!(parent, parent_before);
+                assert_eq!(loaded.env, env_before);
+                assert_eq!(loaded.values, values_before);
+                assert_eq!(loaded.env_document.stringify(), document_before);
+                assert_eq!(loaded.values_document.stringify(), values_document_before);
+                assert_eq!(loaded.policy_locked, locked_before);
+            }
+        }
+    }
 }

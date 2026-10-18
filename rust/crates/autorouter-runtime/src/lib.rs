@@ -28,3 +28,38 @@ pub mod user_config;
 
 mod tls_policy;
 pub mod tls_roots;
+
+/// Fresh lowercase hex with the caller's original entropy width and error policy.
+/// Filesystem naming, permissions, collision handling and cleanup stay local.
+pub fn random_hex<const N: usize>() -> Result<String, getrandom::Error> {
+    let mut bytes = [0; N];
+    getrandom::fill(&mut bytes)?;
+    Ok(bytes.iter().map(|byte| format!("{byte:02x}")).collect())
+}
+
+#[cfg(test)]
+pub(crate) fn bounded<F: std::future::Future>(
+    future: F,
+) -> impl std::future::Future<Output = F::Output> {
+    let deadline = tokio::time::timeout(std::time::Duration::from_secs(2), future);
+    async move { deadline.await.unwrap() }
+}
+
+#[cfg(test)]
+pub(crate) fn test_config(env: &serde_json::Value) -> autorouter_core::config::RouterConfig {
+    autorouter_core::config::read_config(env, false, std::path::Path::new("/synthetic")).unwrap()
+}
+
+#[cfg(test)]
+pub(crate) fn test_config_document(
+    document: &autorouter_core::js_json::JsDocument,
+) -> autorouter_core::config::RouterConfig {
+    autorouter_core::config::read_config_document(
+        document,
+        false,
+        std::path::Path::new("/synthetic"),
+    )
+    .unwrap()
+}
+
+mod http_receive;

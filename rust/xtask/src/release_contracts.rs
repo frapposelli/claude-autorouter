@@ -876,3 +876,99 @@ async fn metadata_clock_jump_after_replies_preserves_exact_deadline_result() {
     })
     .await;
 }
+
+#[tokio::test(start_paused = true)]
+async fn non_native_preflight_rejects_new_publication_but_preserves_read_only_outcomes() {
+    bounded(async {
+        for prerelease in [false, true] {
+            let mut target = artifact();
+            target.native = false;
+            if prerelease {
+                target.version = "0.4.0-beta.1".into();
+                target.tag = "v0.4.0-beta.1".into();
+                target.dist_tag = "next".into();
+                target.filename = format!("claude-autorouter-{}.tgz", target.version);
+            }
+            let registry = Registry::target(
+                Options {
+                    absent: true,
+                    latest: Some(if prerelease { "0.5.0" } else { "0.3.7" }.into()),
+                    next: prerelease.then(|| "0.4.0-beta.0".into()),
+                    ..Default::default()
+                },
+                target,
+            );
+            let cancel = CancellationToken::new();
+            let error = release_verify::preflight(&registry, &registry.target, true, &cancel)
+                .await
+                .unwrap_err();
+            assert_eq!(error.code, "historical_archive");
+            assert_eq!(
+                error.detail,
+                json!({"reason":"native_release_required_for_publication"})
+            );
+            assert_eq!(error.to_string(), "Release check failed: historical_archive");
+            let calls = registry.calls.lock().unwrap().clone();
+            assert_eq!(
+                calls,
+                [
+                    (format!("/claude-autorouter/{}", registry.target.version), 0u64),
+                    ("/claude-autorouter".to_owned(), 0u64)
+                ]
+            );
+            assert_eq!(registry.reads.load(Ordering::SeqCst), 1);
+            assert_eq!(registry.tarballs.load(Ordering::SeqCst), 0);
+            assert!(!registry.target.native && !cancel.is_cancelled());
+            eprintln!(
+                "PREFLIGHT_NATIVE_ELIGIBILITY {}",
+                json!({"case":if prerelease{"new-prerelease"}else{"new-stable"},"error_code":error.code,"detail":error.detail,"display":error.to_string(),"registry_calls":calls,"tarballs":0})
+            );
+        }
+
+        // Native eligibility restricts new-publication readiness, not safe
+        // read-only lookup of an identical version or an uncertain retry.
+        for existing in [true, false] {
+            let mut target = artifact();
+            target.native = false;
+            let registry = Registry::target(
+                Options {
+                    absent: !existing,
+                    latest: Some(if existing { "0.4.0" } else { "0.3.7" }.into()),
+                    ..Default::default()
+                },
+                target,
+            );
+            let cancel = CancellationToken::new();
+            let result = release_verify::preflight(&registry, &registry.target, existing, &cancel)
+                .await
+                .unwrap();
+            let mut expected = registry.target.report_base();
+            let extra = if existing {
+                json!({"phase":"preflight","current_dist_tag":"0.4.0","state":"submitted","publish":false,"reason":"identical_version_exists","metadata_source":"version"})
+            } else {
+                json!({"phase":"preflight","current_dist_tag":"0.3.7","state":"validating_unavailable","publish":false,"reason":"retry_submission_unknown"})
+            };
+            expected
+                .as_object_mut()
+                .unwrap()
+                .extend(extra.as_object().unwrap().clone());
+            assert_eq!(result, expected);
+            let calls = registry.calls.lock().unwrap().clone();
+            assert_eq!(
+                calls,
+                [
+                    ("/claude-autorouter/0.4.0".to_owned(), 0u64),
+                    ("/claude-autorouter".to_owned(), 0u64)
+                ]
+            );
+            assert_eq!(registry.reads.load(Ordering::SeqCst), 1);
+            assert_eq!(registry.tarballs.load(Ordering::SeqCst), 0);
+            assert!(!registry.target.native && !cancel.is_cancelled());
+            eprintln!(
+                "PREFLIGHT_NATIVE_ELIGIBILITY {}",
+                json!({"case":if existing{"identical-read-only"}else{"uncertain-retry-read-only"},"result":result,"registry_calls":calls,"tarballs":0})
+            );
+        }
+    })
+    .await;
+}

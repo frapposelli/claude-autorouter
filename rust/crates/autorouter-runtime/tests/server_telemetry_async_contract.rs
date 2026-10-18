@@ -170,20 +170,8 @@ fn sink(rows: Events) -> EventSink {
 fn snapshot(s: ObserverSnapshot) -> Value {
     json!({"closed":s.closed,"worker_finished":s.worker_finished,"pending":s.pending,"factories":s.factories,"charged_bytes":s.charged_bytes,"completed":s.completed,"rejected":s.rejected,"factory_panicked":s.factory_panicked,"poll_panicked":s.poll_panicked,"destructor_panicked":s.destructor_panicked,"timed_out":s.timed_out,"cancelled":s.cancelled,"declined_closed":s.declined_closed,"declined_cancelled":s.declined_cancelled,"declined_payload":s.declined_payload,"declined_capacity":s.declined_capacity,"declined_deadline":s.declined_deadline})
 }
-fn number_equality(left: &Value, right: &Value) -> bool {
-    match (left, right) {
-        (Value::Number(a), Value::Number(b)) => a.as_f64() == b.as_f64(),
-        (Value::Object(a), Value::Object(b)) => {
-            a.len() == b.len()
-                && a.iter()
-                    .all(|(k, v)| b.get(k).is_some_and(|r| number_equality(v, r)))
-        }
-        (Value::Array(a), Value::Array(b)) => {
-            a.len() == b.len() && a.iter().zip(b).all(|(a, b)| number_equality(a, b))
-        }
-        _ => left == right,
-    }
-}
+include!("../../autorouter-core/src/json_compare_macros.rs");
+contract_json_equal!(number_equality, a, b => a.as_f64() == b.as_f64());
 fn metadata(wanted: &Value, actual: &Value) {
     let ignored = ["request_id", "first_response_ms", "total_latency_ms"];
     let expected_keys = wanted

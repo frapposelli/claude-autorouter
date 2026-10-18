@@ -139,15 +139,12 @@ pub(super) fn verify_decoded(
     if seen.len() + 1 != files.len() || seen.contains(MANIFEST) {
         return Err("Undeclared direct archive files".into());
     }
-    for path in [
-        "README.md",
-        "LICENSE",
-        "THIRD-PARTY-LICENSES.txt",
-        "platforms.json",
-        EXECUTABLE,
-    ]
-    .into_iter()
-    .chain(release::REQUIRED_DOCS.iter().copied())
+    for path in release::ROOT_FILES
+        .iter()
+        .chain(release::DOCS)
+        .copied()
+        .filter(|path| *path != "package.json")
+        .chain(["THIRD-PARTY-LICENSES.txt", "platforms.json", EXECUTABLE])
     {
         if !seen.contains(path) {
             return Err("Direct runtime documentation baseline missing".into());

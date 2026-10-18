@@ -95,9 +95,8 @@ fn freeze_with(
         .parent()
         .ok_or("Reference destination has no parent")?;
     fs::create_dir_all(parent).map_err(|_| "Cannot create reference parent")?;
-    let mut random = [0; 16];
-    getrandom::fill(&mut random).map_err(|_| "Cannot create reference staging name")?;
-    let nonce: String = random.iter().map(|byte| format!("{byte:02x}")).collect();
+    let nonce = crate::audit_support::random_hex::<16>()
+        .map_err(|_| "Cannot create reference staging name")?;
     let staging = parent.join(format!(
         ".autorouter-reference-{}-{nonce}",
         std::process::id()
@@ -193,9 +192,7 @@ mod tests {
     impl Fixture {
         fn new(git: bool) -> Self {
             use std::os::unix::fs::DirBuilderExt;
-            let mut random = [0; 12];
-            getrandom::fill(&mut random).unwrap();
-            let suffix: String = random.iter().map(|byte| format!("{byte:02x}")).collect();
+            let suffix = crate::audit_support::random_hex::<12>().unwrap();
             let root =
                 Self(std::env::temp_dir().join(format!("autorouter-reference-race-{suffix}")));
             fs::DirBuilder::new().mode(0o700).create(&root.0).unwrap();

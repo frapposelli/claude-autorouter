@@ -593,9 +593,8 @@ pub async fn save_user_config_document(
         .mode(0o700)
         .create(parent)
         .map_err(|e| filesystem_error(e, "save"))?;
-    let mut random = [0u8; 12];
-    getrandom::fill(&mut random).map_err(|_| "Could not save AutoRouter configuration.")?;
-    let suffix: String = random.iter().map(|b| format!("{b:02x}")).collect();
+    let suffix =
+        crate::random_hex::<12>().map_err(|_| "Could not save AutoRouter configuration.")?;
     let mut name = std::ffi::OsString::from(".");
     name.push(
         path.file_name()
@@ -694,9 +693,7 @@ mod tests {
     struct Directory(PathBuf);
     impl Directory {
         fn new() -> Self {
-            let mut random = [0; 12];
-            getrandom::fill(&mut random).unwrap();
-            let name: String = random.iter().map(|b| format!("{b:02x}")).collect();
+            let name = crate::random_hex::<12>().unwrap();
             let path = std::env::temp_dir().join(format!("autorouter-native-config-{name}"));
             DirBuilder::new().mode(0o700).create(&path).unwrap();
             Self(path)

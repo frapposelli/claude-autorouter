@@ -64,6 +64,9 @@ pub struct RouterConfig {
     /// Captured values for the three credential fields only. Use replacement
     /// methods to clear both this source state and the typed display fields.
     pub source_credentials: SourceCredentials,
+    /// Exact accepted keep_alive/path source. Typed fields remain display and
+    /// compatibility surfaces; replacement methods erase old retained values.
+    pub source_values: SourceConfigValues,
     pub upstream: String,
     pub jev_endpoint: String,
     pub jev_model: String,
@@ -135,6 +138,111 @@ struct CapturedCredential {
     projection: Option<String>,
 }
 
+// Exact noncredential configuration state has no diagnostic/Debug exposure.
+#[derive(Clone, Default)]
+pub struct SourceConfigValues {
+    keep_alive: Option<CapturedConfigValue>,
+    session_log_dir: Option<CapturedConfigText>,
+}
+#[derive(Clone)]
+struct CapturedConfigValue {
+    document: Arc<JsDocument>,
+    // Bounded metadata only, used solely to detect typed-field replacement.
+    projection: Value,
+}
+impl CapturedConfigValue {
+    fn new(document: JsDocument, original: Option<&Value>) -> Self {
+        // Preserve the ordinary Value API's number representations when its
+        // existing tree can be cloned within the metadata-depth bound.
+        let projection = match original.filter(|value| bounded_metadata_value(value)) {
+            Some(value) => value.clone(),
+            None => document.to_serde_observation_lossy(),
+        };
+        Self {
+            document: Arc::new(document),
+            projection,
+        }
+    }
+}
+// This chooses a display-copy strategy only; it never rejects an input or
+// limits exact arena ownership.64 is the existing metadata projection bound.
+fn bounded_metadata_value(value: &Value) -> bool {
+    let mut pending = vec![(value, 0usize)];
+    while let Some((value, depth)) = pending.pop() {
+        if depth > 64 {
+            return false;
+        }
+        match value {
+            Value::Array(values) => pending.extend(values.iter().map(|value| (value, depth + 1))),
+            Value::Object(values) => {
+                pending.extend(values.values().map(|value| (value, depth + 1)))
+            }
+            _ => {}
+        }
+    }
+    true
+}
+#[derive(Clone)]
+struct CapturedConfigText {
+    value: JsString,
+    projection: String,
+}
+// serde Value cannot represent lone UTF-16, and may reject a deep RawValue.
+// JSON-text serialization stays exact and never builds a recursive deep Value.
+enum ConfigOutput<'a> {
+    Json(&'a Value),
+    Source(&'a JsDocument),
+    Text(&'a str),
+    Utf16(&'a JsString),
+}
+impl Serialize for ConfigOutput<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let json = match self {
+            Self::Text(value) => return serializer.serialize_str(value),
+            Self::Json(value) => JsDocument::from_serde_value(value).stringify(),
+            Self::Source(document) => document.stringify(),
+            Self::Utf16(value) => value.stringify(),
+        };
+        let raw = serde_json::value::RawValue::from_string(json)
+            .map_err(|_| S::Error::custom("Configuration JSON serialization failed"))?;
+        raw.serialize(serializer)
+    }
+}
+struct ConfigModels<'a>(&'a RouterConfig);
+impl Serialize for ConfigModels<'_> {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut map = serializer.serialize_map(Some(3))?;
+        for (tier, model) in [
+            ("haiku", &self.0.models.haiku),
+            ("sonnet", &self.0.models.sonnet),
+            ("opus", &self.0.models.opus),
+        ] {
+            // Public exact overrides retain the same unconditional authority as
+            // routing. Explicit replacement clears them; typed edits do not.
+            let value = self
+                .0
+                .exact_models
+                .get(tier)
+                .map(ConfigOutput::Utf16)
+                .unwrap_or(ConfigOutput::Text(model));
+            map.serialize_entry(tier, &value)?;
+        }
+        map.end()
+    }
+}
+// Taking ownership of an embedding's Value must not recursively drop a deep
+// input or a directly edited old typed field. The arena itself drops flat.
+fn drop_value_iteratively(value: Value) {
+    let mut pending = vec![value];
+    while let Some(value) = pending.pop() {
+        match value {
+            Value::Array(values) => pending.extend(values),
+            Value::Object(values) => pending.extend(values.into_values()),
+            _ => {}
+        }
+    }
+}
+
 enum CredentialValue<'a> {
     Text(&'a str),
     Source(&'a JsDocument),
@@ -154,6 +262,136 @@ impl Serialize for CredentialValue<'_> {
     }
 }
 impl RouterConfig {
+    /// Copy evaluator settings without replacing routing, cache or task owners.
+    /// Like direct field edits, this does not rerun configuration validation.
+    pub fn copy_evaluator_settings_from(&mut self, source: &RouterConfig) {
+        let keep_alive = match source
+            .source_values
+            .keep_alive
+            .as_ref()
+            .filter(|capture| capture.projection == source.ollama_keep_alive)
+        {
+            Some(capture) => capture.clone(),
+            None => CapturedConfigValue::new(
+                JsDocument::from_serde_value(&source.ollama_keep_alive),
+                Some(&source.ollama_keep_alive),
+            ),
+        };
+        self.evaluator = source.evaluator;
+        self.jev_endpoint.clone_from(&source.jev_endpoint);
+        self.jev_model.clone_from(&source.jev_model);
+        self.exact_jev_model.clone_from(&source.exact_jev_model);
+        self.jev_key.clone_from(&source.jev_key);
+        let jev = Credential::Jev.index();
+        self.source_credentials.slots[jev].clone_from(&source.source_credentials.slots[jev]);
+        self.jev_timeout_ms = source.jev_timeout_ms;
+        self.min_confidence = source.min_confidence;
+        self.state_chars = source.state_chars;
+        self.ollama_endpoint.clone_from(&source.ollama_endpoint);
+        self.ollama_model.clone_from(&source.ollama_model);
+        self.ollama_timeout_ms = source.ollama_timeout_ms;
+        self.ollama_state_chars = source.ollama_state_chars;
+        self.install_ollama_keep_alive(keep_alive);
+    }
+
+    /// Effective exact source when the captured bounded display is unchanged.
+    /// None means the current public Value is authoritative, not absent.
+    pub fn ollama_keep_alive_document(&self) -> Option<&JsDocument> {
+        self.source_values
+            .keep_alive
+            .as_ref()
+            .filter(|capture| capture.projection == self.ollama_keep_alive)
+            .map(|capture| capture.document.as_ref())
+    }
+    /// Canonical JSON for request/cache use; never serialize the display
+    /// projection when an effective exact source exists.
+    pub fn ollama_keep_alive_json(&self) -> String {
+        match self.ollama_keep_alive_document() {
+            Some(document) => document.stringify(),
+            None => JsDocument::from_serde_value(&self.ollama_keep_alive).stringify(),
+        }
+    }
+    pub fn ollama_keep_alive_is_string(&self) -> bool {
+        match self.ollama_keep_alive_document() {
+            Some(document) => matches!(document.node(document.root()), Some(JsNode::String(_))),
+            None => self.ollama_keep_alive.is_string(),
+        }
+    }
+    pub fn ollama_keep_alive_is_nullish(&self) -> bool {
+        match self.ollama_keep_alive_document() {
+            Some(document) => matches!(document.node(document.root()), Some(JsNode::Null)),
+            None => self.ollama_keep_alive.is_null(),
+        }
+    }
+    fn install_ollama_keep_alive(&mut self, capture: CapturedConfigValue) {
+        let old = std::mem::replace(&mut self.ollama_keep_alive, capture.projection.clone());
+        self.source_values.keep_alive = Some(capture);
+        drop_value_iteratively(old);
+    }
+    /// Replace the effective value, erasing all old source state. Even a deep
+    /// Value is copied into a flat arena before its owned input is dismantled.
+    /// Like a direct config-field edit, this does not rerun read_config validation.
+    pub fn replace_ollama_keep_alive(&mut self, value: Value) {
+        let document = JsDocument::from_serde_value(&value);
+        self.install_ollama_keep_alive(CapturedConfigValue::new(document, Some(&value)));
+        drop_value_iteratively(value);
+    }
+    /// Invalid node IDs leave the old value untouched. Own only the selected
+    /// subtree, never the complete caller environment.
+    pub fn replace_ollama_keep_alive_document(
+        &mut self,
+        document: &JsDocument,
+        node: NodeId,
+    ) -> Result<(), String> {
+        let owned = document
+            .compact_subtree(node)
+            .ok_or_else(|| "Invalid keep_alive source".to_owned())?;
+        self.install_ollama_keep_alive(CapturedConfigValue::new(owned, None));
+        Ok(())
+    }
+    /// Clear a replacement/source and restore read_config's default.
+    pub fn clear_ollama_keep_alive(&mut self) {
+        let old = std::mem::replace(&mut self.ollama_keep_alive, Value::String("5m".into()));
+        self.source_values.keep_alive = None;
+        drop_value_iteratively(old);
+    }
+    /// Effective original resolved path. A direct changed/cleared typed field
+    /// masks capture; explicit replacement erases it permanently.
+    pub fn session_log_dir_exact(&self) -> Option<&JsString> {
+        self.source_values
+            .session_log_dir
+            .as_ref()
+            .filter(|capture| self.session_log_dir.as_deref() == Some(capture.projection.as_str()))
+            .map(|capture| &capture.value)
+    }
+    pub fn replace_session_log_dir(&mut self, value: Option<String>) {
+        self.source_values.session_log_dir = None;
+        self.session_log_dir = value;
+    }
+    /// Existing exact-model sidecars remain explicit unconditional overrides.
+    /// Use this method to replace a typed model and erase its old override.
+    pub fn replace_model(&mut self, tier: &str, model: String) -> Result<(), String> {
+        let target = match tier {
+            "haiku" => &mut self.models.haiku,
+            "sonnet" => &mut self.models.sonnet,
+            "opus" => &mut self.models.opus,
+            _ => return Err("Invalid model tier".to_owned()),
+        };
+        *target = model;
+        self.exact_models.remove(tier);
+        Ok(())
+    }
+    pub fn replace_jev_model(&mut self, model: String) {
+        self.jev_model = model;
+        self.exact_jev_model = None;
+    }
+    pub fn clear_model_override(&mut self, tier: &str) -> bool {
+        self.exact_models.remove(tier).is_some()
+    }
+    pub fn clear_jev_model_override(&mut self) {
+        self.exact_jev_model = None;
+    }
+
     fn typed_credential(&self, key: Credential) -> &Option<String> {
         match key {
             Credential::Anthropic => &self.anthropic_key,
@@ -223,13 +461,39 @@ impl RouterConfig {
             CredentialValue::Source(document) => document.stringify(),
         })
     }
+    /// Sensitive Node HTTP field values. A top-level array is a repeated field,
+    /// including zero fields for an empty array. None retains missing/undefined;
+    /// each present element uses primitive conversion before byte validation.
+    pub fn credential_node_http_values(
+        &self,
+        key: Credential,
+    ) -> Result<Option<Vec<Cow<'_, str>>>, &'static str> {
+        match self.credential_value(key) {
+            None => Ok(None),
+            Some(CredentialValue::Text(text)) => Ok(Some(vec![Cow::Borrowed(text)])),
+            Some(CredentialValue::Source(source)) => {
+                let convert = |node| {
+                    primitive_string(ConfigValue::Source(source, node))
+                        .map_err(|()| "Cannot convert credential to text")
+                };
+                match source.node(source.root()) {
+                    Some(JsNode::Array(values)) => values
+                        .iter()
+                        .map(|node| convert(*node))
+                        .collect::<Result<Vec<_>, _>>()
+                        .map(Some),
+                    _ => Ok(Some(vec![convert(source.root())?])),
+                }
+            }
+        }
+    }
     /// Sensitive primitive text; validate permitted bytes at the OS/HTTP boundary.
     pub fn credential_text(&self, key: Credential) -> Result<Option<Cow<'_, str>>, &'static str> {
         self.credential_value(key)
             .map(|value| match value {
                 CredentialValue::Text(text) => Ok(Cow::Borrowed(text)),
                 CredentialValue::Source(source) => {
-                    primitive_string(StringInput::Source(source, source.root()))
+                    primitive_string(ConfigValue::Source(source, source.root()))
                 }
             })
             .transpose()
@@ -254,7 +518,13 @@ impl Serialize for RouterConfig {
         field!(evaluator, "evaluator");
         field!(auth_mode, "authMode");
         field!(client_profile, "clientProfile");
-        optional!(session_log_dir, "sessionLogDir");
+        if let Some(path) = &self.session_log_dir {
+            let value = self
+                .session_log_dir_exact()
+                .map(ConfigOutput::Utf16)
+                .unwrap_or(ConfigOutput::Text(path));
+            map.serialize_entry("sessionLogDir", &value)?;
+        }
         field!(session_log_mode, "sessionLogMode");
         optional!(stop_hook_block_cap, "stopHookBlockCap");
         for key in [
@@ -268,13 +538,22 @@ impl Serialize for RouterConfig {
         }
         field!(upstream, "upstream");
         field!(jev_endpoint, "jevEndpoint");
-        field!(jev_model, "jevModel");
+        let jev_model = self
+            .exact_jev_model
+            .as_ref()
+            .map(ConfigOutput::Utf16)
+            .unwrap_or(ConfigOutput::Text(&self.jev_model));
+        map.serialize_entry("jevModel", &jev_model)?;
         field!(ollama_endpoint, "ollamaEndpoint");
         field!(ollama_model, "ollamaModel");
         field!(ollama_timeout_ms, "ollamaTimeoutMs");
         field!(ollama_state_chars, "ollamaStateChars");
-        field!(ollama_keep_alive, "ollamaKeepAlive");
-        field!(models, "models");
+        let keep_alive = self
+            .ollama_keep_alive_document()
+            .map(ConfigOutput::Source)
+            .unwrap_or(ConfigOutput::Json(&self.ollama_keep_alive));
+        map.serialize_entry("ollamaKeepAlive", &keep_alive)?;
+        map.serialize_entry("models", &ConfigModels(self))?;
         field!(port, "port");
         field!(jev_timeout_ms, "jevTimeoutMs");
         field!(token_count_timeout_ms, "tokenCountTimeoutMs");
@@ -300,90 +579,136 @@ pub fn js_trim(value: &str) -> &str {
     })
 }
 
-fn value<'a>(env: &'a Value, key: &str) -> Option<&'a Value> {
-    env.get(key)
+// Original input kinds stay borrowed until their declared validation phase.
+#[derive(Clone, Copy)]
+enum ConfigInput<'a> {
+    Json(&'a Value),
+    Source(&'a JsDocument),
 }
-fn nullish<'a>(env: &'a Value, key: &str) -> Option<&'a Value> {
-    value(env, key).filter(|v| !v.is_null())
-}
-fn text(env: &Value, key: &str) -> Option<String> {
-    value(env, key).and_then(Value::as_str).map(str::to_owned)
-}
-// RegExp.test in the source coerces keep_alive before validating but returns
-// the original value. Numeric zero and singleton string arrays therefore remain
-// distinguishable from the string "0" at the evaluator boundary.
-fn regex_string(value: &Value) -> String {
-    match value {
-        Value::String(text) => text.clone(),
-        Value::Null => "null".into(),
-        Value::Bool(value) => value.to_string(),
-        Value::Number(value) if value.as_f64() == Some(0.0) => "0".into(),
-        Value::Number(value) => value.to_string(),
-        Value::Array(values) => values
-            .iter()
-            .map(|v| {
-                if v.is_null() {
-                    String::new()
-                } else {
-                    regex_string(v)
-                }
-            })
-            .collect::<Vec<_>>()
-            .join(","),
-        Value::Object(_) => "[object Object]".into(),
+impl<'a> ConfigInput<'a> {
+    fn field(self, key: &str) -> Option<ConfigValue<'a>> {
+        match self {
+            Self::Json(value) => value.get(key).map(ConfigValue::Json),
+            Self::Source(document) => document
+                .get(document.root(), key)
+                .map(|node| ConfigValue::Source(document, node)),
+        }
     }
 }
-fn enum_text<'a>(env: &'a Value, key: &str, fallback: &'a str) -> &'a str {
+#[derive(Clone, Copy)]
+enum ConfigText<'a> {
+    Scalar(&'a str),
+    Source(&'a JsString),
+}
+impl<'a> ConfigText<'a> {
+    fn is(self, expected: &str) -> bool {
+        match self {
+            Self::Scalar(value) => value == expected,
+            Self::Source(value) => value.units().iter().copied().eq(expected.encode_utf16()),
+        }
+    }
+    fn any_unit(self, test: impl FnMut(u16) -> bool) -> bool {
+        match self {
+            Self::Scalar(value) => value.encode_utf16().any(test),
+            Self::Source(value) => value.units().iter().copied().any(test),
+        }
+    }
+    fn blank(self) -> bool {
+        !self.any_unit(|unit| {
+            !matches!(unit,
+            0x0009..=0x000d | 0x0020 | 0x00a0 | 0x1680 | 0x2000..=0x200a |
+            0x2028 | 0x2029 | 0x202f | 0x205f | 0x3000 | 0xfeff)
+        })
+    }
+    fn scalar(self) -> Option<Cow<'a, str>> {
+        match self {
+            Self::Scalar(value) => Some(Cow::Borrowed(value)),
+            Self::Source(value) => value.to_scalar().map(Cow::Owned),
+        }
+    }
+    // This is the existing typed display/OS surface, not exact source JSON.
+    fn display(self) -> Cow<'a, str> {
+        match self {
+            Self::Scalar(value) => Cow::Borrowed(value),
+            Self::Source(value) => Cow::Owned(value.to_well_formed()),
+        }
+    }
+}
+fn value<'a>(env: Option<ConfigInput<'a>>, key: &str) -> Option<ConfigValue<'a>> {
+    env.and_then(|env| env.field(key))
+}
+fn nullish<'a>(env: Option<ConfigInput<'a>>, key: &str) -> Option<ConfigValue<'a>> {
+    value(env, key).filter(|value| !value.is_null())
+}
+fn text(env: Option<ConfigInput<'_>>, key: &str) -> Option<String> {
+    value(env, key)?
+        .text()
+        .map(|value| value.display().into_owned())
+}
+fn enum_text<'a>(
+    env: Option<ConfigInput<'a>>,
+    key: &str,
+    fallback: &'a str,
+) -> Result<ConfigText<'a>, ()> {
     match nullish(env, key) {
-        None => fallback,
-        Some(v) => v.as_str().unwrap_or(""),
+        None => Ok(ConfigText::Scalar(fallback)),
+        Some(value) => value.text().ok_or(()),
     }
 }
-
-fn decimal(raw: &Value, integer: bool) -> Option<f64> {
+fn decimal(raw: ConfigValue<'_>, integer: bool) -> Option<f64> {
     static INTEGER: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[0-9]+$").unwrap());
     static DECIMAL: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"^(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+)$").unwrap());
-    match raw {
-        Value::String(s) => {
-            let s = js_trim(s);
-            if (if integer { &INTEGER } else { &DECIMAL }).is_match(s) {
-                s.parse().ok()
-            } else {
-                None
-            }
+    if let Some(text) = raw.text() {
+        let text = text.scalar()?;
+        let text = js_trim(&text);
+        if (if integer { &INTEGER } else { &DECIMAL }).is_match(text) {
+            text.parse().ok()
+        } else {
+            None
         }
-        Value::Number(n) => n.as_f64(),
-        _ => None,
+    } else {
+        raw.number()
     }
 }
-
 fn number(
-    env: &Value,
+    env: Option<ConfigInput<'_>>,
     key: &str,
     fallback: f64,
     min: f64,
     max: f64,
     integer: bool,
 ) -> Result<f64, String> {
-    let n = value(env, key).map_or(Some(fallback), |raw| decimal(raw, integer));
-    n.filter(|n| {
-        n.is_finite()
-            && *n >= min
-            && *n <= max
-            && (!integer || (n.fract() == 0.0 && *n <= MAX_SAFE_INTEGER as f64))
-    })
-    .ok_or_else(|| {
-        format!(
-            "{key} must be {} between {min} and {max}",
-            if integer { "an integer" } else { "a number" }
-        )
-    })
+    let raw = value(env, key);
+    // Number(raw) can fail before the source's later string/number type gate.
+    if let Some(raw) = raw
+        && raw.number().is_none()
+        && raw.text().is_none()
+    {
+        primitive_string(raw).map_err(|_| "Cannot convert object to primitive value".to_owned())?;
+    }
+    let number = raw.map_or(Some(fallback), |raw| decimal(raw, integer));
+    number
+        .filter(|number| {
+            number.is_finite()
+                && *number >= min
+                && *number <= max
+                && (!integer || (number.fract() == 0.0 && *number <= MAX_SAFE_INTEGER as f64))
+        })
+        .ok_or_else(|| {
+            format!(
+                "{key} must be {} between {min} and {max}",
+                if integer { "an integer" } else { "a number" }
+            )
+        })
 }
-
+fn stop_hook_block_cap(raw: ConfigValue<'_>, name: &str) -> Result<u64, String> {
+    decimal(raw, true).filter(|number| number.is_finite() && *number >= 0.0
+        && number.fract() == 0.0 && *number <= MAX_SAFE_INTEGER as f64)
+        .map(|number| number as u64).ok_or_else(|| format!("{name} requires a nonnegative safe integer (0 disables the Stop-hook continuation cap)"))
+}
 pub fn parse_stop_hook_block_cap(raw: &Value, name: &str) -> Result<u64, String> {
-    decimal(raw, true).filter(|n| n.is_finite() && *n >= 0.0 && n.fract() == 0.0 && *n <= MAX_SAFE_INTEGER as f64)
-        .map(|n| n as u64).ok_or_else(|| format!("{name} requires a nonnegative safe integer (0 disables the Stop-hook continuation cap)"))
+    stop_hook_block_cap(ConfigValue::Json(raw), name)
 }
 
 pub fn resolve_path(cwd: &Path, path: &Path) -> PathBuf {
@@ -406,65 +731,85 @@ pub fn resolve_path(cwd: &Path, path: &Path) -> PathBuf {
 }
 
 pub fn parse_session_log_dir(raw: Option<&Value>, cwd: &Path) -> Result<Option<String>, String> {
+    session_log_dir(raw.map(ConfigValue::Json), cwd)
+}
+fn session_log_dir(raw: Option<ConfigValue<'_>>, cwd: &Path) -> Result<Option<String>, String> {
     let Some(raw) = raw else {
         return Ok(None);
     };
-    if raw.as_str() == Some("") {
+    let error = "AUTOROUTER_SESSION_LOG_DIR must be a directory path, or an empty string to disable session logging";
+    let text = raw.text().ok_or_else(|| error.to_owned())?;
+    if text.is("") {
         return Ok(None);
     }
-    let error = "AUTOROUTER_SESSION_LOG_DIR must be a directory path, or an empty string to disable session logging";
-    let text = raw
-        .as_str()
-        .filter(|s| !js_trim(s).is_empty() && !s.chars().any(|c| c <= '\u{1f}' || c == '\u{7f}'))
-        .ok_or_else(|| error.to_owned())?;
+    if text.blank() || text.any_unit(|unit| unit <= 0x1f || unit == 0x7f) {
+        return Err(error.to_owned());
+    }
     Ok(Some(
-        resolve_path(cwd, Path::new(text))
+        resolve_path(cwd, Path::new(text.display().as_ref()))
             .to_string_lossy()
             .into_owned(),
     ))
 }
-
-fn model_name(raw: Option<&Value>, default: &str, name: &str) -> Result<String, String> {
-    let model = match raw {
-        Some(value) => value.as_str(),
-        None => Some(default),
+fn model_name(raw: Option<ConfigValue<'_>>, default: &str, name: &str) -> Result<String, String> {
+    let text = match raw {
+        Some(raw) => raw.text(),
+        None => Some(ConfigText::Scalar(default)),
     };
-    model
-        .filter(|s| {
-            !js_trim(s).is_empty()
-                && !s
-                    .chars()
-                    .any(|c| c <= '\u{1f}' || ('\u{7f}'..='\u{9f}').contains(&c))
-        })
-        .map(str::to_owned)
-        .ok_or_else(|| format!("{name} must be a nonempty model name without control characters"))
+    text.filter(|text| {
+        !text.blank() && !text.any_unit(|unit| unit <= 0x1f || (0x7f..=0x9f).contains(&unit))
+    })
+    .map(|text| text.display().into_owned())
+    .ok_or_else(|| format!("{name} must be a nonempty model name without control characters"))
 }
-
-// Primitive string conversion precedes URL validation or OS materialization.
-// Source nodes retain nonfinite numbers and UTF-16 until that boundary.
+// Borrowed primitive conversion is shared by URLs, credentials and keep_alive.
 #[derive(Clone, Copy)]
-enum StringInput<'a> {
+enum ConfigValue<'a> {
     Json(&'a Value),
     Source(&'a JsDocument, NodeId),
 }
-fn url_input<'a>(
-    env: &'a Value,
-    source: Option<&'a JsDocument>,
-    key: &str,
-    active: bool,
-) -> Option<StringInput<'a>> {
-    if !active {
-        return None;
+impl<'a> ConfigValue<'a> {
+    fn is_null(self) -> bool {
+        matches!(self, Self::Json(Value::Null))
+            || matches!(self, Self::Source(document, node) if matches!(document.node(node), Some(JsNode::Null)))
     }
-    if let Some(source) = source {
-        let node = source.get(source.root(), key)?;
-        return (!matches!(source.node(node), Some(JsNode::Null)))
-            .then_some(StringInput::Source(source, node));
+    fn number(self) -> Option<f64> {
+        match self {
+            Self::Json(Value::Number(number)) => number.as_f64(),
+            Self::Source(document, node) => match document.node(node) {
+                Some(JsNode::Number(number)) => Some(*number),
+                _ => None,
+            },
+            _ => None,
+        }
     }
-    nullish(env, key).map(StringInput::Json)
+    fn text(self) -> Option<ConfigText<'a>> {
+        match self {
+            Self::Json(Value::String(text)) => Some(ConfigText::Scalar(text)),
+            Self::Source(document, node) => document.string(node).map(ConfigText::Source),
+            _ => None,
+        }
+    }
+    fn capture(self) -> Option<CapturedConfigValue> {
+        match self {
+            Self::Json(value) => Some(CapturedConfigValue::new(
+                JsDocument::from_serde_value(value),
+                Some(value),
+            )),
+            Self::Source(document, node) => document
+                .compact_subtree(node)
+                .map(|document| CapturedConfigValue::new(document, None)),
+        }
+    }
+    fn is_text(self, expected: &str) -> bool {
+        self.text().is_some_and(|text| text.is(expected))
+    }
 }
-fn primitive_string(input: StringInput<'_>) -> Result<Cow<'_, str>, ()> {
-    if let StringInput::Json(Value::String(text)) = input {
+fn url_input<'a>(env: Option<ConfigInput<'a>>, key: &str) -> Option<ConfigValue<'a>> {
+    nullish(env, key)
+}
+fn primitive_string(input: ConfigValue<'_>) -> Result<Cow<'_, str>, ()> {
+    if let ConfigValue::Json(Value::String(text)) = input {
         return Ok(Cow::Borrowed(text));
     }
     let mut output = String::new();
@@ -476,8 +821,8 @@ fn primitive_string(input: StringInput<'_>) -> Result<Cow<'_, str>, ()> {
             continue;
         };
         let numeric = match input {
-            StringInput::Json(Value::Number(value)) => Some(value.as_f64().ok_or(())?),
-            StringInput::Source(source, node) => match source.node(node).ok_or(())? {
+            ConfigValue::Json(Value::Number(value)) => Some(value.as_f64().ok_or(())?),
+            ConfigValue::Source(source, node) => match source.node(node).ok_or(())? {
                 JsNode::Number(value) => Some(*value),
                 _ => None,
             },
@@ -498,7 +843,7 @@ fn primitive_string(input: StringInput<'_>) -> Result<Cow<'_, str>, ()> {
             continue;
         }
         match input {
-            StringInput::Json(value) => match value {
+            ConfigValue::Json(value) => match value {
                 Value::Null => {
                     if !array_item {
                         output.push_str("null");
@@ -508,7 +853,7 @@ fn primitive_string(input: StringInput<'_>) -> Result<Cow<'_, str>, ()> {
                 Value::String(value) => output.push_str(value),
                 Value::Array(values) => {
                     for (index, value) in values.iter().enumerate().rev() {
-                        pending.push((Some(StringInput::Json(value)), true));
+                        pending.push((Some(ConfigValue::Json(value)), true));
                         if index != 0 {
                             pending.push((None, false));
                         }
@@ -522,7 +867,7 @@ fn primitive_string(input: StringInput<'_>) -> Result<Cow<'_, str>, ()> {
                 }
                 Value::Number(_) => unreachable!("number handled above"),
             },
-            StringInput::Source(source, node) => match source.node(node).ok_or(())? {
+            ConfigValue::Source(source, node) => match source.node(node).ok_or(())? {
                 JsNode::Null => {
                     if !array_item {
                         output.push_str("null");
@@ -532,7 +877,7 @@ fn primitive_string(input: StringInput<'_>) -> Result<Cow<'_, str>, ()> {
                 JsNode::String(value) => output.push_str(&value.to_well_formed()),
                 JsNode::Array(values) => {
                     for (index, node) in values.iter().enumerate().rev() {
-                        pending.push((Some(StringInput::Source(source, *node)), true));
+                        pending.push((Some(ConfigValue::Source(source, *node)), true));
                         if index != 0 {
                             pending.push((None, false));
                         }
@@ -550,7 +895,7 @@ fn primitive_string(input: StringInput<'_>) -> Result<Cow<'_, str>, ()> {
     }
     Ok(Cow::Owned(output))
 }
-fn endpoint(raw: Option<StringInput<'_>>, default: &str, name: &str) -> Result<String, String> {
+fn endpoint(raw: Option<ConfigValue<'_>>, default: &str, name: &str) -> Result<String, String> {
     let text = raw
         .map(primitive_string)
         .transpose()
@@ -633,71 +978,66 @@ pub fn default_ollama_timeout_ms(model: &str) -> u64 {
 }
 
 pub fn read_config(env: &Value, validate_all: bool, cwd: &Path) -> Result<RouterConfig, String> {
-    read_config_inner(env, None, validate_all, cwd)
+    read_config_inner(ConfigInput::Json(env), validate_all, cwd)
 }
 fn read_config_inner(
-    env: &Value,
-    source: Option<&JsDocument>,
+    input: ConfigInput<'_>,
     validate_all: bool,
     cwd: &Path,
 ) -> Result<RouterConfig, String> {
+    let env = Some(input);
     let session_log_mode = match value(env, "AUTOROUTER_SESSION_LOG_MODE") {
         None => SessionLogMode::Metadata,
-        Some(v) if v == "metadata" => SessionLogMode::Metadata,
-        Some(v) if v == "prompts" => SessionLogMode::Prompts,
+        Some(v) if v.is_text("metadata") => SessionLogMode::Metadata,
+        Some(v) if v.is_text("prompts") => SessionLogMode::Prompts,
         _ => return Err("AUTOROUTER_SESSION_LOG_MODE must be metadata or prompts".to_owned()),
     };
     for key in ["AUTOROUTER_STATUSLINE", "AUTOROUTER_DEBUG"] {
-        if value(env, key).is_some_and(|v| v != "0" && v != "1") {
+        if value(env, key).is_some_and(|v| !v.is_text("0") && !v.is_text("1")) {
             return Err(format!("{key} must be 0 or 1"));
         }
     }
     let evaluator = match enum_text(env, "AUTOROUTER_EVALUATOR", "ollama") {
-        "ollama" => Evaluator::Ollama,
-        "jev" => Evaluator::Jev,
+        Ok(value) if value.is("ollama") => Evaluator::Ollama,
+        Ok(value) if value.is("jev") => Evaluator::Jev,
         _ => return Err("AUTOROUTER_EVALUATOR must be jev or ollama".to_owned()),
     };
-    let empty = Value::Null;
-    let ollama_env = if evaluator == Evaluator::Ollama || validate_all {
-        env
-    } else {
-        &empty
-    };
-    let jev_env = if evaluator == Evaluator::Jev || validate_all {
-        env
-    } else {
-        &empty
-    };
-    let ollama_model = validate_ollama_model(enum_text(
-        ollama_env,
-        "AUTOROUTER_OLLAMA_MODEL",
-        DEFAULT_OLLAMA_MODEL,
-    ))?;
+    let ollama_env = (evaluator == Evaluator::Ollama || validate_all).then_some(input);
+    let jev_env = (evaluator == Evaluator::Jev || validate_all).then_some(input);
+    let ollama_model = enum_text(ollama_env, "AUTOROUTER_OLLAMA_MODEL", DEFAULT_OLLAMA_MODEL)
+        .ok()
+        .and_then(ConfigText::scalar)
+        .ok_or_else(|| {
+            "Ollama requires a valid local model tag; cloud models are not supported.".to_owned()
+        })?;
+    let ollama_model = validate_ollama_model(&ollama_model)?;
     if let Some(raw) = value(ollama_env, "AUTOROUTER_OLLAMA_TIMEOUT_MS")
-        && !raw.is_number()
+        && raw.number().is_none()
         && decimal(raw, true).is_none()
     {
         return Err("AUTOROUTER_OLLAMA_TIMEOUT_MS must be an integer between 0 and 30000 (0 disables the runtime deadline)".to_owned());
     }
-    let ollama_keep_alive = nullish(ollama_env, "AUTOROUTER_OLLAMA_KEEP_ALIVE")
-        .cloned()
-        .unwrap_or_else(|| Value::String("5m".into()));
     static KEEP: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"^(?:0|[1-9][0-9]{0,3}(?:s|m|h))$").unwrap());
-    if !KEEP.is_match(&regex_string(&ollama_keep_alive)) {
-        return Err(
-            "AUTOROUTER_OLLAMA_KEEP_ALIVE must be 0 or a positive duration such as 5m".to_owned(),
-        );
+    let keep_alive_error =
+        || "AUTOROUTER_OLLAMA_KEEP_ALIVE must be 0 or a positive duration such as 5m".to_owned();
+    let keep_alive = nullish(ollama_env, "AUTOROUTER_OLLAMA_KEEP_ALIVE");
+    if let Some(raw) = keep_alive {
+        let converted = primitive_string(raw)
+            .map_err(|_| "Cannot convert object to primitive value".to_owned())?;
+        if !KEEP.is_match(&converted) {
+            return Err(keep_alive_error());
+        }
     }
     let auth_mode = match enum_text(env, "AUTOROUTER_AUTH_MODE", "api-key") {
-        "api-key" => AuthMode::ApiKey,
-        "subscription" => AuthMode::Subscription,
+        Ok(value) if value.is("api-key") => AuthMode::ApiKey,
+        Ok(value) if value.is("subscription") => AuthMode::Subscription,
         _ => return Err("AUTOROUTER_AUTH_MODE must be api-key or subscription".to_owned()),
     };
     let client_profile = match enum_text(env, "AUTOROUTER_CLIENT_PROFILE", "compatible") {
-        "compatible" => ClientProfile::Compatible,
-        "native" => ClientProfile::Native,
-        "auto" => ClientProfile::Auto,
+        Ok(value) if value.is("compatible") => ClientProfile::Compatible,
+        Ok(value) if value.is("native") => ClientProfile::Native,
+        Ok(value) if value.is("auto") => ClientProfile::Auto,
         _ => return Err("AUTOROUTER_CLIENT_PROFILE must be compatible, native or auto".to_owned()),
     };
     let models = Models {
@@ -731,7 +1071,7 @@ fn read_config_inner(
         }
     }
     let upstream = endpoint(
-        url_input(env, source, "AUTOROUTER_UPSTREAM_URL", true),
+        url_input(env, "AUTOROUTER_UPSTREAM_URL"),
         "https://api.anthropic.com",
         "AUTOROUTER_UPSTREAM_URL",
     )?;
@@ -743,17 +1083,12 @@ fn read_config_inner(
     }
     // Keep evaluation order aligned with readConfig: the first invalid setting
     // determines the public diagnostic, including check-all for inactive backends.
-    let session_log_dir = parse_session_log_dir(value(env, "AUTOROUTER_SESSION_LOG_DIR"), cwd)?;
+    let session_log_dir = session_log_dir(value(env, "AUTOROUTER_SESSION_LOG_DIR"), cwd)?;
     let stop_hook_block_cap = value(env, "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP")
-        .map(|raw| parse_stop_hook_block_cap(raw, "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP"))
+        .map(|raw| stop_hook_block_cap(raw, "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP"))
         .transpose()?;
     let jev_endpoint = endpoint(
-        url_input(
-            jev_env,
-            source,
-            "AUTOROUTER_JEV_URL",
-            evaluator == Evaluator::Jev || validate_all,
-        ),
+        url_input(jev_env, "AUTOROUTER_JEV_URL"),
         "https://api.typesafe.ai/v1/systemone",
         "AUTOROUTER_JEV_URL",
     )?;
@@ -762,15 +1097,10 @@ fn read_config_inner(
         "jev-latest",
         "AUTOROUTER_JEV_MODEL",
     )?;
-    let ollama_url = url_input(
-        ollama_env,
-        source,
-        "AUTOROUTER_OLLAMA_URL",
-        evaluator == Evaluator::Ollama || validate_all,
-    )
-    .map(primitive_string)
-    .transpose()
-    .map_err(|_| OLLAMA_ENDPOINT_ERROR.to_owned())?;
+    let ollama_url = url_input(ollama_env, "AUTOROUTER_OLLAMA_URL")
+        .map(primitive_string)
+        .transpose()
+        .map_err(|_| OLLAMA_ENDPOINT_ERROR.to_owned())?;
     let ollama_endpoint =
         validate_ollama_endpoint(ollama_url.as_deref().unwrap_or("http://127.0.0.1:11434"))?;
     let ollama_timeout_ms = number(
@@ -799,6 +1129,13 @@ fn read_config_inner(
         true,
     )? as u64;
     let min_confidence = number(jev_env, "AUTOROUTER_MIN_CONFIDENCE", 0.75, 0., 1., false)?;
+    let keep_alive_capture = keep_alive
+        .map(|value| value.capture().ok_or_else(keep_alive_error))
+        .transpose()?;
+    let ollama_keep_alive = keep_alive_capture
+        .as_ref()
+        .map(|capture| capture.projection.clone())
+        .unwrap_or_else(|| Value::String("5m".into()));
     let mut config = RouterConfig {
         evaluator,
         auth_mode,
@@ -814,6 +1151,10 @@ fn read_config_inner(
         jev_key: text(env, "TYPESAFE_API_KEY"),
         local_token: text(env, "AUTOROUTER_TOKEN"),
         source_credentials: SourceCredentials::default(),
+        source_values: SourceConfigValues {
+            keep_alive: keep_alive_capture,
+            session_log_dir: None,
+        },
         upstream,
         jev_endpoint,
         jev_model,
@@ -846,31 +1187,40 @@ fn read_config_inner(
         if key == Credential::Anthropic && auth_mode == AuthMode::Subscription {
             continue;
         }
-        if let Some(source) = source {
+        if let ConfigInput::Source(source) = input {
             if let Some(node) = source.get(source.root(), key.env_name()) {
                 config.replace_credential_document(key, source, node)?;
             }
-        } else {
+        } else if let ConfigInput::Json(env) = input {
             config.replace_credential_value(key, env.get(key.env_name()));
         }
     }
     Ok(config)
 }
 
-/// Saved JSON permits UTF-16 strings that cannot be represented in an OS
-/// environment. Validation of controls, enums and catalog IDs is unaffected by
-/// replacement projection; unconstrained model identities retain their source.
+/// Validate original JSON kinds and UTF-16. Only accepted selected values are
+/// retained in owned flat arenas; bounded typed fields are display surfaces.
+/// JSON text preserves UTF-16. serde_json::to_value may fail for lone UTF-16 or
+/// deeply nested exact values rather than silently losing source information.
 pub fn read_config_document(
     env: &JsDocument,
     validate_all: bool,
     cwd: &Path,
 ) -> Result<RouterConfig, String> {
-    let mut config = read_config_inner(
-        &env.to_serde_observation_lossy(),
-        Some(env),
-        validate_all,
-        cwd,
-    )?;
+    let mut config = read_config_inner(ConfigInput::Source(env), validate_all, cwd)?;
+    if let Some(value) = env
+        .get(env.root(), "AUTOROUTER_SESSION_LOG_DIR")
+        .and_then(|node| env.string(node))
+        && let Some(projection) = &config.session_log_dir
+    {
+        let value = resolve_js_path(cwd, value);
+        if value.to_scalar().is_none() {
+            config.source_values.session_log_dir = Some(CapturedConfigText {
+                value,
+                projection: projection.clone(),
+            });
+        }
+    }
     for (tier, key) in [
         ("haiku", "AUTOROUTER_HAIKU_MODEL"),
         ("sonnet", "AUTOROUTER_SONNET_MODEL"),
@@ -963,6 +1313,22 @@ mod tests {
         read_config(&env, false, Path::new("/test/project")).unwrap_or_else(|e| panic!("{e}"))
     }
 
+    // Fixed synthetic-source admission keeps raw fixtures and owned arenas local.
+    fn source_document(bytes: impl AsRef<[u8]>) -> JsDocument {
+        JsDocument::parse(bytes.as_ref()).unwrap()
+    }
+    fn read_source(document: &JsDocument, validate_all: bool) -> Result<RouterConfig, String> {
+        read_config_document(document, validate_all, Path::new("/synthetic"))
+    }
+    fn source_config(bytes: impl AsRef<[u8]>) -> (JsDocument, RouterConfig) {
+        let document = source_document(bytes);
+        let config = read_source(&document, false).unwrap();
+        (document, config)
+    }
+    fn config_text(config: &RouterConfig) -> String {
+        serde_json::to_string(config).unwrap()
+    }
+
     #[test]
     fn defaults_and_selected_backend_validation() {
         let c = config(json!({}));
@@ -1044,6 +1410,92 @@ mod tests {
             config(json!({"AUTOROUTER_EVALUATOR":"jev", "AUTOROUTER_MIN_CONFIDENCE":".5"}))
                 .min_confidence,
             0.5
+        );
+    }
+
+    #[test]
+    fn numeric_conversion_errors_keep_type_guards_and_backend_order() {
+        let check = |env: Value, all: bool, expected: &str| {
+            let before = env.to_string();
+            let document = source_document(&before);
+            for error in [
+                read_config(&env, all, Path::new("/synthetic")).err(),
+                read_source(&document, all).err(),
+            ] {
+                assert_eq!(error.as_deref(), Some(expected), "{before}");
+            }
+            assert_eq!(env.to_string(), before);
+            assert_eq!(document.stringify(), before);
+        };
+        for (key, error) in [
+            (
+                "AUTOROUTER_PORT",
+                "AUTOROUTER_PORT must be an integer between 0 and 65535",
+            ),
+            (
+                "AUTOROUTER_JEV_TIMEOUT_MS",
+                "AUTOROUTER_JEV_TIMEOUT_MS must be an integer between 1 and 10000",
+            ),
+            (
+                "AUTOROUTER_TOKEN_COUNT_TIMEOUT_MS",
+                "AUTOROUTER_TOKEN_COUNT_TIMEOUT_MS must be an integer between 1 and 10000",
+            ),
+            (
+                "AUTOROUTER_MIN_CONFIDENCE",
+                "AUTOROUTER_MIN_CONFIDENCE must be a number between 0 and 1",
+            ),
+        ] {
+            for property in [
+                json!(null),
+                json!(false),
+                json!(1),
+                json!("value"),
+                json!([]),
+                json!({}),
+            ] {
+                let object = json!({"toString": property});
+                for raw in [object.clone(), json!([object])] {
+                    check(
+                        json!({"AUTOROUTER_EVALUATOR":"jev", key:raw}),
+                        false,
+                        "Cannot convert object to primitive value",
+                    );
+                }
+            }
+            for raw in [json!({}), json!({"valueOf":null})] {
+                check(json!({"AUTOROUTER_EVALUATOR":"jev", key:raw}), false, error);
+            }
+        }
+        for (key, error) in [
+            (
+                "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP",
+                "CLAUDE_CODE_STOP_HOOK_BLOCK_CAP requires a nonnegative safe integer (0 disables the Stop-hook continuation cap)",
+            ),
+            (
+                "AUTOROUTER_OLLAMA_TIMEOUT_MS",
+                "AUTOROUTER_OLLAMA_TIMEOUT_MS must be an integer between 0 and 30000 (0 disables the runtime deadline)",
+            ),
+        ] {
+            check(json!({key:{"toString":null}}), false, error);
+        }
+        for key in ["AUTOROUTER_JEV_TIMEOUT_MS", "AUTOROUTER_MIN_CONFIDENCE"] {
+            let env = json!({"AUTOROUTER_EVALUATOR":"ollama", key:{"toString":null}});
+            let document = source_document(env.to_string());
+            assert!(read_config(&env, false, Path::new("/")).is_ok());
+            assert!(read_source(&document, false).is_ok());
+            check(env, true, "Cannot convert object to primitive value");
+        }
+        check(
+            json!({"AUTOROUTER_EVALUATOR":"jev", "AUTOROUTER_PORT":{"toString":null},
+            "AUTOROUTER_AUTH_MODE":"bad"}),
+            false,
+            "AUTOROUTER_AUTH_MODE must be api-key or subscription",
+        );
+        check(
+            json!({"AUTOROUTER_EVALUATOR":"jev", "AUTOROUTER_PORT":"-1",
+            "AUTOROUTER_MIN_CONFIDENCE":{"toString":null}}),
+            false,
+            "AUTOROUTER_PORT must be an integer between 0 and 65535",
         );
     }
 
@@ -1174,15 +1626,12 @@ mod tests {
                     .map(|value| format!(",\"{key}\":{value}"))
                     .unwrap_or_default();
                 let bytes = format!("{{\"AUTOROUTER_EVALUATOR\":\"{backend}\"{member}}}");
-                let document = JsDocument::parse(bytes.as_bytes()).unwrap();
-                let actual =
-                    read_config_document(&document, false, Path::new("/synthetic")).map(|config| {
-                        match index {
-                            0 => config.upstream,
-                            1 => config.jev_endpoint,
-                            _ => config.ollama_endpoint,
-                        }
-                    });
+                let document = source_document(bytes.as_bytes());
+                let actual = read_source(&document, false).map(|config| match index {
+                    0 => config.upstream,
+                    1 => config.jev_endpoint,
+                    _ => config.ollama_endpoint,
+                });
                 let expected = expected
                     .filter(|text| index != 2 || text.is_empty())
                     .map(|text| {
@@ -1219,9 +1668,9 @@ mod tests {
             let bytes = format!(
                 r#"{{"AUTOROUTER_EVALUATOR":"{backend}","{key}":["https://example.test/path",{{"toString":null}}]}}"#
             );
-            let document = JsDocument::parse(bytes.as_bytes()).unwrap();
+            let document = source_document(bytes.as_bytes());
             for validate_all in [false, true] {
-                let actual = read_config_document(&document, validate_all, Path::new("/synthetic"));
+                let actual = read_source(&document, validate_all);
                 if validate_all {
                     assert_eq!(actual.err().as_deref(), Some(error), "{backend}");
                 } else {
@@ -1242,13 +1691,8 @@ mod tests {
                 "AUTOROUTER_UPSTREAM_URL must be a valid URL",
             ),
         ] {
-            let document = JsDocument::parse(raw.as_bytes()).unwrap();
-            assert_eq!(
-                read_config_document(&document, false, Path::new("/synthetic"))
-                    .err()
-                    .as_deref(),
-                Some(error)
-            );
+            let document = source_document(raw.as_bytes());
+            assert_eq!(read_source(&document, false).err().as_deref(), Some(error));
             checked += 1;
         }
         assert_eq!(checked, 6);
@@ -1303,7 +1747,7 @@ mod tests {
                 }
                 let config = read_config(&env, false, Path::new("/synthetic"))
                     .unwrap_or_else(|error| panic!("Unexpected admission rejection: {error}"));
-                let encoded = serde_json::to_string(&config).unwrap();
+                let encoded = config_text(&config);
                 let observed: Value = serde_json::from_str(&encoded).unwrap();
                 for (key, field) in CREDENTIAL_FIELDS {
                     let expected = if key == "ANTHROPIC_API_KEY" && mode == "subscription" {
@@ -1387,11 +1831,9 @@ mod tests {
                     }
                 }
                 let input = format!("{{{}}}", members.join(","));
-                let document = JsDocument::parse(input.as_bytes()).unwrap();
-                let config =
-                    read_config_document(&document, false, Path::new("/synthetic")).unwrap();
-                let before = serde_json::to_string(&config).unwrap();
-                let observed = JsDocument::parse(before.as_bytes()).unwrap();
+                let (_document, config) = source_config(input.as_bytes());
+                let before = config_text(&config);
+                let observed = source_document(before.as_bytes());
                 for (key, field) in CREDENTIAL_FIELDS {
                     let expected = if key == "ANTHROPIC_API_KEY" && mode == "subscription" {
                         None
@@ -1423,7 +1865,7 @@ mod tests {
                     expected,
                     "{target}/{mode}/{evaluator}/{raw:?}"
                 );
-                assert_eq!(serde_json::to_string(&config).unwrap(), before);
+                assert_eq!(config_text(&config), before);
                 checked += 1;
             }
         }
@@ -1539,17 +1981,16 @@ mod tests {
         for (raw, expected) in cases {
             let env: Value = serde_json::from_str(raw).unwrap();
             let settings = config(env);
-            let before = serde_json::to_string(&settings).unwrap();
+            let before = config_text(&settings);
             assert_eq!(require_keys(&settings).err().as_deref(), expected);
-            assert_eq!(serde_json::to_string(&settings).unwrap(), before);
+            assert_eq!(config_text(&settings), before);
         }
     }
 
     #[test]
     fn credential_text_serialization_is_exact_and_value_observation_is_fallible() {
-        let source = JsDocument::parse(br#"{"AUTOROUTER_EVALUATOR":"jev","TYPESAFE_API_KEY":"synthetic-\ud800","unrelated":"synthetic-unrelated-input"}"#).unwrap();
-        let mut config = read_config_document(&source, false, Path::new("/synthetic")).unwrap();
-        let text = serde_json::to_string(&config).unwrap();
+        let (source, mut config) = source_config(br#"{"AUTOROUTER_EVALUATOR":"jev","TYPESAFE_API_KEY":"synthetic-\ud800","unrelated":"synthetic-unrelated-input"}"#);
+        let text = config_text(&config);
         assert!(text.contains(r#""jevKey":"synthetic-\ud800""#));
         assert!(!text.contains("synthetic-unrelated-input"));
         assert!(!text.contains('\u{fffd}'));
@@ -1573,5 +2014,805 @@ mod tests {
             config.credential_json(Credential::Jev).as_deref(),
             Some(r#""""#)
         );
+    }
+
+    #[test]
+    fn raw_configuration_numbers_do_not_become_nullish_defaults() {
+        for (key, error) in [
+            (
+                "AUTOROUTER_EVALUATOR",
+                "AUTOROUTER_EVALUATOR must be jev or ollama",
+            ),
+            (
+                "AUTOROUTER_AUTH_MODE",
+                "AUTOROUTER_AUTH_MODE must be api-key or subscription",
+            ),
+            (
+                "AUTOROUTER_CLIENT_PROFILE",
+                "AUTOROUTER_CLIENT_PROFILE must be compatible, native or auto",
+            ),
+            (
+                "AUTOROUTER_OLLAMA_MODEL",
+                "Ollama requires a valid local model tag; cloud models are not supported.",
+            ),
+            (
+                "AUTOROUTER_OLLAMA_KEEP_ALIVE",
+                "AUTOROUTER_OLLAMA_KEEP_ALIVE must be 0 or a positive duration such as 5m",
+            ),
+        ] {
+            for raw in ["1e999", "-1e999"] {
+                let input = format!(r#"{{"{key}":{raw}}}"#);
+                let document = source_document(input.as_bytes());
+                assert_eq!(
+                    read_source(&document, false).err().as_deref(),
+                    Some(error),
+                    "{key} {raw}"
+                );
+                let id = document.get(document.root(), key).unwrap();
+                assert!(
+                    matches!(document.node(id), Some(JsNode::Number(value)) if value.is_infinite())
+                );
+            }
+            let input = format!(r#"{{"{key}":null}}"#);
+            let document = source_document(input.as_bytes());
+            assert!(read_source(&document, false).is_ok(), "actual null {key}");
+        }
+        for key in ["AUTOROUTER_OLLAMA_MODEL", "AUTOROUTER_OLLAMA_KEEP_ALIVE"] {
+            let raw = format!(r#"{{"AUTOROUTER_EVALUATOR":"jev","{key}":1e999}}"#);
+            let document = source_document(raw.as_bytes());
+            assert!(read_source(&document, false).is_ok());
+            assert!(read_source(&document, true).is_err());
+        }
+    }
+
+    #[test]
+    fn raw_timeout_preserves_numeric_gate_and_first_error_order() {
+        for (raw, error) in [
+            (
+                r#"{"AUTOROUTER_OLLAMA_TIMEOUT_MS":1e999}"#,
+                "AUTOROUTER_OLLAMA_TIMEOUT_MS must be an integer between 0 and 30000",
+            ),
+            (
+                r#"{"AUTOROUTER_OLLAMA_TIMEOUT_MS":-1e999}"#,
+                "AUTOROUTER_OLLAMA_TIMEOUT_MS must be an integer between 0 and 30000",
+            ),
+            (
+                r#"{"AUTOROUTER_OLLAMA_TIMEOUT_MS":1e999,"AUTOROUTER_AUTH_MODE":"bad"}"#,
+                "AUTOROUTER_AUTH_MODE must be api-key or subscription",
+            ),
+            (
+                r#"{"AUTOROUTER_OLLAMA_TIMEOUT_MS":1e999,"AUTOROUTER_CLIENT_PROFILE":"bad"}"#,
+                "AUTOROUTER_CLIENT_PROFILE must be compatible, native or auto",
+            ),
+            (
+                r#"{"AUTOROUTER_OLLAMA_TIMEOUT_MS":1e999,"AUTOROUTER_UPSTREAM_URL":"bad"}"#,
+                "AUTOROUTER_UPSTREAM_URL must be a valid URL",
+            ),
+            (
+                r#"{"AUTOROUTER_OLLAMA_TIMEOUT_MS":1e999,"AUTOROUTER_SESSION_LOG_DIR":null}"#,
+                "AUTOROUTER_SESSION_LOG_DIR must be a directory path, or an empty string to disable session logging",
+            ),
+            (
+                r#"{"AUTOROUTER_OLLAMA_TIMEOUT_MS":null,"AUTOROUTER_AUTH_MODE":"bad"}"#,
+                "AUTOROUTER_OLLAMA_TIMEOUT_MS must be an integer between 0 and 30000 (0 disables the runtime deadline)",
+            ),
+            (
+                r#"{"AUTOROUTER_EVALUATOR":1e999,"AUTOROUTER_OLLAMA_MODEL":"bad model"}"#,
+                "AUTOROUTER_EVALUATOR must be jev or ollama",
+            ),
+            (
+                r#"{"AUTOROUTER_OLLAMA_KEEP_ALIVE":1e999,"AUTOROUTER_AUTH_MODE":"bad"}"#,
+                "AUTOROUTER_OLLAMA_KEEP_ALIVE must be 0 or a positive duration such as 5m",
+            ),
+        ] {
+            let document = source_document(raw.as_bytes());
+            assert_eq!(
+                read_source(&document, false).err().as_deref(),
+                Some(error),
+                "{raw}"
+            );
+        }
+    }
+
+    #[test]
+    fn keep_alive_primitive_failure_keeps_original_kind_and_input() {
+        let document = source_document(br#"{"AUTOROUTER_OLLAMA_KEEP_ALIVE":{"toString":null}}"#);
+        let before = document.stringify();
+        assert_eq!(
+            read_source(&document, false).err().as_deref(),
+            Some("Cannot convert object to primitive value")
+        );
+        assert_eq!(document.stringify(), before);
+        for (raw, expected) in [("0", json!(0)), (r#""5m""#, json!("5m"))] {
+            let input = format!(r#"{{"AUTOROUTER_OLLAMA_KEEP_ALIVE":{raw}}}"#);
+            let (_document, config) = source_config(input.as_bytes());
+            assert_eq!(
+                config.ollama_keep_alive_json(),
+                serde_json::to_string(&expected).unwrap()
+            );
+        }
+    }
+
+    #[test]
+    fn source_accepted_deep_keep_alive_requires_exact_owned_output() {
+        // Literal original Node controls observed all three successful; assert
+        // complete returned JSON, not just the converted primitive string.
+        for depth in [63, 64, 80] {
+            let value = format!("{}\"5m\"{}", "[".repeat(depth), "]".repeat(depth));
+            let input = format!(r#"{{"AUTOROUTER_OLLAMA_KEEP_ALIVE":{value}}}"#);
+            let document = source_document(input.as_bytes());
+            let config = read_source(&document, false)
+                .unwrap_or_else(|error| panic!("source accepted depth{depth}: {error}"));
+            assert_eq!(config.ollama_keep_alive_json(), value);
+            let output = config_text(&config);
+            let observed = source_document(output.as_bytes());
+            let keep_alive = observed.get(observed.root(), "ollamaKeepAlive").unwrap();
+            assert_eq!(observed.stringify_node(keep_alive), value);
+        }
+    }
+
+    #[test]
+    fn exact_keep_alive_is_owned_and_replacements_erase_old_source() {
+        let (source, mut config) = source_config(br#"{"AUTOROUTER_OLLAMA_KEEP_ALIVE":[[["5m"]]],"unrelated":"do not retain the environment"}"#);
+        let original = config.ollama_keep_alive_json();
+        drop(source);
+        assert_eq!(original, r#"[[["5m"]]]"#);
+        let retained = config.ollama_keep_alive_document().unwrap();
+        assert!(retained.get(retained.root(), "unrelated").is_none());
+        assert!(retained.node(3).is_some());
+        assert!(
+            retained.node(4).is_none(),
+            "only the four reachable nodes are owned"
+        );
+        assert!(!config.ollama_keep_alive_is_string());
+        assert!(!config.ollama_keep_alive_is_nullish());
+        let clone = config.clone();
+        config.ollama_keep_alive = json!("changed by public field");
+        assert_eq!(
+            config.ollama_keep_alive_json(),
+            r#""changed by public field""#
+        );
+        assert!(config.ollama_keep_alive_document().is_none());
+        config.replace_ollama_keep_alive(json!("30m"));
+        assert_eq!(config.ollama_keep_alive_json(), r#""30m""#);
+        assert!(config.ollama_keep_alive_is_string());
+        assert_eq!(clone.ollama_keep_alive_json(), original);
+        config.clear_ollama_keep_alive();
+        assert_eq!(config.ollama_keep_alive_json(), r#""5m""#);
+        assert!(config.ollama_keep_alive_document().is_none());
+        config.replace_ollama_keep_alive(Value::Null);
+        assert!(config.ollama_keep_alive_is_nullish());
+        let overflow = source_document(b"1e999");
+        config
+            .replace_ollama_keep_alive_document(&overflow, overflow.root())
+            .unwrap();
+        assert_eq!(config.ollama_keep_alive_json(), "null");
+        assert!(
+            !config.ollama_keep_alive_is_nullish(),
+            "original Number is not null"
+        );
+        assert!(!config.ollama_keep_alive_is_string());
+        let before = config.ollama_keep_alive_json();
+        let other = source_document(br#"{"value":0}"#);
+        assert!(
+            config
+                .replace_ollama_keep_alive_document(&other, usize::MAX)
+                .is_err()
+        );
+        assert_eq!(config.ollama_keep_alive_json(), before);
+    }
+
+    #[test]
+    fn arena_keep_alive_handles_twenty_thousand_levels_without_deep_value_ownership() {
+        // Ownership/replacement API control, not a claim that Node readConfig
+        // accepted this unmeasured host-stack-dependent primitive conversion.
+        let raw = format!("{}\"5m\"{}", "[".repeat(20_000), "]".repeat(20_000));
+        let source = source_document(raw.as_bytes());
+        let mut config = config(json!({}));
+        config
+            .replace_ollama_keep_alive_document(&source, source.root())
+            .unwrap();
+        drop(source);
+        assert_eq!(config.ollama_keep_alive_json(), raw);
+        let clone = config.clone();
+        let encoded = config_text(&config);
+        let document = source_document(encoded.as_bytes());
+        let id = document.get(document.root(), "ollamaKeepAlive").unwrap();
+        assert_eq!(document.stringify_node(id), raw);
+        assert!(serde_json::to_value(&config).is_err());
+        // The owned Value API also drains its consumed deep input iteratively.
+        let mut value = json!("0");
+        for _ in 0..20_000 {
+            value = Value::Array(vec![value]);
+        }
+        config.replace_ollama_keep_alive(value);
+        assert_eq!(
+            config.ollama_keep_alive_json(),
+            format!("{}\"0\"{}", "[".repeat(20_000), "]".repeat(20_000))
+        );
+        config.clear_ollama_keep_alive();
+        assert_eq!(clone.ollama_keep_alive_json(), raw);
+        drop(clone);
+    }
+
+    #[test]
+    fn exact_config_text_keeps_utf16_and_existing_model_override_authority() {
+        let (source, mut config) = source_config(br#"{"AUTOROUTER_EVALUATOR":"jev","AUTOROUTER_HAIKU_MODEL":"model\ud800","AUTOROUTER_JEV_MODEL":"jev\udfff","AUTOROUTER_SESSION_LOG_DIR":"logs\ud800"}"#);
+        drop(source);
+        assert!(serde_json::to_value(&config).is_err());
+        let encoded = config_text(&config);
+        let output = source_document(encoded.as_bytes());
+        let models = output.get(output.root(), "models").unwrap();
+        assert_eq!(
+            output.stringify_node(output.get(models, "haiku").unwrap()),
+            r#""model\ud800""#
+        );
+        assert_eq!(
+            output.stringify_node(output.get(output.root(), "jevModel").unwrap()),
+            r#""jev\udfff""#
+        );
+        assert_eq!(
+            output.stringify_node(output.get(output.root(), "sessionLogDir").unwrap()),
+            r#""/synthetic/logs\ud800""#
+        );
+        config.models.haiku = "direct typed edit".into();
+        config.jev_model = "different display".into();
+        let encoded = config_text(&config);
+        assert!(encoded.contains(r#""haiku":"model\ud800""#));
+        assert!(encoded.contains(r#""jevModel":"jev\udfff""#));
+        // An unequal explicit override remains authoritative as runtime expects.
+        config.exact_jev_model = Some(JsString::from_utf16(vec![0xd801]));
+        assert!(config_text(&config).contains(r#""jevModel":"\ud801""#));
+        config.replace_model("haiku", "new model".into()).unwrap();
+        config.replace_jev_model("new jev".into());
+        assert!(!config.exact_models.contains_key("haiku"));
+        assert!(config.exact_jev_model.is_none());
+        let captured_path = config.session_log_dir.clone();
+        config.replace_session_log_dir(Some("/new path".into()));
+        config.session_log_dir = captured_path;
+        assert!(config.session_log_dir_exact().is_none());
+        config.replace_session_log_dir(None);
+        let encoded = config_text(&config);
+        assert!(!encoded.contains("sessionLogDir"));
+        assert!(encoded.contains(r#""haiku":"new model""#));
+        assert!(encoded.contains(r#""jevModel":"new jev""#));
+    }
+
+    #[test]
+    fn evaluator_copy_preserves_every_non_evaluator_field_and_source_sidecar() {
+        fn non_evaluator_fields(config: &RouterConfig) -> Vec<(String, String)> {
+            let document = source_document(config_text(config));
+            let Some(JsNode::Object(fields)) = document.node(document.root()) else {
+                panic!("configuration is an object");
+            };
+            let evaluator_fields = [
+                "evaluator",
+                "jevKey",
+                "jevEndpoint",
+                "jevModel",
+                "jevTimeoutMs",
+                "minConfidence",
+                "stateChars",
+                "ollamaEndpoint",
+                "ollamaModel",
+                "ollamaTimeoutMs",
+                "ollamaStateChars",
+                "ollamaKeepAlive",
+            ];
+            fields
+                .entries()
+                .iter()
+                .filter_map(|(key, node)| {
+                    let key = key.to_scalar().unwrap();
+                    (!evaluator_fields.contains(&key.as_str()))
+                        .then(|| (key, document.stringify_node(*node)))
+                })
+                .collect()
+        }
+        let (_, mut target) = source_config(br#"{"AUTOROUTER_EVALUATOR":"jev","ANTHROPIC_API_KEY":{"synthetic":"target-provider"},"AUTOROUTER_TOKEN":"target-local-\ud800","AUTOROUTER_SESSION_LOG_DIR":"target-path\ud801","AUTOROUTER_HAIKU_MODEL":"target-model\ud802"}"#);
+        let (_, mut source) = source_config(br#"{"AUTOROUTER_EVALUATOR":"jev","TYPESAFE_API_KEY":"source-jev-\ud803","ANTHROPIC_API_KEY":{"synthetic":"source-provider"},"AUTOROUTER_TOKEN":"source-local-\ud804","AUTOROUTER_SESSION_LOG_DIR":"source-path\ud805","AUTOROUTER_HAIKU_MODEL":"source-model\ud806"}"#);
+        target.auth_mode = AuthMode::Subscription;
+        target.client_profile = ClientProfile::Native;
+        target.session_log_mode = SessionLogMode::Prompts;
+        target.stop_hook_block_cap = Some(7);
+        target.upstream = "https://target.invalid".into();
+        target.models.sonnet = "target-sonnet".into();
+        target.models.opus = "target-opus".into();
+        target.port = 8001;
+        target.token_count_timeout_ms = 15;
+        target.max_body_bytes = 1_048_576;
+        target.cache_entries = 3;
+        target.cache_ttl_ms = 7;
+        target.turn_ttl_ms = 11;
+        target.turn_entries = Some(5);
+        target.upstream_timeout_ms = 77;
+        source.client_profile = ClientProfile::Auto;
+        source.stop_hook_block_cap = Some(11);
+        source.upstream = "https://source.invalid".into();
+        source.port = 8002;
+        source.token_count_timeout_ms = 20;
+        source.max_body_bytes = 2_000_000;
+        source.cache_entries = 8;
+        source.cache_ttl_ms = 9;
+        source.turn_ttl_ms = 17;
+        source.turn_entries = Some(6);
+        source.upstream_timeout_ms = 88;
+        source.evaluator = Evaluator::Ollama;
+        source.jev_endpoint = "https://source.invalid/v1/systemone".into();
+        source.jev_model = "source-jev-model".into();
+        source.exact_jev_model = Some(JsString::from_utf16(vec![0xd807]));
+        source.jev_timeout_ms = 900;
+        source.min_confidence = 0.25;
+        source.state_chars = 1000;
+        source.ollama_endpoint = "http://127.0.0.1:11435".into();
+        source.ollama_model = "synthetic-local:1b".into();
+        source.ollama_timeout_ms = 0;
+        source.ollama_state_chars = 777;
+        source.replace_ollama_keep_alive(json!("30m"));
+        let target_before = target.clone();
+        let non_evaluator_before = non_evaluator_fields(&target);
+        let source_before = config_text(&source);
+        target.copy_evaluator_settings_from(&source);
+        assert_eq!(non_evaluator_fields(&target), non_evaluator_before);
+        assert_eq!(target.models.haiku, target_before.models.haiku);
+        assert_eq!(target.models.sonnet, target_before.models.sonnet);
+        assert_eq!(target.models.opus, target_before.models.opus);
+        assert!(target.exact_models == target_before.exact_models);
+        assert_eq!(target.anthropic_key, target_before.anthropic_key);
+        assert_eq!(target.local_token, target_before.local_token);
+        assert_eq!(target.session_log_dir, target_before.session_log_dir);
+        assert!(target.session_log_dir_exact() == target_before.session_log_dir_exact());
+        for key in [Credential::Anthropic, Credential::LocalToken] {
+            let before = target_before.source_credentials.slots[key.index()]
+                .as_ref()
+                .unwrap();
+            let after = target.source_credentials.slots[key.index()]
+                .as_ref()
+                .unwrap();
+            assert!(Arc::ptr_eq(&before.document, &after.document));
+            assert_eq!(before.projection, after.projection);
+        }
+        assert!(target.evaluator == source.evaluator);
+        assert_eq!(target.jev_endpoint, source.jev_endpoint);
+        assert_eq!(target.jev_model, source.jev_model);
+        assert!(target.exact_jev_model == source.exact_jev_model);
+        assert_eq!(target.jev_key, source.jev_key);
+        assert_eq!(
+            target.credential_json(Credential::Jev),
+            source.credential_json(Credential::Jev)
+        );
+        assert_eq!(target.jev_timeout_ms, source.jev_timeout_ms);
+        assert_eq!(target.min_confidence, source.min_confidence);
+        assert_eq!(target.state_chars, source.state_chars);
+        assert_eq!(target.ollama_endpoint, source.ollama_endpoint);
+        assert_eq!(target.ollama_model, source.ollama_model);
+        assert_eq!(target.ollama_timeout_ms, source.ollama_timeout_ms);
+        assert_eq!(target.ollama_state_chars, source.ollama_state_chars);
+        assert_eq!(
+            target.ollama_keep_alive_json(),
+            source.ollama_keep_alive_json()
+        );
+        assert_eq!(config_text(&source), source_before);
+    }
+
+    #[test]
+    fn evaluator_copy_keeps_missing_null_utf16_and_masked_jev_source_distinct() {
+        for (entry, expected) in [
+            ("", None),
+            (r#", "TYPESAFE_API_KEY":null"#, Some("null")),
+            (
+                r#", "TYPESAFE_API_KEY":"synthetic-\ud800""#,
+                Some(r#""synthetic-\ud800""#),
+            ),
+            (
+                r#", "TYPESAFE_API_KEY":{"synthetic":true}"#,
+                Some(r#"{"synthetic":true}"#),
+            ),
+        ] {
+            let raw = format!(r#"{{"AUTOROUTER_EVALUATOR":"jev"{entry}}}"#);
+            let (_, source) = source_config(raw);
+            let (_, mut target) =
+                source_config(br#"{"AUTOROUTER_EVALUATOR":"jev","TYPESAFE_API_KEY":"old-\ud801"}"#);
+            let before = config_text(&source);
+            target.copy_evaluator_settings_from(&source);
+            assert_eq!(target.credential_json(Credential::Jev).as_deref(), expected);
+            assert_eq!(target.jev_key, source.jev_key);
+            assert_eq!(config_text(&source), before);
+        }
+        let (_, mut source) = source_config(br#"{"AUTOROUTER_EVALUATOR":"jev","TYPESAFE_API_KEY":"synthetic-\ud800","AUTOROUTER_JEV_MODEL":"model\ud801"}"#);
+        let captured_projection = source.jev_key.clone();
+        source.jev_key = Some("typed-mask".into());
+        source.jev_model = "different typed model".into();
+        let mut target = config(json!({}));
+        target.copy_evaluator_settings_from(&source);
+        assert_eq!(
+            target.credential_json(Credential::Jev).as_deref(),
+            Some(r#""typed-mask""#)
+        );
+        assert_eq!(
+            target.exact_jev_model.as_ref().unwrap().units(),
+            &[0x006d, 0x006f, 0x0064, 0x0065, 0x006c, 0xd801]
+        );
+        target.jev_key = captured_projection;
+        assert_eq!(
+            target.credential_json(Credential::Jev).as_deref(),
+            Some(r#""synthetic-\ud800""#)
+        );
+        assert!(config_text(&target).contains(r#""jevModel":"model\ud801""#));
+        source.replace_credential(Credential::Jev, None);
+        source.replace_jev_model("replacement model".into());
+        target.copy_evaluator_settings_from(&source);
+        assert!(target.credential_json(Credential::Jev).is_none());
+        assert!(target.source_credentials.slots[Credential::Jev.index()].is_none());
+        assert!(target.exact_jev_model.is_none());
+        assert_eq!(target.jev_model, "replacement model");
+    }
+
+    #[test]
+    fn evaluator_copy_keeps_effective_exact_keep_alive_kind_and_masks_old_capture() {
+        let mut source = config(json!({}));
+        let exact = source_document(br#"["synthetic-\ud800",1e999]"#);
+        source
+            .replace_ollama_keep_alive_document(&exact, exact.root())
+            .unwrap();
+        let mut target = config(json!({}));
+        target.copy_evaluator_settings_from(&source);
+        assert_eq!(
+            target.ollama_keep_alive_json(),
+            r#"["synthetic-\ud800",null]"#
+        );
+        let original = source.ollama_keep_alive_document().unwrap();
+        let copied = target.ollama_keep_alive_document().unwrap();
+        let Some(JsNode::Array(values)) = copied.node(copied.root()) else {
+            panic!("exact keep_alive is an array");
+        };
+        assert!(
+            matches!(copied.node(values[1]), Some(JsNode::Number(value)) if value.is_infinite())
+        );
+        assert!(std::ptr::eq(original, copied));
+        source.ollama_keep_alive = json!("typed-mask");
+        assert!(source.ollama_keep_alive_document().is_none());
+        target.copy_evaluator_settings_from(&source);
+        assert_eq!(target.ollama_keep_alive_json(), r#""typed-mask""#);
+        assert_eq!(source.ollama_keep_alive_json(), r#""typed-mask""#);
+        assert!(target.ollama_keep_alive_is_string());
+        source.ollama_keep_alive = Value::Null;
+        target.copy_evaluator_settings_from(&source);
+        assert_eq!(target.ollama_keep_alive_json(), "null");
+        assert!(target.ollama_keep_alive_is_nullish());
+    }
+
+    #[test]
+    fn evaluator_copy_imports_and_replaces_twenty_thousand_level_direct_values_safely() {
+        let depth = 20_000;
+        let mut source = config(json!({}));
+        let mut target = config(json!({}));
+        let mut incoming = json!("incoming");
+        let mut replaced = json!("replaced");
+        for _ in 0..depth {
+            incoming = Value::Array(vec![incoming]);
+            replaced = Value::Array(vec![replaced]);
+        }
+        source.ollama_keep_alive = incoming;
+        target.ollama_keep_alive = replaced;
+        let expected = format!("{}\"incoming\"{}", "[".repeat(depth), "]".repeat(depth));
+        target.copy_evaluator_settings_from(&source);
+        // The source still owns its direct deep Value; dispose of it safely
+        // before assertions so failed assertions cannot recursively drop it.
+        source.clear_ollama_keep_alive();
+        assert_eq!(target.ollama_keep_alive_json(), expected);
+        let owned = target.ollama_keep_alive_document().unwrap();
+        assert!(owned.node(depth).is_some());
+        assert!(owned.node(depth + 1).is_none());
+        target.clear_ollama_keep_alive();
+        assert_eq!(target.ollama_keep_alive_json(), r#""5m""#);
+    }
+
+    #[test]
+    fn ollama_model_tag_length_grammar_and_inactive_mask_are_explicit() {
+        const ERROR: &str =
+            "Ollama requires a valid local model tag; cloud models are not supported.";
+        let cases = [
+            ("a".to_owned(), true),
+            ("a".repeat(200), true),
+            ("a".repeat(201), false),
+            ("A09_./:-".to_owned(), true),
+            ("team/decision-model:v1".to_owned(), true),
+            ("model:cloud-extra".to_owned(), true),
+            ("model-cloud/child".to_owned(), true),
+            ("model:CLOUD".to_owned(), false),
+            ("model-ClOuD".to_owned(), false),
+            ("https://localhost/model".to_owned(), false),
+            ("".to_owned(), false),
+            ("_model".to_owned(), false),
+            (".model".to_owned(), false),
+            ("/model".to_owned(), false),
+            (":model".to_owned(), false),
+            ("-model".to_owned(), false),
+            (" model".to_owned(), false),
+            ("model ".to_owned(), false),
+            ("mod el".to_owned(), false),
+            ("mod\tel".to_owned(), false),
+            ("mod\0el".to_owned(), false),
+            ("modèle".to_owned(), false),
+        ];
+        for (model, accepted) in cases {
+            let document = source_document(
+                serde_json::to_vec(&json!({
+                    "AUTOROUTER_OLLAMA_MODEL":model
+                }))
+                .unwrap(),
+            );
+            let before = document.stringify();
+            let result = read_source(&document, false);
+            if accepted {
+                let config = result.unwrap();
+                assert_eq!(config.ollama_model, model);
+                assert_eq!(config.ollama_timeout_ms, 1500);
+                assert_eq!(validate_ollama_model(&model).unwrap(), model);
+            } else {
+                assert_eq!(result.err().as_deref(), Some(ERROR), "{model:?}");
+                assert_eq!(validate_ollama_model(&model).err().as_deref(), Some(ERROR));
+            }
+            assert_eq!(document.stringify(), before);
+        }
+        for terminator in ["\n", "\r", "\r\n", "\u{2028}", "\u{2029}"] {
+            let model = format!("model{terminator}");
+            let document = source_document(
+                serde_json::to_vec(&json!({
+                    "AUTOROUTER_OLLAMA_MODEL":model
+                }))
+                .unwrap(),
+            );
+            let before = document.stringify();
+            assert_eq!(read_source(&document, false).err().as_deref(), Some(ERROR));
+            assert_eq!(document.stringify(), before);
+        }
+        for raw in ["null", "0", "false", "[]", "{}"] {
+            let document = source_document(format!(r#"{{"AUTOROUTER_OLLAMA_MODEL":{raw}}}"#));
+            let before = document.stringify();
+            match raw {
+                "null" => assert_eq!(
+                    read_source(&document, false).unwrap().ollama_model,
+                    DEFAULT_OLLAMA_MODEL
+                ),
+                _ => assert_eq!(read_source(&document, false).err().as_deref(), Some(ERROR)),
+            }
+            assert_eq!(document.stringify(), before);
+        }
+        let inactive = source_document(br#"{"AUTOROUTER_EVALUATOR":"jev","AUTOROUTER_OLLAMA_MODEL":"","AUTOROUTER_OLLAMA_KEEP_ALIVE":"bad"}"#);
+        let before = inactive.stringify();
+        let masked = read_source(&inactive, false).unwrap();
+        assert_eq!(masked.ollama_model, DEFAULT_OLLAMA_MODEL);
+        assert_eq!(masked.ollama_keep_alive_json(), r#""5m""#);
+        assert_eq!(read_source(&inactive, true).err().as_deref(), Some(ERROR));
+        assert_eq!(inactive.stringify(), before);
+    }
+
+    #[test]
+    fn ollama_keep_alive_duration_extrema_retain_kind_and_first_error() {
+        const ERROR: &str =
+            "AUTOROUTER_OLLAMA_KEEP_ALIVE must be 0 or a positive duration such as 5m";
+        for (raw, accepted, expected) in [
+            (r#""0""#, true, r#""0""#),
+            ("0", true, "0"),
+            ("null", true, r#""5m""#),
+            (r#""1s""#, true, r#""1s""#),
+            (r#""9999s""#, true, r#""9999s""#),
+            (r#""1m""#, true, r#""1m""#),
+            (r#""9999m""#, true, r#""9999m""#),
+            (r#""1h""#, true, r#""1h""#),
+            (r#""9999h""#, true, r#""9999h""#),
+            (r#""""#, false, ""),
+            (r#""00""#, false, ""),
+            (r#""01m""#, false, ""),
+            (r#""10000m""#, false, ""),
+            (r#""-1""#, false, ""),
+            (r#""0s""#, false, ""),
+            (r#""1M""#, false, ""),
+            (r#""1d""#, false, ""),
+            (r#""1""#, false, ""),
+            (r#""1.5m""#, false, ""),
+            (r#"" 1m""#, false, ""),
+            (r#""1m ""#, false, ""),
+            (r#""١m""#, false, ""),
+        ] {
+            let document = source_document(format!(r#"{{"AUTOROUTER_OLLAMA_KEEP_ALIVE":{raw}}}"#));
+            let before = document.stringify();
+            let result = read_source(&document, false);
+            if accepted {
+                let config = result.unwrap();
+                assert_eq!(config.ollama_keep_alive_json(), expected);
+                assert_eq!(config.ollama_keep_alive_is_string(), raw != "0");
+                let serialized = source_document(config_text(&config));
+                let value = serialized
+                    .get(serialized.root(), "ollamaKeepAlive")
+                    .unwrap();
+                assert_eq!(serialized.stringify_node(value), expected);
+            } else {
+                assert_eq!(result.err().as_deref(), Some(ERROR), "{raw}");
+            }
+            assert_eq!(document.stringify(), before);
+        }
+        for terminator in ["\n", "\r", "\r\n", "\u{2028}", "\u{2029}"] {
+            for prefix in ["0", "1m"] {
+                let document = source_document(
+                    serde_json::to_vec(&json!({
+                        "AUTOROUTER_OLLAMA_KEEP_ALIVE":format!("{prefix}{terminator}")
+                    }))
+                    .unwrap(),
+                );
+                let before = document.stringify();
+                assert_eq!(read_source(&document, false).err().as_deref(), Some(ERROR));
+                assert_eq!(document.stringify(), before);
+            }
+        }
+        for (raw, error) in [
+            (
+                r#"{"AUTOROUTER_OLLAMA_MODEL":"","AUTOROUTER_OLLAMA_KEEP_ALIVE":"bad"}"#,
+                "Ollama requires a valid local model tag; cloud models are not supported.",
+            ),
+            (
+                r#"{"AUTOROUTER_OLLAMA_TIMEOUT_MS":"bad","AUTOROUTER_OLLAMA_KEEP_ALIVE":"bad"}"#,
+                "AUTOROUTER_OLLAMA_TIMEOUT_MS must be an integer between 0 and 30000 (0 disables the runtime deadline)",
+            ),
+            (
+                r#"{"AUTOROUTER_OLLAMA_KEEP_ALIVE":"bad","AUTOROUTER_AUTH_MODE":"bad"}"#,
+                ERROR,
+            ),
+            (
+                r#"{"AUTOROUTER_EVALUATOR":"jev","AUTOROUTER_OLLAMA_KEEP_ALIVE":"bad"}"#,
+                ERROR,
+            ),
+        ] {
+            let document = source_document(raw);
+            let before = document.stringify();
+            let validate_all = raw.contains(r#""AUTOROUTER_EVALUATOR":"jev""#);
+            if validate_all {
+                let masked = read_source(&document, false).unwrap();
+                assert_eq!(masked.ollama_keep_alive_json(), r#""5m""#);
+            }
+            assert_eq!(
+                read_source(&document, validate_all).err().as_deref(),
+                Some(error)
+            );
+            assert_eq!(document.stringify(), before);
+        }
+    }
+
+    #[test]
+    fn parsed_keep_alive_depths_retain_exact_config_after_source_drop() {
+        use sha2::{Digest, Sha256};
+        let default_config = config_text(&config(json!({})));
+        for depth in [63, 64, 80, 2048, 20_000] {
+            let value = format!("{}\"5m\"{}", "[".repeat(depth), "]".repeat(depth));
+            let input = format!(r#"{{"AUTOROUTER_OLLAMA_KEEP_ALIVE":{value}}}"#);
+            let source = source_document(input.as_bytes());
+            let before = source.stringify();
+            assert_eq!(before, input);
+            let parsed = read_source(&source, false);
+            assert_eq!(source.stringify(), before);
+            let config = parsed.unwrap_or_else(|error| {
+                eprintln!(
+                    "OLLAMA_KEEP_ALIVE_DEPTH {}",
+                    json!({
+                        "depth":depth,"phase":"read_config","accepted":false,"error":error
+                    })
+                );
+                panic!("native parsed keep_alive depth{depth}: {error}");
+            });
+            assert_eq!(config.ollama_keep_alive_json(), value);
+            drop(source);
+            assert_eq!(config.ollama_keep_alive_json(), value);
+            assert!(!config.ollama_keep_alive_is_string());
+            assert!(!config.ollama_keep_alive_is_nullish());
+            let retained = config.ollama_keep_alive_document().unwrap();
+            assert!(retained.node(depth).is_some());
+            assert!(retained.node(depth + 1).is_none());
+            let encoded = config_text(&config);
+            let mut expected = source_document(default_config.as_bytes());
+            expected
+                .set_field_json(expected.root(), "ollamaKeepAlive", value.as_bytes())
+                .unwrap();
+            assert_eq!(encoded, expected.stringify());
+            let complete = source_document(encoded.as_bytes());
+            let retained_value = complete.get(complete.root(), "ollamaKeepAlive").unwrap();
+            assert_eq!(complete.stringify_node(retained_value), value);
+            eprintln!(
+                "OLLAMA_KEEP_ALIVE_DEPTH {}",
+                json!({
+                    "depth":depth,"phase":"complete","accepted":true,
+                    "source_unchanged":true,"owned_after_source_drop":true,
+                    "value_bytes":value.len(),
+                    "value_sha256":format!("{:x}", Sha256::digest(value.as_bytes())),
+                    "config_bytes":encoded.len(),
+                    "config_sha256":format!("{:x}", Sha256::digest(encoded.as_bytes()))
+                })
+            );
+        }
+    }
+
+    #[test]
+    fn parsed_url_depths_preserve_config_and_detach_normalized_endpoints() {
+        use sha2::{Digest, Sha256};
+        let mut checked = 0;
+        for (key, field, backend, scalar, expected_url) in [
+            (
+                "AUTOROUTER_UPSTREAM_URL",
+                "upstream",
+                "ollama",
+                "https://example.test/gateway/",
+                "https://example.test/gateway",
+            ),
+            (
+                "AUTOROUTER_JEV_URL",
+                "jevEndpoint",
+                "jev",
+                "https://example.test/v1/systemone/",
+                "https://example.test/v1/systemone",
+            ),
+            (
+                "AUTOROUTER_OLLAMA_URL",
+                "ollamaEndpoint",
+                "ollama",
+                "http://localhost:11434/",
+                "http://127.0.0.1:11434",
+            ),
+        ] {
+            let baseline = config_text(&config(json!({"AUTOROUTER_EVALUATOR":backend})));
+            let mut expected = source_document(baseline.as_bytes());
+            expected
+                .set_field_json(
+                    expected.root(),
+                    field,
+                    serde_json::to_string(expected_url).unwrap().as_bytes(),
+                )
+                .unwrap();
+            let expected = expected.stringify();
+            for depth in [63, 64, 80, 2048, 20_000] {
+                let value = format!(
+                    "{}{}{}",
+                    "[".repeat(depth),
+                    serde_json::to_string(scalar).unwrap(),
+                    "]".repeat(depth)
+                );
+                let input = format!(r#"{{"AUTOROUTER_EVALUATOR":"{backend}","{key}":{value}}}"#);
+                let source = source_document(input.as_bytes());
+                let before = source.stringify();
+                assert_eq!(before, input);
+                let parsed = read_source(&source, false);
+                assert_eq!(source.stringify(), before);
+                let config = parsed.unwrap_or_else(|error| {
+                    eprintln!("CONFIG_URL_DEPTH {}", json!({"key":key,"depth":depth,"phase":"read_config","accepted":false,"error":error}));
+                    panic!("native parsed URL {key} depth{depth}: {error}");
+                });
+                let endpoint = match key {
+                    "AUTOROUTER_UPSTREAM_URL" => &config.upstream,
+                    "AUTOROUTER_JEV_URL" => &config.jev_endpoint,
+                    _ => &config.ollama_endpoint,
+                };
+                assert_eq!(endpoint, expected_url);
+                drop(source);
+                let encoded = config_text(&config);
+                assert_eq!(encoded, expected);
+                let complete = source_document(encoded.as_bytes());
+                let retained = complete.get(complete.root(), field).unwrap();
+                assert_eq!(
+                    complete.stringify_node(retained),
+                    serde_json::to_string(expected_url).unwrap()
+                );
+                eprintln!(
+                    "CONFIG_URL_DEPTH {}",
+                    json!({
+                        "key":key,"depth":depth,"phase":"complete","accepted":true,
+                        "source_unchanged":true,"owned_after_source_drop":true,"endpoint":expected_url,
+                        "input_bytes":input.len(),"input_sha256":format!("{:x}",Sha256::digest(input.as_bytes())),
+                        "config_bytes":encoded.len(),"config_sha256":format!("{:x}",Sha256::digest(encoded.as_bytes()))
+                    })
+                );
+                checked += 1;
+            }
+        }
+        assert_eq!(checked, 15);
     }
 }
