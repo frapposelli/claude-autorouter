@@ -331,3 +331,45 @@ shipping-artifact qualification. No provider calls were made.
 
 The [source and evidence summary](../parity/measurements/native-processing-hash-stream-summary.json)
 binds the raw reports, release helpers, tested source and bounded source transfer.
+
+## Ordinary gateway lifetime peak memory
+
+The [first selected v5 numerical comparison](../parity/measurements/native-large-catalog-lifetime-memory-summary.json)
+measures the ordinary complete gateway processes at checkpoint `b051879` using
+the unchanged `large_catalog_miss` fixture and thresholds. It completed five
+alternating paired rounds at concurrency 1, 8, 32 and 128, with 200 warmup and
+2,000 measured requests per row. All 60 rows, including direct-upstream
+controls, matched complete response bytes and required evaluator, inference
+and token-count calls. The separate 12-row validation also passed.
+
+| Concurrency | Native/Node lifetime peak RSS | 95% interval | Unchanged 0.7 target |
+| --- | --- | --- | --- |
+| 1 | 0.149 | 0.136–0.154 | Observed met |
+| 8 | 0.217 | 0.213–0.218 | Observed met |
+| 32 | 0.372 | 0.252–0.391 | Observed met |
+| 128 | 0.915 | 0.898–0.918 | **Not met** |
+
+At 128 clients, native lifetime peak RSS was 382–385 MiB and Node was
+416–427 MiB. The measured reduction misses the required 30%; the failure
+remains open. Profiling must establish the cause before changing code and
+remeasuring. CPU/request ratios of 0.471–0.515, idle RSS ratios of about 0.164
+and throughput ratios of 1.62–1.73 met their observed targets within this
+workload. Complete-response and first-body p95/p99 checks detected no regression
+under the unchanged 10% allowance and 0.5 ms noise floor. HTTP timings do not
+establish processing-only overhead.
+
+The fresh child collectors verified all 40 gateway lifetime peaks. This metric
+includes startup, readiness, warmup, measurement and shutdown; it is maximum
+individual RSS, including waited descendants, rather than summed process-tree
+RSS or an isolated measured-interval peak. All 120 descriptor snapshots remain
+unverified because `lsof` reported diagnostics; no recovery count is inferred.
+
+This single predeclared experiment ran on the normal-use 16 GiB M4 with usual
+apps open and local builds, tests and compression paused. AC power was observed
+during and after the run; active power source was not recorded before it.
+The retained release binaries were rehashed and their cached Cargo build
+records preserved; this is not an independent clean source reproduction.
+All other protocol workloads, installed artifacts, representative hardware,
+allocation/soak and real-provider gates remain open. Neither a successful
+driver exit nor the passing observed metrics override the memory failure or
+qualify the full rewrite.
