@@ -627,7 +627,7 @@ pub(super) fn binary_source(root: &Path) -> Result<BTreeMap<String, Entry>, Stri
     );
     Ok(native)
 }
-// Only the new combined kind requires exact original-order header identity.
+// Combined and compact source kinds require original-order header identity.
 pub(super) fn canonical_source(
     files: &BTreeMap<String, Entry>,
     maximum: usize,
@@ -639,6 +639,9 @@ pub(super) fn canonical_source(
         .map(String::as_str)
         .collect();
     let decoded = metadata::decode_source(&files["source-manifest.bin"].bytes, FILE_LIMIT, &paths)?;
+    canonical_record(&decoded, maximum)
+}
+pub(super) fn canonical_record(decoded: &Value, maximum: usize) -> Result<Vec<u8>, String> {
     let hashes: BTreeMap<String, String> = serde_json::from_value(decoded["files"].clone())
         .map_err(|_| "Invalid canonical source inventory")?;
     let record = super::source_record(&hashes);

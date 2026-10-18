@@ -25,7 +25,7 @@ struct VerifiedNative {
 }
 impl VerifiedNative {
     fn retain(&self, destination: &Path) -> Result<(), String> {
-        write_private(destination, &self.bytes)
+        package::put(destination, &self.bytes, 0o600)
     }
 }
 fn verify_native(path: &Path) -> Result<VerifiedNative, String> {
@@ -49,6 +49,29 @@ fn verify_native(path: &Path) -> Result<VerifiedNative, String> {
         bytes,
         verification,
     })
+}
+fn verify_direct(path: &Path) -> Result<VerifiedNative, String> {
+    let (bytes, decoded, mut verification) = crate::release_pack::direct_smoke::input(path)?;
+    verification["executable_sha256"] = json!(hash(&decoded.files["bin/claude-autorouter"].bytes));
+    Ok(VerifiedNative {
+        bytes,
+        verification,
+    })
+}
+fn direct_install(input: &VerifiedNative, prefix: &Path) -> Result<(), String> {
+    let decoded = archive::decode_root(&input.bytes, crate::release::PACKAGE, archive::NATIVE)?;
+    match fs::symlink_metadata(prefix) {
+        Ok(info) if info.is_dir() && prefix.canonicalize().ok().as_deref() == Some(prefix) => {
+            fs::remove_dir_all(prefix).map_err(|_| "Cannot replace owned direct installation")?
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        _ => return Err("Direct installation path is not an owned regular directory".into()),
+    }
+    crate::release_pack::direct_smoke::install(prefix, &decoded.files)?;
+    if prefix.canonicalize().ok().as_deref() != Some(prefix) {
+        return Err("Direct installation path changed".into());
+    }
+    Ok(())
 }
 fn public_path(path: &str, patterns: &[Value]) -> bool {
     if matches!(path, "package.json" | "README.md" | "LICENSE") {
@@ -283,7 +306,7 @@ fn failed_startup(
     env: &Environment,
     config: &Path,
     history: &Path,
-    native: &VerifiedNative,
+    executable: &Path,
 ) -> Result<Value, String> {
     use std::net::{SocketAddr, TcpListener, TcpStream};
     use std::os::unix::fs::MetadataExt;
@@ -324,22 +347,6 @@ fn failed_startup(
         snapshot(history)?,
         names(history_directory)?,
     );
-    let files = archive::decode(&native.bytes, archive::NATIVE)?.files;
-    let package_root = prefix.join("lib/node_modules/claude-autorouter");
-    let host = package::lifecycle::host_target()?;
-    let musl = format!("{}-unknown-linux-musl", std::env::consts::ARCH);
-    let target = if std::env::consts::OS == "linux"
-        && matches!(std::env::consts::ARCH, "aarch64" | "x86_64")
-        && files.contains_key(&format!("native/{musl}/claude-autorouter"))
-    {
-        musl.as_str()
-    } else {
-        host
-    };
-    let executable = package_root
-        .join(format!("native/{target}/claude-autorouter"))
-        .canonicalize()
-        .map_err(io_error)?;
     let fake_bin = cwd.join("failed-startup-fake-bin");
     let observations = cwd.join("failed-startup-observations");
     for path in [&fake_bin, &observations] {
@@ -492,7 +499,7 @@ AutoRouter uses Haiku-compatible requests with client thinking disabled; Jev sel
                 )
                 || !same_json(
                     &settings,
-                    &json!({"statusLine":autorouter_runtime::status_settings::status_line_settings(&executable)}),
+                    &json!({"statusLine":autorouter_runtime::status_settings::status_line_settings(executable)}),
                 )
                 || status_mode != 0o600
                 || settings_mode != 0o600
@@ -548,9 +555,38 @@ AutoRouter uses Haiku-compatible requests with client thinking disabled; Jev sel
     )
 }
 fn execute(root: &Path, native: &Path, output: &Path) -> Result<Value, String> {
+    execute_with(root, native, output, None)
+}
+fn execute_with(
+    root: &Path,
+    native: &Path,
+    output: &Path,
+    direct_baseline: Option<&Path>,
+) -> Result<Value, String> {
     // Keep the admitted archive bytes, rather than reopening a path that may
     // change while the frozen baseline is prepared.
-    let native = verify_native(native)?;
+    let direct = direct_baseline.map(verify_direct).transpose()?;
+    let native = if direct.is_some() {
+        verify_direct(native)?
+    } else {
+        verify_native(native)?
+    };
+    if let Some(base) = &direct {
+        if base.verification["sha256"] == native.verification["sha256"]
+            || base.verification["executable_sha256"] == native.verification["executable_sha256"]
+        {
+            return Err("Direct rehearsal requires distinct archives and executables".into());
+        }
+        if base.verification["target"] != native.verification["target"]
+            || !package::lifecycle::host_can_run(
+                native.verification["target"]
+                    .as_str()
+                    .ok_or("Missing direct target")?,
+            )?
+        {
+            return Err("Direct rehearsal targets must match this host".into());
+        }
+    }
     if output.exists() {
         return Err("Rehearsal destination already exists; choose a fresh path".into());
     }
@@ -558,12 +594,53 @@ fn execute(root: &Path, native: &Path, output: &Path) -> Result<Value, String> {
         .map_err(|_| "Cannot create rehearsal parent")?;
     fs::create_dir(output).map_err(|_| "Cannot create rehearsal destination")?;
     let scratch = Scratch::new("upgrade-rollback")?;
-    let mut npm_env = crate::release_install::npm_environment(&scratch.0.join("npm"))
-        .map_err(|_| "Cannot create isolated npm environment")?;
+    let mut npm_env = if direct.is_some() {
+        fs::set_permissions(output, fs::Permissions::from_mode(0o700))
+            .map_err(|_| "Cannot protect direct rehearsal output")?;
+        Environment::from([("PATH".into(), "".into())])
+    } else {
+        crate::release_install::npm_environment(&scratch.0.join("npm"))
+            .map_err(|_| "Cannot create isolated npm environment")?
+    };
     npm_env.insert("HOME".into(), scratch.0.clone().into_os_string());
-    let (baseline, commit) = baseline_archive(root, &scratch.0, output, &npm_env)?;
-    let candidate = output.join("candidate.tgz");
-    native.retain(&candidate)?;
+    let retain = |role: &str, input: &VerifiedNative| -> Result<PathBuf, String> {
+        let directory = output.join(role);
+        fs::create_dir(&directory).map_err(|_| "Cannot retain direct archive directory")?;
+        let path = directory.join(
+            input.verification["filename"]
+                .as_str()
+                .ok_or("Missing direct filename")?,
+        );
+        input.retain(&path)?;
+        write_private(
+            &path.with_extension("gz.sha256"),
+            format!(
+                "{}  {}\n",
+                hash(&input.bytes),
+                path.file_name().unwrap().to_str().unwrap()
+            )
+            .as_bytes(),
+        )?;
+        Ok(path)
+    };
+    let (baseline, commit) = if let Some(base) = &direct {
+        (
+            retain("baseline-direct", base)?,
+            base.verification["source"]["commit"]
+                .as_str()
+                .ok_or("Missing baseline source")?
+                .to_owned(),
+        )
+    } else {
+        baseline_archive(root, &scratch.0, output, &npm_env)?
+    };
+    let candidate = if direct.is_some() {
+        retain("candidate-direct", &native)?
+    } else {
+        let candidate = output.join("candidate.tgz");
+        native.retain(&candidate)?;
+        candidate
+    };
     let prefix = scratch.0.join("install prefix ' $ with spaces");
     let (config, history, history_before) = fixture(&scratch.0)?;
     let mut env = Environment::new();
@@ -581,7 +658,20 @@ fn execute(root: &Path, native: &Path, output: &Path) -> Result<Value, String> {
     ] {
         env.insert(key.into(), value);
     }
-    let replace = |archive, policy| install(archive, &prefix, &scratch.0, &npm_env, policy);
+    let replace = |archive: &Path, policy| {
+        if let Some(base) = &direct {
+            let input = if archive == baseline.as_path() {
+                base
+            } else if archive == candidate.as_path() {
+                &native
+            } else {
+                return Err("Unknown admitted direct stage".into());
+            };
+            direct_install(input, &prefix)
+        } else {
+            install(archive, &prefix, &scratch.0, &npm_env, policy)
+        }
+    };
     replace(&baseline, archive::HISTORICAL)?;
     let read = |env| inspect(&prefix, &scratch.0, env);
     let set_port = |env, port| {
@@ -606,8 +696,37 @@ fn execute(root: &Path, native: &Path, output: &Path) -> Result<Value, String> {
     if config_bytes()? != config_before {
         return Err("Native read-only upgrade changed saved configuration".into());
     }
-    let startup_failure =
-        failed_startup(&prefix, &scratch.0, &native_env, &config, &history, &native)?;
+    let executable = if direct.is_some() {
+        prefix
+            .join("bin/claude-autorouter")
+            .canonicalize()
+            .map_err(|_| "Cannot resolve direct command")?
+    } else {
+        let files = archive::decode(&native.bytes, archive::NATIVE)?.files;
+        let package_root = prefix.join("lib/node_modules/claude-autorouter");
+        let host = package::lifecycle::host_target()?;
+        let musl = format!("{}-unknown-linux-musl", std::env::consts::ARCH);
+        let target = if std::env::consts::OS == "linux"
+            && matches!(std::env::consts::ARCH, "aarch64" | "x86_64")
+            && files.contains_key(&format!("native/{musl}/claude-autorouter"))
+        {
+            musl.as_str()
+        } else {
+            host
+        };
+        package_root
+            .join(format!("native/{target}/claude-autorouter"))
+            .canonicalize()
+            .map_err(|error| format!("Recovery I/O: {:?}", error.kind()))?
+    };
+    let startup_failure = failed_startup(
+        &prefix,
+        &scratch.0,
+        &native_env,
+        &config,
+        &history,
+        &executable,
+    )?;
     if !same_json(&read(&native_env)?, &original) {
         return Err("Native inspection did not recover after failed startup".into());
     }
@@ -658,16 +777,33 @@ fn execute(root: &Path, native: &Path, output: &Path) -> Result<Value, String> {
     }
     let mut report = json!({"schema_version":1,"kind":"offline_upgrade_rollback_rehearsal","passed":true,"baseline_commit":commit,"baseline_archive_sha256":baseline_hash,"native_archive_sha256":hash(&native.bytes),"native_verification":native.verification,"platform":{"os":std::env::consts::OS,"arch":std::env::consts::ARCH},"stages":["baseline","native","rollback","native_after_rollback"],"verified":["exact_installed_archive_bytes","npm_command_symlink","offline_ignore_scripts","native_without_node_on_path","same_config_path_without_migration","existing_file_credentials_retained","private_atomic_edit","history_schema_1_and_2","recorded_pricing","history_bytes_unchanged","isolated_cleanup"],"limits":["local_host_only","synthetic_file_credentials_only","no_real_keychain_or_provider","no_publication_or_cutover_approval"]});
     report["failed_startup"] = startup_failure;
+    if let Some(base) = direct {
+        report["kind"] = json!("offline_direct_upgrade_rollback_rehearsal");
+        report["distribution"] = json!("direct");
+        report["baseline_verification"] = base.verification;
+        report["same_canonical_install_path"] = json!(prefix);
+        report["verified"][1] = json!("exact_installed_full_file_modes");
+        report["verified"][2] = json!("direct_regular_command");
+        report["limits"].as_array_mut().unwrap().push(json!(
+            "physical_artifact_rollback_not_semver_or_published_release_qualification"
+        ));
+        report["limits"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!("stage_admission_without_concurrent_owner_coverage"));
+    }
     Ok(report)
 }
 pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
     if args == ["--help"] {
         println!(
-            "Usage: cargo xtask upgrade-rollback --native ARCHIVE --output FRESH_DIRECTORY\nOffline same-prefix npm baseline/native/rollback rehearsal with synthetic settings/history. No user configuration, Keychain or provider access."
+            "Usage: cargo xtask upgrade-rollback --native ARCHIVE --output FRESH_DIRECTORY\nOffline same-prefix npm baseline/native/rollback rehearsal with synthetic settings/history. No user configuration, Keychain or provider access.\nDirect mode: --direct CANDIDATE --direct-baseline BASELINE --output FRESH_DIRECTORY. Two distinct native direct artifacts; physical rollback only, no release or platform approval."
         );
         return Ok(true);
     }
     let mut native = None;
+    let mut direct = None;
+    let mut baseline_direct = None;
     let mut output = None;
     let mut seen = BTreeSet::new();
     let mut args = args.iter();
@@ -678,13 +814,24 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
         let value = args.next().ok_or("Missing rehearsal option value")?;
         match flag.as_str() {
             "--native" => native = Some(root.join(value)),
+            "--direct" => direct = Some(root.join(value)),
+            "--direct-baseline" => baseline_direct = Some(root.join(value)),
             "--output" => output = Some(root.join(value)),
             _ => return Err("Unknown rehearsal option".into()),
         }
     }
-    let native = native.ok_or("--native is required")?;
+    let (native, baseline) = match (native, direct, baseline_direct) {
+        (Some(native), None, None) => (native, None),
+        (None, None, None) => return Err("--native is required".into()),
+        (None, Some(candidate), Some(baseline)) => (candidate, Some(baseline)),
+        _ => return Err("Choose --native, or both --direct and --direct-baseline".into()),
+    };
     let output = output.ok_or("--output is required")?;
-    let report = execute(root, &native, &output)?;
+    let report = if let Some(baseline) = baseline {
+        execute_with(root, &native, &output, Some(&baseline))?
+    } else {
+        execute(root, &native, &output)?
+    };
     write_private(
         &output.join("report.json"),
         &(serde_json::to_string_pretty(&report).map_err(|_| "Cannot encode rehearsal report")?
@@ -702,50 +849,12 @@ mod tests {
     // A header-inspection fixture only: it is never executed and carries no
     // source-build, license, platform or release qualification.
     fn native_fixture(marker: &str) -> Vec<u8> {
-        let target = "aarch64-apple-darwin";
-        let mut executable = vec![0u8; 32];
-        executable[..4].copy_from_slice(&[0xcf, 0xfa, 0xed, 0xfe]);
-        executable[4..8].copy_from_slice(&0x0100000cu32.to_le_bytes());
-        executable[12..16].copy_from_slice(&2u32.to_le_bytes());
-        let native = format!("native/{target}/claude-autorouter");
-        let mut files = BTreeMap::new();
-        for path in [
-            "README.md",
-            "LICENSE",
-            "THIRD-PARTY-LICENSES.txt",
-            "platforms.json",
-        ] {
-            files.insert(
-                path.to_owned(),
-                archive::Entry {
-                    bytes: format!("Synthetic unqualified fixture: {marker}").into_bytes(),
-                    mode: 0o644,
-                },
-            );
-        }
-        files.insert(
-            "package.json".into(),
-            archive::Entry {
-                bytes: serde_json::to_vec(&json!({"name":"claude-autorouter","version":"0.5.2","private":true,"bin":{"claude-autorouter":"bin/autorouter"}})).unwrap(),
-                mode: 0o644,
-            },
+        let (mut files, mut build) = package::native_fixture_materials(
+            format!("Synthetic unqualified fixture: {marker}").as_bytes(),
+            "unverified_prebuilt",
         );
-        files.insert(
-            "bin/autorouter".into(),
-            archive::Entry {
-                bytes: include_bytes!("../../distribution/autorouter.sh").to_vec(),
-                mode: 0o755,
-            },
-        );
-        files.insert(
-            native.clone(),
-            archive::Entry {
-                bytes: executable.clone(),
-                mode: 0o755,
-            },
-        );
-        let declarations = files.iter().map(|(path,entry)|json!({"path":path,"sha256":hash(&entry.bytes),"bytes":entry.bytes.len(),"mode":entry.mode})).collect::<Vec<_>>();
-        let build = json!({"schema_version":1,"kind":"native_npm_feasibility","release_approved":false,"version":"0.5.2","source":{"commit":"a".repeat(40),"dirty":true,"cargo_lock_sha256":"b".repeat(64),"provenance":"unverified_prebuilt"},"files":declarations,"artifacts":[{"target":target,"path":native,"sha256":hash(&executable),"bytes":executable.len(),"inspection":package::binary::inspect(target,&executable).unwrap()}],"dependencies":[],"license_files_missing":[],"license_review":"pending","platform_qualification":"pending"});
+        build["license_review"] = json!("pending");
+        build["platform_qualification"] = json!("pending");
         files.insert(
             "build-manifest.json".into(),
             archive::Entry {
@@ -754,6 +863,185 @@ mod tests {
             },
         );
         archive::encode_root("package", &files, archive::NATIVE).unwrap()
+    }
+
+    fn direct_fixture(directory: &Path, marker: &str) -> PathBuf {
+        fs::create_dir(directory).unwrap();
+        let input = directory.join("claude-autorouter-0.5.2.tgz");
+        let bytes = native_fixture(marker);
+        write_private(&input, &bytes).unwrap();
+        write_private(
+            &input.with_extension("tgz.sha256"),
+            format!("{}  claude-autorouter-0.5.2.tgz\n", hash(&bytes)).as_bytes(),
+        )
+        .unwrap();
+        let output = directory.join("direct");
+        package::direct::run(
+            &[
+                "package".into(),
+                "--direct-from".into(),
+                input.to_str().unwrap().into(),
+                "--target".into(),
+                "aarch64-apple-darwin".into(),
+                "--output".into(),
+                output.to_str().unwrap().into(),
+            ],
+            directory,
+        )
+        .unwrap();
+        output.join("claude-autorouter-0.5.2-aarch64-apple-darwin.tar.gz")
+    }
+
+    #[test]
+    fn direct_admission_retention_and_installed_mutations_precede_execution() {
+        for replace in [false, true] {
+            let scratch = Scratch::new("direct-recovery-input").unwrap();
+            let source = direct_fixture(&scratch.0.join("source"), "admitted");
+            let admitted = verify_direct(&source).unwrap();
+            let decoded =
+                archive::decode_root(&admitted.bytes, crate::release::PACKAGE, archive::NATIVE)
+                    .unwrap();
+            fs::remove_file(&source).unwrap();
+            if replace {
+                write_private(&source, b"replacement after admission").unwrap();
+            }
+            let retained = scratch.0.join("retained.tar.gz");
+            admitted.retain(&retained).unwrap();
+            assert_eq!(fs::read(&retained).unwrap(), admitted.bytes);
+            assert_eq!(
+                fs::metadata(&retained).unwrap().permissions().mode() & 0o7777,
+                0o600
+            );
+            assert!(admitted.retain(&retained).is_err());
+            assert_eq!(fs::read(&retained).unwrap(), admitted.bytes);
+            let prefix = scratch.0.join("same direct install ' $");
+            for mutation in [
+                "payload",
+                "mode",
+                "special",
+                "extra",
+                "link",
+                "missing",
+                "command_link",
+            ] {
+                direct_install(&admitted, &prefix).unwrap();
+                let executable = prefix.join("bin/claude-autorouter");
+                assert_eq!(executable.canonicalize().unwrap(), executable);
+                assert_eq!(
+                    fs::read(&executable).unwrap(),
+                    decoded.files["bin/claude-autorouter"].bytes
+                );
+                assert!(crate::release_pack::direct_smoke::check(&prefix, &decoded.files).is_ok());
+                let readme = prefix.join("README.md");
+                match mutation {
+                    "payload" => fs::write(&executable, b"different bytes").unwrap(),
+                    "mode" | "special" => fs::set_permissions(
+                        &executable,
+                        fs::Permissions::from_mode(if mutation == "mode" { 0o600 } else { 0o4755 }),
+                    )
+                    .unwrap(),
+                    "extra" => fs::write(prefix.join("extra"), b"undeclared").unwrap(),
+                    "missing" => fs::remove_file(&readme).unwrap(),
+                    "link" => {
+                        fs::remove_file(&readme).unwrap();
+                        std::os::unix::fs::symlink(&executable, &readme).unwrap();
+                    }
+                    _ => {
+                        fs::remove_file(&executable).unwrap();
+                        std::os::unix::fs::symlink(&retained, &executable).unwrap();
+                    }
+                }
+                assert!(
+                    crate::release_pack::direct_smoke::check(&prefix, &decoded.files).is_err(),
+                    "{mutation}"
+                );
+            }
+            let temporary = scratch.0.clone();
+            drop(scratch);
+            assert!(!temporary.exists());
+        }
+    }
+
+    #[test]
+    fn direct_pair_and_bad_inputs_fail_before_output_or_execution() {
+        let scratch = Scratch::new("direct-recovery-invalid").unwrap();
+        let choice = "Choose --native, or both --direct and --direct-baseline";
+        for (args, expected) in [
+            (vec![], "--native is required"),
+            (vec!["--output", "absent-output"], "--native is required"),
+            (vec!["--native", "absent-archive"], "--output is required"),
+            (
+                vec![
+                    "--direct",
+                    "absent-candidate",
+                    "--direct-baseline",
+                    "absent-baseline",
+                ],
+                "--output is required",
+            ),
+            (
+                vec!["--native", "absent-archive", "--direct", "absent-candidate"],
+                choice,
+            ),
+            (vec!["--direct", "absent-candidate"], choice),
+            (vec!["--direct-baseline", "absent-baseline"], choice),
+        ] {
+            assert_eq!(
+                run(
+                    &args.into_iter().map(str::to_owned).collect::<Vec<_>>(),
+                    &scratch.0
+                )
+                .unwrap_err(),
+                expected
+            );
+            assert_eq!(fs::read_dir(&scratch.0).unwrap().count(), 0);
+        }
+        let baseline = direct_fixture(&scratch.0.join("baseline"), "baseline");
+        let candidate = direct_fixture(
+            &scratch.0.join("candidate"),
+            "different public docs, same header executable",
+        );
+        let output = scratch.0.join("not-created-parent/report");
+        for input in [&baseline, &candidate] {
+            assert_eq!(
+                execute_with(&scratch.0, input, &output, Some(&baseline)).unwrap_err(),
+                "Direct rehearsal requires distinct archives and executables"
+            );
+            assert!(!output.parent().unwrap().exists());
+        }
+        for kind in ["missing", "malformed", "oversized", "symlink", "sidecar"] {
+            let directory = scratch.0.join(kind);
+            fs::create_dir(&directory).unwrap();
+            let input = directory.join(baseline.file_name().unwrap());
+            match kind {
+                "malformed" => write_private(&input, b"not an archive").unwrap(),
+                "oversized" => {
+                    write_private(&input, b"").unwrap();
+                    fs::OpenOptions::new()
+                        .write(true)
+                        .open(&input)
+                        .unwrap()
+                        .set_len(archive::MAX_COMPRESSED as u64 + 1)
+                        .unwrap();
+                }
+                "symlink" => std::os::unix::fs::symlink(&baseline, &input).unwrap(),
+                "sidecar" => write_private(&input, &fs::read(&baseline).unwrap()).unwrap(),
+                _ => {}
+            }
+            let sidecar = if kind == "malformed" {
+                format!(
+                    "{}  {}\n",
+                    hash(b"not an archive"),
+                    input.file_name().unwrap().to_str().unwrap()
+                )
+                .into_bytes()
+            } else {
+                b"wrong checksum".to_vec()
+            };
+            write_private(&input.with_extension("gz.sha256"), &sidecar).unwrap();
+            assert!(execute_with(&scratch.0, &input, &output, Some(&baseline)).is_err());
+            assert!(!output.parent().unwrap().exists());
+        }
     }
 
     #[test]

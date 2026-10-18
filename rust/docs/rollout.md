@@ -54,3 +54,24 @@ Use the native release check and verifier described in [release tooling](../dist
 A prerelease or cutover additionally needs reviewed parity, representative hardware measurements, explicitly invoked live canaries with recorded Claude/model versions, and the documented installation/rollback matrix. Keep the frozen oracle for the stabilization period specified by that release decision. Removing the JavaScript runtime or tools, changing required checks, versioning, tagging, or publishing belongs to that separately authorized cutover work.
 
 For an actual rollback, finish active native launches, install the retained exact previous artifact, and check `--version`, redacted configuration output, and historical session output before launching Claude again. Restore an intentional configuration edit from its separately retained backup only when needed; reinstalling the executable does not require deleting credentials or session logs. The [library integration guide](embedding.md) covers the separate ESM embedding migration.
+
+## Explicit direct-artifact recovery rehearsal
+
+`cargo xtask upgrade-rollback --direct CANDIDATE_DIRECT_ARCHIVE --direct-baseline PREVIOUS_DIRECT_ARCHIVE --output FRESH_DIRECTORY`
+adds an offline direct-to-direct rehearsal. Both archives and sidecars must verify,
+target the current host and contain different executable bytes. It installs only
+inside one private scratch path and checks the complete payload tree, bytes and
+full file modes after each replacement, before that stage's first command.
+Later commands rely on the private installation having no concurrent owner.
+The rehearsal exercises the two synthetic failed-startup schedules, then rolls
+back and re-upgrades while retaining the same synthetic configuration and history. Direct mode does not invoke npm, Node or Git; full installed lifecycle
+smoke remains a separate check. The distinct direct report is not automatically
+admitted by existing npm CI consumers.
+
+The retained archives can have the same private package version: this rehearses
+physical artifact rollback, not published-version downgrade. It does not qualify
+partial storage writes, concurrent ownership, real Keychain/provider behavior,
+other platforms, release provenance or cutover. Retained archives and failure
+reports stay in the new output directory; owned temporary installations are
+removed by the existing scratch cleanup policy, without a process-tree or crash
+guarantee. No user installation or saved user configuration is edited.

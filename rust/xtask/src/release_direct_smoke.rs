@@ -13,7 +13,7 @@ use std::path::{Component, Path};
 use std::process::Command;
 use std::time::Duration;
 
-pub fn run(path: &Path, root: &Path) -> Result<Value, String> {
+pub(crate) fn input(path: &Path) -> Result<(Vec<u8>, archive::DecodedArchive, Value), String> {
     let bytes = release::regular(path, archive::MAX_COMPRESSED as u64)?;
     let name = path
         .file_name()
@@ -37,6 +37,11 @@ pub fn run(path: &Path, root: &Path) -> Result<Value, String> {
     } else {
         direct::verify_decoded(name, &bytes, &decoded)?
     };
+    Ok((bytes, decoded, verified))
+}
+
+pub fn run(path: &Path, root: &Path) -> Result<Value, String> {
+    let (_bytes, decoded, verified) = input(path)?;
     smoke_with(
         &verified,
         &decoded.files,
@@ -45,7 +50,7 @@ pub fn run(path: &Path, root: &Path) -> Result<Value, String> {
     )
 }
 
-fn install(root: &Path, files: &BTreeMap<String, archive::Entry>) -> Result<(), String> {
+pub(crate) fn install(root: &Path, files: &BTreeMap<String, archive::Entry>) -> Result<(), String> {
     fs::create_dir(root).map_err(|_| "Cannot create isolated direct installation")?;
     for (name, entry) in files {
         if name.is_empty()
@@ -69,6 +74,10 @@ fn install(root: &Path, files: &BTreeMap<String, archive::Entry>) -> Result<(), 
         file.write_all(&entry.bytes)
             .map_err(|_| "Cannot write direct installation file")?;
     }
+    check(root, files)
+}
+
+pub(crate) fn check(root: &Path, files: &BTreeMap<String, archive::Entry>) -> Result<(), String> {
     // Compare the filesystem against the validated archive before executing any
     // installed bytes. The bounded reader independently rejects links/extras.
     crate::release_install::compare_installed(root, files)

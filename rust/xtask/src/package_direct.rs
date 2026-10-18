@@ -217,39 +217,10 @@ mod tests {
     use crate::tool_process::Scratch;
 
     fn npm_fixture() -> Vec<u8> {
-        let target = "aarch64-apple-darwin";
-        let mut executable = vec![0u8; 32];
-        executable[..4].copy_from_slice(&[0xcf, 0xfa, 0xed, 0xfe]);
-        executable[4..8].copy_from_slice(&0x0100000cu32.to_le_bytes());
-        executable[12..16].copy_from_slice(&2u32.to_le_bytes());
-        let native = format!("native/{target}/claude-autorouter");
-        let mut files = BTreeMap::new();
-        for path in PUBLIC {
-            files.insert(
-                (*path).into(),
-                archive::Entry {
-                    bytes: b"Synthetic fixture, no qualification claim".to_vec(),
-                    mode: 0o644,
-                },
-            );
-        }
-        files.insert("package.json".into(),archive::Entry{bytes:serde_json::to_vec(&json!({"name":"claude-autorouter","version":"0.5.2","private":true,"bin":{"claude-autorouter":"bin/autorouter"}})).unwrap(),mode:0o644});
-        files.insert(
-            "bin/autorouter".into(),
-            archive::Entry {
-                bytes: super::super::DISPATCHER.as_bytes().to_vec(),
-                mode: 0o755,
-            },
+        let (mut files, manifest) = super::super::native_fixture_materials(
+            b"Synthetic fixture, no qualification claim",
+            "synthetic unverified source fixture",
         );
-        files.insert(
-            native.clone(),
-            archive::Entry {
-                bytes: executable.clone(),
-                mode: 0o755,
-            },
-        );
-        let declarations=files.iter().map(|(path,entry)|json!({"path":path,"sha256":sha(&entry.bytes),"bytes":entry.bytes.len(),"mode":entry.mode})).collect::<Vec<_>>();
-        let manifest = json!({"schema_version":1,"kind":"native_npm_feasibility","release_approved":false,"version":"0.5.2","source":{"commit":"a".repeat(40),"dirty":true,"cargo_lock_sha256":"b".repeat(64),"provenance":"synthetic unverified source fixture"},"files":declarations,"artifacts":[{"target":target,"path":native,"sha256":sha(&executable),"bytes":executable.len(),"inspection":binary::inspect(target,&executable).unwrap()}],"dependencies":[],"license_files_missing":[]});
         files.insert(
             MANIFEST.into(),
             archive::Entry {

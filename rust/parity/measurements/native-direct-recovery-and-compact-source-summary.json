@@ -1,0 +1,397 @@
+{
+  "schema_version": 1,
+  "kind": "native_direct_recovery_and_compact_source_summary",
+  "reviewed_at_utc": "2026-10-18T17:30:35.370842+00:00",
+  "release_approved": false,
+  "direct_recovery": {
+    "source_frame": {
+      "path": "artifacts/rust-rewrite/direct-installed-recovery-validation-20261018-1/source-after-direct.json",
+      "bytes": 119202,
+      "sha256": "b1ab6e6b901fca602b877f05caa4c9ff7d4291ca65e853adcfef1c76cb0039a3"
+    },
+    "source_inputs": 706,
+    "helper": {
+      "path": "artifacts/rust-rewrite/direct-installed-recovery-validation-20261018-1/fresh-helper/xtask",
+      "bytes": 17680432,
+      "sha256": "8e13840df66eb97ce09ecb84b7a8e791ebacd9c0d9f8d0044de7f47afdf69d6b"
+    },
+    "pair": [
+      {
+        "path": "artifacts/rust-rewrite/5ad9a76-host-archives-20261015-1/direct/claude-autorouter-0.5.2-aarch64-apple-darwin.tar.gz",
+        "bytes": 5845078,
+        "sha256": "b9dd8d60ff986e47055af5ec1552f6851eb90ee55e624962994195a61729eaa3"
+      },
+      {
+        "path": "artifacts/rust-rewrite/exact-artifact-installed-lifecycle-validation-20261018-1/direct-from-exact-npm/claude-autorouter-0.5.2-aarch64-apple-darwin.tar.gz",
+        "bytes": 5925955,
+        "sha256": "d3ced54c1ac655552d7c74ab318d61d6ae2536f865991fa91c37f9cf8389effa"
+      }
+    ],
+    "actual_trials": [
+      {
+        "owner": {
+          "path": "artifacts/rust-rewrite/direct-installed-recovery-validation-20261018-1/direct-operational-1.json",
+          "bytes": 1729,
+          "sha256": "388a27e685b2908a5e34bd1f0c676f27e3982277291e896eb0d24752821c19ca",
+          "exit_code": 0
+        },
+        "report": {
+          "path": "artifacts/rust-rewrite/direct-installed-recovery-validation-20261018-1/direct-rehearsal-1/report.json",
+          "bytes": 7164,
+          "sha256": "590e9c781cf401067f3f82303dab1bfeedd5dfdbd0cf53d84111d11e521ae8e5"
+        },
+        "stage_names": [
+          "baseline",
+          "native",
+          "rollback",
+          "native_after_rollback"
+        ],
+        "failed_startup_exit_codes": [
+          23,
+          1
+        ]
+      },
+      {
+        "owner": {
+          "path": "artifacts/rust-rewrite/direct-installed-recovery-validation-20261018-1/direct-operational-2.json",
+          "bytes": 1731,
+          "sha256": "325548ca26db1eae7165c7d1c443cbf82f5336e9b73b2ebb3f71f8549e68cd84",
+          "exit_code": 0
+        },
+        "report": {
+          "path": "artifacts/rust-rewrite/direct-installed-recovery-validation-20261018-1/direct-rehearsal-2/report.json",
+          "bytes": 7164,
+          "sha256": "7ac0f37293fdeb560ad167910321f479a9d8eca7bf55e32fafe8ab9df77417f9"
+        },
+        "stage_names": [
+          "baseline",
+          "native",
+          "rollback",
+          "native_after_rollback"
+        ],
+        "failed_startup_exit_codes": [
+          23,
+          1
+        ]
+      },
+      {
+        "owner": {
+          "path": "artifacts/rust-rewrite/direct-installed-recovery-validation-20261018-1/direct-operational-3.json",
+          "bytes": 1731,
+          "sha256": "c33e3ef4cf379c61225ebf15a4c62c2963dab3933fbd7e29df6b93876bc8f13d",
+          "exit_code": 0
+        },
+        "report": {
+          "path": "artifacts/rust-rewrite/direct-installed-recovery-validation-20261018-1/direct-rehearsal-3/report.json",
+          "bytes": 7164,
+          "sha256": "a691dd8f30038f7d4edc75ebab2fc9ac0817eadcad0d674253faebc013ac792c"
+        },
+        "stage_names": [
+          "baseline",
+          "native",
+          "rollback",
+          "native_after_rollback"
+        ],
+        "failed_startup_exit_codes": [
+          23,
+          1
+        ]
+      }
+    ],
+    "legacy_npm_regression": {
+      "path": "artifacts/rust-rewrite/direct-installed-recovery-validation-20261018-1/npm-operational-with-node-1.json",
+      "bytes": 1818,
+      "sha256": "69d78916e8147758c62aa42baa2de8e55b6eba014e2abbe7ca8c0b3ae3a0e445",
+      "exit_code": 0
+    },
+    "legacy_npm_report": {
+      "path": "artifacts/rust-rewrite/direct-installed-recovery-validation-20261018-1/npm-rehearsal-with-node-1/report.json",
+      "bytes": 5978,
+      "sha256": "88526297ad39fd889392b8b9cccaecec8ae85fd34079dc6e7b88d8d6b1693a30"
+    },
+    "unit_tests": {
+      "upgrade": 6,
+      "package": 45,
+      "exact_fixture_byte_comparisons": 6,
+      "old_source_tar_boundary_test": 1
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/direct-installed-recovery-validation-20261018-1/independent-direct-v4-adoption-and-actual-review.json",
+      "bytes": 12515,
+      "sha256": "d9006d8847aa0fc48be12c0dc2174bc53c16af15f630ec8b915e96d0f06b913b"
+    },
+    "scope": "Three normal-use Mac ARM trials of the same two retained private 0.5.2 direct artifacts: same canonical installation path, configuration/history inspection and edit, two failed startups, rollback and re-upgrade. Each stage checks full installed bytes and modes before its first execution. Later commands do not establish concurrent-owner protection. These operational trials predate the separate compact-source module; their five implementation files remain unchanged. The old npm route also passes with its required pinned Node/npm environment.",
+    "not_qualified": [
+      "published or semantic-version downgrade",
+      "source-to-binary reproducibility",
+      "concurrent owners or partial writes",
+      "abrupt crash or full process-tree cleanup",
+      "other platforms or live providers"
+    ]
+  },
+  "compact_source": {
+    "source_snapshot": {
+      "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/source-after-map-type.json",
+      "bytes": 119152,
+      "sha256": "3513d26ad6b2101341700502178400b3228683b35607959b896d95ad3b804f0a"
+    },
+    "raw_inputs": 707,
+    "raw_bytes": 32946343,
+    "raw_paths_from_preceding706_retained": true,
+    "members": 709,
+    "archive": {
+      "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/source.cpio.gz",
+      "bytes": 3069382,
+      "sha256": "d6c3d4f2815c988ebbb2ddf6ce8322a5e4808a250a74bd5a36853a1f265673a2"
+    },
+    "sidecar": {
+      "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/source.cpio.gz.sha256",
+      "bytes": 81,
+      "sha256": "b75063d703ead1979486f23434e099ac3fa54cac38c626ead9448671d7dad7d8"
+    },
+    "format": "gzip-binary-cpio-be",
+    "manifest_schema_version": 2,
+    "container_schema_version": 1,
+    "expanded_carrier_bytes": 33102336,
+    "logical_file_bytes": 33034538,
+    "carrier_headroom_bytes": 452096,
+    "each_compressed_carrier_logical_limit": 33554432,
+    "generated_originals": {
+      "README.native.md": {
+        "bytes": 1355,
+        "sha256": "e999fb29e323d8060f90be436259ef23e52416d1ed6bf2dcb1f55cb7cee8f3dc"
+      },
+      "source-manifest.json": {
+        "bytes": 86840,
+        "sha256": "2be8694cf62820a65145dca5ad335bf098bb343dffc74ef57125f8771af77d44"
+      }
+    },
+    "corpora_files": 89,
+    "vendor_files": 263,
+    "frozen_reference_files_unchanged": 111,
+    "actual_create_inspect_extract": [
+      {
+        "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/source-export.json",
+        "bytes": 1317,
+        "sha256": "06997de50c56c9940e3f058127ae5356accfba82200cb9f53cd7fe31e01e39ad",
+        "exit_code": 0
+      },
+      {
+        "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/source-inspect.json",
+        "bytes": 1362,
+        "sha256": "51e7aceac72851d25007905553731afe8d5fbda6a553ecb463e919013ca67473",
+        "exit_code": 0
+      },
+      {
+        "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/source-extract.json",
+        "bytes": 1492,
+        "sha256": "5b99299dc3330328c16755f6e40bb5c7de271fb4f060c83ba0361f0ea4783a37",
+        "exit_code": 0
+      }
+    ],
+    "independent_data_inspection": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/independent-source-data.json",
+        "bytes": 1191,
+        "sha256": "f818807df66673877570c50132661d4dc2c20bb00ce71bd04525953ad6c696e1",
+        "exit_code": 0
+      },
+      "output": {
+        "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/independent-source-data.stdout",
+        "bytes": 278748,
+        "sha256": "2ba79cfa22068a03c608b88445d79575ae8c0b72e9b3aef0e89cf9050a143be5"
+      },
+      "archive_and_restored_inventories": 709,
+      "raw_checkout_pins_before_and_after": 707,
+      "all_restored_file_modes": 420,
+      "all_restored_file_nlinks": 1,
+      "private_directory_mode": 448
+    },
+    "system_tar_listing": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/system-tar-list.json",
+        "bytes": 1148,
+        "sha256": "1dc18e2b8f48dbf4785a9aac287713071a7d9953074c5da93d373b2cbd51a7f4",
+        "exit_code": 0
+      },
+      "exact_ordered_members": 709,
+      "scope": "This macOS system libarchive tar lists the exact complete carrier. GNU/Linux tool availability is not measured."
+    },
+    "legacy_current_export": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/legacy-current-refusal.json",
+        "bytes": 1369,
+        "sha256": "4351fdcfa3a61beeb5484bcbf101c68bb8290234823ccb034be14256924231ae",
+        "exit_code": 1
+      },
+      "error": "Expanded archive exceeds 32 MiB",
+      "archive_or_sidecar_created": false,
+      "scope": "Explicit legacy producer and bounds retained; small complete legacy codec controls pass. No full-current-tree USTAR fit is claimed."
+    },
+    "API_decision": "Accept the explicit experimental native source-only CPIO producer, .cpio.gz default, carrier-byte report and bounded format-selected inspect/extract interface. Original generated README and ordered schema2 JSON remain exact; all current raw members remain. Existing tar readers, package/native/direct formats and combined source-executable accounting remain unchanged. This is a supporting contributor API migration, not a shipping JavaScript or joint-budget change."
+  },
+  "current_checks": {
+    "source_snapshot_sha256": "3513d26ad6b2101341700502178400b3228683b35607959b896d95ad3b804f0a",
+    "fmt": {
+      "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/fmt.json",
+      "bytes": 1078,
+      "sha256": "58672756e90f0cec8e4a6635a74c540d2aba7d61053e0b930cb96665df20b70f",
+      "exit_code": 0
+    },
+    "strict_clippy": {
+      "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/clippy.json",
+      "bytes": 1167,
+      "sha256": "3b9f92025440362c29b6df7cf8d6ce428b47ef605e24038c090597d274eea0ad",
+      "exit_code": 0
+    },
+    "workspace": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/workspace.json",
+        "bytes": 1141,
+        "sha256": "a65a11447bf550e7ac63428de9e5a7fcd8f4688412b9d408fec78ee56e477139",
+        "exit_code": 101
+      },
+      "passed": 1538,
+      "failed": 1,
+      "ignored": 11,
+      "groups": 66,
+      "all_prior_named_status_occurrences_preserved": true,
+      "added_passes": 6,
+      "sole_failure": "bundle::transfer::tests::transfer_has_only_verified_sources_a_shared_budget_and_create_only_evidence; Complete logical transfer exceeds 32 MiB"
+    },
+    "compact_focused": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/compact-focused-tests-typed.json",
+        "bytes": 1230,
+        "sha256": "c082bb9ff9cc72d198298e36b4da4706d5010e5ed17596d03b5686af58b4d328",
+        "exit_code": 0
+      },
+      "passed": 4
+    },
+    "required_same_artifact_integration": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/combined-bundle.json",
+        "bytes": 1290,
+        "sha256": "9158db2a4b41d015ec217c731503ada60ee74bc3e4d652f92db1931af6ae6b5e",
+        "exit_code": 0
+      },
+      "passed": 3
+    },
+    "ordinary_cli": {
+      "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/ordinary-cli.json",
+      "bytes": 1183,
+      "sha256": "02e955fb65cd76eb45153d9b3da72ce7c6e7664d513176554b31c8a640801863",
+      "exit_code": 0
+    },
+    "helper": {
+      "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/fresh-helper.json",
+      "bytes": 1196,
+      "sha256": "98fd0a7470c092c4759f1ff69f7c77fcc01325567f7792d30968edfcd4483e66",
+      "exit_code": 0
+    },
+    "binaries_and_features": {
+      "ordinary": {
+        "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/fresh-ordinary/claude-autorouter",
+        "bytes": 13150992,
+        "sha256": "01f038c074ef98247ef7746280999e277aabe83573c4ebf8df57daadb747dd98",
+        "mode": "0o700"
+      },
+      "helper": {
+        "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/fresh-helper/xtask",
+        "bytes": 17681392,
+        "sha256": "3c589e010dc6772fa164660dde08fc1a07425af4744213836555590f0c947dbd",
+        "mode": "0o700"
+      },
+      "Cargo_features": {
+        "ordinary-cli": {
+          "autorouter_core": [],
+          "autorouter_runtime": [
+            "default"
+          ],
+          "claude-autorouter": []
+        },
+        "fresh-helper": {
+          "autorouter_core": [],
+          "autorouter_runtime": [
+            "default",
+            "development-probes"
+          ],
+          "xtask": [
+            "default",
+            "runtime-tools"
+          ]
+        }
+      },
+      "source_snapshot": "3513d26ad6b2101341700502178400b3228683b35607959b896d95ad3b804f0a",
+      "scope": "Production CLI unchanged; runtime-tools helper is separate contributor tooling, not shipping artifact qualification."
+    },
+    "Node": {
+      "check": {
+        "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/node-check.json",
+        "bytes": 1051,
+        "sha256": "07cfe311f125ca639b68346a7a1e2fe7a52f01718b982f768703bb754e8178a0",
+        "exit_code": 0
+      },
+      "tests": {
+        "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/node-tests-022.json",
+        "bytes": 1391,
+        "sha256": "2321d9a7a664170a5fe8a6d56e5eb7d7a3ae2f1aa08614c251925b04df466dc2",
+        "exit_code": 0
+      },
+      "passed": 645,
+      "package": {
+        "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/node-package-022.json",
+        "bytes": 1409,
+        "sha256": "3142af64d7de7557366b6b901f6693578f8a1e1a68fa151924da701c0946289a",
+        "exit_code": 0
+      },
+      "archive_files": 58,
+      "launcher_scenarios": 17
+    },
+    "independent_current_source_review": {
+      "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/independent-current-source-actual-review.json",
+      "bytes": 17878,
+      "sha256": "389f3b7fc80c6ec3bf1e587f394f95bf17c7dd35c71bcd9cfd92a08f9e94ddd7"
+    }
+  },
+  "retained_unsuccessful_attempts": [
+    {
+      "receipt": {
+        "path": "artifacts/rust-rewrite/direct-installed-recovery-validation-20261018-1/direct-focused-tests.json",
+        "bytes": 1108,
+        "sha256": "d8787ad91f962ec934c51471fff25fe056cfa51a651f3ddf1f3ca24f4c35885e"
+      },
+      "reason": "Sandbox removed requested set-user-ID bits before the mode guard. A file-only diagnostic confirmed the restriction; the exact unchanged six tests pass outside it."
+    },
+    {
+      "receipt": {
+        "path": "artifacts/rust-rewrite/direct-installed-recovery-validation-20261018-1/npm-operational-1.json",
+        "bytes": 1482,
+        "sha256": "52d9ac612cfae98aa615d4127efbafe83ef388343a133697f4f66f63d51fbe5b"
+      },
+      "reason": "The isolated system-only PATH lacked npm. The corrected pinned-toolchain invocation passes with unchanged source, archives and assertions."
+    },
+    {
+      "receipt": {
+        "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/compact-focused-tests.json",
+        "bytes": 1142,
+        "sha256": "7113851b00bbcbfd8cc9ac151a5e5a2c96cb8a661c5da94e4bb9e9922e2921e1"
+      },
+      "reason": "E0282 in a test fixture before execution. One explicit BTreeMap<String, Entry> annotation resolves it; no fixture or assertion changed."
+    },
+    {
+      "receipt": {
+        "path": "artifacts/rust-rewrite/compact-source-container-validation-20261018-1/node-tests.json",
+        "bytes": 1041,
+        "sha256": "0f8fac6a52b844f0d2234d1c37111715a7126939ff9f3642cfbf388ba5eb8fb0"
+      },
+      "reason": "The private parent umask 077 masked a fixture requesting 0644 to 0600. Child-only umask 022 matches CI and passes all 645 unchanged tests; parent logs stay 0600."
+    }
+  ],
+  "remaining_limits": [
+    "The full workspace remains red on the unchanged joint source/reference 32 MiB logical transfer limit. The schema 7 / joint 40 MiB proposal is unapproved and unapplied.",
+    "No original-definition, fixed-limit or configuration-key acceptance count changes; all thirteen whole-area qualifications remain open.",
+    "No latest remote CI qualification is transferred to these local source bytes.",
+    "No performance, hardware, live evaluator/task, minimum platform, license/provenance, production release, stabilization or default-cutover approval."
+  ]
+}

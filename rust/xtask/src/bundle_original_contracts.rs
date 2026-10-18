@@ -1,5 +1,6 @@
 //! Source-only archive assertions. Native schema2/source-build prerequisites
-//! are explicit adaptations. The combined executable integration separately
+//! are explicit adaptations; source-only default uses binary CPIO with the same
+//! generated JSON and members. The combined executable integration separately
 //! checks complete sources and dependency-free help in one artifact.
 use super::*;
 use crate::tool_process::Scratch;
@@ -11,17 +12,19 @@ fn original_bundle_archive_hash_count_fixture_and_privacy_assertions_are_retaine
         .canonicalize()
         .unwrap();
     let scratch = Scratch::new("original-bundle-contract").unwrap();
-    let archive = scratch.0.join("benchmark.tar.gz");
+    let archive = scratch.0.join("benchmark.cpio.gz");
     let created = create(&root, &archive).unwrap();
     let bytes = fs::read(&archive).unwrap();
     let checksum = sha(&bytes);
     assert_eq!(created["sha256"], checksum);
     assert_eq!(
-        fs::read_to_string(scratch.0.join("benchmark.tar.gz.sha256")).unwrap(),
-        format!("{checksum}  benchmark.tar.gz\n")
+        fs::read_to_string(scratch.0.join("benchmark.cpio.gz.sha256")).unwrap(),
+        format!("{checksum}  benchmark.cpio.gz\n")
     );
-    let (files, _) = decode_root(&bytes, ROOT, SOURCE).unwrap().into_parts();
-    // decode_root also checks every member's exact root prefix and refuses
+    let (files, _) = source::decode(&bytes, source::Format::BinaryCpio)
+        .unwrap()
+        .into_parts();
+    // The explicit source decoder checks every member's root prefix and refuses
     // absolute/parent traversal; inspect each decoded path independently.
     let forbidden = regex::Regex::new(
         r"(?:^|/)(?:\.env|\.git|node_modules|artifacts|config\.json|autorouter-session)",

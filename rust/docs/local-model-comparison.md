@@ -90,6 +90,68 @@ needs the pinned toolchain and locked dependencies. Matched Node/native
 comparison additionally needs the separate frozen reference and Node. The
 manifest retains unverified prebuilt provenance and no release approval.
 
+## Complete native source without a ready executable
+
+The experimental native source-only command now defaults to gzip binary
+big-endian CPIO. Its extension and report identify this container explicitly;
+it retains every allowlisted raw source and fixture, the original
+`README.native.md`, and the exact ordered schema2 `source-manifest.json` bytes.
+Every member is a regular0644 file. Only carrier framing changes: source
+compressed bytes, actual expanded carrier bytes and complete logical file bytes
+are each limited to32MiB. Per-file, entry and pathname bounds are unchanged.
+
+From the repository root with a built contributor helper:
+
+```sh
+rust/target/release/xtask benchmark-bundle artifacts/native-source.cpio.gz
+rust/target/release/xtask benchmark-bundle --inspect-source binary-cpio artifacts/native-source.cpio.gz
+rust/target/release/xtask benchmark-bundle --extract-source binary-cpio artifacts/native-source.cpio.gz /absolute/new/native-source
+```
+
+Transfer the archive and its exact `.sha256` sidecar through a trusted channel;
+compare the reported archive digest with the trusted producer digest. The
+inspector is read-only. Extraction verifies the bounded archive, sidecar and
+complete source inventory before creating a new0700 destination, then checks all
+source bytes and0644 modes through directory descriptors. It rejects existing
+or symbolic-link destinations. Preserve an incomplete owned destination after
+an interrupted restore and select a new path. Building restored source still
+requires the pinned Rust toolchain and locked dependencies. Neither inspection
+nor extraction calls a provider, installs a model, invokes Git or runs a build.
+
+On macOS, libarchive `tar` also reads this CPIO carrier. GNUtar alone does not;
+Linux users can use the descriptor-backed helper above, an actual libarchive
+`tar`, or GNUcpio with gzip. For a trusted verified artifact, in a dedicated
+Bash shell and a new private directory:
+
+```sh
+set -euo pipefail
+umask 022
+shasum -a 256 -c native-source.cpio.gz.sha256
+mkdir -m 700 native-restore
+cd native-restore
+gzip -dc ../native-source.cpio.gz | cpio -idm --no-absolute-filenames --no-preserve-owner
+```
+
+The standard-tool example extracts the `autorouter-benchmark` root; it is not
+an arbitrary-hostile-archive sandbox. The descriptor-backed helper writes the
+verified source members directly into its requested new destination.
+
+For the legacy source USTAR container, explicitly select it:
+
+```sh
+rust/target/release/xtask benchmark-bundle --source-format ustar artifacts/native-source.tar.gz
+rust/target/release/xtask benchmark-bundle --inspect-source ustar artifacts/native-source.tar.gz
+```
+
+Older source tar archives retain their existing reader and32MiB bounds; a larger
+current tree may no longer fit their framing. Format selection is explicit,
+not inferred from a filename, and decoder failure never tries another format.
+Native/npm/direct release tar formats and their32MiB compressed/64MiB native
+expanded bounds are unchanged. The source+executable container above already
+uses indexed CPIO internally and is unchanged. Matched-reference transfer
+schemas1–6 retain their separate32MiB joint carrier and logical budgets; this
+source-only format does not resolve a transfer that exceeds that joint limit.
+
 ## Paired comparison from source
 
 Build the extracted source bundle with its pinned Rust toolchain, prerequisites

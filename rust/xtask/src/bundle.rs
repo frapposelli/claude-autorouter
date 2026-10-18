@@ -5,6 +5,8 @@ mod combined;
 pub(crate) mod executable;
 #[path = "bundle_transfer_pair.rs"]
 mod pair;
+#[path = "bundle_source.rs"]
+mod source;
 #[path = "bundle_transfer.rs"]
 mod transfer;
 use crate::package::archive::{Entry, SOURCE, decode_root, encode_root};
@@ -565,6 +567,9 @@ pub(crate) fn source_identity(root: &Path) -> Result<Value, String> {
         .map_err(|_| "Cannot serialize source declarations".into())
 }
 pub fn create(root: &Path, destination: &Path) -> Result<Value, String> {
+    source::create(root, destination, source::Format::BinaryCpio)
+}
+fn create_ustar(root: &Path, destination: &Path) -> Result<Value, String> {
     let sidecar = PathBuf::from(format!("{}.sha256", destination.display()));
     if fs::symlink_metadata(destination).is_ok() || fs::symlink_metadata(&sidecar).is_ok() {
         return Err("Refusing to overwrite an existing bundle or checksum".into());
@@ -595,17 +600,34 @@ fn write_archive_verified<T>(
         return Err("Bundle archive verification failed".into());
     }
     let verified = verify(verified, expanded)?;
+    let report = publish_archive(
+        destination,
+        &bytes,
+        files.len(),
+        expanded,
+        "expanded_tar_bytes",
+    )?;
+    Ok((report, verified))
+}
+fn publish_archive(
+    destination: &Path,
+    bytes: &[u8],
+    files: usize,
+    expanded: usize,
+    expanded_field: &str,
+) -> Result<Value, String> {
+    let sidecar = PathBuf::from(format!("{}.sha256", destination.display()));
     if let Some(parent) = destination.parent() {
         fs::create_dir_all(parent).map_err(|_| "Cannot create bundle destination directory")?;
     }
-    let checksum = sha(&bytes);
+    let checksum = sha(bytes);
     let mut archive = OpenOptions::new()
         .create_new(true)
         .write(true)
         .open(destination)
         .map_err(|_| "Cannot create source bundle")?;
     archive
-        .write_all(&bytes)
+        .write_all(bytes)
         .map_err(|_| "Cannot write source bundle")?;
     let mut sum = OpenOptions::new()
         .create_new(true)
@@ -621,12 +643,14 @@ fn write_archive_verified<T>(
             .ok_or("Invalid bundle destination filename")?
     )
     .map_err(|_| "Cannot write bundle checksum")?;
-    Ok((
-        json!({"bundle":destination.to_string_lossy(),"sha256":checksum,"files":files.len(),"compressed_bytes":bytes.len(),"expanded_tar_bytes":expanded,"source_only":true,"requires_node":false,"dependencies_bundled":false,"release_approved":false}),
-        verified,
-    ))
+    Ok(
+        json!({"bundle":destination.to_string_lossy(),"sha256":checksum,"files":files,"compressed_bytes":bytes.len(),(expanded_field):expanded,"source_only":true,"requires_node":false,"dependencies_bundled":false,"release_approved":false}),
+    )
 }
 pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
+    if source::run(args, root)? {
+        return Ok(true);
+    }
     if args.first().is_some_and(|arg| arg == "--source-executable") {
         return combined::run(args, root);
     }
@@ -635,7 +659,7 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
     }
     if args == ["--help"] {
         println!(
-            "cargo xtask benchmark-bundle [NEW_DESTINATION.tar.gz]\ncargo xtask benchmark-bundle --executable TARGET=RELEASE_XTASK NEW_ARCHIVE.tar.gz\ncargo xtask benchmark-bundle --source-executable TARGET=FRESH_RELEASE_XTASK NEW_ARCHIVE.tar.gz\ncargo xtask benchmark-bundle --transfer NEW_DIRECTORY\ncargo xtask benchmark-bundle --restore-reference TRANSFER_DIRECTORY NEW_REFERENCE_DIRECTORY\n--source-executable creates a distinct native source+ready artifact: full SOURCE32 inner bytes, NATIVE32/64 outer and conservative complete64 accounting, with fresh source identity and no build/quality qualification inferred. Old formats remain unchanged. Default creates an allowlisted public Rust source and synthetic-fixture bundle, without frozen Node product sources. --executable creates a separate target-specific ready-to-run evaluator with complete licenses; its receiver needs no Node/Cargo/source checkout and supports only evaluate-ollama. Prebuilt source-to-binary provenance and platform qualification remain unverified. --transfer creates a licensed reference delta sharing two exact fixtures, the license and frozen manifest with the native archive, plus checksum/resume files for matched larger-host benchmarks, without a Git checkout. Source and transfer modes exclude binaries; every mode excludes credentials, private reports and Cargo caches and performs no evaluator calls. Version 6 uses gzip binary big-endian CPIO source with an indexed binary generated manifest and licensed tar delta; both carrier and complete logical file-payload caps remain 32 MiB. Legacy full-tar size is separately reported. --restore-reference verifies schemas 1 through 6 then creates the full 113-file frozen reference before any reference operation. Requires pinned Rust/locked dependencies; matched reference runs need Node22.14.0."
+            "cargo xtask benchmark-bundle [NEW_DESTINATION.cpio.gz]\ncargo xtask benchmark-bundle --source-format binary-cpio|ustar NEW_ARCHIVE\ncargo xtask benchmark-bundle --inspect-source FORMAT ARCHIVE\ncargo xtask benchmark-bundle --extract-source FORMAT ARCHIVE NEW_ABSOLUTE_DIRECTORY\ncargo xtask benchmark-bundle --executable TARGET=RELEASE_XTASK NEW_ARCHIVE.tar.gz\ncargo xtask benchmark-bundle --source-executable TARGET=FRESH_RELEASE_XTASK NEW_ARCHIVE.tar.gz\ncargo xtask benchmark-bundle --transfer NEW_DIRECTORY\ncargo xtask benchmark-bundle --restore-reference TRANSFER_DIRECTORY NEW_REFERENCE_DIRECTORY\n--source-executable creates a distinct native source+ready artifact: full SOURCE32 inner bytes, NATIVE32/64 outer and conservative complete64 accounting, with fresh source identity and no build/quality qualification inferred. Old formats remain unchanged. Default creates a distinct gzip binary big-endian CPIO source container with the original schema2 JSON manifest and all public source/fixture bytes; it does not contain frozen Node product sources. Use --source-format ustar NEW_ARCHIVE.tar.gz for the old source-only tar format. --inspect-source FORMAT ARCHIVE and --extract-source FORMAT ARCHIVE NEW_ABSOLUTE_DIRECTORY require FORMAT binary-cpio or ustar explicitly, verify checksum and full source inventory, and perform no evaluator calls. GNUtar alone cannot extract CPIO; use the descriptor-backed extract command, libarchive tar, or GNUcpio with gzip. Every source format retains compressed, actual expanded carrier and complete logical32MiB caps. The combined --source-executable inner format is unchanged. --executable creates a separate target-specific ready-to-run evaluator with complete licenses; its receiver needs no Node/Cargo/source checkout and supports only evaluate-ollama. Prebuilt source-to-binary provenance and platform qualification remain unverified. --transfer creates a licensed reference delta sharing two exact fixtures, the license and frozen manifest with the native archive, plus checksum/resume files for matched larger-host benchmarks, without a Git checkout. Source and transfer modes exclude binaries; every mode excludes credentials, private reports and Cargo caches and performs no evaluator calls. Version 6 uses gzip binary big-endian CPIO source with an indexed binary generated manifest and licensed tar delta; both carrier and complete logical file-payload caps remain 32 MiB. Legacy full-tar size is separately reported. --restore-reference verifies schemas 1 through 6 then creates the full 113-file frozen reference before any reference operation. Requires pinned Rust/locked dependencies; matched reference runs need Node22.14.0."
         );
         return Ok(true);
     }
@@ -666,12 +690,12 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
         return Ok(true);
     }
     if args.len() > 1 {
-        return Err("Usage: cargo xtask benchmark-bundle [NEW_DESTINATION.tar.gz]".into());
+        return Err("Usage: cargo xtask benchmark-bundle [NEW_DESTINATION.cpio.gz]".into());
     }
     let destination = root.join(
         args.first()
             .map(String::as_str)
-            .unwrap_or("artifacts/autorouter-native-hardware-benchmark.tar.gz"),
+            .unwrap_or("artifacts/autorouter-native-hardware-benchmark.cpio.gz"),
     );
     println!(
         "{}",
@@ -754,11 +778,13 @@ mod tests {
             .canonicalize()
             .unwrap();
         let scratch = Scratch::new("bundle-test").unwrap();
-        let destination = scratch.0.join("bundle.tar.gz");
+        let destination = scratch.0.join("bundle.cpio.gz");
         let result = create(&root, &destination).unwrap();
         let bytes = fs::read(&destination).unwrap();
         assert_eq!(result["sha256"], sha(&bytes));
-        let (files, _) = decode_root(&bytes, ROOT, SOURCE).unwrap().into_parts();
+        let (files, _) = source::decode(&bytes, source::Format::BinaryCpio)
+            .unwrap()
+            .into_parts();
         let manifest: Value = serde_json::from_slice(&files["source-manifest.json"].bytes).unwrap();
         for (path, hash) in manifest["files"].as_object().unwrap() {
             assert_eq!(hash, &json!(sha(&files[path].bytes)));
