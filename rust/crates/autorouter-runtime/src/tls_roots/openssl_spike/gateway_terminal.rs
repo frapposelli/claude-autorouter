@@ -286,6 +286,18 @@ pub(crate) struct RequestTerminal {
     identity: Identity,
 }
 impl RequestTerminal {
+    pub(crate) fn observation(&self) -> (Identity, Option<Instant>) {
+        let deadline = self.shared.upgrade().and_then(|shared| {
+            shared
+                .state
+                .lock()
+                .unwrap()
+                .records
+                .get(&self.identity.request)
+                .and_then(|record| record.deadline)
+        });
+        (self.identity, deadline)
+    }
     pub(crate) fn fail(&self, cause: FailureCause) -> bool {
         self.shared
             .upgrade()

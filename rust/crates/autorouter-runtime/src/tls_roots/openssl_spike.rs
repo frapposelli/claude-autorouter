@@ -39,6 +39,7 @@ pub(crate) fn buffered_delivery_fixture(
     let (trust, tls) = lifecycle_tests::isolated_tls(version);
     let client = raw_pool::buffered::BufferedRawPoolClient::new(&trust)?;
     let buffers = client.probe.clone();
+    let epoch = tokio::time::Instant::now();
     let raw = client.inner.raw_counts.clone();
     let fetch = client.inner.fetch_counts.clone();
     let cache = Arc::downgrade(&client.inner.raw_sessions);
@@ -47,6 +48,8 @@ pub(crate) fn buffered_delivery_fixture(
         move || {
             serde_json::json!({
                 "buffers": buffers.snapshot(),
+                "clock_ns": epoch.elapsed().as_nanos() as u64,
+                "pools": buffers.owned_snapshots(epoch),
                 "raw_attempts": raw.attempts.load(Ordering::SeqCst),
                 "raw_tls_handshakes_completed": raw.completed.load(Ordering::SeqCst),
                 "raw_live": raw.active.load(Ordering::SeqCst),

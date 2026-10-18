@@ -5,9 +5,11 @@ use super::super::gateway_terminal::{FailureCause, PauseGate, PauseKind, Request
 use super::*;
 use tokio::sync::Notify;
 
+type ObservedPool = (Option<RequestTerminal>, buffered_body::Probe);
+
 #[derive(Clone, Default)]
 pub(in super::super) struct BufferProbe {
-    pools: Arc<Mutex<Vec<buffered_body::Probe>>>,
+    pools: Arc<Mutex<Vec<ObservedPool>>>,
     hold_response: PauseGate,
     response_ready: Arc<AtomicUsize>,
     response_changed: Arc<Notify>,
@@ -31,13 +33,46 @@ pub(in super::super) struct BufferSnapshot {
 }
 impl BufferProbe {
     fn insert(&self, probe: buffered_body::Probe) {
+        self.insert_owned(None, probe);
+    }
+    fn insert_owned(&self, owner: Option<RequestTerminal>, probe: buffered_body::Probe) {
         let mut pools = self.pools.lock().unwrap();
         // Detached pools held by final downstream Bytes clones remain charged.
-        pools.retain(|probe| {
+        pools.retain(|(_, probe)| {
             let current = probe.snapshot();
             current.live_pools != 0 || current.producer_tasks != 0
         });
-        pools.push(probe);
+        pools.push((owner, probe));
+    }
+    pub(in super::super) fn owned_snapshots(&self, epoch: Instant) -> Vec<serde_json::Value> {
+        let pools = self.pools.lock().unwrap();
+        assert!(pools.len() <= 16, "bounded fixture observation");
+        let mut snapshots = Vec::with_capacity(pools.len());
+        for (owner, probe) in pools.iter() {
+            let value = probe.snapshot();
+            if value.live_pools == 0 {
+                continue;
+            }
+            let Some(owner) = owner else {
+                continue;
+            };
+            let (id, Some(deadline)) = owner.observation() else {
+                continue;
+            };
+            snapshots.push(serde_json::json!({
+                "connection":id.connection,
+                "request":id.request,
+                "deadline_ns":deadline.duration_since(epoch).as_nanos() as u64,
+                "queued":value.queued_bytes,
+                "allocated":value.allocated_blocks,
+                "outstanding":value.outstanding_blocks,
+                "producer":value.producer_tasks,
+                "peak_blocks":value.peak_outstanding_blocks,
+                "peak_queued":value.peak_queued_bytes,
+                "panics":[value.callback_panics,value.waker_panics]
+            }));
+        }
+        snapshots
     }
     pub(in super::super) fn snapshot(&self) -> BufferSnapshot {
         let pools = self.pools.lock().unwrap();
@@ -48,7 +83,7 @@ impl BufferProbe {
             cancelled_sources: self.cancelled_sources.load(Ordering::SeqCst),
             ..BufferSnapshot::default()
         };
-        for probe in pools.iter() {
+        for (_, probe) in pools.iter() {
             let value = probe.snapshot();
             result.live_pools += value.live_pools;
             result.allocated_blocks += value.allocated_blocks;
@@ -172,9 +207,9 @@ impl HttpTransport for BufferedRawPoolClient {
                     }
                 }
             },
-            publisher,
+            publisher.clone(),
         );
-        self.probe.insert(probe);
+        self.probe.insert_owned(publisher, probe);
         // Registry cancellation drops this future and its Producer owner, which
         // aborts the child even while Producer::join is pending.
         spawn_owned(&self.inner.shared, async move {

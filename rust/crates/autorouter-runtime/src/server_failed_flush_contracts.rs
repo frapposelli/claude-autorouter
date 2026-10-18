@@ -145,6 +145,17 @@ impl GatewayRouter for TrackedRouter {
     async fn close(&self) {}
 }
 
+// Read-only adapters for shared assertions; the original router above keeps
+// unconditional callback counters and its original admission/completion rules.
+impl TrackedRouter {
+    fn exact_completions(&self) -> usize {
+        self.exact_completions.load(Ordering::SeqCst)
+    }
+    fn releases(&self) -> usize {
+        self.releases.load(Ordering::SeqCst)
+    }
+}
+
 #[derive(Clone, Copy, Default)]
 enum FlushBoundary {
     #[default]
@@ -405,6 +416,33 @@ async fn final_http_framing_failure_cannot_confirm_clean_tool_response() {
 // constructor over HTTP and pinned TLS versions, not broader TLS qualification.
 const BARRIER: Duration = Duration::from_secs(5);
 
+fn matching<T>(values: &[T], predicate: impl FnMut(&&T) -> bool) -> usize {
+    values.iter().filter(predicate).count()
+}
+
+fn buffered_drained(state: &Value) -> bool {
+    [
+        "raw_live",
+        "raw_tasks",
+        "raw_shutdown_handles",
+        "fetch_live",
+        "fetch_tasks",
+        "fetch_shutdown_handles",
+    ]
+    .iter()
+    .all(|field| state[*field] == 0)
+        && [
+            "live_pools",
+            "allocated_blocks",
+            "outstanding_blocks",
+            "queued_bytes",
+            "producer_tasks",
+        ]
+        .iter()
+        .all(|field| state["buffers"][*field] == 0)
+        && state["cache_released"] == true
+}
+
 struct OwnedTask<T>(tokio::task::JoinHandle<T>);
 impl<T> Drop for OwnedTask<T> {
     fn drop(&mut self) {
@@ -550,41 +588,51 @@ async fn buffered_provider(
     }
 }
 
+async fn provider_request(socket: &mut (impl AsyncRead + Unpin)) -> io::Result<(String, Value)> {
+    let invalid = || io::Error::other("invalid bounded pipeline provider fixture");
+    let mut request = Vec::new();
+    let (end, length) = loop {
+        let mut block = [0; 1024];
+        let count = socket.read(&mut block).await?;
+        if count == 0 || request.len() + count > 16_384 {
+            return Err(invalid());
+        }
+        request.extend_from_slice(&block[..count]);
+        if let Some(end) = request.windows(4).position(|part| part == b"\r\n\r\n") {
+            let headers = std::str::from_utf8(&request[..end]).map_err(|_| invalid())?;
+            let length = headers
+                .lines()
+                .find_map(|line| {
+                    let (name, value) = line.split_once(':')?;
+                    name.eq_ignore_ascii_case("content-length")
+                        .then(|| value.trim().parse::<usize>().ok())
+                        .flatten()
+                })
+                .ok_or_else(invalid)?;
+            if request.len() == end + 4 + length {
+                break (end + 4, length);
+            }
+            if request.len() > end + 4 + length {
+                return Err(invalid());
+            }
+        }
+    };
+    let headers = std::str::from_utf8(&request[..end]).map_err(|_| invalid())?;
+    if !headers.starts_with("POST /v1/messages HTTP/1.1\r\n") {
+        return Err(invalid());
+    }
+    let document: Value =
+        serde_json::from_slice(&request[end..end + length]).map_err(|_| invalid())?;
+    Ok((headers.to_owned(), document))
+}
+
 async fn buffered_provider_socket(
     mut socket: impl AsyncRead + AsyncWrite + Unpin,
     response: BufferedResponse,
     hold: Option<ProviderHold>,
 ) {
-    let mut request = Vec::new();
-    loop {
-        let mut block = [0; 1024];
-        let count = socket.read(&mut block).await.unwrap();
-        assert_ne!(count, 0, "provider must receive a complete request");
-        assert!(request.len() + count <= 16_384);
-        request.extend_from_slice(&block[..count]);
-        let Some(head) = request.windows(4).position(|bytes| bytes == b"\r\n\r\n") else {
-            continue;
-        };
-        let headers = String::from_utf8_lossy(&request[..head]);
-        assert!(headers.starts_with("POST /v1/messages HTTP/1.1\r\n"));
-        let length = headers
-            .lines()
-            .find_map(|line| {
-                let (name, value) = line.split_once(':')?;
-                name.eq_ignore_ascii_case("content-length")
-                    .then(|| value.trim().parse::<usize>().unwrap())
-            })
-            .expect("provider request declares its body length");
-        if request.len() < head + 4 + length {
-            continue;
-        }
-        assert_eq!(request.len(), head + 4 + length);
-        assert_eq!(
-            serde_json::from_slice::<Value>(&request[head + 4..]).unwrap()["model"],
-            "claude-sonnet-5"
-        );
-        break;
-    }
+    let (_, document) = provider_request(&mut socket).await.unwrap();
+    assert_eq!(document["model"], "claude-sonnet-5");
     let headers = if response.bodyless() {
         let (status, length) = match response {
             BufferedResponse::EmptyJson => ("200 OK", "Content-Length: 0\r\n"),
@@ -622,6 +670,14 @@ async fn buffered_provider_socket(
     }
 }
 
+fn assert_tool_owner(turns: &TurnState, scope: &str, present: &str, absent: &str, model: &str) {
+    assert!(matches!(
+        turns.tool_owner_exact(scope, &[present.into()]),
+        Some(ToolOwner::Owned { pin, .. }) if pin.model == JsString::from_scalar(model)
+    ));
+    assert!(turns.tool_owner_exact(scope, &[absent.into()]).is_none());
+}
+
 fn previous_owner_survives(router: &TrackedRouter, attempts: usize) {
     let turns = router.turns.lock().unwrap();
     assert_eq!(turns.attempt_count(), attempts);
@@ -644,6 +700,26 @@ enum FinalFlush {
     Deadline,
 }
 
+fn buffered_config(
+    address: std::net::SocketAddr,
+    version: Option<SslVersion>,
+    cwd: &Path,
+) -> RouterConfig {
+    let mut config = read_config(
+        &json!({"ANTHROPIC_API_KEY":"synthetic-provider-key"}),
+        false,
+        cwd,
+    )
+    .unwrap();
+    config.local_token = Some(LOCAL_TOKEN.into());
+    config.upstream = format!(
+        "{}://{address}",
+        if version.is_some() { "https" } else { "http" }
+    );
+    config.upstream_timeout_ms = 30_000;
+    config
+}
+
 async fn buffered_final_flush(
     response: BufferedResponse,
     schedule: FinalFlush,
@@ -655,19 +731,7 @@ async fn buffered_final_flush(
     use crate::tls_roots::openssl_spike::gateway_terminal::{Event, FailureCause};
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
-    let mut config = read_config(
-        &json!({"ANTHROPIC_API_KEY":"synthetic-provider-key"}),
-        false,
-        Path::new("/tmp"),
-    )
-    .unwrap();
-    config.local_token = Some(LOCAL_TOKEN.into());
-    config.upstream = format!(
-        "{}://{}",
-        if version.is_some() { "https" } else { "http" },
-        listener.local_addr().unwrap()
-    );
-    config.upstream_timeout_ms = 30_000;
+    let config = buffered_config(listener.local_addr().unwrap(), version, Path::new("/tmp"));
     let (transport, snapshot, tls) =
         crate::tls_roots::openssl_spike::buffered_delivery_fixture(version).unwrap();
     let transport = Arc::new(transport);
@@ -750,8 +814,8 @@ async fn buffered_final_flush(
     response.assert_output(&pending_output);
     assert_eq!(registry.pending(), 1);
     assert!(!connection.0.is_finished());
-    assert_eq!(router.exact_completions.load(Ordering::SeqCst), 0);
-    assert_eq!(router.releases.load(Ordering::SeqCst), 0);
+    assert_eq!(router.exact_completions(), 0);
+    assert_eq!(router.releases(), 0);
     previous_owner_survives(&router, 1);
     {
         let rows = records.lock().unwrap();
@@ -774,17 +838,11 @@ async fn buffered_final_flush(
     if terminal {
         let events = terminals.events();
         assert_eq!(
-            events
-                .iter()
-                .filter(|event| matches!(event, Event::Registered(_)))
-                .count(),
+            matching(&events, |event| matches!(event, Event::Registered(_))),
             1
         );
         assert_eq!(
-            events
-                .iter()
-                .filter(|event| matches!(event, Event::Attached(_)))
-                .count(),
+            matching(&events, |event| matches!(event, Event::Attached(_))),
             1
         );
         assert!(
@@ -824,14 +882,8 @@ async fn buffered_final_flush(
     assert_eq!(Arc::strong_count(&io.0), 1, "connection released its IO");
     let success = matches!(schedule, FinalFlush::Success);
     let confirms = success && !response.bodyless();
-    assert_eq!(
-        router.exact_completions.load(Ordering::SeqCst),
-        usize::from(confirms)
-    );
-    assert_eq!(
-        router.releases.load(Ordering::SeqCst),
-        usize::from(!confirms)
-    );
+    assert_eq!(router.exact_completions(), usize::from(confirms));
+    assert_eq!(router.releases(), usize::from(!confirms));
     let final_records = records.lock().unwrap().clone();
     assert_eq!(final_records.len(), 2);
     assert_eq!(outcome(&final_records)["completion_confirmed"], confirms);
@@ -855,15 +907,13 @@ async fn buffered_final_flush(
     if confirms {
         let turns = router.turns.lock().unwrap();
         assert_eq!(turns.attempt_count(), 0);
-        assert!(
-            turns
-                .tool_owner_exact(SESSION, &["original-tool".into()])
-                .is_none()
+        assert_tool_owner(
+            &turns,
+            SESSION,
+            "replacement-tool",
+            "original-tool",
+            "claude-sonnet-5",
         );
-        assert!(matches!(
-            turns.tool_owner_exact(SESSION, &["replacement-tool".into()]),
-            Some(ToolOwner::Owned { pin, .. }) if pin.model == JsString::from_scalar("claude-sonnet-5")
-        ));
     } else {
         previous_owner_survives(&router, 0);
     }
@@ -879,17 +929,11 @@ async fn buffered_final_flush(
         assert_eq!(deliveries.len(), 1);
         assert_eq!(deliveries[0] == Delivery::Flushed, success);
         assert_eq!(
-            events
-                .iter()
-                .filter(|event| matches!(event, Event::CallbackFinished(_)))
-                .count(),
+            matching(&events, |event| matches!(event, Event::CallbackFinished(_))),
             1
         );
         assert_eq!(
-            events
-                .iter()
-                .filter(|event| matches!(event, Event::Closed(_)))
-                .count(),
+            matching(&events, |event| matches!(event, Event::Closed(_))),
             1
         );
         assert!(
@@ -935,30 +979,7 @@ async fn buffered_final_flush(
     }
     drop(gateway);
     drop(transport);
-    until(|| {
-        let state = snapshot();
-        [
-            "raw_live",
-            "raw_tasks",
-            "raw_shutdown_handles",
-            "fetch_live",
-            "fetch_tasks",
-            "fetch_shutdown_handles",
-        ]
-        .iter()
-        .all(|field| state[*field] == 0)
-            && [
-                "live_pools",
-                "allocated_blocks",
-                "outstanding_blocks",
-                "queued_bytes",
-                "producer_tasks",
-            ]
-            .iter()
-            .all(|field| state["buffers"][*field] == 0)
-            && state["cache_released"] == true
-    })
-    .await;
+    until(|| buffered_drained(&snapshot())).await;
     let cleaned = snapshot();
     assert_eq!(
         cleaned["raw_tls_handshakes_completed"],
@@ -967,14 +988,8 @@ async fn buffered_final_flush(
     assert_eq!(cleaned["buffers"]["clean_sources"], 1);
     assert_eq!(cleaned["buffers"]["failed_sources"], 0);
     assert_eq!(cleaned["buffers"]["cancelled_sources"], 0);
-    assert_eq!(
-        router.exact_completions.load(Ordering::SeqCst),
-        usize::from(confirms)
-    );
-    assert_eq!(
-        router.releases.load(Ordering::SeqCst),
-        usize::from(!confirms)
-    );
+    assert_eq!(router.exact_completions(), usize::from(confirms));
+    assert_eq!(router.releases(), usize::from(!confirms));
     assert_eq!(records.lock().unwrap().len(), 2);
     if response.bodyless() {
         previous_owner_survives(&router, 0);
@@ -1115,26 +1130,43 @@ impl PipelineCase {
     }
 }
 
-fn pipeline_scope(index: usize) -> String {
-    format!("[\"{}\",null]", PIPELINE_SESSIONS[index])
-}
-
-struct PipelineRouterState {
+struct PipelineRouterState<const N: usize> {
     turns: TurnState,
     requests: std::collections::BTreeMap<String, usize>,
-    completed: [usize; 2],
-    released: [usize; 2],
-    cancellation: [Option<CancellationToken>; 2],
+    completed: [usize; N],
+    released: [usize; N],
+    cancellation: [Option<CancellationToken>; N],
 }
-struct PipelineRouter(Mutex<PipelineRouterState>);
-impl PipelineRouter {
+struct PipelineRouter<const N: usize = 2>(Mutex<PipelineRouterState<N>>, [[String; 4]; N], usize);
+impl PipelineRouter<2> {
     fn seeded() -> Arc<Self> {
+        Self::named(
+            std::array::from_fn(|i| {
+                [
+                    PIPELINE_TASKS[i],
+                    PIPELINE_SESSIONS[i],
+                    PIPELINE_OLD_TOOLS[i],
+                    PIPELINE_NEW_TOOLS[i],
+                ]
+                .map(str::to_owned)
+            }),
+            2,
+        )
+    }
+}
+impl<const N: usize> PipelineRouter<N> {
+    fn scope(&self, index: usize) -> String {
+        format!("[\"{}\",null]", self.1[index][1])
+    }
+
+    fn named(names: [[String; 4]; N], limit: usize) -> Arc<Self> {
+        assert!(N >= 2);
         let mut turns = TurnState::default();
-        for index in 0..2 {
+        for (index, lane) in names.iter().enumerate() {
             let id = format!("pipeline-seed-{index}");
-            let scope = pipeline_scope(index);
+            let scope = format!("[\"{}\",null]", lane[1]);
             assert!(turns.select_exact(
-                &[PIPELINE_TASKS[index].to_owned()],
+                &[lane[0].clone()],
                 TaskPin::new("claude-opus-5-5".into(), "claude-haiku-4-5-20251001".into()),
                 Selection {
                     scope: &scope,
@@ -1148,59 +1180,49 @@ impl PipelineRouter {
                 Some(&ContinuationEvidence {
                     model: "claude-opus-5-5".into(),
                     tools: vec![ToolIdentity {
-                        id: PIPELINE_OLD_TOOLS[index].into(),
+                        id: lane[2].clone().into(),
                         model: "claude-opus-5-5".into(),
                     }],
                 }),
                 1
             ));
         }
-        Arc::new(Self(Mutex::new(PipelineRouterState {
-            turns,
-            requests: std::collections::BTreeMap::new(),
-            completed: [0; 2],
-            released: [0; 2],
-            cancellation: [None, None],
-        })))
+        Arc::new(Self(
+            Mutex::new(PipelineRouterState {
+                turns,
+                requests: std::collections::BTreeMap::new(),
+                completed: [0; N],
+                released: [0; N],
+                cancellation: std::array::from_fn(|_| None),
+            }),
+            names,
+            limit,
+        ))
     }
-    fn check(&self, completed: [usize; 2], pending: usize) {
-        self.check_with_releases(completed, [0; 2], pending);
+    fn check(&self, completed: [usize; N], pending: usize) {
+        self.check_with_releases(completed, [0; N], pending);
     }
-    fn check_with_releases(&self, completed: [usize; 2], released: [usize; 2], pending: usize) {
+    fn check_with_releases(&self, completed: [usize; N], released: [usize; N], pending: usize) {
         let state = self.0.lock().unwrap();
-        assert_eq!(state.requests.len(), 2);
+        assert_eq!(
+            state.requests.len(),
+            completed.iter().sum::<usize>() + released.iter().sum::<usize>() + pending
+        );
         assert_eq!(state.completed, completed);
         assert_eq!(state.released, released);
         assert_eq!(state.turns.attempt_count(), pending);
-        for index in 0..2 {
-            let scope = pipeline_scope(index);
-            if completed[index] == 0 {
-                assert!(
-                    matches!(state.turns.tool_owner_exact(&scope, &[PIPELINE_OLD_TOOLS[index].into()]),
-                    Some(ToolOwner::Owned { pin, .. }) if pin.model == JsString::from_scalar("claude-opus-5-5"))
-                );
-                assert!(
-                    state
-                        .turns
-                        .tool_owner_exact(&scope, &[PIPELINE_NEW_TOOLS[index].into()])
-                        .is_none()
-                );
+        for (index, completed) in completed.iter().enumerate() {
+            let scope = self.scope(index);
+            let (present, absent, model) = if *completed == 0 {
+                (&self.1[index][2], &self.1[index][3], "claude-opus-5-5")
             } else {
-                assert!(
-                    state
-                        .turns
-                        .tool_owner_exact(&scope, &[PIPELINE_OLD_TOOLS[index].into()])
-                        .is_none()
-                );
-                assert!(
-                    matches!(state.turns.tool_owner_exact(&scope, &[PIPELINE_NEW_TOOLS[index].into()]),
-                    Some(ToolOwner::Owned { pin, .. }) if pin.model == JsString::from_scalar("claude-sonnet-5"))
-                );
-            }
+                (&self.1[index][3], &self.1[index][2], "claude-sonnet-5")
+            };
+            assert_tool_owner(&state.turns, &scope, present, absent, model);
         }
     }
 }
-impl GatewayRouter for PipelineRouter {
+impl<const N: usize> GatewayRouter for PipelineRouter<N> {
     async fn route(
         &self,
         _: Arc<JsDocument>,
@@ -1209,25 +1231,28 @@ impl GatewayRouter for PipelineRouter {
         cancellation: &CancellationToken,
         _: &str,
     ) -> Result<Value, EvaluationError> {
-        let index = PIPELINE_TASKS
+        let index = self
+            .1
             .iter()
-            .position(|task| *task == options.prompt_id)
+            .position(|names| names[0] == options.prompt_id)
             .ok_or(EvaluationError::InvalidResponse)?;
         let id = options.request_id.ok_or(EvaluationError::InvalidResponse)?;
-        if options.scope != pipeline_scope(index) {
+        if options.scope != self.scope(index) {
             return Err(EvaluationError::InvalidResponse);
         }
         let mut state = self.0.lock().unwrap();
-        if state.requests.len() == 2 || state.requests.contains_key(&id) {
+        if state.requests.len() == self.2 || state.requests.contains_key(&id) {
             return Err(EvaluationError::InvalidResponse);
         }
+        let sequence = if state.requests.len() < N { 2 } else { 3 };
+        let owner_scope = self.scope(index);
         if !state.turns.select_exact(
-            &[PIPELINE_TASKS[index].to_owned()],
+            &[self.1[index][0].clone()],
             TaskPin::new("claude-sonnet-5".into(), "claude-opus-5-5".into()),
             Selection {
-                scope: &options.scope,
+                scope: &owner_scope,
                 request_id: Some(&id),
-                sequence: 2,
+                sequence,
             },
             2,
         ) {
@@ -1413,43 +1438,28 @@ impl Drop for PipelinePeerLease {
         self.0.fetch_sub(1, Ordering::SeqCst);
     }
 }
+struct PipelineSignals {
+    ready: tokio::sync::mpsc::Sender<usize>,
+    release_a: CancellationToken,
+    completed: Option<tokio::sync::mpsc::Sender<usize>>,
+}
+struct PipelinePlan {
+    tasks: Vec<String>,
+    bodies: Vec<Vec<u8>>,
+    content_type: &'static str,
+    accepts: usize,
+    hold_a: bool,
+    tail_gate: Option<CancellationToken>,
+}
 async fn pipeline_provider_exchange(
     mut socket: impl AsyncRead + AsyncWrite + Unpin,
     ready: tokio::sync::mpsc::Sender<usize>,
     release_a: CancellationToken,
+    completed: Option<tokio::sync::mpsc::Sender<usize>>,
+    plan: Arc<PipelinePlan>,
 ) -> io::Result<()> {
     let invalid = || io::Error::other("invalid bounded pipeline provider fixture");
-    let mut request = Vec::new();
-    let (end, length) = loop {
-        let mut block = [0; 1024];
-        let count = socket.read(&mut block).await?;
-        if count == 0 || request.len() + count > 16_384 {
-            return Err(invalid());
-        }
-        request.extend_from_slice(&block[..count]);
-        if let Some(end) = request.windows(4).position(|part| part == b"\r\n\r\n") {
-            let headers = std::str::from_utf8(&request[..end]).map_err(|_| invalid())?;
-            let length = headers
-                .lines()
-                .find_map(|line| {
-                    let (name, value) = line.split_once(':')?;
-                    name.eq_ignore_ascii_case("content-length")
-                        .then(|| value.trim().parse::<usize>().ok())
-                        .flatten()
-                })
-                .ok_or_else(invalid)?;
-            if request.len() == end + 4 + length {
-                break (end + 4, length);
-            }
-            if request.len() > end + 4 + length {
-                return Err(invalid());
-            }
-        }
-    };
-    let headers = std::str::from_utf8(&request[..end]).map_err(|_| invalid())?;
-    if !headers.starts_with("POST /v1/messages HTTP/1.1\r\n") {
-        return Err(invalid());
-    }
+    let (headers, document) = provider_request(&mut socket).await?;
     let marker = headers
         .lines()
         .find_map(|line| {
@@ -1458,31 +1468,43 @@ async fn pipeline_provider_exchange(
                 .then(|| value.trim())
         })
         .ok_or_else(invalid)?;
-    let index = PIPELINE_TASKS
+    let index = plan
+        .tasks
         .iter()
-        .position(|task| *task == marker)
+        .position(|task| task == marker)
         .ok_or_else(invalid)?;
-    let document: Value =
-        serde_json::from_slice(&request[end..end + length]).map_err(|_| invalid())?;
     if document
         != json!({"model":"claude-sonnet-5","max_tokens":100,
-        "messages":[{"role":"user","content":PIPELINE_TASKS[index]}]})
+        "messages":[{"role":"user","content":plan.tasks[index]}]})
     {
         return Err(invalid());
     }
     ready.send(index).await.map_err(|_| invalid())?;
-    if index == 0 {
+    if plan.hold_a && index == 0 {
         release_a.cancelled().await
     }
-    let body = PIPELINE_BODIES[index];
+    let body = &plan.bodies[index];
     let headers = format!(
-        "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\nX-Pipeline-Marker: {}\r\n\r\n",
+        "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\nConnection: close\r\nX-Pipeline-Marker: {}\r\n\r\n",
+        plan.content_type,
         body.len(),
-        PIPELINE_TASKS[index]
+        plan.tasks[index]
     );
     socket.write_all(headers.as_bytes()).await?;
-    socket.write_all(body).await?;
-    socket.shutdown().await
+    if let Some(gate) = &plan.tail_gate {
+        let tail = body.len().checked_sub(1).ok_or_else(invalid)?;
+        socket.write_all(&body[..tail]).await?;
+        gate.cancelled().await;
+        socket.write_all(&body[tail..]).await?;
+    } else {
+        socket.write_all(body).await?;
+    }
+    socket.shutdown().await?;
+    // A global stop, dropped future or failed write/shutdown cannot emit this.
+    if let Some(completed) = completed {
+        completed.send(index).await.map_err(|_| invalid())?;
+    }
+    Ok(())
 }
 async fn pipeline_provider(
     listener: tokio::net::TcpListener,
@@ -1493,9 +1515,45 @@ async fn pipeline_provider(
     stop: CancellationToken,
     live: Arc<AtomicUsize>,
 ) -> io::Result<()> {
+    pipeline_provider_with(
+        listener,
+        tls,
+        version,
+        PipelineSignals {
+            ready,
+            release_a,
+            completed: None,
+        },
+        stop,
+        live,
+        Arc::new(PipelinePlan {
+            tasks: PIPELINE_TASKS.map(str::to_owned).to_vec(),
+            bodies: PIPELINE_BODIES.map(<[u8]>::to_vec).to_vec(),
+            content_type: "application/json",
+            accepts: 2,
+            hold_a: true,
+            tail_gate: None,
+        }),
+    )
+    .await
+}
+async fn pipeline_provider_with(
+    listener: tokio::net::TcpListener,
+    tls: Option<SslContext>,
+    version: Option<SslVersion>,
+    signals: PipelineSignals,
+    stop: CancellationToken,
+    live: Arc<AtomicUsize>,
+    plan: Arc<PipelinePlan>,
+) -> io::Result<()> {
+    let PipelineSignals {
+        ready,
+        release_a,
+        completed,
+    } = signals;
     let mut peers = tokio::task::JoinSet::new();
     let mut first_error = None;
-    for _ in 0..2 {
+    for _ in 0..plan.accepts {
         let accepted =
             tokio::select! { biased; _=stop.cancelled()=>break, value=listener.accept()=>value };
         let (socket, _) = match accepted {
@@ -1509,8 +1567,10 @@ async fn pipeline_provider(
         live.fetch_add(1, Ordering::SeqCst);
         let lease = PipelinePeerLease(live.clone());
         let context = tls.clone();
+        let plan = plan.clone();
         let ready = ready.clone();
         let release_a = release_a.clone();
+        let completed = completed.clone();
         let stopping = stop.clone();
         peers.spawn(async move {
             let _lease = lease;
@@ -1537,10 +1597,12 @@ async fn pipeline_provider(
                         hyper_util::rt::TokioIo::new(socket),
                         ready,
                         release_a,
+                        completed,
+                        plan,
                     )
                     .await
                 } else {
-                    pipeline_provider_exchange(socket, ready, release_a).await
+                    pipeline_provider_exchange(socket, ready, release_a, completed, plan).await
                 }
             };
             tokio::select! { biased; _=stopping.cancelled()=>Ok(()), result=exchange=>result }
@@ -1671,18 +1733,7 @@ async fn buffered_pipeline_case(version: Option<SslVersion>, schedule: PipelineC
     use crate::tls_roots::openssl_spike::gateway_terminal::{Event, FailureCause};
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
     let address = listener.local_addr().unwrap();
-    let mut config = read_config(
-        &json!({"ANTHROPIC_API_KEY":"synthetic-provider-key"}),
-        false,
-        Path::new("/tmp"),
-    )
-    .unwrap();
-    config.local_token = Some(LOCAL_TOKEN.into());
-    config.upstream = format!(
-        "{}://{address}",
-        if version.is_some() { "https" } else { "http" }
-    );
-    config.upstream_timeout_ms = 30_000;
+    let config = buffered_config(address, version, Path::new("/tmp"));
     let (transport, snapshot, tls) =
         crate::tls_roots::openssl_spike::buffered_delivery_fixture(version).unwrap();
     let transport = Arc::new(transport);
@@ -1691,7 +1742,7 @@ async fn buffered_pipeline_case(version: Option<SslVersion>, schedule: PipelineC
         inner: transport.clone(),
         seen: seen.clone(),
     });
-    let router = PipelineRouter::seeded();
+    let router = PipelineRouter::<2>::seeded();
     let records = Arc::new(Mutex::new(Vec::new()));
     let captured = records.clone();
     let overflow = Arc::new(std::sync::atomic::AtomicBool::new(false));
@@ -1828,34 +1879,60 @@ async fn buffered_pipeline_case(version: Option<SslVersion>, schedule: PipelineC
                     .collect();
                 assert_eq!(registered.len(), 2);
                 assert_ne!(registered[0], registered[1]);
-                assert_eq!(before.iter().filter(|event| matches!(event, Event::Attached(_))).count(), 2);
-                assert!(!before.iter().any(|event| matches!(event, Event::Failed(..) | Event::DeliveryClaimed(..))));
+                assert_eq!(
+                    matching(&before, |event| matches!(event, Event::Attached(_))),
+                    2
+                );
+                assert!(
+                    !before.iter().any(|event| matches!(
+                        event,
+                        Event::Failed(..) | Event::DeliveryClaimed(..)
+                    ))
+                );
                 let before_output = io.output();
                 io.flush.lock().unwrap().fail_at = Some(1);
                 io.release(1);
                 until(|| {
                     let state = router.0.lock().unwrap();
                     registry.pending() == 0 && state.completed == [0, 0] && state.released == [1, 1]
-                }).await;
+                })
+                .await;
                 router.check_with_releases([0, 0], [1, 1], 0);
                 // Full A bytes reached the writer, but its flush failed. B must
                 // remain absent from the wire despite its complete clean body.
                 assert_eq!(io.output(), before_output);
                 let after = terminals.events();
                 for id in registered {
-                    let failures: Vec<_> = after.iter().filter_map(|event| match event {
-                        Event::Failed(found, cause) if *found == id => Some(*cause),
-                        _ => None,
-                    }).collect();
-                    assert_eq!(failures, [FailureCause::Downstream(
-                        crate::tls_roots::openssl_spike::gateway_intent::Disconnect::WriteError,
-                    )]);
-                    let deliveries: Vec<_> = after.iter().filter_map(|event| match event {
-                        Event::DeliveryClaimed(found, delivery) if *found == id => Some(*delivery),
-                        _ => None,
-                    }).collect();
+                    let failures: Vec<_> = after
+                        .iter()
+                        .filter_map(|event| match event {
+                            Event::Failed(found, cause) if *found == id => Some(*cause),
+                            _ => None,
+                        })
+                        .collect();
+                    assert_eq!(
+                        failures,
+                        [FailureCause::Downstream(
+                            crate::tls_roots::openssl_spike::gateway_intent::Disconnect::WriteError,
+                        )]
+                    );
+                    let deliveries: Vec<_> = after
+                        .iter()
+                        .filter_map(|event| match event {
+                            Event::DeliveryClaimed(found, delivery) if *found == id => {
+                                Some(*delivery)
+                            }
+                            _ => None,
+                        })
+                        .collect();
                     assert_eq!(deliveries, [Delivery::Failed(Failure::Io)]);
-                    assert_eq!(after.iter().filter(|event| matches!(event, Event::CallbackFinished(found) if *found == id)).count(), 1);
+                    assert_eq!(
+                        matching(
+                            &after,
+                            |event| matches!(event, Event::CallbackFinished(found) if *found == id)
+                        ),
+                        1
+                    );
                 }
                 {
                     let gate = io.flush.lock().unwrap();
@@ -1867,7 +1944,10 @@ async fn buffered_pipeline_case(version: Option<SslVersion>, schedule: PipelineC
                 let rows = records.lock().unwrap();
                 assert_eq!(rows.len(), 4);
                 for task in PIPELINE_TASKS {
-                    let outcomes: Vec<_> = rows.iter().filter(|row| row["event"] == "outcome" && row["prompt_id"] == task).collect();
+                    let outcomes: Vec<_> = rows
+                        .iter()
+                        .filter(|row| row["event"] == "outcome" && row["prompt_id"] == task)
+                        .collect();
                     assert_eq!(outcomes.len(), 1);
                     assert_eq!(outcomes[0]["completion_confirmed"], false);
                     assert_eq!(outcomes[0]["status"], "cancelled");
@@ -2059,30 +2139,7 @@ async fn buffered_pipeline_case(version: Option<SslVersion>, schedule: PipelineC
     drop(gateway);
     drop(observed_transport);
     drop(transport);
-    until(|| {
-        let state = snapshot();
-        [
-            "raw_live",
-            "raw_tasks",
-            "raw_shutdown_handles",
-            "fetch_live",
-            "fetch_tasks",
-            "fetch_shutdown_handles",
-        ]
-        .iter()
-        .all(|field| state[*field] == 0)
-            && [
-                "live_pools",
-                "allocated_blocks",
-                "outstanding_blocks",
-                "queued_bytes",
-                "producer_tasks",
-            ]
-            .iter()
-            .all(|field| state["buffers"][*field] == 0)
-            && state["cache_released"] == true
-    })
-    .await;
+    until(|| buffered_drained(&snapshot())).await;
     assert!(cleanup_errors.is_empty(), "{cleanup_errors:?}");
     assert_eq!(live_peers.load(Ordering::SeqCst), 0);
     assert_eq!(Arc::strong_count(&io.inner.0), 1);
@@ -2100,52 +2157,37 @@ async fn buffered_pipeline_case(version: Option<SslVersion>, schedule: PipelineC
     }
     let events = terminals.events();
     assert_eq!(
-        events
-            .iter()
-            .filter(|event| matches!(event, Event::Registered(_)))
-            .count(),
+        matching(&events, |event| matches!(event, Event::Registered(_))),
         2
     );
     assert_eq!(
-        events
-            .iter()
-            .filter(|event| matches!(event, Event::Attached(_)))
-            .count(),
+        matching(&events, |event| matches!(event, Event::Attached(_))),
         2
     );
     assert_eq!(
-        events
-            .iter()
-            .filter(|event| matches!(event, Event::DeliveryClaimed(_, Delivery::Flushed)))
-            .count(),
+        matching(&events, |event| matches!(
+            event,
+            Event::DeliveryClaimed(_, Delivery::Flushed)
+        )),
         schedule.completed().into_iter().sum::<usize>()
     );
     assert_eq!(
-        events
-            .iter()
-            .filter(|event| matches!(event, Event::DeliveryClaimed(_, Delivery::Failed(_))))
-            .count(),
+        matching(&events, |event| matches!(
+            event,
+            Event::DeliveryClaimed(_, Delivery::Failed(_))
+        )),
         schedule.released().into_iter().sum::<usize>()
     );
     assert_eq!(
-        events
-            .iter()
-            .filter(|event| matches!(event, Event::CallbackFinished(_)))
-            .count(),
+        matching(&events, |event| matches!(event, Event::CallbackFinished(_))),
         2
     );
     assert_eq!(
-        events
-            .iter()
-            .filter(|event| matches!(event, Event::Closed(_)))
-            .count(),
+        matching(&events, |event| matches!(event, Event::Closed(_))),
         1
     );
     assert_eq!(
-        events
-            .iter()
-            .filter(|event| matches!(event, Event::Failed(..)))
-            .count(),
+        matching(&events, |event| matches!(event, Event::Failed(..))),
         schedule.released().into_iter().sum::<usize>()
     );
     assert!(
@@ -2231,3 +2273,6 @@ async fn buffered_gateway_tls12_pipeline_a_final_flush_error_preserves_both_prio
 async fn buffered_gateway_tls13_pipeline_a_final_flush_error_preserves_both_prior_owners() {
     buffered_pipeline_case(Some(SslVersion::TLS1_3), PipelineCase::AFlushError).await;
 }
+
+#[path = "server_eight_saturated_contracts.rs"]
+mod eight_saturated;
