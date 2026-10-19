@@ -183,8 +183,11 @@ pub fn count_payload(document: &JsDocument, model: &str, auto_mode: bool) -> Opt
         return None;
     };
     let model_json = serde_json::to_string(model).ok()?;
-    let mut output = String::from("{");
-    let mut first = true;
+    enum ValuePart<'a> {
+        Original(NodeId),
+        Prepared(&'a str),
+    }
+    let mut parts = Vec::new();
     let mut has_model = false;
     let mut has_thinking = false;
     for (key, node) in object.entries() {
@@ -192,42 +195,56 @@ pub fn count_payload(document: &JsDocument, model: &str, auto_mode: bool) -> Opt
         if !COUNT_FIELDS.contains(&name.as_str()) {
             continue;
         }
-        if !first {
-            output.push(',');
-        }
-        first = false;
-        output.push_str(&key.stringify());
-        output.push(':');
-        match name.as_str() {
+        let value = match name.as_str() {
             "model" => {
                 has_model = true;
-                output.push_str(&model_json);
+                ValuePart::Prepared(&model_json)
             }
             "thinking" => {
                 has_thinking = true;
-                output.push_str(
-                    &adaptation
-                        .clone()
-                        .unwrap_or_else(|| document.stringify_node(*node)),
-                );
+                match adaptation.as_deref() {
+                    Some(thinking) => ValuePart::Prepared(thinking),
+                    None => ValuePart::Original(*node),
+                }
             }
-            _ => output.push_str(&document.stringify_node(*node)),
-        }
+            _ => ValuePart::Original(*node),
+        };
+        parts.push((key.stringify(), value));
     }
     if !has_model {
-        if !first {
-            output.push(',');
-        }
-        first = false;
-        output.push_str("\"model\":");
-        output.push_str(&model_json);
+        parts.push(("\"model\"".into(), ValuePart::Prepared(&model_json)));
     }
-    if !has_thinking && let Some(thinking) = adaptation {
-        if !first {
+    if !has_thinking && let Some(thinking) = adaptation.as_deref() {
+        parts.push(("\"thinking\"".into(), ValuePart::Prepared(thinking)));
+    }
+    let length = parts
+        .iter()
+        .enumerate()
+        .try_fold(2usize, |length, (index, (key, value))| {
+            let value_length = match value {
+                ValuePart::Original(node) => {
+                    document.serialized_node_len_up_to(*node, usize::MAX)?
+                }
+                ValuePart::Prepared(value) => value.len(),
+            };
+            length
+                .checked_add(usize::from(index != 0))?
+                .checked_add(key.len())?
+                .checked_add(1)?
+                .checked_add(value_length)
+        })?;
+    let mut output = String::with_capacity(length);
+    output.push('{');
+    for (index, (key, value)) in parts.into_iter().enumerate() {
+        if index != 0 {
             output.push(',');
         }
-        output.push_str("\"thinking\":");
-        output.push_str(&thinking);
+        output.push_str(&key);
+        output.push(':');
+        match value {
+            ValuePart::Original(node) => document.append_stringified_node(node, &mut output),
+            ValuePart::Prepared(value) => output.push_str(value),
+        }
     }
     output.push('}');
     Some(output)
@@ -830,6 +847,45 @@ mod tests {
             None
         );
         assert_eq!(mock.calls(), 0);
+    }
+
+    #[test]
+    fn exact_projection_capacity_keeps_order_adaptation_and_omitted_bytes_separate() {
+        let padding = "Synthetic é😀 tool. ".repeat(16_384);
+        let omitted = "Synthetic generation-only metadata. ".repeat(32_768);
+        let input_tools = format!(
+            r#"[{{"name":"Read","description":"{padding}","input_schema":{{"type":"object","\udfff":[-0,1e999,"\ud800"],"2":false,"1":true,"2":null}}}}]"#,
+        );
+        let expected_tools = format!(
+            r#"[{{"name":"Read","description":"{padding}","input_schema":{{"1":true,"2":null,"type":"object","\udfff":[0,null,"\ud800"]}}}}]"#,
+        );
+        let input = format!(
+            r#"{{"max_tokens":4096,"messages":[{{"role":"user","content":"Synthetic request"}}],"thinking":{{"type":"disabled"}},"model":"{SONNET}","system":"Synthetic context","metadata":{{"user_id":"{omitted}"}},"tools":{input_tools},"stream":true}}"#,
+        );
+        let body = JsDocument::parse(input.as_bytes()).unwrap();
+        let before = body.stringify();
+        for (target, thinking) in [(HAIKU, "disabled"), ("claude-opus-5", "adaptive")] {
+            let expected = format!(
+                r#"{{"messages":[{{"role":"user","content":"Synthetic request"}}],"thinking":{{"type":"{thinking}"}},"model":"{target}","system":"Synthetic context","tools":{expected_tools}}}"#,
+            );
+            let output = count_payload(&body, target, false).unwrap();
+            assert_eq!(output, expected);
+            assert_eq!(output.capacity(), output.len());
+            assert!(output.len() < omitted.len());
+            assert_eq!(body.stringify(), before);
+        }
+        // No thinking field is invented when no adaptation is applicable.
+        let body = JsDocument::parse(
+            br#"{"messages":[{"role":"user","content":"Synthetic request"}],"model":"claude-sonnet-5","max_tokens":1}"#,
+        ).unwrap();
+        let output = count_payload(&body, HAIKU, false).unwrap();
+        assert_eq!(
+            output,
+            format!(
+                r#"{{"messages":[{{"role":"user","content":"Synthetic request"}}],"model":"{HAIKU}"}}"#,
+            )
+        );
+        assert_eq!(output.capacity(), output.len());
     }
 
     #[test]

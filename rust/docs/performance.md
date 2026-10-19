@@ -1,10 +1,11 @@
 # Native performance investigation
 
-The fourth five-round comparison meets the measured CPU, throughput and latency
-nonregression targets on this workstation, including the previously failing
-large-catalog workload. The rewrite's overall performance gate remains
-incomplete: true peak memory, processing-only latency, additional workloads and
-representative hardware are still unmeasured. Earlier failed runs remain below.
+Synthetic comparisons retain observed CPU, throughput and latency improvements
+on developer workstations. The latest ordinary-process lifetime-peak comparison
+still misses the memory target at 128 concurrent requests. The rewrite's overall
+performance gate remains incomplete: high-concurrency memory, final-candidate
+processing-only latency, additional workloads and representative hardware remain
+open. Earlier failed runs remain below.
 
 ## First comparison
 
@@ -373,3 +374,45 @@ All other protocol workloads, installed artifacts, representative hardware,
 allocation/soak and real-provider gates remain open. Neither a successful
 driver exit nor the passing observed metrics override the memory failure or
 qualify the full rewrite.
+
+## Exact JSON output allocation
+
+The [next selected v5 comparison](../parity/measurements/native-exact-json-capacity-memory-summary.json)
+measures a focused allocation change over parent checkpoint `52b79e8`. The
+authoritative JSON writer is unchanged. Its existing iterative length calculation
+now reserves exactly the required output bytes; token-count projection appends
+borrowed selected fields into one output buffer, avoiding large temporary field
+strings. Model/thinking adaptation, property order, deadlines and bounds remain
+unchanged.
+
+Complete byte comparisons of four synthetic outputs pass. For the 286,845-byte
+request, serialized document/prepared buffers use 286,845 bytes of capacity
+instead of 528,384; the 286,838-byte count payload uses 286,838 instead of 573,674.
+These are observed String capacities, not allocator totals or process RSS.
+
+The fresh ordinary executable completed the same five paired rounds, all
+1/8/32/128 groups and all 60 rows with exact response bytes and required calls.
+The separate 12-row deterministic validation also passes.
+
+| Concurrency | Native/Node lifetime peak RSS | 95% interval | Unchanged 0.7 target |
+| --- | --- | --- | --- |
+| 1 | 0.139 | 0.138–0.143 | Observed met |
+| 8 | 0.207 | 0.203–0.246 | Observed met |
+| 32 | 0.347 | 0.312–0.371 | Observed met |
+| 128 | 0.865 | 0.849–0.906 | **Not met** |
+
+At 128 clients, native peaks were 363–372 MiB and Node peaks were 411–429 MiB.
+The earlier 0.915 result remains retained; this candidate still misses the
+required reduction. CPU/request ratios of 0.460–0.505, idle RSS of 0.164–0.166
+and throughput of 1.71–1.76 meet their observed targets. All sixteen complete
+response/first-body p95/p99 checks detect no regression under the original
+allowance and noise floor. Complete HTTP timing does not qualify processing-only
+latency.
+
+All 40 lifetime collectors are verified; all 120 descriptor snapshots remain
+unverified. This single candidate experiment used the normal-use 16 GiB M4,
+with AC power observed before, during and after, usual apps open and local
+builds/tests/compression paused. Fresh release compilation and hashes are
+retained, but this is not a clean independent reproduction or installed native
+release qualification. Other workloads, representative hardware, real providers
+and the full rewrite remain unqualified. No failing result or threshold changed.

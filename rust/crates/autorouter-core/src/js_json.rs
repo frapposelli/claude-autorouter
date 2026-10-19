@@ -992,17 +992,28 @@ impl JsDocument {
     /// Only successful complete lengths are memoized; every call checks its
     /// own limit. Clones own independent cells, and setters invalidate first.
     pub fn serialized_len_up_to(&self, limit: usize) -> Option<usize> {
-        if let Some(&length) = self.serialized_len.get() {
+        self.serialized_node_len_up_to(self.root, limit)
+    }
+
+    /// Exact serialized charge for a known node, without materializing JSON.
+    /// Subtrees never consult or populate the document root's length memo.
+    /// Invalid node IDs, arithmetic overflow and charges above the limit fail.
+    pub fn serialized_node_len_up_to(&self, root: NodeId, limit: usize) -> Option<usize> {
+        if root == self.root
+            && let Some(&length) = self.serialized_len.get()
+        {
             return (length <= limit).then_some(length);
         }
         #[cfg(test)]
-        LENGTH_TRAVERSALS.with(|count| count.set(count.get() + 1));
+        if root == self.root {
+            LENGTH_TRAVERSALS.with(|count| count.set(count.get() + 1));
+        }
         enum Cursor<'a> {
             Node(NodeId),
             Array(&'a [NodeId], usize),
             Object(&'a [(JsString, NodeId)], usize),
         }
-        let mut stack = vec![Cursor::Node(self.root)];
+        let mut stack = vec![Cursor::Node(root)];
         let mut length = 0usize;
         let mut number = ryu_js::Buffer::new();
         while let Some(cursor) = stack.pop() {
@@ -1063,7 +1074,9 @@ impl JsDocument {
         }
         // Computing before set avoids a full traversal inside get_or_init.
         // Concurrent cold readers may compute independently; only success is stored.
-        let _ = self.serialized_len.set(length);
+        if root == self.root {
+            let _ = self.serialized_len.set(length);
+        }
         Some(length)
     }
 
@@ -1113,9 +1126,18 @@ impl JsDocument {
         Ok(())
     }
     pub fn stringify_node(&self, root: NodeId) -> String {
-        let mut output = String::new();
-        self.write_node(root, &mut output);
+        let length = self
+            .serialized_node_len_up_to(root, usize::MAX)
+            .expect("valid JSON node length fits usize");
+        let mut output = String::with_capacity(length);
+        self.append_stringified_node(root, &mut output);
         output
+    }
+
+    /// Append one authoritative node to an existing UTF-8 JSON buffer.
+    /// Number semantics, UTF-16 strings and property order match `stringify_node`.
+    pub fn append_stringified_node(&self, root: NodeId, output: &mut String) {
+        self.write_node(root, output);
     }
 
     /// Append the authoritative JSON representation of one node. Iterative
@@ -1244,6 +1266,95 @@ impl JsDocument {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn subtree_lengths_and_append_do_not_alias_the_root_memo() {
+        let mut document = JsDocument::parse(
+            br#"{"nested":{"2":1e400,"1":-0,"text":"\ud800\u00e9\ud83d\ude00\n"},"tail":true}"#,
+        )
+        .unwrap();
+        let nested = document.get(document.root(), "nested").unwrap();
+        let child = r#"{"1":0,"2":null,"text":"\ud800é😀\n"}"#;
+        let whole = format!(r#"{{"nested":{child},"tail":true}}"#);
+        assert_eq!(
+            document.serialized_node_len_up_to(nested, child.len() - 1),
+            None
+        );
+        assert_eq!(
+            document.serialized_node_len_up_to(nested, child.len()),
+            Some(child.len())
+        );
+        assert_eq!(
+            document.serialized_node_len_up_to(usize::MAX, usize::MAX),
+            None
+        );
+        assert!(document.serialized_len.get().is_none());
+        assert_eq!(document.stringify_node(nested), child);
+        assert!(document.serialized_len.get().is_none());
+        assert_eq!(document.serialized_len_up_to(whole.len() - 1), None);
+        assert!(document.serialized_len.get().is_none());
+        assert_eq!(
+            document.serialized_len_up_to(whole.len()),
+            Some(whole.len())
+        );
+        assert_eq!(document.serialized_len.get(), Some(&whole.len()));
+        assert_eq!(document.serialized_node_len_up_to(nested, 0), None);
+        assert_eq!(
+            document.serialized_node_len_up_to(nested, child.len()),
+            Some(child.len())
+        );
+        assert_eq!(
+            document.serialized_node_len_up_to(usize::MAX, usize::MAX),
+            None
+        );
+        assert_eq!(document.serialized_len.get(), Some(&whole.len()));
+        let mut appended = String::with_capacity(7 + child.len());
+        appended.push_str("prefix:");
+        document.append_stringified_node(nested, &mut appended);
+        assert_eq!(appended, format!("prefix:{child}"));
+        assert_eq!(appended.capacity(), appended.len());
+        document
+            .set_field_json(nested, "text", br#""replacement\udc00""#)
+            .unwrap();
+        assert!(document.serialized_len.get().is_none());
+        let changed_child = r#"{"1":0,"2":null,"text":"replacement\udc00"}"#;
+        assert_eq!(
+            document.serialized_node_len_up_to(nested, changed_child.len() - 1),
+            None
+        );
+        assert_eq!(
+            document.serialized_node_len_up_to(nested, changed_child.len()),
+            Some(changed_child.len())
+        );
+        assert!(document.serialized_len.get().is_none());
+        let changed_whole = format!(r#"{{"nested":{changed_child},"tail":true}}"#);
+        assert_eq!(
+            document.serialized_len_up_to(changed_whole.len()),
+            Some(changed_whole.len())
+        );
+        assert_eq!(document.stringify(), changed_whole);
+    }
+
+    #[test]
+    fn exact_wire_capacity_preserves_large_deep_unicode_and_number_bytes() {
+        let payload = r#"é😀\u0000\n\ud800"#.repeat(16_384);
+        let input = format!(
+            r#"{}{{"2":1e400,"1":-0,"data":"{payload}"}}{}"#,
+            "[".repeat(10_000),
+            "]".repeat(10_000),
+        );
+        let expected = format!(
+            r#"{}{{"1":0,"2":null,"data":"{payload}"}}{}"#,
+            "[".repeat(10_000),
+            "]".repeat(10_000),
+        );
+        let document = JsDocument::parse(input.as_bytes()).unwrap();
+        assert_eq!(document.serialized_len_up_to(expected.len() - 1), None);
+        let wire = document.stringify();
+        assert_eq!(wire, expected);
+        assert_eq!(wire.capacity(), wire.len());
+        assert_eq!(document.serialized_len_up_to(wire.len()), Some(wire.len()));
+    }
 
     #[test]
     fn compact_subtree_owns_only_reachable_source_values_and_a_fresh_memo() {
