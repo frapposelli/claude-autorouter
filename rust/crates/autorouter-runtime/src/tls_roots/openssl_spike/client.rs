@@ -287,6 +287,12 @@ pub(super) fn raw_pool_connector(
         idle: None,
     })
 }
+impl Connector {
+    pub(super) fn observe_idle(&mut self, probe: super::idle_close::Probe) {
+        assert!(self.idle.is_none(), "idle observer installed once");
+        self.idle = Some(probe);
+    }
+}
 impl Service<Uri> for Connector {
     type Response = TokioIo<TransportIo>;
     type Error = io::Error;

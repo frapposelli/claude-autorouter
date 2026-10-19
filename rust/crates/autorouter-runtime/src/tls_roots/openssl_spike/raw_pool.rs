@@ -749,6 +749,7 @@ pub(super) struct RawPoolClient {
     pub(super) fetch_counts: Arc<Counts>,
     pub(super) raw_sessions: RawCache,
     pub(super) probe: Probe,
+    idle: Option<super::idle_close::Probe>,
 }
 impl RawPoolClient {
     pub(super) fn new(snapshot: &TrustSnapshot) -> Result<Self, HttpError> {
@@ -758,10 +759,26 @@ impl RawPoolClient {
         snapshot: &TrustSnapshot,
         gate: Option<Arc<super::abort::DialGate>>,
     ) -> Result<Self, HttpError> {
+        Self::with_controls(snapshot, gate, None)
+    }
+    pub(super) fn with_idle(
+        snapshot: &TrustSnapshot,
+        probe: super::idle_close::Probe,
+    ) -> Result<Self, HttpError> {
+        Self::with_controls(snapshot, None, Some(probe))
+    }
+    fn with_controls(
+        snapshot: &TrustSnapshot,
+        gate: Option<Arc<super::abort::DialGate>>,
+        idle: Option<super::idle_close::Probe>,
+    ) -> Result<Self, HttpError> {
         let raw_counts = Arc::new(Counts::default());
         let raw_sessions = Arc::new(Mutex::new(Cache::new(100)));
-        let connector =
+        let mut connector =
             raw_pool_connector(snapshot, raw_counts.clone(), raw_sessions.clone(), gate)?;
+        if let Some(probe) = &idle {
+            connector.observe_idle(probe.clone());
+        }
         let fallback = SpikeHttpClient::with_snapshot(false, snapshot)?;
         let fetch_counts = fallback.fetch_counts.clone();
         let probe = Probe::default();
@@ -783,6 +800,7 @@ impl RawPoolClient {
             fetch_counts,
             raw_sessions,
             probe,
+            idle,
         })
     }
     pub(super) fn snapshot(&self) -> Trace {
@@ -837,6 +855,14 @@ impl RawPoolClient {
             )
         {
             return Err(HttpError::InvalidRequest);
+        }
+        if let Some(probe) = &self.idle {
+            // CaptureAssignment is single-owner and a second attachment replaces
+            // the first. This closed replay profile never combines legacy Intent.
+            if request.extensions().get::<Arc<Intent>>().is_some() {
+                return Err(HttpError::InvalidRequest);
+            }
+            probe.attach(&mut request);
         }
         if let Some(intent) = request.extensions().get::<Arc<Intent>>().cloned() {
             intent.install(capture_http1_assignment(&mut request));

@@ -120,6 +120,15 @@ pub(in super::super) struct BufferedRawPoolClient {
     pub(in super::super) probe: BufferProbe,
 }
 impl BufferedRawPoolClient {
+    pub(in super::super) fn with_idle(
+        snapshot: &TrustSnapshot,
+        probe: super::super::idle_close::Probe,
+    ) -> Result<Self, HttpError> {
+        Ok(Self {
+            inner: RawPoolClient::with_idle(snapshot, probe)?,
+            probe: BufferProbe::default(),
+        })
+    }
     pub(in super::super) fn new(snapshot: &TrustSnapshot) -> Result<Self, HttpError> {
         Ok(Self {
             inner: RawPoolClient::new(snapshot)?,
@@ -236,3 +245,6 @@ mod tests;
 
 #[path = "raw_pool_buffered_child.rs"]
 mod child;
+
+#[path = "raw_pool_buffered_replay.rs"]
+mod replay;

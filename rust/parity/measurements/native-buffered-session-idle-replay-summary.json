@@ -1,0 +1,542 @@
+{
+  "schema_version": 1,
+  "kind": "native_test_only_buffered_session_idle_replay_checkpoint",
+  "status": "CHECKPOINT_VALIDATION_COMPLETE_SESSION_IDLE_PARITY_STILL_FAILED",
+  "recorded_at_utc": "2026-10-19T14:20:09.572968+00:00",
+  "scope": "Fresh test-only buffered OpenSSL constructor session/idle replay through actual Gateway. Ordinary native transport remains Rustls. No shipping backend, certificate/handshake, session-cache/raw-pool policy, retry, performance gate, corpus or oracle change.",
+  "source": {
+    "snapshot": {
+      "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/source-candidate.json",
+      "bytes": 119387,
+      "sha256": "632d915b57ab8d44185f5d0448beac76808191ff9d9b1ab1e67a00713e9f5e01"
+    },
+    "raw_inputs": 710,
+    "frozen_reference_inputs": 111,
+    "shape": "Three existing Rust test-only files replaced, one new test-only replay module, two source-only JS driver selectors/child-exit diagnostics. Native bundle inventory gains the one module.",
+    "adoption": {
+      "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/adoption.json",
+      "bytes": 873,
+      "sha256": "3504947046212568287de7d04af576ac13ad840ba7cd80d9431ca20b58e675e8"
+    },
+    "base_commit": "257a26e71091db4c6b1011484e4c94ced02c418a"
+  },
+  "runtime_test_executable": {
+    "identity_receipt": {
+      "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/executable-identity.json",
+      "bytes": 1688,
+      "sha256": "77693d161f63aa0dbd9eb440c0173e8b0db64637dd44c0c06924ef3347b850d5"
+    },
+    "retained": {
+      "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/retained/autorouter-runtime-libtest",
+      "bytes": 32148880,
+      "sha256": "83f87286f582d3ecf4c51e0affaee4f0eff1bbf9e34334fadcb5b536d645168a"
+    },
+    "actual_cargo": {
+      "target_kind": [
+        "lib"
+      ],
+      "target_name": "autorouter_runtime",
+      "profile": {
+        "opt_level": "3",
+        "debuginfo": 0,
+        "debug_assertions": false,
+        "overflow_checks": false,
+        "test": true
+      },
+      "features": [
+        "default"
+      ],
+      "fresh": false
+    },
+    "meaning": "Fresh optimized runtime library-test executable compiled from current source with cached dependencies. Runtime default feature list does not make cfg(test) constructors shipping code; this is not an ordinary CLI or clean independent reproduction."
+  },
+  "comparisons": [
+    {
+      "family": "session-legacy",
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-b2-sessions-0aa886e3c32f57418d783f79655ddb8f0f8d43e30935d323564f6cbc352b9e3d.json",
+        "bytes": 69635,
+        "sha256": "0aa886e3c32f57418d783f79655ddb8f0f8d43e30935d323564f6cbc352b9e3d"
+      },
+      "cases": 18,
+      "matched": 13,
+      "reported_passed": false,
+      "fatal": null,
+      "mismatched_ids": [
+        "TLSv1.2-abrupt-after-complete",
+        "TLSv1.2-cancel-body",
+        "TLSv1.3-rejected-host-then-valid",
+        "TLSv1.3-abrupt-after-complete",
+        "TLSv1.3-cancel-body"
+      ],
+      "all_cleanup_predicates_true": true,
+      "both_application_contracts_true_all18": true,
+      "executions": 36,
+      "all_child_exit_code0_signalnull": true
+    },
+    {
+      "family": "session-buffered",
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-buffered-sessions-1851bab842267e33559e2885e5b08d687f92d343128001e3dd7ac254d8fc26cf.json",
+        "bytes": 96143,
+        "sha256": "1851bab842267e33559e2885e5b08d687f92d343128001e3dd7ac254d8fc26cf"
+      },
+      "cases": 18,
+      "matched": 13,
+      "reported_passed": false,
+      "fatal": null,
+      "mismatched_ids": [
+        "TLSv1.2-abrupt-after-complete",
+        "TLSv1.2-cancel-body",
+        "TLSv1.3-rejected-host-then-valid",
+        "TLSv1.3-abrupt-after-complete",
+        "TLSv1.3-cancel-body"
+      ],
+      "all_cleanup_predicates_true": true,
+      "both_application_contracts_true_all18": true,
+      "executions": 36,
+      "all_child_exit_code0_signalnull": true
+    },
+    {
+      "family": "idle-legacy",
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-idle-close-056b1e3158fcb266ad8db1ef4f925621ee297bd65cc65d02e9662826907d3e8f.json",
+        "bytes": 56485,
+        "sha256": "056b1e3158fcb266ad8db1ef4f925621ee297bd65cc65d02e9662826907d3e8f"
+      },
+      "cases": 10,
+      "matched": 4,
+      "reported_passed": false,
+      "fatal": null,
+      "mismatched_ids": [
+        "TLSv1.2-unbarriered-2",
+        "TLSv1.2-unbarriered-3",
+        "TLSv1.2-unbarriered-4",
+        "TLSv1.3-unbarriered-7",
+        "TLSv1.3-unbarriered-8",
+        "TLSv1.3-unbarriered-9"
+      ],
+      "all_cleanup_predicates_true": true,
+      "executions": 20,
+      "six_unbarriered_rows_retained_and_mismatched": true,
+      "four_controlled_cases_match": true
+    },
+    {
+      "family": "idle-buffered",
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-buffered-idle-close-b0a57614f17f47e6f035353fc3791de6ecb2d5a30a96bdf47d0674f11407f506.json",
+        "bytes": 66474,
+        "sha256": "b0a57614f17f47e6f035353fc3791de6ecb2d5a30a96bdf47d0674f11407f506"
+      },
+      "cases": 10,
+      "matched": 4,
+      "reported_passed": false,
+      "fatal": null,
+      "mismatched_ids": [
+        "TLSv1.2-unbarriered-2",
+        "TLSv1.2-unbarriered-3",
+        "TLSv1.2-unbarriered-4",
+        "TLSv1.3-unbarriered-7",
+        "TLSv1.3-unbarriered-8",
+        "TLSv1.3-unbarriered-9"
+      ],
+      "all_cleanup_predicates_true": true,
+      "executions": 20,
+      "six_unbarriered_rows_retained_and_mismatched": true,
+      "four_controlled_cases_match": true
+    },
+    {
+      "family": "handoff",
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/buffered-response-differential-e1aaad66c756219be737b92b36d11e559088195c9883fa1c16f9bd1d45137aea.json",
+        "bytes": 5477429,
+        "sha256": "e1aaad66c756219be737b92b36d11e559088195c9883fa1c16f9bd1d45137aea"
+      },
+      "cases": 162,
+      "matched": 162,
+      "reported_passed": true,
+      "fatal": null,
+      "executions": 324,
+      "nine_shared_fields": [
+        "upstream_status",
+        "first_failure_cause",
+        "delivery_completed",
+        "wire_status",
+        "body_bytes",
+        "body_sha256",
+        "complete_framing",
+        "trailer_bytes",
+        "consumer_released"
+      ],
+      "same_fresh_executable_all162": true,
+      "comparison_scope": "Both retained side-specific schedules/cleanup and complete observation pins pass; all nine comparison projections independently recomputed. The audit does not reimplement every internal child event assertion."
+    }
+  ],
+  "interpretation": [
+    "Both whole18 session runs remain13matched/5mismatched. All complete responses satisfy existing application contracts and cleanup succeeds; full observed handshake/request/connection equality still fails on the five retained IDs.",
+    "Cancel-body TLS1.2/TLS1.3 preserves exact partial bytes but native resumes the next TLS connection, unlike Node. Buffered counters show two clean sources and one cancelled source with all returned live resources zero. This is a request-qualified abort/session-eviction integration gap, not evidence of a buffer leak or permission to evict on ordinary Drop.",
+    "The two abrupt-after-complete differences are unbarriered close-versus-assignment observations; controlled barrier results do not pass those rows. TLS1.3 rejected-host still returns first502 without sending HTTP, but a server handshake callback differs. No retry or verification weakening is introduced.",
+    "Both idle whole10 runs retain4matched/6mismatched. The four controlled cases match; all six unbarriered rows remain failures. Cleanup success alone is not parity.",
+    "All162 declared byte/handoff comparisons match across324 executions using the same fresh runtime-test artifact. These byte/failure/ownership relations do not resolve the independent session/idle mismatches."
+  ],
+  "focused_validation": {
+    "selector_negatives": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/selector-negatives.json",
+        "bytes": 1123,
+        "sha256": "30cd356af3723f88757b789e756c6ca5ddb9ccd8ca1caf4709f47bb65f904d24"
+      },
+      "output": {
+        "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/selector-negatives.stdout",
+        "bytes": 7395,
+        "sha256": "f8fa13be6623bb6e9c9d8a5700af4aa7882165007981173492d74f61bc11dabd"
+      },
+      "passed": 8,
+      "ids": [
+        "sessions-unknown",
+        "sessions-empty",
+        "sessions-duplicate",
+        "sessions-missing-inputs",
+        "idle-close-unknown",
+        "idle-close-empty",
+        "idle-close-duplicate",
+        "idle-close-missing-inputs"
+      ],
+      "scope": "Unknown/empty/duplicate constructor and missing-input rejection for each driver, before harness/provider admission."
+    },
+    "mixed_profile": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/mixed-profile.json",
+        "bytes": 1280,
+        "sha256": "4063facf67a4a5a9886f19380bbb02d793dae5027559f4a8655be7b5bf926ab7"
+      },
+      "passed": 1,
+      "failed": 0,
+      "filtered": 589,
+      "scope": "One actual valid loopback GET with mixed legacy Intent/idle profile rejects before assignment/admission, preserving counters/cache/Intent/idle observations."
+    },
+    "ownership_units": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/ownership-units.json",
+        "bytes": 1191,
+        "sha256": "bfb99bb2228564e8755b2cb0f22924289d003d9e06a35ec849ba572e0b9ebde0"
+      },
+      "passed": 58,
+      "failed": 0,
+      "filtered": 532,
+      "scope": "Focused raw-pool/buffer ownership controls. Includes the same mixed guard and environment-gated child entrypoints;58is not58additional protocol schedules. Expected diagnostic/panic output is retained, not called empty."
+    },
+    "format": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/fmt.json",
+        "bytes": 1035,
+        "sha256": "23fdee2149d3033cef7be2c7854f3a38a639d5e1390fb5d91f289d56a5620d99"
+      },
+      "exit_code": 0
+    },
+    "auditor": {
+      "report": {
+        "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/replay-audit-v2.json",
+        "bytes": 146846,
+        "sha256": "fe5260a4d6309c457250ea24261b28bb329f80e226abe2e794c9a2d4f5b46c71"
+      },
+      "script": {
+        "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/audit-replay-results-v2.py",
+        "bytes": 27502,
+        "sha256": "edd616cd53c583160bcf2532ae4dec4991a58c1435da3665f836797465c003b2"
+      },
+      "owner": {
+        "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/replay-audit.json",
+        "bytes": 2458,
+        "sha256": "0769fa57d2912978b4113d9f0266d2ba933474bcff843609150a2839240c3d81"
+      },
+      "all_five_reports_complete": true,
+      "integrity": true,
+      "counts": [
+        13,
+        13,
+        4,
+        4,
+        162
+      ],
+      "scope": "Metadata integrity/cardinality/child-exit/lineage and original predicate recomputation; integrity=true does not promote a false comparison to passed."
+    },
+    "overlap": "Mixed-profile control is included in58focused unit passes; do not sum it as59distincttests. Environment-gated child default returns are not protocol evidence."
+  },
+  "terminal_owners": [
+    {
+      "label": "build-libtest",
+      "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/build-libtest.json",
+      "bytes": 1159,
+      "sha256": "55276b1e30d51c10f37218865c1679c6d8e7b51096f4a63c322686e9bca62316",
+      "exit_code": 0
+    },
+    {
+      "label": "sessions-legacy",
+      "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/sessions-legacy.json",
+      "bytes": 1288,
+      "sha256": "3615b3815e39423bca4db7ae17d9995b408c0ab2ea0790176e7a7fa0f34c0f1c",
+      "exit_code": 1
+    },
+    {
+      "label": "sessions-buffered",
+      "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/sessions-buffered.json",
+      "bytes": 1290,
+      "sha256": "58e6036c6cf27d2076ce258537dd7d26ed9ba99ec4dbf5cbd7bee1965cdef11b",
+      "exit_code": 1
+    },
+    {
+      "label": "idle-close-legacy",
+      "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/idle-close-legacy.json",
+      "bytes": 1289,
+      "sha256": "19796d521e99c9f62038bba5f6f89a249d55bc783f319fe5f167dccc7d5c46de",
+      "exit_code": 1
+    },
+    {
+      "label": "idle-close-buffered",
+      "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/idle-close-buffered.json",
+      "bytes": 1290,
+      "sha256": "b899110ada96d914623576c1bc9006ab7502569590947b901445fe334bfcd6f1",
+      "exit_code": 1
+    },
+    {
+      "label": "byte-handoff",
+      "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/byte-handoff.json",
+      "bytes": 1236,
+      "sha256": "8c5cf23e7e28b266c501ae771b8915cfd1d741152df6164dff6aa45e49816be2",
+      "exit_code": 0
+    }
+  ],
+  "owner_integrity": "Every listed terminal owner has null owner_failure, source710/frozen111 verified and no post-execution mismatches. Four differential owner exit1 results are retained failures, not harness failures.",
+  "historical_results": {
+    "qualification_document": {
+      "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/qualification-guide-before-replay.md",
+      "bytes": 8467,
+      "sha256": "569d322e6eab89b180688d356c19dc4122bed134f4f437bbfa5c9637a7c1661b",
+      "source_commit": "257a26e71091db4c6b1011484e4c94ced02c418a",
+      "source_path": "rust/docs/openssl-transport-qualification.md"
+    },
+    "old_original_sessions": "13/18",
+    "old_intent_sessions": "15/18",
+    "old_idle_close": "4/10",
+    "old_raw_pool_sessions": "15/18",
+    "meaning": "Different historical constructors/executables remain separately scoped. Current fresh legacy13/18 does not overwrite old15/18 or change any old report."
+  },
+  "references": {
+    "source_diagnosis": {
+      "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/independent-session-actual-diagnosis-and-qualified-abort-outline.json",
+      "bytes": 14807,
+      "sha256": "38cbaf7eb724093039c00e11186582c53649da7c823082844b455552cb890809"
+    },
+    "formatted_selection_review": {
+      "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/independent-formatted-selection-review.json",
+      "bytes": 8045,
+      "sha256": "a7c1cc0584e0c82fa6e876e3215b24f79cde67aa00c3706aec0516966be0f71b"
+    },
+    "predeclared_controls": {
+      "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/predeclared-controls.json",
+      "bytes": 1490,
+      "sha256": "65e0a0f8883b1e28dbc896f9bb860ac2ef7dd94256687015af26cc50bbf0d5d2"
+    }
+  },
+  "limits": [
+    "Full session/idle/backend equivalence remains false. No shipping OpenSSL integration, Rustls replacement, performance measurement, provider/model/task quality or supported-platform/minimumOS/WSL/TLS qualification.",
+    "GET session replay is not routed model/task continuity evidence. Primitive and controlled-barrier controls cannot replace unresolved unbarriered comparisons.",
+    "Synthetic loopback TLS and fake credentials only. Bounded owners retain direct-child/teardown limitations and do not prove universal crash/descendant cleanup or external network instrumentation.",
+    "No new original588definition,53limit,27key or whole-area acceptance follows. Archive geometry is separately advisory until Root actual export/inspect/restore. No schema7/joint-budget/shipping-cap or benchmark-target change.",
+    "The separate approved0.8 host/workload memory observation and parent CI do not qualify this test-only transport or current source. Release/defaultcutover/provenance remain separately gated."
+  ],
+  "checkpoint_validation": {
+    "full_workspace": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/workspace-ci.json",
+        "bytes": 1242,
+        "sha256": "1f31137064e98264325a29a0f82ffc81ebf8a49bc97864e26651a88f94287c0a"
+      },
+      "exit_code": 0,
+      "owner_failure": null,
+      "source_inputs_verified": 710,
+      "frozen_inputs_verified": 111,
+      "post_execution_mismatches": [],
+      "kind": "full_workspace_outcome_continuity",
+      "groups": 66,
+      "passed": 1551,
+      "failed": 0,
+      "ignored": 11,
+      "filtered": 0,
+      "all_previous_named_outcomes_retained": true,
+      "old_named_outcomes": 1559,
+      "new_named_outcomes": 1562,
+      "added": [
+        {
+          "name": "tls_roots::openssl_spike::raw_pool::buffered::replay::idle_gateway_child",
+          "result": "ok",
+          "multiplicity": 1
+        },
+        {
+          "name": "tls_roots::openssl_spike::raw_pool::buffered::replay::session_gateway_child",
+          "result": "ok",
+          "multiplicity": 1
+        },
+        {
+          "name": "tls_roots::openssl_spike::raw_pool::buffered::replay::mixed_legacy_intent_and_idle_profile_rejects_before_admission",
+          "result": "ok",
+          "multiplicity": 1
+        }
+      ],
+      "scope": "Two new childentry tests return immediately in ordinary unit runs; actual protocol proof is retained separately in whole18/10 replay reports. Third new test is meaningful mixed-profile admission rejection.",
+      "continuity_report": {
+        "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/workspace-outcome-continuity.json",
+        "bytes": 971,
+        "sha256": "4f9b315b5e318e06a542538451a8643ef480cbcb818b1a38c76094a2029c9edf"
+      }
+    },
+    "strict_clippy": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/clippy.json",
+        "bytes": 1274,
+        "sha256": "b1a39a618f9c34452ced3f50940d1d479b62fc1d7d84c784824ff1d023ffc00f"
+      },
+      "exit_code": 0,
+      "owner_failure": null,
+      "source_inputs_verified": 710,
+      "frozen_inputs_verified": 111,
+      "post_execution_mismatches": [],
+      "supplier_warning": "Retained pre-existing hyper-util unused timer parameter warning; workspace strict Clippy exits0."
+    },
+    "node_check": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/node-check.json",
+        "bytes": 1010,
+        "sha256": "752c941ea7c420d9bf35d860ac6a4fab420860e76e664eea9a31c6da6a40c905"
+      },
+      "exit_code": 0,
+      "owner_failure": null,
+      "source_inputs_verified": 710,
+      "frozen_inputs_verified": 111,
+      "post_execution_mismatches": []
+    },
+    "node_tests": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/node-tests-022.json",
+        "bytes": 1162,
+        "sha256": "6eda1592d85d0ec7c5044575ef0b29d7a5562e11309874c3a3bae904092faa41"
+      },
+      "exit_code": 0,
+      "owner_failure": null,
+      "source_inputs_verified": 710,
+      "frozen_inputs_verified": 111,
+      "post_execution_mismatches": [],
+      "passed": 645,
+      "failed": 0,
+      "child_umask": "022",
+      "earlier_restrictive_umask077": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/node-tests.json",
+          "bytes": 1000,
+          "sha256": "30287f86329dc1c0baebc822ec90e1cb1327de8ccec9f9e00df56d5000f11a18"
+        },
+        "passed": 644,
+        "failed": 1,
+        "correction": {
+          "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/node-umask-condition-correction.json",
+          "bytes": 805,
+          "sha256": "dea37b857c97c43de3f86d119c1add4d21efdc1194c0f87bb8f6f6c4208a9d87"
+        },
+        "meaning": "Fixture expects creation0644 while owner077 masks to0600; original result retained. Successful run restores prior022 conditions; no code/test/oracle edit."
+      }
+    },
+    "node_package": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/node-package-022.json",
+        "bytes": 1178,
+        "sha256": "5cb7956fa6390f1aad537cc825210b59100b4fa37e6f87f7dda3d6d4bb98e6b2"
+      },
+      "exit_code": 0,
+      "owner_failure": null,
+      "source_inputs_verified": 710,
+      "frozen_inputs_verified": 111,
+      "post_execution_mismatches": [],
+      "archive_files": 58,
+      "lifecycle_scenarios": 17,
+      "child_umask": "022",
+      "shipping_engine": "unchanged JavaScript0.5.2; doesnot qualify installed native candidate"
+    },
+    "source_archive_export_inspect_restore": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/cli-roundtrip.json",
+        "bytes": 1044,
+        "sha256": "8f067fa6e8ed4adb7b5cf8006940b3924568e5c6d144b9879954da3c4815f20b"
+      },
+      "exit_code": 0,
+      "owner_failure": null,
+      "source_inputs_verified": 710,
+      "frozen_inputs_verified": 111,
+      "post_execution_mismatches": [],
+      "passed": true,
+      "transfer_schema": 7,
+      "source_inputs": 710,
+      "native_members": 712,
+      "full_reference_files": 113,
+      "delta_files": 109,
+      "source_cap": 33554432,
+      "joint_cap": 41943040,
+      "actual_joint_expanded": 34436608,
+      "actual_joint_logical": 34460413,
+      "all_native_bytes_and_indexed_manifest_verified": true,
+      "all_restored_reference_bytes_modes_verified": true,
+      "legacy_scope": "Current payload exceeds the fixed legacy budget; producer rejects before destination creation. Legacy reader retag and exact boundaries are unit controls.",
+      "provider_calls": 0,
+      "scope": "Local synthetic CLI and independent data inspection only. Restored code never executed. No platform/performance/release qualification.",
+      "result": {
+        "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/cli-roundtrip-result.json",
+        "bytes": 732,
+        "sha256": "a37e7221ca1fa19ef7b3fa831fd1584ff7f5be03171023d7e0194b649979c678"
+      },
+      "transfer_manifest": {
+        "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/transfer/transfer-manifest.json",
+        "bytes": 1963,
+        "sha256": "32c1f1a3c3fbd54bfcc3154658b25960dc14db5236e38511233a1b710a1b05c4"
+      },
+      "source_archive": {
+        "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/transfer/native-source.cpio.gz",
+        "bytes": 3069087,
+        "sha256": "7ae5cbd8f9580907828450c5d856a0dc60711c2e3fc382217bffe575ad51581c"
+      },
+      "source_expanded_bytes": 33101312,
+      "source_expanded_headroom_bytes": 453120,
+      "complete_current_native_inputs": 710,
+      "retained_helper_continuity": {
+        "path": "artifacts/rust-rewrite/buffered-session-idle-validation-20261019-1/retained-helper-codec-continuity.json",
+        "bytes": 875,
+        "sha256": "89e42f4ba8cf8919a8276a042b6c4ecd2ef4203dff3747fbe272c07de295bff4"
+      },
+      "helper_scope": "Historical compiled helper,97bundle/Cargo inputs unchanged, reused only for data export/restore; current runtime is separately fresh. Source-only standalone JSON container not separately produced here."
+    }
+  },
+  "cleanup": {
+    "receipt": {
+      "path": "artifacts/rust-rewrite/disk-cleanup-20261019-28/receipt.json",
+      "bytes": 868,
+      "sha256": "c81508943e87dffcb94b76d979f78c452cae7f9b24897ce177b00c8f937bb7bf"
+    },
+    "count_wording_correction": {
+      "path": "artifacts/rust-rewrite/disk-cleanup-20261019-28/owner-count-wording-correction.json",
+      "bytes": 576,
+      "sha256": "40af70fd35150f11bfe9e6bf682f15878b5c4a81b3bc62b746bf301271109be2"
+    },
+    "removed_allocated_bytes": 1930407936,
+    "protected_paths_rehashed": 1200,
+    "mismatches": [],
+    "scope": "Only recreated private correctness cache; not additive net savings against earlier removals. Source/binaries/evidence/releasecache retained."
+  },
+  "approval_boundary": {
+    "memory_target": {
+      "path": "rust/parity/measurements/native-memory-target-approval.json",
+      "bytes": 3817,
+      "sha256": "7c3ba2a927f2053c0f4a4e79bd13c14f87a28e67ae0bce04f24bfd2ca67d8e3e"
+    },
+    "accepted_ratio": 0.8,
+    "scope": "User acceptance is for retained normal-use host/workload result only; original0.7 reports/gates preserved. No TLS/fullperformance/release/cutover qualification."
+  }
+}

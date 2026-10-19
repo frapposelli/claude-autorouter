@@ -11,13 +11,18 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { promisify } from 'node:util';
 import { transportHarness } from './transport-harness.mjs';
 
+const constructorOptions = process.argv.slice(2).filter(value => value.startsWith('--constructor='));
+assert.ok(constructorOptions.length <= 1, 'Duplicate transport constructor selector');
+const constructor = constructorOptions[0]?.slice('--constructor='.length) ?? 'legacy';
+assert.ok(['legacy', 'buffered'].includes(constructor), 'Transport constructor must be legacy or buffered');
+if (constructorOptions.length) process.argv.splice(process.argv.indexOf(constructorOptions[0], 2), 1);
 const referenceOnly = process.argv.at(-1) === '--reference-only';
 if (referenceOnly) process.argv.pop();
-assert.equal(process.argv.length, 4, 'Usage: check-openssl-sessions.mjs <frozen-reference> <runtime-lib-test-executable> [--reference-only]');
+assert.equal(process.argv.length, 4, 'Usage: check-openssl-sessions.mjs <frozen-reference> <runtime-lib-test-executable> [--reference-only] [--constructor=legacy|buffered]');
 const h = await transportHarness('autorouter-openssl-session-', {
-  candidateArguments: ['--exact', 'tls_roots::openssl_spike::gateway_child', '--nocapture'],
+  candidateArguments: ['--exact', constructor === 'buffered' ? 'tls_roots::openssl_spike::raw_pool::buffered::replay::session_gateway_child' : 'tls_roots::openssl_spike::gateway_child', '--nocapture'],
   candidateEnvironment: { AUTOROUTER_SYNTHETIC_OPENSSL_SPIKE: 'stage-b2' },
-  candidateKind: 'runtime lib test-only OpenSSL B2 raw sessions',
+  candidateKind: constructor === 'buffered' ? 'runtime lib test-only buffered raw-pool sessions' : 'runtime lib test-only OpenSSL B2 raw sessions',
 });
 const { scratch, root, watch, gateway } = h;
 const results = [];
@@ -137,7 +142,7 @@ async function runCase(name, row, certificates) {
     }
   } finally { await child.stop(); for (const socket of live) socket.destroy(); await h.close(provider); }
   const metrics = name === 'rust' ? JSON.parse(child.stderr().match(/OpenSSL session fixture: (\{[^\n]+\})/)?.[1] ?? 'null') : undefined;
-  return { observed: { responses, connections, handshakes, requests }, diagnostics: child.stderr().replaceAll(scratch, '<fixture>'), ...(metrics ? { metrics } : {}) };
+  return { observed: { responses, connections, handshakes, requests }, exit: child.exit(), diagnostics: child.stderr().replaceAll(scratch, '<fixture>'), ...(metrics ? { metrics } : {}) };
 }
 function applicationContract(observed, mode) {
   const [first, second, last] = observed.responses;
@@ -170,10 +175,11 @@ try {
 } catch (error) { fatal = error.message.replaceAll(scratch, '<fixture>'); }
 finally { await h.cleanup(); }
 const paths = ['rust/Cargo.lock', 'rust/Cargo.toml', 'rust/crates/autorouter-runtime/Cargo.toml', 'rust/vendor/openssl-provenance.json', 'rust/crates/autorouter-runtime/src/tls_roots.rs', 'rust/crates/autorouter-runtime/src/tls_policy.rs', 'rust/parity/check-openssl-sessions.mjs', 'rust/parity/transport-harness.mjs', 'rust/crates/autorouter-runtime/src/tls_roots/openssl_spike.rs', ...['client', 'policy', 'session', 'options'].map(name => `rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/${name}.rs`)];
-const report = { schema_version: 1, kind: referenceOnly ? 'raw_https_session_reference_characterization' : 'OpenSSL_B2_raw_https_session_parity', identity: h.identity, source_sha256: Object.fromEntries(await Promise.all(paths.map(async path => [path, hash(await readFile(join(root, path)))]))), passed: !referenceOnly && !fatal && results.every(row => row.matched && row.cleanup), reference_only: referenceOnly, matched: results.filter(row => row.matched).length, count: results.length, production_eligible: false, unqualified: ['fetch weak cache', 'B3 configuration', 'full pool lifecycle', 'backend-wide equivalence', 'global trust store across independent clients', 'dynamic process environment mutation', 'cache byte bound'], ...(fatal ? { fatal } : {}), results };
+if (constructor === 'buffered') paths.push(...['raw_pool', 'raw_pool_buffered', 'raw_pool_buffered_replay', 'buffered_body', 'gateway_terminal', 'gateway_terminal_handoff', 'idle_close'].map(name => `rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/${name}.rs`), 'rust/crates/autorouter-runtime/src/server.rs', 'rust/crates/autorouter-runtime/src/transport_completion.rs');
+const report = { schema_version: 1, kind: referenceOnly ? 'raw_https_session_reference_characterization' : constructor === 'buffered' ? 'OpenSSL_buffered_raw_https_session_parity' : 'OpenSSL_B2_raw_https_session_parity', identity: h.identity, ...(constructor === 'buffered' ? { candidate_constructor: 'buffered' } : {}), source_sha256: Object.fromEntries(await Promise.all(paths.map(async path => [path, hash(await readFile(join(root, path)))]))), passed: !referenceOnly && !fatal && results.every(row => row.matched && row.cleanup), reference_only: referenceOnly, matched: results.filter(row => row.matched).length, count: results.length, production_eligible: false, unqualified: ['fetch weak cache', 'B3 configuration', 'full pool lifecycle', 'backend-wide equivalence', 'global trust store across independent clients', 'dynamic process environment mutation', 'cache byte bound'], ...(fatal ? { fatal } : {}), results };
 const bytes = JSON.stringify(report, null, 2) + '\n';
 const archive = join(root, 'artifacts/rust-rewrite/evidence'); await mkdir(archive, { recursive: true });
-const path = join(archive, `openssl-b2-sessions-${hash(bytes)}.json`);
+const path = join(archive, `${constructor === 'buffered' ? 'openssl-buffered-sessions' : 'openssl-b2-sessions'}-${hash(bytes)}.json`);
 await writeFile(path, bytes, { flag: 'wx' }).catch(error => { if (error.code !== 'EEXIST') throw error; });
 console.log(JSON.stringify({ report: path, passed: report.passed, matched: report.matched, count: report.count, fatal }));
 if (fatal || (!referenceOnly && !report.passed)) process.exitCode = 1;

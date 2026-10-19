@@ -11,9 +11,14 @@ import tls from 'node:tls';
 import { setTimeout as delay } from 'node:timers/promises';
 import { promisify } from 'node:util';
 import { transportHarness } from './transport-harness.mjs';
-assert.equal(process.argv.length, 4, 'Usage: check-openssl-idle-close.mjs <frozen-reference> <runtime-test-executable>');
+const constructorOptions = process.argv.slice(2).filter(value => value.startsWith('--constructor='));
+assert.ok(constructorOptions.length <= 1, 'Duplicate transport constructor selector');
+const constructor = constructorOptions[0]?.slice('--constructor='.length) ?? 'legacy';
+assert.ok(['legacy', 'buffered'].includes(constructor), 'Transport constructor must be legacy or buffered');
+if (constructorOptions.length) process.argv.splice(process.argv.indexOf(constructorOptions[0], 2), 1);
+assert.equal(process.argv.length, 4, 'Usage: check-openssl-idle-close.mjs <frozen-reference> <runtime-test-executable> [--constructor=legacy|buffered]');
 assert.equal(process.version, 'v22.14.0');
-const h = await transportHarness('autorouter-idle-close-', { candidateKind: 'test-only OpenSSL idle-close observation' });
+const h = await transportHarness('autorouter-idle-close-', { candidateKind: constructor === 'buffered' ? 'test-only buffered raw-pool idle-close observation' : 'test-only OpenSSL idle-close observation' });
 const { scratch, root } = h;
 const results = [], ownedChildren = new Set();
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -125,7 +130,7 @@ async function runCase(name, version, mode, certificates) {
       AUTOROUTER_UPSTREAM_URL: upstream, AUTOROUTER_JEV_URL: `http://127.0.0.1:${provider.address().port}/v1/systemone`, AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'synthetic-evaluator', ANTHROPIC_API_KEY: 'synthetic-provider', AUTOROUTER_TOKEN: h.token,
       AUTOROUTER_SYNTHETIC_IDLE_CONTROL: `127.0.0.1:${controls.address().port}`, NODE_EXTRA_CA_CERTS: certificates.ca, SSL_CERT_FILE: empty, SSL_CERT_DIR: scratch,
       NODE_OPTIONS: `--tls-min-${version === 'TLSv1.2' ? 'v1.2 --tls-max-v1.2' : 'v1.3 --tls-max-v1.3'}` };
-    const args = name === 'node' ? [join(root, 'rust/parity/idle-close-reference.mjs'), h.identity.reference] : ['--exact', 'tls_roots::openssl_spike::idle_close_tests::controlled_gateway_child', '--nocapture'];
+    const args = name === 'node' ? [join(root, 'rust/parity/idle-close-reference.mjs'), h.identity.reference] : ['--exact', constructor === 'buffered' ? 'tls_roots::openssl_spike::raw_pool::buffered::replay::idle_gateway_child' : 'tls_roots::openssl_spike::idle_close_tests::controlled_gateway_child', '--nocapture'];
     child = spawn(name === 'node' ? process.execPath : join(scratch, 'candidate'), args, { cwd: directory, env: environment, stdio: ['ignore', 'ignore', 'pipe'] });
     ownedChildren.add(child);
     child.stderr.on('data', bytes => { if (diagnostic.length + bytes.length > 65536) child.kill('SIGKILL'); else diagnostic += bytes; });
@@ -199,9 +204,10 @@ try {
 } catch (error) { fatal = String(error.message).replaceAll(scratch, '<fixture>'); failed = error.observed; }
 finally { for (const child of ownedChildren) child.kill('SIGKILL'); await h.cleanup(); }
 const paths = ['rust/Cargo.lock', 'rust/parity/check-openssl-idle-close.mjs', 'rust/parity/idle-close-reference.mjs', 'rust/parity/check-openssl-sessions.mjs', 'rust/crates/autorouter-runtime/src/tls_roots/openssl_spike.rs', ...['idle_close', 'idle_close_tests', 'client'].map(name => `rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/${name}.rs`)];
-const report = { schema_version: 1, kind: 'test_only_idle_close_barrier_characterization', identity: h.identity, passed: !fatal && results.length === 10 && results.every(row => row.matched && row.cleanup), matched: results.filter(row => row.matched).length, count: results.length, production_eligible: false, source_sha256: Object.fromEntries(await Promise.all(paths.map(async path => [path, hash(await readFile(join(root, path)))]))), ...(fatal ? { fatal, failed } : {}), results,
-  limits: ['Original13/18 and opt-in15/18 expectations and reports are unchanged.', 'Observed transport closure is not direct pool insertion/removal observation.', 'Node read pause and request _flush gate, and native AsyncRead/AsyncWrite gates are explicitly instrumented schedules.', 'Unbarriered repetitions preserve requests/provider close barriers but observation instrumentation may perturb scheduling.', 'No body read-ahead, TLS handshake change, retry change, production promotion or performance claim.'] };
-const bytes = JSON.stringify(report, null, 2) + '\n', path = join(root, 'artifacts/rust-rewrite/evidence', `openssl-idle-close-${hash(bytes)}.json`);
+if (constructor === 'buffered') paths.push(...['raw_pool', 'raw_pool_buffered', 'raw_pool_buffered_replay', 'buffered_body', 'gateway_terminal', 'gateway_terminal_handoff', 'idle_close'].map(name => `rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/${name}.rs`), 'rust/crates/autorouter-runtime/src/server.rs', 'rust/crates/autorouter-runtime/src/transport_completion.rs');
+const report = { schema_version: 1, kind: constructor === 'buffered' ? 'test_only_buffered_idle_close_barrier_characterization' : 'test_only_idle_close_barrier_characterization', identity: h.identity, ...(constructor === 'buffered' ? { candidate_constructor: 'buffered' } : {}), passed: !fatal && results.length === 10 && results.every(row => row.matched && row.cleanup), matched: results.filter(row => row.matched).length, count: results.length, production_eligible: false, source_sha256: Object.fromEntries(await Promise.all(paths.map(async path => [path, hash(await readFile(join(root, path)))]))), ...(fatal ? { fatal, failed } : {}), results,
+  limits: ['Original13/18 and opt-in15/18 expectations and reports are unchanged.', 'Observed transport closure is not direct pool insertion/removal observation.', 'Node read pause and request _flush gate, and native AsyncRead/AsyncWrite gates are explicitly instrumented schedules.', 'Unbarriered repetitions preserve requests/provider close barriers but observation instrumentation may perturb scheduling.', constructor === 'buffered' ? 'This constructor uses the existing bounded buffered body; no TLS handshake change, retry change, production promotion or performance claim.' : 'No body read-ahead, TLS handshake change, retry change, production promotion or performance claim.'] };
+const bytes = JSON.stringify(report, null, 2) + '\n', path = join(root, 'artifacts/rust-rewrite/evidence', `${constructor === 'buffered' ? 'openssl-buffered-idle-close' : 'openssl-idle-close'}-${hash(bytes)}.json`);
 await writeFile(path, bytes, { flag: 'wx' }).catch(error => { if (error.code !== 'EEXIST') throw error; });
 console.log(JSON.stringify({ report: path, passed: report.passed, matched: report.matched, count: report.count, fatal }));
 if (!report.passed) process.exitCode = 1;
