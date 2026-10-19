@@ -40,7 +40,7 @@ pub(super) enum Event {
 struct State {
     trace: Vec<Event>,
     connections: Vec<Weak<Connection>>,
-    requests: BTreeMap<usize, CaptureAssignment>,
+    requests: BTreeMap<usize, Arc<CaptureAssignment>>,
     overflow: bool,
 }
 #[derive(Default)]
@@ -171,7 +171,10 @@ impl Probe {
         connection
     }
     pub(super) fn attach(&self, request: &mut Request<Full<Bytes>>) -> usize {
-        let capture = capture_http1_assignment(request);
+        self.register_capture(Arc::new(capture_http1_assignment(request)))
+    }
+    // One request attachment can be observed by idle and owned by its terminal.
+    pub(super) fn register_capture(&self, capture: Arc<CaptureAssignment>) -> usize {
         let ordinal = {
             let mut state = self.0.state.lock().unwrap();
             assert!(state.requests.len() < REQUEST_LIMIT, "idle request bound");

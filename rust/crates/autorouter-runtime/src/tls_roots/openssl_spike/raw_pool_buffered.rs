@@ -175,6 +175,9 @@ impl Body for ResponseBody {
 }
 impl HttpTransport for BufferedRawPoolClient {
     type ResponseBody = ResponseBody;
+    fn request_terminal_abort(&self) -> bool {
+        true
+    }
     async fn request_raw(
         &self,
         request: Request<Full<Bytes>>,

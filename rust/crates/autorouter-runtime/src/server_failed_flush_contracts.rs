@@ -2276,3 +2276,6 @@ async fn buffered_gateway_tls13_pipeline_a_final_flush_error_preserves_both_prio
 
 #[path = "server_eight_saturated_contracts.rs"]
 mod eight_saturated;
+
+#[path = "server_owned_preheader_contracts.rs"]
+mod owned_preheader_contracts;

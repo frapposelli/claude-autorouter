@@ -1312,3 +1312,6 @@ async fn actual_buffered_tls12_cancel_preserves_same_origin_sibling_fetch_and_ot
 async fn actual_buffered_tls13_cancel_preserves_same_origin_sibling_fetch_and_other_origin() {
     buffered_sibling_isolation(Some(SslVersion::TLS1_3)).await;
 }
+
+#[path = "raw_pool_buffered_preheader_tests.rs"]
+mod qualified_preheader;

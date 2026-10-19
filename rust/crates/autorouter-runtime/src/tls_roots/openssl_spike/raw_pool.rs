@@ -26,6 +26,7 @@ use tower_service::Service;
 
 use super::client::{Connector, Counts, SpikeHttpClient, raw_pool_connector};
 use super::gateway_intent::Intent;
+use super::gateway_terminal::{FailureCause, RequestTerminal, TransportOutcome};
 use super::policy::TrustSnapshot;
 use super::session::{Cache, RawCache};
 use crate::http_client::{HttpError, HttpTransport};
@@ -44,16 +45,26 @@ struct ProbeState {
 pub(super) struct Probe {
     state: Arc<Mutex<ProbeState>>,
     start: Instant,
+    admission: Arc<super::abort::DialGate>,
+    dispatches: Arc<AtomicUsize>,
 }
 impl Default for Probe {
     fn default() -> Self {
         Self {
             state: Arc::default(),
             start: Instant::now(),
+            admission: Arc::default(),
+            dispatches: Arc::default(),
         }
     }
 }
 impl Probe {
+    pub(super) fn hold_before_admission(&self) -> oneshot::Receiver<oneshot::Sender<()>> {
+        self.admission.hold_next()
+    }
+    pub(super) fn dispatches(&self) -> usize {
+        self.dispatches.load(Ordering::SeqCst)
+    }
     fn record(&self, event: &str, mut fields: Trace) {
         fields["event"] = event.into();
         fields["ms"] = u64::try_from(self.start.elapsed().as_millis())
@@ -639,6 +650,42 @@ impl Shared {
         None
     }
 
+    fn complete_owned(
+        self: &Arc<Self>,
+        key: String,
+        entry: Entry,
+        reservation: Option<Http1Reservation>,
+        timeout: Option<Duration>,
+        terminal: Option<RequestTerminal>,
+        clean: bool,
+    ) {
+        if let Some(terminal) = terminal
+            && !terminal.retire_transport_action()
+        {
+            // Keep this exact reservation and sender alive until the first
+            // action finishes. One completion callback owns one deferred task;
+            // the existing registry retains cancellation/cleanup ownership.
+            let shared = Arc::downgrade(self);
+            let owned = ReservedEntry {
+                reservation,
+                entry: Some(entry),
+            };
+            spawn_owned(self, async move {
+                terminal.settle_failure().await;
+                assert!(terminal.retire_transport_action());
+                let (entry, reservation) = owned.into_parts();
+                if let Some(shared) = shared.upgrade() {
+                    shared.complete(key, entry, reservation, timeout, clean);
+                } else {
+                    drop(reservation);
+                    drop(entry);
+                }
+            })
+            .disarm();
+            return;
+        }
+        self.complete(key, entry, reservation, timeout, clean);
+    }
     fn complete(
         self: &Arc<Self>,
         key: String,
@@ -670,6 +717,24 @@ impl Shared {
         });
         // The registry retains cancellation ownership; this local handle must not abort it.
         task.disarm();
+    }
+}
+
+// Explicit drop order also applies when a deferred task is aborted before its
+// first poll or while waiting: retire the lease before dropping its sender.
+struct ReservedEntry {
+    reservation: Option<Http1Reservation>,
+    entry: Option<Entry>,
+}
+impl ReservedEntry {
+    fn into_parts(mut self) -> (Entry, Option<Http1Reservation>) {
+        (self.entry.take().unwrap(), self.reservation.take())
+    }
+}
+impl Drop for ReservedEntry {
+    fn drop(&mut self) {
+        drop(self.reservation.take());
+        drop(self.entry.take());
     }
 }
 
@@ -856,15 +921,59 @@ impl RawPoolClient {
         {
             return Err(HttpError::InvalidRequest);
         }
-        if let Some(probe) = &self.idle {
+        let intent = request.extensions().get::<Arc<Intent>>().cloned();
+        if self.idle.is_some() && intent.is_some() {
             // CaptureAssignment is single-owner and a second attachment replaces
             // the first. This closed replay profile never combines legacy Intent.
-            if request.extensions().get::<Arc<Intent>>().is_some() {
-                return Err(HttpError::InvalidRequest);
-            }
-            probe.attach(&mut request);
+            return Err(HttpError::InvalidRequest);
         }
-        if let Some(intent) = request.extensions().get::<Arc<Intent>>().cloned() {
+        let terminal = if intent.is_none() {
+            request.extensions().get::<RequestTerminal>().cloned()
+        } else {
+            None
+        };
+        if let Some(terminal) = &terminal {
+            let capture = Arc::new(capture_http1_assignment(&mut request));
+            let observed = capture.clone();
+            let publisher = terminal.clone();
+            terminal
+                .bind_transport_action(move |cause| {
+                    let qualified = match cause {
+                        FailureCause::Downstream(_) => {
+                            Some(super::abort::Cause::ExplicitFixtureCancellation)
+                        }
+                        FailureCause::Deadline => {
+                            Some(super::abort::Cause::ExplicitFixtureDeadline)
+                        }
+                        FailureCause::Upstream | FailureCause::Cancelled => None,
+                    };
+                    let outcome = match qualified {
+                        None => TransportOutcome::Unqualified,
+                        Some(cause) => match observed.assignment() {
+                            None => TransportOutcome::NoAssignment,
+                            Some(assignment) => match assignment.claim_abort() {
+                                None => TransportOutcome::Retired,
+                                Some(claim) => {
+                                    TransportOutcome::Applied(super::abort::consume(claim, cause))
+                                }
+                            },
+                        },
+                    };
+                    publisher.observe_transport(cause, outcome);
+                })
+                .map_err(|()| {
+                    if terminal.failed() {
+                        HttpError::Network
+                    } else {
+                        HttpError::InvalidRequest
+                    }
+                })?;
+            if let Some(probe) = &self.idle {
+                probe.register_capture(capture);
+            }
+        } else if let Some(probe) = &self.idle {
+            probe.attach(&mut request);
+        } else if let Some(intent) = intent {
             intent.install(capture_http1_assignment(&mut request));
         }
         request
@@ -878,13 +987,6 @@ impl RawPoolClient {
             .strip_prefix("/v1/models/pool-")
             .and_then(|value| value.parse::<usize>().ok())
             .unwrap_or(ordinal);
-        let (mut entry, reused) = self.shared.acquire(&uri, &key).await?;
-        let reservation = bind_http1_reservation(&mut request, &entry.connected)
-            .map_err(|()| HttpError::InvalidRequest)?;
-        self.probe.record(
-            "assigned",
-            serde_json::json!({"request":label,"connection":entry.id,"reused":reused}),
-        );
         if !request.headers().contains_key("host") {
             let host = uri.host().ok_or(HttpError::InvalidRequest)?;
             let port = uri.port().filter(|port| {
@@ -905,23 +1007,59 @@ impl RawPoolClient {
             .map_or("/", |value| value.as_str())
             .parse()
             .map_err(|_| HttpError::InvalidRequest)?;
-        let response = entry
-            .sender
-            .send_request(request)
-            .await
-            .map_err(|_| HttpError::Network)?;
+        let (mut entry, reused) = self.shared.acquire(&uri, &key).await?;
+        if terminal.as_ref().is_some_and(RequestTerminal::failed) {
+            terminal.as_ref().unwrap().settle_failure().await;
+            return Err(HttpError::Network);
+        }
+        let reservation = bind_http1_reservation(&mut request, &entry.connected)
+            .map_err(|()| HttpError::InvalidRequest)?;
+        self.probe.record(
+            "assigned",
+            serde_json::json!({"request":label,"connection":entry.id,"reused":reused}),
+        );
+        self.probe.admission.pause().await;
+        if terminal
+            .as_ref()
+            .is_some_and(|terminal| terminal.admit_transport().is_err())
+        {
+            terminal.as_ref().unwrap().settle_failure().await;
+            // Retirement itself arbitrates with a possible new first failure.
+            // No send_request invocation occurs after rejected admission.
+            self.shared
+                .complete_owned(key, entry, reservation, None, terminal, false);
+            return Err(HttpError::Network);
+        }
+        self.probe.dispatches.fetch_add(1, Ordering::SeqCst);
+        let response = entry.sender.send_request(request).await;
+        if let Some(terminal) = &terminal {
+            terminal.settle_failure().await;
+        }
+        let response = match response {
+            Ok(response) => response,
+            Err(_) => {
+                self.shared
+                    .complete_owned(key, entry, reservation, None, terminal, false);
+                return Err(HttpError::Network);
+            }
+        };
         let timeout = idle_timeout(response.headers());
         let shared = self.shared.clone();
         let gate = self.probe.gate(label);
         Ok((
             response,
-            Box::new(move |clean| shared.complete(key, entry, reservation, timeout, clean)),
+            Box::new(move |clean| {
+                shared.complete_owned(key, entry, reservation, timeout, terminal, clean)
+            }),
             gate,
         ))
     }
 }
 impl HttpTransport for RawPoolClient {
     type ResponseBody = OwnedBody<Incoming>;
+    fn request_terminal_abort(&self) -> bool {
+        true
+    }
     async fn request_raw(
         &self,
         request: Request<Full<Bytes>>,

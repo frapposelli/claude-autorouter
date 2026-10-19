@@ -484,6 +484,8 @@ struct ForwardBody<B> {
     intent: Option<Arc<Intent>>,
     #[cfg(test)]
     terminal: Option<RequestTerminal>,
+    #[cfg(test)]
+    terminal_settled: Option<Pin<Box<dyn Future<Output = ()> + Send>>>,
     prefix: Option<Frame<Bytes>>,
 }
 impl<B> ForwardBody<B> {
@@ -505,6 +507,8 @@ impl<B> ForwardBody<B> {
             intent: None,
             #[cfg(test)]
             terminal: None,
+            #[cfg(test)]
+            terminal_settled: None,
             prefix: None,
         }
     }
@@ -517,6 +521,19 @@ impl<B> ForwardBody<B> {
     fn with_intent(mut self, intent: Option<Arc<Intent>>) -> Self {
         self.intent = intent;
         self
+    }
+    #[cfg(test)]
+    fn with_transport_abort(mut self, enabled: bool) -> Self {
+        if enabled && let Some(terminal) = self.terminal.clone() {
+            self.terminal_settled = Some(Box::pin(async move { terminal.settle_failure().await }));
+        }
+        self
+    }
+    #[cfg(test)]
+    fn terminal_dispatch_pending(&mut self, cx: &mut Context<'_>) -> bool {
+        self.terminal_settled
+            .as_mut()
+            .is_some_and(|wait| wait.as_mut().poll(cx).is_pending())
     }
 }
 impl<B: Body<Data = Bytes>> ForwardBody<B> {
@@ -552,6 +569,9 @@ impl<B: Body<Data = Bytes>> Body for ForwardBody<B> {
         }
         #[cfg(test)]
         if this.terminal.as_ref().is_some_and(RequestTerminal::failed) {
+            if this.terminal_dispatch_pending(cx) {
+                return Poll::Pending;
+            }
             this.finished = true;
             return Poll::Ready(Some(Err(io::Error::other("Upstream body failed"))));
         }
@@ -559,6 +579,9 @@ impl<B: Body<Data = Bytes>> Body for ForwardBody<B> {
             #[cfg(test)]
             if let Some(terminal) = &this.terminal {
                 terminal.fail(FailureCause::Cancelled);
+                if this.terminal_dispatch_pending(cx) {
+                    return Poll::Pending;
+                }
             }
             #[cfg(test)]
             if let Some(intent) = &this.intent {
@@ -574,6 +597,9 @@ impl<B: Body<Data = Bytes>> Body for ForwardBody<B> {
             #[cfg(test)]
             if let Some(terminal) = &this.terminal {
                 terminal.fail(FailureCause::Deadline);
+                if this.terminal_dispatch_pending(cx) {
+                    return Poll::Pending;
+                }
                 this.finished = true;
                 return Poll::Ready(Some(Err(io::Error::other("Upstream deadline exceeded"))));
             }
@@ -622,6 +648,9 @@ impl<B: Body<Data = Bytes>> Body for ForwardBody<B> {
                 #[cfg(test)]
                 if let Some(terminal) = &this.terminal {
                     terminal.fail(FailureCause::Upstream);
+                    if this.terminal_dispatch_pending(cx) {
+                        return Poll::Pending;
+                    }
                     this.finished = true;
                     return Poll::Ready(Some(Err(io::Error::other("Upstream body failed"))));
                 }
@@ -1394,6 +1423,13 @@ where
             // intent must claim while the request future still owns its lease.
             if let Some(intent) = &intent {
                 intent.finish(IntentCause::Deadline);
+            } else if self.transport.request_terminal_abort()
+                && let Some(terminal) = &terminal
+            {
+                // Claim the live private-backend reservation before select!
+                // destroys its losing upstream request future.
+                terminal.fail(FailureCause::Deadline);
+                terminal.settle_failure().await;
             }
         };
         let response = match tokio::select! {
@@ -1411,6 +1447,27 @@ where
         } {
             Ok(response) => response,
             Err(()) => {
+                #[cfg(test)]
+                if self.transport.request_terminal_abort()
+                    && intent.is_none()
+                    && let Some(terminal) = &terminal
+                {
+                    terminal.settle_failure().await;
+                }
+                #[cfg(test)]
+                if self.transport.request_terminal_abort()
+                    && intent.is_none()
+                    && terminal.as_ref().is_some_and(|terminal| {
+                        matches!(terminal.failure_cause(), Some(FailureCause::Downstream(_)))
+                    })
+                {
+                    // The original physical cause is latched before outside-
+                    // lock callouts publish cancellation. Admission rejection
+                    // must not race that publication into a new proxy 502.
+                    let mut failed = Response::new(full(Bytes::new()));
+                    failed.extensions_mut().insert(PreheaderFailure);
+                    return failed;
+                }
                 emit(
                     &self.sinks.log,
                     DiagnosticEvent::status(DiagnosticName::ProxyError, 502).observation(),
@@ -1546,7 +1603,8 @@ where
         #[cfg(test)]
         let forward = forward
             .with_intent(intent.clone())
-            .with_terminal(terminal.clone());
+            .with_terminal(terminal.clone())
+            .with_transport_abort(self.transport.request_terminal_abort() && intent.is_none());
         let mut forward = forward;
         if let Some(timing) = &timing {
             let bodyless = matches!(parts.status.as_u16(), 204 | 304) || bodyless_method;

@@ -1,0 +1,297 @@
+{
+  "schema_version": 1,
+  "kind": "native_test_only_qualified_cancellation_bridge_checkpoint",
+  "status": "CHECKPOINT_VALIDATED_BUFFERED_CANCELLATION_FIXED_FULL_TLS_PARITY_STILL_FAILED",
+  "recorded_at_utc": "2026-10-19T15:56:27.710821+00:00",
+  "scope": "Request-qualified physical downstream failure and deadline abort for the private raw/buffered OpenSSL backend. Production native transport remains Rustls; no model policy, authentication, permissions, provider bytes, retry or performance target change.",
+  "source": {
+    "snapshot": {
+      "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/source-candidate-v3.json",
+      "bytes": 120059,
+      "sha256": "4eb443c085661cc6558c38951a2a0a5b1600e95cc6045ca5d5dd96421ec86118"
+    },
+    "raw_inputs": 714,
+    "frozen_inputs": 111,
+    "base_commit": "03f73b3343251e48382ff6345bb3fe52ba43ddea",
+    "shape": "Ten existing Rust files changed; four new test modules. All changes to transport behavior are private cfg(test) paths; ordinary native transport remains Rustls."
+  },
+  "runtime_test_executable": {
+    "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/retained/autorouter-runtime-libtest",
+    "bytes": 32757168,
+    "sha256": "90f66c7d3d69ed573795062cd711c2116210035fbce9c11b1c7820993ec6a566"
+  },
+  "comparisons": {
+    "sessions-legacy": {
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-b2-sessions-2e27dc236e658fd23714981374de8782c327dc54afe32242d6330bf345fec3cf.json",
+        "bytes": 69636,
+        "sha256": "2e27dc236e658fd23714981374de8782c327dc54afe32242d6330bf345fec3cf"
+      },
+      "reported": {
+        "report": "artifacts/rust-rewrite/evidence/openssl-b2-sessions-2e27dc236e658fd23714981374de8782c327dc54afe32242d6330bf345fec3cf.json",
+        "passed": false,
+        "matched": 13,
+        "count": 18
+      }
+    },
+    "sessions-buffered": {
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-buffered-sessions-c1596cb96968c2d7e61fc8fb2177eb07c24c25d79bbf9f38256cc77676ae2994.json",
+        "bytes": 127598,
+        "sha256": "c1596cb96968c2d7e61fc8fb2177eb07c24c25d79bbf9f38256cc77676ae2994"
+      },
+      "reported": {
+        "report": "artifacts/rust-rewrite/evidence/openssl-buffered-sessions-c1596cb96968c2d7e61fc8fb2177eb07c24c25d79bbf9f38256cc77676ae2994.json",
+        "passed": false,
+        "matched": 15,
+        "count": 18
+      }
+    },
+    "idle-close-legacy": {
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-idle-close-2c49d0bc22b815f183bd308e29b4cfb2c1e7bc968f39f32fd7f6bcd2694e375e.json",
+        "bytes": 56538,
+        "sha256": "2c49d0bc22b815f183bd308e29b4cfb2c1e7bc968f39f32fd7f6bcd2694e375e"
+      },
+      "reported": {
+        "report": "artifacts/rust-rewrite/evidence/openssl-idle-close-2c49d0bc22b815f183bd308e29b4cfb2c1e7bc968f39f32fd7f6bcd2694e375e.json",
+        "passed": false,
+        "matched": 4,
+        "count": 10
+      }
+    },
+    "idle-close-buffered": {
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/openssl-buffered-idle-close-6163c2db2c63fb893751d89c92ed1922cd17804157d20665447829c8f41e2453.json",
+        "bytes": 74647,
+        "sha256": "6163c2db2c63fb893751d89c92ed1922cd17804157d20665447829c8f41e2453"
+      },
+      "reported": {
+        "report": "artifacts/rust-rewrite/evidence/openssl-buffered-idle-close-6163c2db2c63fb893751d89c92ed1922cd17804157d20665447829c8f41e2453.json",
+        "passed": false,
+        "matched": 4,
+        "count": 10
+      }
+    },
+    "byte-handoff": {
+      "report": {
+        "path": "artifacts/rust-rewrite/evidence/buffered-response-differential-4569c2cce1d5dc628085c8a4265526721ab3baba556fd5a599499d797111b4e5.json",
+        "bytes": 5477391,
+        "sha256": "4569c2cce1d5dc628085c8a4265526721ab3baba556fd5a599499d797111b4e5"
+      },
+      "reported": {
+        "report": "artifacts/rust-rewrite/evidence/buffered-response-differential-4569c2cce1d5dc628085c8a4265526721ab3baba556fd5a599499d797111b4e5.json",
+        "passed": true,
+        "completed": true,
+        "passed_cases": 162,
+        "selected_cases": 162,
+        "declared_cases": 162,
+        "pending_families": 7
+      }
+    }
+  },
+  "focused_validation": {
+    "named_passes": 25,
+    "groups": {
+      "transport_ownership": 11,
+      "terminal_io": 5,
+      "actual_gateway_ordering": 2,
+      "actual_entry_completion": 1,
+      "direct_protocol_controls": 6
+    },
+    "review": {
+      "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/independent-focused-controls-actual-review.json",
+      "bytes": 18570,
+      "sha256": "6c5ed029912eaa78d4406dbea2e8e08bb08a66bf14a8b4aebe85370949408f6a"
+    }
+  },
+  "interpretation": [
+    "Buffered session comparison improves from 13/18 to 15/18. Both TLS 1.2 and TLS 1.3 cancel-body cases now match the original Node resumed-session vector [false,false,true]. Each retains the first Downstream(ReadEof) cause, one Applied(Requested) outcome, one session error close and exact shutdown-attempt conservation.",
+    "Legacy sessions remain 13/18 and both idle comparisons remain 4/10. All 162 byte/handoff comparisons pass across 324 executions. Three buffered session comparisons and all six unbarriered idle comparisons per constructor remain failures.",
+    "Exclusive assignment ownership arbitrates admission, first failure and completion retirement. Independent bounded dispatch completion survives request-record removal, and every in-flight dispatch gates the explicit connection-failure claim. Late start/attachment callbacks wait until the first transport action finishes.",
+    "Body completion, error or drop can defer exact lease/sender retirement in one task owned by the existing registry. That task holds a weak client reference; ReservedEntry enforces lease-before-sender drop order, including task cancellation. Ordinary body drop, generic cancellation and upstream failure confer no physical abort authority."
+  ],
+  "limits": [
+    "Test-only synthetic loopback HTTP/TLS 1.2/TLS 1.3 evidence. No shipping OpenSSL promotion, real provider/evaluator/task quality, supported-platform/minimum OS/WSL, performance or release qualification.",
+    "The independent completion latch covers the first failure batch, not arbitrary later metadata callbacks. External destruction of the whole client or connection remains a separate shutdown path; no universal wait-before-drop guarantee.",
+    "An artificial ReadError with more than 64 KiB of newly filled progress remains observer-failed and unqualified. Original bytes/error are preserved without an unbounded held allocation.",
+    "The approved 0.8 memory target and retained 0.772 observation apply to the recorded host/workload only. No new numerical benchmark, threshold relaxation, corpus or oracle change.",
+    "All original 588 definition, 53 limit, 27 configuration-key and broad acceptance statuses remain unchanged. Full protocol, resource, performance, platform and installed-release qualification are still required."
+  ],
+  "checkpoint_validation": {
+    "workspace": {
+      "passed": 1576,
+      "failed": 0,
+      "ignored": 11,
+      "groups": 66,
+      "filtered": 0,
+      "previous_named_statuses_preserved": 1562,
+      "added_passes": 25,
+      "owner": {
+        "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/workspace-ci.json",
+        "bytes": 1270,
+        "sha256": "5e8ca0daf1aa606eb26e391b50c655d4b60738a57f9609057012556768d28e4b"
+      },
+      "review": {
+        "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/independent-replay-review/corrected-audit-and-workspace-review.json",
+        "bytes": 9886,
+        "sha256": "a3340fc920470a61e115ec188438e41a750ecd30bb143c73bb92dd4eef764b57"
+      }
+    },
+    "format": {
+      "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/fmt.json",
+      "bytes": 1061,
+      "sha256": "7c9b39d394645eb21ae330a7d993b1c83778027924f0a9e94d0dbac698decf26"
+    },
+    "strict_clippy": {
+      "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/clippy.json",
+      "bytes": 1300,
+      "sha256": "4f3995dbbc72a544e4330a01f8533c9cc8c70610531747a66a61f36341056c43"
+    },
+    "supplier_warning": "The unchanged hyper-util unused timer warning remains visible; no vendor source changed.",
+    "node_check": {
+      "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/node-check.json",
+      "bytes": 1036,
+      "sha256": "df2941abe1c173807499442ce32c27f88f2f5c8ef8f64e4d260aef67a5b001f0"
+    },
+    "node_tests": {
+      "passed": 645,
+      "failed": 0,
+      "skipped": 0,
+      "child_umask": "022",
+      "owner": {
+        "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/node-tests-022.json",
+        "bytes": 1091,
+        "sha256": "8ff9bd2576772ea595384a98fc0dd2b54db431ba86e55ede9c94e2677c9201a6"
+      }
+    },
+    "package": {
+      "safe_archive_files": 58,
+      "synthetic_lifecycle_scenarios": 17,
+      "child_umask": "022",
+      "owner": {
+        "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/node-package-022.json",
+        "bytes": 1107,
+        "sha256": "085d0f9362cba8954fbc45a4fdccc7b68a052d966d2f12885d76bb1e9cd65078"
+      }
+    },
+    "replay_audit": {
+      "integrity": true,
+      "owner": {
+        "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/audit-readonly-v2.json",
+        "bytes": 2422,
+        "sha256": "30db8bdc2cc1a15dde034cbbd8a9df198edc971fd35d4c75c77e8b43f07d4247"
+      },
+      "result": {
+        "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/audit-results-v2.json",
+        "bytes": 212642,
+        "sha256": "7e076294fb65747c810d44b39f5e7995b4ada6de16d257b4198a725d9f4df395"
+      },
+      "independent_raw_review": {
+        "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/independent-replay-review/raw-actual-review.json",
+        "bytes": 18514,
+        "sha256": "334efca8ecf5b29297faed40422cc2fcb81a8fc789032b8324564d2c5994ba68"
+      }
+    },
+    "source_archive": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/cli-roundtrip-h.json",
+        "bytes": 1152,
+        "sha256": "9f74c246eaea79f8208680122b8dba6a0b7f8d59d5742e0ed882824ec6a5eafe"
+      },
+      "result": {
+        "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/cli-roundtrip-current714/cli-roundtrip-result.json",
+        "bytes": 1227,
+        "sha256": "03e39e45ff5ddf6886647fef3b99c2917191e5306d2b4c1fffeae3f5896b006c"
+      },
+      "native_source": {
+        "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/cli-roundtrip-current714/transfer/native-source.cpio.gz",
+        "bytes": 3099111,
+        "sha256": "c28bdf2539322010f6d9b6ae75a35a9e9faa17f1090d81a1809364c269a856f9"
+      },
+      "raw_inputs": 714,
+      "native_members": 716,
+      "delta_files": 109,
+      "expanded_native_bytes": 33215488,
+      "native_expansion_headroom_bytes": 338944,
+      "joint_expanded_bytes": 34550784,
+      "joint_logical_bytes": 34574056,
+      "source_limit_bytes": 33554432,
+      "joint_limit_bytes": 41943040,
+      "default_and_explicit_schema7_equal": true,
+      "explicit_schema6_refuses_before_destination": true,
+      "helper_scope": "Historical data-only helper f1848153; explicit reconstructed 106-input codec family unchanged. Original 97-input selector unavailable and not claimed identical. No fresh helper or restored-code execution claim.",
+      "restored_reference_files": 113,
+      "frozen_reference_inputs": 111
+    },
+    "historical_failures": {
+      "new_fixture_compile_error": {
+        "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/build-libtest-v2.json",
+        "bytes": 1096,
+        "sha256": "8d20749a46bb3d83d26b2463e02ed9958d2297079bf955ffcf4734a5df5e69d7"
+      },
+      "annotation_fix": {
+        "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/compile-v2-annotation-fix.json",
+        "bytes": 489,
+        "sha256": "ac23e1b63416a76cef8f03ff9f8d713f59edd1c6771e8937579b67c82c08b3ed"
+      },
+      "formatter_owner_error": {
+        "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/format-copies-v1-owner-error.json",
+        "bytes": 246,
+        "sha256": "fb7242122b749292637d9ea5b3e3f32c9ba4f016ca78b69e50f7ff99200e4b63"
+      },
+      "audit_output_owner_collision": {
+        "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/audit-output-owner-collision.json",
+        "bytes": 842,
+        "sha256": "7e23da812dcf19c7e48ae7025c343063f5176290d517d0d73f2d3bd766ad01df"
+      },
+      "scope": "Earlier failures and artifacts remain; only the corrected build and distinctly retained read-only audit support final checkpoint acceptance."
+    }
+  },
+  "references": {
+    "predeclared_controls": {
+      "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/predeclared-controls.json",
+      "bytes": 2681,
+      "sha256": "1a4dd56a932c6ce96cdae49058c10ae10080296b63939ec05f729390af93056b"
+    },
+    "amendments": {
+      "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/pre-execution-amendments-v2.json",
+      "bytes": 1261,
+      "sha256": "be367bfdcc62d43f337531ca771005ec071925a8a473247d046cb891c4a3f322"
+    },
+    "late_callouts": {
+      "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/late-callout-amendment.json",
+      "bytes": 573,
+      "sha256": "66c8aa27560902d6e7d60b1623551994acdabeeb7977061b51b484f6c6f89514"
+    },
+    "compile_failure_and_fix": {
+      "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/compile-v2-annotation-fix.json",
+      "bytes": 489,
+      "sha256": "ac23e1b63416a76cef8f03ff9f8d713f59edd1c6771e8937579b67c82c08b3ed"
+    }
+  },
+  "cleanup": {
+    "removed_allocated_bytes": 1932906496,
+    "protected_paths_verified_before_and_after": 848,
+    "owner_receipts_verified": 28,
+    "receipt": {
+      "path": "artifacts/rust-rewrite/qualified-abort-bridge-validation-20261019-1/cleanup-own-cache-receipt.json",
+      "bytes": 913,
+      "sha256": "b5c64bbb1e0065e27809588ddc262541887974632793cbece138af24dd850169"
+    },
+    "scope": "Only the fresh Cargo correctness cache; source, frozen data, binaries, captures, reports, archives, toolchains, models, older caches and user data retained. Not cumulative/net disk savings."
+  },
+  "parent_ci": {
+    "commit": "03f73b3343251e48382ff6345bb3fe52ba43ddea",
+    "reported_successful_checks": 14,
+    "runs": 5,
+    "metadata_only": true,
+    "receipt": {
+      "path": "artifacts/rust-rewrite/ci-03f73b3-readonly-audit-20261019-1/sample1-review.json",
+      "bytes": 9124,
+      "sha256": "6a65caa4dc51979cbf9d5a8430996a5ff524ec252678ecc143fa5d068d7717f2"
+    },
+    "current_candidate": "Needs fresh CI after commit; parent success is not current-candidate qualification."
+  },
+  "approval_boundary": "No version bump, release, npm publication, merge or default backend cutover. Rustls remains the production backend; further stabilization and qualification stay open."
+}

@@ -5,7 +5,7 @@ use crate::transport_completion::{Delivery, Failure};
 use std::collections::BTreeMap;
 use std::io::{self, IoSlice};
 use std::pin::Pin;
-use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex, Weak};
 use std::task::{Context, Poll};
 use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
@@ -61,6 +61,21 @@ struct ProbeState {
     events: Vec<Event>,
     handoff_failures: Vec<(Identity, handoff::HandoffSnapshot)>,
     observer_failed: bool,
+    transport: Vec<TransportObservation>,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub(super) enum TransportOutcome {
+    Unqualified,
+    NoAssignment,
+    Retired,
+    Applied(super::abort::Outcome),
+}
+#[derive(Clone, Copy, Debug)]
+pub(super) struct TransportObservation {
+    pub identity: Identity,
+    pub cause: FailureCause,
+    pub outcome: TransportOutcome,
 }
 #[derive(Clone, Default)]
 pub(crate) struct Probe {
@@ -69,6 +84,9 @@ pub(crate) struct Probe {
     writer: writer::WriterProbe,
 }
 impl Probe {
+    pub(super) fn transport_events(&self) -> Vec<TransportObservation> {
+        self.state.lock().unwrap().transport.clone()
+    }
     pub(crate) fn hold_writes(&self) {
         self.writer.hold();
     }
@@ -109,14 +127,52 @@ impl Probe {
     }
 }
 type CauseCallback = Box<dyn FnOnce(FailureCause) + Send>;
+// A transport action is never called by ordinary retirement. Captured metadata
+// can have arbitrary Drop, so both invocation and discard occur outside locks.
+struct TransportAction {
+    callback: Option<CauseCallback>,
+    probe: Probe,
+}
+impl TransportAction {
+    fn run(mut self, cause: FailureCause) {
+        let callback = self
+            .callback
+            .take()
+            .expect("transport action consumed once");
+        if std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| callback(cause))).is_err() {
+            self.probe
+                .state
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .observer_failed = true;
+        }
+    }
+}
+impl Drop for TransportAction {
+    fn drop(&mut self) {
+        if let Some(callback) = self.callback.take()
+            && std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| drop(callback))).is_err()
+        {
+            self.probe
+                .state
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .observer_failed = true;
+        }
+    }
+}
 struct Record {
     handoff: handoff::HandoffState,
     attached: bool,
     failure: Option<FailureCause>,
+    dispatch: Arc<FailureDispatch>,
     deadline: Option<Instant>,
     token: Option<CancellationToken>,
     cause: Option<CauseCallback>,
     report: Option<CauseCallback>,
+    transport: Option<TransportAction>,
+    transport_installed: bool,
+    transport_admitted: bool,
 }
 struct State {
     closed: bool,
@@ -124,6 +180,7 @@ struct State {
     records: BTreeMap<u64, Record>,
     close_latch: Option<Identity>,
     close_claimed: bool,
+    inflight: BTreeMap<u64, Arc<FailureDispatch>>,
 }
 struct Shared {
     generation: u64,
@@ -131,8 +188,105 @@ struct Shared {
     state: Mutex<State>,
     changed: Notify,
     failed: Notify,
+
     stop: CancellationToken,
     probe: Probe,
+}
+// One bounded, non-IO completion owner survives removal of the request record.
+// It describes the first failure batch, never late start/attach callbacks.
+struct FailureDispatch {
+    complete: AtomicBool,
+    changed: Notify,
+}
+impl Default for FailureDispatch {
+    fn default() -> Self {
+        Self {
+            complete: AtomicBool::new(true),
+            changed: Notify::new(),
+        }
+    }
+}
+impl FailureDispatch {
+    fn complete(&self) -> bool {
+        self.complete.load(Ordering::Acquire)
+    }
+    async fn wait(&self) {
+        loop {
+            let notified = self.changed.notified();
+            tokio::pin!(notified);
+            notified.as_mut().enable();
+            if self.complete() {
+                return;
+            }
+            notified.await;
+        }
+    }
+}
+struct DispatchGuard<'a> {
+    shared: &'a Shared,
+    request: u64,
+    dispatch: Arc<FailureDispatch>,
+}
+impl Drop for DispatchGuard<'_> {
+    fn drop(&mut self) {
+        let late = {
+            let mut state = self
+                .shared
+                .state
+                .lock()
+                .unwrap_or_else(|error| error.into_inner());
+            if state
+                .inflight
+                .get(&self.request)
+                .is_some_and(|dispatch| Arc::ptr_eq(dispatch, &self.dispatch))
+            {
+                state.inflight.remove(&self.request);
+            }
+            let late = state.records.get_mut(&self.request).and_then(|record| {
+                let cause = record.failure?;
+                let callback = record.cause.take();
+                let report = if record.attached {
+                    record.report.take()
+                } else {
+                    None
+                };
+                if callback.is_none() && report.is_none() {
+                    return None;
+                }
+                Some(Callouts {
+                    sender: None,
+                    producer_stop: None,
+                    cause,
+                    callback,
+                    report,
+                    transport: None,
+                    token: if record.attached || cause != FailureCause::Upstream {
+                        record.token.clone()
+                    } else {
+                        None
+                    },
+                })
+            });
+            // start/attach serialize here: calls arriving before this boundary
+            // were retained above; later calls use their ordinary direct path.
+            self.dispatch.complete.store(true, Ordering::Release);
+            late
+        };
+        if let Some(late) = late {
+            late.run();
+        }
+        if std::thread::panicking() {
+            self.shared
+                .probe
+                .state
+                .lock()
+                .unwrap_or_else(|error| error.into_inner())
+                .observer_failed = true;
+        }
+        notify_all(&self.dispatch.changed);
+        notify_one(&self.shared.failed);
+        notify_one(&self.shared.changed);
+    }
 }
 struct Callouts {
     sender: Option<handoff::Sender>,
@@ -141,9 +295,16 @@ struct Callouts {
     callback: Option<CauseCallback>,
     report: Option<CauseCallback>,
     token: Option<CancellationToken>,
+    transport: Option<TransportAction>,
 }
 impl Callouts {
     fn run(self) {
+        if let Some(action) = self.transport {
+            // Assignment exclusivity, not HTTP dispatch, qualifies an abort.
+            // Before assignment this once-only callback observes no authority;
+            // it is never replayed against a later reservation.
+            action.run(self.cause);
+        }
         for callback in [self.callback, self.report].into_iter().flatten() {
             let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| callback(self.cause)));
         }
@@ -166,7 +327,7 @@ impl Shared {
         if identity.connection != self.generation {
             return false;
         }
-        let (callouts, handoff) = {
+        let (callouts, handoff, dispatch) = {
             let mut state = self.state.lock().unwrap();
             if state.closed {
                 return false;
@@ -180,6 +341,10 @@ impl Shared {
                 return false;
             }
             record.failure = Some(cause);
+            let dispatch = record.dispatch.clone();
+            if record.transport_installed {
+                dispatch.complete.store(false, Ordering::Release);
+            }
             let attached = record.attached;
             let handoff = record.handoff.snapshot();
             let callouts = Callouts {
@@ -188,6 +353,7 @@ impl Shared {
                 cause,
                 callback: record.cause.take(),
                 report: if attached { record.report.take() } else { None },
+                transport: record.transport.take(),
                 // A body-source failure after acquired headers must not make
                 // the request future lose to cancellation before attachment.
                 token: if attached || cause != FailureCause::Upstream {
@@ -199,15 +365,27 @@ impl Shared {
             if attached && state.close_latch.is_none() {
                 state.close_latch = Some(identity);
             }
-            (callouts, handoff)
+            if !dispatch.complete() {
+                assert!(
+                    state
+                        .inflight
+                        .insert(identity.request, dispatch.clone())
+                        .is_none()
+                );
+            }
+            (callouts, handoff, dispatch)
+        };
+        let _dispatch = DispatchGuard {
+            shared: self,
+            request: identity.request,
+            dispatch,
         };
         self.probe.handoff_failure(identity, handoff);
         self.probe.record(Event::Failed(identity, cause));
         // Panic-contained callbacks complete before wake/drop can destroy a
         // still-owned upstream lease needed by an explicit deadline abort.
         callouts.run();
-        notify_one(&self.failed);
-        notify_one(&self.changed);
+
         true
     }
     fn retire(&self, identity: Identity) {
@@ -246,36 +424,66 @@ impl Shared {
 #[derive(Clone)]
 pub(crate) struct ConnectionHandle(Weak<Shared>);
 impl ConnectionHandle {
+    fn pending_dispatches(&self) -> Vec<Arc<FailureDispatch>> {
+        self.0.upgrade().map_or_else(Vec::new, |shared| {
+            shared
+                .state
+                .lock()
+                .unwrap()
+                .inflight
+                .values()
+                .filter(|dispatch| !dispatch.complete())
+                .cloned()
+                .collect()
+        })
+    }
     pub(crate) fn register(&self) -> Result<RequestOwner, ()> {
         let shared = self.0.upgrade().ok_or(())?;
-        let identity = {
+        let (identity, dispatch) = {
             let mut state = shared.state.lock().unwrap();
-            if state.closed || state.close_latch.is_some() || state.records.len() >= shared.limit {
+            let retiring = state
+                .inflight
+                .keys()
+                .filter(|request| !state.records.contains_key(request))
+                .count();
+            if state.closed
+                || state.close_latch.is_some()
+                || state.records.len() + retiring >= shared.limit
+            {
                 return Err(());
             }
             let request = state.next;
             state.next = request.checked_add(1).ok_or(())?;
+            let dispatch = Arc::new(FailureDispatch::default());
             state.records.insert(
                 request,
                 Record {
                     handoff: handoff::HandoffState::default(),
                     attached: false,
                     failure: None,
+                    dispatch: dispatch.clone(),
                     deadline: None,
                     token: None,
                     cause: None,
                     report: None,
+                    transport: None,
+                    transport_installed: false,
+                    transport_admitted: false,
                 },
             );
-            Identity {
-                connection: shared.generation,
-                request,
-            }
+            (
+                Identity {
+                    connection: shared.generation,
+                    request,
+                },
+                dispatch,
+            )
         };
         shared.probe.record(Event::Registered(identity));
         Ok(RequestOwner {
             shared,
             identity,
+            dispatch,
             retired: false,
         })
     }
@@ -284,8 +492,114 @@ impl ConnectionHandle {
 pub(crate) struct RequestTerminal {
     shared: Weak<Shared>,
     identity: Identity,
+    dispatch: Arc<FailureDispatch>,
 }
 impl RequestTerminal {
+    // A first failure's action stays pending even after explicit record removal.
+    pub(crate) async fn settle_failure(&self) {
+        self.dispatch.wait().await;
+    }
+    pub(crate) fn failure_cause(&self) -> Option<FailureCause> {
+        let shared = self.shared.upgrade()?;
+        let state = shared.state.lock().unwrap();
+        if self.identity.connection != shared.generation {
+            return None;
+        }
+        state.records.get(&self.identity.request)?.failure
+    }
+    pub(super) fn observe_transport(&self, cause: FailureCause, outcome: TransportOutcome) {
+        if let Some(shared) = self.shared.upgrade() {
+            let mut state = shared.probe.state.lock().unwrap();
+            if state.transport.len() == 128 {
+                state.observer_failed = true;
+            } else {
+                state.transport.push(TransportObservation {
+                    identity: self.identity,
+                    cause,
+                    outcome,
+                });
+            }
+        }
+    }
+    // Binding precedes transport acquisition. A permanent installed bit rejects
+    // replacement even after the first failure has taken/discarded the closure.
+    pub(crate) fn bind_transport_action(
+        &self,
+        callback: impl FnOnce(FailureCause) + Send + 'static,
+    ) -> Result<(), ()> {
+        let shared = self.shared.upgrade().ok_or(())?;
+        let mut action = Some(TransportAction {
+            callback: Some(Box::new(callback)),
+            probe: shared.probe.clone(),
+        });
+        let accepted = {
+            let mut state = shared.state.lock().unwrap();
+            if state.closed
+                || state.close_latch.is_some()
+                || self.identity.connection != shared.generation
+            {
+                false
+            } else if let Some(record) = state.records.get_mut(&self.identity.request) {
+                if record.failure.is_some()
+                    || record.transport_installed
+                    || record.transport_admitted
+                {
+                    false
+                } else {
+                    record.transport_installed = true;
+                    record.transport = action.take();
+                    true
+                }
+            } else {
+                false
+            }
+        };
+        // A rejected closure's captures may reenter the terminal registry.
+        drop(action);
+        accepted.then_some(()).ok_or(())
+    }
+    // Retirement and first failure share the admission mutex. If retirement
+    // wins, remove the capability before dropping the reserved sender. A later
+    // failure must not claim a connection already returned for another request.
+    pub(crate) fn retire_transport_action(&self) -> bool {
+        let Some(shared) = self.shared.upgrade() else {
+            return self.dispatch.complete();
+        };
+        let action = {
+            let mut state = shared.state.lock().unwrap();
+            if !self.dispatch.complete() {
+                return false;
+            }
+            state
+                .records
+                .get_mut(&self.identity.request)
+                .and_then(|record| record.transport.take())
+        };
+        drop(action);
+        true
+    }
+    // This decision must precede the synchronous send_request INVOCATION, which
+    // enqueues before its returned future is polled. It performs no IO/callouts.
+    pub(crate) fn admit_transport(&self) -> Result<(), ()> {
+        let shared = self.shared.upgrade().ok_or(())?;
+        let mut state = shared.state.lock().unwrap();
+        if state.closed
+            || state.close_latch.is_some()
+            || self.identity.connection != shared.generation
+        {
+            return Err(());
+        }
+        let record = state.records.get_mut(&self.identity.request).ok_or(())?;
+        if record.failure.is_some()
+            || !record.transport_installed
+            || record.transport.is_none()
+            || record.transport_admitted
+        {
+            return Err(());
+        }
+        record.transport_admitted = true;
+        Ok(())
+    }
     pub(crate) fn observation(&self) -> (Identity, Option<Instant>) {
         let deadline = self.shared.upgrade().and_then(|shared| {
             shared
@@ -319,6 +633,7 @@ impl RequestTerminal {
 pub(crate) struct RequestOwner {
     shared: Arc<Shared>,
     identity: Identity,
+    dispatch: Arc<FailureDispatch>,
     retired: bool,
 }
 impl RequestOwner {
@@ -326,6 +641,7 @@ impl RequestOwner {
         RequestTerminal {
             shared: Arc::downgrade(&self.shared),
             identity: self.identity,
+            dispatch: self.dispatch.clone(),
         }
     }
     pub(crate) fn start(
@@ -348,18 +664,24 @@ impl RequestOwner {
             record.token = Some(token.clone());
             if let Some(failure) = record.failure {
                 record.report = Some(report);
-                Some(Callouts {
-                    sender: None,
-                    producer_stop: None,
-                    cause: failure,
-                    callback: Some(cause),
-                    report: None,
-                    token: if record.attached || failure != FailureCause::Upstream {
-                        Some(token)
-                    } else {
-                        None
-                    },
-                })
+                if !record.dispatch.complete() {
+                    record.cause = Some(cause);
+                    None
+                } else {
+                    Some(Callouts {
+                        sender: None,
+                        producer_stop: None,
+                        cause: failure,
+                        callback: Some(cause),
+                        report: None,
+                        transport: None,
+                        token: if record.attached || failure != FailureCause::Upstream {
+                            Some(token)
+                        } else {
+                            None
+                        },
+                    })
+                }
             } else {
                 record.cause = Some(cause);
                 record.report = Some(report);
@@ -380,15 +702,20 @@ impl RequestOwner {
                 .expect("live request attachment");
             assert!(!record.attached, "response attached twice");
             record.attached = true;
-            let callouts = record.failure.map(|cause| Callouts {
-                sender: None,
-                producer_stop: None,
-                cause,
-                callback: None,
-                report: record.report.take(),
-                token: record.token.clone(),
-            });
-            if callouts.is_some() && state.close_latch.is_none() {
+            let failed = record.failure.is_some();
+            let callouts = record
+                .failure
+                .filter(|_| record.dispatch.complete())
+                .map(|cause| Callouts {
+                    sender: None,
+                    producer_stop: None,
+                    cause,
+                    callback: None,
+                    report: record.report.take(),
+                    transport: None,
+                    token: record.token.clone(),
+                });
+            if failed && state.close_latch.is_none() {
                 state.close_latch = Some(self.identity);
             }
             callouts
@@ -476,6 +803,7 @@ impl ConnectionTerminal {
                 records: BTreeMap::new(),
                 close_latch: None,
                 close_claimed: false,
+                inflight: BTreeMap::new(),
             }),
             changed: Notify::new(),
             failed: Notify::new(),
@@ -586,8 +914,12 @@ impl ConnectionTerminal {
                 if !state.closed && !state.close_claimed {
                     if let Some(identity) = state.close_latch {
                         assert_eq!(identity.connection, self.shared.generation);
-                        state.close_claimed = true;
-                        Some(identity)
+                        if state.inflight.values().all(|dispatch| dispatch.complete()) {
+                            state.close_claimed = true;
+                            Some(identity)
+                        } else {
+                            None
+                        }
                     } else {
                         None
                     }
@@ -639,10 +971,80 @@ impl Drop for ConnectionTerminal {
     }
 }
 
+// Only synthetic AsyncRead implementations can report progress and an error in
+// one poll. Bound the extra held copy; an oversized artificial case stays
+// explicitly unqualified instead of allocating without limit or losing bytes.
+const MAX_HELD_TERMINAL_READ_BYTES: usize = 64 * 1024;
+
+fn terminal_io_observer_failed(owner: &Option<ConnectionHandle>) {
+    if let Some(shared) = owner.as_ref().and_then(|owner| owner.0.upgrade()) {
+        shared
+            .probe
+            .state
+            .lock()
+            .unwrap_or_else(|error| error.into_inner())
+            .observer_failed = true;
+    }
+}
+
+// AsyncRead and AsyncWrite may be polled by separate split tasks. One dispatch
+// future therefore uses a two-direction fanout rather than replacing one task's
+// wake with the other. No user wake/drop runs while this small mutex is held.
+struct TerminalDispatchWake {
+    waiters: Mutex<[Option<std::task::Waker>; 2]>,
+    owner: Option<ConnectionHandle>,
+}
+impl TerminalDispatchWake {
+    fn register(&self, direction: usize, cx: &Context<'_>) {
+        let waker = cx.waker().clone();
+        let old = {
+            let mut waiters = self
+                .waiters
+                .lock()
+                .unwrap_or_else(|error| error.into_inner());
+            waiters[direction].replace(waker)
+        };
+        drop(old);
+    }
+    fn wake_all(&self) {
+        let waiters = {
+            let mut waiters = self
+                .waiters
+                .lock()
+                .unwrap_or_else(|error| error.into_inner());
+            std::mem::take(&mut *waiters)
+        };
+        for waker in waiters.into_iter().flatten() {
+            if std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| waker.wake())).is_err() {
+                terminal_io_observer_failed(&self.owner);
+            }
+        }
+    }
+}
+impl std::task::Wake for TerminalDispatchWake {
+    fn wake(self: Arc<Self>) {
+        self.wake_all();
+    }
+    fn wake_by_ref(self: &Arc<Self>) {
+        self.wake_all();
+    }
+}
+struct HeldTerminalRead {
+    bytes: Vec<u8>,
+    offset: usize,
+    result: io::Result<()>,
+}
+
 pub(crate) struct TerminalIo<I> {
     inner: I,
     owner: Option<ConnectionHandle>,
     writer: Option<writer::WriterLease>,
+    dispatch_wait: Option<Pin<Box<dyn std::future::Future<Output = ()> + Send>>>,
+    dispatch_wake: Option<Arc<TerminalDispatchWake>>,
+    held_read: Option<HeldTerminalRead>,
+    held_write: Option<io::Result<usize>>,
+    held_flush: Option<io::Result<()>>,
+    held_shutdown: Option<io::Result<()>>,
 }
 impl<I> TerminalIo<I> {
     pub(crate) fn new(inner: I, owner: Option<ConnectionHandle>) -> Self {
@@ -654,6 +1056,68 @@ impl<I> TerminalIo<I> {
             inner,
             owner,
             writer,
+            dispatch_wait: None,
+            dispatch_wake: None,
+            held_read: None,
+            held_write: None,
+            held_flush: None,
+            held_shutdown: None,
+        }
+    }
+    // Snapshot only independent latches. The owned wait never captures Shared,
+    // the connection, the registry or IO; the two fanout entries are bounded.
+    fn dispatch_pending(&mut self, cx: &mut Context<'_>, direction: usize) -> bool {
+        loop {
+            if self.dispatch_wait.is_none() {
+                let pending = self
+                    .owner
+                    .as_ref()
+                    .map_or_else(Vec::new, ConnectionHandle::pending_dispatches);
+                if pending.is_empty() {
+                    return false;
+                }
+                self.dispatch_wait = Some(Box::pin(async move {
+                    for dispatch in pending {
+                        dispatch.wait().await;
+                    }
+                }));
+            }
+            let wake = self
+                .dispatch_wake
+                .get_or_insert_with(|| {
+                    Arc::new(TerminalDispatchWake {
+                        waiters: Mutex::new([None, None]),
+                        owner: self.owner.clone(),
+                    })
+                })
+                .clone();
+            wake.register(direction, cx);
+            let waker = std::task::Waker::from(wake.clone());
+            let mut context = Context::from_waker(&waker);
+            let wait = self
+                .dispatch_wait
+                .as_mut()
+                .expect("dispatch wait installed");
+            if std::future::Future::poll(wait.as_mut(), &mut context).is_pending() {
+                return true;
+            }
+            // Never poll a completed async future again. Wake both directions
+            // even if completion was already visible before Notify registered.
+            self.dispatch_wait = None;
+            wake.wake_all();
+            // Another failure can have started while the snapshot was waiting.
+        }
+    }
+    fn release_read(&mut self, buffer: &mut ReadBuf<'_>) -> Option<io::Result<()>> {
+        let mut held = self.held_read.take()?;
+        let bytes = buffer.remaining().min(held.bytes.len() - held.offset);
+        buffer.put_slice(&held.bytes[held.offset..held.offset + bytes]);
+        held.offset += bytes;
+        if held.offset != held.bytes.len() {
+            self.held_read = Some(held);
+            Some(Ok(()))
+        } else {
+            Some(held.result)
         }
     }
     fn blocked(&self, cx: &Context<'_>, bytes: usize) -> bool {
@@ -684,15 +1148,43 @@ impl<I: AsyncRead + Unpin> AsyncRead for TerminalIo<I> {
         buffer: &mut ReadBuf<'_>,
     ) -> Poll<io::Result<()>> {
         let this = self.get_mut();
+        if this.dispatch_pending(cx, 0) {
+            return Poll::Pending;
+        }
+        if let Some(result) = this.release_read(buffer) {
+            return Poll::Ready(result);
+        }
         let before = buffer.filled().len();
         let capacity = buffer.remaining();
         let result = Pin::new(&mut this.inner).poll_read(cx, buffer);
-        match result {
-            Poll::Ready(Err(_)) => this.observe(Disconnect::ReadError),
+        let terminal = match &result {
+            Poll::Ready(Err(_)) => Some(Disconnect::ReadError),
             Poll::Ready(Ok(())) if capacity > 0 && buffer.filled().len() == before => {
-                this.observe(Disconnect::ReadEof)
+                Some(Disconnect::ReadEof)
             }
-            _ => {}
+            _ => None,
+        };
+        if let Some(cause) = terminal {
+            this.observe(cause);
+            if this.dispatch_pending(cx, 0) {
+                let progress = buffer.filled().len() - before;
+                if progress > MAX_HELD_TERMINAL_READ_BYTES {
+                    // Returning the original error/progress is intentionally
+                    // unqualified: no hidden allocation and no dropped bytes.
+                    terminal_io_observer_failed(&this.owner);
+                    return result;
+                }
+                if let Poll::Ready(result) = result {
+                    let bytes = buffer.filled()[before..].to_vec();
+                    buffer.set_filled(before);
+                    this.held_read = Some(HeldTerminalRead {
+                        bytes,
+                        offset: 0,
+                        result,
+                    });
+                    return Poll::Pending;
+                }
+            }
         }
         result
     }
@@ -704,6 +1196,12 @@ impl<I: AsyncWrite + Unpin> AsyncWrite for TerminalIo<I> {
         bytes: &[u8],
     ) -> Poll<io::Result<usize>> {
         let this = self.get_mut();
+        if this.dispatch_pending(cx, 1) {
+            return Poll::Pending;
+        }
+        if let Some(result) = this.held_write.take() {
+            return Poll::Ready(result);
+        }
         if this.blocked(cx, bytes.len()) {
             return Poll::Pending;
         }
@@ -713,6 +1211,13 @@ impl<I: AsyncWrite + Unpin> AsyncWrite for TerminalIo<I> {
             || (!bytes.is_empty() && matches!(result, Poll::Ready(Ok(0))))
         {
             this.observe(Disconnect::WriteError);
+            if this.dispatch_pending(cx, 1)
+                && let Poll::Ready(result) = result
+            {
+                // Errors and zero-byte writes accepted no caller bytes.
+                this.held_write = Some(result);
+                return Poll::Pending;
+            }
         }
         result
     }
@@ -722,6 +1227,12 @@ impl<I: AsyncWrite + Unpin> AsyncWrite for TerminalIo<I> {
         bytes: &[IoSlice<'_>],
     ) -> Poll<io::Result<usize>> {
         let this = self.get_mut();
+        if this.dispatch_pending(cx, 1) {
+            return Poll::Pending;
+        }
+        if let Some(result) = this.held_write.take() {
+            return Poll::Ready(result);
+        }
         if this.blocked(cx, bytes.iter().map(|bytes| bytes.len()).sum()) {
             return Poll::Pending;
         }
@@ -731,6 +1242,12 @@ impl<I: AsyncWrite + Unpin> AsyncWrite for TerminalIo<I> {
             || (bytes.iter().any(|slice| !slice.is_empty()) && matches!(result, Poll::Ready(Ok(0))))
         {
             this.observe(Disconnect::WriteError);
+            if this.dispatch_pending(cx, 1)
+                && let Poll::Ready(result) = result
+            {
+                this.held_write = Some(result);
+                return Poll::Pending;
+            }
         }
         result
     }
@@ -739,17 +1256,53 @@ impl<I: AsyncWrite + Unpin> AsyncWrite for TerminalIo<I> {
     }
     fn poll_flush(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
         let this = self.get_mut();
+        if this.dispatch_pending(cx, 1) {
+            return Poll::Pending;
+        }
+        if let Some(result) = this.held_flush.take() {
+            return Poll::Ready(result);
+        }
         let result = Pin::new(&mut this.inner).poll_flush(cx);
         if matches!(result, Poll::Ready(Err(_))) {
             this.observe(Disconnect::WriteError);
+            if this.dispatch_pending(cx, 1)
+                && let Poll::Ready(result) = result
+            {
+                this.held_flush = Some(result);
+                return Poll::Pending;
+            }
         }
         result
     }
     fn poll_shutdown(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
-        Pin::new(&mut self.get_mut().inner).poll_shutdown(cx)
+        let this = self.get_mut();
+        if this.dispatch_pending(cx, 1) {
+            return Poll::Pending;
+        }
+        if let Some(result) = this.held_shutdown.take() {
+            return Poll::Ready(result);
+        }
+        let result = Pin::new(&mut this.inner).poll_shutdown(cx);
+        // Preserve the existing shutdown cause policy. Merely delay a ready
+        // result if another first failure began during this physical poll.
+        if this.dispatch_pending(cx, 1)
+            && let Poll::Ready(result) = result
+        {
+            this.held_shutdown = Some(result);
+            return Poll::Pending;
+        }
+        result
     }
 }
 
 #[cfg(test)]
 #[path = "gateway_terminal_tests.rs"]
 mod tests;
+
+#[cfg(test)]
+#[path = "gateway_terminal_transport_tests.rs"]
+mod transport_tests;
+
+#[cfg(test)]
+#[path = "gateway_terminal_io_tests.rs"]
+mod io_dispatch_tests;

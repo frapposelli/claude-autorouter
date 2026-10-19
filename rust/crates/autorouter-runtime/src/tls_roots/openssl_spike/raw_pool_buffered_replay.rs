@@ -80,7 +80,6 @@ impl Fixture {
                 if raw.active.load(Ordering::SeqCst) == 0
                     && raw.tasks.load(Ordering::SeqCst) == 0
                     && raw.shutdown_handles.load(Ordering::SeqCst) == 0
-                    && raw.shutdown_calls.load(Ordering::SeqCst) == 0
                     && fetch.active.load(Ordering::SeqCst) == 0
                     && fetch.tasks.load(Ordering::SeqCst) == 0
                     && fetch.shutdown_handles.load(Ordering::SeqCst) == 0
@@ -102,7 +101,21 @@ impl Fixture {
         })
         .await
         .is_ok();
-        let clean = cleaned && !terminal.observer_failed();
+        let transport = terminal.transport_events();
+        let attempts = transport
+            .iter()
+            .filter(|row| {
+                matches!(
+                    row.outcome,
+                    gateway_terminal::TransportOutcome::Applied(
+                        super::super::super::abort::Outcome::Requested
+                            | super::super::super::abort::Outcome::ShutdownFailed(_)
+                    )
+                )
+            })
+            .count();
+        let attempts_match = raw.shutdown_calls.load(Ordering::SeqCst) == attempts;
+        let clean = cleaned && attempts_match && !terminal.observer_failed();
         serde_json::json!({"cleanup":clean,"cleaned":clean,
             "raw_attempts":raw.attempts.load(Ordering::SeqCst),
             "raw_completed":raw.completed.load(Ordering::SeqCst),
@@ -115,7 +128,14 @@ impl Fixture {
             "fetch_shutdown_handles":fetch.shutdown_handles.load(Ordering::SeqCst),
             "entries_before_drop":entries,"bytes_before_drop":bytes,"peak_bytes":peak_bytes,
             "cache_released":cache.upgrade().is_none(),"buffers":buffers.snapshot(),
-            "terminal_tasks":terminal.tasks(),"writer":terminal.writer_snapshot()})
+            "terminal_tasks":terminal.tasks(),"writer":terminal.writer_snapshot(),
+            "shutdown_attempts_match":attempts_match,
+            "session_error_closes":raw.session_error_closes.load(Ordering::SeqCst),
+            "terminal_events":format!("{:?}",terminal.events()),
+            "transport_actions":transport.iter().map(|row| serde_json::json!({
+                "identity":format!("{:?}",row.identity),"cause":format!("{:?}",row.cause),
+                "outcome":format!("{:?}",row.outcome)
+            })).collect::<Vec<_>>()})
     }
 }
 

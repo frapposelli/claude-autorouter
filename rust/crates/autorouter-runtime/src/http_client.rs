@@ -79,6 +79,13 @@ pub fn fetch_header_value(value: &str) -> Result<hyper::header::HeaderValue, Htt
 pub trait HttpTransport: Send + Sync {
     type ResponseBody: Body<Data = Bytes> + Send + 'static;
 
+    // Explicit private-backend capability; ordinary clients keep their existing
+    // error paths. The request's immutable physical cause remains authoritative.
+    #[cfg(test)]
+    fn request_terminal_abort(&self) -> bool {
+        false
+    }
+
     fn request(
         &self,
         request: Request<Full<Bytes>>,
