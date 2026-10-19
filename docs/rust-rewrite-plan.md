@@ -179,11 +179,19 @@ These are proposed investment targets, not measured results. Ratify them with th
 | --- | --- |
 | Functional and deterministic resource parity | Zero unexplained differential mismatches; identical required evaluator-call counts; all cancellation, capacity, privacy and bounded-retention tests pass. |
 | Cold CLI startup | At least 50% lower median startup for help/version and status rendering than the same-host Node baseline. |
-| Gateway memory | At least 40% lower idle RSS and 30% lower peak RSS on the fixed large-request/concurrency workload, excluding external Claude/Ollama processes. |
+| Gateway memory | At least 40% lower idle RSS and 20% lower peak RSS (candidate/Node ratio at most 0.8) on the fixed large-request/concurrency workload, excluding external Claude/Ollama processes. The peak target was explicitly revised by the user on 2026-10-19. |
 | Local CPU and processing | At least 30% lower CPU time per request and 50% lower p95 large-catalog gateway processing overhead with deterministic immediate mocks. |
 | No important regression | No repeated p95/p99 latency or sustained throughput regression greater than 10% outside measurement uncertainty on any declared workload; near-zero durations need an absolute noise floor declared during baseline collection. |
 | Deterministic evaluator and policy parity | Identical mocked evaluator inputs, rubrics and interpreted results; unchanged quality thresholds; compatible covers all three tiers, Auto covers Sonnet/Opus. No changed routing policy disguised as an optimization. |
 | Real evaluator and task evidence | Matched opt-in baseline/candidate trials with no regression outside predeclared variability bounds. Retain original acceptance statuses, fixture hashes and held-out thresholds; separately report availability, transport and task completion. |
+
+The [2026-10-19 memory decision](../rust/parity/measurements/native-memory-target-approval.json)
+explicitly approves a 0.8 peak-memory ratio after reviewing the latest result.
+The original frozen gate and v5 reports retain 0.7 and their failing outcomes.
+The retained 0.772 ratio (95% interval 0.749–0.791) meets the revised target for
+the measured host/workload; it does not approve representative hardware or the
+full performance matrix. Future numerical runs under the revised target need a
+distinct protocol version and a fresh paired Node baseline. Other targets remain unchanged.
 
 The optimization phase is incomplete when targets fail: profile, correct, and remeasure without trading away parity. If the full rewrite cannot justify its cost, keep the working implementation as the default and make that decision explicit. Do not label a partial port or an unmet gate a successful rewrite.
 

@@ -3,24 +3,27 @@
 This audit retains the scope of [the rewrite plan](../../docs/rust-rewrite-plan.md#performance-strategy-and-acceptance).
 It separates a working measurement capability from successful measurements and
 from acceptance. A green fixture test, an old source checkpoint or a single-host
-ratio does not qualify the final native distribution. The unchanged thresholds
-are in [performance-gates.json](../parity/performance-gates.json).
+ratio does not qualify the final native distribution. Original thresholds remain
+in [performance-gates.json](../parity/performance-gates.json); the separate
+[user decision](../parity/measurements/native-memory-target-approval.json) revises
+only peak RSS to 0.8 after reviewing the latest result.
 
-Originally audited on 2026-10-13; updated on 2026-10-19 with the exact-JSON-capacity
-ordinary-process numerical comparison. The shipping
+Originally audited on 2026-10-13; updated on 2026-10-19 with the request-buffer
+lifetime comparison and explicit revised memory target. The shipping
 reference remains `ea930c247626ce2af5ccdad721b5121417bf4ad8` (JavaScript 0.5.2).
-Do not overwrite older reports, pool protocol versions or relax gates to turn a
-failure into acceptance.
+Do not overwrite older reports, pool protocol versions or silently alter gates.
+The postmeasurement approval preserves original v5 failures under 0.7; future
+runs under 0.8 need a distinct protocol and fresh paired Node baseline.
 
 | Requirement | Current authoritative evidence | What still proves completion |
 | --- | --- | --- |
 | Cold/warm help, version and status; at least 50% lower median startup | Four retained [v1 exploratory comparisons](performance.md); [v5](../parity/local-benchmark-v5.json) adds a private synthetic online snapshot, stdin and 40/80/100/120-column status variants with exact frozen output checks | Final-candidate five matched rounds on representative systems; cold OS-cache conditions and installed npm dispatcher/native archive timing remain absent. Implemented status variants are not numerical acceptance evidence |
 | Ready-to-serve, Jev and Ollama warmup | HTTP driver verifies health and records readiness for mock Jev | Equivalent Ollama startup/warmup workload and installed-launcher boundary; v3/v4 readiness includes collector overhead and is descriptive |
-| Idle RSS at least 40% lower | Same-host v1 observed ratios; complete-process `ps` samples | Final-candidate representative runs under recorded power/load conditions |
-| Large-request/concurrent peak RSS at least 30% lower | The [exact-capacity v5 comparison](../parity/measurements/native-exact-json-capacity-memory-summary.json) preserves all four synthetic wire outputs and verifies five paired ordinary-process lifetime peaks at each of 1/8/32/128 clients. Ratios meet the observed 0.7 target at 1/8/32; **128 still fails**, median 0.865 and 95% interval 0.849–0.906. The earlier 0.915 failure remains retained | Further high-concurrency memory work and a fresh matched comparison; final-candidate representative hardware and broader memory workloads remain required |
-| CPU/request at least 30% lower | Four v1 comparisons retain earlier failures; the latest selected v5 large-catalog run observes interval CPU ratios 0.460–0.505 at 1/8/32/128 | Final-candidate and full declared workload matrix on representative hardware; interval CPU resolution must remain sufficient, not replaced with lifetime CPU |
+| Idle RSS at least 40% lower | The [latest selected comparison](../parity/measurements/native-request-body-lifetime-memory-summary.json) observes the target at all four concurrency levels; earlier same-host observations remain retained | Final-candidate representative runs under recorded power/load conditions |
+| Large-request/concurrent peak RSS at least 20% lower, explicitly approved 0.8 ratio | The [request-buffer lifetime comparison](../parity/measurements/native-request-body-lifetime-memory-summary.json) verifies five paired ordinary-process lifetime peaks at each of 1/8/32/128 clients. Its 128-client ratio is 0.772, 95% interval 0.749–0.791, meeting the [revised target](../parity/measurements/native-memory-target-approval.json) on this host/workload. Original 0.7 failures, including earlier 0.865 and 0.915 results, remain retained | Final-candidate representative hardware and broader memory workloads remain required; current host observation does not qualify that full scope |
+| CPU/request at least 30% lower | Four v1 comparisons retain earlier failures; the latest selected v5 large-catalog run observes the target at 1/8/32/128 | Final-candidate and full declared workload matrix on representative hardware; interval CPU resolution must remain sufficient, not replaced with lifetime CPU |
 | Large-catalog processing-only p95 at least 50% lower | [Matched component protocol](../parity/processing-benchmark-v1.json) implements fresh parse/validate/real-router/prepare/serialize helpers with immediate injected transport and exact output/call/decision checks | New numerical component results under the unchanged 0.5 target plus proof for excluded HTTP pre/postprocessing; helper alone cannot qualify the whole shipping gateway. End-to-end HTTP percentiles and subtraction of independent control percentiles are insufficient |
-| No important p95/p99/throughput regression | v1 fourth run detects no regression for its limited matrix and source checkpoint | All declared final-candidate workloads, five paired rounds, confidence intervals, 10% relative allowance and 0.5 ms noise floor; throughput minimum 0.9 |
+| No important p95/p99/throughput regression | The latest selected large-catalog comparison detects no regression in sixteen route/first-body latency margins and observes throughput targets; earlier v1 results remain separately scoped | All declared final-candidate workloads, five paired rounds, confidence intervals, 10% relative allowance and 0.5 ms noise floor; throughput minimum 0.9 |
 | Full response latency, first body byte, stalls and byte throughput | [v2 declaration](../parity/local-benchmark-v2.json) and deterministic exact-response checks implement burst/paced SSE | Numerical v2-or-later runs; UTF-8 fragmentation, compressed pass-through, slow client, long stream and failure/cancellation timing remain absent |
 | Near-limit request body and tiny-string parser memory | [v4 declaration](../parity/local-benchmark-v4.json) and driver fixtures add 32 MiB minus 4096 bytes and 65,536 independent one-character strings | New matched numeric results with exact request/count fields and unchanged bounds; no historical large-tool workload qualifies the per-string memory tradeoff |
 | Descriptor counts and postload recovery | v4 bounds `/proc/PID/fd` enumeration or PID/f-only `lsof`; all 120 snapshots in the selected v5 run remain unverified because of diagnostics | Verified measurements on each representative OS; warnings/truncation remain unverified. Three non-atomic snapshots have no peak or long-term-retention claim |

@@ -2,10 +2,11 @@
 
 Synthetic comparisons retain observed CPU, throughput and latency improvements
 on developer workstations. The latest ordinary-process lifetime-peak comparison
-still misses the memory target at 128 concurrent requests. The rewrite's overall
-performance gate remains incomplete: high-concurrency memory, final-candidate
-processing-only latency, additional workloads and representative hardware remain
-open. Earlier failed runs remain below.
+observes a 128-client ratio of 0.772, meeting the explicitly approved 0.8 target
+for that host/workload. Its original 0.7 failure remains recorded. The rewrite's
+overall performance gate remains incomplete: final-candidate processing-only
+latency, additional workloads and representative hardware remain open. Earlier
+failed runs remain below.
 
 ## First comparison
 
@@ -424,3 +425,17 @@ builds/tests/compression paused. Fresh release compilation and hashes are
 retained, but this is not a clean independent reproduction or installed native
 release qualification. Other workloads, representative hardware, real providers
 and the full rewrite remain unqualified. No failing result or threshold changed.
+
+### Revised memory target (2026-10-19)
+
+The [request-buffer lifetime experiment](../parity/measurements/native-request-body-lifetime-memory-summary.json)
+observes a 128-client peak RSS ratio of 0.772 (95% interval 0.749–0.791).
+After reviewing that result, the user [approved a 0.8 memory target](../parity/measurements/native-memory-target-approval.json).
+This host/workload observation meets the revised target. Other numerical,
+workload, hardware and release requirements remain in force.
+
+Original gate files and v5 reports keep the original 0.7 threshold and failures.
+The approval is recorded separately after measurement; it does not rewrite those
+outcomes or claim that 0.8 was predeclared. Future numerical runs using 0.8 need a
+distinct protocol version and fresh paired Node baseline. This decision does not
+require rerunning or relabeling the retained experiment.

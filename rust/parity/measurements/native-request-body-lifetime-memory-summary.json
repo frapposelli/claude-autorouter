@@ -1,0 +1,1455 @@
+{
+  "schema_version": 1,
+  "kind": "native_request_body_lifetime_memory_checkpoint",
+  "status": "LOCAL_CORRECTNESS_PASS_MEMORY_OBSERVED_LOWER_128_TARGET_STILL_FAILS",
+  "recorded_at_utc": "2026-10-19T13:33:30.337279+00:00",
+  "base_commit": "021038229169623b21a76a8ede1b71213e363c32",
+  "source": {
+    "snapshot": {
+      "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/source-candidate.json",
+      "bytes": 119351,
+      "sha256": "45b10c96cc0dddcec67abe9f6ef9f26278a2c8a87016602adf60d5643e79fbf0"
+    },
+    "raw_inputs": 709,
+    "frozen_inputs": 111,
+    "changed_inputs": [
+      "rust/crates/autorouter-runtime/src/server.rs"
+    ],
+    "preimage": {
+      "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/server-before.rs",
+      "bytes": 91182,
+      "sha256": "4570aee683a52053d87d9bfefab21e2c8e77902c3bfbf3213a8a0cae4f0d5265"
+    },
+    "current_server": {
+      "path": "rust/crates/autorouter-runtime/src/server.rs",
+      "bytes": 91505,
+      "sha256": "6ade57a8b7550e85bda1167133d78dfa079738fbf2d5a450d26a6d5368673db2"
+    },
+    "predeclared_controls": {
+      "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/predeclared-controls.json",
+      "bytes": 1619,
+      "sha256": "44dce0ae339bf7f16a20c0d7f97dc09838375dec7ac41d12ae2d0a59cc0f1ea0"
+    }
+  },
+  "implementation": [
+    "After owned JSON parsing and shape validation, inference releases its raw receive buffer before transform/routing/count awaits. Count requests retain their exact original raw bytes.",
+    "Forwarding records final body length and moves Bytes into Full, removing the additional shared owner that retained the backing allocation across the response-head await. Bytes.clone was a shared reference, not a full payload copy.",
+    "The authoritative parser/writer, exact request preparation, authentication/header/error order, cancellation/deadlines, routing/state/protocol and all archive policies remain unchanged."
+  ],
+  "validation": {
+    "workspace-ci": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/workspace-ci.json",
+        "bytes": 1287,
+        "sha256": "c156a5ba48d13f9feb0bff823d453daf72c0776ddc9bee7facd2d8f6f382077f"
+      },
+      "invocation": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/workspace-ci-invocation.json",
+        "bytes": 20513,
+        "sha256": "a470a39fb1b60ac787a88c84915ebf8f711a1ea4f3ade441caea49b3d9af1dbe"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/workspace-ci.stdout",
+        "bytes": 162850,
+        "sha256": "1f7b1b8d70fa51b5ce01ac5cba9329ec0e41a7d5730bd6db47d221ef76ed3904"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/workspace-ci.stderr",
+        "bytes": 20233,
+        "sha256": "e51a2a16dca41df720c1041d5793877651b74f3cbcb7f5f6fdbb9b8355bcdb0f"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 305.25185029092245
+    },
+    "fmt": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/fmt.json",
+        "bytes": 1079,
+        "sha256": "22b3eff669b17d4b86e779d8ce08f6dc5d6f47369458583191f545d34ac49d57"
+      },
+      "invocation": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/fmt-invocation.json",
+        "bytes": 20314,
+        "sha256": "a123c8a0cad36ea1d3957f711664e8fb256df3aa12efb0610d1e54e270e9b4d2"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/fmt.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/fmt.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 1.1140790418721735
+    },
+    "clippy": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/clippy.json",
+        "bytes": 1318,
+        "sha256": "fcaed71de0c8e52c96de7e42fec16ac7711413383ea623ac5a11af1ed430bcc4"
+      },
+      "invocation": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/clippy-invocation.json",
+        "bytes": 20550,
+        "sha256": "8a49c73aaf836098bb8ba9534b1558b35378f2b171c3973afb6f33fda63c668d"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/clippy.stdout",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/clippy.stderr",
+        "bytes": 5066,
+        "sha256": "eed938e4802c084b60823c15b9b4cc4c6810c43c419e059071bcdc82403ba5aa"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 24.278145709075034
+    },
+    "ordinary-cli": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/ordinary-cli.json",
+        "bytes": 1175,
+        "sha256": "fe721f394f3a2dc921ebbcaa1cbae33833c9ce9edd7639d234f53cfc52005345"
+      },
+      "invocation": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/ordinary-cli-invocation.json",
+        "bytes": 20403,
+        "sha256": "80e2be0547f1105bc8885216643bb872d854e2b2e05d4acc747f05ce95d8aaf0"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/ordinary-cli.stdout",
+        "bytes": 163931,
+        "sha256": "5bacc1b592f13729ce1f4c0085a4510275de5f92448055415c6799f9e5ceb238"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/ordinary-cli.stderr",
+        "bytes": 281,
+        "sha256": "24c5e0d738503f5cc1ddef2c2269e0b137d2589bfa364c28221336617107ab24"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 25.442600958049297
+    },
+    "node-check": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/node-check.json",
+        "bytes": 1118,
+        "sha256": "1ff4dd67ff5a628ed69815b93c9117cd99ca1009ddd87dfcf03e1bac4ebb96e4"
+      },
+      "invocation": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/node-check-invocation.json",
+        "bytes": 20349,
+        "sha256": "38911c9e762829da07938858a984dd3a8ba7b2c83233beed99cd9539687c3891"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/node-check.stdout",
+        "bytes": 153,
+        "sha256": "532c6103d0ae7485afac714e22851bbe915a0dfef35deddde4abf0e0db7f21a9"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/node-check.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 3.489322999957949
+    },
+    "node-tests": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/node-tests.json",
+        "bytes": 1109,
+        "sha256": "bf3e61831c11b83f6b5e98925d742ed6d38733127577f5e6b92568229ba55c42"
+      },
+      "invocation": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/node-tests-invocation.json",
+        "bytes": 20337,
+        "sha256": "1f1fa4b9c3601ac8e8e668bf8701844df95b2e92b334355195b33503f984100c"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/node-tests.stdout",
+        "bytes": 144890,
+        "sha256": "1b449a8d41dc1819a1af4752c886fc4f9cf1f632ccbcbe8f8b82d5effc6d8570"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/node-tests.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 5.007390750106424
+    },
+    "node-package": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/node-package.json",
+        "bytes": 1125,
+        "sha256": "3446281469aec4de59eb123497c364958ee9ac2d561e0a1795b12d4dc5c9cb84"
+      },
+      "invocation": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/node-package-invocation.json",
+        "bytes": 20356,
+        "sha256": "65573195addaaa7a1121868075bbcfb3211c75348688e3df1fe2390a2df7ae66"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/node-package.stdout",
+        "bytes": 885,
+        "sha256": "16bb0dc815328616f64cd08c33e10efc3e3378180c175cf9bc75558ba43e6af1"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/node-package.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 6.399300582939759
+    },
+    "benchmark-validation": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-validation.json",
+        "bytes": 1996,
+        "sha256": "891bdeed3fe251ba5e50bb4e6ffa04b79eb1b62eb8dde4e7113b79e52c0e1c22"
+      },
+      "invocation": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-validation-invocation.json",
+        "bytes": 22831,
+        "sha256": "97c92a92e88910eba5dd8ad4288294a413e7f21e93f18b68eece073a9bc8ae17"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-validation.stdout",
+        "bytes": 257,
+        "sha256": "01d3cc9b8c404a42f1f1c414373f6eb64be1a610bbf7e53b9c7b18db284c9ee9"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-validation.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 10.736048875143752
+    },
+    "benchmark-measurement": {
+      "owner": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement.json",
+        "bytes": 1978,
+        "sha256": "e1de2de659998d3bc64c29223be73fecf67923f9d908aa4553a1b325fb1b5243"
+      },
+      "invocation": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement-invocation.json",
+        "bytes": 22814,
+        "sha256": "52c0825ad8f345f7ad7c58b781dbde0555b0dacf5186e6bb3362d4ed0f684b1f"
+      },
+      "stdout": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement.stdout",
+        "bytes": 257,
+        "sha256": "ad2830fe5ffe10df70c9365d181cc0bb290d16424786ed9e89bdafa8b15dc060"
+      },
+      "stderr": {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement.stderr",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "exit_code": 0,
+      "elapsed_seconds": 275.9672562079504
+    }
+  },
+  "counts": {
+    "rust": {
+      "passed": 1548,
+      "failed": 0,
+      "ignored": 11,
+      "groups": 66,
+      "filtered": 0,
+      "all_1559_prior_named_outcomes_and_multiplicities_preserved": true,
+      "existing_relevant_regressions_current_pass": 17
+    },
+    "node": {
+      "passed": 645,
+      "failed": 0
+    },
+    "package": {
+      "files": 58,
+      "synthetic_lifecycle_scenarios": 17
+    },
+    "guards": {
+      "source": 709,
+      "frozen": 111,
+      "current_Node_paths": 106,
+      "base_auxiliary": 117
+    }
+  },
+  "builds": {
+    "ordinary": {
+      "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/ordinary/claude-autorouter",
+      "bytes": 13152592,
+      "sha256": "3bcd10e799658b1aa8f874b5bc94d6287e1c9a7404014406f87774e23cfcd905"
+    },
+    "compiler_artifacts": [
+      {
+        "name": "autorouter_runtime",
+        "kind": [
+          "lib"
+        ],
+        "features": [
+          "default"
+        ],
+        "fresh": false,
+        "profile": {
+          "opt_level": "3",
+          "debuginfo": 0,
+          "debug_assertions": false,
+          "overflow_checks": false,
+          "test": false
+        }
+      },
+      {
+        "name": "claude-autorouter",
+        "kind": [
+          "bin"
+        ],
+        "features": [],
+        "fresh": false,
+        "profile": {
+          "opt_level": "3",
+          "debuginfo": 0,
+          "debug_assertions": false,
+          "overflow_checks": false,
+          "test": false
+        }
+      }
+    ],
+    "driver": {
+      "path": "artifacts/rust-rewrite/exact-json-capacity-validation-20261019-1/candidate-build/xtask",
+      "bytes": 17682848,
+      "sha256": "d38e7fdef12096aa978e3f30a7ea4cd5b9a66ec6013905d93200a68e5676c364"
+    },
+    "driver_source_equality": {
+      "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/driver-source-identity.json",
+      "bytes": 1341,
+      "sha256": "d234fdbe719c7f72bc75efe06efab087a7fbbeab5dc6e45d4ea51b35604ab2b5"
+    },
+    "scope": "Ordinary runtime and binary freshly optimized against cached dependencies; historical exact-C fixedbenchmarkdriver deliberately reused, no current same-source helper or independentcleanbuild claim."
+  },
+  "build_bindings": {
+    "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/build-bindings.json",
+    "bytes": 1573,
+    "sha256": "8ad78d65ba1e5504c3cfe1b4f080991be8a5795dcdcbe9ecc7fbec45c732b78c"
+  },
+  "driver_source_identity": {
+    "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/driver-source-identity.json",
+    "bytes": 1341,
+    "sha256": "d234fdbe719c7f72bc75efe06efab087a7fbbeab5dc6e45d4ea51b35604ab2b5"
+  },
+  "measurement": {
+    "report": {
+      "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/report.json",
+      "bytes": 10743706,
+      "sha256": "eb9e75f6fc99c61bc3274ae7590914eec48255c349adae274a4430e9b44b255a"
+    },
+    "deterministic_preflight_report": {
+      "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-validation/report.json",
+      "bytes": 25982,
+      "sha256": "e0cfddc988d132980299f13553de23dee53f0aa65ab2d9b511634db1a3c38b90"
+    },
+    "mode": "One original selectedv5 large_catalog_miss experiment, not full-protocol performance acceptance. Historical fixed-driver helper deliberately reused; current ordinary gateway independently rebuilt/pinned.",
+    "protocol_sha256": "f1bf1568b5e8b71a04a102a8ed43acd33b5addf7b5dc5ad3168009fa10a6d963",
+    "performance_gates": {
+      "path": "rust/parity/performance-gates.json",
+      "bytes": 4792,
+      "sha256": "a9a8d7e1f9868e23303972117a19d5f899a934ebf7e50c0e8fc7498870cbd84f"
+    },
+    "rows": 60,
+    "gateway_rows": 40,
+    "direct_rows": 20,
+    "paired_rounds": 5,
+    "concurrency": [
+      1,
+      8,
+      32,
+      128
+    ],
+    "warmup_per_row": 200,
+    "measured_per_row": 2000,
+    "measured_requests": 120000,
+    "warmup_requests": 12000,
+    "measured_evaluator_calls": 80000,
+    "measured_count_token_calls": 80000,
+    "fixture_bytes": 286845,
+    "response_bytes": 257,
+    "response_sha256": "015de734d07501ece5422f15ad7c5c797462ceb947a4998e965da03de953ed9e",
+    "response_bytes_and_counts_match_all_rows": true,
+    "verified_lifetime_collectors": 40,
+    "descriptor_snapshots_verified": false,
+    "comparisons": [
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 1,
+        "metric": "idle_rss_ratio",
+        "paired_rounds": 5,
+        "interval": {
+          "median": 0.1650853889943074,
+          "low": 0.16464237516869096,
+          "high": 0.1654891304347826
+        },
+        "threshold": 0.6,
+        "minimum": false,
+        "status": "observed_target_met",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 1,
+        "metric": "cpu_per_request_ratio",
+        "paired_rounds": 5,
+        "interval": {
+          "median": 0.5035360678925035,
+          "low": 0.47809278350515455,
+          "high": 0.5107913669064749
+        },
+        "threshold": 0.7,
+        "minimum": false,
+        "status": "observed_target_met",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 1,
+        "metric": "throughput_ratio",
+        "paired_rounds": 5,
+        "interval": {
+          "median": 1.6691160103929505,
+          "low": 1.6294775696418622,
+          "high": 1.756091693817471
+        },
+        "threshold": 0.9,
+        "minimum": true,
+        "status": "observed_target_met",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 1,
+        "metric": "lifetime_peak_rss_ratio",
+        "paired_rounds": 5,
+        "interval": {
+          "median": 0.14252696456086286,
+          "low": 0.14069767441860465,
+          "high": 0.14748558934605446
+        },
+        "threshold": 0.7,
+        "minimum": false,
+        "status": "observed_target_met",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 1,
+        "metric": "p95_regression_margin_ms",
+        "interval": {
+          "median": -2.5521249999999998,
+          "low": -2.908208,
+          "high": -2.256916000000001
+        },
+        "absolute_noise_floor_ms": 0.5,
+        "relative_allowance": 0.1,
+        "status": "no_regression_detected",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 1,
+        "metric": "p99_regression_margin_ms",
+        "interval": {
+          "median": -3.7395541999999997,
+          "low": -4.324883,
+          "high": -3.6607424000000006
+        },
+        "absolute_noise_floor_ms": 0.5,
+        "relative_allowance": 0.1,
+        "status": "no_regression_detected",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 1,
+        "metric": "first_body_p95_regression_margin_ms",
+        "interval": {
+          "median": -2.5406670000000005,
+          "low": -2.8960410000000003,
+          "high": -2.2515829999999992
+        },
+        "absolute_noise_floor_ms": 0.5,
+        "relative_allowance": 0.1,
+        "status": "no_regression_detected",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 1,
+        "metric": "first_body_p99_regression_margin_ms",
+        "interval": {
+          "median": -3.7243079999999997,
+          "low": -4.313775,
+          "high": -3.6468802
+        },
+        "absolute_noise_floor_ms": 0.5,
+        "relative_allowance": 0.1,
+        "status": "no_regression_detected",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 1,
+        "metric": "large_catalog_http_p95_ratio",
+        "interval": {
+          "median": 0.5158703641830938,
+          "low": 0.47898723693886436,
+          "high": 0.5828123779335426
+        },
+        "threshold": 0.5,
+        "status": "reported_http_metric_processing_only_gate_unmeasured",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 8,
+        "metric": "idle_rss_ratio",
+        "paired_rounds": 5,
+        "interval": {
+          "median": 0.16464237516869096,
+          "low": 0.16293498786080388,
+          "high": 0.16630434782608697
+        },
+        "threshold": 0.6,
+        "minimum": false,
+        "status": "observed_target_met",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 8,
+        "metric": "cpu_per_request_ratio",
+        "paired_rounds": 5,
+        "interval": {
+          "median": 0.508498583569405,
+          "low": 0.4795396419437341,
+          "high": 0.5226628895184136
+        },
+        "threshold": 0.7,
+        "minimum": false,
+        "status": "observed_target_met",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 8,
+        "metric": "throughput_ratio",
+        "paired_rounds": 5,
+        "interval": {
+          "median": 1.7493200991505682,
+          "low": 1.6723461027901332,
+          "high": 1.7971395214958972
+        },
+        "threshold": 0.9,
+        "minimum": true,
+        "status": "observed_target_met",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 8,
+        "metric": "lifetime_peak_rss_ratio",
+        "paired_rounds": 5,
+        "interval": {
+          "median": 0.21574570606979093,
+          "low": 0.21415996938384999,
+          "high": 0.22015625
+        },
+        "threshold": 0.7,
+        "minimum": false,
+        "status": "observed_target_met",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 8,
+        "metric": "p95_regression_margin_ms",
+        "interval": {
+          "median": -18.679221499999997,
+          "low": -20.988653800000005,
+          "high": -18.638915599999994
+        },
+        "absolute_noise_floor_ms": 0.5,
+        "relative_allowance": 0.1,
+        "status": "no_regression_detected",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 8,
+        "metric": "p99_regression_margin_ms",
+        "interval": {
+          "median": -20.249888200000004,
+          "low": -21.4146326,
+          "high": -14.177445099999996
+        },
+        "absolute_noise_floor_ms": 0.5,
+        "relative_allowance": 0.1,
+        "status": "no_regression_detected",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 8,
+        "metric": "first_body_p95_regression_margin_ms",
+        "interval": {
+          "median": -18.669109000000002,
+          "low": -20.988125299999997,
+          "high": -18.627782999999994
+        },
+        "absolute_noise_floor_ms": 0.5,
+        "relative_allowance": 0.1,
+        "status": "no_regression_detected",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 8,
+        "metric": "first_body_p99_regression_margin_ms",
+        "interval": {
+          "median": -20.2498007,
+          "low": -21.4042576,
+          "high": -14.162158999999996
+        },
+        "absolute_noise_floor_ms": 0.5,
+        "relative_allowance": 0.1,
+        "status": "no_regression_detected",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 32,
+        "metric": "idle_rss_ratio",
+        "paired_rounds": 5,
+        "interval": {
+          "median": 0.1648677819751754,
+          "low": 0.1641025641025641,
+          "high": 0.166530389751976
+        },
+        "threshold": 0.6,
+        "minimum": false,
+        "status": "observed_target_met",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 32,
+        "metric": "cpu_per_request_ratio",
+        "paired_rounds": 5,
+        "interval": {
+          "median": 0.4828431372549019,
+          "low": 0.4747736093143596,
+          "high": 0.48293963254593175
+        },
+        "threshold": 0.7,
+        "minimum": false,
+        "status": "observed_target_met",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 32,
+        "metric": "throughput_ratio",
+        "paired_rounds": 5,
+        "interval": {
+          "median": 1.7364829118560496,
+          "low": 1.7160388204300991,
+          "high": 1.756870211562471
+        },
+        "threshold": 0.9,
+        "minimum": true,
+        "status": "observed_target_met",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 32,
+        "metric": "lifetime_peak_rss_ratio",
+        "paired_rounds": 5,
+        "interval": {
+          "median": 0.3189500807966109,
+          "low": 0.22248479582971328,
+          "high": 0.37224691856940795
+        },
+        "threshold": 0.7,
+        "minimum": false,
+        "status": "observed_target_met",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 32,
+        "metric": "p95_regression_margin_ms",
+        "interval": {
+          "median": -75.15959550000001,
+          "low": -80.0589073,
+          "high": -66.9682285
+        },
+        "absolute_noise_floor_ms": 0.5,
+        "relative_allowance": 0.1,
+        "status": "no_regression_detected",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 32,
+        "metric": "p99_regression_margin_ms",
+        "interval": {
+          "median": -79.297616,
+          "low": -90.13397950000001,
+          "high": -75.4846799
+        },
+        "absolute_noise_floor_ms": 0.5,
+        "relative_allowance": 0.1,
+        "status": "no_regression_detected",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 32,
+        "metric": "first_body_p95_regression_margin_ms",
+        "interval": {
+          "median": -75.1602872,
+          "low": -80.06024509999997,
+          "high": -66.9683122
+        },
+        "absolute_noise_floor_ms": 0.5,
+        "relative_allowance": 0.1,
+        "status": "no_regression_detected",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 32,
+        "metric": "first_body_p99_regression_margin_ms",
+        "interval": {
+          "median": -79.29794859999998,
+          "low": -90.11100489999998,
+          "high": -75.4845344
+        },
+        "absolute_noise_floor_ms": 0.5,
+        "relative_allowance": 0.1,
+        "status": "no_regression_detected",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 128,
+        "metric": "idle_rss_ratio",
+        "paired_rounds": 5,
+        "interval": {
+          "median": 0.16558265582655826,
+          "low": 0.16477885652642935,
+          "high": 0.1662162162162162
+        },
+        "threshold": 0.6,
+        "minimum": false,
+        "status": "observed_target_met",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 128,
+        "metric": "cpu_per_request_ratio",
+        "paired_rounds": 5,
+        "interval": {
+          "median": 0.467680608365019,
+          "low": 0.456367924528302,
+          "high": 0.48000000000000004
+        },
+        "threshold": 0.7,
+        "minimum": false,
+        "status": "observed_target_met",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 128,
+        "metric": "throughput_ratio",
+        "paired_rounds": 5,
+        "interval": {
+          "median": 1.7120686632604647,
+          "low": 1.6531605194952534,
+          "high": 1.767234227974409
+        },
+        "threshold": 0.9,
+        "minimum": true,
+        "status": "observed_target_met",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 128,
+        "metric": "lifetime_peak_rss_ratio",
+        "paired_rounds": 5,
+        "interval": {
+          "median": 0.7719731197084172,
+          "low": 0.7487595349181664,
+          "high": 0.7906352171882298
+        },
+        "threshold": 0.7,
+        "minimum": false,
+        "status": "observed_target_not_met",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 128,
+        "metric": "p95_regression_margin_ms",
+        "interval": {
+          "median": -279.2770326,
+          "low": -345.88507880000003,
+          "high": -220.17540869999996
+        },
+        "absolute_noise_floor_ms": 0.5,
+        "relative_allowance": 0.1,
+        "status": "no_regression_detected",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 128,
+        "metric": "p99_regression_margin_ms",
+        "interval": {
+          "median": -316.70012920000005,
+          "low": -349.50342119999993,
+          "high": -269.9798382
+        },
+        "absolute_noise_floor_ms": 0.5,
+        "relative_allowance": 0.1,
+        "status": "no_regression_detected",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 128,
+        "metric": "first_body_p95_regression_margin_ms",
+        "interval": {
+          "median": -279.27683260000003,
+          "low": -345.88322460000006,
+          "high": -220.17402190000007
+        },
+        "absolute_noise_floor_ms": 0.5,
+        "relative_allowance": 0.1,
+        "status": "no_regression_detected",
+        "acceptance_qualified": false
+      },
+      {
+        "workload": "large_catalog_miss",
+        "concurrency": 128,
+        "metric": "first_body_p99_regression_margin_ms",
+        "interval": {
+          "median": -316.69580419999994,
+          "low": -349.5021673999999,
+          "high": -269.9798124999999
+        },
+        "absolute_noise_floor_ms": 0.5,
+        "relative_allowance": 0.1,
+        "status": "no_regression_detected",
+        "acceptance_qualified": false
+      }
+    ],
+    "comparison_status_counts": {
+      "observed_target_met": 15,
+      "no_regression_detected": 16,
+      "reported_http_metric_processing_only_gate_unmeasured": 1,
+      "observed_target_not_met": 1
+    },
+    "paired_resource_rows": [
+      {
+        "concurrency": 1,
+        "round": 1,
+        "node_peak_rss_bytes": 170131456,
+        "rust_peak_rss_bytes": 24248320,
+        "peak_ratio": 0.14252696456086286,
+        "node_cpu_ms_per_request": 3.8800000000000003,
+        "rust_cpu_ms_per_request": 1.8549999999999998
+      },
+      {
+        "concurrency": 1,
+        "round": 2,
+        "node_peak_rss_bytes": 169082880,
+        "rust_peak_rss_bytes": 23789568,
+        "peak_ratio": 0.14069767441860465,
+        "node_cpu_ms_per_request": 3.7649999999999997,
+        "rust_cpu_ms_per_request": 1.865
+      },
+      {
+        "concurrency": 1,
+        "round": 3,
+        "node_peak_rss_bytes": 164855808,
+        "rust_peak_rss_bytes": 24313856,
+        "peak_ratio": 0.14748558934605446,
+        "node_cpu_ms_per_request": 3.545,
+        "rust_cpu_ms_per_request": 1.81
+      },
+      {
+        "concurrency": 1,
+        "round": 4,
+        "node_peak_rss_bytes": 171425792,
+        "rust_peak_rss_bytes": 24412160,
+        "peak_ratio": 0.14240657555194494,
+        "node_cpu_ms_per_request": 3.535,
+        "rust_cpu_ms_per_request": 1.78
+      },
+      {
+        "concurrency": 1,
+        "round": 5,
+        "node_peak_rss_bytes": 170377216,
+        "rust_peak_rss_bytes": 24363008,
+        "peak_ratio": 0.1429945187037215,
+        "node_cpu_ms_per_request": 3.4749999999999996,
+        "rust_cpu_ms_per_request": 1.7750000000000001
+      },
+      {
+        "concurrency": 8,
+        "round": 1,
+        "node_peak_rss_bytes": 211845120,
+        "rust_peak_rss_bytes": 45744128,
+        "peak_ratio": 0.21593194122196444,
+        "node_cpu_ms_per_request": 3.9099999999999997,
+        "rust_cpu_ms_per_request": 1.8750000000000002
+      },
+      {
+        "concurrency": 8,
+        "round": 2,
+        "node_peak_rss_bytes": 211484672,
+        "rust_peak_rss_bytes": 45596672,
+        "peak_ratio": 0.21560272699101332,
+        "node_cpu_ms_per_request": 3.5300000000000002,
+        "rust_cpu_ms_per_request": 1.845
+      },
+      {
+        "concurrency": 8,
+        "round": 3,
+        "node_peak_rss_bytes": 210812928,
+        "rust_peak_rss_bytes": 45481984,
+        "peak_ratio": 0.21574570606979093,
+        "node_cpu_ms_per_request": 3.505,
+        "rust_cpu_ms_per_request": 1.79
+      },
+      {
+        "concurrency": 8,
+        "round": 4,
+        "node_peak_rss_bytes": 209715200,
+        "rust_peak_rss_bytes": 46170112,
+        "peak_ratio": 0.22015625,
+        "node_cpu_ms_per_request": 3.5300000000000002,
+        "rust_cpu_ms_per_request": 1.785
+      },
+      {
+        "concurrency": 8,
+        "round": 5,
+        "node_peak_rss_bytes": 214056960,
+        "rust_peak_rss_bytes": 45842432,
+        "peak_ratio": 0.21415996938384999,
+        "node_cpu_ms_per_request": 3.5300000000000002,
+        "rust_cpu_ms_per_request": 1.795
+      },
+      {
+        "concurrency": 32,
+        "round": 1,
+        "node_peak_rss_bytes": 324337664,
+        "rust_peak_rss_bytes": 120733696,
+        "peak_ratio": 0.37224691856940795,
+        "node_cpu_ms_per_request": 4.08,
+        "rust_cpu_ms_per_request": 1.9699999999999998
+      },
+      {
+        "concurrency": 32,
+        "round": 2,
+        "node_peak_rss_bytes": 328302592,
+        "rust_peak_rss_bytes": 104611840,
+        "peak_ratio": 0.31864457530691687,
+        "node_cpu_ms_per_request": 3.865,
+        "rust_cpu_ms_per_request": 1.835
+      },
+      {
+        "concurrency": 32,
+        "round": 3,
+        "node_peak_rss_bytes": 375144448,
+        "rust_peak_rss_bytes": 119652352,
+        "peak_ratio": 0.3189500807966109,
+        "node_cpu_ms_per_request": 3.8099999999999996,
+        "rust_cpu_ms_per_request": 1.8399999999999999
+      },
+      {
+        "concurrency": 32,
+        "round": 4,
+        "node_peak_rss_bytes": 471449600,
+        "rust_peak_rss_bytes": 104890368,
+        "peak_ratio": 0.22248479582971328,
+        "node_cpu_ms_per_request": 3.8099999999999996,
+        "rust_cpu_ms_per_request": 1.8399999999999999
+      },
+      {
+        "concurrency": 32,
+        "round": 5,
+        "node_peak_rss_bytes": 374702080,
+        "rust_peak_rss_bytes": 123846656,
+        "peak_ratio": 0.3305203323130739,
+        "node_cpu_ms_per_request": 3.8100000000000005,
+        "rust_cpu_ms_per_request": 1.835
+      },
+      {
+        "concurrency": 128,
+        "round": 1,
+        "node_peak_rss_bytes": 429211648,
+        "rust_peak_rss_bytes": 332988416,
+        "peak_ratio": 0.7758140245066228,
+        "node_cpu_ms_per_request": 4.239999999999999,
+        "rust_cpu_ms_per_request": 1.935
+      },
+      {
+        "concurrency": 128,
+        "round": 2,
+        "node_peak_rss_bytes": 420937728,
+        "rust_peak_rss_bytes": 332808192,
+        "peak_ratio": 0.7906352171882298,
+        "node_cpu_ms_per_request": 3.9450000000000003,
+        "rust_cpu_ms_per_request": 1.8450000000000002
+      },
+      {
+        "concurrency": 128,
+        "round": 3,
+        "node_peak_rss_bytes": 442466304,
+        "rust_peak_rss_bytes": 331300864,
+        "peak_ratio": 0.7487595349181664,
+        "node_cpu_ms_per_request": 3.975,
+        "rust_cpu_ms_per_request": 1.85
+      },
+      {
+        "concurrency": 128,
+        "round": 4,
+        "node_peak_rss_bytes": 432406528,
+        "rust_peak_rss_bytes": 331677696,
+        "peak_ratio": 0.7670506214004243,
+        "node_cpu_ms_per_request": 3.9650000000000003,
+        "rust_cpu_ms_per_request": 1.8550000000000002
+      },
+      {
+        "concurrency": 128,
+        "round": 5,
+        "node_peak_rss_bytes": 431538176,
+        "rust_peak_rss_bytes": 333135872,
+        "peak_ratio": 0.7719731197084172,
+        "node_cpu_ms_per_request": 4.0,
+        "rust_cpu_ms_per_request": 1.9200000000000002
+      }
+    ],
+    "row_files": [
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0001.json",
+        "bytes": 134126,
+        "sha256": "1e971726f5210732bf0d80b2f7acd9830a418fb751ed9088560b0530c2eae707"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0002.json",
+        "bytes": 134595,
+        "sha256": "063bcdd4ba5877a86c307815837d40d5cdb18d950095f263754c9a210f836623"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0003.json",
+        "bytes": 135449,
+        "sha256": "1cf31e5d47624c86b059ece9899411eb559a80ab2dcc57fb6242bcaeda324d1b"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0004.json",
+        "bytes": 134067,
+        "sha256": "e693f33a4042f8d48bcc30a31788a05f920c55c9f5c4a9b529bcf3e7c4ca361c"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0005.json",
+        "bytes": 140773,
+        "sha256": "101de678a6cb6f76d1780c4dd2c72e256cc492ca2f99145451c93ffc43942dac"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0006.json",
+        "bytes": 140618,
+        "sha256": "d6d8a675d287a156bf49b649f8fb09753077ae7a2ab2ee74a9ebb51f98e5922a"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0007.json",
+        "bytes": 132893,
+        "sha256": "92bfe32aa292a3429ce35bfc9d9d6886a438aa27fd2e76fa103ae6860bbb49e3"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0008.json",
+        "bytes": 143527,
+        "sha256": "33aa10f3e1e4df9c06ce37fc2a93f74f42a80cd85a7e80fe32461c1cf8ebe378"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0009.json",
+        "bytes": 140195,
+        "sha256": "a410a291527289554c4aa7f6fcdcfc3178a881bdc32404d2058e7d8a290294e3"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0010.json",
+        "bytes": 138352,
+        "sha256": "c0b5539214e22caf51d1ba38181f2e4339451508ce7571bff578ad36cc07c8e6"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0011.json",
+        "bytes": 143347,
+        "sha256": "676285adf300e922fd863d6d777192c4d89ca55b8d946f765b37757fea24f72d"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0012.json",
+        "bytes": 146371,
+        "sha256": "6906d9b07d25025b27d36d2bba47c15e6d4a205f3b9e26f8e90c0c343e13a5e0"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0013.json",
+        "bytes": 134823,
+        "sha256": "d07b5d0902933910b8af290699e686625be15a8b6344b4ecc7835168522eaca9"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0014.json",
+        "bytes": 135459,
+        "sha256": "2e89fd9ba223ddb137dd40f4b26815abae890ab97a3b0d3943cf3d0fa9744850"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0015.json",
+        "bytes": 134748,
+        "sha256": "e03793d13ea83a96e65296b5b30dae9f9082109c1a734f0ab8369b3556699efd"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0016.json",
+        "bytes": 133029,
+        "sha256": "0a9f31ad28dc19c307d6ba1b0a4d5c43b9832b34f29becda840a5798a57bbddd"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0017.json",
+        "bytes": 141365,
+        "sha256": "cfeb0c03c5f96b333365f76efd8ca8c7b5c5bbc1ee63cfb018075c8887f0ce1f"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0018.json",
+        "bytes": 140120,
+        "sha256": "5585231b8df721226612318f15f5609516d07643b9c864e9d2d16779c2fcfe0d"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0019.json",
+        "bytes": 133671,
+        "sha256": "8c53b505f3bd482a7d15b22e5bb977fb39247e43e95d8809de2f11ccf30ff3ed"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0020.json",
+        "bytes": 140890,
+        "sha256": "911774abf60946aaadd3e67924d1e8bac366858500aa65e304c084c213fe9584"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0021.json",
+        "bytes": 141920,
+        "sha256": "e5ba8bd3efab3abb2a5b20a43a1f95af934ecbb1c3046b0fa3f5b2504915f3f9"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0022.json",
+        "bytes": 137766,
+        "sha256": "f7772af7235b67a6628558e163b3a6e6776e4436a52c007bd3e846bf7f89e5ff"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0023.json",
+        "bytes": 144282,
+        "sha256": "d7ac35c951e9180590f5176212633d863a618d68eef602fe9b849d6d8f9d800f"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0024.json",
+        "bytes": 143846,
+        "sha256": "84688ed730ba427f2b80132a50c02673e156127db275a74573e6f6d29964a45a"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0025.json",
+        "bytes": 134483,
+        "sha256": "f2ac871bebfa0c1398fd142cc6b496498e825a53c70add21be458dd0780c98c4"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0026.json",
+        "bytes": 135389,
+        "sha256": "b1e7810185da8015978b38d79bd6f351e7239515b53acccd287e95e317f4e5ed"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0027.json",
+        "bytes": 135203,
+        "sha256": "2599a6e54e2d74aac2d58855d6c60df7c14db6c917d364ae6926eb0875c887c9"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0028.json",
+        "bytes": 132870,
+        "sha256": "43a4376a5b83caa4cc34881a81af2a1f7bfa70679df5a54ee2a3e184f95f48dd"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0029.json",
+        "bytes": 140007,
+        "sha256": "8fbb80e067a502f468d91fd251b379a7fd9d228e4a5ea93230cc58869311c330"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0030.json",
+        "bytes": 140046,
+        "sha256": "7dc3a6195833852875e05c0ab8872651b5a90ceb72a6b5acd87171bcd9672325"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0031.json",
+        "bytes": 132964,
+        "sha256": "7c8e9c453a9bece4aa5750780846dd10c9c4228f56a2ef2fdbccaa635da88d19"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0032.json",
+        "bytes": 140946,
+        "sha256": "d7315e5a8040cf37e9c2b8b5069361bd1391cb0711be8fa747def3a21d366c67"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0033.json",
+        "bytes": 140067,
+        "sha256": "da79d6755a18562135b4f60f7088cc7dbc8707eb83d004e77b3695331b6700e5"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0034.json",
+        "bytes": 138077,
+        "sha256": "a9ab95b2f83ce5bb5c95fb97dd896020da09ce81e05e5bc274fbb825ca7f8dc2"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0035.json",
+        "bytes": 143775,
+        "sha256": "aa021baa37dc39bc2d876e524b0de5caf2f87485945e290536ca65801f8191d1"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0036.json",
+        "bytes": 145138,
+        "sha256": "b8108c36496a8302e2ebd20f2d92f15c6544dc79823b67da967556c4b995c412"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0037.json",
+        "bytes": 133153,
+        "sha256": "d09f1423148afb1608cea3cf9cc3965b835706e101a6290ce4b7a67568bb7e01"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0038.json",
+        "bytes": 134891,
+        "sha256": "86130952fe11a4c583efe669fec97d1d08784862d82f7cde1dc5b1c3852c39bf"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0039.json",
+        "bytes": 135308,
+        "sha256": "4deacc9d854cad9c772492d81f0c709a88cdf034cc0236c97addafe26ad16090"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0040.json",
+        "bytes": 133686,
+        "sha256": "ed809d9c94a5e9ad13c7292b6389105c68a8c0eeb73d8b8e5e829e7e60edc384"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0041.json",
+        "bytes": 139480,
+        "sha256": "f2893589951bf5a2198e82b4fc6795bc200f49040489342f8eb8bb5cd425e90d"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0042.json",
+        "bytes": 139834,
+        "sha256": "9506b1f45bc6e08bc3153a604e62fe36f548a0b88117d1bf888017da5105522b"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0043.json",
+        "bytes": 132616,
+        "sha256": "7399d07903d448af6755e3d7b1bfd4643a9fb887169288e5bb77f6b9d7ebd1e2"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0044.json",
+        "bytes": 139931,
+        "sha256": "3ed134f402c7e64e6fb0e165d8b9cfb922e53fdc9119e52a3b41ccd0d7bc3f80"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0045.json",
+        "bytes": 140305,
+        "sha256": "bbf14bff9db2403778d12b11f051e4a165b1f9de412f4e58faf34a53d3e491c8"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0046.json",
+        "bytes": 138293,
+        "sha256": "dcfb21e5b7307c6b0ec47a220d4114530f52c8b100d4f53acae35384cf5c4bd5"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0047.json",
+        "bytes": 144884,
+        "sha256": "20d44664d01b17fa6484bc8e5646bf7279b9a69949d53e503ecb64a243b728fb"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0048.json",
+        "bytes": 143422,
+        "sha256": "48e2f75231f42fa271d45c0b7b0586c91d2207eb063243bd11518b764636b61d"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0049.json",
+        "bytes": 134498,
+        "sha256": "a050a168eb0389eca72002ee472564d27e0b294e007526e95b57786b29caf01b"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0050.json",
+        "bytes": 135141,
+        "sha256": "aa65c04bcb4de107bd00b3c01cce930066eacea86844b6bd132e9e9c1f596cb4"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0051.json",
+        "bytes": 135362,
+        "sha256": "5ef7cfe76c776b3061aecf21f302ba98f50dcb7bef0782fa465ceeff25c4b203"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0052.json",
+        "bytes": 134074,
+        "sha256": "0f473384ce8f9db68e8f41cdd325148a744adca628f8f41fee7b1ee3c6bf555c"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0053.json",
+        "bytes": 138915,
+        "sha256": "c5dc507923c6456230cdb8c6f39aed2b7955e8675c2156dd9ed5cf74ef0708a2"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0054.json",
+        "bytes": 139685,
+        "sha256": "4beb5af8f80579a27f147220560847aacfb060b5363fcab27e08c64dee09db2e"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0055.json",
+        "bytes": 133289,
+        "sha256": "5aaee3e81ebd1efe5e5fcd8e2741c32e247d21c4e8deb03d020f98dbf5f2421c"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0056.json",
+        "bytes": 140982,
+        "sha256": "3e89581393c0e28fb6c9b9faa49da4491ba0afef47363306b48b68c5124e272e"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0057.json",
+        "bytes": 140754,
+        "sha256": "cf9b684e6ed20b84798b9ec4b497cf7477ae1b84e737b162cdf9c41f14e570a5"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0058.json",
+        "bytes": 138447,
+        "sha256": "acd99a55fe0942c5cfd97505ab7a46723080475b323e16e2b8fdb3af827e1337"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0059.json",
+        "bytes": 143987,
+        "sha256": "6dff66e15644e01e38acd7a140bd819f0e9de52857ffe2d3d0b2d8dd1129e81f"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/benchmark-measurement/row-0060.json",
+        "bytes": 146317,
+        "sha256": "6b254ab19a649d77c951e1872669fe24f8e0d335a4966d7bad6041ccc1f2e70e"
+      }
+    ],
+    "interpretation": "At128clients peakRSS ratio0.7719731197084172,95%interval0.7487595349181664..0.7906352171882298 still fails the unchanged0.7 target. Other15 resource ratios observe targets and16 latency margins detect no regression. Reported HTTPp95 ratio is not the processing-only gate. Earlier0.864584 and0.915 failures remain unchanged; separate normal-use experiments do not isolate a causal Rust-only savings amount or prove allocator callsites.",
+    "round1_fixture_sha256": "c2bab76a169bce760fd8813c31cb30cb64f9ff14a2ff9d17853fa80386d548fe",
+    "round_fixture_sha256": {
+      "1": "c2bab76a169bce760fd8813c31cb30cb64f9ff14a2ff9d17853fa80386d548fe",
+      "2": "c4efb979cb861d4d0d2e723bd8b346ebac13f0286f4ced8fcdf3331a3b88820e",
+      "3": "84b9f356167648401db84cb4a9a70b4753f0e62e3b0660b88f81ac1fb01e80bb",
+      "4": "c8555bf3c4f9e5c52b50bb621452e398ad0cd478b77e6f9ba17e1d697ba1502f",
+      "5": "21f3e584457eb7fcd1d9de355c42c86355cf43619a187a4a8fa053ac62acd294"
+    },
+    "fixture_hash_scope": "Round-prefixed fixture content differs across the five rounds; all implementations and concurrency levels share exact fixture bytes within each round. Geometry remains286845bytes.",
+    "measured_upstream_inference_calls": 120000
+  },
+  "conditions": {
+    "hardware": "AppleM4,17179869184bytes RAM, normal use with usual apps; controlled idle and representative hardware unavailable.",
+    "power": "AC observed before,during,after; background load/memory snapshots retained.",
+    "observations": [
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/hardware-before-validation.json",
+        "bytes": 2001,
+        "sha256": "58e5e320f83463326d863e7fb1ed10d8e3592fe114057164ecf3d0b18bc2456c"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/hardware-before-measurement.json",
+        "bytes": 2071,
+        "sha256": "15fd2cdba010b8c1566851dd2607a7e6bb4359f077d34f985e6bd4cbf39a3546"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/hardware-during-measurement.json",
+        "bytes": 1817,
+        "sha256": "d9fbfe61291c6cc2cf60da3eabff573bf0c6e77adf31c580848804a188ed5b70"
+      },
+      {
+        "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/hardware-after-measurement.json",
+        "bytes": 1815,
+        "sha256": "f427ceca1627ab6b9267144af1a6f64862eb4fe5a84a34df6eebeeb8877ec4b3"
+      }
+    ],
+    "first_observer_limitation": "Before-validation sandbox physical-memory sysctl returned EPERM and is retained. Immediate premeasurement escalated physical read and driver hardware observations succeed.",
+    "runtime_work": "Root compiler/test/package/cleanup jobs terminal before numerical run; only brief declared hardware and passive row-file progress observations during it. No provider/evaluator/model/MCP/userconfig calls."
+  },
+  "independent_reviews": [
+    {
+      "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/independent-current-body-ownership-static-review.json",
+      "bytes": 17036,
+      "sha256": "329d205d64fe9305c0c3f29e8d519975c7073fb0c361512a1375a16da5a010f7"
+    },
+    {
+      "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/independent-current-workspace-actual-review.json",
+      "bytes": 8759,
+      "sha256": "1417a8a51594525b8424bff29f10a75203e85ce3984f7b6e086971eb53753721"
+    },
+    {
+      "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/independent-premeasurement-method-review.json",
+      "bytes": 10353,
+      "sha256": "2cf581a52378635e367eeeb8a4283d9c251d0e3bed066526c7f7f010ff28a16e"
+    },
+    {
+      "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/independent-numerical-actual-review.json",
+      "bytes": 12234,
+      "sha256": "ea0b4a6f5de376350d88881be036a3d588e372ade5d6140428b8264608f92c0e"
+    }
+  ],
+  "independent_recomputation": {
+    "path": "artifacts/rust-rewrite/request-body-lifetime-validation-20261019-1/independent-method/recomputed-actual.json",
+    "bytes": 351727,
+    "sha256": "50d3c2182c4d6393975384c747fb8dac25969320330cbbbeec94e24f7709953f"
+  },
+  "cleanup": {
+    "receipt": {
+      "path": "artifacts/rust-rewrite/disk-cleanup-20261019-27/receipt.json",
+      "bytes": 778,
+      "sha256": "2383316c742e87250ee4a083e698942ceaa9f0356bc34f3a0c90f65c062e4039"
+    },
+    "removed_newly_generated_cache_allocated_bytes": 1930063872,
+    "protected_paths": 981,
+    "scope": "Only the recreated correctness-target, after all consumers terminal; source/frozen/Nodeinputs/binaries/evidence and releasecache retained. Do not sum this with cleanup26 as net disk gain."
+  },
+  "prior_results_preserved": [
+    {
+      "path": "rust/parity/measurements/native-schema7-joint-budget-summary.json",
+      "bytes": 26170,
+      "sha256": "3025fb69742716fec00bbe2ea7fd81570fed4b8d84f4dbc448e73ecd3108614a"
+    },
+    {
+      "path": "rust/parity/measurements/native-exact-json-capacity-memory-summary.json",
+      "bytes": 90386,
+      "sha256": "b08cd5f909c90198952a49b2cc80f00cb3d3f443fcd36ee927d57fa5dc48080b"
+    },
+    {
+      "path": "rust/parity/measurements/native-large-catalog-lifetime-memory-summary.json",
+      "bytes": 75629,
+      "sha256": "af41bf3e86ddb00b1080fbe3bad8d0c719d7778cb4f8ea09aea1c824859bf156"
+    }
+  ],
+  "limits": [
+    "No original588definition/53limit/27key count or whole-area acceptance changed. Existing vendored warning remains visible without waiver.",
+    "All performance thresholds, fixture labels and numerical method are unchanged; one candidate/run, no favorable reruns.",
+    "Full performance workload/hardware gate remains incomplete. Allocations, verified descriptor recovery, real task/evaluator quality, wider platforms/minimum OS/WSL, TLS/session/resources, final archives/build/license provenance, stabilization and cutover remain pending.",
+    "The optimized ordinary binary is fresh against cached dependencies, not an independentcleanbuild. This checkpoint does not claim newly qualified installed native archives or source/executable bundles; those earlier identities remain separately scoped.",
+    "The schema7 parent CI state is distinct from this later runtime candidate. Fresh CI is required for this change.",
+    "JavaScript0.5.2 remains shipping default; no release version/tag/npm publication/merge/defaultswitch."
+  ]
+}

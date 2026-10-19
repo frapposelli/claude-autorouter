@@ -1132,6 +1132,10 @@ where
                 );
             }
             if inference {
+                // The parsed document owns its values; inference always forwards
+                // a freshly prepared body. Release the raw receive allocation
+                // before routing/counting awaits. Count requests keep raw bytes.
+                drop(std::mem::take(&mut body));
                 let request_class =
                     header_text(&headers, "x-claude-code-request-class").unwrap_or_default();
                 let document = self
@@ -1290,10 +1294,11 @@ where
             Ok(target) => target,
             Err(_) => return reject(502, "Router could not complete the upstream request"),
         };
+        let body_length = body.len();
         let mut request = match Request::builder()
             .method(parts.method.clone())
             .uri(target.as_str())
-            .body(Full::new(body.clone()))
+            .body(Full::new(body))
         {
             Ok(request) => request,
             Err(_) => return reject(502, "Router could not complete the upstream request"),
@@ -1302,7 +1307,7 @@ where
         if inference || count {
             request.headers_mut().insert(
                 "content-length",
-                hyper::header::HeaderValue::from(body.len()),
+                hyper::header::HeaderValue::from(body_length),
             );
         }
         #[cfg(test)]
