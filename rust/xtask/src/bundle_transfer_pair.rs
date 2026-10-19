@@ -9,6 +9,48 @@ use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
+// Versioned joint-transfer policy only. Individual archives keep SOURCE.
+const SCHEMA7_JOINT_LIMIT: usize = 40 * 1024 * 1024;
+fn joint_limit(schema: u64) -> Result<usize, String> {
+    match schema {
+        1..=6 => Ok(SOURCE.expanded),
+        7 => Ok(SCHEMA7_JOINT_LIMIT),
+        _ => Err("Unknown paired transfer schema".into()),
+    }
+}
+fn reference_policy(
+    schema: u64,
+    native_expanded: usize,
+) -> Result<crate::package::archive::ArchivePolicy, String> {
+    // A joint budget must never enlarge either individual source archive.
+    if native_expanded > SOURCE.expanded {
+        return Err("Source exhausted paired transfer budget".into());
+    }
+    let remaining = joint_limit(schema)?
+        .checked_sub(native_expanded)
+        .ok_or("Source exhausted paired transfer budget")?;
+    Ok(SOURCE.remaining(remaining))
+}
+fn carrier_total(schema: u64, native: usize, reference: usize) -> Result<usize, String> {
+    if reference > reference_policy(schema, native)?.expanded {
+        return Err("Reference exhausted paired transfer budget".into());
+    }
+    native.checked_add(reference).ok_or_else(|| "Paired transfer sum overflow".into())
+}
+fn schema_sum<'a>(
+    files: impl IntoIterator<Item = &'a [u8]>,
+    schema: u64,
+) -> Result<usize, String> {
+    let maximum = joint_limit(schema)?;
+    if schema <= 6 {
+        return sum(files);
+    }
+    files.into_iter().try_fold(0usize, |total, bytes| {
+        total.checked_add(bytes.len()).filter(|total| *total <= maximum)
+            .ok_or_else(|| "Complete logical transfer exceeds 40 MiB".into())
+    })
+}
+
 const NATIVE_ROOT: &str = "autorouter-benchmark";
 const CPIO_NAME: &str = "native-source.cpio.gz";
 pub(super) fn source_limit(path: &str) -> usize {
@@ -293,10 +335,10 @@ fn logical<'a>(
     }) {
         return Err("Reference license is missing or different".into());
     }
-    sum(native
+    schema_sum(native
         .values()
         .map(|entry| entry.bytes.as_slice())
-        .chain(files.values().map(|(bytes, _)| *bytes)))?;
+        .chain(files.values().map(|(bytes, _)| *bytes)), schema)?;
     Ok(files)
 }
 struct Plan {
@@ -312,8 +354,9 @@ fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
     let record = metadata::parse(&raw, META_LIMIT)?;
     let schema = record["schema_version"]
         .as_u64()
-        .filter(|value| [1, 2, 3, 4, 5, 6].contains(value))
+        .filter(|value| [1, 2, 3, 4, 5, 6, 7].contains(value))
         .ok_or("Unknown paired transfer schema")?;
+    let joint_maximum = joint_limit(schema)?;
     let aggregate = if schema >= 3 {
         "aggregate_expanded_carrier_bytes"
     } else {
@@ -365,9 +408,16 @@ fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
         || record["reference_files"].as_u64() != Some(111)
         || record["native_build_required"] != true
         || record["node_runtime_required"] != "22.14.0 for temporary reference tests only"
-        || record["aggregate_expanded_limit"].as_u64() != Some(SOURCE.expanded as u64)
+        || record["aggregate_expanded_limit"].as_u64() != Some(joint_maximum as u64)
     {
         return Err("Invalid paired transfer identity or limits".into());
+    }
+    // New packets must declare the fixed logical budget before archive reads.
+    // Older schemas retain their existing validation and diagnostic order.
+    if schema == 7
+        && record["aggregate_logical_file_limit"].as_u64() != Some(joint_maximum as u64)
+    {
+        return Err("Logical paired transfer declaration differs".into());
     }
     let baseline = disk::Directory::open(root)?.read("rust/parity/baseline.json", FILE_LIMIT)?;
     let trusted = metadata::parse(&baseline, FILE_LIMIT)?;
@@ -405,7 +455,7 @@ fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
         if schema >= 3
             && fields["format"]
                 != if name == CPIO_NAME {
-                    if schema == 6 {
+                    if schema >= 6 {
                         "gzip-binary-cpio-be"
                     } else {
                         "gzip-newc"
@@ -420,7 +470,7 @@ fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
         if metadata::digest(&fields["sha256"])? != sha(&bytes) {
             return Err("Paired transfer archive digest differs".into());
         }
-        let archive = if schema == 6 && name == CPIO_NAME {
+        let archive = if schema >= 6 && name == CPIO_NAME {
             cpio::binary_decode_root(&bytes, archive_root, policy, source_limit)?
         } else if schema >= 3 && name == CPIO_NAME {
             cpio::decode_root(&bytes, archive_root, policy, source_limit)?
@@ -436,10 +486,7 @@ fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
         Ok(archive)
     };
     let native = decode(native_name, NATIVE_ROOT, SOURCE)?;
-    let remaining = SOURCE
-        .expanded
-        .checked_sub(native.expanded_bytes)
-        .ok_or("Source exhausted paired transfer budget")?;
+    let delta_policy = reference_policy(schema, native.expanded_bytes)?;
     let reference = decode(
         name,
         if schema >= 2 {
@@ -447,12 +494,9 @@ fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
         } else {
             "autorouter-node-reference"
         },
-        SOURCE.remaining(remaining),
+        delta_policy,
     )?;
-    let stored = native
-        .expanded_bytes
-        .checked_add(reference.expanded_bytes)
-        .ok_or("Paired transfer sum overflow")?;
+    let stored = carrier_total(schema, native.expanded_bytes, reference.expanded_bytes)?;
     if record[aggregate].as_u64() != Some(stored as u64) {
         return Err("Paired transfer aggregate declaration differs".into());
     }
@@ -475,11 +519,11 @@ fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
                 },
             )?;
         }
-        let payload = sum(native
+        let payload = schema_sum(native
             .files
             .values()
             .map(|entry| entry.bytes.as_slice())
-            .chain(files.values().map(|(bytes, _)| *bytes)))?;
+            .chain(files.values().map(|(bytes, _)| *bytes)), schema)?;
         let legacy = if schema >= 3 {
             legacy_full(&native.files, reference.expanded_bytes, schema)?
         } else {
@@ -490,7 +534,7 @@ fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
         if record["logical_reference_files"].as_u64() != Some(113)
             || record["reference_transport_files"].as_u64()
                 != Some(if schema >= 4 { 109 } else { 111 })
-            || record["aggregate_logical_file_limit"].as_u64() != Some(SOURCE.expanded as u64)
+            || record["aggregate_logical_file_limit"].as_u64() != Some(joint_maximum as u64)
             || record["aggregate_logical_file_bytes"].as_u64() != Some(payload as u64)
             || record["legacy_full_tar_bytes"].as_u64() != Some(legacy as u64)
             || record["legacy_full_tar_within_limit"] != (legacy <= SOURCE.expanded)
@@ -668,6 +712,19 @@ pub(super) fn canonical_record(decoded: &Value, maximum: usize) -> Result<Vec<u8
     Ok(bytes)
 }
 pub(super) fn create(root: &Path, destination: &Path) -> Result<Value, String> {
+    create_schema(root, destination, 7)
+}
+pub(super) fn create_schema6(root: &Path, destination: &Path) -> Result<Value, String> {
+    create_schema(root, destination, 6)
+}
+pub(super) fn create_schema7(root: &Path, destination: &Path) -> Result<Value, String> {
+    create_schema(root, destination, 7)
+}
+fn create_schema(root: &Path, destination: &Path, schema: u64) -> Result<Value, String> {
+    if !matches!(schema, 6 | 7) {
+        return Err("Unsupported paired transfer producer schema".into());
+    }
+    let joint_maximum = joint_limit(schema)?;
     let native = binary_source(root)?;
     let (mut delta, baseline) = reference(root)?;
     for (path, _, _) in SHARED {
@@ -678,17 +735,13 @@ pub(super) fn create(root: &Path, destination: &Path) -> Result<Value, String> {
     for path in ["LICENSE", "frozen-reference-manifest.json"] {
         delta.remove(path).ok_or("Missing original shared extra")?;
     }
-    let files = logical(&native, &delta, &baseline, 6)?;
-    let payload = sum(native
+    let files = logical(&native, &delta, &baseline, schema)?;
+    let payload = schema_sum(native
         .values()
         .map(|entry| entry.bytes.as_slice())
-        .chain(files.values().map(|(bytes, _)| *bytes)))?;
+        .chain(files.values().map(|(bytes, _)| *bytes)), schema)?;
     let native_expanded = cpio::binary_expanded_size(NATIVE_ROOT, &native, SOURCE, source_limit)?;
-    let remaining = SOURCE
-        .expanded
-        .checked_sub(native_expanded)
-        .ok_or("Source exhausted paired transfer budget")?;
-    let delta_policy = SOURCE.remaining(remaining);
+    let delta_policy = reference_policy(schema, native_expanded)?;
     let delta_expanded = expanded_size(&delta, delta_policy)?;
     let archive = |name: &str,
                    files: &BTreeMap<String, Entry>,
@@ -722,24 +775,23 @@ pub(super) fn create(root: &Path, destination: &Path) -> Result<Value, String> {
         return Err("Paired native CPIO readback differs".into());
     }
     let delta_bytes = archive(DELTA_ROOT, &delta, delta_policy)?;
-    let stored = native_expanded
-        .checked_add(delta_expanded)
-        .ok_or("Paired transfer size overflow")?;
-    let legacy = legacy_full(&native, delta_expanded, 6)?;
+    let stored = carrier_total(schema, native_expanded, delta_expanded)?;
+    let legacy = legacy_full(&native, delta_expanded, schema)?;
     let delta_baseline = baseline;
     let baseline = metadata::parse(&delta_baseline, FILE_LIMIT)?;
-    let record = json!({"schema_version":6,"kind":"matched_native_benchmark_transfer",
+    let record = json!({"schema_version":schema,"kind":"matched_native_benchmark_transfer",
         "baseline_commit":baseline["baseline_commit"],"baseline_version":baseline["baseline_version"],"reference_files":111,
         "archives":{(CPIO_NAME):{"sha256":sha(&native_bytes),"expanded_carrier_bytes":native_expanded,"format":"gzip-binary-cpio-be"},
             (DELTA_NAME):{"sha256":sha(&delta_bytes),"expanded_carrier_bytes":delta_expanded,"format":"gzip-ustar"}},
-        "aggregate_expanded_carrier_bytes":stored,"aggregate_expanded_limit":SOURCE.expanded,
+        "aggregate_expanded_carrier_bytes":stored,"aggregate_expanded_limit":joint_maximum,
         "node_runtime_required":"22.14.0 for temporary reference tests only","native_build_required":true,
         "private_material_included":false,"binaries_included":false,"dependencies_bundled":false,"provider_calls":0,
         "release_approved":false,"performance_accepted":false,"logical_reference_files":113,"reference_transport_files":109,
-        "shared_inputs":shared(6, &delta_baseline),"aggregate_logical_file_bytes":payload,"aggregate_logical_file_limit":SOURCE.expanded,
+        "shared_inputs":shared(schema, &delta_baseline),"aggregate_logical_file_bytes":payload,"aggregate_logical_file_limit":joint_maximum,
         "legacy_full_tar_bytes":legacy,"legacy_full_tar_within_limit":legacy<=SOURCE.expanded});
     let raw = serde_json::to_vec_pretty(&record).map_err(|_| "Cannot encode transfer metadata")?;
-    let resume = super::transfer::README.as_bytes();
+    let resume_text = super::transfer::readme(schema);
+    let resume = resume_text.as_bytes();
     let native_sum = format!("{}  {CPIO_NAME}\n", sha(&native_bytes));
     let delta_sum = format!("{}  {DELTA_NAME}\n", sha(&delta_bytes));
     let sums = format!(

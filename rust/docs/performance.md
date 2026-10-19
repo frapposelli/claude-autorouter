@@ -271,8 +271,16 @@ processing gate or the shipping executable; its report keeps those limits.
 
 For the larger Mac, `cargo xtask benchmark-bundle --transfer NEW_DIRECTORY`
 creates an allowlisted Rust source archive, a separately verified frozen Node
-reference archive, checksums and a resume guide. Their combined expansion
-retains the existing 32 MiB source budget. The default bundle stays Rust-only.
+reference archive, checksums and a resume guide. The default transfer uses
+schema 7 with separate 40 MiB limits for combined expanded carriers and complete
+restored logical payloads. Each source archive retains its 32 MiB compressed
+and expanded limits, including the source-only bundle. Shared logical copies
+are fully counted. `--transfer-v6` retains schema 6's 32 MiB combined limits;
+`--transfer-v7` explicitly selects the current format. Readers preserve schemas
+1–6 with their original limits and reject unknown versions or forged budgets.
+Shipping native-package limits are independent and unchanged. Regenerate older
+transfer helpers before reading schema 7; old readers reject the new version.
+The default source-only bundle stays Rust-only.
 The transfer contains no executables, Cargo cache, credentials or private
 reports; the destination builds the pinned release tools and uses Node only
 for the temporary reference comparison. Regenerate it from the final source

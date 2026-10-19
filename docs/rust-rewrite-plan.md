@@ -227,6 +227,15 @@ Preserve `npm install -g claude-autorouter`. The preferred first design is a sel
 
 Validate that design early against supported targets and package size. The reviewed native pack/check/smoke/verification policy bounds compressed archives at 32 MiB, expanded tar content at 64 MiB, each file at 32 MiB and native tar entries at 256; smoke tests verify offline installation with `--ignore-scripts`. Historical JavaScript and source bundles retain 32 MiB expansion. The [retained four-target experiment](../rust/distribution/expanded-cap-proposal.md) supports this cap change, but the complete qualified matrix must still fit. All readers enforce trusted explicit policies, bounded streaming inflation/encoding and remaining release-set budgets before allocation. Platform optional packages are an alternative only with a reviewed change to dependency/offline-install semantics and exact-artifact verification. A network postinstall downloader is not a parity-preserving default.
 
+Developer benchmark transfers use schema 7's separately bounded 40 MiB combined
+expanded-carrier and full restored-logical budgets, approved on 2026-10-19.
+Each source archive still has its own 32 MiB compressed/expanded limit. Schemas
+1–6 retain their 32 MiB combined budgets; explicit `--transfer-v6` preserves the
+legacy producer. The reader chooses fixed limits from the supported schema,
+checks declared limits exactly, and counts all logical copies of shared files.
+This developer-transfer policy does not change shipping package limits or
+performance thresholds. See [benchmark transfer instructions](../rust/docs/performance.md).
+
 Initial native build candidates are macOS ARM64/x86_64 and Linux ARM64/x86_64; establish libc/OS minima and any further currently supported architectures before making these the release matrix. Validate symlinked npm launchers, paths containing spaces, unrelated working directories, missing binaries, permissions, and execution without Node on `PATH`. Do not hide a Node fallback in the native runtime. Replace `doctor`'s Node prerequisite with native version/target diagnostics while retaining Claude/evaluator checks.
 
 Retain the release workflow's immutable tested archive and registry verification model. Extend checks to native executable modes, target identification, licenses, checksums, provenance and build manifest; pack once, test those bytes, publish those bytes, and verify an isolated installed copy. Current source-file comparison must become source/build-manifest plus binary-artifact verification. No release version, tag, npm publication or user configuration change is part of this planning task.

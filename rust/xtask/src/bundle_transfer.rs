@@ -172,6 +172,27 @@ pub(super) fn create(root: &Path, destination: &Path) -> Result<Value, String> {
     super::pair::create(root, destination)
 }
 
+
+// The schema6 guide remains byte-for-byte unchanged. Schema7 names its distinct
+// approved joint policy; these text changes do not enlarge archive decoders.
+pub(super) fn readme(schema: u64) -> String {
+    if schema != 7 { return README.to_owned(); }
+    README.replace(
+        "Stored carrier expansion and the full logical file payload, including both logical\ncopies of reused files, each retain a separate32MiB cap.",
+        "Schema7 gives stored carrier expansion and the full raw logical file payload,\nincluding both logical copies of reused files, separate40MiB JOINT caps. Each\nindividual source archive still has its original32MiB compressed/expanded cap.\nSchemas1-6 retain their32MiB joint caps; a declared limit cannot select policy.",
+    ).replace(
+        "This command also reads historical schema1 full-reference, schema2 tar-delta and schema3/4 CPIO transfers:",
+        "This command reads schema7 and historical schemas1-6; each version selects its fixed joint budget:",
+    )
+}
+pub(super) fn create_schema7(root: &Path, destination: &Path) -> Result<Value, String> {
+    super::pair::create_schema7(root, destination)
+}
+
+pub(super) fn create_schema6(root: &Path, destination: &Path) -> Result<Value, String> {
+    super::pair::create_schema6(root, destination)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -207,16 +228,16 @@ mod tests {
         let reference = decode_root(
             &reference_bytes,
             "autorouter-node-reference-delta",
-            SOURCE.remaining(SOURCE.expanded - native.expanded_bytes),
+            SOURCE.remaining(40 * 1024 * 1024 - native.expanded_bytes),
         )
         .unwrap();
         assert_eq!(
             native.expanded_bytes + reference.expanded_bytes,
             report["aggregate_expanded_carrier_bytes"].as_u64().unwrap() as usize
         );
-        assert!(native.expanded_bytes + reference.expanded_bytes <= SOURCE.expanded);
+        assert!(native.expanded_bytes + reference.expanded_bytes <= 40 * 1024 * 1024);
         assert_eq!(reference.files.len(), 109);
-        assert_eq!(report["schema_version"], 6);
+        assert_eq!(report["schema_version"], 7);
         assert_eq!(report["shared_inputs"].as_array().unwrap().len(), 4);
         assert!(!reference.files.contains_key("LICENSE"));
         assert!(

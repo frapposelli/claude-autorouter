@@ -1229,3 +1229,6 @@ fn schema4_changed_missing_duplicate_or_unpinned_donors_and_relaxed_charges_fail
         f.reject(&directory, &format!("{variant}-output"));
     }
 }
+
+// Versioned joint budgets; historical format controls remain above.
+include!("bundle_transfer_schema7_tests.rs");
