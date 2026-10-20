@@ -91,8 +91,9 @@ impl FailureWorker {
     fn start(&mut self, terminal: RequestTerminal, cause: FailureCause) {
         assert!(self.thread.is_none());
         self.thread = Some(std::thread::spawn(move || terminal.fail(cause)));
-        // Only this synthetic failure action runs on the worker. No Tokio work
-        // is needed to publish its entry, so paused time cannot auto-expire it.
+        // The acknowledgment follows Notify publication, so returning also
+        // establishes that the injected transport is eligible to resume. No
+        // Tokio work is needed to publish either signal under paused time.
         self.entered
             .recv_timeout(BARRIER)
             .expect("first failure did not enter its action");
@@ -178,6 +179,10 @@ impl HttpTransport for OrderingTransport {
         terminal
             .bind_transport_action(move |cause| {
                 state.trace.lock().unwrap().push("action_enter");
+                // Publish the async wake before acknowledging entry to the
+                // driving task. Tokio yields cannot force this OS worker to
+                // run again if it is descheduled after the acknowledgment.
+                held.entered.notify_one();
                 held.entered_send
                     .lock()
                     .unwrap()
@@ -185,7 +190,6 @@ impl HttpTransport for OrderingTransport {
                     .unwrap()
                     .send(())
                     .unwrap();
-                held.entered.notify_one();
                 let release = held.release.lock().unwrap().take().unwrap();
                 release
                     .recv_timeout(BARRIER)

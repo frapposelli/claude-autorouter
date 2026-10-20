@@ -1,0 +1,242 @@
+{
+  "schema_version": 1,
+  "kind": "NATIVE_PREHEADER_NOTIFY_BEFORE_ACK_LOCAL_CORRECTNESS",
+  "recorded_at_utc": "2026-10-20T08:55:02.518934+00:00",
+  "status": "local_checks_passed_fresh_ci_and_full_qualification_required",
+  "base_commit": "3903aa2908dba9593b49a3b72074532b02d5ec78",
+  "scope": "Only a cfg(test) fixture notification and synchronous acknowledgment order changes. Production sources, previous assertions, deadlines and bounded driver polls are unchanged. JavaScript remains shipping default; ordinary native TLS remains Rustls.",
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/source-candidate.json",
+    "bytes": 120548,
+    "sha256": "efc5907981d7ecbef22f6ba5fe808f1bee980a958cfdf06dcdbcdc04912bdfcb"
+  },
+  "raw_source_inputs": 716,
+  "frozen_inputs": 111,
+  "fixture": {
+    "path": "rust/crates/autorouter-runtime/src/server_owned_preheader_contracts.rs",
+    "bytes": 22152,
+    "sha256": "d61a0978b4607f1654c147b1fe1c14564cf27977a448f5b2bd0f1026bfd92e37"
+  },
+  "change": "Publish the Notify permit before the worker sends its entered mpsc acknowledgment. FailureWorker::start returning now establishes notification publication; Tokio yields alone cannot schedule a descheduled OS worker.",
+  "historical_failure": {
+    "head": "3903aa2908dba9593b49a3b72074532b02d5ec78",
+    "run_url": "https://github.com/frapposelli/claude-autorouter/actions/runs/39392857795",
+    "job_id": 118528333024,
+    "artifact_id": 12250084098,
+    "review": {
+      "path": "artifacts/rust-rewrite/ci-3903aa2-readonly-audit-20261020-1/sample2-i686-artifact-failure-review.json",
+      "bytes": 4537,
+      "sha256": "18e0678fae822bf8a3e6c45254ba966845d47ad6b4c863268299201f9a273ebe"
+    },
+    "runtime_log": {
+      "path": "artifacts/rust-rewrite/ci-3903aa2-readonly-audit-20261020-1/sample2-artifact-12250084098/runtime-tests.log",
+      "bytes": 69869,
+      "sha256": "affeebc8a698e118b5e057b3eeb9f2d8509829a8a9ddd7a4b926206aca43cc20"
+    },
+    "panic": "actual connection did not reach rejection/error barrier",
+    "runtime_group": {
+      "passed": 621,
+      "failed": 1
+    },
+    "interpretation": "Retained genuine i686 failure identifies the barrier assertion. The notification ordering gap is independently established statically; it is not proven to have caused this historical execution. No complete i686 pass is inferred."
+  },
+  "parent_ci_sample": {
+    "review": {
+      "path": "artifacts/rust-rewrite/ci-3903aa2-readonly-audit-20261020-1/sample3-review.json",
+      "bytes": 14071,
+      "sha256": "2ca6d7ea6e055e3e5b36a2ca98e8cf6ae972bbc473f2e4fa7d4575b2cabd4b2d"
+    },
+    "completed_success": 5,
+    "completed_failure": 1,
+    "in_progress": 8,
+    "live_jobs_with_failed_workspace_steps": 3,
+    "limit": "Finite historical sample; other live step causes unverified. Fresh CI must validate this repair."
+  },
+  "validation": {
+    "checks": {
+      "workspace": {
+        "receipt": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/workspace.json",
+          "bytes": 1245,
+          "sha256": "bdd7dd7daa8abda2259c314ebe56ce24fd21b1769d02756fd352e8560bf59168"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/workspace.stdout",
+          "bytes": 167552,
+          "sha256": "431b6e3095134012fc324384c21b95dcb10aa032f87c1e0b68bbbd30514a7e94"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/workspace.stderr",
+          "bytes": 20297,
+          "sha256": "e957223a35d40cff7a31c7e8d555ed003d396c71df23c97f7252ad5e7076824d"
+        }
+      },
+      "focused": {
+        "receipt": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/focused.json",
+          "bytes": 1435,
+          "sha256": "ab62fd4e74ae6bd4218a8e103e82890d742f7592a71898f9dbdb6c2ee4514fbd"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/focused.stdout",
+          "bytes": 264,
+          "sha256": "c30c1b52d3d6a357f5e085c66f0d3c9fb7a3090676934c993753204204759125"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/focused.stderr",
+          "bytes": 1145,
+          "sha256": "94142bc472bb846c402aeb9af7fae5f05bf4ddd7ad3e7aaef58ec866aacbf5a6"
+        }
+      },
+      "fmt": {
+        "receipt": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/fmt.json",
+          "bytes": 1030,
+          "sha256": "53169cc34f57cdf57eea1015598d4dc234b81b56682e88801b6e7136624cd103"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/fmt.stdout",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/fmt.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "clippy": {
+        "receipt": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/clippy.json",
+          "bytes": 1273,
+          "sha256": "536d94c864a19176c09d1a15d89fd4ae45f8f3594473eabcb8a0740d5db99471"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/clippy.stdout",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/clippy.stderr",
+          "bytes": 5066,
+          "sha256": "9bb9ce1452cf9dc416a02741ac06146375ec8acd941531a704359bbc65469aa5"
+        }
+      },
+      "node-check": {
+        "receipt": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/node-check.json",
+          "bytes": 1011,
+          "sha256": "72650073cfd969338ab0d319d9698ca119818e897e5e744bde5f8286c4e2506c"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/node-check.stdout",
+          "bytes": 153,
+          "sha256": "532c6103d0ae7485afac714e22851bbe915a0dfef35deddde4abf0e0db7f21a9"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/node-check.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "node-tests": {
+        "receipt": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/node-tests.json",
+          "bytes": 1067,
+          "sha256": "5e78829d7b9daf7470f5daa5cec5bb066685c59cabe53a3e0127f1df17dc69b8"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/node-tests.stdout",
+          "bytes": 144872,
+          "sha256": "2be8b3ce2de0d98b7dc289ea9c5e5fffc139f9f7112efadd3de3752991902942"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/node-tests.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "node-package": {
+        "receipt": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/node-package.json",
+          "bytes": 1085,
+          "sha256": "790cc5a1d3732771b12a6d14a65412e0028cb6f68efbd40aa38aeef624c8dc37"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/node-package.stdout",
+          "bytes": 885,
+          "sha256": "16bb0dc815328616f64cd08c33e10efc3e3378180c175cf9bc75558ba43e6af1"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/node-package.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    "rust": {
+      "passed": 1583,
+      "failed": 0,
+      "ignored": 11,
+      "groups": 66,
+      "filtered_out": 0
+    },
+    "focused": {
+      "passed": 1,
+      "filtered_out": 621,
+      "current_source_cargo": true
+    },
+    "named_outcomes": "All 1594 named status occurrences, duplicates and ignored reasons exactly match the previous checkpoint.",
+    "node": {
+      "passed": 645,
+      "failed": 0,
+      "syntax_files": 98
+    },
+    "package": {
+      "safe_archive_files": 58,
+      "synthetic_lifecycle_scenarios": 17
+    },
+    "independent_checks": {
+      "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/independent-seven-local-checks-review.json",
+      "bytes": 12969,
+      "sha256": "eb475cf45f3e983c355b4fb1d794566918fbdb9cad0b6b73c41a9966fefa933a"
+    },
+    "independent_workspace_comparison": {
+      "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/independent-workspace-vs-I-v4-review.json",
+      "bytes": 6266,
+      "sha256": "451e58dc66021e56e8da24e6e2c31c1543454a20110abfc524746fd4532bdacd"
+    },
+    "independent_source_review": {
+      "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/independent-source-and-invocation-review.json",
+      "bytes": 9416,
+      "sha256": "57eb40b86d1573908cb05250acfdf51e8b229d83051320ba1625a29b5c6eabbf"
+    },
+    "independent_notification_review": {
+      "path": "artifacts/rust-rewrite/handshake-egress-validation-20261019-1/independent-notify-before-ack-static-review.json",
+      "bytes": 1956,
+      "sha256": "c96ec13ae5bfb29b8efb61e43e183fced9930371705c2b89aedc542e6802a994"
+    }
+  },
+  "cleanup": {
+    "receipt": {
+      "path": "artifacts/rust-rewrite/preheader-notify-order-validation-20261020-1/cleanup-own-cache-receipt.json",
+      "bytes": 835,
+      "sha256": "ceaee3fde39a85e8253b5ecde072964bc24e595dbb212be2a1bc22b45d96ee92"
+    },
+    "removed_allocated_bytes": 2069504000,
+    "protected_files_verified_before_and_after": 2203,
+    "limit": "Only this run\u2019s isolated correctness cache; not net or cumulative filesystem savings."
+  },
+  "remaining": [
+    "Fresh native CI, including complete genuine i686 runtime/CLI execution.",
+    "TLS configuration, abrupt-session and unbarriered idle-close differences; full protocol and resource schedules.",
+    "Representative platform/hardware, missing performance and evaluator/task workloads.",
+    "Exact shipping artifact build provenance, installed platform matrix, rollback, prerelease stabilization and separately authorized default cutover."
+  ],
+  "limits": [
+    "No live provider/evaluator calls, model downloads, user-configuration changes or MCP startup probes.",
+    "No protocol replay, performance experiment or new shipping artifact qualification in this test-only checkpoint. Previous reports and source archives remain historical evidence for their own bytes.",
+    "The approved 0.8 memory target and original failed 0.7 reports remain unchanged.",
+    "No version bump, release, npm publication, merge or backend cutover."
+  ]
+}
