@@ -385,68 +385,123 @@ async fn reach_pending_request<F: Future>(mut connection: Pin<&mut F>, fixture: 
     panic!("actual connection did not reach its pending request barrier");
 }
 
-#[tokio::test]
-async fn held_downstream_action_rejection_suppresses_only_capable_preheader_proxy_error() {
-    for capable in [false, true] {
-        let (fixture, mut worker) = OrderingFixture::new(capable, false);
-        let gateway = fixture.gateway();
-        let mut connection = Box::pin(gateway.serve_connection(
-            fixture.io.clone(),
-            fixture.registry.clone(),
-            CancellationToken::new(),
-        ));
-        reach_pending_request(connection.as_mut(), &fixture).await;
-        let cause = FailureCause::Downstream(Disconnect::ReadEof);
-        worker.start(fixture.terminal(), cause);
-        assert_eq!(fixture.terminal().failure_cause(), Some(cause));
-        assert!(!fixture.state.action_finished.load(Ordering::SeqCst));
-        // The physical IO barrier also holds a synthetic non-capable transport
-        // which deliberately installed an action. Suppression is checked after
-        // settlement; no ordinary-client timing claim is made by this control.
+async fn reach_rejected_admission<F: Future>(
+    mut connection: Pin<&mut F>,
+    fixture: &OrderingFixture,
+) {
+    // A wake makes the injected transport eligible; it does not promise that
+    // one outer Hyper poll resumes it. Drive the actual connection to its
+    // explicit rejection/error barrier without releasing the held action.
+    for _ in 0..64 {
         assert!(
             !poll_once(connection.as_mut()).await,
             "connection bypassed held action"
         );
-        assert!(fixture.state.rejected_admission.load(Ordering::SeqCst));
-        assert!(fixture.state.error_before_token.load(Ordering::SeqCst));
+        if fixture.state.rejected_admission.load(Ordering::SeqCst)
+            && fixture.state.error_before_token.load(Ordering::SeqCst)
+        {
+            return;
+        }
         assert!(!fixture.state.action_finished.load(Ordering::SeqCst));
-        let output = fixture.io.0.lock().unwrap().output.clone();
-        if capable {
-            assert!(
-                output.is_empty(),
-                "owned downstream failure wrote response bytes"
-            );
-            assert_eq!(fixture.proxy_errors(), Vec::<Value>::new());
-        }
-        worker.finish();
-        tokio::time::timeout(BARRIER, connection.as_mut())
-            .await
-            .unwrap();
-        if capable {
-            assert!(fixture.io.0.lock().unwrap().output.is_empty());
-            assert_eq!(fixture.proxy_errors(), Vec::<Value>::new());
-        } else {
-            assert!(
-                fixture
-                    .io
-                    .0
-                    .lock()
-                    .unwrap()
-                    .output
-                    .starts_with(b"HTTP/1.1 502 "),
-                "ordinary error path lost its 502"
-            );
-            assert_eq!(
-                fixture.proxy_errors(),
-                [json!({"event":"proxy_error","status":502})]
-            );
-        }
-        assert_eq!(
-            *fixture.state.trace.lock().unwrap(),
-            ["action_enter", "request_drop", "action_finish"]
-        );
-        fixture.assert_cleanup(cause);
+        tokio::task::yield_now().await;
     }
+    panic!("actual connection did not reach rejection/error barrier");
+}
+
+async fn poll_with_exhausted_budget<F: Future>(
+    mut connection: Pin<&mut F>,
+    fixture: &OrderingFixture,
+) {
+    std::future::poll_fn(|cx| {
+        // Run inside a spawned task: the #[tokio::test] root can be
+        // unconstrained. Pinned Tokio starts a task with 128 credits; 256
+        // individually polled operations bound exhaustion without an await
+        // that could yield and replenish the budget before the driver poll.
+        for _ in 0..256 {
+            if !tokio::task::coop::has_budget_remaining() {
+                break;
+            }
+            let mut consume = std::pin::pin!(tokio::task::coop::consume_budget());
+            let _ = consume.as_mut().poll(cx);
+        }
+        assert!(!tokio::task::coop::has_budget_remaining());
+        assert!(connection.as_mut().poll(cx).is_pending());
+        assert!(!fixture.state.rejected_admission.load(Ordering::SeqCst));
+        assert!(!fixture.state.error_before_token.load(Ordering::SeqCst));
+        assert!(!fixture.state.action_finished.load(Ordering::SeqCst));
+        assert_eq!(fixture.state.request_drops.load(Ordering::SeqCst), 0);
+        assert_eq!(fixture.state.active_requests.load(Ordering::SeqCst), 1);
+        assert!(fixture.io.0.lock().unwrap().output.is_empty());
+        assert!(fixture.proxy_errors().is_empty());
+        Poll::Ready(())
+    })
+    .await;
+}
+
+#[tokio::test]
+async fn held_downstream_action_rejection_suppresses_only_capable_preheader_proxy_error() {
+    tokio::spawn(async move {
+        for capable in [false, true] {
+            let (fixture, mut worker) = OrderingFixture::new(capable, false);
+            let gateway = fixture.gateway();
+            let mut connection = Box::pin(gateway.serve_connection(
+                fixture.io.clone(),
+                fixture.registry.clone(),
+                CancellationToken::new(),
+            ));
+            reach_pending_request(connection.as_mut(), &fixture).await;
+            let cause = FailureCause::Downstream(Disconnect::ReadEof);
+            worker.start(fixture.terminal(), cause);
+            assert_eq!(fixture.terminal().failure_cause(), Some(cause));
+            assert!(!fixture.state.action_finished.load(Ordering::SeqCst));
+            // The physical IO barrier also holds a synthetic non-capable transport
+            // which deliberately installed an action. Suppression is checked after
+            // settlement; no ordinary-client timing claim is made by this control.
+            poll_with_exhausted_budget(connection.as_mut(), &fixture).await;
+            reach_rejected_admission(connection.as_mut(), &fixture).await;
+            assert!(fixture.state.rejected_admission.load(Ordering::SeqCst));
+            assert!(fixture.state.error_before_token.load(Ordering::SeqCst));
+            assert!(!fixture.state.action_finished.load(Ordering::SeqCst));
+            let output = fixture.io.0.lock().unwrap().output.clone();
+            if capable {
+                assert!(
+                    output.is_empty(),
+                    "owned downstream failure wrote response bytes"
+                );
+                assert_eq!(fixture.proxy_errors(), Vec::<Value>::new());
+            }
+            worker.finish();
+            tokio::time::timeout(BARRIER, connection.as_mut())
+                .await
+                .unwrap();
+            if capable {
+                assert!(fixture.io.0.lock().unwrap().output.is_empty());
+                assert_eq!(fixture.proxy_errors(), Vec::<Value>::new());
+            } else {
+                assert!(
+                    fixture
+                        .io
+                        .0
+                        .lock()
+                        .unwrap()
+                        .output
+                        .starts_with(b"HTTP/1.1 502 "),
+                    "ordinary error path lost its 502"
+                );
+                assert_eq!(
+                    fixture.proxy_errors(),
+                    [json!({"event":"proxy_error","status":502})]
+                );
+            }
+            assert_eq!(
+                *fixture.state.trace.lock().unwrap(),
+                ["action_enter", "request_drop", "action_finish"]
+            );
+            fixture.assert_cleanup(cause);
+        }
+    })
+    .await
+    .unwrap();
 }
 
 #[tokio::test]

@@ -7,6 +7,7 @@ mod client;
 pub(crate) mod gateway_intent;
 mod gateway_intent_tests;
 pub(crate) mod gateway_terminal;
+mod handshake_io;
 mod idle_close;
 mod idle_close_tests;
 mod lifecycle;

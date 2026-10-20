@@ -30,6 +30,7 @@ use tokio::net::TcpStream;
 use tower_service::Service;
 
 use super::abort::{AbortControl, DialGate};
+use super::handshake_io::HandshakeIo;
 use super::lifecycle::{ConnectionIdentity, ConnectionLifetime};
 use super::policy::{Context as TlsContext, Profile, TrustSnapshot, context, trust_snapshot};
 use super::session::{Cache, Key, RawCache, TicketState, Verification};
@@ -90,7 +91,7 @@ impl Drop for Lease {
 type Tcp = TokioIo<TcpStream>;
 enum Stream {
     Plain(TcpStream),
-    Tls(TokioIo<SslStream<Tcp>>),
+    Tls(TokioIo<SslStream<HandshakeIo<Tcp>>>),
 }
 
 pub(super) struct TransportIo {
@@ -427,7 +428,7 @@ impl Service<Uri> for Connector {
                     ssl.set_hostname(host)
                         .map_err(|_| io::Error::other("Synthetic SNI failed"))?;
                 }
-                let mut stream = SslStream::new(ssl, TokioIo::new(io))
+                let mut stream = SslStream::new(ssl, HandshakeIo::new(TokioIo::new(io)))
                     .map_err(|_| io::Error::other("Synthetic TLS stream failed"))?;
                 Pin::new(&mut stream)
                     .connect()
@@ -456,6 +457,7 @@ impl Service<Uri> for Connector {
                 if stream.ssl().session_reused() && !offered {
                     return Err(io::Error::other("Synthetic unexpected session reuse"));
                 }
+                stream.get_mut().release().await?;
                 if let Some(state) = &session {
                     state.accept();
                 }
