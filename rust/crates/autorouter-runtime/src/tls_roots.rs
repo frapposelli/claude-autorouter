@@ -50,6 +50,19 @@ fn load(
 ) -> Result<(X509Store, Option<Warning>), TrustError> {
     let failure = |_| TrustError::InvalidBundle;
     openssl::init_without_config().map_err(failure)?;
+    load_initialized(mode, extra, file, directory)
+}
+
+// Initialization must already have selected the process policy. Production
+// enters through load() above; the private configuration experiment bootstraps
+// its distinct first-use policy before constructing any OpenSSL trust object.
+fn load_initialized(
+    mode: Mode,
+    extra: Option<&Path>,
+    file: &Path,
+    directory: &str,
+) -> Result<(X509Store, Option<Warning>), TrustError> {
+    let failure = |_| TrustError::InvalidBundle;
     let mut store = X509StoreBuilder::new().map_err(failure)?;
     let mut parameters = X509VerifyParam::new().map_err(failure)?;
     parameters

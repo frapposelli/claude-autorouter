@@ -246,6 +246,7 @@ const OPENSSL_FILES: &[&str] = &[
     "src/md_ctx.rs",
     "src/memcmp.rs",
     "src/nid.rs",
+    "src/node_init.rs",
     "src/ocsp.rs",
     "src/ossl_param.rs",
     "src/pkcs12.rs",

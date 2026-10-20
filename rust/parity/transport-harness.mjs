@@ -34,12 +34,28 @@ export async function transportHarness(prefix, { candidateArguments = ['serve'],
   catch (error) { await rm(scratch, { recursive: true, force: true }); throw error; }
   const token = 'synthetic-transport-audit-token';
   const children = new Set(), servers = new Set(), sockets = new Set();
+  // Register auxiliary execFile children as well as gateway children. Signal
+  // cleanup must await their actual close before removing owned scratch files.
+  function ownChild(child) {
+    assert.ok(child && typeof child.kill === 'function');
+    const ended = new Promise(resolve => { child.once('error', () => {}); child.once('close', resolve); });
+    let stopping;
+    const stop = () => stopping ??= (async () => {
+      try { child.kill('SIGTERM'); await bounded(ended, 3000, 'Auxiliary child shutdown deadline'); }
+      catch { child.kill('SIGKILL'); await bounded(ended, 2000, 'Auxiliary child kill deadline'); }
+      finally { children.delete(stop); }
+    })();
+    children.add(stop);
+    void ended.then(() => children.delete(stop));
+    return { stop };
+  }
   function watch(server) {
     servers.add(server);
     server.on('connection', socket => { sockets.add(socket); socket.on('close', () => sockets.delete(socket)); socket.on('error', () => {}); });
     return server;
   }
-  async function gateway(name, upstream, extra = {}, { allowStartupFailure = false } = {}) {
+  async function gateway(name, upstream, extra = {}, { allowStartupFailure = false, nodeArguments = [] } = {}) {
+    assert.ok(Array.isArray(nodeArguments) && nodeArguments.length <= 64 && nodeArguments.every(word => typeof word === 'string' && word.length <= 2048), 'Bounded synthetic Node arguments required');
     // Every service is synthetic. Never inherit an external evaluator default,
     // even for GET-only cases or a future accidental inference fixture.
     const loopback = address => address === '::1' || (isIP(address) === 4 && address.startsWith('127.'));
@@ -62,7 +78,7 @@ export async function transportHarness(prefix, { candidateArguments = ['serve'],
     assert.equal(extra.AUTOROUTER_EVALUATOR ?? 'jev', 'jev', 'Transport harness only enables its local synthetic evaluator');
     const directory = join(scratch, `${name}-${Math.random().toString(16).slice(2)}`);
     await mkdir(directory, { mode: 0o700 });
-    const child = spawn(name === 'node' ? process.execPath : candidate, name === 'node' ? [join(reference, 'bin/autorouter.mjs'), 'serve'] : candidateArguments, { cwd: directory, env: { HOME: directory, XDG_CONFIG_HOME: directory, TMPDIR: directory, PATH: directory, AUTOROUTER_PORT: '0', AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'synthetic-evaluator', ANTHROPIC_API_KEY: 'synthetic-provider', AUTOROUTER_TOKEN: token, ...(name === 'node' ? {} : candidateEnvironment), ...extra, AUTOROUTER_UPSTREAM_URL: provider.href, AUTOROUTER_JEV_URL: checkedEvaluator.href }, stdio: ['ignore', 'ignore', 'pipe'] });
+    const child = spawn(name === 'node' ? process.execPath : candidate, name === 'node' ? [...nodeArguments, join(reference, 'bin/autorouter.mjs'), 'serve'] : candidateArguments, { cwd: directory, env: { HOME: directory, XDG_CONFIG_HOME: directory, TMPDIR: directory, PATH: directory, AUTOROUTER_PORT: '0', AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'synthetic-evaluator', ANTHROPIC_API_KEY: 'synthetic-provider', AUTOROUTER_TOKEN: token, ...(name === 'node' ? {} : candidateEnvironment), ...extra, AUTOROUTER_UPSTREAM_URL: provider.href, AUTOROUTER_JEV_URL: checkedEvaluator.href }, stdio: ['ignore', 'ignore', 'pipe'] });
     let stderr = '', spawnError = false;
     child.stderr.on('data', bytes => { if (stderr.length + bytes.length > 1024 * 1024) child.kill('SIGKILL'); else stderr += bytes; });
     const ended = new Promise(resolve => { child.once('error', () => { spawnError = true; resolve(); }); child.once('close', resolve); });
@@ -102,5 +118,5 @@ export async function transportHarness(prefix, { candidateArguments = ['serve'],
   const interrupt = () => { void cleanup().finally(() => process.exit(130)); };
   const terminate = () => { void cleanup().finally(() => process.exit(143)); };
   process.once('SIGINT', interrupt); process.once('SIGTERM', terminate);
-  return { root, scratch, token, identity, gateway, watch, close, cleanup };
+  return { root, scratch, candidate, token, identity, gateway, watch, close, ownChild, cleanup };
 }

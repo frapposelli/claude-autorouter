@@ -4,6 +4,7 @@ mod abort;
 mod abort_tests;
 mod buffered_body;
 mod client;
+mod config_init;
 pub(crate) mod gateway_intent;
 mod gateway_intent_tests;
 pub(crate) mod gateway_terminal;
@@ -71,29 +72,55 @@ pub(crate) fn buffered_delivery_fixture(
 /// child process. Ordinary cargo test never starts this synthetic gateway.
 #[tokio::test]
 async fn gateway_child() {
-    run_gateway_child(false).await;
+    run_gateway_child(false, false).await;
 }
 
 /// Separate test executable entrypoint; the original stage A/B2 mode is unchanged.
 #[tokio::test]
 async fn gateway_intent_child() {
-    run_gateway_child(true).await;
+    run_gateway_child(true, false).await;
 }
 
-async fn run_gateway_child(intents: bool) {
+#[tokio::test]
+async fn gateway_config_child() {
+    run_gateway_child(false, true).await;
+}
+
+async fn run_gateway_child(intents: bool, configuration: bool) {
     let mode = std::env::var("AUTOROUTER_SYNTHETIC_OPENSSL_SPIKE").unwrap_or_default();
-    if !matches!(mode.as_str(), "stage-a" | "stage-b2") {
+    if if configuration {
+        mode != "stage-b3"
+    } else {
+        !matches!(mode.as_str(), "stage-a" | "stage-b2")
+    } {
         return;
     }
     let options = std::env::var("NODE_OPTIONS").unwrap_or_default();
-    if let Err(diagnostic) = options::Options::parse(&options) {
-        let executable = std::env::args().next().unwrap_or_default();
-        for line in diagnostic.lines() {
-            eprintln!("{executable}: {line}");
+    let cli = if configuration {
+        let input =
+            std::env::var("AUTOROUTER_SYNTHETIC_OPENSSL_CLI").unwrap_or_else(|_| "[]".into());
+        assert!(input.len() <= 16384);
+        let cli: Vec<String> = serde_json::from_str(&input).unwrap();
+        assert!(cli.len() <= 64 && cli.iter().all(|word| word.len() <= 2048));
+        cli
+    } else {
+        Vec::new()
+    };
+    let parsed = match options::Options::parse_with_cli(&options, &cli) {
+        Ok(parsed) => parsed,
+        Err(diagnostic) => {
+            let executable = std::env::args().next().unwrap_or_default();
+            for line in diagnostic.lines() {
+                eprintln!("{executable}: {line}");
+            }
+            std::process::exit(9);
         }
-        std::process::exit(9);
-    }
-    let candidate = if intents {
+    };
+    let candidate = if configuration {
+        let configured = config_init::initialize(parsed).unwrap_or_else(|error| error.exit());
+        policy::trust_snapshot_configured(configured)
+            .and_then(|snapshot| SpikeHttpClient::with_snapshot_aborts(false, &snapshot, false))
+    } else if intents {
         policy::trust_snapshot().and_then(|snapshot| {
             SpikeHttpClient::with_snapshot_aborts(mode == "stage-b2", &snapshot, true)
         })

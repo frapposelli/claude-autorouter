@@ -134,31 +134,10 @@
 #[doc(inline)]
 pub use ffi::init;
 
-/// Initializes OpenSSL without implicitly loading a configuration file.
-///
-/// AutoRouter's local compatibility extension. Call this before any independent
-/// OpenSSL use: configuration already loaded by another user cannot be undone.
-/// This does not mutate environment variables or change verification callbacks.
 #[cfg(ossl300)]
-pub fn init_without_config() -> Result<(), error::ErrorStack> {
-    static INITIALIZED: std::sync::OnceLock<Result<(), error::ErrorStack>> =
-        std::sync::OnceLock::new();
-    INITIALIZED
-        .get_or_init(|| {
-            // OPENSSL_INIT_NO_LOAD_CONFIG from the public OpenSSL crypto.h.
-            const NO_LOAD_CONFIG: u64 = 0x0000_0080;
-            unsafe {
-                cvt(ffi::OPENSSL_init_ssl(
-                    NO_LOAD_CONFIG
-                        | ffi::OPENSSL_INIT_LOAD_SSL_STRINGS
-                        | ffi::OPENSSL_INIT_NO_ATEXIT,
-                    std::ptr::null(),
-                ))
-                .map(|_| ())
-            }
-        })
-        .clone()
-}
+mod node_init;
+#[cfg(ossl300)]
+pub use node_init::{init_with_config_first_use, init_without_config};
 
 use libc::c_int;
 #[cfg(ossl300)]

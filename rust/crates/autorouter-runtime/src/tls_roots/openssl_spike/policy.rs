@@ -12,7 +12,8 @@ use openssl::ssl::{
 };
 use openssl::x509::{X509PurposeId, store::X509Store, verify::X509VerifyFlags};
 
-use super::super::{Warning, default_paths, load};
+use super::super::{Warning, default_paths, load, load_initialized};
+use super::config_init::Configured;
 use super::options::Options;
 use super::session::{PolicyId, TicketState};
 use crate::http_client::HttpError;
@@ -78,6 +79,16 @@ fn next_generation() -> Result<PolicyId, HttpError> {
 
 pub(super) fn trust_snapshot() -> Result<TrustSnapshot, HttpError> {
     let policy = Options::process()?;
+    snapshot(policy, false)
+}
+
+pub(super) fn trust_snapshot_configured(
+    configured: Configured,
+) -> Result<TrustSnapshot, HttpError> {
+    snapshot(configured.into_policy(), true)
+}
+
+fn snapshot(policy: Options, configured: bool) -> Result<TrustSnapshot, HttpError> {
     let extra = std::env::var_os("NODE_EXTRA_CA_CERTS").filter(|value| !value.is_empty());
     let (default_file, default_directory) = default_paths();
     let file = std::env::var_os("SSL_CERT_FILE").map_or(default_file, PathBuf::from);
@@ -90,7 +101,8 @@ pub(super) fn trust_snapshot() -> Result<TrustSnapshot, HttpError> {
     if policy.mode == Mode::OpenSsl && file.to_str().is_none() {
         return Err(HttpError::UnsupportedTrustOptions);
     }
-    let (store, warning) = load(
+    let loader = if configured { load_initialized } else { load };
+    let (store, warning) = loader(
         policy.mode,
         extra.as_deref().map(Path::new),
         &file,

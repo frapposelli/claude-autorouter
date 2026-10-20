@@ -48,6 +48,17 @@ impl ErrorStack {
         ErrorStack(vec)
     }
 
+    // Initialization owns the error queue before ffi::init is permitted. Do not
+    // let reporting a configuration failure implicitly select default settings.
+    #[cfg(ossl300)]
+    pub(crate) fn get_initialized() -> ErrorStack {
+        let mut vec = vec![];
+        while let Some(err) = Error::get_initialized() {
+            vec.push(err);
+        }
+        ErrorStack(vec)
+    }
+
     /// Pushes the errors back onto the OpenSSL error stack.
     pub fn put(&self) {
         for error in self.errors() {
@@ -115,9 +126,18 @@ unsafe impl Send for Error {}
 impl Error {
     /// Returns the first error on the OpenSSL error stack.
     pub fn get() -> Option<Error> {
-        unsafe {
-            ffi::init();
+        ffi::init();
+        Self::get_impl(false)
+    }
 
+    // Caller has performed explicit OpenSSL initialization. This must not call
+    // ffi::init, including while that initialization is reporting a failure.
+    pub(crate) fn get_initialized() -> Option<Error> {
+        Self::get_impl(true)
+    }
+
+    fn get_impl(initialization: bool) -> Option<Error> {
+        unsafe {
             let mut file = ptr::null();
             let mut line = 0;
             let mut func = ptr::null();
@@ -130,11 +150,18 @@ impl Error {
                     // in the error stack, so we'll need to copy it off if it's dynamic
                     let data = if flags & ffi::ERR_TXT_STRING != 0 {
                         let bytes = CStr::from_ptr(data as *const _).to_bytes();
-                        let data = str::from_utf8(bytes).unwrap();
-                        let data = if flags & ffi::ERR_TXT_MALLOCED != 0 {
-                            Cow::Owned(data.to_string())
+                        let data = if initialization {
+                            // Config paths/section names can contain non-UTF8.
+                            // Reporting must not panic after OpenSSL's once gate
+                            // commits but before our cached identity is stored.
+                            Cow::Owned(String::from_utf8_lossy(bytes).into_owned())
                         } else {
-                            Cow::Borrowed(data)
+                            let data = str::from_utf8(bytes).unwrap();
+                            if flags & ffi::ERR_TXT_MALLOCED != 0 {
+                                Cow::Owned(data.to_string())
+                            } else {
+                                Cow::Borrowed(data)
+                            }
                         };
                         Some(data)
                     } else {
