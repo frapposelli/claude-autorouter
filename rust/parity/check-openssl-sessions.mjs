@@ -79,6 +79,32 @@ function request(port, path, cancelBody = false) {
   });
 }
 const cases = ['clean-close', 'keepalive', 'rotate-ticket-key', 'rejected-host-then-valid', 'invalid-head', 'short-body', 'abrupt-after-complete', 'abrupt-after-complete-barrier', 'cancel-body'];
+function requirePoolTrace(value) {
+  assert.equal(value?.available, true, 'buffered raw pool diagnostic availability');
+  assert.equal(value.complete, true, 'complete buffered raw pool diagnostics');
+  assert.equal(value.request_numbering, 'zero_based_raw_pool_ordinal');
+  assert.equal(value.connection_numbering, 'successful_raw_http1_connection');
+  assert.ok(Array.isArray(value.rows) && value.rows.length <= 128, 'raw pool diagnostic row bound');
+  const assignments = [];
+  for (const row of value.rows) {
+    assert.ok(['free', 'assigned', 'close'].includes(row.event), 'closed raw pool diagnostic event');
+    assert.ok(Number.isSafeInteger(row.connection) && row.connection >= 1 && row.connection <= 8, 'raw pool diagnostic connection bound');
+    assert.ok(Number.isSafeInteger(row.ms) && row.ms >= 0, 'raw pool diagnostic timestamp');
+    if (row.event === 'assigned') {
+      assert.ok(Number.isSafeInteger(row.request) && row.request >= 0 && row.request < 16, 'raw pool diagnostic request bound');
+      assert.equal(typeof row.reused, 'boolean');
+      assignments.push([row.request, row.connection]);
+    } else if (row.event === 'free') {
+      assert.equal(typeof row.kept, 'boolean');
+      assert.ok(Number.isSafeInteger(row.timeout) && row.timeout >= 0, 'raw pool diagnostic idle timeout');
+    }
+  }
+  assert.ok(assignments.length > 0 && assignments.length <= 16, 'bounded nonempty raw pool assignments');
+  assert.deepEqual(value.assignment_history, assignments, 'persistent scalar history from existing assignment rows');
+}
+function unavailablePoolTrace(name) {
+  return { available: false, reason: name === 'node' ? 'node_reference_pool_trace_not_instrumented' : 'legacy_constructor_has_no_raw_pool_trace' };
+}
 async function runCase(name, row, certificates) {
   let connections = 0, step = 0;
   const live = new Set(), handshakes = [], requests = [];
@@ -142,7 +168,9 @@ async function runCase(name, row, certificates) {
     }
   } finally { await child.stop(); for (const socket of live) socket.destroy(); await h.close(provider); }
   const metrics = name === 'rust' ? JSON.parse(child.stderr().match(/OpenSSL session fixture: (\{[^\n]+\})/)?.[1] ?? 'null') : undefined;
-  return { observed: { responses, connections, handshakes, requests }, exit: child.exit(), diagnostics: child.stderr().replaceAll(scratch, '<fixture>'), ...(metrics ? { metrics } : {}) };
+  const pool_trace = name === 'rust' && constructor === 'buffered' ? metrics?.pool_trace : unavailablePoolTrace(name);
+  if (name === 'rust' && constructor === 'buffered') requirePoolTrace(pool_trace);
+  return { observed: { responses, connections, handshakes, requests }, pool_trace, exit: child.exit(), diagnostics: child.stderr().replaceAll(scratch, '<fixture>'), ...(metrics ? { metrics } : {}) };
 }
 function applicationContract(observed, mode) {
   const [first, second, last] = observed.responses;

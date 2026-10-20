@@ -109,10 +109,16 @@ pub(super) struct Connection {
     write: Arc<Gate>,
 }
 #[derive(Clone)]
-pub(super) struct Identity(Weak<Connection>);
+pub(super) struct Identity {
+    connection: Weak<Connection>,
+    ordinal: usize,
+}
 impl Connection {
     pub(super) fn identity(self: &Arc<Self>) -> Identity {
-        Identity(Arc::downgrade(self))
+        Identity {
+            connection: Arc::downgrade(self),
+            ordinal: self.ordinal,
+        }
     }
     pub(super) fn event(&self, make: impl FnOnce(usize) -> Event) {
         if let Some(probe) = self.probe.upgrade() {
@@ -193,8 +199,32 @@ impl Probe {
         let mut extensions = Extensions::new();
         assignment.get_extras(&mut extensions);
         let identity = extensions.remove::<Identity>()?;
-        let connection = identity.0.upgrade()?;
+        let connection = identity.connection.upgrade()?;
         Some((connection.ordinal, assignment))
+    }
+    /// Historical physical selections, without requiring a still-live IO owner.
+    /// These scalar IDs grant no reservation, abort or successful-delivery proof.
+    pub(super) fn assignment_history(&self) -> Vec<[usize; 2]> {
+        let captures: Vec<_> = self
+            .0
+            .state
+            .lock()
+            .unwrap()
+            .requests
+            .iter()
+            .map(|(request, capture)| (*request, capture.clone()))
+            .collect();
+        // Arbitrary connector metadata Clone/Drop stays outside the probe lock.
+        captures
+            .into_iter()
+            .filter_map(|(request, capture)| {
+                let assignment = capture.assignment()?;
+                let mut extensions = Extensions::new();
+                assignment.get_extras(&mut extensions);
+                let identity = extensions.remove::<Identity>()?;
+                Some([request, identity.ordinal])
+            })
+            .collect()
     }
     pub(super) fn hold_read(&self, connection: usize) -> Hold {
         self.connection(connection).read.hold()

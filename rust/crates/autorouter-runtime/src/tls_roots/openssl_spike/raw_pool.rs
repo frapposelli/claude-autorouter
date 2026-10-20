@@ -58,7 +58,50 @@ impl Default for Probe {
         }
     }
 }
+// Holds only bounded diagnostic rows and weak gate metadata, never a pool owner.
+struct TraceReader(Arc<Mutex<ProbeState>>);
+impl TraceReader {
+    fn snapshot(&self) -> Trace {
+        let relevant =
+            |row: &&Trace| matches!(row["event"].as_str(), Some("free" | "assigned" | "close"));
+        let rows: Vec<_> = {
+            let state = self.0.lock().unwrap();
+            assert!(
+                state.rows.iter().filter(relevant).count() <= 128,
+                "raw pool diagnostic trace bound"
+            );
+            state.rows.iter().filter(relevant).cloned().collect()
+        };
+        assert!(
+            rows.iter().all(|row| row["connection"]
+                .as_u64()
+                .is_some_and(|id| (1..=8).contains(&id))),
+            "raw pool diagnostic connection bound"
+        );
+        let assignment_history: Vec<_> = rows
+            .iter()
+            .filter(|row| row["event"] == "assigned")
+            .map(|row| {
+                [
+                    row["request"].as_u64().unwrap(),
+                    row["connection"].as_u64().unwrap(),
+                ]
+            })
+            .collect();
+        assert!(
+            assignment_history.len() <= 16 && assignment_history.iter().all(|row| row[0] < 16),
+            "raw pool diagnostic request bound"
+        );
+        serde_json::json!({"available":true,"complete":true,"rows":rows,
+            "assignment_history":assignment_history,
+            "request_numbering":"zero_based_raw_pool_ordinal",
+            "connection_numbering":"successful_raw_http1_connection"})
+    }
+}
 impl Probe {
+    fn trace_reader(&self) -> TraceReader {
+        TraceReader(self.state.clone())
+    }
     pub(super) fn hold_before_admission(&self) -> oneshot::Receiver<oneshot::Sender<()>> {
         self.admission.hold_next()
     }

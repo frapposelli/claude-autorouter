@@ -92,6 +92,47 @@ function request(port, ordinal) {
     req.once('error', error => { clearTimeout(timer); reject(error); });
   });
 }
+function requirePoolTrace(value) {
+  assert.equal(value?.available, true, 'buffered raw pool diagnostic availability');
+  assert.equal(value.complete, true, 'complete buffered raw pool diagnostics');
+  assert.equal(value.request_numbering, 'zero_based_raw_pool_ordinal');
+  assert.equal(value.connection_numbering, 'successful_raw_http1_connection');
+  assert.ok(Array.isArray(value.rows) && value.rows.length <= 128, 'raw pool diagnostic row bound');
+  const assignments = [];
+  for (const row of value.rows) {
+    assert.ok(['free', 'assigned', 'close'].includes(row.event), 'closed raw pool diagnostic event');
+    assert.ok(Number.isSafeInteger(row.connection) && row.connection >= 1 && row.connection <= 8, 'raw pool diagnostic connection bound');
+    assert.ok(Number.isSafeInteger(row.ms) && row.ms >= 0, 'raw pool diagnostic timestamp');
+    if (row.event === 'assigned') {
+      assert.ok(Number.isSafeInteger(row.request) && row.request >= 0 && row.request < 16, 'raw pool diagnostic request bound');
+      assert.equal(typeof row.reused, 'boolean');
+      assignments.push([row.request, row.connection]);
+    } else if (row.event === 'free') {
+      assert.equal(typeof row.kept, 'boolean');
+      assert.ok(Number.isSafeInteger(row.timeout) && row.timeout >= 0, 'raw pool diagnostic idle timeout');
+    }
+  }
+  assert.ok(assignments.length > 0 && assignments.length <= 16, 'bounded nonempty raw pool assignments');
+  assert.deepEqual(value.assignment_history, assignments, 'persistent scalar history from existing assignment rows');
+}
+function unavailablePoolTrace(name) {
+  return { available: false, reason: name === 'node' ? 'node_reference_pool_trace_not_instrumented' : 'legacy_constructor_has_no_raw_pool_trace' };
+}
+function requireAssignmentHistory(value) {
+  const history = value.assignment_history;
+  assert.ok(Array.isArray(history) && history.length <= 16, 'idle physical assignment history bound');
+  let previous = 0;
+  for (const pair of history) {
+    assert.ok(Array.isArray(pair) && pair.length === 2, 'idle physical assignment pair');
+    assert.ok(Number.isSafeInteger(pair[0]) && pair[0] > previous && pair[0] <= 16, 'one-based ordered idle request identity');
+    assert.ok(Number.isSafeInteger(pair[1]) && pair[1] >= 1 && pair[1] <= 8, 'one-based physical idle connection identity');
+    previous = pair[0];
+  }
+  for (const selected of value.selected ?? []) {
+    assert.ok(history.some(pair => pair[0] === selected[0] && pair[1] === selected[1]), 'live assignment remains in scalar history');
+  }
+  assert.deepEqual(history.map(pair => pair[0]), [1, 2, 3], 'all three fixed idle requests retain their physical assignments');
+}
 async function runCase(name, version, mode, certificates) {
   const live = new Map(), handshakes = [], requests = [], responses = [], driver = [];
   let connectionCount = 0, peerCount = 0, firstSocket, secondPending, child, controlSocket, final, diagnostic = '';
@@ -170,7 +211,13 @@ async function runCase(name, version, mode, certificates) {
       snapshot = await control.command({ op: 'snapshot' });
       final = await control.command({ op: 'stop' }); assert.equal(final.cleanup, true);
       await bounded(exited, 2000, 'idle child exit'); assert.equal(child.exitCode, 0); ownedChildren.delete(child);
-      finalResult = { responses, connections: connectionCount, handshakes, requests, driver, before_cleanup: snapshot, cleanup: final, child_exit: child.exitCode, diagnostic: diagnostic.replaceAll(scratch, '<fixture>') };
+      const pool_trace = name === 'rust' && constructor === 'buffered' ? final.pool_trace : unavailablePoolTrace(name);
+      if (name === 'rust' && constructor === 'buffered') { requirePoolTrace(snapshot.pool_trace); requirePoolTrace(pool_trace); }
+      if (name === 'rust') {
+        requireAssignmentHistory(snapshot); requireAssignmentHistory(final);
+        assert.deepEqual(final.assignment_history, snapshot.assignment_history, 'cleanup preserves complete physical assignment history');
+      }
+      finalResult = { responses, connections: connectionCount, handshakes, requests, driver, pool_trace, before_cleanup: snapshot, cleanup: final, child_exit: child.exitCode, diagnostic: diagnostic.replaceAll(scratch, '<fixture>') };
     })(), 8000, 'idle scenario outer deadline');
   } catch (error) {
     error.observed = { name, version, mode, responses, connections: connectionCount, handshakes, requests, driver, child_exit: child?.exitCode, diagnostic: diagnostic.replaceAll(scratch, '<fixture>') };
@@ -206,7 +253,7 @@ finally { for (const child of ownedChildren) child.kill('SIGKILL'); await h.clea
 const paths = ['rust/Cargo.lock', 'rust/parity/check-openssl-idle-close.mjs', 'rust/parity/idle-close-reference.mjs', 'rust/parity/check-openssl-sessions.mjs', 'rust/crates/autorouter-runtime/src/tls_roots/openssl_spike.rs', ...['idle_close', 'idle_close_tests', 'client'].map(name => `rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/${name}.rs`)];
 if (constructor === 'buffered') paths.push(...['raw_pool', 'raw_pool_buffered', 'raw_pool_buffered_replay', 'buffered_body', 'gateway_terminal', 'gateway_terminal_handoff', 'idle_close'].map(name => `rust/crates/autorouter-runtime/src/tls_roots/openssl_spike/${name}.rs`), 'rust/crates/autorouter-runtime/src/server.rs', 'rust/crates/autorouter-runtime/src/transport_completion.rs');
 const report = { schema_version: 1, kind: constructor === 'buffered' ? 'test_only_buffered_idle_close_barrier_characterization' : 'test_only_idle_close_barrier_characterization', identity: h.identity, ...(constructor === 'buffered' ? { candidate_constructor: 'buffered' } : {}), passed: !fatal && results.length === 10 && results.every(row => row.matched && row.cleanup), matched: results.filter(row => row.matched).length, count: results.length, production_eligible: false, source_sha256: Object.fromEntries(await Promise.all(paths.map(async path => [path, hash(await readFile(join(root, path)))]))), ...(fatal ? { fatal, failed } : {}), results,
-  limits: ['Original13/18 and opt-in15/18 expectations and reports are unchanged.', 'Observed transport closure is not direct pool insertion/removal observation.', 'Node read pause and request _flush gate, and native AsyncRead/AsyncWrite gates are explicitly instrumented schedules.', 'Unbarriered repetitions preserve requests/provider close barriers but observation instrumentation may perturb scheduling.', constructor === 'buffered' ? 'This constructor uses the existing bounded buffered body; no TLS handshake change, retry change, production promotion or performance claim.' : 'No body read-ahead, TLS handshake change, retry change, production promotion or performance claim.'] };
+  limits: ['Original13/18 and opt-in15/18 expectations and reports are unchanged.', 'Native buffered diagnostics retain existing raw pool free/assigned/close rows; Node and native legacy pool state remain unavailable. Assignment records precede HTTP admission.', 'Native idle assignment_history retains one-based capture/physical-IO identities after release, separately from live selected and the raw-pool zero-based request identities. Independent trace clocks do not establish a shared event order.', 'Node read pause and request _flush gate, and native AsyncRead/AsyncWrite gates are explicitly instrumented schedules.', 'Unbarriered repetitions preserve requests/provider close barriers but observation instrumentation may perturb scheduling.', constructor === 'buffered' ? 'This constructor uses the existing bounded buffered body; no TLS handshake change, retry change, production promotion or performance claim.' : 'No body read-ahead, TLS handshake change, retry change, production promotion or performance claim.'] };
 const bytes = JSON.stringify(report, null, 2) + '\n', path = join(root, 'artifacts/rust-rewrite/evidence', `${constructor === 'buffered' ? 'openssl-buffered-idle-close' : 'openssl-idle-close'}-${hash(bytes)}.json`);
 await writeFile(path, bytes, { flag: 'wx' }).catch(error => { if (error.code !== 'EEXIST') throw error; });
 console.log(JSON.stringify({ report: path, passed: report.passed, matched: report.matched, count: report.count, fatal }));

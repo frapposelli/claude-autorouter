@@ -27,6 +27,41 @@ const BARRIER: Duration = Duration::from_secs(2);
 const SCENARIO: Duration = Duration::from_secs(8);
 const RESPONSE: &[u8] = b"HTTP/1.1 200 OK\r\nContent-Length: 1\r\nConnection: keep-alive\r\n\r\nx";
 
+#[test]
+fn historical_selection_keeps_scalar_identity_after_connection_release() {
+    use hyper_util::client::legacy::connect::{Connected, bind_http1_reservation};
+
+    let probe = Probe::default();
+    let connection = probe.connected();
+    let mut request = Request::new(Full::new(Bytes::new()));
+    let request_id = probe.attach(&mut request);
+    assert_eq!(request_id, 1);
+    assert!(probe.assignment_history().is_empty());
+    let metadata = Connected::new().extra(connection.identity());
+    let reservation = bind_http1_reservation(&mut request, &metadata)
+        .unwrap()
+        .unwrap();
+    let (physical_id, assignment) = probe.assignment(request_id).unwrap();
+    assert_eq!(physical_id, 1);
+    assert_eq!(probe.assignment_history(), vec![[request_id, physical_id]]);
+    assert!(reservation.retire());
+    assert!(assignment.claim_abort().is_none());
+    drop(connection);
+
+    // A closed IO owner is never restored by reading its historical metadata.
+    assert_eq!(probe.live(), 0);
+    assert!(probe.assignment(request_id).is_none());
+    let events = probe.rows();
+    assert!(events.contains(&Event::Released(physical_id)));
+    for _ in 0..2 {
+        assert_eq!(probe.assignment_history(), vec![[request_id, physical_id]]);
+        assert!(probe.assignment(request_id).is_none());
+        assert_eq!(probe.live(), 0);
+        assert!(assignment.claim_abort().is_none());
+    }
+    assert_eq!(probe.rows(), events, "history reads do not add live events");
+}
+
 struct PeerRequest {
     connection: usize,
     reply: oneshot::Sender<()>,
@@ -398,7 +433,7 @@ async fn controlled_gateway_child() {
                 _ => panic!("idle control operation"),
             }
             let selected: Vec<_>=(1..=16).filter_map(|id| probe.assignment(id).map(|(connection,_)|[id,connection])).collect();
-            reply(&mut control,serde_json::json!({"rows":probe.rows().iter().map(|row|format!("{row:?}")).collect::<Vec<_>>(),"selected":selected,"live":probe.live()})).await?;
+            reply(&mut control,serde_json::json!({"rows":probe.rows().iter().map(|row|format!("{row:?}")).collect::<Vec<_>>(),"selected":selected,"assignment_history":probe.assignment_history(),"live":probe.live()})).await?;
         }
         Ok(())
     }).await;
@@ -424,6 +459,6 @@ async fn controlled_gateway_child() {
     assert_eq!(raw.shutdown_calls.load(Ordering::SeqCst), 0);
     assert_eq!(fetch.shutdown_handles.load(Ordering::SeqCst), 0);
     probe.record(Event::Cleanup);
-    let _=reply(&mut control,serde_json::json!({"cleanup":true,"rows":probe.rows().iter().map(|row|format!("{row:?}")).collect::<Vec<_>>(),"active":raw.active.load(Ordering::SeqCst),"tasks":raw.tasks.load(Ordering::SeqCst),"shutdown_handles":raw.shutdown_handles.load(Ordering::SeqCst)})).await;
+    let _=reply(&mut control,serde_json::json!({"cleanup":true,"rows":probe.rows().iter().map(|row|format!("{row:?}")).collect::<Vec<_>>(),"assignment_history":probe.assignment_history(),"active":raw.active.load(Ordering::SeqCst),"tasks":raw.tasks.load(Ordering::SeqCst),"shutdown_handles":raw.shutdown_handles.load(Ordering::SeqCst)})).await;
     result.expect("idle child overall deadline").unwrap();
 }

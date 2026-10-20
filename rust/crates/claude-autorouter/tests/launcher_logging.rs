@@ -90,8 +90,10 @@ impl Fixture {
                 script.push('\n');
             }
         }
+        // The live status path is atomically replaced. Read one opened inode;
+        // GNU cp can reject a source replacement during its metadata checks.
         script.push_str(&format!(
-            "/bin/cp \"$AUTOROUTER_STATUS_FILE\" {}\nprintf 'FAKE_CLAUDE_DONE\\n'\n",
+            "/bin/cat \"$AUTOROUTER_STATUS_FILE\" > {}\nprintf 'FAKE_CLAUDE_DONE\\n'\n",
             quote(&home.0.join("snapshot-copy.json"))
         ));
         home.claude(&script);
@@ -137,6 +139,7 @@ impl Fixture {
             );
         }
         let snapshot = fs::read_to_string(self.home.0.join("snapshot-copy.json")).unwrap();
+        let _: Value = serde_json::from_str(&snapshot).expect("complete copied status JSON");
         for private in ["LOG_ONLY_", "PRIVATE_", "😀", "prompt_excerpt"] {
             assert!(!snapshot.contains(private));
         }

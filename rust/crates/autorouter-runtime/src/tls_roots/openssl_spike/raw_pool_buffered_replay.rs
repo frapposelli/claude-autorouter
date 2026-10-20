@@ -68,6 +68,7 @@ impl Fixture {
         let raw = client.inner.raw_counts.clone();
         let fetch = client.inner.fetch_counts.clone();
         let buffers = client.probe.clone();
+        let pool = client.inner.probe.trace_reader();
         let (entries, bytes, peak_bytes) = client.inner.raw_sessions.lock().unwrap().snapshot();
         let cache = Arc::downgrade(&client.inner.raw_sessions);
         let address = running.address;
@@ -128,6 +129,7 @@ impl Fixture {
             "fetch_shutdown_handles":fetch.shutdown_handles.load(Ordering::SeqCst),
             "entries_before_drop":entries,"bytes_before_drop":bytes,"peak_bytes":peak_bytes,
             "cache_released":cache.upgrade().is_none(),"buffers":buffers.snapshot(),
+            "pool_trace":pool.snapshot(),
             "terminal_tasks":terminal.tasks(),"writer":terminal.writer_snapshot(),
             "shutdown_attempts_match":attempts_match,
             "session_error_closes":raw.session_error_closes.load(Ordering::SeqCst),
@@ -193,6 +195,7 @@ async fn idle_gateway_child() {
     assert!(address.ip().is_loopback());
     let probe = idle_close::Probe::default();
     let fixture = Fixture::new(Some(probe.clone())).await;
+    let pool = fixture.client.inner.probe.trace_reader();
     let mut control = TcpStream::connect(address).await.unwrap();
     reply(
         &mut control,
@@ -240,7 +243,8 @@ async fn idle_gateway_child() {
                 &mut control,
                 serde_json::json!({
                     "rows":probe.rows().iter().map(|row|format!("{row:?}")).collect::<Vec<_>>(),
-                    "selected":selected,"live":probe.live()
+                    "selected":selected,"assignment_history":probe.assignment_history(),
+                    "live":probe.live(),"pool_trace":pool.snapshot()
                 }),
             )
             .await?;
@@ -263,6 +267,7 @@ async fn idle_gateway_child() {
             .map(|row| format!("{row:?}"))
             .collect::<Vec<_>>()
     );
+    cleanup["assignment_history"] = serde_json::json!(probe.assignment_history());
     let _ = reply(&mut control, cleanup).await;
     assert!(cleaned, "buffered idle cleanup");
     result.expect("buffered idle child deadline").unwrap();
@@ -330,4 +335,45 @@ async fn mixed_legacy_intent_and_idle_profile_rejects_before_admission() {
     assert_eq!(intents.live(), 0);
     assert_eq!(idle.live(), 0);
     assert!(cache.upgrade().is_none());
+}
+
+// Rows survive the probe's release; the actual child finish path separately
+// checks zero IO/tasks/cache while retaining this reader. The 129th relevant
+// row is fatal, never truncated.
+#[tokio::test]
+async fn retained_pool_diagnostics_preserve_exact_boundary_and_assignment() {
+    let probe = Probe::default();
+    let reader = probe.trace_reader();
+    probe.record(
+        "assigned",
+        serde_json::json!({"request":0,"connection":1,"reused":false}),
+    );
+    for _ in 0..126 {
+        probe.record(
+            "free",
+            serde_json::json!({"connection":1,"kept":true,"timeout":5000}),
+        );
+    }
+    probe.record(
+        "timeout",
+        serde_json::json!({"connection":1,"free":false,"destroyed":false}),
+    );
+    probe.record("close", serde_json::json!({"connection":1}));
+    drop(probe);
+    let value = reader.snapshot();
+    assert_eq!(value["rows"].as_array().unwrap().len(), 128);
+    assert_eq!(value["assignment_history"], serde_json::json!([[0, 1]]));
+    assert_eq!(value["rows"][0]["event"], "assigned");
+    assert_eq!(value["rows"][127]["event"], "close");
+    assert_eq!(value["complete"], true);
+}
+
+#[tokio::test]
+#[should_panic(expected = "raw pool diagnostic trace bound")]
+async fn pool_diagnostic_overflow_is_not_a_truncated_success() {
+    let probe = Probe::default();
+    for _ in 0..129 {
+        probe.record("close", serde_json::json!({"connection":1}));
+    }
+    probe.trace_reader().snapshot();
 }
