@@ -1,0 +1,4093 @@
+{
+  "schema_version": 1,
+  "kind": "NATIVE_OPENSSL_CONTEXT_DEFAULTS_LOCAL_CHECKPOINT",
+  "recorded_at_utc": "2026-10-20T12:13:17.803556+00:00",
+  "status": "Private guarded context defaults match all 40 declared paired cases; production qualification remains open.",
+  "base_commit": "6aa0ab10147b9c7a1999ce7f4b399c9b3769551a",
+  "scope": "Candidate measured over the pinned parent. JavaScript remains shipping default; ordinary native TLS remains Rustls. The configured private B3 runtime alone skips the later security-level and Groups resets. No default/backend/configuration support change or release approval.",
+  "source_snapshot": {
+    "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/source-candidate-v1.json",
+    "bytes": 121192,
+    "sha256": "c9a5a4842feeac52565b66aa856ee7318eb91d6f2bb78c555c7cf7814f1fb9c0"
+  },
+  "raw_source_inputs": 719,
+  "frozen_inputs": 111,
+  "supplier": {
+    "version": "0.10.81",
+    "original_files": 112,
+    "patched_files": 114,
+    "changed_files": [
+      "src/error.rs",
+      "src/lib.rs",
+      "src/node_init.rs",
+      "src/ssl/mod.rs",
+      "src/ssl/node_defaults.rs",
+      "src/ssl/test/mod.rs",
+      "src/x509/mod.rs",
+      "src/x509/store.rs"
+    ],
+    "vendor_source_members": 265,
+    "provenance": {
+      "path": "rust/vendor/openssl-provenance.json",
+      "bytes": 22016,
+      "sha256": "262e32bfff7e7c707d88ab2a9af86771ff90f5a76a0d13907b99686807b6b9b3"
+    },
+    "patch": {
+      "path": "rust/vendor/openssl-node-trust.patch",
+      "bytes": 54611,
+      "sha256": "096f0887b4df2981c02e7130220b9f788f8fae58c1b307faa8b79ffd006966e9"
+    },
+    "native_OpenSSL": "3.6.3",
+    "reference_OpenSSL": "3.0.15+quic",
+    "scope": "Local compatibility patch, not upstream approval; distinct cryptographic releases."
+  },
+  "implementation": [
+    "Version-guarded SSL_CTX public ex-data callback installs the Node security-level and group defaults before the one native3.6.3 system_default application.",
+    "A scoped per-thread guard binds the one client construction and validates callback/parent postconditions; nesting/failure paths refuse the context and leave no armed scope.",
+    "Successful coordinated first-use initialization is required. Uninitialized and failed initialization are refused in separate fresh supplier test processes.",
+    "Existing ordinary construction and unarmed callbacks retain their behavior. No repeated config read/application or alternate provider/engine/FIPS path is introduced."
+  ],
+  "characterization": {
+    "report": {
+      "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/configuration-report.json",
+      "bytes": 103089,
+      "sha256": "3bd8f673976b03954ba69afe890d80fab5156f69b3ea96e9e674974f1b94e96d"
+    },
+    "declaration": {
+      "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/configuration-report.json.declaration.json",
+      "bytes": 10791,
+      "sha256": "a463c3a0623510c1d5531bbac59d91fb837171817444d13c10df2e7289a0a1f3"
+    },
+    "declaration_sha256": "fa3049c7385e34d49ec501aa611354fe30fc11e9b14600dc3d2112031a1502ba",
+    "reference_Node": "v22.14.0",
+    "reference_Node_sha256": "e2d4915d03eda6a2f00a09920e7eeb7a04ad123f9aaad61b1481179fe1bf50e0",
+    "candidate_sha256": "1f30be9807d871726aae38bc1d8e7b79a8ea9c4ef789f8d3c7c0b15493f4ad9c",
+    "driver": {
+      "path": "rust/parity/check-openssl-configuration.mjs",
+      "bytes": 18099,
+      "sha256": "f5a28e653717edc68197f0014d729eb60b11d805e871606de4e5c39c3e75652e"
+    },
+    "harness": {
+      "path": "rust/parity/transport-harness.mjs",
+      "bytes": 8733,
+      "sha256": "fae2334dbefd964f3f1047b0452a199d44d5a731e5a365e1f9b11596b82726d5"
+    },
+    "prior_failed_report": {
+      "path": "artifacts/rust-rewrite/openssl-b3-configuration-validation-20261020-1/b3-report-v2.json",
+      "bytes": 105301,
+      "sha256": "fa2c39ad195ba566ee540cd4aca2e1e3d8b7bda35a00445364c061e5c5bcd57d"
+    },
+    "identical_declaration_driver_and_harness": true,
+    "counts": {
+      "paired": 40,
+      "matched": 40,
+      "prior_matched": 36,
+      "startup_success_each_lane": 29,
+      "startup_reject_each_lane": 11,
+      "HTTP200_each_lane": 23,
+      "HTTP502_each_lane": 6
+    },
+    "corrected_native_vectors": [
+      {
+        "id": "group-survives-TLSv1.2",
+        "old_native_raw_status": 200,
+        "new_paired_raw_status": 502,
+        "new_paired_inference_status": 502
+      },
+      {
+        "id": "security-level-survives-TLSv1.2",
+        "old_native_raw_status": 200,
+        "new_paired_raw_status": 502,
+        "new_paired_inference_status": 502
+      },
+      {
+        "id": "group-survives-TLSv1.3",
+        "old_native_raw_status": 200,
+        "new_paired_raw_status": 502,
+        "new_paired_inference_status": 502
+      },
+      {
+        "id": "security-level-survives-TLSv1.3",
+        "old_native_raw_status": 200,
+        "new_paired_raw_status": 502,
+        "new_paired_inference_status": 502
+      }
+    ],
+    "first_use_cache_controls": [
+      {
+        "mode": "no-config-first",
+        "exit_code": 0,
+        "passed": true
+      },
+      {
+        "mode": "cached-success",
+        "exit_code": 0,
+        "passed": true
+      },
+      {
+        "mode": "cached-failure",
+        "exit_code": 0,
+        "passed": true
+      },
+      {
+        "mode": "cached-failure-bytes",
+        "exit_code": 0,
+        "passed": true
+      }
+    ],
+    "rows": [
+      {
+        "id": "explicit-empty-env",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "empty-env-file",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "empty-node-option",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "empty-cli-option",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "empty-shared",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "missing-file-ignored",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "missing-selection-key",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "no-fallback-to-shared",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "dangling-selected-key",
+        "expected": {
+          "startup": false,
+          "phase": "configuration"
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "configuration",
+            "exit_code": 124,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "rust": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "configuration",
+            "exit_code": 124,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "shared-selects-dangling",
+        "expected": {
+          "startup": false,
+          "phase": "configuration"
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "configuration",
+            "exit_code": 124,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "rust": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "configuration",
+            "exit_code": 124,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "dual-default-key",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "dual-shared-key",
+        "expected": {
+          "startup": false,
+          "phase": "configuration"
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "configuration",
+            "exit_code": 124,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "rust": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "configuration",
+            "exit_code": 124,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "shared-valid-key",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "whole-file-syntax",
+        "expected": {
+          "startup": false,
+          "phase": "configuration"
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "configuration",
+            "exit_code": 100,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "rust": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "configuration",
+            "exit_code": 100,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "unselected-syntax-still-parsed",
+        "expected": {
+          "startup": false,
+          "phase": "configuration"
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "configuration",
+            "exit_code": 100,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "rust": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "configuration",
+            "exit_code": 100,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "selected-missing-ssl-section",
+        "expected": {
+          "startup": false,
+          "phase": "configuration"
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "configuration",
+            "exit_code": 120,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "rust": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "configuration",
+            "exit_code": 120,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "cli-over-env",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "node-option-over-env",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "cli-over-node-option",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "last-cli-wins",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "last-node-option-wins",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "cli-empty-falls-back-to-env",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "cli-empty-clears-node-option",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "node-option-spaces",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "cli-spaces",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "shared-false-is-positive",
+        "expected": {
+          "startup": false,
+          "phase": "configuration"
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "configuration",
+            "exit_code": 124,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "rust": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "configuration",
+            "exit_code": 124,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "shared-negation-clears",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "config-empty-equals",
+        "expected": {
+          "startup": false,
+          "phase": "options"
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "options",
+            "exit_code": 9,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "rust": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "options",
+            "exit_code": 9,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": true,
+        "semantic_matched": true
+      },
+      {
+        "id": "config-missing-operand",
+        "expected": {
+          "startup": false,
+          "phase": "options"
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "options",
+            "exit_code": 9,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "rust": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "options",
+            "exit_code": 9,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": true,
+        "semantic_matched": true
+      },
+      {
+        "id": "config-negation",
+        "expected": {
+          "startup": false,
+          "phase": "options"
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "options",
+            "exit_code": 9,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "rust": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "options",
+            "exit_code": 9,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": true,
+        "semantic_matched": true
+      },
+      {
+        "id": "options-before-config-error",
+        "expected": {
+          "startup": false,
+          "phase": "options"
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "options",
+            "exit_code": 9,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "rust": {
+          "startup": false,
+          "cleaned": true,
+          "tcp_connections": 0,
+          "declared_outcome": true,
+          "failure": {
+            "phase": "options",
+            "exit_code": 9,
+            "signal": null,
+            "timed_out": false
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": true,
+        "semantic_matched": true
+      },
+      {
+        "id": "signature-accept-TLSv1.2",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.2",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.2",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.2",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.2",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "signature-reject-TLSv1.2",
+        "expected": {
+          "startup": true,
+          "status": 502
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 3,
+          "declared_outcome": true,
+          "raw": {
+            "status": 502
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 502
+          },
+          "inference_attempts": 2,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 3,
+          "declared_outcome": true,
+          "raw": {
+            "status": 502
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 502
+          },
+          "inference_attempts": 2,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "group-survives-TLSv1.2",
+        "expected": {
+          "startup": true,
+          "status": 502
+        },
+        "historical_context_canary": true,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 3,
+          "declared_outcome": true,
+          "raw": {
+            "status": 502
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 502
+          },
+          "inference_attempts": 2,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 3,
+          "declared_outcome": true,
+          "raw": {
+            "status": 502
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 502
+          },
+          "inference_attempts": 2,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "security-level-survives-TLSv1.2",
+        "expected": {
+          "startup": true,
+          "status": 502
+        },
+        "historical_context_canary": true,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 3,
+          "declared_outcome": true,
+          "raw": {
+            "status": 502
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 502
+          },
+          "inference_attempts": 2,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 3,
+          "declared_outcome": true,
+          "raw": {
+            "status": 502
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 502
+          },
+          "inference_attempts": 2,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "signature-accept-TLSv1.3",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "signature-reject-TLSv1.3",
+        "expected": {
+          "startup": true,
+          "status": 502
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 3,
+          "declared_outcome": true,
+          "raw": {
+            "status": 502
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 502
+          },
+          "inference_attempts": 2,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 3,
+          "declared_outcome": true,
+          "raw": {
+            "status": 502
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 502
+          },
+          "inference_attempts": 2,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "group-survives-TLSv1.3",
+        "expected": {
+          "startup": true,
+          "status": 502
+        },
+        "historical_context_canary": true,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 3,
+          "declared_outcome": true,
+          "raw": {
+            "status": 502
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 502
+          },
+          "inference_attempts": 2,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 3,
+          "declared_outcome": true,
+          "raw": {
+            "status": 502
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 502
+          },
+          "inference_attempts": 2,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "security-level-survives-TLSv1.3",
+        "expected": {
+          "startup": true,
+          "status": 502
+        },
+        "historical_context_canary": true,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 3,
+          "declared_outcome": true,
+          "raw": {
+            "status": 502
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 502
+          },
+          "inference_attempts": 2,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 3,
+          "declared_outcome": true,
+          "raw": {
+            "status": 502
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 502
+          },
+          "inference_attempts": 2,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [],
+          "requests": []
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      },
+      {
+        "id": "invalid-command-deferred-context",
+        "expected": {
+          "startup": true,
+          "status": 200
+        },
+        "historical_context_canary": false,
+        "node": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "rust": {
+          "startup": true,
+          "cleaned": true,
+          "tcp_connections": 2,
+          "declared_outcome": true,
+          "raw": {
+            "status": 200
+          },
+          "raw_attempts": 1,
+          "inference": {
+            "status": 200
+          },
+          "inference_attempts": 1,
+          "exit": {
+            "code": 0,
+            "signal": null
+          },
+          "handshakes": [
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            },
+            {
+              "protocol": "TLSv1.3",
+              "resumed": false
+            }
+          ],
+          "requests": [
+            {
+              "path": "/v1/models/synthetic",
+              "alpn": null,
+              "resumed": false
+            },
+            {
+              "path": "/v1/systemone",
+              "alpn": "http/1.1",
+              "resumed": false
+            },
+            {
+              "path": "/v1/messages",
+              "alpn": null,
+              "resumed": false
+            }
+          ]
+        },
+        "startup_exit_equal": true,
+        "diagnostic_bytes_equal": false,
+        "semantic_matched": true
+      }
+    ],
+    "diagnostics": "Only phase/status/exit/cleanup and handshake/request projections are qualified. Raw diagnostic bytes and absolute scratch paths are intentionally absent; exact stderr/privacy migration is unfinished.",
+    "observed_totals": {
+      "node_cleanup": 40,
+      "node_started": 29,
+      "node_http200": 23,
+      "node_tcp": 64,
+      "node_handshakes": 46,
+      "node_http_requests": 69,
+      "rust_cleanup": 40,
+      "rust_started": 29,
+      "rust_http200": 23,
+      "rust_tcp": 64,
+      "rust_handshakes": 46,
+      "rust_http_requests": 69,
+      "node_startup_reject": 11,
+      "rust_startup_reject": 11,
+      "node_http502": 6,
+      "rust_http502": 6
+    }
+  },
+  "validation": {
+    "owners": {
+      "vendor-node": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/vendor-node.json",
+          "bytes": 1131,
+          "sha256": "bb36ada55be13c8613f472c0eb91a72f1e263099940f58f17c2d9015952dbb0b"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/vendor-node-invocation.json",
+          "bytes": 38580,
+          "sha256": "8c7793e29d50c98377f31e9e63b464b88b4c06f3f01302ff187c1c5d758b70cf"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/vendor-node.stdout",
+          "bytes": 86,
+          "sha256": "8345b0dda7ce79d921d8655873c5737dcaa7576e3fb000dfad004fab832c9124"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/vendor-node.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 0.32018529204651713
+      },
+      "auditor-build": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/auditor-build.json",
+          "bytes": 1440,
+          "sha256": "e7a2cf2da9b5a28807e5734bd4b3e43272c7b0672600117d35e009b782aa9a17"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/auditor-build-invocation.json",
+          "bytes": 38887,
+          "sha256": "72229ec4ff1670e72a71e725060b546fbdaefe10cf513acef658e72f4d714b03"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/auditor-build.stdout",
+          "bytes": 87795,
+          "sha256": "99b6845043ef6ec9c00f8bef62462523cdd1367a7b9f5102dab2dbecf92649a3"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/auditor-build.stderr",
+          "bytes": 2140,
+          "sha256": "8fdb5e8667f5951e96908892f42535b7b2aefe2d75a7b2470c361ce536f63e5d"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 12.021230916958302
+      },
+      "auditor-bootstrap": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/auditor-bootstrap.json",
+          "bytes": 1439,
+          "sha256": "3e9a175ea3b79ce3d3119fcc8c9f28d6d3c0560707964a28d300ae127aba35f5"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/auditor-bootstrap-invocation.json",
+          "bytes": 41661,
+          "sha256": "16b0247f8a624d375d947e8499de873888dc0c6fa00886f1cde5cc3efad1a1a6"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/auditor-bootstrap.stdout",
+          "bytes": 965,
+          "sha256": "47e01e906bc3a4a962f2ccdbf18283fd3ab94282d64a4406e9b3d31f26d1e703"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/auditor-bootstrap.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 1.214212791994214
+      },
+      "vendor-native": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/vendor-native.json",
+          "bytes": 1273,
+          "sha256": "9ba618e973a6b27fba58a3659aabf328c2e88c280f544ad1705451c21f77964e"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/vendor-native-invocation.json",
+          "bytes": 41493,
+          "sha256": "7b9cef46633c5844a6064bee56e86c52ca7872e2b96d8d6ae7a9d4d508681709"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/vendor-native.stdout",
+          "bytes": 4351,
+          "sha256": "847634deed08f5f7fc4ae09b143e0e2809ae6239f1fb5f020eed780ba28df012"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/vendor-native.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 1.1637229169718921
+      },
+      "production-feature-controls": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/production-feature-controls.json",
+          "bytes": 1320,
+          "sha256": "5b2d6ec94dfb6c41bd982ba68948f80d01478bd313cf2b4c4171203796339b00"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/production-feature-controls-invocation.json",
+          "bytes": 41539,
+          "sha256": "cee595376ab24e363781550c1d4195e3f93150c5c528a49788010b5c29353789"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/production-feature-controls.stdout",
+          "bytes": 158,
+          "sha256": "82bf79eb19f1e32e25ab31dc80a53acca9249f079b9d6cff76bba44edbc37ff4"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/production-feature-controls.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 0.050529500003904104
+      },
+      "workspace": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/workspace.json",
+          "bytes": 1374,
+          "sha256": "6800d431fc921f72cceb65e993056e7dc8832ff44ca222dc3fb8ed05b285b562"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/workspace-invocation.json",
+          "bytes": 42340,
+          "sha256": "d31e7a17f69a13de1c4e4500a03fc780f0be0c2e69ddbce7cccfae6643863524"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/workspace.stdout",
+          "bytes": 168048,
+          "sha256": "8a93559bb11d3bffc45eaab09272afe0fc132cc1ff2e0ed027bac59a99b4280d"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/workspace.stderr",
+          "bytes": 19648,
+          "sha256": "5eb4ece1902b1a1086596b2824bc61b467517ce0f8e0f8b3f510ccf2dbd74f76"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 267.70909670810215
+      },
+      "build-libtest": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/build-libtest.json",
+          "bytes": 1398,
+          "sha256": "e5b9de84fe238f6ac3dff5e61c167168a73bed06bb782dc81a40fc36d04d0697"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/build-libtest-invocation.json",
+          "bytes": 40453,
+          "sha256": "9dba0b068db174bfae33cd05fcc88e0586d596dfbe05adbd71ec2ad74702bb6f"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/build-libtest.stdout",
+          "bytes": 265774,
+          "sha256": "624cd2c393dc9498b1fe2231b397bcf00503f44edb6585a4c3b739ed75054eff"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/build-libtest.stderr",
+          "bytes": 61,
+          "sha256": "5865df3b4ac3c5ed5da7b19dd7fbd0ed2f6109b4c044d888b3856f99d2854ed1"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 0.4925844161771238
+      },
+      "fmt": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/fmt.json",
+          "bytes": 1154,
+          "sha256": "dec3b26571ae5247bc6563483b35ef409917e60f5c988cbd1f37e421abbf8f6e"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/fmt-invocation.json",
+          "bytes": 42129,
+          "sha256": "afaee5fcc13ec36f3e0e5e0546a17d4f23506cc14fa0e67ec272ef7ce9bfeecf"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/fmt.stdout",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/fmt.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 1.1181532919872552
+      },
+      "clippy": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/clippy.json",
+          "bytes": 1401,
+          "sha256": "22bc72ee1f17f0535114956c99c65cd6bea4154b1f9dc86a61e89e629a845359"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/clippy-invocation.json",
+          "bytes": 42374,
+          "sha256": "a30afc5ac31425ef51ac7740ed7f66665d5348e5641b9079f02be55bb644bcbd"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/clippy.stdout",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/clippy.stderr",
+          "bytes": 5066,
+          "sha256": "a4c6958622d9794e616d3847a15d4e44aa4eb0f66a541c490dbd94d92d1e7e8f"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 26.39977683313191
+      },
+      "node-check": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/node-check.json",
+          "bytes": 1136,
+          "sha256": "f941d96f9ca85c3dbd4f323a1d2f7a6aec2d49d8081138e3539a67c51399a363"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/node-check-invocation.json",
+          "bytes": 42106,
+          "sha256": "dd4dffb672218a93b5c2b5a31827926116d7f6b8e166515a62d54898c4075a23"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/node-check.stdout",
+          "bytes": 153,
+          "sha256": "532c6103d0ae7485afac714e22851bbe915a0dfef35deddde4abf0e0db7f21a9"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/node-check.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 3.3909584172070026
+      },
+      "node-tests": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/node-tests.json",
+          "bytes": 1191,
+          "sha256": "6e6ad6ac6853b00273cd5b9a06242755a99833ca4ac7c7b4516ef304707bd95f"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/node-tests-invocation.json",
+          "bytes": 42159,
+          "sha256": "b22fd07b271c679a6da480ca6a3367cb9a9a168ac678fe5d980bdbbbc8f77e3b"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/node-tests.stdout",
+          "bytes": 144887,
+          "sha256": "a0a1b748760988cc88554126265a916441d403b1c7496b89f93dfebcb13dd490"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/node-tests.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 5.483936249976978
+      },
+      "node-package": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/node-package.json",
+          "bytes": 1209,
+          "sha256": "64c9d57970519d1c094faa0c487b44080f7409741545f58870840b84d76a65b2"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/node-package-invocation.json",
+          "bytes": 42180,
+          "sha256": "10fd336d491b737f65fd7ed0817bd6b588521edcc5154a231a6e6996e7e16892"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/node-package.stdout",
+          "bytes": 885,
+          "sha256": "0c8e9eeb61827041357f9bb72c389c17daff9c3b157892c8231717df3eeebc83"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/node-package.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 7.337426957907155
+      },
+      "configuration": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/configuration.json",
+          "bytes": 1487,
+          "sha256": "8b33fccea416798aaede18c13a7919ca48ffb3966eb2c819f2d9a2c1deeb8a5b"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/configuration-invocation.json",
+          "bytes": 41941,
+          "sha256": "041cf294e450e8c7c146c3318cf5e1e98e5b55c05ac5ef2e02b0cfd199c29f29"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/configuration.stdout",
+          "bytes": 378,
+          "sha256": "28fdbd5eb0078ec8161fe462c86cdc141d9ea852a5f630fedf974cc311773fa8"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/configuration.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 5.673795749899
+      },
+      "cli-roundtrip-n": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/cli-roundtrip-n.json",
+          "bytes": 1242,
+          "sha256": "b857db3eddb9fac682f522d24d9339445d8647162fabf0c02904e6f03ac2b0db"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/cli-roundtrip-n-invocation.json",
+          "bytes": 44298,
+          "sha256": "f55919fc29e4d880ae35d600b7e001c904fe6a5e8549bc48d936e8a8677365cc"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/cli-roundtrip-n.stdout",
+          "bytes": 1932,
+          "sha256": "5e05910e15e3e5215c1a0d587709e142a2bf8fabe5f1563e6d69ba302f00b95f"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/cli-roundtrip-n.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 17.275608124909922
+      },
+      "developer-hex-acquisition": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/developer-hex-acquisition.json",
+          "bytes": 1272,
+          "sha256": "636abfa812b2c904c4016417e38cd36b6e067171b8409d83d9634862ab765095"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/developer-hex-acquisition-invocation.json",
+          "bytes": 70464,
+          "sha256": "31edef748e79e71d9cd35dc65bf116778681b306313ced84ee8276a961fd106e"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/developer-hex-acquisition.stdout",
+          "bytes": 364,
+          "sha256": "1042c81356c46278339d8c3f04dc4ed640b7351c16378c27f4753b978b69577c"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/developer-hex-acquisition.stderr",
+          "bytes": 77,
+          "sha256": "844c4f4789edbbf5b6107027df22f658861cf09cf679cea567a425cf53e4e13a"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 1.1386087499558926
+      },
+      "supplier-native-metadata": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-native-metadata.json",
+          "bytes": 1415,
+          "sha256": "a536485fef1a3d024a6a4908a5fa726a53cc1c9e60a0ebc15326ec7d636f4cdd"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-native-metadata-invocation.json",
+          "bytes": 71320,
+          "sha256": "f7b497b30c35d2d6d05d67133d9c21191a3c9d3330a6e0e7a8cee21f25a40c62"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-native-metadata.stdout",
+          "bytes": 71704,
+          "sha256": "0d76c598d2cd537742966c929f7dde821b9b9c203a4b71db3a0ae5087f4f0111"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-native-metadata.stderr",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 0.1868387081194669
+      },
+      "supplier-unit-build": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-unit-build.json",
+          "bytes": 1676,
+          "sha256": "cc533b5cafb5527e865cf8fdb9dc31d25b841e877fa7f336e7e2359b1c7abeb1"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-unit-build-invocation.json",
+          "bytes": 79208,
+          "sha256": "3877f8fcca1ff6bbae376a4293b91875b94fb22e7138168f01dbb6e2a1b3b21b"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-unit-build.stdout",
+          "bytes": 30347,
+          "sha256": "e8c2654864bdd011acf11d76268a0dba4a2b73efddc9fb5fb0d8222d56f6570b"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-unit-build.stderr",
+          "bytes": 318,
+          "sha256": "d728a6fddf19426d0aa61f1b0c795bb1a443aa69a42fb2a3cc4dc03f63802d7c"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 5.471919999923557
+      },
+      "supplier-unit-tests": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-unit-tests.json",
+          "bytes": 1276,
+          "sha256": "ece6b69619f179b07997999fd43f396aba19bd085a69248c5506db4079aaa189"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-unit-tests-invocation.json",
+          "bytes": 80982,
+          "sha256": "af0f601b152b59a0441e34dfaab7ab27f1be9029f5fbdcd0623aca67e6deccb7"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-unit-tests.stdout",
+          "bytes": 903,
+          "sha256": "c9e33a4425463b0e86c3cc587f5b36387dd7cb3067fe98482fe96d8e04f1f56f"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-unit-tests.stderr",
+          "bytes": 444,
+          "sha256": "612c78452a6097d032c9236cab85de6e3f1c0468217c9e433d4dc3285457129f"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 0.5629862500354648
+      },
+      "supplier-first-use-success": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-first-use-success.json",
+          "bytes": 1319,
+          "sha256": "5b29cbd4e428d1ef55f08e335a7fc47677d7d3d1e813f70e1f4bac07d210fa44"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-first-use-success-invocation.json",
+          "bytes": 81082,
+          "sha256": "4ec6bcf6f59508295517ecf13868599e73e089e9e3b935fae3be0377ba44af7b"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-first-use-success.stdout",
+          "bytes": 174,
+          "sha256": "b6c0dc16d65aed2ff6a323c896353abb8b788f92460bdcb53c8aaf425886f5b8"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-first-use-success.stderr",
+          "bytes": 37,
+          "sha256": "5e7f7e3bc1056381171307655d49b631dfbceb824ffd502e98dc15cdce207ee7"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 0.006234999978914857
+      },
+      "supplier-first-use-failure": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-first-use-failure.json",
+          "bytes": 1319,
+          "sha256": "b1f922cbc2bb6c3dc2a52f3e8335763b8d46defb5c771944fc229694807cfe3d"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-first-use-failure-invocation.json",
+          "bytes": 81274,
+          "sha256": "395b8681c1c2a2ef9ac484ef6a59420c9bfeeb5bbc33a8379f92b77dacd1139c"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-first-use-failure.stdout",
+          "bytes": 174,
+          "sha256": "b6c0dc16d65aed2ff6a323c896353abb8b788f92460bdcb53c8aaf425886f5b8"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-first-use-failure.stderr",
+          "bytes": 37,
+          "sha256": "5e7f7e3bc1056381171307655d49b631dfbceb824ffd502e98dc15cdce207ee7"
+        },
+        "exit_code": 0,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 0.009340958902612329
+      }
+    },
+    "workspace_totals": {
+      "passed": 1588,
+      "failed": 0,
+      "ignored": 11,
+      "measured": 0,
+      "filtered": 0,
+      "groups": 66
+    },
+    "syntax_files": 98,
+    "node_passed": 645,
+    "safe_package_files": 58,
+    "package_lifecycles": 17,
+    "strict_Clippy_and_fmt_exit0": true,
+    "production_feature_controls": {
+      "accepted": 1,
+      "rejected": 46
+    },
+    "supplier_unit": {
+      "ordinary_filtered_group": {
+        "passed": 8,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 466,
+        "groups": 1
+      },
+      "first_use_entrypoint_ordinary_pass_is_inactive_without_mode": true,
+      "fresh_children": [
+        {
+          "mode": "success",
+          "passed": true,
+          "tests": 1,
+          "marker_verified": true,
+          "scope": "Separate sole fresh process; ordinary no-env child entrypoint pass is not this evidence."
+        },
+        {
+          "mode": "failure",
+          "passed": true,
+          "tests": 1,
+          "marker_verified": true,
+          "scope": "Separate sole fresh process; ordinary no-env child entrypoint pass is not this evidence."
+        }
+      ],
+      "actual_libtest": {
+        "receipt": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/retained-supplier-unit-pin.json",
+          "bytes": 10369,
+          "sha256": "48b71cc794da9aeac1e9754db5ecd7af7c138faa494e4325b16c047f016851fd"
+        },
+        "retained": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/retained/openssl-node-defaults-libtest",
+          "bytes": 9447552,
+          "sha256": "6a5ce39fe5b2f3b932333fe69cae82e7887ffb87fe9879d64d0ec0f711f41af9"
+        },
+        "profile": {
+          "opt_level": "0",
+          "debuginfo": 0,
+          "debug_assertions": true,
+          "overflow_checks": true,
+          "test": true
+        },
+        "features": [
+          "default",
+          "vendored"
+        ],
+        "cargo_fresh": false,
+        "scope": "Actual opt0 local check artifact; not an optimized shipping or performance artifact."
+      },
+      "fixture": {
+        "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-unit-native-fixture-frozen.json",
+        "bytes": 64459,
+        "sha256": "ba7784070a27b120279fd5e654dd77775b91aa9b277583e02f51249ba10711f2"
+      },
+      "private_manifest_alias_lines_removed": 4,
+      "private_manifest_bytes_removed": 132,
+      "original_supplier_files_intact": 114,
+      "byte_identical_private_nonmanifest_nonlock_files": 112,
+      "root_dependency_closure_packages": 18,
+      "private_lock_packages": 19,
+      "only_added_developer_dependency": "hex0.4.3",
+      "hex_archive": {
+        "path": "artifacts/dev-environment/cargo/registry/cache/index.crates.io-1949cf8c6b5b557f/hex-0.4.3.crate",
+        "bytes": 13299,
+        "sha256": "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+      },
+      "scope": "Private native-only supplier fixture, exact runtime3.6.3 closure plus locked developer hex. Four unsupported backend feature aliases omitted only in this private manifest; not AWS-LC/FIPS/BoringSSL/bindgen/upstream all-feature qualification. These vendor unit controls are explicit local runs; neither workspace nor current CI executes them."
+    },
+    "runtime_artifact": {
+      "receipt": {
+        "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/retained-runtime-pin.json",
+        "bytes": 1611,
+        "sha256": "5364531f9b779a1385f67c3bee93d4cdc29815742956eb18c51ee0407c9d0d11"
+      },
+      "retained": {
+        "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/retained/autorouter-runtime-libtest",
+        "bytes": 114476720,
+        "sha256": "1f30be9807d871726aae38bc1d8e7b79a8ea9c4ef789f8d3c7c0b15493f4ad9c"
+      },
+      "profile": {
+        "opt_level": "0",
+        "debuginfo": 0,
+        "debug_assertions": true,
+        "overflow_checks": true,
+        "test": true
+      },
+      "features": [
+        "default",
+        "development-probes"
+      ],
+      "cargo_fresh": true,
+      "scope": "Actual opt0 local check artifact; not an optimized shipping or performance artifact."
+    },
+    "data_helper_artifact": {
+      "receipt": {
+        "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/retained-data-helper-pin.json",
+        "bytes": 1511,
+        "sha256": "00fd9116527b5ec0000e5ba7c86538e02dd2c68389be62a65a3b0e5340ecdb98"
+      },
+      "retained": {
+        "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/retained/xtask-data",
+        "bytes": 58056576,
+        "sha256": "43d5082c4c17ec8fbfa1a11bd0977b8541cbcfa280374044125e86b983abf81a"
+      },
+      "profile": {
+        "opt_level": "0",
+        "debuginfo": 0,
+        "debug_assertions": true,
+        "overflow_checks": true,
+        "test": false
+      },
+      "features": [
+        "default",
+        "runtime-tools"
+      ],
+      "cargo_fresh": true,
+      "scope": "Actual opt0 local check artifact; not an optimized shipping or performance artifact."
+    }
+  },
+  "retained_failures": {
+    "metadata_owners": {
+      "supplier-metadata-offline": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-metadata-offline.json",
+          "bytes": 1390,
+          "sha256": "47bcfb5adec9c39a249979d1a93652a28513048942b85d2764d53a448eaf83f1"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-metadata-offline-invocation.json",
+          "bytes": 70581,
+          "sha256": "4873863f3a85e9a0ae0260c0d240b7b8d80f10323dadd026d68ed3cb488a7109"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-metadata-offline.stdout",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-metadata-offline.stderr",
+          "bytes": 421,
+          "sha256": "d14b7baef97c7e84b39481be8e6af0a67ff0d8be516908b176ea549eabd247b4"
+        },
+        "exit_code": 101,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 0.4435300000477582
+      },
+      "supplier-metadata-with-hex": {
+        "owner": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-metadata-with-hex.json",
+          "bytes": 1377,
+          "sha256": "3fe50601a8df873eedbf58325ef06bfac2a8b8aa309a4e762c908221e9aabf7b"
+        },
+        "invocation": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-metadata-with-hex-invocation.json",
+          "bytes": 70956,
+          "sha256": "f4643b0afb63dcd260dd0bb2f0766661472cf0e2a2d77c1daabcd7a6d76a56b9"
+        },
+        "stdout": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-metadata-with-hex.stdout",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/supplier-metadata-with-hex.stderr",
+          "bytes": 541,
+          "sha256": "77b241b38de9d887d981b61ba06aca3ef4fbcfe955d0f3f1167733998b14d707"
+        },
+        "exit_code": 101,
+        "owner_failure": null,
+        "source_inputs_verified": 719,
+        "frozen_inputs_verified": 111,
+        "post_execution_mismatches": [],
+        "elapsed_seconds": 0.3794500839430839
+      }
+    },
+    "explanation": "The exact-copy fixture metadata failed twice before the private native-only fixture was declared. Both exit101 outcomes and original fixture remain retained. The sole narrow developer download was the13,299-byte checksum-verified hex0.4.3 crate; no broader backend/FIPS/AWS download is implied.",
+    "hex_receipt": {
+      "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/developer-hex-archive-validation.json",
+      "bytes": 409,
+      "sha256": "88c6f65545a3e6e53f09bcc060d4d03092f782dbb7ca6c370266eb1683ff89a4"
+    },
+    "old_K36_of40_failed": {
+      "path": "rust/parity/measurements/native-openssl-configuration-bootstrap-summary.json",
+      "bytes": 86941,
+      "sha256": "e44a3565561ba056dede46ee1d82b53b631d6b24b8c0532abca22cb96d186938"
+    }
+  },
+  "source_packet": {
+    "result": {
+      "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/cli-roundtrip-current719/cli-roundtrip-result.json",
+      "bytes": 2122,
+      "sha256": "3513f2adead0331acd333480620015ad265ce1bd71339772a59ee6c9e241ef03"
+    },
+    "independent_review": {
+      "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/independent-cli-roundtrip-n-actual-review.json",
+      "bytes": 4746,
+      "sha256": "77b7b5f61a333030fe4108a2d521b4c383097134384983441e49529a98b7c68d"
+    },
+    "schema": 7,
+    "native_members": 721,
+    "indexed_hash_rows": 720,
+    "vendor_members": 265,
+    "corpus_members": 89,
+    "restored_reference_files": 113,
+    "geometry": {
+      "native_indexed_source": {
+        "members": 721,
+        "logical_bytes": 33222200,
+        "expanded_bytes": 33291264
+      },
+      "reference": {
+        "full_files": 113,
+        "delta_members": 109,
+        "delta_ustar_expanded_bytes": 1335296
+      },
+      "joint_schema7": {
+        "logical_bytes": 34649315,
+        "expanded_bytes": 34626560
+      },
+      "source_expansion_headroom": 263168
+    },
+    "source_limit_bytes": 33554432,
+    "joint_limit_bytes": 41943040,
+    "schema6_refuses_before_destination": true,
+    "default_explicit7_packet_bytes_equal": true,
+    "scope": "Actual current opt0 debug helper, data-only byte parsing/restoration; no archived/restored code execution, optimized build, shipping/platform/TLS/performance qualification."
+  },
+  "independent_reviews": {
+    "independent-callback-core-static-review.json": {
+      "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/independent-callback-core-static-review.json",
+      "bytes": 9845,
+      "sha256": "fddabb2ed27f0925ed0d6929256c80fd46e1eb45c10c354fda5d288b8e5ccbfd"
+    },
+    "independent-runtime-and-control-static-review.json": {
+      "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/independent-runtime-and-control-static-review.json",
+      "bytes": 6233,
+      "sha256": "875ea8883152b14e5f0249fe40324c73502f83f2a049a6384eafc84bd482c7fe"
+    },
+    "independent-configuration-and-workspace-actual-review.json": {
+      "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/independent-configuration-and-workspace-actual-review.json",
+      "bytes": 9911,
+      "sha256": "db2c75c1e3ef1e8896323a59eefb2283ef714346bbd100011808f5ce319975ba"
+    },
+    "independent-native-supplier-fixture-admission.json": {
+      "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/independent-native-supplier-fixture-admission.json",
+      "bytes": 7191,
+      "sha256": "20afc20c3614431f1a3e72691f9780b21a2b4490d2242e135171da29fa9dddbc"
+    },
+    "independent-cli-roundtrip-n-actual-review.json": {
+      "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/independent-cli-roundtrip-n-actual-review.json",
+      "bytes": 4746,
+      "sha256": "77b7b5f61a333030fe4108a2d521b4c383097134384983441e49529a98b7c68d"
+    },
+    "independent-supplier-unit-actual-review.json": {
+      "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/independent-supplier-unit-actual-review.json",
+      "bytes": 19661,
+      "sha256": "00a2f8e5ff4e3b7dbb2851fadab92e735434e75c8647e5bdf7701c71b354213a"
+    }
+  },
+  "parent_ci": {
+    "receipt": {
+      "path": "artifacts/rust-rewrite/ci-6aa0ab1-readonly-audit-20261020-1/sample3-review.json",
+      "bytes": 9293,
+      "sha256": "97948de27d0457343cb6c77561809610393cb60550505ff8c96cc3bc600b6a37"
+    },
+    "head": "6aa0ab10147b9c7a1999ce7f4b399c9b3769551a",
+    "successful_checks": 14,
+    "scope": "Sample3 API metadata only for parent6aa; actual checkout not byte-proven, no logs/artifacts/named-test counts, and no transfer to this changed candidate. Fresh CI required."
+  },
+  "cleanup": {
+    "status": "OWN_CORRECTNESS_CACHE_REMOVED_PROTECTED_FILES_UNCHANGED",
+    "receipt": {
+      "path": "artifacts/rust-rewrite/openssl-b3-context-defaults-validation-20261020-1/cleanup-own-cache-receipt.json",
+      "bytes": 837,
+      "sha256": "ccf84ddb13fa9cbf2f58dc749e1d9b25ba595e62ca8ecc56ac07c907b8beb467"
+    },
+    "removed_allocated_bytes": 2072408064,
+    "removed_logical_bytes": 2061827593,
+    "protected_files_verified_before_and_after": 3260,
+    "scope": "Only exact new N/correctness-target after all known consumers terminal. All protected source/evidence/retained executables/archives/toolchains/models/older caches preserved; no global external-process quiescence claim. Allocated removed bytes are not net/cumulative filesystem savings."
+  },
+  "remaining_limits": [
+    "No production configuration support, backend switch, public release, final artifact qualification or JavaScript cutover.",
+    "Absent OPENSSL_CONF default-path behavior, permission failures and exact diagnostic/privacy migration remain unqualified.",
+    "Arbitrary configuration effects, external providers/engines/includes/FIPS and other native OpenSSL versions remain unsupported or unqualified.",
+    "Broader TLS/session/idle-close lifecycle gaps remain; this configuration slice is not complete TLS parity.",
+    "Full minimum-platform/WSL and final licensed/rollback artifacts, remaining performance workloads and live evaluator/task quality remain incomplete.",
+    "Representative normal-use16GiB and external larger-Mac conditions are not replaced by opt0 synthetic checks; the larger-Mac validation remains deferred.",
+    "All prior failed observations remain historical evidence; no retry/unioned success or timing/performance claim."
+  ]
+}

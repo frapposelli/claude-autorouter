@@ -55,6 +55,7 @@ pub(super) struct TrustSnapshot {
     store: X509Store,
     policy: Options,
     generation: PolicyId,
+    configured: bool,
 }
 
 impl TrustSnapshot {
@@ -65,6 +66,7 @@ impl TrustSnapshot {
             store,
             policy: Options::parse("").unwrap(),
             generation: next_generation().unwrap(),
+            configured: false,
         }
     }
 }
@@ -121,6 +123,7 @@ fn snapshot(policy: Options, configured: bool) -> Result<TrustSnapshot, HttpErro
         store,
         policy,
         generation: next_generation()?,
+        configured,
     })
 }
 
@@ -159,8 +162,15 @@ fn build_context(
 ) -> Result<(SslContext, bool), HttpError> {
     let policy = &snapshot.policy;
     let failure = |_| HttpError::CertificateRoots;
-    let mut context = SslContextBuilder::new(SslMethod::tls_client()).map_err(failure)?;
-    context.set_security_level(1);
+    let mut context = if snapshot.configured {
+        SslContextBuilder::new_node_client()
+    } else {
+        SslContextBuilder::new(SslMethod::tls_client())
+    }
+    .map_err(failure)?;
+    if !snapshot.configured {
+        context.set_security_level(1);
+    }
     context.set_options(SslOptions::NO_SSLV2 | SslOptions::NO_SSLV3 | SslOptions::NO_COMPRESSION);
     context.set_mode(
         SslMode::ACCEPT_MOVING_WRITE_BUFFER
@@ -178,7 +188,9 @@ fn build_context(
     // TLS_ terms. Pin that default to the reference before applying overrides.
     context.set_ciphersuites(CIPHERS13).map_err(failure)?;
     let valid_ciphers = configure_ciphers(&mut context, policy).is_ok();
-    context.set_groups_list(GROUPS).map_err(failure)?;
+    if !snapshot.configured {
+        context.set_groups_list(GROUPS).map_err(failure)?;
+    }
     context.set_cert_store(snapshot.store.try_clone().map_err(failure)?);
     context.set_verify(if reject {
         SslVerifyMode::PEER
@@ -268,6 +280,43 @@ fn configure_ciphers(context: &mut SslContextBuilder, policy: &Options) -> Resul
 }
 
 #[test]
+fn preconfigured_client_defaults_preserve_profiles_and_explicit_cipher_precedence() {
+    openssl::init_without_config().unwrap();
+    let snapshot = TrustSnapshot {
+        store: openssl::x509::store::X509StoreBuilder::new()
+            .unwrap()
+            .build(),
+        policy: Options::parse("").unwrap(),
+        generation: PolicyId(78),
+        configured: true,
+    };
+    for profile in [Profile::Raw, Profile::Fetch] {
+        let contexts = context(&snapshot, profile, false).unwrap();
+        assert_eq!(contexts.tls.security_level(), 1);
+        assert_eq!(contexts.unverified.security_level(), 1);
+        assert_eq!(contexts.tls.verify_mode(), SslVerifyMode::PEER);
+        assert_eq!(contexts.unverified.verify_mode(), SslVerifyMode::NONE);
+        assert!(std::ptr::eq(
+            snapshot.store.as_ref(),
+            contexts.tls.cert_store()
+        ));
+    }
+    for (expression, level) in [("DEFAULT:@SECLEVEL=0", 0), ("DEFAULT:@SECLEVEL=2", 2)] {
+        let policy = Options::parse(&format!("--tls-cipher-list={expression}")).unwrap();
+        let mut context = SslContextBuilder::new_node_client().unwrap();
+        configure_ciphers(&mut context, &policy).unwrap();
+        assert_eq!(context.build().security_level(), level);
+    }
+    assert_eq!(
+        SslContextBuilder::new(SslMethod::tls_client())
+            .unwrap()
+            .build()
+            .security_level(),
+        2
+    );
+}
+
+#[test]
 fn cipher_errors_do_not_fallback_or_override_selected_security_level() {
     openssl::init_without_config().unwrap();
     for (expression, level) in [
@@ -306,6 +355,7 @@ fn profiles_and_verification_contexts_share_one_trust_store() {
             .build(),
         policy: Options::parse("").unwrap(),
         generation: PolicyId(77),
+        configured: false,
     };
     let raw = context(&snapshot, Profile::Raw, true).unwrap();
     let fetch = context(&snapshot, Profile::Fetch, false).unwrap();

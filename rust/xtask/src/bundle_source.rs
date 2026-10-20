@@ -279,9 +279,10 @@ mod tests {
                 .keys()
                 .filter(|p| p.starts_with("rust/vendor/"))
                 .count(),
-            264 // Includes the new, explicitly allowed OpenSSL initialization module.
+            265 // Includes both explicitly allowed OpenSSL initialization/default modules.
         );
         assert!(decoded.files.contains_key("rust/vendor/openssl/src/node_init.rs"));
+        assert!(decoded.files.contains_key("rust/vendor/openssl/src/ssl/node_defaults.rs"));
         for (path, entry) in &decoded.files {
             if !["README.native.md", "source-manifest.json"].contains(&path.as_str()) {
                 assert_eq!(entry.bytes, fs::read(root.join(path)).unwrap(), "{path}");

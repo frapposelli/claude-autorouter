@@ -27,6 +27,10 @@ struct Initialized {
 }
 static INITIALIZED: OnceLock<Initialized> = OnceLock::new();
 
+pub(crate) fn initialized_successfully() -> bool {
+    INITIALIZED.get().is_some_and(|state| state.result.is_ok())
+}
+
 // Public OpenSSL 3 crypto.h/conf.h ABI. openssl-sys does not expose these
 // settings functions. Keep this FFI in the audited supplier, not the runtime.
 unsafe extern "C" {

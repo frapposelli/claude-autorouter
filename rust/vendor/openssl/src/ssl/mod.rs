@@ -111,6 +111,8 @@ mod bio;
 mod callbacks;
 mod connector;
 mod error;
+#[cfg(ossl300)]
+mod node_defaults;
 #[cfg(test)]
 mod test;
 
@@ -745,6 +747,21 @@ pub fn select_next_proto<'a>(server: &'a [u8], client: &'a [u8]) -> Option<&'a [
 pub struct SslContextBuilder(SslContext);
 
 impl SslContextBuilder {
+    /// Creates a client context with frozen Node 22 defaults before configuration.
+    ///
+    /// AutoRouter extension, restricted to the reviewed OpenSSL 3.6.3 constructor
+    /// order. Call a coordinated first-use initializer successfully beforehand.
+    /// The existing `system_default` application can override these defaults once.
+    /// Ordinary constructors and unarmed threads are unchanged. Earlier third-party
+    /// initialization and recursive context-creating callbacks/providers are not
+    /// qualified: a parent mismatch is rejected but cannot undo their side effects.
+    /// A failed void callback rejects the returned context after configuration;
+    /// this is not a guarantee against configuration side effects.
+    #[cfg(ossl300)]
+    pub fn new_node_client() -> Result<SslContextBuilder, ErrorStack> {
+        node_defaults::new_client()
+    }
+
     /// Creates a new `SslContextBuilder`.
     #[corresponds(SSL_CTX_new)]
     pub fn new(method: SslMethod) -> Result<SslContextBuilder, ErrorStack> {
