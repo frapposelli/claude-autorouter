@@ -8,6 +8,35 @@ use std::os::unix::process::{CommandExt, ExitStatusExt};
 use std::process::{Child, Command, Stdio};
 use std::time::{Duration, Instant};
 
+// The accepted descendant socket is explicitly nonblocking. Poll one real byte
+// under one absolute deadline, including Interrupted/WouldBlock retries, without
+// relying on platform-specific Unix-socket receive-timeout options. A positive
+// buffer capacity means Ok(0) can only come from the underlying EOF read.
+fn read_descendant_before(
+    connection: &mut UnixStream,
+    byte: &mut [u8; 1],
+    deadline: Instant,
+) -> std::io::Result<usize> {
+    loop {
+        if Instant::now() >= deadline {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::TimedOut,
+                "descendant socket read deadline",
+            ));
+        }
+        match connection.read(byte) {
+            Err(error) if error.kind() == std::io::ErrorKind::Interrupted => continue,
+            Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                std::thread::sleep(
+                    Duration::from_millis(2)
+                        .min(deadline.saturating_duration_since(Instant::now())),
+                );
+            }
+            result => return result,
+        }
+    }
+}
+
 struct Collector {
     process: Child,
     channel: Option<BufReader<UnixStream>>,
@@ -91,13 +120,19 @@ impl Collector {
                     Err(error) => panic!("descendant readiness: {error}"),
                 }
             };
-            // Darwin inherits the listener's nonblocking status on accept.
-            connection.set_nonblocking(false).unwrap();
-            connection
-                .set_read_timeout(Some(Duration::from_secs(5)))
-                .unwrap();
+            // Accept inheritance differs by platform. Keep reads nonblocking
+            // and enforce the same five-second bound without SO_RCVTIMEO.
+            connection.set_nonblocking(true).unwrap();
             let mut ready = [0];
-            connection.read_exact(&mut ready).unwrap();
+            assert_eq!(
+                read_descendant_before(
+                    &mut connection,
+                    &mut ready,
+                    Instant::now() + Duration::from_secs(5),
+                )
+                .unwrap(),
+                1
+            );
             assert_eq!(&ready, b"D");
             result.descendant_connection = Some(connection);
         }
@@ -287,12 +322,12 @@ fn completed_report_ends_leftover_descendants_without_owner_teardown() {
     // Keep the driver control endpoint open: cleanup cannot depend on owner
     // EOF or an acknowledgement after receiving the completed report.
     assert_eq!(
-        child
-            .descendant_connection
-            .as_mut()
-            .unwrap()
-            .read(&mut [0])
-            .unwrap(),
+        read_descendant_before(
+            child.descendant_connection.as_mut().unwrap(),
+            &mut [0],
+            Instant::now() + Duration::from_secs(5),
+        )
+        .unwrap(),
         0
     );
     assert_eq!(child.wait_exit().signal(), Some(nix::libc::SIGKILL));
