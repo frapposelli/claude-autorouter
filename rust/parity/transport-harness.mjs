@@ -8,6 +8,7 @@ import { isIP } from 'node:net';
 import { chmod, copyFile, mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 
 const root = resolve(import.meta.dirname, '../..');
@@ -18,6 +19,8 @@ async function bounded(promise, milliseconds, label) {
   finally { clearTimeout(timer); }
 }
 export async function transportHarness(prefix, { candidateArguments = ['serve'], candidateEnvironment = {}, candidateKind = 'shipping CLI' } = {}) {
+  const passiveNodeLifecycle = process.env.AUTOROUTER_SYNTHETIC_NODE_LIFECYCLE;
+  assert.ok([undefined, 'passive-session-v1'].includes(passiveNodeLifecycle), 'Explicit synthetic passive lifecycle selector');
   const args = process.argv.slice(2);
   assert.ok(args.length <= 2, 'Usage: transport audit [frozen-reference-directory] [candidate-executable]');
   const reference = resolve(args[0] ?? join(root, 'artifacts/rust-rewrite/reference'));
@@ -76,9 +79,13 @@ export async function transportHarness(prefix, { candidateArguments = ['serve'],
     const checkedEvaluator = await localEndpoint(evaluatorUrl);
     assert.ok(loopback(checkedEvaluator.hostname.replace(/^\[|\]$/g, '')), 'Synthetic evaluator must use an explicit numeric loopback URL');
     assert.equal(extra.AUTOROUTER_EVALUATOR ?? 'jev', 'jev', 'Transport harness only enables its local synthetic evaluator');
+    const passiveNode = name === 'node' && passiveNodeLifecycle === 'passive-session-v1';
+    assert.equal(extra.AUTOROUTER_SYNTHETIC_NODE_LIFECYCLE, undefined, 'Harness owns passive lifecycle selector');
+    if (passiveNode) assert.equal(provider.protocol, 'https:', 'Passive session diagnostics use synthetic HTTPS');
+    const passiveArguments = passiveNode ? ['--import', pathToFileURL(join(root, 'rust/parity/node-passive-lifecycle-preload.mjs')).href] : [];
     const directory = join(scratch, `${name}-${Math.random().toString(16).slice(2)}`);
     await mkdir(directory, { mode: 0o700 });
-    const child = spawn(name === 'node' ? process.execPath : candidate, name === 'node' ? [...nodeArguments, join(reference, 'bin/autorouter.mjs'), 'serve'] : candidateArguments, { cwd: directory, env: { HOME: directory, XDG_CONFIG_HOME: directory, TMPDIR: directory, PATH: directory, AUTOROUTER_PORT: '0', AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'synthetic-evaluator', ANTHROPIC_API_KEY: 'synthetic-provider', AUTOROUTER_TOKEN: token, ...(name === 'node' ? {} : candidateEnvironment), ...extra, AUTOROUTER_UPSTREAM_URL: provider.href, AUTOROUTER_JEV_URL: checkedEvaluator.href }, stdio: ['ignore', 'ignore', 'pipe'] });
+    const child = spawn(name === 'node' ? process.execPath : candidate, name === 'node' ? [...passiveArguments, ...nodeArguments, join(reference, 'bin/autorouter.mjs'), 'serve'] : candidateArguments, { cwd: directory, env: { HOME: directory, XDG_CONFIG_HOME: directory, TMPDIR: directory, PATH: directory, AUTOROUTER_PORT: '0', AUTOROUTER_EVALUATOR: 'jev', TYPESAFE_API_KEY: 'synthetic-evaluator', ANTHROPIC_API_KEY: 'synthetic-provider', AUTOROUTER_TOKEN: token, ...(name === 'node' ? {} : candidateEnvironment), ...extra, ...(passiveNode ? { AUTOROUTER_SYNTHETIC_NODE_LIFECYCLE: 'passive-session-v1' } : {}), AUTOROUTER_UPSTREAM_URL: provider.href, AUTOROUTER_JEV_URL: checkedEvaluator.href }, stdio: ['ignore', 'ignore', 'pipe'] });
     let stderr = '', spawnError = false;
     child.stderr.on('data', bytes => { if (stderr.length + bytes.length > 1024 * 1024) child.kill('SIGKILL'); else stderr += bytes; });
     const ended = new Promise(resolve => { child.once('error', () => { spawnError = true; resolve(); }); child.once('close', resolve); });

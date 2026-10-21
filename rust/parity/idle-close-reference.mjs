@@ -8,6 +8,7 @@ import { once } from 'node:events';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { verifyBaseline } from '../../scripts/rust-reference.mjs';
+import { createPassiveNodeLifecycle } from './node-passive-lifecycle.mjs';
 
 assert.equal(process.version, 'v22.14.0');
 assert.equal(process.argv.length, 3);
@@ -28,17 +29,20 @@ const rows = [], sockets = new Map(), identities = new WeakMap(), selected = new
 let requests = 0, connections = 0;
 const emit = row => { assert.ok(rows.length < 256, 'idle trace bound'); rows.push(row); };
 const original = https.request;
+const lifecycle = createPassiveNodeLifecycle({ agent: https.globalAgent,
+  requestNumbering: 'one_based_idle_submission', minimumRequest: 1 });
+process.once('exit', () => { lifecycle.finish(); });
 https.request = function(url, options, callback) {
   assert.equal(new URL(url).origin, new URL(config.upstream).origin);
   assert.equal(options.method, 'GET');
   const request = ++requests;
   assert.ok(request <= 16, 'idle request bound');
   emit(`Submitted(${request})`);
-  const req = original.call(this, url, options, response => {
+  const req = lifecycle.invoke(original, this, [url, options, response => {
     emit(`ResponseHead(${request})`);
     response.on('end', () => emit(`BodyComplete(${request})`));
     callback(response);
-  });
+  }], request);
   req.once('error', error => {
     emit(`ResponseError(${request})`);
     emit(`RequestErrorCode(${request}, ${/^[A-Z0-9_]{1,60}$/.test(error.code ?? '') ? error.code : 'other'})`);
@@ -88,11 +92,12 @@ async function cleanup() {
   const closed = [...sockets.values(), ...inbound].map(socket => new Promise(resolve => { socket.once('close', resolve); socket.destroy(); }));
   http.globalAgent.destroy(); https.globalAgent.destroy();
   closed.push(new Promise(resolve => gateway.close(resolve)));
-  let deadline;
+  let deadline, lifecycle_diagnostics;
   try { await Promise.race([Promise.all(closed), new Promise((_, reject) => { deadline = setTimeout(() => reject(Error('idle socket cleanup deadline')), 2000); })]); }
-  finally { clearTimeout(deadline); }
+  finally { clearTimeout(deadline); lifecycle_diagnostics = lifecycle.finish(); }
   assert.equal(sockets.size, 0); assert.equal(inbound.size, 0);
-  emit('Cleanup'); reply({ cleanup: true, rows, active: 0, tasks: 0, shutdown_handles: 0 });
+  assert.equal(lifecycle_diagnostics.complete, true, 'complete passive idle lifecycle diagnostics');
+  emit('Cleanup'); reply({ cleanup: true, rows, active: 0, tasks: 0, shutdown_handles: 0, lifecycle_diagnostics });
   control.end();
 }
 control.on('data', chunk => {

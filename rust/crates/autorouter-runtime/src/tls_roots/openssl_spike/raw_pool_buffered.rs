@@ -16,6 +16,7 @@ pub(in super::super) struct BufferProbe {
     clean_sources: Arc<AtomicUsize>,
     failed_sources: Arc<AtomicUsize>,
     cancelled_sources: Arc<AtomicUsize>,
+    diagnostics: super::diagnostics::BufferReader,
 }
 #[derive(Debug, Default, serde::Serialize)]
 pub(in super::super) struct BufferSnapshot {
@@ -36,6 +37,10 @@ impl BufferProbe {
         self.insert_owned(None, probe);
     }
     fn insert_owned(&self, owner: Option<RequestTerminal>, probe: buffered_body::Probe) {
+        self.diagnostics.register(
+            owner.as_ref().map(RequestTerminal::diagnostic_identity),
+            probe.clone(),
+        );
         let mut pools = self.pools.lock().unwrap();
         // Detached pools held by final downstream Bytes clones remain charged.
         pools.retain(|(_, probe)| {
@@ -198,6 +203,7 @@ impl HttpTransport for BufferedRawPoolClient {
         // The server owns attachment and preserves that acquired response.
         let publisher = terminal.clone();
         let observations = self.probe.clone();
+        let producer_identity = publisher.as_ref().map(RequestTerminal::diagnostic_identity);
         let (body, producer, probe) = buffered_body::start_with_handoff(
             incoming,
             move |end| {
@@ -218,6 +224,7 @@ impl HttpTransport for BufferedRawPoolClient {
                         End::Clean => {}
                     }
                 }
+                observations.diagnostics.source_end(producer_identity, end);
             },
             publisher.clone(),
         );

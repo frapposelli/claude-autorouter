@@ -38,6 +38,8 @@ type Trace = serde_json::Value;
 #[derive(Default)]
 struct ProbeState {
     rows: Vec<Trace>,
+    assignments: Option<Vec<diagnostics::AssignmentObservation>>,
+    lifecycle_failed: bool,
     requested_holds: std::collections::BTreeSet<usize>,
     gates: BTreeMap<usize, Weak<Gate>>,
 }
@@ -990,6 +992,7 @@ impl RawPoolClient {
         } else {
             None
         };
+        let mut idle_request = None;
         if let Some(terminal) = &terminal {
             let capture = Arc::new(capture_http1_assignment(&mut request));
             let observed = capture.clone();
@@ -1027,10 +1030,10 @@ impl RawPoolClient {
                     }
                 })?;
             if let Some(probe) = &self.idle {
-                probe.register_capture(capture);
+                idle_request = Some(probe.register_capture(capture));
             }
         } else if let Some(probe) = &self.idle {
-            probe.attach(&mut request);
+            idle_request = Some(probe.attach(&mut request));
         } else if let Some(intent) = intent {
             intent.install(capture_http1_assignment(&mut request));
         }
@@ -1072,9 +1075,15 @@ impl RawPoolClient {
         }
         let reservation = bind_http1_reservation(&mut request, &entry.connected)
             .map_err(|()| HttpError::InvalidRequest)?;
-        self.probe.record(
-            "assigned",
-            serde_json::json!({"request":label,"connection":entry.id,"reused":reused}),
+        self.probe.record_assignment(
+            diagnostics::AssignmentObservation::new(
+                ordinal,
+                label,
+                entry.id,
+                terminal.as_ref().map(RequestTerminal::diagnostic_identity),
+                idle_request,
+            ),
+            reused,
         );
         self.probe.admission.pause().await;
         if terminal
@@ -1135,6 +1144,9 @@ impl HttpTransport for RawPoolClient {
             .map(|response| response.map(|body| OwnedBody::new(body, None, None)))
     }
 }
+
+#[path = "raw_pool_diagnostics.rs"]
+mod diagnostics;
 
 #[path = "raw_pool_tests.rs"]
 mod tests;

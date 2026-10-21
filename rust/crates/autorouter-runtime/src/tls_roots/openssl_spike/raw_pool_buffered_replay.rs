@@ -49,6 +49,8 @@ impl Fixture {
         config: autorouter_core::config::RouterConfig,
         client: Arc<BufferedRawPoolClient>,
     ) -> Self {
+        client.inner.probe.observe_lifecycle();
+        client.probe.diagnostics.observe_lifecycle();
         let terminal = gateway_terminal::Probe::default();
         // No legacy Intent is attached: idle observation and request-terminal
         // ownership use distinct channels, with only one assignment capture.
@@ -65,6 +67,9 @@ impl Fixture {
         }
     }
     async fn finish(self) -> serde_json::Value {
+        self.finish_with_idle(None).await
+    }
+    async fn finish_with_idle(self, idle: Option<&idle_close::Probe>) -> serde_json::Value {
         let Self {
             client,
             gateway,
@@ -75,6 +80,8 @@ impl Fixture {
         let fetch = client.inner.fetch_counts.clone();
         let buffers = client.probe.clone();
         let pool = client.inner.probe.trace_reader();
+        let lifecycle = client.inner.probe.lifecycle_reader();
+        let producer_lifecycle = client.probe.diagnostics.clone();
         let (entries, bytes, peak_bytes) = client.inner.raw_sessions.lock().unwrap().snapshot();
         let cache = Arc::downgrade(&client.inner.raw_sessions);
         let address = running.address;
@@ -136,6 +143,8 @@ impl Fixture {
             "entries_before_drop":entries,"bytes_before_drop":bytes,"peak_bytes":peak_bytes,
             "cache_released":cache.upgrade().is_none(),"buffers":buffers.snapshot(),
             "pool_trace":pool.snapshot(),
+            "lifecycle_diagnostics":super::super::diagnostics::snapshot(
+                &lifecycle, &producer_lifecycle, &terminal, idle),
             "terminal_tasks":terminal.tasks(),"writer":terminal.writer_snapshot(),
             "shutdown_attempts_match":attempts_match,
             "session_error_closes":raw.session_error_closes.load(Ordering::SeqCst),
@@ -259,7 +268,7 @@ async fn idle_gateway_child() {
     })
     .await;
     drop(holds);
-    let mut cleanup = fixture.finish().await;
+    let mut cleanup = fixture.finish_with_idle(Some(&probe)).await;
     cleanup["active"] = cleanup["raw_active"].clone();
     let cleaned = cleanup["cleanup"].as_bool().unwrap() && probe.live() == 0;
     cleanup["cleanup"] = cleaned.into();

@@ -495,6 +495,10 @@ pub(crate) struct RequestTerminal {
     dispatch: Arc<FailureDispatch>,
 }
 impl RequestTerminal {
+    // Scalar identity only; no registry upgrade, lease or admission authority.
+    pub(crate) fn diagnostic_identity(&self) -> Identity {
+        self.identity
+    }
     // A first failure's action stays pending even after explicit record removal.
     pub(crate) async fn settle_failure(&self) {
         self.dispatch.wait().await;
