@@ -14,7 +14,8 @@ const MANIFEST: &str = "rust/supplier-tests/openssl-native/Cargo.toml";
 const LOCK: &str = "rust/supplier-tests/openssl-native/Cargo.lock";
 const MANIFEST_SHA: &str = "762fb2b96019266f88da8e4ba577c18d14a3a31a4470c0d4181c005b5ddb30c2";
 const LOCK_SHA: &str = "90694215b6d2d8d5eb06bae5c7fa7f6334e8989de663d611017cc4c611bac7e3";
-const ROOT_LOCK_SHA: &str = "014088b4b3e5123311b1115193e7c6c7b0fa3cbfe5c7a036106956dad066d36a";
+// Includes the reviewed test-only flate2 edge; supplier versions and locks are unchanged.
+const ROOT_LOCK_SHA: &str = "f2386ebbff8a5d0fe41397f964d32b136a9c3f95cdd010715542f7c4ddc6f7b1";
 const ORIGINAL_LOCK_SHA: &str = "710c8e66450a426af6e2fdf69871c2e3f8860924c75da8ed868439c73bf2137b";
 const PREFIX: &str = "ssl::node_defaults::tests::";
 const CHILD: &str = "ssl::node_defaults::tests::first_use_gate_child";
@@ -784,6 +785,43 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn current_harness_admits_reviewed_locks_and_rejects_each_authoritative_lock_change() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../..")
+            .canonicalize()
+            .unwrap();
+        let admitted = pins(&root).unwrap();
+        let scratch = Scratch::new("supplier-authoritative-locks").unwrap();
+        for relative in admitted.keys() {
+            let target = scratch.0.join(relative);
+            fs::create_dir_all(target.parent().unwrap()).unwrap();
+            fs::write(&target, fs::read(root.join(relative)).unwrap()).unwrap();
+        }
+        assert_eq!(pins(&scratch.0).unwrap(), admitted);
+        for relative in [
+            MANIFEST,
+            LOCK,
+            "rust/Cargo.lock",
+            "rust/vendor/openssl/Cargo.lock",
+        ] {
+            let target = scratch.0.join(relative);
+            let original = fs::read(&target).unwrap();
+            let mut changed = original.clone();
+            changed.push(b'\n');
+            fs::write(&target, changed).unwrap();
+            // The original vendor lock is also checked earlier by provenance.
+            let expected = if relative == "rust/vendor/openssl/Cargo.lock" {
+                "Supplier bytes differ from reviewed provenance"
+            } else {
+                "Supplier harness or authoritative lock drift requires explicit review"
+            };
+            assert_eq!(pins(&scratch.0).unwrap_err(), expected, "{relative}");
+            fs::write(&target, original).unwrap();
+        }
+        assert_eq!(pins(&scratch.0).unwrap(), admitted);
+    }
 
     #[test]
     fn supplier_target_rejects_missing_external_traversal_and_symlink_directories() {
