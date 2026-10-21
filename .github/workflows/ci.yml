@@ -78,6 +78,21 @@ jobs:
           ../artifacts/rust-rewrite/autorouter-audit-bootstrap bootstrap --build-report ../artifacts/rust-rewrite/auditor-bootstrap-build.jsonl > ../artifacts/rust-rewrite/auditor-bootstrap-proof.json
           ../artifacts/rust-rewrite/autorouter-audit-bootstrap vendor > ../artifacts/rust-rewrite/vendor-audit.json
           ../artifacts/rust-rewrite/autorouter-audit-bootstrap production-features --self-test
+      # Original vendor manifest/standalone lock remain untouched. This explicit
+      # native-only developer graph adds only hex to the runtime supplier closure.
+      - name: Admit exact supplier harness before developer dependency fetch
+        timeout-minutes: 3
+        run: ../artifacts/rust-rewrite/autorouter-audit-bootstrap supplier-units --check-harness > ../artifacts/rust-rewrite/supplier-unit-harness-admission.json
+      - name: Fetch locked native supplier developer graph
+        timeout-minutes: 5
+        run: cargo fetch --manifest-path supplier-tests/openssl-native/Cargo.toml --locked
+      - name: Run audited native supplier guards (context8 plus fresh2, decoder3, BIO3)
+        timeout-minutes: 30
+        env:
+          CARGO_NET_OFFLINE: 'true'
+        run: |
+          ../artifacts/rust-rewrite/autorouter-audit-bootstrap supplier-units \
+            --out artifacts/rust-rewrite/supplier-unit-ci
       - run: cargo clippy --package xtask --no-default-features --all-targets --offline --locked -- -D warnings
         id: audit_clippy
       - run: cargo test --package xtask --no-default-features --bin autorouter-audit --offline --locked
@@ -212,4 +227,6 @@ jobs:
             artifacts/rust-rewrite/auditor-bootstrap-build.jsonl
             artifacts/rust-rewrite/auditor-bootstrap-proof.json
             artifacts/rust-rewrite/vendor-audit.json
+            artifacts/rust-rewrite/supplier-unit-ci/*
+            artifacts/rust-rewrite/supplier-unit-harness-admission.json
           if-no-files-found: ignore

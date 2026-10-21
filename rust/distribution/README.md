@@ -154,13 +154,16 @@ larger baseline matrix remains unresolved.
 A source-only transfer bundle is also available:
 
 ```sh
-cargo xtask benchmark-bundle artifacts/rust-rewrite/benchmark-source-NEW.cpio.gz
+cargo xtask benchmark-bundle artifacts/rust-rewrite/benchmark-source-NEW.indexed.cpio.gz
 ```
 
-The default source container is gzip binary big-endian CPIO with the original
-schema2 JSON inventory; GNUtar alone cannot read it. Use `benchmark-bundle
---inspect-source binary-cpio ARCHIVE` or `--extract-source binary-cpio ARCHIVE
-NEW_ABSOLUTE_DIRECTORY` for bounded verification/restoration.
+The default is indexed gzip binary big-endian CPIO: schema4 `source-manifest.bin`
+stores only the generated inventory compactly. Use `benchmark-bundle
+--inspect-source indexed-binary-cpio ARCHIVE` or `--extract-source
+indexed-binary-cpio ARCHIVE NEW_ABSOLUTE_DIRECTORY` for bounded verification and
+restoration of every original source file plus exact schema2 JSON inventory.
+GNUtar alone cannot read CPIO; raw CPIO extraction exposes the binary index.
+Explicit `--source-format binary-cpio` preserves the older physical JSON container.
 `--source-format ustar NEW_ARCHIVE.tar.gz` explicitly selects the legacy source
 tar format and its unchanged limit. See the [source extraction guide](../docs/local-model-comparison.md#complete-native-source-without-a-ready-executable).
 

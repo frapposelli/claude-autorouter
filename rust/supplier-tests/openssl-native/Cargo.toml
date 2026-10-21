@@ -1,0 +1,61 @@
+# Native-only developer harness. Compile audited supplier originals directly.
+# This is not a runtime package, upstream all-feature suite or distributable.
+[workspace]
+resolver = "3"
+
+[package]
+name = "openssl"
+version = "0.10.81"
+edition = "2021"
+rust-version = "1.80.0"
+license = "Apache-2.0"
+publish = false
+build = "../../vendor/openssl/build.rs"
+autolib = false
+autobins = false
+autoexamples = false
+autotests = false
+autobenches = false
+
+[lib]
+name = "openssl"
+path = "../../vendor/openssl/src/lib.rs"
+doctest = false
+
+[features]
+default = []
+v101 = []
+v102 = []
+v110 = []
+v111 = []
+vendored = ["ffi/vendored"]
+
+[dependencies.bitflags]
+version = "2.2.1"
+
+[dependencies.cfg-if]
+version = "1.0"
+
+[dependencies.ffi]
+version = "0.9.117"
+package = "openssl-sys"
+
+[dependencies.foreign-types]
+version = "0.3.1"
+
+[dependencies.libc]
+version = "0.2"
+
+[dependencies.openssl-macros]
+version = "0.1.1"
+
+[dev-dependencies.hex]
+version = "0.4"
+
+[profile.dev]
+opt-level = 0
+debug = 0
+
+[profile.test]
+opt-level = 0
+debug = 0

@@ -32,6 +32,16 @@ type ErrType = libc::c_ulong;
 #[cfg(any(boringssl, awslc))]
 type ErrType = libc::c_uint;
 
+/// Clears the current thread's error queue after explicit OpenSSL initialization.
+///
+/// Call immediately before a TLS I/O operation whose result is interpreted by
+/// `SSL_get_error`. This does not initialize configuration, decode error text or
+/// allocate Rust diagnostic objects. The caller must already have completed
+/// coordinated OpenSSL initialization.
+pub fn clear_initialized() {
+    unsafe { ffi::ERR_clear_error() }
+}
+
 /// Collection of [`Error`]s from OpenSSL.
 ///
 /// [`Error`]: struct.Error.html
@@ -307,6 +317,12 @@ impl Error {
     // OpenSSL/LibreSSL they're safe.
     #[allow(unused_unsafe)]
     pub fn reason_code(&self) -> libc::c_int {
+        // The pinned OpenSSL3 binding returns ERR_LIB_SYS for every system
+        // reason. Match the public C ERR_GET_REASON system-mask branch.
+        #[cfg(ossl300)]
+        if ffi::ERR_SYSTEM_ERROR(self.code) {
+            return (self.code & ffi::ERR_SYSTEM_MASK) as libc::c_int;
+        }
         unsafe { ffi::ERR_GET_REASON(self.code) }
     }
 
@@ -454,5 +470,113 @@ mod tests {
         assert_eq!(errors[0].library_code(), ffi::ERR_LIB_ASN1);
         #[cfg(any(boringssl, awslc))]
         assert_eq!(errors[0].library_code(), ffi::ERR_LIB_OBJ as libc::c_int);
+    }
+}
+
+#[cfg(all(test, ossl300))]
+mod system_reason_tests {
+    use super::*;
+    use libc::c_int;
+
+    fn system_reasons() -> [c_int; 5] {
+        let high = (ffi::ERR_REASON_MASK + 17) as c_int;
+        assert!(high as ErrType > ffi::ERR_REASON_MASK);
+        assert_eq!(ffi::ERR_SYSTEM_MASK, i32::MAX as ErrType);
+        [2, 32, 104, high, i32::MAX]
+    }
+
+    // Every seed goes through the actual public C error API; no ERR_PACK or
+    // fabricated SSL_get_error operation result is used by these tests.
+    fn capture(rows: &[(c_int, c_int)]) -> ErrorStack {
+        assert!(rows.len() < 16);
+        crate::init_without_config().unwrap();
+        clear_initialized();
+        for &(library, reason) in rows {
+            unsafe {
+                ffi::ERR_new();
+                ffi::ERR_set_debug(c"synthetic-system-reason".as_ptr(), 1, c"capture".as_ptr());
+                ffi::ERR_set_error(library, reason, ptr::null::<libc::c_char>());
+            }
+        }
+        let captured = ErrorStack::get();
+        assert_eq!(captured.errors().len(), rows.len());
+        captured
+    }
+
+    fn raw_codes(errors: &ErrorStack) -> Vec<ErrType> {
+        errors.errors().iter().map(Error::code).collect()
+    }
+
+    fn check_rows(errors: &ErrorStack, rows: &[(c_int, c_int)]) {
+        assert_eq!(errors.errors().len(), rows.len());
+        for (error, &(library, reason)) in errors.errors().iter().zip(rows) {
+            assert_eq!(error.library_code(), library);
+            assert_eq!(error.reason_code(), reason);
+            if library == ffi::ERR_LIB_SYS {
+                assert!(ffi::ERR_SYSTEM_ERROR(error.code()));
+                assert_eq!(error.code(), ffi::ERR_SYSTEM_FLAG | reason as ErrType);
+                assert_eq!((error.code() & ffi::ERR_SYSTEM_MASK) as c_int, reason);
+            } else {
+                assert!(!ffi::ERR_SYSTEM_ERROR(error.code()));
+                assert_eq!((error.code() & ffi::ERR_REASON_MASK) as c_int, reason);
+                assert_eq!(
+                    ((error.code() >> ffi::ERR_LIB_OFFSET) & ffi::ERR_LIB_MASK) as c_int,
+                    library
+                );
+                assert_eq!(
+                    error.code() & ffi::ERR_RFLAG_FATAL,
+                    reason as ErrType & ffi::ERR_RFLAG_FATAL
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn system_reasons_keep_all_public_mask_bits() {
+        for reason in system_reasons() {
+            let rows = [(ffi::ERR_LIB_SYS, reason)];
+            let errors = capture(&rows);
+            check_rows(&errors, &rows);
+            assert!(ErrorStack::get().errors().is_empty());
+        }
+    }
+
+    #[test]
+    fn system_error_roundtrip_preserves_raw_code_and_reason() {
+        let rows = system_reasons().map(|reason| (ffi::ERR_LIB_SYS, reason));
+        let before = capture(&rows);
+        let original_codes = raw_codes(&before);
+        before.put();
+        let after = ErrorStack::get();
+        // Compare raw roundtrip identity first, independently of the decoder.
+        assert_eq!(raw_codes(&after), original_codes);
+        check_rows(&before, &rows);
+        check_rows(&after, &rows);
+        assert!(ErrorStack::get().errors().is_empty());
+    }
+
+    #[test]
+    fn mixed_and_nonsystem_roundtrips_preserve_order_and_flags() {
+        let fatal = ffi::ERR_RFLAG_FATAL as c_int;
+        let nonsystem = [(20, 185), (9, 108 | fatal), (20, 186 | fatal), (9, 109)];
+        let mixed = [
+            (2, 32),
+            (20, 185 | fatal),
+            (9, 108),
+            (2, 104),
+            (9, 109 | fatal),
+            (20, 186),
+        ];
+        let reverse = mixed.iter().rev().copied().collect::<Vec<_>>();
+        for rows in [&nonsystem[..], &mixed[..], &reverse[..]] {
+            let before = capture(rows);
+            let original_codes = raw_codes(&before);
+            before.put();
+            let after = ErrorStack::get();
+            assert_eq!(raw_codes(&after), original_codes);
+            check_rows(&before, rows);
+            check_rows(&after, rows);
+            assert!(ErrorStack::get().errors().is_empty());
+        }
     }
 }

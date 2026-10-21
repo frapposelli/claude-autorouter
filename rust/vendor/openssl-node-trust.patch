@@ -1,24 +1,41 @@
 --- a/src/error.rs
 +++ b/src/error.rs
-@@ -48,6 +48,17 @@
-         ErrorStack(vec)
-     }
+@@ -32,6 +32,16 @@
+ #[cfg(any(boringssl, awslc))]
+ type ErrType = libc::c_uint;
  
++/// Clears the current thread's error queue after explicit OpenSSL initialization.
++///
++/// Call immediately before a TLS I/O operation whose result is interpreted by
++/// `SSL_get_error`. This does not initialize configuration, decode error text or
++/// allocate Rust diagnostic objects. The caller must already have completed
++/// coordinated OpenSSL initialization.
++pub fn clear_initialized() {
++    unsafe { ffi::ERR_clear_error() }
++}
++
+ /// Collection of [`Error`]s from OpenSSL.
+ ///
+ /// [`Error`]: struct.Error.html
+@@ -43,6 +53,17 @@
+     pub fn get() -> ErrorStack {
+         let mut vec = vec![];
+         while let Some(err) = Error::get() {
++            vec.push(err);
++        }
++        ErrorStack(vec)
++    }
++
 +    // Initialization owns the error queue before ffi::init is permitted. Do not
 +    // let reporting a configuration failure implicitly select default settings.
 +    #[cfg(ossl300)]
 +    pub(crate) fn get_initialized() -> ErrorStack {
 +        let mut vec = vec![];
 +        while let Some(err) = Error::get_initialized() {
-+            vec.push(err);
-+        }
-+        ErrorStack(vec)
-+    }
-+
-     /// Pushes the errors back onto the OpenSSL error stack.
-     pub fn put(&self) {
-         for error in self.errors() {
-@@ -115,9 +126,18 @@
+             vec.push(err);
+         }
+         ErrorStack(vec)
+@@ -115,9 +136,18 @@
  impl Error {
      /// Returns the first error on the OpenSSL error stack.
      pub fn get() -> Option<Error> {
@@ -40,7 +57,7 @@
              let mut file = ptr::null();
              let mut line = 0;
              let mut func = ptr::null();
-@@ -130,11 +150,18 @@
+@@ -130,11 +160,18 @@
                      // in the error stack, so we'll need to copy it off if it's dynamic
                      let data = if flags & ffi::ERR_TXT_STRING != 0 {
                          let bytes = CStr::from_ptr(data as *const _).to_bytes();
@@ -63,6 +80,131 @@
                          };
                          Some(data)
                      } else {
+@@ -280,6 +317,12 @@
+     // OpenSSL/LibreSSL they're safe.
+     #[allow(unused_unsafe)]
+     pub fn reason_code(&self) -> libc::c_int {
++        // The pinned OpenSSL3 binding returns ERR_LIB_SYS for every system
++        // reason. Match the public C ERR_GET_REASON system-mask branch.
++        #[cfg(ossl300)]
++        if ffi::ERR_SYSTEM_ERROR(self.code) {
++            return (self.code & ffi::ERR_SYSTEM_MASK) as libc::c_int;
++        }
+         unsafe { ffi::ERR_GET_REASON(self.code) }
+     }
+ 
+@@ -429,3 +472,111 @@
+         assert_eq!(errors[0].library_code(), ffi::ERR_LIB_OBJ as libc::c_int);
+     }
+ }
++
++#[cfg(all(test, ossl300))]
++mod system_reason_tests {
++    use super::*;
++    use libc::c_int;
++
++    fn system_reasons() -> [c_int; 5] {
++        let high = (ffi::ERR_REASON_MASK + 17) as c_int;
++        assert!(high as ErrType > ffi::ERR_REASON_MASK);
++        assert_eq!(ffi::ERR_SYSTEM_MASK, i32::MAX as ErrType);
++        [2, 32, 104, high, i32::MAX]
++    }
++
++    // Every seed goes through the actual public C error API; no ERR_PACK or
++    // fabricated SSL_get_error operation result is used by these tests.
++    fn capture(rows: &[(c_int, c_int)]) -> ErrorStack {
++        assert!(rows.len() < 16);
++        crate::init_without_config().unwrap();
++        clear_initialized();
++        for &(library, reason) in rows {
++            unsafe {
++                ffi::ERR_new();
++                ffi::ERR_set_debug(c"synthetic-system-reason".as_ptr(), 1, c"capture".as_ptr());
++                ffi::ERR_set_error(library, reason, ptr::null::<libc::c_char>());
++            }
++        }
++        let captured = ErrorStack::get();
++        assert_eq!(captured.errors().len(), rows.len());
++        captured
++    }
++
++    fn raw_codes(errors: &ErrorStack) -> Vec<ErrType> {
++        errors.errors().iter().map(Error::code).collect()
++    }
++
++    fn check_rows(errors: &ErrorStack, rows: &[(c_int, c_int)]) {
++        assert_eq!(errors.errors().len(), rows.len());
++        for (error, &(library, reason)) in errors.errors().iter().zip(rows) {
++            assert_eq!(error.library_code(), library);
++            assert_eq!(error.reason_code(), reason);
++            if library == ffi::ERR_LIB_SYS {
++                assert!(ffi::ERR_SYSTEM_ERROR(error.code()));
++                assert_eq!(error.code(), ffi::ERR_SYSTEM_FLAG | reason as ErrType);
++                assert_eq!((error.code() & ffi::ERR_SYSTEM_MASK) as c_int, reason);
++            } else {
++                assert!(!ffi::ERR_SYSTEM_ERROR(error.code()));
++                assert_eq!((error.code() & ffi::ERR_REASON_MASK) as c_int, reason);
++                assert_eq!(
++                    ((error.code() >> ffi::ERR_LIB_OFFSET) & ffi::ERR_LIB_MASK) as c_int,
++                    library
++                );
++                assert_eq!(
++                    error.code() & ffi::ERR_RFLAG_FATAL,
++                    reason as ErrType & ffi::ERR_RFLAG_FATAL
++                );
++            }
++        }
++    }
++
++    #[test]
++    fn system_reasons_keep_all_public_mask_bits() {
++        for reason in system_reasons() {
++            let rows = [(ffi::ERR_LIB_SYS, reason)];
++            let errors = capture(&rows);
++            check_rows(&errors, &rows);
++            assert!(ErrorStack::get().errors().is_empty());
++        }
++    }
++
++    #[test]
++    fn system_error_roundtrip_preserves_raw_code_and_reason() {
++        let rows = system_reasons().map(|reason| (ffi::ERR_LIB_SYS, reason));
++        let before = capture(&rows);
++        let original_codes = raw_codes(&before);
++        before.put();
++        let after = ErrorStack::get();
++        // Compare raw roundtrip identity first, independently of the decoder.
++        assert_eq!(raw_codes(&after), original_codes);
++        check_rows(&before, &rows);
++        check_rows(&after, &rows);
++        assert!(ErrorStack::get().errors().is_empty());
++    }
++
++    #[test]
++    fn mixed_and_nonsystem_roundtrips_preserve_order_and_flags() {
++        let fatal = ffi::ERR_RFLAG_FATAL as c_int;
++        let nonsystem = [(20, 185), (9, 108 | fatal), (20, 186 | fatal), (9, 109)];
++        let mixed = [
++            (2, 32),
++            (20, 185 | fatal),
++            (9, 108),
++            (2, 104),
++            (9, 109 | fatal),
++            (20, 186),
++        ];
++        let reverse = mixed.iter().rev().copied().collect::<Vec<_>>();
++        for rows in [&nonsystem[..], &mixed[..], &reverse[..]] {
++            let before = capture(rows);
++            let original_codes = raw_codes(&before);
++            before.put();
++            let after = ErrorStack::get();
++            assert_eq!(raw_codes(&after), original_codes);
++            check_rows(&before, rows);
++            check_rows(&after, rows);
++            assert!(ErrorStack::get().errors().is_empty());
++        }
++    }
++}
 --- a/src/lib.rs
 +++ b/src/lib.rs
 @@ -133,6 +133,11 @@
@@ -242,9 +384,334 @@
 +        },
 +    }
 +}
+--- a/src/ssl/bio.rs
++++ b/src/ssl/bio.rs
+@@ -82,6 +82,26 @@
+     &mut *(BIO_get_data(bio) as *mut _)
+ }
+ 
++// A Rust IO error owns its OS code; it need not match C's thread-local errno.
++// OpenSSL's record writer reads errno after a fatal BIO write. Publish an
++// actual supplied OS code after Rust bookkeeping; keep upstream behavior for
++// custom/retry errors without an OS code and for unqualified platforms.
++fn set_write_errno(code: Option<c_int>) {
++    let Some(code) = code else {
++        return;
++    };
++    #[cfg(target_os = "macos")]
++    unsafe {
++        *libc::__error() = code;
++    }
++    #[cfg(target_os = "linux")]
++    unsafe {
++        *libc::__errno_location() = code;
++    }
++    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
++    let _ = code;
++}
++
+ unsafe extern "C" fn bwrite<S: Write>(bio: *mut BIO, buf: *const c_char, len: c_int) -> c_int {
+     BIO_clear_retry_flags(bio);
+ 
+@@ -91,10 +111,12 @@
+     match catch_unwind(AssertUnwindSafe(|| state.stream.write(buf))) {
+         Ok(Ok(len)) => len as c_int,
+         Ok(Err(err)) => {
++            let code = err.raw_os_error();
+             if retriable_error(&err) {
+                 BIO_set_retry_write(bio);
+             }
+             state.error = Some(err);
++            set_write_errno(code);
+             -1
+         }
+         Err(err) => {
+@@ -218,3 +240,220 @@
+         }
+     }
+ }
++
++#[cfg(all(test, any(target_os = "macos", target_os = "linux")))]
++mod write_errno_tests {
++    use super::*;
++    use std::sync::Arc;
++
++    // Public OpenSSL ABI (bio.h); not exported by the pinned openssl-sys.
++    extern "C" {
++        #[link_name = "BIO_test_flags"]
++        fn c_bio_test_flags(bio: *const BIO, flags: c_int) -> c_int;
++    }
++
++    fn errno_slot() -> *mut c_int {
++        #[cfg(target_os = "macos")]
++        unsafe {
++            libc::__error()
++        }
++        #[cfg(target_os = "linux")]
++        unsafe {
++            libc::__errno_location()
++        }
++    }
++
++    enum Failure {
++        Os(c_int),
++        Custom(io::Error),
++    }
++    struct Planned {
++        failure: Option<Failure>,
++        writes: usize,
++        observed_len: usize,
++        observed_first: Option<u8>,
++    }
++    impl Planned {
++        fn new(failure: Failure) -> Self {
++            Self {
++                failure: Some(failure),
++                writes: 0,
++                observed_len: 0,
++                observed_first: None,
++            }
++        }
++    }
++    impl Read for Planned {
++        fn read(&mut self, _buf: &mut [u8]) -> io::Result<usize> {
++            Ok(0)
++        }
++    }
++    impl Write for Planned {
++        fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
++            self.writes += 1;
++            self.observed_len = buf.len();
++            self.observed_first = buf.first().copied();
++            // No errno writes, allocations, foreign calls or error formatting.
++            match self.failure.take().expect("one declared write") {
++                Failure::Os(code) => Err(io::Error::from_raw_os_error(code)),
++                Failure::Custom(error) => Err(error),
++            }
++        }
++        fn flush(&mut self) -> io::Result<()> {
++            Ok(())
++        }
++    }
++
++    struct Fixture {
++        pointer: *mut BIO,
++        _method: BioMethod,
++    }
++    impl Fixture {
++        fn new(failure: Failure) -> Self {
++            #[cfg(ossl300)]
++            crate::init_without_config().unwrap();
++            #[cfg(not(ossl300))]
++            crate::init();
++            let (pointer, method) = new(Planned::new(failure)).unwrap();
++            Self {
++                pointer,
++                _method: method,
++            }
++        }
++        fn write(&self, sentinel: c_int) -> (c_int, c_int) {
++            let slot = errno_slot();
++            assert!(!slot.is_null());
++            // Prove that bwrite clears stale READ flags before classifying IO.
++            unsafe {
++                ffi::BIO_set_retry_read(self.pointer);
++                *slot = sentinel;
++                let returned = ffi::BIO_write(self.pointer, b"w".as_ptr().cast(), 1);
++                // Capture before assertions, flag reads, error extraction or Drop.
++                let observed_errno = *slot;
++                (returned, observed_errno)
++            }
++        }
++        fn retry_flags(&self) -> c_int {
++            unsafe {
++                c_bio_test_flags(
++                    self.pointer,
++                    ffi::BIO_FLAGS_RWS | ffi::BIO_FLAGS_SHOULD_RETRY,
++                )
++            }
++        }
++        fn owned_error(&self) -> io::Error {
++            let stream = unsafe { get_ref::<Planned>(self.pointer) };
++            assert_eq!(stream.writes, 1);
++            assert_eq!(stream.observed_len, 1);
++            assert_eq!(stream.observed_first, Some(b'w'));
++            assert!(stream.failure.is_none());
++            assert!(unsafe { take_panic::<Planned>(self.pointer) }.is_none());
++            let error = unsafe { take_error::<Planned>(self.pointer) }
++                .expect("actual BIO callback retained its owned IO error");
++            assert!(unsafe { take_error::<Planned>(self.pointer) }.is_none());
++            error
++        }
++    }
++    impl Drop for Fixture {
++        fn drop(&mut self) {
++            // The BIO method field remains alive through this destructor body.
++            unsafe { ffi::BIO_free_all(self.pointer) }
++        }
++    }
++
++    fn direct_os_control(code: c_int, kind: io::ErrorKind, sentinel: c_int) {
++        let mut planned = Planned::new(Failure::Os(code));
++        let slot = errno_slot();
++        assert!(!slot.is_null());
++        unsafe { *slot = sentinel };
++        let returned = planned.write(b"w");
++        let observed_errno = unsafe { *slot };
++        let owned = returned.unwrap_err();
++        assert_eq!(
++            observed_errno, sentinel,
++            "Rust IO did not publish the OS code"
++        );
++        assert_eq!(owned.kind(), kind);
++        assert_eq!(owned.raw_os_error(), Some(code));
++        assert_eq!(planned.writes, 1);
++    }
++
++    #[test]
++    fn os_error_is_preserved_across_actual_bio_write() {
++        for (code, kind) in [
++            (libc::EPIPE, io::ErrorKind::BrokenPipe),
++            (libc::ECONNRESET, io::ErrorKind::ConnectionReset),
++        ] {
++            let sentinel = libc::ENOENT;
++            assert_ne!(code, sentinel);
++            direct_os_control(code, kind, sentinel);
++            let fixture = Fixture::new(Failure::Os(code));
++            let (returned, observed_errno) = fixture.write(sentinel);
++            assert_eq!(returned, -1);
++            assert_eq!(
++                observed_errno, code,
++                "the actual C BIO callback publishes its OS error"
++            );
++            assert_eq!(fixture.retry_flags(), 0);
++            let owned = fixture.owned_error();
++            assert_eq!(owned.kind(), kind);
++            assert_eq!(owned.raw_os_error(), Some(code));
++        }
++    }
++
++    #[test]
++    fn raw_retry_error_keeps_bio_retry_and_owned_errno() {
++        let code = libc::EAGAIN;
++        let sentinel = libc::ENOENT;
++        assert_ne!(code, sentinel);
++        direct_os_control(code, io::ErrorKind::WouldBlock, sentinel);
++        let fixture = Fixture::new(Failure::Os(code));
++        let (returned, observed_errno) = fixture.write(sentinel);
++        assert_eq!(returned, -1);
++        assert_eq!(observed_errno, code);
++        assert_eq!(
++            fixture.retry_flags(),
++            ffi::BIO_FLAGS_WRITE | ffi::BIO_FLAGS_SHOULD_RETRY
++        );
++        let owned = fixture.owned_error();
++        assert_eq!(owned.kind(), io::ErrorKind::WouldBlock);
++        assert_eq!(owned.raw_os_error(), Some(code));
++    }
++
++    #[derive(Debug)]
++    struct Payload(Arc<()>);
++    impl std::fmt::Display for Payload {
++        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
++            f.write_str("synthetic owned BIO error")
++        }
++    }
++    impl std::error::Error for Payload {}
++
++    #[test]
++    fn custom_error_keeps_original_payload_without_an_os_code() {
++        let identity = Arc::new(());
++        let failure = io::Error::new(io::ErrorKind::Other, Payload(identity.clone()));
++        assert_eq!(failure.raw_os_error(), None);
++        let fixture = Fixture::new(Failure::Custom(failure));
++        let sentinel = libc::ENOENT;
++        let (returned, observed_errno) = fixture.write(sentinel);
++        assert_eq!(returned, -1);
++        assert_eq!(
++            observed_errno, sentinel,
++            "rawNone does not invent an OS error"
++        );
++        assert_eq!(fixture.retry_flags(), 0);
++        let owned = fixture.owned_error();
++        assert_eq!(owned.kind(), io::ErrorKind::Other);
++        assert_eq!(owned.raw_os_error(), None);
++        let payload = owned
++            .get_ref()
++            .unwrap()
++            .downcast_ref::<Payload>()
++            .expect("retain the original payload type");
++        assert!(Arc::ptr_eq(&payload.0, &identity));
++        assert_eq!(Arc::strong_count(&identity), 2);
++        drop(owned);
++        assert_eq!(Arc::strong_count(&identity), 1);
++    }
++}
 --- a/src/ssl/mod.rs
 +++ b/src/ssl/mod.rs
-@@ -111,6 +111,8 @@
+@@ -107,10 +107,70 @@
+ };
+ pub use crate::ssl::error::{Error, ErrorCode, HandshakeError};
+ 
++/// Snapshot of OpenSSL 3's public nonblocking operation state.
++///
++/// This is not an IO result or permission to replace an unfinished operation.
++/// Unknown states retain their numeric value without being guessed as read/write.
++#[cfg(ossl300)]
++#[derive(Clone, Copy, Debug, Eq, PartialEq)]
++#[non_exhaustive]
++pub enum SslWant {
++    Nothing,
++    Writing,
++    Reading,
++    X509Lookup,
++    AsyncPaused,
++    AsyncNoJobs,
++    ClientHelloCallback,
++    RetryVerify,
++    Other(c_int),
++}
++
++#[cfg(ossl300)]
++impl SslWant {
++    fn from_raw(value: c_int) -> Self {
++        match value {
++            1 => Self::Nothing,
++            2 => Self::Writing,
++            3 => Self::Reading,
++            4 => Self::X509Lookup,
++            5 => Self::AsyncPaused,
++            6 => Self::AsyncNoJobs,
++            7 => Self::ClientHelloCallback,
++            8 => Self::RetryVerify,
++            value => Self::Other(value),
++        }
++    }
++
++    /// Returns the public SSL_want state value, including an unknown value.
++    pub fn as_raw(self) -> c_int {
++        match self {
++            Self::Nothing => 1,
++            Self::Writing => 2,
++            Self::Reading => 3,
++            Self::X509Lookup => 4,
++            Self::AsyncPaused => 5,
++            Self::AsyncNoJobs => 6,
++            Self::ClientHelloCallback => 7,
++            Self::RetryVerify => 8,
++            Self::Other(value) => value,
++        }
++    }
++}
++
++// Public OpenSSL 3 declaration; no private SSL layout or openssl-sys mutation.
++#[cfg(ossl300)]
++unsafe extern "C" {
++    #[link_name = "SSL_want"]
++    fn public_ssl_want(ssl: *const ffi::SSL) -> c_int;
++}
++
+ mod bio;
  mod callbacks;
  mod connector;
  mod error;
@@ -253,7 +720,7 @@
  #[cfg(test)]
  mod test;
  
-@@ -745,6 +747,21 @@
+@@ -745,6 +805,21 @@
  pub struct SslContextBuilder(SslContext);
  
  impl SslContextBuilder {
@@ -275,7 +742,7 @@
      /// Creates a new `SslContextBuilder`.
      #[corresponds(SSL_CTX_new)]
      pub fn new(method: SslMethod) -> Result<SslContextBuilder, ErrorStack> {
-@@ -1438,6 +1455,33 @@
+@@ -1438,6 +1513,30 @@
              self.set_ex_data(SslContext::cached_ex_index::<F>(), callback);
              ffi::SSL_CTX_sess_set_new_cb(self.as_ptr(), Some(callbacks::raw_new_session::<F>));
          }
@@ -297,10 +764,7 @@
 +    #[cfg(ossl300)]
 +    pub fn set_bound_new_session_callback<F>(&mut self, callback: F)
 +    where
-+        F: Fn(&mut SslRef, Result<ContextBoundSession, BoundSessionError>)
-+            + 'static
-+            + Sync
-+            + Send,
++        F: Fn(&mut SslRef, Result<ContextBoundSession, BoundSessionError>) + 'static + Sync + Send,
 +    {
 +        self.set_new_session_callback(move |ssl, session| {
 +            let snapshot = ContextBoundSession::capture(ssl, &session);
@@ -309,7 +773,7 @@
      }
  
      /// Sets the callback which is called when sessions are removed from the context.
-@@ -2263,6 +2307,118 @@
+@@ -2263,6 +2362,118 @@
      }
  }
  
@@ -428,7 +892,28 @@
  foreign_type_and_impl_send_sync! {
      type CType = ffi::SSL;
      fn drop = ffi::SSL_free;
-@@ -2875,6 +3031,44 @@
+@@ -2699,6 +2910,20 @@
+     #[corresponds(SSL_pending)]
+     pub fn pending(&self) -> usize {
+         unsafe { ffi::SSL_pending(self.as_ptr()) as usize }
++    }
++
++    /// Returns the public OpenSSL 3 state of the last nonblocking operation.
++    ///
++    /// Sample immediately after an actual TLS call returns Pending and before
++    /// another TLS operation. A credit/readiness stall before any TLS call has
++    /// no new state; callers must track that distinction themselves. This only
++    /// reads SSL_want: it does not initialize, poll IO, call SSL_get_error, or
++    /// inspect or clear the thread error queue. Reading/Writing describe the
++    /// underlying dependency, not which application method was called.
++    #[cfg(ossl300)]
++    #[corresponds(SSL_want)]
++    pub fn want(&self) -> SslWant {
++        SslWant::from_raw(unsafe { public_ssl_want(self.as_ptr()) })
+     }
+ 
+     /// Returns the servername sent by the client via Server Name Indication (SNI).
+@@ -2875,6 +3100,43 @@
      #[corresponds(SSL_set_session)]
      pub unsafe fn set_session(&mut self, session: &SslSessionRef) -> Result<(), ErrorStack> {
          cvt(ffi::SSL_set_session(self.as_ptr(), session.as_ptr())).map(|_| ())
@@ -468,11 +953,119 @@
 +        // Its original context stays alive with the immutable DER, preventing
 +        // pointer reuse. Both original/current target contexts match it above.
 +        // A fresh decode avoids sharing a native session's mutable state.
-+        unsafe { self.set_session(&session) }
-+            .map_err(|_| BoundSessionError::InstallFailed)
++        unsafe { self.set_session(&session) }.map_err(|_| BoundSessionError::InstallFailed)
      }
  
      /// Determines if the session provided to `set_session` was successfully reused.
+@@ -4285,3 +4547,108 @@
+         }
+     }
+ }
++
++#[cfg(all(test, ossl300))]
++mod want_tests {
++    use super::*;
++
++    struct NonblockingIo {
++        block_write: bool,
++        reads: usize,
++        writes: usize,
++        written: usize,
++    }
++    impl Read for NonblockingIo {
++        fn read(&mut self, _: &mut [u8]) -> io::Result<usize> {
++            self.reads += 1;
++            Err(io::ErrorKind::WouldBlock.into())
++        }
++    }
++    impl Write for NonblockingIo {
++        fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
++            self.writes += 1;
++            if self.block_write {
++                return Err(io::ErrorKind::WouldBlock.into());
++            }
++            if bytes.len() > 64 * 1024 - self.written {
++                return Err(io::Error::other("synthetic ClientHello output bound"));
++            }
++            self.written += bytes.len();
++            Ok(bytes.len())
++        }
++        fn flush(&mut self) -> io::Result<()> {
++            Ok(())
++        }
++    }
++
++    fn ssl() -> Ssl {
++        crate::init_without_config().unwrap();
++        let context = SslContextBuilder::new(SslMethod::tls_client())
++            .unwrap()
++            .build();
++        Ssl::new(&context).unwrap()
++    }
++
++    #[test]
++    fn new_ssl_want_preserves_the_actual_error_queue() {
++        let ssl = ssl();
++        crate::error::clear_initialized();
++        unsafe {
++            ffi::ERR_new();
++            ffi::ERR_set_debug(c"synthetic-want-state".as_ptr(), 1, c"idle".as_ptr());
++            ffi::ERR_set_error(ffi::ERR_LIB_SYS, 32, ptr::null::<c_char>());
++        }
++        let original = unsafe { ffi::ERR_peek_last_error() };
++        assert_ne!(original, 0);
++        assert_eq!(ssl.want(), SslWant::Nothing);
++        assert_eq!(ssl.want().as_raw(), 1);
++        let stack = ErrorStack::get();
++        assert_eq!(stack.errors().len(), 1);
++        assert_eq!(stack.errors()[0].code(), original);
++        assert_eq!(stack.errors()[0].library_code(), ffi::ERR_LIB_SYS);
++        assert_eq!(stack.errors()[0].reason_code(), 32);
++    }
++
++    #[test]
++    fn nonblocking_connect_want_read_is_observed_after_real_ssl_call() {
++        let mut stream = SslStream::new(
++            ssl(),
++            NonblockingIo {
++                block_write: false,
++                reads: 0,
++                writes: 0,
++                written: 0,
++            },
++        )
++        .unwrap();
++        crate::error::clear_initialized();
++        let error = stream.connect().unwrap_err();
++        assert_eq!(error.code(), ErrorCode::WANT_READ);
++        assert_eq!(stream.ssl().want(), SslWant::Reading);
++        assert_eq!(stream.ssl().want().as_raw(), 3);
++        assert!(stream.get_ref().reads > 0);
++        assert!(stream.get_ref().writes > 0);
++        assert!(stream.get_ref().written > 0);
++    }
++
++    #[test]
++    fn nonblocking_connect_want_write_is_observed_after_real_ssl_call() {
++        let mut stream = SslStream::new(
++            ssl(),
++            NonblockingIo {
++                block_write: true,
++                reads: 0,
++                writes: 0,
++                written: 0,
++            },
++        )
++        .unwrap();
++        crate::error::clear_initialized();
++        let error = stream.connect().unwrap_err();
++        assert_eq!(error.code(), ErrorCode::WANT_WRITE);
++        assert_eq!(stream.ssl().want(), SslWant::Writing);
++        assert_eq!(stream.ssl().want().as_raw(), 2);
++        assert!(stream.get_ref().writes > 0);
++        assert_eq!(stream.get_ref().written, 0);
++    }
++}
 --- /dev/null
 +++ b/src/ssl/node_defaults.rs
 @@ -0,0 +1,418 @@

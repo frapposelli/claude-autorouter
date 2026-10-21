@@ -92,20 +92,20 @@ manifest retains unverified prebuilt provenance and no release approval.
 
 ## Complete native source without a ready executable
 
-The experimental native source-only command now defaults to gzip binary
-big-endian CPIO. Its extension and report identify this container explicitly;
-it retains every allowlisted raw source and fixture, the original
-`README.native.md`, and the exact ordered schema2 `source-manifest.json` bytes.
-Every member is a regular0644 file. Only carrier framing changes: source
-compressed bytes, actual expanded carrier bytes and complete logical file bytes
-are each limited to32MiB. Per-file, entry and pathname bounds are unchanged.
+The experimental native source-only default is indexed gzip binary big-endian
+CPIO. Only the generated inventory is stored as schema4 `source-manifest.bin`;
+the explicit bounded receiver restores exact original-order schema2
+`source-manifest.json` bytes alongside every raw source, fixture and original
+`README.native.md`. All restored files are regular0644. Compressed carrier,
+actual expanded carrier and complete materialized logical bytes each retain
+32MiB caps. Per-file, entry and pathname bounds are unchanged.
 
 From the repository root with a built contributor helper:
 
 ```sh
-rust/target/release/xtask benchmark-bundle artifacts/native-source.cpio.gz
-rust/target/release/xtask benchmark-bundle --inspect-source binary-cpio artifacts/native-source.cpio.gz
-rust/target/release/xtask benchmark-bundle --extract-source binary-cpio artifacts/native-source.cpio.gz /absolute/new/native-source
+rust/target/release/xtask benchmark-bundle artifacts/native-source.indexed.cpio.gz
+rust/target/release/xtask benchmark-bundle --inspect-source indexed-binary-cpio artifacts/native-source.indexed.cpio.gz
+rust/target/release/xtask benchmark-bundle --extract-source indexed-binary-cpio artifacts/native-source.indexed.cpio.gz /absolute/new/native-source
 ```
 
 Transfer the archive and its exact `.sha256` sidecar through a trusted channel;
@@ -118,25 +118,28 @@ an interrupted restore and select a new path. Building restored source still
 requires the pinned Rust toolchain and locked dependencies. Neither inspection
 nor extraction calls a provider, installs a model, invokes Git or runs a build.
 
-On macOS, libarchive `tar` also reads this CPIO carrier. GNUtar alone does not;
-Linux users can use the descriptor-backed helper above, an actual libarchive
-`tar`, or GNUcpio with gzip. For a trusted verified artifact, in a dedicated
-Bash shell and a new private directory:
+Use the descriptor-backed helper above for canonical JSON restoration. Standard
+CPIO tools expose the stored binary index instead. On macOS libarchive `tar`
+reads this carrier; GNUtar alone does not. To inspect a trusted verified raw
+carrier with GNUcpio, use a dedicated Bash shell and a new private directory:
 
 ```sh
 set -euo pipefail
 umask 022
-shasum -a 256 -c native-source.cpio.gz.sha256
+shasum -a 256 -c native-source.indexed.cpio.gz.sha256
 mkdir -m 700 native-restore
 cd native-restore
-gzip -dc ../native-source.cpio.gz | cpio -idm --no-absolute-filenames --no-preserve-owner
+gzip -dc ../native-source.indexed.cpio.gz | cpio -idm --no-absolute-filenames --no-preserve-owner
 ```
 
 The standard-tool example extracts the `autorouter-benchmark` root; it is not
 an arbitrary-hostile-archive sandbox. The descriptor-backed helper writes the
 verified source members directly into its requested new destination.
 
-For the legacy source USTAR container, explicitly select it:
+Explicit `--source-format binary-cpio` retains the previous physical schema2
+JSON CPIO container and its reader; `--inspect-source binary-cpio` selects it.
+Legacy containers can exceed32MiB on a larger current tree and then refuse;
+smaller historical artifacts remain readable. For legacy USTAR, explicitly select it:
 
 ```sh
 rust/target/release/xtask benchmark-bundle --source-format ustar artifacts/native-source.tar.gz

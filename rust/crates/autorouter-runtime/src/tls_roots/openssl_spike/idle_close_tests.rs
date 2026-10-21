@@ -462,3 +462,6 @@ async fn controlled_gateway_child() {
     let _=reply(&mut control,serde_json::json!({"cleanup":true,"rows":probe.rows().iter().map(|row|format!("{row:?}")).collect::<Vec<_>>(),"assignment_history":probe.assignment_history(),"active":raw.active.load(Ordering::SeqCst),"tasks":raw.tasks.load(Ordering::SeqCst),"shutdown_handles":raw.shutdown_handles.load(Ordering::SeqCst)})).await;
     result.expect("idle child overall deadline").unwrap();
 }
+
+#[path = "idle_eof_phase_tests.rs"]
+mod eof_phase_tests;

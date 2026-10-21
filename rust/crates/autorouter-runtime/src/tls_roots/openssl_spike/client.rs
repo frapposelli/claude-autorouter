@@ -33,6 +33,7 @@ use super::abort::{AbortControl, DialGate};
 use super::handshake_io::HandshakeIo;
 use super::lifecycle::{ConnectionIdentity, ConnectionLifetime};
 use super::policy::{Context as TlsContext, Profile, TrustSnapshot, context, trust_snapshot};
+use super::raw_tls_output::RawOutput;
 use super::session::{Cache, Key, RawCache, TicketState, Verification};
 use crate::http_client::{HttpError, HttpTransport};
 
@@ -94,6 +95,14 @@ enum Stream {
     Tls(TokioIo<SslStream<HandshakeIo<Tcp>>>),
 }
 
+// Present only for the explicitly armed idle fixture. Delivered retains the
+// actual EOF result, so subsequent polls cannot touch the underlying IO again.
+#[derive(Clone, Copy)]
+enum LatchedEof {
+    Observed,
+    Delivered,
+}
+
 pub(super) struct TransportIo {
     stream: Stream,
     _lease: Lease,
@@ -101,6 +110,16 @@ pub(super) struct TransportIo {
     lifetime: Arc<ConnectionLifetime>,
     abort: Option<Arc<AbortControl>>,
     idle: Option<Arc<super::idle_close::Connection>>,
+    eof_latched: Option<LatchedEof>,
+    // Only raw Node-compatible HTTPS uses the error-only finalization boundary.
+    // Once TCP shutdown starts, a pending poll must not repeat SSL_shutdown.
+    node_shutdown_tcp_only: Option<bool>,
+    // Only polls which reached SSL can leave application output in progress.
+    // Empty writes cannot complete pending SSL output; only a nonempty
+    // Ready result clears that write form's bit.
+    tls_write_pending: bool,
+    tls_vectored_write_pending: bool,
+    raw_output: Option<RawOutput>,
 }
 impl Connection for TransportIo {
     fn connected(&self) -> Connected {
@@ -149,11 +168,29 @@ impl AsyncRead for TransportIo {
         {
             return Poll::Pending;
         }
+        if let Some(phase) = self.eof_latched {
+            // A zero-capacity poll is not an EOF-delivery observation.
+            if buffer.remaining() == 0 {
+                return Poll::Ready(Ok(()));
+            }
+            if matches!(phase, LatchedEof::Observed) {
+                let idle = self.idle.as_ref().expect("armed EOF fixture identity");
+                if idle.eof_delivery_ready(cx).is_pending() {
+                    return Poll::Pending;
+                }
+                idle.event(super::idle_close::Event::ReadEofDelivered);
+                idle.event(super::idle_close::Event::ReadEof);
+                self.eof_latched = Some(LatchedEof::Delivered);
+            }
+            return Poll::Ready(Ok(()));
+        }
         let before = buffer.filled().len();
         let capacity = buffer.remaining();
-        let result = match &mut self.stream {
-            Stream::Plain(io) => Pin::new(io).poll_read(cx, buffer),
-            Stream::Tls(io) => Pin::new(io).poll_read(cx, buffer),
+        let this = self.as_mut().get_mut();
+        let result = match (&mut this.stream, &mut this.raw_output) {
+            (Stream::Plain(io), _) => Pin::new(io).poll_read(cx, buffer),
+            (Stream::Tls(io), Some(output)) => output.poll_read(io, cx, buffer),
+            (Stream::Tls(io), None) => Pin::new(io).poll_read(cx, buffer),
         };
         self._lease
             .0
@@ -168,6 +205,13 @@ impl AsyncRead for TransportIo {
             }
             Poll::Ready(Ok(())) if capacity != 0 && buffer.filled().len() == before => {
                 if let Some(idle) = &self.idle {
+                    if idle.defer_observed_eof(cx) {
+                        // The physical EOF is real even while HTTP notification
+                        // is held. It must not become an error-close/abort.
+                        self.eof_latched = Some(LatchedEof::Observed);
+                        self.ordinary_close();
+                        return Poll::Pending;
+                    }
                     idle.event(super::idle_close::Event::ReadEof);
                 }
                 self.ordinary_close()
@@ -177,6 +221,87 @@ impl AsyncRead for TransportIo {
         result
     }
 }
+// Keep this boundary separate so the same real TLS shutdown operation can be
+// checked with a deterministic below-SSL write readiness control.
+fn poll_tls_shutdown<T: AsyncWrite + Unpin>(
+    io: &mut T,
+    cx: &mut Context<'_>,
+) -> Poll<io::Result<()>> {
+    // SSL_get_error also inspects the thread-local queue. A pending TLS poll
+    // may resume after unrelated OpenSSL work; only this poll's errors belong
+    // here. TLS establishment has already completed explicit initialization.
+    openssl::error::clear_initialized();
+    Pin::new(io).poll_shutdown(cx)
+}
+
+// Node's TLSWrap::DoShutdown does not use SSL close-finalization errors as its
+// socket-shutdown result. Keep the operation boundary explicit: TLS Pending
+// remains Pending, and genuine underlying TCP errors remain errors.
+fn poll_node_tls_shutdown<S>(
+    io: &mut TokioIo<SslStream<HandshakeIo<S>>>,
+    tcp_only: &mut bool,
+    allow_finalization_error: bool,
+    cx: &mut Context<'_>,
+    mut finalization_error: impl FnMut(&io::Error),
+) -> Poll<io::Result<()>>
+where
+    S: hyper::rt::Read + hyper::rt::Write + Unpin,
+{
+    let mut result = if *tcp_only {
+        hyper::rt::Write::poll_shutdown(Pin::new(io.inner_mut().get_mut()), cx)
+    } else {
+        io.inner_mut().get_mut().reset_shutdown_entry();
+        poll_tls_shutdown(io, cx)
+    };
+    // At most one SSL finalization error and one subsequent ciphertext-write
+    // error can be absorbed. After explicit discard no ciphertext remains;
+    // physical flush and TCP shutdown errors are always returned unchanged.
+    for _ in 0..2 {
+        let lower_started = io.inner().get_ref().lower_shutdown_started();
+        if lower_started {
+            *tcp_only = true;
+        }
+        match result {
+            Poll::Ready(Err(error))
+                if allow_finalization_error
+                    && (!lower_started
+                        || (io.inner().get_ref().finalization_write_failed()
+                            && !io.inner().get_ref().shutdown_entered())) =>
+            {
+                *tcp_only = true;
+                finalization_error(&error);
+                if io.inner().get_ref().finalization_write_failed() {
+                    io.inner_mut().get_mut().discard_failed_finalization();
+                }
+                result = hyper::rt::Write::poll_shutdown(Pin::new(io.inner_mut().get_mut()), cx);
+            }
+            result => return result,
+        }
+    }
+    result
+}
+
+fn record_tls_shutdown_error(idle: Option<&super::idle_close::Connection>, error: &io::Error) {
+    if let Some(idle) = idle
+        && let Some(tls_error) = error
+            .get_ref()
+            .and_then(|source| source.downcast_ref::<openssl::ssl::Error>())
+    {
+        idle.event(|id| super::idle_close::Event::ShutdownTlsError(id, tls_error.code().as_raw()));
+        if let Some(stack) = tls_error.ssl_error() {
+            for entry in stack.errors() {
+                idle.event(|id| {
+                    super::idle_close::Event::ShutdownTlsReason(
+                        id,
+                        entry.library_code(),
+                        entry.reason_code(),
+                    )
+                });
+            }
+        }
+    }
+}
+
 impl AsyncWrite for TransportIo {
     fn poll_write(
         mut self: Pin<&mut Self>,
@@ -188,10 +313,15 @@ impl AsyncWrite for TransportIo {
         {
             return Poll::Pending;
         }
-        let result = match &mut self.stream {
-            Stream::Plain(io) => Pin::new(io).poll_write(cx, bytes),
-            Stream::Tls(io) => Pin::new(io).poll_write(cx, bytes),
+        let this = self.as_mut().get_mut();
+        let result = match (&mut this.stream, &mut this.raw_output) {
+            (Stream::Plain(io), _) => Pin::new(io).poll_write(cx, bytes),
+            (Stream::Tls(io), Some(output)) => output.poll_write(io, cx, bytes),
+            (Stream::Tls(io), None) => Pin::new(io).poll_write(cx, bytes),
         };
+        if !bytes.is_empty() && matches!(&self.stream, Stream::Tls(_)) {
+            self.tls_write_pending = result.is_pending();
+        }
         if let Poll::Ready(Err(error)) = &result {
             if let Some(idle) = &self.idle {
                 idle.event(|id| super::idle_close::Event::WriteError(id, error.kind()));
@@ -201,9 +331,11 @@ impl AsyncWrite for TransportIo {
         result
     }
     fn poll_flush(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
-        let result = match &mut self.stream {
-            Stream::Plain(io) => Pin::new(io).poll_flush(cx),
-            Stream::Tls(io) => Pin::new(io).poll_flush(cx),
+        let this = self.as_mut().get_mut();
+        let result = match (&mut this.stream, &mut this.raw_output) {
+            (Stream::Plain(io), _) => Pin::new(io).poll_flush(cx),
+            (Stream::Tls(io), Some(output)) => output.poll_flush(io, cx),
+            (Stream::Tls(io), None) => Pin::new(io).poll_flush(cx),
         };
         if let Poll::Ready(Err(error)) = &result {
             if let Some(idle) = &self.idle {
@@ -214,13 +346,90 @@ impl AsyncWrite for TransportIo {
         result
     }
     fn poll_shutdown(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<io::Result<()>> {
-        let result = match &mut self.stream {
-            Stream::Plain(io) => Pin::new(io).poll_shutdown(cx),
-            Stream::Tls(io) => Pin::new(io).poll_shutdown(cx),
+        let this = self.as_mut().get_mut();
+        let idle = this.idle.as_deref();
+        let application_write_pending = this.tls_write_pending || this.tls_vectored_write_pending;
+        let result = match (
+            &mut this.stream,
+            &mut this.node_shutdown_tcp_only,
+            &mut this.raw_output,
+        ) {
+            (Stream::Plain(io), _, _) => Pin::new(io).poll_shutdown(cx),
+            // Pending application output makes a TLS failure ambiguous. Keep
+            // its original error, while still recording actual TCP stage entry.
+            (Stream::Tls(io), Some(tcp_only), output) => {
+                if output.as_ref().is_some_and(|output| output.failed()) {
+                    return Poll::Ready(Err(super::raw_tls_output::closed()));
+                }
+                let has_owner = output.is_some();
+                let application = if !*tcp_only && !io.inner().get_ref().tls_finalization_started()
+                {
+                    match output.as_mut() {
+                        Some(output) => match output.poll_flush(io, cx) {
+                            Poll::Ready(Ok(())) => {
+                                io.inner_mut().get_mut().begin_tls_finalization();
+                                Poll::Ready(Ok(()))
+                            }
+                            result => result,
+                        },
+                        None => Poll::Ready(Ok(())),
+                    }
+                } else {
+                    Poll::Ready(Ok(()))
+                };
+                if application.is_pending() {
+                    return Poll::Pending;
+                }
+                if let Poll::Ready(Err(error)) = application {
+                    if let Some(idle) = idle {
+                        idle.event(|id| super::idle_close::Event::ShutdownError(id, error.kind()));
+                    }
+                    this.io_error();
+                    return Poll::Ready(Err(error));
+                }
+                io.inner()
+                    .get_ref()
+                    .register_egress_waiter(super::handshake_io::EgressRole::Writer, cx);
+                let result = poll_node_tls_shutdown(
+                    io,
+                    tcp_only,
+                    has_owner || !application_write_pending,
+                    cx,
+                    |error| {
+                        record_tls_shutdown_error(idle, error);
+                        if let Some(idle) = idle {
+                            idle.event(|id| {
+                                super::idle_close::Event::ShutdownTlsFinalizationError(
+                                    id,
+                                    error.kind(),
+                                )
+                            });
+                        }
+                    },
+                );
+                if result.is_ready() {
+                    io.inner()
+                        .get_ref()
+                        .clear_egress_waiter(super::handshake_io::EgressRole::Writer);
+                }
+                if matches!(result, Poll::Ready(Err(_)))
+                    && let Some(output) = output
+                {
+                    output.poison(io);
+                }
+                result
+            }
+            (Stream::Tls(io), None, _) => poll_tls_shutdown(io, cx),
         };
         match &result {
-            Poll::Ready(Err(_)) => self.io_error(),
-            Poll::Ready(Ok(())) => self.ordinary_close(),
+            Poll::Ready(Err(error)) => {
+                record_tls_shutdown_error(this.idle.as_deref(), error);
+                if let Some(idle) = &this.idle {
+                    idle.event(|id| super::idle_close::Event::ShutdownError(id, error.kind()));
+                }
+                this.io_error();
+            }
+            Poll::Ready(Ok(())) => this.ordinary_close(),
             Poll::Pending => {}
         }
         result
@@ -241,10 +450,16 @@ impl AsyncWrite for TransportIo {
         {
             return Poll::Pending;
         }
-        let result = match &mut self.stream {
-            Stream::Plain(io) => Pin::new(io).poll_write_vectored(cx, buffers),
-            Stream::Tls(io) => Pin::new(io).poll_write_vectored(cx, buffers),
+        let this = self.as_mut().get_mut();
+        let result = match (&mut this.stream, &mut this.raw_output) {
+            (Stream::Plain(io), _) => Pin::new(io).poll_write_vectored(cx, buffers),
+            (Stream::Tls(io), Some(output)) => output.poll_write_vectored(io, cx, buffers),
+            (Stream::Tls(io), None) => Pin::new(io).poll_write_vectored(cx, buffers),
         };
+        if buffers.iter().any(|buffer| !buffer.is_empty()) && matches!(&self.stream, Stream::Tls(_))
+        {
+            self.tls_vectored_write_pending = result.is_pending();
+        }
         if let Poll::Ready(Err(error)) = &result {
             if let Some(idle) = &self.idle {
                 idle.event(|id| super::idle_close::Event::WriteError(id, error.kind()));
@@ -397,6 +612,11 @@ impl Service<Uri> for Connector {
                         lifetime: Arc::new(ConnectionLifetime),
                         abort,
                         idle: idle.as_ref().map(super::idle_close::Probe::connected),
+                        eof_latched: None,
+                        node_shutdown_tcp_only: None,
+                        tls_write_pending: false,
+                        tls_vectored_write_pending: false,
+                        raw_output: None,
                     }));
                 }
                 if uri.scheme_str() != Some("https") {
@@ -458,6 +678,9 @@ impl Service<Uri> for Connector {
                     return Err(io::Error::other("Synthetic unexpected session reuse"));
                 }
                 stream.get_mut().release().await?;
+                if profile == Profile::Raw {
+                    stream.get_mut().enable_raw_egress();
+                }
                 if let Some(state) = &session {
                     state.accept();
                 }
@@ -472,6 +695,11 @@ impl Service<Uri> for Connector {
                     lifetime: Arc::new(ConnectionLifetime),
                     abort,
                     idle: idle.as_ref().map(super::idle_close::Probe::connected),
+                    eof_latched: None,
+                    node_shutdown_tcp_only: (profile == Profile::Raw).then_some(false),
+                    tls_write_pending: false,
+                    tls_vectored_write_pending: false,
+                    raw_output: (profile == Profile::Raw).then(RawOutput::default),
                 }))
             };
             let result = if profile == Profile::Fetch {
@@ -646,4 +874,289 @@ impl HttpTransport for SpikeHttpClient {
             .await
             .map_err(|_| HttpError::Network)
     }
+}
+
+#[cfg(test)]
+#[path = "shutdown_queue_tests.rs"]
+mod shutdown_queue_tests;
+
+#[cfg(test)]
+#[path = "node_shutdown_origin_tests.rs"]
+mod node_shutdown_origin_tests;
+
+#[cfg(test)]
+#[path = "raw_output_product_tests.rs"]
+mod raw_output_product_tests;
+
+// Shared fixture-only fault: a real owned duplicate of this exact TCP socket.
+// Do not call the draining HandshakeIo shutdown as an immediate socket fault.
+#[cfg(test)]
+fn shutdown_raw_tls_write_half_for_test(transport: &TransportIo) -> io::Result<()> {
+    use std::os::fd::AsFd;
+    let tcp = match &transport.stream {
+        Stream::Tls(tls) => tls.inner().get_ref().inner_transport().inner(),
+        Stream::Plain(_) => panic!("fixture requires the existing accepted TLS socket"),
+    };
+    let duplicate = std::net::TcpStream::from(tcp.as_fd().try_clone_to_owned()?);
+    assert_eq!(
+        duplicate.local_addr()?,
+        tcp.local_addr()?,
+        "duplicate local socket identity"
+    );
+    assert_eq!(
+        duplicate.peer_addr()?,
+        tcp.peer_addr()?,
+        "duplicate peer socket identity"
+    );
+    // This succeeds only after the kernel handles SHUT_WR on the real socket.
+    // It does not touch/flush the plaintext or ciphertext owners above it.
+    duplicate.shutdown(std::net::Shutdown::Write)
+}
+
+// Shared fixture machinery; the enclosing OpenSSL spike is cfg(test).
+use openssl::ssl::{ErrorCode, SslVersion};
+use std::future::poll_fn;
+use std::sync::Mutex;
+use std::task::Waker;
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::sync::oneshot;
+use tokio::task::JoinHandle;
+use tokio::time::{Instant, timeout, timeout_at};
+
+const FIXTURE_CLEANUP: Duration = Duration::from_secs(2);
+pub(super) struct TlsFixtureOwner {
+    pub(super) release: Arc<Mutex<Option<oneshot::Sender<()>>>>,
+    pub(super) peer: Option<JoinHandle<()>>,
+    pub(super) closed: tokio::sync::watch::Receiver<bool>,
+}
+pub(super) fn fixture_release_peer(release: &Arc<Mutex<Option<oneshot::Sender<()>>>>) {
+    let send = release.lock().unwrap_or_else(|e| e.into_inner()).take();
+    if let Some(send) = send {
+        let _ = send.send(());
+    }
+}
+impl TlsFixtureOwner {
+    async fn finish(mut self) {
+        fixture_release_peer(&self.release);
+        let mut peer = self.peer.take().unwrap();
+        match timeout(FIXTURE_CLEANUP, &mut peer).await {
+            Ok(result) => result.expect("owned peer panic"),
+            Err(_) => {
+                peer.abort();
+                let _ = timeout(FIXTURE_CLEANUP, &mut peer)
+                    .await
+                    .expect("owned peer abort/join deadline");
+                panic!("owned peer completion deadline");
+            }
+        }
+    }
+}
+impl Drop for TlsFixtureOwner {
+    fn drop(&mut self) {
+        fixture_release_peer(&self.release);
+        if let Some(peer) = self.peer.take() {
+            peer.abort();
+        }
+    }
+}
+pub(super) async fn fixture_run_owned<T, F, Fut>(
+    deadline: Instant,
+    value: T,
+    owner: TlsFixtureOwner,
+    check: F,
+) where
+    T: Send + 'static,
+    F: FnOnce(T) -> Fut + Send + 'static,
+    Fut: Future<Output = ()> + Send + 'static,
+{
+    let mut task = tokio::spawn(check(value));
+    let mut cancelled_joined = true;
+    let outcome = match timeout_at(deadline, &mut task).await {
+        Ok(outcome) => Some(outcome),
+        Err(_) => {
+            task.abort();
+            cancelled_joined = timeout(FIXTURE_CLEANUP, &mut task).await.is_ok();
+            None
+        }
+    };
+    owner.finish().await;
+    assert!(cancelled_joined, "assertion task abort/join deadline");
+    match outcome {
+        Some(Ok(())) => {}
+        Some(Err(error)) if error.is_panic() => std::panic::resume_unwind(error.into_panic()),
+        Some(Err(_)) => panic!("assertion task unexpectedly cancelled"),
+        None => panic!("real TLS case deadline"),
+    }
+}
+pub(super) struct TlsFixtureConnection {
+    pub(super) transport: Option<TransportIo>,
+    pub(super) connector: Option<Connector>,
+    pub(super) cache: RawCache,
+    pub(super) counts: Arc<Counts>,
+}
+pub(super) async fn fixture_connect_raw(
+    version: SslVersion,
+    aborts: bool,
+    trust: TrustSnapshot,
+    address: std::net::SocketAddr,
+    probe: Option<super::idle_close::Probe>,
+    qr: bool,
+) -> TlsFixtureConnection {
+    let cache = Arc::new(std::sync::Mutex::new(Cache::new(8)));
+    let counts = Arc::new(Counts::default());
+    let mut connector = raw_pool_connector(&trust, counts.clone(), cache.clone(), None).unwrap();
+    connector.aborts = aborts;
+    if let Some(probe) = probe {
+        connector.observe_idle(probe);
+    }
+    let uri: Uri = format!("https://{address}/").parse().unwrap();
+    let mut transport = connector.call(uri).await.unwrap().into_inner();
+    match &transport.stream {
+        Stream::Tls(stream) => assert_eq!(stream.inner().ssl().version2(), Some(version)),
+        Stream::Plain(_) => panic!("real TLS required"),
+    }
+    if qr {
+        transport.write_all(b"q").await.unwrap();
+        transport.flush().await.unwrap();
+        let mut byte = [0];
+        transport.read_exact(&mut byte).await.unwrap();
+        assert_eq!(&byte, b"r");
+    }
+    TlsFixtureConnection {
+        transport: Some(transport),
+        connector: Some(connector),
+        cache,
+        counts,
+    }
+}
+
+pub(super) fn fixture_output(io: &TransportIo) -> (usize, usize, bool, usize) {
+    let (retained, pending, inflight) = io
+        .raw_output
+        .as_ref()
+        .expect("reviewed Raw output owner")
+        .state();
+    let cipher = match &io.stream {
+        Stream::Tls(tls) => tls.inner().get_ref().egress_queued_bytes(),
+        Stream::Plain(_) => panic!("real TLS required"),
+    };
+    assert!(retained <= 16 * 1024 && pending <= retained && cipher <= 64 * 1024);
+    (retained, pending, inflight, cipher)
+}
+pub(super) fn fixture_pipe_reset(error: &io::Error) {
+    let expected = [
+        nix::errno::Errno::EPIPE as i32,
+        nix::errno::Errno::ECONNRESET as i32,
+    ];
+    if let Some(errno) = error.raw_os_error() {
+        assert!(
+            expected.contains(&errno),
+            "actual socket pipe/reset failure"
+        );
+        return;
+    }
+    let tls = error
+        .get_ref()
+        .and_then(|source| source.downcast_ref::<openssl::ssl::Error>())
+        .expect("identified SSL SYSCALL carrying actual socket errno");
+    assert_eq!(tls.code(), ErrorCode::SYSCALL);
+    let mut found = false;
+    for entry in tls.ssl_error().expect("actual SYS stack").errors() {
+        if entry.library_code() == 2 {
+            assert!(
+                expected.contains(&entry.reason_code()),
+                "actual SYS pipe/reset reason"
+            );
+            found = true;
+        }
+    }
+    assert!(found, "positive socket error evidence required");
+}
+pub(super) fn fixture_clean(
+    counts: &Counts,
+    cache: &RawCache,
+    probe: Option<&super::idle_close::Probe>,
+) {
+    assert_eq!(counts.active.load(Ordering::SeqCst), 0);
+    assert_eq!(counts.tasks.load(Ordering::SeqCst), 0);
+    assert_eq!(counts.shutdown_handles.load(Ordering::SeqCst), 0);
+    if let Some(probe) = probe {
+        assert_eq!(probe.live(), 0);
+    }
+    assert_eq!(Arc::strong_count(cache), 1, "no hidden strong cache owner");
+}
+pub(super) fn fixture_no_write_hold(probe: &super::idle_close::Probe) {
+    assert!(
+        !probe
+            .rows()
+            .iter()
+            .any(|event| matches!(event, super::idle_close::Event::WriteHeld(_))),
+        "no above-SSL fixture output hold"
+    );
+}
+const FIXTURE_CHUNK: usize = 16 * 1024;
+const FIXTURE_MAX_POLLS: usize = 1024;
+const FIXTURE_MAX_ACCEPTED: usize = FIXTURE_CHUNK * FIXTURE_MAX_POLLS;
+fn fixture_write_once(
+    io: &mut TransportIo,
+    waker: &Waker,
+    bytes: &[u8],
+    vectored: bool,
+) -> Poll<io::Result<usize>> {
+    let mut cx = Context::from_waker(waker);
+    if vectored {
+        let slices = [
+            io::IoSlice::new(&[]),
+            io::IoSlice::new(bytes),
+            io::IoSlice::new(b"must-not-be-gathered"),
+        ];
+        Pin::new(io).poll_write_vectored(&mut cx, &slices)
+    } else {
+        Pin::new(io).poll_write(&mut cx, bytes)
+    }
+}
+pub(super) async fn fixture_credit_blocked(
+    io: &mut TransportIo,
+    waker: &Waker,
+    vectored: bool,
+) -> Vec<(u8, usize)> {
+    let mut caller = vec![0; FIXTURE_CHUNK];
+    let mut ledger = Vec::new();
+    let mut accepted = 0;
+    tokio::task::unconstrained(poll_fn(|_| {
+        for index in 0..FIXTURE_MAX_POLLS {
+            let byte = (index % 251 + 1) as u8;
+            caller.fill(byte);
+            match fixture_write_once(io, waker, &caller, vectored) {
+                Poll::Ready(Ok(count)) => {
+                    assert!(count > 0 && count <= FIXTURE_CHUNK);
+                    accepted += count;
+                    assert!(accepted <= FIXTURE_MAX_ACCEPTED);
+                    ledger.push((byte, count));
+                    caller.fill(0xee); // Every acknowledged caller prefix may now change.
+                }
+                Poll::Ready(Err(error)) => {
+                    panic!("actual write failed before required credit barrier: {error:?}")
+                }
+                Poll::Pending => {
+                    let (_, pending, inflight, cipher) = fixture_output(io);
+                    assert!(
+                        pending > 0 && !inflight && cipher > 32 * 1024,
+                        "required pre-SSL credit barrier, not an in-flight WANT_WRITE"
+                    );
+                    assert!(accepted > 0);
+                    return Poll::Ready(std::mem::take(&mut ledger));
+                }
+            }
+        }
+        panic!("did not observe declared credit barrier within byte/poll budget");
+    }))
+    .await
+}
+pub(super) fn fixture_evicted(cache: &RawCache, counts: &Counts, peak: usize, aborts: bool) {
+    assert_eq!(cache.lock().unwrap().snapshot(), (0, 0, peak));
+    assert_eq!(
+        counts.session_error_closes.load(Ordering::SeqCst),
+        usize::from(aborts)
+    );
 }

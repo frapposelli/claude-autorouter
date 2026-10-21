@@ -9,19 +9,22 @@ use std::path::Path;
 #[derive(Clone, Copy, PartialEq)]
 pub(super) enum Format {
     BinaryCpio,
+    IndexedBinaryCpio,
     Ustar,
 }
 impl Format {
     fn parse(value: &str) -> Result<Self, String> {
         match value {
             "binary-cpio" => Ok(Self::BinaryCpio),
+            "indexed-binary-cpio" => Ok(Self::IndexedBinaryCpio),
             "ustar" => Ok(Self::Ustar),
-            _ => Err("Source format must be binary-cpio or ustar".into()),
+            _ => Err("Source format must be indexed-binary-cpio, binary-cpio or ustar".into()),
         }
     }
     fn name(self) -> &'static str {
         match self {
             Self::BinaryCpio => "gzip-binary-cpio-be",
+            Self::IndexedBinaryCpio => "gzip-indexed-binary-cpio-be",
             Self::Ustar => "gzip-ustar",
         }
     }
@@ -34,13 +37,19 @@ fn logical(files: &BTreeMap<String, Entry>) -> Result<usize, String> {
     })
 }
 pub(super) fn decode(bytes: &[u8], format: Format) -> Result<DecodedArchive, String> {
-    let decoded = match format {
-        Format::BinaryCpio => cpio::binary_decode_root(bytes, ROOT, SOURCE, pair::source_limit)?,
+    let mut decoded = match format {
+        Format::BinaryCpio | Format::IndexedBinaryCpio => {
+            cpio::binary_decode_root(bytes, ROOT, SOURCE, pair::source_limit)?
+        }
         Format::Ustar => decode_root(bytes, ROOT, SOURCE)?,
     };
+    logical(&decoded.files)?;
+    if format == Format::IndexedBinaryCpio {
+        pair::materialize_source(&mut decoded.files, SOURCE.expanded)?;
+    }
     pair::source(&decoded.files, 4)?;
     logical(&decoded.files)?;
-    if format == Format::BinaryCpio {
+    if format != Format::Ustar {
         let manifest = &decoded.files["source-manifest.json"].bytes;
         let record = pair::metadata::parse(manifest, 1024 * 1024)?;
         if pair::canonical_record(&record, manifest.len())? != *manifest {
@@ -55,11 +64,14 @@ fn report(
     files: &BTreeMap<String, Entry>,
 ) -> Result<Value, String> {
     value["schema_version"] = json!(1);
-    value["kind"] = json!(if format == Format::BinaryCpio {
-        "native_benchmark_compact_source_container"
-    } else {
-        "native_benchmark_legacy_source_inspection"
+    value["kind"] = json!(match format {
+        Format::BinaryCpio => "native_benchmark_compact_source_container",
+        Format::IndexedBinaryCpio => "native_benchmark_indexed_source_container",
+        Format::Ustar => "native_benchmark_legacy_source_inspection",
     });
+    if format == Format::IndexedBinaryCpio {
+        value["stored_manifest_schema_version"] = json!(4);
+    }
     value["format"] = json!(format.name());
     value["source_manifest_schema_version"] = json!(2);
     value["logical_file_bytes"] = json!(logical(files)?);
@@ -82,15 +94,26 @@ pub(super) fn create(root: &Path, destination: &Path, format: Format) -> Result<
     if fs::symlink_metadata(destination).is_ok() || fs::symlink_metadata(sidecar).is_ok() {
         return Err("Refusing to overwrite an existing bundle or checksum".into());
     }
-    let files = super::collect(root)?;
+    let mut files = super::collect(root)?;
     logical(&files)?;
+    let canonical = if format == Format::IndexedBinaryCpio {
+        Some(pair::index_source(&mut files)?)
+    } else {
+        None
+    };
     let bytes = cpio::binary_encode_root(ROOT, &files, SOURCE, pair::source_limit)?;
     let decoded = decode(&bytes, format)?;
     if decoded.files.len() != files.len()
-        || files.iter().any(|(path, expected)| {
+        || files.iter().any(|(path, entry)| {
+            let (name, expected) = match canonical.as_ref() {
+                Some(original) if path == "source-manifest.bin" => {
+                    ("source-manifest.json", original)
+                }
+                _ => (path.as_str(), entry),
+            };
             decoded
                 .files
-                .get(path)
+                .get(name)
                 .is_none_or(|actual| actual.bytes != expected.bytes || actual.mode != expected.mode)
         })
     {
@@ -105,7 +128,7 @@ pub(super) fn create(root: &Path, destination: &Path, format: Format) -> Result<
             "expanded_carrier_bytes",
         )?,
         format,
-        &files,
+        &decoded.files,
     )
 }
 struct Input {
@@ -163,7 +186,7 @@ pub(super) fn run(args: &[String], root: &Path) -> Result<bool, String> {
         Some("--source-format") => {
             if args.len() != 3 || args[2].starts_with("--") {
                 return Err(
-                    "Usage: benchmark-bundle --source-format binary-cpio|ustar NEW_ARCHIVE".into(),
+                    "Usage: benchmark-bundle --source-format indexed-binary-cpio|binary-cpio|ustar NEW_ARCHIVE".into(),
                 );
             }
             println!(
@@ -260,7 +283,7 @@ mod tests {
         let archive = scratch.0.join("source.cpio.gz");
         let result = super::super::create(&root, &archive).unwrap();
         let bytes = fs::read(&archive).unwrap();
-        let decoded = decode(&bytes, Format::BinaryCpio).unwrap();
+        let decoded = decode(&bytes, Format::IndexedBinaryCpio).unwrap();
         same(&decoded.files, &expected);
         assert_eq!(result["logical_file_bytes"], logical(&expected).unwrap());
         assert_eq!(result["expanded_carrier_bytes"], decoded.expanded_bytes);
@@ -281,15 +304,33 @@ mod tests {
                 .count(),
             265 // Includes both explicitly allowed OpenSSL initialization/default modules.
         );
-        assert!(decoded.files.contains_key("rust/vendor/openssl/src/node_init.rs"));
-        assert!(decoded.files.contains_key("rust/vendor/openssl/src/ssl/node_defaults.rs"));
+        assert!(
+            decoded
+                .files
+                .contains_key("rust/vendor/openssl/src/node_init.rs")
+        );
+        assert!(
+            decoded
+                .files
+                .contains_key("rust/vendor/openssl/src/ssl/node_defaults.rs")
+        );
+        assert!(
+            decoded
+                .files
+                .contains_key("rust/supplier-tests/openssl-native/Cargo.toml")
+        );
+        assert!(
+            decoded
+                .files
+                .contains_key("rust/supplier-tests/openssl-native/Cargo.lock")
+        );
         for (path, entry) in &decoded.files {
             if !["README.native.md", "source-manifest.json"].contains(&path.as_str()) {
                 assert_eq!(entry.bytes, fs::read(root.join(path)).unwrap(), "{path}");
             }
         }
         let output = scratch.0.join("complete restored source");
-        inspect(&archive, Format::BinaryCpio, Some(&output)).unwrap();
+        inspect(&archive, Format::IndexedBinaryCpio, Some(&output)).unwrap();
         for (path, entry) in &expected {
             assert_eq!(fs::read(output.join(path)).unwrap(), entry.bytes, "{path}");
             assert_eq!(
@@ -404,20 +445,23 @@ mod tests {
         files.get_mut("README.native.md").unwrap().mode = 0o755;
         assert!(cpio::binary_encode_root(ROOT, &files, SOURCE, pair::source_limit).is_err());
     }
-    #[test]
-    fn compact_source_inspection_and_owned_restore_retain_every_byte_mode_and_refuse_overwrite() {
+    fn inspection_contract(format: Format, format_name: &str, kind: &str) {
         let scratch = Scratch::new("compact-source-restore").unwrap();
         let files = fixture();
-        let bytes = cpio::binary_encode_root(ROOT, &files, SOURCE, pair::source_limit).unwrap();
+        let mut stored = files.clone();
+        if format == Format::IndexedBinaryCpio {
+            pair::index_source(&mut stored).unwrap();
+        }
+        let bytes = cpio::binary_encode_root(ROOT, &stored, SOURCE, pair::source_limit).unwrap();
         let path = store(&scratch.0, "source.cpio.gz", &bytes);
-        let report = inspect(&path, Format::BinaryCpio, None).unwrap();
+        let report = inspect(&path, format, None).unwrap();
         assert_eq!(report["files"], files.len());
         assert_eq!(report["sha256"], sha(&bytes));
-        assert_eq!(report["format"], "gzip-binary-cpio-be");
-        assert_eq!(report["kind"], "native_benchmark_compact_source_container");
+        assert_eq!(report["format"], format_name);
+        assert_eq!(report["kind"], kind);
         assert_eq!(fs::read_dir(&scratch.0).unwrap().count(), 2);
         let destination = scratch.0.join("restored source with spaces");
-        let restored = inspect(&path, Format::BinaryCpio, Some(&destination)).unwrap();
+        let restored = inspect(&path, format, Some(&destination)).unwrap();
         assert_eq!(restored["extracted_to"], destination.to_str().unwrap());
         let owner = pair::disk::Directory::open(&destination).unwrap();
         pair::disk::check_tree(&owner, &super::super::file_bytes(&files)).unwrap();
@@ -432,26 +476,95 @@ mod tests {
             assert_eq!(actual.permissions().mode() & 0o7777, 0o644);
             assert_eq!(fs::read(destination.join(name)).unwrap(), entry.bytes);
         }
-        assert!(inspect(&path, Format::BinaryCpio, Some(&destination)).is_err());
-        assert!(inspect(&path, Format::BinaryCpio, Some(Path::new("relative"))).is_err());
+        assert!(inspect(&path, format, Some(&destination)).is_err());
+        assert!(inspect(&path, format, Some(Path::new("relative"))).is_err());
         let sidecar = scratch.0.join("source.cpio.gz.sha256");
         fs::write(&sidecar, "invalid checksum\n").unwrap();
         let rejected = scratch.0.join("must not be created");
-        assert!(inspect(&path, Format::BinaryCpio, Some(&rejected)).is_err());
+        assert!(inspect(&path, format, Some(&rejected)).is_err());
         assert!(!rejected.exists());
         fs::write(&sidecar, format!("{}  source.cpio.gz\n", sha(&bytes))).unwrap();
         let link = scratch.0.join("linked.cpio.gz");
         std::os::unix::fs::symlink(&path, &link).unwrap();
-        assert!(inspect(&link, Format::BinaryCpio, Some(&rejected)).is_err());
+        assert!(inspect(&link, format, Some(&rejected)).is_err());
         assert!(!rejected.exists());
         let hardlink = scratch.0.join("hardlinked archive");
         fs::hard_link(&path, &hardlink).unwrap();
-        assert!(inspect(&path, Format::BinaryCpio, Some(&rejected)).is_err());
+        assert!(inspect(&path, format, Some(&rejected)).is_err());
         assert!(!rejected.exists());
         fs::remove_file(&hardlink).unwrap();
         let link_dest = scratch.0.join("linked destination");
         std::os::unix::fs::symlink(&destination, &link_dest).unwrap();
-        assert!(inspect(&path, Format::BinaryCpio, Some(&link_dest)).is_err());
+        assert!(inspect(&path, format, Some(&link_dest)).is_err());
         pair::disk::check_tree(&owner, &super::super::file_bytes(&files)).unwrap();
+    }
+    #[test]
+    fn compact_source_inspection_and_owned_restore_retain_every_byte_mode_and_refuse_overwrite() {
+        inspection_contract(
+            Format::BinaryCpio,
+            "gzip-binary-cpio-be",
+            "native_benchmark_compact_source_container",
+        );
+    }
+    #[test]
+    fn indexed_source_inspection_and_restore_apply_all_existing_descriptor_controls() {
+        inspection_contract(
+            Format::IndexedBinaryCpio,
+            "gzip-indexed-binary-cpio-be",
+            "native_benchmark_indexed_source_container",
+        );
+    }
+    #[test]
+    fn indexed_source_reconstructs_original_json_and_rejects_foreign_or_changed_inventory() {
+        let expected = fixture();
+        let mut stored = expected.clone();
+        let original = pair::index_source(&mut stored).unwrap();
+        assert_eq!(original.bytes, expected["source-manifest.json"].bytes);
+        let encode = |files: &BTreeMap<String, Entry>| {
+            cpio::binary_encode_root(ROOT, files, SOURCE, pair::source_limit).unwrap()
+        };
+        let bytes = encode(&stored);
+        same(
+            &decode(&bytes, Format::IndexedBinaryCpio).unwrap().files,
+            &expected,
+        );
+        assert!(decode(&bytes, Format::BinaryCpio).is_err());
+        assert!(decode(&bytes, Format::Ustar).is_err());
+        assert!(decode(&encode(&expected), Format::IndexedBinaryCpio).is_err());
+        let mut tight = stored.clone();
+        assert!(pair::materialize_source(&mut tight, logical(&expected).unwrap() - 1).is_err());
+        assert!(
+            tight.contains_key("source-manifest.bin")
+                && !tight.contains_key("source-manifest.json")
+        );
+        pair::materialize_source(&mut tight, logical(&expected).unwrap()).unwrap();
+        same(&tight, &expected);
+        for mutation in 0..5 {
+            let mut bad = stored.clone();
+            match mutation {
+                0 => {
+                    bad.get_mut("source-manifest.bin").unwrap().bytes.pop();
+                }
+                1 => bad.get_mut("README.native.md").unwrap().bytes.push(b'x'),
+                2 => {
+                    bad.insert("source-manifest.json".into(), original.clone());
+                }
+                3 => {
+                    bad.remove("README.native.md");
+                }
+                _ => {
+                    let mut record = pair::metadata::parse(&original.bytes, 1024 * 1024).unwrap();
+                    record["build_requires"] =
+                        json!("Different instructions must not be normalized away");
+                    bad.get_mut("source-manifest.bin").unwrap().bytes =
+                        pair::metadata::encode_source(&record, 1024 * 1024).unwrap();
+                }
+            }
+            assert!(
+                decode(&encode(&bad), Format::IndexedBinaryCpio).is_err(),
+                "mutation{mutation}"
+            );
+        }
+        assert!(Format::parse("indexed-binary-cpio").unwrap() == Format::IndexedBinaryCpio);
     }
 }

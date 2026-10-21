@@ -41,6 +41,9 @@ cp target/debug/autorouter-audit ../artifacts/rust-rewrite/autorouter-audit-boot
 ../artifacts/rust-rewrite/autorouter-audit-bootstrap bootstrap --build-report ../artifacts/rust-rewrite/auditor-bootstrap-build.jsonl
 ../artifacts/rust-rewrite/autorouter-audit-bootstrap vendor
 ../artifacts/rust-rewrite/autorouter-audit-bootstrap production-features --self-test
+../artifacts/rust-rewrite/autorouter-audit-bootstrap supplier-units --check-harness
+cargo fetch --manifest-path supplier-tests/openssl-native/Cargo.toml --locked
+../artifacts/rust-rewrite/autorouter-audit-bootstrap supplier-units --out artifacts/rust-rewrite/supplier-unit-check
 cargo clippy --package xtask --no-default-features --all-targets --locked --offline -- -D warnings
 cargo test --package xtask --no-default-features --bin autorouter-audit --locked --offline
 cargo clippy --workspace --all-targets --locked -- -D warnings
@@ -55,6 +58,8 @@ node parity/check-http-parser.mjs
 Run the fetch step without `--target`: the offline license inventory reads dependencies for every target in the lockfile, including crates a host-only build does not download. Repeat it when the lockfile changes. Packaging keeps metadata collection offline and rejects missing license material; it does not fetch dependencies itself. [Cargo documents this all-target fetch behavior](https://doc.rust-lang.org/cargo/commands/cargo-fetch.html).
 
 Source builds also need a C compiler, Make and Perl for vendored OpenSSL. The pinned crate builds and links its bundled native library; packaged executables do not need those build tools. Keep `OPENSSL_NO_VENDOR` unset when producing a candidate, and retain the artifact's linkage checks as part of platform qualification. Native OpenSSL and its bundled build-tool license texts are included separately from the Rust wrapper licenses.
+
+The explicit `supplier-units` command tests the patched OpenSSL wrapper through an isolated, locked native build. It selects the context and initialization guards, system-error decoding and round trips, BIO errno handling, and public nonblocking WANT-state observation; these vendored tests are outside `cargo test --workspace`. The command verifies source and build identities before execution and retains its component results separately from runtime TLS tests. Choose a fresh `--out` directory for each run. To reuse an existing cache, add `--target-dir` with a repository-relative directory under `rust/target` or `artifacts`; the command never creates or deletes the selected cache directory. The original supplier manifest and lockfile remain unchanged.
 
 The tests bind loopback sockets. They use fake credentials and local mocks, without a provider call or model download. The last three commands are temporary reference-test drivers; neither the native application nor its distribution invokes them. Reference files are verified against commit `ea930c247626ce2af5ccdad721b5121417bf4ad8` before comparison. See the [parity inventory](parity/coverage.json) and [reference protocol](parity/README.md).
 
@@ -130,16 +135,16 @@ The [synthetic storage tool](docs/storage-benchmark.md) provides explicit native
 Native feasibility archives contain a POSIX dispatcher, prebuilt binaries, checksums, dependency licenses, and a source/build manifest. They install offline with `--ignore-scripts`, perform no download, and run without Node on `PATH`. `cargo xtask package --binary TARGET=PATH --output NEW_DIRECTORY --smoke` creates and tests a private candidate. The [reviewed native limits](distribution/expanded-cap-proposal.md) are 32 MiB compressed, 64 MiB expanded, 32 MiB per file and 256 entries. Historical JavaScript archives and source bundles retain 32 MiB expansion; the complete qualified target matrix must still fit.
 
 Matched source/reference transfers use `cargo xtask benchmark-bundle --transfer`
-with a fresh destination. Schema 6 uses canonical big-endian binary CPIO for
-the source carrier and encodes the generated source manifest
-as a bounded binary index with a SHA-256 commitment to the complete sorted
-path list and a full SHA-256 digest for each file. Paths remain in the archive
-members and must match that commitment before their contents are checked.
-Raw source, fixtures, licenses, modes and both separate 32 MiB transfer caps
-remain intact. Use the matching current receiver to restore the reference;
-it also reads historical schemas 1–5. Default source-only bundles retain their
-JSON manifest. The generated `RESUME.md` includes verification and restore
-commands; these source transfers do not qualify shipping binaries.
+with a fresh destination. Default schema 7 enforces separate 32 MiB source and
+reference limits and a 40 MiB joint budget; legacy schemas retain joint 32 MiB.
+Its bounded binary source index commits to the complete sorted path list and
+each file digest. Raw sources, fixtures, licenses and modes remain unchanged.
+The paired receiver restores the complete reference. Indexed source extraction
+separately restores exact schema 2 JSON.
+Default source-only bundles use indexed binary CPIO too; explicit `binary-cpio`
+retains physical JSON and `ustar` retains its legacy format. Use the matching
+receiver to materialize indexed metadata. Generated `RESUME.md` includes restore
+commands; source transfers do not qualify shipping binaries.
 
 The [qualification and rollback guide](docs/rollout.md) describes the isolated `cargo xtask upgrade-rollback` rehearsal and the evidence needed for a later cutover.
 

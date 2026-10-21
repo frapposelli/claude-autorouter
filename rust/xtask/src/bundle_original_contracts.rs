@@ -21,7 +21,7 @@ fn original_bundle_archive_hash_count_fixture_and_privacy_assertions_are_retaine
         fs::read_to_string(scratch.0.join("benchmark.cpio.gz.sha256")).unwrap(),
         format!("{checksum}  benchmark.cpio.gz\n")
     );
-    let (files, _) = source::decode(&bytes, source::Format::BinaryCpio)
+    let (files, _) = source::decode(&bytes, source::Format::IndexedBinaryCpio)
         .unwrap()
         .into_parts();
     // The explicit source decoder checks every member's root prefix and refuses

@@ -35,18 +35,19 @@ fn carrier_total(schema: u64, native: usize, reference: usize) -> Result<usize, 
     if reference > reference_policy(schema, native)?.expanded {
         return Err("Reference exhausted paired transfer budget".into());
     }
-    native.checked_add(reference).ok_or_else(|| "Paired transfer sum overflow".into())
+    native
+        .checked_add(reference)
+        .ok_or_else(|| "Paired transfer sum overflow".into())
 }
-fn schema_sum<'a>(
-    files: impl IntoIterator<Item = &'a [u8]>,
-    schema: u64,
-) -> Result<usize, String> {
+fn schema_sum<'a>(files: impl IntoIterator<Item = &'a [u8]>, schema: u64) -> Result<usize, String> {
     let maximum = joint_limit(schema)?;
     if schema <= 6 {
         return sum(files);
     }
     files.into_iter().try_fold(0usize, |total, bytes| {
-        total.checked_add(bytes.len()).filter(|total| *total <= maximum)
+        total
+            .checked_add(bytes.len())
+            .filter(|total| *total <= maximum)
             .ok_or_else(|| "Complete logical transfer exceeds 40 MiB".into())
     })
 }
@@ -335,10 +336,13 @@ fn logical<'a>(
     }) {
         return Err("Reference license is missing or different".into());
     }
-    schema_sum(native
-        .values()
-        .map(|entry| entry.bytes.as_slice())
-        .chain(files.values().map(|(bytes, _)| *bytes)), schema)?;
+    schema_sum(
+        native
+            .values()
+            .map(|entry| entry.bytes.as_slice())
+            .chain(files.values().map(|(bytes, _)| *bytes)),
+        schema,
+    )?;
     Ok(files)
 }
 struct Plan {
@@ -414,8 +418,7 @@ fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
     }
     // New packets must declare the fixed logical budget before archive reads.
     // Older schemas retain their existing validation and diagnostic order.
-    if schema == 7
-        && record["aggregate_logical_file_limit"].as_u64() != Some(joint_maximum as u64)
+    if schema == 7 && record["aggregate_logical_file_limit"].as_u64() != Some(joint_maximum as u64)
     {
         return Err("Logical paired transfer declaration differs".into());
     }
@@ -519,11 +522,14 @@ fn load(root: &Path, directory: &Path) -> Result<Plan, String> {
                 },
             )?;
         }
-        let payload = schema_sum(native
-            .files
-            .values()
-            .map(|entry| entry.bytes.as_slice())
-            .chain(files.values().map(|(bytes, _)| *bytes)), schema)?;
+        let payload = schema_sum(
+            native
+                .files
+                .values()
+                .map(|entry| entry.bytes.as_slice())
+                .chain(files.values().map(|(bytes, _)| *bytes)),
+            schema,
+        )?;
         let legacy = if schema >= 3 {
             legacy_full(&native.files, reference.expanded_bytes, schema)?
         } else {
@@ -658,9 +664,14 @@ fn reference(root: &Path) -> Result<(BTreeMap<String, Entry>, Vec<u8>), String> 
 }
 pub(super) fn binary_source(root: &Path) -> Result<BTreeMap<String, Entry>, String> {
     let mut native = collect(root)?;
+    index_source(&mut native)?;
+    Ok(native)
+}
+// Return the original JSON so producers can independently compare its restored bytes.
+pub(super) fn index_source(native: &mut BTreeMap<String, Entry>) -> Result<Entry, String> {
     // Only generated metadata changes representation; collect/default tar and
     // every raw source, fixture and mode retain their original bytes.
-    source(&native, 4)?;
+    source(native, 4)?;
     let manifest = native
         .remove("source-manifest.json")
         .ok_or("Missing source manifest")?;
@@ -669,7 +680,35 @@ pub(super) fn binary_source(root: &Path) -> Result<BTreeMap<String, Entry>, Stri
         "source-manifest.bin".into(),
         super::data_entry(metadata::encode_source(&record, FILE_LIMIT)?),
     );
-    Ok(native)
+    Ok(manifest)
+}
+// Materialize only the generated inventory. Account original JSON before allocation.
+pub(super) fn materialize_source(
+    files: &mut BTreeMap<String, Entry>,
+    maximum: usize,
+) -> Result<Entry, String> {
+    let stored = files.values().try_fold(0usize, |n, e| {
+        n.checked_add(e.bytes.len())
+            .ok_or("Source payload sum overflow")
+    })?;
+    let without_index = stored
+        .checked_sub(
+            files
+                .get("source-manifest.bin")
+                .ok_or("Missing source index")?
+                .bytes
+                .len(),
+        )
+        .ok_or("Invalid stored source sum")?;
+    let allowed = maximum
+        .checked_sub(without_index)
+        .ok_or("No remaining canonical source JSON allowance")?;
+    let canonical = canonical_source(files, allowed)?;
+    let binary = files
+        .remove("source-manifest.bin")
+        .ok_or("Missing stored source index")?;
+    files.insert("source-manifest.json".into(), super::data_entry(canonical));
+    Ok(binary)
 }
 // Combined and compact source kinds require original-order header identity.
 pub(super) fn canonical_source(
@@ -736,10 +775,13 @@ fn create_schema(root: &Path, destination: &Path, schema: u64) -> Result<Value, 
         delta.remove(path).ok_or("Missing original shared extra")?;
     }
     let files = logical(&native, &delta, &baseline, schema)?;
-    let payload = schema_sum(native
-        .values()
-        .map(|entry| entry.bytes.as_slice())
-        .chain(files.values().map(|(bytes, _)| *bytes)), schema)?;
+    let payload = schema_sum(
+        native
+            .values()
+            .map(|entry| entry.bytes.as_slice())
+            .chain(files.values().map(|(bytes, _)| *bytes)),
+        schema,
+    )?;
     let native_expanded = cpio::binary_expanded_size(NATIVE_ROOT, &native, SOURCE, source_limit)?;
     let delta_policy = reference_policy(schema, native_expanded)?;
     let delta_expanded = expanded_size(&delta, delta_policy)?;

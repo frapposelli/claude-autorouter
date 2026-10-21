@@ -28,9 +28,16 @@ pub(super) enum Event {
     ReadHeld(usize),
     WriteHeld(usize),
     ReadEof(usize),
+    UnderlyingReadEofObserved(usize),
+    ReadEofDelivered(usize),
     ReadError(usize, io::ErrorKind),
     WriteError(usize, io::ErrorKind),
     FlushError(usize, io::ErrorKind),
+    ShutdownError(usize, io::ErrorKind),
+    // TLS close-finalization diagnostic; not the underlying shutdown result.
+    ShutdownTlsFinalizationError(usize, io::ErrorKind),
+    ShutdownTlsError(usize, i32),
+    ShutdownTlsReason(usize, i32, i32),
     Released(usize),
     PeerClosed(usize),
     Cleanup,
@@ -107,6 +114,7 @@ pub(super) struct Connection {
     probe: Weak<Shared>,
     read: Arc<Gate>,
     write: Arc<Gate>,
+    eof: Arc<Gate>,
 }
 #[derive(Clone)]
 pub(super) struct Identity {
@@ -131,6 +139,22 @@ impl Connection {
             self.event(Event::ReadHeld);
         }
         if held { Poll::Pending } else { Poll::Ready(()) }
+    }
+    // Called only after a real positive-capacity read returned zero bytes.
+    // Reuse the existing bounded one-waker gate and RAII Hold release.
+    pub(super) fn defer_observed_eof(&self, cx: &mut Context<'_>) -> bool {
+        let (held, first) = self.eof.poll(cx);
+        if held && first {
+            self.event(Event::UnderlyingReadEofObserved);
+        }
+        held
+    }
+    pub(super) fn eof_delivery_ready(&self, cx: &mut Context<'_>) -> Poll<()> {
+        if self.eof.poll(cx).0 {
+            Poll::Pending
+        } else {
+            Poll::Ready(())
+        }
     }
     pub(super) fn write_ready(&self, cx: &mut Context<'_>) -> Poll<()> {
         let (held, first) = self.write.poll(cx);
@@ -169,6 +193,7 @@ impl Probe {
                 probe: Arc::downgrade(&self.0),
                 read: Arc::default(),
                 write: Arc::default(),
+                eof: Arc::default(),
             });
             state.connections.push(Arc::downgrade(&connection));
             connection
@@ -228,6 +253,10 @@ impl Probe {
     }
     pub(super) fn hold_read(&self, connection: usize) -> Hold {
         self.connection(connection).read.hold()
+    }
+    /// Holds delivery of one actual observed EOF, never the preceding IO read.
+    pub(super) fn hold_eof_delivery(&self, connection: usize) -> Hold {
+        self.connection(connection).eof.hold()
     }
     pub(super) fn hold_write(&self, connection: usize) -> Hold {
         self.connection(connection).write.hold()

@@ -17,8 +17,10 @@ mod loopback_peer;
 mod options;
 mod policy;
 mod raw_pool;
+mod raw_tls_output;
 mod request_lease_tests;
 mod session;
+mod tls_application_slot;
 
 use crate::server::Gateway;
 use crate::server_events::EventSinks;

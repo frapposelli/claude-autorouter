@@ -107,6 +107,64 @@ pub use crate::ssl::connector::{
 };
 pub use crate::ssl::error::{Error, ErrorCode, HandshakeError};
 
+/// Snapshot of OpenSSL 3's public nonblocking operation state.
+///
+/// This is not an IO result or permission to replace an unfinished operation.
+/// Unknown states retain their numeric value without being guessed as read/write.
+#[cfg(ossl300)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[non_exhaustive]
+pub enum SslWant {
+    Nothing,
+    Writing,
+    Reading,
+    X509Lookup,
+    AsyncPaused,
+    AsyncNoJobs,
+    ClientHelloCallback,
+    RetryVerify,
+    Other(c_int),
+}
+
+#[cfg(ossl300)]
+impl SslWant {
+    fn from_raw(value: c_int) -> Self {
+        match value {
+            1 => Self::Nothing,
+            2 => Self::Writing,
+            3 => Self::Reading,
+            4 => Self::X509Lookup,
+            5 => Self::AsyncPaused,
+            6 => Self::AsyncNoJobs,
+            7 => Self::ClientHelloCallback,
+            8 => Self::RetryVerify,
+            value => Self::Other(value),
+        }
+    }
+
+    /// Returns the public SSL_want state value, including an unknown value.
+    pub fn as_raw(self) -> c_int {
+        match self {
+            Self::Nothing => 1,
+            Self::Writing => 2,
+            Self::Reading => 3,
+            Self::X509Lookup => 4,
+            Self::AsyncPaused => 5,
+            Self::AsyncNoJobs => 6,
+            Self::ClientHelloCallback => 7,
+            Self::RetryVerify => 8,
+            Self::Other(value) => value,
+        }
+    }
+}
+
+// Public OpenSSL 3 declaration; no private SSL layout or openssl-sys mutation.
+#[cfg(ossl300)]
+unsafe extern "C" {
+    #[link_name = "SSL_want"]
+    fn public_ssl_want(ssl: *const ffi::SSL) -> c_int;
+}
+
 mod bio;
 mod callbacks;
 mod connector;
@@ -1473,10 +1531,7 @@ impl SslContextBuilder {
     #[cfg(ossl300)]
     pub fn set_bound_new_session_callback<F>(&mut self, callback: F)
     where
-        F: Fn(&mut SslRef, Result<ContextBoundSession, BoundSessionError>)
-            + 'static
-            + Sync
-            + Send,
+        F: Fn(&mut SslRef, Result<ContextBoundSession, BoundSessionError>) + 'static + Sync + Send,
     {
         self.set_new_session_callback(move |ssl, session| {
             let snapshot = ContextBoundSession::capture(ssl, &session);
@@ -2857,6 +2912,20 @@ impl SslRef {
         unsafe { ffi::SSL_pending(self.as_ptr()) as usize }
     }
 
+    /// Returns the public OpenSSL 3 state of the last nonblocking operation.
+    ///
+    /// Sample immediately after an actual TLS call returns Pending and before
+    /// another TLS operation. A credit/readiness stall before any TLS call has
+    /// no new state; callers must track that distinction themselves. This only
+    /// reads SSL_want: it does not initialize, poll IO, call SSL_get_error, or
+    /// inspect or clear the thread error queue. Reading/Writing describe the
+    /// underlying dependency, not which application method was called.
+    #[cfg(ossl300)]
+    #[corresponds(SSL_want)]
+    pub fn want(&self) -> SslWant {
+        SslWant::from_raw(unsafe { public_ssl_want(self.as_ptr()) })
+    }
+
     /// Returns the servername sent by the client via Server Name Indication (SNI).
     ///
     /// It is only useful on the server side.
@@ -3067,8 +3136,7 @@ impl SslRef {
         // Its original context stays alive with the immutable DER, preventing
         // pointer reuse. Both original/current target contexts match it above.
         // A fresh decode avoids sharing a native session's mutable state.
-        unsafe { self.set_session(&session) }
-            .map_err(|_| BoundSessionError::InstallFailed)
+        unsafe { self.set_session(&session) }.map_err(|_| BoundSessionError::InstallFailed)
     }
 
     /// Determines if the session provided to `set_session` was successfully reused.
@@ -4477,5 +4545,110 @@ cfg_if! {
             #[cfg(any(boringssl, awslc))]
             return ffi::SSL_get_ex_new_index(0, ptr::null_mut(), ptr::null_mut(), None, f);
         }
+    }
+}
+
+#[cfg(all(test, ossl300))]
+mod want_tests {
+    use super::*;
+
+    struct NonblockingIo {
+        block_write: bool,
+        reads: usize,
+        writes: usize,
+        written: usize,
+    }
+    impl Read for NonblockingIo {
+        fn read(&mut self, _: &mut [u8]) -> io::Result<usize> {
+            self.reads += 1;
+            Err(io::ErrorKind::WouldBlock.into())
+        }
+    }
+    impl Write for NonblockingIo {
+        fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+            self.writes += 1;
+            if self.block_write {
+                return Err(io::ErrorKind::WouldBlock.into());
+            }
+            if bytes.len() > 64 * 1024 - self.written {
+                return Err(io::Error::other("synthetic ClientHello output bound"));
+            }
+            self.written += bytes.len();
+            Ok(bytes.len())
+        }
+        fn flush(&mut self) -> io::Result<()> {
+            Ok(())
+        }
+    }
+
+    fn ssl() -> Ssl {
+        crate::init_without_config().unwrap();
+        let context = SslContextBuilder::new(SslMethod::tls_client())
+            .unwrap()
+            .build();
+        Ssl::new(&context).unwrap()
+    }
+
+    #[test]
+    fn new_ssl_want_preserves_the_actual_error_queue() {
+        let ssl = ssl();
+        crate::error::clear_initialized();
+        unsafe {
+            ffi::ERR_new();
+            ffi::ERR_set_debug(c"synthetic-want-state".as_ptr(), 1, c"idle".as_ptr());
+            ffi::ERR_set_error(ffi::ERR_LIB_SYS, 32, ptr::null::<c_char>());
+        }
+        let original = unsafe { ffi::ERR_peek_last_error() };
+        assert_ne!(original, 0);
+        assert_eq!(ssl.want(), SslWant::Nothing);
+        assert_eq!(ssl.want().as_raw(), 1);
+        let stack = ErrorStack::get();
+        assert_eq!(stack.errors().len(), 1);
+        assert_eq!(stack.errors()[0].code(), original);
+        assert_eq!(stack.errors()[0].library_code(), ffi::ERR_LIB_SYS);
+        assert_eq!(stack.errors()[0].reason_code(), 32);
+    }
+
+    #[test]
+    fn nonblocking_connect_want_read_is_observed_after_real_ssl_call() {
+        let mut stream = SslStream::new(
+            ssl(),
+            NonblockingIo {
+                block_write: false,
+                reads: 0,
+                writes: 0,
+                written: 0,
+            },
+        )
+        .unwrap();
+        crate::error::clear_initialized();
+        let error = stream.connect().unwrap_err();
+        assert_eq!(error.code(), ErrorCode::WANT_READ);
+        assert_eq!(stream.ssl().want(), SslWant::Reading);
+        assert_eq!(stream.ssl().want().as_raw(), 3);
+        assert!(stream.get_ref().reads > 0);
+        assert!(stream.get_ref().writes > 0);
+        assert!(stream.get_ref().written > 0);
+    }
+
+    #[test]
+    fn nonblocking_connect_want_write_is_observed_after_real_ssl_call() {
+        let mut stream = SslStream::new(
+            ssl(),
+            NonblockingIo {
+                block_write: true,
+                reads: 0,
+                writes: 0,
+                written: 0,
+            },
+        )
+        .unwrap();
+        crate::error::clear_initialized();
+        let error = stream.connect().unwrap_err();
+        assert_eq!(error.code(), ErrorCode::WANT_WRITE);
+        assert_eq!(stream.ssl().want(), SslWant::Writing);
+        assert_eq!(stream.ssl().want().as_raw(), 2);
+        assert!(stream.get_ref().writes > 0);
+        assert_eq!(stream.get_ref().written, 0);
     }
 }

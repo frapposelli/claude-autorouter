@@ -5,6 +5,7 @@ mod audit_support;
 #[allow(dead_code)]
 mod process;
 mod production_features;
+mod supplier_units;
 mod vendor_audit;
 use std::path::PathBuf;
 
@@ -33,11 +34,12 @@ fn main() {
     let result = match args.first().map(String::as_str) {
         None | Some("--help" | "help") => {
             println!(
-                "Usage: cargo run -p xtask --no-default-features --bin autorouter-audit -- vendor [--only NAME]\n       cargo run -p xtask --no-default-features --bin autorouter-audit -- production-features --self-test|--build-report PATH\n       cargo run -p xtask --no-default-features --bin autorouter-audit -- bootstrap --build-report PATH\n\nIndependent offline source and ordinary release-feature auditors. No runtime-tools feature, provider calls or user configuration access."
+                "Usage: cargo run -p xtask --no-default-features --bin autorouter-audit -- vendor [--only NAME]\n       cargo run -p xtask --no-default-features --bin autorouter-audit -- production-features --self-test|--build-report PATH\n       cargo run -p xtask --no-default-features --bin autorouter-audit -- bootstrap --build-report PATH\n\nExplicit supplier guards: autorouter-audit supplier-units --out artifacts/rust-rewrite/supplier-unit-ci [--target-dir REPOSITORY_RELATIVE_EXISTING_CACHE]\n\nIndependent offline source and ordinary release-feature auditors. No runtime-tools feature, provider calls or user configuration access."
             );
             Ok(true)
         }
         Some("vendor") => vendor_audit::run(&args[1..], &root),
+        Some("supplier-units") => supplier_units::run(&args[1..], &root),
         Some("bootstrap") => production_features::verify_bootstrap(&args[1..], &root),
         Some("production-features") => production_features::run(&args[1..], &root),
         _ => Err("Unknown audit command; use --help".into()),

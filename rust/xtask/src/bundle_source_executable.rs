@@ -88,17 +88,8 @@ fn source(
     let decoded = cpio::binary_decode_root(payload, ROOT, policy, pair::source_limit)?;
     let mut files = decoded.files;
     let stored = sum(&files)?;
-    let without_index = stored
-        .checked_sub(files.get(BIN).ok_or("Missing source index")?.bytes.len())
-        .ok_or("Invalid stored source sum")?;
-    let allowed_json = policy
-        .expanded
-        .checked_sub(without_index)
-        .ok_or("No remaining canonical source JSON allowance")?;
-    let canonical = pair::canonical_source(&files, allowed_json)?;
-    let binary = files.remove(BIN).ok_or("Missing stored source index")?;
+    let binary = pair::materialize_source(&mut files, policy.expanded)?;
     let binary_fact = row(BIN, &binary);
-    files.insert(JSON.into(), super::data_entry(canonical));
     let materialized = sum(&files)?;
     if materialized > SOURCE.expanded {
         return Err("Materialized source exceeds 32 MiB".into());

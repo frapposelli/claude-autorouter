@@ -31,6 +31,8 @@ const FIXED: &[&str] = &[
     "LICENSE",
     "rust/Cargo.toml",
     "rust/Cargo.lock",
+    "rust/supplier-tests/openssl-native/Cargo.toml",
+    "rust/supplier-tests/openssl-native/Cargo.lock",
     "rust/rust-toolchain.toml",
     "rust/crates/autorouter-runtime/src/server_deadline_contracts.rs",
     "rust/.cargo/config.toml",
@@ -569,7 +571,7 @@ pub(crate) fn source_identity(root: &Path) -> Result<Value, String> {
         .map_err(|_| "Cannot serialize source declarations".into())
 }
 pub fn create(root: &Path, destination: &Path) -> Result<Value, String> {
-    source::create(root, destination, source::Format::BinaryCpio)
+    source::create(root, destination, source::Format::IndexedBinaryCpio)
 }
 fn create_ustar(root: &Path, destination: &Path) -> Result<Value, String> {
     let sidecar = PathBuf::from(format!("{}.sha256", destination.display()));
@@ -661,7 +663,7 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
     }
     if args == ["--help"] {
         println!(
-            "cargo xtask benchmark-bundle [NEW_DESTINATION.cpio.gz]\ncargo xtask benchmark-bundle --source-format binary-cpio|ustar NEW_ARCHIVE\ncargo xtask benchmark-bundle --inspect-source FORMAT ARCHIVE\ncargo xtask benchmark-bundle --extract-source FORMAT ARCHIVE NEW_ABSOLUTE_DIRECTORY\ncargo xtask benchmark-bundle --executable TARGET=RELEASE_XTASK NEW_ARCHIVE.tar.gz\ncargo xtask benchmark-bundle --source-executable TARGET=FRESH_RELEASE_XTASK NEW_ARCHIVE.tar.gz\ncargo xtask benchmark-bundle --transfer NEW_DIRECTORY\ncargo xtask benchmark-bundle --transfer-v6 NEW_DIRECTORY\ncargo xtask benchmark-bundle --transfer-v7 NEW_DIRECTORY\ncargo xtask benchmark-bundle --restore-reference TRANSFER_DIRECTORY NEW_REFERENCE_DIRECTORY\n--source-executable creates a distinct native source+ready artifact: full SOURCE32 inner bytes, NATIVE32/64 outer and conservative complete64 accounting, with fresh source identity and no build/quality qualification inferred. Old formats remain unchanged. Default creates a distinct gzip binary big-endian CPIO source container with the original schema2 JSON manifest and all public source/fixture bytes; it does not contain frozen Node product sources. Use --source-format ustar NEW_ARCHIVE.tar.gz for the old source-only tar format. --inspect-source FORMAT ARCHIVE and --extract-source FORMAT ARCHIVE NEW_ABSOLUTE_DIRECTORY require FORMAT binary-cpio or ustar explicitly, verify checksum and full source inventory, and perform no evaluator calls. GNUtar alone cannot extract CPIO; use the descriptor-backed extract command, libarchive tar, or GNUcpio with gzip. Every source format retains compressed, actual expanded carrier and complete logical32MiB caps. The combined --source-executable inner format is unchanged. --executable creates a separate target-specific ready-to-run evaluator with complete licenses; its receiver needs no Node/Cargo/source checkout and supports only evaluate-ollama. Prebuilt source-to-binary provenance and platform qualification remain unverified. --transfer creates a licensed reference delta sharing two exact fixtures, the license and frozen manifest with the native archive, plus checksum/resume files for matched larger-host benchmarks, without a Git checkout. Source and transfer modes exclude binaries; every mode excludes credentials, private reports and Cargo caches and performs no evaluator calls. Default --transfer selects schema7: joint expanded-carrier and complete raw-logical caps are 40 MiB, with each source archive still bounded at 32 MiB compressed/expanded. --transfer-v7 explicitly selects that policy; --transfer-v6 selects the original schema6/32 MiB joint policy. Schemas6/7 use the same gzip binary big-endian CPIO source, indexed generated manifest and licensed tar delta. Shared copies remain fully charged logically. Legacy full-tar size is separately reported. --restore-reference verifies schemas 1 through 7 then creates the full 113-file frozen reference before any reference operation. Requires pinned Rust/locked dependencies; matched reference runs need Node22.14.0."
+            "cargo xtask benchmark-bundle [NEW_DESTINATION.indexed.cpio.gz]\ncargo xtask benchmark-bundle --source-format indexed-binary-cpio|binary-cpio|ustar NEW_ARCHIVE\ncargo xtask benchmark-bundle --inspect-source FORMAT ARCHIVE\ncargo xtask benchmark-bundle --extract-source FORMAT ARCHIVE NEW_ABSOLUTE_DIRECTORY\ncargo xtask benchmark-bundle --executable TARGET=RELEASE_XTASK NEW_ARCHIVE.tar.gz\ncargo xtask benchmark-bundle --source-executable TARGET=FRESH_RELEASE_XTASK NEW_ARCHIVE.tar.gz\ncargo xtask benchmark-bundle --transfer NEW_DIRECTORY\ncargo xtask benchmark-bundle --transfer-v6 NEW_DIRECTORY\ncargo xtask benchmark-bundle --transfer-v7 NEW_DIRECTORY\ncargo xtask benchmark-bundle --restore-reference TRANSFER_DIRECTORY NEW_REFERENCE_DIRECTORY\n--source-executable creates a distinct native source+ready artifact: full SOURCE32 inner bytes, NATIVE32/64 outer and conservative complete64 accounting, with fresh source identity and no build/quality qualification inferred. Old formats remain unchanged. Default creates a distinct indexed gzip binary big-endian CPIO source container: only the generated inventory is stored as schema4 source-manifest.bin; the bounded receiver restores the exact original schema2 source-manifest.json and all public source/fixture bytes; it does not contain frozen Node product sources. Use --source-format ustar NEW_ARCHIVE.tar.gz for the old source-only tar format. --inspect-source FORMAT ARCHIVE and --extract-source FORMAT ARCHIVE NEW_ABSOLUTE_DIRECTORY require FORMAT indexed-binary-cpio, binary-cpio or ustar explicitly, verify checksum and full source inventory, and perform no evaluator calls. GNUtar alone cannot extract CPIO. Use the descriptor-backed indexed extract command to materialize canonical JSON; libarchive tar or GNUcpio with gzip expose the stored binary inventory. Explicit binary-cpio retains the old physical JSON container. Every source format retains compressed, actual expanded carrier and complete logical32MiB caps. The combined --source-executable inner format is unchanged. --executable creates a separate target-specific ready-to-run evaluator with complete licenses; its receiver needs no Node/Cargo/source checkout and supports only evaluate-ollama. Prebuilt source-to-binary provenance and platform qualification remain unverified. --transfer creates a licensed reference delta sharing two exact fixtures, the license and frozen manifest with the native archive, plus checksum/resume files for matched larger-host benchmarks, without a Git checkout. Source and transfer modes exclude binaries; every mode excludes credentials, private reports and Cargo caches and performs no evaluator calls. Default --transfer selects schema7: joint expanded-carrier and complete raw-logical caps are 40 MiB, with each source archive still bounded at 32 MiB compressed/expanded. --transfer-v7 explicitly selects that policy; --transfer-v6 selects the original schema6/32 MiB joint policy. Schemas6/7 use the same gzip binary big-endian CPIO source, indexed generated manifest and licensed tar delta. Shared copies remain fully charged logically. Legacy full-tar size is separately reported. --restore-reference verifies schemas 1 through 7 then creates the full 113-file frozen reference before any reference operation. Requires pinned Rust/locked dependencies; matched reference runs need Node22.14.0."
         );
         return Ok(true);
     }
@@ -680,9 +682,16 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
         );
         return Ok(true);
     }
-    if let Some(flag) = args.first().filter(|arg| matches!(arg.as_str(), "--transfer" | "--transfer-v6" | "--transfer-v7")) {
+    if let Some(flag) = args.first().filter(|arg| {
+        matches!(
+            arg.as_str(),
+            "--transfer" | "--transfer-v6" | "--transfer-v7"
+        )
+    }) {
         if args.len() != 2 || args[1].starts_with("--") {
-            return Err(format!("Usage: cargo xtask benchmark-bundle {flag} NEW_DIRECTORY"));
+            return Err(format!(
+                "Usage: cargo xtask benchmark-bundle {flag} NEW_DIRECTORY"
+            ));
         }
         let destination = root.join(&args[1]);
         let report = match flag.as_str() {
@@ -690,16 +699,20 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
             "--transfer-v7" => transfer::create_schema7(root, &destination)?,
             _ => transfer::create(root, &destination)?,
         };
-        println!("{}", serde_json::to_string_pretty(&report).map_err(|_| "Cannot serialize transfer result")?);
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&report)
+                .map_err(|_| "Cannot serialize transfer result")?
+        );
         return Ok(true);
     }
     if args.len() > 1 {
-        return Err("Usage: cargo xtask benchmark-bundle [NEW_DESTINATION.cpio.gz]".into());
+        return Err("Usage: cargo xtask benchmark-bundle [NEW_DESTINATION.indexed.cpio.gz]".into());
     }
     let destination = root.join(
         args.first()
             .map(String::as_str)
-            .unwrap_or("artifacts/autorouter-native-hardware-benchmark.cpio.gz"),
+            .unwrap_or("artifacts/autorouter-native-hardware-benchmark.indexed.cpio.gz"),
     );
     println!(
         "{}",
@@ -786,7 +799,7 @@ mod tests {
         let result = create(&root, &destination).unwrap();
         let bytes = fs::read(&destination).unwrap();
         assert_eq!(result["sha256"], sha(&bytes));
-        let (files, _) = source::decode(&bytes, source::Format::BinaryCpio)
+        let (files, _) = source::decode(&bytes, source::Format::IndexedBinaryCpio)
             .unwrap()
             .into_parts();
         let manifest: Value = serde_json::from_slice(&files["source-manifest.json"].bytes).unwrap();
