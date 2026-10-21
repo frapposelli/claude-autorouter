@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AutoRouter for Claude Code</title>
+<meta name="description" content="AutoRouter is a local gateway that evaluates each Claude Code request and routes it to Haiku, Sonnet or Opus. Install it from npm as claude-autorouter.">
+<meta name="theme-color" content="#18191b">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2318191b'/%3E%3Ccircle cx='16' cy='16' r='8' fill='%23ff4a1f'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://api.fontshare.com">
+<link rel="preconnect" href="https://cdn.fontshare.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script>document.documentElement.classList.replace('no-js','js')</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="bar"></div>
+<header class="nav">
+  <a class="wordmark" href="#top"><i></i>AutoRouter</a>
+  <nav aria-label="Primary">
+    <a href="#how">How it works</a>
+    <a href="#compare">Evaluators</a>
+    <a href="#faq">FAQ</a>
+    <a class="btn small-btn" href="#start">Install</a>
+  </nav>
+</header>
+
+<main id="main">
+<section class="hero" id="top">
+  <div class="hero-grid">
+  <div class="hero-copy">
+  <h1>The right model for every task</h1>
+  <div class="hero-row">
+    <p class="lead">AutoRouter is a local gateway for Claude Code. It evaluates each request and routes it to Haiku, Sonnet or Opus.</p>
+    <div class="hero-actions">
+      <div class="install"><code>npm install -g claude-autorouter</code><button class="btn copy-btn" type="button" data-copy="npm install -g claude-autorouter">Copy</button></div>
+      <a class="link" href="https://github.com/frapposelli/claude-autorouter#readme">Read the README</a>
+    </div>
+  </div>
+  </div>
+
+  <div class="stage rise">
+    <div class="demo" data-ui id="demo">
+      <div class="demo-in">
+        <div>
+          <label for="task">Describe a coding task</label>
+          <input id="task" class="field" type="text" value="Rename the helper formatDate to formatTimestamp" autocomplete="off" spellcheck="false">
+        </div>
+        <div class="presets" role="group" aria-label="Example tasks">
+          <button class="chip" type="button" data-task="Fix the typo in the README heading">Fix a typo</button>
+          <button class="chip" type="button" data-task="Add pagination to the users endpoint and update its tests">Add a feature</button>
+          <button class="chip" type="button" data-task="Design a migration of the billing service to an event-driven architecture and find the race condition in checkout">Redesign a service</button>
+        </div>
+        <label class="toggle"><input type="checkbox" id="auto"> Auto permission mode</label>
+        <p class="note">Illustration only. These few rules run in your browser; the real verdict comes from the evaluator model on your machine or from Jev.</p>
+      </div>
+      <div class="demo-out" aria-live="polite">
+        <div class="models" id="models">
+          <div class="model" data-m="haiku"><b>Haiku</b><span>Quick, small edits</span></div>
+          <div class="model" data-m="sonnet"><b>Sonnet 5.5</b><span>Everyday work</span></div>
+          <div class="model" data-m="opus"><b>Opus 5.5</b><span>Hard problems</span></div>
+        </div>
+        <p class="status" id="status"></p>
+        <p class="reason" id="reason"></p>
+      </div>
+    </div>
+  </div>
+  </div>
+</section>
+
+<section class="section wrap" aria-labelledby="story-h">
+  <h2 id="story-h" class="story-h rise">One decision per task</h2>
+  <div class="story">
+    <div class="story-steps">
+      <div class="story-step" data-step="0"><p>A new human task is evaluated before it reaches Anthropic.</p></div>
+      <div class="story-step" data-step="1"><p>Tool calls and /goal continuations keep the task’s model.</p></div>
+      <div class="story-step" data-step="2"><p>The next task is free to switch up or down.</p></div>
+    </div>
+    <div class="story-pin" data-ui id="pin" aria-hidden="true">
+      <div class="row" data-r="0"><div>Rename formatDate across the repo<small>new task</small></div><span class="tag sonnet">Sonnet</span></div>
+      <div class="row dim" data-r="1"><div>Read src/format.mjs<small>tool call, same task</small></div><span class="tag sonnet">Sonnet</span></div>
+      <div class="row dim" data-r="2"><div>Edit 4 files<small>tool call, same task</small></div><span class="tag sonnet">Sonnet</span></div>
+      <div class="row dim" data-r="3"><div>Why does checkout deadlock under load?<small>new task</small></div><span class="tag opus">Opus</span></div>
+    </div>
+  </div>
+</section>
+
+<figure class="photo rise">
+  <img src="assets/signal-box-levers-town-railway-beamish-museum.jpg" width="1920" height="1280" alt="A row of painted signal-box levers with numbered brass plates" loading="lazy" decoding="async">
+  <figcaption>Every request goes to the lever that fits it.</figcaption>
+</figure>
+
+<section class="field-section how-wrap" id="how" aria-labelledby="how-h">
+  <div class="how">
+    <h2 id="how-h">Start in three commands</h2>
+    <div class="step rise">
+      <p>First, install it and run setup.</p>
+      <pre class="call"><button class="copy" type="button" data-copy="npm install -g claude-autorouter&#10;claude-autorouter setup">Copy</button><code>npm install -g claude-autorouter
+claude-autorouter setup</code></pre>
+      <div class="resp" data-ui><p>Setup uses your Claude subscription and the local Ollama evaluator, so it asks for no evaluator key. Add <code>--pull</code> to download the default model.</p></div>
+    </div>
+    <div class="step rise">
+      <p>Then check that everything is healthy.</p>
+      <pre class="call"><button class="copy" type="button" data-copy="claude-autorouter doctor">Copy</button><code>claude-autorouter doctor</code></pre>
+      <div class="resp" data-ui><p>Run <code>doctor --evaluate-local</code> to time the local evaluator on synthetic prompts. It makes no Anthropic or Jev calls and downloads nothing.</p></div>
+    </div>
+    <div class="step rise">
+      <p>Finally, launch Claude Code through the gateway.</p>
+      <pre class="call"><button class="copy" type="button" data-copy="cd /path/to/project&#10;claude-autorouter claude --permission-mode auto">Copy</button><code>cd /path/to/project
+claude-autorouter claude --permission-mode auto</code></pre>
+      <div class="resp" data-ui>
+        <p>Your installed, unmodified Claude Code opens with a temporary status line:</p>
+        <p class="status"><span class="dot">●</span> AutoRouter · Opus 5.5 · ready · Jev 210ms</p>
+        <p class="status"><span class="dot">●</span> AutoRouter · Sonnet 5.5 selected · Auto floor from Haiku · Jev 220ms</p>
+        <p class="note" style="margin-top:12px">“Selected” means Anthropic has not reported the serving model yet.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section wrap features" id="compare" aria-labelledby="cmp-h">
+  <h2 id="cmp-h">Pick your evaluator</h2>
+  <div class="table" role="table" aria-label="Evaluator comparison">
+    <div class="r head" role="row">
+      <div class="c name" role="columnheader">Capability</div>
+      <div class="c a" role="columnheader">Plain Claude Code</div>
+      <div class="c a hot" role="columnheader">AutoRouter + Ollama</div>
+      <div class="c a" role="columnheader">AutoRouter + Jev</div>
+    </div>
+    <div class="r" role="row"><div class="c name" role="rowheader">Model per task</div><div class="c a" data-col="Plain Claude Code" role="cell">The one you choose</div><div class="c a hot" data-col="Ollama" role="cell">Haiku, Sonnet or Opus</div><div class="c a" data-col="Jev" role="cell">Haiku, Sonnet or Opus</div></div>
+    <div class="r" role="row"><div class="c name" role="rowheader">Where task excerpts go</div><div class="c a" data-col="Plain Claude Code" role="cell">Nowhere extra</div><div class="c a hot" data-col="Ollama" role="cell">Your own machine</div><div class="c a" data-col="Jev" role="cell">TypeSafe, redacted</div></div>
+    <div class="r" role="row"><div class="c name" role="rowheader">Extra API key</div><div class="c a" data-col="Plain Claude Code" role="cell">No</div><div class="c a hot" data-col="Ollama" role="cell">No</div><div class="c a" data-col="Jev" role="cell">TypeSafe key</div></div>
+    <div class="r" role="row"><div class="c name" role="rowheader">Status</div><div class="c a" data-col="Plain Claude Code" role="cell">Stable</div><div class="c a hot" data-col="Ollama" role="cell">Default, experimental</div><div class="c a" data-col="Jev" role="cell">Optional, hosted</div></div>
+    <div class="r" role="row"><div class="c name" role="rowheader">Authentication and permissions</div><div class="c a" data-col="Plain Claude Code" role="cell">Claude</div><div class="c a hot" data-col="Ollama" role="cell">Still Claude</div><div class="c a" data-col="Jev" role="cell">Still Claude</div></div>
+    <div class="r" role="row"><div class="c name" role="rowheader">Task continuity</div><div class="c a" data-col="Plain Claude Code" role="cell">Not applicable</div><div class="c a hot" data-col="Ollama" role="cell">Tool calls keep the model</div><div class="c a" data-col="Jev" role="cell">Tool calls keep the model</div></div>
+    <div class="r" role="row"><div class="c name" role="rowheader">Decision history</div><div class="c a" data-col="Plain Claude Code" role="cell">Claude’s own</div><div class="c a hot" data-col="Ollama" role="cell">Off until you enable it</div><div class="c a" data-col="Jev" role="cell">Off until you enable it</div></div>
+    <div class="r" role="row"><div class="c name" role="rowheader">Savings report</div><div class="c a" data-col="Plain Claude Code" role="cell">Not applicable</div><div class="c a hot" data-col="Ollama" role="cell">API-equivalent estimate</div><div class="c a" data-col="Jev" role="cell">API-equivalent estimate</div></div>
+  </div>
+  <p class="muted small" style="margin-top:20px;max-width:64ch">Anthropic still receives the complete request in every mode. Savings are estimates against an Opus baseline; they do not measure subscription bills.</p>
+</section>
+
+<figure class="photo short rise">
+  <img src="assets/points-switcher-10482084506.jpg" width="1920" height="1229" alt="A white railway points lever with a red handle beside the track" loading="lazy" decoding="async">
+  <figcaption>Claude still drives. AutoRouter only throws the points.</figcaption>
+</figure>
+
+<section class="field-section" aria-labelledby="faq-h">
+  <div class="faq">
+    <div>
+      <h2 class="faq-h" id="faq-h">Questions</h2>
+      <div id="faq" role="list">
+        <button class="q" type="button" aria-expanded="true" aria-controls="a0" data-i="0">Is this from Anthropic?</button><p class="ans-m" hidden></p>
+        <button class="q" type="button" aria-expanded="false" aria-controls="a1" data-i="1">Does it change my permissions?</button><p class="ans-m" hidden></p>
+        <button class="q" type="button" aria-expanded="false" aria-controls="a2" data-i="2">What does the evaluator see?</button><p class="ans-m" hidden></p>
+        <button class="q" type="button" aria-expanded="false" aria-controls="a3" data-i="3">Is the savings figure real money?</button><p class="ans-m" hidden></p>
+        <button class="q" type="button" aria-expanded="false" aria-controls="a4" data-i="4">Does switching models have a cost?</button><p class="ans-m" hidden></p>
+        <button class="q" type="button" aria-expanded="false" aria-controls="a5" data-i="5">How do I turn it off?</button><p class="ans-m" hidden></p>
+      </div>
+    </div>
+    <div class="pane">
+      <p class="ans on" id="a0">No. AutoRouter is independent and is not affiliated with, endorsed by, or sponsored by Anthropic.</p>
+      <p class="ans" id="a1">No. Claude owns authentication, tool permissions and safety review. AutoRouter does not replace permission verdicts.</p>
+      <p class="ans" id="a2">Bounded task excerpts, with recognizable credentials and personal identifiers redacted first. They go to your loopback Ollama, or to TypeSafe if you choose Jev.</p>
+      <p class="ans" id="a3">No. It is an API-equivalent estimate from recorded token counts. It excludes evaluator and local compute costs.</p>
+      <p class="ans" id="a4">It can reduce cache reuse, so a switch is not always free.</p>
+      <p class="ans" id="a5">Run ordinary <code>claude</code>, and it bypasses routing.</p>
+    </div>
+  </div>
+</section>
+
+<section class="cta" id="start" aria-labelledby="cta-h">
+  <div class="cta-copy">
+    <h2 id="cta-h">Route the next task</h2>
+    <p>The button copies the commands. Nothing leaves your machine until you run them.</p>
+  </div>
+  <div class="dialog" data-ui>
+    <h3>Choose your evaluator</h3>
+    <div class="seg" role="group" aria-label="Evaluator">
+      <button type="button" aria-pressed="true" data-ev="ollama">Local Ollama</button>
+      <button type="button" aria-pressed="false" data-ev="jev">Hosted Jev</button>
+    </div>
+    <pre><code id="cta-code">npm install -g claude-autorouter
+claude-autorouter setup --pull
+claude-autorouter claude</code></pre>
+    <button class="btn" type="button" id="cta-copy">Copy commands</button>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <span class="muted">Local routing for Claude Code</span>
+  <nav aria-label="Footer">
+    <a href="https://github.com/frapposelli/claude-autorouter">GitHub</a>
+    <a href="https://www.npmjs.com/package/claude-autorouter">npm</a>
+    <a href="https://github.com/frapposelli/claude-autorouter/blob/main/docs/reference.md">Reference</a>
+    <a href="https://github.com/frapposelli/claude-autorouter/blob/main/SECURITY.md">Security</a>
+  </nav>
+  <span class="muted r">Apache-2.0 · 2026</span>
+  <p class="muted credits">Photos: “Signal box levers, Town railway, Beamish Museum” by Steve Hodgson, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC BY-SA 2.0</a>; “Points switcher” by Bernard Spragg, CC0. Via Wikimedia Commons.</p>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>
