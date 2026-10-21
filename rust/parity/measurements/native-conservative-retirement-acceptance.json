@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "decision_id": "native-conservative-retirement-2026-10-21",
+  "decision_date": "2026-10-21",
+  "status": "accepted_policy_scope_execution_evidence_recorded_separately",
+  "decision_kind": "policy_and_plan_decision",
+  "approval": {
+    "basis": "Explicit user approval of fresh connections and successful responses for the exact eight reproduced cases.",
+    "date": "2026-10-21"
+  },
+  "decision": "Accept the buffered native client retiring an unavailable upstream connection and selecting a fresh connection before dispatch, avoiding the reference stale-socket 502 in these eight cases.",
+  "execution_separation": "This acceptance is a policy/plan decision, not current artifact execution evidence. The pinned source/reports below are historical observations; they were not rerun or promoted by this decision.",
+  "accepted_observed_pattern": {
+    "constructor": "buffered",
+    "reference_statuses": [
+      200,
+      502,
+      200
+    ],
+    "native_statuses": [
+      200,
+      200,
+      200
+    ],
+    "reference_physical_connections": 2,
+    "native_physical_connections": 3,
+    "reference_handshakes": 2,
+    "native_handshakes": 3,
+    "all_response_envelopes_complete": true,
+    "original_comparison_matched": false
+  },
+  "cases": [
+    {
+      "inventory": "sessions",
+      "id": "TLSv1.2-abrupt-after-complete",
+      "protocol": "TLSv1.2",
+      "mode": "abrupt-after-complete"
+    },
+    {
+      "inventory": "sessions",
+      "id": "TLSv1.3-abrupt-after-complete",
+      "protocol": "TLSv1.3",
+      "mode": "abrupt-after-complete"
+    },
+    {
+      "inventory": "idle",
+      "id": "TLSv1.2-unbarriered-2",
+      "protocol": "TLSv1.2",
+      "mode": "unbarriered"
+    },
+    {
+      "inventory": "idle",
+      "id": "TLSv1.2-unbarriered-3",
+      "protocol": "TLSv1.2",
+      "mode": "unbarriered"
+    },
+    {
+      "inventory": "idle",
+      "id": "TLSv1.2-unbarriered-4",
+      "protocol": "TLSv1.2",
+      "mode": "unbarriered"
+    },
+    {
+      "inventory": "idle",
+      "id": "TLSv1.3-unbarriered-7",
+      "protocol": "TLSv1.3",
+      "mode": "unbarriered"
+    },
+    {
+      "inventory": "idle",
+      "id": "TLSv1.3-unbarriered-8",
+      "protocol": "TLSv1.3",
+      "mode": "unbarriered"
+    },
+    {
+      "inventory": "idle",
+      "id": "TLSv1.3-unbarriered-9",
+      "protocol": "TLSv1.3",
+      "mode": "unbarriered"
+    }
+  ],
+  "requirements": [
+    "Only these exact buffered case IDs and the stated observed pattern are covered when original equality fails. All other original comparisons remain unchanged.",
+    "Native responses must preserve the original successful synthetic fixture bytes, including the replacement second 200. Common successful response bodies must remain exact; clean completion and resource bounds remain mandatory.",
+    "Select fresh before dispatch. This authorizes no new request retry, replay after possible delivery, fabricated response/error, retention of a closed sender or weakened admission/authentication/cancellation/permission guard.",
+    "For the eight accepted observations: exactly 3 native attempts, 3 completions and 3 clean sources; zero source errors, failures or cancellations. Cache ownership is released, and all active request, task, shutdown handle and buffer resource counters are zero."
+  ],
+  "new_request_retry_authorized": false,
+  "tradeoffs": [
+    "One additional physical connection and TLS handshake in each reproduced case.",
+    "Connection/handshake load, latency and TLS resumption behavior may differ; these reports do not establish production performance.",
+    "Connection counts and transient-error observability differ from the Node reference; successful responses here are not a blanket reliability or compatibility claim."
+  ],
+  "historical_evidence": {
+    "source_snapshot": {
+      "path": "artifacts/rust-rewrite/passive-lifecycle-validation-20261021-1/source-candidate-v1.json",
+      "bytes": 124480,
+      "sha256": "f7c9318ecf56053e45e920e655869c2cd53bfae03e03b7208c06233286418d30"
+    },
+    "exact_mapping": {
+      "path": "artifacts/rust-rewrite/frame-eof-mock-controls-validation-20261021-2/prospective-eight-row-retirement-mapping-draft-v1.json",
+      "bytes": 14514,
+      "sha256": "bff6fdb5562d2216346655faa929c7036235cc3d8b7132424973bab1f1fad707"
+    },
+    "reports": [
+      {
+        "inventory": "sessions",
+        "report": {
+          "path": "artifacts/rust-rewrite/evidence/openssl-buffered-sessions-70889cc3fb8ee5d547d17aa9c6f7e9cf4d458f78d5a97ea5a91b4cfa38bc1cbe.json",
+          "bytes": 702097,
+          "sha256": "70889cc3fb8ee5d547d17aa9c6f7e9cf4d458f78d5a97ea5a91b4cfa38bc1cbe"
+        },
+        "historical_original_matched": 16,
+        "historical_original_count": 18,
+        "historical_original_passed": false
+      },
+      {
+        "inventory": "idle",
+        "report": {
+          "path": "artifacts/rust-rewrite/evidence/openssl-buffered-idle-close-35a8bee19fe67fcb5ea525bc4891e7d73a0563602542227492e63d95404bd645.json",
+          "bytes": 560227,
+          "sha256": "35a8bee19fe67fcb5ea525bc4891e7d73a0563602542227492e63d95404bd645"
+        },
+        "historical_original_matched": 4,
+        "historical_original_count": 10,
+        "historical_original_passed": false
+      }
+    ]
+  },
+  "preserved": {
+    "original_oracles_unchanged": true,
+    "historical_failed_reports_unchanged": true,
+    "historical_failures_promoted_to_parity_success": false,
+    "original_inventories": "18 session cases and 10 idle cases per constructor",
+    "legacy_and_unrelated_qualification": "Legacy cancellation/reuse discrepancies and all unrelated protocol, cleanup, platform, performance, provider and shipping gates remain separate."
+  },
+  "exact_node_protocol_parity_established": false,
+  "full_rewrite_complete": false,
+  "production_eligible": false,
+  "current_validation_summary": "rust/parity/measurements/native-conservative-retirement-validation-summary.json",
+  "validation_requirements": {
+    "execution_state": "Current execution is recorded in the separate validation summary; this decision JSON establishes policy scope.",
+    "inventory": "Run unchanged original complete buffered18-session and10-idle inventories under fresh source/binary/reference pins. Retain original comparison outputs, including normal parity exit1 when differences remain.",
+    "companion_guard": "Separate bounded validator must require exact unique inventories and unchanged original results, then classify each row as original matched or the exact accepted pattern for these eight IDs. Check bodies, attempts, clean/error counts and cleanup independently; any missing/duplicate/extra case, new mismatch, provider failure or resource failure rejects the companion qualification.",
+    "provenance": "Record current source manifest and candidate binary SHA, frozen reference111 pins, constructor, original driver/report/owner pins and exit status. Historical report matches are not a substitute.",
+    "scope_isolation": "Retain legacy original18/10 results separately; rerun them when the active plan requires current legacy coverage. This eight-row decision does not waive their failures.",
+    "result_fields": "Publish original exact equality and companion accepted-policy qualification as separate booleans with separate counts. Never overwrite original passed, matched, production_eligible or observed vectors."
+  }
+}

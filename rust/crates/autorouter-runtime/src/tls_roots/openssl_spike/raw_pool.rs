@@ -1159,3 +1159,6 @@ mod adversarial;
 
 #[path = "raw_pool_buffered.rs"]
 pub(super) mod buffered;
+
+#[path = "raw_pool_frame_eof_order_tests.rs"]
+mod frame_eof_order;
