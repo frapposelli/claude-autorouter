@@ -23,6 +23,7 @@ const LARGE_SYNTHETIC_CORPORA: &[&str] = &[
     "rust/parity/cases/ollama-router-contracts.jsonl",
     "rust/parity/cases/response-observer-contracts.jsonl",
     "rust/parity/cases/telemetry-statusline-contracts.jsonl",
+    // Historical archive readers retain this exact path and its original bound.
     "rust/parity/cases/server-streaming-routing-contracts.jsonl",
     "rust/parity/cases/server-auto-goal-prompt-ids-contracts.jsonl",
     "rust/parity/cases/server-auto-goal-headerless-contracts.jsonl",
@@ -91,7 +92,9 @@ const FIXED: &[&str] = &[
     "rust/parity/cases/local-diagnostic-contracts.capture.json",
     "rust/parity/cases/server-response-contracts.jsonl",
     "rust/parity/cases/server-response-contracts.capture.json",
-    "rust/parity/cases/server-streaming-routing-contracts.jsonl",
+    "rust/parity/cases/server-streaming-routing-contracts.jsonl.gz",
+    "rust/parity/fixture-assets-v1.json",
+    "rust/crates/autorouter-runtime/tests/support/fixture_asset.rs",
     "rust/parity/cases/server-streaming-routing-contracts.capture.json",
     "rust/parity/cases/server-identity-safety-contracts.jsonl",
     "rust/parity/cases/server-identity-safety-contracts.capture.json",
@@ -418,7 +421,8 @@ fn allowed(path: &str) -> bool {
     {
         return true;
     }
-    if FIXED.contains(&path) {
+    // Reader compatibility only: current collection rejects a legacy shadow.
+    if path == "rust/parity/cases/server-streaming-routing-contracts.jsonl" || FIXED.contains(&path) {
         return true;
     }
     for name in ["autorouter-core", "autorouter-runtime", "claude-autorouter"] {
@@ -510,6 +514,11 @@ fn regular(root: &Path, relative: &str) -> Result<Vec<u8>, String> {
     Ok(bytes)
 }
 fn collect(root: &Path) -> Result<BTreeMap<String, Entry>, String> {
+    // A representation migration cannot silently omit a still-present source asset.
+    match fs::symlink_metadata(root.join("rust/parity/cases/server-streaming-routing-contracts.jsonl")) {
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        _ => return Err("Legacy plaintext fixture remains beside encoded source asset".into()),
+    }
     let mut paths = FIXED.iter().map(|s| (*s).to_owned()).collect::<Vec<_>>();
     paths.extend(
         OPENSSL_FILES
@@ -536,7 +545,7 @@ fn collect(root: &Path) -> Result<BTreeMap<String, Entry>, String> {
         manifest.insert(path.clone(), sha(&bytes));
         files.insert(path, data_entry(bytes));
     }
-    let readme=b"# AutoRouter native benchmark source bundle\n\nPublic source and synthetic fixtures only. Install the pinned Rust toolchain, a C compiler, Make and Perl for the bundled OpenSSL build, and fetch the Cargo.lock dependencies (or provide an existing Cargo cache), then run from rust/:\n\n    cargo build --locked --release --package xtask\n    cargo xtask evaluate-ollama --help\n\nReading help makes no evaluator calls. Hardware evaluator runs are explicitly opt-in, do not download models, and must retain fixture hashes, model digest, residency, cold/warm conditions and the unchanged acceptance rubric. Existing experimental quality failures remain visible. The historical docs describe the original Node commands; use native xtask help for the replacement interface.\n\nThe locked Nix supplier is fetched at its reviewed immutable Git revision; its complete source/provenance stays in the Cargo cache. Run the no-default-features autorouter-audit vendor check before building ordinary CLI/helper code.\n\nThe runtime-neutral Node/Rust HTTP benchmark requires its separately verified frozen Node reference; no frozen Node product source/runtime, private reports, credentials, user configuration, Cargo cache or binaries are included here. This source bundle itself does not establish build provenance, platform qualification, task quality or performance acceptance.\n".to_vec();
+    let readme=b"# AutoRouter native benchmark source bundle\n\nPublic source and synthetic fixtures only. One immutable test fixture is stored as server-streaming-routing-contracts.jsonl.gz with fixture-assets-v1.json. Source extraction preserves these committed encoded bytes; the integration-test-only bounded native decoder verifies the original expanded SHA, byte length and rows. Plaintext fixture files are not silently restored or discounted from source accounting. No gzip program, Python or Node is needed for normal build/test decoding. Install the pinned Rust toolchain, a C compiler, Make and Perl for the bundled OpenSSL build, and fetch the Cargo.lock dependencies (or provide an existing Cargo cache), then run from rust/:\n\n    cargo build --locked --release --package xtask\n    cargo xtask evaluate-ollama --help\n\nReading help makes no evaluator calls. Hardware evaluator runs are explicitly opt-in, do not download models, and must retain fixture hashes, model digest, residency, cold/warm conditions and the unchanged acceptance rubric. Existing experimental quality failures remain visible. The historical docs describe the original Node commands; use native xtask help for the replacement interface.\n\nThe locked Nix supplier is fetched at its reviewed immutable Git revision; its complete source/provenance stays in the Cargo cache. Run the no-default-features autorouter-audit vendor check before building ordinary CLI/helper code.\n\nThe runtime-neutral Node/Rust HTTP benchmark requires its separately verified frozen Node reference; no frozen Node product source/runtime, private reports, credentials, user configuration, Cargo cache or binaries are included here. This source bundle itself does not establish build provenance, platform qualification, task quality or performance acceptance.\n".to_vec();
     manifest.insert("README.native.md".into(), sha(&readme));
     files.insert("README.native.md".into(), data_entry(readme));
     let record = source_record(&manifest);
@@ -663,7 +672,7 @@ pub fn run(args: &[String], root: &Path) -> Result<bool, String> {
     }
     if args == ["--help"] {
         println!(
-            "cargo xtask benchmark-bundle [NEW_DESTINATION.indexed.cpio.gz]\ncargo xtask benchmark-bundle --source-format indexed-binary-cpio|binary-cpio|ustar NEW_ARCHIVE\ncargo xtask benchmark-bundle --inspect-source FORMAT ARCHIVE\ncargo xtask benchmark-bundle --extract-source FORMAT ARCHIVE NEW_ABSOLUTE_DIRECTORY\ncargo xtask benchmark-bundle --executable TARGET=RELEASE_XTASK NEW_ARCHIVE.tar.gz\ncargo xtask benchmark-bundle --source-executable TARGET=FRESH_RELEASE_XTASK NEW_ARCHIVE.tar.gz\ncargo xtask benchmark-bundle --transfer NEW_DIRECTORY\ncargo xtask benchmark-bundle --transfer-v6 NEW_DIRECTORY\ncargo xtask benchmark-bundle --transfer-v7 NEW_DIRECTORY\ncargo xtask benchmark-bundle --restore-reference TRANSFER_DIRECTORY NEW_REFERENCE_DIRECTORY\n--source-executable creates a distinct native source+ready artifact: full SOURCE32 inner bytes, NATIVE32/64 outer and conservative complete64 accounting, with fresh source identity and no build/quality qualification inferred. Old formats remain unchanged. Default creates a distinct indexed gzip binary big-endian CPIO source container: only the generated inventory is stored as schema4 source-manifest.bin; the bounded receiver restores the exact original schema2 source-manifest.json and all public source/fixture bytes; it does not contain frozen Node product sources. Use --source-format ustar NEW_ARCHIVE.tar.gz for the old source-only tar format. --inspect-source FORMAT ARCHIVE and --extract-source FORMAT ARCHIVE NEW_ABSOLUTE_DIRECTORY require FORMAT indexed-binary-cpio, binary-cpio or ustar explicitly, verify checksum and full source inventory, and perform no evaluator calls. GNUtar alone cannot extract CPIO. Use the descriptor-backed indexed extract command to materialize canonical JSON; libarchive tar or GNUcpio with gzip expose the stored binary inventory. Explicit binary-cpio retains the old physical JSON container. Every source format retains compressed, actual expanded carrier and complete logical32MiB caps. The combined --source-executable inner format is unchanged. --executable creates a separate target-specific ready-to-run evaluator with complete licenses; its receiver needs no Node/Cargo/source checkout and supports only evaluate-ollama. Prebuilt source-to-binary provenance and platform qualification remain unverified. --transfer creates a licensed reference delta sharing two exact fixtures, the license and frozen manifest with the native archive, plus checksum/resume files for matched larger-host benchmarks, without a Git checkout. Source and transfer modes exclude binaries; every mode excludes credentials, private reports and Cargo caches and performs no evaluator calls. Default --transfer selects schema7: joint expanded-carrier and complete raw-logical caps are 40 MiB, with each source archive still bounded at 32 MiB compressed/expanded. --transfer-v7 explicitly selects that policy; --transfer-v6 selects the original schema6/32 MiB joint policy. Schemas6/7 use the same gzip binary big-endian CPIO source, indexed generated manifest and licensed tar delta. Shared copies remain fully charged logically. Legacy full-tar size is separately reported. --restore-reference verifies schemas 1 through 7 then creates the full 113-file frozen reference before any reference operation. Requires pinned Rust/locked dependencies; matched reference runs need Node22.14.0."
+            "cargo xtask benchmark-bundle [NEW_DESTINATION.indexed.cpio.gz]\ncargo xtask benchmark-bundle --source-format indexed-binary-cpio|binary-cpio|ustar NEW_ARCHIVE\ncargo xtask benchmark-bundle --inspect-source FORMAT ARCHIVE\ncargo xtask benchmark-bundle --extract-source FORMAT ARCHIVE NEW_ABSOLUTE_DIRECTORY\ncargo xtask benchmark-bundle --executable TARGET=RELEASE_XTASK NEW_ARCHIVE.tar.gz\ncargo xtask benchmark-bundle --source-executable TARGET=FRESH_RELEASE_XTASK NEW_ARCHIVE.tar.gz\ncargo xtask benchmark-bundle --transfer NEW_DIRECTORY\ncargo xtask benchmark-bundle --transfer-v6 NEW_DIRECTORY\ncargo xtask benchmark-bundle --transfer-v7 NEW_DIRECTORY\ncargo xtask benchmark-bundle --restore-reference TRANSFER_DIRECTORY NEW_REFERENCE_DIRECTORY\n--source-executable creates a distinct native source+ready artifact: full SOURCE32 inner bytes, NATIVE32/64 outer and conservative complete64 accounting, with fresh source identity and no build/quality qualification inferred. Old formats remain unchanged. Default creates a distinct indexed gzip binary big-endian CPIO source container: only the generated inventory is stored as schema4 source-manifest.bin; the bounded receiver restores the exact original schema2 source-manifest.json and all public source/fixture bytes in their committed representation; encoded fixtures stay encoded and decode only in tests. It does not contain frozen Node product sources. Use --source-format ustar NEW_ARCHIVE.tar.gz for the old source-only tar format. --inspect-source FORMAT ARCHIVE and --extract-source FORMAT ARCHIVE NEW_ABSOLUTE_DIRECTORY require FORMAT indexed-binary-cpio, binary-cpio or ustar explicitly, verify checksum and full source inventory, and perform no evaluator calls. GNUtar alone cannot extract CPIO. Use the descriptor-backed indexed extract command to materialize canonical JSON; libarchive tar or GNUcpio with gzip expose the stored binary inventory. Explicit binary-cpio retains the old physical JSON container. Every source format retains compressed, actual expanded carrier and complete logical32MiB caps. The combined --source-executable inner format is unchanged. --executable creates a separate target-specific ready-to-run evaluator with complete licenses; its receiver needs no Node/Cargo/source checkout and supports only evaluate-ollama. Prebuilt source-to-binary provenance and platform qualification remain unverified. --transfer creates a licensed reference delta sharing two exact fixtures, the license and frozen manifest with the native archive, plus checksum/resume files for matched larger-host benchmarks, without a Git checkout. Source and transfer modes exclude binaries; every mode excludes credentials, private reports and Cargo caches and performs no evaluator calls. Default --transfer selects schema7: joint expanded-carrier and complete raw-logical caps are 40 MiB, with each source archive still bounded at 32 MiB compressed/expanded. --transfer-v7 explicitly selects that policy; --transfer-v6 selects the original schema6/32 MiB joint policy. Schemas6/7 use the same gzip binary big-endian CPIO source, indexed generated manifest and licensed tar delta. Shared copies remain fully charged logically. Legacy full-tar size is separately reported. --restore-reference verifies schemas 1 through 7 then creates the full 113-file frozen reference before any reference operation. Requires pinned Rust/locked dependencies; matched reference runs need Node22.14.0."
         );
         return Ok(true);
     }
@@ -875,6 +884,30 @@ mod tests {
         }
         assert!(create(&root, &destination).is_err());
         assert_eq!(fs::read(&destination).unwrap(), bytes);
+    }
+    #[test]
+    fn encoded_fixture_source_inputs_are_explicit_without_plaintext_restoration() {
+        assert!(allowed("rust/parity/cases/server-streaming-routing-contracts.jsonl.gz"));
+        assert!(allowed("rust/parity/fixture-assets-v1.json"));
+        assert!(allowed("rust/crates/autorouter-runtime/tests/support/fixture_asset.rs"));
+        assert!(allowed("rust/parity/cases/server-streaming-routing-contracts.jsonl"));
+        assert_eq!(pair::source_limit("rust/parity/cases/server-streaming-routing-contracts.jsonl"), 4 * 1024 * 1024);
+        assert!(!allowed("rust/parity/cases/adjacent.jsonl.gz"));
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize().unwrap();
+        assert!(matches!(fs::symlink_metadata(root.join("rust/parity/cases/server-streaming-routing-contracts.jsonl")),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound));
+        let stored = regular(&root, "rust/parity/cases/server-streaming-routing-contracts.jsonl.gz").unwrap();
+        let manifest: Value = serde_json::from_slice(&regular(&root, "rust/parity/fixture-assets-v1.json").unwrap()).unwrap();
+        let asset = &manifest["assets"][0];
+        assert_eq!(asset["stored_bytes"], stored.len());
+        assert_eq!(asset["stored_sha256"], sha(&stored));
+        assert_eq!(asset["expanded_bytes"], 3_970_358);
+        assert_eq!(asset["expanded_sha256"], "3f92130625b6e04789fd802e5322fbaba64098f6318bbd2e2b4e0d6a18151e33");
+        assert_eq!(stored[..4], [0x1f, 0x8b, 8, 0]);
+        let scratch = Scratch::new("legacy-fixture-shadow").unwrap();
+        fs::create_dir_all(scratch.0.join("rust/parity/cases")).unwrap();
+        scratch.file("rust/parity/cases/server-streaming-routing-contracts.jsonl", b"legacy").unwrap();
+        assert_eq!(collect(&scratch.0).err().as_deref(), Some("Legacy plaintext fixture remains beside encoded source asset"));
     }
     #[test]
     fn source_symlink_and_oversize_are_rejected() {

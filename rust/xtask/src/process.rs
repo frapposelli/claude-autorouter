@@ -530,7 +530,7 @@ mod tests {
         let mut command = Command::new("/bin/sh");
         command.args(["-c", "exit 17"]);
         let error = capture(&mut command, b"", Duration::from_secs(1)).unwrap_err();
-        assert!(error.starts_with("Fixture executable failed"));
+        assert!(error.starts_with("Fixture executable failed"), "{error}");
     }
 
     #[test]

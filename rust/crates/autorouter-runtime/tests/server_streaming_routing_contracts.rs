@@ -1,4 +1,6 @@
 //! Four complete original HTTP callbacks through ordinary native Gateway/Router.
+#[path = "support/fixture_asset.rs"]
+mod fixture_asset;
 #[path = "support/server_streaming_routing.rs"]
 mod peer;
 use autorouter_core::{config::read_config, js_json::JsDocument, router::RouteOptions};
@@ -27,7 +29,8 @@ use std::{
 };
 use tokio_util::sync::CancellationToken;
 
-const CORPUS: &str = include_str!("../../../parity/cases/server-streaming-routing-contracts.jsonl");
+static CORPUS: std::sync::LazyLock<&'static str> =
+    std::sync::LazyLock::new(fixture_asset::server_streaming_routing_contracts);
 const CAPTURE: &str =
     include_str!("../../../parity/cases/server-streaming-routing-contracts.capture.json");
 const SHA: &str = "3f92130625b6e04789fd802e5322fbaba64098f6318bbd2e2b4e0d6a18151e33";

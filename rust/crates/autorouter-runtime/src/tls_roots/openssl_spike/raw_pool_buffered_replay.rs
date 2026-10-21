@@ -43,6 +43,12 @@ impl Fixture {
             Some(probe) => BufferedRawPoolClient::with_idle(&trust, probe).unwrap(),
             None => BufferedRawPoolClient::new(&trust).unwrap(),
         });
+        Self::with_client(config, client).await
+    }
+    async fn with_client(
+        config: autorouter_core::config::RouterConfig,
+        client: Arc<BufferedRawPoolClient>,
+    ) -> Self {
         let terminal = gateway_terminal::Probe::default();
         // No legacy Intent is attached: idle observation and request-terminal
         // ownership use distinct channels, with only one assignment capture.
@@ -377,3 +383,6 @@ async fn pool_diagnostic_overflow_is_not_a_truncated_success() {
     }
     probe.trace_reader().snapshot();
 }
+
+#[path = "raw_pool_buffered_eof_phase_tests.rs"]
+mod eof_phase;

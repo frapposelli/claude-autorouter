@@ -569,10 +569,18 @@ impl Shared {
             shared: Arc::downgrade(self),
             id,
         };
+        // Retain only bounded scalar diagnostic state, not Shared/IO/admission authority.
+        let observed = self.probe.state.clone();
+        let epoch = self.probe.start;
         let driver = spawn_owned(self, async move {
             // Guard also runs when the driver is aborted before its first poll.
             let _lease = lease;
-            let _ = connection.await;
+            let result = connection.await;
+            let row = serde_json::json!({"event":"driver_finished","connection":id,
+                "ok":result.is_ok(),"ms":u64::try_from(epoch.elapsed().as_millis()).unwrap()});
+            let mut state = observed.lock().unwrap();
+            assert!(state.rows.len() < 1024, "raw pool trace bound");
+            state.rows.push(row);
         });
         let inactivity = spawn_owned(self, activity.clone().watch(id, self.probe.clone()));
         Ok((
@@ -738,6 +746,13 @@ impl Shared {
         clean: bool,
     ) {
         let unpoisoned = reservation.is_none_or(Http1Reservation::retire);
+        self.probe.record(
+            "consumer_complete",
+            serde_json::json!({
+                "connection":entry.id,"clean":clean,"unpoisoned":unpoisoned,
+                "sender_ready":entry.sender.is_ready(),"sender_closed":entry.sender.is_closed()
+            }),
+        );
         if !clean || !unpoisoned || entry.sender.is_closed() {
             drop(entry);
             return;

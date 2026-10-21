@@ -285,6 +285,11 @@ mod tests {
         let bytes = fs::read(&archive).unwrap();
         let decoded = decode(&bytes, Format::IndexedBinaryCpio).unwrap();
         same(&decoded.files, &expected);
+        let encoded_path = "rust/parity/cases/server-streaming-routing-contracts.jsonl.gz";
+        assert!(!decoded.files.contains_key("rust/parity/cases/server-streaming-routing-contracts.jsonl"));
+        assert_eq!(decoded.files[encoded_path].bytes, fs::read(root.join(encoded_path)).unwrap());
+        assert!(decoded.files.contains_key("rust/parity/fixture-assets-v1.json"));
+        assert!(decoded.files.contains_key("rust/crates/autorouter-runtime/tests/support/fixture_asset.rs"));
         assert_eq!(result["logical_file_bytes"], logical(&expected).unwrap());
         assert_eq!(result["expanded_carrier_bytes"], decoded.expanded_bytes);
         assert!(result.get("expanded_tar_bytes").is_none());
@@ -403,6 +408,22 @@ mod tests {
             )
             .is_err()
         );
+    }
+    #[test]
+    fn historical_plaintext_fixture_still_decodes_with_its_original_per_entry_bound() {
+        let mut files = fixture();
+        files.remove("source-manifest.json");
+        files.insert("rust/parity/cases/server-streaming-routing-contracts.jsonl".into(),
+            super::super::data_entry(vec![b'x'; 1024 * 1024 + 1]));
+        let hashes = files.iter().map(|(path, entry)| (path.clone(), sha(&entry.bytes))).collect();
+        files.insert("source-manifest.json".into(),
+            super::super::json_entry(&super::super::source_record(&hashes), "historical fixture").unwrap());
+        for format in [Format::BinaryCpio, Format::IndexedBinaryCpio] {
+            let mut stored = files.clone();
+            if format == Format::IndexedBinaryCpio { pair::index_source(&mut stored).unwrap(); }
+            let bytes = cpio::binary_encode_root(ROOT, &stored, SOURCE, pair::source_limit).unwrap();
+            same(&decode(&bytes, format).unwrap().files, &files);
+        }
     }
     #[test]
     fn compact_source_admission_rejects_changed_headers_inventory_modes_and_bytes() {
